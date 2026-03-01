@@ -1,8 +1,10 @@
 package biz
 
-import "github.com/go-kratos/kratos/v2/errors"
+import (
+	"momoko/pkg/response"
+)
 
 var (
 	// ErrAdminNotFound error admin not found.
-	ErrAdminNotFound = errors.NotFound("ADMIN", "admin not found")
+	ErrAdminNotFound = response.BadRequest(501, "用户不存在")
 )

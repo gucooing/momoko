@@ -37,7 +37,7 @@ func Middleware() middleware.Middleware {
 			if err != nil {
 				return nil, err
 			}
-			if _, ok := unwrapEnvelope(reply); ok {
+			if reply, ok := unwrapEnvelope(reply); ok {
 				return reply, nil
 			}
 			return Envelope{
@@ -47,6 +47,19 @@ func Middleware() middleware.Middleware {
 			}, nil
 		}
 	}
+}
+
+type Error struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e Error) Error() string {
+	return e.Message
+}
+
+func BadRequest(code int, message string) error {
+	return Error{code, message}
 }
 
 // ResponseEncoder encodes successful responses as unified JSON.
@@ -69,25 +82,30 @@ func ResponseEncoder(w stdhttp.ResponseWriter, r *stdhttp.Request, v any) error 
 
 // ErrorEncoder encodes errors as unified JSON.
 func ErrorEncoder(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
-	se := kerrors.FromError(err)
-	message := se.Message
-	if message == "" {
-		message = stdhttp.StatusText(int(se.Code))
+	reply, ok := unwrapEnvelope(err)
+	if !ok {
+		se := kerrors.FromError(err)
+		message := se.Message
 		if message == "" {
-			message = "error"
+			message = stdhttp.StatusText(int(se.Code))
+			if message == "" {
+				message = "error"
+			}
+		}
+		reply = Envelope{
+			Code:    int(se.Code),
+			Message: message,
+			Data:    emptyData(),
 		}
 	}
-	body, marshalErr := marshalEnvelope(Envelope{
-		Code:    int(se.Code),
-		Message: message,
-		Data:    emptyData(),
-	})
+
+	body, marshalErr := marshalEnvelope(reply)
 	if marshalErr != nil {
 		w.WriteHeader(stdhttp.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", contentTypeJSON)
-	w.WriteHeader(int(se.Code))
+	w.WriteHeader(reply.Code)
 	_, _ = w.Write(body)
 }
 
@@ -98,6 +116,12 @@ func WriteError(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
 
 func unwrapEnvelope(v any) (Envelope, bool) {
 	switch env := v.(type) {
+	case Error:
+		return Envelope{
+			Code:    env.Code,
+			Message: env.Message,
+			Data:    nil,
+		}, true
 	case Envelope:
 		return env, true
 	case *Envelope:

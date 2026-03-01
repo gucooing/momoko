@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+
+	"momoko/pkg/response"
 )
 
 // Admin is a Admin model.
@@ -48,7 +50,7 @@ func (uc *AdminUsecase) LoginByUsername(ctx context.Context, username, password 
 		return nil, err
 	}
 	if user.Password != password {
-		return nil, errors.Unauthorized("AUTH", "invalid credentials")
+		return nil, response.BadRequest(501, "invalid credentials")
 	}
 	return user, nil
 }

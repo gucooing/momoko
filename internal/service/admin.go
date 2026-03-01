@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/errors"
 	v1 "momoko/api/admin/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
+	"momoko/pkg/response"
 
 	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/filtering"
@@ -79,7 +79,7 @@ func (s *AdminService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Adm
 			return nil, err
 		}
 	default:
-		return nil, errors.BadRequest("AUTH", "unsupported identity type")
+		return nil, response.BadRequest(200, "unsupported identity type")
 	}
 	if err := auth.SetCookie(ctx, admin.ID, admin.Access, time.Now().Add(7*24*time.Hour)); err != nil {
 		return nil, err

@@ -19,6 +19,7 @@ import (
 func NewHTTPServer(c *conf.Server, admin *service.AdminService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
+			corsMiddleware(),
 			auth.Middleware(),
 		),
 		http.Middleware(
