@@ -7,7 +7,6 @@ import (
 
 	kerrors "github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
-	khttp "github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -64,12 +63,13 @@ func BadRequest(code int, message string) error {
 
 // ResponseEncoder encodes successful responses as unified JSON.
 func ResponseEncoder(w stdhttp.ResponseWriter, r *stdhttp.Request, v any) error {
-	if v == nil {
-		return nil
-	}
 	envelope, ok := unwrapEnvelope(v)
 	if !ok {
-		return khttp.DefaultResponseEncoder(w, r, v)
+		envelope = Envelope{
+			Code:    defaultSuccessCode,
+			Message: defaultSuccessMessage,
+			Data:    normalizeData(v),
+		}
 	}
 	body, err := marshalEnvelope(envelope)
 	if err != nil {

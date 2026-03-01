@@ -25,7 +25,6 @@ func NewHTTPServer(c *conf.Server, admin *service.AdminService) *http.Server {
 		http.Middleware(
 			recovery.Recovery(),
 			validate.Middleware(),
-			response.Middleware(),
 		),
 		http.NotFoundHandler(nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
 			response.WriteError(w, r, errors.NotFound("NOT_FOUND", "Not Found"))
