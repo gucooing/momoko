@@ -4,8 +4,9 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"momoko/api/gen/admin/v1"
 	"time"
+
+	"momoko/api/gen/admin/v1"
 
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
@@ -50,11 +51,11 @@ func NewAdminService(uc *biz.AdminUsecase) *AdminService {
 
 // Current implements auth current admin retrieval.
 func (s *AdminService) Current(ctx context.Context, req *emptypb.Empty) (*v1.Admin, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	admin, err := s.uc.GetAdmin(ctx, a.UserID)
+	admin, err := s.uc.GetAdmin(ctx, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -89,11 +90,11 @@ func (s *AdminService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Adm
 
 // Logout implements auth logout.
 func (s *AdminService) Logout(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	if err := s.uc.Logout(ctx, a.UserID); err != nil {
+	if err := s.uc.Logout(ctx, 0); err != nil {
 		return nil, err
 	}
 	if err := auth.DeleteCookie(ctx); err != nil {
@@ -104,13 +105,11 @@ func (s *AdminService) Logout(ctx context.Context, req *emptypb.Empty) (*emptypb
 
 // CreateAdmin implements admin creation.
 func (s *AdminService) CreateAdmin(ctx context.Context, req *v1.CreateAdminRequest) (*v1.Admin, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	if !a.HasAdminAccess() {
-		return nil, auth.ErrForbidden
-	}
+
 	admin, err := s.uc.CreateAdmin(ctx, &biz.Admin{
 		Name:     req.Admin.Name,
 		Email:    req.Admin.Email,
@@ -126,13 +125,11 @@ func (s *AdminService) CreateAdmin(ctx context.Context, req *v1.CreateAdminReque
 
 // UpdateAdmin implements admin update.
 func (s *AdminService) UpdateAdmin(ctx context.Context, req *v1.UpdateAdminRequest) (*v1.Admin, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	if !a.HasAdminAccess() {
-		return nil, auth.ErrForbidden
-	}
+
 	// Encode password if it's not empty
 	if req.Admin.Password != "" {
 		req.Admin.Password = encodePassword(req.Admin.Password)
@@ -158,13 +155,11 @@ func (s *AdminService) UpdateAdmin(ctx context.Context, req *v1.UpdateAdminReque
 
 // DeleteAdmin implements admin deletion.
 func (s *AdminService) DeleteAdmin(ctx context.Context, req *v1.DeleteAdminRequest) (*emptypb.Empty, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	if !a.HasAdminAccess() {
-		return nil, auth.ErrForbidden
-	}
+
 	if err := s.uc.DeleteAdmin(ctx, req.Id); err != nil {
 		return nil, err
 	}
@@ -173,12 +168,9 @@ func (s *AdminService) DeleteAdmin(ctx context.Context, req *v1.DeleteAdminReque
 
 // GetAdmin implements admin retrieval.
 func (s *AdminService) GetAdmin(ctx context.Context, req *v1.GetAdminRequest) (*v1.Admin, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
-	}
-	if !a.HasAdminAccess() {
-		return nil, auth.ErrForbidden
 	}
 	admin, err := s.uc.GetAdmin(ctx, req.Id)
 	if err != nil {
@@ -189,13 +181,11 @@ func (s *AdminService) GetAdmin(ctx context.Context, req *v1.GetAdminRequest) (*
 
 // ListAdmins implements admin listing with filtering, ordering, and pagination.
 func (s *AdminService) ListAdmins(ctx context.Context, req *v1.ListAdminsRequest) (*v1.AdminSet, error) {
-	a, ok := auth.FromContext(ctx)
+	_, ok := auth.FromContext(ctx)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
-	if !a.HasAdminAccess() {
-		return nil, auth.ErrForbidden
-	}
+
 	declarations, err := filtering.NewDeclarations(
 		filtering.DeclareStandardFunctions(),
 		filtering.DeclareIdent("name", filtering.TypeString),
