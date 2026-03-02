@@ -1,26 +1,37 @@
 package auth
 
 import (
+	"momoko/internal/data/ent"
+	"momoko/internal/data/ent/auth"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
-// GenerateToken generates a JWT token for the given username.
-func GenerateToken(userID int64, access, secret string, expiresAt time.Time) (string, error) {
-	now := time.Now()
+const (
+	tokenExpiresAt        = 2 * time.Hour
+	refreshTokenExpiresAt = 7 * 24 * time.Hour
+)
+
+func GenerateToken(authDb *ent.Auth, secret string) (string, error) {
 	claims := Auth{
-		UserID: userID,
-		Access: access,
+		UserID: authDb.UserID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        uuid.NewString(),
+			ID:        authDb.SessionID,
 			Issuer:    "kratos",
 			Subject:   "user",
-			Audience:  []string{"admin"},
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(authDb.CreateTime),
+			NotBefore: jwt.NewNumericDate(authDb.CreateTime),
+			ExpiresAt: jwt.NewNumericDate(authDb.UpdateTime.Add(func() time.Duration {
+				switch authDb.Type {
+				case auth.TypeToken:
+					return tokenExpiresAt
+				case auth.TypeRefreshToken:
+					return refreshTokenExpiresAt
+				default:
+					return 0
+				}
+			}())),
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
@@ -37,9 +48,9 @@ func ParseToken(tokenStr, secret string) (*Auth, error) {
 	if !token.Valid {
 		return nil, ErrUnauthorized
 	}
-	auth, ok := token.Claims.(*Auth)
+	claims, ok := token.Claims.(*Auth)
 	if !ok {
 		return nil, ErrUnauthorized
 	}
-	return auth, nil
+	return claims, nil
 }

@@ -16,6 +16,14 @@ type Tx struct {
 	config
 	// Admin is the client for interacting with the Admin builders.
 	Admin *AdminClient
+	// Auth is the client for interacting with the Auth builders.
+	Auth *AuthClient
+	// Menu is the client for interacting with the Menu builders.
+	Menu *MenuClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -148,6 +156,10 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Admin = NewAdminClient(tx.config)
+	tx.Auth = NewAuthClient(tx.config)
+	tx.Menu = NewMenuClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

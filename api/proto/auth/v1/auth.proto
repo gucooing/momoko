@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "momoko/api/gen/auth/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+
+// 认证服务
+service AuthService {
+  // 账号登录
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+  // 刷新token
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/refresh"
+      body: "*"
+    };
+  }
+}
+
+// 账号登录请求
+message LoginRequest {
+  // 登录密码
+  string password = 1;
+  // 登录渠道
+  oneof identity {
+    // 用户名登录
+    string username = 2;
+    // 邮箱登录
+    string email = 3;
+  }
+}
+
+// 账号登录响应
+message LoginResponse {
+  // token
+  string access_token = 1;
+  // 刷新token
+  string refresh_token = 2;
+  // token 有效时间
+  google.protobuf.Duration expires_in = 3;
+}
+
+// 刷新token请求
+message RefreshRequest {
+  // 刷新token
+  string refresh_token = 1;
+}
+
+// 刷新token响应
+message RefreshResponse {
+  // token
+  string access_token = 1;
+  // 刷新token
+  string refresh_token = 2;
+  // token 有效时间
+  google.protobuf.Duration expires_in = 3;
+}

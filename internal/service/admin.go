@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"momoko/api/gen/admin/v1"
 	"time"
 
-	v1 "momoko/api/admin/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"

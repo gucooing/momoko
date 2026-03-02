@@ -1,0 +1,99 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: AuthService API
+    description: 认证服务
+    version: 0.0.1
+paths:
+    /v1/auth/login:
+        post:
+            tags:
+                - AuthService
+            description: 账号登录
+            operationId: AuthService_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/auth.v1.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.LoginResponse'
+    /v1/auth/refresh:
+        post:
+            tags:
+                - AuthService
+            description: 刷新token
+            operationId: AuthService_Refresh
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/auth.v1.RefreshRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.RefreshResponse'
+components:
+    schemas:
+        auth.v1.LoginRequest:
+            type: object
+            properties:
+                password:
+                    type: string
+                    description: 登录密码
+                username:
+                    type: string
+                    description: 用户名登录
+                email:
+                    type: string
+                    description: 邮箱登录
+            description: 账号登录请求
+        auth.v1.LoginResponse:
+            type: object
+            properties:
+                accessToken:
+                    type: string
+                    description: token
+                refreshToken:
+                    type: string
+                    description: 刷新token
+                expiresIn:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                    description: token 有效时间
+            description: 账号登录响应
+        auth.v1.RefreshRequest:
+            type: object
+            properties:
+                refreshToken:
+                    type: string
+                    description: 刷新token
+            description: 刷新token请求
+        auth.v1.RefreshResponse:
+            type: object
+            properties:
+                accessToken:
+                    type: string
+                    description: token
+                refreshToken:
+                    type: string
+                    description: 刷新token
+                expiresIn:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                    description: token 有效时间
+            description: 刷新token响应
+tags:
+    - name: AuthService

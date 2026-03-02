@@ -1,7 +1,7 @@
 package server
 
 import (
-	v1 "momoko/api/admin/v1"
+	"momoko/api/gen/admin/v1"
 	"momoko/internal/conf"
 	"momoko/internal/service"
 	"momoko/pkg/validate"

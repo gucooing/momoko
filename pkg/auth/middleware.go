@@ -16,7 +16,8 @@ import (
 var (
 	// noAuthPaths defines the paths that do not require authentication.
 	noAuthPaths = map[string]struct{}{
-		"/v1/admins/login": {},
+		"/v1/auth/login":   {},
+		"/v1/auth/refresh": {},
 	}
 	// authSecretKey is the secret key used for signing JWT tokens.
 	authSecretKey = authSecretFromEnv("KRATOS_AUTH_SECRET")
@@ -58,13 +59,8 @@ func SetCookie(ctx context.Context, userID int64, access string, expiresAt time.
 	if !ok {
 		return fmt.Errorf("failed to get transport from context")
 	}
-	token, err := GenerateToken(userID, access, authSecretKey, expiresAt)
-	if err != nil {
-		return err
-	}
 	cookie := &http.Cookie{
 		Name:    cookieName,
-		Value:   token,
 		Path:    "/",
 		Expires: expiresAt,
 	}

@@ -1,9 +1,10 @@
 package server
 
 import (
+	adminV1 "momoko/api/gen/admin/v1"
+	authV1 "momoko/api/gen/auth/v1"
 	nethttp "net/http"
 
-	v1 "momoko/api/admin/v1"
 	"momoko/internal/conf"
 	"momoko/internal/service"
 	"momoko/pkg/auth"
@@ -16,7 +17,10 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, admin *service.AdminService) *http.Server {
+func NewHTTPServer(c *conf.Server,
+	admin *service.AdminService,
+	authApi *service.AuthService,
+) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
 			corsMiddleware(),
@@ -45,6 +49,8 @@ func NewHTTPServer(c *conf.Server, admin *service.AdminService) *http.Server {
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterAdminServiceHTTPServer(srv, admin)
+	adminV1.RegisterAdminServiceHTTPServer(srv, admin)
+	authV1.RegisterAuthServiceHTTPServer(srv, authApi)
+
 	return srv
 }
