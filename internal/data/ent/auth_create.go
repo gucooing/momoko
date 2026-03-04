@@ -40,6 +40,12 @@ func (_c *AuthCreate) SetUserID(v string) *AuthCreate {
 	return _c
 }
 
+// SetIP sets the "ip" field.
+func (_c *AuthCreate) SetIP(v string) *AuthCreate {
+	_c.mutation.SetIP(v)
+	return _c
+}
+
 // SetCreateTime sets the "create_time" field.
 func (_c *AuthCreate) SetCreateTime(v time.Time) *AuthCreate {
 	_c.mutation.SetCreateTime(v)
@@ -145,6 +151,9 @@ func (_c *AuthCreate) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Auth.user_id": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.IP(); !ok {
+		return &ValidationError{Name: "ip", err: errors.New(`ent: missing required field "Auth.ip"`)}
+	}
 	if _, ok := _c.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Auth.create_time"`)}
 	}
@@ -197,6 +206,10 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
 		_node.UserID = value
+	}
+	if value, ok := _c.mutation.IP(); ok {
+		_spec.SetField(auth.FieldIP, field.TypeString, value)
+		_node.IP = value
 	}
 	if value, ok := _c.mutation.CreateTime(); ok {
 		_spec.SetField(auth.FieldCreateTime, field.TypeTime, value)
@@ -295,6 +308,18 @@ func (u *AuthUpsert) SetUserID(v string) *AuthUpsert {
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
 func (u *AuthUpsert) UpdateUserID() *AuthUpsert {
 	u.SetExcluded(auth.FieldUserID)
+	return u
+}
+
+// SetIP sets the "ip" field.
+func (u *AuthUpsert) SetIP(v string) *AuthUpsert {
+	u.Set(auth.FieldIP, v)
+	return u
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *AuthUpsert) UpdateIP() *AuthUpsert {
+	u.SetExcluded(auth.FieldIP)
 	return u
 }
 
@@ -406,6 +431,20 @@ func (u *AuthUpsertOne) SetUserID(v string) *AuthUpsertOne {
 func (u *AuthUpsertOne) UpdateUserID() *AuthUpsertOne {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetIP sets the "ip" field.
+func (u *AuthUpsertOne) SetIP(v string) *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetIP(v)
+	})
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *AuthUpsertOne) UpdateIP() *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateIP()
 	})
 }
 
@@ -687,6 +726,20 @@ func (u *AuthUpsertBulk) SetUserID(v string) *AuthUpsertBulk {
 func (u *AuthUpsertBulk) UpdateUserID() *AuthUpsertBulk {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetIP sets the "ip" field.
+func (u *AuthUpsertBulk) SetIP(v string) *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetIP(v)
+	})
+}
+
+// UpdateIP sets the "ip" field to the value that was provided on create.
+func (u *AuthUpsertBulk) UpdateIP() *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateIP()
 	})
 }
 

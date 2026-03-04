@@ -23,6 +23,8 @@ type Auth struct {
 	DeviceID string `json:"device_id,omitempty"`
 	// 所属用户id
 	UserID string `json:"user_id,omitempty"`
+	// 登录ip
+	IP string `json:"ip,omitempty"`
 	// 创建时间
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
@@ -39,7 +41,7 @@ func (*Auth) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case auth.FieldID:
 			values[i] = new(sql.NullInt64)
-		case auth.FieldSessionID, auth.FieldDeviceID, auth.FieldUserID, auth.FieldType:
+		case auth.FieldSessionID, auth.FieldDeviceID, auth.FieldUserID, auth.FieldIP, auth.FieldType:
 			values[i] = new(sql.NullString)
 		case auth.FieldCreateTime, auth.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -81,6 +83,12 @@ func (_m *Auth) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
 				_m.UserID = value.String
+			}
+		case auth.FieldIP:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ip", values[i])
+			} else if value.Valid {
+				_m.IP = value.String
 			}
 		case auth.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -144,6 +152,9 @@ func (_m *Auth) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("ip=")
+	builder.WriteString(_m.IP)
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(_m.CreateTime.Format(time.ANSIC))

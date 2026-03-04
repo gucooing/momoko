@@ -29,8 +29,9 @@ var (
 	AuthsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "session_id", Type: field.TypeString, Unique: true},
-		{Name: "device_id", Type: field.TypeString, Unique: true},
+		{Name: "device_id", Type: field.TypeString},
 		{Name: "user_id", Type: field.TypeString},
+		{Name: "ip", Type: field.TypeString},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"token", "refresh_token"}},
@@ -42,9 +43,24 @@ var (
 		PrimaryKey: []*schema.Column{AuthsColumns[0]},
 		Indexes: []*schema.Index{
 			{
+				Name:    "auth_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuthsColumns[1]},
+			},
+			{
+				Name:    "auth_device_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuthsColumns[2]},
+			},
+			{
+				Name:    "auth_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuthsColumns[3]},
+			},
+			{
 				Name:    "auth_session_id_device_id_type",
 				Unique:  true,
-				Columns: []*schema.Column{AuthsColumns[1], AuthsColumns[2], AuthsColumns[6]},
+				Columns: []*schema.Column{AuthsColumns[1], AuthsColumns[2], AuthsColumns[7]},
 			},
 		},
 	}
@@ -110,7 +126,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
-		{Name: "avatar", Type: field.TypeString},
+		{Name: "avatar", Type: field.TypeString, Default: ""},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

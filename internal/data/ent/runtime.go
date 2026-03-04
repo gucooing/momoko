@@ -63,11 +63,11 @@ func init() {
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
 	// authDescCreateTime is the schema descriptor for create_time field.
-	authDescCreateTime := authFields[3].Descriptor()
+	authDescCreateTime := authFields[4].Descriptor()
 	// auth.DefaultCreateTime holds the default value on creation for the create_time field.
 	auth.DefaultCreateTime = authDescCreateTime.Default.(func() time.Time)
 	// authDescUpdateTime is the schema descriptor for update_time field.
-	authDescUpdateTime := authFields[4].Descriptor()
+	authDescUpdateTime := authFields[5].Descriptor()
 	// auth.DefaultUpdateTime holds the default value on creation for the update_time field.
 	auth.DefaultUpdateTime = authDescUpdateTime.Default.(func() time.Time)
 	// auth.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
@@ -140,6 +140,10 @@ func init() {
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userDescAvatar is the schema descriptor for avatar field.
+	userDescAvatar := userFields[7].Descriptor()
+	// user.DefaultAvatar holds the default value on creation for the avatar field.
+	user.DefaultAvatar = userDescAvatar.Default.(string)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.

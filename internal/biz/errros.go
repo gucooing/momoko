@@ -1,10 +1,15 @@
 package biz
 
 import (
+	"fmt"
+
 	"momoko/pkg/response"
 )
 
 var (
-	// ErrAdminNotFound error admin not found.
-	ErrAdminNotFound = response.BadRequest(501, "用户不存在")
+	ErrSystem = func(err error) error {
+		return response.BadRequest(501, fmt.Sprintf("系统错误,请联系管理员:%v", err))
+	}
+	ErrAdminNotFound   = response.BadRequest(501, "用户不存在")
+	ErrInvalidPassword = response.BadRequest(501, "密码错误")
 )

@@ -70,6 +70,20 @@ func (_u *AuthUpdate) SetNillableUserID(v *string) *AuthUpdate {
 	return _u
 }
 
+// SetIP sets the "ip" field.
+func (_u *AuthUpdate) SetIP(v string) *AuthUpdate {
+	_u.mutation.SetIP(v)
+	return _u
+}
+
+// SetNillableIP sets the "ip" field if the given value is not nil.
+func (_u *AuthUpdate) SetNillableIP(v *string) *AuthUpdate {
+	if v != nil {
+		_u.SetIP(*v)
+	}
+	return _u
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (_u *AuthUpdate) SetUpdateTime(v time.Time) *AuthUpdate {
 	_u.mutation.SetUpdateTime(v)
@@ -177,6 +191,9 @@ func (_u *AuthUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.IP(); ok {
+		_spec.SetField(auth.FieldIP, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -241,6 +258,20 @@ func (_u *AuthUpdateOne) SetUserID(v string) *AuthUpdateOne {
 func (_u *AuthUpdateOne) SetNillableUserID(v *string) *AuthUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// SetIP sets the "ip" field.
+func (_u *AuthUpdateOne) SetIP(v string) *AuthUpdateOne {
+	_u.mutation.SetIP(v)
+	return _u
+}
+
+// SetNillableIP sets the "ip" field if the given value is not nil.
+func (_u *AuthUpdateOne) SetNillableIP(v *string) *AuthUpdateOne {
+	if v != nil {
+		_u.SetIP(*v)
 	}
 	return _u
 }
@@ -381,6 +412,9 @@ func (_u *AuthUpdateOne) sqlSave(ctx context.Context) (_node *Auth, err error) {
 	}
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IP(); ok {
+		_spec.SetField(auth.FieldIP, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)

@@ -20,6 +20,8 @@ const (
 	FieldDeviceID = "device_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldIP holds the string denoting the ip field in the database.
+	FieldIP = "ip"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
@@ -36,6 +38,7 @@ var Columns = []string{
 	FieldSessionID,
 	FieldDeviceID,
 	FieldUserID,
+	FieldIP,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldType,
@@ -110,6 +113,11 @@ func ByDeviceID(opts ...sql.OrderTermOption) OrderOption {
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByIP orders the results by the ip field.
+func ByIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIP, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

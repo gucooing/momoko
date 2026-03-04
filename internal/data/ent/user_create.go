@@ -90,6 +90,14 @@ func (_c *UserCreate) SetAvatar(v string) *UserCreate {
 	return _c
 }
 
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAvatar(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v string) *UserCreate {
 	_c.mutation.SetID(v)
@@ -157,6 +165,10 @@ func (_c *UserCreate) defaults() {
 	if _, ok := _c.mutation.Status(); !ok {
 		v := user.DefaultStatus
 		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.Avatar(); !ok {
+		v := user.DefaultAvatar
+		_c.mutation.SetAvatar(v)
 	}
 }
 

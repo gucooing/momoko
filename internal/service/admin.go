@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"time"
 
 	"momoko/api/gen/admin/v1"
 
@@ -82,9 +81,6 @@ func (s *AdminService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Adm
 	default:
 		return nil, response.BadRequest(200, "unsupported identity type")
 	}
-	if err := auth.SetCookie(ctx, admin.ID, admin.Access, time.Now().Add(7*24*time.Hour)); err != nil {
-		return nil, err
-	}
 	return convertAdmin(admin), nil
 }
 
@@ -95,9 +91,6 @@ func (s *AdminService) Logout(ctx context.Context, req *emptypb.Empty) (*emptypb
 		return nil, auth.ErrUnauthorized
 	}
 	if err := s.uc.Logout(ctx, 0); err != nil {
-		return nil, err
-	}
-	if err := auth.DeleteCookie(ctx); err != nil {
 		return nil, err
 	}
 	return &emptypb.Empty{}, nil

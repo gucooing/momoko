@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"momoko/internal/conf"
+	"momoko/pkg/auth"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -73,6 +74,7 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
+	auth.AuthSecretKey = bc.GetAuth().Secret
 
 	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
 	if err != nil {

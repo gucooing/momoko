@@ -700,6 +700,7 @@ type AuthMutation struct {
 	session_id    *string
 	device_id     *string
 	user_id       *string
+	ip            *string
 	create_time   *time.Time
 	update_time   *time.Time
 	_type         *auth.Type
@@ -915,6 +916,42 @@ func (m *AuthMutation) ResetUserID() {
 	m.user_id = nil
 }
 
+// SetIP sets the "ip" field.
+func (m *AuthMutation) SetIP(s string) {
+	m.ip = &s
+}
+
+// IP returns the value of the "ip" field in the mutation.
+func (m *AuthMutation) IP() (r string, exists bool) {
+	v := m.ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIP returns the old "ip" field's value of the Auth entity.
+// If the Auth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuthMutation) OldIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIP: %w", err)
+	}
+	return oldValue.IP, nil
+}
+
+// ResetIP resets all changes to the "ip" field.
+func (m *AuthMutation) ResetIP() {
+	m.ip = nil
+}
+
 // SetCreateTime sets the "create_time" field.
 func (m *AuthMutation) SetCreateTime(t time.Time) {
 	m.create_time = &t
@@ -1057,7 +1094,7 @@ func (m *AuthMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AuthMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.session_id != nil {
 		fields = append(fields, auth.FieldSessionID)
 	}
@@ -1066,6 +1103,9 @@ func (m *AuthMutation) Fields() []string {
 	}
 	if m.user_id != nil {
 		fields = append(fields, auth.FieldUserID)
+	}
+	if m.ip != nil {
+		fields = append(fields, auth.FieldIP)
 	}
 	if m.create_time != nil {
 		fields = append(fields, auth.FieldCreateTime)
@@ -1090,6 +1130,8 @@ func (m *AuthMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceID()
 	case auth.FieldUserID:
 		return m.UserID()
+	case auth.FieldIP:
+		return m.IP()
 	case auth.FieldCreateTime:
 		return m.CreateTime()
 	case auth.FieldUpdateTime:
@@ -1111,6 +1153,8 @@ func (m *AuthMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeviceID(ctx)
 	case auth.FieldUserID:
 		return m.OldUserID(ctx)
+	case auth.FieldIP:
+		return m.OldIP(ctx)
 	case auth.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case auth.FieldUpdateTime:
@@ -1146,6 +1190,13 @@ func (m *AuthMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserID(v)
+		return nil
+	case auth.FieldIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIP(v)
 		return nil
 	case auth.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -1225,6 +1276,9 @@ func (m *AuthMutation) ResetField(name string) error {
 		return nil
 	case auth.FieldUserID:
 		m.ResetUserID()
+		return nil
+	case auth.FieldIP:
+		m.ResetIP()
 		return nil
 	case auth.FieldCreateTime:
 		m.ResetCreateTime()

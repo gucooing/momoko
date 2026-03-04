@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"time"
+
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -13,9 +14,10 @@ const (
 	refreshTokenExpiresAt = 7 * 24 * time.Hour
 )
 
-func GenerateToken(authDb *ent.Auth, secret string) (string, error) {
+func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
 	claims := Auth{
-		UserID: authDb.UserID,
+		UserID:   authDb.UserID,
+		DeviceId: deviceId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        authDb.SessionID,
 			Issuer:    "kratos",
@@ -34,7 +36,7 @@ func GenerateToken(authDb *ent.Auth, secret string) (string, error) {
 			}())),
 		},
 	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(AuthSecretKey))
 }
 
 // ParseToken parses the JWT token string and returns the Auth claims.

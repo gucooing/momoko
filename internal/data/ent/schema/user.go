@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"time"
 )
 
 // 用户信息
@@ -21,7 +22,7 @@ func (User) Fields() []ent.Field {
 		field.Time("create_time").Default(time.Now).Immutable().Comment("创建时间"),
 		field.Time("update_time").Default(time.Now).UpdateDefault(time.Now).Comment("更新时间"),
 		field.Enum("status").Values("active", "inactive").Default("active").Comment("启用状态"),
-		field.String("avatar").Comment("头像"),
+		field.String("avatar").Default("").Comment("头像"),
 	}
 }
 

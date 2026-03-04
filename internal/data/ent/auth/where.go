@@ -69,6 +69,11 @@ func UserID(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldUserID, v))
 }
 
+// IP applies equality check predicate on the "ip" field. It's identical to IPEQ.
+func IP(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldIP, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldCreateTime, v))
@@ -272,6 +277,71 @@ func UserIDEqualFold(v string) predicate.Auth {
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldContainsFold(FieldUserID, v))
+}
+
+// IPEQ applies the EQ predicate on the "ip" field.
+func IPEQ(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldIP, v))
+}
+
+// IPNEQ applies the NEQ predicate on the "ip" field.
+func IPNEQ(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldNEQ(FieldIP, v))
+}
+
+// IPIn applies the In predicate on the "ip" field.
+func IPIn(vs ...string) predicate.Auth {
+	return predicate.Auth(sql.FieldIn(FieldIP, vs...))
+}
+
+// IPNotIn applies the NotIn predicate on the "ip" field.
+func IPNotIn(vs ...string) predicate.Auth {
+	return predicate.Auth(sql.FieldNotIn(FieldIP, vs...))
+}
+
+// IPGT applies the GT predicate on the "ip" field.
+func IPGT(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldGT(FieldIP, v))
+}
+
+// IPGTE applies the GTE predicate on the "ip" field.
+func IPGTE(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldGTE(FieldIP, v))
+}
+
+// IPLT applies the LT predicate on the "ip" field.
+func IPLT(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldLT(FieldIP, v))
+}
+
+// IPLTE applies the LTE predicate on the "ip" field.
+func IPLTE(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldLTE(FieldIP, v))
+}
+
+// IPContains applies the Contains predicate on the "ip" field.
+func IPContains(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldContains(FieldIP, v))
+}
+
+// IPHasPrefix applies the HasPrefix predicate on the "ip" field.
+func IPHasPrefix(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldHasPrefix(FieldIP, v))
+}
+
+// IPHasSuffix applies the HasSuffix predicate on the "ip" field.
+func IPHasSuffix(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldHasSuffix(FieldIP, v))
+}
+
+// IPEqualFold applies the EqualFold predicate on the "ip" field.
+func IPEqualFold(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEqualFold(FieldIP, v))
+}
+
+// IPContainsFold applies the ContainsFold predicate on the "ip" field.
+func IPContainsFold(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldContainsFold(FieldIP, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

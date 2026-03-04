@@ -5,15 +5,16 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/wire"
+
 	"momoko/internal/conf"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/migrate"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/wire"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewAdminRepo)
+var ProviderSet = wire.NewSet(NewData, NewAdminRepo, NewAuthRepo, NewUserRepo)
 
 // Data is a struct that contains the database client.
 type Data struct {
