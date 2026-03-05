@@ -25,3 +25,11 @@ func (ur *userRepo) FindByName(ctx context.Context, name string) (*ent.User, err
 
 	return query.First(ctx)
 }
+
+func (ur *userRepo) FindByID(ctx context.Context, id string) (*ent.User, error) {
+	query := ur.data.db.User.Query()
+
+	query.Where(user.IDEQ(id))
+
+	return query.First(ctx)
+}

@@ -105,19 +105,65 @@ func (_u *UserUpdate) SetNillableAvatar(v *string) *UserUpdate {
 	return _u
 }
 
-// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
-func (_u *UserUpdate) AddRoleIDs(ids ...string) *UserUpdate {
-	_u.mutation.AddRoleIDs(ids...)
+// SetBio sets the "bio" field.
+func (_u *UserUpdate) SetBio(v string) *UserUpdate {
+	_u.mutation.SetBio(v)
 	return _u
 }
 
-// AddRoles adds the "roles" edges to the Role entity.
-func (_u *UserUpdate) AddRoles(v ...*Role) *UserUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableBio(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetBio(*v)
 	}
-	return _u.AddRoleIDs(ids...)
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *UserUpdate) SetName(v string) *UserUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *UserUpdate) SetTags(v string) *UserUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableTags(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetTags(*v)
+	}
+	return _u
+}
+
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (_u *UserUpdate) SetRoleID(id string) *UserUpdate {
+	_u.mutation.SetRoleID(id)
+	return _u
+}
+
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (_u *UserUpdate) SetNillableRoleID(id *string) *UserUpdate {
+	if id != nil {
+		_u = _u.SetRoleID(*id)
+	}
+	return _u
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (_u *UserUpdate) SetRole(v *Role) *UserUpdate {
+	return _u.SetRoleID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -125,25 +171,10 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearRoles clears all "roles" edges to the Role entity.
-func (_u *UserUpdate) ClearRoles() *UserUpdate {
-	_u.mutation.ClearRoles()
+// ClearRole clears the "role" edge to the Role entity.
+func (_u *UserUpdate) ClearRole() *UserUpdate {
+	_u.mutation.ClearRole()
 	return _u
-}
-
-// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
-func (_u *UserUpdate) RemoveRoleIDs(ids ...string) *UserUpdate {
-	_u.mutation.RemoveRoleIDs(ids...)
-	return _u
-}
-
-// RemoveRoles removes "roles" edges to Role entities.
-func (_u *UserUpdate) RemoveRoles(v ...*Role) *UserUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -194,6 +225,16 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Tags(); ok {
+		if err := user.TagsValidator(v); err != nil {
+			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -227,12 +268,21 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 	}
-	if _u.mutation.RolesCleared() {
+	if value, ok := _u.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(user.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -240,28 +290,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
+	if nodes := _u.mutation.RoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -368,19 +402,65 @@ func (_u *UserUpdateOne) SetNillableAvatar(v *string) *UserUpdateOne {
 	return _u
 }
 
-// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
-func (_u *UserUpdateOne) AddRoleIDs(ids ...string) *UserUpdateOne {
-	_u.mutation.AddRoleIDs(ids...)
+// SetBio sets the "bio" field.
+func (_u *UserUpdateOne) SetBio(v string) *UserUpdateOne {
+	_u.mutation.SetBio(v)
 	return _u
 }
 
-// AddRoles adds the "roles" edges to the Role entity.
-func (_u *UserUpdateOne) AddRoles(v ...*Role) *UserUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableBio(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetBio(*v)
 	}
-	return _u.AddRoleIDs(ids...)
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *UserUpdateOne) SetName(v string) *UserUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *UserUpdateOne) SetTags(v string) *UserUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableTags(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetTags(*v)
+	}
+	return _u
+}
+
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (_u *UserUpdateOne) SetRoleID(id string) *UserUpdateOne {
+	_u.mutation.SetRoleID(id)
+	return _u
+}
+
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableRoleID(id *string) *UserUpdateOne {
+	if id != nil {
+		_u = _u.SetRoleID(*id)
+	}
+	return _u
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (_u *UserUpdateOne) SetRole(v *Role) *UserUpdateOne {
+	return _u.SetRoleID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -388,25 +468,10 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearRoles clears all "roles" edges to the Role entity.
-func (_u *UserUpdateOne) ClearRoles() *UserUpdateOne {
-	_u.mutation.ClearRoles()
+// ClearRole clears the "role" edge to the Role entity.
+func (_u *UserUpdateOne) ClearRole() *UserUpdateOne {
+	_u.mutation.ClearRole()
 	return _u
-}
-
-// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
-func (_u *UserUpdateOne) RemoveRoleIDs(ids ...string) *UserUpdateOne {
-	_u.mutation.RemoveRoleIDs(ids...)
-	return _u
-}
-
-// RemoveRoles removes "roles" edges to Role entities.
-func (_u *UserUpdateOne) RemoveRoles(v ...*Role) *UserUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -470,6 +535,16 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Tags(); ok {
+		if err := user.TagsValidator(v); err != nil {
+			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -520,12 +595,21 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 	}
-	if _u.mutation.RolesCleared() {
+	if value, ok := _u.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(user.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -533,28 +617,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
+	if nodes := _u.mutation.RoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),

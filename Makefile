@@ -44,8 +44,13 @@ api:
 	       --go-http_out=paths=source_relative:./api/gen \
 	       --go-grpc_out=paths=source_relative:./api/gen \
 	       --openapi_out=fq_schema_naming=true,default_response=false:./api/gen \
-	       --ts_proto_out=paths=source_relative:./api/ts \
-	       --ts_proto_opt=esModuleInterop=true,forceLong=string,useOptionals=messages \
+	       --ts_proto_out=paths=source_relative,\
+outputServices=none,\
+outputClientImpl=false,\
+outputEncodeMethods=false,\
+outputJsonMethods=false,\
+stringEnums=true,\
+outputPartialMethods=false:./api/ts \
 	       $(API_PROTO_FILES)
 
 .PHONY: build

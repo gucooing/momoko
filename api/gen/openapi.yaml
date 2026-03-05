@@ -3,8 +3,7 @@
 
 openapi: 3.0.3
 info:
-    title: AuthService API
-    description: 认证服务
+    title: ""
     version: 0.0.1
 paths:
     /v1/auth/login:
@@ -45,6 +44,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/auth.v1.RefreshResponse'
+    /v1/user/me:
+        get:
+            tags:
+                - UserService
+            description: 获取自己的信息
+            operationId: UserService_MeInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user.v1.MeInfoResponse'
 components:
     schemas:
         auth.v1.LoginRequest:
@@ -95,5 +107,56 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        user.v1.MeInfoResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/user.v1.UserInfo'
+                    description: 用户信息
+            description: 获取自己信息响应
+        user.v1.UserInfo:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户id
+                bio:
+                    type: string
+                    description: 个人简介
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                email:
+                    type: string
+                    description: 邮箱
+                avatar:
+                    type: string
+                    description: 头像url
+                name:
+                    type: string
+                    description: 昵称
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                tags:
+                    type: string
+                    description: 标签
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                username:
+                    type: string
+                    description: 账户名
+                roleName:
+                    type: string
+                    description: 角色名称
+            description: 用户信息
 tags:
     - name: AuthService
+      description: 认证服务
+    - name: UserService
+      description: 用户服务

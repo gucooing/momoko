@@ -98,25 +98,55 @@ func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
 	return _c
 }
 
+// SetBio sets the "bio" field.
+func (_c *UserCreate) SetBio(v string) *UserCreate {
+	_c.mutation.SetBio(v)
+	return _c
+}
+
+// SetName sets the "name" field.
+func (_c *UserCreate) SetName(v string) *UserCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_c *UserCreate) SetNillableName(v *string) *UserCreate {
+	if v != nil {
+		_c.SetName(*v)
+	}
+	return _c
+}
+
+// SetTags sets the "tags" field.
+func (_c *UserCreate) SetTags(v string) *UserCreate {
+	_c.mutation.SetTags(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v string) *UserCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
-// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
-func (_c *UserCreate) AddRoleIDs(ids ...string) *UserCreate {
-	_c.mutation.AddRoleIDs(ids...)
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (_c *UserCreate) SetRoleID(id string) *UserCreate {
+	_c.mutation.SetRoleID(id)
 	return _c
 }
 
-// AddRoles adds the "roles" edges to the Role entity.
-func (_c *UserCreate) AddRoles(v ...*Role) *UserCreate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (_c *UserCreate) SetNillableRoleID(id *string) *UserCreate {
+	if id != nil {
+		_c = _c.SetRoleID(*id)
 	}
-	return _c.AddRoleIDs(ids...)
+	return _c
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (_c *UserCreate) SetRole(v *Role) *UserCreate {
+	return _c.SetRoleID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -170,6 +200,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultAvatar
 		_c.mutation.SetAvatar(v)
 	}
+	if _, ok := _c.mutation.Name(); !ok {
+		v := user.DefaultName
+		_c.mutation.SetName(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -204,6 +238,25 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Avatar(); !ok {
 		return &ValidationError{Name: "avatar", err: errors.New(`ent: missing required field "User.avatar"`)}
+	}
+	if _, ok := _c.mutation.Bio(); !ok {
+		return &ValidationError{Name: "bio", err: errors.New(`ent: missing required field "User.bio"`)}
+	}
+	if v, ok := _c.mutation.Bio(); ok {
+		if err := user.BioValidator(v); err != nil {
+			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
+	}
+	if _, ok := _c.mutation.Tags(); !ok {
+		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required field "User.tags"`)}
+	}
+	if v, ok := _c.mutation.Tags(); ok {
+		if err := user.TagsValidator(v); err != nil {
+			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
+		}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := user.IDValidator(v); err != nil {
@@ -274,12 +327,24 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 		_node.Avatar = value
 	}
-	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
+	if value, ok := _c.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+		_node.Bio = value
+	}
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(user.FieldTags, field.TypeString, value)
+		_node.Tags = value
+	}
+	if nodes := _c.mutation.RoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   user.RolesTable,
-			Columns: []string{user.RolesColumn},
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -288,6 +353,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.user_role = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -411,6 +477,42 @@ func (u *UserUpsert) SetAvatar(v string) *UserUpsert {
 // UpdateAvatar sets the "avatar" field to the value that was provided on create.
 func (u *UserUpsert) UpdateAvatar() *UserUpsert {
 	u.SetExcluded(user.FieldAvatar)
+	return u
+}
+
+// SetBio sets the "bio" field.
+func (u *UserUpsert) SetBio(v string) *UserUpsert {
+	u.Set(user.FieldBio, v)
+	return u
+}
+
+// UpdateBio sets the "bio" field to the value that was provided on create.
+func (u *UserUpsert) UpdateBio() *UserUpsert {
+	u.SetExcluded(user.FieldBio)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *UserUpsert) SetName(v string) *UserUpsert {
+	u.Set(user.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *UserUpsert) UpdateName() *UserUpsert {
+	u.SetExcluded(user.FieldName)
+	return u
+}
+
+// SetTags sets the "tags" field.
+func (u *UserUpsert) SetTags(v string) *UserUpsert {
+	u.Set(user.FieldTags, v)
+	return u
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *UserUpsert) UpdateTags() *UserUpsert {
+	u.SetExcluded(user.FieldTags)
 	return u
 }
 
@@ -546,6 +648,48 @@ func (u *UserUpsertOne) SetAvatar(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateAvatar() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAvatar()
+	})
+}
+
+// SetBio sets the "bio" field.
+func (u *UserUpsertOne) SetBio(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetBio(v)
+	})
+}
+
+// UpdateBio sets the "bio" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateBio() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateBio()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *UserUpsertOne) SetName(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *UserUpsertOne) SetTags(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateTags() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateTags()
 	})
 }
 
@@ -848,6 +992,48 @@ func (u *UserUpsertBulk) SetAvatar(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateAvatar() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAvatar()
+	})
+}
+
+// SetBio sets the "bio" field.
+func (u *UserUpsertBulk) SetBio(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetBio(v)
+	})
+}
+
+// UpdateBio sets the "bio" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateBio() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateBio()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *UserUpsertBulk) SetName(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *UserUpsertBulk) SetTags(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateTags() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateTags()
 	})
 }
 

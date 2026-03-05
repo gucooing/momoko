@@ -29,17 +29,23 @@ const (
 	FieldStatus = "status"
 	// FieldAvatar holds the string denoting the avatar field in the database.
 	FieldAvatar = "avatar"
-	// EdgeRoles holds the string denoting the roles edge name in mutations.
-	EdgeRoles = "roles"
+	// FieldBio holds the string denoting the bio field in the database.
+	FieldBio = "bio"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
+	// EdgeRole holds the string denoting the role edge name in mutations.
+	EdgeRole = "role"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// RolesTable is the table that holds the roles relation/edge.
-	RolesTable = "roles"
-	// RolesInverseTable is the table name for the Role entity.
+	// RoleTable is the table that holds the role relation/edge.
+	RoleTable = "users"
+	// RoleInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
-	RolesInverseTable = "roles"
-	// RolesColumn is the table column denoting the roles relation/edge.
-	RolesColumn = "user_roles"
+	RoleInverseTable = "roles"
+	// RoleColumn is the table column denoting the role relation/edge.
+	RoleColumn = "user_role"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -52,12 +58,26 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldStatus,
 	FieldAvatar,
+	FieldBio,
+	FieldName,
+	FieldTags,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_role",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -75,6 +95,12 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultAvatar holds the default value on creation for the "avatar" field.
 	DefaultAvatar string
+	// BioValidator is a validator for the "bio" field. It is called by the builders before save.
+	BioValidator func(string) error
+	// DefaultName holds the default value on creation for the "name" field.
+	DefaultName string
+	// TagsValidator is a validator for the "tags" field. It is called by the builders before save.
+	TagsValidator func(string) error
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -82,13 +108,14 @@ var (
 // Status defines the type for the "status" enum field.
 type Status string
 
-// StatusActive is the default value of the Status enum.
-const DefaultStatus = StatusActive
+// StatusInactive is the default value of the Status enum.
+const DefaultStatus = StatusInactive
 
 // Status values.
 const (
-	StatusActive   Status = "active"
 	StatusInactive Status = "inactive"
+	StatusActive   Status = "active"
+	StatusFreeze   Status = "freeze"
 )
 
 func (s Status) String() string {
@@ -98,7 +125,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusActive, StatusInactive:
+	case StatusInactive, StatusActive, StatusFreeze:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
@@ -148,23 +175,31 @@ func ByAvatar(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAvatar, opts...).ToFunc()
 }
 
-// ByRolesCount orders the results by roles count.
-func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRolesStep(), opts...)
-	}
+// ByBio orders the results by the bio field.
+func ByBio(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBio, opts...).ToFunc()
 }
 
-// ByRoles orders the results by roles terms.
-func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByTags orders the results by the tags field.
+func ByTags(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTags, opts...).ToFunc()
+}
+
+// ByRoleField orders the results by role field.
+func ByRoleField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRoleStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newRolesStep() *sqlgraph.Step {
+func newRoleStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RolesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+		sqlgraph.To(RoleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, RoleTable, RoleColumn),
 	)
 }

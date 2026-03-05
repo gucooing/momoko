@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 
 	"momoko/pkg/response"
 
@@ -26,8 +27,13 @@ func Middleware() httpm.FilterFunc {
 				next.ServeHTTP(w, r)
 				return
 			}
-			token := r.Header.Get("Authorization")
-			auth, err := ParseToken(token, AuthSecretKey)
+			authorization := r.Header.Get("Authorization")
+			tokens := strings.Split(authorization, " ")
+			if len(tokens) != 2 || tokens[0] != "Bearer" {
+				response.WriteError(w, r, ErrUnauthorized)
+				return
+			}
+			auth, err := ParseToken(tokens[1], AuthSecretKey)
 			if err != nil {
 				response.WriteError(w, r, ErrUnauthorized)
 				return

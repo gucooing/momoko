@@ -5,6 +5,7 @@ import (
 
 	adminV1 "momoko/api/gen/admin/v1"
 	authV1 "momoko/api/gen/auth/v1"
+	userV1 "momoko/api/gen/user/v1"
 
 	"momoko/internal/conf"
 	"momoko/internal/service"
@@ -21,6 +22,7 @@ import (
 func NewHTTPServer(c *conf.Server,
 	admin *service.AdminService,
 	authApi *service.AuthService,
+	userApi *service.UserService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -52,6 +54,7 @@ func NewHTTPServer(c *conf.Server,
 	srv := http.NewServer(opts...)
 	adminV1.RegisterAdminServiceHTTPServer(srv, admin)
 	authV1.RegisterAuthServiceHTTPServer(srv, authApi)
+	userV1.RegisterUserServiceHTTPServer(srv, userApi)
 
 	return srv
 }

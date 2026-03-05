@@ -42,11 +42,11 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		return nil, err
 	}
 	deviceId := uuid.NewString()
-	access, err := s.uc.NewAccessToken(ctx, user.Username, deviceId, "")
+	access, err := s.uc.NewAccessToken(ctx, user.ID, deviceId, "")
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.uc.NewRefreshToken(ctx, user.Username, deviceId, "")
+	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, deviceId, "")
 	if err != nil {
 		return nil, err
 	}

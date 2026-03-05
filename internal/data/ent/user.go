@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"momoko/internal/data/ent/role"
 	"momoko/internal/data/ent/user"
 	"strings"
 	"time"
@@ -28,32 +29,41 @@ type User struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// 启用状态
+	// 账号状态
 	Status user.Status `json:"status,omitempty"`
 	// 头像
 	Avatar string `json:"avatar,omitempty"`
+	// 个人简介
+	Bio string `json:"bio,omitempty"`
+	// 昵称
+	Name string `json:"name,omitempty"`
+	// 标签
+	Tags string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
+	user_role    *string
 	selectValues sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// 关联的角色
-	Roles []*Role `json:"roles,omitempty"`
+	Role *Role `json:"role,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// RolesOrErr returns the Roles value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[0] {
-		return e.Roles, nil
+// RoleOrErr returns the Role value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) RoleOrErr() (*Role, error) {
+	if e.Role != nil {
+		return e.Role, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: role.Label}
 	}
-	return nil, &NotLoadedError{edge: "roles"}
+	return nil, &NotLoadedError{edge: "role"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -61,10 +71,12 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar:
+		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
+		case user.ForeignKeys[0]: // user_role
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -128,6 +140,31 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Avatar = value.String
 			}
+		case user.FieldBio:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bio", values[i])
+			} else if value.Valid {
+				_m.Bio = value.String
+			}
+		case user.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
+		case user.FieldTags:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value.Valid {
+				_m.Tags = value.String
+			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_role", values[i])
+			} else if value.Valid {
+				_m.user_role = new(string)
+				*_m.user_role = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -141,9 +178,9 @@ func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryRoles queries the "roles" edge of the User entity.
-func (_m *User) QueryRoles() *RoleQuery {
-	return NewUserClient(_m.config).QueryRoles(_m)
+// QueryRole queries the "role" edge of the User entity.
+func (_m *User) QueryRole() *RoleQuery {
+	return NewUserClient(_m.config).QueryRole(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -189,6 +226,15 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("avatar=")
 	builder.WriteString(_m.Avatar)
+	builder.WriteString(", ")
+	builder.WriteString("bio=")
+	builder.WriteString(_m.Bio)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(_m.Tags)
 	builder.WriteByte(')')
 	return builder.String()
 }

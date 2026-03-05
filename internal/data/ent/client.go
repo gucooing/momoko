@@ -896,15 +896,15 @@ func (c *UserClient) GetX(ctx context.Context, id string) *User {
 	return obj
 }
 
-// QueryRoles queries the roles edge of a User.
-func (c *UserClient) QueryRoles(_m *User) *RoleQuery {
+// QueryRole queries the role edge of a User.
+func (c *UserClient) QueryRole(_m *User) *RoleQuery {
 	query := (&RoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.RolesTable, user.RolesColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.RoleTable, user.RoleColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
