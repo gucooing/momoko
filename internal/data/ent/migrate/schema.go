@@ -28,12 +28,13 @@ var (
 	// AuthsColumns holds the columns for the "auths" table.
 	AuthsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "session_id", Type: field.TypeString, Unique: true},
-		{Name: "device_id", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeString},
-		{Name: "ip", Type: field.TypeString},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "session_id", Type: field.TypeString, Unique: true},
+		{Name: "device_id", Type: field.TypeString},
+		{Name: "device", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "ip", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"token", "refresh_token"}},
 	}
 	// AuthsTable holds the schema information for the "auths" table.
@@ -45,34 +46,39 @@ var (
 			{
 				Name:    "auth_session_id",
 				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[1]},
+				Columns: []*schema.Column{AuthsColumns[3]},
 			},
 			{
 				Name:    "auth_device_id",
 				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[2]},
+				Columns: []*schema.Column{AuthsColumns[4]},
 			},
 			{
 				Name:    "auth_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[3]},
+				Columns: []*schema.Column{AuthsColumns[6]},
 			},
 			{
-				Name:    "auth_session_id_device_id_type",
+				Name:    "auth_session_id_type",
 				Unique:  true,
-				Columns: []*schema.Column{AuthsColumns[1], AuthsColumns[2], AuthsColumns[7]},
+				Columns: []*schema.Column{AuthsColumns[3], AuthsColumns[8]},
+			},
+			{
+				Name:    "auth_device_id_type",
+				Unique:  true,
+				Columns: []*schema.Column{AuthsColumns[4], AuthsColumns[8]},
 			},
 		},
 	}
 	// MenusColumns holds the columns for the "menus" table.
 	MenusColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"directory", "menu", "button"}},
 		{Name: "title", Type: field.TypeString},
 		{Name: "icon", Type: field.TypeString},
-		{Name: "is_builtin", Type: field.TypeBool, Default: false},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
+		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "parent_id", Type: field.TypeString},
 		{Name: "order", Type: field.TypeInt},
@@ -96,10 +102,10 @@ var (
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "is_builtin", Type: field.TypeBool, Default: false},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "is_builtin", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 	}
 	// RolesTable holds the schema information for the "roles" table.
@@ -111,11 +117,11 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"inactive", "active", "freeze"}, Default: "inactive"},
 		{Name: "avatar", Type: field.TypeString, Default: ""},
 		{Name: "bio", Type: field.TypeString},

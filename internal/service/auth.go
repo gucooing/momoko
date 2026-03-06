@@ -9,6 +9,7 @@ import (
 	"momoko/api/gen/auth/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
+	auth2 "momoko/internal/data/ent/auth"
 	"momoko/pkg/auth"
 
 	"time"
@@ -42,11 +43,11 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		return nil, err
 	}
 	deviceId := uuid.NewString()
-	access, err := s.uc.NewAccessToken(ctx, user.ID, deviceId, "")
+	access, err := s.uc.NewAccessToken(ctx, user.ID, deviceId, req)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, deviceId, "")
+	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, deviceId, req)
 	if err != nil {
 		return nil, err
 	}
@@ -63,5 +64,59 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    durationpb.New(time.Hour),
+	}, nil
+}
+
+func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.RefreshResponse, error) {
+	refreshAuth, err := auth.ParseToken(req.RefreshToken)
+	if err != nil {
+		return nil, biz.ErrTokenInvalid
+	}
+	if s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
+		return nil, biz.ErrTokenInvalid
+	}
+	// 更新token
+	access, err := s.uc.NewAccessToken(ctx,
+		refreshAuth.ID,
+		refreshAuth.DeviceId,
+		nil)
+	if err != nil {
+		return nil, err
+	}
+	refresh, err := s.uc.NewRefreshToken(ctx,
+		refreshAuth.ID,
+		refreshAuth.DeviceId,
+		nil)
+	if err != nil {
+		return nil, err
+	}
+	accessToken, err := auth.GenerateToken(access, refreshAuth.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := auth.GenerateToken(refresh, refreshAuth.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.RefreshResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    durationpb.New(time.Hour),
+	}, nil
+}
+
+func (s *AuthService) Devices(ctx context.Context, req *v1.DevicesRequest) (*v1.DevicesResponse, error) {
+	authInfo, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	list, err := s.uc.ListLoginDevice(ctx, authInfo.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DevicesResponse{
+		Devices:  list,
+		DeviceId: authInfo.DeviceId,
 	}, nil
 }

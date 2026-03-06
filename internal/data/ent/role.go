@@ -18,14 +18,14 @@ type Role struct {
 	// ID of the ent.
 	// 角色id
 	ID string `json:"id,omitempty"`
-	// 角色名称
-	Name string `json:"name,omitempty"`
-	// 是否内置角色(不可修改)
-	IsBuiltin bool `json:"is_builtin,omitempty"`
 	// 创建时间
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// 角色名称
+	Name string `json:"name,omitempty"`
+	// 是否内置角色(不可修改)
+	IsBuiltin bool `json:"is_builtin,omitempty"`
 	// 启用状态
 	Status role.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -84,18 +84,6 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ID = value.String
 			}
-		case role.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				_m.Name = value.String
-			}
-		case role.FieldIsBuiltin:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_builtin", values[i])
-			} else if value.Valid {
-				_m.IsBuiltin = value.Bool
-			}
 		case role.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
@@ -107,6 +95,18 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case role.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
+		case role.FieldIsBuiltin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_builtin", values[i])
+			} else if value.Valid {
+				_m.IsBuiltin = value.Bool
 			}
 		case role.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -155,17 +155,17 @@ func (_m *Role) String() string {
 	var builder strings.Builder
 	builder.WriteString("Role(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("is_builtin=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsBuiltin))
-	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("is_builtin=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsBuiltin))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

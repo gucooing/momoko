@@ -28,6 +28,12 @@ func (_u *MenuUpdate) Where(ps ...predicate.Menu) *MenuUpdate {
 	return _u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *MenuUpdate) SetUpdateTime(v time.Time) *MenuUpdate {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetType sets the "type" field.
 func (_u *MenuUpdate) SetType(v menu.Type) *MenuUpdate {
 	_u.mutation.SetType(v)
@@ -70,23 +76,17 @@ func (_u *MenuUpdate) SetNillableIcon(v *string) *MenuUpdate {
 	return _u
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (_u *MenuUpdate) SetIsBuiltin(v bool) *MenuUpdate {
-	_u.mutation.SetIsBuiltin(v)
+// SetIsSystem sets the "is_system" field.
+func (_u *MenuUpdate) SetIsSystem(v bool) *MenuUpdate {
+	_u.mutation.SetIsSystem(v)
 	return _u
 }
 
-// SetNillableIsBuiltin sets the "is_builtin" field if the given value is not nil.
-func (_u *MenuUpdate) SetNillableIsBuiltin(v *bool) *MenuUpdate {
+// SetNillableIsSystem sets the "is_system" field if the given value is not nil.
+func (_u *MenuUpdate) SetNillableIsSystem(v *bool) *MenuUpdate {
 	if v != nil {
-		_u.SetIsBuiltin(*v)
+		_u.SetIsSystem(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *MenuUpdate) SetUpdateTime(v time.Time) *MenuUpdate {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -231,6 +231,9 @@ func (_u *MenuUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(menu.FieldType, field.TypeEnum, value)
 	}
@@ -240,11 +243,8 @@ func (_u *MenuUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsBuiltin(); ok {
-		_spec.SetField(menu.FieldIsBuiltin, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := _u.mutation.IsSystem(); ok {
+		_spec.SetField(menu.FieldIsSystem, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(menu.FieldStatus, field.TypeEnum, value)
@@ -279,6 +279,12 @@ type MenuUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MenuMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *MenuUpdateOne) SetUpdateTime(v time.Time) *MenuUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
 }
 
 // SetType sets the "type" field.
@@ -323,23 +329,17 @@ func (_u *MenuUpdateOne) SetNillableIcon(v *string) *MenuUpdateOne {
 	return _u
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (_u *MenuUpdateOne) SetIsBuiltin(v bool) *MenuUpdateOne {
-	_u.mutation.SetIsBuiltin(v)
+// SetIsSystem sets the "is_system" field.
+func (_u *MenuUpdateOne) SetIsSystem(v bool) *MenuUpdateOne {
+	_u.mutation.SetIsSystem(v)
 	return _u
 }
 
-// SetNillableIsBuiltin sets the "is_builtin" field if the given value is not nil.
-func (_u *MenuUpdateOne) SetNillableIsBuiltin(v *bool) *MenuUpdateOne {
+// SetNillableIsSystem sets the "is_system" field if the given value is not nil.
+func (_u *MenuUpdateOne) SetNillableIsSystem(v *bool) *MenuUpdateOne {
 	if v != nil {
-		_u.SetIsBuiltin(*v)
+		_u.SetIsSystem(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *MenuUpdateOne) SetUpdateTime(v time.Time) *MenuUpdateOne {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -514,6 +514,9 @@ func (_u *MenuUpdateOne) sqlSave(ctx context.Context) (_node *Menu, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(menu.FieldType, field.TypeEnum, value)
 	}
@@ -523,11 +526,8 @@ func (_u *MenuUpdateOne) sqlSave(ctx context.Context) (_node *Menu, err error) {
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsBuiltin(); ok {
-		_spec.SetField(menu.FieldIsBuiltin, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := _u.mutation.IsSystem(); ok {
+		_spec.SetField(menu.FieldIsSystem, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(menu.FieldStatus, field.TypeEnum, value)

@@ -29,6 +29,12 @@ func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return _u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *UserUpdate) SetUpdateTime(v time.Time) *UserUpdate {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
 	_u.mutation.SetUsername(v)
@@ -68,12 +74,6 @@ func (_u *UserUpdate) SetNillableEmail(v *string) *UserUpdate {
 	if v != nil {
 		_u.SetEmail(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *UserUpdate) SetUpdateTime(v time.Time) *UserUpdate {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -250,6 +250,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
@@ -258,9 +261,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
@@ -326,6 +326,12 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *UserUpdateOne) SetUpdateTime(v time.Time) *UserUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *UserUpdateOne) SetUsername(v string) *UserUpdateOne {
 	_u.mutation.SetUsername(v)
@@ -365,12 +371,6 @@ func (_u *UserUpdateOne) SetNillableEmail(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetEmail(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *UserUpdateOne) SetUpdateTime(v time.Time) *UserUpdateOne {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -577,6 +577,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
@@ -585,9 +588,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)

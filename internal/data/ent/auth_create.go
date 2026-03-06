@@ -22,30 +22,6 @@ type AuthCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetSessionID sets the "session_id" field.
-func (_c *AuthCreate) SetSessionID(v string) *AuthCreate {
-	_c.mutation.SetSessionID(v)
-	return _c
-}
-
-// SetDeviceID sets the "device_id" field.
-func (_c *AuthCreate) SetDeviceID(v string) *AuthCreate {
-	_c.mutation.SetDeviceID(v)
-	return _c
-}
-
-// SetUserID sets the "user_id" field.
-func (_c *AuthCreate) SetUserID(v string) *AuthCreate {
-	_c.mutation.SetUserID(v)
-	return _c
-}
-
-// SetIP sets the "ip" field.
-func (_c *AuthCreate) SetIP(v string) *AuthCreate {
-	_c.mutation.SetIP(v)
-	return _c
-}
-
 // SetCreateTime sets the "create_time" field.
 func (_c *AuthCreate) SetCreateTime(v time.Time) *AuthCreate {
 	_c.mutation.SetCreateTime(v)
@@ -71,6 +47,36 @@ func (_c *AuthCreate) SetNillableUpdateTime(v *time.Time) *AuthCreate {
 	if v != nil {
 		_c.SetUpdateTime(*v)
 	}
+	return _c
+}
+
+// SetSessionID sets the "session_id" field.
+func (_c *AuthCreate) SetSessionID(v string) *AuthCreate {
+	_c.mutation.SetSessionID(v)
+	return _c
+}
+
+// SetDeviceID sets the "device_id" field.
+func (_c *AuthCreate) SetDeviceID(v string) *AuthCreate {
+	_c.mutation.SetDeviceID(v)
+	return _c
+}
+
+// SetDevice sets the "device" field.
+func (_c *AuthCreate) SetDevice(v string) *AuthCreate {
+	_c.mutation.SetDevice(v)
+	return _c
+}
+
+// SetUserID sets the "user_id" field.
+func (_c *AuthCreate) SetUserID(v string) *AuthCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetIP sets the "ip" field.
+func (_c *AuthCreate) SetIP(v string) *AuthCreate {
+	_c.mutation.SetIP(v)
 	return _c
 }
 
@@ -127,6 +133,12 @@ func (_c *AuthCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *AuthCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Auth.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Auth.update_time"`)}
+	}
 	if _, ok := _c.mutation.SessionID(); !ok {
 		return &ValidationError{Name: "session_id", err: errors.New(`ent: missing required field "Auth.session_id"`)}
 	}
@@ -143,6 +155,14 @@ func (_c *AuthCreate) check() error {
 			return &ValidationError{Name: "device_id", err: fmt.Errorf(`ent: validator failed for field "Auth.device_id": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Device(); !ok {
+		return &ValidationError{Name: "device", err: errors.New(`ent: missing required field "Auth.device"`)}
+	}
+	if v, ok := _c.mutation.Device(); ok {
+		if err := auth.DeviceValidator(v); err != nil {
+			return &ValidationError{Name: "device", err: fmt.Errorf(`ent: validator failed for field "Auth.device": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Auth.user_id"`)}
 	}
@@ -153,12 +173,6 @@ func (_c *AuthCreate) check() error {
 	}
 	if _, ok := _c.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`ent: missing required field "Auth.ip"`)}
-	}
-	if _, ok := _c.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Auth.create_time"`)}
-	}
-	if _, ok := _c.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Auth.update_time"`)}
 	}
 	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Auth.type"`)}
@@ -195,6 +209,14 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(auth.Table, sqlgraph.NewFieldSpec(auth.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
+	if value, ok := _c.mutation.CreateTime(); ok {
+		_spec.SetField(auth.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := _c.mutation.UpdateTime(); ok {
+		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := _c.mutation.SessionID(); ok {
 		_spec.SetField(auth.FieldSessionID, field.TypeString, value)
 		_node.SessionID = value
@@ -203,6 +225,10 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 		_spec.SetField(auth.FieldDeviceID, field.TypeString, value)
 		_node.DeviceID = value
 	}
+	if value, ok := _c.mutation.Device(); ok {
+		_spec.SetField(auth.FieldDevice, field.TypeString, value)
+		_node.Device = value
+	}
 	if value, ok := _c.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
 		_node.UserID = value
@@ -210,14 +236,6 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IP(); ok {
 		_spec.SetField(auth.FieldIP, field.TypeString, value)
 		_node.IP = value
-	}
-	if value, ok := _c.mutation.CreateTime(); ok {
-		_spec.SetField(auth.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
-	}
-	if value, ok := _c.mutation.UpdateTime(); ok {
-		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
 	}
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)
@@ -230,7 +248,7 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Auth.Create().
-//		SetSessionID(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -239,7 +257,7 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AuthUpsert) {
-//			SetSessionID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AuthCreate) OnConflict(opts ...sql.ConflictOption) *AuthUpsertOne {
@@ -275,6 +293,18 @@ type (
 	}
 )
 
+// SetUpdateTime sets the "update_time" field.
+func (u *AuthUpsert) SetUpdateTime(v time.Time) *AuthUpsert {
+	u.Set(auth.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *AuthUpsert) UpdateUpdateTime() *AuthUpsert {
+	u.SetExcluded(auth.FieldUpdateTime)
+	return u
+}
+
 // SetSessionID sets the "session_id" field.
 func (u *AuthUpsert) SetSessionID(v string) *AuthUpsert {
 	u.Set(auth.FieldSessionID, v)
@@ -299,6 +329,18 @@ func (u *AuthUpsert) UpdateDeviceID() *AuthUpsert {
 	return u
 }
 
+// SetDevice sets the "device" field.
+func (u *AuthUpsert) SetDevice(v string) *AuthUpsert {
+	u.Set(auth.FieldDevice, v)
+	return u
+}
+
+// UpdateDevice sets the "device" field to the value that was provided on create.
+func (u *AuthUpsert) UpdateDevice() *AuthUpsert {
+	u.SetExcluded(auth.FieldDevice)
+	return u
+}
+
 // SetUserID sets the "user_id" field.
 func (u *AuthUpsert) SetUserID(v string) *AuthUpsert {
 	u.Set(auth.FieldUserID, v)
@@ -320,18 +362,6 @@ func (u *AuthUpsert) SetIP(v string) *AuthUpsert {
 // UpdateIP sets the "ip" field to the value that was provided on create.
 func (u *AuthUpsert) UpdateIP() *AuthUpsert {
 	u.SetExcluded(auth.FieldIP)
-	return u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *AuthUpsert) SetUpdateTime(v time.Time) *AuthUpsert {
-	u.Set(auth.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *AuthUpsert) UpdateUpdateTime() *AuthUpsert {
-	u.SetExcluded(auth.FieldUpdateTime)
 	return u
 }
 
@@ -392,6 +422,20 @@ func (u *AuthUpsertOne) Update(set func(*AuthUpsert)) *AuthUpsertOne {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *AuthUpsertOne) SetUpdateTime(v time.Time) *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *AuthUpsertOne) UpdateUpdateTime() *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetSessionID sets the "session_id" field.
 func (u *AuthUpsertOne) SetSessionID(v string) *AuthUpsertOne {
 	return u.Update(func(s *AuthUpsert) {
@@ -420,6 +464,20 @@ func (u *AuthUpsertOne) UpdateDeviceID() *AuthUpsertOne {
 	})
 }
 
+// SetDevice sets the "device" field.
+func (u *AuthUpsertOne) SetDevice(v string) *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetDevice(v)
+	})
+}
+
+// UpdateDevice sets the "device" field to the value that was provided on create.
+func (u *AuthUpsertOne) UpdateDevice() *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateDevice()
+	})
+}
+
 // SetUserID sets the "user_id" field.
 func (u *AuthUpsertOne) SetUserID(v string) *AuthUpsertOne {
 	return u.Update(func(s *AuthUpsert) {
@@ -445,20 +503,6 @@ func (u *AuthUpsertOne) SetIP(v string) *AuthUpsertOne {
 func (u *AuthUpsertOne) UpdateIP() *AuthUpsertOne {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateIP()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *AuthUpsertOne) SetUpdateTime(v time.Time) *AuthUpsertOne {
-	return u.Update(func(s *AuthUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *AuthUpsertOne) UpdateUpdateTime() *AuthUpsertOne {
-	return u.Update(func(s *AuthUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -611,7 +655,7 @@ func (_c *AuthCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AuthUpsert) {
-//			SetSessionID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *AuthCreateBulk) OnConflict(opts ...sql.ConflictOption) *AuthUpsertBulk {
@@ -687,6 +731,20 @@ func (u *AuthUpsertBulk) Update(set func(*AuthUpsert)) *AuthUpsertBulk {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *AuthUpsertBulk) SetUpdateTime(v time.Time) *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *AuthUpsertBulk) UpdateUpdateTime() *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetSessionID sets the "session_id" field.
 func (u *AuthUpsertBulk) SetSessionID(v string) *AuthUpsertBulk {
 	return u.Update(func(s *AuthUpsert) {
@@ -715,6 +773,20 @@ func (u *AuthUpsertBulk) UpdateDeviceID() *AuthUpsertBulk {
 	})
 }
 
+// SetDevice sets the "device" field.
+func (u *AuthUpsertBulk) SetDevice(v string) *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetDevice(v)
+	})
+}
+
+// UpdateDevice sets the "device" field to the value that was provided on create.
+func (u *AuthUpsertBulk) UpdateDevice() *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateDevice()
+	})
+}
+
 // SetUserID sets the "user_id" field.
 func (u *AuthUpsertBulk) SetUserID(v string) *AuthUpsertBulk {
 	return u.Update(func(s *AuthUpsert) {
@@ -740,20 +812,6 @@ func (u *AuthUpsertBulk) SetIP(v string) *AuthUpsertBulk {
 func (u *AuthUpsertBulk) UpdateIP() *AuthUpsertBulk {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateIP()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *AuthUpsertBulk) SetUpdateTime(v time.Time) *AuthUpsertBulk {
-	return u.Update(func(s *AuthUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *AuthUpsertBulk) UpdateUpdateTime() *AuthUpsertBulk {
-	return u.Update(func(s *AuthUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

@@ -24,26 +24,6 @@ type RoleCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetName sets the "name" field.
-func (_c *RoleCreate) SetName(v string) *RoleCreate {
-	_c.mutation.SetName(v)
-	return _c
-}
-
-// SetIsBuiltin sets the "is_builtin" field.
-func (_c *RoleCreate) SetIsBuiltin(v bool) *RoleCreate {
-	_c.mutation.SetIsBuiltin(v)
-	return _c
-}
-
-// SetNillableIsBuiltin sets the "is_builtin" field if the given value is not nil.
-func (_c *RoleCreate) SetNillableIsBuiltin(v *bool) *RoleCreate {
-	if v != nil {
-		_c.SetIsBuiltin(*v)
-	}
-	return _c
-}
-
 // SetCreateTime sets the "create_time" field.
 func (_c *RoleCreate) SetCreateTime(v time.Time) *RoleCreate {
 	_c.mutation.SetCreateTime(v)
@@ -68,6 +48,26 @@ func (_c *RoleCreate) SetUpdateTime(v time.Time) *RoleCreate {
 func (_c *RoleCreate) SetNillableUpdateTime(v *time.Time) *RoleCreate {
 	if v != nil {
 		_c.SetUpdateTime(*v)
+	}
+	return _c
+}
+
+// SetName sets the "name" field.
+func (_c *RoleCreate) SetName(v string) *RoleCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetIsBuiltin sets the "is_builtin" field.
+func (_c *RoleCreate) SetIsBuiltin(v bool) *RoleCreate {
+	_c.mutation.SetIsBuiltin(v)
+	return _c
+}
+
+// SetNillableIsBuiltin sets the "is_builtin" field if the given value is not nil.
+func (_c *RoleCreate) SetNillableIsBuiltin(v *bool) *RoleCreate {
+	if v != nil {
+		_c.SetIsBuiltin(*v)
 	}
 	return _c
 }
@@ -142,10 +142,6 @@ func (_c *RoleCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *RoleCreate) defaults() {
-	if _, ok := _c.mutation.IsBuiltin(); !ok {
-		v := role.DefaultIsBuiltin
-		_c.mutation.SetIsBuiltin(v)
-	}
 	if _, ok := _c.mutation.CreateTime(); !ok {
 		v := role.DefaultCreateTime()
 		_c.mutation.SetCreateTime(v)
@@ -153,6 +149,10 @@ func (_c *RoleCreate) defaults() {
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		v := role.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
+	}
+	if _, ok := _c.mutation.IsBuiltin(); !ok {
+		v := role.DefaultIsBuiltin
+		_c.mutation.SetIsBuiltin(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := role.DefaultStatus
@@ -162,6 +162,12 @@ func (_c *RoleCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *RoleCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Role.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Role.update_time"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Role.name"`)}
 	}
@@ -172,12 +178,6 @@ func (_c *RoleCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsBuiltin(); !ok {
 		return &ValidationError{Name: "is_builtin", err: errors.New(`ent: missing required field "Role.is_builtin"`)}
-	}
-	if _, ok := _c.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Role.create_time"`)}
-	}
-	if _, ok := _c.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Role.update_time"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Role.status"`)}
@@ -228,14 +228,6 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(role.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := _c.mutation.IsBuiltin(); ok {
-		_spec.SetField(role.FieldIsBuiltin, field.TypeBool, value)
-		_node.IsBuiltin = value
-	}
 	if value, ok := _c.mutation.CreateTime(); ok {
 		_spec.SetField(role.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = value
@@ -243,6 +235,14 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdateTime(); ok {
 		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(role.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.IsBuiltin(); ok {
+		_spec.SetField(role.FieldIsBuiltin, field.TypeBool, value)
+		_node.IsBuiltin = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)
@@ -271,7 +271,7 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Role.Create().
-//		SetName(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -280,7 +280,7 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoleUpsert) {
-//			SetName(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *RoleCreate) OnConflict(opts ...sql.ConflictOption) *RoleUpsertOne {
@@ -316,6 +316,18 @@ type (
 	}
 )
 
+// SetUpdateTime sets the "update_time" field.
+func (u *RoleUpsert) SetUpdateTime(v time.Time) *RoleUpsert {
+	u.Set(role.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *RoleUpsert) UpdateUpdateTime() *RoleUpsert {
+	u.SetExcluded(role.FieldUpdateTime)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *RoleUpsert) SetName(v string) *RoleUpsert {
 	u.Set(role.FieldName, v)
@@ -337,18 +349,6 @@ func (u *RoleUpsert) SetIsBuiltin(v bool) *RoleUpsert {
 // UpdateIsBuiltin sets the "is_builtin" field to the value that was provided on create.
 func (u *RoleUpsert) UpdateIsBuiltin() *RoleUpsert {
 	u.SetExcluded(role.FieldIsBuiltin)
-	return u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *RoleUpsert) SetUpdateTime(v time.Time) *RoleUpsert {
-	u.Set(role.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *RoleUpsert) UpdateUpdateTime() *RoleUpsert {
-	u.SetExcluded(role.FieldUpdateTime)
 	return u
 }
 
@@ -415,6 +415,20 @@ func (u *RoleUpsertOne) Update(set func(*RoleUpsert)) *RoleUpsertOne {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *RoleUpsertOne) SetUpdateTime(v time.Time) *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *RoleUpsertOne) UpdateUpdateTime() *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *RoleUpsertOne) SetName(v string) *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
@@ -440,20 +454,6 @@ func (u *RoleUpsertOne) SetIsBuiltin(v bool) *RoleUpsertOne {
 func (u *RoleUpsertOne) UpdateIsBuiltin() *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateIsBuiltin()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *RoleUpsertOne) SetUpdateTime(v time.Time) *RoleUpsertOne {
-	return u.Update(func(s *RoleUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *RoleUpsertOne) UpdateUpdateTime() *RoleUpsertOne {
-	return u.Update(func(s *RoleUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -607,7 +607,7 @@ func (_c *RoleCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.RoleUpsert) {
-//			SetName(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *RoleCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoleUpsertBulk {
@@ -689,6 +689,20 @@ func (u *RoleUpsertBulk) Update(set func(*RoleUpsert)) *RoleUpsertBulk {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *RoleUpsertBulk) SetUpdateTime(v time.Time) *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *RoleUpsertBulk) UpdateUpdateTime() *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *RoleUpsertBulk) SetName(v string) *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
@@ -714,20 +728,6 @@ func (u *RoleUpsertBulk) SetIsBuiltin(v bool) *RoleUpsertBulk {
 func (u *RoleUpsertBulk) UpdateIsBuiltin() *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateIsBuiltin()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *RoleUpsertBulk) SetUpdateTime(v time.Time) *RoleUpsertBulk {
-	return u.Update(func(s *RoleUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *RoleUpsertBulk) UpdateUpdateTime() *RoleUpsertBulk {
-	return u.Update(func(s *RoleUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

@@ -64,6 +64,16 @@ func IDContainsFold(id string) predicate.Menu {
 	return predicate.Menu(sql.FieldContainsFold(FieldID, id))
 }
 
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
+func UpdateTime(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldUpdateTime, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldTitle, v))
@@ -74,19 +84,9 @@ func Icon(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldIcon, v))
 }
 
-// IsBuiltin applies equality check predicate on the "is_builtin" field. It's identical to IsBuiltinEQ.
-func IsBuiltin(v bool) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldIsBuiltin, v))
-}
-
-// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
-func CreateTime(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
-func UpdateTime(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldUpdateTime, v))
+// IsSystem applies equality check predicate on the "is_system" field. It's identical to IsSystemEQ.
+func IsSystem(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldIsSystem, v))
 }
 
 // ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
@@ -102,6 +102,86 @@ func Order(v int) predicate.Menu {
 // Permission applies equality check predicate on the "permission" field. It's identical to PermissionEQ.
 func Permission(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldPermission, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldLTE(FieldCreateTime, v))
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
+func UpdateTimeEQ(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
+func UpdateTimeNEQ(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeIn applies the In predicate on the "update_time" field.
+func UpdateTimeIn(vs ...time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldNotIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeGT applies the GT predicate on the "update_time" field.
+func UpdateTimeGT(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldGT(FieldUpdateTime, v))
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
+func UpdateTimeGTE(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldGTE(FieldUpdateTime, v))
+}
+
+// UpdateTimeLT applies the LT predicate on the "update_time" field.
+func UpdateTimeLT(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldLT(FieldUpdateTime, v))
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
+func UpdateTimeLTE(v time.Time) predicate.Menu {
+	return predicate.Menu(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
@@ -254,94 +334,14 @@ func IconContainsFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldContainsFold(FieldIcon, v))
 }
 
-// IsBuiltinEQ applies the EQ predicate on the "is_builtin" field.
-func IsBuiltinEQ(v bool) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldIsBuiltin, v))
+// IsSystemEQ applies the EQ predicate on the "is_system" field.
+func IsSystemEQ(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldIsSystem, v))
 }
 
-// IsBuiltinNEQ applies the NEQ predicate on the "is_builtin" field.
-func IsBuiltinNEQ(v bool) predicate.Menu {
-	return predicate.Menu(sql.FieldNEQ(FieldIsBuiltin, v))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "create_time" field.
-func CreateTimeEQ(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
-func CreateTimeNEQ(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "create_time" field.
-func CreateTimeIn(vs ...time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "create_time" field.
-func CreateTimeGT(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "create_time" field.
-func CreateTimeGTE(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "create_time" field.
-func CreateTimeLT(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "create_time" field.
-func CreateTimeLTE(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldLTE(FieldCreateTime, v))
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
-func UpdateTimeEQ(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
-func UpdateTimeNEQ(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldNEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeIn applies the In predicate on the "update_time" field.
-func UpdateTimeIn(vs ...time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldNotIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeGT applies the GT predicate on the "update_time" field.
-func UpdateTimeGT(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldGT(FieldUpdateTime, v))
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
-func UpdateTimeGTE(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldGTE(FieldUpdateTime, v))
-}
-
-// UpdateTimeLT applies the LT predicate on the "update_time" field.
-func UpdateTimeLT(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldLT(FieldUpdateTime, v))
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
-func UpdateTimeLTE(v time.Time) predicate.Menu {
-	return predicate.Menu(sql.FieldLTE(FieldUpdateTime, v))
+// IsSystemNEQ applies the NEQ predicate on the "is_system" field.
+func IsSystemNEQ(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldIsSystem, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

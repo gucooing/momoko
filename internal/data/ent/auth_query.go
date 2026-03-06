@@ -262,12 +262,12 @@ func (_q *AuthQuery) Clone() *AuthQuery {
 // Example:
 //
 //	var v []struct {
-//		SessionID string `json:"session_id,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Auth.Query().
-//		GroupBy(auth.FieldSessionID).
+//		GroupBy(auth.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *AuthQuery) GroupBy(field string, fields ...string) *AuthGroupBy {
@@ -285,11 +285,11 @@ func (_q *AuthQuery) GroupBy(field string, fields ...string) *AuthGroupBy {
 // Example:
 //
 //	var v []struct {
-//		SessionID string `json:"session_id,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Auth.Query().
-//		Select(auth.FieldSessionID).
+//		Select(auth.FieldCreateTime).
 //		Scan(ctx, &v)
 func (_q *AuthQuery) Select(fields ...string) *AuthSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

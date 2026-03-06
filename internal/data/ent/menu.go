@@ -18,18 +18,18 @@ type Menu struct {
 	// ID of the ent.
 	// 菜单id
 	ID string `json:"id,omitempty"`
+	// 创建时间
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// 更新时间
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 菜单属性
 	Type menu.Type `json:"type,omitempty"`
 	// 标题名称
 	Title string `json:"title,omitempty"`
 	// 图标
 	Icon string `json:"icon,omitempty"`
-	// 是否内置角色(不可修改)
-	IsBuiltin bool `json:"is_builtin,omitempty"`
-	// 创建时间
-	CreateTime time.Time `json:"create_time,omitempty"`
-	// 更新时间
-	UpdateTime time.Time `json:"update_time,omitempty"`
+	// 是否系统默认菜单(不可修改)
+	IsSystem bool `json:"is_system,omitempty"`
 	// 启用状态
 	Status menu.Status `json:"status,omitempty"`
 	// 父菜单id
@@ -47,7 +47,7 @@ func (*Menu) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case menu.FieldIsBuiltin:
+		case menu.FieldIsSystem:
 			values[i] = new(sql.NullBool)
 		case menu.FieldOrder:
 			values[i] = new(sql.NullInt64)
@@ -78,6 +78,18 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ID = value.String
 			}
+		case menu.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				_m.CreateTime = value.Time
+			}
+		case menu.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				_m.UpdateTime = value.Time
+			}
 		case menu.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
@@ -96,23 +108,11 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Icon = value.String
 			}
-		case menu.FieldIsBuiltin:
+		case menu.FieldIsSystem:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_builtin", values[i])
+				return fmt.Errorf("unexpected type %T for field is_system", values[i])
 			} else if value.Valid {
-				_m.IsBuiltin = value.Bool
-			}
-		case menu.FieldCreateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field create_time", values[i])
-			} else if value.Valid {
-				_m.CreateTime = value.Time
-			}
-		case menu.FieldUpdateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field update_time", values[i])
-			} else if value.Valid {
-				_m.UpdateTime = value.Time
+				_m.IsSystem = value.Bool
 			}
 		case menu.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -182,6 +182,12 @@ func (_m *Menu) String() string {
 	var builder strings.Builder
 	builder.WriteString("Menu(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("update_time=")
+	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
 	builder.WriteString(", ")
@@ -191,14 +197,8 @@ func (_m *Menu) String() string {
 	builder.WriteString("icon=")
 	builder.WriteString(_m.Icon)
 	builder.WriteString(", ")
-	builder.WriteString("is_builtin=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsBuiltin))
-	builder.WriteString(", ")
-	builder.WriteString("create_time=")
-	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("update_time=")
-	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString("is_system=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

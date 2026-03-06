@@ -697,12 +697,13 @@ type AuthMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	session_id    *string
-	device_id     *string
-	user_id       *string
-	ip            *string
 	create_time   *time.Time
 	update_time   *time.Time
+	session_id    *string
+	device_id     *string
+	device        *string
+	user_id       *string
+	ip            *string
 	_type         *auth.Type
 	clearedFields map[string]struct{}
 	done          bool
@@ -808,6 +809,78 @@ func (m *AuthMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetCreateTime sets the "create_time" field.
+func (m *AuthMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *AuthMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Auth entity.
+// If the Auth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuthMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *AuthMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *AuthMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *AuthMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Auth entity.
+// If the Auth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuthMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *AuthMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
 // SetSessionID sets the "session_id" field.
 func (m *AuthMutation) SetSessionID(s string) {
 	m.session_id = &s
@@ -878,6 +951,42 @@ func (m *AuthMutation) OldDeviceID(ctx context.Context) (v string, err error) {
 // ResetDeviceID resets all changes to the "device_id" field.
 func (m *AuthMutation) ResetDeviceID() {
 	m.device_id = nil
+}
+
+// SetDevice sets the "device" field.
+func (m *AuthMutation) SetDevice(s string) {
+	m.device = &s
+}
+
+// Device returns the value of the "device" field in the mutation.
+func (m *AuthMutation) Device() (r string, exists bool) {
+	v := m.device
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDevice returns the old "device" field's value of the Auth entity.
+// If the Auth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuthMutation) OldDevice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDevice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDevice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDevice: %w", err)
+	}
+	return oldValue.Device, nil
+}
+
+// ResetDevice resets all changes to the "device" field.
+func (m *AuthMutation) ResetDevice() {
+	m.device = nil
 }
 
 // SetUserID sets the "user_id" field.
@@ -952,78 +1061,6 @@ func (m *AuthMutation) ResetIP() {
 	m.ip = nil
 }
 
-// SetCreateTime sets the "create_time" field.
-func (m *AuthMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *AuthMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the Auth entity.
-// If the Auth object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AuthMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *AuthMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *AuthMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *AuthMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the Auth entity.
-// If the Auth object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AuthMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *AuthMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
 // SetType sets the "type" field.
 func (m *AuthMutation) SetType(a auth.Type) {
 	m._type = &a
@@ -1094,24 +1131,27 @@ func (m *AuthMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AuthMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
+	if m.create_time != nil {
+		fields = append(fields, auth.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, auth.FieldUpdateTime)
+	}
 	if m.session_id != nil {
 		fields = append(fields, auth.FieldSessionID)
 	}
 	if m.device_id != nil {
 		fields = append(fields, auth.FieldDeviceID)
 	}
+	if m.device != nil {
+		fields = append(fields, auth.FieldDevice)
+	}
 	if m.user_id != nil {
 		fields = append(fields, auth.FieldUserID)
 	}
 	if m.ip != nil {
 		fields = append(fields, auth.FieldIP)
-	}
-	if m.create_time != nil {
-		fields = append(fields, auth.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, auth.FieldUpdateTime)
 	}
 	if m._type != nil {
 		fields = append(fields, auth.FieldType)
@@ -1124,18 +1164,20 @@ func (m *AuthMutation) Fields() []string {
 // schema.
 func (m *AuthMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case auth.FieldSessionID:
-		return m.SessionID()
-	case auth.FieldDeviceID:
-		return m.DeviceID()
-	case auth.FieldUserID:
-		return m.UserID()
-	case auth.FieldIP:
-		return m.IP()
 	case auth.FieldCreateTime:
 		return m.CreateTime()
 	case auth.FieldUpdateTime:
 		return m.UpdateTime()
+	case auth.FieldSessionID:
+		return m.SessionID()
+	case auth.FieldDeviceID:
+		return m.DeviceID()
+	case auth.FieldDevice:
+		return m.Device()
+	case auth.FieldUserID:
+		return m.UserID()
+	case auth.FieldIP:
+		return m.IP()
 	case auth.FieldType:
 		return m.GetType()
 	}
@@ -1147,18 +1189,20 @@ func (m *AuthMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AuthMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case auth.FieldSessionID:
-		return m.OldSessionID(ctx)
-	case auth.FieldDeviceID:
-		return m.OldDeviceID(ctx)
-	case auth.FieldUserID:
-		return m.OldUserID(ctx)
-	case auth.FieldIP:
-		return m.OldIP(ctx)
 	case auth.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case auth.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case auth.FieldSessionID:
+		return m.OldSessionID(ctx)
+	case auth.FieldDeviceID:
+		return m.OldDeviceID(ctx)
+	case auth.FieldDevice:
+		return m.OldDevice(ctx)
+	case auth.FieldUserID:
+		return m.OldUserID(ctx)
+	case auth.FieldIP:
+		return m.OldIP(ctx)
 	case auth.FieldType:
 		return m.OldType(ctx)
 	}
@@ -1170,6 +1214,20 @@ func (m *AuthMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *AuthMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case auth.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case auth.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case auth.FieldSessionID:
 		v, ok := value.(string)
 		if !ok {
@@ -1184,6 +1242,13 @@ func (m *AuthMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDeviceID(v)
 		return nil
+	case auth.FieldDevice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDevice(v)
+		return nil
 	case auth.FieldUserID:
 		v, ok := value.(string)
 		if !ok {
@@ -1197,20 +1262,6 @@ func (m *AuthMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIP(v)
-		return nil
-	case auth.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case auth.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
 		return nil
 	case auth.FieldType:
 		v, ok := value.(auth.Type)
@@ -1268,23 +1319,26 @@ func (m *AuthMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AuthMutation) ResetField(name string) error {
 	switch name {
+	case auth.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case auth.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case auth.FieldSessionID:
 		m.ResetSessionID()
 		return nil
 	case auth.FieldDeviceID:
 		m.ResetDeviceID()
 		return nil
+	case auth.FieldDevice:
+		m.ResetDevice()
+		return nil
 	case auth.FieldUserID:
 		m.ResetUserID()
 		return nil
 	case auth.FieldIP:
 		m.ResetIP()
-		return nil
-	case auth.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case auth.FieldUpdateTime:
-		m.ResetUpdateTime()
 		return nil
 	case auth.FieldType:
 		m.ResetType()
@@ -1347,12 +1401,12 @@ type MenuMutation struct {
 	op            Op
 	typ           string
 	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
 	_type         *menu.Type
 	title         *string
 	icon          *string
-	is_builtin    *bool
-	create_time   *time.Time
-	update_time   *time.Time
+	is_system     *bool
 	status        *menu.Status
 	parent_id     *string
 	_order        *int
@@ -1468,6 +1522,78 @@ func (m *MenuMutation) IDs(ctx context.Context) ([]string, error) {
 	}
 }
 
+// SetCreateTime sets the "create_time" field.
+func (m *MenuMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *MenuMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Menu entity.
+// If the Menu object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MenuMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *MenuMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *MenuMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *MenuMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Menu entity.
+// If the Menu object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MenuMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *MenuMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
 // SetType sets the "type" field.
 func (m *MenuMutation) SetType(value menu.Type) {
 	m._type = &value
@@ -1576,112 +1702,40 @@ func (m *MenuMutation) ResetIcon() {
 	m.icon = nil
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (m *MenuMutation) SetIsBuiltin(b bool) {
-	m.is_builtin = &b
+// SetIsSystem sets the "is_system" field.
+func (m *MenuMutation) SetIsSystem(b bool) {
+	m.is_system = &b
 }
 
-// IsBuiltin returns the value of the "is_builtin" field in the mutation.
-func (m *MenuMutation) IsBuiltin() (r bool, exists bool) {
-	v := m.is_builtin
+// IsSystem returns the value of the "is_system" field in the mutation.
+func (m *MenuMutation) IsSystem() (r bool, exists bool) {
+	v := m.is_system
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsBuiltin returns the old "is_builtin" field's value of the Menu entity.
+// OldIsSystem returns the old "is_system" field's value of the Menu entity.
 // If the Menu object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MenuMutation) OldIsBuiltin(ctx context.Context) (v bool, err error) {
+func (m *MenuMutation) OldIsSystem(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsBuiltin is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsSystem is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsBuiltin requires an ID field in the mutation")
+		return v, errors.New("OldIsSystem requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsBuiltin: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsSystem: %w", err)
 	}
-	return oldValue.IsBuiltin, nil
+	return oldValue.IsSystem, nil
 }
 
-// ResetIsBuiltin resets all changes to the "is_builtin" field.
-func (m *MenuMutation) ResetIsBuiltin() {
-	m.is_builtin = nil
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *MenuMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *MenuMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the Menu entity.
-// If the Menu object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MenuMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *MenuMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *MenuMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *MenuMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the Menu entity.
-// If the Menu object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MenuMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *MenuMutation) ResetUpdateTime() {
-	m.update_time = nil
+// ResetIsSystem resets all changes to the "is_system" field.
+func (m *MenuMutation) ResetIsSystem() {
+	m.is_system = nil
 }
 
 // SetStatus sets the "status" field.
@@ -1883,6 +1937,12 @@ func (m *MenuMutation) Type() string {
 // AddedFields().
 func (m *MenuMutation) Fields() []string {
 	fields := make([]string, 0, 10)
+	if m.create_time != nil {
+		fields = append(fields, menu.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, menu.FieldUpdateTime)
+	}
 	if m._type != nil {
 		fields = append(fields, menu.FieldType)
 	}
@@ -1892,14 +1952,8 @@ func (m *MenuMutation) Fields() []string {
 	if m.icon != nil {
 		fields = append(fields, menu.FieldIcon)
 	}
-	if m.is_builtin != nil {
-		fields = append(fields, menu.FieldIsBuiltin)
-	}
-	if m.create_time != nil {
-		fields = append(fields, menu.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, menu.FieldUpdateTime)
+	if m.is_system != nil {
+		fields = append(fields, menu.FieldIsSystem)
 	}
 	if m.status != nil {
 		fields = append(fields, menu.FieldStatus)
@@ -1921,18 +1975,18 @@ func (m *MenuMutation) Fields() []string {
 // schema.
 func (m *MenuMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case menu.FieldCreateTime:
+		return m.CreateTime()
+	case menu.FieldUpdateTime:
+		return m.UpdateTime()
 	case menu.FieldType:
 		return m.GetType()
 	case menu.FieldTitle:
 		return m.Title()
 	case menu.FieldIcon:
 		return m.Icon()
-	case menu.FieldIsBuiltin:
-		return m.IsBuiltin()
-	case menu.FieldCreateTime:
-		return m.CreateTime()
-	case menu.FieldUpdateTime:
-		return m.UpdateTime()
+	case menu.FieldIsSystem:
+		return m.IsSystem()
 	case menu.FieldStatus:
 		return m.Status()
 	case menu.FieldParentID:
@@ -1950,18 +2004,18 @@ func (m *MenuMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MenuMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case menu.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case menu.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case menu.FieldType:
 		return m.OldType(ctx)
 	case menu.FieldTitle:
 		return m.OldTitle(ctx)
 	case menu.FieldIcon:
 		return m.OldIcon(ctx)
-	case menu.FieldIsBuiltin:
-		return m.OldIsBuiltin(ctx)
-	case menu.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case menu.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
+	case menu.FieldIsSystem:
+		return m.OldIsSystem(ctx)
 	case menu.FieldStatus:
 		return m.OldStatus(ctx)
 	case menu.FieldParentID:
@@ -1979,6 +2033,20 @@ func (m *MenuMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *MenuMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case menu.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case menu.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case menu.FieldType:
 		v, ok := value.(menu.Type)
 		if !ok {
@@ -2000,26 +2068,12 @@ func (m *MenuMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIcon(v)
 		return nil
-	case menu.FieldIsBuiltin:
+	case menu.FieldIsSystem:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsBuiltin(v)
-		return nil
-	case menu.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case menu.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
+		m.SetIsSystem(v)
 		return nil
 	case menu.FieldStatus:
 		v, ok := value.(menu.Status)
@@ -2113,6 +2167,12 @@ func (m *MenuMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MenuMutation) ResetField(name string) error {
 	switch name {
+	case menu.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case menu.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case menu.FieldType:
 		m.ResetType()
 		return nil
@@ -2122,14 +2182,8 @@ func (m *MenuMutation) ResetField(name string) error {
 	case menu.FieldIcon:
 		m.ResetIcon()
 		return nil
-	case menu.FieldIsBuiltin:
-		m.ResetIsBuiltin()
-		return nil
-	case menu.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case menu.FieldUpdateTime:
-		m.ResetUpdateTime()
+	case menu.FieldIsSystem:
+		m.ResetIsSystem()
 		return nil
 	case menu.FieldStatus:
 		m.ResetStatus()
@@ -2201,10 +2255,10 @@ type RoleMutation struct {
 	op            Op
 	typ           string
 	id            *string
-	name          *string
-	is_builtin    *bool
 	create_time   *time.Time
 	update_time   *time.Time
+	name          *string
+	is_builtin    *bool
 	status        *role.Status
 	clearedFields map[string]struct{}
 	menus         map[string]struct{}
@@ -2319,78 +2373,6 @@ func (m *RoleMutation) IDs(ctx context.Context) ([]string, error) {
 	}
 }
 
-// SetName sets the "name" field.
-func (m *RoleMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *RoleMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Role entity.
-// If the Role object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *RoleMutation) ResetName() {
-	m.name = nil
-}
-
-// SetIsBuiltin sets the "is_builtin" field.
-func (m *RoleMutation) SetIsBuiltin(b bool) {
-	m.is_builtin = &b
-}
-
-// IsBuiltin returns the value of the "is_builtin" field in the mutation.
-func (m *RoleMutation) IsBuiltin() (r bool, exists bool) {
-	v := m.is_builtin
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsBuiltin returns the old "is_builtin" field's value of the Role entity.
-// If the Role object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleMutation) OldIsBuiltin(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsBuiltin is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsBuiltin requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsBuiltin: %w", err)
-	}
-	return oldValue.IsBuiltin, nil
-}
-
-// ResetIsBuiltin resets all changes to the "is_builtin" field.
-func (m *RoleMutation) ResetIsBuiltin() {
-	m.is_builtin = nil
-}
-
 // SetCreateTime sets the "create_time" field.
 func (m *RoleMutation) SetCreateTime(t time.Time) {
 	m.create_time = &t
@@ -2461,6 +2443,78 @@ func (m *RoleMutation) OldUpdateTime(ctx context.Context) (v time.Time, err erro
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *RoleMutation) ResetUpdateTime() {
 	m.update_time = nil
+}
+
+// SetName sets the "name" field.
+func (m *RoleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RoleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Role entity.
+// If the Role object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RoleMutation) ResetName() {
+	m.name = nil
+}
+
+// SetIsBuiltin sets the "is_builtin" field.
+func (m *RoleMutation) SetIsBuiltin(b bool) {
+	m.is_builtin = &b
+}
+
+// IsBuiltin returns the value of the "is_builtin" field in the mutation.
+func (m *RoleMutation) IsBuiltin() (r bool, exists bool) {
+	v := m.is_builtin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsBuiltin returns the old "is_builtin" field's value of the Role entity.
+// If the Role object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleMutation) OldIsBuiltin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsBuiltin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsBuiltin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsBuiltin: %w", err)
+	}
+	return oldValue.IsBuiltin, nil
+}
+
+// ResetIsBuiltin resets all changes to the "is_builtin" field.
+func (m *RoleMutation) ResetIsBuiltin() {
+	m.is_builtin = nil
 }
 
 // SetStatus sets the "status" field.
@@ -2588,17 +2642,17 @@ func (m *RoleMutation) Type() string {
 // AddedFields().
 func (m *RoleMutation) Fields() []string {
 	fields := make([]string, 0, 5)
-	if m.name != nil {
-		fields = append(fields, role.FieldName)
-	}
-	if m.is_builtin != nil {
-		fields = append(fields, role.FieldIsBuiltin)
-	}
 	if m.create_time != nil {
 		fields = append(fields, role.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, role.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, role.FieldName)
+	}
+	if m.is_builtin != nil {
+		fields = append(fields, role.FieldIsBuiltin)
 	}
 	if m.status != nil {
 		fields = append(fields, role.FieldStatus)
@@ -2611,14 +2665,14 @@ func (m *RoleMutation) Fields() []string {
 // schema.
 func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case role.FieldName:
-		return m.Name()
-	case role.FieldIsBuiltin:
-		return m.IsBuiltin()
 	case role.FieldCreateTime:
 		return m.CreateTime()
 	case role.FieldUpdateTime:
 		return m.UpdateTime()
+	case role.FieldName:
+		return m.Name()
+	case role.FieldIsBuiltin:
+		return m.IsBuiltin()
 	case role.FieldStatus:
 		return m.Status()
 	}
@@ -2630,14 +2684,14 @@ func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case role.FieldName:
-		return m.OldName(ctx)
-	case role.FieldIsBuiltin:
-		return m.OldIsBuiltin(ctx)
 	case role.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case role.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case role.FieldName:
+		return m.OldName(ctx)
+	case role.FieldIsBuiltin:
+		return m.OldIsBuiltin(ctx)
 	case role.FieldStatus:
 		return m.OldStatus(ctx)
 	}
@@ -2649,20 +2703,6 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *RoleMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case role.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case role.FieldIsBuiltin:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsBuiltin(v)
-		return nil
 	case role.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -2676,6 +2716,20 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case role.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case role.FieldIsBuiltin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsBuiltin(v)
 		return nil
 	case role.FieldStatus:
 		v, ok := value.(role.Status)
@@ -2733,17 +2787,17 @@ func (m *RoleMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *RoleMutation) ResetField(name string) error {
 	switch name {
-	case role.FieldName:
-		m.ResetName()
-		return nil
-	case role.FieldIsBuiltin:
-		m.ResetIsBuiltin()
-		return nil
 	case role.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case role.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case role.FieldName:
+		m.ResetName()
+		return nil
+	case role.FieldIsBuiltin:
+		m.ResetIsBuiltin()
 		return nil
 	case role.FieldStatus:
 		m.ResetStatus()
@@ -2842,11 +2896,11 @@ type UserMutation struct {
 	op            Op
 	typ           string
 	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
 	username      *string
 	password      *string
 	email         *string
-	create_time   *time.Time
-	update_time   *time.Time
 	status        *user.Status
 	avatar        *string
 	bio           *string
@@ -2964,6 +3018,78 @@ func (m *UserMutation) IDs(ctx context.Context) ([]string, error) {
 	}
 }
 
+// SetCreateTime sets the "create_time" field.
+func (m *UserMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *UserMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *UserMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *UserMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *UserMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *UserMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
 // SetUsername sets the "username" field.
 func (m *UserMutation) SetUsername(s string) {
 	m.username = &s
@@ -3070,78 +3196,6 @@ func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
 // ResetEmail resets all changes to the "email" field.
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *UserMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *UserMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *UserMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *UserMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *UserMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *UserMutation) ResetUpdateTime() {
-	m.update_time = nil
 }
 
 // SetStatus sets the "status" field.
@@ -3398,6 +3452,12 @@ func (m *UserMutation) Type() string {
 // AddedFields().
 func (m *UserMutation) Fields() []string {
 	fields := make([]string, 0, 10)
+	if m.create_time != nil {
+		fields = append(fields, user.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, user.FieldUpdateTime)
+	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -3406,12 +3466,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
-	}
-	if m.create_time != nil {
-		fields = append(fields, user.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, user.FieldUpdateTime)
 	}
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
@@ -3436,16 +3490,16 @@ func (m *UserMutation) Fields() []string {
 // schema.
 func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldCreateTime:
+		return m.CreateTime()
+	case user.FieldUpdateTime:
+		return m.UpdateTime()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldPassword:
 		return m.Password()
 	case user.FieldEmail:
 		return m.Email()
-	case user.FieldCreateTime:
-		return m.CreateTime()
-	case user.FieldUpdateTime:
-		return m.UpdateTime()
 	case user.FieldStatus:
 		return m.Status()
 	case user.FieldAvatar:
@@ -3465,16 +3519,16 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case user.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case user.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
-	case user.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case user.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
 	case user.FieldAvatar:
@@ -3494,6 +3548,20 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *UserMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case user.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
 		if !ok {
@@ -3514,20 +3582,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmail(v)
-		return nil
-	case user.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case user.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
 		return nil
 	case user.FieldStatus:
 		v, ok := value.(user.Status)
@@ -3613,6 +3667,12 @@ func (m *UserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserMutation) ResetField(name string) error {
 	switch name {
+	case user.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case user.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
 		return nil
@@ -3621,12 +3681,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmail:
 		m.ResetEmail()
-		return nil
-	case user.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case user.FieldUpdateTime:
-		m.ResetUpdateTime()
 		return nil
 	case user.FieldStatus:
 		m.ResetStatus()

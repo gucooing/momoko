@@ -5,6 +5,7 @@ import (
 
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
+	"momoko/internal/data/ent/auth"
 )
 
 type authRepo struct {
@@ -18,13 +19,37 @@ func NewAuthRepo(data *Data) biz.AuthRepo {
 }
 
 func (ar *authRepo) CreateAuth(ctx context.Context, auth *biz.Auth) (*ent.Auth, error) {
-	create := ar.data.db.Auth.Create()
+	create := ar.data.db.Auth.Create().
+		SetSessionID(auth.SessionID).
+		SetUserID(auth.UserID).
+		SetDeviceID(auth.DeviceID).
+		SetDevice(auth.Device).
+		SetIP(auth.IP).
+		SetType(auth.Type)
 
-	create.SetSessionID(auth.SessionID)
-	create.SetUserID(auth.UserID)
-	create.SetDeviceID(auth.DeviceID)
-	create.SetIP(auth.IP)
-	create.SetType(auth.Type)
+	create.
+		OnConflict().
+		UpdateNewValues().
+		UpdateSessionID().
+		UpdateIP()
 
 	return create.Save(ctx)
+}
+
+func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error) {
+	return ar.data.db.Auth.Query().
+		Where(
+			auth.SessionIDEQ(sessionID),
+			auth.TypeEQ(tokenType),
+		).First(ctx)
+}
+
+func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type) ([]*ent.Auth, error) {
+	query := ar.data.db.Auth.Query()
+
+	if tokenType != nil {
+		query.Where(auth.TypeEQ(*tokenType))
+	}
+
+	return query.All(ctx)
 }

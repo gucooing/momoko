@@ -58,9 +58,9 @@ outputPartialMethods=false:./api/ts \
 build:
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
-.PHONY: generate
+.PHONY: gen
 # generate
-generate:
+gen:
 	go generate ./...
 	go mod tidy
 
@@ -69,7 +69,7 @@ generate:
 all:
 	make api;
 	make config;
-	make generate;
+	make gen;
 
 # show help
 help:

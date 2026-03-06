@@ -17,18 +17,20 @@ type Auth struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// 会话id
-	SessionID string `json:"session_id,omitempty"`
-	// 设备id
-	DeviceID string `json:"device_id,omitempty"`
-	// 所属用户id
-	UserID string `json:"user_id,omitempty"`
-	// 登录ip
-	IP string `json:"ip,omitempty"`
 	// 创建时间
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// 会话id
+	SessionID string `json:"session_id,omitempty"`
+	// 设备id
+	DeviceID string `json:"device_id,omitempty"`
+	// 登录设备
+	Device string `json:"device,omitempty"`
+	// 所属用户id
+	UserID string `json:"user_id,omitempty"`
+	// 登录ip
+	IP string `json:"ip,omitempty"`
 	// token类型
 	Type         auth.Type `json:"type,omitempty"`
 	selectValues sql.SelectValues
@@ -41,7 +43,7 @@ func (*Auth) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case auth.FieldID:
 			values[i] = new(sql.NullInt64)
-		case auth.FieldSessionID, auth.FieldDeviceID, auth.FieldUserID, auth.FieldIP, auth.FieldType:
+		case auth.FieldSessionID, auth.FieldDeviceID, auth.FieldDevice, auth.FieldUserID, auth.FieldIP, auth.FieldType:
 			values[i] = new(sql.NullString)
 		case auth.FieldCreateTime, auth.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -66,6 +68,18 @@ func (_m *Auth) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case auth.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				_m.CreateTime = value.Time
+			}
+		case auth.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				_m.UpdateTime = value.Time
+			}
 		case auth.FieldSessionID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field session_id", values[i])
@@ -78,6 +92,12 @@ func (_m *Auth) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DeviceID = value.String
 			}
+		case auth.FieldDevice:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field device", values[i])
+			} else if value.Valid {
+				_m.Device = value.String
+			}
 		case auth.FieldUserID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
@@ -89,18 +109,6 @@ func (_m *Auth) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field ip", values[i])
 			} else if value.Valid {
 				_m.IP = value.String
-			}
-		case auth.FieldCreateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field create_time", values[i])
-			} else if value.Valid {
-				_m.CreateTime = value.Time
-			}
-		case auth.FieldUpdateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field update_time", values[i])
-			} else if value.Valid {
-				_m.UpdateTime = value.Time
 			}
 		case auth.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -144,23 +152,26 @@ func (_m *Auth) String() string {
 	var builder strings.Builder
 	builder.WriteString("Auth(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("update_time=")
+	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("session_id=")
 	builder.WriteString(_m.SessionID)
 	builder.WriteString(", ")
 	builder.WriteString("device_id=")
 	builder.WriteString(_m.DeviceID)
 	builder.WriteString(", ")
+	builder.WriteString("device=")
+	builder.WriteString(_m.Device)
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
 	builder.WriteString(", ")
 	builder.WriteString("ip=")
 	builder.WriteString(_m.IP)
-	builder.WriteString(", ")
-	builder.WriteString("create_time=")
-	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("update_time=")
-	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))

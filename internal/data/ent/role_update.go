@@ -29,6 +29,12 @@ func (_u *RoleUpdate) Where(ps ...predicate.Role) *RoleUpdate {
 	return _u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *RoleUpdate) SetUpdateTime(v time.Time) *RoleUpdate {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *RoleUpdate) SetName(v string) *RoleUpdate {
 	_u.mutation.SetName(v)
@@ -54,12 +60,6 @@ func (_u *RoleUpdate) SetNillableIsBuiltin(v *bool) *RoleUpdate {
 	if v != nil {
 		_u.SetIsBuiltin(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *RoleUpdate) SetUpdateTime(v time.Time) *RoleUpdate {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -181,14 +181,14 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IsBuiltin(); ok {
 		_spec.SetField(role.FieldIsBuiltin, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)
@@ -258,6 +258,12 @@ type RoleUpdateOne struct {
 	mutation *RoleMutation
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *RoleUpdateOne) SetUpdateTime(v time.Time) *RoleUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *RoleUpdateOne) SetName(v string) *RoleUpdateOne {
 	_u.mutation.SetName(v)
@@ -283,12 +289,6 @@ func (_u *RoleUpdateOne) SetNillableIsBuiltin(v *bool) *RoleUpdateOne {
 	if v != nil {
 		_u.SetIsBuiltin(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *RoleUpdateOne) SetUpdateTime(v time.Time) *RoleUpdateOne {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -440,14 +440,14 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IsBuiltin(); ok {
 		_spec.SetField(role.FieldIsBuiltin, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(role.FieldStatus, field.TypeEnum, value)

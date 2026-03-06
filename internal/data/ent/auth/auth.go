@@ -14,18 +14,20 @@ const (
 	Label = "auth"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldSessionID holds the string denoting the session_id field in the database.
-	FieldSessionID = "session_id"
-	// FieldDeviceID holds the string denoting the device_id field in the database.
-	FieldDeviceID = "device_id"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
-	// FieldIP holds the string denoting the ip field in the database.
-	FieldIP = "ip"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldSessionID holds the string denoting the session_id field in the database.
+	FieldSessionID = "session_id"
+	// FieldDeviceID holds the string denoting the device_id field in the database.
+	FieldDeviceID = "device_id"
+	// FieldDevice holds the string denoting the device field in the database.
+	FieldDevice = "device"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldIP holds the string denoting the ip field in the database.
+	FieldIP = "ip"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// Table holds the table name of the auth in the database.
@@ -35,12 +37,13 @@ const (
 // Columns holds all SQL columns for auth fields.
 var Columns = []string{
 	FieldID,
-	FieldSessionID,
-	FieldDeviceID,
-	FieldUserID,
-	FieldIP,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldSessionID,
+	FieldDeviceID,
+	FieldDevice,
+	FieldUserID,
+	FieldIP,
 	FieldType,
 }
 
@@ -55,18 +58,20 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
-	SessionIDValidator func(string) error
-	// DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
-	DeviceIDValidator func(string) error
-	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	SessionIDValidator func(string) error
+	// DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
+	DeviceIDValidator func(string) error
+	// DeviceValidator is a validator for the "device" field. It is called by the builders before save.
+	DeviceValidator func(string) error
+	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	UserIDValidator func(string) error
 )
 
 // Type defines the type for the "type" enum field.
@@ -100,6 +105,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByCreateTime orders the results by the create_time field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the update_time field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
 // BySessionID orders the results by the session_id field.
 func BySessionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSessionID, opts...).ToFunc()
@@ -110,6 +125,11 @@ func ByDeviceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeviceID, opts...).ToFunc()
 }
 
+// ByDevice orders the results by the device field.
+func ByDevice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDevice, opts...).ToFunc()
+}
+
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
@@ -118,16 +138,6 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByIP orders the results by the ip field.
 func ByIP(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIP, opts...).ToFunc()
-}
-
-// ByCreateTime orders the results by the create_time field.
-func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
-}
-
-// ByUpdateTime orders the results by the update_time field.
-func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
 }
 
 // ByType orders the results by the type field.

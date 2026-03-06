@@ -48,8 +48,21 @@ func init() {
 	admin.DefaultUpdateTime = adminDescUpdateTime.Default.(func() time.Time)
 	// admin.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	admin.UpdateDefaultUpdateTime = adminDescUpdateTime.UpdateDefault.(func() time.Time)
+	authMixin := schema.Auth{}.Mixin()
+	authMixinFields0 := authMixin[0].Fields()
+	_ = authMixinFields0
 	authFields := schema.Auth{}.Fields()
 	_ = authFields
+	// authDescCreateTime is the schema descriptor for create_time field.
+	authDescCreateTime := authMixinFields0[0].Descriptor()
+	// auth.DefaultCreateTime holds the default value on creation for the create_time field.
+	auth.DefaultCreateTime = authDescCreateTime.Default.(func() time.Time)
+	// authDescUpdateTime is the schema descriptor for update_time field.
+	authDescUpdateTime := authMixinFields0[1].Descriptor()
+	// auth.DefaultUpdateTime holds the default value on creation for the update_time field.
+	auth.DefaultUpdateTime = authDescUpdateTime.Default.(func() time.Time)
+	// auth.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	auth.UpdateDefaultUpdateTime = authDescUpdateTime.UpdateDefault.(func() time.Time)
 	// authDescSessionID is the schema descriptor for session_id field.
 	authDescSessionID := authFields[0].Descriptor()
 	// auth.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
@@ -58,22 +71,29 @@ func init() {
 	authDescDeviceID := authFields[1].Descriptor()
 	// auth.DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
 	auth.DeviceIDValidator = authDescDeviceID.Validators[0].(func(string) error)
+	// authDescDevice is the schema descriptor for device field.
+	authDescDevice := authFields[2].Descriptor()
+	// auth.DeviceValidator is a validator for the "device" field. It is called by the builders before save.
+	auth.DeviceValidator = authDescDevice.Validators[0].(func(string) error)
 	// authDescUserID is the schema descriptor for user_id field.
-	authDescUserID := authFields[2].Descriptor()
+	authDescUserID := authFields[3].Descriptor()
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
-	// authDescCreateTime is the schema descriptor for create_time field.
-	authDescCreateTime := authFields[4].Descriptor()
-	// auth.DefaultCreateTime holds the default value on creation for the create_time field.
-	auth.DefaultCreateTime = authDescCreateTime.Default.(func() time.Time)
-	// authDescUpdateTime is the schema descriptor for update_time field.
-	authDescUpdateTime := authFields[5].Descriptor()
-	// auth.DefaultUpdateTime holds the default value on creation for the update_time field.
-	auth.DefaultUpdateTime = authDescUpdateTime.Default.(func() time.Time)
-	// auth.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	auth.UpdateDefaultUpdateTime = authDescUpdateTime.UpdateDefault.(func() time.Time)
+	menuMixin := schema.Menu{}.Mixin()
+	menuMixinFields0 := menuMixin[0].Fields()
+	_ = menuMixinFields0
 	menuFields := schema.Menu{}.Fields()
 	_ = menuFields
+	// menuDescCreateTime is the schema descriptor for create_time field.
+	menuDescCreateTime := menuMixinFields0[0].Descriptor()
+	// menu.DefaultCreateTime holds the default value on creation for the create_time field.
+	menu.DefaultCreateTime = menuDescCreateTime.Default.(func() time.Time)
+	// menuDescUpdateTime is the schema descriptor for update_time field.
+	menuDescUpdateTime := menuMixinFields0[1].Descriptor()
+	// menu.DefaultUpdateTime holds the default value on creation for the update_time field.
+	menu.DefaultUpdateTime = menuDescUpdateTime.Default.(func() time.Time)
+	// menu.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	menu.UpdateDefaultUpdateTime = menuDescUpdateTime.UpdateDefault.(func() time.Time)
 	// menuDescTitle is the schema descriptor for title field.
 	menuDescTitle := menuFields[2].Descriptor()
 	// menu.TitleValidator is a validator for the "title" field. It is called by the builders before save.
@@ -82,26 +102,29 @@ func init() {
 	menuDescIcon := menuFields[3].Descriptor()
 	// menu.IconValidator is a validator for the "icon" field. It is called by the builders before save.
 	menu.IconValidator = menuDescIcon.Validators[0].(func(string) error)
-	// menuDescIsBuiltin is the schema descriptor for is_builtin field.
-	menuDescIsBuiltin := menuFields[4].Descriptor()
-	// menu.DefaultIsBuiltin holds the default value on creation for the is_builtin field.
-	menu.DefaultIsBuiltin = menuDescIsBuiltin.Default.(bool)
-	// menuDescCreateTime is the schema descriptor for create_time field.
-	menuDescCreateTime := menuFields[5].Descriptor()
-	// menu.DefaultCreateTime holds the default value on creation for the create_time field.
-	menu.DefaultCreateTime = menuDescCreateTime.Default.(func() time.Time)
-	// menuDescUpdateTime is the schema descriptor for update_time field.
-	menuDescUpdateTime := menuFields[6].Descriptor()
-	// menu.DefaultUpdateTime holds the default value on creation for the update_time field.
-	menu.DefaultUpdateTime = menuDescUpdateTime.Default.(func() time.Time)
-	// menu.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	menu.UpdateDefaultUpdateTime = menuDescUpdateTime.UpdateDefault.(func() time.Time)
+	// menuDescIsSystem is the schema descriptor for is_system field.
+	menuDescIsSystem := menuFields[4].Descriptor()
+	// menu.DefaultIsSystem holds the default value on creation for the is_system field.
+	menu.DefaultIsSystem = menuDescIsSystem.Default.(bool)
 	// menuDescID is the schema descriptor for id field.
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	menu.IDValidator = menuDescID.Validators[0].(func(string) error)
+	roleMixin := schema.Role{}.Mixin()
+	roleMixinFields0 := roleMixin[0].Fields()
+	_ = roleMixinFields0
 	roleFields := schema.Role{}.Fields()
 	_ = roleFields
+	// roleDescCreateTime is the schema descriptor for create_time field.
+	roleDescCreateTime := roleMixinFields0[0].Descriptor()
+	// role.DefaultCreateTime holds the default value on creation for the create_time field.
+	role.DefaultCreateTime = roleDescCreateTime.Default.(func() time.Time)
+	// roleDescUpdateTime is the schema descriptor for update_time field.
+	roleDescUpdateTime := roleMixinFields0[1].Descriptor()
+	// role.DefaultUpdateTime holds the default value on creation for the update_time field.
+	role.DefaultUpdateTime = roleDescUpdateTime.Default.(func() time.Time)
+	// role.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	role.UpdateDefaultUpdateTime = roleDescUpdateTime.UpdateDefault.(func() time.Time)
 	// roleDescName is the schema descriptor for name field.
 	roleDescName := roleFields[1].Descriptor()
 	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
@@ -110,50 +133,43 @@ func init() {
 	roleDescIsBuiltin := roleFields[2].Descriptor()
 	// role.DefaultIsBuiltin holds the default value on creation for the is_builtin field.
 	role.DefaultIsBuiltin = roleDescIsBuiltin.Default.(bool)
-	// roleDescCreateTime is the schema descriptor for create_time field.
-	roleDescCreateTime := roleFields[3].Descriptor()
-	// role.DefaultCreateTime holds the default value on creation for the create_time field.
-	role.DefaultCreateTime = roleDescCreateTime.Default.(func() time.Time)
-	// roleDescUpdateTime is the schema descriptor for update_time field.
-	roleDescUpdateTime := roleFields[4].Descriptor()
-	// role.DefaultUpdateTime holds the default value on creation for the update_time field.
-	role.DefaultUpdateTime = roleDescUpdateTime.Default.(func() time.Time)
-	// role.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	role.UpdateDefaultUpdateTime = roleDescUpdateTime.UpdateDefault.(func() time.Time)
 	// roleDescID is the schema descriptor for id field.
 	roleDescID := roleFields[0].Descriptor()
 	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	role.IDValidator = roleDescID.Validators[0].(func(string) error)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[1].Descriptor()
-	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
-	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescCreateTime is the schema descriptor for create_time field.
-	userDescCreateTime := userFields[4].Descriptor()
+	userDescCreateTime := userMixinFields0[0].Descriptor()
 	// user.DefaultCreateTime holds the default value on creation for the create_time field.
 	user.DefaultCreateTime = userDescCreateTime.Default.(func() time.Time)
 	// userDescUpdateTime is the schema descriptor for update_time field.
-	userDescUpdateTime := userFields[5].Descriptor()
+	userDescUpdateTime := userMixinFields0[1].Descriptor()
 	// user.DefaultUpdateTime holds the default value on creation for the update_time field.
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[1].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescAvatar is the schema descriptor for avatar field.
-	userDescAvatar := userFields[7].Descriptor()
+	userDescAvatar := userFields[5].Descriptor()
 	// user.DefaultAvatar holds the default value on creation for the avatar field.
 	user.DefaultAvatar = userDescAvatar.Default.(string)
 	// userDescBio is the schema descriptor for bio field.
-	userDescBio := userFields[8].Descriptor()
+	userDescBio := userFields[6].Descriptor()
 	// user.BioValidator is a validator for the "bio" field. It is called by the builders before save.
 	user.BioValidator = userDescBio.Validators[0].(func(string) error)
 	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[9].Descriptor()
+	userDescName := userFields[7].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
 	// userDescTags is the schema descriptor for tags field.
-	userDescTags := userFields[10].Descriptor()
+	userDescTags := userFields[8].Descriptor()
 	// user.TagsValidator is a validator for the "tags" field. It is called by the builders before save.
 	user.TagsValidator = userDescTags.Validators[0].(func(string) error)
 	// userDescID is the schema descriptor for id field.

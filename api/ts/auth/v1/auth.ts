@@ -18,7 +18,13 @@ export interface LoginRequest {
     | string
     | undefined;
   /** 邮箱登录 */
-  email?: string | undefined;
+  email?:
+    | string
+    | undefined;
+  /** 登录设备 */
+  device: string;
+  /** ip地址 */
+  ip: string;
 }
 
 /** 账号登录响应 */
@@ -45,4 +51,34 @@ export interface RefreshResponse {
   refreshToken: string;
   /** token 有效时间 */
   expiresIn: Duration | undefined;
+}
+
+/** 获取登录设备请求 */
+export interface DevicesRequest {
+}
+
+/** 获取登录设备响应 */
+export interface DevicesResponse {
+  /** 设备列表 */
+  devices: LoginDevice[];
+  /** 当前设备id */
+  deviceId: string;
+}
+
+/** 登录设备信息 */
+export interface LoginDevice {
+  /** 登录时间 */
+  loginTime:
+    | Date
+    | undefined;
+  /** 登录设备 */
+  device: string;
+  /** 登录ip */
+  ip: string;
+  /** 设备id */
+  deviceId: string;
+  /** 会话id */
+  sessionId: string;
+  /** 最近一次刷新时间 */
+  updateTime: Date | undefined;
 }

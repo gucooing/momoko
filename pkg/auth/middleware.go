@@ -33,7 +33,7 @@ func Middleware() httpm.FilterFunc {
 				response.WriteError(w, r, ErrUnauthorized)
 				return
 			}
-			auth, err := ParseToken(tokens[1], AuthSecretKey)
+			auth, err := ParseToken(tokens[1])
 			if err != nil {
 				response.WriteError(w, r, ErrUnauthorized)
 				return

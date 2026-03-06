@@ -54,6 +54,16 @@ func IDLTE(id int) predicate.Auth {
 	return predicate.Auth(sql.FieldLTE(FieldID, id))
 }
 
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
+func UpdateTime(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldUpdateTime, v))
+}
+
 // SessionID applies equality check predicate on the "session_id" field. It's identical to SessionIDEQ.
 func SessionID(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldSessionID, v))
@@ -62,6 +72,11 @@ func SessionID(v string) predicate.Auth {
 // DeviceID applies equality check predicate on the "device_id" field. It's identical to DeviceIDEQ.
 func DeviceID(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldDeviceID, v))
+}
+
+// Device applies equality check predicate on the "device" field. It's identical to DeviceEQ.
+func Device(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldDevice, v))
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
@@ -74,14 +89,84 @@ func IP(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldIP, v))
 }
 
-// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
-func CreateTime(v time.Time) predicate.Auth {
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldCreateTime, v))
 }
 
-// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
-func UpdateTime(v time.Time) predicate.Auth {
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldLTE(FieldCreateTime, v))
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
+func UpdateTimeEQ(v time.Time) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
+func UpdateTimeNEQ(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldNEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeIn applies the In predicate on the "update_time" field.
+func UpdateTimeIn(vs ...time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldNotIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeGT applies the GT predicate on the "update_time" field.
+func UpdateTimeGT(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldGT(FieldUpdateTime, v))
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
+func UpdateTimeGTE(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldGTE(FieldUpdateTime, v))
+}
+
+// UpdateTimeLT applies the LT predicate on the "update_time" field.
+func UpdateTimeLT(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldLT(FieldUpdateTime, v))
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
+func UpdateTimeLTE(v time.Time) predicate.Auth {
+	return predicate.Auth(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // SessionIDEQ applies the EQ predicate on the "session_id" field.
@@ -214,6 +299,71 @@ func DeviceIDContainsFold(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldContainsFold(FieldDeviceID, v))
 }
 
+// DeviceEQ applies the EQ predicate on the "device" field.
+func DeviceEQ(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEQ(FieldDevice, v))
+}
+
+// DeviceNEQ applies the NEQ predicate on the "device" field.
+func DeviceNEQ(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldNEQ(FieldDevice, v))
+}
+
+// DeviceIn applies the In predicate on the "device" field.
+func DeviceIn(vs ...string) predicate.Auth {
+	return predicate.Auth(sql.FieldIn(FieldDevice, vs...))
+}
+
+// DeviceNotIn applies the NotIn predicate on the "device" field.
+func DeviceNotIn(vs ...string) predicate.Auth {
+	return predicate.Auth(sql.FieldNotIn(FieldDevice, vs...))
+}
+
+// DeviceGT applies the GT predicate on the "device" field.
+func DeviceGT(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldGT(FieldDevice, v))
+}
+
+// DeviceGTE applies the GTE predicate on the "device" field.
+func DeviceGTE(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldGTE(FieldDevice, v))
+}
+
+// DeviceLT applies the LT predicate on the "device" field.
+func DeviceLT(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldLT(FieldDevice, v))
+}
+
+// DeviceLTE applies the LTE predicate on the "device" field.
+func DeviceLTE(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldLTE(FieldDevice, v))
+}
+
+// DeviceContains applies the Contains predicate on the "device" field.
+func DeviceContains(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldContains(FieldDevice, v))
+}
+
+// DeviceHasPrefix applies the HasPrefix predicate on the "device" field.
+func DeviceHasPrefix(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldHasPrefix(FieldDevice, v))
+}
+
+// DeviceHasSuffix applies the HasSuffix predicate on the "device" field.
+func DeviceHasSuffix(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldHasSuffix(FieldDevice, v))
+}
+
+// DeviceEqualFold applies the EqualFold predicate on the "device" field.
+func DeviceEqualFold(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldEqualFold(FieldDevice, v))
+}
+
+// DeviceContainsFold applies the ContainsFold predicate on the "device" field.
+func DeviceContainsFold(v string) predicate.Auth {
+	return predicate.Auth(sql.FieldContainsFold(FieldDevice, v))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldEQ(FieldUserID, v))
@@ -342,86 +492,6 @@ func IPEqualFold(v string) predicate.Auth {
 // IPContainsFold applies the ContainsFold predicate on the "ip" field.
 func IPContainsFold(v string) predicate.Auth {
 	return predicate.Auth(sql.FieldContainsFold(FieldIP, v))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "create_time" field.
-func CreateTimeEQ(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
-func CreateTimeNEQ(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "create_time" field.
-func CreateTimeIn(vs ...time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "create_time" field.
-func CreateTimeGT(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "create_time" field.
-func CreateTimeGTE(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "create_time" field.
-func CreateTimeLT(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "create_time" field.
-func CreateTimeLTE(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldLTE(FieldCreateTime, v))
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
-func UpdateTimeEQ(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
-func UpdateTimeNEQ(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldNEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeIn applies the In predicate on the "update_time" field.
-func UpdateTimeIn(vs ...time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldNotIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeGT applies the GT predicate on the "update_time" field.
-func UpdateTimeGT(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldGT(FieldUpdateTime, v))
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
-func UpdateTimeGTE(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldGTE(FieldUpdateTime, v))
-}
-
-// UpdateTimeLT applies the LT predicate on the "update_time" field.
-func UpdateTimeLT(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldLT(FieldUpdateTime, v))
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
-func UpdateTimeLTE(v time.Time) predicate.Auth {
-	return predicate.Auth(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.

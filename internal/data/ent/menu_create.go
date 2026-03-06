@@ -23,38 +23,6 @@ type MenuCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetType sets the "type" field.
-func (_c *MenuCreate) SetType(v menu.Type) *MenuCreate {
-	_c.mutation.SetType(v)
-	return _c
-}
-
-// SetTitle sets the "title" field.
-func (_c *MenuCreate) SetTitle(v string) *MenuCreate {
-	_c.mutation.SetTitle(v)
-	return _c
-}
-
-// SetIcon sets the "icon" field.
-func (_c *MenuCreate) SetIcon(v string) *MenuCreate {
-	_c.mutation.SetIcon(v)
-	return _c
-}
-
-// SetIsBuiltin sets the "is_builtin" field.
-func (_c *MenuCreate) SetIsBuiltin(v bool) *MenuCreate {
-	_c.mutation.SetIsBuiltin(v)
-	return _c
-}
-
-// SetNillableIsBuiltin sets the "is_builtin" field if the given value is not nil.
-func (_c *MenuCreate) SetNillableIsBuiltin(v *bool) *MenuCreate {
-	if v != nil {
-		_c.SetIsBuiltin(*v)
-	}
-	return _c
-}
-
 // SetCreateTime sets the "create_time" field.
 func (_c *MenuCreate) SetCreateTime(v time.Time) *MenuCreate {
 	_c.mutation.SetCreateTime(v)
@@ -79,6 +47,38 @@ func (_c *MenuCreate) SetUpdateTime(v time.Time) *MenuCreate {
 func (_c *MenuCreate) SetNillableUpdateTime(v *time.Time) *MenuCreate {
 	if v != nil {
 		_c.SetUpdateTime(*v)
+	}
+	return _c
+}
+
+// SetType sets the "type" field.
+func (_c *MenuCreate) SetType(v menu.Type) *MenuCreate {
+	_c.mutation.SetType(v)
+	return _c
+}
+
+// SetTitle sets the "title" field.
+func (_c *MenuCreate) SetTitle(v string) *MenuCreate {
+	_c.mutation.SetTitle(v)
+	return _c
+}
+
+// SetIcon sets the "icon" field.
+func (_c *MenuCreate) SetIcon(v string) *MenuCreate {
+	_c.mutation.SetIcon(v)
+	return _c
+}
+
+// SetIsSystem sets the "is_system" field.
+func (_c *MenuCreate) SetIsSystem(v bool) *MenuCreate {
+	_c.mutation.SetIsSystem(v)
+	return _c
+}
+
+// SetNillableIsSystem sets the "is_system" field if the given value is not nil.
+func (_c *MenuCreate) SetNillableIsSystem(v *bool) *MenuCreate {
+	if v != nil {
+		_c.SetIsSystem(*v)
 	}
 	return _c
 }
@@ -156,10 +156,6 @@ func (_c *MenuCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *MenuCreate) defaults() {
-	if _, ok := _c.mutation.IsBuiltin(); !ok {
-		v := menu.DefaultIsBuiltin
-		_c.mutation.SetIsBuiltin(v)
-	}
 	if _, ok := _c.mutation.CreateTime(); !ok {
 		v := menu.DefaultCreateTime()
 		_c.mutation.SetCreateTime(v)
@@ -167,6 +163,10 @@ func (_c *MenuCreate) defaults() {
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		v := menu.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
+	}
+	if _, ok := _c.mutation.IsSystem(); !ok {
+		v := menu.DefaultIsSystem
+		_c.mutation.SetIsSystem(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := menu.DefaultStatus
@@ -176,6 +176,12 @@ func (_c *MenuCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *MenuCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Menu.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Menu.update_time"`)}
+	}
 	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Menu.type"`)}
 	}
@@ -200,14 +206,8 @@ func (_c *MenuCreate) check() error {
 			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Menu.icon": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.IsBuiltin(); !ok {
-		return &ValidationError{Name: "is_builtin", err: errors.New(`ent: missing required field "Menu.is_builtin"`)}
-	}
-	if _, ok := _c.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Menu.create_time"`)}
-	}
-	if _, ok := _c.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Menu.update_time"`)}
+	if _, ok := _c.mutation.IsSystem(); !ok {
+		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "Menu.is_system"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Menu.status"`)}
@@ -267,6 +267,14 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := _c.mutation.CreateTime(); ok {
+		_spec.SetField(menu.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := _c.mutation.UpdateTime(); ok {
+		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(menu.FieldType, field.TypeEnum, value)
 		_node.Type = value
@@ -279,17 +287,9 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
 		_node.Icon = value
 	}
-	if value, ok := _c.mutation.IsBuiltin(); ok {
-		_spec.SetField(menu.FieldIsBuiltin, field.TypeBool, value)
-		_node.IsBuiltin = value
-	}
-	if value, ok := _c.mutation.CreateTime(); ok {
-		_spec.SetField(menu.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
-	}
-	if value, ok := _c.mutation.UpdateTime(); ok {
-		_spec.SetField(menu.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
+	if value, ok := _c.mutation.IsSystem(); ok {
+		_spec.SetField(menu.FieldIsSystem, field.TypeBool, value)
+		_node.IsSystem = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(menu.FieldStatus, field.TypeEnum, value)
@@ -314,7 +314,7 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Menu.Create().
-//		SetType(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -323,7 +323,7 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MenuUpsert) {
-//			SetType(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *MenuCreate) OnConflict(opts ...sql.ConflictOption) *MenuUpsertOne {
@@ -358,6 +358,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MenuUpsert) SetUpdateTime(v time.Time) *MenuUpsert {
+	u.Set(menu.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MenuUpsert) UpdateUpdateTime() *MenuUpsert {
+	u.SetExcluded(menu.FieldUpdateTime)
+	return u
+}
 
 // SetType sets the "type" field.
 func (u *MenuUpsert) SetType(v menu.Type) *MenuUpsert {
@@ -395,27 +407,15 @@ func (u *MenuUpsert) UpdateIcon() *MenuUpsert {
 	return u
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (u *MenuUpsert) SetIsBuiltin(v bool) *MenuUpsert {
-	u.Set(menu.FieldIsBuiltin, v)
+// SetIsSystem sets the "is_system" field.
+func (u *MenuUpsert) SetIsSystem(v bool) *MenuUpsert {
+	u.Set(menu.FieldIsSystem, v)
 	return u
 }
 
-// UpdateIsBuiltin sets the "is_builtin" field to the value that was provided on create.
-func (u *MenuUpsert) UpdateIsBuiltin() *MenuUpsert {
-	u.SetExcluded(menu.FieldIsBuiltin)
-	return u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *MenuUpsert) SetUpdateTime(v time.Time) *MenuUpsert {
-	u.Set(menu.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MenuUpsert) UpdateUpdateTime() *MenuUpsert {
-	u.SetExcluded(menu.FieldUpdateTime)
+// UpdateIsSystem sets the "is_system" field to the value that was provided on create.
+func (u *MenuUpsert) UpdateIsSystem() *MenuUpsert {
+	u.SetExcluded(menu.FieldIsSystem)
 	return u
 }
 
@@ -524,6 +524,20 @@ func (u *MenuUpsertOne) Update(set func(*MenuUpsert)) *MenuUpsertOne {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *MenuUpsertOne) SetUpdateTime(v time.Time) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdateUpdateTime() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *MenuUpsertOne) SetType(v menu.Type) *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
@@ -566,31 +580,17 @@ func (u *MenuUpsertOne) UpdateIcon() *MenuUpsertOne {
 	})
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (u *MenuUpsertOne) SetIsBuiltin(v bool) *MenuUpsertOne {
+// SetIsSystem sets the "is_system" field.
+func (u *MenuUpsertOne) SetIsSystem(v bool) *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
-		s.SetIsBuiltin(v)
+		s.SetIsSystem(v)
 	})
 }
 
-// UpdateIsBuiltin sets the "is_builtin" field to the value that was provided on create.
-func (u *MenuUpsertOne) UpdateIsBuiltin() *MenuUpsertOne {
+// UpdateIsSystem sets the "is_system" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdateIsSystem() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
-		s.UpdateIsBuiltin()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *MenuUpsertOne) SetUpdateTime(v time.Time) *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MenuUpsertOne) UpdateUpdateTime() *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdateUpdateTime()
+		s.UpdateIsSystem()
 	})
 }
 
@@ -793,7 +793,7 @@ func (_c *MenuCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MenuUpsert) {
-//			SetType(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *MenuCreateBulk) OnConflict(opts ...sql.ConflictOption) *MenuUpsertBulk {
@@ -875,6 +875,20 @@ func (u *MenuUpsertBulk) Update(set func(*MenuUpsert)) *MenuUpsertBulk {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *MenuUpsertBulk) SetUpdateTime(v time.Time) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdateUpdateTime() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *MenuUpsertBulk) SetType(v menu.Type) *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
@@ -917,31 +931,17 @@ func (u *MenuUpsertBulk) UpdateIcon() *MenuUpsertBulk {
 	})
 }
 
-// SetIsBuiltin sets the "is_builtin" field.
-func (u *MenuUpsertBulk) SetIsBuiltin(v bool) *MenuUpsertBulk {
+// SetIsSystem sets the "is_system" field.
+func (u *MenuUpsertBulk) SetIsSystem(v bool) *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
-		s.SetIsBuiltin(v)
+		s.SetIsSystem(v)
 	})
 }
 
-// UpdateIsBuiltin sets the "is_builtin" field to the value that was provided on create.
-func (u *MenuUpsertBulk) UpdateIsBuiltin() *MenuUpsertBulk {
+// UpdateIsSystem sets the "is_system" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdateIsSystem() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
-		s.UpdateIsBuiltin()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *MenuUpsertBulk) SetUpdateTime(v time.Time) *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MenuUpsertBulk) UpdateUpdateTime() *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdateUpdateTime()
+		s.UpdateIsSystem()
 	})
 }
 

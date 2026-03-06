@@ -14,18 +14,18 @@ const (
 	Label = "menu"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldIcon holds the string denoting the icon field in the database.
 	FieldIcon = "icon"
-	// FieldIsBuiltin holds the string denoting the is_builtin field in the database.
-	FieldIsBuiltin = "is_builtin"
-	// FieldCreateTime holds the string denoting the create_time field in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time field in the database.
-	FieldUpdateTime = "update_time"
+	// FieldIsSystem holds the string denoting the is_system field in the database.
+	FieldIsSystem = "is_system"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldParentID holds the string denoting the parent_id field in the database.
@@ -41,12 +41,12 @@ const (
 // Columns holds all SQL columns for menu fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
+	FieldUpdateTime,
 	FieldType,
 	FieldTitle,
 	FieldIcon,
-	FieldIsBuiltin,
-	FieldCreateTime,
-	FieldUpdateTime,
+	FieldIsSystem,
 	FieldStatus,
 	FieldParentID,
 	FieldOrder,
@@ -75,18 +75,18 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	TitleValidator func(string) error
-	// IconValidator is a validator for the "icon" field. It is called by the builders before save.
-	IconValidator func(string) error
-	// DefaultIsBuiltin holds the default value on creation for the "is_builtin" field.
-	DefaultIsBuiltin bool
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	TitleValidator func(string) error
+	// IconValidator is a validator for the "icon" field. It is called by the builders before save.
+	IconValidator func(string) error
+	// DefaultIsSystem holds the default value on creation for the "is_system" field.
+	DefaultIsSystem bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -149,6 +149,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByCreateTime orders the results by the create_time field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the update_time field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
@@ -164,19 +174,9 @@ func ByIcon(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIcon, opts...).ToFunc()
 }
 
-// ByIsBuiltin orders the results by the is_builtin field.
-func ByIsBuiltin(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsBuiltin, opts...).ToFunc()
-}
-
-// ByCreateTime orders the results by the create_time field.
-func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
-}
-
-// ByUpdateTime orders the results by the update_time field.
-func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+// ByIsSystem orders the results by the is_system field.
+func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

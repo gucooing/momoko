@@ -263,12 +263,12 @@ func (_q *MenuQuery) Clone() *MenuQuery {
 // Example:
 //
 //	var v []struct {
-//		Type menu.Type `json:"type,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Menu.Query().
-//		GroupBy(menu.FieldType).
+//		GroupBy(menu.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *MenuQuery) GroupBy(field string, fields ...string) *MenuGroupBy {
@@ -286,11 +286,11 @@ func (_q *MenuQuery) GroupBy(field string, fields ...string) *MenuGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Type menu.Type `json:"type,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Menu.Query().
-//		Select(menu.FieldType).
+//		Select(menu.FieldCreateTime).
 //		Scan(ctx, &v)
 func (_q *MenuQuery) Select(fields ...string) *MenuSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

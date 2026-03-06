@@ -16,8 +16,9 @@ const (
 
 func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
 	claims := Auth{
-		UserID:   authDb.UserID,
-		DeviceId: deviceId,
+		UserID:    authDb.UserID,
+		DeviceId:  deviceId,
+		SessionID: authDb.SessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        authDb.SessionID,
 			Issuer:    "kratos",
@@ -40,9 +41,9 @@ func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
 }
 
 // ParseToken parses the JWT token string and returns the Auth claims.
-func ParseToken(tokenStr, secret string) (*Auth, error) {
+func ParseToken(tokenStr string) (*Auth, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Auth{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
+		return []byte(AuthSecretKey), nil
 	})
 	if err != nil {
 		return nil, err

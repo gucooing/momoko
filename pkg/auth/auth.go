@@ -8,8 +8,9 @@ import (
 
 // Auth user auth.
 type Auth struct {
-	UserID   string `json:"id"`
-	DeviceId string `json:"device_id"`
+	UserID    string `json:"id"`
+	DeviceId  string `json:"device_id"`
+	SessionID string `json:"session_id"`
 	jwt.RegisteredClaims
 }
 

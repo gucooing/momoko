@@ -4,14 +4,18 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
+	v1 "momoko/api/gen/auth/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
+	auth2 "momoko/pkg/auth"
 )
 
 type Auth struct {
 	UserID    string
 	DeviceID  string
+	Device    string
 	SessionID string
 	IP        string
 	Type      auth.Type
@@ -19,6 +23,8 @@ type Auth struct {
 
 type AuthRepo interface {
 	CreateAuth(context.Context, *Auth) (*ent.Auth, error)
+	ListAuth(ctx context.Context, tokenType *auth.Type) ([]*ent.Auth, error)
+	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error)
 }
 
 type AuthUsecase struct {
@@ -29,13 +35,16 @@ func NewAuthUsecase(auth AuthRepo) *AuthUsecase {
 	return &AuthUsecase{auth: auth}
 }
 
-func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId, ip string) (*ent.Auth, error) {
+func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId string, req *v1.LoginRequest) (*ent.Auth, error) {
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  deviceId,
 		SessionID: uuid.NewString(),
-		IP:        ip,
 		Type:      auth.TypeToken,
+	}
+	if req != nil {
+		info.IP = req.Ip
+		info.Device = req.Device
 	}
 	ea, err := a.auth.CreateAuth(ctx, info)
 	if err != nil {
@@ -44,17 +53,50 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId, ip s
 	return ea, nil
 }
 
-func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId, deviceId, ip string) (*ent.Auth, error) {
+func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId, deviceId string, req *v1.LoginRequest) (*ent.Auth, error) {
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  deviceId,
 		SessionID: uuid.NewString(),
-		IP:        ip,
 		Type:      auth.TypeRefreshToken,
+	}
+	if req != nil {
+		info.IP = req.Ip
+		info.Device = req.Device
 	}
 	ea, err := a.auth.CreateAuth(ctx, info)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	return ea, nil
+}
+
+func (a *AuthUsecase) VerifyToken(ctx context.Context, auth *auth2.Auth, tokenType auth.Type) bool {
+	info, err := a.auth.GetAuth(ctx, auth.SessionID, tokenType)
+	if err != nil {
+		return false
+	}
+	if info.DeviceID != auth.DeviceId {
+		return false
+	}
+	return true
+}
+
+func (a *AuthUsecase) ListLoginDevice(ctx context.Context, userId string) ([]*v1.LoginDevice, error) {
+	auths, err := a.auth.ListAuth(ctx, new(auth.TypeRefreshToken))
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	list := make([]*v1.LoginDevice, 0, len(auths))
+	for _, authInfo := range auths {
+		list = append(list, &v1.LoginDevice{
+			LoginTime:  timestamppb.New(authInfo.CreateTime),
+			Device:     authInfo.Device,
+			Ip:         authInfo.IP,
+			DeviceId:   authInfo.DeviceID,
+			SessionId:  authInfo.SessionID,
+			UpdateTime: timestamppb.New(authInfo.UpdateTime),
+		})
+	}
+	return list, nil
 }

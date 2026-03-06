@@ -24,24 +24,6 @@ type UserCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetUsername sets the "username" field.
-func (_c *UserCreate) SetUsername(v string) *UserCreate {
-	_c.mutation.SetUsername(v)
-	return _c
-}
-
-// SetPassword sets the "password" field.
-func (_c *UserCreate) SetPassword(v string) *UserCreate {
-	_c.mutation.SetPassword(v)
-	return _c
-}
-
-// SetEmail sets the "email" field.
-func (_c *UserCreate) SetEmail(v string) *UserCreate {
-	_c.mutation.SetEmail(v)
-	return _c
-}
-
 // SetCreateTime sets the "create_time" field.
 func (_c *UserCreate) SetCreateTime(v time.Time) *UserCreate {
 	_c.mutation.SetCreateTime(v)
@@ -67,6 +49,24 @@ func (_c *UserCreate) SetNillableUpdateTime(v *time.Time) *UserCreate {
 	if v != nil {
 		_c.SetUpdateTime(*v)
 	}
+	return _c
+}
+
+// SetUsername sets the "username" field.
+func (_c *UserCreate) SetUsername(v string) *UserCreate {
+	_c.mutation.SetUsername(v)
+	return _c
+}
+
+// SetPassword sets the "password" field.
+func (_c *UserCreate) SetPassword(v string) *UserCreate {
+	_c.mutation.SetPassword(v)
+	return _c
+}
+
+// SetEmail sets the "email" field.
+func (_c *UserCreate) SetEmail(v string) *UserCreate {
+	_c.mutation.SetEmail(v)
 	return _c
 }
 
@@ -208,6 +208,12 @@ func (_c *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "User.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "User.update_time"`)}
+	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
@@ -221,12 +227,6 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
-	}
-	if _, ok := _c.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "User.create_time"`)}
-	}
-	if _, ok := _c.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "User.update_time"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
@@ -299,6 +299,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := _c.mutation.CreateTime(); ok {
+		_spec.SetField(user.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := _c.mutation.UpdateTime(); ok {
+		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
@@ -310,14 +318,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
-	}
-	if value, ok := _c.mutation.CreateTime(); ok {
-		_spec.SetField(user.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
-	}
-	if value, ok := _c.mutation.UpdateTime(); ok {
-		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
@@ -363,7 +363,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.User.Create().
-//		SetUsername(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -372,7 +372,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserUpsert) {
-//			SetUsername(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
@@ -408,6 +408,18 @@ type (
 	}
 )
 
+// SetUpdateTime sets the "update_time" field.
+func (u *UserUpsert) SetUpdateTime(v time.Time) *UserUpsert {
+	u.Set(user.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUpdateTime() *UserUpsert {
+	u.SetExcluded(user.FieldUpdateTime)
+	return u
+}
+
 // SetUsername sets the "username" field.
 func (u *UserUpsert) SetUsername(v string) *UserUpsert {
 	u.Set(user.FieldUsername, v)
@@ -441,18 +453,6 @@ func (u *UserUpsert) SetEmail(v string) *UserUpsert {
 // UpdateEmail sets the "email" field to the value that was provided on create.
 func (u *UserUpsert) UpdateEmail() *UserUpsert {
 	u.SetExcluded(user.FieldEmail)
-	return u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *UserUpsert) SetUpdateTime(v time.Time) *UserUpsert {
-	u.Set(user.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *UserUpsert) UpdateUpdateTime() *UserUpsert {
-	u.SetExcluded(user.FieldUpdateTime)
 	return u
 }
 
@@ -567,6 +567,20 @@ func (u *UserUpsertOne) Update(set func(*UserUpsert)) *UserUpsertOne {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *UserUpsertOne) SetUpdateTime(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUpdateTime() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetUsername sets the "username" field.
 func (u *UserUpsertOne) SetUsername(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -606,20 +620,6 @@ func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *UserUpsertOne) SetUpdateTime(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateUpdateTime() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -829,7 +829,7 @@ func (_c *UserCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserUpsert) {
-//			SetUsername(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
@@ -911,6 +911,20 @@ func (u *UserUpsertBulk) Update(set func(*UserUpsert)) *UserUpsertBulk {
 	return u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (u *UserUpsertBulk) SetUpdateTime(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUpdateTime() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetUsername sets the "username" field.
 func (u *UserUpsertBulk) SetUsername(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -950,20 +964,6 @@ func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEmail()
-	})
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *UserUpsertBulk) SetUpdateTime(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateUpdateTime() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

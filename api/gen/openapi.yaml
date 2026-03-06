@@ -6,6 +6,19 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/auth/devices:
+        get:
+            tags:
+                - AuthService
+            description: 获取登录设备
+            operationId: AuthService_Devices
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.DevicesResponse'
     /v1/auth/login:
         post:
             tags:
@@ -59,6 +72,42 @@ paths:
                                 $ref: '#/components/schemas/user.v1.MeInfoResponse'
 components:
     schemas:
+        auth.v1.DevicesResponse:
+            type: object
+            properties:
+                devices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.LoginDevice'
+                    description: 设备列表
+                deviceId:
+                    type: string
+                    description: 当前设备id
+            description: 获取登录设备响应
+        auth.v1.LoginDevice:
+            type: object
+            properties:
+                loginTime:
+                    type: string
+                    description: 登录时间
+                    format: date-time
+                device:
+                    type: string
+                    description: 登录设备
+                ip:
+                    type: string
+                    description: 登录ip
+                deviceId:
+                    type: string
+                    description: 设备id
+                sessionId:
+                    type: string
+                    description: 会话id
+                updateTime:
+                    type: string
+                    description: 最近一次刷新时间
+                    format: date-time
+            description: 登录设备信息
         auth.v1.LoginRequest:
             type: object
             properties:
@@ -71,6 +120,12 @@ components:
                 email:
                     type: string
                     description: 邮箱登录
+                device:
+                    type: string
+                    description: 登录设备
+                ip:
+                    type: string
+                    description: ip地址
             description: 账号登录请求
         auth.v1.LoginResponse:
             type: object

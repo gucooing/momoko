@@ -28,6 +28,12 @@ func (_u *AuthUpdate) Where(ps ...predicate.Auth) *AuthUpdate {
 	return _u
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (_u *AuthUpdate) SetUpdateTime(v time.Time) *AuthUpdate {
+	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
 // SetSessionID sets the "session_id" field.
 func (_u *AuthUpdate) SetSessionID(v string) *AuthUpdate {
 	_u.mutation.SetSessionID(v)
@@ -52,6 +58,20 @@ func (_u *AuthUpdate) SetDeviceID(v string) *AuthUpdate {
 func (_u *AuthUpdate) SetNillableDeviceID(v *string) *AuthUpdate {
 	if v != nil {
 		_u.SetDeviceID(*v)
+	}
+	return _u
+}
+
+// SetDevice sets the "device" field.
+func (_u *AuthUpdate) SetDevice(v string) *AuthUpdate {
+	_u.mutation.SetDevice(v)
+	return _u
+}
+
+// SetNillableDevice sets the "device" field if the given value is not nil.
+func (_u *AuthUpdate) SetNillableDevice(v *string) *AuthUpdate {
+	if v != nil {
+		_u.SetDevice(*v)
 	}
 	return _u
 }
@@ -81,12 +101,6 @@ func (_u *AuthUpdate) SetNillableIP(v *string) *AuthUpdate {
 	if v != nil {
 		_u.SetIP(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *AuthUpdate) SetUpdateTime(v time.Time) *AuthUpdate {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -157,6 +171,11 @@ func (_u *AuthUpdate) check() error {
 			return &ValidationError{Name: "device_id", err: fmt.Errorf(`ent: validator failed for field "Auth.device_id": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Device(); ok {
+		if err := auth.DeviceValidator(v); err != nil {
+			return &ValidationError{Name: "device", err: fmt.Errorf(`ent: validator failed for field "Auth.device": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.UserID(); ok {
 		if err := auth.UserIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Auth.user_id": %w`, err)}
@@ -182,20 +201,23 @@ func (_u *AuthUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.SessionID(); ok {
 		_spec.SetField(auth.FieldSessionID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.DeviceID(); ok {
 		_spec.SetField(auth.FieldDeviceID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Device(); ok {
+		_spec.SetField(auth.FieldDevice, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IP(); ok {
 		_spec.SetField(auth.FieldIP, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)
@@ -218,6 +240,12 @@ type AuthUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *AuthMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *AuthUpdateOne) SetUpdateTime(v time.Time) *AuthUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
 }
 
 // SetSessionID sets the "session_id" field.
@@ -248,6 +276,20 @@ func (_u *AuthUpdateOne) SetNillableDeviceID(v *string) *AuthUpdateOne {
 	return _u
 }
 
+// SetDevice sets the "device" field.
+func (_u *AuthUpdateOne) SetDevice(v string) *AuthUpdateOne {
+	_u.mutation.SetDevice(v)
+	return _u
+}
+
+// SetNillableDevice sets the "device" field if the given value is not nil.
+func (_u *AuthUpdateOne) SetNillableDevice(v *string) *AuthUpdateOne {
+	if v != nil {
+		_u.SetDevice(*v)
+	}
+	return _u
+}
+
 // SetUserID sets the "user_id" field.
 func (_u *AuthUpdateOne) SetUserID(v string) *AuthUpdateOne {
 	_u.mutation.SetUserID(v)
@@ -273,12 +315,6 @@ func (_u *AuthUpdateOne) SetNillableIP(v *string) *AuthUpdateOne {
 	if v != nil {
 		_u.SetIP(*v)
 	}
-	return _u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (_u *AuthUpdateOne) SetUpdateTime(v time.Time) *AuthUpdateOne {
-	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -362,6 +398,11 @@ func (_u *AuthUpdateOne) check() error {
 			return &ValidationError{Name: "device_id", err: fmt.Errorf(`ent: validator failed for field "Auth.device_id": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Device(); ok {
+		if err := auth.DeviceValidator(v); err != nil {
+			return &ValidationError{Name: "device", err: fmt.Errorf(`ent: validator failed for field "Auth.device": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.UserID(); ok {
 		if err := auth.UserIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Auth.user_id": %w`, err)}
@@ -404,20 +445,23 @@ func (_u *AuthUpdateOne) sqlSave(ctx context.Context) (_node *Auth, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.SessionID(); ok {
 		_spec.SetField(auth.FieldSessionID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.DeviceID(); ok {
 		_spec.SetField(auth.FieldDeviceID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Device(); ok {
+		_spec.SetField(auth.FieldDevice, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(auth.FieldUserID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IP(); ok {
 		_spec.SetField(auth.FieldIP, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UpdateTime(); ok {
-		_spec.SetField(auth.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)

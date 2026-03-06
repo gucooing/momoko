@@ -6,6 +6,7 @@ option go_package = "momoko/api/gen/auth/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 // 认证服务
 service AuthService {
@@ -23,6 +24,12 @@ service AuthService {
       body: "*"
     };
   }
+  // 获取登录设备
+  rpc Devices(DevicesRequest) returns (DevicesResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/devices"
+    };
+  }
 }
 
 // 账号登录请求
@@ -36,6 +43,10 @@ message LoginRequest {
     // 邮箱登录
     string email = 3;
   }
+  // 登录设备
+  string device = 4;
+  // ip地址
+  string ip = 5;
 }
 
 // 账号登录响应
@@ -62,4 +73,33 @@ message RefreshResponse {
   string refresh_token = 2;
   // token 有效时间
   google.protobuf.Duration expires_in = 3;
+}
+
+// 获取登录设备请求
+message DevicesRequest {
+
+}
+
+// 获取登录设备响应
+message DevicesResponse {
+  // 设备列表
+  repeated LoginDevice devices = 1;
+  // 当前设备id
+  string device_id = 2;
+}
+
+// 登录设备信息
+message LoginDevice {
+  // 登录时间
+  google.protobuf.Timestamp login_time = 1;
+  // 登录设备
+  string device = 2;
+  // 登录ip
+  string ip = 3;
+  // 设备id
+  string device_id = 4;
+  // 会话id
+  string session_id = 5;
+  // 最近一次刷新时间
+  google.protobuf.Timestamp update_time = 6;
 }
