@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	tokenExpiresAt        = 2 * time.Hour
-	refreshTokenExpiresAt = 7 * 24 * time.Hour
+	tokenExpiresAt = 2 * time.Hour
 )
 
 func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
@@ -29,8 +28,6 @@ func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
 				switch authDb.Type {
 				case auth.TypeToken:
 					return tokenExpiresAt
-				case auth.TypeRefreshToken:
-					return refreshTokenExpiresAt
 				default:
 					return 0
 				}

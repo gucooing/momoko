@@ -72,21 +72,11 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 	if err != nil {
 		return nil, biz.ErrTokenInvalid
 	}
-	if s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
+	if !s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
 		return nil, biz.ErrTokenInvalid
 	}
 	// 更新token
-	access, err := s.uc.NewAccessToken(ctx,
-		refreshAuth.ID,
-		refreshAuth.DeviceId,
-		nil)
-	if err != nil {
-		return nil, err
-	}
-	refresh, err := s.uc.NewRefreshToken(ctx,
-		refreshAuth.ID,
-		refreshAuth.DeviceId,
-		nil)
+	access, refresh, err := s.uc.RefreshToken(ctx, refreshAuth.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +101,7 @@ func (s *AuthService) Devices(ctx context.Context, req *v1.DevicesRequest) (*v1.
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	list, err := s.uc.ListLoginDevice(ctx, authInfo.ID)
+	list, err := s.uc.ListLoginDevice(ctx, authInfo.UserID)
 	if err != nil {
 		return nil, err
 	}

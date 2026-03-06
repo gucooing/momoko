@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"momoko/pkg/response"
 
@@ -36,6 +37,10 @@ func Middleware() httpm.FilterFunc {
 			auth, err := ParseToken(tokens[1])
 			if err != nil {
 				response.WriteError(w, r, ErrUnauthorized)
+				return
+			}
+			if auth.ExpiresAt.Before(time.Now()) {
+				response.WriteError(w, r, response.BadRequest(401, "token过期"))
 				return
 			}
 			ctx := NewContext(r.Context(), auth)

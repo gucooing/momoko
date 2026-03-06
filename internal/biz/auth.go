@@ -23,7 +23,8 @@ type Auth struct {
 
 type AuthRepo interface {
 	CreateAuth(context.Context, *Auth) (*ent.Auth, error)
-	ListAuth(ctx context.Context, tokenType *auth.Type) ([]*ent.Auth, error)
+	Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error)
+	ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error)
 	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error)
 }
 
@@ -39,12 +40,10 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId strin
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  deviceId,
+		IP:        req.Ip,
+		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeToken,
-	}
-	if req != nil {
-		info.IP = req.Ip
-		info.Device = req.Device
 	}
 	ea, err := a.auth.CreateAuth(ctx, info)
 	if err != nil {
@@ -57,12 +56,10 @@ func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId, deviceId stri
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  deviceId,
+		IP:        req.Ip,
+		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeRefreshToken,
-	}
-	if req != nil {
-		info.IP = req.Ip
-		info.Device = req.Device
 	}
 	ea, err := a.auth.CreateAuth(ctx, info)
 	if err != nil {
@@ -76,14 +73,23 @@ func (a *AuthUsecase) VerifyToken(ctx context.Context, auth *auth2.Auth, tokenTy
 	if err != nil {
 		return false
 	}
-	if info.DeviceID != auth.DeviceId {
+	if info.DeviceID != auth.DeviceId ||
+		auth.SessionID != info.SessionID {
 		return false
 	}
 	return true
 }
 
+func (a *AuthUsecase) RefreshToken(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {
+	access, refresh, err := a.auth.Refresh(ctx, userId)
+	if err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	return access, refresh, nil
+}
+
 func (a *AuthUsecase) ListLoginDevice(ctx context.Context, userId string) ([]*v1.LoginDevice, error) {
-	auths, err := a.auth.ListAuth(ctx, new(auth.TypeRefreshToken))
+	auths, err := a.auth.ListAuth(ctx, new(auth.TypeRefreshToken), userId)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}

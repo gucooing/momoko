@@ -3,6 +3,8 @@ package data
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
@@ -27,13 +29,34 @@ func (ar *authRepo) CreateAuth(ctx context.Context, auth *biz.Auth) (*ent.Auth, 
 		SetIP(auth.IP).
 		SetType(auth.Type)
 
-	create.
-		OnConflict().
-		UpdateNewValues().
-		UpdateSessionID().
-		UpdateIP()
-
 	return create.Save(ctx)
+}
+
+func (ar *authRepo) Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {
+	authInfos, err := ar.data.db.Auth.Query().Where(auth.UserIDEQ(userId)).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	var (
+		access, refresh *ent.Auth
+	)
+	for _, item := range authInfos {
+		authInfo, err := ar.data.db.Auth.UpdateOne(item).
+			SetSessionID(uuid.NewString()).Save(ctx)
+		if err != nil {
+			return nil, nil, biz.ErrSystem(err)
+		}
+		switch item.Type {
+		case auth.TypeToken:
+			access = authInfo
+		case auth.TypeRefreshToken:
+			refresh = authInfo
+		default:
+			return nil, nil, biz.ErrTokenInvalid
+		}
+	}
+
+	return access, refresh, nil
 }
 
 func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error) {
@@ -44,8 +67,9 @@ func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType aut
 		).First(ctx)
 }
 
-func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type) ([]*ent.Auth, error) {
-	query := ar.data.db.Auth.Query()
+func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error) {
+	query := ar.data.db.Auth.Query().
+		Where(auth.UserIDEQ(userId))
 
 	if tokenType != nil {
 		query.Where(auth.TypeEQ(*tokenType))
