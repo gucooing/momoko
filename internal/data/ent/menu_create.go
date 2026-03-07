@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/menu"
+	"momoko/internal/data/ent/role"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -121,10 +122,33 @@ func (_c *MenuCreate) SetParentID(v string) *MenuCreate {
 	return _c
 }
 
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (_c *MenuCreate) SetNillableParentID(v *string) *MenuCreate {
+	if v != nil {
+		_c.SetParentID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MenuCreate) SetID(v string) *MenuCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_c *MenuCreate) AddRoleIDs(ids ...string) *MenuCreate {
+	_c.mutation.AddRoleIDs(ids...)
+	return _c
+}
+
+// AddRoles adds the "roles" edges to the Role entity.
+func (_c *MenuCreate) AddRoles(v ...*Role) *MenuCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRoleIDs(ids...)
 }
 
 // Mutation returns the MenuMutation object of the builder.
@@ -242,9 +266,6 @@ func (_c *MenuCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Menu.status": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.ParentID(); !ok {
-		return &ValidationError{Name: "parent_id", err: errors.New(`ent: missing required field "Menu.parent_id"`)}
-	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := menu.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Menu.id": %w`, err)}
@@ -328,7 +349,23 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.ParentID(); ok {
 		_spec.SetField(menu.FieldParentID, field.TypeString, value)
-		_node.ParentID = &value
+		_node.ParentID = value
+	}
+	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   menu.RolesTable,
+			Columns: menu.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -505,6 +542,12 @@ func (u *MenuUpsert) SetParentID(v string) *MenuUpsert {
 // UpdateParentID sets the "parent_id" field to the value that was provided on create.
 func (u *MenuUpsert) UpdateParentID() *MenuUpsert {
 	u.SetExcluded(menu.FieldParentID)
+	return u
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MenuUpsert) ClearParentID() *MenuUpsert {
+	u.SetNull(menu.FieldParentID)
 	return u
 }
 
@@ -703,6 +746,13 @@ func (u *MenuUpsertOne) SetParentID(v string) *MenuUpsertOne {
 func (u *MenuUpsertOne) UpdateParentID() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MenuUpsertOne) ClearParentID() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearParentID()
 	})
 }
 
@@ -1068,6 +1118,13 @@ func (u *MenuUpsertBulk) SetParentID(v string) *MenuUpsertBulk {
 func (u *MenuUpsertBulk) UpdateParentID() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *MenuUpsertBulk) ClearParentID() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearParentID()
 	})
 }
 

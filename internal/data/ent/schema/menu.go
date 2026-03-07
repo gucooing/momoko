@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,7 +21,13 @@ func (Menu) Fields() []ent.Field {
 		field.String("icon").NotEmpty().Comment("图标"),
 		field.Bool("is_system").Default(false).Comment("是否系统默认菜单(不可修改)"),
 		field.Enum("status").Values("active", "inactive").Default("active").Comment("启用状态"),
-		field.String("parent_id").Nillable().Comment("父菜单id"),
+		field.String("parent_id").Optional().Comment("父菜单id"),
+	}
+}
+
+func (Menu) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("roles", Role.Type).Ref("menus"),
 	}
 }
 

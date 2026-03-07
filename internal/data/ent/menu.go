@@ -39,9 +39,29 @@ type Menu struct {
 	// 启用状态
 	Status menu.Status `json:"status,omitempty"`
 	// 父菜单id
-	ParentID     *string `json:"parent_id,omitempty"`
-	role_menus   *string
+	ParentID string `json:"parent_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the MenuQuery when eager-loading is set.
+	Edges        MenuEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// MenuEdges holds the relations/edges for other nodes in the graph.
+type MenuEdges struct {
+	// Roles holds the value of the roles edge.
+	Roles []*Role `json:"roles,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e MenuEdges) RolesOrErr() ([]*Role, error) {
+	if e.loadedTypes[0] {
+		return e.Roles, nil
+	}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -57,8 +77,6 @@ func (*Menu) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case menu.FieldCreateTime, menu.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case menu.ForeignKeys[0]: // role_menus
-			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -144,15 +162,7 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
 			} else if value.Valid {
-				_m.ParentID = new(string)
-				*_m.ParentID = value.String
-			}
-		case menu.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field role_menus", values[i])
-			} else if value.Valid {
-				_m.role_menus = new(string)
-				*_m.role_menus = value.String
+				_m.ParentID = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -165,6 +175,11 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Menu) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryRoles queries the "roles" edge of the Menu entity.
+func (_m *Menu) QueryRoles() *RoleQuery {
+	return NewMenuClient(_m.config).QueryRoles(_m)
 }
 
 // Update returns a builder for updating this Menu.
@@ -220,10 +235,8 @@ func (_m *Menu) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
-	if v := _m.ParentID; v != nil {
-		builder.WriteString("parent_id=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("parent_id=")
+	builder.WriteString(_m.ParentID)
 	builder.WriteByte(')')
 	return builder.String()
 }

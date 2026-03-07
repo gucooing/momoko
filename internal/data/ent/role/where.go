@@ -335,7 +335,7 @@ func HasMenus() predicate.Role {
 	return predicate.Role(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MenusTable, MenusColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, MenusTable, MenusPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

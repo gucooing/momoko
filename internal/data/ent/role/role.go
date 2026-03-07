@@ -31,13 +31,11 @@ const (
 	EdgeMenus = "menus"
 	// Table holds the table name of the role in the database.
 	Table = "roles"
-	// MenusTable is the table that holds the menus relation/edge.
-	MenusTable = "menus"
+	// MenusTable is the table that holds the menus relation/edge. The primary key declared below.
+	MenusTable = "role_menus"
 	// MenusInverseTable is the table name for the Menu entity.
 	// It exists in this package in order to avoid circular dependency with the "menu" package.
 	MenusInverseTable = "menus"
-	// MenusColumn is the table column denoting the menus relation/edge.
-	MenusColumn = "role_menus"
 )
 
 // Columns holds all SQL columns for role fields.
@@ -50,6 +48,12 @@ var Columns = []string{
 	FieldIsBuiltin,
 	FieldStatus,
 }
+
+var (
+	// MenusPrimaryKey and MenusColumn2 are the table columns denoting the
+	// primary key for the menus relation (M2M).
+	MenusPrimaryKey = []string{"role_id", "menu_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -159,6 +163,6 @@ func newMenusStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MenusInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MenusTable, MenusColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, MenusTable, MenusPrimaryKey...),
 	)
 }

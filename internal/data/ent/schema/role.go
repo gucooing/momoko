@@ -22,7 +22,7 @@ func (Role) Fields() []ent.Field {
 
 func (Role) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("menus", Menu.Type).Comment("关联的权限"),
+		edge.To("menus", Menu.Type).StorageKey(edge.Table("role_menus"), edge.Columns("role_id", "menu_id")).Comment("关联的权限"),
 	}
 }
 

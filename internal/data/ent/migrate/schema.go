@@ -83,22 +83,13 @@ var (
 		{Name: "icon", Type: field.TypeString},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
-		{Name: "parent_id", Type: field.TypeString},
-		{Name: "role_menus", Type: field.TypeString, Nullable: true},
+		{Name: "parent_id", Type: field.TypeString, Nullable: true},
 	}
 	// MenusTable holds the schema information for the "menus" table.
 	MenusTable = &schema.Table{
 		Name:       "menus",
 		Columns:    MenusColumns,
 		PrimaryKey: []*schema.Column{MenusColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "menus_roles_menus",
-				Columns:    []*schema.Column{MenusColumns[12]},
-				RefColumns: []*schema.Column{RolesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
@@ -145,6 +136,31 @@ var (
 			},
 		},
 	}
+	// RoleMenusColumns holds the columns for the "role_menus" table.
+	RoleMenusColumns = []*schema.Column{
+		{Name: "role_id", Type: field.TypeString},
+		{Name: "menu_id", Type: field.TypeString},
+	}
+	// RoleMenusTable holds the schema information for the "role_menus" table.
+	RoleMenusTable = &schema.Table{
+		Name:       "role_menus",
+		Columns:    RoleMenusColumns,
+		PrimaryKey: []*schema.Column{RoleMenusColumns[0], RoleMenusColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "role_menus_role_id",
+				Columns:    []*schema.Column{RoleMenusColumns[0]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "role_menus_menu_id",
+				Columns:    []*schema.Column{RoleMenusColumns[1]},
+				RefColumns: []*schema.Column{MenusColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AdminsTable,
@@ -152,10 +168,12 @@ var (
 		MenusTable,
 		RolesTable,
 		UsersTable,
+		RoleMenusTable,
 	}
 )
 
 func init() {
-	MenusTable.ForeignKeys[0].RefTable = RolesTable
 	UsersTable.ForeignKeys[0].RefTable = RolesTable
+	RoleMenusTable.ForeignKeys[0].RefTable = RolesTable
+	RoleMenusTable.ForeignKeys[1].RefTable = MenusTable
 }
