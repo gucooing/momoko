@@ -13,10 +13,10 @@ const (
 	tokenExpiresAt = 2 * time.Hour
 )
 
-func GenerateToken(authDb *ent.Auth, deviceId string) (string, error) {
+func GenerateToken(authDb *ent.Auth) (string, error) {
 	claims := Auth{
 		UserID:    authDb.UserID,
-		DeviceId:  deviceId,
+		DeviceId:  authDb.DeviceID,
 		SessionID: authDb.SessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        authDb.SessionID,

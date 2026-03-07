@@ -20,6 +20,7 @@ import (
 func NewHTTPServer(c *conf.Server,
 	authApi *service.AuthService,
 	userApi *service.UserService,
+	systemApi *service.SystemService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -52,6 +53,7 @@ func NewHTTPServer(c *conf.Server,
 	srv := http.NewServer(opts...)
 	v1.RegisterAuthServiceHTTPServer(srv, authApi)
 	v1.RegisterUserServiceHTTPServer(srv, userApi)
+	v1.RegisterSystemHTTPServer(srv, systemApi)
 
 	return srv
 }

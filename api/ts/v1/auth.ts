@@ -25,6 +25,8 @@ export interface LoginRequest {
   device: string;
   /** ip地址 */
   ip: string;
+  /** 设备码 */
+  deviceId: string;
 }
 
 /** 账号登录响应 */

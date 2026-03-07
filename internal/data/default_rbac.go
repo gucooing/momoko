@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"momoko/internal/data/ent"
 	entmenu "momoko/internal/data/ent/menu"
@@ -94,15 +93,6 @@ func ptr(v string) *string {
 }
 
 func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, parentID *string, order int, permission string) defaultMenu {
-	if strings.TrimSpace(path) == "" {
-		path = "/builtin/" + id
-	}
-	if strings.TrimSpace(permission) == "" {
-		permission = "menu:" + id + ":view"
-	}
-	if strings.TrimSpace(icon) == "" {
-		icon = "HOutline:Square3Stack3DIcon"
-	}
 	return defaultMenu{
 		ID:         id,
 		Type:       menuType,

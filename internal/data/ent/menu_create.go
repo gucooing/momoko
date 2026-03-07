@@ -64,6 +64,14 @@ func (_c *MenuCreate) SetPath(v string) *MenuCreate {
 	return _c
 }
 
+// SetNillablePath sets the "path" field if the given value is not nil.
+func (_c *MenuCreate) SetNillablePath(v *string) *MenuCreate {
+	if v != nil {
+		_c.SetPath(*v)
+	}
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *MenuCreate) SetTitle(v string) *MenuCreate {
 	_c.mutation.SetTitle(v)
@@ -76,6 +84,14 @@ func (_c *MenuCreate) SetPermission(v string) *MenuCreate {
 	return _c
 }
 
+// SetNillablePermission sets the "permission" field if the given value is not nil.
+func (_c *MenuCreate) SetNillablePermission(v *string) *MenuCreate {
+	if v != nil {
+		_c.SetPermission(*v)
+	}
+	return _c
+}
+
 // SetOrder sets the "order" field.
 func (_c *MenuCreate) SetOrder(v int) *MenuCreate {
 	_c.mutation.SetOrder(v)
@@ -85,6 +101,14 @@ func (_c *MenuCreate) SetOrder(v int) *MenuCreate {
 // SetIcon sets the "icon" field.
 func (_c *MenuCreate) SetIcon(v string) *MenuCreate {
 	_c.mutation.SetIcon(v)
+	return _c
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_c *MenuCreate) SetNillableIcon(v *string) *MenuCreate {
+	if v != nil {
+		_c.SetIcon(*v)
+	}
 	return _c
 }
 
@@ -220,14 +244,6 @@ func (_c *MenuCreate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Menu.type": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Path(); !ok {
-		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "Menu.path"`)}
-	}
-	if v, ok := _c.mutation.Path(); ok {
-		if err := menu.PathValidator(v); err != nil {
-			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Menu.path": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Menu.title"`)}
 	}
@@ -236,24 +252,8 @@ func (_c *MenuCreate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Menu.title": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Permission(); !ok {
-		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "Menu.permission"`)}
-	}
-	if v, ok := _c.mutation.Permission(); ok {
-		if err := menu.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Menu.permission": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Order(); !ok {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "Menu.order"`)}
-	}
-	if _, ok := _c.mutation.Icon(); !ok {
-		return &ValidationError{Name: "icon", err: errors.New(`ent: missing required field "Menu.icon"`)}
-	}
-	if v, ok := _c.mutation.Icon(); ok {
-		if err := menu.IconValidator(v); err != nil {
-			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Menu.icon": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "Menu.is_system"`)}
@@ -455,6 +455,12 @@ func (u *MenuUpsert) UpdatePath() *MenuUpsert {
 	return u
 }
 
+// ClearPath clears the value of the "path" field.
+func (u *MenuUpsert) ClearPath() *MenuUpsert {
+	u.SetNull(menu.FieldPath)
+	return u
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsert) SetTitle(v string) *MenuUpsert {
 	u.Set(menu.FieldTitle, v)
@@ -476,6 +482,12 @@ func (u *MenuUpsert) SetPermission(v string) *MenuUpsert {
 // UpdatePermission sets the "permission" field to the value that was provided on create.
 func (u *MenuUpsert) UpdatePermission() *MenuUpsert {
 	u.SetExcluded(menu.FieldPermission)
+	return u
+}
+
+// ClearPermission clears the value of the "permission" field.
+func (u *MenuUpsert) ClearPermission() *MenuUpsert {
+	u.SetNull(menu.FieldPermission)
 	return u
 }
 
@@ -506,6 +518,12 @@ func (u *MenuUpsert) SetIcon(v string) *MenuUpsert {
 // UpdateIcon sets the "icon" field to the value that was provided on create.
 func (u *MenuUpsert) UpdateIcon() *MenuUpsert {
 	u.SetExcluded(menu.FieldIcon)
+	return u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *MenuUpsert) ClearIcon() *MenuUpsert {
+	u.SetNull(menu.FieldIcon)
 	return u
 }
 
@@ -644,6 +662,13 @@ func (u *MenuUpsertOne) UpdatePath() *MenuUpsertOne {
 	})
 }
 
+// ClearPath clears the value of the "path" field.
+func (u *MenuUpsertOne) ClearPath() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearPath()
+	})
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsertOne) SetTitle(v string) *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
@@ -669,6 +694,13 @@ func (u *MenuUpsertOne) SetPermission(v string) *MenuUpsertOne {
 func (u *MenuUpsertOne) UpdatePermission() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdatePermission()
+	})
+}
+
+// ClearPermission clears the value of the "permission" field.
+func (u *MenuUpsertOne) ClearPermission() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearPermission()
 	})
 }
 
@@ -704,6 +736,13 @@ func (u *MenuUpsertOne) SetIcon(v string) *MenuUpsertOne {
 func (u *MenuUpsertOne) UpdateIcon() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateIcon()
+	})
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *MenuUpsertOne) ClearIcon() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearIcon()
 	})
 }
 
@@ -1016,6 +1055,13 @@ func (u *MenuUpsertBulk) UpdatePath() *MenuUpsertBulk {
 	})
 }
 
+// ClearPath clears the value of the "path" field.
+func (u *MenuUpsertBulk) ClearPath() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearPath()
+	})
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsertBulk) SetTitle(v string) *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
@@ -1041,6 +1087,13 @@ func (u *MenuUpsertBulk) SetPermission(v string) *MenuUpsertBulk {
 func (u *MenuUpsertBulk) UpdatePermission() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdatePermission()
+	})
+}
+
+// ClearPermission clears the value of the "permission" field.
+func (u *MenuUpsertBulk) ClearPermission() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearPermission()
 	})
 }
 
@@ -1076,6 +1129,13 @@ func (u *MenuUpsertBulk) SetIcon(v string) *MenuUpsertBulk {
 func (u *MenuUpsertBulk) UpdateIcon() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateIcon()
+	})
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *MenuUpsertBulk) ClearIcon() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.ClearIcon()
 	})
 }
 

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package v1;
 
-option go_package = "momoko/api/gen/auth/v1;v1";
+option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
@@ -47,6 +47,8 @@ message LoginRequest {
   string device = 4;
   // ip地址
   string ip = 5;
+  // 设备码
+  string device_id = 6;
 }
 
 // 账号登录响应

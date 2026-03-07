@@ -13,4 +13,5 @@ var (
 	ErrAdminNotFound   = response.BadRequest(501, "用户不存在")
 	ErrInvalidPassword = response.BadRequest(501, "密码错误")
 	ErrTokenInvalid    = response.BadRequest(401, "token invalid")
+	ErrUserNoRole      = response.BadRequest(501, "用户没有角色")
 )

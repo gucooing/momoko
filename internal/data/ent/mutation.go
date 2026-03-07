@@ -1007,9 +1007,22 @@ func (m *MenuMutation) OldPath(ctx context.Context) (v string, err error) {
 	return oldValue.Path, nil
 }
 
+// ClearPath clears the value of the "path" field.
+func (m *MenuMutation) ClearPath() {
+	m._path = nil
+	m.clearedFields[menu.FieldPath] = struct{}{}
+}
+
+// PathCleared returns if the "path" field was cleared in this mutation.
+func (m *MenuMutation) PathCleared() bool {
+	_, ok := m.clearedFields[menu.FieldPath]
+	return ok
+}
+
 // ResetPath resets all changes to the "path" field.
 func (m *MenuMutation) ResetPath() {
 	m._path = nil
+	delete(m.clearedFields, menu.FieldPath)
 }
 
 // SetTitle sets the "title" field.
@@ -1079,9 +1092,22 @@ func (m *MenuMutation) OldPermission(ctx context.Context) (v string, err error) 
 	return oldValue.Permission, nil
 }
 
+// ClearPermission clears the value of the "permission" field.
+func (m *MenuMutation) ClearPermission() {
+	m.permission = nil
+	m.clearedFields[menu.FieldPermission] = struct{}{}
+}
+
+// PermissionCleared returns if the "permission" field was cleared in this mutation.
+func (m *MenuMutation) PermissionCleared() bool {
+	_, ok := m.clearedFields[menu.FieldPermission]
+	return ok
+}
+
 // ResetPermission resets all changes to the "permission" field.
 func (m *MenuMutation) ResetPermission() {
 	m.permission = nil
+	delete(m.clearedFields, menu.FieldPermission)
 }
 
 // SetOrder sets the "order" field.
@@ -1171,9 +1197,22 @@ func (m *MenuMutation) OldIcon(ctx context.Context) (v string, err error) {
 	return oldValue.Icon, nil
 }
 
+// ClearIcon clears the value of the "icon" field.
+func (m *MenuMutation) ClearIcon() {
+	m.icon = nil
+	m.clearedFields[menu.FieldIcon] = struct{}{}
+}
+
+// IconCleared returns if the "icon" field was cleared in this mutation.
+func (m *MenuMutation) IconCleared() bool {
+	_, ok := m.clearedFields[menu.FieldIcon]
+	return ok
+}
+
 // ResetIcon resets all changes to the "icon" field.
 func (m *MenuMutation) ResetIcon() {
 	m.icon = nil
+	delete(m.clearedFields, menu.FieldIcon)
 }
 
 // SetIsSystem sets the "is_system" field.
@@ -1611,6 +1650,15 @@ func (m *MenuMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *MenuMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(menu.FieldPath) {
+		fields = append(fields, menu.FieldPath)
+	}
+	if m.FieldCleared(menu.FieldPermission) {
+		fields = append(fields, menu.FieldPermission)
+	}
+	if m.FieldCleared(menu.FieldIcon) {
+		fields = append(fields, menu.FieldIcon)
+	}
 	if m.FieldCleared(menu.FieldParentID) {
 		fields = append(fields, menu.FieldParentID)
 	}
@@ -1628,6 +1676,15 @@ func (m *MenuMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *MenuMutation) ClearField(name string) error {
 	switch name {
+	case menu.FieldPath:
+		m.ClearPath()
+		return nil
+	case menu.FieldPermission:
+		m.ClearPermission()
+		return nil
+	case menu.FieldIcon:
+		m.ClearIcon()
+		return nil
 	case menu.FieldParentID:
 		m.ClearParentID()
 		return nil

@@ -61,22 +61,10 @@ func init() {
 	menu.DefaultUpdateTime = menuDescUpdateTime.Default.(func() time.Time)
 	// menu.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	menu.UpdateDefaultUpdateTime = menuDescUpdateTime.UpdateDefault.(func() time.Time)
-	// menuDescPath is the schema descriptor for path field.
-	menuDescPath := menuFields[2].Descriptor()
-	// menu.PathValidator is a validator for the "path" field. It is called by the builders before save.
-	menu.PathValidator = menuDescPath.Validators[0].(func(string) error)
 	// menuDescTitle is the schema descriptor for title field.
 	menuDescTitle := menuFields[3].Descriptor()
 	// menu.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	menu.TitleValidator = menuDescTitle.Validators[0].(func(string) error)
-	// menuDescPermission is the schema descriptor for permission field.
-	menuDescPermission := menuFields[4].Descriptor()
-	// menu.PermissionValidator is a validator for the "permission" field. It is called by the builders before save.
-	menu.PermissionValidator = menuDescPermission.Validators[0].(func(string) error)
-	// menuDescIcon is the schema descriptor for icon field.
-	menuDescIcon := menuFields[6].Descriptor()
-	// menu.IconValidator is a validator for the "icon" field. It is called by the builders before save.
-	menu.IconValidator = menuDescIcon.Validators[0].(func(string) error)
 	// menuDescIsSystem is the schema descriptor for is_system field.
 	menuDescIsSystem := menuFields[7].Descriptor()
 	// menu.DefaultIsSystem holds the default value on creation for the is_system field.

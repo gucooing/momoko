@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"momoko/api/gen/v1"
@@ -42,20 +41,19 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 	if err != nil {
 		return nil, err
 	}
-	deviceId := uuid.NewString()
-	access, err := s.uc.NewAccessToken(ctx, user.ID, deviceId, req)
+	access, err := s.uc.NewAccessToken(ctx, user.ID, req.DeviceId, req)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, deviceId, req)
+	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, req.DeviceId, req)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := auth.GenerateToken(access, deviceId)
+	accessToken, err := auth.GenerateToken(access)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := auth.GenerateToken(refresh, deviceId)
+	refreshToken, err := auth.GenerateToken(refresh)
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +78,11 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := auth.GenerateToken(access, refreshAuth.DeviceId)
+	accessToken, err := auth.GenerateToken(access)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := auth.GenerateToken(refresh, refreshAuth.DeviceId)
+	refreshToken, err := auth.GenerateToken(refresh)
 	if err != nil {
 		return nil, err
 	}

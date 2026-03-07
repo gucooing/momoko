@@ -33,3 +33,11 @@ func (ur *userRepo) FindByID(ctx context.Context, id string) (*ent.User, error) 
 
 	return query.First(ctx)
 }
+
+func (ur *userRepo) FindWithRoleByID(ctx context.Context, id string) (*ent.User, error) {
+	query := ur.data.db.User.Query()
+
+	query.Where(user.IDEQ(id)).WithRole()
+
+	return query.First(ctx)
+}

@@ -63,6 +63,12 @@ func (_u *MenuUpdate) SetNillablePath(v *string) *MenuUpdate {
 	return _u
 }
 
+// ClearPath clears the value of the "path" field.
+func (_u *MenuUpdate) ClearPath() *MenuUpdate {
+	_u.mutation.ClearPath()
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *MenuUpdate) SetTitle(v string) *MenuUpdate {
 	_u.mutation.SetTitle(v)
@@ -88,6 +94,12 @@ func (_u *MenuUpdate) SetNillablePermission(v *string) *MenuUpdate {
 	if v != nil {
 		_u.SetPermission(*v)
 	}
+	return _u
+}
+
+// ClearPermission clears the value of the "permission" field.
+func (_u *MenuUpdate) ClearPermission() *MenuUpdate {
+	_u.mutation.ClearPermission()
 	return _u
 }
 
@@ -123,6 +135,12 @@ func (_u *MenuUpdate) SetNillableIcon(v *string) *MenuUpdate {
 	if v != nil {
 		_u.SetIcon(*v)
 	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *MenuUpdate) ClearIcon() *MenuUpdate {
+	_u.mutation.ClearIcon()
 	return _u
 }
 
@@ -258,24 +276,9 @@ func (_u *MenuUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Menu.type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Path(); ok {
-		if err := menu.PathValidator(v); err != nil {
-			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Menu.path": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Title(); ok {
 		if err := menu.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Menu.title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Permission(); ok {
-		if err := menu.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Menu.permission": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Icon(); ok {
-		if err := menu.IconValidator(v); err != nil {
-			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Menu.icon": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Status(); ok {
@@ -307,11 +310,17 @@ func (_u *MenuUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(menu.FieldPath, field.TypeString, value)
 	}
+	if _u.mutation.PathCleared() {
+		_spec.ClearField(menu.FieldPath, field.TypeString)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(menu.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Permission(); ok {
 		_spec.SetField(menu.FieldPermission, field.TypeString, value)
+	}
+	if _u.mutation.PermissionCleared() {
+		_spec.ClearField(menu.FieldPermission, field.TypeString)
 	}
 	if value, ok := _u.mutation.Order(); ok {
 		_spec.SetField(menu.FieldOrder, field.TypeInt, value)
@@ -321,6 +330,9 @@ func (_u *MenuUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(menu.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(menu.FieldIsSystem, field.TypeBool, value)
@@ -433,6 +445,12 @@ func (_u *MenuUpdateOne) SetNillablePath(v *string) *MenuUpdateOne {
 	return _u
 }
 
+// ClearPath clears the value of the "path" field.
+func (_u *MenuUpdateOne) ClearPath() *MenuUpdateOne {
+	_u.mutation.ClearPath()
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *MenuUpdateOne) SetTitle(v string) *MenuUpdateOne {
 	_u.mutation.SetTitle(v)
@@ -458,6 +476,12 @@ func (_u *MenuUpdateOne) SetNillablePermission(v *string) *MenuUpdateOne {
 	if v != nil {
 		_u.SetPermission(*v)
 	}
+	return _u
+}
+
+// ClearPermission clears the value of the "permission" field.
+func (_u *MenuUpdateOne) ClearPermission() *MenuUpdateOne {
+	_u.mutation.ClearPermission()
 	return _u
 }
 
@@ -493,6 +517,12 @@ func (_u *MenuUpdateOne) SetNillableIcon(v *string) *MenuUpdateOne {
 	if v != nil {
 		_u.SetIcon(*v)
 	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *MenuUpdateOne) ClearIcon() *MenuUpdateOne {
+	_u.mutation.ClearIcon()
 	return _u
 }
 
@@ -641,24 +671,9 @@ func (_u *MenuUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Menu.type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Path(); ok {
-		if err := menu.PathValidator(v); err != nil {
-			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Menu.path": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Title(); ok {
 		if err := menu.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Menu.title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Permission(); ok {
-		if err := menu.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Menu.permission": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Icon(); ok {
-		if err := menu.IconValidator(v); err != nil {
-			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Menu.icon": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Status(); ok {
@@ -707,11 +722,17 @@ func (_u *MenuUpdateOne) sqlSave(ctx context.Context) (_node *Menu, err error) {
 	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(menu.FieldPath, field.TypeString, value)
 	}
+	if _u.mutation.PathCleared() {
+		_spec.ClearField(menu.FieldPath, field.TypeString)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(menu.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Permission(); ok {
 		_spec.SetField(menu.FieldPermission, field.TypeString, value)
+	}
+	if _u.mutation.PermissionCleared() {
+		_spec.ClearField(menu.FieldPermission, field.TypeString)
 	}
 	if value, ok := _u.mutation.Order(); ok {
 		_spec.SetField(menu.FieldOrder, field.TypeInt, value)
@@ -721,6 +742,9 @@ func (_u *MenuUpdateOne) sqlSave(ctx context.Context) (_node *Menu, err error) {
 	}
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(menu.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(menu.FieldIsSystem, field.TypeBool, value)

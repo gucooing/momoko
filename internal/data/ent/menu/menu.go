@@ -87,14 +87,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// PathValidator is a validator for the "path" field. It is called by the builders before save.
-	PathValidator func(string) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
-	// PermissionValidator is a validator for the "permission" field. It is called by the builders before save.
-	PermissionValidator func(string) error
-	// IconValidator is a validator for the "icon" field. It is called by the builders before save.
-	IconValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.

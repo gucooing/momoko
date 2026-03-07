@@ -20,16 +20,28 @@ func NewAuthRepo(data *Data) biz.AuthRepo {
 	}
 }
 
-func (ar *authRepo) CreateAuth(ctx context.Context, auth *biz.Auth) (*ent.Auth, error) {
-	create := ar.data.db.Auth.Create().
-		SetSessionID(auth.SessionID).
-		SetUserID(auth.UserID).
-		SetDeviceID(auth.DeviceID).
-		SetDevice(auth.Device).
-		SetIP(auth.IP).
-		SetType(auth.Type)
-
-	return create.Save(ctx)
+func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*ent.Auth, error) {
+	err := ar.data.db.Auth.
+		Create().
+		SetSessionID(authInfo.SessionID).
+		SetUserID(authInfo.UserID).
+		SetDeviceID(authInfo.DeviceID).
+		SetDevice(authInfo.Device).
+		SetIP(authInfo.IP).
+		SetType(authInfo.Type).
+		OnConflictColumns(auth.FieldDeviceID, auth.FieldType).
+		UpdateNewValues().
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ar.data.db.Auth.
+		Query().
+		Where(
+			auth.DeviceIDEQ(authInfo.DeviceID),
+			auth.TypeEQ(authInfo.Type),
+		).
+		Only(ctx)
 }
 
 func (ar *authRepo) Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {

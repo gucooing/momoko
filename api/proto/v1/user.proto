@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package v1;
 
-option go_package = "momoko/api/gen/user/v1;v1";
+option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";

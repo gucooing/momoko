@@ -57,6 +57,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/permissions/me:
+        get:
+            tags:
+                - System
+            description: 获取当前角色的全部权限
+            operationId: System_MePermissions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.MePermissionsResponse'
     /api/v1/user/me:
         get:
             tags:
@@ -126,6 +139,9 @@ components:
                 ip:
                     type: string
                     description: ip地址
+                deviceId:
+                    type: string
+                    description: 设备码
             description: 账号登录请求
         v1.LoginResponse:
             type: object
@@ -149,6 +165,67 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 获取自己信息响应
+        v1.MePermissionsResponse:
+            type: object
+            properties:
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                    description: 权限按钮
+                menus:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MenuInfo'
+                    description: 权限菜单
+            description: 获取当前角色的全部权限响应
+        v1.MenuInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 菜单id
+                icon:
+                    type: string
+                    description: 图标
+                isSystem:
+                    type: boolean
+                    description: 是否系统内置
+                order:
+                    type: integer
+                    description: 排序
+                    format: int32
+                parentId:
+                    type: string
+                    description: 父级菜单id
+                path:
+                    type: string
+                    description: 路径
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                title:
+                    type: string
+                    description: 标题
+                type:
+                    type: integer
+                    description: 类型
+                    format: enum
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                children:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MenuInfo'
+                    description: 子权限菜单
+            description: 权限菜单信息
         v1.RefreshRequest:
             type: object
             properties:
@@ -213,5 +290,7 @@ components:
 tags:
     - name: AuthService
       description: 认证服务
+    - name: System
+      description: 系统管理
     - name: UserService
       description: 用户服务

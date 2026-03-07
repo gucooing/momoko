@@ -265,6 +265,16 @@ func PathHasSuffix(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldHasSuffix(FieldPath, v))
 }
 
+// PathIsNil applies the IsNil predicate on the "path" field.
+func PathIsNil() predicate.Menu {
+	return predicate.Menu(sql.FieldIsNull(FieldPath))
+}
+
+// PathNotNil applies the NotNil predicate on the "path" field.
+func PathNotNil() predicate.Menu {
+	return predicate.Menu(sql.FieldNotNull(FieldPath))
+}
+
 // PathEqualFold applies the EqualFold predicate on the "path" field.
 func PathEqualFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEqualFold(FieldPath, v))
@@ -395,6 +405,16 @@ func PermissionHasSuffix(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldHasSuffix(FieldPermission, v))
 }
 
+// PermissionIsNil applies the IsNil predicate on the "permission" field.
+func PermissionIsNil() predicate.Menu {
+	return predicate.Menu(sql.FieldIsNull(FieldPermission))
+}
+
+// PermissionNotNil applies the NotNil predicate on the "permission" field.
+func PermissionNotNil() predicate.Menu {
+	return predicate.Menu(sql.FieldNotNull(FieldPermission))
+}
+
 // PermissionEqualFold applies the EqualFold predicate on the "permission" field.
 func PermissionEqualFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEqualFold(FieldPermission, v))
@@ -498,6 +518,16 @@ func IconHasPrefix(v string) predicate.Menu {
 // IconHasSuffix applies the HasSuffix predicate on the "icon" field.
 func IconHasSuffix(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldHasSuffix(FieldIcon, v))
+}
+
+// IconIsNil applies the IsNil predicate on the "icon" field.
+func IconIsNil() predicate.Menu {
+	return predicate.Menu(sql.FieldIsNull(FieldIcon))
+}
+
+// IconNotNil applies the NotNil predicate on the "icon" field.
+func IconNotNil() predicate.Menu {
+	return predicate.Menu(sql.FieldNotNull(FieldIcon))
 }
 
 // IconEqualFold applies the EqualFold predicate on the "icon" field.

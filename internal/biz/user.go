@@ -20,6 +20,7 @@ func encodePassword(password string) string {
 type UserRepo interface {
 	FindByName(ctx context.Context, name string) (*ent.User, error)
 	FindByID(ctx context.Context, id string) (*ent.User, error)
+	FindWithRoleByID(ctx context.Context, id string) (*ent.User, error)
 }
 
 type UserUsecase struct {
@@ -45,7 +46,7 @@ func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password st
 }
 
 func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo, error) {
-	userDb, err := u.user.FindByID(ctx, userId)
+	userDb, err := u.user.FindWithRoleByID(ctx, userId)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, ErrAdminNotFound

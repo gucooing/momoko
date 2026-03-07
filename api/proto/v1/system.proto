@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 系统管理
+service System {
+  // 获取当前角色的全部权限
+  rpc MePermissions(MePermissionsRequest) returns (MePermissionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/permissions/me"
+    };
+  }
+}
+
+// 获取当前角色的全部权限请求
+message MePermissionsRequest {}
+
+// 获取当前角色的全部权限响应
+message MePermissionsResponse {
+  // 权限按钮
+  repeated string permissions = 1;
+  // 权限菜单
+  repeated MenuInfo menus = 2;
+}
+
+// 权限菜单信息
+message MenuInfo {
+  // 菜单id
+  string id = 1;
+  // 图标
+  string icon = 2;
+  // 是否系统内置
+  bool is_system = 3;
+  // 排序
+  int32 order = 4;
+  // 父级菜单id
+  string parent_id = 5;
+  // 路径
+  string path = 6;
+  // 状态
+  MenuStatus status = 7;
+  // 标题
+  string title = 8;
+  // 类型
+  MenuType type = 9;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 10;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 11;
+  // 子权限菜单
+  repeated MenuInfo children = 12;
+}
+
+// 菜单状态
+enum MenuStatus {
+  // 禁用
+  MenuStatus_InActive = 0;
+  // 启用
+  MenuStatus_Active = 1;
+}
+
+// 菜单类型
+enum MenuType {
+  // 目录
+  MenuType_Directory = 0;
+  // 菜单
+  MenuType_Menu = 1;
+  // 按钮
+  MenuType_Button = 2;
+}
