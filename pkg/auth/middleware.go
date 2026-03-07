@@ -13,8 +13,8 @@ import (
 
 var (
 	noAuthPaths = map[string]struct{}{
-		"/v1/auth/login":   {},
-		"/v1/auth/refresh": {},
+		"/api/v1/auth/login":   {},
+		"/api/v1/auth/refresh": {},
 	}
 	AuthSecretKey   = "123456"
 	ErrUnauthorized = errors.Unauthorized("UNAUTHORIZED", "Token is invalid")

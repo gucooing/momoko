@@ -12,7 +12,7 @@ service UserService {
   // 获取自己的信息
   rpc MeInfo(MeInfoRequest) returns (MeInfoResponse) {
     option (google.api.http) = {
-      get: "/v1/user/me"
+      get: "/api/v1/user/me"
     };
   }
 }

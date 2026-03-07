@@ -13,21 +13,21 @@ service AuthService {
   // 账号登录
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/v1/auth/login"
+      post: "/api/v1/auth/login"
       body: "*"
     };
   }
   // 刷新token
   rpc Refresh(RefreshRequest) returns (RefreshResponse) {
     option (google.api.http) = {
-      post: "/v1/auth/refresh"
+      post: "/api/v1/auth/refresh"
       body: "*"
     };
   }
   // 获取登录设备
   rpc Devices(DevicesRequest) returns (DevicesResponse) {
     option (google.api.http) = {
-      get: "/v1/auth/devices"
+      get: "/api/v1/auth/devices"
     };
   }
 }
