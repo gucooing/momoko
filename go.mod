@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	entgo.io/ent v0.14.5
-	github.com/go-kratos/aip-go/ents v0.0.0-20251213081434-74ffa1fc1588
 	github.com/go-kratos/kratos/v2 v2.8.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.1.0

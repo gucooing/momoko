@@ -3,9 +3,7 @@ package server
 import (
 	nethttp "net/http"
 
-	adminV1 "momoko/api/gen/admin/v1"
-	authV1 "momoko/api/gen/auth/v1"
-	userV1 "momoko/api/gen/user/v1"
+	"momoko/api/gen/v1"
 
 	"momoko/internal/conf"
 	"momoko/internal/service"
@@ -20,7 +18,6 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(c *conf.Server,
-	admin *service.AdminService,
 	authApi *service.AuthService,
 	userApi *service.UserService,
 ) *http.Server {
@@ -53,9 +50,8 @@ func NewHTTPServer(c *conf.Server,
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	adminV1.RegisterAdminServiceHTTPServer(srv, admin)
-	authV1.RegisterAuthServiceHTTPServer(srv, authApi)
-	userV1.RegisterUserServiceHTTPServer(srv, userApi)
+	v1.RegisterAuthServiceHTTPServer(srv, authApi)
+	v1.RegisterUserServiceHTTPServer(srv, userApi)
 
 	return srv
 }

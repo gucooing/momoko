@@ -8,23 +8,6 @@ import (
 )
 
 var (
-	// AdminsColumns holds the columns for the "admins" table.
-	AdminsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "name", Type: field.TypeString, Default: ""},
-		{Name: "email", Type: field.TypeString, Default: ""},
-		{Name: "avatar", Type: field.TypeString, Default: ""},
-		{Name: "access", Type: field.TypeString, Default: ""},
-		{Name: "password", Type: field.TypeString, Default: ""},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-	}
-	// AdminsTable holds the schema information for the "admins" table.
-	AdminsTable = &schema.Table{
-		Name:       "admins",
-		Columns:    AdminsColumns,
-		PrimaryKey: []*schema.Column{AdminsColumns[0]},
-	}
 	// AuthsColumns holds the columns for the "auths" table.
 	AuthsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -163,7 +146,6 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AdminsTable,
 		AuthsTable,
 		MenusTable,
 		RolesTable,

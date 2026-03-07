@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	v1 "momoko/api/gen/auth/v1"
+	"momoko/api/gen/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
 	auth2 "momoko/pkg/auth"

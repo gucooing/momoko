@@ -1,9 +1,7 @@
 package server
 
 import (
-	"momoko/api/gen/admin/v1"
 	"momoko/internal/conf"
-	"momoko/internal/service"
 	"momoko/pkg/validate"
 
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -11,7 +9,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, admin *service.AdminService) *grpc.Server {
+func NewGRPCServer(c *conf.Server) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -28,6 +26,5 @@ func NewGRPCServer(c *conf.Server, admin *service.AdminService) *grpc.Server {
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	v1.RegisterAdminServiceServer(srv, admin)
 	return srv
 }

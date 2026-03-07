@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"momoko/api/gen/user/v1"
+	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
 )

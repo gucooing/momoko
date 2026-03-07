@@ -18,7 +18,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/auth.v1.DevicesResponse'
+                                $ref: '#/components/schemas/v1.DevicesResponse'
     /api/v1/auth/login:
         post:
             tags:
@@ -29,7 +29,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/auth.v1.LoginRequest'
+                            $ref: '#/components/schemas/v1.LoginRequest'
                 required: true
             responses:
                 "200":
@@ -37,7 +37,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/auth.v1.LoginResponse'
+                                $ref: '#/components/schemas/v1.LoginResponse'
     /api/v1/auth/refresh:
         post:
             tags:
@@ -48,7 +48,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/auth.v1.RefreshRequest'
+                            $ref: '#/components/schemas/v1.RefreshRequest'
                 required: true
             responses:
                 "200":
@@ -56,7 +56,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/auth.v1.RefreshResponse'
+                                $ref: '#/components/schemas/v1.RefreshResponse'
     /api/v1/user/me:
         get:
             tags:
@@ -69,22 +69,22 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/user.v1.MeInfoResponse'
+                                $ref: '#/components/schemas/v1.MeInfoResponse'
 components:
     schemas:
-        auth.v1.DevicesResponse:
+        v1.DevicesResponse:
             type: object
             properties:
                 devices:
                     type: array
                     items:
-                        $ref: '#/components/schemas/auth.v1.LoginDevice'
+                        $ref: '#/components/schemas/v1.LoginDevice'
                     description: 设备列表
                 deviceId:
                     type: string
                     description: 当前设备id
             description: 获取登录设备响应
-        auth.v1.LoginDevice:
+        v1.LoginDevice:
             type: object
             properties:
                 loginTime:
@@ -108,7 +108,7 @@ components:
                     description: 最近一次刷新时间
                     format: date-time
             description: 登录设备信息
-        auth.v1.LoginRequest:
+        v1.LoginRequest:
             type: object
             properties:
                 password:
@@ -127,7 +127,7 @@ components:
                     type: string
                     description: ip地址
             description: 账号登录请求
-        auth.v1.LoginResponse:
+        v1.LoginResponse:
             type: object
             properties:
                 accessToken:
@@ -141,14 +141,22 @@ components:
                     type: string
                     description: token 有效时间
             description: 账号登录响应
-        auth.v1.RefreshRequest:
+        v1.MeInfoResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息
+            description: 获取自己信息响应
+        v1.RefreshRequest:
             type: object
             properties:
                 refreshToken:
                     type: string
                     description: 刷新token
             description: 刷新token请求
-        auth.v1.RefreshResponse:
+        v1.RefreshResponse:
             type: object
             properties:
                 accessToken:
@@ -162,15 +170,7 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
-        user.v1.MeInfoResponse:
-            type: object
-            properties:
-                user:
-                    allOf:
-                        - $ref: '#/components/schemas/user.v1.UserInfo'
-                    description: 用户信息
-            description: 获取自己信息响应
-        user.v1.UserInfo:
+        v1.UserInfo:
             type: object
             properties:
                 userId:

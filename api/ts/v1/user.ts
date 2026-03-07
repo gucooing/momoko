@@ -2,11 +2,11 @@
 // versions:
 //   protoc-gen-ts_proto  v2.11.4
 //   protoc               v6.31.1
-// source: user/v1/user.proto
+// source: v1/user.proto
 
 /* eslint-disable */
 
-export const protobufPackage = "user.v1";
+export const protobufPackage = "v1";
 
 /** 用户状态 */
 export enum UserStatus {

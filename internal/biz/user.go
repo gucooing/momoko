@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	v1 "momoko/api/gen/user/v1"
+	"momoko/api/gen/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/user"
 )
@@ -31,17 +31,17 @@ func NewUserUsecase(user UserRepo) *UserUsecase {
 }
 
 func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password string) (*ent.User, error) {
-	user, err := u.user.FindByName(ctx, username)
+	userInfo, err := u.user.FindByName(ctx, username)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, ErrAdminNotFound
 		}
 		return nil, ErrSystem(err)
 	}
-	if user.Password != encodePassword(password) {
+	if userInfo.Password != encodePassword(password) {
 		return nil, ErrInvalidPassword
 	}
-	return user, nil
+	return userInfo, nil
 }
 
 func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo, error) {

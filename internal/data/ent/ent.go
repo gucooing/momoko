@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"momoko/internal/data/ent/admin"
 	"momoko/internal/data/ent/auth"
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
@@ -77,11 +76,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			admin.Table: admin.ValidColumn,
-			auth.Table:  auth.ValidColumn,
-			menu.Table:  menu.ValidColumn,
-			role.Table:  role.ValidColumn,
-			user.Table:  user.ValidColumn,
+			auth.Table: auth.ValidColumn,
+			menu.Table: menu.ValidColumn,
+			role.Table: role.ValidColumn,
+			user.Table: user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

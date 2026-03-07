@@ -2,12 +2,12 @@
 // versions:
 //   protoc-gen-ts_proto  v2.11.4
 //   protoc               v6.31.1
-// source: auth/v1/auth.proto
+// source: v1/auth.proto
 
 /* eslint-disable */
-import type { Duration } from "../../google/protobuf/duration";
+import type { Duration } from "../google/protobuf/duration";
 
-export const protobufPackage = "auth.v1";
+export const protobufPackage = "v1";
 
 /** 账号登录请求 */
 export interface LoginRequest {

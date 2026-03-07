@@ -6,9 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Admin is the predicate function for admin builders.
-type Admin func(*sql.Selector)
-
 // Auth is the predicate function for auth builders.
 type Auth func(*sql.Selector)
 
