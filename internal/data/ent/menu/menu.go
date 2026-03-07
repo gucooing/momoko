@@ -20,8 +20,14 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldPath holds the string denoting the path field in the database.
+	FieldPath = "path"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
+	// FieldPermission holds the string denoting the permission field in the database.
+	FieldPermission = "permission"
+	// FieldOrder holds the string denoting the order field in the database.
+	FieldOrder = "order"
 	// FieldIcon holds the string denoting the icon field in the database.
 	FieldIcon = "icon"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
@@ -30,10 +36,6 @@ const (
 	FieldStatus = "status"
 	// FieldParentID holds the string denoting the parent_id field in the database.
 	FieldParentID = "parent_id"
-	// FieldOrder holds the string denoting the order field in the database.
-	FieldOrder = "order"
-	// FieldPermission holds the string denoting the permission field in the database.
-	FieldPermission = "permission"
 	// Table holds the table name of the menu in the database.
 	Table = "menus"
 )
@@ -44,13 +46,14 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldType,
+	FieldPath,
 	FieldTitle,
+	FieldPermission,
+	FieldOrder,
 	FieldIcon,
 	FieldIsSystem,
 	FieldStatus,
 	FieldParentID,
-	FieldOrder,
-	FieldPermission,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "menus"
@@ -81,8 +84,12 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// PathValidator is a validator for the "path" field. It is called by the builders before save.
+	PathValidator func(string) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
+	// PermissionValidator is a validator for the "permission" field. It is called by the builders before save.
+	PermissionValidator func(string) error
 	// IconValidator is a validator for the "icon" field. It is called by the builders before save.
 	IconValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
@@ -164,9 +171,24 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
+// ByPath orders the results by the path field.
+func ByPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPath, opts...).ToFunc()
+}
+
 // ByTitle orders the results by the title field.
 func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// ByPermission orders the results by the permission field.
+func ByPermission(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPermission, opts...).ToFunc()
+}
+
+// ByOrder orders the results by the order field.
+func ByOrder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrder, opts...).ToFunc()
 }
 
 // ByIcon orders the results by the icon field.
@@ -187,14 +209,4 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByParentID orders the results by the parent_id field.
 func ByParentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldParentID, opts...).ToFunc()
-}
-
-// ByOrder orders the results by the order field.
-func ByOrder(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrder, opts...).ToFunc()
-}
-
-// ByPermission orders the results by the permission field.
-func ByPermission(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPermission, opts...).ToFunc()
 }

@@ -24,6 +24,8 @@ type Role struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 角色名称
 	Name string `json:"name,omitempty"`
+	// 角色描述
+	Description string `json:"description,omitempty"`
 	// 是否内置角色(不可修改)
 	IsBuiltin bool `json:"is_builtin,omitempty"`
 	// 启用状态
@@ -36,7 +38,7 @@ type Role struct {
 
 // RoleEdges holds the relations/edges for other nodes in the graph.
 type RoleEdges struct {
-	// 关联的页面
+	// 关联的权限
 	Menus []*Menu `json:"menus,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -59,7 +61,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case role.FieldIsBuiltin:
 			values[i] = new(sql.NullBool)
-		case role.FieldID, role.FieldName, role.FieldStatus:
+		case role.FieldID, role.FieldName, role.FieldDescription, role.FieldStatus:
 			values[i] = new(sql.NullString)
 		case role.FieldCreateTime, role.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -101,6 +103,12 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case role.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
 			}
 		case role.FieldIsBuiltin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -163,6 +171,9 @@ func (_m *Role) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("is_builtin=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsBuiltin))

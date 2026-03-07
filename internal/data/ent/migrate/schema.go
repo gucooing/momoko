@@ -76,13 +76,14 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"directory", "menu", "button"}},
+		{Name: "path", Type: field.TypeString},
 		{Name: "title", Type: field.TypeString},
+		{Name: "permission", Type: field.TypeString},
+		{Name: "order", Type: field.TypeInt},
 		{Name: "icon", Type: field.TypeString},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "parent_id", Type: field.TypeString},
-		{Name: "order", Type: field.TypeInt},
-		{Name: "permission", Type: field.TypeString},
 		{Name: "role_menus", Type: field.TypeString, Nullable: true},
 	}
 	// MenusTable holds the schema information for the "menus" table.
@@ -93,7 +94,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "menus_roles_menus",
-				Columns:    []*schema.Column{MenusColumns[11]},
+				Columns:    []*schema.Column{MenusColumns[12]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -105,6 +106,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString},
 		{Name: "is_builtin", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 	}

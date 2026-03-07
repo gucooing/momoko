@@ -94,16 +94,24 @@ func init() {
 	menu.DefaultUpdateTime = menuDescUpdateTime.Default.(func() time.Time)
 	// menu.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	menu.UpdateDefaultUpdateTime = menuDescUpdateTime.UpdateDefault.(func() time.Time)
+	// menuDescPath is the schema descriptor for path field.
+	menuDescPath := menuFields[2].Descriptor()
+	// menu.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	menu.PathValidator = menuDescPath.Validators[0].(func(string) error)
 	// menuDescTitle is the schema descriptor for title field.
-	menuDescTitle := menuFields[2].Descriptor()
+	menuDescTitle := menuFields[3].Descriptor()
 	// menu.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	menu.TitleValidator = menuDescTitle.Validators[0].(func(string) error)
+	// menuDescPermission is the schema descriptor for permission field.
+	menuDescPermission := menuFields[4].Descriptor()
+	// menu.PermissionValidator is a validator for the "permission" field. It is called by the builders before save.
+	menu.PermissionValidator = menuDescPermission.Validators[0].(func(string) error)
 	// menuDescIcon is the schema descriptor for icon field.
-	menuDescIcon := menuFields[3].Descriptor()
+	menuDescIcon := menuFields[6].Descriptor()
 	// menu.IconValidator is a validator for the "icon" field. It is called by the builders before save.
 	menu.IconValidator = menuDescIcon.Validators[0].(func(string) error)
 	// menuDescIsSystem is the schema descriptor for is_system field.
-	menuDescIsSystem := menuFields[4].Descriptor()
+	menuDescIsSystem := menuFields[7].Descriptor()
 	// menu.DefaultIsSystem holds the default value on creation for the is_system field.
 	menu.DefaultIsSystem = menuDescIsSystem.Default.(bool)
 	// menuDescID is the schema descriptor for id field.
@@ -129,8 +137,12 @@ func init() {
 	roleDescName := roleFields[1].Descriptor()
 	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	role.NameValidator = roleDescName.Validators[0].(func(string) error)
+	// roleDescDescription is the schema descriptor for description field.
+	roleDescDescription := roleFields[2].Descriptor()
+	// role.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	role.DescriptionValidator = roleDescDescription.Validators[0].(func(string) error)
 	// roleDescIsBuiltin is the schema descriptor for is_builtin field.
-	roleDescIsBuiltin := roleFields[2].Descriptor()
+	roleDescIsBuiltin := roleFields[3].Descriptor()
 	// role.DefaultIsBuiltin holds the default value on creation for the is_builtin field.
 	role.DefaultIsBuiltin = roleDescIsBuiltin.Default.(bool)
 	// roleDescID is the schema descriptor for id field.

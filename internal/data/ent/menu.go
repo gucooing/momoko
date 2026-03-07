@@ -24,8 +24,14 @@ type Menu struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 菜单属性
 	Type menu.Type `json:"type,omitempty"`
-	// 标题名称
+	// 路径
+	Path string `json:"path,omitempty"`
+	// 名称
 	Title string `json:"title,omitempty"`
+	// 权限标识
+	Permission string `json:"permission,omitempty"`
+	// 排序
+	Order int `json:"order,omitempty"`
 	// 图标
 	Icon string `json:"icon,omitempty"`
 	// 是否系统默认菜单(不可修改)
@@ -33,11 +39,7 @@ type Menu struct {
 	// 启用状态
 	Status menu.Status `json:"status,omitempty"`
 	// 父菜单id
-	ParentID *string `json:"parent_id,omitempty"`
-	// 排序
-	Order int `json:"order,omitempty"`
-	// 权限标识
-	Permission   string `json:"permission,omitempty"`
+	ParentID     *string `json:"parent_id,omitempty"`
 	role_menus   *string
 	selectValues sql.SelectValues
 }
@@ -51,7 +53,7 @@ func (*Menu) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case menu.FieldOrder:
 			values[i] = new(sql.NullInt64)
-		case menu.FieldID, menu.FieldType, menu.FieldTitle, menu.FieldIcon, menu.FieldStatus, menu.FieldParentID, menu.FieldPermission:
+		case menu.FieldID, menu.FieldType, menu.FieldPath, menu.FieldTitle, menu.FieldPermission, menu.FieldIcon, menu.FieldStatus, menu.FieldParentID:
 			values[i] = new(sql.NullString)
 		case menu.FieldCreateTime, menu.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -96,11 +98,29 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Type = menu.Type(value.String)
 			}
+		case menu.FieldPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field path", values[i])
+			} else if value.Valid {
+				_m.Path = value.String
+			}
 		case menu.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
 				_m.Title = value.String
+			}
+		case menu.FieldPermission:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field permission", values[i])
+			} else if value.Valid {
+				_m.Permission = value.String
+			}
+		case menu.FieldOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order", values[i])
+			} else if value.Valid {
+				_m.Order = int(value.Int64)
 			}
 		case menu.FieldIcon:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -126,18 +146,6 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ParentID = new(string)
 				*_m.ParentID = value.String
-			}
-		case menu.FieldOrder:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field order", values[i])
-			} else if value.Valid {
-				_m.Order = int(value.Int64)
-			}
-		case menu.FieldPermission:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field permission", values[i])
-			} else if value.Valid {
-				_m.Permission = value.String
 			}
 		case menu.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -191,8 +199,17 @@ func (_m *Menu) String() string {
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
 	builder.WriteString(", ")
+	builder.WriteString("path=")
+	builder.WriteString(_m.Path)
+	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(_m.Title)
+	builder.WriteString(", ")
+	builder.WriteString("permission=")
+	builder.WriteString(_m.Permission)
+	builder.WriteString(", ")
+	builder.WriteString("order=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Order))
 	builder.WriteString(", ")
 	builder.WriteString("icon=")
 	builder.WriteString(_m.Icon)
@@ -207,12 +224,6 @@ func (_m *Menu) String() string {
 		builder.WriteString("parent_id=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("order=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Order))
-	builder.WriteString(", ")
-	builder.WriteString("permission=")
-	builder.WriteString(_m.Permission)
 	builder.WriteByte(')')
 	return builder.String()
 }

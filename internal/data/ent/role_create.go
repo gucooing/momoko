@@ -58,6 +58,12 @@ func (_c *RoleCreate) SetName(v string) *RoleCreate {
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *RoleCreate) SetDescription(v string) *RoleCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
 // SetIsBuiltin sets the "is_builtin" field.
 func (_c *RoleCreate) SetIsBuiltin(v bool) *RoleCreate {
 	_c.mutation.SetIsBuiltin(v)
@@ -176,6 +182,14 @@ func (_c *RoleCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Role.description"`)}
+	}
+	if v, ok := _c.mutation.Description(); ok {
+		if err := role.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Role.description": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsBuiltin(); !ok {
 		return &ValidationError{Name: "is_builtin", err: errors.New(`ent: missing required field "Role.is_builtin"`)}
 	}
@@ -239,6 +253,10 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(role.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if value, ok := _c.mutation.IsBuiltin(); ok {
 		_spec.SetField(role.FieldIsBuiltin, field.TypeBool, value)
@@ -337,6 +355,18 @@ func (u *RoleUpsert) SetName(v string) *RoleUpsert {
 // UpdateName sets the "name" field to the value that was provided on create.
 func (u *RoleUpsert) UpdateName() *RoleUpsert {
 	u.SetExcluded(role.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *RoleUpsert) SetDescription(v string) *RoleUpsert {
+	u.Set(role.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoleUpsert) UpdateDescription() *RoleUpsert {
+	u.SetExcluded(role.FieldDescription)
 	return u
 }
 
@@ -440,6 +470,20 @@ func (u *RoleUpsertOne) SetName(v string) *RoleUpsertOne {
 func (u *RoleUpsertOne) UpdateName() *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RoleUpsertOne) SetDescription(v string) *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoleUpsertOne) UpdateDescription() *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateDescription()
 	})
 }
 
@@ -714,6 +758,20 @@ func (u *RoleUpsertBulk) SetName(v string) *RoleUpsertBulk {
 func (u *RoleUpsertBulk) UpdateName() *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RoleUpsertBulk) SetDescription(v string) *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RoleUpsertBulk) UpdateDescription() *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.UpdateDescription()
 	})
 }
 

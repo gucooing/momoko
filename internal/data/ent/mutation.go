@@ -1404,14 +1404,15 @@ type MenuMutation struct {
 	create_time   *time.Time
 	update_time   *time.Time
 	_type         *menu.Type
+	_path         *string
 	title         *string
+	permission    *string
+	_order        *int
+	add_order     *int
 	icon          *string
 	is_system     *bool
 	status        *menu.Status
 	parent_id     *string
-	_order        *int
-	add_order     *int
-	permission    *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Menu, error)
@@ -1630,6 +1631,42 @@ func (m *MenuMutation) ResetType() {
 	m._type = nil
 }
 
+// SetPath sets the "path" field.
+func (m *MenuMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *MenuMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the Menu entity.
+// If the Menu object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MenuMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *MenuMutation) ResetPath() {
+	m._path = nil
+}
+
 // SetTitle sets the "title" field.
 func (m *MenuMutation) SetTitle(s string) {
 	m.title = &s
@@ -1664,6 +1701,98 @@ func (m *MenuMutation) OldTitle(ctx context.Context) (v string, err error) {
 // ResetTitle resets all changes to the "title" field.
 func (m *MenuMutation) ResetTitle() {
 	m.title = nil
+}
+
+// SetPermission sets the "permission" field.
+func (m *MenuMutation) SetPermission(s string) {
+	m.permission = &s
+}
+
+// Permission returns the value of the "permission" field in the mutation.
+func (m *MenuMutation) Permission() (r string, exists bool) {
+	v := m.permission
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPermission returns the old "permission" field's value of the Menu entity.
+// If the Menu object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MenuMutation) OldPermission(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPermission is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPermission requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPermission: %w", err)
+	}
+	return oldValue.Permission, nil
+}
+
+// ResetPermission resets all changes to the "permission" field.
+func (m *MenuMutation) ResetPermission() {
+	m.permission = nil
+}
+
+// SetOrder sets the "order" field.
+func (m *MenuMutation) SetOrder(i int) {
+	m._order = &i
+	m.add_order = nil
+}
+
+// Order returns the value of the "order" field in the mutation.
+func (m *MenuMutation) Order() (r int, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrder returns the old "order" field's value of the Menu entity.
+// If the Menu object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MenuMutation) OldOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
+	}
+	return oldValue.Order, nil
+}
+
+// AddOrder adds i to the "order" field.
+func (m *MenuMutation) AddOrder(i int) {
+	if m.add_order != nil {
+		*m.add_order += i
+	} else {
+		m.add_order = &i
+	}
+}
+
+// AddedOrder returns the value that was added to the "order" field in this mutation.
+func (m *MenuMutation) AddedOrder() (r int, exists bool) {
+	v := m.add_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrder resets all changes to the "order" field.
+func (m *MenuMutation) ResetOrder() {
+	m._order = nil
+	m.add_order = nil
 }
 
 // SetIcon sets the "icon" field.
@@ -1810,98 +1939,6 @@ func (m *MenuMutation) ResetParentID() {
 	m.parent_id = nil
 }
 
-// SetOrder sets the "order" field.
-func (m *MenuMutation) SetOrder(i int) {
-	m._order = &i
-	m.add_order = nil
-}
-
-// Order returns the value of the "order" field in the mutation.
-func (m *MenuMutation) Order() (r int, exists bool) {
-	v := m._order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOrder returns the old "order" field's value of the Menu entity.
-// If the Menu object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MenuMutation) OldOrder(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOrder requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
-	}
-	return oldValue.Order, nil
-}
-
-// AddOrder adds i to the "order" field.
-func (m *MenuMutation) AddOrder(i int) {
-	if m.add_order != nil {
-		*m.add_order += i
-	} else {
-		m.add_order = &i
-	}
-}
-
-// AddedOrder returns the value that was added to the "order" field in this mutation.
-func (m *MenuMutation) AddedOrder() (r int, exists bool) {
-	v := m.add_order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetOrder resets all changes to the "order" field.
-func (m *MenuMutation) ResetOrder() {
-	m._order = nil
-	m.add_order = nil
-}
-
-// SetPermission sets the "permission" field.
-func (m *MenuMutation) SetPermission(s string) {
-	m.permission = &s
-}
-
-// Permission returns the value of the "permission" field in the mutation.
-func (m *MenuMutation) Permission() (r string, exists bool) {
-	v := m.permission
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPermission returns the old "permission" field's value of the Menu entity.
-// If the Menu object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MenuMutation) OldPermission(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPermission is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPermission requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPermission: %w", err)
-	}
-	return oldValue.Permission, nil
-}
-
-// ResetPermission resets all changes to the "permission" field.
-func (m *MenuMutation) ResetPermission() {
-	m.permission = nil
-}
-
 // Where appends a list predicates to the MenuMutation builder.
 func (m *MenuMutation) Where(ps ...predicate.Menu) {
 	m.predicates = append(m.predicates, ps...)
@@ -1936,7 +1973,7 @@ func (m *MenuMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MenuMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, menu.FieldCreateTime)
 	}
@@ -1946,8 +1983,17 @@ func (m *MenuMutation) Fields() []string {
 	if m._type != nil {
 		fields = append(fields, menu.FieldType)
 	}
+	if m._path != nil {
+		fields = append(fields, menu.FieldPath)
+	}
 	if m.title != nil {
 		fields = append(fields, menu.FieldTitle)
+	}
+	if m.permission != nil {
+		fields = append(fields, menu.FieldPermission)
+	}
+	if m._order != nil {
+		fields = append(fields, menu.FieldOrder)
 	}
 	if m.icon != nil {
 		fields = append(fields, menu.FieldIcon)
@@ -1960,12 +2006,6 @@ func (m *MenuMutation) Fields() []string {
 	}
 	if m.parent_id != nil {
 		fields = append(fields, menu.FieldParentID)
-	}
-	if m._order != nil {
-		fields = append(fields, menu.FieldOrder)
-	}
-	if m.permission != nil {
-		fields = append(fields, menu.FieldPermission)
 	}
 	return fields
 }
@@ -1981,8 +2021,14 @@ func (m *MenuMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case menu.FieldType:
 		return m.GetType()
+	case menu.FieldPath:
+		return m.Path()
 	case menu.FieldTitle:
 		return m.Title()
+	case menu.FieldPermission:
+		return m.Permission()
+	case menu.FieldOrder:
+		return m.Order()
 	case menu.FieldIcon:
 		return m.Icon()
 	case menu.FieldIsSystem:
@@ -1991,10 +2037,6 @@ func (m *MenuMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case menu.FieldParentID:
 		return m.ParentID()
-	case menu.FieldOrder:
-		return m.Order()
-	case menu.FieldPermission:
-		return m.Permission()
 	}
 	return nil, false
 }
@@ -2010,8 +2052,14 @@ func (m *MenuMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUpdateTime(ctx)
 	case menu.FieldType:
 		return m.OldType(ctx)
+	case menu.FieldPath:
+		return m.OldPath(ctx)
 	case menu.FieldTitle:
 		return m.OldTitle(ctx)
+	case menu.FieldPermission:
+		return m.OldPermission(ctx)
+	case menu.FieldOrder:
+		return m.OldOrder(ctx)
 	case menu.FieldIcon:
 		return m.OldIcon(ctx)
 	case menu.FieldIsSystem:
@@ -2020,10 +2068,6 @@ func (m *MenuMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStatus(ctx)
 	case menu.FieldParentID:
 		return m.OldParentID(ctx)
-	case menu.FieldOrder:
-		return m.OldOrder(ctx)
-	case menu.FieldPermission:
-		return m.OldPermission(ctx)
 	}
 	return nil, fmt.Errorf("unknown Menu field %s", name)
 }
@@ -2054,12 +2098,33 @@ func (m *MenuMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetType(v)
 		return nil
+	case menu.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
 	case menu.FieldTitle:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
+		return nil
+	case menu.FieldPermission:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPermission(v)
+		return nil
+	case menu.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrder(v)
 		return nil
 	case menu.FieldIcon:
 		v, ok := value.(string)
@@ -2088,20 +2153,6 @@ func (m *MenuMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentID(v)
-		return nil
-	case menu.FieldOrder:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOrder(v)
-		return nil
-	case menu.FieldPermission:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPermission(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Menu field %s", name)
@@ -2176,8 +2227,17 @@ func (m *MenuMutation) ResetField(name string) error {
 	case menu.FieldType:
 		m.ResetType()
 		return nil
+	case menu.FieldPath:
+		m.ResetPath()
+		return nil
 	case menu.FieldTitle:
 		m.ResetTitle()
+		return nil
+	case menu.FieldPermission:
+		m.ResetPermission()
+		return nil
+	case menu.FieldOrder:
+		m.ResetOrder()
 		return nil
 	case menu.FieldIcon:
 		m.ResetIcon()
@@ -2190,12 +2250,6 @@ func (m *MenuMutation) ResetField(name string) error {
 		return nil
 	case menu.FieldParentID:
 		m.ResetParentID()
-		return nil
-	case menu.FieldOrder:
-		m.ResetOrder()
-		return nil
-	case menu.FieldPermission:
-		m.ResetPermission()
 		return nil
 	}
 	return fmt.Errorf("unknown Menu field %s", name)
@@ -2258,6 +2312,7 @@ type RoleMutation struct {
 	create_time   *time.Time
 	update_time   *time.Time
 	name          *string
+	description   *string
 	is_builtin    *bool
 	status        *role.Status
 	clearedFields map[string]struct{}
@@ -2481,6 +2536,42 @@ func (m *RoleMutation) ResetName() {
 	m.name = nil
 }
 
+// SetDescription sets the "description" field.
+func (m *RoleMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RoleMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Role entity.
+// If the Role object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RoleMutation) ResetDescription() {
+	m.description = nil
+}
+
 // SetIsBuiltin sets the "is_builtin" field.
 func (m *RoleMutation) SetIsBuiltin(b bool) {
 	m.is_builtin = &b
@@ -2641,7 +2732,7 @@ func (m *RoleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoleMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, role.FieldCreateTime)
 	}
@@ -2650,6 +2741,9 @@ func (m *RoleMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, role.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, role.FieldDescription)
 	}
 	if m.is_builtin != nil {
 		fields = append(fields, role.FieldIsBuiltin)
@@ -2671,6 +2765,8 @@ func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case role.FieldName:
 		return m.Name()
+	case role.FieldDescription:
+		return m.Description()
 	case role.FieldIsBuiltin:
 		return m.IsBuiltin()
 	case role.FieldStatus:
@@ -2690,6 +2786,8 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUpdateTime(ctx)
 	case role.FieldName:
 		return m.OldName(ctx)
+	case role.FieldDescription:
+		return m.OldDescription(ctx)
 	case role.FieldIsBuiltin:
 		return m.OldIsBuiltin(ctx)
 	case role.FieldStatus:
@@ -2723,6 +2821,13 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case role.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case role.FieldIsBuiltin:
 		v, ok := value.(bool)
@@ -2795,6 +2900,9 @@ func (m *RoleMutation) ResetField(name string) error {
 		return nil
 	case role.FieldName:
 		m.ResetName()
+		return nil
+	case role.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case role.FieldIsBuiltin:
 		m.ResetIsBuiltin()

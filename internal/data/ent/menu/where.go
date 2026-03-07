@@ -74,9 +74,24 @@ func UpdateTime(v time.Time) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// Path applies equality check predicate on the "path" field. It's identical to PathEQ.
+func Path(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldPath, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldTitle, v))
+}
+
+// Permission applies equality check predicate on the "permission" field. It's identical to PermissionEQ.
+func Permission(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldPermission, v))
+}
+
+// Order applies equality check predicate on the "order" field. It's identical to OrderEQ.
+func Order(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldOrder, v))
 }
 
 // Icon applies equality check predicate on the "icon" field. It's identical to IconEQ.
@@ -92,16 +107,6 @@ func IsSystem(v bool) predicate.Menu {
 // ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
 func ParentID(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldParentID, v))
-}
-
-// Order applies equality check predicate on the "order" field. It's identical to OrderEQ.
-func Order(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldOrder, v))
-}
-
-// Permission applies equality check predicate on the "permission" field. It's identical to PermissionEQ.
-func Permission(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldPermission, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -204,6 +209,71 @@ func TypeNotIn(vs ...Type) predicate.Menu {
 	return predicate.Menu(sql.FieldNotIn(FieldType, vs...))
 }
 
+// PathEQ applies the EQ predicate on the "path" field.
+func PathEQ(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldPath, v))
+}
+
+// PathNEQ applies the NEQ predicate on the "path" field.
+func PathNEQ(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldPath, v))
+}
+
+// PathIn applies the In predicate on the "path" field.
+func PathIn(vs ...string) predicate.Menu {
+	return predicate.Menu(sql.FieldIn(FieldPath, vs...))
+}
+
+// PathNotIn applies the NotIn predicate on the "path" field.
+func PathNotIn(vs ...string) predicate.Menu {
+	return predicate.Menu(sql.FieldNotIn(FieldPath, vs...))
+}
+
+// PathGT applies the GT predicate on the "path" field.
+func PathGT(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldGT(FieldPath, v))
+}
+
+// PathGTE applies the GTE predicate on the "path" field.
+func PathGTE(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldGTE(FieldPath, v))
+}
+
+// PathLT applies the LT predicate on the "path" field.
+func PathLT(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldLT(FieldPath, v))
+}
+
+// PathLTE applies the LTE predicate on the "path" field.
+func PathLTE(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldLTE(FieldPath, v))
+}
+
+// PathContains applies the Contains predicate on the "path" field.
+func PathContains(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldContains(FieldPath, v))
+}
+
+// PathHasPrefix applies the HasPrefix predicate on the "path" field.
+func PathHasPrefix(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldHasPrefix(FieldPath, v))
+}
+
+// PathHasSuffix applies the HasSuffix predicate on the "path" field.
+func PathHasSuffix(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldHasSuffix(FieldPath, v))
+}
+
+// PathEqualFold applies the EqualFold predicate on the "path" field.
+func PathEqualFold(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEqualFold(FieldPath, v))
+}
+
+// PathContainsFold applies the ContainsFold predicate on the "path" field.
+func PathContainsFold(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldContainsFold(FieldPath, v))
+}
+
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldTitle, v))
@@ -267,6 +337,111 @@ func TitleEqualFold(v string) predicate.Menu {
 // TitleContainsFold applies the ContainsFold predicate on the "title" field.
 func TitleContainsFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// PermissionEQ applies the EQ predicate on the "permission" field.
+func PermissionEQ(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldPermission, v))
+}
+
+// PermissionNEQ applies the NEQ predicate on the "permission" field.
+func PermissionNEQ(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldPermission, v))
+}
+
+// PermissionIn applies the In predicate on the "permission" field.
+func PermissionIn(vs ...string) predicate.Menu {
+	return predicate.Menu(sql.FieldIn(FieldPermission, vs...))
+}
+
+// PermissionNotIn applies the NotIn predicate on the "permission" field.
+func PermissionNotIn(vs ...string) predicate.Menu {
+	return predicate.Menu(sql.FieldNotIn(FieldPermission, vs...))
+}
+
+// PermissionGT applies the GT predicate on the "permission" field.
+func PermissionGT(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldGT(FieldPermission, v))
+}
+
+// PermissionGTE applies the GTE predicate on the "permission" field.
+func PermissionGTE(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldGTE(FieldPermission, v))
+}
+
+// PermissionLT applies the LT predicate on the "permission" field.
+func PermissionLT(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldLT(FieldPermission, v))
+}
+
+// PermissionLTE applies the LTE predicate on the "permission" field.
+func PermissionLTE(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldLTE(FieldPermission, v))
+}
+
+// PermissionContains applies the Contains predicate on the "permission" field.
+func PermissionContains(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldContains(FieldPermission, v))
+}
+
+// PermissionHasPrefix applies the HasPrefix predicate on the "permission" field.
+func PermissionHasPrefix(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldHasPrefix(FieldPermission, v))
+}
+
+// PermissionHasSuffix applies the HasSuffix predicate on the "permission" field.
+func PermissionHasSuffix(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldHasSuffix(FieldPermission, v))
+}
+
+// PermissionEqualFold applies the EqualFold predicate on the "permission" field.
+func PermissionEqualFold(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldEqualFold(FieldPermission, v))
+}
+
+// PermissionContainsFold applies the ContainsFold predicate on the "permission" field.
+func PermissionContainsFold(v string) predicate.Menu {
+	return predicate.Menu(sql.FieldContainsFold(FieldPermission, v))
+}
+
+// OrderEQ applies the EQ predicate on the "order" field.
+func OrderEQ(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldOrder, v))
+}
+
+// OrderNEQ applies the NEQ predicate on the "order" field.
+func OrderNEQ(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldOrder, v))
+}
+
+// OrderIn applies the In predicate on the "order" field.
+func OrderIn(vs ...int) predicate.Menu {
+	return predicate.Menu(sql.FieldIn(FieldOrder, vs...))
+}
+
+// OrderNotIn applies the NotIn predicate on the "order" field.
+func OrderNotIn(vs ...int) predicate.Menu {
+	return predicate.Menu(sql.FieldNotIn(FieldOrder, vs...))
+}
+
+// OrderGT applies the GT predicate on the "order" field.
+func OrderGT(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldGT(FieldOrder, v))
+}
+
+// OrderGTE applies the GTE predicate on the "order" field.
+func OrderGTE(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldGTE(FieldOrder, v))
+}
+
+// OrderLT applies the LT predicate on the "order" field.
+func OrderLT(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldLT(FieldOrder, v))
+}
+
+// OrderLTE applies the LTE predicate on the "order" field.
+func OrderLTE(v int) predicate.Menu {
+	return predicate.Menu(sql.FieldLTE(FieldOrder, v))
 }
 
 // IconEQ applies the EQ predicate on the "icon" field.
@@ -427,111 +602,6 @@ func ParentIDEqualFold(v string) predicate.Menu {
 // ParentIDContainsFold applies the ContainsFold predicate on the "parent_id" field.
 func ParentIDContainsFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldContainsFold(FieldParentID, v))
-}
-
-// OrderEQ applies the EQ predicate on the "order" field.
-func OrderEQ(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldOrder, v))
-}
-
-// OrderNEQ applies the NEQ predicate on the "order" field.
-func OrderNEQ(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldNEQ(FieldOrder, v))
-}
-
-// OrderIn applies the In predicate on the "order" field.
-func OrderIn(vs ...int) predicate.Menu {
-	return predicate.Menu(sql.FieldIn(FieldOrder, vs...))
-}
-
-// OrderNotIn applies the NotIn predicate on the "order" field.
-func OrderNotIn(vs ...int) predicate.Menu {
-	return predicate.Menu(sql.FieldNotIn(FieldOrder, vs...))
-}
-
-// OrderGT applies the GT predicate on the "order" field.
-func OrderGT(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldGT(FieldOrder, v))
-}
-
-// OrderGTE applies the GTE predicate on the "order" field.
-func OrderGTE(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldGTE(FieldOrder, v))
-}
-
-// OrderLT applies the LT predicate on the "order" field.
-func OrderLT(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldLT(FieldOrder, v))
-}
-
-// OrderLTE applies the LTE predicate on the "order" field.
-func OrderLTE(v int) predicate.Menu {
-	return predicate.Menu(sql.FieldLTE(FieldOrder, v))
-}
-
-// PermissionEQ applies the EQ predicate on the "permission" field.
-func PermissionEQ(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldEQ(FieldPermission, v))
-}
-
-// PermissionNEQ applies the NEQ predicate on the "permission" field.
-func PermissionNEQ(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldNEQ(FieldPermission, v))
-}
-
-// PermissionIn applies the In predicate on the "permission" field.
-func PermissionIn(vs ...string) predicate.Menu {
-	return predicate.Menu(sql.FieldIn(FieldPermission, vs...))
-}
-
-// PermissionNotIn applies the NotIn predicate on the "permission" field.
-func PermissionNotIn(vs ...string) predicate.Menu {
-	return predicate.Menu(sql.FieldNotIn(FieldPermission, vs...))
-}
-
-// PermissionGT applies the GT predicate on the "permission" field.
-func PermissionGT(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldGT(FieldPermission, v))
-}
-
-// PermissionGTE applies the GTE predicate on the "permission" field.
-func PermissionGTE(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldGTE(FieldPermission, v))
-}
-
-// PermissionLT applies the LT predicate on the "permission" field.
-func PermissionLT(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldLT(FieldPermission, v))
-}
-
-// PermissionLTE applies the LTE predicate on the "permission" field.
-func PermissionLTE(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldLTE(FieldPermission, v))
-}
-
-// PermissionContains applies the Contains predicate on the "permission" field.
-func PermissionContains(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldContains(FieldPermission, v))
-}
-
-// PermissionHasPrefix applies the HasPrefix predicate on the "permission" field.
-func PermissionHasPrefix(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldHasPrefix(FieldPermission, v))
-}
-
-// PermissionHasSuffix applies the HasSuffix predicate on the "permission" field.
-func PermissionHasSuffix(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldHasSuffix(FieldPermission, v))
-}
-
-// PermissionEqualFold applies the EqualFold predicate on the "permission" field.
-func PermissionEqualFold(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldEqualFold(FieldPermission, v))
-}
-
-// PermissionContainsFold applies the ContainsFold predicate on the "permission" field.
-func PermissionContainsFold(v string) predicate.Menu {
-	return predicate.Menu(sql.FieldContainsFold(FieldPermission, v))
 }
 
 // And groups predicates with the AND operator between them.

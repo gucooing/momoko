@@ -57,9 +57,27 @@ func (_c *MenuCreate) SetType(v menu.Type) *MenuCreate {
 	return _c
 }
 
+// SetPath sets the "path" field.
+func (_c *MenuCreate) SetPath(v string) *MenuCreate {
+	_c.mutation.SetPath(v)
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *MenuCreate) SetTitle(v string) *MenuCreate {
 	_c.mutation.SetTitle(v)
+	return _c
+}
+
+// SetPermission sets the "permission" field.
+func (_c *MenuCreate) SetPermission(v string) *MenuCreate {
+	_c.mutation.SetPermission(v)
+	return _c
+}
+
+// SetOrder sets the "order" field.
+func (_c *MenuCreate) SetOrder(v int) *MenuCreate {
+	_c.mutation.SetOrder(v)
 	return _c
 }
 
@@ -100,18 +118,6 @@ func (_c *MenuCreate) SetNillableStatus(v *menu.Status) *MenuCreate {
 // SetParentID sets the "parent_id" field.
 func (_c *MenuCreate) SetParentID(v string) *MenuCreate {
 	_c.mutation.SetParentID(v)
-	return _c
-}
-
-// SetOrder sets the "order" field.
-func (_c *MenuCreate) SetOrder(v int) *MenuCreate {
-	_c.mutation.SetOrder(v)
-	return _c
-}
-
-// SetPermission sets the "permission" field.
-func (_c *MenuCreate) SetPermission(v string) *MenuCreate {
-	_c.mutation.SetPermission(v)
 	return _c
 }
 
@@ -190,6 +196,14 @@ func (_c *MenuCreate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Menu.type": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Path(); !ok {
+		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "Menu.path"`)}
+	}
+	if v, ok := _c.mutation.Path(); ok {
+		if err := menu.PathValidator(v); err != nil {
+			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Menu.path": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Menu.title"`)}
 	}
@@ -197,6 +211,17 @@ func (_c *MenuCreate) check() error {
 		if err := menu.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Menu.title": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Permission(); !ok {
+		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "Menu.permission"`)}
+	}
+	if v, ok := _c.mutation.Permission(); ok {
+		if err := menu.PermissionValidator(v); err != nil {
+			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Menu.permission": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Order(); !ok {
+		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "Menu.order"`)}
 	}
 	if _, ok := _c.mutation.Icon(); !ok {
 		return &ValidationError{Name: "icon", err: errors.New(`ent: missing required field "Menu.icon"`)}
@@ -219,12 +244,6 @@ func (_c *MenuCreate) check() error {
 	}
 	if _, ok := _c.mutation.ParentID(); !ok {
 		return &ValidationError{Name: "parent_id", err: errors.New(`ent: missing required field "Menu.parent_id"`)}
-	}
-	if _, ok := _c.mutation.Order(); !ok {
-		return &ValidationError{Name: "order", err: errors.New(`ent: missing required field "Menu.order"`)}
-	}
-	if _, ok := _c.mutation.Permission(); !ok {
-		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "Menu.permission"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := menu.IDValidator(v); err != nil {
@@ -279,9 +298,21 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 		_spec.SetField(menu.FieldType, field.TypeEnum, value)
 		_node.Type = value
 	}
+	if value, ok := _c.mutation.Path(); ok {
+		_spec.SetField(menu.FieldPath, field.TypeString, value)
+		_node.Path = value
+	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(menu.FieldTitle, field.TypeString, value)
 		_node.Title = value
+	}
+	if value, ok := _c.mutation.Permission(); ok {
+		_spec.SetField(menu.FieldPermission, field.TypeString, value)
+		_node.Permission = value
+	}
+	if value, ok := _c.mutation.Order(); ok {
+		_spec.SetField(menu.FieldOrder, field.TypeInt, value)
+		_node.Order = value
 	}
 	if value, ok := _c.mutation.Icon(); ok {
 		_spec.SetField(menu.FieldIcon, field.TypeString, value)
@@ -298,14 +329,6 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ParentID(); ok {
 		_spec.SetField(menu.FieldParentID, field.TypeString, value)
 		_node.ParentID = &value
-	}
-	if value, ok := _c.mutation.Order(); ok {
-		_spec.SetField(menu.FieldOrder, field.TypeInt, value)
-		_node.Order = value
-	}
-	if value, ok := _c.mutation.Permission(); ok {
-		_spec.SetField(menu.FieldPermission, field.TypeString, value)
-		_node.Permission = value
 	}
 	return _node, _spec
 }
@@ -383,6 +406,18 @@ func (u *MenuUpsert) UpdateType() *MenuUpsert {
 	return u
 }
 
+// SetPath sets the "path" field.
+func (u *MenuUpsert) SetPath(v string) *MenuUpsert {
+	u.Set(menu.FieldPath, v)
+	return u
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *MenuUpsert) UpdatePath() *MenuUpsert {
+	u.SetExcluded(menu.FieldPath)
+	return u
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsert) SetTitle(v string) *MenuUpsert {
 	u.Set(menu.FieldTitle, v)
@@ -392,6 +427,36 @@ func (u *MenuUpsert) SetTitle(v string) *MenuUpsert {
 // UpdateTitle sets the "title" field to the value that was provided on create.
 func (u *MenuUpsert) UpdateTitle() *MenuUpsert {
 	u.SetExcluded(menu.FieldTitle)
+	return u
+}
+
+// SetPermission sets the "permission" field.
+func (u *MenuUpsert) SetPermission(v string) *MenuUpsert {
+	u.Set(menu.FieldPermission, v)
+	return u
+}
+
+// UpdatePermission sets the "permission" field to the value that was provided on create.
+func (u *MenuUpsert) UpdatePermission() *MenuUpsert {
+	u.SetExcluded(menu.FieldPermission)
+	return u
+}
+
+// SetOrder sets the "order" field.
+func (u *MenuUpsert) SetOrder(v int) *MenuUpsert {
+	u.Set(menu.FieldOrder, v)
+	return u
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *MenuUpsert) UpdateOrder() *MenuUpsert {
+	u.SetExcluded(menu.FieldOrder)
+	return u
+}
+
+// AddOrder adds v to the "order" field.
+func (u *MenuUpsert) AddOrder(v int) *MenuUpsert {
+	u.Add(menu.FieldOrder, v)
 	return u
 }
 
@@ -440,36 +505,6 @@ func (u *MenuUpsert) SetParentID(v string) *MenuUpsert {
 // UpdateParentID sets the "parent_id" field to the value that was provided on create.
 func (u *MenuUpsert) UpdateParentID() *MenuUpsert {
 	u.SetExcluded(menu.FieldParentID)
-	return u
-}
-
-// SetOrder sets the "order" field.
-func (u *MenuUpsert) SetOrder(v int) *MenuUpsert {
-	u.Set(menu.FieldOrder, v)
-	return u
-}
-
-// UpdateOrder sets the "order" field to the value that was provided on create.
-func (u *MenuUpsert) UpdateOrder() *MenuUpsert {
-	u.SetExcluded(menu.FieldOrder)
-	return u
-}
-
-// AddOrder adds v to the "order" field.
-func (u *MenuUpsert) AddOrder(v int) *MenuUpsert {
-	u.Add(menu.FieldOrder, v)
-	return u
-}
-
-// SetPermission sets the "permission" field.
-func (u *MenuUpsert) SetPermission(v string) *MenuUpsert {
-	u.Set(menu.FieldPermission, v)
-	return u
-}
-
-// UpdatePermission sets the "permission" field to the value that was provided on create.
-func (u *MenuUpsert) UpdatePermission() *MenuUpsert {
-	u.SetExcluded(menu.FieldPermission)
 	return u
 }
 
@@ -552,6 +587,20 @@ func (u *MenuUpsertOne) UpdateType() *MenuUpsertOne {
 	})
 }
 
+// SetPath sets the "path" field.
+func (u *MenuUpsertOne) SetPath(v string) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetPath(v)
+	})
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdatePath() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdatePath()
+	})
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsertOne) SetTitle(v string) *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
@@ -563,6 +612,41 @@ func (u *MenuUpsertOne) SetTitle(v string) *MenuUpsertOne {
 func (u *MenuUpsertOne) UpdateTitle() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateTitle()
+	})
+}
+
+// SetPermission sets the "permission" field.
+func (u *MenuUpsertOne) SetPermission(v string) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetPermission(v)
+	})
+}
+
+// UpdatePermission sets the "permission" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdatePermission() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdatePermission()
+	})
+}
+
+// SetOrder sets the "order" field.
+func (u *MenuUpsertOne) SetOrder(v int) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetOrder(v)
+	})
+}
+
+// AddOrder adds v to the "order" field.
+func (u *MenuUpsertOne) AddOrder(v int) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.AddOrder(v)
+	})
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdateOrder() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateOrder()
 	})
 }
 
@@ -619,41 +703,6 @@ func (u *MenuUpsertOne) SetParentID(v string) *MenuUpsertOne {
 func (u *MenuUpsertOne) UpdateParentID() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateParentID()
-	})
-}
-
-// SetOrder sets the "order" field.
-func (u *MenuUpsertOne) SetOrder(v int) *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetOrder(v)
-	})
-}
-
-// AddOrder adds v to the "order" field.
-func (u *MenuUpsertOne) AddOrder(v int) *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.AddOrder(v)
-	})
-}
-
-// UpdateOrder sets the "order" field to the value that was provided on create.
-func (u *MenuUpsertOne) UpdateOrder() *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdateOrder()
-	})
-}
-
-// SetPermission sets the "permission" field.
-func (u *MenuUpsertOne) SetPermission(v string) *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetPermission(v)
-	})
-}
-
-// UpdatePermission sets the "permission" field to the value that was provided on create.
-func (u *MenuUpsertOne) UpdatePermission() *MenuUpsertOne {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdatePermission()
 	})
 }
 
@@ -903,6 +952,20 @@ func (u *MenuUpsertBulk) UpdateType() *MenuUpsertBulk {
 	})
 }
 
+// SetPath sets the "path" field.
+func (u *MenuUpsertBulk) SetPath(v string) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetPath(v)
+	})
+}
+
+// UpdatePath sets the "path" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdatePath() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdatePath()
+	})
+}
+
 // SetTitle sets the "title" field.
 func (u *MenuUpsertBulk) SetTitle(v string) *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
@@ -914,6 +977,41 @@ func (u *MenuUpsertBulk) SetTitle(v string) *MenuUpsertBulk {
 func (u *MenuUpsertBulk) UpdateTitle() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateTitle()
+	})
+}
+
+// SetPermission sets the "permission" field.
+func (u *MenuUpsertBulk) SetPermission(v string) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetPermission(v)
+	})
+}
+
+// UpdatePermission sets the "permission" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdatePermission() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdatePermission()
+	})
+}
+
+// SetOrder sets the "order" field.
+func (u *MenuUpsertBulk) SetOrder(v int) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetOrder(v)
+	})
+}
+
+// AddOrder adds v to the "order" field.
+func (u *MenuUpsertBulk) AddOrder(v int) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.AddOrder(v)
+	})
+}
+
+// UpdateOrder sets the "order" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdateOrder() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateOrder()
 	})
 }
 
@@ -970,41 +1068,6 @@ func (u *MenuUpsertBulk) SetParentID(v string) *MenuUpsertBulk {
 func (u *MenuUpsertBulk) UpdateParentID() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.UpdateParentID()
-	})
-}
-
-// SetOrder sets the "order" field.
-func (u *MenuUpsertBulk) SetOrder(v int) *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetOrder(v)
-	})
-}
-
-// AddOrder adds v to the "order" field.
-func (u *MenuUpsertBulk) AddOrder(v int) *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.AddOrder(v)
-	})
-}
-
-// UpdateOrder sets the "order" field to the value that was provided on create.
-func (u *MenuUpsertBulk) UpdateOrder() *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdateOrder()
-	})
-}
-
-// SetPermission sets the "permission" field.
-func (u *MenuUpsertBulk) SetPermission(v string) *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.SetPermission(v)
-	})
-}
-
-// UpdatePermission sets the "permission" field to the value that was provided on create.
-func (u *MenuUpsertBulk) UpdatePermission() *MenuUpsertBulk {
-	return u.Update(func(s *MenuUpsert) {
-		s.UpdatePermission()
 	})
 }
 
