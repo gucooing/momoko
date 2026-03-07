@@ -35,7 +35,7 @@ type defaultRole struct {
 var (
 	builtinDefaultRoleID = "role_1"
 	builtinDefaultMenus  = []defaultMenu{
-		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "Dashboard", "HOutline:HomeIcon", nil, 0, ""),
+		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "主页", "HOutline:HomeIcon", nil, 0, ""),
 		newDefaultMenu("menu_12", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", ptr("menu_1"), 0, ""),
 		newDefaultMenu("menu_13", entmenu.TypeMenu, "/dashboard/analysis", "分析页", "HOutline:ChartBarIcon", ptr("menu_1"), 1, ""),
 		newDefaultMenu("menu_14", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", ptr("menu_1"), 2, ""),
@@ -115,6 +115,15 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 		menuIDs[menu.ID] = struct{}{}
 	}
+	roleIDs := make(map[string]struct{}, len(builtinDefaultRoles))
+	builtinRoleIDs := make([]string, 0, len(builtinDefaultRoles))
+	for _, role := range builtinDefaultRoles {
+		if _, ok := roleIDs[role.ID]; ok {
+			return fmt.Errorf("duplicate builtin role id: %s", role.ID)
+		}
+		roleIDs[role.ID] = struct{}{}
+		builtinRoleIDs = append(builtinRoleIDs, role.ID)
+	}
 
 	tx, err := client.Tx(ctx)
 	if err != nil {
@@ -128,32 +137,10 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		return err
 	}
 
+	menuBuilders := make([]*ent.MenuCreate, 0, len(builtinDefaultMenus))
 	for _, item := range builtinDefaultMenus {
-		exists, err := tx.Menu.Get(ctx, item.ID)
-		if err != nil {
-			if !ent.IsNotFound(err) {
-				return rollback(fmt.Errorf("query menu %s failed: %w", item.ID, err))
-			}
-			create := tx.Menu.Create().
-				SetID(item.ID).
-				SetType(item.Type).
-				SetPath(item.Path).
-				SetTitle(item.Title).
-				SetPermission(item.Permission).
-				SetOrder(item.Order).
-				SetIcon(item.Icon).
-				SetIsSystem(item.IsSystem).
-				SetStatus(item.Status)
-			if item.ParentID != nil {
-				create.SetParentID(*item.ParentID)
-			}
-			if _, err := create.Save(ctx); err != nil {
-				return rollback(fmt.Errorf("create menu %s failed: %w", item.ID, err))
-			}
-			continue
-		}
-
-		update := tx.Menu.UpdateOneID(exists.ID).
+		builder := tx.Menu.Create().
+			SetID(item.ID).
 			SetType(item.Type).
 			SetPath(item.Path).
 			SetTitle(item.Title).
@@ -161,56 +148,54 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 			SetOrder(item.Order).
 			SetIcon(item.Icon).
 			SetIsSystem(item.IsSystem).
-			SetStatus(item.Status).
-			SetNillableParentID(item.ParentID)
-		if err := update.Exec(ctx); err != nil {
-			return rollback(fmt.Errorf("update menu %s failed: %w", item.ID, err))
+			SetStatus(item.Status)
+		if item.ParentID != nil {
+			builder.SetParentID(*item.ParentID)
+		}
+		menuBuilders = append(menuBuilders, builder)
+	}
+	if len(menuBuilders) > 0 {
+		if err := tx.Menu.CreateBulk(menuBuilders...).
+			OnConflictColumns(entmenu.FieldID).
+			UpdateNewValues().
+			Exec(ctx); err != nil {
+			return rollback(fmt.Errorf("upsert builtin menus failed: %w", err))
 		}
 	}
 
-	menuRows, err := tx.Menu.Query().All(ctx)
+	allMenuIDs, err := tx.Menu.Query().IDs(ctx)
 	if err != nil {
-		return rollback(fmt.Errorf("query all menus failed: %w", err))
-	}
-	allMenuIDs := make([]string, 0, len(menuRows))
-	for _, item := range menuRows {
-		allMenuIDs = append(allMenuIDs, item.ID)
+		return rollback(fmt.Errorf("query all menu ids failed: %w", err))
 	}
 
+	roleBuilders := make([]*ent.RoleCreate, 0, len(builtinDefaultRoles))
 	for _, item := range builtinDefaultRoles {
-		exists, err := tx.Role.Get(ctx, item.ID)
-		if err != nil {
-			if !ent.IsNotFound(err) {
-				return rollback(fmt.Errorf("query role %s failed: %w", item.ID, err))
-			}
-			create := tx.Role.Create().
-				SetID(item.ID).
-				SetName(item.Name).
-				SetDescription(item.Description + " (code: " + item.Code + ")").
-				SetIsBuiltin(item.IsBuiltin).
-				SetStatus(item.Status)
-			menuIDs := allMenuIDs
-			if len(menuIDs) > 0 {
-				create.AddMenuIDs(menuIDs...)
-			}
-			if _, err := create.Save(ctx); err != nil {
-				return rollback(fmt.Errorf("create role %s failed: %w", item.ID, err))
-			}
-			continue
-		}
-
-		update := tx.Role.UpdateOneID(exists.ID).
+		builder := tx.Role.Create().
+			SetID(item.ID).
 			SetName(item.Name).
 			SetDescription(item.Description + " (code: " + item.Code + ")").
 			SetIsBuiltin(item.IsBuiltin).
-			SetStatus(item.Status).
-			ClearMenus()
-		menuIDs := allMenuIDs
-		if len(menuIDs) > 0 {
-			update.AddMenuIDs(menuIDs...)
+			SetStatus(item.Status)
+		roleBuilders = append(roleBuilders, builder)
+	}
+	if len(roleBuilders) > 0 {
+		if err := tx.Role.CreateBulk(roleBuilders...).
+			OnConflictColumns(entrole.FieldID).
+			UpdateNewValues().
+			Exec(ctx); err != nil {
+			return rollback(fmt.Errorf("upsert builtin roles failed: %w", err))
 		}
-		if err := update.Exec(ctx); err != nil {
-			return rollback(fmt.Errorf("update role %s failed: %w", item.ID, err))
+	}
+
+	if len(builtinRoleIDs) > 0 {
+		roleMenuUpdate := tx.Role.Update().
+			Where(entrole.IDIn(builtinRoleIDs...)).
+			ClearMenus()
+		if len(allMenuIDs) > 0 {
+			roleMenuUpdate.AddMenuIDs(allMenuIDs...)
+		}
+		if err := roleMenuUpdate.Exec(ctx); err != nil {
+			return rollback(fmt.Errorf("sync builtin role menus failed: %w", err))
 		}
 	}
 
