@@ -61,7 +61,7 @@ type SystemRepo interface {
 	GetRole(ctx context.Context, roleId string) (*ent.Role, error)
 	CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
 	UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
-	DeleteRole(ctx context.Context, roleId string) error
+	DeleteRole(ctx context.Context, roleIds []string) error
 }
 
 func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
@@ -72,7 +72,7 @@ func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
 }
 
 func (s *SystemUsecase) GetRoleOjbByUserID(ctx context.Context, userID string) (*RoleOjb, error) {
-	userInfo, err := s.userRepo.FindWithRoleByID(ctx, userID)
+	userInfo, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -228,8 +228,8 @@ func (s *SystemUsecase) UpdateRole(ctx context.Context, req *v1.AdminEditRoleReq
 	return toRoleInfo(roleInfo), nil
 }
 
-func (s *SystemUsecase) DeleteRole(ctx context.Context, roleId string) error {
-	err := s.sys.DeleteRole(ctx, roleId)
+func (s *SystemUsecase) DeleteRole(ctx context.Context, roleIds []string) error {
+	err := s.sys.DeleteRole(ctx, roleIds)
 	if err != nil {
 		return ErrSystem(err)
 	}

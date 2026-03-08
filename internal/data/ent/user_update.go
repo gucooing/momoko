@@ -119,6 +119,12 @@ func (_u *UserUpdate) SetNillableBio(v *string) *UserUpdate {
 	return _u
 }
 
+// ClearBio clears the value of the "bio" field.
+func (_u *UserUpdate) ClearBio() *UserUpdate {
+	_u.mutation.ClearBio()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *UserUpdate) SetName(v string) *UserUpdate {
 	_u.mutation.SetName(v)
@@ -144,6 +150,12 @@ func (_u *UserUpdate) SetNillableTags(v *string) *UserUpdate {
 	if v != nil {
 		_u.SetTags(*v)
 	}
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *UserUpdate) ClearTags() *UserUpdate {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -225,16 +237,6 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Bio(); ok {
-		if err := user.BioValidator(v); err != nil {
-			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Tags(); ok {
-		if err := user.TagsValidator(v); err != nil {
-			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -271,11 +273,17 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)
 	}
+	if _u.mutation.BioCleared() {
+		_spec.ClearField(user.FieldBio, field.TypeString)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Tags(); ok {
 		_spec.SetField(user.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(user.FieldTags, field.TypeString)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -416,6 +424,12 @@ func (_u *UserUpdateOne) SetNillableBio(v *string) *UserUpdateOne {
 	return _u
 }
 
+// ClearBio clears the value of the "bio" field.
+func (_u *UserUpdateOne) ClearBio() *UserUpdateOne {
+	_u.mutation.ClearBio()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *UserUpdateOne) SetName(v string) *UserUpdateOne {
 	_u.mutation.SetName(v)
@@ -441,6 +455,12 @@ func (_u *UserUpdateOne) SetNillableTags(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetTags(*v)
 	}
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *UserUpdateOne) ClearTags() *UserUpdateOne {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -535,16 +555,6 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Bio(); ok {
-		if err := user.BioValidator(v); err != nil {
-			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Tags(); ok {
-		if err := user.TagsValidator(v); err != nil {
-			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -598,11 +608,17 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)
 	}
+	if _u.mutation.BioCleared() {
+		_spec.ClearField(user.FieldBio, field.TypeString)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Tags(); ok {
 		_spec.SetField(user.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(user.FieldTags, field.TypeString)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{

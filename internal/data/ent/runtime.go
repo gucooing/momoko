@@ -127,18 +127,10 @@ func init() {
 	userDescAvatar := userFields[5].Descriptor()
 	// user.DefaultAvatar holds the default value on creation for the avatar field.
 	user.DefaultAvatar = userDescAvatar.Default.(string)
-	// userDescBio is the schema descriptor for bio field.
-	userDescBio := userFields[6].Descriptor()
-	// user.BioValidator is a validator for the "bio" field. It is called by the builders before save.
-	user.BioValidator = userDescBio.Validators[0].(func(string) error)
 	// userDescName is the schema descriptor for name field.
 	userDescName := userFields[7].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
-	// userDescTags is the schema descriptor for tags field.
-	userDescTags := userFields[8].Descriptor()
-	// user.TagsValidator is a validator for the "tags" field. It is called by the builders before save.
-	user.TagsValidator = userDescTags.Validators[0].(func(string) error)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.

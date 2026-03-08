@@ -15,6 +15,38 @@ service UserService {
       get: "/api/v1/user/me"
     };
   }
+  // 获取用户列表
+  rpc ListUser(ListUserRequest) returns (ListUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/list"
+    };
+  }
+  // 获取用户详情
+  rpc UserInfo(UserInfoRequest) returns (UserInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/{user_id}"
+    };
+  }
+  // 添加用户
+  rpc AddUser(AddUserRequest) returns (AddUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/add"
+      body: "*"
+    };
+  }
+  // 更新用户
+  rpc EditUser(EditUserRequest) returns (EditUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/{user_id}"
+      body: "*"
+    };
+  }
+  // 删除用户
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/user/del"
+    };
+  }
 }
 
 // 获取自己信息请求
@@ -22,6 +54,42 @@ message MeInfoRequest{}
 
 // 获取自己信息响应
 message MeInfoResponse{
+  // 用户信息
+  UserInfo user = 1;
+}
+
+// 获取用户列表请求
+message ListUserRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // status filter
+  optional UserStatus status = 3;
+  // username filter
+  optional string username = 4;
+}
+
+// 获取用户列表响应
+message ListUserResponse {
+  // 用户列表
+  repeated UserInfo users = 1;
+  // actual page
+  int64 page = 2;
+  // actual page size
+  int64 page_size = 3;
+  // 总数
+  int64 total = 4;
+}
+
+// 获取用户详情请求
+message UserInfoRequest {
+  // 用户id
+  string user_id = 1;
+}
+
+// 获取用户详情响应
+message UserInfoResponse {
   // 用户信息
   UserInfo user = 1;
 }
@@ -50,6 +118,8 @@ message UserInfo {
   string username = 10;
   // 角色名称
   string role_name = 11;
+  // 角色id
+  string role_id = 12;
 }
 
 // 用户状态
@@ -58,8 +128,6 @@ enum UserStatus {
   InActive = 0;
   // 活跃
   Active = 1;
-  // 冻结
-  Freeze = 2;
 }
 
 // 登录信息
@@ -81,3 +149,66 @@ enum LoginStatus {
   // 密码错误
   Password = 1;
 }
+
+// 添加用户请求
+message AddUserRequest {
+  // 账号
+  string username = 1;
+  // 密码
+  string password = 2;
+  // 邮箱
+  string email = 3;
+  // 昵称
+  string name = 4;
+  // 头像url
+  string avatar = 5;
+  // bio
+  string bio = 6;
+  // 标签
+  string tags = 7;
+  // status
+  UserStatus status = 8;
+  // 角色id
+  string role_id = 9;
+}
+
+// 添加用户响应
+message AddUserResponse {
+  // 用户信息
+  UserInfo user = 1;
+}
+
+// 更新用户请求
+message EditUserRequest {
+  // 用户id
+  string user_id = 1;
+  // 邮箱
+  string email = 2;
+  // 昵称
+  string name = 3;
+  // 头像url
+  string avatar = 4;
+  // bio
+  string bio = 5;
+  // 标签
+  string tags = 6;
+  // status
+  UserStatus status = 7;
+  // 角色id
+  string role_id = 8;
+}
+
+// 更新用户响应
+message EditUserResponse {
+  // 用户信息
+  UserInfo user = 1;
+}
+
+// 删除用户请求
+message DeleteUserRequest {
+  // 用户id
+  repeated string user_ids = 1;
+}
+
+// 删除用户响应
+message DeleteUserResponse {}

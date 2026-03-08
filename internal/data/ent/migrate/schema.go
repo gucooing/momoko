@@ -97,12 +97,12 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "email", Type: field.TypeString},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"inactive", "active", "freeze"}, Default: "inactive"},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"inactive", "active"}, Default: "inactive"},
 		{Name: "avatar", Type: field.TypeString, Default: ""},
-		{Name: "bio", Type: field.TypeString},
+		{Name: "bio", Type: field.TypeString, Nullable: true},
 		{Name: "name", Type: field.TypeString, Default: "gucooing"},
-		{Name: "tags", Type: field.TypeString},
+		{Name: "tags", Type: field.TypeString, Nullable: true},
 		{Name: "user_role", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.

@@ -218,6 +218,27 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminAddRoleResponse'
+    /api/v1/role/admin/del:
+        delete:
+            tags:
+                - System
+            description: 删除角色
+            operationId: System_AdminDeleteRole
+            parameters:
+                - name: roleIds
+                  in: query
+                  description: 角色id
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminDeleteRoleResponse'
     /api/v1/role/admin/{roleId}:
         get:
             tags:
@@ -263,16 +284,72 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+    /api/v1/user/add:
+        post:
+            tags:
+                - UserService
+            description: 添加用户
+            operationId: UserService_AddUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AddUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AddUserResponse'
+    /api/v1/user/del:
         delete:
             tags:
-                - System
-            description: 删除角色
-            operationId: System_AdminDeleteRole
+                - UserService
+            description: 删除用户
+            operationId: UserService_DeleteUser
             parameters:
-                - name: roleId
-                  in: path
-                  description: 角色id
-                  required: true
+                - name: userIds
+                  in: query
+                  description: 用户id
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteUserResponse'
+    /api/v1/user/list:
+        get:
+            tags:
+                - UserService
+            description: 获取用户列表
+            operationId: UserService_ListUser
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: status filter
+                  schema:
+                    type: integer
+                    format: enum
+                - name: username
+                  in: query
+                  description: username filter
                   schema:
                     type: string
             responses:
@@ -281,7 +358,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1.AdminDeleteRoleResponse'
+                                $ref: '#/components/schemas/v1.ListUserResponse'
     /api/v1/user/me:
         get:
             tags:
@@ -295,8 +372,93 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MeInfoResponse'
+    /api/v1/user/{userId}:
+        get:
+            tags:
+                - UserService
+            description: 获取用户详情
+            operationId: UserService_UserInfo
+            parameters:
+                - name: userId
+                  in: path
+                  description: 用户id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UserInfoResponse'
+        post:
+            tags:
+                - UserService
+            description: 更新用户
+            operationId: UserService_EditUser
+            parameters:
+                - name: userId
+                  in: path
+                  description: 用户id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.EditUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.EditUserResponse'
 components:
     schemas:
+        v1.AddUserRequest:
+            type: object
+            properties:
+                username:
+                    type: string
+                    description: 账号
+                password:
+                    type: string
+                    description: 密码
+                email:
+                    type: string
+                    description: 邮箱
+                name:
+                    type: string
+                    description: 昵称
+                avatar:
+                    type: string
+                    description: 头像url
+                bio:
+                    type: string
+                    description: bio
+                tags:
+                    type: string
+                    description: 标签
+                status:
+                    type: integer
+                    description: status
+                    format: enum
+                roleId:
+                    type: string
+                    description: 角色id
+            description: 添加用户请求
+        v1.AddUserResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息
+            description: 添加用户响应
         v1.AdminAddPermissionsRequest:
             type: object
             properties:
@@ -471,6 +633,10 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
+        v1.DeleteUserResponse:
+            type: object
+            properties: {}
+            description: 删除用户响应
         v1.DevicesResponse:
             type: object
             properties:
@@ -483,6 +649,61 @@ components:
                     type: string
                     description: 当前设备id
             description: 获取登录设备响应
+        v1.EditUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户id
+                email:
+                    type: string
+                    description: 邮箱
+                name:
+                    type: string
+                    description: 昵称
+                avatar:
+                    type: string
+                    description: 头像url
+                bio:
+                    type: string
+                    description: bio
+                tags:
+                    type: string
+                    description: 标签
+                status:
+                    type: integer
+                    description: status
+                    format: enum
+                roleId:
+                    type: string
+                    description: 角色id
+            description: 更新用户请求
+        v1.EditUserResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息
+            description: 更新用户响应
+        v1.ListUserResponse:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户列表
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+            description: 获取用户列表响应
         v1.LoginDevice:
             type: object
             properties:
@@ -708,7 +929,18 @@ components:
                 roleName:
                     type: string
                     description: 角色名称
+                roleId:
+                    type: string
+                    description: 角色id
             description: 用户信息
+        v1.UserInfoResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息
+            description: 获取用户详情响应
 tags:
     - name: AuthService
       description: 认证服务

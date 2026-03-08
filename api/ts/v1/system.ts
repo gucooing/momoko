@@ -261,7 +261,7 @@ export interface AdminEditRoleResponse {
 /** 删除角色请求 */
 export interface AdminDeleteRoleRequest {
   /** 角色id */
-  roleId: string;
+  roleIds: string[];
 }
 
 /** 删除角色响应 */

@@ -2923,9 +2923,22 @@ func (m *UserMutation) OldBio(ctx context.Context) (v string, err error) {
 	return oldValue.Bio, nil
 }
 
+// ClearBio clears the value of the "bio" field.
+func (m *UserMutation) ClearBio() {
+	m.bio = nil
+	m.clearedFields[user.FieldBio] = struct{}{}
+}
+
+// BioCleared returns if the "bio" field was cleared in this mutation.
+func (m *UserMutation) BioCleared() bool {
+	_, ok := m.clearedFields[user.FieldBio]
+	return ok
+}
+
 // ResetBio resets all changes to the "bio" field.
 func (m *UserMutation) ResetBio() {
 	m.bio = nil
+	delete(m.clearedFields, user.FieldBio)
 }
 
 // SetName sets the "name" field.
@@ -2995,9 +3008,22 @@ func (m *UserMutation) OldTags(ctx context.Context) (v string, err error) {
 	return oldValue.Tags, nil
 }
 
+// ClearTags clears the value of the "tags" field.
+func (m *UserMutation) ClearTags() {
+	m.tags = nil
+	m.clearedFields[user.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *UserMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[user.FieldTags]
+	return ok
+}
+
 // ResetTags resets all changes to the "tags" field.
 func (m *UserMutation) ResetTags() {
 	m.tags = nil
+	delete(m.clearedFields, user.FieldTags)
 }
 
 // SetRoleID sets the "role" edge to the Role entity by id.
@@ -3269,7 +3295,14 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldBio) {
+		fields = append(fields, user.FieldBio)
+	}
+	if m.FieldCleared(user.FieldTags) {
+		fields = append(fields, user.FieldTags)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3282,6 +3315,14 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldBio:
+		m.ClearBio()
+		return nil
+	case user.FieldTags:
+		m.ClearTags()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 

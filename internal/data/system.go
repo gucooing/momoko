@@ -157,8 +157,12 @@ func (s *systemRepo) UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds
 		Save(ctx)
 }
 
-func (s *systemRepo) DeleteRole(ctx context.Context, roleId string) error {
-	return s.data.db.Role.DeleteOneID(roleId).
-		Where(role.IsBuiltinEQ(false)).
+func (s *systemRepo) DeleteRole(ctx context.Context, roleIds []string) error {
+	_, err := s.data.db.Role.Delete().
+		Where(
+			role.IDIn(roleIds...),
+			role.IsBuiltinEQ(false),
+		).
 		Exec(ctx)
+	return err
 }

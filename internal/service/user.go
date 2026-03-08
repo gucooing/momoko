@@ -6,17 +6,20 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
+	"momoko/pkg/constant"
 )
 
 type UserService struct {
 	v1.UnimplementedUserServiceServer
 
-	uc *biz.UserUsecase
+	uc  *biz.UserUsecase
+	sys *biz.SystemUsecase
 }
 
-func NewUserService(uc *biz.UserUsecase) *UserService {
+func NewUserService(uc *biz.UserUsecase, sys *biz.SystemUsecase) *UserService {
 	return &UserService{
-		uc: uc,
+		uc:  uc,
+		sys: sys,
 	}
 }
 
@@ -34,4 +37,64 @@ func (u *UserService) MeInfo(ctx context.Context, req *v1.MeInfoRequest) (*v1.Me
 	}
 
 	return rsp, nil
+}
+
+func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v1.ListUserResponse, error) {
+	if err := u.sys.Check(ctx, constant.UserView); err != nil {
+		return nil, err
+	}
+	users, total, err := u.uc.ListUsers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListUserResponse{
+		Users:    users,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Total:    total,
+	}, nil
+}
+
+func (u *UserService) UserInfo(ctx context.Context, req *v1.UserInfoRequest) (*v1.UserInfoResponse, error) {
+	if err := u.sys.Check(ctx, constant.UserView); err != nil {
+		return nil, err
+	}
+	userInfo, err := u.uc.UserInfo(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UserInfoResponse{User: userInfo}, nil
+}
+
+func (u *UserService) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.AddUserResponse, error) {
+	if err := u.sys.Check(ctx, constant.UserAdd); err != nil {
+		return nil, err
+	}
+	userInfo, err := u.uc.AddUser(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AddUserResponse{User: userInfo}, nil
+}
+
+func (u *UserService) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v1.EditUserResponse, error) {
+	if err := u.sys.Check(ctx, constant.UserEdit); err != nil {
+		return nil, err
+	}
+	userInfo, err := u.uc.EditUser(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.EditUserResponse{User: userInfo}, nil
+}
+
+func (u *UserService) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
+	if err := u.sys.Check(ctx, constant.UserDelete); err != nil {
+		return nil, err
+	}
+	err := u.uc.DeleteUser(ctx, req.UserIds)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DeleteUserResponse{}, nil
 }

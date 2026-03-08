@@ -95,12 +95,8 @@ var (
 	UsernameValidator func(string) error
 	// DefaultAvatar holds the default value on creation for the "avatar" field.
 	DefaultAvatar string
-	// BioValidator is a validator for the "bio" field. It is called by the builders before save.
-	BioValidator func(string) error
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
-	// TagsValidator is a validator for the "tags" field. It is called by the builders before save.
-	TagsValidator func(string) error
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -115,7 +111,6 @@ const DefaultStatus = StatusInactive
 const (
 	StatusInactive Status = "inactive"
 	StatusActive   Status = "active"
-	StatusFreeze   Status = "freeze"
 )
 
 func (s Status) String() string {
@@ -125,7 +120,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusInactive, StatusActive, StatusFreeze:
+	case StatusInactive, StatusActive:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)

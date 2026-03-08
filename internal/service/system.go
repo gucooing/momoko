@@ -145,7 +145,7 @@ func (s *SystemService) AdminDeleteRole(ctx context.Context, req *v1.AdminDelete
 	if err := s.uc.Check(ctx, constant.RoleDelete); err != nil {
 		return nil, err
 	}
-	err := s.uc.DeleteRole(ctx, req.RoleId)
+	err := s.uc.DeleteRole(ctx, req.RoleIds)
 	if err != nil {
 		return nil, err
 	}

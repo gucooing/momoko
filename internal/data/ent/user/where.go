@@ -525,6 +525,16 @@ func BioHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldBio, v))
 }
 
+// BioIsNil applies the IsNil predicate on the "bio" field.
+func BioIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldBio))
+}
+
+// BioNotNil applies the NotNil predicate on the "bio" field.
+func BioNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldBio))
+}
+
 // BioEqualFold applies the EqualFold predicate on the "bio" field.
 func BioEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldBio, v))
@@ -653,6 +663,16 @@ func TagsHasPrefix(v string) predicate.User {
 // TagsHasSuffix applies the HasSuffix predicate on the "tags" field.
 func TagsHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldTags, v))
+}
+
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldTags))
 }
 
 // TagsEqualFold applies the EqualFold predicate on the "tags" field.

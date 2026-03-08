@@ -14,8 +14,6 @@ export enum UserStatus {
   InActive = "InActive",
   /** Active - 活跃 */
   Active = "Active",
-  /** Freeze - 冻结 */
-  Freeze = "Freeze",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -34,6 +32,44 @@ export interface MeInfoRequest {
 
 /** 获取自己信息响应 */
 export interface MeInfoResponse {
+  /** 用户信息 */
+  user: UserInfo | undefined;
+}
+
+/** 获取用户列表请求 */
+export interface ListUserRequest {
+  /** page */
+  page: number;
+  /** page size */
+  pageSize: number;
+  /** status filter */
+  status?:
+    | UserStatus
+    | undefined;
+  /** username filter */
+  username?: string | undefined;
+}
+
+/** 获取用户列表响应 */
+export interface ListUserResponse {
+  /** 用户列表 */
+  users: UserInfo[];
+  /** actual page */
+  page: number;
+  /** actual page size */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+}
+
+/** 获取用户详情请求 */
+export interface UserInfoRequest {
+  /** 用户id */
+  userId: string;
+}
+
+/** 获取用户详情响应 */
+export interface UserInfoResponse {
   /** 用户信息 */
   user: UserInfo | undefined;
 }
@@ -66,6 +102,8 @@ export interface UserInfo {
   username: string;
   /** 角色名称 */
   roleName: string;
+  /** 角色id */
+  roleId: string;
 }
 
 /** 登录信息 */
@@ -80,4 +118,68 @@ export interface LoginInfo {
   ip: string;
   /** 登录状态 */
   status: LoginStatus;
+}
+
+/** 添加用户请求 */
+export interface AddUserRequest {
+  /** 账号 */
+  username: string;
+  /** 密码 */
+  password: string;
+  /** 邮箱 */
+  email: string;
+  /** 昵称 */
+  name: string;
+  /** 头像url */
+  avatar: string;
+  /** bio */
+  bio: string;
+  /** 标签 */
+  tags: string;
+  /** status */
+  status: UserStatus;
+  /** 角色id */
+  roleId: string;
+}
+
+/** 添加用户响应 */
+export interface AddUserResponse {
+  /** 用户信息 */
+  user: UserInfo | undefined;
+}
+
+/** 更新用户请求 */
+export interface EditUserRequest {
+  /** 用户id */
+  userId: string;
+  /** 邮箱 */
+  email: string;
+  /** 昵称 */
+  name: string;
+  /** 头像url */
+  avatar: string;
+  /** bio */
+  bio: string;
+  /** 标签 */
+  tags: string;
+  /** status */
+  status: UserStatus;
+  /** 角色id */
+  roleId: string;
+}
+
+/** 更新用户响应 */
+export interface EditUserResponse {
+  /** 用户信息 */
+  user: UserInfo | undefined;
+}
+
+/** 删除用户请求 */
+export interface DeleteUserRequest {
+  /** 用户id */
+  userIds: string[];
+}
+
+/** 删除用户响应 */
+export interface DeleteUserResponse {
 }

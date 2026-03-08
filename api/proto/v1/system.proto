@@ -76,7 +76,7 @@ service System {
   // 删除角色
   rpc AdminDeleteRole(AdminDeleteRoleRequest) returns (AdminDeleteRoleResponse) {
     option (google.api.http) = {
-      delete: "/api/v1/role/admin/{role_id}"
+      delete: "/api/v1/role/admin/del"
     };
   }
 }
@@ -316,7 +316,7 @@ message AdminEditRoleResponse {
 // 删除角色请求
 message AdminDeleteRoleRequest {
   // 角色id
-  string role_id = 1;
+  repeated string role_ids = 1;
 }
 
 // 删除角色响应

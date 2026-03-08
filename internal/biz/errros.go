@@ -15,4 +15,5 @@ var (
 	ErrTokenInvalid    = response.BadRequest(401, "token invalid")
 	ErrUserNoRole      = response.BadRequest(501, "用户没有角色")
 	ErrNoPermission    = response.BadRequest(501, "权限不足")
+	ErrUserInactive    = response.BadRequest(501, "账号已停用")
 )

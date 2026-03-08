@@ -104,6 +104,14 @@ func (_c *UserCreate) SetBio(v string) *UserCreate {
 	return _c
 }
 
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_c *UserCreate) SetNillableBio(v *string) *UserCreate {
+	if v != nil {
+		_c.SetBio(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *UserCreate) SetName(v string) *UserCreate {
 	_c.mutation.SetName(v)
@@ -121,6 +129,14 @@ func (_c *UserCreate) SetNillableName(v *string) *UserCreate {
 // SetTags sets the "tags" field.
 func (_c *UserCreate) SetTags(v string) *UserCreate {
 	_c.mutation.SetTags(v)
+	return _c
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_c *UserCreate) SetNillableTags(v *string) *UserCreate {
+	if v != nil {
+		_c.SetTags(*v)
+	}
 	return _c
 }
 
@@ -239,24 +255,8 @@ func (_c *UserCreate) check() error {
 	if _, ok := _c.mutation.Avatar(); !ok {
 		return &ValidationError{Name: "avatar", err: errors.New(`ent: missing required field "User.avatar"`)}
 	}
-	if _, ok := _c.mutation.Bio(); !ok {
-		return &ValidationError{Name: "bio", err: errors.New(`ent: missing required field "User.bio"`)}
-	}
-	if v, ok := _c.mutation.Bio(); ok {
-		if err := user.BioValidator(v); err != nil {
-			return &ValidationError{Name: "bio", err: fmt.Errorf(`ent: validator failed for field "User.bio": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
-	}
-	if _, ok := _c.mutation.Tags(); !ok {
-		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required field "User.tags"`)}
-	}
-	if v, ok := _c.mutation.Tags(); ok {
-		if err := user.TagsValidator(v); err != nil {
-			return &ValidationError{Name: "tags", err: fmt.Errorf(`ent: validator failed for field "User.tags": %w`, err)}
-		}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := user.IDValidator(v); err != nil {
@@ -492,6 +492,12 @@ func (u *UserUpsert) UpdateBio() *UserUpsert {
 	return u
 }
 
+// ClearBio clears the value of the "bio" field.
+func (u *UserUpsert) ClearBio() *UserUpsert {
+	u.SetNull(user.FieldBio)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsert) SetName(v string) *UserUpsert {
 	u.Set(user.FieldName, v)
@@ -513,6 +519,12 @@ func (u *UserUpsert) SetTags(v string) *UserUpsert {
 // UpdateTags sets the "tags" field to the value that was provided on create.
 func (u *UserUpsert) UpdateTags() *UserUpsert {
 	u.SetExcluded(user.FieldTags)
+	return u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *UserUpsert) ClearTags() *UserUpsert {
+	u.SetNull(user.FieldTags)
 	return u
 }
 
@@ -665,6 +677,13 @@ func (u *UserUpsertOne) UpdateBio() *UserUpsertOne {
 	})
 }
 
+// ClearBio clears the value of the "bio" field.
+func (u *UserUpsertOne) ClearBio() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearBio()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsertOne) SetName(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -690,6 +709,13 @@ func (u *UserUpsertOne) SetTags(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateTags() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *UserUpsertOne) ClearTags() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearTags()
 	})
 }
 
@@ -1009,6 +1035,13 @@ func (u *UserUpsertBulk) UpdateBio() *UserUpsertBulk {
 	})
 }
 
+// ClearBio clears the value of the "bio" field.
+func (u *UserUpsertBulk) ClearBio() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearBio()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsertBulk) SetName(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -1034,6 +1067,13 @@ func (u *UserUpsertBulk) SetTags(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateTags() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *UserUpsertBulk) ClearTags() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearTags()
 	})
 }
 
