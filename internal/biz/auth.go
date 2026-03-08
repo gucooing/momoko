@@ -26,6 +26,7 @@ type AuthRepo interface {
 	Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error)
 	ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error)
 	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error)
+	GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*ent.Auth, error)
 }
 
 type AuthUsecase struct {

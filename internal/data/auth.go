@@ -2,21 +2,26 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
+	"momoko/pkg/cache"
 )
 
 type authRepo struct {
 	data *Data
+
+	cacheToken *cache.Cache[string, *ent.Auth]
 }
 
 func NewAuthRepo(data *Data) biz.AuthRepo {
 	return &authRepo{
-		data: data,
+		data:       data,
+		cacheToken: cache.New[string, *ent.Auth](5 * time.Minute),
 	}
 }
 
@@ -35,13 +40,20 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*ent.Au
 	if err != nil {
 		return nil, err
 	}
-	return ar.data.db.Auth.
+	authData, err := ar.data.db.Auth.
 		Query().
 		Where(
 			auth.DeviceIDEQ(authInfo.DeviceID),
 			auth.TypeEQ(authInfo.Type),
 		).
 		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if authInfo.Type == auth.TypeToken {
+		ar.cacheToken.Set(authInfo.DeviceID, authData)
+	}
+	return authData, nil
 }
 
 func (ar *authRepo) Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {
@@ -67,6 +79,9 @@ func (ar *authRepo) Refresh(ctx context.Context, userId string) (*ent.Auth, *ent
 			return nil, nil, biz.ErrTokenInvalid
 		}
 	}
+	if access != nil {
+		ar.cacheToken.Set(access.DeviceID, access)
+	}
 
 	return access, refresh, nil
 }
@@ -88,4 +103,22 @@ func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId s
 	}
 
 	return query.All(ctx)
+}
+
+func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*ent.Auth, error) {
+	add := func() (*ent.Auth, error) {
+		return ar.data.db.Auth.Query().
+			Where(
+				auth.DeviceEQ(deviceID),
+				auth.TypeEQ(tokenType),
+			).First(ctx)
+	}
+	if tokenType == auth.TypeToken {
+		authData, ok := ar.cacheToken.GetByAdd(deviceID, add)
+		if !ok {
+			return nil, biz.ErrTokenInvalid
+		}
+		return authData, nil
+	}
+	return add()
 }

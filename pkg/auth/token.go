@@ -5,12 +5,18 @@ import (
 
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/auth"
+	"momoko/pkg/response"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
 	tokenExpiresAt = 2 * time.Hour
+)
+
+var (
+	AuthSecretKey   = "123456"
+	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
 
 func GenerateToken(authDb *ent.Auth) (string, error) {
@@ -46,11 +52,11 @@ func ParseToken(tokenStr string) (*Auth, error) {
 		return nil, err
 	}
 	if !token.Valid {
-		return nil, ErrUnauthorized
+		return nil, ErrTokenInvalid
 	}
 	claims, ok := token.Claims.(*Auth)
 	if !ok {
-		return nil, ErrUnauthorized
+		return nil, ErrTokenInvalid
 	}
 	return claims, nil
 }
