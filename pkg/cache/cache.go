@@ -74,18 +74,18 @@ func (c *Cache[K, V]) GetByAdd(k K, fn func() (V, error)) (V, bool) {
 		defer c.addLock.Unlock()
 		if ojb, ok = c.dict.Load(k); ok {
 			ojb.(*valueInterface).activeTime = time.Now()
-			return ojb.(*valueInterface).v.(V), ok
+			return ojb.(*valueInterface).v.(V), true
 		}
 		v, err := fn()
 		if err != nil {
 			return v, false
 		}
-		c.dict.Store(k, v)
+		c.dict.Store(k, newValueInterface(v))
 		return v, true
 	}
 	ojb.(*valueInterface).activeTime = time.Now()
 
-	return ojb.(*valueInterface).v.(V), ok
+	return ojb.(*valueInterface).v.(V), true
 }
 
 func (c *Cache[K, V]) Set(k K, v V) bool {

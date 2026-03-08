@@ -8,6 +8,7 @@ import (
 	entmenu "momoko/internal/data/ent/menu"
 	entrole "momoko/internal/data/ent/role"
 	entuser "momoko/internal/data/ent/user"
+	"momoko/pkg/constant"
 )
 
 type defaultMenu struct {
@@ -15,7 +16,7 @@ type defaultMenu struct {
 	Type       entmenu.Type
 	Path       string
 	Title      string
-	Permission string
+	Permission constant.Permissions
 	Order      int
 	Icon       string
 	IsSystem   bool
@@ -42,20 +43,20 @@ var (
 
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 1, ""),
 		newDefaultMenu("menu_3", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_2"), 0, ""),
-		newDefaultMenu("menu_3_button_0", entmenu.TypeButton, "", "添加用户", "", ptr("menu_3"), 0, "user:add"),
-		newDefaultMenu("menu_3_button_1", entmenu.TypeButton, "", "编辑用户", "", ptr("menu_3"), 1, "user:edit"),
-		newDefaultMenu("menu_3_button_2", entmenu.TypeButton, "", "删除用户", "", ptr("menu_3"), 2, "user:delete"),
-		newDefaultMenu("menu_3_button_3", entmenu.TypeButton, "", "查看用户", "", ptr("menu_3"), 3, "user:view"),
+		newDefaultMenu("menu_3_button_0", entmenu.TypeButton, "", "添加用户", "", ptr("menu_3"), 0, constant.UserAdd),
+		newDefaultMenu("menu_3_button_1", entmenu.TypeButton, "", "编辑用户", "", ptr("menu_3"), 1, constant.UserEdit),
+		newDefaultMenu("menu_3_button_2", entmenu.TypeButton, "", "删除用户", "", ptr("menu_3"), 2, constant.UserDelete),
+		newDefaultMenu("menu_3_button_3", entmenu.TypeButton, "", "查看用户", "", ptr("menu_3"), 3, constant.UserView),
 		newDefaultMenu("menu_4", entmenu.TypeMenu, "/system/role", "角色管理", "HOutline:IdentificationIcon", ptr("menu_2"), 1, ""),
-		newDefaultMenu("menu_4_button_0", entmenu.TypeButton, "", "添加角色", "", ptr("menu_4"), 0, "role:add"),
-		newDefaultMenu("menu_4_button_1", entmenu.TypeButton, "", "编辑角色", "", ptr("menu_4"), 1, "role:edit"),
-		newDefaultMenu("menu_4_button_2", entmenu.TypeButton, "", "删除角色", "", ptr("menu_4"), 2, "role:delete"),
-		newDefaultMenu("menu_4_button_3", entmenu.TypeButton, "", "查看角色", "", ptr("menu_4"), 3, "role:view"),
+		newDefaultMenu("menu_4_button_0", entmenu.TypeButton, "", "添加角色", "", ptr("menu_4"), 0, constant.RoleAdd),
+		newDefaultMenu("menu_4_button_1", entmenu.TypeButton, "", "编辑角色", "", ptr("menu_4"), 1, constant.RoleEdit),
+		newDefaultMenu("menu_4_button_2", entmenu.TypeButton, "", "删除角色", "", ptr("menu_4"), 2, constant.RoleDelete),
+		newDefaultMenu("menu_4_button_3", entmenu.TypeButton, "", "查看角色", "", ptr("menu_4"), 3, constant.RoleView),
 		newDefaultMenu("menu_5", entmenu.TypeMenu, "/system/menu", "菜单管理", "HOutline:ListBulletIcon", ptr("menu_2"), 2, ""),
-		newDefaultMenu("menu_5_button_0", entmenu.TypeButton, "", "添加菜单", "", ptr("menu_5"), 0, "menu:add"),
-		newDefaultMenu("menu_5_button_1", entmenu.TypeButton, "", "编辑菜单", "", ptr("menu_5"), 1, "menu:edit"),
-		newDefaultMenu("menu_5_button_2", entmenu.TypeButton, "", "删除菜单", "", ptr("menu_5"), 2, "menu:delete"),
-		newDefaultMenu("menu_5_button_3", entmenu.TypeButton, "", "查看菜单", "", ptr("menu_5"), 3, "menu:view"),
+		newDefaultMenu("menu_5_button_0", entmenu.TypeButton, "", "添加菜单", "", ptr("menu_5"), 0, constant.MenuAdd),
+		newDefaultMenu("menu_5_button_1", entmenu.TypeButton, "", "编辑菜单", "", ptr("menu_5"), 1, constant.MenuEdit),
+		newDefaultMenu("menu_5_button_2", entmenu.TypeButton, "", "删除菜单", "", ptr("menu_5"), 2, constant.MenuDelete),
+		newDefaultMenu("menu_5_button_3", entmenu.TypeButton, "", "查看菜单", "", ptr("menu_5"), 3, constant.MenuView),
 
 		newDefaultMenu("menu_17", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 2, ""),
 		newDefaultMenu("menu_18", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", ptr("menu_17"), 0, ""),
@@ -92,7 +93,7 @@ func ptr(v string) *string {
 	return &v
 }
 
-func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, parentID *string, order int, permission string) defaultMenu {
+func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, parentID *string, order int, permission constant.Permissions) defaultMenu {
 	return defaultMenu{
 		ID:         id,
 		Type:       menuType,
@@ -144,7 +145,7 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 			SetType(item.Type).
 			SetPath(item.Path).
 			SetTitle(item.Title).
-			SetPermission(item.Permission).
+			SetPermission(string(item.Permission)).
 			SetOrder(item.Order).
 			SetIcon(item.Icon).
 			SetIsSystem(item.IsSystem).

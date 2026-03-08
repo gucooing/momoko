@@ -14,4 +14,5 @@ var (
 	ErrInvalidPassword = response.BadRequest(501, "密码错误")
 	ErrTokenInvalid    = response.BadRequest(401, "token invalid")
 	ErrUserNoRole      = response.BadRequest(501, "用户没有角色")
+	ErrNoPermission    = response.BadRequest(501, "权限不足")
 )

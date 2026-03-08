@@ -109,7 +109,7 @@ func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, toke
 	add := func() (*ent.Auth, error) {
 		return ar.data.db.Auth.Query().
 			Where(
-				auth.DeviceEQ(deviceID),
+				auth.DeviceIDEQ(deviceID),
 				auth.TypeEQ(tokenType),
 			).First(ctx)
 	}
