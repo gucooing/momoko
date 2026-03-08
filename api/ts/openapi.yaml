@@ -57,6 +57,94 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/permissions/admin:
+        get:
+            tags:
+                - System
+            description: 管理员获取全部权限菜单
+            operationId: System_AdminPermissions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminPermissionsResponse'
+    /api/v1/permissions/admin/add:
+        post:
+            tags:
+                - System
+            description: 管理员添加权限菜单
+            operationId: System_AdminAddPermissions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AdminAddPermissionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminAddPermissionsResponse'
+    /api/v1/permissions/admin/edit:
+        post:
+            tags:
+                - System
+            description: 管理员编辑权限菜单
+            operationId: System_AdminEditPermissions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AdminEditPermissionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminEditPermissionsResponse'
+    /api/v1/permissions/admin/{menuId}:
+        get:
+            tags:
+                - System
+            description: 管理员获取单个权限菜单
+            operationId: System_AdminPermissionsInfo
+            parameters:
+                - name: menuId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminPermissionsInfoResponse'
+        delete:
+            tags:
+                - System
+            description: 管理员删除权限菜单
+            operationId: System_AdminDeletePermissions
+            parameters:
+                - name: menuId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminDeletePermissionsResponse'
     /api/v1/permissions/me:
         get:
             tags:
@@ -85,6 +173,93 @@ paths:
                                 $ref: '#/components/schemas/v1.MeInfoResponse'
 components:
     schemas:
+        v1.AdminAddPermissionsRequest:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    description: 类型
+                    format: enum
+                parentId:
+                    type: string
+                    description: 父级菜单id
+                title:
+                    type: string
+                    description: 标题
+                icon:
+                    type: string
+                    description: 图标
+                order:
+                    type: integer
+                    description: 排序
+                    format: int32
+                path:
+                    type: string
+                    description: 路径
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                permissions:
+                    type: string
+                    description: 权限标识
+            description: 管理员添加权限菜单请求
+        v1.AdminAddPermissionsResponse:
+            type: object
+            properties: {}
+            description: 管理员添加权限菜单响应
+        v1.AdminDeletePermissionsResponse:
+            type: object
+            properties: {}
+            description: 管理员删除权限菜单响应
+        v1.AdminEditPermissionsRequest:
+            type: object
+            properties:
+                menuId:
+                    type: string
+                    description: 菜单id
+                title:
+                    type: string
+                    description: 标题
+                icon:
+                    type: string
+                    description: 图标
+                order:
+                    type: integer
+                    description: 排序
+                    format: int32
+                path:
+                    type: string
+                    description: 路径
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                permissions:
+                    type: string
+                    description: 权限标识
+            description: 管理员编辑权限菜单请求
+        v1.AdminEditPermissionsResponse:
+            type: object
+            properties: {}
+            description: 管理员编辑权限菜单响应
+        v1.AdminPermissionsInfoResponse:
+            type: object
+            properties:
+                menu:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.MenuInfo'
+                    description: 权限菜单信息
+            description: 管理员获取单个权限菜单响应
+        v1.AdminPermissionsResponse:
+            type: object
+            properties:
+                menus:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MenuInfo'
+                    description: 权限菜单
+            description: 管理员获取全部权限菜单响应
         v1.DevicesResponse:
             type: object
             properties:
@@ -212,6 +387,9 @@ components:
                     type: integer
                     description: 类型
                     format: enum
+                permissions:
+                    type: string
+                    description: 权限标识
                 createTime:
                     type: string
                     description: 创建时间

@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
@@ -47,6 +48,11 @@ func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissi
 
 type SystemRepo interface {
 	GetMenusByRoleId(ctx context.Context, roleId string) ([]*ent.Menu, error)
+	GetMenus(ctx context.Context) ([]*ent.Menu, error)
+	GetMenu(ctx context.Context, menuId string) (*ent.Menu, error)
+	CreateMenu(ctx context.Context, menu *ent.Menu) (*ent.Menu, error)
+	UpdateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.Menu, error)
+	DeleteMenu(ctx context.Context, menuId string) error
 }
 
 func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
@@ -91,6 +97,69 @@ func (s *SystemUsecase) GetMenusByUserID(ctx context.Context, userID string) ([]
 	return menus, permissions, nil
 }
 
+func (s *SystemUsecase) GetAllMenus(ctx context.Context) ([]*v1.MenuInfo, []string, error) {
+	menuInfos, err := s.sys.GetMenus(ctx)
+	if err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	menus, permissions := toMenuInfos(menuInfos)
+	return menus, permissions, nil
+}
+
+func (s *SystemUsecase) GetMenu(ctx context.Context, menuId string) (*v1.MenuInfo, error) {
+	menuInfo, err := s.sys.GetMenu(ctx, menuId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toMenuInfo(menuInfo), nil
+}
+
+func (s *SystemUsecase) AddMenu(ctx context.Context, menu *v1.AdminAddPermissionsRequest) error {
+	_, err := s.sys.CreateMenu(ctx, &ent.Menu{
+		ID:         uuid.NewString(),
+		Type:       toEntMenuType(menu.Type),
+		Path:       menu.Path,
+		Title:      menu.Title,
+		Permission: menu.Permissions,
+		Order:      int(menu.Order),
+		Icon:       menu.Icon,
+		IsSystem:   false,
+		Status:     toEntMenuStatus(menu.Status),
+		ParentID:   menu.ParentId,
+	})
+	if err != nil {
+		return ErrSystem(err)
+	}
+	s.cache.Clear()
+	return nil
+}
+
+func (s *SystemUsecase) UpdateMenu(ctx context.Context, menu *v1.AdminEditPermissionsRequest) error {
+	_, err := s.sys.UpdateMenu(ctx, &ent.Menu{
+		ID:         menu.MenuId,
+		Path:       menu.Path,
+		Title:      menu.Title,
+		Permission: menu.Permissions,
+		Order:      int(menu.Order),
+		Icon:       menu.Icon,
+		Status:     toEntMenuStatus(menu.Status),
+	})
+	if err != nil {
+		return ErrSystem(err)
+	}
+	s.cache.Clear()
+	return nil
+}
+
+func (s *SystemUsecase) DeleteMenu(ctx context.Context, menuId string) error {
+	err := s.sys.DeleteMenu(ctx, menuId)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	s.cache.Clear()
+	return nil
+}
+
 func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
 	menuInfos := make([]*v1.MenuInfo, 0)
 	permissions := make([]string, 0)
@@ -99,7 +168,8 @@ func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
 	permissionSet := make(map[string]struct{}, len(menus))
 
 	for _, item := range menus {
-		if item.Permission != "" {
+		if item.Permission != "" &&
+			item.Status == menu.StatusActive {
 			if _, ok := permissionSet[item.Permission]; !ok {
 				permissionSet[item.Permission] = struct{}{}
 				permissions = append(permissions, item.Permission)
@@ -126,7 +196,8 @@ func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
 func toPermissions(menus []*ent.Menu) map[constant.Permissions]struct{} {
 	permissions := make(map[constant.Permissions]struct{})
 	for _, item := range menus {
-		if item.Permission == "" {
+		if item.Permission == "" ||
+			item.Status != menu.StatusActive {
 			continue
 		}
 		permissions[constant.Permissions(item.Permission)] = struct{}{}
@@ -136,18 +207,19 @@ func toPermissions(menus []*ent.Menu) map[constant.Permissions]struct{} {
 
 func toMenuInfo(data *ent.Menu) *v1.MenuInfo {
 	return &v1.MenuInfo{
-		Id:         data.ID,
-		Icon:       data.Icon,
-		IsSystem:   data.IsSystem,
-		Order:      int32(data.Order),
-		ParentId:   data.ParentID,
-		Path:       data.Path,
-		Status:     toMenuStatus(data.Status),
-		Title:      data.Title,
-		Type:       toMenuType(data.Type),
-		CreateTime: timestamppb.New(data.CreateTime),
-		UpdateTime: timestamppb.New(data.UpdateTime),
-		Children:   make([]*v1.MenuInfo, 0),
+		Id:          data.ID,
+		Icon:        data.Icon,
+		IsSystem:    data.IsSystem,
+		Order:       int32(data.Order),
+		ParentId:    data.ParentID,
+		Path:        data.Path,
+		Status:      toMenuStatus(data.Status),
+		Title:       data.Title,
+		Type:        toMenuType(data.Type),
+		Permissions: data.Permission,
+		CreateTime:  timestamppb.New(data.CreateTime),
+		UpdateTime:  timestamppb.New(data.UpdateTime),
+		Children:    make([]*v1.MenuInfo, 0),
 	}
 }
 
@@ -162,6 +234,17 @@ func toMenuStatus(data menu.Status) v1.MenuStatus {
 	}
 }
 
+func toEntMenuStatus(data v1.MenuStatus) menu.Status {
+	switch data {
+	case v1.MenuStatus_MenuStatus_Active:
+		return menu.StatusActive
+	case v1.MenuStatus_MenuStatus_InActive:
+		return menu.StatusInactive
+	default:
+		return menu.StatusInactive
+	}
+}
+
 func toMenuType(data menu.Type) v1.MenuType {
 	switch data {
 	case menu.TypeDirectory:
@@ -172,5 +255,18 @@ func toMenuType(data menu.Type) v1.MenuType {
 		return v1.MenuType_MenuType_Button
 	default:
 		return v1.MenuType_MenuType_Menu
+	}
+}
+
+func toEntMenuType(data v1.MenuType) menu.Type {
+	switch data {
+	case v1.MenuType_MenuType_Directory:
+		return menu.TypeDirectory
+	case v1.MenuType_MenuType_Menu:
+		return menu.TypeMenu
+	case v1.MenuType_MenuType_Button:
+		return menu.TypeButton
+	default:
+		return menu.TypeMenu
 	}
 }

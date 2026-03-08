@@ -15,6 +15,38 @@ service System {
       get: "/api/v1/permissions/me"
     };
   }
+  // 管理员获取全部权限菜单
+  rpc AdminPermissions(AdminPermissionsRequest) returns (AdminPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/permissions/admin"
+    };
+  }
+  // 管理员获取单个权限菜单
+  rpc AdminPermissionsInfo(AdminPermissionsInfoRequest) returns (AdminPermissionsInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/permissions/admin/{menu_id}"
+    };
+  }
+  // 管理员添加权限菜单
+  rpc AdminAddPermissions(AdminAddPermissionsRequest) returns (AdminAddPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/permissions/admin/add"
+      body: "*"
+    };
+  }
+  // 管理员编辑权限菜单
+  rpc AdminEditPermissions(AdminEditPermissionsRequest) returns (AdminEditPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/permissions/admin/edit"
+      body: "*"
+    };
+  }
+  // 管理员删除权限菜单
+  rpc AdminDeletePermissions(AdminDeletePermissionsRequest) returns (AdminDeletePermissionsResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/permissions/admin/{menu_id}"
+    };
+  }
 }
 
 // 获取当前角色的全部权限请求
@@ -48,12 +80,14 @@ message MenuInfo {
   string title = 8;
   // 类型
   MenuType type = 9;
+  // 权限标识
+  string permissions = 10;
   // 创建时间
-  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp create_time = 11;
   // 更新时间
-  google.protobuf.Timestamp update_time = 11;
+  google.protobuf.Timestamp update_time = 12;
   // 子权限菜单
-  repeated MenuInfo children = 12;
+  repeated MenuInfo children = 13;
 }
 
 // 菜单状态
@@ -72,4 +106,82 @@ enum MenuType {
   MenuType_Menu = 1;
   // 按钮
   MenuType_Button = 2;
+}
+
+// 管理员获取全部权限菜单请求
+message AdminPermissionsRequest {}
+
+// 管理员获取全部权限菜单响应
+message AdminPermissionsResponse {
+  // 权限菜单
+  repeated MenuInfo menus = 1;
+}
+
+// 管理员获取单个权限菜单请求
+message AdminPermissionsInfoRequest {
+  string menu_id = 1;
+}
+
+// 管理员获取单个权限菜单响应
+message AdminPermissionsInfoResponse {
+  // 权限菜单信息
+  MenuInfo menu = 1;
+}
+
+// 管理员添加权限菜单请求
+message AdminAddPermissionsRequest{
+  // 类型
+  MenuType type = 1;
+  // 父级菜单id
+  string parent_id = 2;
+  // 标题
+  string title = 3;
+  // 图标
+  string icon = 4;
+  // 排序
+  int32 order = 5;
+  // 路径
+  string path = 6;
+  // 状态
+  MenuStatus status = 7;
+  // 权限标识
+  string permissions = 8;
+}
+
+// 管理员添加权限菜单响应
+message AdminAddPermissionsResponse {
+
+}
+
+// 管理员编辑权限菜单请求
+message AdminEditPermissionsRequest{
+  // 菜单id
+  string menu_id = 1;
+  // 标题
+  string title = 2;
+  // 图标
+  string icon = 3;
+  // 排序
+  int32 order = 4;
+  // 路径
+  string path = 5;
+  // 状态
+  MenuStatus status = 6;
+  // 权限标识
+  string permissions = 7;
+}
+
+// 管理员编辑权限菜单响应
+message AdminEditPermissionsResponse {
+
+}
+
+// 管理员删除权限菜单请求
+message AdminDeletePermissionsRequest {
+  string menu_id = 1;
+}
+
+// 管理员删除权限菜单响应
+message AdminDeletePermissionsResponse {
+
 }

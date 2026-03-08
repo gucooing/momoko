@@ -60,6 +60,8 @@ export interface MenuInfo {
   title: string;
   /** 类型 */
   type: MenuType;
+  /** 权限标识 */
+  permissions: string;
   /** 创建时间 */
   createTime:
     | Date
@@ -70,4 +72,80 @@ export interface MenuInfo {
     | undefined;
   /** 子权限菜单 */
   children: MenuInfo[];
+}
+
+/** 管理员获取全部权限菜单请求 */
+export interface AdminPermissionsRequest {
+}
+
+/** 管理员获取全部权限菜单响应 */
+export interface AdminPermissionsResponse {
+  /** 权限菜单 */
+  menus: MenuInfo[];
+}
+
+/** 管理员获取单个权限菜单请求 */
+export interface AdminPermissionsInfoRequest {
+  menuId: string;
+}
+
+/** 管理员获取单个权限菜单响应 */
+export interface AdminPermissionsInfoResponse {
+  /** 权限菜单信息 */
+  menu: MenuInfo | undefined;
+}
+
+/** 管理员添加权限菜单请求 */
+export interface AdminAddPermissionsRequest {
+  /** 类型 */
+  type: MenuType;
+  /** 父级菜单id */
+  parentId: string;
+  /** 标题 */
+  title: string;
+  /** 图标 */
+  icon: string;
+  /** 排序 */
+  order: number;
+  /** 路径 */
+  path: string;
+  /** 状态 */
+  status: MenuStatus;
+  /** 权限标识 */
+  permissions: string;
+}
+
+/** 管理员添加权限菜单响应 */
+export interface AdminAddPermissionsResponse {
+}
+
+/** 管理员编辑权限菜单请求 */
+export interface AdminEditPermissionsRequest {
+  /** 菜单id */
+  menuId: string;
+  /** 标题 */
+  title: string;
+  /** 图标 */
+  icon: string;
+  /** 排序 */
+  order: number;
+  /** 路径 */
+  path: string;
+  /** 状态 */
+  status: MenuStatus;
+  /** 权限标识 */
+  permissions: string;
+}
+
+/** 管理员编辑权限菜单响应 */
+export interface AdminEditPermissionsResponse {
+}
+
+/** 管理员删除权限菜单请求 */
+export interface AdminDeletePermissionsRequest {
+  menuId: string;
+}
+
+/** 管理员删除权限菜单响应 */
+export interface AdminDeletePermissionsResponse {
 }

@@ -43,7 +43,7 @@ api:
 	       --go_out=paths=source_relative:./api/gen \
 	       --go-http_out=paths=source_relative:./api/gen \
 	       --go-grpc_out=paths=source_relative:./api/gen \
-	       --openapi_out=fq_schema_naming=true,default_response=false:./api/gen \
+	       --openapi_out=fq_schema_naming=true,default_response=false:./api/ts \
 	       --ts_proto_out=paths=source_relative,\
 outputServices=none,\
 outputClientImpl=false,\
