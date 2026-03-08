@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-
+	
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"momoko/api/gen/v1"
@@ -41,11 +41,11 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 	if err != nil {
 		return nil, err
 	}
-	access, err := s.uc.NewAccessToken(ctx, user.ID, req.DeviceId, req)
+	access, err := s.uc.NewAccessToken(ctx, user.ID, req)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, req.DeviceId, req)
+	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, req)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 		return nil, biz.ErrTokenInvalid
 	}
 	// 更新token
-	access, refresh, err := s.uc.RefreshToken(ctx, refreshAuth.UserID)
+	access, refresh, err := s.uc.RefreshToken(ctx, refreshAuth.UserID, refreshAuth.DeviceId)
 	if err != nil {
 		return nil, err
 	}

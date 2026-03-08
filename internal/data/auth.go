@@ -56,31 +56,35 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*ent.Au
 	return authData, nil
 }
 
-func (ar *authRepo) Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {
-	authInfos, err := ar.data.db.Auth.Query().Where(auth.UserIDEQ(userId)).All(ctx)
+func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*ent.Auth, *ent.Auth, error) {
+	_, err := ar.data.db.Auth.Update().
+		Where(
+			auth.UserIDEQ(userId),
+			auth.DeviceIDEQ(deviceId),
+		).
+		SetSessionID(uuid.NewString()).Save(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	rows, err := ar.data.db.Auth.Query().
+		Where(
+			auth.UserIDEQ(userId),
+			auth.DeviceIDEQ(deviceId),
+		).All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	var (
 		access, refresh *ent.Auth
 	)
-	for _, item := range authInfos {
-		authInfo, err := ar.data.db.Auth.UpdateOne(item).
-			SetSessionID(uuid.NewString()).Save(ctx)
-		if err != nil {
-			return nil, nil, biz.ErrSystem(err)
-		}
-		switch item.Type {
+	for _, row := range rows {
+		switch row.Type {
 		case auth.TypeToken:
-			access = authInfo
+			access = row
+			ar.cacheToken.Set(access.DeviceID, access)
 		case auth.TypeRefreshToken:
-			refresh = authInfo
-		default:
-			return nil, nil, biz.ErrTokenInvalid
+			refresh = row
 		}
-	}
-	if access != nil {
-		ar.cacheToken.Set(access.DeviceID, access)
 	}
 
 	return access, refresh, nil

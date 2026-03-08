@@ -47,7 +47,7 @@ func GenerateToken(authDb *ent.Auth) (string, error) {
 func ParseToken(tokenStr string) (*Auth, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Auth{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(AuthSecretKey), nil
-	})
+	}, jwt.WithoutClaimsValidation())
 	if err != nil {
 		return nil, err
 	}

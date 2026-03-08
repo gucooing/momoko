@@ -23,7 +23,7 @@ type Auth struct {
 
 type AuthRepo interface {
 	CreateAuth(context.Context, *Auth) (*ent.Auth, error)
-	Refresh(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error)
+	Refresh(ctx context.Context, userId, deviceId string) (*ent.Auth, *ent.Auth, error)
 	ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error)
 	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error)
 	GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*ent.Auth, error)
@@ -37,10 +37,10 @@ func NewAuthUsecase(auth AuthRepo) *AuthUsecase {
 	return &AuthUsecase{auth: auth}
 }
 
-func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId string, req *v1.LoginRequest) (*ent.Auth, error) {
+func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1.LoginRequest) (*ent.Auth, error) {
 	info := &Auth{
 		UserID:    userId,
-		DeviceID:  deviceId,
+		DeviceID:  req.DeviceId,
 		IP:        req.Ip,
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
@@ -53,10 +53,10 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId, deviceId strin
 	return ea, nil
 }
 
-func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId, deviceId string, req *v1.LoginRequest) (*ent.Auth, error) {
+func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId string, req *v1.LoginRequest) (*ent.Auth, error) {
 	info := &Auth{
 		UserID:    userId,
-		DeviceID:  deviceId,
+		DeviceID:  req.DeviceId,
 		IP:        req.Ip,
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
@@ -81,8 +81,8 @@ func (a *AuthUsecase) VerifyToken(ctx context.Context, auth *auth2.Auth, tokenTy
 	return true
 }
 
-func (a *AuthUsecase) RefreshToken(ctx context.Context, userId string) (*ent.Auth, *ent.Auth, error) {
-	access, refresh, err := a.auth.Refresh(ctx, userId)
+func (a *AuthUsecase) RefreshToken(ctx context.Context, userId, deviceId string) (*ent.Auth, *ent.Auth, error) {
+	access, refresh, err := a.auth.Refresh(ctx, userId, deviceId)
 	if err != nil {
 		return nil, nil, ErrSystem(err)
 	}

@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "session_id", Type: field.TypeString, Unique: true},
+		{Name: "session_id", Type: field.TypeString},
 		{Name: "device_id", Type: field.TypeString},
 		{Name: "device", Type: field.TypeString},
 		{Name: "user_id", Type: field.TypeString},

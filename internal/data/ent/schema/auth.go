@@ -12,7 +12,7 @@ type Auth struct {
 
 func (Auth) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("session_id").Unique().NotEmpty().Comment("会话id"),
+		field.String("session_id").NotEmpty().Comment("会话id"),
 		field.String("device_id").NotEmpty().Comment("设备id"),
 		field.String("device").NotEmpty().Comment("登录设备"),
 		field.String("user_id").NotEmpty().Comment("所属用户id"),

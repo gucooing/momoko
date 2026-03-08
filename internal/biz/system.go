@@ -216,6 +216,7 @@ func (s *SystemUsecase) AddRole(ctx context.Context, req *v1.AdminAddRoleRequest
 
 func (s *SystemUsecase) UpdateRole(ctx context.Context, req *v1.AdminEditRoleRequest) (*v1.RoleInfo, error) {
 	roleInfo, err := s.sys.UpdateRole(ctx, &ent.Role{
+		ID:          req.RoleId,
 		Name:        req.Name,
 		Description: req.Description,
 		Status:      toEntRoleStatus(req.Status),
