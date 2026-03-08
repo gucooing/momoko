@@ -72,7 +72,7 @@ func (s *systemRepo) DeleteMenu(ctx context.Context, menuId string) error {
 	}
 	parentChildren := make(map[string][]string, len(menus))
 	for _, m := range menus {
-		if m.ID == menuId || m.ParentID == "" {
+		if m.ID == menuId || m.ParentID == "" || m.IsSystem {
 			continue
 		}
 		parentChildren[m.ParentID] = append(parentChildren[m.ParentID], m.ID)
@@ -93,7 +93,72 @@ func (s *systemRepo) DeleteMenu(ctx context.Context, menuId string) error {
 		}
 	}
 	_, err = s.data.db.Menu.Delete().
-		Where(menu.IDIn(deleteIDs...)).
+		Where(
+			menu.IDIn(deleteIDs...),
+			menu.IsSystemEQ(false),
+		).
 		Exec(ctx)
 	return err
+}
+
+func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*ent.Role, int64, error) {
+	query := s.data.db.Role.Query()
+	if status != nil {
+		query = query.Where(role.StatusEQ(*status))
+	}
+	if name != nil {
+		query = query.Where(role.NameContains(*name))
+	}
+
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	roles, err := query.
+		WithMenus().
+		Offset(int((page - 1) * pageSize)).
+		Limit(int(pageSize)).
+		Order(ent.Asc(role.FieldID)).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return roles, int64(total), nil
+}
+
+func (s *systemRepo) GetRole(ctx context.Context, roleId string) (*ent.Role, error) {
+	return s.data.db.Role.Query().
+		Where(role.IDEQ(roleId)).
+		WithMenus().
+		First(ctx)
+}
+
+func (s *systemRepo) CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error) {
+	return s.data.db.Role.Create().
+		SetID(roleInfo.ID).
+		SetName(roleInfo.Name).
+		SetDescription(roleInfo.Description).
+		SetIsBuiltin(roleInfo.IsBuiltin).
+		SetStatus(roleInfo.Status).
+		AddMenuIDs(menuIds...).
+		Save(ctx)
+}
+
+func (s *systemRepo) UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error) {
+	return s.data.db.Role.UpdateOneID(roleInfo.ID).
+		Where(role.IsBuiltinEQ(false)).
+		SetName(roleInfo.Name).
+		SetDescription(roleInfo.Description).
+		SetStatus(roleInfo.Status).
+		ClearMenus().
+		AddMenuIDs(menuIds...).
+		Save(ctx)
+}
+
+func (s *systemRepo) DeleteRole(ctx context.Context, roleId string) error {
+	return s.data.db.Role.DeleteOneID(roleId).
+		Where(role.IsBuiltinEQ(false)).
+		Exec(ctx)
 }

@@ -89,25 +89,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminAddPermissionsResponse'
-    /api/v1/permissions/admin/edit:
-        post:
-            tags:
-                - System
-            description: 管理员编辑权限菜单
-            operationId: System_AdminEditPermissions
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.AdminEditPermissionsRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.AdminEditPermissionsResponse'
     /api/v1/permissions/admin/{menuId}:
         get:
             tags:
@@ -127,6 +108,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminPermissionsInfoResponse'
+        post:
+            tags:
+                - System
+            description: 管理员编辑权限菜单
+            operationId: System_AdminEditPermissions
+            parameters:
+                - name: menuId
+                  in: path
+                  description: 菜单id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AdminEditPermissionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminEditPermissionsResponse'
         delete:
             tags:
                 - System
@@ -158,6 +164,124 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MePermissionsResponse'
+    /api/v1/role/admin:
+        get:
+            tags:
+                - System
+            description: 管理员获取角色列表
+            operationId: System_AdminRoles
+            parameters:
+                - name: page
+                  in: query
+                  description: 页
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 页数量
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: 状态条件筛选
+                  schema:
+                    type: integer
+                    format: enum
+                - name: name
+                  in: query
+                  description: 角色名称筛选
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminRolesResponse'
+    /api/v1/role/admin/add:
+        post:
+            tags:
+                - System
+            description: 添加角色
+            operationId: System_AdminAddRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AdminAddRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminAddRoleResponse'
+    /api/v1/role/admin/{roleId}:
+        get:
+            tags:
+                - System
+            description: 获取角色详情
+            operationId: System_AdminRole
+            parameters:
+                - name: roleId
+                  in: path
+                  description: 角色id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminRoleResponse'
+        post:
+            tags:
+                - System
+            description: 修改角色
+            operationId: System_AdminEditRole
+            parameters:
+                - name: roleId
+                  in: path
+                  description: 角色id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.AdminEditRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+        delete:
+            tags:
+                - System
+            description: 删除角色
+            operationId: System_AdminDeleteRole
+            parameters:
+                - name: roleId
+                  in: path
+                  description: 角色id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.AdminDeleteRoleResponse'
     /api/v1/user/me:
         get:
             tags:
@@ -208,10 +332,41 @@ components:
             type: object
             properties: {}
             description: 管理员添加权限菜单响应
+        v1.AdminAddRoleRequest:
+            type: object
+            properties:
+                description:
+                    type: string
+                    description: 角色描述
+                name:
+                    type: string
+                    description: 角色昵称
+                status:
+                    type: integer
+                    description: 角色状态
+                    format: enum
+                menuIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色菜单id
+            description: 添加角色请求
+        v1.AdminAddRoleResponse:
+            type: object
+            properties:
+                role:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.RoleInfo'
+                    description: 角色信息
+            description: 添加角色响应
         v1.AdminDeletePermissionsResponse:
             type: object
             properties: {}
             description: 管理员删除权限菜单响应
+        v1.AdminDeleteRoleResponse:
+            type: object
+            properties: {}
+            description: 删除角色响应
         v1.AdminEditPermissionsRequest:
             type: object
             properties:
@@ -243,6 +398,36 @@ components:
             type: object
             properties: {}
             description: 管理员编辑权限菜单响应
+        v1.AdminEditRoleRequest:
+            type: object
+            properties:
+                roleId:
+                    type: string
+                    description: 角色id
+                description:
+                    type: string
+                    description: 角色描述
+                name:
+                    type: string
+                    description: 角色昵称
+                status:
+                    type: integer
+                    description: 角色状态
+                    format: enum
+                menuIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色菜单id
+            description: 修改角色请求
+        v1.AdminEditRoleResponse:
+            type: object
+            properties:
+                role:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.RoleInfo'
+                    description: 角色信息
+            description: 修改角色响应
         v1.AdminPermissionsInfoResponse:
             type: object
             properties:
@@ -260,6 +445,32 @@ components:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 权限菜单
             description: 管理员获取全部权限菜单响应
+        v1.AdminRoleResponse:
+            type: object
+            properties:
+                role:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.RoleInfo'
+                    description: 角色信息
+            description: 获取角色详情响应
+        v1.AdminRolesResponse:
+            type: object
+            properties:
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.RoleInfo'
+                    description: 角色列表
+                page:
+                    type: string
+                    description: 实际页
+                pageSize:
+                    type: string
+                    description: 实际页
+                total:
+                    type: string
+                    description: 总数
+            description: 管理员获取角色列表响应
         v1.DevicesResponse:
             type: object
             properties:
@@ -425,6 +636,39 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RoleInfo:
+            type: object
+            properties:
+                roleId:
+                    type: string
+                    description: 角色id
+                description:
+                    type: string
+                    description: 角色描述
+                isBuiltin:
+                    type: boolean
+                    description: 是否内置角色
+                name:
+                    type: string
+                    description: 角色昵称
+                status:
+                    type: integer
+                    description: 角色状态
+                    format: enum
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                menuIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色菜单id
+            description: 角色详情
         v1.UserInfo:
             type: object
             properties:

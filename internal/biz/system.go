@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -9,6 +11,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/menu"
+	"momoko/internal/data/ent/role"
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/constant"
@@ -53,6 +56,12 @@ type SystemRepo interface {
 	CreateMenu(ctx context.Context, menu *ent.Menu) (*ent.Menu, error)
 	UpdateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.Menu, error)
 	DeleteMenu(ctx context.Context, menuId string) error
+
+	GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*ent.Role, int64, error)
+	GetRole(ctx context.Context, roleId string) (*ent.Role, error)
+	CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
+	UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
+	DeleteRole(ctx context.Context, roleId string) error
 }
 
 func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
@@ -160,6 +169,73 @@ func (s *SystemUsecase) DeleteMenu(ctx context.Context, menuId string) error {
 	return nil
 }
 
+func (s *SystemUsecase) GetAllRoles(ctx context.Context, req *v1.AdminRolesRequest) ([]*v1.RoleInfo, int64, error) {
+	if req.Page < 0 {
+		req.Page = 1
+	}
+	if req.PageSize > 500 {
+		req.PageSize = 500
+	}
+	var status *role.Status
+	if req.Status != nil {
+		status = new(toEntRoleStatus(*req.Status))
+	}
+	roleInfos, total, err := s.sys.GetRoles(ctx, req.Page, req.PageSize, status, req.Name)
+	if err != nil {
+		return nil, 0, ErrSystem(err)
+	}
+	roles := make([]*v1.RoleInfo, 0, len(roleInfos))
+	for _, roleInfo := range roleInfos {
+		roles = append(roles, toRoleInfo(roleInfo))
+	}
+	return roles, total, nil
+}
+
+func (s *SystemUsecase) GetRole(ctx context.Context, roleId string) (*v1.RoleInfo, error) {
+	roleInfo, err := s.sys.GetRole(ctx, roleId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toRoleInfo(roleInfo), nil
+}
+
+func (s *SystemUsecase) AddRole(ctx context.Context, req *v1.AdminAddRoleRequest) (*v1.RoleInfo, error) {
+	roleInfo, err := s.sys.CreateRole(ctx, &ent.Role{
+		ID:          fmt.Sprintf("role_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
+		Name:        req.Name,
+		Description: req.Description,
+		IsBuiltin:   false,
+		Status:      toEntRoleStatus(req.Status),
+	}, req.MenuIds)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	s.cache.Clear()
+	return toRoleInfo(roleInfo), nil
+}
+
+func (s *SystemUsecase) UpdateRole(ctx context.Context, req *v1.AdminEditRoleRequest) (*v1.RoleInfo, error) {
+	roleInfo, err := s.sys.UpdateRole(ctx, &ent.Role{
+		Name:        req.Name,
+		Description: req.Description,
+		Status:      toEntRoleStatus(req.Status),
+	}, req.MenuIds)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	s.cache.Clear()
+	return toRoleInfo(roleInfo), nil
+}
+
+func (s *SystemUsecase) DeleteRole(ctx context.Context, roleId string) error {
+	err := s.sys.DeleteRole(ctx, roleId)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	s.cache.Clear()
+	return nil
+}
+
 func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
 	menuInfos := make([]*v1.MenuInfo, 0)
 	permissions := make([]string, 0)
@@ -223,6 +299,23 @@ func toMenuInfo(data *ent.Menu) *v1.MenuInfo {
 	}
 }
 
+func toRoleInfo(data *ent.Role) *v1.RoleInfo {
+	info := &v1.RoleInfo{
+		RoleId:      data.ID,
+		Description: data.Description,
+		IsBuiltin:   data.IsBuiltin,
+		Name:        data.Name,
+		Status:      toRoleStatus(data.Status),
+		CreateTime:  timestamppb.New(data.CreateTime),
+		UpdateTime:  timestamppb.New(data.UpdateTime),
+		MenuIds:     make([]string, 0, len(data.Edges.Menus)),
+	}
+	for _, menuInfo := range data.Edges.Menus {
+		info.MenuIds = append(info.MenuIds, menuInfo.ID)
+	}
+	return info
+}
+
 func toMenuStatus(data menu.Status) v1.MenuStatus {
 	switch data {
 	case menu.StatusActive:
@@ -268,5 +361,27 @@ func toEntMenuType(data v1.MenuType) menu.Type {
 		return menu.TypeButton
 	default:
 		return menu.TypeMenu
+	}
+}
+
+func toRoleStatus(data role.Status) v1.RoleStatus {
+	switch data {
+	case role.StatusActive:
+		return v1.RoleStatus_RoleStatus_Active
+	case role.StatusInactive:
+		return v1.RoleStatus_RoleStatus_InActive
+	default:
+		return v1.RoleStatus_RoleStatus_InActive
+	}
+}
+
+func toEntRoleStatus(data v1.RoleStatus) role.Status {
+	switch data {
+	case v1.RoleStatus_RoleStatus_Active:
+		return role.StatusActive
+	case v1.RoleStatus_RoleStatus_InActive:
+		return role.StatusInactive
+	default:
+		return role.StatusInactive
 	}
 }

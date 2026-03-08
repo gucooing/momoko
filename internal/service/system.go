@@ -91,3 +91,63 @@ func (s *SystemService) AdminDeletePermissions(ctx context.Context, req *v1.Admi
 	}
 	return &v1.AdminDeletePermissionsResponse{}, nil
 }
+
+func (s *SystemService) AdminRoles(ctx context.Context, req *v1.AdminRolesRequest) (*v1.AdminRolesResponse, error) {
+	if err := s.uc.Check(ctx, constant.RoleView); err != nil {
+		return nil, err
+	}
+	roles, total, err := s.uc.GetAllRoles(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminRolesResponse{
+		Roles:    roles,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Total:    total,
+	}, nil
+}
+
+func (s *SystemService) AdminRole(ctx context.Context, req *v1.AdminRoleRequest) (*v1.AdminRoleResponse, error) {
+	if err := s.uc.Check(ctx, constant.RoleView); err != nil {
+		return nil, err
+	}
+	roleInfo, err := s.uc.GetRole(ctx, req.RoleId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminRoleResponse{Role: roleInfo}, nil
+}
+
+func (s *SystemService) AdminAddRole(ctx context.Context, req *v1.AdminAddRoleRequest) (*v1.AdminAddRoleResponse, error) {
+	if err := s.uc.Check(ctx, constant.RoleAdd); err != nil {
+		return nil, err
+	}
+	roleInfo, err := s.uc.AddRole(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminAddRoleResponse{Role: roleInfo}, nil
+}
+
+func (s *SystemService) AdminEditRole(ctx context.Context, req *v1.AdminEditRoleRequest) (*v1.AdminEditRoleResponse, error) {
+	if err := s.uc.Check(ctx, constant.RoleEdit); err != nil {
+		return nil, err
+	}
+	roleInfo, err := s.uc.UpdateRole(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminEditRoleResponse{Role: roleInfo}, nil
+}
+
+func (s *SystemService) AdminDeleteRole(ctx context.Context, req *v1.AdminDeleteRoleRequest) (*v1.AdminDeleteRoleResponse, error) {
+	if err := s.uc.Check(ctx, constant.RoleDelete); err != nil {
+		return nil, err
+	}
+	err := s.uc.DeleteRole(ctx, req.RoleId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminDeleteRoleResponse{}, nil
+}

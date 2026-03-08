@@ -28,6 +28,14 @@ export enum MenuType {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+export enum RoleStatus {
+  /** RoleStatus_InActive - 停用 */
+  RoleStatus_InActive = "RoleStatus_InActive",
+  /** RoleStatus_Active - 启用 */
+  RoleStatus_Active = "RoleStatus_Active",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 获取当前角色的全部权限请求 */
 export interface MePermissionsRequest {
 }
@@ -148,4 +156,114 @@ export interface AdminDeletePermissionsRequest {
 
 /** 管理员删除权限菜单响应 */
 export interface AdminDeletePermissionsResponse {
+}
+
+/** 管理员获取角色列表请求 */
+export interface AdminRolesRequest {
+  /** 页 */
+  page: number;
+  /** 页数量 */
+  pageSize: number;
+  /** 状态条件筛选 */
+  status?:
+    | RoleStatus
+    | undefined;
+  /** 角色名称筛选 */
+  name?: string | undefined;
+}
+
+/** 管理员获取角色列表响应 */
+export interface AdminRolesResponse {
+  /** 角色列表 */
+  roles: RoleInfo[];
+  /** 实际页 */
+  page: number;
+  /** 实际页 */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+}
+
+/** 角色详情 */
+export interface RoleInfo {
+  /** 角色id */
+  roleId: string;
+  /** 角色描述 */
+  description: string;
+  /** 是否内置角色 */
+  isBuiltin: boolean;
+  /** 角色昵称 */
+  name: string;
+  /** 角色状态 */
+  status: RoleStatus;
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 更新时间 */
+  updateTime:
+    | Date
+    | undefined;
+  /** 角色菜单id */
+  menuIds: string[];
+}
+
+/** 获取角色详情请求 */
+export interface AdminRoleRequest {
+  /** 角色id */
+  roleId: string;
+}
+
+/** 获取角色详情响应 */
+export interface AdminRoleResponse {
+  /** 角色信息 */
+  role: RoleInfo | undefined;
+}
+
+/** 添加角色请求 */
+export interface AdminAddRoleRequest {
+  /** 角色描述 */
+  description: string;
+  /** 角色昵称 */
+  name: string;
+  /** 角色状态 */
+  status: RoleStatus;
+  /** 角色菜单id */
+  menuIds: string[];
+}
+
+/** 添加角色响应 */
+export interface AdminAddRoleResponse {
+  /** 角色信息 */
+  role: RoleInfo | undefined;
+}
+
+/** 修改角色请求 */
+export interface AdminEditRoleRequest {
+  /** 角色id */
+  roleId: string;
+  /** 角色描述 */
+  description: string;
+  /** 角色昵称 */
+  name: string;
+  /** 角色状态 */
+  status: RoleStatus;
+  /** 角色菜单id */
+  menuIds: string[];
+}
+
+/** 修改角色响应 */
+export interface AdminEditRoleResponse {
+  /** 角色信息 */
+  role: RoleInfo | undefined;
+}
+
+/** 删除角色请求 */
+export interface AdminDeleteRoleRequest {
+  /** 角色id */
+  roleId: string;
+}
+
+/** 删除角色响应 */
+export interface AdminDeleteRoleResponse {
 }

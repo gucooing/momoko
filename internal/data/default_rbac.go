@@ -34,8 +34,10 @@ type defaultRole struct {
 }
 
 var (
-	builtinDefaultRoleID = "role_1"
-	builtinDefaultMenus  = []defaultMenu{
+	adminPermissionRoleID       = "role_1"
+	noPermissionRoleID          = "role_2"
+	builtinRoleWithMenuPermsIDs = []string{"role_1"}
+	builtinDefaultMenus         = []defaultMenu{
 		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "主页", "HOutline:HomeIcon", nil, 0, ""),
 		newDefaultMenu("menu_12", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", ptr("menu_1"), 0, ""),
 		newDefaultMenu("menu_13", entmenu.TypeMenu, "/dashboard/analysis", "分析页", "HOutline:ChartBarIcon", ptr("menu_1"), 1, ""),
@@ -79,10 +81,18 @@ var (
 	}
 	builtinDefaultRoles = []defaultRole{
 		{
-			ID:          "role_1",
+			ID:          adminPermissionRoleID,
 			Name:        "超级管理员",
 			Code:        "super_admin",
 			Description: "拥有系统所有权限，可管理所有功能",
+			IsBuiltin:   true,
+			Status:      entrole.StatusActive,
+		},
+		{
+			ID:          noPermissionRoleID,
+			Name:        "无权限",
+			Code:        "no_permission",
+			Description: "无权限用户",
 			IsBuiltin:   true,
 			Status:      entrole.StatusActive,
 		},
@@ -110,20 +120,25 @@ func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, 
 
 func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 	menuIDs := make(map[string]struct{}, len(builtinDefaultMenus))
+	builtinMenuIDs := make([]string, 0, len(builtinDefaultMenus))
 	for _, menu := range builtinDefaultMenus {
 		if _, ok := menuIDs[menu.ID]; ok {
 			return fmt.Errorf("duplicate builtin menu id: %s", menu.ID)
 		}
 		menuIDs[menu.ID] = struct{}{}
+		builtinMenuIDs = append(builtinMenuIDs, menu.ID)
 	}
 	roleIDs := make(map[string]struct{}, len(builtinDefaultRoles))
-	builtinRoleIDs := make([]string, 0, len(builtinDefaultRoles))
 	for _, role := range builtinDefaultRoles {
 		if _, ok := roleIDs[role.ID]; ok {
 			return fmt.Errorf("duplicate builtin role id: %s", role.ID)
 		}
 		roleIDs[role.ID] = struct{}{}
-		builtinRoleIDs = append(builtinRoleIDs, role.ID)
+	}
+	for _, roleID := range builtinRoleWithMenuPermsIDs {
+		if _, ok := roleIDs[roleID]; !ok {
+			return fmt.Errorf("builtin role for menu perms not found: %s", roleID)
+		}
 	}
 
 	tx, err := client.Tx(ctx)
@@ -164,17 +179,12 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 	}
 
-	allMenuIDs, err := tx.Menu.Query().IDs(ctx)
-	if err != nil {
-		return rollback(fmt.Errorf("query all menu ids failed: %w", err))
-	}
-
 	roleBuilders := make([]*ent.RoleCreate, 0, len(builtinDefaultRoles))
 	for _, item := range builtinDefaultRoles {
 		builder := tx.Role.Create().
 			SetID(item.ID).
 			SetName(item.Name).
-			SetDescription(item.Description + " (code: " + item.Code + ")").
+			SetDescription(item.Description).
 			SetIsBuiltin(item.IsBuiltin).
 			SetStatus(item.Status)
 		roleBuilders = append(roleBuilders, builder)
@@ -188,25 +198,22 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 	}
 
-	if len(builtinRoleIDs) > 0 {
-		roleMenuUpdate := tx.Role.Update().
-			Where(entrole.IDIn(builtinRoleIDs...)).
-			ClearMenus()
-		if len(allMenuIDs) > 0 {
-			roleMenuUpdate.AddMenuIDs(allMenuIDs...)
-		}
-		if err := roleMenuUpdate.Exec(ctx); err != nil {
+	if len(builtinRoleWithMenuPermsIDs) > 0 && len(builtinMenuIDs) > 0 {
+		if err := tx.Role.Update().
+			Where(entrole.IDIn(builtinRoleWithMenuPermsIDs...)).
+			AddMenuIDs(builtinMenuIDs...).
+			Exec(ctx); err != nil {
 			return rollback(fmt.Errorf("sync builtin role menus failed: %w", err))
 		}
 	}
 
-	if builtinDefaultRoleID != "" {
-		if _, err := tx.Role.Get(ctx, builtinDefaultRoleID); err != nil {
-			return rollback(fmt.Errorf("default role %s not found: %w", builtinDefaultRoleID, err))
+	if adminPermissionRoleID != "" {
+		if _, err := tx.Role.Get(ctx, adminPermissionRoleID); err != nil {
+			return rollback(fmt.Errorf("default role %s not found: %w", adminPermissionRoleID, err))
 		}
 		if err := tx.User.Update().
 			Where(entuser.Not(entuser.HasRole())).
-			SetRoleID(builtinDefaultRoleID).
+			SetRoleID(adminPermissionRoleID).
 			Exec(ctx); err != nil {
 			return rollback(fmt.Errorf("bind default role failed: %w", err))
 		}

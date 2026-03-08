@@ -37,7 +37,7 @@ service System {
   // 管理员编辑权限菜单
   rpc AdminEditPermissions(AdminEditPermissionsRequest) returns (AdminEditPermissionsResponse) {
     option (google.api.http) = {
-      post: "/api/v1/permissions/admin/edit"
+      post: "/api/v1/permissions/admin/{menu_id}"
       body: "*"
     };
   }
@@ -45,6 +45,38 @@ service System {
   rpc AdminDeletePermissions(AdminDeletePermissionsRequest) returns (AdminDeletePermissionsResponse) {
     option (google.api.http) = {
       delete: "/api/v1/permissions/admin/{menu_id}"
+    };
+  }
+  // 管理员获取角色列表
+  rpc AdminRoles(AdminRolesRequest) returns (AdminRolesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/role/admin"
+    };
+  }
+  // 获取角色详情
+  rpc AdminRole(AdminRoleRequest) returns (AdminRoleResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/role/admin/{role_id}"
+    };
+  }
+  // 添加角色
+  rpc AdminAddRole(AdminAddRoleRequest) returns (AdminAddRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/role/admin/add"
+      body: "*"
+    };
+  }
+  // 修改角色
+  rpc AdminEditRole(AdminEditRoleRequest) returns (AdminEditRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/role/admin/{role_id}"
+      body: "*"
+    };
+  }
+  // 删除角色
+  rpc AdminDeleteRole(AdminDeleteRoleRequest) returns (AdminDeleteRoleResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/role/admin/{role_id}"
     };
   }
 }
@@ -149,9 +181,7 @@ message AdminAddPermissionsRequest{
 }
 
 // 管理员添加权限菜单响应
-message AdminAddPermissionsResponse {
-
-}
+message AdminAddPermissionsResponse {}
 
 // 管理员编辑权限菜单请求
 message AdminEditPermissionsRequest{
@@ -172,9 +202,7 @@ message AdminEditPermissionsRequest{
 }
 
 // 管理员编辑权限菜单响应
-message AdminEditPermissionsResponse {
-
-}
+message AdminEditPermissionsResponse {}
 
 // 管理员删除权限菜单请求
 message AdminDeletePermissionsRequest {
@@ -182,6 +210,114 @@ message AdminDeletePermissionsRequest {
 }
 
 // 管理员删除权限菜单响应
-message AdminDeletePermissionsResponse {
+message AdminDeletePermissionsResponse {}
 
+// 管理员获取角色列表请求
+message AdminRolesRequest {
+  // 页
+  int64 page = 1;
+  // 页数量
+  int64 page_size = 2;
+  // 状态条件筛选
+  optional RoleStatus status = 3;
+  // 角色名称筛选
+  optional string name = 4;
 }
+
+// 管理员获取角色列表响应
+message AdminRolesResponse {
+  // 角色列表
+  repeated RoleInfo roles = 1;
+  // 实际页
+  int64 page = 2;
+  // 实际页
+  int64 page_size = 3;
+  // 总数
+  int64 total = 4;
+}
+
+// 角色详情
+message RoleInfo {
+  // 角色id
+  string role_id = 1;
+  // 角色描述
+  string description = 2;
+  // 是否内置角色
+  bool is_builtin = 3;
+  // 角色昵称
+  string name = 4;
+  // 角色状态
+  RoleStatus status = 5;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 6;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 7;
+  // 角色菜单id
+  repeated string menu_ids = 8;
+}
+
+enum RoleStatus {
+  // 停用
+  RoleStatus_InActive = 0;
+  // 启用
+  RoleStatus_Active = 1;
+}
+
+// 获取角色详情请求
+message AdminRoleRequest {
+  // 角色id
+  string role_id = 1;
+}
+
+// 获取角色详情响应
+message AdminRoleResponse {
+  // 角色信息
+  RoleInfo role = 1;
+}
+
+// 添加角色请求
+message AdminAddRoleRequest {
+  // 角色描述
+  string description = 1;
+  // 角色昵称
+  string name = 2;
+  // 角色状态
+  RoleStatus status = 3;
+  // 角色菜单id
+  repeated string menu_ids = 4;
+}
+
+// 添加角色响应
+message AdminAddRoleResponse {
+  // 角色信息
+  RoleInfo role = 1;
+}
+
+// 修改角色请求
+message AdminEditRoleRequest {
+  // 角色id
+  string role_id = 1;
+  // 角色描述
+  string description = 2;
+  // 角色昵称
+  string name = 3;
+  // 角色状态
+  RoleStatus status = 4;
+  // 角色菜单id
+  repeated string menu_ids = 5;
+}
+
+// 修改角色响应
+message AdminEditRoleResponse {
+  // 角色信息
+  RoleInfo role = 1;
+}
+
+// 删除角色请求
+message AdminDeleteRoleRequest {
+  // 角色id
+  string role_id = 1;
+}
+
+// 删除角色响应
+message AdminDeleteRoleResponse{}
