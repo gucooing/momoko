@@ -33,51 +33,68 @@ type defaultRole struct {
 	Status      entrole.Status
 }
 
+type defaultUser struct {
+	ID       string
+	Name     string
+	Email    string
+	Password string
+	Username string
+	Status   entuser.Status
+	Avatar   string
+	Bio      string
+	Tags     string
+	RoleID   string
+}
+
 var (
 	adminPermissionRoleID       = "role_1"
 	noPermissionRoleID          = "role_2"
 	builtinRoleWithMenuPermsIDs = []string{"role_1"}
 	builtinDefaultMenus         = []defaultMenu{
 		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "主页", "HOutline:HomeIcon", nil, 0, ""),
-		newDefaultMenu("menu_12", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", ptr("menu_1"), 0, ""),
-		newDefaultMenu("menu_13", entmenu.TypeMenu, "/dashboard/analysis", "分析页", "HOutline:ChartBarIcon", ptr("menu_1"), 1, ""),
-		newDefaultMenu("menu_14", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", ptr("menu_1"), 2, ""),
+		newDefaultMenu("menu_1_1", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", ptr("menu_1"), 0, ""),
+		newDefaultMenu("menu_1_2", entmenu.TypeMenu, "/dashboard/analysis", "分析页", "HOutline:ChartBarIcon", ptr("menu_1"), 1, ""),
+		newDefaultMenu("menu_1_3", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", ptr("menu_1"), 2, ""),
 
-		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 1, ""),
-		newDefaultMenu("menu_3", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_2"), 0, ""),
-		newDefaultMenu("menu_3_button_0", entmenu.TypeButton, "", "添加用户", "", ptr("menu_3"), 0, constant.UserAdd),
-		newDefaultMenu("menu_3_button_1", entmenu.TypeButton, "", "编辑用户", "", ptr("menu_3"), 1, constant.UserEdit),
-		newDefaultMenu("menu_3_button_2", entmenu.TypeButton, "", "删除用户", "", ptr("menu_3"), 2, constant.UserDelete),
-		newDefaultMenu("menu_3_button_3", entmenu.TypeButton, "", "查看用户", "", ptr("menu_3"), 3, constant.UserView),
-		newDefaultMenu("menu_4", entmenu.TypeMenu, "/system/role", "角色管理", "HOutline:IdentificationIcon", ptr("menu_2"), 1, ""),
-		newDefaultMenu("menu_4_button_0", entmenu.TypeButton, "", "添加角色", "", ptr("menu_4"), 0, constant.RoleAdd),
-		newDefaultMenu("menu_4_button_1", entmenu.TypeButton, "", "编辑角色", "", ptr("menu_4"), 1, constant.RoleEdit),
-		newDefaultMenu("menu_4_button_2", entmenu.TypeButton, "", "删除角色", "", ptr("menu_4"), 2, constant.RoleDelete),
-		newDefaultMenu("menu_4_button_3", entmenu.TypeButton, "", "查看角色", "", ptr("menu_4"), 3, constant.RoleView),
-		newDefaultMenu("menu_5", entmenu.TypeMenu, "/system/menu", "菜单管理", "HOutline:ListBulletIcon", ptr("menu_2"), 2, ""),
-		newDefaultMenu("menu_5_button_0", entmenu.TypeButton, "", "添加菜单", "", ptr("menu_5"), 0, constant.MenuAdd),
-		newDefaultMenu("menu_5_button_1", entmenu.TypeButton, "", "编辑菜单", "", ptr("menu_5"), 1, constant.MenuEdit),
-		newDefaultMenu("menu_5_button_2", entmenu.TypeButton, "", "删除菜单", "", ptr("menu_5"), 2, constant.MenuDelete),
-		newDefaultMenu("menu_5_button_3", entmenu.TypeButton, "", "查看菜单", "", ptr("menu_5"), 3, constant.MenuView),
+		// 实例
+		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "实例管理", "HOutline:ServerStackIcon", nil, 1, ""),
+		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "实例列表", "HSolid:RectangleGroupIcon", ptr("menu_2"), 0, ""),
 
-		newDefaultMenu("menu_17", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 2, ""),
-		newDefaultMenu("menu_18", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", ptr("menu_17"), 0, ""),
-		newDefaultMenu("menu_19", entmenu.TypeMenu, "/extended/dialog", "对话框", "HOutline:WindowIcon", ptr("menu_17"), 0, ""),
-		newDefaultMenu("menu_20", entmenu.TypeMenu, "/extended/iconSelector", "图标选择器", "HOutline:SwatchIcon", ptr("menu_17"), 1, ""),
-		newDefaultMenu("menu_21", entmenu.TypeMenu, "/extended/textEllipsis", "文本省略器", "HOutline:EllipsisHorizontalIcon", ptr("menu_17"), 2, ""),
-		newDefaultMenu("menu_22", entmenu.TypeMenu, "/extended/hoverAnimation", "Hover动画组件", "HOutline:CursorArrowRaysIcon", ptr("menu_17"), 3, ""),
-		newDefaultMenu("menu_23", entmenu.TypeMenu, "/extended/transitionAnimation", "Transition内置动画", "HOutline:SparklesIcon", ptr("menu_17"), 3, ""),
+		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 10, ""),
+		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_12"), 0, ""),
+		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", ptr("menu_12_1"), 0, constant.UserAdd),
+		newDefaultMenu("menu_12_1_button_1", entmenu.TypeButton, "", "编辑用户", "", ptr("menu_12_1"), 1, constant.UserEdit),
+		newDefaultMenu("menu_12_1_button_2", entmenu.TypeButton, "", "删除用户", "", ptr("menu_12_1"), 2, constant.UserDelete),
+		newDefaultMenu("menu_12_1_button_3", entmenu.TypeButton, "", "查看用户", "", ptr("menu_12_1"), 3, constant.UserView),
+		newDefaultMenu("menu_12_2", entmenu.TypeMenu, "/system/role", "角色管理", "HOutline:IdentificationIcon", ptr("menu_12"), 1, ""),
+		newDefaultMenu("menu_12_2_button_0", entmenu.TypeButton, "", "添加角色", "", ptr("menu_12_2"), 0, constant.RoleAdd),
+		newDefaultMenu("menu_12_2_button_1", entmenu.TypeButton, "", "编辑角色", "", ptr("menu_12_2"), 1, constant.RoleEdit),
+		newDefaultMenu("menu_12_2_button_2", entmenu.TypeButton, "", "删除角色", "", ptr("menu_12_2"), 2, constant.RoleDelete),
+		newDefaultMenu("menu_12_2_button_3", entmenu.TypeButton, "", "查看角色", "", ptr("menu_12_2"), 3, constant.RoleView),
+		newDefaultMenu("menu_12_3", entmenu.TypeMenu, "/system/menu", "菜单管理", "HOutline:ListBulletIcon", ptr("menu_12"), 2, ""),
+		newDefaultMenu("menu_12_3_button_0", entmenu.TypeButton, "", "添加菜单", "", ptr("menu_12_3"), 0, constant.MenuAdd),
+		newDefaultMenu("menu_12_3_button_1", entmenu.TypeButton, "", "编辑菜单", "", ptr("menu_12_3"), 1, constant.MenuEdit),
+		newDefaultMenu("menu_12_3_button_2", entmenu.TypeButton, "", "删除菜单", "", ptr("menu_12_3"), 2, constant.MenuDelete),
+		newDefaultMenu("menu_12_3_button_3", entmenu.TypeButton, "", "查看菜单", "", ptr("menu_12_3"), 3, constant.MenuView),
 
-		newDefaultMenu("menu_15", entmenu.TypeDirectory, "", "功能演示", "HOutline:BeakerIcon", nil, 3, ""),
-		newDefaultMenu("menu_16", entmenu.TypeMenu, "/demo/vxeTable", "VXE Table", "HOutline:TableCellsIcon", ptr("menu_15"), 0, ""),
+		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, ""),
+		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", ptr("menu_13"), 0, ""),
+		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/extended/dialog", "对话框", "HOutline:WindowIcon", ptr("menu_13"), 0, ""),
+		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/extended/iconSelector", "图标选择器", "HOutline:SwatchIcon", ptr("menu_13"), 1, ""),
+		newDefaultMenu("menu_13_4", entmenu.TypeMenu, "/extended/textEllipsis", "文本省略器", "HOutline:EllipsisHorizontalIcon", ptr("menu_13"), 2, ""),
+		newDefaultMenu("menu_13_5", entmenu.TypeMenu, "/extended/hoverAnimation", "Hover动画组件", "HOutline:CursorArrowRaysIcon", ptr("menu_13"), 3, ""),
+		newDefaultMenu("menu_13_6", entmenu.TypeMenu, "/extended/transitionAnimation", "Transition内置动画", "HOutline:SparklesIcon", ptr("menu_13"), 3, ""),
 
-		newDefaultMenu("menu_9", entmenu.TypeDirectory, "", "异常页面", "HOutline:ExclamationTriangleIcon", nil, 4, ""),
-		newDefaultMenu("menu_10", entmenu.TypeMenu, "/exception/403", "403页面", "HOutline:NoSymbolIcon", ptr("menu_9"), 0, ""),
-		newDefaultMenu("menu_11", entmenu.TypeMenu, "/exception/404", "404页面", "HOutline:QuestionMarkCircleIcon", ptr("menu_9"), 1, ""),
+		newDefaultMenu("menu_14", entmenu.TypeDirectory, "", "功能演示", "HOutline:BeakerIcon", nil, 12, ""),
+		newDefaultMenu("menu_14_1", entmenu.TypeMenu, "/demo/vxeTable", "VXE Table", "HOutline:TableCellsIcon", ptr("menu_14"), 0, ""),
 
-		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "一级菜单", "HOutline:FolderIcon", nil, 5, ""),
-		newDefaultMenu("menu_7", entmenu.TypeDirectory, "", "二级菜单", "HOutline:FolderOpenIcon", ptr("menu_6"), 0, ""),
-		newDefaultMenu("menu_8", entmenu.TypeMenu, "/aaa/bbb/ccc", "三级菜单", "HOutline:DocumentTextIcon", ptr("menu_7"), 0, ""),
+		newDefaultMenu("menu_15", entmenu.TypeDirectory, "", "异常页面", "HOutline:ExclamationTriangleIcon", nil, 13, ""),
+		newDefaultMenu("menu_15_1", entmenu.TypeMenu, "/exception/403", "403页面", "HOutline:NoSymbolIcon", ptr("menu_15"), 0, ""),
+		newDefaultMenu("menu_15_2", entmenu.TypeMenu, "/exception/404", "404页面", "HOutline:QuestionMarkCircleIcon", ptr("menu_15"), 1, ""),
+
+		newDefaultMenu("menu_16", entmenu.TypeDirectory, "", "一级菜单", "HOutline:FolderIcon", nil, 14, ""),
+		newDefaultMenu("menu_16_1", entmenu.TypeDirectory, "", "二级菜单", "HOutline:FolderOpenIcon", ptr("menu_16"), 0, ""),
+		newDefaultMenu("menu_16_1_1", entmenu.TypeMenu, "/aaa/bbb/ccc", "三级菜单", "HOutline:DocumentTextIcon", ptr("menu_16_1"), 0, ""),
 	}
 	builtinDefaultRoles = []defaultRole{
 		{
@@ -95,6 +112,20 @@ var (
 			Description: "无权限用户",
 			IsBuiltin:   true,
 			Status:      entrole.StatusActive,
+		},
+	}
+	defaultUsers = []*defaultUser{
+		{
+			ID:       "admin_1",
+			Username: "admin",
+			Password: "admin",
+			Email:    "admin@alsl.xyz",
+			Status:   entuser.StatusActive,
+			Avatar:   "",
+			Bio:      "",
+			Name:     "超级管理员",
+			Tags:     "",
+			RoleID:   adminPermissionRoleID,
 		},
 	}
 )
@@ -138,6 +169,18 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 	for _, roleID := range builtinRoleWithMenuPermsIDs {
 		if _, ok := roleIDs[roleID]; !ok {
 			return fmt.Errorf("builtin role for menu perms not found: %s", roleID)
+		}
+	}
+	userIDs := make(map[string]struct{}, len(defaultUsers))
+	for _, user := range defaultUsers {
+		if _, ok := userIDs[user.ID]; ok {
+			return fmt.Errorf("duplicate default user id: %s", user.ID)
+		}
+		userIDs[user.ID] = struct{}{}
+		if user.RoleID != "" {
+			if _, ok := roleIDs[user.RoleID]; !ok {
+				return fmt.Errorf("default user role id not found: %s", user.RoleID)
+			}
 		}
 	}
 
@@ -204,6 +247,32 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 			AddMenuIDs(builtinMenuIDs...).
 			Exec(ctx); err != nil {
 			return rollback(fmt.Errorf("sync builtin role menus failed: %w", err))
+		}
+	}
+
+	userBuilders := make([]*ent.UserCreate, 0, len(defaultUsers))
+	for _, item := range defaultUsers {
+		builder := tx.User.Create().
+			SetID(item.ID).
+			SetUsername(item.Username).
+			SetPassword(item.Password).
+			SetEmail(item.Email).
+			SetStatus(item.Status).
+			SetAvatar(item.Avatar).
+			SetBio(item.Bio).
+			SetName(item.Name).
+			SetTags(item.Tags)
+		if item.RoleID != "" {
+			builder.SetRoleID(item.RoleID)
+		}
+		userBuilders = append(userBuilders, builder)
+	}
+	if len(userBuilders) > 0 {
+		if err := tx.User.CreateBulk(userBuilders...).
+			OnConflictColumns(entuser.FieldID).
+			DoNothing().
+			Exec(ctx); err != nil {
+			return rollback(fmt.Errorf("insert default users failed: %w", err))
 		}
 	}
 
