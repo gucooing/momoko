@@ -57,8 +57,9 @@ var (
 		newDefaultMenu("menu_1_3", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", ptr("menu_1"), 2, ""),
 
 		// 实例
-		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "实例管理", "HOutline:ServerStackIcon", nil, 1, ""),
-		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "实例列表", "HSolid:RectangleGroupIcon", ptr("menu_2"), 0, ""),
+		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用管理", "HOutline:ServerStackIcon", nil, 1, ""),
+		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", ptr("menu_2"), 0, ""),
+		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", ptr("menu_2"), 1, ""),
 
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 10, ""),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_12"), 0, ""),
