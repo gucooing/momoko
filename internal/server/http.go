@@ -54,6 +54,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterAuthServiceHTTPServer(srv, authApi)
 	v1.RegisterUserServiceHTTPServer(srv, userApi)
 	v1.RegisterSystemHTTPServer(srv, systemApi)
+	registerWSServer(srv)
 
 	return srv
 }

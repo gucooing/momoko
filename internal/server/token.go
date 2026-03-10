@@ -27,6 +27,7 @@ var (
 	noAuthPaths = map[string]struct{}{
 		"/api/v1/auth/login":   {},
 		"/api/v1/auth/refresh": {},
+		"/api/v1/ws/start":     {}, // TODO TEST
 	}
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
