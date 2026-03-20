@@ -6,7 +6,6 @@ import (
 	"golang.org/x/net/websocket"
 	"io"
 	"os"
-	"runtime"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -115,11 +114,8 @@ func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, err
 		return terminal, nil
 	}
 
-	terminal, err := i.terminal.Create(servercore.ServerConfig{
-		ID:      userID,
-		Command: defaultTerminalCommand(),
-		Dir:     defaultTerminalDir(),
-	})
+	cfg := servercore.NewTerminalConfig(userID, defaultTerminalDir())
+	terminal, err := i.terminal.Create(cfg)
 	if err == nil {
 		return terminal, nil
 	}
@@ -130,13 +126,6 @@ func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, err
 	}
 
 	return nil, ErrInstanceNotFound
-}
-
-func defaultTerminalCommand() string {
-	if runtime.GOOS == "windows" {
-		return "cmd.exe"
-	}
-	return "sh"
 }
 
 func defaultTerminalDir() string {

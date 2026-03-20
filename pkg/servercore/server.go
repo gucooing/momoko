@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -47,6 +48,25 @@ type ServerConfig struct {
 	Env              []string
 	LogLimit         int
 	SubscriberBuffer int
+	Terminal         bool
+}
+
+// NewTerminalConfig 返回本机终端实例的默认配置。
+// 终端具体用什么命令、是否启用平台专用实现，都收口在 servercore 中维护。
+func NewTerminalConfig(id, dir string) ServerConfig {
+	cfg := ServerConfig{
+		ID:       id,
+		Dir:      dir,
+		Terminal: true,
+	}
+
+	if runtime.GOOS == "windows" {
+		cfg.Command = "cmd.exe"
+		return cfg
+	}
+
+	cfg.Command = "sh"
+	return cfg
 }
 
 // Server 表示一个只管理单个子进程的服务端实例。
@@ -58,17 +78,37 @@ type Server struct {
 	env              []string
 	logLimit         int
 	subscriberBuffer int
+	terminal         bool
 	createTime       time.Time
 
-	mu          sync.RWMutex
-	cmd         *exec.Cmd
-	stdin       io.WriteCloser
-	running     bool
-	startTime   time.Time
-	waitDone    chan struct{}
-	logs        []LogEntry
-	nextSubID   uint64
-	subscribers map[uint64]chan LogEntry
+	mu              sync.RWMutex
+	cmd             *exec.Cmd
+	stdin           io.WriteCloser
+	running         bool
+	startTime       time.Time
+	waitDone        chan struct{}
+	waitFn          func() error
+	stopFn          func() error
+	closeFn         func()
+	stdinLineEnd    string
+	rawOutput       bool
+	runID           uint64
+	logs            []LogEntry
+	nextSubID       uint64
+	subscribers     map[uint64]chan LogEntry
+	outputSanitizer *terminalOutputSanitizer
+}
+
+type startResult struct {
+	stdin        io.WriteCloser
+	stdout       io.ReadCloser
+	stderr       io.ReadCloser
+	cmd          *exec.Cmd
+	waitFn       func() error
+	stopFn       func() error
+	closeFn      func()
+	stdinLineEnd string
+	rawOutput    bool
 }
 
 // NewServer 创建一个最小可用的服务端实例。
@@ -94,6 +134,7 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 		env:              append([]string(nil), cfg.Env...),
 		logLimit:         cfg.LogLimit,
 		subscriberBuffer: cfg.SubscriberBuffer,
+		terminal:         cfg.Terminal,
 		createTime:       time.Now(),
 		subscribers:      make(map[uint64]chan LogEntry),
 	}, nil
@@ -148,43 +189,41 @@ func (s *Server) Start() error {
 		return errors.New("服务端已经在运行")
 	}
 
-	cmd := exec.Command(s.command, s.args...)
-	cmd.Dir = s.dir
-	if len(s.env) > 0 {
-		cmd.Env = append(os.Environ(), s.env...)
-	}
-
-	stdoutPipe, err := cmd.StdoutPipe()
+	result, err := s.startProcessLocked()
 	if err != nil {
 		s.mu.Unlock()
-		return fmt.Errorf("获取 stdout 管道失败: %w", err)
-	}
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		s.mu.Unlock()
-		return fmt.Errorf("获取 stderr 管道失败: %w", err)
-	}
-	stdinPipe, err := cmd.StdinPipe()
-	if err != nil {
-		s.mu.Unlock()
-		return fmt.Errorf("获取 stdin 管道失败: %w", err)
-	}
-	if err := cmd.Start(); err != nil {
-		s.mu.Unlock()
-		return fmt.Errorf("启动子进程失败: %w", err)
+		return err
 	}
 
 	waitDone := make(chan struct{})
-	s.cmd = cmd
-	s.stdin = stdinPipe
+	s.runID++
+	runID := s.runID
+	s.cmd = result.cmd
+	s.stdin = result.stdin
 	s.running = true
 	s.startTime = time.Now()
 	s.waitDone = waitDone
+	s.waitFn = result.waitFn
+	s.stopFn = result.stopFn
+	s.closeFn = result.closeFn
+	s.stdinLineEnd = result.stdinLineEnd
+	s.rawOutput = result.rawOutput
+	if s.rawOutput {
+		s.outputSanitizer = newTerminalOutputSanitizer()
+	} else {
+		s.outputSanitizer = nil
+	}
 	s.mu.Unlock()
 
-	go s.readPipe(stdoutPipe, LogSourceStdout)
-	go s.readPipe(stderrPipe, LogSourceStderr)
-	go s.waitProcess(cmd, waitDone)
+	if result.rawOutput {
+		go s.readRaw(result.stdout, LogSourceStdout)
+	} else {
+		go s.readPipe(result.stdout, LogSourceStdout)
+		if result.stderr != nil {
+			go s.readPipe(result.stderr, LogSourceStderr)
+		}
+	}
+	go s.waitProcess(runID, waitDone)
 
 	return nil
 }
@@ -192,16 +231,16 @@ func (s *Server) Start() error {
 // Stop 停止当前子进程。
 func (s *Server) Stop() error {
 	s.mu.RLock()
-	cmd := s.cmd
 	waitDone := s.waitDone
+	stopFn := s.stopFn
 	running := s.running
 	s.mu.RUnlock()
 
-	if !running || cmd == nil {
+	if !running || stopFn == nil {
 		return nil
 	}
 
-	if err := cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+	if err := stopFn(); err != nil && !errors.Is(err, os.ErrProcessDone) {
 		return fmt.Errorf("停止子进程失败: %w", err)
 	}
 
@@ -224,26 +263,36 @@ func (s *Server) Send(input string) error {
 	s.mu.RLock()
 	stdin := s.stdin
 	running := s.running
+	lineEnd := s.stdinLineEnd
+	terminal := s.terminal
 	s.mu.RUnlock()
 
 	if !running || stdin == nil {
 		return errors.New("服务端未运行")
 	}
 
+	if lineEnd == "" {
+		lineEnd = "\n"
+	}
+
 	payload := input
-	if !strings.HasSuffix(payload, "\n") {
-		payload += "\n"
+	if !strings.HasSuffix(payload, lineEnd) {
+		payload += lineEnd
 	}
 
 	if _, err := io.WriteString(stdin, payload); err != nil {
 		return fmt.Errorf("写入 stdin 失败: %w", err)
 	}
 
-	s.publish(LogEntry{
-		Time:   time.Now(),
-		Source: LogSourceStdin,
-		Text:   strings.TrimRight(payload, "\r\n"),
-	})
+	// 普通服务实例保留输入事件广播，便于测试和订阅方观察。
+	// 终端实例由 shell 自己回显，避免重复插入一份人为构造的输入日志。
+	if !terminal {
+		s.publish(LogEntry{
+			Time:   time.Now(),
+			Source: LogSourceStdin,
+			Text:   strings.TrimRight(payload, "\r\n"),
+		})
+	}
 	return nil
 }
 
@@ -281,6 +330,10 @@ func (s *Server) RecentLogs() []LogEntry {
 }
 
 func (s *Server) readPipe(r io.Reader, source LogSource) {
+	if r == nil {
+		return
+	}
+
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
@@ -301,20 +354,112 @@ func (s *Server) readPipe(r io.Reader, source LogSource) {
 	}
 }
 
-func (s *Server) waitProcess(cmd *exec.Cmd, waitDone chan struct{}) {
-	_ = cmd.Wait()
+func (s *Server) readRaw(r io.Reader, source LogSource) {
+	if r == nil {
+		return
+	}
+
+	buf := make([]byte, 4096)
+	for {
+		n, err := r.Read(buf)
+		if n > 0 {
+			text := string(buf[:n])
+			if s.outputSanitizer != nil {
+				text = s.outputSanitizer.Filter(text)
+			}
+			if text != "" {
+				s.publish(LogEntry{
+					Time:   time.Now(),
+					Source: source,
+					Text:   text,
+				})
+			}
+		}
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				s.publish(LogEntry{
+					Time:   time.Now(),
+					Source: LogSourceStderr,
+					Text:   "读取输出失败: " + err.Error(),
+				})
+			}
+			return
+		}
+	}
+}
+
+func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
+	if s.waitFn != nil {
+		_ = s.waitFn()
+	}
 
 	s.mu.Lock()
-	if s.cmd == cmd {
+	if s.runID == runID {
+		closeFn := s.closeFn
 		s.cmd = nil
 		s.stdin = nil
 		s.running = false
 		s.startTime = time.Time{}
 		s.waitDone = nil
+		s.waitFn = nil
+		s.stopFn = nil
+		s.closeFn = nil
+		s.stdinLineEnd = ""
+		s.rawOutput = false
+		s.outputSanitizer = nil
+		s.mu.Unlock()
+
+		if closeFn != nil {
+			closeFn()
+		}
+		close(waitDone)
+		return
 	}
 	s.mu.Unlock()
 
 	close(waitDone)
+}
+
+func (s *Server) startProcessLocked() (*startResult, error) {
+	if s.terminal {
+		if result, err := startTerminalProcess(s); err == nil {
+			return result, nil
+		} else if runtime.GOOS == "windows" {
+			return nil, err
+		}
+	}
+
+	cmd := exec.Command(s.command, s.args...)
+	cmd.Dir = s.dir
+	if len(s.env) > 0 {
+		cmd.Env = append(os.Environ(), s.env...)
+	}
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("获取 stdout 管道失败: %w", err)
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("获取 stderr 管道失败: %w", err)
+	}
+	stdinPipe, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("获取 stdin 管道失败: %w", err)
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("启动子进程失败: %w", err)
+	}
+
+	return &startResult{
+		stdin:        stdinPipe,
+		stdout:       stdoutPipe,
+		stderr:       stderrPipe,
+		cmd:          cmd,
+		waitFn:       cmd.Wait,
+		stopFn:       cmd.Process.Kill,
+		stdinLineEnd: "\n",
+	}, nil
 }
 
 func (s *Server) publish(entry LogEntry) {
