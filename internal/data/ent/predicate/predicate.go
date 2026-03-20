@@ -9,6 +9,12 @@ import (
 // Auth is the predicate function for auth builders.
 type Auth func(*sql.Selector)
 
+// Instance is the predicate function for instance builders.
+type Instance func(*sql.Selector)
+
+// InstanceType is the predicate function for instancetype builders.
+type InstanceType func(*sql.Selector)
+
 // Menu is the predicate function for menu builders.
 type Menu func(*sql.Selector)
 

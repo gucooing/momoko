@@ -12,6 +12,8 @@ import (
 	"momoko/internal/data/ent/migrate"
 
 	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
 	"momoko/internal/data/ent/user"
@@ -31,6 +33,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// Auth is the client for interacting with the Auth builders.
 	Auth *AuthClient
+	// Instance is the client for interacting with the Instance builders.
+	Instance *InstanceClient
+	// InstanceType is the client for interacting with the InstanceType builders.
+	InstanceType *InstanceTypeClient
 	// Menu is the client for interacting with the Menu builders.
 	Menu *MenuClient
 	// Role is the client for interacting with the Role builders.
@@ -49,6 +55,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Auth = NewAuthClient(c.config)
+	c.Instance = NewInstanceClient(c.config)
+	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -142,12 +150,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Auth:   NewAuthClient(cfg),
-		Menu:   NewMenuClient(cfg),
-		Role:   NewRoleClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Auth:         NewAuthClient(cfg),
+		Instance:     NewInstanceClient(cfg),
+		InstanceType: NewInstanceTypeClient(cfg),
+		Menu:         NewMenuClient(cfg),
+		Role:         NewRoleClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -165,12 +175,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Auth:   NewAuthClient(cfg),
-		Menu:   NewMenuClient(cfg),
-		Role:   NewRoleClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Auth:         NewAuthClient(cfg),
+		Instance:     NewInstanceClient(cfg),
+		InstanceType: NewInstanceTypeClient(cfg),
+		Menu:         NewMenuClient(cfg),
+		Role:         NewRoleClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -199,19 +211,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Auth.Use(hooks...)
-	c.Menu.Use(hooks...)
-	c.Role.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Auth.Intercept(interceptors...)
-	c.Menu.Intercept(interceptors...)
-	c.Role.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -219,6 +233,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AuthMutation:
 		return c.Auth.mutate(ctx, m)
+	case *InstanceMutation:
+		return c.Instance.mutate(ctx, m)
+	case *InstanceTypeMutation:
+		return c.InstanceType.mutate(ctx, m)
 	case *MenuMutation:
 		return c.Menu.mutate(ctx, m)
 	case *RoleMutation:
@@ -360,6 +378,272 @@ func (c *AuthClient) mutate(ctx context.Context, m *AuthMutation) (Value, error)
 		return (&AuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Auth mutation op: %q", m.Op())
+	}
+}
+
+// InstanceClient is a client for the Instance schema.
+type InstanceClient struct {
+	config
+}
+
+// NewInstanceClient returns a client for the Instance from the given config.
+func NewInstanceClient(c config) *InstanceClient {
+	return &InstanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `instance.Hooks(f(g(h())))`.
+func (c *InstanceClient) Use(hooks ...Hook) {
+	c.hooks.Instance = append(c.hooks.Instance, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `instance.Intercept(f(g(h())))`.
+func (c *InstanceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Instance = append(c.inters.Instance, interceptors...)
+}
+
+// Create returns a builder for creating a Instance entity.
+func (c *InstanceClient) Create() *InstanceCreate {
+	mutation := newInstanceMutation(c.config, OpCreate)
+	return &InstanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Instance entities.
+func (c *InstanceClient) CreateBulk(builders ...*InstanceCreate) *InstanceCreateBulk {
+	return &InstanceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InstanceClient) MapCreateBulk(slice any, setFunc func(*InstanceCreate, int)) *InstanceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InstanceCreateBulk{err: fmt.Errorf("calling to InstanceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InstanceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InstanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Instance.
+func (c *InstanceClient) Update() *InstanceUpdate {
+	mutation := newInstanceMutation(c.config, OpUpdate)
+	return &InstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InstanceClient) UpdateOne(_m *Instance) *InstanceUpdateOne {
+	mutation := newInstanceMutation(c.config, OpUpdateOne, withInstance(_m))
+	return &InstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InstanceClient) UpdateOneID(id string) *InstanceUpdateOne {
+	mutation := newInstanceMutation(c.config, OpUpdateOne, withInstanceID(id))
+	return &InstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Instance.
+func (c *InstanceClient) Delete() *InstanceDelete {
+	mutation := newInstanceMutation(c.config, OpDelete)
+	return &InstanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InstanceClient) DeleteOne(_m *Instance) *InstanceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InstanceClient) DeleteOneID(id string) *InstanceDeleteOne {
+	builder := c.Delete().Where(instance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InstanceDeleteOne{builder}
+}
+
+// Query returns a query builder for Instance.
+func (c *InstanceClient) Query() *InstanceQuery {
+	return &InstanceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInstance},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Instance entity by its id.
+func (c *InstanceClient) Get(ctx context.Context, id string) (*Instance, error) {
+	return c.Query().Where(instance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InstanceClient) GetX(ctx context.Context, id string) *Instance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InstanceClient) Hooks() []Hook {
+	return c.hooks.Instance
+}
+
+// Interceptors returns the client interceptors.
+func (c *InstanceClient) Interceptors() []Interceptor {
+	return c.inters.Instance
+}
+
+func (c *InstanceClient) mutate(ctx context.Context, m *InstanceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InstanceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InstanceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Instance mutation op: %q", m.Op())
+	}
+}
+
+// InstanceTypeClient is a client for the InstanceType schema.
+type InstanceTypeClient struct {
+	config
+}
+
+// NewInstanceTypeClient returns a client for the InstanceType from the given config.
+func NewInstanceTypeClient(c config) *InstanceTypeClient {
+	return &InstanceTypeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `instancetype.Hooks(f(g(h())))`.
+func (c *InstanceTypeClient) Use(hooks ...Hook) {
+	c.hooks.InstanceType = append(c.hooks.InstanceType, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `instancetype.Intercept(f(g(h())))`.
+func (c *InstanceTypeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InstanceType = append(c.inters.InstanceType, interceptors...)
+}
+
+// Create returns a builder for creating a InstanceType entity.
+func (c *InstanceTypeClient) Create() *InstanceTypeCreate {
+	mutation := newInstanceTypeMutation(c.config, OpCreate)
+	return &InstanceTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InstanceType entities.
+func (c *InstanceTypeClient) CreateBulk(builders ...*InstanceTypeCreate) *InstanceTypeCreateBulk {
+	return &InstanceTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InstanceTypeClient) MapCreateBulk(slice any, setFunc func(*InstanceTypeCreate, int)) *InstanceTypeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InstanceTypeCreateBulk{err: fmt.Errorf("calling to InstanceTypeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InstanceTypeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InstanceTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InstanceType.
+func (c *InstanceTypeClient) Update() *InstanceTypeUpdate {
+	mutation := newInstanceTypeMutation(c.config, OpUpdate)
+	return &InstanceTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InstanceTypeClient) UpdateOne(_m *InstanceType) *InstanceTypeUpdateOne {
+	mutation := newInstanceTypeMutation(c.config, OpUpdateOne, withInstanceType(_m))
+	return &InstanceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InstanceTypeClient) UpdateOneID(id string) *InstanceTypeUpdateOne {
+	mutation := newInstanceTypeMutation(c.config, OpUpdateOne, withInstanceTypeID(id))
+	return &InstanceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InstanceType.
+func (c *InstanceTypeClient) Delete() *InstanceTypeDelete {
+	mutation := newInstanceTypeMutation(c.config, OpDelete)
+	return &InstanceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InstanceTypeClient) DeleteOne(_m *InstanceType) *InstanceTypeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InstanceTypeClient) DeleteOneID(id string) *InstanceTypeDeleteOne {
+	builder := c.Delete().Where(instancetype.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InstanceTypeDeleteOne{builder}
+}
+
+// Query returns a query builder for InstanceType.
+func (c *InstanceTypeClient) Query() *InstanceTypeQuery {
+	return &InstanceTypeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInstanceType},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InstanceType entity by its id.
+func (c *InstanceTypeClient) Get(ctx context.Context, id string) (*InstanceType, error) {
+	return c.Query().Where(instancetype.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InstanceTypeClient) GetX(ctx context.Context, id string) *InstanceType {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InstanceTypeClient) Hooks() []Hook {
+	return c.hooks.InstanceType
+}
+
+// Interceptors returns the client interceptors.
+func (c *InstanceTypeClient) Interceptors() []Interceptor {
+	return c.inters.InstanceType
+}
+
+func (c *InstanceTypeClient) mutate(ctx context.Context, m *InstanceTypeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InstanceTypeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InstanceTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InstanceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InstanceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InstanceType mutation op: %q", m.Op())
 	}
 }
 
@@ -813,10 +1097,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, Menu, Role, User []ent.Hook
+		Auth, Instance, InstanceType, Menu, Role, User []ent.Hook
 	}
 	inters struct {
-		Auth, Menu, Role, User []ent.Interceptor
+		Auth, Instance, InstanceType, Menu, Role, User []ent.Interceptor
 	}
 )
 

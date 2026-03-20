@@ -11,6 +11,7 @@ require (
 	github.com/google/wire v0.7.0
 	go.einride.tech/aip v0.76.0
 	go.uber.org/automaxprocs v1.5.1
+	golang.org/x/net v0.40.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.10
@@ -40,7 +41,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect

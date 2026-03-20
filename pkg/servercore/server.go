@@ -58,11 +58,13 @@ type Server struct {
 	env              []string
 	logLimit         int
 	subscriberBuffer int
+	createTime       time.Time
 
 	mu          sync.RWMutex
 	cmd         *exec.Cmd
 	stdin       io.WriteCloser
 	running     bool
+	startTime   time.Time
 	waitDone    chan struct{}
 	logs        []LogEntry
 	nextSubID   uint64
@@ -92,6 +94,7 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 		env:              append([]string(nil), cfg.Env...),
 		logLimit:         cfg.LogLimit,
 		subscriberBuffer: cfg.SubscriberBuffer,
+		createTime:       time.Now(),
 		subscribers:      make(map[uint64]chan LogEntry),
 	}, nil
 }
@@ -101,11 +104,40 @@ func (s *Server) ID() string {
 	return s.id
 }
 
+// CommandLine 返回实例启动命令。
+func (s *Server) CommandLine() string {
+	parts := make([]string, 0, 1+len(s.args))
+	parts = append(parts, s.command)
+	parts = append(parts, s.args...)
+	return strings.Join(parts, " ")
+}
+
+// Dir 返回实例工作目录。
+func (s *Server) Dir() string {
+	return s.dir
+}
+
 // Running 返回当前是否处于运行中。
 func (s *Server) Running() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.running
+}
+
+// CreateTime 返回实例创建时间。
+func (s *Server) CreateTime() time.Time {
+	return s.createTime
+}
+
+// StartTime 返回当前运行中的启动时间。
+func (s *Server) StartTime() (time.Time, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if !s.running || s.startTime.IsZero() {
+		return time.Time{}, false
+	}
+	return s.startTime, true
 }
 
 // Start 启动子进程，并异步读取 stdout 和 stderr。
@@ -146,6 +178,7 @@ func (s *Server) Start() error {
 	s.cmd = cmd
 	s.stdin = stdinPipe
 	s.running = true
+	s.startTime = time.Now()
 	s.waitDone = waitDone
 	s.mu.Unlock()
 
@@ -276,6 +309,7 @@ func (s *Server) waitProcess(cmd *exec.Cmd, waitDone chan struct{}) {
 		s.cmd = nil
 		s.stdin = nil
 		s.running = false
+		s.startTime = time.Time{}
 		s.waitDone = nil
 	}
 	s.mu.Unlock()

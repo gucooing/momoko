@@ -60,7 +60,7 @@ var (
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用管理", "HOutline:ServerStackIcon", nil, 1, ""),
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", ptr("menu_2"), 0, ""),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", ptr("menu_2"), 1, ""),
-		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/files", "文件管理", "Element:Folder", ptr("menu_2"), 2, ""),
+		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/files", "文件管理", "Element:Folder", ptr("menu_2"), 2, constant.Terminal),
 
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 10, ""),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_12"), 0, ""),

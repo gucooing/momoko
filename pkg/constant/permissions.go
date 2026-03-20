@@ -29,4 +29,7 @@ const (
 	MenuDelete Permissions = "menu:delete"
 	// MenuView 允许查看菜单。
 	MenuView Permissions = "menu:view"
+
+	// Terminal 终端页面
+	Terminal Permissions = "terminal"
 )

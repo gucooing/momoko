@@ -57,6 +57,78 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/instance/terminal:
+        get:
+            tags:
+                - InstanceManager
+            description: |-
+                终端管理
+                 获取终端详情
+            operationId: InstanceManager_GetTerminalInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetTerminalInfoResponse'
+    /api/v1/instance/terminal/restart:
+        post:
+            tags:
+                - InstanceManager
+            description: 重启终端
+            operationId: InstanceManager_RestartTerminal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RestartTerminalRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RestartTerminalResponse'
+    /api/v1/instance/terminal/start:
+        post:
+            tags:
+                - InstanceManager
+            description: 启动终端
+            operationId: InstanceManager_StartTerminal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StartTerminalRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StartTerminalResponse'
+    /api/v1/instance/terminal/stop:
+        post:
+            tags:
+                - InstanceManager
+            description: 停止终端
+            operationId: InstanceManager_StopTerminal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StopTerminalRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StopTerminalResponse'
     /api/v1/permissions/admin:
         get:
             tags:
@@ -686,6 +758,59 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新用户响应
+        v1.GetTerminalInfoResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 信息
+            description: 获取终端详情响应
+        v1.InstanceInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                name:
+                    type: string
+                    description: 实例名称
+                status:
+                    type: integer
+                    description: 实例状态
+                    format: enum
+                startTime:
+                    type: string
+                    description: 启动时间
+                    format: date-time
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: 标签
+                type:
+                    type: string
+                    description: 类型
+                userId:
+                    type: string
+                    description: 所属用户id
+                startCommand:
+                    type: string
+                    description: 启动命令
+                instancePath:
+                    type: string
+                    description: 实例路径
+                wsPath:
+                    type: string
+                    description: ws路径(启动时才有
+            description: 实例详情
         v1.ListUserResponse:
             type: object
             properties:
@@ -857,6 +982,14 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RestartTerminalRequest:
+            type: object
+            properties: {}
+            description: 重启终端请求
+        v1.RestartTerminalResponse:
+            type: object
+            properties: {}
+            description: 重启终端响应
         v1.RoleInfo:
             type: object
             properties:
@@ -890,6 +1023,22 @@ components:
                         type: string
                     description: 角色菜单id
             description: 角色详情
+        v1.StartTerminalRequest:
+            type: object
+            properties: {}
+            description: 启动终端请求
+        v1.StartTerminalResponse:
+            type: object
+            properties: {}
+            description: 启动终端响应
+        v1.StopTerminalRequest:
+            type: object
+            properties: {}
+            description: 停止终端请求
+        v1.StopTerminalResponse:
+            type: object
+            properties: {}
+            description: 停止终端响应
         v1.UserInfo:
             type: object
             properties:
@@ -944,6 +1093,8 @@ components:
 tags:
     - name: AuthService
       description: 认证服务
+    - name: InstanceManager
+      description: 应用管理
     - name: System
       description: 系统管理
     - name: UserService

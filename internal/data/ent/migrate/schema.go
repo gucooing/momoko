@@ -53,6 +53,33 @@ var (
 			},
 		},
 	}
+	// InstancesColumns holds the columns for the "instances" table.
+	InstancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "is_system", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString, Default: "./servers"},
+		{Name: "start_command", Type: field.TypeString},
+	}
+	// InstancesTable holds the schema information for the "instances" table.
+	InstancesTable = &schema.Table{
+		Name:       "instances",
+		Columns:    InstancesColumns,
+		PrimaryKey: []*schema.Column{InstancesColumns[0]},
+	}
+	// InstanceTypesColumns holds the columns for the "instance_types" table.
+	InstanceTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "is_system", Type: field.TypeBool, Default: false},
+	}
+	// InstanceTypesTable holds the schema information for the "instance_types" table.
+	InstanceTypesTable = &schema.Table{
+		Name:       "instance_types",
+		Columns:    InstanceTypesColumns,
+		PrimaryKey: []*schema.Column{InstanceTypesColumns[0]},
+	}
 	// MenusColumns holds the columns for the "menus" table.
 	MenusColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -147,6 +174,8 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuthsTable,
+		InstancesTable,
+		InstanceTypesTable,
 		MenusTable,
 		RolesTable,
 		UsersTable,

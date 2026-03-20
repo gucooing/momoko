@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 应用管理
+service InstanceManager {
+  // 终端管理
+  // 获取终端详情
+  rpc GetTerminalInfo(GetTerminalInfoRequest) returns (GetTerminalInfoResponse){
+    option (google.api.http) = {
+      get: "/api/v1/instance/terminal"
+    };
+  }
+  // 启动终端
+  rpc StartTerminal(StartTerminalRequest) returns (StartTerminalResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/terminal/start"
+      body: "*"
+    };
+  }
+  // 停止终端
+  rpc StopTerminal(StopTerminalRequest) returns (StopTerminalResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/terminal/stop"
+      body: "*"
+    };
+  }
+  // 重启终端
+  rpc RestartTerminal(RestartTerminalRequest) returns (RestartTerminalResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/terminal/restart"
+      body: "*"
+    };
+  }
+
+
+  // 实例管理
+  // 获取实例列表
+  // 获取实例详情
+  // 启动/停止/重启 实例
+}
+
+// 获取终端详情请求
+message GetTerminalInfoRequest {}
+
+// 获取终端详情响应
+message GetTerminalInfoResponse {
+  // 信息
+  InstanceInfo info = 1;
+}
+
+// 启动终端请求
+message StartTerminalRequest {}
+
+// 启动终端响应
+message StartTerminalResponse {}
+
+// 停止终端请求
+message StopTerminalRequest {}
+
+// 停止终端响应
+message StopTerminalResponse {}
+
+// 重启终端请求
+message RestartTerminalRequest{}
+
+// 重启终端响应
+message RestartTerminalResponse{}
+
+// 实例详情
+message InstanceInfo {
+  // 实例id
+  string id = 1;
+  // 实例名称
+  string name = 2;
+  // 实例状态
+  InstanceStatus status = 3;
+  // 启动时间
+  google.protobuf.Timestamp start_time = 4;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 5;
+  // 备注
+  string remark = 6;
+  // 标签
+  repeated string tags = 7;
+  // 类型
+  string type = 8;
+  // 所属用户id
+  string user_id = 9;
+  // 启动命令
+  string start_command = 10;
+  // 实例路径
+  string instance_path = 11;
+  // ws路径(启动时才有
+  string ws_path = 12;
+}
+
+// 实例状态
+enum InstanceStatus {
+  // 未指定
+  INSTANCE_STATUS_UNSPECIFIED = 0;
+  // 停止
+  INSTANCE_STATUS_STOPPED = 1;
+  // 运行中
+  INSTANCE_STATUS_RUNNING = 2;
+  // 维护
+  INSTANCE_STATUS_MAINTENANCE = 3;
+}

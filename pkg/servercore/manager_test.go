@@ -103,9 +103,9 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 	}
 	defer cancel()
 
-	server, err := manager.Get(id)
-	if err != nil {
-		t.Fatalf("获取服务端失败: %v", err)
+	server, ok := manager.Get(id)
+	if !ok {
+		t.Fatal("获取服务端失败")
 	}
 
 	if err := manager.Start(id); err != nil {
@@ -118,6 +118,12 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 	waitForCondition(t, "启动后未进入运行状态", func() bool {
 		return server.Running()
 	})
+	if server.CreateTime().IsZero() {
+		t.Fatal("创建时间不应为空")
+	}
+	if _, ok := server.StartTime(); !ok {
+		t.Fatal("启动后应当存在启动时间")
+	}
 
 	if err := manager.Stop(id); err != nil {
 		t.Fatalf("停止服务端失败: %v", err)
@@ -126,6 +132,9 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 	waitForCondition(t, "停止后仍处于运行状态", func() bool {
 		return !server.Running()
 	})
+	if _, ok := server.StartTime(); ok {
+		t.Fatal("停止后不应保留启动时间")
+	}
 
 	if err := manager.Restart(id); err != nil {
 		t.Fatalf("重启服务端失败: %v", err)

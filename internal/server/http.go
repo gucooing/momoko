@@ -21,6 +21,7 @@ func NewHTTPServer(c *conf.Server,
 	authApi *service.AuthService,
 	userApi *service.UserService,
 	systemApi *service.SystemService,
+	instanceApi *service.InstanceService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -54,7 +55,8 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterAuthServiceHTTPServer(srv, authApi)
 	v1.RegisterUserServiceHTTPServer(srv, userApi)
 	v1.RegisterSystemHTTPServer(srv, systemApi)
-	registerWSServer(srv)
+	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
+	instanceApi.RegisterWsServer(srv)
 
 	return srv
 }

@@ -20,6 +20,30 @@ func (f AuthFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthMutation", m)
 }
 
+// The InstanceFunc type is an adapter to allow the use of ordinary
+// function as Instance mutator.
+type InstanceFunc func(context.Context, *ent.InstanceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InstanceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InstanceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InstanceMutation", m)
+}
+
+// The InstanceTypeFunc type is an adapter to allow the use of ordinary
+// function as InstanceType mutator.
+type InstanceTypeFunc func(context.Context, *ent.InstanceTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InstanceTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InstanceTypeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InstanceTypeMutation", m)
+}
+
 // The MenuFunc type is an adapter to allow the use of ordinary
 // function as Menu mutator.
 type MenuFunc func(context.Context, *ent.MenuMutation) (ent.Value, error)

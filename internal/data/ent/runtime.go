@@ -4,6 +4,8 @@ package ent
 
 import (
 	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
 	"momoko/internal/data/ent/schema"
@@ -46,6 +48,48 @@ func init() {
 	authDescUserID := authFields[3].Descriptor()
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
+	instanceFields := schema.Instance{}.Fields()
+	_ = instanceFields
+	// instanceDescName is the schema descriptor for name field.
+	instanceDescName := instanceFields[1].Descriptor()
+	// instance.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	instance.NameValidator = instanceDescName.Validators[0].(func(string) error)
+	// instanceDescIsSystem is the schema descriptor for is_system field.
+	instanceDescIsSystem := instanceFields[2].Descriptor()
+	// instance.DefaultIsSystem holds the default value on creation for the is_system field.
+	instance.DefaultIsSystem = instanceDescIsSystem.Default.(bool)
+	// instanceDescUserID is the schema descriptor for user_id field.
+	instanceDescUserID := instanceFields[3].Descriptor()
+	// instance.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	instance.UserIDValidator = instanceDescUserID.Validators[0].(func(string) error)
+	// instanceDescPath is the schema descriptor for path field.
+	instanceDescPath := instanceFields[4].Descriptor()
+	// instance.DefaultPath holds the default value on creation for the path field.
+	instance.DefaultPath = instanceDescPath.Default.(string)
+	// instance.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	instance.PathValidator = instanceDescPath.Validators[0].(func(string) error)
+	// instanceDescStartCommand is the schema descriptor for start_command field.
+	instanceDescStartCommand := instanceFields[5].Descriptor()
+	// instance.StartCommandValidator is a validator for the "start_command" field. It is called by the builders before save.
+	instance.StartCommandValidator = instanceDescStartCommand.Validators[0].(func(string) error)
+	// instanceDescID is the schema descriptor for id field.
+	instanceDescID := instanceFields[0].Descriptor()
+	// instance.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	instance.IDValidator = instanceDescID.Validators[0].(func(string) error)
+	instancetypeFields := schema.InstanceType{}.Fields()
+	_ = instancetypeFields
+	// instancetypeDescName is the schema descriptor for name field.
+	instancetypeDescName := instancetypeFields[1].Descriptor()
+	// instancetype.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	instancetype.NameValidator = instancetypeDescName.Validators[0].(func(string) error)
+	// instancetypeDescIsSystem is the schema descriptor for is_system field.
+	instancetypeDescIsSystem := instancetypeFields[2].Descriptor()
+	// instancetype.DefaultIsSystem holds the default value on creation for the is_system field.
+	instancetype.DefaultIsSystem = instancetypeDescIsSystem.Default.(bool)
+	// instancetypeDescID is the schema descriptor for id field.
+	instancetypeDescID := instancetypeFields[0].Descriptor()
+	// instancetype.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	instancetype.IDValidator = instancetypeDescID.Validators[0].(func(string) error)
 	menuMixin := schema.Menu{}.Mixin()
 	menuMixinFields0 := menuMixin[0].Fields()
 	_ = menuMixinFields0
