@@ -84,6 +84,11 @@ func IsSystem(v bool) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldEQ(FieldIsSystem, v))
 }
 
+// IsEnable applies equality check predicate on the "is_enable" field. It's identical to IsEnableEQ.
+func IsEnable(v bool) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldIsEnable, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldEQ(FieldCreateTime, v))
@@ -237,6 +242,16 @@ func IsSystemEQ(v bool) predicate.InstanceType {
 // IsSystemNEQ applies the NEQ predicate on the "is_system" field.
 func IsSystemNEQ(v bool) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldNEQ(FieldIsSystem, v))
+}
+
+// IsEnableEQ applies the EQ predicate on the "is_enable" field.
+func IsEnableEQ(v bool) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldIsEnable, v))
+}
+
+// IsEnableNEQ applies the NEQ predicate on the "is_enable" field.
+func IsEnableNEQ(v bool) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNEQ(FieldIsEnable, v))
 }
 
 // And groups predicates with the AND operator between them.

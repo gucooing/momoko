@@ -25,7 +25,9 @@ type InstanceType struct {
 	// 类型名称
 	Name string `json:"name,omitempty"`
 	// 是否系统内置
-	IsSystem     bool `json:"is_system,omitempty"`
+	IsSystem bool `json:"is_system,omitempty"`
+	// 是否启用
+	IsEnable     bool `json:"is_enable,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -34,7 +36,7 @@ func (*InstanceType) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case instancetype.FieldIsSystem:
+		case instancetype.FieldIsSystem, instancetype.FieldIsEnable:
 			values[i] = new(sql.NullBool)
 		case instancetype.FieldID, instancetype.FieldName:
 			values[i] = new(sql.NullString)
@@ -85,6 +87,12 @@ func (_m *InstanceType) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsSystem = value.Bool
 			}
+		case instancetype.FieldIsEnable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_enable", values[i])
+			} else if value.Valid {
+				_m.IsEnable = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -132,6 +140,9 @@ func (_m *InstanceType) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_system=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
+	builder.WriteString(", ")
+	builder.WriteString("is_enable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
 	builder.WriteByte(')')
 	return builder.String()
 }

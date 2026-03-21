@@ -801,7 +801,7 @@ components:
         v1.DelInstanceTypeResponse:
             type: object
             properties: {}
-            description: 更新实例类型响应
+            description: 删除实例类型响应
         v1.DeleteUserResponse:
             type: object
             properties: {}
@@ -929,6 +929,9 @@ components:
                 isSystem:
                     type: boolean
                     description: 是否系统内置
+                isEnable:
+                    type: boolean
+                    description: 是否启用
             description: 实例类型信息
         v1.ListUserResponse:
             type: object
@@ -1167,6 +1170,9 @@ components:
                 name:
                     type: string
                     description: 类型名称
+                isEnable:
+                    type: boolean
+                    description: 是否启用
             description: 更新实例类型请求
         v1.UpdateInstanceTypeResponse:
             type: object

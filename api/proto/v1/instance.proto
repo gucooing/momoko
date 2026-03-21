@@ -100,6 +100,8 @@ message UpdateInstanceTypeRequest {
   string id = 1;
   // 类型名称
   optional string name = 2;
+  // 是否启用
+  optional bool is_enable = 3;
 }
 
 // 更新实例类型响应
@@ -108,13 +110,13 @@ message UpdateInstanceTypeResponse {
   InstanceTypeInfo type = 1;
 }
 
-// 更新实例类型请求
+// 删除实例类型请求
 message DelInstanceTypeRequest {
   // 类型id
   string id = 1;
 }
 
-// 更新实例类型响应
+// 删除实例类型响应
 message DelInstanceTypeResponse {}
 
 // 实例类型信息
@@ -125,6 +127,8 @@ message InstanceTypeInfo {
   string name = 2;
   // 是否系统内置
   bool is_system = 3;
+  // 是否启用
+  bool is_enable = 4;
 }
 
 // 获取终端详情请求

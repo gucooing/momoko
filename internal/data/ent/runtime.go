@@ -113,6 +113,10 @@ func init() {
 	instancetypeDescIsSystem := instancetypeFields[2].Descriptor()
 	// instancetype.DefaultIsSystem holds the default value on creation for the is_system field.
 	instancetype.DefaultIsSystem = instancetypeDescIsSystem.Default.(bool)
+	// instancetypeDescIsEnable is the schema descriptor for is_enable field.
+	instancetypeDescIsEnable := instancetypeFields[3].Descriptor()
+	// instancetype.DefaultIsEnable holds the default value on creation for the is_enable field.
+	instancetype.DefaultIsEnable = instancetypeDescIsEnable.Default.(bool)
 	// instancetypeDescID is the schema descriptor for id field.
 	instancetypeDescID := instancetypeFields[0].Descriptor()
 	// instancetype.IDValidator is a validator for the "id" field. It is called by the builders before save.

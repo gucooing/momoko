@@ -33,7 +33,7 @@ type InstanceUsecase struct {
 type InstanceRepo interface {
 	GetTypes(ctx context.Context) ([]*ent.InstanceType, error)
 	CreateType(ctx context.Context, name string) (*ent.InstanceType, error)
-	UpdateType(ctx context.Context, id string, name *string) (*ent.InstanceType, error)
+	UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*ent.InstanceType, error)
 	DeleteType(ctx context.Context, id string) error
 	GetInstances(ctx context.Context, userId string) ([]*ent.Instance, error)
 }
@@ -76,7 +76,7 @@ func (i *InstanceUsecase) UpdateType(ctx context.Context, req *v1.UpdateInstance
 		return nil, ErrInstanceTypeID
 	}
 
-	typeInfo, err := i.repo.UpdateType(ctx, req.Id, req.Name)
+	typeInfo, err := i.repo.UpdateType(ctx, req.Id, req.Name, req.IsEnable)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -240,5 +240,6 @@ func toInstanceTypeInfo(data *ent.InstanceType) *v1.InstanceTypeInfo {
 		Id:       data.ID,
 		Name:     data.Name,
 		IsSystem: data.IsSystem,
+		IsEnable: data.IsEnable,
 	}
 }

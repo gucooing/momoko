@@ -62,6 +62,20 @@ func (_u *InstanceTypeUpdate) SetNillableIsSystem(v *bool) *InstanceTypeUpdate {
 	return _u
 }
 
+// SetIsEnable sets the "is_enable" field.
+func (_u *InstanceTypeUpdate) SetIsEnable(v bool) *InstanceTypeUpdate {
+	_u.mutation.SetIsEnable(v)
+	return _u
+}
+
+// SetNillableIsEnable sets the "is_enable" field if the given value is not nil.
+func (_u *InstanceTypeUpdate) SetNillableIsEnable(v *bool) *InstanceTypeUpdate {
+	if v != nil {
+		_u.SetIsEnable(*v)
+	}
+	return _u
+}
+
 // Mutation returns the InstanceTypeMutation object of the builder.
 func (_u *InstanceTypeUpdate) Mutation() *InstanceTypeMutation {
 	return _u.mutation
@@ -134,6 +148,9 @@ func (_u *InstanceTypeUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instancetype.FieldIsSystem, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsEnable(); ok {
+		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{instancetype.Label}
@@ -184,6 +201,20 @@ func (_u *InstanceTypeUpdateOne) SetIsSystem(v bool) *InstanceTypeUpdateOne {
 func (_u *InstanceTypeUpdateOne) SetNillableIsSystem(v *bool) *InstanceTypeUpdateOne {
 	if v != nil {
 		_u.SetIsSystem(*v)
+	}
+	return _u
+}
+
+// SetIsEnable sets the "is_enable" field.
+func (_u *InstanceTypeUpdateOne) SetIsEnable(v bool) *InstanceTypeUpdateOne {
+	_u.mutation.SetIsEnable(v)
+	return _u
+}
+
+// SetNillableIsEnable sets the "is_enable" field if the given value is not nil.
+func (_u *InstanceTypeUpdateOne) SetNillableIsEnable(v *bool) *InstanceTypeUpdateOne {
+	if v != nil {
+		_u.SetIsEnable(*v)
 	}
 	return _u
 }
@@ -289,6 +320,9 @@ func (_u *InstanceTypeUpdateOne) sqlSave(ctx context.Context) (_node *InstanceTy
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instancetype.FieldIsSystem, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsEnable(); ok {
+		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
 	}
 	_node = &InstanceType{config: _u.config}
 	_spec.Assign = _node.assignValues

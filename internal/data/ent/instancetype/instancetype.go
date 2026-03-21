@@ -21,6 +21,8 @@ const (
 	FieldName = "name"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
 	FieldIsSystem = "is_system"
+	// FieldIsEnable holds the string denoting the is_enable field in the database.
+	FieldIsEnable = "is_enable"
 	// Table holds the table name of the instancetype in the database.
 	Table = "instance_types"
 )
@@ -32,6 +34,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldIsSystem,
+	FieldIsEnable,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -55,6 +58,8 @@ var (
 	NameValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
+	// DefaultIsEnable holds the default value on creation for the "is_enable" field.
+	DefaultIsEnable bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -85,4 +90,9 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByIsSystem orders the results by the is_system field.
 func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
+}
+
+// ByIsEnable orders the results by the is_enable field.
+func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
 }

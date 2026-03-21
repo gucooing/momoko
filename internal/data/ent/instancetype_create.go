@@ -71,6 +71,20 @@ func (_c *InstanceTypeCreate) SetNillableIsSystem(v *bool) *InstanceTypeCreate {
 	return _c
 }
 
+// SetIsEnable sets the "is_enable" field.
+func (_c *InstanceTypeCreate) SetIsEnable(v bool) *InstanceTypeCreate {
+	_c.mutation.SetIsEnable(v)
+	return _c
+}
+
+// SetNillableIsEnable sets the "is_enable" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableIsEnable(v *bool) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetIsEnable(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *InstanceTypeCreate) SetID(v string) *InstanceTypeCreate {
 	_c.mutation.SetID(v)
@@ -124,6 +138,10 @@ func (_c *InstanceTypeCreate) defaults() {
 		v := instancetype.DefaultIsSystem
 		_c.mutation.SetIsSystem(v)
 	}
+	if _, ok := _c.mutation.IsEnable(); !ok {
+		v := instancetype.DefaultIsEnable
+		_c.mutation.SetIsEnable(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -144,6 +162,9 @@ func (_c *InstanceTypeCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "InstanceType.is_system"`)}
+	}
+	if _, ok := _c.mutation.IsEnable(); !ok {
+		return &ValidationError{Name: "is_enable", err: errors.New(`ent: missing required field "InstanceType.is_enable"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := instancetype.IDValidator(v); err != nil {
@@ -201,6 +222,10 @@ func (_c *InstanceTypeCreate) createSpec() (*InstanceType, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.IsSystem(); ok {
 		_spec.SetField(instancetype.FieldIsSystem, field.TypeBool, value)
 		_node.IsSystem = value
+	}
+	if value, ok := _c.mutation.IsEnable(); ok {
+		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
+		_node.IsEnable = value
 	}
 	return _node, _spec
 }
@@ -287,6 +312,18 @@ func (u *InstanceTypeUpsert) SetIsSystem(v bool) *InstanceTypeUpsert {
 // UpdateIsSystem sets the "is_system" field to the value that was provided on create.
 func (u *InstanceTypeUpsert) UpdateIsSystem() *InstanceTypeUpsert {
 	u.SetExcluded(instancetype.FieldIsSystem)
+	return u
+}
+
+// SetIsEnable sets the "is_enable" field.
+func (u *InstanceTypeUpsert) SetIsEnable(v bool) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldIsEnable, v)
+	return u
+}
+
+// UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateIsEnable() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldIsEnable)
 	return u
 }
 
@@ -380,6 +417,20 @@ func (u *InstanceTypeUpsertOne) SetIsSystem(v bool) *InstanceTypeUpsertOne {
 func (u *InstanceTypeUpsertOne) UpdateIsSystem() *InstanceTypeUpsertOne {
 	return u.Update(func(s *InstanceTypeUpsert) {
 		s.UpdateIsSystem()
+	})
+}
+
+// SetIsEnable sets the "is_enable" field.
+func (u *InstanceTypeUpsertOne) SetIsEnable(v bool) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetIsEnable(v)
+	})
+}
+
+// UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateIsEnable() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateIsEnable()
 	})
 }
 
@@ -640,6 +691,20 @@ func (u *InstanceTypeUpsertBulk) SetIsSystem(v bool) *InstanceTypeUpsertBulk {
 func (u *InstanceTypeUpsertBulk) UpdateIsSystem() *InstanceTypeUpsertBulk {
 	return u.Update(func(s *InstanceTypeUpsert) {
 		s.UpdateIsSystem()
+	})
+}
+
+// SetIsEnable sets the "is_enable" field.
+func (u *InstanceTypeUpsertBulk) SetIsEnable(v bool) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetIsEnable(v)
+	})
+}
+
+// UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateIsEnable() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateIsEnable()
 	})
 }
 

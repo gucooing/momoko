@@ -15,6 +15,7 @@ func (InstanceType) Fields() []ent.Field {
 		field.String("id").NotEmpty().Unique().Comment("类型id"),
 		field.String("name").NotEmpty().Unique().Comment("类型名称"),
 		field.Bool("is_system").Default(false).Comment("是否系统内置"),
+		field.Bool("is_enable").Default(true).Comment("是否启用"),
 	}
 }
 

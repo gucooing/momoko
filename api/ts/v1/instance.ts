@@ -48,7 +48,11 @@ export interface UpdateInstanceTypeRequest {
   /** 类型id */
   id: string;
   /** 类型名称 */
-  name?: string | undefined;
+  name?:
+    | string
+    | undefined;
+  /** 是否启用 */
+  isEnable?: boolean | undefined;
 }
 
 /** 更新实例类型响应 */
@@ -57,13 +61,13 @@ export interface UpdateInstanceTypeResponse {
   type: InstanceTypeInfo | undefined;
 }
 
-/** 更新实例类型请求 */
+/** 删除实例类型请求 */
 export interface DelInstanceTypeRequest {
   /** 类型id */
   id: string;
 }
 
-/** 更新实例类型响应 */
+/** 删除实例类型响应 */
 export interface DelInstanceTypeResponse {
 }
 
@@ -75,6 +79,8 @@ export interface InstanceTypeInfo {
   name: string;
   /** 是否系统内置 */
   isSystem: boolean;
+  /** 是否启用 */
+  isEnable: boolean;
 }
 
 /** 获取终端详情请求 */

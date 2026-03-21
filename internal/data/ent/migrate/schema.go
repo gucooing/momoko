@@ -90,6 +90,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
+		{Name: "is_enable", Type: field.TypeBool, Default: true},
 	}
 	// InstanceTypesTable holds the schema information for the "instance_types" table.
 	InstanceTypesTable = &schema.Table{

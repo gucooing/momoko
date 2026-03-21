@@ -1783,6 +1783,7 @@ type InstanceTypeMutation struct {
 	update_time   *time.Time
 	name          *string
 	is_system     *bool
+	is_enable     *bool
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*InstanceType, error)
@@ -2037,6 +2038,42 @@ func (m *InstanceTypeMutation) ResetIsSystem() {
 	m.is_system = nil
 }
 
+// SetIsEnable sets the "is_enable" field.
+func (m *InstanceTypeMutation) SetIsEnable(b bool) {
+	m.is_enable = &b
+}
+
+// IsEnable returns the value of the "is_enable" field in the mutation.
+func (m *InstanceTypeMutation) IsEnable() (r bool, exists bool) {
+	v := m.is_enable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsEnable returns the old "is_enable" field's value of the InstanceType entity.
+// If the InstanceType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceTypeMutation) OldIsEnable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsEnable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsEnable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsEnable: %w", err)
+	}
+	return oldValue.IsEnable, nil
+}
+
+// ResetIsEnable resets all changes to the "is_enable" field.
+func (m *InstanceTypeMutation) ResetIsEnable() {
+	m.is_enable = nil
+}
+
 // Where appends a list predicates to the InstanceTypeMutation builder.
 func (m *InstanceTypeMutation) Where(ps ...predicate.InstanceType) {
 	m.predicates = append(m.predicates, ps...)
@@ -2071,7 +2108,7 @@ func (m *InstanceTypeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InstanceTypeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.create_time != nil {
 		fields = append(fields, instancetype.FieldCreateTime)
 	}
@@ -2083,6 +2120,9 @@ func (m *InstanceTypeMutation) Fields() []string {
 	}
 	if m.is_system != nil {
 		fields = append(fields, instancetype.FieldIsSystem)
+	}
+	if m.is_enable != nil {
+		fields = append(fields, instancetype.FieldIsEnable)
 	}
 	return fields
 }
@@ -2100,6 +2140,8 @@ func (m *InstanceTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case instancetype.FieldIsSystem:
 		return m.IsSystem()
+	case instancetype.FieldIsEnable:
+		return m.IsEnable()
 	}
 	return nil, false
 }
@@ -2117,6 +2159,8 @@ func (m *InstanceTypeMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldName(ctx)
 	case instancetype.FieldIsSystem:
 		return m.OldIsSystem(ctx)
+	case instancetype.FieldIsEnable:
+		return m.OldIsEnable(ctx)
 	}
 	return nil, fmt.Errorf("unknown InstanceType field %s", name)
 }
@@ -2153,6 +2197,13 @@ func (m *InstanceTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsSystem(v)
+		return nil
+	case instancetype.FieldIsEnable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsEnable(v)
 		return nil
 	}
 	return fmt.Errorf("unknown InstanceType field %s", name)
@@ -2214,6 +2265,9 @@ func (m *InstanceTypeMutation) ResetField(name string) error {
 		return nil
 	case instancetype.FieldIsSystem:
 		m.ResetIsSystem()
+		return nil
+	case instancetype.FieldIsEnable:
+		m.ResetIsEnable()
 		return nil
 	}
 	return fmt.Errorf("unknown InstanceType field %s", name)

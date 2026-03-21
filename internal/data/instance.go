@@ -41,11 +41,16 @@ func (i *instanceRepo) CreateType(ctx context.Context, name string) (*ent.Instan
 }
 
 // UpdateType 更新实例类型
-func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string) (*ent.InstanceType, error) {
-	update := i.data.db.InstanceType.UpdateOneID(id)
+func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*ent.InstanceType, error) {
+	update := i.data.db.InstanceType.
+		UpdateOneID(id).
+		Where(instancetype.IsSystem(false))
 
 	if name != nil {
 		update.SetName(*name)
+	}
+	if isEnable != nil {
+		update.SetIsEnable(*isEnable)
 	}
 
 	return update.Save(ctx)
@@ -53,7 +58,9 @@ func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string) 
 
 // DeleteType 删除实例类型
 func (i *instanceRepo) DeleteType(ctx context.Context, id string) error {
-	return i.data.db.InstanceType.DeleteOneID(id).Exec(ctx)
+	return i.data.db.InstanceType.DeleteOneID(id).
+		Where(instancetype.IsSystem(false)).
+		Exec(ctx)
 }
 
 // GetInstances 获取该账号下管辖的实例
