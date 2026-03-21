@@ -8,7 +8,7 @@ server:
 data:
   database:
     driver: mysql
-    source: root:gucooing.snxianus@tcp(110.42.61.204:3306)/momoko?timeout=5s&parseTime=True&loc=Local&charset=utf8mb4
+    source: root:gucooing.snxianus@tcp(110.42.61.204:3306)/momoko_dev?timeout=5s&parseTime=True&loc=Local&charset=utf8mb4
   redis:
     addr: 110.42.61.204:6379
     password: gucooing.suxunxiax
