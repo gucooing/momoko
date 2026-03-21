@@ -22,6 +22,8 @@ const (
 	terminalName = "终端"
 	// TerminalWSPath 表示当前终端控制台 ws 路径。
 	TerminalWSPath = "/api/v1/instance/terminal/ws"
+	// InstanceWsPath 应用实例控制台路径
+	InstanceWsPath = "/api/v1/instance/cmd/ws"
 )
 
 type InstanceUsecase struct {
@@ -35,7 +37,9 @@ type InstanceRepo interface {
 	CreateType(ctx context.Context, name string) (*ent.InstanceType, error)
 	UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*ent.InstanceType, error)
 	DeleteType(ctx context.Context, id string) error
-	GetInstances(ctx context.Context, userId string) ([]*ent.Instance, error)
+	GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error)
+	GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error)
+	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error)
 }
 
 func NewInstanceUsecase(repo InstanceRepo) *InstanceUsecase {
@@ -92,35 +96,12 @@ func (i *InstanceUsecase) DeleteType(ctx context.Context, id string) error {
 
 // GetTerminalInfo 获取当前用户终端实例信息。
 func (i *InstanceUsecase) GetTerminalInfo(ctx context.Context, userID string) (*v1.InstanceInfo, error) {
-	_ = ctx
-
 	terminal, err := i.ensureTerminal(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	info := &v1.InstanceInfo{
-		Id:           terminal.ID(),
-		Name:         terminalName,
-		Status:       v1.InstanceStatus_INSTANCE_STATUS_STOPPED,
-		CreateTime:   timestamppb.New(terminal.CreateTime()),
-		Remark:       "",
-		Tags:         nil,
-		Type:         terminalType,
-		UserId:       userID,
-		StartCommand: terminal.CommandLine(),
-		InstancePath: terminal.Dir(),
-	}
-
-	if terminal.Running() {
-		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
-		if startTime, ok := terminal.StartTime(); ok {
-			info.StartTime = timestamppb.New(startTime)
-		}
-		info.WsPath = TerminalWSPath
-	}
-
-	return info, nil
+	return i.terminalToInstanceInfo(terminal), nil
 }
 
 func (i *InstanceUsecase) GetTerminalServer(ctx context.Context, userID string) (*servercore.Server, error) {
@@ -134,8 +115,6 @@ func (i *InstanceUsecase) GetTerminalServer(ctx context.Context, userID string) 
 
 // StartTerminal 启动当前用户终端。
 func (i *InstanceUsecase) StartTerminal(ctx context.Context, userID string) error {
-	_ = ctx
-
 	terminal, err := i.ensureTerminal(userID)
 	if err != nil {
 		return err
@@ -145,8 +124,6 @@ func (i *InstanceUsecase) StartTerminal(ctx context.Context, userID string) erro
 
 // StopTerminal 停止当前用户终端。
 func (i *InstanceUsecase) StopTerminal(ctx context.Context, userID string) error {
-	_ = ctx
-
 	terminal, err := i.ensureTerminal(userID)
 	if err != nil {
 		return err
@@ -156,32 +133,11 @@ func (i *InstanceUsecase) StopTerminal(ctx context.Context, userID string) error
 
 // RestartTerminal 重启当前用户终端。
 func (i *InstanceUsecase) RestartTerminal(ctx context.Context, userID string) error {
-	_ = ctx
-
 	terminal, err := i.ensureTerminal(userID)
 	if err != nil {
 		return err
 	}
 	return terminal.Restart()
-}
-
-func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, error) {
-	if terminal, ok := i.terminal.Get(userID); ok {
-		return terminal, nil
-	}
-
-	cfg := servercore.NewTerminalConfig(userID, defaultTerminalDir())
-	terminal, err := i.terminal.Create(cfg)
-	if err == nil {
-		return terminal, nil
-	}
-
-	// 并发创建时，优先复用已经注册成功的实例。
-	if terminal, ok := i.terminal.Get(userID); ok {
-		return terminal, nil
-	}
-
-	return nil, ErrInstanceNotFound
 }
 
 func defaultTerminalDir() string {
@@ -190,6 +146,154 @@ func defaultTerminalDir() string {
 		return ""
 	}
 	return dir
+}
+
+func (i *InstanceUsecase) GetInstances(ctx context.Context, req *v1.GetInstancesRequest, userId string) ([]*v1.InstanceInfo, int64, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 50 {
+		req.PageSize = 50
+	}
+	items, total, err := i.repo.GetInstances(ctx, req.Page, req.PageSize, userId, req.Keywords, req.Type)
+	if err != nil {
+		return nil, 0, ErrSystem(err)
+	}
+	infos := make([]*v1.InstanceInfo, 0, len(items))
+	for _, item := range items {
+		core, err := i.ensureInstance(item)
+		if err != nil {
+			return nil, 0, err
+		}
+		infos = append(infos, i.toInstanceInfo(core, item))
+	}
+	return infos, total, nil
+}
+
+// CreateInstance 将实例创建在目标用户下面
+func (i *InstanceUsecase) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*v1.InstanceInfo, error) {
+	item, err := i.repo.CreateInstance(ctx, req, userId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return nil, err
+	}
+	return i.toInstanceInfo(core, item), nil
+}
+
+func (i *InstanceUsecase) GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*v1.InstanceInfo, error) {
+	item, err := i.repo.GetInstanceByUserID(ctx, userId, instanceId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return nil, err
+	}
+	return i.toInstanceInfo(core, item), nil
+}
+
+// GetInstanceCore 用户id限制拉取实例信息
+func (i *InstanceUsecase) GetInstanceCore(ctx context.Context, userId, instanceId string) (*servercore.Server, error) {
+	item, err := i.repo.GetInstanceByUserID(ctx, userId, instanceId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return nil, err
+	}
+	return core, nil
+}
+
+// StartInstance 启动实例
+func (i *InstanceUsecase) StartInstance(ctx context.Context, userId, instanceId string) (*v1.InstanceInfo, error) {
+	item, err := i.repo.GetInstanceByUserID(ctx, userId, instanceId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return nil, err
+	}
+	err = core.Start()
+	if err != nil {
+		return nil, err
+	}
+	return i.toInstanceInfo(core, item), nil
+}
+
+// StopInstance 停止实例
+func (i *InstanceUsecase) StopInstance(ctx context.Context, userId, instanceId string) error {
+	item, err := i.repo.GetInstanceByUserID(ctx, userId, instanceId)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return err
+	}
+	return core.Stop()
+}
+
+// RestartInstance 重启实例
+func (i *InstanceUsecase) RestartInstance(ctx context.Context, userId, instanceId string) error {
+	item, err := i.repo.GetInstanceByUserID(ctx, userId, instanceId)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return err
+	}
+	return core.Restart()
+}
+
+// 删除实例
+
+// 获取/创建终端实例
+func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, error) {
+	if terminal, ok := i.terminal.Get(userID); ok {
+		return terminal, nil
+	}
+	cfg := servercore.NewTerminalConfig(userID, defaultTerminalDir())
+	terminal, err := i.terminal.Create(cfg)
+	if err == nil {
+		return terminal, nil
+	}
+	if terminal, ok := i.terminal.Get(userID); ok {
+		return terminal, nil
+	}
+	return nil, ErrInstanceNotFound
+}
+
+// 获取/创建应用实例
+func (i *InstanceUsecase) ensureInstance(item *ent.Instance) (*servercore.Server, error) {
+	if terminal, ok := i.instance.Get(item.ID); ok {
+		return terminal, nil
+	}
+	instance, err := i.instance.Create(servercore.ServerConfig{
+		ID:               item.ID,
+		Command:          item.StartCommand,
+		Args:             nil,
+		Dir:              item.Path,
+		Env:              item.Env,
+		LogLimit:         0,
+		SubscriberBuffer: 0,
+		Terminal:         false,
+	})
+	if err == nil {
+		return instance, nil
+	}
+	if instance, ok := i.instance.Get(item.ID); ok {
+		return instance, nil
+	}
+	return nil, ErrInstanceNotFound
 }
 
 // StartInstanceWsConn 启动指定实例的 ws 控制台连接。
@@ -242,4 +346,64 @@ func toInstanceTypeInfo(data *ent.InstanceType) *v1.InstanceTypeInfo {
 		IsSystem: data.IsSystem,
 		IsEnable: data.IsEnable,
 	}
+}
+
+func (i *InstanceUsecase) terminalToInstanceInfo(terminal *servercore.Server) *v1.InstanceInfo {
+	info := &v1.InstanceInfo{
+		Id:           terminal.ID(),
+		Name:         terminalName,
+		Status:       v1.InstanceStatus_INSTANCE_STATUS_STOPPED,
+		CreateTime:   timestamppb.New(terminal.CreateTime()),
+		Remark:       "",
+		Tags:         "",
+		Type:         terminalType,
+		UserId:       terminal.ID(),
+		StartCommand: terminal.CommandLine(),
+		InstancePath: terminal.Dir(),
+		StartTime:    nil,
+		WsPath:       "",
+		StopCommand:  "",
+		AutoStart:    false,
+	}
+	if terminal.Running() {
+		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
+		if startTime, ok := terminal.StartTime(); ok {
+			info.StartTime = timestamppb.New(startTime)
+		}
+		info.WsPath = TerminalWSPath
+	}
+
+	return info
+}
+
+func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *ent.Instance) *v1.InstanceInfo {
+	info := &v1.InstanceInfo{
+		Id:           item.ID,
+		Name:         item.Name,
+		Status:       v1.InstanceStatus_INSTANCE_STATUS_STOPPED,
+		CreateTime:   timestamppb.New(item.CreateTime),
+		Remark:       item.Remark,
+		Tags:         item.Tags,
+		Type:         "",
+		UserId:       item.UserID,
+		StartCommand: item.StartCommand,
+		InstancePath: item.Path,
+		StartTime:    nil,
+		WsPath:       "",
+		StopCommand:  item.StopCommand,
+		AutoStart:    item.AutoStart,
+		Env:          item.Env,
+	}
+	if server.Running() {
+		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
+		if startTime, ok := server.StartTime(); ok {
+			info.StartTime = timestamppb.New(startTime)
+		}
+		info.WsPath = InstanceWsPath
+	}
+	if t := item.Edges.Type; t != nil {
+		info.Type = t.Name
+	}
+
+	return info
 }

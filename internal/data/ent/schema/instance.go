@@ -22,7 +22,9 @@ func (Instance) Fields() []ent.Field {
 		// 实例设置
 		field.String("path").NotEmpty().Default("./servers").Comment("工作目录"),
 		field.String("start_command").NotEmpty().Comment("启动命令"),
-		field.JSON("env", map[string]string{}).Optional().Comment("环境变量"),
+		field.String("stop_command").Default("exit").Comment("停止命令"),
+		field.Bool("auto_start").Default(false).Comment("是否自启动"),
+		field.JSON("env", []string{}).Optional().Comment("环境变量"),
 	}
 }
 

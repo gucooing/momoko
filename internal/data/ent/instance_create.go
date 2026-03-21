@@ -127,8 +127,36 @@ func (_c *InstanceCreate) SetStartCommand(v string) *InstanceCreate {
 	return _c
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (_c *InstanceCreate) SetStopCommand(v string) *InstanceCreate {
+	_c.mutation.SetStopCommand(v)
+	return _c
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableStopCommand(v *string) *InstanceCreate {
+	if v != nil {
+		_c.SetStopCommand(*v)
+	}
+	return _c
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (_c *InstanceCreate) SetAutoStart(v bool) *InstanceCreate {
+	_c.mutation.SetAutoStart(v)
+	return _c
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableAutoStart(v *bool) *InstanceCreate {
+	if v != nil {
+		_c.SetAutoStart(*v)
+	}
+	return _c
+}
+
 // SetEnv sets the "env" field.
-func (_c *InstanceCreate) SetEnv(v map[string]string) *InstanceCreate {
+func (_c *InstanceCreate) SetEnv(v []string) *InstanceCreate {
 	_c.mutation.SetEnv(v)
 	return _c
 }
@@ -216,6 +244,14 @@ func (_c *InstanceCreate) defaults() {
 		v := instance.DefaultPath
 		_c.mutation.SetPath(v)
 	}
+	if _, ok := _c.mutation.StopCommand(); !ok {
+		v := instance.DefaultStopCommand
+		_c.mutation.SetStopCommand(v)
+	}
+	if _, ok := _c.mutation.AutoStart(); !ok {
+		v := instance.DefaultAutoStart
+		_c.mutation.SetAutoStart(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -260,6 +296,12 @@ func (_c *InstanceCreate) check() error {
 		if err := instance.StartCommandValidator(v); err != nil {
 			return &ValidationError{Name: "start_command", err: fmt.Errorf(`ent: validator failed for field "Instance.start_command": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.StopCommand(); !ok {
+		return &ValidationError{Name: "stop_command", err: errors.New(`ent: missing required field "Instance.stop_command"`)}
+	}
+	if _, ok := _c.mutation.AutoStart(); !ok {
+		return &ValidationError{Name: "auto_start", err: errors.New(`ent: missing required field "Instance.auto_start"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := instance.IDValidator(v); err != nil {
@@ -340,6 +382,14 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
 		_node.StartCommand = value
+	}
+	if value, ok := _c.mutation.StopCommand(); ok {
+		_spec.SetField(instance.FieldStopCommand, field.TypeString, value)
+		_node.StopCommand = value
+	}
+	if value, ok := _c.mutation.AutoStart(); ok {
+		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
+		_node.AutoStart = value
 	}
 	if value, ok := _c.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
@@ -538,8 +588,32 @@ func (u *InstanceUpsert) UpdateStartCommand() *InstanceUpsert {
 	return u
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceUpsert) SetStopCommand(v string) *InstanceUpsert {
+	u.Set(instance.FieldStopCommand, v)
+	return u
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateStopCommand() *InstanceUpsert {
+	u.SetExcluded(instance.FieldStopCommand)
+	return u
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *InstanceUpsert) SetAutoStart(v bool) *InstanceUpsert {
+	u.Set(instance.FieldAutoStart, v)
+	return u
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateAutoStart() *InstanceUpsert {
+	u.SetExcluded(instance.FieldAutoStart)
+	return u
+}
+
 // SetEnv sets the "env" field.
-func (u *InstanceUpsert) SetEnv(v map[string]string) *InstanceUpsert {
+func (u *InstanceUpsert) SetEnv(v []string) *InstanceUpsert {
 	u.Set(instance.FieldEnv, v)
 	return u
 }
@@ -733,8 +807,36 @@ func (u *InstanceUpsertOne) UpdateStartCommand() *InstanceUpsertOne {
 	})
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceUpsertOne) SetStopCommand(v string) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetStopCommand(v)
+	})
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateStopCommand() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateStopCommand()
+	})
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *InstanceUpsertOne) SetAutoStart(v bool) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetAutoStart(v)
+	})
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateAutoStart() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateAutoStart()
+	})
+}
+
 // SetEnv sets the "env" field.
-func (u *InstanceUpsertOne) SetEnv(v map[string]string) *InstanceUpsertOne {
+func (u *InstanceUpsertOne) SetEnv(v []string) *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
 		s.SetEnv(v)
 	})
@@ -1098,8 +1200,36 @@ func (u *InstanceUpsertBulk) UpdateStartCommand() *InstanceUpsertBulk {
 	})
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceUpsertBulk) SetStopCommand(v string) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetStopCommand(v)
+	})
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateStopCommand() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateStopCommand()
+	})
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *InstanceUpsertBulk) SetAutoStart(v bool) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetAutoStart(v)
+	})
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateAutoStart() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateAutoStart()
+	})
+}
+
 // SetEnv sets the "env" field.
-func (u *InstanceUpsertBulk) SetEnv(v map[string]string) *InstanceUpsertBulk {
+func (u *InstanceUpsertBulk) SetEnv(v []string) *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
 		s.SetEnv(v)
 	})

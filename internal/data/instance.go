@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/instance"
@@ -63,14 +64,76 @@ func (i *instanceRepo) DeleteType(ctx context.Context, id string) error {
 		Exec(ctx)
 }
 
-// GetInstances 获取该账号下管辖的实例
-func (i *instanceRepo) GetInstances(ctx context.Context, userId string) ([]*ent.Instance, error) {
+// GetInstances 获取该账号下管辖的实例列表
+func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
 			instance.UserIDEQ(userId),                // 主人
 			instance.HasUsersWith(user.IDEQ(userId)), // 分配给当前用户
 		),
-	).WithUsers().WithType()
+	)
 
-	return query.All(ctx)
+	if keywords != nil {
+		query.Where(
+			instance.Or(
+				instance.NameContains(*keywords),
+				instance.Tags(*keywords),
+			),
+		)
+	}
+	if types != nil {
+		query.Where(
+			instance.HasTypeWith(instancetype.NameEQ(*types)),
+		)
+	}
+
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	instances, err := query.
+		WithUsers().WithType().
+		Offset(int((page - 1) * pageSize)).
+		Limit(int(pageSize)).
+		Order(ent.Asc(instance.FieldCreateTime)).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return instances, int64(total), nil
+}
+
+// GetInstanceByUserID 获取该账号下管辖的实例
+func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error) {
+	query := i.data.db.Instance.Query().Where(
+		instance.Or(
+			instance.UserIDEQ(userId),                // 主人
+			instance.HasUsersWith(user.IDEQ(userId)), // 分配给当前用户
+		),
+		instance.IDEQ(instanceId),
+	)
+	info, err := query.
+		WithUsers().WithType().Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
+func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error) {
+	create := i.data.db.Instance.Create().
+		SetUserID(userId).
+		SetID(uuid.NewString()).
+		SetName(req.Name).
+		SetRemark(req.Remark).
+		SetTags(req.Tags).
+		SetPath(req.InstancePath).
+		SetStartCommand(req.StartCommand).
+		SetStopCommand(req.StopCommand).
+		SetAutoStart(req.AutoStart).
+		SetEnv(req.Env)
+
+	return create.Save(ctx)
 }

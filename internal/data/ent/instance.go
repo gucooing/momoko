@@ -38,8 +38,12 @@ type Instance struct {
 	Path string `json:"path,omitempty"`
 	// 启动命令
 	StartCommand string `json:"start_command,omitempty"`
+	// 停止命令
+	StopCommand string `json:"stop_command,omitempty"`
+	// 是否自启动
+	AutoStart bool `json:"auto_start,omitempty"`
 	// 环境变量
-	Env map[string]string `json:"env,omitempty"`
+	Env []string `json:"env,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InstanceQuery when eager-loading is set.
 	Edges         InstanceEdges `json:"edges"`
@@ -85,9 +89,9 @@ func (*Instance) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case instance.FieldEnv:
 			values[i] = new([]byte)
-		case instance.FieldIsSystem:
+		case instance.FieldIsSystem, instance.FieldAutoStart:
 			values[i] = new(sql.NullBool)
-		case instance.FieldID, instance.FieldName, instance.FieldRemark, instance.FieldTags, instance.FieldUserID, instance.FieldPath, instance.FieldStartCommand:
+		case instance.FieldID, instance.FieldName, instance.FieldRemark, instance.FieldTags, instance.FieldUserID, instance.FieldPath, instance.FieldStartCommand, instance.FieldStopCommand:
 			values[i] = new(sql.NullString)
 		case instance.FieldCreateTime, instance.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -167,6 +171,18 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field start_command", values[i])
 			} else if value.Valid {
 				_m.StartCommand = value.String
+			}
+		case instance.FieldStopCommand:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stop_command", values[i])
+			} else if value.Valid {
+				_m.StopCommand = value.String
+			}
+		case instance.FieldAutoStart:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_start", values[i])
+			} else if value.Valid {
+				_m.AutoStart = value.Bool
 			}
 		case instance.FieldEnv:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -255,6 +271,12 @@ func (_m *Instance) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("start_command=")
 	builder.WriteString(_m.StartCommand)
+	builder.WriteString(", ")
+	builder.WriteString("stop_command=")
+	builder.WriteString(_m.StopCommand)
+	builder.WriteString(", ")
+	builder.WriteString("auto_start=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AutoStart))
 	builder.WriteString(", ")
 	builder.WriteString("env=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Env))

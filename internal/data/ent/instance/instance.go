@@ -32,6 +32,10 @@ const (
 	FieldPath = "path"
 	// FieldStartCommand holds the string denoting the start_command field in the database.
 	FieldStartCommand = "start_command"
+	// FieldStopCommand holds the string denoting the stop_command field in the database.
+	FieldStopCommand = "stop_command"
+	// FieldAutoStart holds the string denoting the auto_start field in the database.
+	FieldAutoStart = "auto_start"
 	// FieldEnv holds the string denoting the env field in the database.
 	FieldEnv = "env"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
@@ -68,6 +72,8 @@ var Columns = []string{
 	FieldUserID,
 	FieldPath,
 	FieldStartCommand,
+	FieldStopCommand,
+	FieldAutoStart,
 	FieldEnv,
 }
 
@@ -111,6 +117,10 @@ var (
 	PathValidator func(string) error
 	// StartCommandValidator is a validator for the "start_command" field. It is called by the builders before save.
 	StartCommandValidator func(string) error
+	// DefaultStopCommand holds the default value on creation for the "stop_command" field.
+	DefaultStopCommand string
+	// DefaultAutoStart holds the default value on creation for the "auto_start" field.
+	DefaultAutoStart bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -166,6 +176,16 @@ func ByPath(opts ...sql.OrderTermOption) OrderOption {
 // ByStartCommand orders the results by the start_command field.
 func ByStartCommand(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStartCommand, opts...).ToFunc()
+}
+
+// ByStopCommand orders the results by the stop_command field.
+func ByStopCommand(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStopCommand, opts...).ToFunc()
+}
+
+// ByAutoStart orders the results by the auto_start field.
+func ByAutoStart(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoStart, opts...).ToFunc()
 }
 
 // ByUsersCount orders the results by users count.

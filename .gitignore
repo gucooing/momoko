@@ -41,3 +41,4 @@ bin/
 *.pb.go
 /dist
 /test/bedrock-server
+/servers

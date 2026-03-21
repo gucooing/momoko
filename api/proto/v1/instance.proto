@@ -69,8 +69,58 @@ service InstanceManager {
 
   // 实例管理
   // 获取实例列表
+  rpc GetInstances(GetInstancesRequest) returns (GetInstancesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance"
+    };
+  }
+  // 创建实例
+  rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance"
+      body: "*"
+    };
+  }
   // 获取实例详情
-  // 启动/停止/重启 实例
+  rpc GetInstanceInfo(GetInstanceInfoRequest) returns (GetInstanceInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/{id}"
+    };
+  }
+  // 启动实例
+  rpc StartInstance(StartInstanceRequest) returns (StartInstanceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/instance/start/{id}"
+      body: "*"
+    };
+  }
+  // 停止实例
+  rpc StopInstance(StopInstanceRequest) returns (StopInstanceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/instance/stop/{id}"
+      body: "*"
+    };
+  }
+  // 重启实例
+  rpc RestartInstance(RestartInstanceRequest) returns (RestartInstanceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/instance/restart/{id}"
+      body: "*"
+    };
+  }
+  // 删除实例
+  rpc DelInstance(DelInstanceRequest) returns (DelInstanceResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/instance/instance/del/{id}"
+    };
+  }
+  // 更新实例
+  rpc UpdateInstance(UpdateInstanceRequest) returns (UpdateInstanceResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/instance/instance/{id}"
+      body: "*"
+    };
+  }
 }
 
 // 获取实例类型请求
@@ -158,6 +208,156 @@ message RestartTerminalRequest{}
 // 重启终端响应
 message RestartTerminalResponse{}
 
+// 获取实例列表请求
+message GetInstancesRequest{
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // 实例名称/标签
+  optional string keywords = 3;
+  // 类型
+  optional string type = 4;
+  // 状态
+  optional InstanceStatus status = 5;
+}
+
+// 获取实例列表响应
+message GetInstancesResponse{
+  // actual page
+  int64 page = 1;
+  // actual page size
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 列表
+  repeated InstanceInfo infos = 4;
+}
+
+// 创建实例请求
+message CreateInstanceRequest {
+  // 实例名称
+  string name = 1;
+  // 备注
+  string remark = 2;
+  // 标签(,号隔开)
+  string tags = 3;
+  // 类型
+  string type = 4;
+  // 所属用户id
+  string user_id = 5;
+  // 启动命令
+  string start_command = 6;
+  // 实例路径
+  string instance_path = 7;
+  // 停止命令
+  string stop_command = 8;
+  // 是否自启动
+  bool auto_start = 9;
+  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+  repeated string env = 10;
+}
+
+// 创建实例响应
+message CreateInstanceResponse {
+  // 实例详情
+  InstanceInfo info = 1;
+}
+
+// 获取实例详情请求
+message GetInstanceInfoRequest{
+  // id
+  string id = 1;
+}
+
+// 获取实例详情响应
+message GetInstanceInfoResponse{
+  // 实例详情
+  InstanceInfo info = 1;
+}
+
+// 获取实例控制台详情请求
+message GetInstanceTerminalInfoRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 获取实例控制台详情响应
+message GetInstanceTerminalInfoResponse {
+
+}
+
+// 启动实例请求
+message StartInstanceRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 启动实例响应
+message StartInstanceResponse {
+  // 实例详情
+  InstanceInfo info = 1;
+}
+
+// 停止实例请求
+message StopInstanceRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 停止实例响应
+message StopInstanceResponse {}
+
+// 重启实例请求
+message RestartInstanceRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 重启实例响应
+message RestartInstanceResponse {}
+
+// 删除实例请求
+message DelInstanceRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 删除实例响应
+message DelInstanceResponse {}
+
+message UpdateInstanceRequest{
+  // 实例id
+  string id = 1;
+  // 实例名称
+  optional string name = 2;
+  // 备注
+  optional string remark = 3;
+  // 标签(,号隔开)
+  optional string tags = 4;
+  // 类型
+  optional string type = 5;
+  // 所属用户id
+  optional string user_id = 6;
+  // 启动命令
+  optional string start_command = 7;
+  // 实例路径
+  optional string instance_path = 8;
+  // ws路径(启动时才有
+  optional string ws_path = 9;
+  // 停止命令
+  optional string stop_command = 10;
+  // 是否自启动
+  optional bool auto_start = 11;
+  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+  repeated string env = 12;
+}
+
+message UpdateInstanceResponse{
+  // 实例详情
+  InstanceInfo info = 1;
+}
+
 // 实例详情
 message InstanceInfo {
   // 实例id
@@ -172,8 +372,8 @@ message InstanceInfo {
   google.protobuf.Timestamp create_time = 5;
   // 备注
   string remark = 6;
-  // 标签
-  repeated string tags = 7;
+  // 标签(,号隔开)
+  string tags = 7;
   // 类型
   string type = 8;
   // 所属用户id
@@ -184,6 +384,12 @@ message InstanceInfo {
   string instance_path = 11;
   // ws路径(启动时才有
   string ws_path = 12;
+  // 停止命令
+  string stop_command = 13;
+  // 是否自启动
+  bool auto_start = 14;
+  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+  repeated string env = 15;
 }
 
 // 实例状态

@@ -57,6 +57,190 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/instance:
+        get:
+            tags:
+                - InstanceManager
+            description: |-
+                实例管理
+                 获取实例列表
+            operationId: InstanceManager_GetInstances
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 实例名称/标签
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: 类型
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: 状态
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstancesResponse'
+        post:
+            tags:
+                - InstanceManager
+            description: 创建实例
+            operationId: InstanceManager_CreateInstance
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateInstanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateInstanceResponse'
+    /api/v1/instance/instance/del/{id}:
+        delete:
+            tags:
+                - InstanceManager
+            description: 删除实例
+            operationId: InstanceManager_DelInstance
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DelInstanceResponse'
+    /api/v1/instance/instance/restart/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 重启实例
+            operationId: InstanceManager_RestartInstance
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RestartInstanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RestartInstanceResponse'
+    /api/v1/instance/instance/start/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 启动实例
+            operationId: InstanceManager_StartInstance
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StartInstanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StartInstanceResponse'
+    /api/v1/instance/instance/stop/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 停止实例
+            operationId: InstanceManager_StopInstance
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StopInstanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StopInstanceResponse'
+    /api/v1/instance/instance/{id}:
+        put:
+            tags:
+                - InstanceManager
+            description: 更新实例
+            operationId: InstanceManager_UpdateInstance
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateInstanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateInstanceResponse'
     /api/v1/instance/terminal:
         get:
             tags:
@@ -207,6 +391,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DelInstanceTypeResponse'
+    /api/v1/instance/{id}:
+        get:
+            tags:
+                - InstanceManager
+            description: 获取实例详情
+            operationId: InstanceManager_GetInstanceInfo
+            parameters:
+                - name: id
+                  in: path
+                  description: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstanceInfoResponse'
     /api/v1/permissions/admin:
         get:
             tags:
@@ -783,6 +987,50 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
+        v1.CreateInstanceRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 实例名称
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签(,号隔开)
+                type:
+                    type: string
+                    description: 类型
+                userId:
+                    type: string
+                    description: 所属用户id
+                startCommand:
+                    type: string
+                    description: 启动命令
+                instancePath:
+                    type: string
+                    description: 实例路径
+                stopCommand:
+                    type: string
+                    description: 停止命令
+                autoStart:
+                    type: boolean
+                    description: 是否自启动
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+            description: 创建实例请求
+        v1.CreateInstanceResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 实例详情
+            description: 创建实例响应
         v1.CreateInstanceTypeRequest:
             type: object
             properties:
@@ -798,6 +1046,10 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.DelInstanceResponse:
+            type: object
+            properties: {}
+            description: 删除实例响应
         v1.DelInstanceTypeResponse:
             type: object
             properties: {}
@@ -855,6 +1107,14 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新用户响应
+        v1.GetInstanceInfoResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 实例详情
+            description: 获取实例详情响应
         v1.GetInstanceTypesResponse:
             type: object
             properties:
@@ -864,6 +1124,24 @@ components:
                         $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 类型列表
             description: 获取实例类型响应
+        v1.GetInstancesResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 列表
+            description: 获取实例列表响应
         v1.GetTerminalInfoResponse:
             type: object
             properties:
@@ -897,10 +1175,8 @@ components:
                     type: string
                     description: 备注
                 tags:
-                    type: array
-                    items:
-                        type: string
-                    description: 标签
+                    type: string
+                    description: 标签(,号隔开)
                 type:
                     type: string
                     description: 类型
@@ -916,6 +1192,17 @@ components:
                 wsPath:
                     type: string
                     description: ws路径(启动时才有
+                stopCommand:
+                    type: string
+                    description: 停止命令
+                autoStart:
+                    type: boolean
+                    description: 是否自启动
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
             description: 实例详情
         v1.InstanceTypeInfo:
             type: object
@@ -1104,6 +1391,17 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RestartInstanceRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+            description: 重启实例请求
+        v1.RestartInstanceResponse:
+            type: object
+            properties: {}
+            description: 重启实例响应
         v1.RestartTerminalRequest:
             type: object
             properties: {}
@@ -1145,6 +1443,21 @@ components:
                         type: string
                     description: 角色菜单id
             description: 角色详情
+        v1.StartInstanceRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+            description: 启动实例请求
+        v1.StartInstanceResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 实例详情
+            description: 启动实例响应
         v1.StartTerminalRequest:
             type: object
             properties: {}
@@ -1153,6 +1466,17 @@ components:
             type: object
             properties: {}
             description: 启动终端响应
+        v1.StopInstanceRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+            description: 停止实例请求
+        v1.StopInstanceResponse:
+            type: object
+            properties: {}
+            description: 停止实例响应
         v1.StopTerminalRequest:
             type: object
             properties: {}
@@ -1161,6 +1485,54 @@ components:
             type: object
             properties: {}
             description: 停止终端响应
+        v1.UpdateInstanceRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                name:
+                    type: string
+                    description: 实例名称
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签(,号隔开)
+                type:
+                    type: string
+                    description: 类型
+                userId:
+                    type: string
+                    description: 所属用户id
+                startCommand:
+                    type: string
+                    description: 启动命令
+                instancePath:
+                    type: string
+                    description: 实例路径
+                wsPath:
+                    type: string
+                    description: ws路径(启动时才有
+                stopCommand:
+                    type: string
+                    description: 停止命令
+                autoStart:
+                    type: boolean
+                    description: 是否自启动
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+        v1.UpdateInstanceResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceInfo'
+                    description: 实例详情
         v1.UpdateInstanceTypeRequest:
             type: object
             properties:

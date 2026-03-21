@@ -110,6 +110,16 @@ func StartCommand(v string) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldStartCommand, v))
 }
 
+// StopCommand applies equality check predicate on the "stop_command" field. It's identical to StopCommandEQ.
+func StopCommand(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldStopCommand, v))
+}
+
+// AutoStart applies equality check predicate on the "auto_start" field. It's identical to AutoStartEQ.
+func AutoStart(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldAutoStart, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldCreateTime, v))
@@ -608,6 +618,81 @@ func StartCommandEqualFold(v string) predicate.Instance {
 // StartCommandContainsFold applies the ContainsFold predicate on the "start_command" field.
 func StartCommandContainsFold(v string) predicate.Instance {
 	return predicate.Instance(sql.FieldContainsFold(FieldStartCommand, v))
+}
+
+// StopCommandEQ applies the EQ predicate on the "stop_command" field.
+func StopCommandEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldStopCommand, v))
+}
+
+// StopCommandNEQ applies the NEQ predicate on the "stop_command" field.
+func StopCommandNEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldStopCommand, v))
+}
+
+// StopCommandIn applies the In predicate on the "stop_command" field.
+func StopCommandIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldStopCommand, vs...))
+}
+
+// StopCommandNotIn applies the NotIn predicate on the "stop_command" field.
+func StopCommandNotIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldStopCommand, vs...))
+}
+
+// StopCommandGT applies the GT predicate on the "stop_command" field.
+func StopCommandGT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldStopCommand, v))
+}
+
+// StopCommandGTE applies the GTE predicate on the "stop_command" field.
+func StopCommandGTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldStopCommand, v))
+}
+
+// StopCommandLT applies the LT predicate on the "stop_command" field.
+func StopCommandLT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldStopCommand, v))
+}
+
+// StopCommandLTE applies the LTE predicate on the "stop_command" field.
+func StopCommandLTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldStopCommand, v))
+}
+
+// StopCommandContains applies the Contains predicate on the "stop_command" field.
+func StopCommandContains(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContains(FieldStopCommand, v))
+}
+
+// StopCommandHasPrefix applies the HasPrefix predicate on the "stop_command" field.
+func StopCommandHasPrefix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasPrefix(FieldStopCommand, v))
+}
+
+// StopCommandHasSuffix applies the HasSuffix predicate on the "stop_command" field.
+func StopCommandHasSuffix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasSuffix(FieldStopCommand, v))
+}
+
+// StopCommandEqualFold applies the EqualFold predicate on the "stop_command" field.
+func StopCommandEqualFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEqualFold(FieldStopCommand, v))
+}
+
+// StopCommandContainsFold applies the ContainsFold predicate on the "stop_command" field.
+func StopCommandContainsFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContainsFold(FieldStopCommand, v))
+}
+
+// AutoStartEQ applies the EQ predicate on the "auto_start" field.
+func AutoStartEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldAutoStart, v))
+}
+
+// AutoStartNEQ applies the NEQ predicate on the "auto_start" field.
+func AutoStartNEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldAutoStart, v))
 }
 
 // EnvIsNil applies the IsNil predicate on the "env" field.

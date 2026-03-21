@@ -66,6 +66,8 @@ var (
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "path", Type: field.TypeString, Default: "./servers"},
 		{Name: "start_command", Type: field.TypeString},
+		{Name: "stop_command", Type: field.TypeString, Default: "exit"},
+		{Name: "auto_start", Type: field.TypeBool, Default: false},
 		{Name: "env", Type: field.TypeJSON, Nullable: true},
 		{Name: "instance_type", Type: field.TypeString},
 	}
@@ -77,7 +79,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "instances_instance_types_type",
-				Columns:    []*schema.Column{InstancesColumns[11]},
+				Columns:    []*schema.Column{InstancesColumns[13]},
 				RefColumns: []*schema.Column{InstanceTypesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

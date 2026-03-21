@@ -14,6 +14,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -146,9 +147,43 @@ func (_u *InstanceUpdate) SetNillableStartCommand(v *string) *InstanceUpdate {
 	return _u
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (_u *InstanceUpdate) SetStopCommand(v string) *InstanceUpdate {
+	_u.mutation.SetStopCommand(v)
+	return _u
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableStopCommand(v *string) *InstanceUpdate {
+	if v != nil {
+		_u.SetStopCommand(*v)
+	}
+	return _u
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (_u *InstanceUpdate) SetAutoStart(v bool) *InstanceUpdate {
+	_u.mutation.SetAutoStart(v)
+	return _u
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableAutoStart(v *bool) *InstanceUpdate {
+	if v != nil {
+		_u.SetAutoStart(*v)
+	}
+	return _u
+}
+
 // SetEnv sets the "env" field.
-func (_u *InstanceUpdate) SetEnv(v map[string]string) *InstanceUpdate {
+func (_u *InstanceUpdate) SetEnv(v []string) *InstanceUpdate {
 	_u.mutation.SetEnv(v)
+	return _u
+}
+
+// AppendEnv appends value to the "env" field.
+func (_u *InstanceUpdate) AppendEnv(v []string) *InstanceUpdate {
+	_u.mutation.AppendEnv(v)
 	return _u
 }
 
@@ -322,8 +357,19 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.StopCommand(); ok {
+		_spec.SetField(instance.FieldStopCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AutoStart(); ok {
+		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEnv(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instance.FieldEnv, value)
+		})
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
@@ -538,9 +584,43 @@ func (_u *InstanceUpdateOne) SetNillableStartCommand(v *string) *InstanceUpdateO
 	return _u
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (_u *InstanceUpdateOne) SetStopCommand(v string) *InstanceUpdateOne {
+	_u.mutation.SetStopCommand(v)
+	return _u
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableStopCommand(v *string) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetStopCommand(*v)
+	}
+	return _u
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (_u *InstanceUpdateOne) SetAutoStart(v bool) *InstanceUpdateOne {
+	_u.mutation.SetAutoStart(v)
+	return _u
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableAutoStart(v *bool) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetAutoStart(*v)
+	}
+	return _u
+}
+
 // SetEnv sets the "env" field.
-func (_u *InstanceUpdateOne) SetEnv(v map[string]string) *InstanceUpdateOne {
+func (_u *InstanceUpdateOne) SetEnv(v []string) *InstanceUpdateOne {
 	_u.mutation.SetEnv(v)
+	return _u
+}
+
+// AppendEnv appends value to the "env" field.
+func (_u *InstanceUpdateOne) AppendEnv(v []string) *InstanceUpdateOne {
+	_u.mutation.AppendEnv(v)
 	return _u
 }
 
@@ -744,8 +824,19 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	if value, ok := _u.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.StopCommand(); ok {
+		_spec.SetField(instance.FieldStopCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AutoStart(); ok {
+		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEnv(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instance.FieldEnv, value)
+		})
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)

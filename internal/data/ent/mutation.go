@@ -758,7 +758,10 @@ type InstanceMutation struct {
 	user_id       *string
 	_path         *string
 	start_command *string
-	env           *map[string]string
+	stop_command  *string
+	auto_start    *bool
+	env           *[]string
+	appendenv     []string
 	clearedFields map[string]struct{}
 	users         map[string]struct{}
 	removedusers  map[string]struct{}
@@ -1224,13 +1227,86 @@ func (m *InstanceMutation) ResetStartCommand() {
 	m.start_command = nil
 }
 
+// SetStopCommand sets the "stop_command" field.
+func (m *InstanceMutation) SetStopCommand(s string) {
+	m.stop_command = &s
+}
+
+// StopCommand returns the value of the "stop_command" field in the mutation.
+func (m *InstanceMutation) StopCommand() (r string, exists bool) {
+	v := m.stop_command
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStopCommand returns the old "stop_command" field's value of the Instance entity.
+// If the Instance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceMutation) OldStopCommand(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStopCommand is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStopCommand requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStopCommand: %w", err)
+	}
+	return oldValue.StopCommand, nil
+}
+
+// ResetStopCommand resets all changes to the "stop_command" field.
+func (m *InstanceMutation) ResetStopCommand() {
+	m.stop_command = nil
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (m *InstanceMutation) SetAutoStart(b bool) {
+	m.auto_start = &b
+}
+
+// AutoStart returns the value of the "auto_start" field in the mutation.
+func (m *InstanceMutation) AutoStart() (r bool, exists bool) {
+	v := m.auto_start
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoStart returns the old "auto_start" field's value of the Instance entity.
+// If the Instance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceMutation) OldAutoStart(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoStart is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoStart requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoStart: %w", err)
+	}
+	return oldValue.AutoStart, nil
+}
+
+// ResetAutoStart resets all changes to the "auto_start" field.
+func (m *InstanceMutation) ResetAutoStart() {
+	m.auto_start = nil
+}
+
 // SetEnv sets the "env" field.
-func (m *InstanceMutation) SetEnv(value map[string]string) {
-	m.env = &value
+func (m *InstanceMutation) SetEnv(s []string) {
+	m.env = &s
+	m.appendenv = nil
 }
 
 // Env returns the value of the "env" field in the mutation.
-func (m *InstanceMutation) Env() (r map[string]string, exists bool) {
+func (m *InstanceMutation) Env() (r []string, exists bool) {
 	v := m.env
 	if v == nil {
 		return
@@ -1241,7 +1317,7 @@ func (m *InstanceMutation) Env() (r map[string]string, exists bool) {
 // OldEnv returns the old "env" field's value of the Instance entity.
 // If the Instance object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InstanceMutation) OldEnv(ctx context.Context) (v map[string]string, err error) {
+func (m *InstanceMutation) OldEnv(ctx context.Context) (v []string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnv is only allowed on UpdateOne operations")
 	}
@@ -1255,9 +1331,23 @@ func (m *InstanceMutation) OldEnv(ctx context.Context) (v map[string]string, err
 	return oldValue.Env, nil
 }
 
+// AppendEnv adds s to the "env" field.
+func (m *InstanceMutation) AppendEnv(s []string) {
+	m.appendenv = append(m.appendenv, s...)
+}
+
+// AppendedEnv returns the list of values that were appended to the "env" field in this mutation.
+func (m *InstanceMutation) AppendedEnv() ([]string, bool) {
+	if len(m.appendenv) == 0 {
+		return nil, false
+	}
+	return m.appendenv, true
+}
+
 // ClearEnv clears the value of the "env" field.
 func (m *InstanceMutation) ClearEnv() {
 	m.env = nil
+	m.appendenv = nil
 	m.clearedFields[instance.FieldEnv] = struct{}{}
 }
 
@@ -1270,6 +1360,7 @@ func (m *InstanceMutation) EnvCleared() bool {
 // ResetEnv resets all changes to the "env" field.
 func (m *InstanceMutation) ResetEnv() {
 	m.env = nil
+	m.appendenv = nil
 	delete(m.clearedFields, instance.FieldEnv)
 }
 
@@ -1400,7 +1491,7 @@ func (m *InstanceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InstanceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.create_time != nil {
 		fields = append(fields, instance.FieldCreateTime)
 	}
@@ -1427,6 +1518,12 @@ func (m *InstanceMutation) Fields() []string {
 	}
 	if m.start_command != nil {
 		fields = append(fields, instance.FieldStartCommand)
+	}
+	if m.stop_command != nil {
+		fields = append(fields, instance.FieldStopCommand)
+	}
+	if m.auto_start != nil {
+		fields = append(fields, instance.FieldAutoStart)
 	}
 	if m.env != nil {
 		fields = append(fields, instance.FieldEnv)
@@ -1457,6 +1554,10 @@ func (m *InstanceMutation) Field(name string) (ent.Value, bool) {
 		return m.Path()
 	case instance.FieldStartCommand:
 		return m.StartCommand()
+	case instance.FieldStopCommand:
+		return m.StopCommand()
+	case instance.FieldAutoStart:
+		return m.AutoStart()
 	case instance.FieldEnv:
 		return m.Env()
 	}
@@ -1486,6 +1587,10 @@ func (m *InstanceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldPath(ctx)
 	case instance.FieldStartCommand:
 		return m.OldStartCommand(ctx)
+	case instance.FieldStopCommand:
+		return m.OldStopCommand(ctx)
+	case instance.FieldAutoStart:
+		return m.OldAutoStart(ctx)
 	case instance.FieldEnv:
 		return m.OldEnv(ctx)
 	}
@@ -1560,8 +1665,22 @@ func (m *InstanceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStartCommand(v)
 		return nil
+	case instance.FieldStopCommand:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStopCommand(v)
+		return nil
+	case instance.FieldAutoStart:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoStart(v)
+		return nil
 	case instance.FieldEnv:
-		v, ok := value.(map[string]string)
+		v, ok := value.([]string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1663,6 +1782,12 @@ func (m *InstanceMutation) ResetField(name string) error {
 		return nil
 	case instance.FieldStartCommand:
 		m.ResetStartCommand()
+		return nil
+	case instance.FieldStopCommand:
+		m.ResetStopCommand()
+		return nil
+	case instance.FieldAutoStart:
+		m.ResetAutoStart()
 		return nil
 	case instance.FieldEnv:
 		m.ResetEnv()

@@ -117,6 +117,172 @@ export interface RestartTerminalRequest {
 export interface RestartTerminalResponse {
 }
 
+/** 获取实例列表请求 */
+export interface GetInstancesRequest {
+  /** page */
+  page: number;
+  /** page size */
+  pageSize: number;
+  /** 实例名称/标签 */
+  keywords?:
+    | string
+    | undefined;
+  /** 类型 */
+  type?:
+    | string
+    | undefined;
+  /** 状态 */
+  status?: InstanceStatus | undefined;
+}
+
+/** 获取实例列表响应 */
+export interface GetInstancesResponse {
+  /** actual page */
+  page: number;
+  /** actual page size */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+  /** 列表 */
+  infos: InstanceInfo[];
+}
+
+/** 创建实例请求 */
+export interface CreateInstanceRequest {
+  /** 实例名称 */
+  name: string;
+  /** 备注 */
+  remark: string;
+  /** 标签(,号隔开) */
+  tags: string;
+  /** 类型 */
+  type: string;
+  /** 所属用户id */
+  userId: string;
+  /** 启动命令 */
+  startCommand: string;
+  /** 实例路径 */
+  instancePath: string;
+  /** 停止命令 */
+  stopCommand: string;
+  /** 是否自启动 */
+  autoStart: boolean;
+  /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
+  env: string[];
+}
+
+/** 创建实例响应 */
+export interface CreateInstanceResponse {
+  /** 实例详情 */
+  info: InstanceInfo | undefined;
+}
+
+/** 获取实例详情请求 */
+export interface GetInstanceInfoRequest {
+  /** id */
+  id: string;
+}
+
+/** 获取实例详情响应 */
+export interface GetInstanceInfoResponse {
+  /** 实例详情 */
+  info: InstanceInfo | undefined;
+}
+
+/** 启动实例请求 */
+export interface StartInstanceRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 启动实例响应 */
+export interface StartInstanceResponse {
+  /** 实例详情 */
+  info: InstanceInfo | undefined;
+}
+
+/** 停止实例请求 */
+export interface StopInstanceRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 停止实例响应 */
+export interface StopInstanceResponse {
+}
+
+/** 重启实例请求 */
+export interface RestartInstanceRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 重启实例响应 */
+export interface RestartInstanceResponse {
+}
+
+/** 删除实例请求 */
+export interface DelInstanceRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 删除实例响应 */
+export interface DelInstanceResponse {
+}
+
+export interface UpdateInstanceRequest {
+  /** 实例id */
+  id: string;
+  /** 实例名称 */
+  name?:
+    | string
+    | undefined;
+  /** 备注 */
+  remark?:
+    | string
+    | undefined;
+  /** 标签(,号隔开) */
+  tags?:
+    | string
+    | undefined;
+  /** 类型 */
+  type?:
+    | string
+    | undefined;
+  /** 所属用户id */
+  userId?:
+    | string
+    | undefined;
+  /** 启动命令 */
+  startCommand?:
+    | string
+    | undefined;
+  /** 实例路径 */
+  instancePath?:
+    | string
+    | undefined;
+  /** ws路径(启动时才有 */
+  wsPath?:
+    | string
+    | undefined;
+  /** 停止命令 */
+  stopCommand?:
+    | string
+    | undefined;
+  /** 是否自启动 */
+  autoStart?:
+    | boolean
+    | undefined;
+  /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
+  env: string[];
+}
+
+export interface UpdateInstanceResponse {
+  /** 实例详情 */
+  info: InstanceInfo | undefined;
+}
+
 /** 实例详情 */
 export interface InstanceInfo {
   /** 实例id */
@@ -135,8 +301,8 @@ export interface InstanceInfo {
     | undefined;
   /** 备注 */
   remark: string;
-  /** 标签 */
-  tags: string[];
+  /** 标签(,号隔开) */
+  tags: string;
   /** 类型 */
   type: string;
   /** 所属用户id */
@@ -147,4 +313,10 @@ export interface InstanceInfo {
   instancePath: string;
   /** ws路径(启动时才有 */
   wsPath: string;
+  /** 停止命令 */
+  stopCommand: string;
+  /** 是否自启动 */
+  autoStart: boolean;
+  /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
+  env: string[];
 }

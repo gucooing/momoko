@@ -86,6 +86,14 @@ func init() {
 	instanceDescStartCommand := instanceFields[7].Descriptor()
 	// instance.StartCommandValidator is a validator for the "start_command" field. It is called by the builders before save.
 	instance.StartCommandValidator = instanceDescStartCommand.Validators[0].(func(string) error)
+	// instanceDescStopCommand is the schema descriptor for stop_command field.
+	instanceDescStopCommand := instanceFields[8].Descriptor()
+	// instance.DefaultStopCommand holds the default value on creation for the stop_command field.
+	instance.DefaultStopCommand = instanceDescStopCommand.Default.(string)
+	// instanceDescAutoStart is the schema descriptor for auto_start field.
+	instanceDescAutoStart := instanceFields[9].Descriptor()
+	// instance.DefaultAutoStart holds the default value on creation for the auto_start field.
+	instance.DefaultAutoStart = instanceDescAutoStart.Default.(bool)
 	// instanceDescID is the schema descriptor for id field.
 	instanceDescID := instanceFields[0].Descriptor()
 	// instance.IDValidator is a validator for the "id" field. It is called by the builders before save.
