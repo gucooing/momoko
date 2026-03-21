@@ -63,12 +63,12 @@ var (
 		{Name: "remark", Type: field.TypeString, Nullable: true},
 		{Name: "tags", Type: field.TypeString, Nullable: true},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
-		{Name: "user_id", Type: field.TypeString},
 		{Name: "path", Type: field.TypeString, Default: "./servers"},
 		{Name: "start_command", Type: field.TypeString},
 		{Name: "stop_command", Type: field.TypeString, Default: "exit"},
 		{Name: "auto_start", Type: field.TypeBool, Default: false},
 		{Name: "env", Type: field.TypeJSON, Nullable: true},
+		{Name: "instance_user", Type: field.TypeString},
 		{Name: "instance_type", Type: field.TypeString},
 	}
 	// InstancesTable holds the schema information for the "instances" table.
@@ -77,6 +77,12 @@ var (
 		Columns:    InstancesColumns,
 		PrimaryKey: []*schema.Column{InstancesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "instances_users_user",
+				Columns:    []*schema.Column{InstancesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 			{
 				Symbol:     "instances_instance_types_type",
 				Columns:    []*schema.Column{InstancesColumns[13]},
@@ -226,7 +232,8 @@ var (
 )
 
 func init() {
-	InstancesTable.ForeignKeys[0].RefTable = InstanceTypesTable
+	InstancesTable.ForeignKeys[0].RefTable = UsersTable
+	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",
 	}

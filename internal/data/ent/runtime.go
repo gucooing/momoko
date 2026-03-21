@@ -72,26 +72,22 @@ func init() {
 	instanceDescIsSystem := instanceFields[4].Descriptor()
 	// instance.DefaultIsSystem holds the default value on creation for the is_system field.
 	instance.DefaultIsSystem = instanceDescIsSystem.Default.(bool)
-	// instanceDescUserID is the schema descriptor for user_id field.
-	instanceDescUserID := instanceFields[5].Descriptor()
-	// instance.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	instance.UserIDValidator = instanceDescUserID.Validators[0].(func(string) error)
 	// instanceDescPath is the schema descriptor for path field.
-	instanceDescPath := instanceFields[6].Descriptor()
+	instanceDescPath := instanceFields[5].Descriptor()
 	// instance.DefaultPath holds the default value on creation for the path field.
 	instance.DefaultPath = instanceDescPath.Default.(string)
 	// instance.PathValidator is a validator for the "path" field. It is called by the builders before save.
 	instance.PathValidator = instanceDescPath.Validators[0].(func(string) error)
 	// instanceDescStartCommand is the schema descriptor for start_command field.
-	instanceDescStartCommand := instanceFields[7].Descriptor()
+	instanceDescStartCommand := instanceFields[6].Descriptor()
 	// instance.StartCommandValidator is a validator for the "start_command" field. It is called by the builders before save.
 	instance.StartCommandValidator = instanceDescStartCommand.Validators[0].(func(string) error)
 	// instanceDescStopCommand is the schema descriptor for stop_command field.
-	instanceDescStopCommand := instanceFields[8].Descriptor()
+	instanceDescStopCommand := instanceFields[7].Descriptor()
 	// instance.DefaultStopCommand holds the default value on creation for the stop_command field.
 	instance.DefaultStopCommand = instanceDescStopCommand.Default.(string)
 	// instanceDescAutoStart is the schema descriptor for auto_start field.
-	instanceDescAutoStart := instanceFields[9].Descriptor()
+	instanceDescAutoStart := instanceFields[8].Descriptor()
 	// instance.DefaultAutoStart holds the default value on creation for the auto_start field.
 	instance.DefaultAutoStart = instanceDescAutoStart.Default.(bool)
 	// instanceDescID is the schema descriptor for id field.

@@ -1397,6 +1397,9 @@ components:
                 id:
                     type: string
                     description: 实例id
+                force:
+                    type: boolean
+                    description: 是否强制重启
             description: 重启实例请求
         v1.RestartInstanceResponse:
             type: object
@@ -1472,6 +1475,9 @@ components:
                 id:
                     type: string
                     description: 实例id
+                force:
+                    type: boolean
+                    description: 是否强制停止
             description: 停止实例请求
         v1.StopInstanceResponse:
             type: object

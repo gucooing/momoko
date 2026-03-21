@@ -105,20 +105,6 @@ func (_u *InstanceUpdate) SetNillableIsSystem(v *bool) *InstanceUpdate {
 	return _u
 }
 
-// SetUserID sets the "user_id" field.
-func (_u *InstanceUpdate) SetUserID(v string) *InstanceUpdate {
-	_u.mutation.SetUserID(v)
-	return _u
-}
-
-// SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *InstanceUpdate) SetNillableUserID(v *string) *InstanceUpdate {
-	if v != nil {
-		_u.SetUserID(*v)
-	}
-	return _u
-}
-
 // SetPath sets the "path" field.
 func (_u *InstanceUpdate) SetPath(v string) *InstanceUpdate {
 	_u.mutation.SetPath(v)
@@ -193,6 +179,17 @@ func (_u *InstanceUpdate) ClearEnv() *InstanceUpdate {
 	return _u
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (_u *InstanceUpdate) SetUserID(id string) *InstanceUpdate {
+	_u.mutation.SetUserID(id)
+	return _u
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (_u *InstanceUpdate) SetUser(v *User) *InstanceUpdate {
+	return _u.SetUserID(v.ID)
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (_u *InstanceUpdate) AddUserIDs(ids ...string) *InstanceUpdate {
 	_u.mutation.AddUserIDs(ids...)
@@ -222,6 +219,12 @@ func (_u *InstanceUpdate) SetType(v *InstanceType) *InstanceUpdate {
 // Mutation returns the InstanceMutation object of the builder.
 func (_u *InstanceUpdate) Mutation() *InstanceMutation {
 	return _u.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (_u *InstanceUpdate) ClearUser() *InstanceUpdate {
+	_u.mutation.ClearUser()
+	return _u
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -294,11 +297,6 @@ func (_u *InstanceUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Instance.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.UserID(); ok {
-		if err := instance.UserIDValidator(v); err != nil {
-			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Instance.user_id": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Path(); ok {
 		if err := instance.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Instance.path": %w`, err)}
@@ -308,6 +306,9 @@ func (_u *InstanceUpdate) check() error {
 		if err := instance.StartCommandValidator(v); err != nil {
 			return &ValidationError{Name: "start_command", err: fmt.Errorf(`ent: validator failed for field "Instance.start_command": %w`, err)}
 		}
+	}
+	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Instance.user"`)
 	}
 	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Instance.type"`)
@@ -348,9 +349,6 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.UserID(); ok {
-		_spec.SetField(instance.FieldUserID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(instance.FieldPath, field.TypeString, value)
 	}
@@ -373,6 +371,35 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if _u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.UserTable,
+			Columns: []string{instance.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.UserTable,
+			Columns: []string{instance.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -542,20 +569,6 @@ func (_u *InstanceUpdateOne) SetNillableIsSystem(v *bool) *InstanceUpdateOne {
 	return _u
 }
 
-// SetUserID sets the "user_id" field.
-func (_u *InstanceUpdateOne) SetUserID(v string) *InstanceUpdateOne {
-	_u.mutation.SetUserID(v)
-	return _u
-}
-
-// SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (_u *InstanceUpdateOne) SetNillableUserID(v *string) *InstanceUpdateOne {
-	if v != nil {
-		_u.SetUserID(*v)
-	}
-	return _u
-}
-
 // SetPath sets the "path" field.
 func (_u *InstanceUpdateOne) SetPath(v string) *InstanceUpdateOne {
 	_u.mutation.SetPath(v)
@@ -630,6 +643,17 @@ func (_u *InstanceUpdateOne) ClearEnv() *InstanceUpdateOne {
 	return _u
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (_u *InstanceUpdateOne) SetUserID(id string) *InstanceUpdateOne {
+	_u.mutation.SetUserID(id)
+	return _u
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (_u *InstanceUpdateOne) SetUser(v *User) *InstanceUpdateOne {
+	return _u.SetUserID(v.ID)
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (_u *InstanceUpdateOne) AddUserIDs(ids ...string) *InstanceUpdateOne {
 	_u.mutation.AddUserIDs(ids...)
@@ -659,6 +683,12 @@ func (_u *InstanceUpdateOne) SetType(v *InstanceType) *InstanceUpdateOne {
 // Mutation returns the InstanceMutation object of the builder.
 func (_u *InstanceUpdateOne) Mutation() *InstanceMutation {
 	return _u.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (_u *InstanceUpdateOne) ClearUser() *InstanceUpdateOne {
+	_u.mutation.ClearUser()
+	return _u
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -744,11 +774,6 @@ func (_u *InstanceUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Instance.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.UserID(); ok {
-		if err := instance.UserIDValidator(v); err != nil {
-			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Instance.user_id": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Path(); ok {
 		if err := instance.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "Instance.path": %w`, err)}
@@ -758,6 +783,9 @@ func (_u *InstanceUpdateOne) check() error {
 		if err := instance.StartCommandValidator(v); err != nil {
 			return &ValidationError{Name: "start_command", err: fmt.Errorf(`ent: validator failed for field "Instance.start_command": %w`, err)}
 		}
+	}
+	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Instance.user"`)
 	}
 	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Instance.type"`)
@@ -815,9 +843,6 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.UserID(); ok {
-		_spec.SetField(instance.FieldUserID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(instance.FieldPath, field.TypeString, value)
 	}
@@ -840,6 +865,35 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if _u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.UserTable,
+			Columns: []string{instance.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.UserTable,
+			Columns: []string{instance.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

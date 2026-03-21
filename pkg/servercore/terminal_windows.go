@@ -14,21 +14,21 @@ import (
 // startTerminalProcess 在 Windows 下使用 ConPTY 启动 cmd，
 // 让交互输入走真实控制台链路，而不是普通重定向管道。
 func startTerminalProcess(s *Server) (*startResult, error) {
-	commandPath, err := exec.LookPath(s.command)
+	commandPath, err := exec.LookPath(s.cfg.Command)
 	if err != nil {
-		commandPath = s.command
+		commandPath = s.cfg.Command
 	}
 
 	commandLine, err := windows.UTF16PtrFromString(
-		windows.ComposeCommandLine(append([]string{commandPath}, s.args...)),
+		windows.ComposeCommandLine(append([]string{commandPath}, s.cfg.Args...)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("构造命令行失败: %w", err)
 	}
 
 	var currentDir *uint16
-	if s.dir != "" {
-		currentDir, err = windows.UTF16PtrFromString(s.dir)
+	if s.cfg.Dir != "" {
+		currentDir, err = windows.UTF16PtrFromString(s.cfg.Dir)
 		if err != nil {
 			return nil, fmt.Errorf("构造工作目录失败: %w", err)
 		}

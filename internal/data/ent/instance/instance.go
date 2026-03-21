@@ -26,8 +26,6 @@ const (
 	FieldTags = "tags"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
 	FieldIsSystem = "is_system"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
 	// FieldPath holds the string denoting the path field in the database.
 	FieldPath = "path"
 	// FieldStartCommand holds the string denoting the start_command field in the database.
@@ -38,12 +36,21 @@ const (
 	FieldAutoStart = "auto_start"
 	// FieldEnv holds the string denoting the env field in the database.
 	FieldEnv = "env"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
 	// Table holds the table name of the instance in the database.
 	Table = "instances"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "instances"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "instance_user"
 	// UsersTable is the table that holds the users relation/edge.
 	UsersTable = "users"
 	// UsersInverseTable is the table name for the User entity.
@@ -69,7 +76,6 @@ var Columns = []string{
 	FieldRemark,
 	FieldTags,
 	FieldIsSystem,
-	FieldUserID,
 	FieldPath,
 	FieldStartCommand,
 	FieldStopCommand,
@@ -80,6 +86,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "instances"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"instance_user",
 	"instance_type",
 }
 
@@ -109,8 +116,6 @@ var (
 	NameValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
-	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(string) error
 	// DefaultPath holds the default value on creation for the "path" field.
 	DefaultPath string
 	// PathValidator is a validator for the "path" field. It is called by the builders before save.
@@ -163,11 +168,6 @@ func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
 }
 
-// ByUserID orders the results by the user_id field.
-func ByUserID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUserID, opts...).ToFunc()
-}
-
 // ByPath orders the results by the path field.
 func ByPath(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPath, opts...).ToFunc()
@@ -186,6 +186,13 @@ func ByStopCommand(opts ...sql.OrderTermOption) OrderOption {
 // ByAutoStart orders the results by the auto_start field.
 func ByAutoStart(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAutoStart, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
 }
 
 // ByUsersCount orders the results by users count.
@@ -207,6 +214,13 @@ func ByTypeField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newTypeStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
+	)
 }
 func newUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

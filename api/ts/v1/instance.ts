@@ -189,6 +189,16 @@ export interface GetInstanceInfoResponse {
   info: InstanceInfo | undefined;
 }
 
+/** 获取实例控制台详情请求 */
+export interface GetInstanceTerminalInfoRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 获取实例控制台详情响应 */
+export interface GetInstanceTerminalInfoResponse {
+}
+
 /** 启动实例请求 */
 export interface StartInstanceRequest {
   /** 实例id */
@@ -205,6 +215,8 @@ export interface StartInstanceResponse {
 export interface StopInstanceRequest {
   /** 实例id */
   id: string;
+  /** 是否强制停止 */
+  force: boolean;
 }
 
 /** 停止实例响应 */
@@ -215,6 +227,8 @@ export interface StopInstanceResponse {
 export interface RestartInstanceRequest {
   /** 实例id */
   id: string;
+  /** 是否强制重启 */
+  force: boolean;
 }
 
 /** 重启实例响应 */

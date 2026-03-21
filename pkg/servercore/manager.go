@@ -13,9 +13,7 @@ type ServerManager struct {
 
 // NewServerManager 创建一个最小可用的管理器。
 func NewServerManager() *ServerManager {
-	return &ServerManager{
-		servers: make(map[string]*Server),
-	}
+	return &ServerManager{servers: make(map[string]*Server)}
 }
 
 // Create 创建并注册一个服务端实例。
@@ -57,7 +55,7 @@ func (m *ServerManager) Start(id string) error {
 	return server.Start()
 }
 
-// Stop 停止指定实例。
+// Stop 优雅停止指定实例。
 func (m *ServerManager) Stop(id string) error {
 	server, ok := m.Get(id)
 	if !ok {
@@ -66,13 +64,31 @@ func (m *ServerManager) Stop(id string) error {
 	return server.Stop()
 }
 
-// Restart 重启指定实例。
+// ForceStop 强制停止指定实例。
+func (m *ServerManager) ForceStop(id string) error {
+	server, ok := m.Get(id)
+	if !ok {
+		return errors.New("服务端实例不存在")
+	}
+	return server.ForceStop()
+}
+
+// Restart 优雅重启指定实例（先停再启）。
 func (m *ServerManager) Restart(id string) error {
 	server, ok := m.Get(id)
 	if !ok {
 		return errors.New("服务端实例不存在")
 	}
 	return server.Restart()
+}
+
+// ForceRestart 强制重启指定实例。
+func (m *ServerManager) ForceRestart(id string) error {
+	server, ok := m.Get(id)
+	if !ok {
+		return errors.New("服务端实例不存在")
+	}
+	return server.ForceRestart()
 }
 
 // Send 向指定实例写入一条输入。

@@ -303,6 +303,8 @@ message StartInstanceResponse {
 message StopInstanceRequest {
   // 实例id
   string id = 1;
+  // 是否强制停止
+  bool force = 2;
 }
 
 // 停止实例响应
@@ -312,6 +314,8 @@ message StopInstanceResponse {}
 message RestartInstanceRequest {
   // 实例id
   string id = 1;
+  // 是否强制重启
+  bool force = 2;
 }
 
 // 重启实例响应

@@ -68,7 +68,7 @@ func (i *instanceRepo) DeleteType(ctx context.Context, id string) error {
 func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
-			instance.UserIDEQ(userId),                // 主人
+			instance.HasUserWith(user.IDEQ(userId)),  // 主人
 			instance.HasUsersWith(user.IDEQ(userId)), // 分配给当前用户
 		),
 	)
@@ -92,7 +92,7 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 		return nil, 0, err
 	}
 	instances, err := query.
-		WithUsers().WithType().
+		WithUser().WithUsers().WithType().
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
 		Order(ent.Asc(instance.FieldCreateTime)).
@@ -108,13 +108,16 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
-			instance.UserIDEQ(userId),                // 主人
+			instance.HasUserWith(user.IDEQ(userId)),  // 主人
 			instance.HasUsersWith(user.IDEQ(userId)), // 分配给当前用户
 		),
 		instance.IDEQ(instanceId),
 	)
 	info, err := query.
-		WithUsers().WithType().Only(ctx)
+		WithUser().
+		WithUsers().
+		WithType().
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +136,7 @@ func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanc
 		SetStartCommand(req.StartCommand).
 		SetStopCommand(req.StopCommand).
 		SetAutoStart(req.AutoStart).
+		SetTypeID(req.Type).
 		SetEnv(req.Env)
 
 	return create.Save(ctx)

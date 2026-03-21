@@ -25,6 +25,7 @@ type InstanceQuery struct {
 	order      []instance.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Instance
+	withUser   *UserQuery
 	withUsers  *UserQuery
 	withType   *InstanceTypeQuery
 	withFKs    bool
@@ -62,6 +63,28 @@ func (_q *InstanceQuery) Unique(unique bool) *InstanceQuery {
 func (_q *InstanceQuery) Order(o ...instance.OrderOption) *InstanceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (_q *InstanceQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(instance.Table, instance.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, instance.UserTable, instance.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryUsers chains the current query on the "users" edge.
@@ -300,12 +323,24 @@ func (_q *InstanceQuery) Clone() *InstanceQuery {
 		order:      append([]instance.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Instance{}, _q.predicates...),
+		withUser:   _q.withUser.Clone(),
 		withUsers:  _q.withUsers.Clone(),
 		withType:   _q.withType.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *InstanceQuery) WithUser(opts ...func(*UserQuery)) *InstanceQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUser = query
+	return _q
 }
 
 // WithUsers tells the query-builder to eager-load the nodes that are connected to
@@ -409,12 +444,13 @@ func (_q *InstanceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ins
 		nodes       = []*Instance{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			_q.withUser != nil,
 			_q.withUsers != nil,
 			_q.withType != nil,
 		}
 	)
-	if _q.withType != nil {
+	if _q.withUser != nil || _q.withType != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -438,6 +474,12 @@ func (_q *InstanceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ins
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withUser; query != nil {
+		if err := _q.loadUser(ctx, query, nodes, nil,
+			func(n *Instance, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withUsers; query != nil {
 		if err := _q.loadUsers(ctx, query, nodes,
 			func(n *Instance) { n.Edges.Users = []*User{} },
@@ -454,6 +496,38 @@ func (_q *InstanceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ins
 	return nodes, nil
 }
 
+func (_q *InstanceQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Instance, init func(*Instance), assign func(*Instance, *User)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Instance)
+	for i := range nodes {
+		if nodes[i].instance_user == nil {
+			continue
+		}
+		fk := *nodes[i].instance_user
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "instance_user" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *InstanceQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*Instance, init func(*Instance), assign func(*Instance, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[string]*Instance)

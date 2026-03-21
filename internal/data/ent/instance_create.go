@@ -101,12 +101,6 @@ func (_c *InstanceCreate) SetNillableIsSystem(v *bool) *InstanceCreate {
 	return _c
 }
 
-// SetUserID sets the "user_id" field.
-func (_c *InstanceCreate) SetUserID(v string) *InstanceCreate {
-	_c.mutation.SetUserID(v)
-	return _c
-}
-
 // SetPath sets the "path" field.
 func (_c *InstanceCreate) SetPath(v string) *InstanceCreate {
 	_c.mutation.SetPath(v)
@@ -165,6 +159,17 @@ func (_c *InstanceCreate) SetEnv(v []string) *InstanceCreate {
 func (_c *InstanceCreate) SetID(v string) *InstanceCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (_c *InstanceCreate) SetUserID(id string) *InstanceCreate {
+	_c.mutation.SetUserID(id)
+	return _c
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (_c *InstanceCreate) SetUser(v *User) *InstanceCreate {
+	return _c.SetUserID(v.ID)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -273,14 +278,6 @@ func (_c *InstanceCreate) check() error {
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "Instance.is_system"`)}
 	}
-	if _, ok := _c.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Instance.user_id"`)}
-	}
-	if v, ok := _c.mutation.UserID(); ok {
-		if err := instance.UserIDValidator(v); err != nil {
-			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Instance.user_id": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "Instance.path"`)}
 	}
@@ -307,6 +304,9 @@ func (_c *InstanceCreate) check() error {
 		if err := instance.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Instance.id": %w`, err)}
 		}
+	}
+	if len(_c.mutation.UserIDs()) == 0 {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Instance.user"`)}
 	}
 	if len(_c.mutation.TypeIDs()) == 0 {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required edge "Instance.type"`)}
@@ -371,10 +371,6 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 		_node.IsSystem = value
 	}
-	if value, ok := _c.mutation.UserID(); ok {
-		_spec.SetField(instance.FieldUserID, field.TypeString, value)
-		_node.UserID = value
-	}
 	if value, ok := _c.mutation.Path(); ok {
 		_spec.SetField(instance.FieldPath, field.TypeString, value)
 		_node.Path = value
@@ -394,6 +390,23 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
 		_node.Env = value
+	}
+	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.UserTable,
+			Columns: []string{instance.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.instance_user = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -549,18 +562,6 @@ func (u *InstanceUpsert) SetIsSystem(v bool) *InstanceUpsert {
 // UpdateIsSystem sets the "is_system" field to the value that was provided on create.
 func (u *InstanceUpsert) UpdateIsSystem() *InstanceUpsert {
 	u.SetExcluded(instance.FieldIsSystem)
-	return u
-}
-
-// SetUserID sets the "user_id" field.
-func (u *InstanceUpsert) SetUserID(v string) *InstanceUpsert {
-	u.Set(instance.FieldUserID, v)
-	return u
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *InstanceUpsert) UpdateUserID() *InstanceUpsert {
-	u.SetExcluded(instance.FieldUserID)
 	return u
 }
 
@@ -762,20 +763,6 @@ func (u *InstanceUpsertOne) SetIsSystem(v bool) *InstanceUpsertOne {
 func (u *InstanceUpsertOne) UpdateIsSystem() *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateIsSystem()
-	})
-}
-
-// SetUserID sets the "user_id" field.
-func (u *InstanceUpsertOne) SetUserID(v string) *InstanceUpsertOne {
-	return u.Update(func(s *InstanceUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *InstanceUpsertOne) UpdateUserID() *InstanceUpsertOne {
-	return u.Update(func(s *InstanceUpsert) {
-		s.UpdateUserID()
 	})
 }
 
@@ -1155,20 +1142,6 @@ func (u *InstanceUpsertBulk) SetIsSystem(v bool) *InstanceUpsertBulk {
 func (u *InstanceUpsertBulk) UpdateIsSystem() *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateIsSystem()
-	})
-}
-
-// SetUserID sets the "user_id" field.
-func (u *InstanceUpsertBulk) SetUserID(v string) *InstanceUpsertBulk {
-	return u.Update(func(s *InstanceUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *InstanceUpsertBulk) UpdateUserID() *InstanceUpsertBulk {
-	return u.Update(func(s *InstanceUpsert) {
-		s.UpdateUserID()
 	})
 }
 

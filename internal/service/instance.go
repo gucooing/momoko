@@ -157,7 +157,7 @@ func (i *InstanceService) StopInstance(ctx context.Context, req *v1.StopInstance
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	if err := i.uc.StopInstance(ctx, authCtx.UserID, req.Id); err != nil {
+	if err := i.uc.StopInstance(ctx, authCtx.UserID, req.Id, req.Force); err != nil {
 		return nil, err
 	}
 	return &v1.StopInstanceResponse{}, nil
@@ -168,7 +168,7 @@ func (i *InstanceService) RestartInstance(ctx context.Context, req *v1.RestartIn
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	if err := i.uc.RestartInstance(ctx, authCtx.UserID, req.Id); err != nil {
+	if err := i.uc.RestartInstance(ctx, authCtx.UserID, req.Id, req.Force); err != nil {
 		return nil, err
 	}
 	return &v1.RestartInstanceResponse{}, nil

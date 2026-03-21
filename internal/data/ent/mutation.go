@@ -755,7 +755,6 @@ type InstanceMutation struct {
 	remark        *string
 	tags          *string
 	is_system     *bool
-	user_id       *string
 	_path         *string
 	start_command *string
 	stop_command  *string
@@ -763,6 +762,8 @@ type InstanceMutation struct {
 	env           *[]string
 	appendenv     []string
 	clearedFields map[string]struct{}
+	user          *string
+	cleareduser   bool
 	users         map[string]struct{}
 	removedusers  map[string]struct{}
 	clearedusers  bool
@@ -1119,42 +1120,6 @@ func (m *InstanceMutation) ResetIsSystem() {
 	m.is_system = nil
 }
 
-// SetUserID sets the "user_id" field.
-func (m *InstanceMutation) SetUserID(s string) {
-	m.user_id = &s
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *InstanceMutation) UserID() (r string, exists bool) {
-	v := m.user_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Instance entity.
-// If the Instance object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InstanceMutation) OldUserID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *InstanceMutation) ResetUserID() {
-	m.user_id = nil
-}
-
 // SetPath sets the "path" field.
 func (m *InstanceMutation) SetPath(s string) {
 	m._path = &s
@@ -1364,6 +1329,45 @@ func (m *InstanceMutation) ResetEnv() {
 	delete(m.clearedFields, instance.FieldEnv)
 }
 
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *InstanceMutation) SetUserID(id string) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *InstanceMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *InstanceMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *InstanceMutation) UserID() (id string, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *InstanceMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *InstanceMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
 // AddUserIDs adds the "users" edge to the User entity by ids.
 func (m *InstanceMutation) AddUserIDs(ids ...string) {
 	if m.users == nil {
@@ -1491,7 +1495,7 @@ func (m *InstanceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InstanceMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, instance.FieldCreateTime)
 	}
@@ -1509,9 +1513,6 @@ func (m *InstanceMutation) Fields() []string {
 	}
 	if m.is_system != nil {
 		fields = append(fields, instance.FieldIsSystem)
-	}
-	if m.user_id != nil {
-		fields = append(fields, instance.FieldUserID)
 	}
 	if m._path != nil {
 		fields = append(fields, instance.FieldPath)
@@ -1548,8 +1549,6 @@ func (m *InstanceMutation) Field(name string) (ent.Value, bool) {
 		return m.Tags()
 	case instance.FieldIsSystem:
 		return m.IsSystem()
-	case instance.FieldUserID:
-		return m.UserID()
 	case instance.FieldPath:
 		return m.Path()
 	case instance.FieldStartCommand:
@@ -1581,8 +1580,6 @@ func (m *InstanceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTags(ctx)
 	case instance.FieldIsSystem:
 		return m.OldIsSystem(ctx)
-	case instance.FieldUserID:
-		return m.OldUserID(ctx)
 	case instance.FieldPath:
 		return m.OldPath(ctx)
 	case instance.FieldStartCommand:
@@ -1643,13 +1640,6 @@ func (m *InstanceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsSystem(v)
-		return nil
-	case instance.FieldUserID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
 		return nil
 	case instance.FieldPath:
 		v, ok := value.(string)
@@ -1774,9 +1764,6 @@ func (m *InstanceMutation) ResetField(name string) error {
 	case instance.FieldIsSystem:
 		m.ResetIsSystem()
 		return nil
-	case instance.FieldUserID:
-		m.ResetUserID()
-		return nil
 	case instance.FieldPath:
 		m.ResetPath()
 		return nil
@@ -1798,7 +1785,10 @@ func (m *InstanceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *InstanceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.user != nil {
+		edges = append(edges, instance.EdgeUser)
+	}
 	if m.users != nil {
 		edges = append(edges, instance.EdgeUsers)
 	}
@@ -1812,6 +1802,10 @@ func (m *InstanceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *InstanceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case instance.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
 	case instance.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.users))
 		for id := range m.users {
@@ -1828,7 +1822,7 @@ func (m *InstanceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *InstanceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedusers != nil {
 		edges = append(edges, instance.EdgeUsers)
 	}
@@ -1851,7 +1845,10 @@ func (m *InstanceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *InstanceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.cleareduser {
+		edges = append(edges, instance.EdgeUser)
+	}
 	if m.clearedusers {
 		edges = append(edges, instance.EdgeUsers)
 	}
@@ -1865,6 +1862,8 @@ func (m *InstanceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *InstanceMutation) EdgeCleared(name string) bool {
 	switch name {
+	case instance.EdgeUser:
+		return m.cleareduser
 	case instance.EdgeUsers:
 		return m.clearedusers
 	case instance.EdgeType:
@@ -1877,6 +1876,9 @@ func (m *InstanceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *InstanceMutation) ClearEdge(name string) error {
 	switch name {
+	case instance.EdgeUser:
+		m.ClearUser()
+		return nil
 	case instance.EdgeType:
 		m.ClearType()
 		return nil
@@ -1888,6 +1890,9 @@ func (m *InstanceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *InstanceMutation) ResetEdge(name string) error {
 	switch name {
+	case instance.EdgeUser:
+		m.ResetUser()
+		return nil
 	case instance.EdgeUsers:
 		m.ResetUsers()
 		return nil
