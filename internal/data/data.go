@@ -19,6 +19,8 @@ var ProviderSet = wire.NewSet(
 	NewAuthRepo,
 	NewUserRepo,
 	NewSystemRepo,
+	NewConfigRepo,
+	NewInstanceRepo,
 )
 
 // Data is a struct that contains the database client.
@@ -46,7 +48,8 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 	cleanup := func() {
 		db.Close()
 	}
-	return &Data{
+	data := &Data{
 		db: db,
-	}, cleanup, nil
+	}
+	return data, cleanup, nil
 }

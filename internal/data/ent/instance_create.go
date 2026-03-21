@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
+	"momoko/internal/data/ent/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -25,6 +27,34 @@ type InstanceCreate struct {
 // SetName sets the "name" field.
 func (_c *InstanceCreate) SetName(v string) *InstanceCreate {
 	_c.mutation.SetName(v)
+	return _c
+}
+
+// SetRemark sets the "remark" field.
+func (_c *InstanceCreate) SetRemark(v string) *InstanceCreate {
+	_c.mutation.SetRemark(v)
+	return _c
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableRemark(v *string) *InstanceCreate {
+	if v != nil {
+		_c.SetRemark(*v)
+	}
+	return _c
+}
+
+// SetTags sets the "tags" field.
+func (_c *InstanceCreate) SetTags(v string) *InstanceCreate {
+	_c.mutation.SetTags(v)
+	return _c
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableTags(v *string) *InstanceCreate {
+	if v != nil {
+		_c.SetTags(*v)
+	}
 	return _c
 }
 
@@ -68,10 +98,42 @@ func (_c *InstanceCreate) SetStartCommand(v string) *InstanceCreate {
 	return _c
 }
 
+// SetEnv sets the "env" field.
+func (_c *InstanceCreate) SetEnv(v map[string]string) *InstanceCreate {
+	_c.mutation.SetEnv(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *InstanceCreate) SetID(v string) *InstanceCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (_c *InstanceCreate) AddUserIDs(ids ...string) *InstanceCreate {
+	_c.mutation.AddUserIDs(ids...)
+	return _c
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (_c *InstanceCreate) AddUsers(v ...*User) *InstanceCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserIDs(ids...)
+}
+
+// SetTypeID sets the "type" edge to the InstanceType entity by ID.
+func (_c *InstanceCreate) SetTypeID(id string) *InstanceCreate {
+	_c.mutation.SetTypeID(id)
+	return _c
+}
+
+// SetType sets the "type" edge to the InstanceType entity.
+func (_c *InstanceCreate) SetType(v *InstanceType) *InstanceCreate {
+	return _c.SetTypeID(v.ID)
 }
 
 // Mutation returns the InstanceMutation object of the builder.
@@ -161,6 +223,9 @@ func (_c *InstanceCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Instance.id": %w`, err)}
 		}
 	}
+	if len(_c.mutation.TypeIDs()) == 0 {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required edge "Instance.type"`)}
+	}
 	return nil
 }
 
@@ -201,6 +266,14 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 		_spec.SetField(instance.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(instance.FieldRemark, field.TypeString, value)
+		_node.Remark = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(instance.FieldTags, field.TypeString, value)
+		_node.Tags = value
+	}
 	if value, ok := _c.mutation.IsSystem(); ok {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 		_node.IsSystem = value
@@ -216,6 +289,43 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
 		_node.StartCommand = value
+	}
+	if value, ok := _c.mutation.Env(); ok {
+		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
+		_node.Env = value
+	}
+	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.TypeTable,
+			Columns: []string{instance.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(instancetype.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.instance_type = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -281,6 +391,42 @@ func (u *InstanceUpsert) UpdateName() *InstanceUpsert {
 	return u
 }
 
+// SetRemark sets the "remark" field.
+func (u *InstanceUpsert) SetRemark(v string) *InstanceUpsert {
+	u.Set(instance.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateRemark() *InstanceUpsert {
+	u.SetExcluded(instance.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *InstanceUpsert) ClearRemark() *InstanceUpsert {
+	u.SetNull(instance.FieldRemark)
+	return u
+}
+
+// SetTags sets the "tags" field.
+func (u *InstanceUpsert) SetTags(v string) *InstanceUpsert {
+	u.Set(instance.FieldTags, v)
+	return u
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateTags() *InstanceUpsert {
+	u.SetExcluded(instance.FieldTags)
+	return u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *InstanceUpsert) ClearTags() *InstanceUpsert {
+	u.SetNull(instance.FieldTags)
+	return u
+}
+
 // SetIsSystem sets the "is_system" field.
 func (u *InstanceUpsert) SetIsSystem(v bool) *InstanceUpsert {
 	u.Set(instance.FieldIsSystem, v)
@@ -326,6 +472,24 @@ func (u *InstanceUpsert) SetStartCommand(v string) *InstanceUpsert {
 // UpdateStartCommand sets the "start_command" field to the value that was provided on create.
 func (u *InstanceUpsert) UpdateStartCommand() *InstanceUpsert {
 	u.SetExcluded(instance.FieldStartCommand)
+	return u
+}
+
+// SetEnv sets the "env" field.
+func (u *InstanceUpsert) SetEnv(v map[string]string) *InstanceUpsert {
+	u.Set(instance.FieldEnv, v)
+	return u
+}
+
+// UpdateEnv sets the "env" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateEnv() *InstanceUpsert {
+	u.SetExcluded(instance.FieldEnv)
+	return u
+}
+
+// ClearEnv clears the value of the "env" field.
+func (u *InstanceUpsert) ClearEnv() *InstanceUpsert {
+	u.SetNull(instance.FieldEnv)
 	return u
 }
 
@@ -391,6 +555,48 @@ func (u *InstanceUpsertOne) UpdateName() *InstanceUpsertOne {
 	})
 }
 
+// SetRemark sets the "remark" field.
+func (u *InstanceUpsertOne) SetRemark(v string) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateRemark() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *InstanceUpsertOne) ClearRemark() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *InstanceUpsertOne) SetTags(v string) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateTags() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *InstanceUpsertOne) ClearTags() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearTags()
+	})
+}
+
 // SetIsSystem sets the "is_system" field.
 func (u *InstanceUpsertOne) SetIsSystem(v bool) *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
@@ -444,6 +650,27 @@ func (u *InstanceUpsertOne) SetStartCommand(v string) *InstanceUpsertOne {
 func (u *InstanceUpsertOne) UpdateStartCommand() *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateStartCommand()
+	})
+}
+
+// SetEnv sets the "env" field.
+func (u *InstanceUpsertOne) SetEnv(v map[string]string) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetEnv(v)
+	})
+}
+
+// UpdateEnv sets the "env" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateEnv() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateEnv()
+	})
+}
+
+// ClearEnv clears the value of the "env" field.
+func (u *InstanceUpsertOne) ClearEnv() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearEnv()
 	})
 }
 
@@ -676,6 +903,48 @@ func (u *InstanceUpsertBulk) UpdateName() *InstanceUpsertBulk {
 	})
 }
 
+// SetRemark sets the "remark" field.
+func (u *InstanceUpsertBulk) SetRemark(v string) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateRemark() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *InstanceUpsertBulk) ClearRemark() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *InstanceUpsertBulk) SetTags(v string) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateTags() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *InstanceUpsertBulk) ClearTags() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearTags()
+	})
+}
+
 // SetIsSystem sets the "is_system" field.
 func (u *InstanceUpsertBulk) SetIsSystem(v bool) *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
@@ -729,6 +998,27 @@ func (u *InstanceUpsertBulk) SetStartCommand(v string) *InstanceUpsertBulk {
 func (u *InstanceUpsertBulk) UpdateStartCommand() *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateStartCommand()
+	})
+}
+
+// SetEnv sets the "env" field.
+func (u *InstanceUpsertBulk) SetEnv(v map[string]string) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetEnv(v)
+	})
+}
+
+// UpdateEnv sets the "env" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateEnv() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateEnv()
+	})
+}
+
+// ClearEnv clears the value of the "env" field.
+func (u *InstanceUpsertBulk) ClearEnv() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearEnv()
 	})
 }
 

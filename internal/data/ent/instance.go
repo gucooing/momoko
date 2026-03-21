@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
 	"strings"
 
 	"entgo.io/ent"
@@ -19,6 +21,10 @@ type Instance struct {
 	ID string `json:"id,omitempty"`
 	// 实例名称
 	Name string `json:"name,omitempty"`
+	// 备注
+	Remark string `json:"remark,omitempty"`
+	// 标签
+	Tags string `json:"tags,omitempty"`
 	// 是否内置实例
 	IsSystem bool `json:"is_system,omitempty"`
 	// 实例所属用户
@@ -27,7 +33,44 @@ type Instance struct {
 	Path string `json:"path,omitempty"`
 	// 启动命令
 	StartCommand string `json:"start_command,omitempty"`
-	selectValues sql.SelectValues
+	// 环境变量
+	Env map[string]string `json:"env,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the InstanceQuery when eager-loading is set.
+	Edges         InstanceEdges `json:"edges"`
+	instance_type *string
+	selectValues  sql.SelectValues
+}
+
+// InstanceEdges holds the relations/edges for other nodes in the graph.
+type InstanceEdges struct {
+	// 分配用户
+	Users []*User `json:"users,omitempty"`
+	// 实例类型
+	Type *InstanceType `json:"type,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e InstanceEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e InstanceEdges) TypeOrErr() (*InstanceType, error) {
+	if e.Type != nil {
+		return e.Type, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: instancetype.Label}
+	}
+	return nil, &NotLoadedError{edge: "type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,9 +78,13 @@ func (*Instance) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case instance.FieldEnv:
+			values[i] = new([]byte)
 		case instance.FieldIsSystem:
 			values[i] = new(sql.NullBool)
-		case instance.FieldID, instance.FieldName, instance.FieldUserID, instance.FieldPath, instance.FieldStartCommand:
+		case instance.FieldID, instance.FieldName, instance.FieldRemark, instance.FieldTags, instance.FieldUserID, instance.FieldPath, instance.FieldStartCommand:
+			values[i] = new(sql.NullString)
+		case instance.ForeignKeys[0]: // instance_type
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -66,6 +113,18 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
+		case instance.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
+		case instance.FieldTags:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value.Valid {
+				_m.Tags = value.String
+			}
 		case instance.FieldIsSystem:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_system", values[i])
@@ -90,6 +149,21 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.StartCommand = value.String
 			}
+		case instance.FieldEnv:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field env", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Env); err != nil {
+					return fmt.Errorf("unmarshal field env: %w", err)
+				}
+			}
+		case instance.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field instance_type", values[i])
+			} else if value.Valid {
+				_m.instance_type = new(string)
+				*_m.instance_type = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -101,6 +175,16 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Instance) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryUsers queries the "users" edge of the Instance entity.
+func (_m *Instance) QueryUsers() *UserQuery {
+	return NewInstanceClient(_m.config).QueryUsers(_m)
+}
+
+// QueryType queries the "type" edge of the Instance entity.
+func (_m *Instance) QueryType() *InstanceTypeQuery {
+	return NewInstanceClient(_m.config).QueryType(_m)
 }
 
 // Update returns a builder for updating this Instance.
@@ -129,6 +213,12 @@ func (_m *Instance) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(_m.Tags)
+	builder.WriteString(", ")
 	builder.WriteString("is_system=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))
 	builder.WriteString(", ")
@@ -140,6 +230,9 @@ func (_m *Instance) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("start_command=")
 	builder.WriteString(_m.StartCommand)
+	builder.WriteString(", ")
+	builder.WriteString("env=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Env))
 	builder.WriteByte(')')
 	return builder.String()
 }

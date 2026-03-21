@@ -4,6 +4,7 @@ package instance
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,6 +14,10 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
 	FieldIsSystem = "is_system"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -21,24 +26,58 @@ const (
 	FieldPath = "path"
 	// FieldStartCommand holds the string denoting the start_command field in the database.
 	FieldStartCommand = "start_command"
+	// FieldEnv holds the string denoting the env field in the database.
+	FieldEnv = "env"
+	// EdgeUsers holds the string denoting the users edge name in mutations.
+	EdgeUsers = "users"
+	// EdgeType holds the string denoting the type edge name in mutations.
+	EdgeType = "type"
 	// Table holds the table name of the instance in the database.
 	Table = "instances"
+	// UsersTable is the table that holds the users relation/edge.
+	UsersTable = "users"
+	// UsersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UsersInverseTable = "users"
+	// UsersColumn is the table column denoting the users relation/edge.
+	UsersColumn = "instance_users"
+	// TypeTable is the table that holds the type relation/edge.
+	TypeTable = "instances"
+	// TypeInverseTable is the table name for the InstanceType entity.
+	// It exists in this package in order to avoid circular dependency with the "instancetype" package.
+	TypeInverseTable = "instance_types"
+	// TypeColumn is the table column denoting the type relation/edge.
+	TypeColumn = "instance_type"
 )
 
 // Columns holds all SQL columns for instance fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldRemark,
+	FieldTags,
 	FieldIsSystem,
 	FieldUserID,
 	FieldPath,
 	FieldStartCommand,
+	FieldEnv,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "instances"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"instance_type",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -75,6 +114,16 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByTags orders the results by the tags field.
+func ByTags(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTags, opts...).ToFunc()
+}
+
 // ByIsSystem orders the results by the is_system field.
 func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSystem, opts...).ToFunc()
@@ -93,4 +142,39 @@ func ByPath(opts ...sql.OrderTermOption) OrderOption {
 // ByStartCommand orders the results by the start_command field.
 func ByStartCommand(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStartCommand, opts...).ToFunc()
+}
+
+// ByUsersCount orders the results by users count.
+func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUsersStep(), opts...)
+	}
+}
+
+// ByUsers orders the results by users terms.
+func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTypeField orders the results by type field.
+func ByTypeField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTypeStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUsersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UsersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UsersTable, UsersColumn),
+	)
+}
+func newTypeStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TypeInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
+	)
 }

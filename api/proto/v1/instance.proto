@@ -9,6 +9,34 @@ import "google/protobuf/timestamp.proto";
 
 // 应用管理
 service InstanceManager {
+  // 实例类型管理
+  // 获取实例类型
+  rpc GetInstanceTypes(GetInstanceTypesRequest) returns (GetInstanceTypesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/type"
+    };
+  }
+  // 创建实例类型
+  rpc CreateInstanceType(CreateInstanceTypeRequest) returns (CreateInstanceTypeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/type"
+      body: "*"
+    };
+  }
+  // 更新实例类型
+  rpc UpdateInstanceType(UpdateInstanceTypeRequest) returns (UpdateInstanceTypeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/instance/type/{id}"
+      body: "*"
+    };
+  }
+  // 删除实例类型
+  rpc DelInstanceType(DelInstanceTypeRequest) returns (DelInstanceTypeResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/instance/type/{id}"
+    };
+  }
+
   // 终端管理
   // 获取终端详情
   rpc GetTerminalInfo(GetTerminalInfoRequest) returns (GetTerminalInfoResponse){
@@ -43,6 +71,60 @@ service InstanceManager {
   // 获取实例列表
   // 获取实例详情
   // 启动/停止/重启 实例
+}
+
+// 获取实例类型请求
+message GetInstanceTypesRequest {}
+
+// 获取实例类型响应
+message GetInstanceTypesResponse {
+  // 类型列表
+  repeated InstanceTypeInfo types = 1;
+}
+
+// 创建实例类型请求
+message CreateInstanceTypeRequest {
+  // 类型名称
+  string name = 1;
+}
+
+// 创建实例类型响应
+message CreateInstanceTypeResponse {
+  // 实例信息
+  InstanceTypeInfo type = 1;
+}
+
+// 更新实例类型请求
+message UpdateInstanceTypeRequest {
+  // 类型id
+  string id = 1;
+  // 类型名称
+  optional string name = 2;
+}
+
+// 更新实例类型响应
+message UpdateInstanceTypeResponse {
+  // 实例信息
+  InstanceTypeInfo type = 1;
+}
+
+// 更新实例类型请求
+message DelInstanceTypeRequest {
+  // 类型id
+  string id = 1;
+}
+
+// 更新实例类型响应
+message DelInstanceTypeResponse {}
+
+// 实例类型信息
+message InstanceTypeInfo {
+  // 类型id
+  string id = 1;
+  // 类型名称
+  string name = 2;
+  // 是否系统内置
+  bool is_system = 3;
 }
 
 // 获取终端详情请求

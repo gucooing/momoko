@@ -17,3 +17,9 @@ func (InstanceType) Fields() []ent.Field {
 		field.Bool("is_system").Default(false).Comment("是否系统内置"),
 	}
 }
+
+func (InstanceType) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
+	}
+}

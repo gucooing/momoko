@@ -129,6 +129,84 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.StopTerminalResponse'
+    /api/v1/instance/type:
+        get:
+            tags:
+                - InstanceManager
+            description: |-
+                实例类型管理
+                 获取实例类型
+            operationId: InstanceManager_GetInstanceTypes
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstanceTypesResponse'
+        post:
+            tags:
+                - InstanceManager
+            description: 创建实例类型
+            operationId: InstanceManager_CreateInstanceType
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateInstanceTypeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateInstanceTypeResponse'
+    /api/v1/instance/type/{id}:
+        put:
+            tags:
+                - InstanceManager
+            description: 更新实例类型
+            operationId: InstanceManager_UpdateInstanceType
+            parameters:
+                - name: id
+                  in: path
+                  description: 类型id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateInstanceTypeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateInstanceTypeResponse'
+        delete:
+            tags:
+                - InstanceManager
+            description: 删除实例类型
+            operationId: InstanceManager_DelInstanceType
+            parameters:
+                - name: id
+                  in: path
+                  description: 类型id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DelInstanceTypeResponse'
     /api/v1/permissions/admin:
         get:
             tags:
@@ -705,6 +783,25 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
+        v1.CreateInstanceTypeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 类型名称
+            description: 创建实例类型请求
+        v1.CreateInstanceTypeResponse:
+            type: object
+            properties:
+                type:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceTypeInfo'
+                    description: 实例信息
+            description: 创建实例类型响应
+        v1.DelInstanceTypeResponse:
+            type: object
+            properties: {}
+            description: 更新实例类型响应
         v1.DeleteUserResponse:
             type: object
             properties: {}
@@ -758,6 +855,15 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新用户响应
+        v1.GetInstanceTypesResponse:
+            type: object
+            properties:
+                types:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.InstanceTypeInfo'
+                    description: 类型列表
+            description: 获取实例类型响应
         v1.GetTerminalInfoResponse:
             type: object
             properties:
@@ -811,6 +917,19 @@ components:
                     type: string
                     description: ws路径(启动时才有
             description: 实例详情
+        v1.InstanceTypeInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 类型id
+                name:
+                    type: string
+                    description: 类型名称
+                isSystem:
+                    type: boolean
+                    description: 是否系统内置
+            description: 实例类型信息
         v1.ListUserResponse:
             type: object
             properties:
@@ -1039,6 +1158,24 @@ components:
             type: object
             properties: {}
             description: 停止终端响应
+        v1.UpdateInstanceTypeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 类型id
+                name:
+                    type: string
+                    description: 类型名称
+            description: 更新实例类型请求
+        v1.UpdateInstanceTypeResponse:
+            type: object
+            properties:
+                type:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceTypeInfo'
+                    description: 实例信息
+            description: 更新实例类型响应
         v1.UserInfo:
             type: object
             properties:

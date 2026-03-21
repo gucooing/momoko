@@ -68,6 +68,18 @@ func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
 }
 
+// The SystemConfigFunc type is an adapter to allow the use of ordinary
+// function as SystemConfig mutator.
+type SystemConfigFunc func(context.Context, *ent.SystemConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemConfigMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

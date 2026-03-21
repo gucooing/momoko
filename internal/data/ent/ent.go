@@ -11,6 +11,7 @@ import (
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
+	"momoko/internal/data/ent/systemconfig"
 	"momoko/internal/data/ent/user"
 	"reflect"
 	"sync"
@@ -83,6 +84,7 @@ func checkColumn(t, c string) error {
 			instancetype.Table: instancetype.ValidColumn,
 			menu.Table:         menu.ValidColumn,
 			role.Table:         role.ValidColumn,
+			systemconfig.Table: systemconfig.ValidColumn,
 			user.Table:         user.ValidColumn,
 		})
 	})

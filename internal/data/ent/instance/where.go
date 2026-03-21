@@ -6,6 +6,7 @@ import (
 	"momoko/internal/data/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -66,6 +67,16 @@ func IDContainsFold(id string) predicate.Instance {
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldName, v))
+}
+
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldRemark, v))
+}
+
+// Tags applies equality check predicate on the "tags" field. It's identical to TagsEQ.
+func Tags(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldTags, v))
 }
 
 // IsSystem applies equality check predicate on the "is_system" field. It's identical to IsSystemEQ.
@@ -151,6 +162,156 @@ func NameEqualFold(v string) predicate.Instance {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Instance {
 	return predicate.Instance(sql.FieldContainsFold(FieldName, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkIsNil applies the IsNil predicate on the "remark" field.
+func RemarkIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldRemark))
+}
+
+// RemarkNotNil applies the NotNil predicate on the "remark" field.
+func RemarkNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldRemark))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// TagsEQ applies the EQ predicate on the "tags" field.
+func TagsEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldTags, v))
+}
+
+// TagsNEQ applies the NEQ predicate on the "tags" field.
+func TagsNEQ(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldTags, v))
+}
+
+// TagsIn applies the In predicate on the "tags" field.
+func TagsIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldTags, vs...))
+}
+
+// TagsNotIn applies the NotIn predicate on the "tags" field.
+func TagsNotIn(vs ...string) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldTags, vs...))
+}
+
+// TagsGT applies the GT predicate on the "tags" field.
+func TagsGT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldTags, v))
+}
+
+// TagsGTE applies the GTE predicate on the "tags" field.
+func TagsGTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldTags, v))
+}
+
+// TagsLT applies the LT predicate on the "tags" field.
+func TagsLT(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldTags, v))
+}
+
+// TagsLTE applies the LTE predicate on the "tags" field.
+func TagsLTE(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldTags, v))
+}
+
+// TagsContains applies the Contains predicate on the "tags" field.
+func TagsContains(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContains(FieldTags, v))
+}
+
+// TagsHasPrefix applies the HasPrefix predicate on the "tags" field.
+func TagsHasPrefix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasPrefix(FieldTags, v))
+}
+
+// TagsHasSuffix applies the HasSuffix predicate on the "tags" field.
+func TagsHasSuffix(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldHasSuffix(FieldTags, v))
+}
+
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldTags))
+}
+
+// TagsEqualFold applies the EqualFold predicate on the "tags" field.
+func TagsEqualFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldEqualFold(FieldTags, v))
+}
+
+// TagsContainsFold applies the ContainsFold predicate on the "tags" field.
+func TagsContainsFold(v string) predicate.Instance {
+	return predicate.Instance(sql.FieldContainsFold(FieldTags, v))
 }
 
 // IsSystemEQ applies the EQ predicate on the "is_system" field.
@@ -356,6 +517,62 @@ func StartCommandEqualFold(v string) predicate.Instance {
 // StartCommandContainsFold applies the ContainsFold predicate on the "start_command" field.
 func StartCommandContainsFold(v string) predicate.Instance {
 	return predicate.Instance(sql.FieldContainsFold(FieldStartCommand, v))
+}
+
+// EnvIsNil applies the IsNil predicate on the "env" field.
+func EnvIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldEnv))
+}
+
+// EnvNotNil applies the NotNil predicate on the "env" field.
+func EnvNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldEnv))
+}
+
+// HasUsers applies the HasEdge predicate on the "users" edge.
+func HasUsers() predicate.Instance {
+	return predicate.Instance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UsersTable, UsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
+func HasUsersWith(preds ...predicate.User) predicate.Instance {
+	return predicate.Instance(func(s *sql.Selector) {
+		step := newUsersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasType applies the HasEdge predicate on the "type" edge.
+func HasType() predicate.Instance {
+	return predicate.Instance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTypeWith applies the HasEdge predicate on the "type" edge with a given conditions (other predicates).
+func HasTypeWith(preds ...predicate.InstanceType) predicate.Instance {
+	return predicate.Instance(func(s *sql.Selector) {
+		step := newTypeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

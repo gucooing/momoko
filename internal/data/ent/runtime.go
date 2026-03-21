@@ -9,6 +9,7 @@ import (
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
 	"momoko/internal/data/ent/schema"
+	"momoko/internal/data/ent/systemconfig"
 	"momoko/internal/data/ent/user"
 	"time"
 )
@@ -55,21 +56,21 @@ func init() {
 	// instance.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	instance.NameValidator = instanceDescName.Validators[0].(func(string) error)
 	// instanceDescIsSystem is the schema descriptor for is_system field.
-	instanceDescIsSystem := instanceFields[2].Descriptor()
+	instanceDescIsSystem := instanceFields[4].Descriptor()
 	// instance.DefaultIsSystem holds the default value on creation for the is_system field.
 	instance.DefaultIsSystem = instanceDescIsSystem.Default.(bool)
 	// instanceDescUserID is the schema descriptor for user_id field.
-	instanceDescUserID := instanceFields[3].Descriptor()
+	instanceDescUserID := instanceFields[5].Descriptor()
 	// instance.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	instance.UserIDValidator = instanceDescUserID.Validators[0].(func(string) error)
 	// instanceDescPath is the schema descriptor for path field.
-	instanceDescPath := instanceFields[4].Descriptor()
+	instanceDescPath := instanceFields[6].Descriptor()
 	// instance.DefaultPath holds the default value on creation for the path field.
 	instance.DefaultPath = instanceDescPath.Default.(string)
 	// instance.PathValidator is a validator for the "path" field. It is called by the builders before save.
 	instance.PathValidator = instanceDescPath.Validators[0].(func(string) error)
 	// instanceDescStartCommand is the schema descriptor for start_command field.
-	instanceDescStartCommand := instanceFields[5].Descriptor()
+	instanceDescStartCommand := instanceFields[7].Descriptor()
 	// instance.StartCommandValidator is a validator for the "start_command" field. It is called by the builders before save.
 	instance.StartCommandValidator = instanceDescStartCommand.Validators[0].(func(string) error)
 	// instanceDescID is the schema descriptor for id field.
@@ -148,6 +149,29 @@ func init() {
 	roleDescID := roleFields[0].Descriptor()
 	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	role.IDValidator = roleDescID.Validators[0].(func(string) error)
+	systemconfigMixin := schema.SystemConfig{}.Mixin()
+	systemconfigMixinFields0 := systemconfigMixin[0].Fields()
+	_ = systemconfigMixinFields0
+	systemconfigFields := schema.SystemConfig{}.Fields()
+	_ = systemconfigFields
+	// systemconfigDescCreateTime is the schema descriptor for create_time field.
+	systemconfigDescCreateTime := systemconfigMixinFields0[0].Descriptor()
+	// systemconfig.DefaultCreateTime holds the default value on creation for the create_time field.
+	systemconfig.DefaultCreateTime = systemconfigDescCreateTime.Default.(func() time.Time)
+	// systemconfigDescUpdateTime is the schema descriptor for update_time field.
+	systemconfigDescUpdateTime := systemconfigMixinFields0[1].Descriptor()
+	// systemconfig.DefaultUpdateTime holds the default value on creation for the update_time field.
+	systemconfig.DefaultUpdateTime = systemconfigDescUpdateTime.Default.(func() time.Time)
+	// systemconfig.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	systemconfig.UpdateDefaultUpdateTime = systemconfigDescUpdateTime.UpdateDefault.(func() time.Time)
+	// systemconfigDescKey is the schema descriptor for key field.
+	systemconfigDescKey := systemconfigFields[0].Descriptor()
+	// systemconfig.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	systemconfig.KeyValidator = systemconfigDescKey.Validators[0].(func(string) error)
+	// systemconfigDescValue is the schema descriptor for value field.
+	systemconfigDescValue := systemconfigFields[1].Descriptor()
+	// systemconfig.DefaultValue holds the default value on creation for the value field.
+	systemconfig.DefaultValue = systemconfigDescValue.Default.(string)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

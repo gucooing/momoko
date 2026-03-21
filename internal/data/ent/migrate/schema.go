@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -57,16 +58,28 @@ var (
 	InstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "tags", Type: field.TypeString, Nullable: true},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "path", Type: field.TypeString, Default: "./servers"},
 		{Name: "start_command", Type: field.TypeString},
+		{Name: "env", Type: field.TypeJSON, Nullable: true},
+		{Name: "instance_type", Type: field.TypeString},
 	}
 	// InstancesTable holds the schema information for the "instances" table.
 	InstancesTable = &schema.Table{
 		Name:       "instances",
 		Columns:    InstancesColumns,
 		PrimaryKey: []*schema.Column{InstancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "instances_instance_types_type",
+				Columns:    []*schema.Column{InstancesColumns[9]},
+				RefColumns: []*schema.Column{InstanceTypesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// InstanceTypesColumns holds the columns for the "instance_types" table.
 	InstanceTypesColumns = []*schema.Column{
@@ -117,6 +130,20 @@ var (
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
 	}
+	// ConfigsColumns holds the columns for the "configs" table.
+	ConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString, Default: ""},
+	}
+	// ConfigsTable holds the schema information for the "configs" table.
+	ConfigsTable = &schema.Table{
+		Name:       "configs",
+		Columns:    ConfigsColumns,
+		PrimaryKey: []*schema.Column{ConfigsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -130,6 +157,7 @@ var (
 		{Name: "bio", Type: field.TypeString, Nullable: true},
 		{Name: "name", Type: field.TypeString, Default: "gucooing"},
 		{Name: "tags", Type: field.TypeString, Nullable: true},
+		{Name: "instance_users", Type: field.TypeString, Nullable: true},
 		{Name: "user_role", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -139,8 +167,14 @@ var (
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "users_roles_role",
+				Symbol:     "users_instances_users",
 				Columns:    []*schema.Column{UsersColumns[11]},
+				RefColumns: []*schema.Column{InstancesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_roles_role",
+				Columns:    []*schema.Column{UsersColumns[12]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -178,13 +212,19 @@ var (
 		InstanceTypesTable,
 		MenusTable,
 		RolesTable,
+		ConfigsTable,
 		UsersTable,
 		RoleMenusTable,
 	}
 )
 
 func init() {
-	UsersTable.ForeignKeys[0].RefTable = RolesTable
+	InstancesTable.ForeignKeys[0].RefTable = InstanceTypesTable
+	ConfigsTable.Annotation = &entsql.Annotation{
+		Table: "configs",
+	}
+	UsersTable.ForeignKeys[0].RefTable = InstancesTable
+	UsersTable.ForeignKeys[1].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[0].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[1].RefTable = MenusTable
 }

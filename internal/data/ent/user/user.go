@@ -66,6 +66,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"instance_users",
 	"user_role",
 }
 

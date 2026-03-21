@@ -4,10 +4,13 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/predicate"
+	"momoko/internal/data/ent/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -22,6 +25,9 @@ type InstanceQuery struct {
 	order      []instance.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Instance
+	withUsers  *UserQuery
+	withType   *InstanceTypeQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +62,50 @@ func (_q *InstanceQuery) Unique(unique bool) *InstanceQuery {
 func (_q *InstanceQuery) Order(o ...instance.OrderOption) *InstanceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryUsers chains the current query on the "users" edge.
+func (_q *InstanceQuery) QueryUsers() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(instance.Table, instance.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, instance.UsersTable, instance.UsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryType chains the current query on the "type" edge.
+func (_q *InstanceQuery) QueryType() *InstanceTypeQuery {
+	query := (&InstanceTypeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(instance.Table, instance.FieldID, selector),
+			sqlgraph.To(instancetype.Table, instancetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, instance.TypeTable, instance.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Instance entity from the query.
@@ -250,10 +300,34 @@ func (_q *InstanceQuery) Clone() *InstanceQuery {
 		order:      append([]instance.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Instance{}, _q.predicates...),
+		withUsers:  _q.withUsers.Clone(),
+		withType:   _q.withType.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithUsers tells the query-builder to eager-load the nodes that are connected to
+// the "users" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *InstanceQuery) WithUsers(opts ...func(*UserQuery)) *InstanceQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUsers = query
+	return _q
+}
+
+// WithType tells the query-builder to eager-load the nodes that are connected to
+// the "type" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *InstanceQuery) WithType(opts ...func(*InstanceTypeQuery)) *InstanceQuery {
+	query := (&InstanceTypeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withType = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +406,27 @@ func (_q *InstanceQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *InstanceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Instance, error) {
 	var (
-		nodes = []*Instance{}
-		_spec = _q.querySpec()
+		nodes       = []*Instance{}
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
+		loadedTypes = [2]bool{
+			_q.withUsers != nil,
+			_q.withType != nil,
+		}
 	)
+	if _q.withType != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, instance.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Instance).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Instance{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +438,84 @@ func (_q *InstanceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ins
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withUsers; query != nil {
+		if err := _q.loadUsers(ctx, query, nodes,
+			func(n *Instance) { n.Edges.Users = []*User{} },
+			func(n *Instance, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withType; query != nil {
+		if err := _q.loadType(ctx, query, nodes, nil,
+			func(n *Instance, e *InstanceType) { n.Edges.Type = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *InstanceQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*Instance, init func(*Instance), assign func(*Instance, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Instance)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(instance.UsersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.instance_users
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "instance_users" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "instance_users" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *InstanceQuery) loadType(ctx context.Context, query *InstanceTypeQuery, nodes []*Instance, init func(*Instance), assign func(*Instance, *InstanceType)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Instance)
+	for i := range nodes {
+		if nodes[i].instance_type == nil {
+			continue
+		}
+		fk := *nodes[i].instance_type
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(instancetype.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "instance_type" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (_q *InstanceQuery) sqlCount(ctx context.Context) (int, error) {

@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/instance"
+	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/predicate"
+	"momoko/internal/data/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -38,6 +40,46 @@ func (_u *InstanceUpdate) SetNillableName(v *string) *InstanceUpdate {
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetRemark sets the "remark" field.
+func (_u *InstanceUpdate) SetRemark(v string) *InstanceUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableRemark(v *string) *InstanceUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (_u *InstanceUpdate) ClearRemark() *InstanceUpdate {
+	_u.mutation.ClearRemark()
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *InstanceUpdate) SetTags(v string) *InstanceUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableTags(v *string) *InstanceUpdate {
+	if v != nil {
+		_u.SetTags(*v)
+	}
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *InstanceUpdate) ClearTags() *InstanceUpdate {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -97,9 +139,74 @@ func (_u *InstanceUpdate) SetNillableStartCommand(v *string) *InstanceUpdate {
 	return _u
 }
 
+// SetEnv sets the "env" field.
+func (_u *InstanceUpdate) SetEnv(v map[string]string) *InstanceUpdate {
+	_u.mutation.SetEnv(v)
+	return _u
+}
+
+// ClearEnv clears the value of the "env" field.
+func (_u *InstanceUpdate) ClearEnv() *InstanceUpdate {
+	_u.mutation.ClearEnv()
+	return _u
+}
+
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (_u *InstanceUpdate) AddUserIDs(ids ...string) *InstanceUpdate {
+	_u.mutation.AddUserIDs(ids...)
+	return _u
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (_u *InstanceUpdate) AddUsers(v ...*User) *InstanceUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserIDs(ids...)
+}
+
+// SetTypeID sets the "type" edge to the InstanceType entity by ID.
+func (_u *InstanceUpdate) SetTypeID(id string) *InstanceUpdate {
+	_u.mutation.SetTypeID(id)
+	return _u
+}
+
+// SetType sets the "type" edge to the InstanceType entity.
+func (_u *InstanceUpdate) SetType(v *InstanceType) *InstanceUpdate {
+	return _u.SetTypeID(v.ID)
+}
+
 // Mutation returns the InstanceMutation object of the builder.
 func (_u *InstanceUpdate) Mutation() *InstanceMutation {
 	return _u.mutation
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (_u *InstanceUpdate) ClearUsers() *InstanceUpdate {
+	_u.mutation.ClearUsers()
+	return _u
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (_u *InstanceUpdate) RemoveUserIDs(ids ...string) *InstanceUpdate {
+	_u.mutation.RemoveUserIDs(ids...)
+	return _u
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (_u *InstanceUpdate) RemoveUsers(v ...*User) *InstanceUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserIDs(ids...)
+}
+
+// ClearType clears the "type" edge to the InstanceType entity.
+func (_u *InstanceUpdate) ClearType() *InstanceUpdate {
+	_u.mutation.ClearType()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -151,6 +258,9 @@ func (_u *InstanceUpdate) check() error {
 			return &ValidationError{Name: "start_command", err: fmt.Errorf(`ent: validator failed for field "Instance.start_command": %w`, err)}
 		}
 	}
+	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Instance.type"`)
+	}
 	return nil
 }
 
@@ -169,6 +279,18 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(instance.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(instance.FieldRemark, field.TypeString, value)
+	}
+	if _u.mutation.RemarkCleared() {
+		_spec.ClearField(instance.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(instance.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(instance.FieldTags, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 	}
@@ -180,6 +302,86 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Env(); ok {
+		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
+	}
+	if _u.mutation.EnvCleared() {
+		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if _u.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsersIDs(); len(nodes) > 0 && !_u.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TypeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.TypeTable,
+			Columns: []string{instance.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(instancetype.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.TypeTable,
+			Columns: []string{instance.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(instancetype.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -212,6 +414,46 @@ func (_u *InstanceUpdateOne) SetNillableName(v *string) *InstanceUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetRemark sets the "remark" field.
+func (_u *InstanceUpdateOne) SetRemark(v string) *InstanceUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableRemark(v *string) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (_u *InstanceUpdateOne) ClearRemark() *InstanceUpdateOne {
+	_u.mutation.ClearRemark()
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *InstanceUpdateOne) SetTags(v string) *InstanceUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// SetNillableTags sets the "tags" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableTags(v *string) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetTags(*v)
+	}
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *InstanceUpdateOne) ClearTags() *InstanceUpdateOne {
+	_u.mutation.ClearTags()
 	return _u
 }
 
@@ -271,9 +513,74 @@ func (_u *InstanceUpdateOne) SetNillableStartCommand(v *string) *InstanceUpdateO
 	return _u
 }
 
+// SetEnv sets the "env" field.
+func (_u *InstanceUpdateOne) SetEnv(v map[string]string) *InstanceUpdateOne {
+	_u.mutation.SetEnv(v)
+	return _u
+}
+
+// ClearEnv clears the value of the "env" field.
+func (_u *InstanceUpdateOne) ClearEnv() *InstanceUpdateOne {
+	_u.mutation.ClearEnv()
+	return _u
+}
+
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (_u *InstanceUpdateOne) AddUserIDs(ids ...string) *InstanceUpdateOne {
+	_u.mutation.AddUserIDs(ids...)
+	return _u
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (_u *InstanceUpdateOne) AddUsers(v ...*User) *InstanceUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserIDs(ids...)
+}
+
+// SetTypeID sets the "type" edge to the InstanceType entity by ID.
+func (_u *InstanceUpdateOne) SetTypeID(id string) *InstanceUpdateOne {
+	_u.mutation.SetTypeID(id)
+	return _u
+}
+
+// SetType sets the "type" edge to the InstanceType entity.
+func (_u *InstanceUpdateOne) SetType(v *InstanceType) *InstanceUpdateOne {
+	return _u.SetTypeID(v.ID)
+}
+
 // Mutation returns the InstanceMutation object of the builder.
 func (_u *InstanceUpdateOne) Mutation() *InstanceMutation {
 	return _u.mutation
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (_u *InstanceUpdateOne) ClearUsers() *InstanceUpdateOne {
+	_u.mutation.ClearUsers()
+	return _u
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (_u *InstanceUpdateOne) RemoveUserIDs(ids ...string) *InstanceUpdateOne {
+	_u.mutation.RemoveUserIDs(ids...)
+	return _u
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (_u *InstanceUpdateOne) RemoveUsers(v ...*User) *InstanceUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserIDs(ids...)
+}
+
+// ClearType clears the "type" edge to the InstanceType entity.
+func (_u *InstanceUpdateOne) ClearType() *InstanceUpdateOne {
+	_u.mutation.ClearType()
+	return _u
 }
 
 // Where appends a list predicates to the InstanceUpdate builder.
@@ -338,6 +645,9 @@ func (_u *InstanceUpdateOne) check() error {
 			return &ValidationError{Name: "start_command", err: fmt.Errorf(`ent: validator failed for field "Instance.start_command": %w`, err)}
 		}
 	}
+	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Instance.type"`)
+	}
 	return nil
 }
 
@@ -373,6 +683,18 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(instance.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(instance.FieldRemark, field.TypeString, value)
+	}
+	if _u.mutation.RemarkCleared() {
+		_spec.ClearField(instance.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(instance.FieldTags, field.TypeString, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(instance.FieldTags, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(instance.FieldIsSystem, field.TypeBool, value)
 	}
@@ -384,6 +706,86 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	}
 	if value, ok := _u.mutation.StartCommand(); ok {
 		_spec.SetField(instance.FieldStartCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Env(); ok {
+		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
+	}
+	if _u.mutation.EnvCleared() {
+		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if _u.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsersIDs(); len(nodes) > 0 && !_u.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   instance.UsersTable,
+			Columns: []string{instance.UsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TypeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.TypeTable,
+			Columns: []string{instance.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(instancetype.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   instance.TypeTable,
+			Columns: []string{instance.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(instancetype.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Instance{config: _u.config}
 	_spec.Assign = _node.assignValues

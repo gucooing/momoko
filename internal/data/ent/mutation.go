@@ -12,6 +12,7 @@ import (
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/predicate"
 	"momoko/internal/data/ent/role"
+	"momoko/internal/data/ent/systemconfig"
 	"momoko/internal/data/ent/user"
 	"sync"
 	"time"
@@ -34,6 +35,7 @@ const (
 	TypeInstanceType = "InstanceType"
 	TypeMenu         = "Menu"
 	TypeRole         = "Role"
+	TypeSystemConfig = "SystemConfig"
 	TypeUser         = "User"
 )
 
@@ -748,11 +750,19 @@ type InstanceMutation struct {
 	typ           string
 	id            *string
 	name          *string
+	remark        *string
+	tags          *string
 	is_system     *bool
 	user_id       *string
 	_path         *string
 	start_command *string
+	env           *map[string]string
 	clearedFields map[string]struct{}
+	users         map[string]struct{}
+	removedusers  map[string]struct{}
+	clearedusers  bool
+	_type         *string
+	cleared_type  bool
 	done          bool
 	oldValue      func(context.Context) (*Instance, error)
 	predicates    []predicate.Instance
@@ -896,6 +906,104 @@ func (m *InstanceMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *InstanceMutation) ResetName() {
 	m.name = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *InstanceMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *InstanceMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the Instance entity.
+// If the Instance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *InstanceMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[instance.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *InstanceMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[instance.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *InstanceMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, instance.FieldRemark)
+}
+
+// SetTags sets the "tags" field.
+func (m *InstanceMutation) SetTags(s string) {
+	m.tags = &s
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *InstanceMutation) Tags() (r string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the Instance entity.
+// If the Instance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceMutation) OldTags(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *InstanceMutation) ClearTags() {
+	m.tags = nil
+	m.clearedFields[instance.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *InstanceMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[instance.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *InstanceMutation) ResetTags() {
+	m.tags = nil
+	delete(m.clearedFields, instance.FieldTags)
 }
 
 // SetIsSystem sets the "is_system" field.
@@ -1042,6 +1150,148 @@ func (m *InstanceMutation) ResetStartCommand() {
 	m.start_command = nil
 }
 
+// SetEnv sets the "env" field.
+func (m *InstanceMutation) SetEnv(value map[string]string) {
+	m.env = &value
+}
+
+// Env returns the value of the "env" field in the mutation.
+func (m *InstanceMutation) Env() (r map[string]string, exists bool) {
+	v := m.env
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnv returns the old "env" field's value of the Instance entity.
+// If the Instance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InstanceMutation) OldEnv(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnv is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnv requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnv: %w", err)
+	}
+	return oldValue.Env, nil
+}
+
+// ClearEnv clears the value of the "env" field.
+func (m *InstanceMutation) ClearEnv() {
+	m.env = nil
+	m.clearedFields[instance.FieldEnv] = struct{}{}
+}
+
+// EnvCleared returns if the "env" field was cleared in this mutation.
+func (m *InstanceMutation) EnvCleared() bool {
+	_, ok := m.clearedFields[instance.FieldEnv]
+	return ok
+}
+
+// ResetEnv resets all changes to the "env" field.
+func (m *InstanceMutation) ResetEnv() {
+	m.env = nil
+	delete(m.clearedFields, instance.FieldEnv)
+}
+
+// AddUserIDs adds the "users" edge to the User entity by ids.
+func (m *InstanceMutation) AddUserIDs(ids ...string) {
+	if m.users == nil {
+		m.users = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *InstanceMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *InstanceMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// RemoveUserIDs removes the "users" edge to the User entity by IDs.
+func (m *InstanceMutation) RemoveUserIDs(ids ...string) {
+	if m.removedusers == nil {
+		m.removedusers = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.users, ids[i])
+		m.removedusers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUsers returns the removed IDs of the "users" edge to the User entity.
+func (m *InstanceMutation) RemovedUsersIDs() (ids []string) {
+	for id := range m.removedusers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+func (m *InstanceMutation) UsersIDs() (ids []string) {
+	for id := range m.users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *InstanceMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+	m.removedusers = nil
+}
+
+// SetTypeID sets the "type" edge to the InstanceType entity by id.
+func (m *InstanceMutation) SetTypeID(id string) {
+	m._type = &id
+}
+
+// ClearType clears the "type" edge to the InstanceType entity.
+func (m *InstanceMutation) ClearType() {
+	m.cleared_type = true
+}
+
+// TypeCleared reports if the "type" edge to the InstanceType entity was cleared.
+func (m *InstanceMutation) TypeCleared() bool {
+	return m.cleared_type
+}
+
+// TypeID returns the "type" edge ID in the mutation.
+func (m *InstanceMutation) TypeID() (id string, exists bool) {
+	if m._type != nil {
+		return *m._type, true
+	}
+	return
+}
+
+// TypeIDs returns the "type" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TypeID instead. It exists only for internal usage by the builders.
+func (m *InstanceMutation) TypeIDs() (ids []string) {
+	if id := m._type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetType resets all changes to the "type" edge.
+func (m *InstanceMutation) ResetType() {
+	m._type = nil
+	m.cleared_type = false
+}
+
 // Where appends a list predicates to the InstanceMutation builder.
 func (m *InstanceMutation) Where(ps ...predicate.Instance) {
 	m.predicates = append(m.predicates, ps...)
@@ -1076,9 +1326,15 @@ func (m *InstanceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InstanceMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, instance.FieldName)
+	}
+	if m.remark != nil {
+		fields = append(fields, instance.FieldRemark)
+	}
+	if m.tags != nil {
+		fields = append(fields, instance.FieldTags)
 	}
 	if m.is_system != nil {
 		fields = append(fields, instance.FieldIsSystem)
@@ -1092,6 +1348,9 @@ func (m *InstanceMutation) Fields() []string {
 	if m.start_command != nil {
 		fields = append(fields, instance.FieldStartCommand)
 	}
+	if m.env != nil {
+		fields = append(fields, instance.FieldEnv)
+	}
 	return fields
 }
 
@@ -1102,6 +1361,10 @@ func (m *InstanceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case instance.FieldName:
 		return m.Name()
+	case instance.FieldRemark:
+		return m.Remark()
+	case instance.FieldTags:
+		return m.Tags()
 	case instance.FieldIsSystem:
 		return m.IsSystem()
 	case instance.FieldUserID:
@@ -1110,6 +1373,8 @@ func (m *InstanceMutation) Field(name string) (ent.Value, bool) {
 		return m.Path()
 	case instance.FieldStartCommand:
 		return m.StartCommand()
+	case instance.FieldEnv:
+		return m.Env()
 	}
 	return nil, false
 }
@@ -1121,6 +1386,10 @@ func (m *InstanceMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case instance.FieldName:
 		return m.OldName(ctx)
+	case instance.FieldRemark:
+		return m.OldRemark(ctx)
+	case instance.FieldTags:
+		return m.OldTags(ctx)
 	case instance.FieldIsSystem:
 		return m.OldIsSystem(ctx)
 	case instance.FieldUserID:
@@ -1129,6 +1398,8 @@ func (m *InstanceMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldPath(ctx)
 	case instance.FieldStartCommand:
 		return m.OldStartCommand(ctx)
+	case instance.FieldEnv:
+		return m.OldEnv(ctx)
 	}
 	return nil, fmt.Errorf("unknown Instance field %s", name)
 }
@@ -1144,6 +1415,20 @@ func (m *InstanceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case instance.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case instance.FieldTags:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	case instance.FieldIsSystem:
 		v, ok := value.(bool)
@@ -1172,6 +1457,13 @@ func (m *InstanceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStartCommand(v)
+		return nil
+	case instance.FieldEnv:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnv(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Instance field %s", name)
@@ -1202,7 +1494,17 @@ func (m *InstanceMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *InstanceMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(instance.FieldRemark) {
+		fields = append(fields, instance.FieldRemark)
+	}
+	if m.FieldCleared(instance.FieldTags) {
+		fields = append(fields, instance.FieldTags)
+	}
+	if m.FieldCleared(instance.FieldEnv) {
+		fields = append(fields, instance.FieldEnv)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1215,6 +1517,17 @@ func (m *InstanceMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *InstanceMutation) ClearField(name string) error {
+	switch name {
+	case instance.FieldRemark:
+		m.ClearRemark()
+		return nil
+	case instance.FieldTags:
+		m.ClearTags()
+		return nil
+	case instance.FieldEnv:
+		m.ClearEnv()
+		return nil
+	}
 	return fmt.Errorf("unknown Instance nullable field %s", name)
 }
 
@@ -1224,6 +1537,12 @@ func (m *InstanceMutation) ResetField(name string) error {
 	switch name {
 	case instance.FieldName:
 		m.ResetName()
+		return nil
+	case instance.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case instance.FieldTags:
+		m.ResetTags()
 		return nil
 	case instance.FieldIsSystem:
 		m.ResetIsSystem()
@@ -1237,55 +1556,112 @@ func (m *InstanceMutation) ResetField(name string) error {
 	case instance.FieldStartCommand:
 		m.ResetStartCommand()
 		return nil
+	case instance.FieldEnv:
+		m.ResetEnv()
+		return nil
 	}
 	return fmt.Errorf("unknown Instance field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *InstanceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.users != nil {
+		edges = append(edges, instance.EdgeUsers)
+	}
+	if m._type != nil {
+		edges = append(edges, instance.EdgeType)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *InstanceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case instance.EdgeUsers:
+		ids := make([]ent.Value, 0, len(m.users))
+		for id := range m.users {
+			ids = append(ids, id)
+		}
+		return ids
+	case instance.EdgeType:
+		if id := m._type; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *InstanceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedusers != nil {
+		edges = append(edges, instance.EdgeUsers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *InstanceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case instance.EdgeUsers:
+		ids := make([]ent.Value, 0, len(m.removedusers))
+		for id := range m.removedusers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *InstanceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedusers {
+		edges = append(edges, instance.EdgeUsers)
+	}
+	if m.cleared_type {
+		edges = append(edges, instance.EdgeType)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *InstanceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case instance.EdgeUsers:
+		return m.clearedusers
+	case instance.EdgeType:
+		return m.cleared_type
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *InstanceMutation) ClearEdge(name string) error {
+	switch name {
+	case instance.EdgeType:
+		m.ClearType()
+		return nil
+	}
 	return fmt.Errorf("unknown Instance unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *InstanceMutation) ResetEdge(name string) error {
+	switch name {
+	case instance.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	case instance.EdgeType:
+		m.ResetType()
+		return nil
+	}
 	return fmt.Errorf("unknown Instance edge %s", name)
 }
 
@@ -3448,6 +3824,494 @@ func (m *RoleMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Role edge %s", name)
+}
+
+// SystemConfigMutation represents an operation that mutates the SystemConfig nodes in the graph.
+type SystemConfigMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	create_time   *time.Time
+	update_time   *time.Time
+	key           *string
+	value         *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*SystemConfig, error)
+	predicates    []predicate.SystemConfig
+}
+
+var _ ent.Mutation = (*SystemConfigMutation)(nil)
+
+// systemconfigOption allows management of the mutation configuration using functional options.
+type systemconfigOption func(*SystemConfigMutation)
+
+// newSystemConfigMutation creates new mutation for the SystemConfig entity.
+func newSystemConfigMutation(c config, op Op, opts ...systemconfigOption) *SystemConfigMutation {
+	m := &SystemConfigMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSystemConfig,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSystemConfigID sets the ID field of the mutation.
+func withSystemConfigID(id int) systemconfigOption {
+	return func(m *SystemConfigMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SystemConfig
+		)
+		m.oldValue = func(ctx context.Context) (*SystemConfig, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SystemConfig.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSystemConfig sets the old SystemConfig of the mutation.
+func withSystemConfig(node *SystemConfig) systemconfigOption {
+	return func(m *SystemConfigMutation) {
+		m.oldValue = func(context.Context) (*SystemConfig, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SystemConfigMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SystemConfigMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SystemConfigMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SystemConfigMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SystemConfig.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *SystemConfigMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *SystemConfigMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the SystemConfig entity.
+// If the SystemConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SystemConfigMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *SystemConfigMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *SystemConfigMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *SystemConfigMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the SystemConfig entity.
+// If the SystemConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SystemConfigMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *SystemConfigMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetKey sets the "key" field.
+func (m *SystemConfigMutation) SetKey(s string) {
+	m.key = &s
+}
+
+// Key returns the value of the "key" field in the mutation.
+func (m *SystemConfigMutation) Key() (r string, exists bool) {
+	v := m.key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKey returns the old "key" field's value of the SystemConfig entity.
+// If the SystemConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SystemConfigMutation) OldKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKey: %w", err)
+	}
+	return oldValue.Key, nil
+}
+
+// ResetKey resets all changes to the "key" field.
+func (m *SystemConfigMutation) ResetKey() {
+	m.key = nil
+}
+
+// SetValue sets the "value" field.
+func (m *SystemConfigMutation) SetValue(s string) {
+	m.value = &s
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *SystemConfigMutation) Value() (r string, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the SystemConfig entity.
+// If the SystemConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SystemConfigMutation) OldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *SystemConfigMutation) ResetValue() {
+	m.value = nil
+}
+
+// Where appends a list predicates to the SystemConfigMutation builder.
+func (m *SystemConfigMutation) Where(ps ...predicate.SystemConfig) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SystemConfigMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SystemConfigMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SystemConfig, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SystemConfigMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SystemConfigMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SystemConfig).
+func (m *SystemConfigMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SystemConfigMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.create_time != nil {
+		fields = append(fields, systemconfig.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, systemconfig.FieldUpdateTime)
+	}
+	if m.key != nil {
+		fields = append(fields, systemconfig.FieldKey)
+	}
+	if m.value != nil {
+		fields = append(fields, systemconfig.FieldValue)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SystemConfigMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case systemconfig.FieldCreateTime:
+		return m.CreateTime()
+	case systemconfig.FieldUpdateTime:
+		return m.UpdateTime()
+	case systemconfig.FieldKey:
+		return m.Key()
+	case systemconfig.FieldValue:
+		return m.Value()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SystemConfigMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case systemconfig.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case systemconfig.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case systemconfig.FieldKey:
+		return m.OldKey(ctx)
+	case systemconfig.FieldValue:
+		return m.OldValue(ctx)
+	}
+	return nil, fmt.Errorf("unknown SystemConfig field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SystemConfigMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case systemconfig.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case systemconfig.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case systemconfig.FieldKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKey(v)
+		return nil
+	case systemconfig.FieldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SystemConfig field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SystemConfigMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SystemConfigMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SystemConfigMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SystemConfig numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SystemConfigMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SystemConfigMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SystemConfigMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SystemConfig nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SystemConfigMutation) ResetField(name string) error {
+	switch name {
+	case systemconfig.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case systemconfig.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case systemconfig.FieldKey:
+		m.ResetKey()
+		return nil
+	case systemconfig.FieldValue:
+		m.ResetValue()
+		return nil
+	}
+	return fmt.Errorf("unknown SystemConfig field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SystemConfigMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SystemConfigMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SystemConfigMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SystemConfigMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SystemConfigMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SystemConfigMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SystemConfigMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown SystemConfig unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SystemConfigMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown SystemConfig edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

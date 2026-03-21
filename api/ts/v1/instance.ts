@@ -21,6 +21,62 @@ export enum InstanceStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 获取实例类型请求 */
+export interface GetInstanceTypesRequest {
+}
+
+/** 获取实例类型响应 */
+export interface GetInstanceTypesResponse {
+  /** 类型列表 */
+  types: InstanceTypeInfo[];
+}
+
+/** 创建实例类型请求 */
+export interface CreateInstanceTypeRequest {
+  /** 类型名称 */
+  name: string;
+}
+
+/** 创建实例类型响应 */
+export interface CreateInstanceTypeResponse {
+  /** 实例信息 */
+  type: InstanceTypeInfo | undefined;
+}
+
+/** 更新实例类型请求 */
+export interface UpdateInstanceTypeRequest {
+  /** 类型id */
+  id: string;
+  /** 类型名称 */
+  name?: string | undefined;
+}
+
+/** 更新实例类型响应 */
+export interface UpdateInstanceTypeResponse {
+  /** 实例信息 */
+  type: InstanceTypeInfo | undefined;
+}
+
+/** 更新实例类型请求 */
+export interface DelInstanceTypeRequest {
+  /** 类型id */
+  id: string;
+}
+
+/** 更新实例类型响应 */
+export interface DelInstanceTypeResponse {
+}
+
+/** 实例类型信息 */
+export interface InstanceTypeInfo {
+  /** 类型id */
+  id: string;
+  /** 类型名称 */
+  name: string;
+  /** 是否系统内置 */
+  isSystem: boolean;
+}
+
 /** 获取终端详情请求 */
 export interface GetTerminalInfoRequest {
 }

@@ -16,6 +16,7 @@ import (
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
 	"momoko/internal/data/ent/role"
+	"momoko/internal/data/ent/systemconfig"
 	"momoko/internal/data/ent/user"
 
 	"entgo.io/ent"
@@ -41,6 +42,8 @@ type Client struct {
 	Menu *MenuClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SystemConfig is the client for interacting with the SystemConfig builders.
+	SystemConfig *SystemConfigClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -59,6 +62,7 @@ func (c *Client) init() {
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
 	c.Role = NewRoleClient(c.config)
+	c.SystemConfig = NewSystemConfigClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -157,6 +161,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		InstanceType: NewInstanceTypeClient(cfg),
 		Menu:         NewMenuClient(cfg),
 		Role:         NewRoleClient(cfg),
+		SystemConfig: NewSystemConfigClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
 }
@@ -182,6 +187,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		InstanceType: NewInstanceTypeClient(cfg),
 		Menu:         NewMenuClient(cfg),
 		Role:         NewRoleClient(cfg),
+		SystemConfig: NewSystemConfigClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
 }
@@ -212,7 +218,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.User,
+		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.SystemConfig, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -222,7 +228,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.User,
+		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.SystemConfig, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -241,6 +247,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Menu.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
+	case *SystemConfigMutation:
+		return c.SystemConfig.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -487,6 +495,38 @@ func (c *InstanceClient) GetX(ctx context.Context, id string) *Instance {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryUsers queries the users edge of a Instance.
+func (c *InstanceClient) QueryUsers(_m *Instance) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(instance.Table, instance.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, instance.UsersTable, instance.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryType queries the type edge of a Instance.
+func (c *InstanceClient) QueryType(_m *Instance) *InstanceTypeQuery {
+	query := (&InstanceTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(instance.Table, instance.FieldID, id),
+			sqlgraph.To(instancetype.Table, instancetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, instance.TypeTable, instance.TypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -945,6 +985,139 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 	}
 }
 
+// SystemConfigClient is a client for the SystemConfig schema.
+type SystemConfigClient struct {
+	config
+}
+
+// NewSystemConfigClient returns a client for the SystemConfig from the given config.
+func NewSystemConfigClient(c config) *SystemConfigClient {
+	return &SystemConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `systemconfig.Hooks(f(g(h())))`.
+func (c *SystemConfigClient) Use(hooks ...Hook) {
+	c.hooks.SystemConfig = append(c.hooks.SystemConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `systemconfig.Intercept(f(g(h())))`.
+func (c *SystemConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SystemConfig = append(c.inters.SystemConfig, interceptors...)
+}
+
+// Create returns a builder for creating a SystemConfig entity.
+func (c *SystemConfigClient) Create() *SystemConfigCreate {
+	mutation := newSystemConfigMutation(c.config, OpCreate)
+	return &SystemConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SystemConfig entities.
+func (c *SystemConfigClient) CreateBulk(builders ...*SystemConfigCreate) *SystemConfigCreateBulk {
+	return &SystemConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemConfigClient) MapCreateBulk(slice any, setFunc func(*SystemConfigCreate, int)) *SystemConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemConfigCreateBulk{err: fmt.Errorf("calling to SystemConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SystemConfig.
+func (c *SystemConfigClient) Update() *SystemConfigUpdate {
+	mutation := newSystemConfigMutation(c.config, OpUpdate)
+	return &SystemConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemConfigClient) UpdateOne(_m *SystemConfig) *SystemConfigUpdateOne {
+	mutation := newSystemConfigMutation(c.config, OpUpdateOne, withSystemConfig(_m))
+	return &SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemConfigClient) UpdateOneID(id int) *SystemConfigUpdateOne {
+	mutation := newSystemConfigMutation(c.config, OpUpdateOne, withSystemConfigID(id))
+	return &SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SystemConfig.
+func (c *SystemConfigClient) Delete() *SystemConfigDelete {
+	mutation := newSystemConfigMutation(c.config, OpDelete)
+	return &SystemConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemConfigClient) DeleteOne(_m *SystemConfig) *SystemConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemConfigClient) DeleteOneID(id int) *SystemConfigDeleteOne {
+	builder := c.Delete().Where(systemconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for SystemConfig.
+func (c *SystemConfigClient) Query() *SystemConfigQuery {
+	return &SystemConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystemConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SystemConfig entity by its id.
+func (c *SystemConfigClient) Get(ctx context.Context, id int) (*SystemConfig, error) {
+	return c.Query().Where(systemconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemConfigClient) GetX(ctx context.Context, id int) *SystemConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SystemConfigClient) Hooks() []Hook {
+	return c.hooks.SystemConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemConfigClient) Interceptors() []Interceptor {
+	return c.inters.SystemConfig
+}
+
+func (c *SystemConfigClient) mutate(ctx context.Context, m *SystemConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SystemConfig mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1097,10 +1270,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, Instance, InstanceType, Menu, Role, User []ent.Hook
+		Auth, Instance, InstanceType, Menu, Role, SystemConfig, User []ent.Hook
 	}
 	inters struct {
-		Auth, Instance, InstanceType, Menu, Role, User []ent.Interceptor
+		Auth, Instance, InstanceType, Menu, Role, SystemConfig, User []ent.Interceptor
 	}
 )
 
