@@ -25,6 +25,37 @@ func (i *InstanceService) RegisterWsServer(srv *http.Server) {
 	srv.Handle(biz.TerminalWSPath, websocket.Handler(i.RunTerminalWsConn))
 }
 
+func (i *InstanceService) GetInstanceTypes(ctx context.Context, req *v1.GetInstanceTypesRequest) (*v1.GetInstanceTypesResponse, error) {
+	types, err := i.uc.GetTypes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetInstanceTypesResponse{Types: types}, nil
+}
+
+func (i *InstanceService) CreateInstanceType(ctx context.Context, req *v1.CreateInstanceTypeRequest) (*v1.CreateInstanceTypeResponse, error) {
+	typeInfo, err := i.uc.CreateType(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateInstanceTypeResponse{Type: typeInfo}, nil
+}
+
+func (i *InstanceService) UpdateInstanceType(ctx context.Context, req *v1.UpdateInstanceTypeRequest) (*v1.UpdateInstanceTypeResponse, error) {
+	typeInfo, err := i.uc.UpdateType(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateInstanceTypeResponse{Type: typeInfo}, nil
+}
+
+func (i *InstanceService) DelInstanceType(ctx context.Context, req *v1.DelInstanceTypeRequest) (*v1.DelInstanceTypeResponse, error) {
+	if err := i.uc.DeleteType(ctx, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DelInstanceTypeResponse{}, nil
+}
+
 func (i *InstanceService) GetTerminalInfo(ctx context.Context, req *v1.GetTerminalInfoRequest) (*v1.GetTerminalInfoResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

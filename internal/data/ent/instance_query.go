@@ -336,12 +336,12 @@ func (_q *InstanceQuery) WithType(opts ...func(*InstanceTypeQuery)) *InstanceQue
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Instance.Query().
-//		GroupBy(instance.FieldName).
+//		GroupBy(instance.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *InstanceQuery) GroupBy(field string, fields ...string) *InstanceGroupBy {
@@ -359,11 +359,11 @@ func (_q *InstanceQuery) GroupBy(field string, fields ...string) *InstanceGroupB
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Instance.Query().
-//		Select(instance.FieldName).
+//		Select(instance.FieldCreateTime).
 //		Scan(ctx, &v)
 func (_q *InstanceQuery) Select(fields ...string) *InstanceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

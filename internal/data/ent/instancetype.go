@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/instancetype"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -17,6 +18,10 @@ type InstanceType struct {
 	// ID of the ent.
 	// 类型id
 	ID string `json:"id,omitempty"`
+	// 创建时间
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// 更新时间
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 类型名称
 	Name string `json:"name,omitempty"`
 	// 是否系统内置
@@ -33,6 +38,8 @@ func (*InstanceType) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case instancetype.FieldID, instancetype.FieldName:
 			values[i] = new(sql.NullString)
+		case instancetype.FieldCreateTime, instancetype.FieldUpdateTime:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -53,6 +60,18 @@ func (_m *InstanceType) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case instancetype.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				_m.CreateTime = value.Time
+			}
+		case instancetype.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				_m.UpdateTime = value.Time
 			}
 		case instancetype.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -102,6 +121,12 @@ func (_m *InstanceType) String() string {
 	var builder strings.Builder
 	builder.WriteString("InstanceType(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(_m.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("update_time=")
+	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

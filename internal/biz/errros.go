@@ -17,4 +17,6 @@ var (
 	ErrNoPermission     = response.BadRequest(501, "权限不足")
 	ErrUserInactive     = response.BadRequest(501, "账号已停用")
 	ErrInstanceNotFound = response.BadRequest(501, "实例不存在")
+	ErrInstanceTypeName = response.BadRequest(400, "类型名称不能为空")
+	ErrInstanceTypeID   = response.BadRequest(400, "类型ID不能为空")
 )

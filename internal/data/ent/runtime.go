@@ -49,8 +49,21 @@ func init() {
 	authDescUserID := authFields[3].Descriptor()
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
+	instanceMixin := schema.Instance{}.Mixin()
+	instanceMixinFields0 := instanceMixin[0].Fields()
+	_ = instanceMixinFields0
 	instanceFields := schema.Instance{}.Fields()
 	_ = instanceFields
+	// instanceDescCreateTime is the schema descriptor for create_time field.
+	instanceDescCreateTime := instanceMixinFields0[0].Descriptor()
+	// instance.DefaultCreateTime holds the default value on creation for the create_time field.
+	instance.DefaultCreateTime = instanceDescCreateTime.Default.(func() time.Time)
+	// instanceDescUpdateTime is the schema descriptor for update_time field.
+	instanceDescUpdateTime := instanceMixinFields0[1].Descriptor()
+	// instance.DefaultUpdateTime holds the default value on creation for the update_time field.
+	instance.DefaultUpdateTime = instanceDescUpdateTime.Default.(func() time.Time)
+	// instance.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	instance.UpdateDefaultUpdateTime = instanceDescUpdateTime.UpdateDefault.(func() time.Time)
 	// instanceDescName is the schema descriptor for name field.
 	instanceDescName := instanceFields[1].Descriptor()
 	// instance.NameValidator is a validator for the "name" field. It is called by the builders before save.
@@ -77,8 +90,21 @@ func init() {
 	instanceDescID := instanceFields[0].Descriptor()
 	// instance.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	instance.IDValidator = instanceDescID.Validators[0].(func(string) error)
+	instancetypeMixin := schema.InstanceType{}.Mixin()
+	instancetypeMixinFields0 := instancetypeMixin[0].Fields()
+	_ = instancetypeMixinFields0
 	instancetypeFields := schema.InstanceType{}.Fields()
 	_ = instancetypeFields
+	// instancetypeDescCreateTime is the schema descriptor for create_time field.
+	instancetypeDescCreateTime := instancetypeMixinFields0[0].Descriptor()
+	// instancetype.DefaultCreateTime holds the default value on creation for the create_time field.
+	instancetype.DefaultCreateTime = instancetypeDescCreateTime.Default.(func() time.Time)
+	// instancetypeDescUpdateTime is the schema descriptor for update_time field.
+	instancetypeDescUpdateTime := instancetypeMixinFields0[1].Descriptor()
+	// instancetype.DefaultUpdateTime holds the default value on creation for the update_time field.
+	instancetype.DefaultUpdateTime = instancetypeDescUpdateTime.Default.(func() time.Time)
+	// instancetype.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	instancetype.UpdateDefaultUpdateTime = instancetypeDescUpdateTime.UpdateDefault.(func() time.Time)
 	// instancetypeDescName is the schema descriptor for name field.
 	instancetypeDescName := instancetypeFields[1].Descriptor()
 	// instancetype.NameValidator is a validator for the "name" field. It is called by the builders before save.

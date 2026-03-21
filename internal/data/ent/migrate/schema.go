@@ -57,6 +57,8 @@ var (
 	// InstancesColumns holds the columns for the "instances" table.
 	InstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "remark", Type: field.TypeString, Nullable: true},
 		{Name: "tags", Type: field.TypeString, Nullable: true},
@@ -75,7 +77,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "instances_instance_types_type",
-				Columns:    []*schema.Column{InstancesColumns[9]},
+				Columns:    []*schema.Column{InstancesColumns[11]},
 				RefColumns: []*schema.Column{InstanceTypesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -84,6 +86,8 @@ var (
 	// InstanceTypesColumns holds the columns for the "instance_types" table.
 	InstanceTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 	}

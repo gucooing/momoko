@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +25,12 @@ type InstanceTypeUpdate struct {
 // Where appends a list predicates to the InstanceTypeUpdate builder.
 func (_u *InstanceTypeUpdate) Where(ps ...predicate.InstanceType) *InstanceTypeUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *InstanceTypeUpdate) SetUpdateTime(v time.Time) *InstanceTypeUpdate {
+	_u.mutation.SetUpdateTime(v)
 	return _u
 }
 
@@ -62,6 +69,7 @@ func (_u *InstanceTypeUpdate) Mutation() *InstanceTypeMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *InstanceTypeUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -87,6 +95,14 @@ func (_u *InstanceTypeUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *InstanceTypeUpdate) defaults() {
+	if _, ok := _u.mutation.UpdateTime(); !ok {
+		v := instancetype.UpdateDefaultUpdateTime()
+		_u.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_u *InstanceTypeUpdate) check() error {
 	if v, ok := _u.mutation.Name(); ok {
@@ -108,6 +124,9 @@ func (_u *InstanceTypeUpdate) sqlSave(ctx context.Context) (_node int, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(instancetype.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(instancetype.FieldName, field.TypeString, value)
@@ -133,6 +152,12 @@ type InstanceTypeUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *InstanceTypeMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_u *InstanceTypeUpdateOne) SetUpdateTime(v time.Time) *InstanceTypeUpdateOne {
+	_u.mutation.SetUpdateTime(v)
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -183,6 +208,7 @@ func (_u *InstanceTypeUpdateOne) Select(field string, fields ...string) *Instanc
 
 // Save executes the query and returns the updated InstanceType entity.
 func (_u *InstanceTypeUpdateOne) Save(ctx context.Context) (*InstanceType, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -205,6 +231,14 @@ func (_u *InstanceTypeUpdateOne) Exec(ctx context.Context) error {
 func (_u *InstanceTypeUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *InstanceTypeUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdateTime(); !ok {
+		v := instancetype.UpdateDefaultUpdateTime()
+		_u.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -246,6 +280,9 @@ func (_u *InstanceTypeUpdateOne) sqlSave(ctx context.Context) (_node *InstanceTy
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdateTime(); ok {
+		_spec.SetField(instancetype.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(instancetype.FieldName, field.TypeString, value)

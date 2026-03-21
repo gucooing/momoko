@@ -3,13 +3,15 @@ package biz
 import (
 	"context"
 	"errors"
-	"golang.org/x/net/websocket"
 	"io"
 	"os"
+
+	"golang.org/x/net/websocket"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
+	"momoko/internal/data/ent"
 	"momoko/pkg/servercore"
 )
 
@@ -23,15 +25,69 @@ const (
 )
 
 type InstanceUsecase struct {
+	repo     InstanceRepo
 	terminal *servercore.ServerManager // 用户终端实例
 	instance *servercore.ServerManager // 普通应用实例
 }
 
-func NewInstanceUsecase() *InstanceUsecase {
+type InstanceRepo interface {
+	GetTypes(ctx context.Context) ([]*ent.InstanceType, error)
+	CreateType(ctx context.Context, name string) (*ent.InstanceType, error)
+	UpdateType(ctx context.Context, id string, name *string) (*ent.InstanceType, error)
+	DeleteType(ctx context.Context, id string) error
+	GetInstances(ctx context.Context, userId string) ([]*ent.Instance, error)
+}
+
+func NewInstanceUsecase(repo InstanceRepo) *InstanceUsecase {
 	return &InstanceUsecase{
+		repo:     repo,
 		terminal: servercore.NewServerManager(),
 		instance: servercore.NewServerManager(),
 	}
+}
+
+func (i *InstanceUsecase) GetTypes(ctx context.Context) ([]*v1.InstanceTypeInfo, error) {
+	typeInfos, err := i.repo.GetTypes(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	types := make([]*v1.InstanceTypeInfo, 0, len(typeInfos))
+	for _, typeInfo := range typeInfos {
+		types = append(types, toInstanceTypeInfo(typeInfo))
+	}
+	return types, nil
+}
+
+func (i *InstanceUsecase) CreateType(ctx context.Context, req *v1.CreateInstanceTypeRequest) (*v1.InstanceTypeInfo, error) {
+	if req.Name == "" {
+		return nil, ErrInstanceTypeName
+	}
+
+	typeInfo, err := i.repo.CreateType(ctx, req.Name)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toInstanceTypeInfo(typeInfo), nil
+}
+
+func (i *InstanceUsecase) UpdateType(ctx context.Context, req *v1.UpdateInstanceTypeRequest) (*v1.InstanceTypeInfo, error) {
+	if req.Id == "" {
+		return nil, ErrInstanceTypeID
+	}
+
+	typeInfo, err := i.repo.UpdateType(ctx, req.Id, req.Name)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toInstanceTypeInfo(typeInfo), nil
+}
+
+func (i *InstanceUsecase) DeleteType(ctx context.Context, id string) error {
+	if err := i.repo.DeleteType(ctx, id); err != nil {
+		return ErrSystem(err)
+	}
+	return nil
 }
 
 // GetTerminalInfo 获取当前用户终端实例信息。
@@ -176,5 +232,13 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 			return
 		}
 		_ = server.Send(input)
+	}
+}
+
+func toInstanceTypeInfo(data *ent.InstanceType) *v1.InstanceTypeInfo {
+	return &v1.InstanceTypeInfo{
+		Id:       data.ID,
+		Name:     data.Name,
+		IsSystem: data.IsSystem,
 	}
 }

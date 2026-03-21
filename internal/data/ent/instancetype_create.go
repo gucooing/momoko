@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/instancetype"
+	"time"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -20,6 +21,34 @@ type InstanceTypeCreate struct {
 	mutation *InstanceTypeMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetCreateTime sets the "create_time" field.
+func (_c *InstanceTypeCreate) SetCreateTime(v time.Time) *InstanceTypeCreate {
+	_c.mutation.SetCreateTime(v)
+	return _c
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableCreateTime(v *time.Time) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetCreateTime(*v)
+	}
+	return _c
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (_c *InstanceTypeCreate) SetUpdateTime(v time.Time) *InstanceTypeCreate {
+	_c.mutation.SetUpdateTime(v)
+	return _c
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableUpdateTime(v *time.Time) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetUpdateTime(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -83,6 +112,14 @@ func (_c *InstanceTypeCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *InstanceTypeCreate) defaults() {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		v := instancetype.DefaultCreateTime()
+		_c.mutation.SetCreateTime(v)
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		v := instancetype.DefaultUpdateTime()
+		_c.mutation.SetUpdateTime(v)
+	}
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		v := instancetype.DefaultIsSystem
 		_c.mutation.SetIsSystem(v)
@@ -91,6 +128,12 @@ func (_c *InstanceTypeCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *InstanceTypeCreate) check() error {
+	if _, ok := _c.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "InstanceType.create_time"`)}
+	}
+	if _, ok := _c.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "InstanceType.update_time"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "InstanceType.name"`)}
 	}
@@ -143,6 +186,14 @@ func (_c *InstanceTypeCreate) createSpec() (*InstanceType, *sqlgraph.CreateSpec)
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := _c.mutation.CreateTime(); ok {
+		_spec.SetField(instancetype.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := _c.mutation.UpdateTime(); ok {
+		_spec.SetField(instancetype.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(instancetype.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -158,7 +209,7 @@ func (_c *InstanceTypeCreate) createSpec() (*InstanceType, *sqlgraph.CreateSpec)
 // of the `INSERT` statement. For example:
 //
 //	client.InstanceType.Create().
-//		SetName(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -167,7 +218,7 @@ func (_c *InstanceTypeCreate) createSpec() (*InstanceType, *sqlgraph.CreateSpec)
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.InstanceTypeUpsert) {
-//			SetName(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *InstanceTypeCreate) OnConflict(opts ...sql.ConflictOption) *InstanceTypeUpsertOne {
@@ -202,6 +253,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUpdateTime sets the "update_time" field.
+func (u *InstanceTypeUpsert) SetUpdateTime(v time.Time) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateUpdateTime() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldUpdateTime)
+	return u
+}
 
 // SetName sets the "name" field.
 func (u *InstanceTypeUpsert) SetName(v string) *InstanceTypeUpsert {
@@ -244,6 +307,9 @@ func (u *InstanceTypeUpsertOne) UpdateNewValues() *InstanceTypeUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(instancetype.FieldID)
 		}
+		if _, exists := u.create.mutation.CreateTime(); exists {
+			s.SetIgnore(instancetype.FieldCreateTime)
+		}
 	}))
 	return u
 }
@@ -273,6 +339,20 @@ func (u *InstanceTypeUpsertOne) Update(set func(*InstanceTypeUpsert)) *InstanceT
 		set(&InstanceTypeUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *InstanceTypeUpsertOne) SetUpdateTime(v time.Time) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateUpdateTime() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateUpdateTime()
+	})
 }
 
 // SetName sets the "name" field.
@@ -439,7 +519,7 @@ func (_c *InstanceTypeCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.InstanceTypeUpsert) {
-//			SetName(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *InstanceTypeCreateBulk) OnConflict(opts ...sql.ConflictOption) *InstanceTypeUpsertBulk {
@@ -486,6 +566,9 @@ func (u *InstanceTypeUpsertBulk) UpdateNewValues() *InstanceTypeUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(instancetype.FieldID)
 			}
+			if _, exists := b.mutation.CreateTime(); exists {
+				s.SetIgnore(instancetype.FieldCreateTime)
+			}
 		}
 	}))
 	return u
@@ -516,6 +599,20 @@ func (u *InstanceTypeUpsertBulk) Update(set func(*InstanceTypeUpsert)) *Instance
 		set(&InstanceTypeUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *InstanceTypeUpsertBulk) SetUpdateTime(v time.Time) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateUpdateTime() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateUpdateTime()
+	})
 }
 
 // SetName sets the "name" field.

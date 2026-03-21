@@ -262,12 +262,12 @@ func (_q *InstanceTypeQuery) Clone() *InstanceTypeQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.InstanceType.Query().
-//		GroupBy(instancetype.FieldName).
+//		GroupBy(instancetype.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *InstanceTypeQuery) GroupBy(field string, fields ...string) *InstanceTypeGroupBy {
@@ -285,11 +285,11 @@ func (_q *InstanceTypeQuery) GroupBy(field string, fields ...string) *InstanceTy
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.InstanceType.Query().
-//		Select(instancetype.FieldName).
+//		Select(instancetype.FieldCreateTime).
 //		Scan(ctx, &v)
 func (_q *InstanceTypeQuery) Select(fields ...string) *InstanceTypeSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
