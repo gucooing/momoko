@@ -178,6 +178,14 @@ func (m *ServerManager) RecentLogs(id string) ([]LogEntry, error) {
 	return server.RecentLogs(), nil
 }
 
+// Remove 仅从管理器中移除实例，不会主动停止进程。
+func (m *ServerManager) Remove(id string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	delete(m.servers, id)
+}
+
 func (m *ServerManager) snapshotServers() []*Server {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

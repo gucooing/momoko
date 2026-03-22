@@ -341,20 +341,16 @@ message UpdateInstanceRequest{
   optional string tags = 4;
   // 类型
   optional string type = 5;
-  // 所属用户id
-  optional string user_id = 6;
   // 启动命令
-  optional string start_command = 7;
+  optional string start_command = 6;
   // 实例路径
-  optional string instance_path = 8;
-  // ws路径(启动时才有
-  optional string ws_path = 9;
+  optional string instance_path = 7;
   // 停止命令
-  optional string stop_command = 10;
+  optional string stop_command = 8;
   // 是否自启动
-  optional bool auto_start = 11;
+  optional bool auto_start = 9;
   // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-  repeated string env = 12;
+  repeated string env = 10;
 }
 
 message UpdateInstanceResponse{

@@ -128,6 +128,29 @@ func (i *InstanceService) CreateInstance(ctx context.Context, req *v1.CreateInst
 	return &v1.CreateInstanceResponse{Info: info}, nil
 }
 
+func (i *InstanceService) DelInstance(ctx context.Context, req *v1.DelInstanceRequest) (*v1.DelInstanceResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	if err := i.uc.DeleteInstance(ctx, authCtx.UserID, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DelInstanceResponse{}, nil
+}
+
+func (i *InstanceService) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest) (*v1.UpdateInstanceResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := i.uc.UpdateInstance(ctx, req, authCtx.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateInstanceResponse{Info: info}, nil
+}
+
 func (i *InstanceService) GetInstanceInfo(ctx context.Context, req *v1.GetInstanceInfoRequest) (*v1.GetInstanceInfoResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

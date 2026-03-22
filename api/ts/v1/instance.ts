@@ -264,20 +264,12 @@ export interface UpdateInstanceRequest {
   type?:
     | string
     | undefined;
-  /** 所属用户id */
-  userId?:
-    | string
-    | undefined;
   /** 启动命令 */
   startCommand?:
     | string
     | undefined;
   /** 实例路径 */
   instancePath?:
-    | string
-    | undefined;
-  /** ws路径(启动时才有 */
-  wsPath?:
     | string
     | undefined;
   /** 停止命令 */

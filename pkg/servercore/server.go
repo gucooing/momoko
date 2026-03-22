@@ -114,8 +114,7 @@ type startResult struct {
 	rawOutput    bool
 }
 
-// NewServer 创建一个最小可用的服务端实例。
-func NewServer(cfg ServerConfig) (*Server, error) {
+func normalizeServerConfig(cfg ServerConfig) (ServerConfig, error) {
 	normalized := cfg
 	normalized.ID = strings.TrimSpace(cfg.ID)
 	normalized.Command = strings.TrimSpace(cfg.Command)
@@ -124,15 +123,15 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	normalized.Env = append([]string(nil), cfg.Env...)
 	resolvedDir, err := normalizeDir(cfg.Dir)
 	if err != nil {
-		return nil, err
+		return ServerConfig{}, err
 	}
 	normalized.Dir = resolvedDir
 
 	if normalized.ID == "" {
-		return nil, errors.New("服务端 ID 不能为空")
+		return ServerConfig{}, errors.New("服务端 ID 不能为空")
 	}
 	if normalized.Command == "" {
-		return nil, errors.New("启动命令不能为空")
+		return ServerConfig{}, errors.New("启动命令不能为空")
 	}
 	if normalized.LogLimit <= 0 {
 		normalized.LogLimit = defaultLogLimit
@@ -145,6 +144,16 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	}
 	if normalized.RestartInterval <= 0 {
 		normalized.RestartInterval = defaultRestartInterval
+	}
+
+	return normalized, nil
+}
+
+// NewServer 创建一个最小可用的服务端实例。
+func NewServer(cfg ServerConfig) (*Server, error) {
+	normalized, err := normalizeServerConfig(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Server{
@@ -207,6 +216,26 @@ func (s *Server) StartTime() (time.Time, bool) {
 		return time.Time{}, false
 	}
 	return s.startTime, true
+}
+
+// UpdateConfig 更新实例配置。
+// 如果实例正在运行，仅更新后续控制和下次启动使用的配置，不会主动重启进程。
+func (s *Server) UpdateConfig(cfg ServerConfig) error {
+	normalized, err := normalizeServerConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if normalized.ID != s.cfg.ID {
+		return errors.New("服务端 ID 不允许修改")
+	}
+
+	s.cfg = normalized
+	s.trimLogsLocked()
+	return nil
 }
 
 // Start 启动子进程，并异步读取 stdout 和 stderr。
@@ -754,14 +783,18 @@ func (s *Server) appendLogAndSnapshotSubscribers(entry LogEntry) []chan LogEntry
 	defer s.mu.Unlock()
 
 	s.logs = append(s.logs, entry)
-	if overflow := len(s.logs) - s.cfg.LogLimit; overflow > 0 {
-		copy(s.logs, s.logs[overflow:])
-		s.logs = s.logs[:s.cfg.LogLimit]
-	}
+	s.trimLogsLocked()
 
 	subs := make([]chan LogEntry, 0, len(s.subscribers))
 	for _, ch := range s.subscribers {
 		subs = append(subs, ch)
 	}
 	return subs
+}
+
+func (s *Server) trimLogsLocked() {
+	if overflow := len(s.logs) - s.cfg.LogLimit; overflow > 0 {
+		copy(s.logs, s.logs[overflow:])
+		s.logs = s.logs[:s.cfg.LogLimit]
+	}
 }

@@ -17,6 +17,7 @@ var (
 	ErrNoPermission     = response.BadRequest(500, "权限不足")
 	ErrUserInactive     = response.BadRequest(500, "账号已停用")
 	ErrInstanceNotFound = response.BadRequest(500, "实例不存在")
+	ErrInstanceAccess   = response.BadRequest(500, "您没有该实例权限")
 	ErrInstanceTypeName = response.BadRequest(500, "类型名称不能为空")
 	ErrInstanceTypeID   = response.BadRequest(500, "类型ID不能为空")
 )

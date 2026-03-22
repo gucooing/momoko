@@ -121,6 +121,52 @@ func TestServerManagerShutdownFallsBackToForceStop(t *testing.T) {
 	})
 }
 
+func TestServerUpdateConfigAppliesStopCommandWithoutRestart(t *testing.T) {
+	cfg := ServerConfig{
+		ID:               t.Name(),
+		Command:          os.Args[0],
+		Args:             []string{"-test.run=TestHelperProcess"},
+		Env:              []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console", "SERVERCORE_EXPECT_STOP=quit"},
+		StopCommand:      "stop",
+		SubscriberBuffer: 32,
+		LogLimit:         50,
+	}
+
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	logCh, cancel := server.Subscribe()
+	defer cancel()
+
+	if err := server.Start(); err != nil {
+		t.Fatalf("启动服务端失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	updatedCfg := cfg
+	updatedCfg.StopCommand = "quit"
+	if err := server.UpdateConfig(updatedCfg); err != nil {
+		t.Fatalf("更新配置失败: %v", err)
+	}
+
+	if !server.Running() {
+		t.Fatal("更新配置后实例不应退出")
+	}
+
+	start := time.Now()
+	if err := server.Stop(); err != nil {
+		t.Fatalf("停止服务端失败: %v", err)
+	}
+	if elapsed := time.Since(start); elapsed >= time.Second {
+		t.Fatalf("更新后的停止命令未及时生效，耗时过长: %v", elapsed)
+	}
+}
+
 func TestServerManagerStartAndReceiveOutput(t *testing.T) {
 	manager, id := newTestManager(t, 20)
 
@@ -441,13 +487,17 @@ func runConsoleHelper() {
 
 	stopDelay, _ := time.ParseDuration(os.Getenv("SERVERCORE_STOP_DELAY"))
 	ignoreStop := os.Getenv("SERVERCORE_IGNORE_STOP") == "1"
+	expectedStop := os.Getenv("SERVERCORE_EXPECT_STOP")
+	if expectedStop == "" {
+		expectedStop = "stop"
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch line {
 		case "ping":
 			fmt.Fprintln(os.Stdout, "pong")
-		case "stop":
+		case expectedStop:
 			if ignoreStop {
 				continue
 			}

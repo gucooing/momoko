@@ -1509,18 +1509,12 @@ components:
                 type:
                     type: string
                     description: 类型
-                userId:
-                    type: string
-                    description: 所属用户id
                 startCommand:
                     type: string
                     description: 启动命令
                 instancePath:
                     type: string
                     description: 实例路径
-                wsPath:
-                    type: string
-                    description: ws路径(启动时才有
                 stopCommand:
                     type: string
                     description: 停止命令

@@ -141,3 +141,50 @@ func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanc
 
 	return create.Save(ctx)
 }
+
+func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*ent.Instance, error) {
+	update := i.data.db.Instance.UpdateOneID(req.Id).Where(
+		instance.Or(
+			instance.HasUserWith(user.IDEQ(userId)),  // 主人
+			instance.HasUsersWith(user.IDEQ(userId)), // 分配给当前用户
+		))
+
+	if req.Name != nil {
+		update.SetName(*req.Name)
+	}
+	if req.Remark != nil {
+		update.SetRemark(*req.Remark)
+	}
+	if req.Tags != nil {
+		update.SetTags(*req.Tags)
+	}
+	if req.Type != nil {
+		update.SetTypeID(*req.Type)
+	}
+	if req.StartCommand != nil {
+		update.SetStartCommand(*req.StartCommand)
+	}
+	if req.StopCommand != nil {
+		update.SetStopCommand(*req.StopCommand)
+	}
+	if req.InstancePath != nil {
+		update.SetPath(*req.InstancePath)
+	}
+	if req.AutoStart != nil {
+		update.SetAutoStart(*req.AutoStart)
+	}
+	if req.Env != nil {
+		update.SetEnv(req.Env)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		return nil, err
+	}
+	return i.GetInstanceByUserID(ctx, userId, req.Id)
+}
+
+func (i *instanceRepo) DeleteInstance(ctx context.Context, id, userId string) error {
+	return i.data.db.Instance.DeleteOneID(id).Where(
+		instance.Or(
+			instance.HasUserWith(user.IDEQ(userId)), // 主人才能删
+		)).Exec(ctx)
+}

@@ -39,6 +39,8 @@ type InstanceRepo interface {
 	GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error)
 	GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error)
 	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error)
+	UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*ent.Instance, error)
+	DeleteInstance(ctx context.Context, id, userId string) error
 }
 
 func NewInstanceUsecase(repo InstanceRepo) (*InstanceUsecase, func(), error) {
@@ -205,8 +207,37 @@ func (i *InstanceUsecase) CreateInstance(ctx context.Context, req *v1.CreateInst
 	return i.toInstanceInfo(core, item), nil
 }
 
+func (i *InstanceUsecase) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userID string) (*v1.InstanceInfo, error) {
+	item, err := i.repo.UpdateInstance(ctx, req, userID)
+	if err != nil {
+		return nil, i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return nil, err
+	}
+	if err := core.UpdateConfig(toServerConfig(item)); err != nil {
+		return nil, err
+	}
+
+	return i.toInstanceInfo(core, item), nil
+}
+
+func (i *InstanceUsecase) DeleteInstance(ctx context.Context, userID, instanceID string) error {
+	if err := i.repo.DeleteInstance(ctx, instanceID, userID); err != nil {
+		return i.wrapInstanceRepoErr(err)
+	}
+
+	i.instance.Remove(instanceID)
+	return nil
+}
+
 func (i *InstanceUsecase) GetInstanceByUserID(ctx context.Context, userID, instanceID string) (*v1.InstanceInfo, error) {
-	item, core, err := i.loadInstanceCore(ctx, userID, instanceID)
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return nil, i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +245,11 @@ func (i *InstanceUsecase) GetInstanceByUserID(ctx context.Context, userID, insta
 }
 
 func (i *InstanceUsecase) GetInstanceCore(ctx context.Context, userID, instanceID string) (*servercore.Server, error) {
-	_, core, err := i.loadInstanceCore(ctx, userID, instanceID)
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return nil, i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +257,11 @@ func (i *InstanceUsecase) GetInstanceCore(ctx context.Context, userID, instanceI
 }
 
 func (i *InstanceUsecase) StartInstance(ctx context.Context, userID, instanceID string) (*v1.InstanceInfo, error) {
-	item, core, err := i.loadInstanceCore(ctx, userID, instanceID)
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return nil, i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +272,11 @@ func (i *InstanceUsecase) StartInstance(ctx context.Context, userID, instanceID 
 }
 
 func (i *InstanceUsecase) StopInstance(ctx context.Context, userID, instanceID string, force bool) error {
-	_, core, err := i.loadInstanceCore(ctx, userID, instanceID)
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
 	if err != nil {
 		return err
 	}
@@ -244,7 +287,11 @@ func (i *InstanceUsecase) StopInstance(ctx context.Context, userID, instanceID s
 }
 
 func (i *InstanceUsecase) RestartInstance(ctx context.Context, userID, instanceID string, force bool) error {
-	_, core, err := i.loadInstanceCore(ctx, userID, instanceID)
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
 	if err != nil {
 		return err
 	}
@@ -252,18 +299,6 @@ func (i *InstanceUsecase) RestartInstance(ctx context.Context, userID, instanceI
 		return core.ForceRestart()
 	}
 	return core.Restart()
-}
-
-func (i *InstanceUsecase) loadInstanceCore(ctx context.Context, userID, instanceID string) (*ent.Instance, *servercore.Server, error) {
-	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
-	if err != nil {
-		return nil, nil, ErrSystem(err)
-	}
-	core, err := i.ensureInstance(item)
-	if err != nil {
-		return nil, nil, err
-	}
-	return item, core, nil
 }
 
 func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, error) {
@@ -283,11 +318,30 @@ func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, err
 }
 
 func (i *InstanceUsecase) ensureInstance(item *ent.Instance) (*servercore.Server, error) {
+	cfg := toServerConfig(item)
+
 	if server, ok := i.instance.Get(item.ID); ok {
+		if err := server.UpdateConfig(cfg); err != nil {
+			return nil, err
+		}
 		return server, nil
 	}
 
-	server, err := i.instance.Create(servercore.ServerConfig{
+	server, err := i.instance.Create(cfg)
+	if err == nil {
+		return server, nil
+	}
+	if server, ok := i.instance.Get(item.ID); ok {
+		if err := server.UpdateConfig(cfg); err != nil {
+			return nil, err
+		}
+		return server, nil
+	}
+	return nil, ErrInstanceNotFound
+}
+
+func toServerConfig(item *ent.Instance) servercore.ServerConfig {
+	return servercore.ServerConfig{
 		ID:                 item.ID,
 		Command:            item.StartCommand,
 		CommandLine:        true,
@@ -296,14 +350,14 @@ func (i *InstanceUsecase) ensureInstance(item *ent.Instance) (*servercore.Server
 		StopCommand:        item.StopCommand,
 		AutoRestart:        item.AutoStart,
 		MaxRestartAttempts: defaultInstanceRestartTimes,
-	})
-	if err == nil {
-		return server, nil
 	}
-	if server, ok := i.instance.Get(item.ID); ok {
-		return server, nil
+}
+
+func (i *InstanceUsecase) wrapInstanceRepoErr(err error) error {
+	if ent.IsNotFound(err) {
+		return ErrInstanceAccess
 	}
-	return nil, ErrInstanceNotFound
+	return ErrSystem(err)
 }
 
 func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *servercore.Server) {
