@@ -85,13 +85,12 @@ type Server struct {
 	createTime time.Time
 
 	mu              sync.RWMutex
-	cmd             *exec.Cmd
 	stdin           io.WriteCloser
 	running         bool
 	startTime       time.Time
 	waitDone        chan struct{}
 	waitFn          func() error
-	stopFn          func() error
+	stopFn          func(force bool) error
 	closeFn         func()
 	stdinLineEnd    string
 	rawOutput       bool
@@ -108,9 +107,8 @@ type startResult struct {
 	stdin        io.WriteCloser
 	stdout       io.ReadCloser
 	stderr       io.ReadCloser
-	cmd          *exec.Cmd
 	waitFn       func() error
-	stopFn       func() error
+	stopFn       func(force bool) error
 	closeFn      func()
 	stdinLineEnd string
 	rawOutput    bool
@@ -277,8 +275,20 @@ func (s *Server) stop(force bool) error {
 	}
 
 	if stopFn != nil {
-		if err := stopFn(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		if err := stopFn(force); err != nil && !errors.Is(err, os.ErrProcessDone) {
 			return fmt.Errorf("停止子进程失败: %w", err)
+		}
+	}
+
+	if stopFn != nil && !force {
+		select {
+		case <-waitDone:
+			return nil
+		case <-time.After(defaultStopTimeout):
+		}
+
+		if err := stopFn(true); err != nil && !errors.Is(err, os.ErrProcessDone) {
+			return fmt.Errorf("强制停止子进程失败: %w", err)
 		}
 	}
 
@@ -497,7 +507,6 @@ func (s *Server) shouldRestartLocked() bool {
 }
 
 func (s *Server) applyStartResultLocked(result *startResult) {
-	s.cmd = result.cmd
 	s.stdin = result.stdin
 	s.waitFn = result.waitFn
 	s.stopFn = result.stopFn
@@ -512,7 +521,6 @@ func (s *Server) applyStartResultLocked(result *startResult) {
 }
 
 func (s *Server) resetProcessStateLocked() {
-	s.cmd = nil
 	s.stdin = nil
 	s.waitFn = nil
 	s.stopFn = nil
@@ -547,6 +555,7 @@ func (s *Server) startProcessLocked() (*startResult, error) {
 	if len(s.cfg.Env) > 0 {
 		cmd.Env = append(os.Environ(), s.cfg.Env...)
 	}
+	configureExecCmd(cmd)
 
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -568,9 +577,8 @@ func (s *Server) startProcessLocked() (*startResult, error) {
 		stdin:        stdinPipe,
 		stdout:       stdoutPipe,
 		stderr:       stderrPipe,
-		cmd:          cmd,
 		waitFn:       cmd.Wait,
-		stopFn:       cmd.Process.Kill,
+		stopFn:       func(force bool) error { return stopExecCmd(cmd, force) },
 		stdinLineEnd: "\n",
 	}, nil
 }
@@ -716,7 +724,7 @@ func normalizeDir(dir string) (string, error) {
 
 	absDir, err := filepath.Abs(trimmed)
 	if err != nil {
-		return "", fmt.Errorf("瑙ｆ瀽宸ヤ綔鐩綍澶辫触: %w", err)
+		return "", fmt.Errorf("解析工作目录失败: %w", err)
 	}
 	return filepath.Clean(absDir), nil
 }

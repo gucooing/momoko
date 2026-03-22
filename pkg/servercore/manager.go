@@ -2,7 +2,9 @@ package servercore
 
 import (
 	"errors"
+	"fmt"
 	"sync"
+	"time"
 )
 
 // ServerManager 使用内存管理多个服务端实例。
@@ -14,6 +16,63 @@ type ServerManager struct {
 // NewServerManager 创建一个最小可用的管理器。
 func NewServerManager() *ServerManager {
 	return &ServerManager{servers: make(map[string]*Server)}
+}
+
+// Shutdown 并发停止当前所有实例，超时后仅对未退出的实例强制停止。
+func (m *ServerManager) Shutdown(timeout time.Duration) error {
+	if timeout <= 0 {
+		timeout = defaultStopTimeout
+	}
+
+	servers := m.snapshotServers()
+	if len(servers) == 0 {
+		return nil
+	}
+
+	type shutdownResult struct {
+		id  string
+		err error
+	}
+
+	results := make(chan shutdownResult, len(servers)*2)
+	pending := make(map[string]*Server, len(servers))
+	for _, server := range servers {
+		pending[server.ID()] = server
+		go func(server *Server) {
+			results <- shutdownResult{id: server.ID(), err: server.Stop()}
+		}(server)
+	}
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	forced := false
+	errs := make([]error, 0)
+
+	for len(pending) > 0 {
+		select {
+		case result := <-results:
+			if _, ok := pending[result.id]; !ok {
+				continue
+			}
+			delete(pending, result.id)
+			if result.err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", result.id, result.err))
+			}
+		case <-timer.C:
+			if forced {
+				continue
+			}
+			forced = true
+			for _, server := range pending {
+				go func(server *Server) {
+					results <- shutdownResult{id: server.ID(), err: server.ForceStop()}
+				}(server)
+			}
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 // Create 创建并注册一个服务端实例。
@@ -117,4 +176,15 @@ func (m *ServerManager) RecentLogs(id string) ([]LogEntry, error) {
 		return nil, errors.New("服务端实例不存在")
 	}
 	return server.RecentLogs(), nil
+}
+
+func (m *ServerManager) snapshotServers() []*Server {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	servers := make([]*Server, 0, len(m.servers))
+	for _, server := range m.servers {
+		servers = append(servers, server)
+	}
+	return servers
 }

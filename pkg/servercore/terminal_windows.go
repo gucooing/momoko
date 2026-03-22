@@ -128,8 +128,8 @@ func startTerminalProcess(s *Server) (*startResult, error) {
 			_, err := windows.WaitForSingleObject(procInfo.Process, windows.INFINITE)
 			return err
 		},
-		stopFn: func() error {
-			if pseudoConsoleHandle != 0 {
+		stopFn: func(force bool) error {
+			if !force && pseudoConsoleHandle != 0 {
 				windows.ClosePseudoConsole(pseudoConsoleHandle)
 				pseudoConsoleHandle = 0
 				return nil

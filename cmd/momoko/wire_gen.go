@@ -40,11 +40,16 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	userService := service.NewUserService(userUsecase, systemUsecase)
 	systemService := service.NewSystemService(systemUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)
-	instanceUsecase := biz.NewInstanceUsecase(instanceRepo)
+	instanceUsecase, cleanup2, err := biz.NewInstanceUsecase(instanceRepo)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	instanceService := service.NewInstanceService(instanceUsecase)
 	httpServer := server.NewHTTPServer(confServer, authorization, authService, userService, systemService, instanceService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 )
@@ -23,10 +24,101 @@ func TestHelperProcess(t *testing.T) {
 	case "exit_fast":
 		runExitFastHelper()
 		os.Exit(1)
+	case "spawn_child":
+		runSpawnChildHelper()
+		os.Exit(0)
 	default:
 		fmt.Fprintln(os.Stderr, "unknown helper mode")
 		os.Exit(2)
 	}
+}
+
+func TestServerManagerShutdownStopsServersConcurrently(t *testing.T) {
+	manager := NewServerManager()
+	ids := []string{t.Name() + "-1", t.Name() + "-2"}
+	logChs := make([]<-chan LogEntry, 0, len(ids))
+
+	for _, id := range ids {
+		server, err := manager.Create(ServerConfig{
+			ID:               id,
+			Command:          os.Args[0],
+			Args:             []string{"-test.run=TestHelperProcess"},
+			Env:              []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console", "SERVERCORE_STOP_DELAY=400ms"},
+			StopCommand:      "stop",
+			SubscriberBuffer: 32,
+			LogLimit:         50,
+		})
+		if err != nil {
+			t.Fatalf("创建服务端失败: %v", err)
+		}
+
+		logCh, cancel := server.Subscribe()
+		t.Cleanup(cancel)
+		logChs = append(logChs, logCh)
+	}
+
+	for _, id := range ids {
+		if err := manager.Start(id); err != nil {
+			t.Fatalf("启动服务端失败: %v", err)
+		}
+	}
+
+	for _, logCh := range logChs {
+		waitForEntry(t, logCh, func(entry LogEntry) bool {
+			return entry.Source == LogSourceStdout && entry.Text == "ready"
+		})
+	}
+
+	start := time.Now()
+	if err := manager.Shutdown(600 * time.Millisecond); err != nil {
+		t.Fatalf("并发关闭服务端失败: %v", err)
+	}
+
+	if elapsed := time.Since(start); elapsed >= 750*time.Millisecond {
+		t.Fatalf("服务端未并发关闭，耗时过长: %v", elapsed)
+	}
+}
+
+func TestServerManagerShutdownFallsBackToForceStop(t *testing.T) {
+	manager := NewServerManager()
+	id := t.Name()
+
+	server, err := manager.Create(ServerConfig{
+		ID:               id,
+		Command:          os.Args[0],
+		Args:             []string{"-test.run=TestHelperProcess"},
+		Env:              []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console", "SERVERCORE_IGNORE_STOP=1"},
+		StopCommand:      "stop",
+		SubscriberBuffer: 32,
+		LogLimit:         50,
+	})
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	logCh, cancel := server.Subscribe()
+	defer cancel()
+
+	if err := manager.Start(id); err != nil {
+		t.Fatalf("启动服务端失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	start := time.Now()
+	if err := manager.Shutdown(150 * time.Millisecond); err != nil {
+		t.Fatalf("关闭服务端失败: %v", err)
+	}
+
+	if elapsed := time.Since(start); elapsed >= time.Second {
+		t.Fatalf("强制停止兜底未及时生效，耗时过长: %v", elapsed)
+	}
+
+	waitForCondition(t, "关闭后服务端仍处于运行状态", func() bool {
+		return !server.Running()
+	})
 }
 
 func TestServerManagerStartAndReceiveOutput(t *testing.T) {
@@ -347,12 +439,22 @@ func runConsoleHelper() {
 	fmt.Fprintln(os.Stdout, "ready")
 	fmt.Fprintln(os.Stderr, "stderr-ready")
 
+	stopDelay, _ := time.ParseDuration(os.Getenv("SERVERCORE_STOP_DELAY"))
+	ignoreStop := os.Getenv("SERVERCORE_IGNORE_STOP") == "1"
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch line {
 		case "ping":
 			fmt.Fprintln(os.Stdout, "pong")
+		case "stop":
+			if ignoreStop {
+				continue
+			}
+			if stopDelay > 0 {
+				time.Sleep(stopDelay)
+			}
+			return
 		default:
 			fmt.Fprintln(os.Stdout, "echo:"+line)
 		}
@@ -365,4 +467,24 @@ func runConsoleHelper() {
 
 func runExitFastHelper() {
 	fmt.Fprintln(os.Stdout, "boot")
+}
+
+func runSpawnChildHelper() {
+	childPidFile := os.Getenv("SERVERCORE_CHILD_PID_FILE")
+	if childPidFile == "" {
+		fmt.Fprintln(os.Stderr, "missing child pid file")
+		os.Exit(2)
+	}
+
+	cmd := exec.Command("sh", "-c", "echo $$ > \"$SERVERCORE_CHILD_PID_FILE\"; while :; do sleep 1; done")
+	cmd.Env = append(os.Environ(), "SERVERCORE_CHILD_PID_FILE="+childPidFile)
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintln(os.Stderr, "start child failed:", err)
+		os.Exit(2)
+	}
+
+	fmt.Fprintln(os.Stdout, "ready")
+	for {
+		time.Sleep(time.Second)
+	}
 }

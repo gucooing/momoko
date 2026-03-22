@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"os"
+	"sync"
+	"time"
 
 	"golang.org/x/net/websocket"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,6 +22,7 @@ const (
 	TerminalWSPath              = "/api/v1/instance/terminal/ws"
 	InstanceWsPath              = "/api/v1/instance/cmd/ws"
 	defaultInstanceRestartTimes = 3
+	defaultShutdownTimeout      = 3 * time.Second
 )
 
 type InstanceUsecase struct {
@@ -38,12 +41,37 @@ type InstanceRepo interface {
 	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error)
 }
 
-func NewInstanceUsecase(repo InstanceRepo) *InstanceUsecase {
-	return &InstanceUsecase{
+func NewInstanceUsecase(repo InstanceRepo) (*InstanceUsecase, func(), error) {
+	usecase := &InstanceUsecase{
 		repo:     repo,
 		terminal: servercore.NewServerManager(),
 		instance: servercore.NewServerManager(),
 	}
+	return usecase, func() {
+		usecase.Close()
+	}, nil
+}
+
+// Close 并发关闭终端和实例管理器，超时后自动强制停止剩余进程。
+func (i *InstanceUsecase) Close() {
+	if i == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		_ = i.terminal.Shutdown(defaultShutdownTimeout)
+	}()
+
+	go func() {
+		defer wg.Done()
+		_ = i.instance.Shutdown(defaultShutdownTimeout)
+	}()
+
+	wg.Wait()
 }
 
 func (i *InstanceUsecase) GetTypes(ctx context.Context) ([]*v1.InstanceTypeInfo, error) {

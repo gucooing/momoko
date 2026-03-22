@@ -36,7 +36,7 @@ func TestTerminalCmdSupportsChinese(t *testing.T) {
 	}
 
 	output := waitForTerminalText(t, logCh, func(text string) bool {
-		return strings.Contains(text, "我的世界") && strings.Contains(text, "not recognized")
+		return strings.Contains(text, "我的世界") && containsCommandNotFound(text)
 	})
 
 	if strings.Contains(output, "????") || strings.Contains(output, "����") {
@@ -62,4 +62,8 @@ func waitForTerminalText(t *testing.T, ch <-chan LogEntry, match func(string) bo
 			t.Fatalf("等待终端输出超时，当前输出: %q", builder.String())
 		}
 	}
+}
+
+func containsCommandNotFound(text string) bool {
+	return strings.Contains(text, "not recognized") || strings.Contains(text, "不是内部或外部命令")
 }
