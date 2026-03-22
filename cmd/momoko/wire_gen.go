@@ -14,6 +14,7 @@ import (
 	"momoko/internal/data"
 	"momoko/internal/server"
 	"momoko/internal/service"
+	"momoko/pkg/avatar"
 )
 
 import (
@@ -25,6 +26,10 @@ import (
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(confServer)
+	manager, err := avatar.NewManager()
+	if err != nil {
+		return nil, nil, err
+	}
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -33,7 +38,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	authorization := server.NewAuthorization(authRepo)
 	authUsecase := biz.NewAuthUsecase(authRepo)
 	userRepo := data.NewUserRepo(dataData)
-	userUsecase := biz.NewUserUsecase(userRepo)
+	userUsecase := biz.NewUserUsecase(userRepo, manager)
 	authService := service.NewAuthService(authUsecase, userUsecase)
 	systemRepo := data.NewSystemRepo(dataData)
 	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo)
@@ -46,7 +51,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 		return nil, nil, err
 	}
 	instanceService := service.NewInstanceService(instanceUsecase)
-	httpServer := server.NewHTTPServer(confServer, authorization, authService, userService, systemService, instanceService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, authService, userService, systemService, instanceService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup2()

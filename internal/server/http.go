@@ -7,6 +7,7 @@ import (
 
 	"momoko/internal/conf"
 	"momoko/internal/service"
+	"momoko/pkg/avatar"
 	"momoko/pkg/response"
 	"momoko/pkg/validate"
 
@@ -17,6 +18,7 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(c *conf.Server,
+	avatarManager *avatar.Manager,
 	authorization *Authorization,
 	authApi *service.AuthService,
 	userApi *service.UserService,
@@ -26,6 +28,7 @@ func NewHTTPServer(c *conf.Server,
 	var opts = []http.ServerOption{
 		http.Filter(
 			corsMiddleware(),
+			avatarManager.Filter(),
 			distMiddleware(),
 			authorization.Middleware(),
 		),

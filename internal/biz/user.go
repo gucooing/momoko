@@ -14,6 +14,8 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/user"
+	"momoko/pkg/avatar"
+	"momoko/pkg/response"
 )
 
 func encodePassword(password string) string {
@@ -33,11 +35,15 @@ type UserRepo interface {
 }
 
 type UserUsecase struct {
-	user UserRepo
+	user   UserRepo
+	avatar *avatar.Manager
 }
 
-func NewUserUsecase(user UserRepo) *UserUsecase {
-	return &UserUsecase{user: user}
+func NewUserUsecase(user UserRepo, avatarManager *avatar.Manager) *UserUsecase {
+	return &UserUsecase{
+		user:   user,
+		avatar: avatarManager,
+	}
 }
 
 func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password string) (*ent.User, error) {
@@ -69,8 +75,26 @@ func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo
 }
 
 func (u *UserUsecase) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*v1.UserInfo, error) {
+	commit := func() error { return nil }
+	rollback := func() {}
+
+	if req.Avatar != nil {
+		newAvatar, nextCommit, nextRollback, err := u.avatar.Prepare(userId, *req.Avatar)
+		if err != nil {
+			return nil, response.BadRequest(500, err.Error())
+		}
+
+		req.Avatar = &newAvatar
+		commit = nextCommit
+		rollback = nextRollback
+	}
+
 	info, err := u.user.UpdateMe(ctx, userId, req)
 	if err != nil {
+		rollback()
+		return nil, ErrSystem(err)
+	}
+	if err := commit(); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return u.toUserInfo(info), nil
@@ -143,6 +167,10 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, userIds []string) error {
 	err := u.user.DeleteUser(ctx, userIds)
 	if err != nil {
 		return ErrSystem(err)
+	}
+
+	for _, userID := range userIds {
+		_ = u.avatar.DeleteByUserID(userID)
 	}
 	return nil
 }

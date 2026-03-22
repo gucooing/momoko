@@ -42,3 +42,4 @@ bin/
 /dist
 /test/bedrock-server
 /servers
+/data
