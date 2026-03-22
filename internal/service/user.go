@@ -39,6 +39,18 @@ func (u *UserService) MeInfo(ctx context.Context, req *v1.MeInfoRequest) (*v1.Me
 	return rsp, nil
 }
 
+func (u *UserService) UpdateMe(ctx context.Context, req *v1.UpdateMeRequest) (*v1.UpdateMeResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := u.uc.UpdateMe(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateMeResponse{User: info}, nil
+}
+
 func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v1.ListUserResponse, error) {
 	if err := u.sys.Check(ctx, constant.UserView); err != nil {
 		return nil, err

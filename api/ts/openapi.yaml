@@ -38,6 +38,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.LoginResponse'
+    /api/v1/auth/me:
+        put:
+            tags:
+                - UserService
+            description: 更新个人资料
+            operationId: UserService_UpdateMe
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateMeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateMeResponse'
+    /api/v1/auth/password:
+        put:
+            tags:
+                - AuthService
+            description: 更新密码
+            operationId: AuthService_UpdatePassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdatePasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdatePasswordResponse'
     /api/v1/auth/refresh:
         post:
             tags:
@@ -1554,6 +1592,50 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 更新实例类型响应
+        v1.UpdateMeRequest:
+            type: object
+            properties:
+                bio:
+                    type: string
+                    description: 个人简介
+                email:
+                    type: string
+                    description: 邮箱
+                avatar:
+                    type: string
+                    description: 头像url
+                name:
+                    type: string
+                    description: 昵称
+                tags:
+                    type: string
+                    description: 标签
+                username:
+                    type: string
+                    description: 账户名
+            description: 更新个人资料请求
+        v1.UpdateMeResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息
+            description: 更新个人资料响应
+        v1.UpdatePasswordRequest:
+            type: object
+            properties:
+                oldPassword:
+                    type: string
+                    description: 旧密码
+                newPassword:
+                    type: string
+                    description: 新密码
+            description: 更新密码请求
+        v1.UpdatePasswordResponse:
+            type: object
+            properties: {}
+            description: 更新密码响应
         v1.UserInfo:
             type: object
             properties:

@@ -30,6 +30,13 @@ service AuthService {
       get: "/api/v1/auth/devices"
     };
   }
+  // 更新密码
+  rpc UpdatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/auth/password"
+      body: "*"
+    };
+  }
 }
 
 // 账号登录请求
@@ -105,3 +112,14 @@ message LoginDevice {
   // 最近一次刷新时间
   google.protobuf.Timestamp update_time = 6;
 }
+
+// 更新密码请求
+message UpdatePasswordRequest {
+  // 旧密码
+  string old_password = 1;
+  // 新密码
+  string new_password = 2;
+}
+
+// 更新密码响应
+message UpdatePasswordResponse {}

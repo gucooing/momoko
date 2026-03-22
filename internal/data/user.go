@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 
+	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/user"
@@ -101,6 +102,34 @@ func (ur *userRepo) DeleteUser(ctx context.Context, userIds []string) error {
 	_, err := ur.data.db.User.Delete().
 		Where(user.IDIn(userIds...)).
 		Exec(ctx)
-	
+
 	return err
+}
+
+func (ur *userRepo) UpdatePassword(ctx context.Context, userId string, passwordHash string) (*ent.User, error) {
+	return ur.data.db.User.UpdateOneID(userId).SetPassword(passwordHash).Save(ctx)
+}
+
+func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*ent.User, error) {
+	update := ur.data.db.User.UpdateOneID(userId)
+	if req.Bio != nil {
+		update.SetBio(*req.Bio)
+	}
+	if req.Email != nil {
+		update.SetEmail(*req.Email)
+	}
+	if req.Name != nil {
+		update.SetName(*req.Name)
+	}
+	if req.Tags != nil {
+		update.SetTags(*req.Tags)
+	}
+	if req.Avatar != nil {
+		update.SetAvatar(*req.Avatar)
+	}
+	if req.Username != nil {
+		update.SetUsername(*req.Username)
+	}
+
+	return update.Save(ctx)
 }

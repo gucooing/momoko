@@ -188,3 +188,8 @@ func (i *instanceRepo) DeleteInstance(ctx context.Context, id, userId string) er
 			instance.HasUserWith(user.IDEQ(userId)), // 主人才能删
 		)).Exec(ctx)
 }
+
+// GetAllAutoStartInstances 获取全部自动启动的实例
+func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*ent.Instance, error) {
+	return i.data.db.Instance.Query().Where(instance.AutoStartEQ(true)).All(ctx)
+}

@@ -41,6 +41,7 @@ type InstanceRepo interface {
 	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error)
 	UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*ent.Instance, error)
 	DeleteInstance(ctx context.Context, id, userId string) error
+	GetAllAutoStartInstances(ctx context.Context) ([]*ent.Instance, error)
 }
 
 func NewInstanceUsecase(repo InstanceRepo) (*InstanceUsecase, func(), error) {
@@ -49,9 +50,24 @@ func NewInstanceUsecase(repo InstanceRepo) (*InstanceUsecase, func(), error) {
 		terminal: servercore.NewServerManager(),
 		instance: servercore.NewServerManager(),
 	}
+	go usecase.start()
 	return usecase, func() {
 		usecase.Close()
 	}, nil
+}
+
+func (i *InstanceUsecase) start() {
+	items, err := i.repo.GetAllAutoStartInstances(context.Background())
+	if err != nil {
+		return
+	}
+	for _, item := range items {
+		core, err := i.ensureInstance(item)
+		if err != nil {
+			continue
+		}
+		core.Start()
+	}
 }
 
 // Close 并发关闭终端和实例管理器，超时后自动强制停止剩余进程。

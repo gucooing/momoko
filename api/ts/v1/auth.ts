@@ -84,3 +84,15 @@ export interface LoginDevice {
   /** 最近一次刷新时间 */
   updateTime: Date | undefined;
 }
+
+/** 更新密码请求 */
+export interface UpdatePasswordRequest {
+  /** 旧密码 */
+  oldPassword: string;
+  /** 新密码 */
+  newPassword: string;
+}
+
+/** 更新密码响应 */
+export interface UpdatePasswordResponse {
+}

@@ -36,6 +36,38 @@ export interface MeInfoResponse {
   user: UserInfo | undefined;
 }
 
+/** 更新个人资料请求 */
+export interface UpdateMeRequest {
+  /** 个人简介 */
+  bio?:
+    | string
+    | undefined;
+  /** 邮箱 */
+  email?:
+    | string
+    | undefined;
+  /** 头像url */
+  avatar?:
+    | string
+    | undefined;
+  /** 昵称 */
+  name?:
+    | string
+    | undefined;
+  /** 标签 */
+  tags?:
+    | string
+    | undefined;
+  /** 账户名 */
+  username?: string | undefined;
+}
+
+/** 更新个人资料响应 */
+export interface UpdateMeResponse {
+  /** 用户信息 */
+  user: UserInfo | undefined;
+}
+
 /** 获取用户列表请求 */
 export interface ListUserRequest {
   /** page */

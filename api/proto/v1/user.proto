@@ -15,6 +15,13 @@ service UserService {
       get: "/api/v1/user/me"
     };
   }
+  // 更新个人资料
+  rpc UpdateMe(UpdateMeRequest) returns (UpdateMeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/auth/me"
+      body: "*"
+    };
+  }
   // 获取用户列表
   rpc ListUser(ListUserRequest) returns (ListUserResponse) {
     option (google.api.http) = {
@@ -54,6 +61,28 @@ message MeInfoRequest{}
 
 // 获取自己信息响应
 message MeInfoResponse{
+  // 用户信息
+  UserInfo user = 1;
+}
+
+// 更新个人资料请求
+message UpdateMeRequest {
+  // 个人简介
+  optional string bio = 1;
+  // 邮箱
+  optional string email = 2;
+  // 头像url
+  optional string avatar = 3;
+  // 昵称
+  optional string name = 4;
+  // 标签
+  optional string tags = 5;
+  // 账户名
+  optional string username = 6;
+}
+
+// 更新个人资料响应
+message UpdateMeResponse {
   // 用户信息
   UserInfo user = 1;
 }

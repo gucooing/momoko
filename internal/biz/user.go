@@ -28,6 +28,8 @@ type UserRepo interface {
 	CreateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error)
 	UpdateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error)
 	DeleteUser(ctx context.Context, userIds []string) error
+	UpdatePassword(ctx context.Context, userId string, passwordHash string) (*ent.User, error)
+	UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*ent.User, error)
 }
 
 type UserUsecase struct {
@@ -64,6 +66,14 @@ func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo
 		return nil, ErrSystem(err)
 	}
 	return u.toUserInfo(userDb), nil
+}
+
+func (u *UserUsecase) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*v1.UserInfo, error) {
+	info, err := u.user.UpdateMe(ctx, userId, req)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return u.toUserInfo(info), nil
 }
 
 func (u *UserUsecase) ListUsers(ctx context.Context, req *v1.ListUserRequest) ([]*v1.UserInfo, int64, error) {
@@ -135,6 +145,24 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, userIds []string) error {
 		return ErrSystem(err)
 	}
 	return nil
+}
+
+func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, newPassword string) (*v1.UserInfo, error) {
+	userDb, err := u.user.FindByID(ctx, userId)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, ErrAdminNotFound
+		}
+		return nil, ErrSystem(err)
+	}
+	if encodePassword(oldPassword) != userDb.Password {
+		return nil, ErrInvalidPassword
+	}
+	info, err := u.user.UpdatePassword(ctx, userId, encodePassword(newPassword))
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return u.toUserInfo(info), nil
 }
 
 func (u *UserUsecase) toUserInfo(user *ent.User) *v1.UserInfo {

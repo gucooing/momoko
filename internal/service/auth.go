@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	
+
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"momoko/api/gen/v1"
@@ -10,6 +10,7 @@ import (
 	"momoko/internal/data/ent"
 	auth2 "momoko/internal/data/ent/auth"
 	"momoko/pkg/auth"
+	"momoko/pkg/response"
 
 	"time"
 )
@@ -37,6 +38,7 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 	case *v1.LoginRequest_Username:
 		user, err = s.user.LoginByUsername(ctx, req.GetUsername(), req.GetPassword())
 	case *v1.LoginRequest_Email:
+		return nil, response.BadRequest(500, "Email validation failed")
 	}
 	if err != nil {
 		return nil, err
@@ -107,4 +109,16 @@ func (s *AuthService) Devices(ctx context.Context, req *v1.DevicesRequest) (*v1.
 		Devices:  list,
 		DeviceId: authInfo.DeviceId,
 	}, nil
+}
+
+func (s *AuthService) UpdatePassword(ctx context.Context, req *v1.UpdatePasswordRequest) (*v1.UpdatePasswordResponse, error) {
+	authInfo, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	_, err := s.user.UpdatePassword(ctx, authInfo.UserID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdatePasswordResponse{}, nil
 }
