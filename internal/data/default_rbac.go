@@ -80,24 +80,16 @@ var (
 		newDefaultMenu("menu_12_3_button_2", entmenu.TypeButton, "", "删除菜单", "", ptr("menu_12_3"), 2, constant.MenuDelete),
 		newDefaultMenu("menu_12_3_button_3", entmenu.TypeButton, "", "查看菜单", "", ptr("menu_12_3"), 3, constant.MenuView),
 
-		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, ""),
-		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", ptr("menu_13"), 0, ""),
-		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/extended/dialog", "对话框", "HOutline:WindowIcon", ptr("menu_13"), 0, ""),
-		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/extended/iconSelector", "图标选择器", "HOutline:SwatchIcon", ptr("menu_13"), 1, ""),
-		newDefaultMenu("menu_13_4", entmenu.TypeMenu, "/extended/textEllipsis", "文本省略器", "HOutline:EllipsisHorizontalIcon", ptr("menu_13"), 2, ""),
-		newDefaultMenu("menu_13_5", entmenu.TypeMenu, "/extended/hoverAnimation", "Hover动画组件", "HOutline:CursorArrowRaysIcon", ptr("menu_13"), 3, ""),
-		newDefaultMenu("menu_13_6", entmenu.TypeMenu, "/extended/transitionAnimation", "Transition内置动画", "HOutline:SparklesIcon", ptr("menu_13"), 3, ""),
-
-		newDefaultMenu("menu_14", entmenu.TypeDirectory, "", "功能演示", "HOutline:BeakerIcon", nil, 12, ""),
-		newDefaultMenu("menu_14_1", entmenu.TypeMenu, "/demo/vxeTable", "VXE Table", "HOutline:TableCellsIcon", ptr("menu_14"), 0, ""),
-
-		newDefaultMenu("menu_15", entmenu.TypeDirectory, "", "异常页面", "HOutline:ExclamationTriangleIcon", nil, 13, ""),
-		newDefaultMenu("menu_15_1", entmenu.TypeMenu, "/exception/403", "403页面", "HOutline:NoSymbolIcon", ptr("menu_15"), 0, ""),
-		newDefaultMenu("menu_15_2", entmenu.TypeMenu, "/exception/404", "404页面", "HOutline:QuestionMarkCircleIcon", ptr("menu_15"), 1, ""),
-
-		newDefaultMenu("menu_16", entmenu.TypeDirectory, "", "一级菜单", "HOutline:FolderIcon", nil, 14, ""),
-		newDefaultMenu("menu_16_1", entmenu.TypeDirectory, "", "二级菜单", "HOutline:FolderOpenIcon", ptr("menu_16"), 0, ""),
-		newDefaultMenu("menu_16_1_1", entmenu.TypeMenu, "/aaa/bbb/ccc", "三级菜单", "HOutline:DocumentTextIcon", ptr("menu_16_1"), 0, ""),
+		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, constant.Dev),
+		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", ptr("menu_13"), 0, constant.Dev),
+		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/extended/dialog", "对话框", "HOutline:WindowIcon", ptr("menu_13"), 1, constant.Dev),
+		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/extended/iconSelector", "图标选择器", "HOutline:SwatchIcon", ptr("menu_13"), 2, constant.Dev),
+		newDefaultMenu("menu_13_4", entmenu.TypeMenu, "/extended/textEllipsis", "文本省略器", "HOutline:EllipsisHorizontalIcon", ptr("menu_13"), 3, constant.Dev),
+		newDefaultMenu("menu_13_5", entmenu.TypeMenu, "/extended/hoverAnimation", "Hover动画组件", "HOutline:CursorArrowRaysIcon", ptr("menu_13"), 4, constant.Dev),
+		newDefaultMenu("menu_13_6", entmenu.TypeMenu, "/extended/transitionAnimation", "Transition内置动画", "HOutline:SparklesIcon", ptr("menu_13"), 5, constant.Dev),
+		newDefaultMenu("menu_13_7", entmenu.TypeMenu, "/demo/vxeTable", "VXE Table", "HOutline:TableCellsIcon", ptr("menu_13"), 6, constant.Dev),
+		newDefaultMenu("menu_13_8", entmenu.TypeMenu, "/exception/403", "403页面", "HOutline:NoSymbolIcon", ptr("menu_15"), 7, constant.Dev),
+		newDefaultMenu("menu_13_9", entmenu.TypeMenu, "/exception/404", "404页面", "HOutline:QuestionMarkCircleIcon", ptr("menu_15"), 8, constant.Dev),
 	}
 	builtinDefaultRoles = []defaultRole{
 		{

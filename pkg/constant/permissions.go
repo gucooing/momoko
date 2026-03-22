@@ -3,6 +3,9 @@ package constant
 type Permissions string
 
 const (
+	// Dev 开发权限
+	Dev Permissions = "dev"
+
 	// UserAdd 允许添加用户。
 	UserAdd Permissions = "user:add"
 	// UserEdit 允许编辑用户。
