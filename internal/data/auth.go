@@ -126,3 +126,15 @@ func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, toke
 	}
 	return add()
 }
+
+func (ar *authRepo) DeleteAuth(ctx context.Context, userID string, deviceID *string) error {
+	del := ar.data.db.Auth.Delete().
+		Where(auth.UserIDEQ(userID))
+
+	if deviceID != nil {
+		del = del.Where(auth.DeviceIDEQ(*deviceID))
+	}
+
+	_, err := del.Exec(ctx)
+	return err
+}

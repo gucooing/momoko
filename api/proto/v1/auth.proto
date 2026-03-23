@@ -37,6 +37,19 @@ service AuthService {
       body: "*"
     };
   }
+  // 退出登录
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/logout"
+      body: "*"
+    };
+  }
+  // 删除已登录的设备
+  rpc DelLogin(DelLoginRequest) returns (DelLoginResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/auth/devices/{id}"
+    };
+  }
 }
 
 // 账号登录请求
@@ -123,3 +136,18 @@ message UpdatePasswordRequest {
 
 // 更新密码响应
 message UpdatePasswordResponse {}
+
+// 退出登录请求
+message LogoutRequest{}
+
+// 退出登录响应
+message LogoutResponse{}
+
+// 删除已登录的设备请求
+message DelLoginRequest{
+  // 设备id
+  string id = 1;
+}
+
+// 删除已登录的设备响应
+message DelLoginResponse{}

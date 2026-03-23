@@ -36,12 +36,14 @@ type UserRepo interface {
 
 type UserUsecase struct {
 	user   UserRepo
+	auth   AuthRepo
 	avatar *avatar.Manager
 }
 
-func NewUserUsecase(user UserRepo, avatarManager *avatar.Manager) *UserUsecase {
+func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager) *UserUsecase {
 	return &UserUsecase{
 		user:   user,
+		auth:   auth,
 		avatar: avatarManager,
 	}
 }
@@ -185,6 +187,9 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 	}
 	if encodePassword(oldPassword) != userDb.Password {
 		return nil, ErrInvalidPassword
+	}
+	if err = u.auth.DeleteAuth(ctx, userId, nil); err != nil {
+		return nil, ErrSystem(err)
 	}
 	info, err := u.user.UpdatePassword(ctx, userId, encodePassword(newPassword))
 	if err != nil {

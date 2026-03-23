@@ -38,7 +38,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	authorization := server.NewAuthorization(authRepo)
 	authUsecase := biz.NewAuthUsecase(authRepo)
 	userRepo := data.NewUserRepo(dataData)
-	userUsecase := biz.NewUserUsecase(userRepo, manager)
+	userUsecase := biz.NewUserUsecase(userRepo, authRepo, manager)
 	authService := service.NewAuthService(authUsecase, userUsecase)
 	systemRepo := data.NewSystemRepo(dataData)
 	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo)

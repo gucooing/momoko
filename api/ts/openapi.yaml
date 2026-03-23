@@ -19,6 +19,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DevicesResponse'
+    /api/v1/auth/devices/{id}:
+        delete:
+            tags:
+                - AuthService
+            description: 删除已登录的设备
+            operationId: AuthService_DelLogin
+            parameters:
+                - name: id
+                  in: path
+                  description: 设备id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DelLoginResponse'
     /api/v1/auth/login:
         post:
             tags:
@@ -38,6 +58,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.LoginResponse'
+    /api/v1/auth/logout:
+        post:
+            tags:
+                - AuthService
+            description: 退出登录
+            operationId: AuthService_Logout
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.LogoutRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.LogoutResponse'
     /api/v1/auth/me:
         put:
             tags:
@@ -1092,6 +1131,10 @@ components:
             type: object
             properties: {}
             description: 删除实例类型响应
+        v1.DelLoginResponse:
+            type: object
+            properties: {}
+            description: 删除已登录的设备响应
         v1.DeleteUserResponse:
             type: object
             properties: {}
@@ -1336,6 +1379,14 @@ components:
                     type: string
                     description: token 有效时间
             description: 账号登录响应
+        v1.LogoutRequest:
+            type: object
+            properties: {}
+            description: 退出登录请求
+        v1.LogoutResponse:
+            type: object
+            properties: {}
+            description: 退出登录响应
         v1.MeInfoResponse:
             type: object
             properties:

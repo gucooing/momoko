@@ -27,6 +27,7 @@ type AuthRepo interface {
 	ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error)
 	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error)
 	GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*ent.Auth, error)
+	DeleteAuth(ctx context.Context, userID string, deviceID *string) error
 }
 
 type AuthUsecase struct {
@@ -106,4 +107,12 @@ func (a *AuthUsecase) ListLoginDevice(ctx context.Context, userId string) ([]*v1
 		})
 	}
 	return list, nil
+}
+
+func (a *AuthUsecase) Logout(ctx context.Context, userID string, deviceID string) error {
+	err := a.auth.DeleteAuth(ctx, userID, &deviceID)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	return nil
 }

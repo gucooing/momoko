@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"log"
+	"momoko/internal/data/ent/migrate"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,7 +11,6 @@ import (
 
 	"momoko/internal/conf"
 	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/migrate"
 )
 
 // ProviderSet is data providers.
@@ -37,10 +37,10 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 	if os.Getenv("DEPLOY_ENV") == "dev" {
 		// Enable debug mode for detailed logging.
 		db = db.Debug()
-		// Run the auto migration tool.
-		if err = db.Schema.Create(context.Background(), migrate.WithDropIndex(true)); err != nil {
-			return nil, nil, err
-		}
+	}
+	// Run the auto migration tool.
+	if err = db.Schema.Create(context.Background(), migrate.WithDropIndex(true)); err != nil {
+		return nil, nil, err
 	}
 	if err = syncDefaultRBAC(context.Background(), db); err != nil {
 		return nil, nil, err

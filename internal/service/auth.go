@@ -72,6 +72,9 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 	if err != nil {
 		return nil, biz.ErrTokenInvalid
 	}
+	if refreshAuth.NotBefore.Add(7 * 24 * time.Hour).Before(time.Now()) {
+		return nil, biz.ErrTokenInvalid
+	}
 	if !s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
 		return nil, biz.ErrTokenInvalid
 	}
@@ -121,4 +124,28 @@ func (s *AuthService) UpdatePassword(ctx context.Context, req *v1.UpdatePassword
 		return nil, err
 	}
 	return &v1.UpdatePasswordResponse{}, nil
+}
+
+func (s *AuthService) Logout(ctx context.Context, req *v1.LogoutRequest) (*v1.LogoutResponse, error) {
+	authInfo, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	err := s.uc.Logout(ctx, authInfo.UserID, authInfo.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.LogoutResponse{}, nil
+}
+
+func (s *AuthService) DelLogin(ctx context.Context, req *v1.DelLoginRequest) (*v1.DelLoginResponse, error) {
+	authInfo, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	err := s.uc.Logout(ctx, authInfo.UserID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DelLoginResponse{}, nil
 }

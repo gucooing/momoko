@@ -1,19 +1,13 @@
 server:
   http:
-    addr: 0.0.0.0:10000
+    addr: 0.0.0.0:22633
     timeout: 1s
   grpc:
-    addr: 0.0.0.0:11000
+    addr: 0.0.0.0:22733
     timeout: 1s
 data:
   database:
     driver: mysql
-    source: root:gucooing.snxianus@tcp(110.42.61.204:3306)/momoko_dev?timeout=5s&parseTime=True&loc=Local&charset=utf8mb4
-  redis:
-    addr: 110.42.61.204:6379
-    password: gucooing.suxunxiax
-    read_timeout: 0.2s
-    write_timeout: 0.2s
-
+    source: root:gucooing.snxianus@tcp(110.42.61.204:3306)/momoko?timeout=5s&parseTime=True&loc=Local&charset=utf8mb4
 auth:
   secret: gucooing.auth
