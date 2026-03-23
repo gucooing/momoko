@@ -390,31 +390,52 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 	logCh, cancel := server.Subscribe()
 	defer cancel()
 	serverDone := server.Done()
+	wsDone := make(chan struct{})
+	var wsDoneOnce sync.Once
+	closeWs := func() {
+		wsDoneOnce.Do(func() {
+			close(wsDone)
+			_ = conn.Close()
+		})
+	}
+	defer closeWs()
 
 	go func() {
 		for {
 			select {
 			case <-serverDone:
+				closeWs()
+				return
+			case <-wsDone:
 				return
 			default:
 			}
 			var input string
 			if err := websocket.Message.Receive(conn, &input); err != nil {
 				if errors.Is(err, io.EOF) {
+					closeWs()
 					return
 				}
+				closeWs()
 				return
 			}
-			_ = server.Send(input)
+			if err := server.Send(input); err != nil {
+				closeWs()
+				return
+			}
 		}
 	}()
 
 	for {
 		select {
 		case <-serverDone:
+			closeWs()
+			return
+		case <-wsDone:
 			return
 		case entry := <-logCh:
 			if err := websocket.Message.Send(conn, entry.Text); err != nil {
+				closeWs()
 				return
 			}
 		}
