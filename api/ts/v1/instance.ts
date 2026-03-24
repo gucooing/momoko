@@ -289,6 +289,16 @@ export interface UpdateInstanceResponse {
   info: InstanceInfo | undefined;
 }
 
+/** 删除实例日志请求 */
+export interface DelInstanceLogRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 删除实例日志响应 */
+export interface DelInstanceLogResponse {
+}
+
 /** 实例详情 */
 export interface InstanceInfo {
   /** 实例id */

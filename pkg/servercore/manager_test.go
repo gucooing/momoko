@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -349,20 +352,97 @@ func TestServerForceStopAndForceRestart(t *testing.T) {
 	_ = manager.ForceStop(id)
 }
 
-func TestServerAutoRestartMaxAttempts(t *testing.T) {
-	manager := NewServerManager()
-	id := t.Name()
-
-	_, err := manager.Create(ServerConfig{
-		ID:                 id,
+func TestServerAutoRestartSuccessResetsRetryAttempts(t *testing.T) {
+	cfg := ServerConfig{
+		ID:                 t.Name(),
 		Command:            os.Args[0],
 		Args:               []string{"-test.run=TestHelperProcess"},
-		Env:                []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=exit_fast"},
+		Env:                []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console"},
+		StopCommand:        "stop",
 		AutoRestart:        true,
 		MaxRestartAttempts: 2,
 		RestartInterval:    10 * time.Millisecond,
 		LogLimit:           200,
 		SubscriberBuffer:   32,
+	}
+
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	logCh, cancel := server.Subscribe()
+	defer cancel()
+
+	if err := server.Start(); err != nil {
+		t.Fatalf("启动服务端失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	if err := server.Send("crash"); err != nil {
+		t.Fatalf("发送第一次异常退出命令失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	missingCommand := filepath.Join(t.TempDir(), "missing-command")
+	if runtime.GOOS == "windows" {
+		missingCommand += ".exe"
+	}
+
+	updatedCfg := cfg
+	updatedCfg.Command = missingCommand
+	updatedCfg.Args = nil
+	updatedCfg.CommandLine = false
+	if err := server.UpdateConfig(updatedCfg); err != nil {
+		t.Fatalf("更新配置失败: %v", err)
+	}
+
+	if err := server.Send("crash"); err != nil {
+		t.Fatalf("发送第二次异常退出命令失败: %v", err)
+	}
+
+	waitForCondition(t, "自动重试耗尽后服务端仍处于运行状态", func() bool {
+		return !server.Running()
+	})
+	time.Sleep(100 * time.Millisecond)
+
+	logs := server.RecentLogs()
+	readyCount := 0
+	retryFailCount := 0
+	for _, entry := range logs {
+		if entry.Source == LogSourceStdout && entry.Text == "ready" {
+			readyCount++
+		}
+		if entry.Source == LogSourceStderr && strings.HasPrefix(entry.Text, "自动重启失败(") {
+			retryFailCount++
+		}
+	}
+	if readyCount < 2 {
+		t.Fatalf("第一次异常退出后应成功自动重启，实际 ready 日志 %d 条", readyCount)
+	}
+	if retryFailCount != 2 {
+		t.Fatalf("重启成功后应重置次数，第二轮应重新获得 2 次尝试，实际失败日志 %d 条", retryFailCount)
+	}
+}
+
+func TestServerUnexpectedExitWithoutAutoRestartDoesNotRestart(t *testing.T) {
+	manager := NewServerManager()
+	id := t.Name()
+
+	_, err := manager.Create(ServerConfig{
+		ID:               id,
+		Command:          os.Args[0],
+		Args:             []string{"-test.run=TestHelperProcess"},
+		Env:              []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=exit_fast"},
+		RestartInterval:  10 * time.Millisecond,
+		LogLimit:         200,
+		SubscriberBuffer: 32,
 	})
 	if err != nil {
 		t.Fatalf("创建服务端失败: %v", err)
@@ -377,22 +457,137 @@ func TestServerAutoRestartMaxAttempts(t *testing.T) {
 		t.Fatalf("启动服务端失败: %v", err)
 	}
 
-	waitForCondition(t, "自动重启超过上限后仍在运行", func() bool {
+	waitForCondition(t, "未开启自动重启时异常退出后仍在运行", func() bool {
 		return !server.Running()
 	})
+	time.Sleep(100 * time.Millisecond)
 
 	logs, err := manager.RecentLogs(id)
 	if err != nil {
 		t.Fatalf("获取最近日志失败: %v", err)
 	}
+
 	bootCount := 0
 	for _, entry := range logs {
 		if entry.Source == LogSourceStdout && entry.Text == "boot" {
 			bootCount++
 		}
 	}
-	if bootCount != 3 {
-		t.Fatalf("自动重启次数不正确，期望 3 次启动，实际 %d", bootCount)
+	if bootCount != 1 {
+		t.Fatalf("未开启自动重启时不应重复启动，实际启动 %d 次", bootCount)
+	}
+}
+
+func TestServerStopDoesNotTriggerAutoRestart(t *testing.T) {
+	server, err := NewServer(ServerConfig{
+		ID:                 t.Name(),
+		Command:            os.Args[0],
+		Args:               []string{"-test.run=TestHelperProcess"},
+		Env:                []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console"},
+		StopCommand:        "stop",
+		AutoRestart:        true,
+		MaxRestartAttempts: 2,
+		RestartInterval:    10 * time.Millisecond,
+		LogLimit:           200,
+		SubscriberBuffer:   32,
+	})
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	logCh, cancel := server.Subscribe()
+	defer cancel()
+
+	if err := server.Start(); err != nil {
+		t.Fatalf("启动服务端失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	if err := server.Stop(); err != nil {
+		t.Fatalf("停止服务端失败: %v", err)
+	}
+
+	waitForCondition(t, "主动停止后服务端仍处于运行状态", func() bool {
+		return !server.Running()
+	})
+	time.Sleep(100 * time.Millisecond)
+
+	logs := server.RecentLogs()
+	readyCount := 0
+	for _, entry := range logs {
+		if entry.Source == LogSourceStdout && entry.Text == "ready" {
+			readyCount++
+		}
+	}
+	if readyCount != 1 {
+		t.Fatalf("主动停止后不应触发自动重启，实际启动 %d 次", readyCount)
+	}
+}
+
+func TestServerAutoRestartRetriesFailedStartsUntilMaxAttempts(t *testing.T) {
+	cfg := ServerConfig{
+		ID:                 t.Name(),
+		Command:            os.Args[0],
+		Args:               []string{"-test.run=TestHelperProcess"},
+		Env:                []string{"GO_WANT_HELPER_PROCESS=1", "SERVERCORE_HELPER_MODE=console"},
+		StopCommand:        "stop",
+		AutoRestart:        true,
+		MaxRestartAttempts: 3,
+		RestartInterval:    10 * time.Millisecond,
+		LogLimit:           200,
+		SubscriberBuffer:   32,
+	}
+
+	server, err := NewServer(cfg)
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	logCh, cancel := server.Subscribe()
+	defer cancel()
+
+	if err := server.Start(); err != nil {
+		t.Fatalf("启动服务端失败: %v", err)
+	}
+
+	waitForEntry(t, logCh, func(entry LogEntry) bool {
+		return entry.Source == LogSourceStdout && entry.Text == "ready"
+	})
+
+	missingCommand := filepath.Join(t.TempDir(), "missing-command")
+	if runtime.GOOS == "windows" {
+		missingCommand += ".exe"
+	}
+
+	updatedCfg := cfg
+	updatedCfg.Command = missingCommand
+	updatedCfg.Args = nil
+	updatedCfg.CommandLine = false
+	if err := server.UpdateConfig(updatedCfg); err != nil {
+		t.Fatalf("更新配置失败: %v", err)
+	}
+
+	if err := server.Send("crash"); err != nil {
+		t.Fatalf("发送异常退出命令失败: %v", err)
+	}
+
+	waitForCondition(t, "自动重试耗尽后服务端仍处于运行状态", func() bool {
+		return !server.Running()
+	})
+	time.Sleep(100 * time.Millisecond)
+
+	logs := server.RecentLogs()
+	retryFailCount := 0
+	for _, entry := range logs {
+		if entry.Source == LogSourceStderr && strings.HasPrefix(entry.Text, "自动重启失败(") {
+			retryFailCount++
+		}
+	}
+	if retryFailCount != 3 {
+		t.Fatalf("启动失败后应继续重试到上限，期望 3 次失败日志，实际 %d", retryFailCount)
 	}
 }
 
@@ -421,6 +616,25 @@ func TestServerRecentLogsLimit(t *testing.T) {
 		if logs[i].Text != text {
 			t.Fatalf("最近日志顺序不正确，位置 %d 期望 %s，实际 %s", i, text, logs[i].Text)
 		}
+	}
+}
+
+func TestServerClearLogs(t *testing.T) {
+	server, err := NewServer(ServerConfig{
+		ID:      "clear-logs-test",
+		Command: "test",
+	})
+	if err != nil {
+		t.Fatalf("创建服务端失败: %v", err)
+	}
+
+	server.publish(LogEntry{Source: LogSourceStdout, Text: "line-1"})
+	server.publish(LogEntry{Source: LogSourceStdout, Text: "line-2"})
+
+	server.ClearLogs()
+
+	if logs := server.RecentLogs(); len(logs) != 0 {
+		t.Fatalf("清空日志后应为空，实际 %d 条", len(logs))
 	}
 }
 
@@ -497,6 +711,8 @@ func runConsoleHelper() {
 		switch line {
 		case "ping":
 			fmt.Fprintln(os.Stdout, "pong")
+		case "crash":
+			os.Exit(1)
 		case expectedStop:
 			if ignoreStop {
 				continue

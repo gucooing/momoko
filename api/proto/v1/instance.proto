@@ -121,6 +121,12 @@ service InstanceManager {
       body: "*"
     };
   }
+  // 清空终端日志
+  rpc DelInstanceLog(DelInstanceLogRequest) returns (DelInstanceLogResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/instance/instance/del/log/{id}"
+    };
+  }
 }
 
 // 获取实例类型请求
@@ -357,6 +363,15 @@ message UpdateInstanceResponse{
   // 实例详情
   InstanceInfo info = 1;
 }
+
+// 删除实例日志请求
+message DelInstanceLogRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 删除实例日志响应
+message DelInstanceLogResponse {}
 
 // 实例详情
 message InstanceInfo {

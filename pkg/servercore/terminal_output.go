@@ -18,10 +18,12 @@ type terminalOutputSanitizer struct {
 	lastWasLineBreak bool
 }
 
+// newTerminalOutputSanitizer 创建一个终端输出过滤器实例。
 func newTerminalOutputSanitizer() *terminalOutputSanitizer {
 	return &terminalOutputSanitizer{state: terminalStateText}
 }
 
+// Filter 过滤终端原始输出中的控制序列，只保留适合纯文本展示的内容。
 func (s *terminalOutputSanitizer) Filter(input string) string {
 	var out strings.Builder
 
@@ -71,6 +73,7 @@ func (s *terminalOutputSanitizer) Filter(input string) string {
 	return out.String()
 }
 
+// handleCSI 处理已读完的 CSI 控制序列，并在需要时转换为普通文本效果。
 func (s *terminalOutputSanitizer) handleCSI(out *strings.Builder, final rune) {
 	switch final {
 	case 'H', 'f':
@@ -80,6 +83,7 @@ func (s *terminalOutputSanitizer) handleCSI(out *strings.Builder, final rune) {
 	}
 }
 
+// writeLineBreak 在输出末尾补一个换行，同时避免重复写入连续空行。
 func (s *terminalOutputSanitizer) writeLineBreak(out *strings.Builder) {
 	if s.lastWasLineBreak {
 		return

@@ -2,8 +2,6 @@ package biz
 
 import (
 	"context"
-	"errors"
-	"io"
 	"os"
 	"sync"
 	"time"
@@ -23,6 +21,7 @@ const (
 	InstanceWsPath              = "/api/v1/instance/cmd/ws"
 	defaultInstanceRestartTimes = 3
 	defaultShutdownTimeout      = 3 * time.Second
+	defaultWsPingInterval       = 20 * time.Second
 )
 
 type InstanceUsecase struct {
@@ -317,6 +316,19 @@ func (i *InstanceUsecase) RestartInstance(ctx context.Context, userID, instanceI
 	return core.Restart()
 }
 
+func (i *InstanceUsecase) DelInstanceLog(ctx context.Context, userID, instanceID string) error {
+	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
+	if err != nil {
+		return i.wrapInstanceRepoErr(err)
+	}
+	core, err := i.ensureInstance(item)
+	if err != nil {
+		return err
+	}
+	core.ClearLogs()
+	return nil
+}
+
 func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, error) {
 	if terminal, ok := i.terminal.Get(userID); ok {
 		return terminal, nil
@@ -377,65 +389,82 @@ func (i *InstanceUsecase) wrapInstanceRepoErr(err error) error {
 }
 
 func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *servercore.Server) {
-	if server == nil || !server.Running() {
-		websocket.Message.Send(conn, "实例未启动")
+	if server == nil {
+		_ = websocket.Message.Send(conn, "实例不存在")
 		return
 	}
 
+	var sendMu sync.Mutex
+	sendText := func(text string) error { // 发送文本方法
+		sendMu.Lock()
+		defer sendMu.Unlock()
+		return websocket.Message.Send(conn, text)
+	}
+	sendPing := func() error { // 发送ping方法
+		sendMu.Lock()
+		defer sendMu.Unlock()
+
+		payloadType := conn.PayloadType
+		conn.PayloadType = websocket.PingFrame
+		defer func() {
+			conn.PayloadType = payloadType
+		}()
+
+		_, err := conn.Write(nil)
+		return err
+	}
+
+	// 创建连接后发送历史日志
 	for _, entry := range server.RecentLogs() {
-		if err := websocket.Message.Send(conn, entry.Text); err != nil {
+		if err := sendText(entry.Text); err != nil {
 			return
 		}
 	}
-	logCh, cancel := server.Subscribe()
+
+	logCh, subDone, cancel := server.SubscribeWithDone() // 订阅实例控制台
 	defer cancel()
-	serverDone := server.Done()
+
+	pingTicker := time.NewTicker(defaultWsPingInterval)
+	defer pingTicker.Stop()
 	wsDone := make(chan struct{})
 	var wsDoneOnce sync.Once
-	closeWs := func() {
+	closeWsDone := func() {
 		wsDoneOnce.Do(func() {
 			close(wsDone)
-			_ = conn.Close()
 		})
 	}
-	defer closeWs()
+	defer closeWsDone()
 
 	go func() {
-		for {
-			select {
-			case <-serverDone:
-				closeWs()
-				return
-			case <-wsDone:
-				return
-			default:
-			}
+		for { // 循环接收ws消息并转发到实例中
 			var input string
 			if err := websocket.Message.Receive(conn, &input); err != nil {
-				if errors.Is(err, io.EOF) {
-					closeWs()
-					return
-				}
-				closeWs()
+				closeWsDone()
 				return
 			}
 			if err := server.Send(input); err != nil {
-				closeWs()
-				return
+				if sendErr := sendText(err.Error()); sendErr != nil {
+					closeWsDone()
+					return
+				}
 			}
 		}
 	}()
 
 	for {
 		select {
-		case <-serverDone:
-			closeWs()
+		case <-subDone: // 订阅被取消
 			return
-		case <-wsDone:
+		case <-wsDone: // ws断开
 			return
-		case entry := <-logCh:
-			if err := websocket.Message.Send(conn, entry.Text); err != nil {
-				closeWs()
+		case <-pingTicker.C: // ping到了
+			if err := sendPing(); err != nil {
+				closeWsDone()
+				return
+			}
+		case entry := <-logCh: // 将实例日志转发到ws
+			if err := sendText(entry.Text); err != nil {
+				closeWsDone()
 				return
 			}
 		}
@@ -463,13 +492,13 @@ func (i *InstanceUsecase) terminalToInstanceInfo(terminal *servercore.Server) *v
 		InstancePath: terminal.Dir(),
 		StopCommand:  "",
 		AutoStart:    false,
+		WsPath:       TerminalWSPath,
 	}
 	if terminal.Running() {
 		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
 		if startTime, ok := terminal.StartTime(); ok {
 			info.StartTime = timestamppb.New(startTime)
 		}
-		info.WsPath = TerminalWSPath
 	}
 	return info
 }
@@ -487,13 +516,13 @@ func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *ent.In
 		StopCommand:  item.StopCommand,
 		AutoStart:    item.AutoStart,
 		Env:          item.Env,
+		WsPath:       InstanceWsPath,
 	}
 	if server.Running() {
 		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
 		if startTime, ok := server.StartTime(); ok {
 			info.StartTime = timestamppb.New(startTime)
 		}
-		info.WsPath = InstanceWsPath
 	}
 	if t := item.Edges.Type; t != nil {
 		info.Type = t.Name

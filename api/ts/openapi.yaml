@@ -194,6 +194,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateInstanceResponse'
+    /api/v1/instance/instance/del/log/{id}:
+        delete:
+            tags:
+                - InstanceManager
+            description: 清空终端日志
+            operationId: InstanceManager_DelInstanceLog
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DelInstanceLogResponse'
     /api/v1/instance/instance/del/{id}:
         delete:
             tags:
@@ -1123,6 +1143,10 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.DelInstanceLogResponse:
+            type: object
+            properties: {}
+            description: 删除实例日志响应
         v1.DelInstanceResponse:
             type: object
             properties: {}

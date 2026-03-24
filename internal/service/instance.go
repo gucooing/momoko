@@ -197,6 +197,17 @@ func (i *InstanceService) RestartInstance(ctx context.Context, req *v1.RestartIn
 	return &v1.RestartInstanceResponse{}, nil
 }
 
+func (i *InstanceService) DelInstanceLog(ctx context.Context, req *v1.DelInstanceLogRequest) (*v1.DelInstanceLogResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	if err := i.uc.DelInstanceLog(ctx, authCtx.UserID, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DelInstanceLogResponse{}, nil
+}
+
 // RunTerminalWsConn 启动终端连接
 func (i *InstanceService) RunTerminalWsConn(conn *websocket.Conn) {
 	defer conn.Close()

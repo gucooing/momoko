@@ -2,6 +2,7 @@ package servercore
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -54,9 +55,9 @@ type ServerConfig struct {
 	Dir                string
 	Env                []string
 	StopCommand        string
-	AutoRestart        bool
-	MaxRestartAttempts int
-	RestartInterval    time.Duration
+	AutoRestart        bool          // 子进程非主动退出后是否自动重启。
+	MaxRestartAttempts int           // 非主动退出后的单轮最大重试次数，启动成功后会清零，不包含当前这次已启动。
+	RestartInterval    time.Duration // 自动重启前的等待间隔。
 	LogLimit           int
 	SubscriberBuffer   int
 	Terminal           bool
@@ -96,11 +97,16 @@ type Server struct {
 	rawOutput       bool
 	runID           uint64
 	manualStop      bool
-	restartAttempts int
 	logs            []LogEntry
 	nextSubID       uint64
-	subscribers     map[uint64]chan LogEntry
+	subscribers     map[uint64]*logSubscriber
 	outputSanitizer *terminalOutputSanitizer
+}
+
+type logSubscriber struct {
+	ch     chan LogEntry
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 type startResult struct {
@@ -114,6 +120,7 @@ type startResult struct {
 	rawOutput    bool
 }
 
+// normalizeServerConfig 清洗配置内容并补齐默认值。
 func normalizeServerConfig(cfg ServerConfig) (ServerConfig, error) {
 	normalized := cfg
 	normalized.ID = strings.TrimSpace(cfg.ID)
@@ -159,7 +166,7 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	return &Server{
 		cfg:         normalized,
 		createTime:  time.Now(),
-		subscribers: make(map[uint64]chan LogEntry),
+		subscribers: make(map[uint64]*logSubscriber),
 	}, nil
 }
 
@@ -259,7 +266,6 @@ func (s *Server) Start() error {
 	s.startTime = time.Now()
 	s.waitDone = waitDone
 	s.manualStop = false
-	s.restartAttempts = 0
 	s.applyStartResultLocked(result)
 	s.mu.Unlock()
 
@@ -279,6 +285,7 @@ func (s *Server) ForceStop() error {
 	return s.stop(true)
 }
 
+// stop 按优雅或强制模式停止当前子进程。
 func (s *Server) stop(force bool) error {
 	s.mu.Lock()
 	waitDone := s.waitDone
@@ -371,12 +378,24 @@ func (s *Server) Send(input string) error {
 
 // Subscribe 订阅实时日志。
 func (s *Server) Subscribe() (<-chan LogEntry, func()) {
+	ch, _, cancel := s.SubscribeWithDone()
+	return ch, cancel
+}
+
+// SubscribeWithDone 订阅实时日志，并返回订阅被取消时关闭的通道。
+func (s *Server) SubscribeWithDone() (<-chan LogEntry, <-chan struct{}, func()) {
 	ch := make(chan LogEntry, s.cfg.SubscriberBuffer)
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	sub := &logSubscriber{
+		ch:     ch,
+		ctx:    ctx,
+		cancel: cancelCtx,
+	}
 
 	s.mu.Lock()
 	subID := s.nextSubID
 	s.nextSubID++
-	s.subscribers[subID] = ch
+	s.subscribers[subID] = sub
 	s.mu.Unlock()
 
 	var once sync.Once
@@ -385,10 +404,11 @@ func (s *Server) Subscribe() (<-chan LogEntry, func()) {
 			s.mu.Lock()
 			delete(s.subscribers, subID)
 			s.mu.Unlock()
+			cancelCtx()
 		})
 	}
 
-	return ch, cancel
+	return ch, ctx.Done(), cancel
 }
 
 // RecentLogs 返回最近日志的副本。
@@ -401,6 +421,14 @@ func (s *Server) RecentLogs() []LogEntry {
 	return out
 }
 
+// ClearLogs 清空当前实例保存的历史日志。
+func (s *Server) ClearLogs() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.logs = nil
+}
+
+// readPipe 按行读取标准输出或标准错误，并转成日志事件。
 func (s *Server) readPipe(r io.Reader, source LogSource) {
 	if r == nil {
 		return
@@ -418,6 +446,7 @@ func (s *Server) readPipe(r io.Reader, source LogSource) {
 	}
 }
 
+// readRaw 读取原始字节流输出，必要时先经过终端控制序列过滤。
 func (s *Server) readRaw(r io.Reader, source LogSource) {
 	if r == nil {
 		return
@@ -444,6 +473,7 @@ func (s *Server) readRaw(r io.Reader, source LogSource) {
 	}
 }
 
+// waitProcess 等待当前子进程退出，并根据配置决定是否自动重启。
 func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
 	for {
 		s.mu.RLock()
@@ -469,6 +499,7 @@ func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
 	}
 }
 
+// handleProcessExit 在子进程退出后更新状态，并在需要时准备下一次启动结果。
 func (s *Server) handleProcessExit(runID uint64) (*startResult, bool, func(), error) {
 	s.mu.Lock()
 	if s.runID != runID {
@@ -479,62 +510,73 @@ func (s *Server) handleProcessExit(runID uint64) (*startResult, bool, func(), er
 	closeFn := s.closeFn
 	s.resetProcessStateLocked()
 
-	if !s.shouldRestartLocked() {
-		s.running = false
-		s.startTime = time.Time{}
-		s.waitDone = nil
-		s.manualStop = false
-		s.restartAttempts = 0
+	if !s.shouldAutoRestartOnExitLocked() {
+		s.markStoppedLocked()
 		s.mu.Unlock()
 		return nil, false, closeFn, nil
 	}
 
-	s.restartAttempts++
-	attempt := s.restartAttempts
 	maxAttempts := s.cfg.MaxRestartAttempts
 	restartInterval := s.cfg.RestartInterval
+	attempt := 0
 	s.mu.Unlock()
 
 	if closeFn != nil {
 		closeFn()
 		closeFn = nil
 	}
-	if restartInterval > 0 {
-		time.Sleep(restartInterval)
+
+	for {
+		if restartInterval > 0 {
+			time.Sleep(restartInterval)
+		}
+
+		s.mu.Lock()
+		if s.runID != runID || s.manualStop || !s.shouldAutoRestartOnExitLocked() {
+			s.markStoppedLocked()
+			s.mu.Unlock()
+			return nil, false, nil, nil
+		}
+
+		attempt++
+		result, err := s.startProcessLocked()
+		if err == nil {
+			s.running = true
+			s.startTime = time.Now()
+			s.applyStartResultLocked(result)
+			s.mu.Unlock()
+			return result, true, nil, nil
+		}
+
+		if attempt >= maxAttempts {
+			s.markStoppedLocked()
+			s.mu.Unlock()
+			return nil, false, nil, fmt.Errorf("自动重启失败(%d/%d): %w", attempt, maxAttempts, err)
+		}
+
+		s.mu.Unlock()
+		s.publish(LogEntry{
+			Time:   time.Now(),
+			Source: LogSourceStderr,
+			Text:   fmt.Sprintf("自动重启失败(%d/%d): %v", attempt, maxAttempts, err),
+		})
 	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.runID != runID || s.manualStop {
-		s.running = false
-		s.startTime = time.Time{}
-		s.waitDone = nil
-		s.manualStop = false
-		s.restartAttempts = 0
-		return nil, false, nil, nil
-	}
-
-	result, err := s.startProcessLocked()
-	if err != nil {
-		s.running = false
-		s.startTime = time.Time{}
-		s.waitDone = nil
-		s.manualStop = false
-		s.restartAttempts = 0
-		return nil, false, nil, fmt.Errorf("自动重启失败(%d/%d): %w", attempt, maxAttempts, err)
-	}
-
-	s.running = true
-	s.startTime = time.Now()
-	s.applyStartResultLocked(result)
-	return result, true, nil, nil
 }
 
-func (s *Server) shouldRestartLocked() bool {
-	return s.cfg.AutoRestart && !s.manualStop && s.cfg.MaxRestartAttempts > 0 && s.restartAttempts < s.cfg.MaxRestartAttempts
+// shouldAutoRestartOnExitLocked 只在子进程非主动退出时判定是否继续自动重试。
+func (s *Server) shouldAutoRestartOnExitLocked() bool {
+	return s.cfg.AutoRestart && !s.manualStop && s.cfg.MaxRestartAttempts > 0
 }
 
+// markStoppedLocked 把实例恢复到未运行状态。
+func (s *Server) markStoppedLocked() {
+	s.running = false
+	s.startTime = time.Time{}
+	s.waitDone = nil
+	s.manualStop = false
+}
+
+// applyStartResultLocked 写入本次启动生成的运行时句柄和输出配置。
 func (s *Server) applyStartResultLocked(result *startResult) {
 	s.stdin = result.stdin
 	s.waitFn = result.waitFn
@@ -549,6 +591,7 @@ func (s *Server) applyStartResultLocked(result *startResult) {
 	s.outputSanitizer = nil
 }
 
+// resetProcessStateLocked 清空当前进程相关的运行时状态。
 func (s *Server) resetProcessStateLocked() {
 	s.stdin = nil
 	s.waitFn = nil
@@ -559,6 +602,7 @@ func (s *Server) resetProcessStateLocked() {
 	s.outputSanitizer = nil
 }
 
+// startReaders 根据输出模式启动对应的日志读取协程。
 func (s *Server) startReaders(result *startResult) {
 	if result.rawOutput {
 		go s.readRaw(result.stdout, LogSourceStdout)
@@ -570,6 +614,7 @@ func (s *Server) startReaders(result *startResult) {
 	}
 }
 
+// startProcessLocked 按当前配置启动子进程，并返回本次启动需要的运行时句柄。
 func (s *Server) startProcessLocked() (*startResult, error) {
 	if s.cfg.Terminal {
 		if result, err := startTerminalProcess(s); err == nil {
@@ -612,6 +657,7 @@ func (s *Server) startProcessLocked() (*startResult, error) {
 	}, nil
 }
 
+// buildExecCommand 根据配置构造 exec.Cmd，并解析命令路径。
 func buildExecCommand(commandLine bool, command string, args []string, dir string) *exec.Cmd {
 	if commandLine {
 		parts := splitCommandLine(command)
@@ -623,6 +669,7 @@ func buildExecCommand(commandLine bool, command string, args []string, dir strin
 	return exec.Command(resolveCommandPath(command, dir), args...)
 }
 
+// resolveCommandPath 结合工作目录解析命令的实际可执行路径。
 func resolveCommandPath(command, dir string) string {
 	name := strings.TrimSpace(command)
 	if name == "" {
@@ -650,6 +697,7 @@ func resolveCommandPath(command, dir string) string {
 	return name
 }
 
+// findInDir 在指定目录中查找命令文件，Windows 下会补齐 PATHEXT 后缀尝试。
 func findInDir(name, dir string) (string, bool) {
 	base := filepath.Join(dir, name)
 	if isFile(base) {
@@ -669,6 +717,7 @@ func findInDir(name, dir string) (string, bool) {
 	return "", false
 }
 
+// isFile 判断路径是否存在且为普通文件。
 func isFile(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -677,6 +726,7 @@ func isFile(path string) bool {
 	return !info.IsDir()
 }
 
+// hasPathSeparator 判断命令名中是否显式带有路径分隔符。
 func hasPathSeparator(name string) bool {
 	for _, r := range name {
 		if os.IsPathSeparator(uint8(r)) || r == '/' || r == '\\' {
@@ -686,6 +736,7 @@ func hasPathSeparator(name string) bool {
 	return false
 }
 
+// pathextValues 返回 Windows PATHEXT 环境变量中的可执行扩展名列表。
 func pathextValues() []string {
 	raw := os.Getenv("PATHEXT")
 	if raw == "" {
@@ -707,6 +758,7 @@ func pathextValues() []string {
 	return values
 }
 
+// splitCommandLine 按简单引号规则拆分命令行字符串。
 func splitCommandLine(line string) []string {
 	line = strings.TrimSpace(line)
 	if line == "" {
@@ -742,6 +794,7 @@ func splitCommandLine(line string) []string {
 	return parts
 }
 
+// normalizeDir 把工作目录统一解析为干净的绝对路径。
 func normalizeDir(dir string) (string, error) {
 	trimmed := strings.TrimSpace(dir)
 	if trimmed == "" {
@@ -758,6 +811,7 @@ func normalizeDir(dir string) (string, error) {
 	return filepath.Clean(absDir), nil
 }
 
+// writeLine 按指定换行符向写入端发送一行输入，并返回实际写入内容。
 func writeLine(w io.Writer, input, lineEnd string) (string, error) {
 	if lineEnd == "" {
 		lineEnd = "\n"
@@ -771,27 +825,48 @@ func writeLine(w io.Writer, input, lineEnd string) (string, error) {
 	return payload, err
 }
 
+// publish 追加一条日志并广播给当前所有订阅者。
 func (s *Server) publish(entry LogEntry) {
 	subs := s.appendLogAndSnapshotSubscribers(entry)
-	for _, ch := range subs {
-		ch <- entry
+	for _, sub := range subs {
+		select {
+		case <-sub.ctx.Done():
+		case sub.ch <- entry:
+		}
 	}
 }
 
-func (s *Server) appendLogAndSnapshotSubscribers(entry LogEntry) []chan LogEntry {
+// appendLogAndSnapshotSubscribers 写入日志缓冲，并返回订阅者快照。
+func (s *Server) appendLogAndSnapshotSubscribers(entry LogEntry) []*logSubscriber {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.logs = append(s.logs, entry)
 	s.trimLogsLocked()
 
-	subs := make([]chan LogEntry, 0, len(s.subscribers))
-	for _, ch := range s.subscribers {
-		subs = append(subs, ch)
+	subs := make([]*logSubscriber, 0, len(s.subscribers))
+	for _, sub := range s.subscribers {
+		subs = append(subs, sub)
 	}
 	return subs
 }
 
+// CancelSubscribers 取消当前全部日志订阅，让依赖方自行结束会话。
+func (s *Server) CancelSubscribers() {
+	s.mu.Lock()
+	subs := make([]*logSubscriber, 0, len(s.subscribers))
+	for id, sub := range s.subscribers {
+		subs = append(subs, sub)
+		delete(s.subscribers, id)
+	}
+	s.mu.Unlock()
+
+	for _, sub := range subs {
+		sub.cancel()
+	}
+}
+
+// trimLogsLocked 按日志上限裁剪最早的历史记录。
 func (s *Server) trimLogsLocked() {
 	if overflow := len(s.logs) - s.cfg.LogLimit; overflow > 0 {
 		copy(s.logs, s.logs[overflow:])

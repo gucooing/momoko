@@ -167,6 +167,7 @@ func startTerminalProcess(s *Server) (*startResult, error) {
 	}, nil
 }
 
+// closeWindowsHandle 关闭普通 Windows 句柄，并把句柄值清零避免重复关闭。
 func closeWindowsHandle(handle *windows.Handle) {
 	if handle == nil || *handle == 0 {
 		return
@@ -175,6 +176,7 @@ func closeWindowsHandle(handle *windows.Handle) {
 	*handle = 0
 }
 
+// closePseudoConsoleHandle 关闭 ConPTY 伪终端句柄，并把句柄值清零。
 func closePseudoConsoleHandle(handle *windows.Handle) {
 	if handle == nil || *handle == 0 {
 		return
