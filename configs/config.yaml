@@ -7,7 +7,7 @@ server:
     timeout: 1s
 data:
   database:
-    driver: mysql
-    source: root:gucooing.snxianus@tcp(110.42.61.204:3306)/momoko?timeout=5s&parseTime=True&loc=Local&charset=utf8mb4
+    driver: sqlite3
+    source: file:./data/momoko.db?&_fk=1
 auth:
   secret: gucooing.auth

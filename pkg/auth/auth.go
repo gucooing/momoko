@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,4 +27,9 @@ func NewContext(ctx context.Context, auth *Auth) context.Context {
 func FromContext(ctx context.Context) (auth *Auth, ok bool) {
 	auth, ok = ctx.Value(authKey{}).(*Auth)
 	return
+}
+
+func EncodePassword(password string) string {
+	sum := md5.Sum([]byte(password))
+	return hex.EncodeToString(sum[:])
 }
