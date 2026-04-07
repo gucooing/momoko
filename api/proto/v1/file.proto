@@ -15,22 +15,15 @@ service FileSystemManager {
       get: "/api/v1/file/system"
     };
   }
-  // 批量计算指定文件夹大小(系统级)
-  rpc BatchCalcFileSystemSize(BatchCalcFileSystemSizeRequest) returns (BatchCalcFileSystemSizeResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/file/system/size"
-      body: "*"
-    };
-  }
   // 批量删除指定文件/文件夹(系统级)
   rpc BatchDeleteFileSystem(BatchDeleteFileSystemRequest) returns (BatchDeleteFileSystemResponse) {
     option (google.api.http) = {
-      post: "/api/v1/file/system/delete"
+      post: "/api/v1/file/system/deletes"
       body: "*"
     };
   }
-  // 批量创建指定文件/文件夹(系统级)
-  rpc BatchCreateFileSystem(BatchCreateFileSystemRequest) returns (BatchCreateFileSystemResponse) {
+  // 创建指定文件/文件夹(系统级)
+  rpc CreateFileSystem(CreateFileSystemRequest) returns (CreateFileSystemResponse) {
     option (google.api.http) = {
       post: "/api/v1/file/system/create"
       body: "*"
@@ -51,10 +44,8 @@ enum FileSortField {
   FILE_SORT_FIELD_UNSPECIFIED = 0;
   // 名称
   FILE_SORT_FIELD_NAME = 1;
-  // 大小
-  FILE_SORT_FIELD_SIZE = 2;
   // 修改时间
-  FILE_SORT_FIELD_UPDATE_TIME = 3;
+  FILE_SORT_FIELD_UPDATE_TIME = 2;
 }
 
 // 获取系统文件列表请求
@@ -97,14 +88,12 @@ message FileDirectoryInfo {
   string path = 2;
   // 父级目录路径
   string parent_path = 3;
-  // 目录总大小
-  uint64 size = 4;
   // 子目录数量
-  int64 dir_count = 5;
+  int64 dir_count = 4;
   // 文件数量
-  int64 file_count = 6;
+  int64 file_count = 5;
   // 条目总数
-  int64 item_count = 7;
+  int64 item_count = 6;
 }
 
 // 系统文件条目信息
@@ -129,12 +118,6 @@ message FileEntryInfo {
   uint64 size = 9;
   // 修改时间
   google.protobuf.Timestamp update_time = 10;
-}
-
-// 批量计算系统文件夹大小请求
-message BatchCalcFileSystemSizeRequest {
-  // 目录路径列表
-  repeated string paths = 1;
 }
 
 // 批量计算系统文件夹大小响应
@@ -168,16 +151,13 @@ message BatchDeleteFileSystemResponse {
 }
 
 // 批量创建系统文件请求
-message BatchCreateFileSystemRequest {
-  // 创建项列表
-  repeated FileCreateItem items = 1;
+message CreateFileSystemRequest {
+  // 创建信息
+  FileCreateItem info = 1;
 }
 
 // 批量创建系统文件响应
-message BatchCreateFileSystemResponse {
-  // 创建结果列表
-  repeated FileOperationResult items = 1;
-}
+message CreateFileSystemResponse {}
 
 // 系统文件创建项
 message FileCreateItem {
@@ -186,7 +166,7 @@ message FileCreateItem {
   // 是否目录
   bool is_dir = 2;
   // 文件内容，目录时忽略
-  string content = 3;
+  bytes content = 3;
 }
 
 // 系统文件操作结果

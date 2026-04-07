@@ -188,13 +188,13 @@ paths:
         post:
             tags:
                 - FileSystemManager
-            description: 批量创建指定文件/文件夹(系统级)
-            operationId: FileSystemManager_BatchCreateFileSystem
+            description: 创建指定文件/文件夹(系统级)
+            operationId: FileSystemManager_CreateFileSystem
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/v1.BatchCreateFileSystemRequest'
+                            $ref: '#/components/schemas/v1.CreateFileSystemRequest'
                 required: true
             responses:
                 "200":
@@ -202,8 +202,8 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1.BatchCreateFileSystemResponse'
-    /api/v1/file/system/delete:
+                                $ref: '#/components/schemas/v1.CreateFileSystemResponse'
+    /api/v1/file/system/deletes:
         post:
             tags:
                 - FileSystemManager
@@ -241,25 +241,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.OpenFileSystemFileResponse'
-    /api/v1/file/system/size:
-        post:
-            tags:
-                - FileSystemManager
-            description: 批量计算指定文件夹大小(系统级)
-            operationId: FileSystemManager_BatchCalcFileSystemSize
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.BatchCalcFileSystemSizeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.BatchCalcFileSystemSizeResponse'
     /api/v1/instance:
         get:
             tags:
@@ -1210,42 +1191,6 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
-        v1.BatchCalcFileSystemSizeRequest:
-            type: object
-            properties:
-                paths:
-                    type: array
-                    items:
-                        type: string
-                    description: 目录路径列表
-            description: 批量计算系统文件夹大小请求
-        v1.BatchCalcFileSystemSizeResponse:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.FileSizeResult'
-                    description: 计算结果列表
-            description: 批量计算系统文件夹大小响应
-        v1.BatchCreateFileSystemRequest:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.FileCreateItem'
-                    description: 创建项列表
-            description: 批量创建系统文件请求
-        v1.BatchCreateFileSystemResponse:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.FileOperationResult'
-                    description: 创建结果列表
-            description: 批量创建系统文件响应
         v1.BatchDeleteFileSystemRequest:
             type: object
             properties:
@@ -1264,6 +1209,18 @@ components:
                         $ref: '#/components/schemas/v1.FileOperationResult'
                     description: 删除结果列表
             description: 批量删除系统文件响应
+        v1.CreateFileSystemRequest:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileCreateItem'
+                    description: 创建信息
+            description: 批量创建系统文件请求
+        v1.CreateFileSystemResponse:
+            type: object
+            properties: {}
+            description: 批量创建系统文件响应
         v1.CreateInstanceRequest:
             type: object
             properties:
@@ -1404,6 +1361,7 @@ components:
                 content:
                     type: string
                     description: 文件内容，目录时忽略
+                    format: bytes
             description: 系统文件创建项
         v1.FileDirectoryInfo:
             type: object
@@ -1417,9 +1375,6 @@ components:
                 parentPath:
                     type: string
                     description: 父级目录路径
-                size:
-                    type: string
-                    description: 目录总大小
                 dirCount:
                     type: string
                     description: 子目录数量
@@ -1480,22 +1435,6 @@ components:
                     type: string
                     description: 结果消息
             description: 系统文件操作结果
-        v1.FileSizeResult:
-            type: object
-            properties:
-                path:
-                    type: string
-                    description: 路径
-                size:
-                    type: string
-                    description: 大小
-                success:
-                    type: boolean
-                    description: 是否成功
-                message:
-                    type: string
-                    description: 结果消息
-            description: 系统文件大小结果
         v1.GetFileSystemListResponse:
             type: object
             properties:

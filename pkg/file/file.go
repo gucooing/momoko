@@ -2,17 +2,21 @@ package file
 
 import (
 	"errors"
-	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	v1 "momoko/api/gen/v1"
 )
 
 const (
-	SortByName    = "name"
-	SortByModTime = "modtime"
+	SortByName    = v1.FileSortField_FILE_SORT_FIELD_NAME
+	SortByModTime = v1.FileSortField_FILE_SORT_FIELD_UPDATE_TIME
 
 	SortAsc  = "asc"
 	SortDesc = "desc"
@@ -61,14 +65,15 @@ func (f *FileOper) ResolveRealPath(targetPath string) (string, error) {
 }
 
 // ListDir 获取文件列表
-func (f *FileOper) ListDir(dir, field, order string) error {
+func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v1.FileEntryInfo, error) {
+	var results []*v1.FileEntryInfo
 	path, err := f.ResolveRealPath(dir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	sort.Slice(entries, func(i, j int) bool {
@@ -89,7 +94,7 @@ func (f *FileOper) ListDir(dir, field, order string) error {
 			t2 := t2Info.ModTime()
 
 			if !t1.Equal(t2) {
-				if order == SortDesc {
+				if order {
 					return t1.After(t2)
 				}
 				return t1.Before(t2)
@@ -103,7 +108,7 @@ func (f *FileOper) ListDir(dir, field, order string) error {
 		n1 := entries[i].Name()
 		n2 := entries[j].Name()
 
-		if order == SortDesc {
+		if order {
 			return n1 > n2
 		}
 		return n1 < n2
@@ -112,16 +117,94 @@ func (f *FileOper) ListDir(dir, field, order string) error {
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		fullPath := filepath.Join(dir, entry.Name())
-		if entry.IsDir() {
-			fmt.Printf("[目录] %-50s %-20s\n", fullPath, info.ModTime().String())
-		} else {
-			fmt.Printf("[文件] %-50s %-20s\n", fullPath, info.ModTime().String())
-		}
+		results = append(results, toFileEntryInfo(info, fullPath))
 	}
-	return nil
+	return results, nil
+}
+
+func (f *FileOper) QueryDir(dir, keywords string, recursive bool) ([]*v1.FileEntryInfo, error) {
+	var results []*v1.FileEntryInfo
+
+	root, err := f.ResolveRealPath(dir)
+	if err != nil {
+		return nil, err
+	}
+	err = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path != root {
+			name := d.Name()
+			if strings.Contains(name, keywords) {
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
+				results = append(results, toFileEntryInfo(info, path))
+			}
+		}
+
+		// 如果不递归，跳过 root 下的所有子目录
+		if !recursive && d.IsDir() && path != root {
+			return filepath.SkipDir
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, errors.New("查询失败")
+	}
+
+	return results, err
+}
+
+func toFileEntryInfo(d fs.FileInfo, fullPath string) *v1.FileEntryInfo {
+	info := &v1.FileEntryInfo{
+		Name:       d.Name(),
+		Path:       fullPath,
+		IsDir:      d.IsDir(),
+		Permission: d.Mode().Perm().String(),
+		UserName:   "",
+		UserId:     0,
+		GroupName:  "",
+		GroupId:    0,
+		Size:       uint64(d.Size()),
+		UpdateTime: timestamppb.New(d.ModTime()),
+	}
+	fillOwnerInfo(info, d)
+	return info
+}
+
+func (f *FileOper) DirInfo(dir string) (*v1.FileDirectoryInfo, error) {
+	path, err := f.ResolveRealPath(dir)
+	if err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	var dirCount int64
+	var fileCount int64
+	for _, entry := range entries {
+		if entry.IsDir() {
+			dirCount++
+			continue
+		}
+		fileCount++
+	}
+
+	return &v1.FileDirectoryInfo{
+		Name:       filepath.Base(path),
+		Path:       dir,
+		ParentPath: path,
+		DirCount:   dirCount,
+		FileCount:  fileCount,
+		ItemCount:  int64(len(entries)),
+	}, nil
 }
 
 // LoadFile 读取文件
@@ -144,4 +227,42 @@ func (f *FileOper) LoadFile(path string) ([]byte, error) {
 	}
 
 	return io.ReadAll(file)
+}
+
+// BatchDelete 批量删除文件或文件夹
+func (f *FileOper) BatchDelete(paths []string) []*v1.FileOperationResult {
+	results := make([]*v1.FileOperationResult, 0, len(paths))
+	for _, path := range paths {
+		result := &v1.FileOperationResult{Path: path}
+		absPath, err := f.ResolveRealPath(path)
+		if err != nil {
+			result.Message = err.Error()
+			results = append(results, result)
+			continue
+		}
+		if err = os.RemoveAll(absPath); err != nil {
+			result.Message = err.Error()
+			results = append(results, result)
+			continue
+		}
+		result.Success = true
+		results = append(results, result)
+	}
+	return results
+}
+
+// Create 创建文件或目录。
+func (f *FileOper) Create(item *v1.FileCreateItem) error {
+	absPath, err := f.ResolveRealPath(item.Path)
+	if err != nil {
+		return err
+	}
+	if item.IsDir {
+		err = os.MkdirAll(absPath, 0o755)
+	} else {
+		if err = os.MkdirAll(filepath.Dir(absPath), 0o755); err == nil {
+			err = os.WriteFile(absPath, item.Content, 0o644)
+		}
+	}
+	return nil
 }

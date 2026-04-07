@@ -4,7 +4,7 @@ import (
 	"context"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/pkg/filecore"
+	"momoko/pkg/file"
 )
 
 // FileUsecase 提供系统级文件操作能力。
@@ -15,126 +15,89 @@ func NewFileUsecase() *FileUsecase {
 	return &FileUsecase{}
 }
 
-func (f *FileUsecase) newSystemInstance() (*filecore.Instance, error) {
-	return filecore.New("")
+func (f *FileUsecase) newSystemInstance() (*file.FileOper, error) {
+	return file.NewFileOper("")
 }
 
 // GetFileSystemList 获取系统文件列表。
 func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSystemListRequest) (*v1.GetFileSystemListResponse, error) {
-	_ = ctx
-
-	instance, err := f.newSystemInstance()
+	fileOper, err := f.newSystemInstance()
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
-	result, err := instance.List(filecore.ListOptions{
-		Path:          req.Path,
-		Page:          req.Page,
-		PageSize:      req.PageSize,
-		Keywords:      req.GetKeywords(),
-		IncludeSubDir: req.GetIncludeSubDir(),
-		SortField:     req.SortField,
-		Desc:          req.IsDesc,
-	})
+	var result []*v1.FileEntryInfo
+	if req.Keywords != nil {
+		result, err = fileOper.QueryDir(req.Path, req.GetKeywords(), req.GetIncludeSubDir())
+	} else {
+		result, err = fileOper.ListDir(req.Path, req.SortField, req.IsDesc)
+	}
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	// 分页
+	pages := make([]*v1.FileEntryInfo, 0)
+	total := int64(len(result))
+	start := (req.Page - 1) * req.PageSize
+	end := req.Page * req.PageSize
+	if start >= total || start < 0 {
+		pages = nil
+	} else {
+		if end > total {
+			end = total
+		}
+		pages = result[start:end]
+	}
+	directory, err := fileOper.DirInfo(req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
 	return &v1.GetFileSystemListResponse{
-		Directory: result.Directory,
-		Items:     result.Items,
-		Page:      result.Page,
-		PageSize:  result.PageSize,
-		Total:     result.Total,
+		Directory: directory,
+		Items:     pages,
+		Page:      req.Page,
+		PageSize:  req.PageSize,
+		Total:     total,
 	}, nil
-}
-
-// BatchCalcFileSystemSize 批量计算文件大小。
-func (f *FileUsecase) BatchCalcFileSystemSize(ctx context.Context, req *v1.BatchCalcFileSystemSizeRequest) (*v1.BatchCalcFileSystemSizeResponse, error) {
-	_ = ctx
-
-	instance, err := f.newSystemInstance()
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-
-	items := instance.BatchCalcSize(req.Paths)
-	out := make([]*v1.FileSizeResult, 0, len(items))
-	for _, item := range items {
-		out = append(out, &v1.FileSizeResult{
-			Path:    item.Path,
-			Size:    item.Size,
-			Success: item.Success,
-			Message: item.Message,
-		})
-	}
-	return &v1.BatchCalcFileSystemSizeResponse{Items: out}, nil
 }
 
 // BatchDeleteFileSystem 批量删除文件。
 func (f *FileUsecase) BatchDeleteFileSystem(ctx context.Context, req *v1.BatchDeleteFileSystemRequest) (*v1.BatchDeleteFileSystemResponse, error) {
-	_ = ctx
-
-	instance, err := f.newSystemInstance()
+	fileOper, err := f.newSystemInstance()
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-
-	items := instance.BatchDelete(req.Paths)
-	out := make([]*v1.FileOperationResult, 0, len(items))
-	for _, item := range items {
-		out = append(out, &v1.FileOperationResult{
-			Path:    item.Path,
-			Success: item.Success,
-			Message: item.Message,
-		})
-	}
-	return &v1.BatchDeleteFileSystemResponse{Items: out}, nil
+	return &v1.BatchDeleteFileSystemResponse{
+		Items: fileOper.BatchDelete(req.Paths),
+	}, nil
 }
 
-// BatchCreateFileSystem 批量创建文件。
-func (f *FileUsecase) BatchCreateFileSystem(ctx context.Context, req *v1.BatchCreateFileSystemRequest) (*v1.BatchCreateFileSystemResponse, error) {
-	_ = ctx
-
-	instance, err := f.newSystemInstance()
+// CreateFileSystem 创建文件。
+func (f *FileUsecase) CreateFileSystem(ctx context.Context, req *v1.CreateFileSystemRequest) (*v1.CreateFileSystemResponse, error) {
+	fileOper, err := f.newSystemInstance()
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
-	createItems := make([]filecore.CreateItem, 0, len(req.Items))
-	for _, item := range req.Items {
-		createItems = append(createItems, filecore.CreateItem{
-			Path:    item.Path,
-			IsDir:   item.IsDir,
-			Content: []byte(item.Content),
-		})
+	err = fileOper.Create(req.Info)
+	if err != nil {
+		return nil, ErrSystem(err)
 	}
 
-	items := instance.BatchCreate(createItems)
-	out := make([]*v1.FileOperationResult, 0, len(items))
-	for _, item := range items {
-		out = append(out, &v1.FileOperationResult{
-			Path:    item.Path,
-			Success: item.Success,
-			Message: item.Message,
-		})
-	}
-	return &v1.BatchCreateFileSystemResponse{Items: out}, nil
+	return &v1.CreateFileSystemResponse{}, nil
 }
 
 // OpenFileSystemFile 打开文件并返回内容。
 func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
-	_ = ctx
-
-	instance, err := f.newSystemInstance()
+	fileOper, err := f.newSystemInstance()
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
-	content, err := instance.OpenFile(req.Path)
+	content, err := fileOper.LoadFile(req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return &v1.OpenFileSystemFileResponse{Info: content.Content}, nil
+	return &v1.OpenFileSystemFileResponse{Info: content}, nil
 }
