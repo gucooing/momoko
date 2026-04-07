@@ -28,9 +28,9 @@ func NewHTTPServer(c *conf.Server,
 	var opts = []http.ServerOption{
 		http.Filter(
 			corsMiddleware(),
-			avatarManager.Filter(),
-			distMiddleware(),
-			authorization.Middleware(),
+			avatarManager.Filter(),     // 头像服务
+			distMiddleware(),           // 前端资源
+			authorization.Middleware(), // 身份验证
 		),
 		http.Middleware(
 			recovery.Recovery(),

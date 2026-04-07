@@ -8,6 +8,7 @@ import (
 	entmenu "momoko/internal/data/ent/menu"
 	entrole "momoko/internal/data/ent/role"
 	entuser "momoko/internal/data/ent/user"
+	"momoko/pkg/auth"
 	"momoko/pkg/constant"
 )
 
@@ -250,7 +251,7 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		builder := tx.User.Create().
 			SetID(item.ID).
 			SetUsername(item.Username).
-			SetPassword(item.Password).
+			SetPassword(auth.EncodePassword(item.Password)).
 			SetEmail(item.Email).
 			SetStatus(item.Status).
 			SetAvatar(item.Avatar).

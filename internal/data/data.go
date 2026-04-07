@@ -3,11 +3,13 @@ package data
 import (
 	"context"
 	"log"
-	"momoko/internal/data/ent/migrate"
 	"os"
+
+	"momoko/internal/data/ent/migrate"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/wire"
+	_ "github.com/mattn/go-sqlite3"
 
 	"momoko/internal/conf"
 	"momoko/internal/data/ent"

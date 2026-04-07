@@ -20,6 +20,9 @@ var (
 )
 
 func GenerateToken(authDb *ent.Auth) (string, error) {
+	if authDb == nil {
+		return "", ErrTokenInvalid
+	}
 	claims := Auth{
 		UserID:    authDb.UserID,
 		DeviceId:  authDb.DeviceID,

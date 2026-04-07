@@ -2,8 +2,6 @@ package biz
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -14,14 +12,10 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/data/ent"
 	"momoko/internal/data/ent/user"
+	"momoko/pkg/auth"
 	"momoko/pkg/avatar"
 	"momoko/pkg/response"
 )
-
-func encodePassword(password string) string {
-	sum := md5.Sum([]byte(password))
-	return hex.EncodeToString(sum[:])
-}
 
 type UserRepo interface {
 	FindByName(ctx context.Context, name string) (*ent.User, error)
@@ -56,7 +50,7 @@ func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password st
 		}
 		return nil, ErrSystem(err)
 	}
-	if userInfo.Password != encodePassword(password) {
+	if userInfo.Password != auth.EncodePassword(password) {
 		return nil, ErrInvalidPassword
 	}
 	if userInfo.Status != user.StatusActive {
@@ -135,7 +129,7 @@ func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.
 	userInfo, err := u.user.CreateUser(ctx, &ent.User{
 		ID:       fmt.Sprintf("user_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
 		Username: req.Username,
-		Password: encodePassword(req.Password),
+		Password: auth.EncodePassword(req.Password),
 		Email:    req.Email,
 		Status:   u.toEntUserStatus(req.Status),
 		Avatar:   req.Avatar,
@@ -185,13 +179,13 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 		}
 		return nil, ErrSystem(err)
 	}
-	if encodePassword(oldPassword) != userDb.Password {
+	if auth.EncodePassword(oldPassword) != userDb.Password {
 		return nil, ErrInvalidPassword
 	}
 	if err = u.auth.DeleteAuth(ctx, userId, nil); err != nil {
 		return nil, ErrSystem(err)
 	}
-	info, err := u.user.UpdatePassword(ctx, userId, encodePassword(newPassword))
+	info, err := u.user.UpdatePassword(ctx, userId, auth.EncodePassword(newPassword))
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
