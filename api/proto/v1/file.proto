@@ -1,0 +1,212 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 系统文件管理
+service FileSystemManager {
+  // 获取整个系统指定路径的文件
+  rpc GetFileSystemList(GetFileSystemListRequest) returns (GetFileSystemListResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/system"
+    };
+  }
+  // 批量计算指定文件夹大小(系统级)
+  rpc BatchCalcFileSystemSize(BatchCalcFileSystemSizeRequest) returns (BatchCalcFileSystemSizeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/size"
+      body: "*"
+    };
+  }
+  // 批量删除指定文件/文件夹(系统级)
+  rpc BatchDeleteFileSystem(BatchDeleteFileSystemRequest) returns (BatchDeleteFileSystemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/delete"
+      body: "*"
+    };
+  }
+  // 批量创建指定文件/文件夹(系统级)
+  rpc BatchCreateFileSystem(BatchCreateFileSystemRequest) returns (BatchCreateFileSystemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/create"
+      body: "*"
+    };
+  }
+  // 打开指定文件(系统级)
+  rpc OpenFileSystemFile(OpenFileSystemFileRequest) returns (OpenFileSystemFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/open/file"
+      body: "*"
+    };
+  }
+}
+
+// 文件排序字段
+enum FileSortField {
+  // 未指定
+  FILE_SORT_FIELD_UNSPECIFIED = 0;
+  // 名称
+  FILE_SORT_FIELD_NAME = 1;
+  // 大小
+  FILE_SORT_FIELD_SIZE = 2;
+  // 修改时间
+  FILE_SORT_FIELD_UPDATE_TIME = 3;
+}
+
+// 获取系统文件列表请求
+message GetFileSystemListRequest {
+  // 目录路径
+  string path = 1;
+  // 页码
+  int64 page = 2;
+  // 每页数量
+  int64 page_size = 3;
+  // 搜索关键字
+  optional string keywords = 4;
+  // 是否包含子目录-搜索关键字
+  optional bool include_sub_dir = 5;
+  // 排序字段
+  FileSortField sort_field = 6;
+  // 排序是否倒序
+  bool is_desc = 7;
+}
+
+// 获取系统文件列表响应
+message GetFileSystemListResponse {
+  // 当前目录信息
+  FileDirectoryInfo directory = 1;
+  // 文件列表
+  repeated FileEntryInfo items = 2;
+  // 当前页码
+  int64 page = 3;
+  // 每页数量
+  int64 page_size = 4;
+  // 总数
+  int64 total = 5;
+}
+
+// 目录信息
+message FileDirectoryInfo {
+  // 目录名称
+  string name = 1;
+  // 目录路径
+  string path = 2;
+  // 父级目录路径
+  string parent_path = 3;
+  // 目录总大小
+  uint64 size = 4;
+  // 子目录数量
+  int64 dir_count = 5;
+  // 文件数量
+  int64 file_count = 6;
+  // 条目总数
+  int64 item_count = 7;
+}
+
+// 系统文件条目信息
+message FileEntryInfo {
+  // 名称
+  string name = 1;
+  // 完整路径
+  string path = 2;
+  // 是否目录
+  bool is_dir = 3;
+  // 权限
+  string permission = 4;
+  // 用户名
+  string user_name = 5;
+  // 用户id
+  uint32 user_id = 6;
+  // 用户组名
+  string group_name = 7;
+  // 用户组id
+  uint32 group_id = 8;
+  // 文件大小
+  uint64 size = 9;
+  // 修改时间
+  google.protobuf.Timestamp update_time = 10;
+}
+
+// 批量计算系统文件夹大小请求
+message BatchCalcFileSystemSizeRequest {
+  // 目录路径列表
+  repeated string paths = 1;
+}
+
+// 批量计算系统文件夹大小响应
+message BatchCalcFileSystemSizeResponse {
+  // 计算结果列表
+  repeated FileSizeResult items = 1;
+}
+
+// 系统文件大小结果
+message FileSizeResult {
+  // 路径
+  string path = 1;
+  // 大小
+  uint64 size = 2;
+  // 是否成功
+  bool success = 3;
+  // 结果消息
+  string message = 4;
+}
+
+// 批量删除系统文件请求
+message BatchDeleteFileSystemRequest {
+  // 路径列表
+  repeated string paths = 1;
+}
+
+// 批量删除系统文件响应
+message BatchDeleteFileSystemResponse {
+  // 删除结果列表
+  repeated FileOperationResult items = 1;
+}
+
+// 批量创建系统文件请求
+message BatchCreateFileSystemRequest {
+  // 创建项列表
+  repeated FileCreateItem items = 1;
+}
+
+// 批量创建系统文件响应
+message BatchCreateFileSystemResponse {
+  // 创建结果列表
+  repeated FileOperationResult items = 1;
+}
+
+// 系统文件创建项
+message FileCreateItem {
+  // 路径
+  string path = 1;
+  // 是否目录
+  bool is_dir = 2;
+  // 文件内容，目录时忽略
+  string content = 3;
+}
+
+// 系统文件操作结果
+message FileOperationResult {
+  // 路径
+  string path = 1;
+  // 是否成功
+  bool success = 2;
+  // 结果消息
+  string message = 3;
+}
+
+// 打开系统文件请求
+message OpenFileSystemFileRequest {
+  // 文件路径
+  string path = 1;
+}
+
+// 打开系统文件响应
+message OpenFileSystemFileResponse {
+  // 文件内容
+  bytes info = 1;
+}

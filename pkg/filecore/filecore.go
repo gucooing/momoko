@@ -461,22 +461,31 @@ func calcPathSize(path string) (uint64, error) {
 
 func sortEntries(items []*v1.FileEntryInfo, field v1.FileSortField, desc bool) {
 	sort.Slice(items, func(i, j int) bool {
-		less := compareEntry(items[i], items[j], field)
-		if desc {
-			return !less
-		}
-		return less
+		return compareEntry(items[i], items[j], field, desc)
 	})
 }
 
-func compareEntry(left, right *v1.FileEntryInfo, field v1.FileSortField) bool {
+func compareEntry(left, right *v1.FileEntryInfo, field v1.FileSortField, desc bool) bool {
+	if left.IsDir != right.IsDir {
+		if desc {
+			return !left.IsDir
+		}
+		return left.IsDir
+	}
+
 	switch field {
 	case v1.FileSortField_FILE_SORT_FIELD_SIZE:
 		if left.Size != right.Size {
+			if desc {
+				return left.Size > right.Size
+			}
 			return left.Size < right.Size
 		}
 	case v1.FileSortField_FILE_SORT_FIELD_UPDATE_TIME:
 		if !left.UpdateTime.AsTime().Equal(right.UpdateTime.AsTime()) {
+			if desc {
+				return left.UpdateTime.AsTime().After(right.UpdateTime.AsTime())
+			}
 			return left.UpdateTime.AsTime().Before(right.UpdateTime.AsTime())
 		}
 	default:
@@ -485,7 +494,13 @@ func compareEntry(left, right *v1.FileEntryInfo, field v1.FileSortField) bool {
 	leftName := strings.ToLower(left.Name)
 	rightName := strings.ToLower(right.Name)
 	if leftName != rightName {
+		if desc {
+			return leftName > rightName
+		}
 		return leftName < rightName
+	}
+	if desc {
+		return left.Path > right.Path
 	}
 	return left.Path < right.Path
 }

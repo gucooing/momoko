@@ -21,6 +21,7 @@ func NewHTTPServer(c *conf.Server,
 	avatarManager *avatar.Manager,
 	authorization *Authorization,
 	authApi *service.AuthService,
+	fileApi *service.FileService,
 	userApi *service.UserService,
 	systemApi *service.SystemService,
 	instanceApi *service.InstanceService,
@@ -56,6 +57,7 @@ func NewHTTPServer(c *conf.Server,
 	}
 	srv := http.NewServer(opts...)
 	v1.RegisterAuthServiceHTTPServer(srv, authApi)
+	v1.RegisterFileSystemManagerHTTPServer(srv, fileApi)
 	v1.RegisterUserServiceHTTPServer(srv, userApi)
 	v1.RegisterSystemHTTPServer(srv, systemApi)
 	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
