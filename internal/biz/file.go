@@ -16,7 +16,7 @@ func NewFileUsecase() *FileUsecase {
 }
 
 func (f *FileUsecase) newSystemInstance() (*file.FileOper, error) {
-	return file.NewFileOper("")
+	return file.NewFileOper(file.SystemPath)
 }
 
 // GetFileSystemList 获取系统文件列表。

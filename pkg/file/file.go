@@ -18,6 +18,8 @@ const (
 	SortByName    = v1.FileSortField_FILE_SORT_FIELD_NAME
 	SortByModTime = v1.FileSortField_FILE_SORT_FIELD_UPDATE_TIME
 
+	SystemPath = ""
+
 	SortAsc  = "asc"
 	SortDesc = "desc"
 
@@ -30,38 +32,51 @@ type FileOper struct {
 }
 
 func NewFileOper(basePath string) (*FileOper, error) {
-	baseAbs, err := filepath.Abs(basePath)
-	if err != nil {
-		return nil, err
+	f := &FileOper{}
+	if basePath == SystemPath {
+		f.basePath = basePath
+	} else {
+		baseAbs, err := filepath.Abs(basePath)
+		if err != nil {
+			return nil, err
+		}
+		f.basePath = baseAbs
 	}
-	return &FileOper{
-		basePath: baseAbs,
-	}, nil
+
+	return f, nil
 }
 
 // ResolveRealPath 返回 targetPath 对应的真实路径。
 // 如果目标越过 basePath，返回错误。
 func (f *FileOper) ResolveRealPath(targetPath string) (string, error) {
+	if f.basePath == SystemPath {
+		if filepath.IsAbs(targetPath) {
+			return targetPath, nil
+		}
+		targetAbs, err := filepath.Abs(targetPath)
+		if err != nil {
+			return "", errors.New("路径不存在")
+		}
+		return targetAbs, nil
+	}
 	targetAbs, err := filepath.Abs(targetPath)
 	if err != nil {
 		return "", errors.New("路径不存在")
 	}
 
-	targetReal, err := filepath.EvalSymlinks(targetAbs)
+	targetPath, err = filepath.EvalSymlinks(targetAbs)
 	if err != nil {
 		return "", errors.New("路径不存在")
 	}
-
-	rel, err := filepath.Rel(f.basePath, targetReal)
+	rel, err := filepath.Rel(f.basePath, targetPath)
 	if err != nil {
 		return "", errors.New("路径不存在")
 	}
-
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", errors.New("路径穿越！")
 	}
 
-	return targetReal, nil
+	return targetPath, nil
 }
 
 // ListDir 获取文件列表
