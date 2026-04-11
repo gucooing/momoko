@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
+
+	v1 "momoko/api/gen/v1"
 )
 
 func Test_ResolveRealPath(t *testing.T) {
@@ -30,7 +32,7 @@ func Test_ListDir(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = f.ListDir("", SortByModTime, SortAsc); err != nil {
+	if _, err = f.ListDir("", v1.FileSortField_FILE_SORT_FIELD_NAME, true); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -20,9 +20,6 @@ const (
 
 	SystemPath = ""
 
-	SortAsc  = "asc"
-	SortDesc = "desc"
-
 	// MaxLoadFileSize 最大在线读取大小
 	MaxLoadFileSize = 10 * 1024 * 1024
 )
@@ -134,7 +131,7 @@ func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v
 		if err != nil {
 			return nil, err
 		}
-		fullPath := filepath.Join(dir, entry.Name())
+		fullPath := filepath.Join(path, entry.Name())
 		results = append(results, toFileEntryInfo(info, fullPath))
 	}
 	return results, nil
