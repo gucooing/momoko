@@ -18,7 +18,8 @@ const (
 	SortByName    = v1.FileSortField_FILE_SORT_FIELD_NAME
 	SortByModTime = v1.FileSortField_FILE_SORT_FIELD_UPDATE_TIME
 
-	SystemPath = ""
+	SystemPath  = ""
+	ServersPath = "./servers"
 
 	// MaxLoadFileSize 最大在线读取大小
 	MaxLoadFileSize = 10 * 1024 * 1024

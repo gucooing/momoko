@@ -20,6 +20,9 @@ type FileUsecase struct{}
 
 // NewFileUsecase 创建文件操作用例。
 func NewFileUsecase() *FileUsecase {
+	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
+		os.MkdirAll(file.ServersPath, 0755)
+	}
 	return &FileUsecase{}
 }
 
