@@ -168,3 +168,15 @@ export interface OpenFileSystemFileResponse {
   /** 文件内容 */
   info: Uint8Array;
 }
+
+/** 文件下载预签名请求 */
+export interface FileSystemPreSignRequest {
+  /** 路径 */
+  path: string;
+}
+
+/** 文件下载预签名响应 */
+export interface FileSystemPreSignResponse {
+  /** 下载路径 */
+  downloadUrlPath: string;
+}

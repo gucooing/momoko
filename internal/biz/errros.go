@@ -8,7 +8,7 @@ import (
 
 var (
 	ErrSystem = func(err error) error {
-		return response.BadRequest(500, fmt.Sprintf("系统错误,请联系管理员:%v", err))
+		return response.BadRequest(500, fmt.Sprintf("系统错误:%v", err))
 	}
 	ErrAdminNotFound    = response.BadRequest(500, "用户不存在")
 	ErrInvalidPassword  = response.BadRequest(500, "密码错误")
@@ -20,4 +20,6 @@ var (
 	ErrInstanceAccess   = response.BadRequest(500, "您没有该实例权限")
 	ErrInstanceTypeName = response.BadRequest(500, "类型名称不能为空")
 	ErrInstanceTypeID   = response.BadRequest(500, "类型ID不能为空")
+	ErrFileNotExist     = response.BadRequest(500, "文件不存在")
+	ErrSign             = response.BadRequest(500, "签名失败")
 )

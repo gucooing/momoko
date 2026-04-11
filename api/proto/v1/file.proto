@@ -36,6 +36,12 @@ service FileSystemManager {
       body: "*"
     };
   }
+  // 文件下载预签名(系统级)
+  rpc FileSystemPreSign(FileSystemPreSignRequest) returns (FileSystemPreSignResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/system/file/pre-sign"
+    };
+  }
 }
 
 // 文件排序字段
@@ -189,4 +195,16 @@ message OpenFileSystemFileRequest {
 message OpenFileSystemFileResponse {
   // 文件内容
   bytes info = 1;
+}
+
+// 文件下载预签名请求
+message FileSystemPreSignRequest {
+  // 路径
+  string path = 1;
+}
+
+// 文件下载预签名响应
+message FileSystemPreSignResponse {
+  // 下载路径
+  string download_url_path =1;
 }

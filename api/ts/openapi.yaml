@@ -222,6 +222,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.BatchDeleteFileSystemResponse'
+    /api/v1/file/system/file/pre-sign:
+        get:
+            tags:
+                - FileSystemManager
+            description: 文件下载预签名(系统级)
+            operationId: FileSystemManager_FileSystemPreSign
+            parameters:
+                - name: path
+                  in: query
+                  description: 路径
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.FileSystemPreSignResponse'
     /api/v1/file/system/open/file:
         post:
             tags:
@@ -1435,6 +1454,13 @@ components:
                     type: string
                     description: 结果消息
             description: 系统文件操作结果
+        v1.FileSystemPreSignResponse:
+            type: object
+            properties:
+                downloadUrlPath:
+                    type: string
+                    description: 下载路径
+            description: 文件下载预签名响应
         v1.GetFileSystemListResponse:
             type: object
             properties:

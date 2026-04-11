@@ -62,6 +62,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterSystemHTTPServer(srv, systemApi)
 	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
 	instanceApi.RegisterWsServer(srv)
+	fileApi.RegisterDownloadServer(srv)
 
 	return srv
 }

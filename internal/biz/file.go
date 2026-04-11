@@ -2,12 +2,20 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"time"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/pkg/file"
+	"momoko/pkg/pre"
 )
 
-// FileUsecase 提供系统级文件操作能力。
+const (
+	PreFileDownload = "/api/v1/download/pre"
+)
+
 type FileUsecase struct{}
 
 // NewFileUsecase 创建文件操作用例。
@@ -100,4 +108,41 @@ func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSy
 		return nil, ErrSystem(err)
 	}
 	return &v1.OpenFileSystemFileResponse{Info: content}, nil
+}
+
+func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID, path string) (string, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return "", ErrSystem(err)
+	}
+	realPath, err := fileOper.ResolveRealPath(path)
+	if err != nil {
+		return "", ErrSystem(err)
+	}
+	if _, err := os.Stat(realPath); os.IsNotExist(err) {
+		return "", ErrFileNotExist
+	}
+	preInfo := pre.NewFileDownloadInfo(path, 24*time.Hour, userID)
+	sign, err := preInfo.Sign()
+	if err != nil {
+		return "", ErrSign
+	}
+	urlPath := fmt.Sprintf("%s?sign=%s", PreFileDownload, sign)
+	return urlPath, nil
+}
+
+func (f *FileUsecase) FileDownload(path string, w http.ResponseWriter, r *http.Request) {
+	fs, err := os.Open(path)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer fs.Close()
+	info, err := fs.Stat()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Disposition", `attachment; filename="`+info.Name()+`"`)
+	http.ServeContent(w, r, info.Name(), info.ModTime(), fs)
 }
