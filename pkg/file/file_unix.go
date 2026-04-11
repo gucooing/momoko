@@ -7,6 +7,8 @@ import (
 	"os/user"
 	"strconv"
 	"syscall"
+
+	v1 "momoko/api/gen/v1"
 )
 
 func fillOwnerInfo(info *v1.FileEntryInfo, e fs.FileInfo) {
