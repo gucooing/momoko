@@ -58,13 +58,15 @@ var (
 		newDefaultMenu("menu_1_3", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", ptr("menu_1"), 2, ""),
 
 		// 实例
-		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用管理", "HOutline:ServerStackIcon", nil, 1, ""),
+		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用", "HOutline:ServerStackIcon", nil, 1, ""),
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", ptr("menu_2"), 0, ""),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "Element:MessageBox", ptr("menu_2"), 1, ""),
 		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", ptr("menu_2"), 2, ""),
-		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/instance/files", "文件管理", "Element:Folder", ptr("menu_2"), 3, constant.Terminal),
 
-		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统管理", "HOutline:Cog6ToothIcon", nil, 10, ""),
+		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, ""),
+		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "Element:Folder", ptr("menu_3"), 0, constant.Terminal),
+
+		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, ""),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", ptr("menu_12"), 0, ""),
 		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", ptr("menu_12_1"), 0, constant.UserAdd),
 		newDefaultMenu("menu_12_1_button_1", entmenu.TypeButton, "", "编辑用户", "", ptr("menu_12_1"), 1, constant.UserEdit),
@@ -209,12 +211,20 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 		menuBuilders = append(menuBuilders, builder)
 	}
+	obsoleteBuiltinMenus := tx.Menu.Delete().
+		Where(entmenu.IsSystemEQ(true))
+	if len(builtinMenuIDs) > 0 {
+		obsoleteBuiltinMenus = obsoleteBuiltinMenus.Where(entmenu.IDNotIn(builtinMenuIDs...))
+	}
+	if _, err := obsoleteBuiltinMenus.Exec(ctx); err != nil {
+		return rollback(fmt.Errorf("delete obsolete builtin menus failed: %w", err))
+	}
 	if len(menuBuilders) > 0 {
 		if err := tx.Menu.CreateBulk(menuBuilders...).
 			OnConflictColumns(entmenu.FieldID).
-			UpdateNewValues().
+			DoNothing().
 			Exec(ctx); err != nil {
-			return rollback(fmt.Errorf("upsert builtin menus failed: %w", err))
+			return rollback(fmt.Errorf("insert builtin menus failed: %w", err))
 		}
 	}
 
