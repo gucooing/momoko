@@ -1,9 +1,13 @@
 package file
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,6 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
+	"momoko/internal/data/ent"
 )
 
 const (
@@ -276,6 +281,97 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 		if err = os.MkdirAll(filepath.Dir(absPath), 0o755); err == nil {
 			err = os.WriteFile(absPath, item.Content, 0o644)
 		}
+	}
+	return nil
+}
+
+type ChunkedUpload struct {
+	*ent.FileUpload
+}
+
+const (
+	stepFileSize  = 100 * 1024 * 1024 // 100MB
+	stepChunkSize = 2 * 1024 * 1024   // 2MB
+	maxChunkSize  = 32 * 1024 * 1024  // 32MB
+
+	tempName = "%s-momoko-upload-%v.part"
+)
+
+func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
+	chunkSize := calcChunkSize(fileSize)
+	return &ChunkedUpload{
+		FileUpload: &ent.FileUpload{
+			Hash:        hash,
+			Path:        path,
+			FileName:    name,
+			FileSize:    fileSize,
+			ChunkSize:   chunkSize,
+			TotalChunks: (chunkSize + fileSize - 1) / chunkSize,
+		},
+	}
+}
+
+func calcChunkSize(fileSize uint64) uint64 {
+	steps := uint64(1)
+	if fileSize > 0 {
+		steps = (fileSize-1)/stepFileSize + 1
+	}
+	chunkSize := steps * stepChunkSize
+	if chunkSize > maxChunkSize {
+		chunkSize = maxChunkSize
+	}
+	return chunkSize
+}
+
+func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, string, error) {
+	if chunk > u.TotalChunks {
+		return 0, "", errors.New("异常的分片")
+	}
+	offset := (chunk - 1) * u.ChunkSize
+	partSize := u.ChunkSize
+	if chunk == u.TotalChunks {
+		partSize = u.FileSize - offset
+	}
+	if offset > math.MaxInt64 || partSize > math.MaxInt64 {
+		return 0, "", errors.New("文件过大")
+	}
+	data, err := io.ReadAll(io.LimitReader(r, int64(partSize+1)))
+	if err != nil {
+		return 0, "", err
+	}
+	if uint64(len(data)) != partSize {
+		return 0, "", errors.New("文件大小异常")
+	}
+	sum := sha256.Sum256(data)
+	partHash := hex.EncodeToString(sum[:])
+
+	tempFile, err := os.OpenFile(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
+		os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return 0, "", errors.New("创建临时文件失败")
+	}
+	defer tempFile.Close()
+
+	if _, err = tempFile.WriteAt(data, int64(offset)); err != nil {
+		return 0, "", errors.New("写入分片文件失败")
+	}
+	if err = tempFile.Sync(); err != nil {
+		return 0, "", errors.New("分片写入磁盘失败")
+	}
+
+	return partSize, partHash, nil
+}
+
+func (u *ChunkedUpload) Complete() error {
+	if uint64(len(u.Edges.Chunks)) != u.TotalChunks {
+		return errors.New("分片未上传完成")
+	}
+
+	partPath := filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID))
+	finalPath := filepath.Join(u.Path, u.FileName)
+
+	if err := os.Rename(partPath, finalPath); err != nil {
+		return fmt.Errorf("重命名文件失败: %w", err)
 	}
 	return nil
 }

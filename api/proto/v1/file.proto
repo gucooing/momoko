@@ -7,8 +7,8 @@ option go_package = "momoko/api/gen/v1;v1";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-// 系统文件管理
-service FileSystemManager {
+// 文件管理
+service FileManager {
   // 获取整个系统指定路径的文件
   rpc GetFileSystemList(GetFileSystemListRequest) returns (GetFileSystemListResponse) {
     option (google.api.http) = {
@@ -40,6 +40,32 @@ service FileSystemManager {
   rpc FileSystemPreSign(FileSystemPreSignRequest) returns (FileSystemPreSignResponse) {
     option (google.api.http) = {
       get: "/api/v1/file/system/file/pre-sign"
+    };
+  }
+  // 文件上传预签名(系统级)
+  rpc FileSystemPreSignUpload(FileSystemPreSignUploadRequest) returns (FileSystemPreSignUploadResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/system/file/upload/pre-sign"
+    };
+  }
+  // 获取上传状态
+  rpc GetFileUploadStatus(GetFileUploadStatusRequest) returns (GetFileUploadStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/upload/status"
+    };
+  }
+  // 上传完成合并分片
+  rpc CompleteFileUpload(CompleteFileUploadRequest) returns (CompleteFileUploadResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/upload/complete"
+      body: "*"
+    };
+  }
+  // 取消文件上传
+  rpc CancelFileUpload(CancelFileUploadRequest) returns (CancelFileUploadResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/upload/cancel"
+      body: "*"
     };
   }
 }
@@ -207,4 +233,76 @@ message FileSystemPreSignRequest {
 message FileSystemPreSignResponse {
   // 下载路径
   string download_url_path =1;
+}
+
+// 文件上传预签名(系统级)请求
+message FileSystemPreSignUploadRequest {
+  // 文件路径
+  string path = 1;
+  // 文件名称
+  string file_name = 2;
+  // 文件总大小（字节）
+  uint64 file_size = 3;
+  // 快速hash
+  string hash = 4;
+  // 分片大小（字节），不传时由服务端自动决定
+  optional uint64 part_size = 5;
+}
+
+// 文件上传预签名(系统级)响应
+message FileSystemPreSignUploadResponse {
+  // 信息
+  UploadInfo info = 1;
+}
+
+// 获取上传状态请求
+message GetFileUploadStatusRequest {
+  // 上传id
+  string upload_id = 1;
+}
+
+// 获取上传状态响应
+message GetFileUploadStatusResponse {
+  // 信息
+  UploadInfo info = 1;
+}
+
+// 上传完成合并分片请求
+message CompleteFileUploadRequest {
+  // 上传id
+  string upload_id = 1;
+}
+
+// 上传完成合并分片响应
+message CompleteFileUploadResponse {}
+
+// 取消文件上传请求
+message CancelFileUploadRequest {
+  // 上传id
+  string upload_id = 1;
+}
+
+// 取消文件上传响应
+message CancelFileUploadResponse {}
+
+// 上传信息
+message UploadInfo {
+  // 上传会话 id
+  string upload_id = 1;
+  // 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
+  string upload_part_url_path_template = 2;
+  // 实际分片大小（字节）
+  uint64 part_size = 3;
+  // 文件总大小（字节）
+  uint64 file_size = 4;
+  // 总分片数
+  uint64 total_parts = 5;
+  // 已上传完成的分片序号 <切片,hash>
+  map<uint64,string> uploaded_parts = 6;
+  // 是否已完成上传
+  bool completed = 7;
+  // 是否已取消上传
+  bool cancel = 8;
+  // 预签名过期时间
+  google.protobuf.Timestamp expired_at = 9;
 }

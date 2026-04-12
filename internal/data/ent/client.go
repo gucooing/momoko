@@ -12,6 +12,8 @@ import (
 	"momoko/internal/data/ent/migrate"
 
 	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/fileupload"
+	"momoko/internal/data/ent/fileuploadchunk"
 	"momoko/internal/data/ent/instance"
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
@@ -34,6 +36,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// Auth is the client for interacting with the Auth builders.
 	Auth *AuthClient
+	// FileUpload is the client for interacting with the FileUpload builders.
+	FileUpload *FileUploadClient
+	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
+	FileUploadChunk *FileUploadChunkClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -58,6 +64,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Auth = NewAuthClient(c.config)
+	c.FileUpload = NewFileUploadClient(c.config)
+	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
@@ -154,15 +162,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Auth:         NewAuthClient(cfg),
-		Instance:     NewInstanceClient(cfg),
-		InstanceType: NewInstanceTypeClient(cfg),
-		Menu:         NewMenuClient(cfg),
-		Role:         NewRoleClient(cfg),
-		SystemConfig: NewSystemConfigClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Auth:            NewAuthClient(cfg),
+		FileUpload:      NewFileUploadClient(cfg),
+		FileUploadChunk: NewFileUploadChunkClient(cfg),
+		Instance:        NewInstanceClient(cfg),
+		InstanceType:    NewInstanceTypeClient(cfg),
+		Menu:            NewMenuClient(cfg),
+		Role:            NewRoleClient(cfg),
+		SystemConfig:    NewSystemConfigClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -180,15 +190,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Auth:         NewAuthClient(cfg),
-		Instance:     NewInstanceClient(cfg),
-		InstanceType: NewInstanceTypeClient(cfg),
-		Menu:         NewMenuClient(cfg),
-		Role:         NewRoleClient(cfg),
-		SystemConfig: NewSystemConfigClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Auth:            NewAuthClient(cfg),
+		FileUpload:      NewFileUploadClient(cfg),
+		FileUploadChunk: NewFileUploadChunkClient(cfg),
+		Instance:        NewInstanceClient(cfg),
+		InstanceType:    NewInstanceTypeClient(cfg),
+		Menu:            NewMenuClient(cfg),
+		Role:            NewRoleClient(cfg),
+		SystemConfig:    NewSystemConfigClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -218,7 +230,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.SystemConfig, c.User,
+		c.Auth, c.FileUpload, c.FileUploadChunk, c.Instance, c.InstanceType, c.Menu,
+		c.Role, c.SystemConfig, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -228,7 +241,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.Instance, c.InstanceType, c.Menu, c.Role, c.SystemConfig, c.User,
+		c.Auth, c.FileUpload, c.FileUploadChunk, c.Instance, c.InstanceType, c.Menu,
+		c.Role, c.SystemConfig, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -239,6 +253,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AuthMutation:
 		return c.Auth.mutate(ctx, m)
+	case *FileUploadMutation:
+		return c.FileUpload.mutate(ctx, m)
+	case *FileUploadChunkMutation:
+		return c.FileUploadChunk.mutate(ctx, m)
 	case *InstanceMutation:
 		return c.Instance.mutate(ctx, m)
 	case *InstanceTypeMutation:
@@ -386,6 +404,320 @@ func (c *AuthClient) mutate(ctx context.Context, m *AuthMutation) (Value, error)
 		return (&AuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Auth mutation op: %q", m.Op())
+	}
+}
+
+// FileUploadClient is a client for the FileUpload schema.
+type FileUploadClient struct {
+	config
+}
+
+// NewFileUploadClient returns a client for the FileUpload from the given config.
+func NewFileUploadClient(c config) *FileUploadClient {
+	return &FileUploadClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `fileupload.Hooks(f(g(h())))`.
+func (c *FileUploadClient) Use(hooks ...Hook) {
+	c.hooks.FileUpload = append(c.hooks.FileUpload, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `fileupload.Intercept(f(g(h())))`.
+func (c *FileUploadClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FileUpload = append(c.inters.FileUpload, interceptors...)
+}
+
+// Create returns a builder for creating a FileUpload entity.
+func (c *FileUploadClient) Create() *FileUploadCreate {
+	mutation := newFileUploadMutation(c.config, OpCreate)
+	return &FileUploadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FileUpload entities.
+func (c *FileUploadClient) CreateBulk(builders ...*FileUploadCreate) *FileUploadCreateBulk {
+	return &FileUploadCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FileUploadClient) MapCreateBulk(slice any, setFunc func(*FileUploadCreate, int)) *FileUploadCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FileUploadCreateBulk{err: fmt.Errorf("calling to FileUploadClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FileUploadCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FileUploadCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FileUpload.
+func (c *FileUploadClient) Update() *FileUploadUpdate {
+	mutation := newFileUploadMutation(c.config, OpUpdate)
+	return &FileUploadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FileUploadClient) UpdateOne(_m *FileUpload) *FileUploadUpdateOne {
+	mutation := newFileUploadMutation(c.config, OpUpdateOne, withFileUpload(_m))
+	return &FileUploadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FileUploadClient) UpdateOneID(id string) *FileUploadUpdateOne {
+	mutation := newFileUploadMutation(c.config, OpUpdateOne, withFileUploadID(id))
+	return &FileUploadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FileUpload.
+func (c *FileUploadClient) Delete() *FileUploadDelete {
+	mutation := newFileUploadMutation(c.config, OpDelete)
+	return &FileUploadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FileUploadClient) DeleteOne(_m *FileUpload) *FileUploadDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FileUploadClient) DeleteOneID(id string) *FileUploadDeleteOne {
+	builder := c.Delete().Where(fileupload.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FileUploadDeleteOne{builder}
+}
+
+// Query returns a query builder for FileUpload.
+func (c *FileUploadClient) Query() *FileUploadQuery {
+	return &FileUploadQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFileUpload},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FileUpload entity by its id.
+func (c *FileUploadClient) Get(ctx context.Context, id string) (*FileUpload, error) {
+	return c.Query().Where(fileupload.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FileUploadClient) GetX(ctx context.Context, id string) *FileUpload {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a FileUpload.
+func (c *FileUploadClient) QueryUser(_m *FileUpload) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(fileupload.Table, fileupload.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, fileupload.UserTable, fileupload.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChunks queries the chunks edge of a FileUpload.
+func (c *FileUploadClient) QueryChunks(_m *FileUpload) *FileUploadChunkQuery {
+	query := (&FileUploadChunkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(fileupload.Table, fileupload.FieldID, id),
+			sqlgraph.To(fileuploadchunk.Table, fileuploadchunk.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, fileupload.ChunksTable, fileupload.ChunksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FileUploadClient) Hooks() []Hook {
+	return c.hooks.FileUpload
+}
+
+// Interceptors returns the client interceptors.
+func (c *FileUploadClient) Interceptors() []Interceptor {
+	return c.inters.FileUpload
+}
+
+func (c *FileUploadClient) mutate(ctx context.Context, m *FileUploadMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FileUploadCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FileUploadUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FileUploadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FileUploadDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FileUpload mutation op: %q", m.Op())
+	}
+}
+
+// FileUploadChunkClient is a client for the FileUploadChunk schema.
+type FileUploadChunkClient struct {
+	config
+}
+
+// NewFileUploadChunkClient returns a client for the FileUploadChunk from the given config.
+func NewFileUploadChunkClient(c config) *FileUploadChunkClient {
+	return &FileUploadChunkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `fileuploadchunk.Hooks(f(g(h())))`.
+func (c *FileUploadChunkClient) Use(hooks ...Hook) {
+	c.hooks.FileUploadChunk = append(c.hooks.FileUploadChunk, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `fileuploadchunk.Intercept(f(g(h())))`.
+func (c *FileUploadChunkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FileUploadChunk = append(c.inters.FileUploadChunk, interceptors...)
+}
+
+// Create returns a builder for creating a FileUploadChunk entity.
+func (c *FileUploadChunkClient) Create() *FileUploadChunkCreate {
+	mutation := newFileUploadChunkMutation(c.config, OpCreate)
+	return &FileUploadChunkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FileUploadChunk entities.
+func (c *FileUploadChunkClient) CreateBulk(builders ...*FileUploadChunkCreate) *FileUploadChunkCreateBulk {
+	return &FileUploadChunkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FileUploadChunkClient) MapCreateBulk(slice any, setFunc func(*FileUploadChunkCreate, int)) *FileUploadChunkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FileUploadChunkCreateBulk{err: fmt.Errorf("calling to FileUploadChunkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FileUploadChunkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FileUploadChunkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FileUploadChunk.
+func (c *FileUploadChunkClient) Update() *FileUploadChunkUpdate {
+	mutation := newFileUploadChunkMutation(c.config, OpUpdate)
+	return &FileUploadChunkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FileUploadChunkClient) UpdateOne(_m *FileUploadChunk) *FileUploadChunkUpdateOne {
+	mutation := newFileUploadChunkMutation(c.config, OpUpdateOne, withFileUploadChunk(_m))
+	return &FileUploadChunkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FileUploadChunkClient) UpdateOneID(id int) *FileUploadChunkUpdateOne {
+	mutation := newFileUploadChunkMutation(c.config, OpUpdateOne, withFileUploadChunkID(id))
+	return &FileUploadChunkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FileUploadChunk.
+func (c *FileUploadChunkClient) Delete() *FileUploadChunkDelete {
+	mutation := newFileUploadChunkMutation(c.config, OpDelete)
+	return &FileUploadChunkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FileUploadChunkClient) DeleteOne(_m *FileUploadChunk) *FileUploadChunkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FileUploadChunkClient) DeleteOneID(id int) *FileUploadChunkDeleteOne {
+	builder := c.Delete().Where(fileuploadchunk.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FileUploadChunkDeleteOne{builder}
+}
+
+// Query returns a query builder for FileUploadChunk.
+func (c *FileUploadChunkClient) Query() *FileUploadChunkQuery {
+	return &FileUploadChunkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFileUploadChunk},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FileUploadChunk entity by its id.
+func (c *FileUploadChunkClient) Get(ctx context.Context, id int) (*FileUploadChunk, error) {
+	return c.Query().Where(fileuploadchunk.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FileUploadChunkClient) GetX(ctx context.Context, id int) *FileUploadChunk {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUpload queries the upload edge of a FileUploadChunk.
+func (c *FileUploadChunkClient) QueryUpload(_m *FileUploadChunk) *FileUploadQuery {
+	query := (&FileUploadClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(fileuploadchunk.Table, fileuploadchunk.FieldID, id),
+			sqlgraph.To(fileupload.Table, fileupload.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, fileuploadchunk.UploadTable, fileuploadchunk.UploadColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FileUploadChunkClient) Hooks() []Hook {
+	return c.hooks.FileUploadChunk
+}
+
+// Interceptors returns the client interceptors.
+func (c *FileUploadChunkClient) Interceptors() []Interceptor {
+	return c.inters.FileUploadChunk
+}
+
+func (c *FileUploadChunkClient) mutate(ctx context.Context, m *FileUploadChunkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FileUploadChunkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FileUploadChunkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FileUploadChunkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FileUploadChunkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FileUploadChunk mutation op: %q", m.Op())
 	}
 }
 
@@ -1286,10 +1618,12 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, Instance, InstanceType, Menu, Role, SystemConfig, User []ent.Hook
+		Auth, FileUpload, FileUploadChunk, Instance, InstanceType, Menu, Role,
+		SystemConfig, User []ent.Hook
 	}
 	inters struct {
-		Auth, Instance, InstanceType, Menu, Role, SystemConfig, User []ent.Interceptor
+		Auth, FileUpload, FileUploadChunk, Instance, InstanceType, Menu, Role,
+		SystemConfig, User []ent.Interceptor
 	}
 )
 

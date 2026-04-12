@@ -22,16 +22,18 @@ var secretKey = func() []byte {
 }()
 
 // 下载预签名
-type FileDownloadInfo struct {
+type FileSignInfo struct {
+	UploadId       string        `json:"upload_id"`       // 上传id
 	Path           string        `json:"path"`            // 路径
 	CreateAt       time.Time     `json:"create_at"`       // 创建时间
 	ValidityPeriod time.Duration `json:"validity_period"` // 有效时间
 	Creator        string        `json:"creator"`         // 创建人
-	Salt           []byte        `json:"salt"`
+	Salt           []byte        `json:"salt"`            // 随机数
 }
 
-func NewFileDownloadInfo(path string, validityPeriod time.Duration, creator string) *FileDownloadInfo {
-	return &FileDownloadInfo{
+func NewFileSignInfo(uploadId, path, creator string, validityPeriod time.Duration) *FileSignInfo {
+	return &FileSignInfo{
+		UploadId:       uploadId,
 		Path:           path,
 		CreateAt:       time.Now(),
 		ValidityPeriod: validityPeriod,
@@ -44,7 +46,7 @@ func NewFileDownloadInfo(path string, validityPeriod time.Duration, creator stri
 	}
 }
 
-func (f *FileDownloadInfo) Sign() (string, error) {
+func (f *FileSignInfo) Sign() (string, error) {
 	fs, err := json.Marshal(f)
 	if err != nil {
 		return "", err
@@ -62,7 +64,7 @@ func (f *FileDownloadInfo) Sign() (string, error) {
 	return token, nil
 }
 
-func Verify(sign string) (*FileDownloadInfo, error) {
+func Verify(sign string) (*FileSignInfo, error) {
 	parts := strings.Split(sign, ".")
 	if len(parts) != 2 {
 		return nil, errors.New("无效的 Sign 格式")
@@ -85,7 +87,7 @@ func Verify(sign string) (*FileDownloadInfo, error) {
 	if err != nil {
 		return nil, errors.New("解密失败")
 	}
-	info := new(FileDownloadInfo)
+	info := new(FileSignInfo)
 	err = json.Unmarshal(plaintext, info)
 	if err != nil {
 		return nil, err

@@ -3,27 +3,49 @@ package biz
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
+	khttp "github.com/go-kratos/kratos/v2/transport/http"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "momoko/api/gen/v1"
+	"momoko/internal/data/ent"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
+	"momoko/pkg/utils"
 )
 
 const (
-	PreFileDownload = "/api/v1/download/pre"
+	PreFileDownload = "/api/v1/download/pre" // 下载路径
+	PreFileUpload   = "/api/v1/upload/pre"   // 上传路径
+
+	UploadPeriod = 2 * time.Hour
 )
 
-type FileUsecase struct{}
+type FileRepo interface {
+	GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*ent.FileUpload, error)
+	WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error
+	Query(ctx context.Context, uid string) (*ent.FileUpload, error)
+	QueryByUserID(ctx context.Context, userID, id string) (*ent.FileUpload, error)
+	SaveChunkRecord(ctx context.Context, uploadID string, chunk uint64, hash string, size uint64) error
+}
+
+type FileUsecase struct {
+	repo FileRepo
+}
 
 // NewFileUsecase 创建文件操作用例。
-func NewFileUsecase() *FileUsecase {
+func NewFileUsecase(repo FileRepo) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
 		os.MkdirAll(file.ServersPath, 0755)
 	}
-	return &FileUsecase{}
+	return &FileUsecase{
+		repo: repo,
+	}
 }
 
 func (f *FileUsecase) newSystemInstance() (*file.FileOper, error) {
@@ -125,7 +147,7 @@ func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID, path string
 	if _, err := os.Stat(realPath); os.IsNotExist(err) {
 		return "", ErrFileNotExist
 	}
-	preInfo := pre.NewFileDownloadInfo(path, 24*time.Hour, userID)
+	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), path, userID, 24*time.Hour)
 	sign, err := preInfo.Sign()
 	if err != nil {
 		return "", ErrSign
@@ -148,4 +170,111 @@ func (f *FileUsecase) FileDownload(path string, w http.ResponseWriter, r *http.R
 	}
 	w.Header().Set("Content-Disposition", `attachment; filename="`+info.Name()+`"`)
 	http.ServeContent(w, r, info.Name(), info.ModTime(), fs)
+}
+
+func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string, req *v1.FileSystemPreSignUploadRequest) (*v1.UploadInfo, error) {
+	if req.FileSize > math.MaxInt64 {
+		return nil, ErrUploadRequestInvalid
+	}
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	realPath, err := fileOper.ResolveRealPath(req.Path)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	info, err := f.repo.GetOrCreate(ctx, userID,
+		file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize),
+	)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	// 签名此次上传
+	preInfo := pre.NewFileSignInfo(info.ID, info.Path, userID, UploadPeriod)
+	sign, err := preInfo.Sign()
+	if err != nil {
+		return nil, ErrSign
+	}
+	return toUploadInfo(info, sign), nil
+}
+
+func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID string) (*v1.UploadInfo, error) {
+	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	preInfo := pre.NewFileSignInfo(info.ID, info.Path, userID, UploadPeriod)
+	sign, err := preInfo.Sign()
+	if err != nil {
+		return nil, ErrSign
+	}
+	return toUploadInfo(info, sign), nil
+}
+
+func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID string) error {
+	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
+	if err != nil {
+		return nil
+	}
+	err = f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+		fr := &file.ChunkedUpload{FileUpload: info}
+		err = fr.Complete()
+		if err != nil {
+			return err
+		}
+		_, err = tx.FileUpload.UpdateOneID(uploadID).
+			SetCompleted(true).Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return ErrSystem(err)
+	}
+	return nil
+}
+
+func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr *pre.FileSignInfo) error {
+	chunk, err := strconv.ParseUint(r.URL.Query().Get("chunk"), 10, 64)
+	if err != nil {
+		return err
+	}
+	info, err := f.repo.Query(r.Context(), pr.UploadId)
+	if err != nil {
+		return err
+	}
+	fr := &file.ChunkedUpload{FileUpload: info}
+	size, hash, err := fr.UploadFilePart(r.Body, chunk)
+	if err != nil {
+		return err
+	}
+	// 写入hash
+	err = f.repo.SaveChunkRecord(r.Context(), pr.UploadId, chunk, hash, size)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func toUploadInfo(d *ent.FileUpload, sign string) *v1.UploadInfo {
+	info := &v1.UploadInfo{
+		UploadId:                  d.ID,
+		UploadPartUrlPathTemplate: fmt.Sprintf("%s?sign=%s&chunk={partNumber}", PreFileUpload, sign),
+		PartSize:                  d.ChunkSize,
+		FileSize:                  d.FileSize,
+		TotalParts:                d.TotalChunks,
+		UploadedParts:             make(map[uint64]string),
+		Completed:                 d.Completed,
+		Cancel:                    d.Cancel,
+		ExpiredAt:                 timestamppb.New(d.CreateTime.Add(UploadPeriod)),
+	}
+	if chunks := d.Edges.Chunks; chunks != nil {
+		for _, chunk := range chunks {
+			info.UploadedParts[chunk.Chunk] = chunk.Hash
+		}
+	}
+	return info
 }

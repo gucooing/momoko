@@ -54,6 +54,76 @@ var (
 			},
 		},
 	}
+	// FileUploadsColumns holds the columns for the "file_uploads" table.
+	FileUploadsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
+		{Name: "file_name", Type: field.TypeString},
+		{Name: "file_size", Type: field.TypeUint64},
+		{Name: "chunk_size", Type: field.TypeUint64},
+		{Name: "total_chunks", Type: field.TypeUint64},
+		{Name: "completed", Type: field.TypeBool, Default: false},
+		{Name: "cancel", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// FileUploadsTable holds the schema information for the "file_uploads" table.
+	FileUploadsTable = &schema.Table{
+		Name:       "file_uploads",
+		Columns:    FileUploadsColumns,
+		PrimaryKey: []*schema.Column{FileUploadsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "file_uploads_users_user",
+				Columns:    []*schema.Column{FileUploadsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "fileupload_path_hash",
+				Unique:  true,
+				Columns: []*schema.Column{FileUploadsColumns[4], FileUploadsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "NOT completed AND NOT cancel",
+				},
+			},
+		},
+	}
+	// FileUploadChunksColumns holds the columns for the "file_upload_chunks" table.
+	FileUploadChunksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "chunk", Type: field.TypeUint64},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "size", Type: field.TypeUint64},
+		{Name: "upload_id", Type: field.TypeString},
+	}
+	// FileUploadChunksTable holds the schema information for the "file_upload_chunks" table.
+	FileUploadChunksTable = &schema.Table{
+		Name:       "file_upload_chunks",
+		Columns:    FileUploadChunksColumns,
+		PrimaryKey: []*schema.Column{FileUploadChunksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "file_upload_chunks_file_uploads_upload",
+				Columns:    []*schema.Column{FileUploadChunksColumns[6]},
+				RefColumns: []*schema.Column{FileUploadsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "fileuploadchunk_upload_id_chunk",
+				Unique:  true,
+				Columns: []*schema.Column{FileUploadChunksColumns[6], FileUploadChunksColumns[3]},
+			},
+		},
+	}
 	// InstancesColumns holds the columns for the "instances" table.
 	InstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -221,6 +291,8 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuthsTable,
+		FileUploadsTable,
+		FileUploadChunksTable,
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
@@ -232,6 +304,8 @@ var (
 )
 
 func init() {
+	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
+	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	ConfigsTable.Annotation = &entsql.Annotation{

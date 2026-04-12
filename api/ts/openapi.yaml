@@ -137,9 +137,9 @@ paths:
     /api/v1/file/system:
         get:
             tags:
-                - FileSystemManager
+                - FileManager
             description: 获取整个系统指定路径的文件
-            operationId: FileSystemManager_GetFileSystemList
+            operationId: FileManager_GetFileSystemList
             parameters:
                 - name: path
                   in: query
@@ -187,9 +187,9 @@ paths:
     /api/v1/file/system/create:
         post:
             tags:
-                - FileSystemManager
+                - FileManager
             description: 创建指定文件/文件夹(系统级)
-            operationId: FileSystemManager_CreateFileSystem
+            operationId: FileManager_CreateFileSystem
             requestBody:
                 content:
                     application/json:
@@ -206,9 +206,9 @@ paths:
     /api/v1/file/system/deletes:
         post:
             tags:
-                - FileSystemManager
+                - FileManager
             description: 批量删除指定文件/文件夹(系统级)
-            operationId: FileSystemManager_BatchDeleteFileSystem
+            operationId: FileManager_BatchDeleteFileSystem
             requestBody:
                 content:
                     application/json:
@@ -225,9 +225,9 @@ paths:
     /api/v1/file/system/file/pre-sign:
         get:
             tags:
-                - FileSystemManager
+                - FileManager
             description: 文件下载预签名(系统级)
-            operationId: FileSystemManager_FileSystemPreSign
+            operationId: FileManager_FileSystemPreSign
             parameters:
                 - name: path
                   in: query
@@ -241,12 +241,51 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.FileSystemPreSignResponse'
+    /api/v1/file/system/file/upload/pre-sign:
+        get:
+            tags:
+                - FileManager
+            description: 文件上传预签名(系统级)
+            operationId: FileManager_FileSystemPreSignUpload
+            parameters:
+                - name: path
+                  in: query
+                  description: 文件路径
+                  schema:
+                    type: string
+                - name: fileName
+                  in: query
+                  description: 文件名称
+                  schema:
+                    type: string
+                - name: fileSize
+                  in: query
+                  description: 文件总大小（字节）
+                  schema:
+                    type: string
+                - name: hash
+                  in: query
+                  description: 快速hash
+                  schema:
+                    type: string
+                - name: partSize
+                  in: query
+                  description: 分片大小（字节），不传时由服务端自动决定
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.FileSystemPreSignUploadResponse'
     /api/v1/file/system/open/file:
         post:
             tags:
-                - FileSystemManager
+                - FileManager
             description: 打开指定文件(系统级)
-            operationId: FileSystemManager_OpenFileSystemFile
+            operationId: FileManager_OpenFileSystemFile
             requestBody:
                 content:
                     application/json:
@@ -260,6 +299,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.OpenFileSystemFileResponse'
+    /api/v1/file/upload/cancel:
+        post:
+            tags:
+                - FileManager
+            description: 取消文件上传
+            operationId: FileManager_CancelFileUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CancelFileUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CancelFileUploadResponse'
+    /api/v1/file/upload/complete:
+        post:
+            tags:
+                - FileManager
+            description: 上传完成合并分片
+            operationId: FileManager_CompleteFileUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CompleteFileUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CompleteFileUploadResponse'
+    /api/v1/file/upload/status:
+        get:
+            tags:
+                - FileManager
+            description: 获取上传状态
+            operationId: FileManager_GetFileUploadStatus
+            parameters:
+                - name: uploadId
+                  in: query
+                  description: 上传id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetFileUploadStatusResponse'
     /api/v1/instance:
         get:
             tags:
@@ -1228,6 +1324,28 @@ components:
                         $ref: '#/components/schemas/v1.FileOperationResult'
                     description: 删除结果列表
             description: 批量删除系统文件响应
+        v1.CancelFileUploadRequest:
+            type: object
+            properties:
+                uploadId:
+                    type: string
+                    description: 上传id
+            description: 取消文件上传请求
+        v1.CancelFileUploadResponse:
+            type: object
+            properties: {}
+            description: 取消文件上传响应
+        v1.CompleteFileUploadRequest:
+            type: object
+            properties:
+                uploadId:
+                    type: string
+                    description: 上传id
+            description: 上传完成合并分片请求
+        v1.CompleteFileUploadResponse:
+            type: object
+            properties: {}
+            description: 上传完成合并分片响应
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -1461,6 +1579,14 @@ components:
                     type: string
                     description: 下载路径
             description: 文件下载预签名响应
+        v1.FileSystemPreSignUploadResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UploadInfo'
+                    description: 信息
+            description: 文件上传预签名(系统级)响应
         v1.GetFileSystemListResponse:
             type: object
             properties:
@@ -1483,6 +1609,14 @@ components:
                     type: string
                     description: 总数
             description: 获取系统文件列表响应
+        v1.GetFileUploadStatusResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UploadInfo'
+                    description: 信息
+            description: 获取上传状态响应
         v1.GetInstanceInfoResponse:
             type: object
             properties:
@@ -1997,6 +2131,40 @@ components:
             type: object
             properties: {}
             description: 更新密码响应
+        v1.UploadInfo:
+            type: object
+            properties:
+                uploadId:
+                    type: string
+                    description: 上传会话 id
+                uploadPartUrlPathTemplate:
+                    type: string
+                    description: 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
+                partSize:
+                    type: string
+                    description: 实际分片大小（字节）
+                fileSize:
+                    type: string
+                    description: 文件总大小（字节）
+                totalParts:
+                    type: string
+                    description: 总分片数
+                uploadedParts:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 已上传完成的分片序号 <切片,hash>
+                completed:
+                    type: boolean
+                    description: 是否已完成上传
+                cancel:
+                    type: boolean
+                    description: 是否已取消上传
+                expiredAt:
+                    type: string
+                    description: 预签名过期时间
+                    format: date-time
+            description: 上传信息
         v1.UserInfo:
             type: object
             properties:
@@ -2051,8 +2219,8 @@ components:
 tags:
     - name: AuthService
       description: 认证服务
-    - name: FileSystemManager
-      description: 系统文件管理
+    - name: FileManager
+      description: 文件管理
     - name: InstanceManager
       description: 应用管理
     - name: System

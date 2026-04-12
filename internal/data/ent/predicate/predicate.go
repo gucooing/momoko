@@ -9,6 +9,12 @@ import (
 // Auth is the predicate function for auth builders.
 type Auth func(*sql.Selector)
 
+// FileUpload is the predicate function for fileupload builders.
+type FileUpload func(*sql.Selector)
+
+// FileUploadChunk is the predicate function for fileuploadchunk builders.
+type FileUploadChunk func(*sql.Selector)
+
 // Instance is the predicate function for instance builders.
 type Instance func(*sql.Selector)
 

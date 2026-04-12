@@ -20,6 +20,30 @@ func (f AuthFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthMutation", m)
 }
 
+// The FileUploadFunc type is an adapter to allow the use of ordinary
+// function as FileUpload mutator.
+type FileUploadFunc func(context.Context, *ent.FileUploadMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FileUploadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FileUploadMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileUploadMutation", m)
+}
+
+// The FileUploadChunkFunc type is an adapter to allow the use of ordinary
+// function as FileUploadChunk mutator.
+type FileUploadChunkFunc func(context.Context, *ent.FileUploadChunkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FileUploadChunkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FileUploadChunkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileUploadChunkMutation", m)
+}
+
 // The InstanceFunc type is an adapter to allow the use of ordinary
 // function as Instance mutator.
 type InstanceFunc func(context.Context, *ent.InstanceMutation) (ent.Value, error)

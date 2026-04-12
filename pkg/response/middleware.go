@@ -114,6 +114,11 @@ func WriteError(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
 	ErrorEncoder(w, r, err)
 }
 
+func Write(w stdhttp.ResponseWriter, r *stdhttp.Request, body []byte) {
+	w.WriteHeader(stdhttp.StatusOK)
+	_, _ = w.Write(body)
+}
+
 func unwrapEnvelope(v any) (Envelope, bool) {
 	switch env := v.(type) {
 	case Error:

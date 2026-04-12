@@ -28,6 +28,7 @@ var (
 		"/api/v1/auth/login":   {},
 		"/api/v1/auth/refresh": {},
 		biz.PreFileDownload:    {},
+		biz.PreFileUpload:      {},
 	}
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )

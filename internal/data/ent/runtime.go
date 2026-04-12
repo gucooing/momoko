@@ -4,6 +4,8 @@ package ent
 
 import (
 	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/fileupload"
+	"momoko/internal/data/ent/fileuploadchunk"
 	"momoko/internal/data/ent/instance"
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
@@ -49,6 +51,44 @@ func init() {
 	authDescUserID := authFields[3].Descriptor()
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
+	fileuploadMixin := schema.FileUpload{}.Mixin()
+	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
+	_ = fileuploadMixinFields0
+	fileuploadFields := schema.FileUpload{}.Fields()
+	_ = fileuploadFields
+	// fileuploadDescCreateTime is the schema descriptor for create_time field.
+	fileuploadDescCreateTime := fileuploadMixinFields0[0].Descriptor()
+	// fileupload.DefaultCreateTime holds the default value on creation for the create_time field.
+	fileupload.DefaultCreateTime = fileuploadDescCreateTime.Default.(func() time.Time)
+	// fileuploadDescUpdateTime is the schema descriptor for update_time field.
+	fileuploadDescUpdateTime := fileuploadMixinFields0[1].Descriptor()
+	// fileupload.DefaultUpdateTime holds the default value on creation for the update_time field.
+	fileupload.DefaultUpdateTime = fileuploadDescUpdateTime.Default.(func() time.Time)
+	// fileupload.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	fileupload.UpdateDefaultUpdateTime = fileuploadDescUpdateTime.UpdateDefault.(func() time.Time)
+	// fileuploadDescCompleted is the schema descriptor for completed field.
+	fileuploadDescCompleted := fileuploadFields[7].Descriptor()
+	// fileupload.DefaultCompleted holds the default value on creation for the completed field.
+	fileupload.DefaultCompleted = fileuploadDescCompleted.Default.(bool)
+	// fileuploadDescCancel is the schema descriptor for cancel field.
+	fileuploadDescCancel := fileuploadFields[8].Descriptor()
+	// fileupload.DefaultCancel holds the default value on creation for the cancel field.
+	fileupload.DefaultCancel = fileuploadDescCancel.Default.(bool)
+	fileuploadchunkMixin := schema.FileUploadChunk{}.Mixin()
+	fileuploadchunkMixinFields0 := fileuploadchunkMixin[0].Fields()
+	_ = fileuploadchunkMixinFields0
+	fileuploadchunkFields := schema.FileUploadChunk{}.Fields()
+	_ = fileuploadchunkFields
+	// fileuploadchunkDescCreateTime is the schema descriptor for create_time field.
+	fileuploadchunkDescCreateTime := fileuploadchunkMixinFields0[0].Descriptor()
+	// fileuploadchunk.DefaultCreateTime holds the default value on creation for the create_time field.
+	fileuploadchunk.DefaultCreateTime = fileuploadchunkDescCreateTime.Default.(func() time.Time)
+	// fileuploadchunkDescUpdateTime is the schema descriptor for update_time field.
+	fileuploadchunkDescUpdateTime := fileuploadchunkMixinFields0[1].Descriptor()
+	// fileuploadchunk.DefaultUpdateTime holds the default value on creation for the update_time field.
+	fileuploadchunk.DefaultUpdateTime = fileuploadchunkDescUpdateTime.Default.(func() time.Time)
+	// fileuploadchunk.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	fileuploadchunk.UpdateDefaultUpdateTime = fileuploadchunkDescUpdateTime.UpdateDefault.(func() time.Time)
 	instanceMixin := schema.Instance{}.Mixin()
 	instanceMixinFields0 := instanceMixin[0].Fields()
 	_ = instanceMixinFields0

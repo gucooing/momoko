@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/fileupload"
+	"momoko/internal/data/ent/fileuploadchunk"
 	"momoko/internal/data/ent/instance"
 	"momoko/internal/data/ent/instancetype"
 	"momoko/internal/data/ent/menu"
@@ -30,13 +32,15 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAuth         = "Auth"
-	TypeInstance     = "Instance"
-	TypeInstanceType = "InstanceType"
-	TypeMenu         = "Menu"
-	TypeRole         = "Role"
-	TypeSystemConfig = "SystemConfig"
-	TypeUser         = "User"
+	TypeAuth            = "Auth"
+	TypeFileUpload      = "FileUpload"
+	TypeFileUploadChunk = "FileUploadChunk"
+	TypeInstance        = "Instance"
+	TypeInstanceType    = "InstanceType"
+	TypeMenu            = "Menu"
+	TypeRole            = "Role"
+	TypeSystemConfig    = "SystemConfig"
+	TypeUser            = "User"
 )
 
 // AuthMutation represents an operation that mutates the Auth nodes in the graph.
@@ -741,6 +745,1838 @@ func (m *AuthMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AuthMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Auth edge %s", name)
+}
+
+// FileUploadMutation represents an operation that mutates the FileUpload nodes in the graph.
+type FileUploadMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *string
+	create_time     *time.Time
+	update_time     *time.Time
+	hash            *string
+	_path           *string
+	file_name       *string
+	file_size       *uint64
+	addfile_size    *int64
+	chunk_size      *uint64
+	addchunk_size   *int64
+	total_chunks    *uint64
+	addtotal_chunks *int64
+	completed       *bool
+	cancel          *bool
+	clearedFields   map[string]struct{}
+	user            *string
+	cleareduser     bool
+	chunks          map[int]struct{}
+	removedchunks   map[int]struct{}
+	clearedchunks   bool
+	done            bool
+	oldValue        func(context.Context) (*FileUpload, error)
+	predicates      []predicate.FileUpload
+}
+
+var _ ent.Mutation = (*FileUploadMutation)(nil)
+
+// fileuploadOption allows management of the mutation configuration using functional options.
+type fileuploadOption func(*FileUploadMutation)
+
+// newFileUploadMutation creates new mutation for the FileUpload entity.
+func newFileUploadMutation(c config, op Op, opts ...fileuploadOption) *FileUploadMutation {
+	m := &FileUploadMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFileUpload,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFileUploadID sets the ID field of the mutation.
+func withFileUploadID(id string) fileuploadOption {
+	return func(m *FileUploadMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FileUpload
+		)
+		m.oldValue = func(ctx context.Context) (*FileUpload, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FileUpload.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFileUpload sets the old FileUpload of the mutation.
+func withFileUpload(node *FileUpload) fileuploadOption {
+	return func(m *FileUploadMutation) {
+		m.oldValue = func(context.Context) (*FileUpload, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FileUploadMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FileUploadMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FileUpload entities.
+func (m *FileUploadMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FileUploadMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FileUploadMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FileUpload.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *FileUploadMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *FileUploadMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *FileUploadMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *FileUploadMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *FileUploadMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *FileUploadMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetHash sets the "hash" field.
+func (m *FileUploadMutation) SetHash(s string) {
+	m.hash = &s
+}
+
+// Hash returns the value of the "hash" field in the mutation.
+func (m *FileUploadMutation) Hash() (r string, exists bool) {
+	v := m.hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHash returns the old "hash" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHash: %w", err)
+	}
+	return oldValue.Hash, nil
+}
+
+// ResetHash resets all changes to the "hash" field.
+func (m *FileUploadMutation) ResetHash() {
+	m.hash = nil
+}
+
+// SetPath sets the "path" field.
+func (m *FileUploadMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *FileUploadMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *FileUploadMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetFileName sets the "file_name" field.
+func (m *FileUploadMutation) SetFileName(s string) {
+	m.file_name = &s
+}
+
+// FileName returns the value of the "file_name" field in the mutation.
+func (m *FileUploadMutation) FileName() (r string, exists bool) {
+	v := m.file_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "file_name" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "file_name" field.
+func (m *FileUploadMutation) ResetFileName() {
+	m.file_name = nil
+}
+
+// SetFileSize sets the "file_size" field.
+func (m *FileUploadMutation) SetFileSize(u uint64) {
+	m.file_size = &u
+	m.addfile_size = nil
+}
+
+// FileSize returns the value of the "file_size" field in the mutation.
+func (m *FileUploadMutation) FileSize() (r uint64, exists bool) {
+	v := m.file_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileSize returns the old "file_size" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldFileSize(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileSize: %w", err)
+	}
+	return oldValue.FileSize, nil
+}
+
+// AddFileSize adds u to the "file_size" field.
+func (m *FileUploadMutation) AddFileSize(u int64) {
+	if m.addfile_size != nil {
+		*m.addfile_size += u
+	} else {
+		m.addfile_size = &u
+	}
+}
+
+// AddedFileSize returns the value that was added to the "file_size" field in this mutation.
+func (m *FileUploadMutation) AddedFileSize() (r int64, exists bool) {
+	v := m.addfile_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFileSize resets all changes to the "file_size" field.
+func (m *FileUploadMutation) ResetFileSize() {
+	m.file_size = nil
+	m.addfile_size = nil
+}
+
+// SetChunkSize sets the "chunk_size" field.
+func (m *FileUploadMutation) SetChunkSize(u uint64) {
+	m.chunk_size = &u
+	m.addchunk_size = nil
+}
+
+// ChunkSize returns the value of the "chunk_size" field in the mutation.
+func (m *FileUploadMutation) ChunkSize() (r uint64, exists bool) {
+	v := m.chunk_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChunkSize returns the old "chunk_size" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldChunkSize(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChunkSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChunkSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChunkSize: %w", err)
+	}
+	return oldValue.ChunkSize, nil
+}
+
+// AddChunkSize adds u to the "chunk_size" field.
+func (m *FileUploadMutation) AddChunkSize(u int64) {
+	if m.addchunk_size != nil {
+		*m.addchunk_size += u
+	} else {
+		m.addchunk_size = &u
+	}
+}
+
+// AddedChunkSize returns the value that was added to the "chunk_size" field in this mutation.
+func (m *FileUploadMutation) AddedChunkSize() (r int64, exists bool) {
+	v := m.addchunk_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetChunkSize resets all changes to the "chunk_size" field.
+func (m *FileUploadMutation) ResetChunkSize() {
+	m.chunk_size = nil
+	m.addchunk_size = nil
+}
+
+// SetTotalChunks sets the "total_chunks" field.
+func (m *FileUploadMutation) SetTotalChunks(u uint64) {
+	m.total_chunks = &u
+	m.addtotal_chunks = nil
+}
+
+// TotalChunks returns the value of the "total_chunks" field in the mutation.
+func (m *FileUploadMutation) TotalChunks() (r uint64, exists bool) {
+	v := m.total_chunks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalChunks returns the old "total_chunks" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldTotalChunks(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalChunks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalChunks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalChunks: %w", err)
+	}
+	return oldValue.TotalChunks, nil
+}
+
+// AddTotalChunks adds u to the "total_chunks" field.
+func (m *FileUploadMutation) AddTotalChunks(u int64) {
+	if m.addtotal_chunks != nil {
+		*m.addtotal_chunks += u
+	} else {
+		m.addtotal_chunks = &u
+	}
+}
+
+// AddedTotalChunks returns the value that was added to the "total_chunks" field in this mutation.
+func (m *FileUploadMutation) AddedTotalChunks() (r int64, exists bool) {
+	v := m.addtotal_chunks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalChunks resets all changes to the "total_chunks" field.
+func (m *FileUploadMutation) ResetTotalChunks() {
+	m.total_chunks = nil
+	m.addtotal_chunks = nil
+}
+
+// SetCompleted sets the "completed" field.
+func (m *FileUploadMutation) SetCompleted(b bool) {
+	m.completed = &b
+}
+
+// Completed returns the value of the "completed" field in the mutation.
+func (m *FileUploadMutation) Completed() (r bool, exists bool) {
+	v := m.completed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompleted returns the old "completed" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldCompleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompleted: %w", err)
+	}
+	return oldValue.Completed, nil
+}
+
+// ResetCompleted resets all changes to the "completed" field.
+func (m *FileUploadMutation) ResetCompleted() {
+	m.completed = nil
+}
+
+// SetCancel sets the "cancel" field.
+func (m *FileUploadMutation) SetCancel(b bool) {
+	m.cancel = &b
+}
+
+// Cancel returns the value of the "cancel" field in the mutation.
+func (m *FileUploadMutation) Cancel() (r bool, exists bool) {
+	v := m.cancel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCancel returns the old "cancel" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldCancel(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCancel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCancel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCancel: %w", err)
+	}
+	return oldValue.Cancel, nil
+}
+
+// ResetCancel resets all changes to the "cancel" field.
+func (m *FileUploadMutation) ResetCancel() {
+	m.cancel = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *FileUploadMutation) SetUserID(s string) {
+	m.user = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *FileUploadMutation) UserID() (r string, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *FileUploadMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *FileUploadMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[fileupload.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *FileUploadMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *FileUploadMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *FileUploadMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// AddChunkIDs adds the "chunks" edge to the FileUploadChunk entity by ids.
+func (m *FileUploadMutation) AddChunkIDs(ids ...int) {
+	if m.chunks == nil {
+		m.chunks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.chunks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChunks clears the "chunks" edge to the FileUploadChunk entity.
+func (m *FileUploadMutation) ClearChunks() {
+	m.clearedchunks = true
+}
+
+// ChunksCleared reports if the "chunks" edge to the FileUploadChunk entity was cleared.
+func (m *FileUploadMutation) ChunksCleared() bool {
+	return m.clearedchunks
+}
+
+// RemoveChunkIDs removes the "chunks" edge to the FileUploadChunk entity by IDs.
+func (m *FileUploadMutation) RemoveChunkIDs(ids ...int) {
+	if m.removedchunks == nil {
+		m.removedchunks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.chunks, ids[i])
+		m.removedchunks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChunks returns the removed IDs of the "chunks" edge to the FileUploadChunk entity.
+func (m *FileUploadMutation) RemovedChunksIDs() (ids []int) {
+	for id := range m.removedchunks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChunksIDs returns the "chunks" edge IDs in the mutation.
+func (m *FileUploadMutation) ChunksIDs() (ids []int) {
+	for id := range m.chunks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChunks resets all changes to the "chunks" edge.
+func (m *FileUploadMutation) ResetChunks() {
+	m.chunks = nil
+	m.clearedchunks = false
+	m.removedchunks = nil
+}
+
+// Where appends a list predicates to the FileUploadMutation builder.
+func (m *FileUploadMutation) Where(ps ...predicate.FileUpload) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FileUploadMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FileUploadMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FileUpload, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FileUploadMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FileUploadMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FileUpload).
+func (m *FileUploadMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FileUploadMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.create_time != nil {
+		fields = append(fields, fileupload.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, fileupload.FieldUpdateTime)
+	}
+	if m.hash != nil {
+		fields = append(fields, fileupload.FieldHash)
+	}
+	if m._path != nil {
+		fields = append(fields, fileupload.FieldPath)
+	}
+	if m.file_name != nil {
+		fields = append(fields, fileupload.FieldFileName)
+	}
+	if m.file_size != nil {
+		fields = append(fields, fileupload.FieldFileSize)
+	}
+	if m.chunk_size != nil {
+		fields = append(fields, fileupload.FieldChunkSize)
+	}
+	if m.total_chunks != nil {
+		fields = append(fields, fileupload.FieldTotalChunks)
+	}
+	if m.completed != nil {
+		fields = append(fields, fileupload.FieldCompleted)
+	}
+	if m.cancel != nil {
+		fields = append(fields, fileupload.FieldCancel)
+	}
+	if m.user != nil {
+		fields = append(fields, fileupload.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FileUploadMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case fileupload.FieldCreateTime:
+		return m.CreateTime()
+	case fileupload.FieldUpdateTime:
+		return m.UpdateTime()
+	case fileupload.FieldHash:
+		return m.Hash()
+	case fileupload.FieldPath:
+		return m.Path()
+	case fileupload.FieldFileName:
+		return m.FileName()
+	case fileupload.FieldFileSize:
+		return m.FileSize()
+	case fileupload.FieldChunkSize:
+		return m.ChunkSize()
+	case fileupload.FieldTotalChunks:
+		return m.TotalChunks()
+	case fileupload.FieldCompleted:
+		return m.Completed()
+	case fileupload.FieldCancel:
+		return m.Cancel()
+	case fileupload.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FileUploadMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case fileupload.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case fileupload.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case fileupload.FieldHash:
+		return m.OldHash(ctx)
+	case fileupload.FieldPath:
+		return m.OldPath(ctx)
+	case fileupload.FieldFileName:
+		return m.OldFileName(ctx)
+	case fileupload.FieldFileSize:
+		return m.OldFileSize(ctx)
+	case fileupload.FieldChunkSize:
+		return m.OldChunkSize(ctx)
+	case fileupload.FieldTotalChunks:
+		return m.OldTotalChunks(ctx)
+	case fileupload.FieldCompleted:
+		return m.OldCompleted(ctx)
+	case fileupload.FieldCancel:
+		return m.OldCancel(ctx)
+	case fileupload.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown FileUpload field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileUploadMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case fileupload.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case fileupload.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case fileupload.FieldHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHash(v)
+		return nil
+	case fileupload.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case fileupload.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case fileupload.FieldFileSize:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileSize(v)
+		return nil
+	case fileupload.FieldChunkSize:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChunkSize(v)
+		return nil
+	case fileupload.FieldTotalChunks:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalChunks(v)
+		return nil
+	case fileupload.FieldCompleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompleted(v)
+		return nil
+	case fileupload.FieldCancel:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCancel(v)
+		return nil
+	case fileupload.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileUpload field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FileUploadMutation) AddedFields() []string {
+	var fields []string
+	if m.addfile_size != nil {
+		fields = append(fields, fileupload.FieldFileSize)
+	}
+	if m.addchunk_size != nil {
+		fields = append(fields, fileupload.FieldChunkSize)
+	}
+	if m.addtotal_chunks != nil {
+		fields = append(fields, fileupload.FieldTotalChunks)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FileUploadMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case fileupload.FieldFileSize:
+		return m.AddedFileSize()
+	case fileupload.FieldChunkSize:
+		return m.AddedChunkSize()
+	case fileupload.FieldTotalChunks:
+		return m.AddedTotalChunks()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileUploadMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case fileupload.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFileSize(v)
+		return nil
+	case fileupload.FieldChunkSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddChunkSize(v)
+		return nil
+	case fileupload.FieldTotalChunks:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalChunks(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileUpload numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FileUploadMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FileUploadMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FileUploadMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FileUpload nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FileUploadMutation) ResetField(name string) error {
+	switch name {
+	case fileupload.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case fileupload.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case fileupload.FieldHash:
+		m.ResetHash()
+		return nil
+	case fileupload.FieldPath:
+		m.ResetPath()
+		return nil
+	case fileupload.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case fileupload.FieldFileSize:
+		m.ResetFileSize()
+		return nil
+	case fileupload.FieldChunkSize:
+		m.ResetChunkSize()
+		return nil
+	case fileupload.FieldTotalChunks:
+		m.ResetTotalChunks()
+		return nil
+	case fileupload.FieldCompleted:
+		m.ResetCompleted()
+		return nil
+	case fileupload.FieldCancel:
+		m.ResetCancel()
+		return nil
+	case fileupload.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUpload field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FileUploadMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, fileupload.EdgeUser)
+	}
+	if m.chunks != nil {
+		edges = append(edges, fileupload.EdgeChunks)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FileUploadMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case fileupload.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case fileupload.EdgeChunks:
+		ids := make([]ent.Value, 0, len(m.chunks))
+		for id := range m.chunks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FileUploadMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedchunks != nil {
+		edges = append(edges, fileupload.EdgeChunks)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FileUploadMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case fileupload.EdgeChunks:
+		ids := make([]ent.Value, 0, len(m.removedchunks))
+		for id := range m.removedchunks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FileUploadMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, fileupload.EdgeUser)
+	}
+	if m.clearedchunks {
+		edges = append(edges, fileupload.EdgeChunks)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FileUploadMutation) EdgeCleared(name string) bool {
+	switch name {
+	case fileupload.EdgeUser:
+		return m.cleareduser
+	case fileupload.EdgeChunks:
+		return m.clearedchunks
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FileUploadMutation) ClearEdge(name string) error {
+	switch name {
+	case fileupload.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUpload unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FileUploadMutation) ResetEdge(name string) error {
+	switch name {
+	case fileupload.EdgeUser:
+		m.ResetUser()
+		return nil
+	case fileupload.EdgeChunks:
+		m.ResetChunks()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUpload edge %s", name)
+}
+
+// FileUploadChunkMutation represents an operation that mutates the FileUploadChunk nodes in the graph.
+type FileUploadChunkMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	create_time   *time.Time
+	update_time   *time.Time
+	chunk         *uint64
+	addchunk      *int64
+	hash          *string
+	size          *uint64
+	addsize       *int64
+	clearedFields map[string]struct{}
+	upload        *string
+	clearedupload bool
+	done          bool
+	oldValue      func(context.Context) (*FileUploadChunk, error)
+	predicates    []predicate.FileUploadChunk
+}
+
+var _ ent.Mutation = (*FileUploadChunkMutation)(nil)
+
+// fileuploadchunkOption allows management of the mutation configuration using functional options.
+type fileuploadchunkOption func(*FileUploadChunkMutation)
+
+// newFileUploadChunkMutation creates new mutation for the FileUploadChunk entity.
+func newFileUploadChunkMutation(c config, op Op, opts ...fileuploadchunkOption) *FileUploadChunkMutation {
+	m := &FileUploadChunkMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFileUploadChunk,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFileUploadChunkID sets the ID field of the mutation.
+func withFileUploadChunkID(id int) fileuploadchunkOption {
+	return func(m *FileUploadChunkMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FileUploadChunk
+		)
+		m.oldValue = func(ctx context.Context) (*FileUploadChunk, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FileUploadChunk.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFileUploadChunk sets the old FileUploadChunk of the mutation.
+func withFileUploadChunk(node *FileUploadChunk) fileuploadchunkOption {
+	return func(m *FileUploadChunkMutation) {
+		m.oldValue = func(context.Context) (*FileUploadChunk, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FileUploadChunkMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FileUploadChunkMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FileUploadChunkMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FileUploadChunkMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FileUploadChunk.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *FileUploadChunkMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *FileUploadChunkMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *FileUploadChunkMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *FileUploadChunkMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *FileUploadChunkMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *FileUploadChunkMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetUploadID sets the "upload_id" field.
+func (m *FileUploadChunkMutation) SetUploadID(s string) {
+	m.upload = &s
+}
+
+// UploadID returns the value of the "upload_id" field in the mutation.
+func (m *FileUploadChunkMutation) UploadID() (r string, exists bool) {
+	v := m.upload
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadID returns the old "upload_id" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldUploadID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadID: %w", err)
+	}
+	return oldValue.UploadID, nil
+}
+
+// ResetUploadID resets all changes to the "upload_id" field.
+func (m *FileUploadChunkMutation) ResetUploadID() {
+	m.upload = nil
+}
+
+// SetChunk sets the "chunk" field.
+func (m *FileUploadChunkMutation) SetChunk(u uint64) {
+	m.chunk = &u
+	m.addchunk = nil
+}
+
+// Chunk returns the value of the "chunk" field in the mutation.
+func (m *FileUploadChunkMutation) Chunk() (r uint64, exists bool) {
+	v := m.chunk
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChunk returns the old "chunk" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldChunk(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChunk is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChunk requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChunk: %w", err)
+	}
+	return oldValue.Chunk, nil
+}
+
+// AddChunk adds u to the "chunk" field.
+func (m *FileUploadChunkMutation) AddChunk(u int64) {
+	if m.addchunk != nil {
+		*m.addchunk += u
+	} else {
+		m.addchunk = &u
+	}
+}
+
+// AddedChunk returns the value that was added to the "chunk" field in this mutation.
+func (m *FileUploadChunkMutation) AddedChunk() (r int64, exists bool) {
+	v := m.addchunk
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetChunk resets all changes to the "chunk" field.
+func (m *FileUploadChunkMutation) ResetChunk() {
+	m.chunk = nil
+	m.addchunk = nil
+}
+
+// SetHash sets the "hash" field.
+func (m *FileUploadChunkMutation) SetHash(s string) {
+	m.hash = &s
+}
+
+// Hash returns the value of the "hash" field in the mutation.
+func (m *FileUploadChunkMutation) Hash() (r string, exists bool) {
+	v := m.hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHash returns the old "hash" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHash: %w", err)
+	}
+	return oldValue.Hash, nil
+}
+
+// ResetHash resets all changes to the "hash" field.
+func (m *FileUploadChunkMutation) ResetHash() {
+	m.hash = nil
+}
+
+// SetSize sets the "size" field.
+func (m *FileUploadChunkMutation) SetSize(u uint64) {
+	m.size = &u
+	m.addsize = nil
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *FileUploadChunkMutation) Size() (r uint64, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the FileUploadChunk entity.
+// If the FileUploadChunk object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadChunkMutation) OldSize(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// AddSize adds u to the "size" field.
+func (m *FileUploadChunkMutation) AddSize(u int64) {
+	if m.addsize != nil {
+		*m.addsize += u
+	} else {
+		m.addsize = &u
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *FileUploadChunkMutation) AddedSize() (r int64, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *FileUploadChunkMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
+}
+
+// ClearUpload clears the "upload" edge to the FileUpload entity.
+func (m *FileUploadChunkMutation) ClearUpload() {
+	m.clearedupload = true
+	m.clearedFields[fileuploadchunk.FieldUploadID] = struct{}{}
+}
+
+// UploadCleared reports if the "upload" edge to the FileUpload entity was cleared.
+func (m *FileUploadChunkMutation) UploadCleared() bool {
+	return m.clearedupload
+}
+
+// UploadIDs returns the "upload" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UploadID instead. It exists only for internal usage by the builders.
+func (m *FileUploadChunkMutation) UploadIDs() (ids []string) {
+	if id := m.upload; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpload resets all changes to the "upload" edge.
+func (m *FileUploadChunkMutation) ResetUpload() {
+	m.upload = nil
+	m.clearedupload = false
+}
+
+// Where appends a list predicates to the FileUploadChunkMutation builder.
+func (m *FileUploadChunkMutation) Where(ps ...predicate.FileUploadChunk) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FileUploadChunkMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FileUploadChunkMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FileUploadChunk, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FileUploadChunkMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FileUploadChunkMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FileUploadChunk).
+func (m *FileUploadChunkMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FileUploadChunkMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, fileuploadchunk.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, fileuploadchunk.FieldUpdateTime)
+	}
+	if m.upload != nil {
+		fields = append(fields, fileuploadchunk.FieldUploadID)
+	}
+	if m.chunk != nil {
+		fields = append(fields, fileuploadchunk.FieldChunk)
+	}
+	if m.hash != nil {
+		fields = append(fields, fileuploadchunk.FieldHash)
+	}
+	if m.size != nil {
+		fields = append(fields, fileuploadchunk.FieldSize)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FileUploadChunkMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case fileuploadchunk.FieldCreateTime:
+		return m.CreateTime()
+	case fileuploadchunk.FieldUpdateTime:
+		return m.UpdateTime()
+	case fileuploadchunk.FieldUploadID:
+		return m.UploadID()
+	case fileuploadchunk.FieldChunk:
+		return m.Chunk()
+	case fileuploadchunk.FieldHash:
+		return m.Hash()
+	case fileuploadchunk.FieldSize:
+		return m.Size()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FileUploadChunkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case fileuploadchunk.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case fileuploadchunk.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case fileuploadchunk.FieldUploadID:
+		return m.OldUploadID(ctx)
+	case fileuploadchunk.FieldChunk:
+		return m.OldChunk(ctx)
+	case fileuploadchunk.FieldHash:
+		return m.OldHash(ctx)
+	case fileuploadchunk.FieldSize:
+		return m.OldSize(ctx)
+	}
+	return nil, fmt.Errorf("unknown FileUploadChunk field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileUploadChunkMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case fileuploadchunk.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case fileuploadchunk.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case fileuploadchunk.FieldUploadID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadID(v)
+		return nil
+	case fileuploadchunk.FieldChunk:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChunk(v)
+		return nil
+	case fileuploadchunk.FieldHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHash(v)
+		return nil
+	case fileuploadchunk.FieldSize:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileUploadChunk field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FileUploadChunkMutation) AddedFields() []string {
+	var fields []string
+	if m.addchunk != nil {
+		fields = append(fields, fileuploadchunk.FieldChunk)
+	}
+	if m.addsize != nil {
+		fields = append(fields, fileuploadchunk.FieldSize)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FileUploadChunkMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case fileuploadchunk.FieldChunk:
+		return m.AddedChunk()
+	case fileuploadchunk.FieldSize:
+		return m.AddedSize()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileUploadChunkMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case fileuploadchunk.FieldChunk:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddChunk(v)
+		return nil
+	case fileuploadchunk.FieldSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileUploadChunk numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FileUploadChunkMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FileUploadChunkMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FileUploadChunkMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FileUploadChunk nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FileUploadChunkMutation) ResetField(name string) error {
+	switch name {
+	case fileuploadchunk.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case fileuploadchunk.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case fileuploadchunk.FieldUploadID:
+		m.ResetUploadID()
+		return nil
+	case fileuploadchunk.FieldChunk:
+		m.ResetChunk()
+		return nil
+	case fileuploadchunk.FieldHash:
+		m.ResetHash()
+		return nil
+	case fileuploadchunk.FieldSize:
+		m.ResetSize()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUploadChunk field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FileUploadChunkMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.upload != nil {
+		edges = append(edges, fileuploadchunk.EdgeUpload)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FileUploadChunkMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case fileuploadchunk.EdgeUpload:
+		if id := m.upload; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FileUploadChunkMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FileUploadChunkMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FileUploadChunkMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedupload {
+		edges = append(edges, fileuploadchunk.EdgeUpload)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FileUploadChunkMutation) EdgeCleared(name string) bool {
+	switch name {
+	case fileuploadchunk.EdgeUpload:
+		return m.clearedupload
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FileUploadChunkMutation) ClearEdge(name string) error {
+	switch name {
+	case fileuploadchunk.EdgeUpload:
+		m.ClearUpload()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUploadChunk unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FileUploadChunkMutation) ResetEdge(name string) error {
+	switch name {
+	case fileuploadchunk.EdgeUpload:
+		m.ResetUpload()
+		return nil
+	}
+	return fmt.Errorf("unknown FileUploadChunk edge %s", name)
 }
 
 // InstanceMutation represents an operation that mutates the Instance nodes in the graph.

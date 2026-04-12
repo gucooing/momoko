@@ -180,3 +180,82 @@ export interface FileSystemPreSignResponse {
   /** 下载路径 */
   downloadUrlPath: string;
 }
+
+/** 文件上传预签名(系统级)请求 */
+export interface FileSystemPreSignUploadRequest {
+  /** 文件路径 */
+  path: string;
+  /** 文件名称 */
+  fileName: string;
+  /** 文件总大小（字节） */
+  fileSize: number;
+  /** 快速hash */
+  hash: string;
+  /** 分片大小（字节），不传时由服务端自动决定 */
+  partSize?: number | undefined;
+}
+
+/** 文件上传预签名(系统级)响应 */
+export interface FileSystemPreSignUploadResponse {
+  /** 信息 */
+  info: UploadInfo | undefined;
+}
+
+/** 获取上传状态请求 */
+export interface GetFileUploadStatusRequest {
+  /** 上传id */
+  uploadId: string;
+}
+
+/** 获取上传状态响应 */
+export interface GetFileUploadStatusResponse {
+  /** 信息 */
+  info: UploadInfo | undefined;
+}
+
+/** 上传完成合并分片请求 */
+export interface CompleteFileUploadRequest {
+  /** 上传id */
+  uploadId: string;
+}
+
+/** 上传完成合并分片响应 */
+export interface CompleteFileUploadResponse {
+}
+
+/** 取消文件上传请求 */
+export interface CancelFileUploadRequest {
+  /** 上传id */
+  uploadId: string;
+}
+
+/** 取消文件上传响应 */
+export interface CancelFileUploadResponse {
+}
+
+/** 上传信息 */
+export interface UploadInfo {
+  /** 上传会话 id */
+  uploadId: string;
+  /** 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始） */
+  uploadPartUrlPathTemplate: string;
+  /** 实际分片大小（字节） */
+  partSize: number;
+  /** 文件总大小（字节） */
+  fileSize: number;
+  /** 总分片数 */
+  totalParts: number;
+  /** 已上传完成的分片序号 <切片,hash> */
+  uploadedParts: { [key: number]: string };
+  /** 是否已完成上传 */
+  completed: boolean;
+  /** 是否已取消上传 */
+  cancel: boolean;
+  /** 预签名过期时间 */
+  expiredAt: Date | undefined;
+}
+
+export interface UploadInfo_UploadedPartsEntry {
+  key: number;
+  value: string;
+}
