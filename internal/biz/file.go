@@ -238,11 +238,12 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 }
 
 func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr *pre.FileSignInfo) error {
+	ctx := context.Background()
 	chunk, err := strconv.ParseUint(r.URL.Query().Get("chunk"), 10, 64)
 	if err != nil {
 		return err
 	}
-	info, err := f.repo.Query(r.Context(), pr.UploadId)
+	info, err := f.repo.Query(ctx, pr.UploadId)
 	if err != nil {
 		return err
 	}
@@ -252,7 +253,7 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 		return err
 	}
 	// 写入hash
-	err = f.repo.SaveChunkRecord(r.Context(), pr.UploadId, chunk, hash, size)
+	err = f.repo.SaveChunkRecord(ctx, pr.UploadId, chunk, hash, size)
 	if err != nil {
 		return err
 	}
