@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent"
@@ -286,6 +287,8 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 
 type ChunkedUpload struct {
 	*ent.FileUpload
+	Sing     string
+	fileSync sync.RWMutex
 }
 
 const (
@@ -307,6 +310,7 @@ func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 			ChunkSize:   chunkSize,
 			TotalChunks: (chunkSize + fileSize - 1) / chunkSize,
 		},
+		fileSync: sync.RWMutex{},
 	}
 }
 
@@ -322,15 +326,18 @@ func calcChunkSize(fileSize uint64) uint64 {
 	return chunkSize
 }
 
-func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, string, error) {
+// 上传分片
+func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64, hash string) (uint64, error) {
+	u.fileSync.RLock()
+	defer u.fileSync.RUnlock()
 	if u.Completed {
-		return 0, "", errors.New("上传已完成")
+		return 0, errors.New("上传已完成")
 	}
 	if u.Cancel {
-		return 0, "", errors.New("上传已取消")
+		return 0, errors.New("上传已取消")
 	}
 	if chunk > u.TotalChunks {
-		return 0, "", errors.New("异常的分片")
+		return 0, errors.New("异常的分片")
 	}
 	offset := (chunk - 1) * u.ChunkSize
 	partSize := u.ChunkSize
@@ -338,36 +345,42 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 		partSize = u.FileSize - offset
 	}
 	if offset > math.MaxInt64 || partSize > math.MaxInt64 {
-		return 0, "", errors.New("文件过大")
+		return 0, errors.New("文件过大")
 	}
 	data, err := io.ReadAll(io.LimitReader(r, int64(partSize+1)))
 	if err != nil {
-		return 0, "", err
+		return 0, err
 	}
 	if uint64(len(data)) != partSize {
-		return 0, "", errors.New("文件大小异常")
+		return 0, errors.New("文件大小异常")
 	}
 	sum := sha256.Sum256(data)
 	partHash := hex.EncodeToString(sum[:])
+	if hash != partHash {
+		return 0, errors.New("分片校验失败")
+	}
 
 	tempFile, err := os.OpenFile(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
 		os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		return 0, "", errors.New("创建临时文件失败")
+		return 0, errors.New("创建临时文件失败")
 	}
 	defer tempFile.Close()
 
 	if _, err = tempFile.WriteAt(data, int64(offset)); err != nil {
-		return 0, "", errors.New("写入分片文件失败")
+		return 0, errors.New("写入分片文件失败")
 	}
 	if err = tempFile.Sync(); err != nil {
-		return 0, "", errors.New("分片写入磁盘失败")
+		return 0, errors.New("分片写入磁盘失败")
 	}
 
-	return partSize, partHash, nil
+	return partSize, nil
 }
 
+// 合并文件
 func (u *ChunkedUpload) Complete() error {
+	u.fileSync.Lock()
+	defer u.fileSync.Unlock()
 	if u.Completed {
 		return nil
 	}
@@ -387,7 +400,10 @@ func (u *ChunkedUpload) Complete() error {
 	return nil
 }
 
+// 取消上传
 func (u *ChunkedUpload) Canceld() error {
+	u.fileSync.Lock()
+	defer u.fileSync.Unlock()
 	if u.Completed {
 		return errors.New("上传已完成")
 	}

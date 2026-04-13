@@ -289,7 +289,7 @@ message CancelFileUploadResponse {}
 message UploadInfo {
   // 上传会话 id
   string upload_id = 1;
-  // 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
+  // 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始） {hash}替换为实际的分片哈希
   string upload_part_url_path_template = 2;
   // 实际分片大小（字节）
   uint64 part_size = 3;
