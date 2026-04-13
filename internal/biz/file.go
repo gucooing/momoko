@@ -14,6 +14,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent"
+	"momoko/internal/data/ent/fileupload"
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
@@ -235,16 +236,25 @@ func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID 
 }
 
 func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID string) error {
-	info, err := f.getChunkedUpload(ctx, userID, uploadID)
+	info, err := f.getChunkedUpload(ctx, uploadID, userID)
 	if err != nil {
 		return ErrSystem(err)
 	}
 	err = f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+		info.FileUpload, err = tx.FileUpload.Query().
+			Where(
+				fileupload.IDEQ(uploadID),
+				fileupload.UserIDEQ(userID),
+			).Only(ctx)
+		if err != nil {
+			return err
+		}
 		_, err = tx.FileUpload.UpdateOneID(uploadID).
 			SetCompleted(true).Save(ctx)
 		if err != nil {
 			return err
 		}
+		info.Completed = true
 		err = info.Complete()
 		if err != nil {
 			return err
@@ -259,7 +269,7 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 }
 
 func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID string) error {
-	info, err := f.getChunkedUpload(ctx, userID, uploadID)
+	info, err := f.getChunkedUpload(ctx, uploadID, userID)
 	if err != nil {
 		return ErrSystem(err)
 	}
@@ -269,6 +279,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 		if err != nil {
 			return err
 		}
+		info.Cancel = true
 		err = info.Canceld()
 		if err != nil {
 			return err
@@ -284,16 +295,15 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 
 func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr *pre.FileSignInfo) error {
 	ctx := context.Background()
-	hash := r.URL.Query().Get("hash")
 	chunk, err := strconv.ParseUint(r.URL.Query().Get("chunk"), 10, 64)
 	if err != nil {
 		return err
 	}
-	info, err := f.getChunkedUpload(ctx, pr.Creator, pr.UploadId)
+	info, err := f.getChunkedUpload(ctx, pr.UploadId, pr.Creator)
 	if err != nil {
 		return ErrSystem(err)
 	}
-	size, err := info.UploadFilePart(r.Body, chunk, hash)
+	size, hash, err := info.UploadFilePart(r.Body, chunk)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"io/fs"
 	"math"
@@ -14,6 +13,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent"
@@ -327,17 +328,17 @@ func calcChunkSize(fileSize uint64) uint64 {
 }
 
 // 上传分片
-func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64, hash string) (uint64, error) {
+func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, string, error) {
 	u.fileSync.RLock()
 	defer u.fileSync.RUnlock()
 	if u.Completed {
-		return 0, errors.New("上传已完成")
+		return 0, "", errors.New("上传已完成")
 	}
 	if u.Cancel {
-		return 0, errors.New("上传已取消")
+		return 0, "", errors.New("上传已取消")
 	}
 	if chunk > u.TotalChunks {
-		return 0, errors.New("异常的分片")
+		return 0, "", errors.New("异常的分片")
 	}
 	offset := (chunk - 1) * u.ChunkSize
 	partSize := u.ChunkSize
@@ -345,36 +346,33 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64, hash string) (
 		partSize = u.FileSize - offset
 	}
 	if offset > math.MaxInt64 || partSize > math.MaxInt64 {
-		return 0, errors.New("文件过大")
+		return 0, "", errors.New("文件过大")
 	}
 	data, err := io.ReadAll(io.LimitReader(r, int64(partSize+1)))
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 	if uint64(len(data)) != partSize {
-		return 0, errors.New("文件大小异常")
+		return 0, "", errors.New("文件大小异常")
 	}
 	sum := sha256.Sum256(data)
 	partHash := hex.EncodeToString(sum[:])
-	if hash != partHash {
-		return 0, errors.New("分片校验失败")
-	}
 
 	tempFile, err := os.OpenFile(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
 		os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		return 0, errors.New("创建临时文件失败")
+		return 0, "", errors.New("创建临时文件失败")
 	}
 	defer tempFile.Close()
 
 	if _, err = tempFile.WriteAt(data, int64(offset)); err != nil {
-		return 0, errors.New("写入分片文件失败")
+		return 0, "", errors.New("写入分片文件失败")
 	}
 	if err = tempFile.Sync(); err != nil {
-		return 0, errors.New("分片写入磁盘失败")
+		return 0, "", errors.New("分片写入磁盘失败")
 	}
 
-	return partSize, nil
+	return partSize, partHash, nil
 }
 
 // 合并文件
