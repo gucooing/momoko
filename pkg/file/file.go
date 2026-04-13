@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"io/fs"
 	"math"
@@ -12,8 +13,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent"
@@ -324,6 +323,12 @@ func calcChunkSize(fileSize uint64) uint64 {
 }
 
 func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, string, error) {
+	if u.Completed {
+		return 0, "", errors.New("上传已完成")
+	}
+	if u.Cancel {
+		return 0, "", errors.New("上传已取消")
+	}
 	if chunk > u.TotalChunks {
 		return 0, "", errors.New("异常的分片")
 	}
@@ -363,6 +368,12 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 }
 
 func (u *ChunkedUpload) Complete() error {
+	if u.Completed {
+		return nil
+	}
+	if u.Cancel {
+		return errors.New("上传已取消")
+	}
 	if uint64(len(u.Edges.Chunks)) != u.TotalChunks {
 		return errors.New("分片未上传完成")
 	}
@@ -374,4 +385,14 @@ func (u *ChunkedUpload) Complete() error {
 		return fmt.Errorf("重命名文件失败: %w", err)
 	}
 	return nil
+}
+
+func (u *ChunkedUpload) Canceld() error {
+	if u.Completed {
+		return errors.New("上传已完成")
+	}
+	if u.Cancel {
+		return nil
+	}
+	return os.Remove(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)))
 }

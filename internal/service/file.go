@@ -97,6 +97,18 @@ func (f *FileService) CompleteFileUpload(ctx context.Context, req *v1.CompleteFi
 	return &v1.CompleteFileUploadResponse{}, nil
 }
 
+func (f *FileService) CancelFileUpload(ctx context.Context, req *v1.CancelFileUploadRequest) (*v1.CancelFileUploadResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	err := f.uc.CancelFileUpload(ctx, authCtx.UserID, req.UploadId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CancelFileUploadResponse{}, nil
+}
+
 func (f *FileService) preFileDownload(w khttp.ResponseWriter, r *khttp.Request) {
 	info, err := pre.Verify(r.URL.Query().Get("sign"))
 	if err != nil {

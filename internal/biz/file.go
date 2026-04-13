@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"momoko/internal/data/ent/fileupload"
 	"net/http"
 	"os"
 	"strconv"
@@ -213,11 +214,15 @@ func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID 
 }
 
 func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID string) error {
-	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
-	if err != nil {
-		return nil
-	}
-	err = f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+	err := f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+		info, err := tx.FileUpload.Query().
+			Where(
+				fileupload.IDEQ(uploadID),
+				fileupload.UserIDEQ(userID),
+			).Only(ctx)
+		if err != nil {
+			return err
+		}
 		fr := &file.ChunkedUpload{FileUpload: info}
 		err = fr.Complete()
 		if err != nil {
@@ -225,6 +230,35 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 		}
 		_, err = tx.FileUpload.UpdateOneID(uploadID).
 			SetCompleted(true).Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return ErrSystem(err)
+	}
+	return nil
+}
+
+func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID string) error {
+	err := f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+		info, err := tx.FileUpload.Query().
+			Where(
+				fileupload.IDEQ(uploadID),
+				fileupload.UserIDEQ(userID),
+			).Only(ctx)
+		if err != nil {
+			return err
+		}
+		fr := &file.ChunkedUpload{FileUpload: info}
+		err = fr.Canceld()
+		if err != nil {
+			return err
+		}
+		_, err = tx.FileUpload.UpdateOneID(uploadID).
+			SetCancel(true).Save(ctx)
 		if err != nil {
 			return err
 		}
