@@ -318,7 +318,7 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 func toUploadInfo(d *ent.FileUpload, sign string) *v1.UploadInfo {
 	info := &v1.UploadInfo{
 		UploadId:                  d.ID,
-		UploadPartUrlPathTemplate: fmt.Sprintf("%s?sign=%s&chunk={partNumber}&hash={hash}", PreFileUpload, sign),
+		UploadPartUrlPathTemplate: fmt.Sprintf("%s?sign=%s&chunk={partNumber}", PreFileUpload, sign),
 		PartSize:                  d.ChunkSize,
 		FileSize:                  d.FileSize,
 		TotalParts:                d.TotalChunks,

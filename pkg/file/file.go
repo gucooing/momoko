@@ -293,9 +293,9 @@ type ChunkedUpload struct {
 }
 
 const (
-	stepFileSize  = 100 * 1024 * 1024 // 100MB
-	stepChunkSize = 2 * 1024 * 1024   // 2MB
-	maxChunkSize  = 32 * 1024 * 1024  // 32MB
+	minChunkSize = 4 * 1024 * 1024  // 4MB
+	maxChunkSize = 64 * 1024 * 1024 // 64MB
+	targetChunks = 100
 
 	tempName = "%s-momoko-upload-%v.part"
 )
@@ -316,11 +316,16 @@ func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 }
 
 func calcChunkSize(fileSize uint64) uint64 {
-	steps := uint64(1)
-	if fileSize > 0 {
-		steps = (fileSize-1)/stepFileSize + 1
+	if fileSize == 0 {
+		return minChunkSize
 	}
-	chunkSize := steps * stepChunkSize
+	chunkSize := fileSize / targetChunks
+	if fileSize%targetChunks != 0 {
+		chunkSize++
+	}
+	if chunkSize < minChunkSize {
+		chunkSize = minChunkSize
+	}
 	if chunkSize > maxChunkSize {
 		chunkSize = maxChunkSize
 	}
@@ -331,47 +336,60 @@ func calcChunkSize(fileSize uint64) uint64 {
 func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, string, error) {
 	u.fileSync.RLock()
 	defer u.fileSync.RUnlock()
+
 	if u.Completed {
 		return 0, "", errors.New("上传已完成")
 	}
 	if u.Cancel {
 		return 0, "", errors.New("上传已取消")
 	}
-	if chunk > u.TotalChunks {
+	if chunk == 0 || chunk > u.TotalChunks {
 		return 0, "", errors.New("异常的分片")
 	}
+
 	offset := (chunk - 1) * u.ChunkSize
 	partSize := u.ChunkSize
 	if chunk == u.TotalChunks {
 		partSize = u.FileSize - offset
 	}
+
 	if offset > math.MaxInt64 || partSize > math.MaxInt64 {
 		return 0, "", errors.New("文件过大")
 	}
-	data, err := io.ReadAll(io.LimitReader(r, int64(partSize+1)))
-	if err != nil {
-		return 0, "", err
-	}
-	if uint64(len(data)) != partSize {
-		return 0, "", errors.New("文件大小异常")
-	}
-	sum := sha256.Sum256(data)
-	partHash := hex.EncodeToString(sum[:])
 
-	tempFile, err := os.OpenFile(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
-		os.O_CREATE|os.O_WRONLY, 0o644)
+	tempFile, err := os.OpenFile(
+		filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
+		os.O_CREATE|os.O_WRONLY,
+		0o644,
+	)
 	if err != nil {
 		return 0, "", errors.New("创建临时文件失败")
 	}
 	defer tempFile.Close()
 
-	if _, err = tempFile.WriteAt(data, int64(offset)); err != nil {
+	hasher := sha256.New()
+	writer := io.NewOffsetWriter(tempFile, int64(offset))
+	mw := io.MultiWriter(writer, hasher)
+
+	limited := io.LimitReader(r, int64(partSize))
+	written, err := io.CopyBuffer(mw, limited, make([]byte, 64*1024))
+	if err != nil {
 		return 0, "", errors.New("写入分片文件失败")
 	}
-	if err = tempFile.Sync(); err != nil {
-		return 0, "", errors.New("分片写入磁盘失败")
+	if uint64(written) != partSize {
+		return 0, "", errors.New("文件大小异常")
 	}
 
+	var extra [1]byte
+	n, err := r.Read(extra[:])
+	if err != nil && err != io.EOF {
+		return 0, "", err
+	}
+	if n > 0 {
+		return 0, "", errors.New("文件大小异常")
+	}
+
+	partHash := hex.EncodeToString(hasher.Sum(nil))
 	return partSize, partHash, nil
 }
 
