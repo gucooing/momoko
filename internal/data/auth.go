@@ -7,25 +7,25 @@ import (
 	"github.com/google/uuid"
 
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/cache"
 )
 
 type authRepo struct {
 	data *Data
 
-	cacheToken *cache.Cache[string, *ent.Auth]
+	cacheToken *cache.Cache[string, *gen.Auth]
 }
 
 func NewAuthRepo(data *Data) biz.AuthRepo {
 	return &authRepo{
 		data:       data,
-		cacheToken: cache.New[string, *ent.Auth](5 * time.Minute),
+		cacheToken: cache.New[string, *gen.Auth](5 * time.Minute),
 	}
 }
 
-func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*ent.Auth, error) {
+func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Auth, error) {
 	err := ar.data.db.Auth.
 		Create().
 		SetSessionID(authInfo.SessionID).
@@ -56,7 +56,7 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*ent.Au
 	return authData, nil
 }
 
-func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*ent.Auth, *ent.Auth, error) {
+func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*gen.Auth, *gen.Auth, error) {
 	_, err := ar.data.db.Auth.Update().
 		Where(
 			auth.UserIDEQ(userId),
@@ -75,7 +75,7 @@ func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*ent.
 		return nil, nil, err
 	}
 	var (
-		access, refresh *ent.Auth
+		access, refresh *gen.Auth
 	)
 	for _, row := range rows {
 		switch row.Type {
@@ -90,7 +90,7 @@ func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*ent.
 	return access, refresh, nil
 }
 
-func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*ent.Auth, error) {
+func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*gen.Auth, error) {
 	return ar.data.db.Auth.Query().
 		Where(
 			auth.SessionIDEQ(sessionID),
@@ -98,7 +98,7 @@ func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType aut
 		).First(ctx)
 }
 
-func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*ent.Auth, error) {
+func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*gen.Auth, error) {
 	query := ar.data.db.Auth.Query().
 		Where(auth.UserIDEQ(userId))
 
@@ -109,8 +109,8 @@ func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId s
 	return query.All(ctx)
 }
 
-func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*ent.Auth, error) {
-	add := func() (*ent.Auth, error) {
+func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*gen.Auth, error) {
+	add := func() (*gen.Auth, error) {
 		return ar.data.db.Auth.Query().
 			Where(
 				auth.DeviceIDEQ(deviceID),

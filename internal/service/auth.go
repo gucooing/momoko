@@ -7,8 +7,8 @@ import (
 
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	auth2 "momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/gen"
+	auth2 "momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
 
@@ -31,7 +31,7 @@ func NewAuthService(uc *biz.AuthUsecase, user *biz.UserUsecase) *AuthService {
 
 func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
 	var (
-		user *ent.User
+		user *gen.User
 		err  error
 	)
 	switch req.Identity.(type) {

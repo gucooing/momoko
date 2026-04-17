@@ -3,16 +3,16 @@ package data
 import (
 	"context"
 	"log"
+	"momoko/internal/data/ent/gen"
 	"os"
 
-	"momoko/internal/data/ent/migrate"
+	"momoko/internal/data/ent/gen/migrate"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/wire"
 	_ "github.com/mattn/go-sqlite3"
 
 	"momoko/internal/conf"
-	"momoko/internal/data/ent"
 )
 
 // ProviderSet is data providers.
@@ -28,12 +28,12 @@ var ProviderSet = wire.NewSet(
 
 // Data is a struct that contains the database client.
 type Data struct {
-	db *ent.Client
+	db *gen.Client
 }
 
 // NewData creates a new Data instance.
 func NewData(c *conf.Data) (*Data, func(), error) {
-	db, err := ent.Open(c.Database.Driver, c.Database.Source)
+	db, err := gen.Open(c.Database.Driver, c.Database.Source)
 	if err != nil {
 		log.Fatalf("failed opening connection to database: %v", err)
 	}

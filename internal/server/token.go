@@ -8,7 +8,7 @@ import (
 	httpm "github.com/go-kratos/kratos/v2/transport/http"
 
 	"momoko/internal/biz"
-	auth2 "momoko/internal/data/ent/auth"
+	auth2 "momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
 )

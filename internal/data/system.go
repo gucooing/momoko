@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/menu"
-	"momoko/internal/data/ent/role"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/role"
 )
 
 type systemRepo struct {
@@ -19,25 +19,25 @@ func NewSystemRepo(data *Data) biz.SystemRepo {
 	}
 }
 
-func (s *systemRepo) GetMenusByRoleId(ctx context.Context, roleId string) ([]*ent.Menu, error) {
+func (s *systemRepo) GetMenusByRoleId(ctx context.Context, roleId string) ([]*gen.Menu, error) {
 	return s.data.db.Role.Query().
 		Where(role.IDEQ(roleId)).
 		QueryMenus().
 		All(ctx)
 }
 
-func (s *systemRepo) GetMenus(ctx context.Context) ([]*ent.Menu, error) {
+func (s *systemRepo) GetMenus(ctx context.Context) ([]*gen.Menu, error) {
 	return s.data.db.Menu.Query().
 		All(ctx)
 }
 
-func (s *systemRepo) GetMenu(ctx context.Context, menuId string) (*ent.Menu, error) {
+func (s *systemRepo) GetMenu(ctx context.Context, menuId string) (*gen.Menu, error) {
 	return s.data.db.Menu.Query().
 		Where(menu.IDEQ(menuId)).
 		First(ctx)
 }
 
-func (s *systemRepo) CreateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.Menu, error) {
+func (s *systemRepo) CreateMenu(ctx context.Context, menuInfo *gen.Menu) (*gen.Menu, error) {
 	return s.data.db.Menu.Create().
 		SetID(menuInfo.ID).
 		SetType(menuInfo.Type).
@@ -52,7 +52,7 @@ func (s *systemRepo) CreateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.M
 		Save(ctx)
 }
 
-func (s *systemRepo) UpdateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.Menu, error) {
+func (s *systemRepo) UpdateMenu(ctx context.Context, menuInfo *gen.Menu) (*gen.Menu, error) {
 	return s.data.db.Menu.UpdateOneID(menuInfo.ID).
 		SetPath(menuInfo.Path).
 		SetTitle(menuInfo.Title).
@@ -101,7 +101,7 @@ func (s *systemRepo) DeleteMenu(ctx context.Context, menuId string) error {
 	return err
 }
 
-func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*ent.Role, int64, error) {
+func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*gen.Role, int64, error) {
 	query := s.data.db.Role.Query()
 	if status != nil {
 		query = query.Where(role.StatusEQ(*status))
@@ -119,7 +119,7 @@ func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status 
 		WithMenus().
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
-		Order(ent.Asc(role.FieldID)).
+		Order(gen.Asc(role.FieldID)).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -128,14 +128,14 @@ func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status 
 	return roles, int64(total), nil
 }
 
-func (s *systemRepo) GetRole(ctx context.Context, roleId string) (*ent.Role, error) {
+func (s *systemRepo) GetRole(ctx context.Context, roleId string) (*gen.Role, error) {
 	return s.data.db.Role.Query().
 		Where(role.IDEQ(roleId)).
 		WithMenus().
 		First(ctx)
 }
 
-func (s *systemRepo) CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error) {
+func (s *systemRepo) CreateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error) {
 	return s.data.db.Role.Create().
 		SetID(roleInfo.ID).
 		SetName(roleInfo.Name).
@@ -146,7 +146,7 @@ func (s *systemRepo) CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds
 		Save(ctx)
 }
 
-func (s *systemRepo) UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error) {
+func (s *systemRepo) UpdateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error) {
 	return s.data.db.Role.UpdateOneID(roleInfo.ID).
 		Where(role.IsBuiltinEQ(false)).
 		SetName(roleInfo.Name).

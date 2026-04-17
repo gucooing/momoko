@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/systemconfig"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/pkg/common"
 	"momoko/pkg/response"
 )
@@ -47,7 +47,7 @@ func (c *ConfigRepo) Get(ctx context.Context, key common.ConfigKey) (string, err
 		c.cache[key] = value
 		return value, nil
 	}
-	if !ent.IsNotFound(err) {
+	if !gen.IsNotFound(err) {
 		return "", err
 	}
 
@@ -99,7 +99,7 @@ func (c *ConfigRepo) BatchUpdate(ctx context.Context, configs map[common.ConfigK
 	c.sync.Lock()
 	defer c.sync.Unlock()
 
-	builders := make([]*ent.SystemConfigCreate, 0, len(configs))
+	builders := make([]*gen.SystemConfigCreate, 0, len(configs))
 	for key, value := range configs {
 		builders = append(builders,
 			c.data.db.SystemConfig.

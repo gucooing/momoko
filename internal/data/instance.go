@@ -7,10 +7,10 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/instance"
-	"momoko/internal/data/ent/instancetype"
-	"momoko/internal/data/ent/user"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/instance"
+	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/user"
 )
 
 type instanceRepo struct {
@@ -24,16 +24,16 @@ func NewInstanceRepo(data *Data) biz.InstanceRepo {
 }
 
 // GetTypes 获取全部实例类型
-func (i *instanceRepo) GetTypes(ctx context.Context) ([]*ent.InstanceType, error) {
+func (i *instanceRepo) GetTypes(ctx context.Context) ([]*gen.InstanceType, error) {
 	return i.data.db.InstanceType.Query().
 		Order(
-			ent.Asc(instancetype.FieldCreateTime),
+			gen.Asc(instancetype.FieldCreateTime),
 		).
 		All(ctx)
 }
 
 // CreateType 创建实例类型
-func (i *instanceRepo) CreateType(ctx context.Context, name string) (*ent.InstanceType, error) {
+func (i *instanceRepo) CreateType(ctx context.Context, name string) (*gen.InstanceType, error) {
 	create := i.data.db.InstanceType.Create().
 		SetID(uuid.NewString()).
 		SetName(name)
@@ -42,7 +42,7 @@ func (i *instanceRepo) CreateType(ctx context.Context, name string) (*ent.Instan
 }
 
 // UpdateType 更新实例类型
-func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*ent.InstanceType, error) {
+func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*gen.InstanceType, error) {
 	update := i.data.db.InstanceType.
 		UpdateOneID(id).
 		Where(instancetype.IsSystem(false))
@@ -65,7 +65,7 @@ func (i *instanceRepo) DeleteType(ctx context.Context, id string) error {
 }
 
 // GetInstances 获取该账号下管辖的实例列表
-func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error) {
+func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*gen.Instance, int64, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
 			instance.HasUserWith(user.IDEQ(userId)),  // 主人
@@ -95,7 +95,7 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 		WithUser().WithUsers().WithType().
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
-		Order(ent.Asc(instance.FieldCreateTime)).
+		Order(gen.Asc(instance.FieldCreateTime)).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -105,7 +105,7 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 }
 
 // GetInstanceByUserID 获取该账号下管辖的实例
-func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error) {
+func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*gen.Instance, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
 			instance.HasUserWith(user.IDEQ(userId)),  // 主人
@@ -125,7 +125,7 @@ func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instance
 	return info, nil
 }
 
-func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error) {
+func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*gen.Instance, error) {
 	create := i.data.db.Instance.Create().
 		SetUserID(userId).
 		SetID(uuid.NewString()).
@@ -142,7 +142,7 @@ func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanc
 	return create.Save(ctx)
 }
 
-func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*ent.Instance, error) {
+func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*gen.Instance, error) {
 	update := i.data.db.Instance.UpdateOneID(req.Id).Where(
 		instance.Or(
 			instance.HasUserWith(user.IDEQ(userId)),  // 主人
@@ -190,6 +190,6 @@ func (i *instanceRepo) DeleteInstance(ctx context.Context, id, userId string) er
 }
 
 // GetAllAutoStartInstances 获取全部自动启动的实例
-func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*ent.Instance, error) {
+func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error) {
 	return i.data.db.Instance.Query().Where(instance.AutoStartEQ(true)).All(ctx)
 }

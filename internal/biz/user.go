@@ -10,22 +10,22 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"momoko/api/gen/v1"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/user"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
 	"momoko/pkg/avatar"
 	"momoko/pkg/response"
 )
 
 type UserRepo interface {
-	FindByName(ctx context.Context, name string) (*ent.User, error)
-	FindByID(ctx context.Context, id string) (*ent.User, error)
-	ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*ent.User, int64, error)
-	CreateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error)
-	UpdateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error)
+	FindByName(ctx context.Context, name string) (*gen.User, error)
+	FindByID(ctx context.Context, id string) (*gen.User, error)
+	ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*gen.User, int64, error)
+	CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error)
+	UpdateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error)
 	DeleteUser(ctx context.Context, userIds []string) error
-	UpdatePassword(ctx context.Context, userId string, passwordHash string) (*ent.User, error)
-	UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*ent.User, error)
+	UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error)
+	UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*gen.User, error)
 }
 
 type UserUsecase struct {
@@ -42,10 +42,10 @@ func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager)
 	}
 }
 
-func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password string) (*ent.User, error) {
+func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password string) (*gen.User, error) {
 	userInfo, err := u.user.FindByName(ctx, username)
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if gen.IsNotFound(err) {
 			return nil, ErrAdminNotFound
 		}
 		return nil, ErrSystem(err)
@@ -62,7 +62,7 @@ func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password st
 func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo, error) {
 	userDb, err := u.user.FindByID(ctx, userId)
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if gen.IsNotFound(err) {
 			return nil, ErrAdminNotFound
 		}
 		return nil, ErrSystem(err)
@@ -126,7 +126,7 @@ func (u *UserUsecase) ListUsers(ctx context.Context, req *v1.ListUserRequest) ([
 }
 
 func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.UserInfo, error) {
-	userInfo, err := u.user.CreateUser(ctx, &ent.User{
+	userInfo, err := u.user.CreateUser(ctx, &gen.User{
 		ID:       fmt.Sprintf("user_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
 		Username: req.Username,
 		Password: auth.EncodePassword(req.Password),
@@ -144,7 +144,7 @@ func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.
 }
 
 func (u *UserUsecase) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v1.UserInfo, error) {
-	userInfo, err := u.user.UpdateUser(ctx, &ent.User{
+	userInfo, err := u.user.UpdateUser(ctx, &gen.User{
 		ID:     req.UserId,
 		Email:  req.Email,
 		Status: u.toEntUserStatus(req.Status),
@@ -174,7 +174,7 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, userIds []string) error {
 func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, newPassword string) (*v1.UserInfo, error) {
 	userDb, err := u.user.FindByID(ctx, userId)
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if gen.IsNotFound(err) {
 			return nil, ErrAdminNotFound
 		}
 		return nil, ErrSystem(err)
@@ -192,7 +192,7 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 	return u.toUserInfo(info), nil
 }
 
-func (u *UserUsecase) toUserInfo(user *ent.User) *v1.UserInfo {
+func (u *UserUsecase) toUserInfo(user *gen.User) *v1.UserInfo {
 	info := &v1.UserInfo{
 		UserId:     user.ID,
 		Bio:        user.Bio,

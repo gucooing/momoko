@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"math"
+	"momoko/internal/data/ent/gen"
 	"os"
 	"path/filepath"
 	"sort"
@@ -17,7 +18,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/internal/data/ent"
 )
 
 const (
@@ -287,7 +287,7 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 }
 
 type ChunkedUpload struct {
-	*ent.FileUpload
+	*gen.FileUpload
 	Sing     string
 	fileSync sync.RWMutex
 }
@@ -303,7 +303,7 @@ const (
 func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 	chunkSize := calcChunkSize(fileSize)
 	return &ChunkedUpload{
-		FileUpload: &ent.FileUpload{
+		FileUpload: &gen.FileUpload{
 			Hash:        hash,
 			Path:        path,
 			FileName:    name,

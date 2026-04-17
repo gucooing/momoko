@@ -5,8 +5,8 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/user"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/user"
 )
 
 type userRepo struct {
@@ -19,7 +19,7 @@ func NewUserRepo(data *Data) biz.UserRepo {
 	}
 }
 
-func (ur *userRepo) FindByName(ctx context.Context, name string) (*ent.User, error) {
+func (ur *userRepo) FindByName(ctx context.Context, name string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 
 	query.Where(user.UsernameEQ(name)).WithRole()
@@ -27,7 +27,7 @@ func (ur *userRepo) FindByName(ctx context.Context, name string) (*ent.User, err
 	return query.First(ctx)
 }
 
-func (ur *userRepo) FindByID(ctx context.Context, id string) (*ent.User, error) {
+func (ur *userRepo) FindByID(ctx context.Context, id string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 
 	query.Where(user.IDEQ(id)).WithRole()
@@ -35,7 +35,7 @@ func (ur *userRepo) FindByID(ctx context.Context, id string) (*ent.User, error) 
 	return query.First(ctx)
 }
 
-func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*ent.User, int64, error) {
+func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*gen.User, int64, error) {
 	query := ur.data.db.User.Query()
 
 	if status != nil {
@@ -54,7 +54,7 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status 
 		WithRole().
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
-		Order(ent.Asc(user.FieldID)).
+		Order(gen.Asc(user.FieldID)).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -63,7 +63,7 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status 
 	return users, int64(total), nil
 }
 
-func (ur *userRepo) CreateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error) {
+func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
 	if roleId == "" {
 		roleId = noPermissionRoleID
 	}
@@ -82,7 +82,7 @@ func (ur *userRepo) CreateUser(ctx context.Context, userInfo *ent.User, roleId s
 	return builder.Save(ctx)
 }
 
-func (ur *userRepo) UpdateUser(ctx context.Context, userInfo *ent.User, roleId string) (*ent.User, error) {
+func (ur *userRepo) UpdateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
 	if roleId == "" {
 		roleId = noPermissionRoleID
 	}
@@ -106,11 +106,11 @@ func (ur *userRepo) DeleteUser(ctx context.Context, userIds []string) error {
 	return err
 }
 
-func (ur *userRepo) UpdatePassword(ctx context.Context, userId string, passwordHash string) (*ent.User, error) {
+func (ur *userRepo) UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error) {
 	return ur.data.db.User.UpdateOneID(userId).SetPassword(passwordHash).Save(ctx)
 }
 
-func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*ent.User, error) {
+func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*gen.User, error) {
 	update := ur.data.db.User.UpdateOneID(userId)
 	if req.Bio != nil {
 		update.SetBio(*req.Bio)

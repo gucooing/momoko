@@ -13,8 +13,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/fileupload"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
@@ -29,10 +29,10 @@ const (
 )
 
 type FileRepo interface {
-	GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*ent.FileUpload, error)
-	WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error
-	Query(ctx context.Context, uid string) (*ent.FileUpload, error)
-	QueryByUserID(ctx context.Context, userID, id string) (*ent.FileUpload, error)
+	GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*gen.FileUpload, error)
+	WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error
+	Query(ctx context.Context, uid string) (*gen.FileUpload, error)
+	QueryByUserID(ctx context.Context, userID, id string) (*gen.FileUpload, error)
 	SaveChunkRecord(ctx context.Context, uploadID string, chunk uint64, hash string, size uint64) error
 }
 
@@ -49,7 +49,7 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 	}
 	return &FileUsecase{
 		repo:        repo,
-		uploadCache: cache.New[string, *file.ChunkedUpload](10 * time.Minute),
+		uploadCache: cache.New[string, *file.ChunkedUpload](UploadPeriod),
 	}
 }
 
@@ -240,7 +240,7 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 	if err != nil {
 		return ErrSystem(err)
 	}
-	err = f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+	err = f.repo.WithTx(ctx, func(tx *gen.Tx) error {
 		info.FileUpload, err = tx.FileUpload.Query().
 			Where(
 				fileupload.IDEQ(uploadID),
@@ -273,7 +273,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 	if err != nil {
 		return ErrSystem(err)
 	}
-	err = f.repo.WithTx(ctx, func(tx *ent.Tx) error {
+	err = f.repo.WithTx(ctx, func(tx *gen.Tx) error {
 		_, err = tx.FileUpload.UpdateOneID(uploadID).
 			SetCancel(true).Save(ctx)
 		if err != nil {
@@ -284,7 +284,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 		if err != nil {
 			return err
 		}
-
+		f.uploadCache.Del(uploadID)
 		return nil
 	})
 	if err != nil {
@@ -315,7 +315,7 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 	return nil
 }
 
-func toUploadInfo(d *ent.FileUpload, sign string) *v1.UploadInfo {
+func toUploadInfo(d *gen.FileUpload, sign string) *v1.UploadInfo {
 	info := &v1.UploadInfo{
 		UploadId:                  d.ID,
 		UploadPartUrlPathTemplate: fmt.Sprintf("%s?sign=%s&chunk={partNumber}", PreFileUpload, sign),

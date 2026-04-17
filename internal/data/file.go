@@ -6,9 +6,9 @@ import (
 	"github.com/google/uuid"
 
 	"momoko/internal/biz"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/fileupload"
-	"momoko/internal/data/ent/fileuploadchunk"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/fileupload"
+	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/pkg/file"
 	"momoko/pkg/utils"
 )
@@ -23,9 +23,9 @@ func NewFileRepo(data *Data) biz.FileRepo {
 	}
 }
 
-func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*ent.FileUpload, error) {
-	var uInfo *ent.FileUpload
-	err := utils.WithTx(ctx, f.data.db, func(tx *ent.Tx) error {
+func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*gen.FileUpload, error) {
+	var uInfo *gen.FileUpload
+	err := utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
 		existing, err := tx.FileUpload.
 			Query().
 			Where(
@@ -57,13 +57,13 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 	return uInfo, err
 }
 
-func (f *fileRepo) Query(ctx context.Context, id string) (*ent.FileUpload, error) {
+func (f *fileRepo) Query(ctx context.Context, id string) (*gen.FileUpload, error) {
 	return f.data.db.FileUpload.Query().Where(
 		fileupload.IDEQ(id),
 	).WithChunks().Only(ctx)
 }
 
-func (f *fileRepo) QueryByUserID(ctx context.Context, userID, id string) (*ent.FileUpload, error) {
+func (f *fileRepo) QueryByUserID(ctx context.Context, userID, id string) (*gen.FileUpload, error) {
 	return f.data.db.FileUpload.Query().Where(
 		fileupload.IDEQ(id),
 		fileupload.UserIDEQ(userID),
@@ -84,7 +84,7 @@ func (f *fileRepo) SaveChunkRecord(ctx context.Context, uploadID string, chunk u
 	return err
 }
 
-func (f *fileRepo) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
+func (f *fileRepo) WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error {
 	tx, err := f.data.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

@@ -3,8 +3,8 @@ package auth
 import (
 	"time"
 
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/auth"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/response"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -19,7 +19,7 @@ var (
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
 
-func GenerateToken(authDb *ent.Auth) (string, error) {
+func GenerateToken(authDb *gen.Auth) (string, error) {
 	if authDb == nil {
 		return "", ErrTokenInvalid
 	}

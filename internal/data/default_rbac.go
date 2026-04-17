@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"momoko/internal/data/ent"
-	entmenu "momoko/internal/data/ent/menu"
-	entrole "momoko/internal/data/ent/role"
-	entuser "momoko/internal/data/ent/user"
+	"momoko/internal/data/ent/gen"
+	entmenu "momoko/internal/data/ent/gen/menu"
+	entrole "momoko/internal/data/ent/gen/role"
+	entuser "momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
 	"momoko/pkg/constant"
 )
@@ -147,7 +147,7 @@ func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, 
 	}
 }
 
-func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
+func syncDefaultRBAC(ctx context.Context, client *gen.Client) error {
 	menuIDs := make(map[string]struct{}, len(builtinDefaultMenus))
 	builtinMenuIDs := make([]string, 0, len(builtinDefaultMenus))
 	for _, menu := range builtinDefaultMenus {
@@ -194,7 +194,7 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		return err
 	}
 
-	menuBuilders := make([]*ent.MenuCreate, 0, len(builtinDefaultMenus))
+	menuBuilders := make([]*gen.MenuCreate, 0, len(builtinDefaultMenus))
 	for _, item := range builtinDefaultMenus {
 		builder := tx.Menu.Create().
 			SetID(item.ID).
@@ -228,7 +228,7 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 	}
 
-	roleBuilders := make([]*ent.RoleCreate, 0, len(builtinDefaultRoles))
+	roleBuilders := make([]*gen.RoleCreate, 0, len(builtinDefaultRoles))
 	for _, item := range builtinDefaultRoles {
 		builder := tx.Role.Create().
 			SetID(item.ID).
@@ -256,7 +256,7 @@ func syncDefaultRBAC(ctx context.Context, client *ent.Client) error {
 		}
 	}
 
-	userBuilders := make([]*ent.UserCreate, 0, len(defaultUsers))
+	userBuilders := make([]*gen.UserCreate, 0, len(defaultUsers))
 	for _, item := range defaultUsers {
 		builder := tx.User.Create().
 			SetID(item.ID).

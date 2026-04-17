@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/internal/data/ent"
+	"momoko/internal/data/ent/gen"
 	"momoko/pkg/servercore"
 )
 
@@ -31,16 +31,16 @@ type InstanceUsecase struct {
 }
 
 type InstanceRepo interface {
-	GetTypes(ctx context.Context) ([]*ent.InstanceType, error)
-	CreateType(ctx context.Context, name string) (*ent.InstanceType, error)
-	UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*ent.InstanceType, error)
+	GetTypes(ctx context.Context) ([]*gen.InstanceType, error)
+	CreateType(ctx context.Context, name string) (*gen.InstanceType, error)
+	UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*gen.InstanceType, error)
 	DeleteType(ctx context.Context, id string) error
-	GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*ent.Instance, int64, error)
-	GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*ent.Instance, error)
-	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*ent.Instance, error)
-	UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*ent.Instance, error)
+	GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*gen.Instance, int64, error)
+	GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*gen.Instance, error)
+	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*gen.Instance, error)
+	UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*gen.Instance, error)
 	DeleteInstance(ctx context.Context, id, userId string) error
-	GetAllAutoStartInstances(ctx context.Context) ([]*ent.Instance, error)
+	GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error)
 }
 
 func NewInstanceUsecase(repo InstanceRepo) (*InstanceUsecase, func(), error) {
@@ -345,7 +345,7 @@ func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, err
 	return nil, ErrInstanceNotFound
 }
 
-func (i *InstanceUsecase) ensureInstance(item *ent.Instance) (*servercore.Server, error) {
+func (i *InstanceUsecase) ensureInstance(item *gen.Instance) (*servercore.Server, error) {
 	cfg := toServerConfig(item)
 
 	if server, ok := i.instance.Get(item.ID); ok {
@@ -368,7 +368,7 @@ func (i *InstanceUsecase) ensureInstance(item *ent.Instance) (*servercore.Server
 	return nil, ErrInstanceNotFound
 }
 
-func toServerConfig(item *ent.Instance) servercore.ServerConfig {
+func toServerConfig(item *gen.Instance) servercore.ServerConfig {
 	return servercore.ServerConfig{
 		ID:                 item.ID,
 		Command:            item.StartCommand,
@@ -382,7 +382,7 @@ func toServerConfig(item *ent.Instance) servercore.ServerConfig {
 }
 
 func (i *InstanceUsecase) wrapInstanceRepoErr(err error) error {
-	if ent.IsNotFound(err) {
+	if gen.IsNotFound(err) {
 		return ErrInstanceAccess
 	}
 	return ErrSystem(err)
@@ -471,7 +471,7 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 	}
 }
 
-func toInstanceTypeInfo(data *ent.InstanceType) *v1.InstanceTypeInfo {
+func toInstanceTypeInfo(data *gen.InstanceType) *v1.InstanceTypeInfo {
 	return &v1.InstanceTypeInfo{
 		Id:       data.ID,
 		Name:     data.Name,
@@ -503,7 +503,7 @@ func (i *InstanceUsecase) terminalToInstanceInfo(terminal *servercore.Server) *v
 	return info
 }
 
-func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *ent.Instance) *v1.InstanceInfo {
+func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *gen.Instance) *v1.InstanceInfo {
 	info := &v1.InstanceInfo{
 		Id:           item.ID,
 		Name:         item.Name,

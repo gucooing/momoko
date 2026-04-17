@@ -9,9 +9,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/internal/data/ent"
-	"momoko/internal/data/ent/menu"
-	"momoko/internal/data/ent/role"
+	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/role"
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/constant"
@@ -26,7 +26,7 @@ type SystemUsecase struct {
 
 // 权限缓存
 type RoleOjb struct {
-	Menus       []*ent.Menu                       // 原始数据
+	Menus       []*gen.Menu                       // 原始数据
 	Permissions map[constant.Permissions]struct{} // 权限快速获取数据
 }
 
@@ -50,17 +50,17 @@ func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissi
 }
 
 type SystemRepo interface {
-	GetMenusByRoleId(ctx context.Context, roleId string) ([]*ent.Menu, error)
-	GetMenus(ctx context.Context) ([]*ent.Menu, error)
-	GetMenu(ctx context.Context, menuId string) (*ent.Menu, error)
-	CreateMenu(ctx context.Context, menu *ent.Menu) (*ent.Menu, error)
-	UpdateMenu(ctx context.Context, menuInfo *ent.Menu) (*ent.Menu, error)
+	GetMenusByRoleId(ctx context.Context, roleId string) ([]*gen.Menu, error)
+	GetMenus(ctx context.Context) ([]*gen.Menu, error)
+	GetMenu(ctx context.Context, menuId string) (*gen.Menu, error)
+	CreateMenu(ctx context.Context, menu *gen.Menu) (*gen.Menu, error)
+	UpdateMenu(ctx context.Context, menuInfo *gen.Menu) (*gen.Menu, error)
 	DeleteMenu(ctx context.Context, menuId string) error
 
-	GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*ent.Role, int64, error)
-	GetRole(ctx context.Context, roleId string) (*ent.Role, error)
-	CreateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
-	UpdateRole(ctx context.Context, roleInfo *ent.Role, menuIds []string) (*ent.Role, error)
+	GetRoles(ctx context.Context, page, pageSize int64, status *role.Status, name *string) ([]*gen.Role, int64, error)
+	GetRole(ctx context.Context, roleId string) (*gen.Role, error)
+	CreateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error)
+	UpdateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error)
 	DeleteRole(ctx context.Context, roleIds []string) error
 }
 
@@ -124,7 +124,7 @@ func (s *SystemUsecase) GetMenu(ctx context.Context, menuId string) (*v1.MenuInf
 }
 
 func (s *SystemUsecase) AddMenu(ctx context.Context, menu *v1.AdminAddPermissionsRequest) error {
-	_, err := s.sys.CreateMenu(ctx, &ent.Menu{
+	_, err := s.sys.CreateMenu(ctx, &gen.Menu{
 		ID:         uuid.NewString(),
 		Type:       toEntMenuType(menu.Type),
 		Path:       menu.Path,
@@ -144,7 +144,7 @@ func (s *SystemUsecase) AddMenu(ctx context.Context, menu *v1.AdminAddPermission
 }
 
 func (s *SystemUsecase) UpdateMenu(ctx context.Context, menu *v1.AdminEditPermissionsRequest) error {
-	_, err := s.sys.UpdateMenu(ctx, &ent.Menu{
+	_, err := s.sys.UpdateMenu(ctx, &gen.Menu{
 		ID:         menu.MenuId,
 		Path:       menu.Path,
 		Title:      menu.Title,
@@ -200,7 +200,7 @@ func (s *SystemUsecase) GetRole(ctx context.Context, roleId string) (*v1.RoleInf
 }
 
 func (s *SystemUsecase) AddRole(ctx context.Context, req *v1.AdminAddRoleRequest) (*v1.RoleInfo, error) {
-	roleInfo, err := s.sys.CreateRole(ctx, &ent.Role{
+	roleInfo, err := s.sys.CreateRole(ctx, &gen.Role{
 		ID:          fmt.Sprintf("role_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
 		Name:        req.Name,
 		Description: req.Description,
@@ -215,7 +215,7 @@ func (s *SystemUsecase) AddRole(ctx context.Context, req *v1.AdminAddRoleRequest
 }
 
 func (s *SystemUsecase) UpdateRole(ctx context.Context, req *v1.AdminEditRoleRequest) (*v1.RoleInfo, error) {
-	roleInfo, err := s.sys.UpdateRole(ctx, &ent.Role{
+	roleInfo, err := s.sys.UpdateRole(ctx, &gen.Role{
 		ID:          req.RoleId,
 		Name:        req.Name,
 		Description: req.Description,
@@ -237,7 +237,7 @@ func (s *SystemUsecase) DeleteRole(ctx context.Context, roleIds []string) error 
 	return nil
 }
 
-func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
+func toMenuInfos(menus []*gen.Menu) ([]*v1.MenuInfo, []string) {
 	menuInfos := make([]*v1.MenuInfo, 0)
 	permissions := make([]string, 0)
 
@@ -270,7 +270,7 @@ func toMenuInfos(menus []*ent.Menu) ([]*v1.MenuInfo, []string) {
 	return menuInfos, permissions
 }
 
-func toPermissions(menus []*ent.Menu) map[constant.Permissions]struct{} {
+func toPermissions(menus []*gen.Menu) map[constant.Permissions]struct{} {
 	permissions := make(map[constant.Permissions]struct{})
 	for _, item := range menus {
 		if item.Permission == "" ||
@@ -282,7 +282,7 @@ func toPermissions(menus []*ent.Menu) map[constant.Permissions]struct{} {
 	return permissions
 }
 
-func toMenuInfo(data *ent.Menu) *v1.MenuInfo {
+func toMenuInfo(data *gen.Menu) *v1.MenuInfo {
 	return &v1.MenuInfo{
 		Id:          data.ID,
 		Icon:        data.Icon,
@@ -300,7 +300,7 @@ func toMenuInfo(data *ent.Menu) *v1.MenuInfo {
 	}
 }
 
-func toRoleInfo(data *ent.Role) *v1.RoleInfo {
+func toRoleInfo(data *gen.Role) *v1.RoleInfo {
 	info := &v1.RoleInfo{
 		RoleId:      data.ID,
 		Description: data.Description,
