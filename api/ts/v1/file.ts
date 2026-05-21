@@ -137,6 +137,34 @@ export interface CreateFileSystemRequest {
 export interface CreateFileSystemResponse {
 }
 
+/** 批量压缩系统文件请求 */
+export interface BatchCompressFileSystemRequest {
+  /** 路径列表 */
+  paths: string[];
+  /** 目标压缩文件路径，不传时由服务端自动生成 */
+  targetPath?: string | undefined;
+}
+
+/** 批量压缩系统文件响应 */
+export interface BatchCompressFileSystemResponse {
+  /** 实际生成的压缩文件路径 */
+  outputPath: string;
+}
+
+/** 解压系统文件请求 */
+export interface UnzipFileSystemRequest {
+  /** 压缩文件路径 */
+  path: string;
+  /** 解压目标目录，不传时由服务端自动生成 */
+  targetPath?: string | undefined;
+}
+
+/** 解压系统文件响应 */
+export interface UnzipFileSystemResponse {
+  /** 实际生成的解压目录路径 */
+  outputPath: string;
+}
+
 /** 系统文件创建项 */
 export interface FileCreateItem {
   /** 路径 */

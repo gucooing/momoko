@@ -36,6 +36,14 @@ func (f *FileService) BatchDeleteFileSystem(ctx context.Context, req *v1.BatchDe
 	return f.uc.BatchDeleteFileSystem(ctx, req)
 }
 
+func (f *FileService) BatchCompressFileSystem(ctx context.Context, req *v1.BatchCompressFileSystemRequest) (*v1.BatchCompressFileSystemResponse, error) {
+	return f.uc.BatchCompressFileSystem(ctx, req)
+}
+
+func (f *FileService) UnzipFileSystem(ctx context.Context, req *v1.UnzipFileSystemRequest) (*v1.UnzipFileSystemResponse, error) {
+	return f.uc.UnzipFileSystem(ctx, req)
+}
+
 func (f *FileService) CreateFileSystem(ctx context.Context, req *v1.CreateFileSystemRequest) (*v1.CreateFileSystemResponse, error) {
 	return f.uc.CreateFileSystem(ctx, req)
 }

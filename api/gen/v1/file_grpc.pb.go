@@ -22,6 +22,8 @@ const (
 	FileManager_GetFileSystemList_FullMethodName       = "/v1.FileManager/GetFileSystemList"
 	FileManager_BatchDeleteFileSystem_FullMethodName   = "/v1.FileManager/BatchDeleteFileSystem"
 	FileManager_CreateFileSystem_FullMethodName        = "/v1.FileManager/CreateFileSystem"
+	FileManager_BatchCompressFileSystem_FullMethodName = "/v1.FileManager/BatchCompressFileSystem"
+	FileManager_UnzipFileSystem_FullMethodName         = "/v1.FileManager/UnzipFileSystem"
 	FileManager_OpenFileSystemFile_FullMethodName      = "/v1.FileManager/OpenFileSystemFile"
 	FileManager_FileSystemPreSign_FullMethodName       = "/v1.FileManager/FileSystemPreSign"
 	FileManager_FileSystemPreSignUpload_FullMethodName = "/v1.FileManager/FileSystemPreSignUpload"
@@ -42,6 +44,10 @@ type FileManagerClient interface {
 	BatchDeleteFileSystem(ctx context.Context, in *BatchDeleteFileSystemRequest, opts ...grpc.CallOption) (*BatchDeleteFileSystemResponse, error)
 	// 创建指定文件/文件夹(系统级)
 	CreateFileSystem(ctx context.Context, in *CreateFileSystemRequest, opts ...grpc.CallOption) (*CreateFileSystemResponse, error)
+	// 压缩指定文件/文件夹(系统级)
+	BatchCompressFileSystem(ctx context.Context, in *BatchCompressFileSystemRequest, opts ...grpc.CallOption) (*BatchCompressFileSystemResponse, error)
+	// 解压指定压缩包(系统级)
+	UnzipFileSystem(ctx context.Context, in *UnzipFileSystemRequest, opts ...grpc.CallOption) (*UnzipFileSystemResponse, error)
 	// 打开指定文件(系统级)
 	OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...grpc.CallOption) (*OpenFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
@@ -88,6 +94,26 @@ func (c *fileManagerClient) CreateFileSystem(ctx context.Context, in *CreateFile
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateFileSystemResponse)
 	err := c.cc.Invoke(ctx, FileManager_CreateFileSystem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) BatchCompressFileSystem(ctx context.Context, in *BatchCompressFileSystemRequest, opts ...grpc.CallOption) (*BatchCompressFileSystemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCompressFileSystemResponse)
+	err := c.cc.Invoke(ctx, FileManager_BatchCompressFileSystem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) UnzipFileSystem(ctx context.Context, in *UnzipFileSystemRequest, opts ...grpc.CallOption) (*UnzipFileSystemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnzipFileSystemResponse)
+	err := c.cc.Invoke(ctx, FileManager_UnzipFileSystem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +192,10 @@ type FileManagerServer interface {
 	BatchDeleteFileSystem(context.Context, *BatchDeleteFileSystemRequest) (*BatchDeleteFileSystemResponse, error)
 	// 创建指定文件/文件夹(系统级)
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
+	// 压缩指定文件/文件夹(系统级)
+	BatchCompressFileSystem(context.Context, *BatchCompressFileSystemRequest) (*BatchCompressFileSystemResponse, error)
+	// 解压指定压缩包(系统级)
+	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
 	// 打开指定文件(系统级)
 	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
@@ -196,6 +226,12 @@ func (UnimplementedFileManagerServer) BatchDeleteFileSystem(context.Context, *Ba
 }
 func (UnimplementedFileManagerServer) CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFileSystem not implemented")
+}
+func (UnimplementedFileManagerServer) BatchCompressFileSystem(context.Context, *BatchCompressFileSystemRequest) (*BatchCompressFileSystemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCompressFileSystem not implemented")
+}
+func (UnimplementedFileManagerServer) UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnzipFileSystem not implemented")
 }
 func (UnimplementedFileManagerServer) OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OpenFileSystemFile not implemented")
@@ -286,6 +322,42 @@ func _FileManager_CreateFileSystem_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileManagerServer).CreateFileSystem(ctx, req.(*CreateFileSystemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_BatchCompressFileSystem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCompressFileSystemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).BatchCompressFileSystem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_BatchCompressFileSystem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).BatchCompressFileSystem(ctx, req.(*BatchCompressFileSystemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_UnzipFileSystem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnzipFileSystemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).UnzipFileSystem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_UnzipFileSystem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).UnzipFileSystem(ctx, req.(*UnzipFileSystemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -416,6 +488,14 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateFileSystem",
 			Handler:    _FileManager_CreateFileSystem_Handler,
+		},
+		{
+			MethodName: "BatchCompressFileSystem",
+			Handler:    _FileManager_BatchCompressFileSystem_Handler,
+		},
+		{
+			MethodName: "UnzipFileSystem",
+			Handler:    _FileManager_UnzipFileSystem_Handler,
 		},
 		{
 			MethodName: "OpenFileSystemFile",

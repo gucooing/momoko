@@ -29,6 +29,20 @@ service FileManager {
       body: "*"
     };
   }
+  // 压缩指定文件/文件夹(系统级)
+  rpc BatchCompressFileSystem(BatchCompressFileSystemRequest) returns (BatchCompressFileSystemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/compress"
+      body: "*"
+    };
+  }
+  // 解压指定压缩包(系统级)
+  rpc UnzipFileSystem(UnzipFileSystemRequest) returns (UnzipFileSystemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/unzip"
+      body: "*"
+    };
+  }
   // 打开指定文件(系统级)
   rpc OpenFileSystemFile(OpenFileSystemFileRequest) returns (OpenFileSystemFileResponse) {
     option (google.api.http) = {
@@ -190,6 +204,34 @@ message CreateFileSystemRequest {
 
 // 批量创建系统文件响应
 message CreateFileSystemResponse {}
+
+// 批量压缩系统文件请求
+message BatchCompressFileSystemRequest {
+  // 路径列表
+  repeated string paths = 1;
+  // 目标压缩文件路径，不传时由服务端自动生成
+  optional string target_path = 2;
+}
+
+// 批量压缩系统文件响应
+message BatchCompressFileSystemResponse {
+  // 实际生成的压缩文件路径
+  string output_path = 1;
+}
+
+// 解压系统文件请求
+message UnzipFileSystemRequest {
+  // 压缩文件路径
+  string path = 1;
+  // 解压目标目录，不传时由服务端自动生成
+  optional string target_path = 2;
+}
+
+// 解压系统文件响应
+message UnzipFileSystemResponse {
+  // 实际生成的解压目录路径
+  string output_path = 1;
+}
 
 // 系统文件创建项
 message FileCreateItem {

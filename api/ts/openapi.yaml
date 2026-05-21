@@ -184,6 +184,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetFileSystemListResponse'
+    /api/v1/file/system/compress:
+        post:
+            tags:
+                - FileManager
+            description: 压缩指定文件/文件夹(系统级)
+            operationId: FileManager_BatchCompressFileSystem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BatchCompressFileSystemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BatchCompressFileSystemResponse'
     /api/v1/file/system/create:
         post:
             tags:
@@ -299,6 +318,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.OpenFileSystemFileResponse'
+    /api/v1/file/system/unzip:
+        post:
+            tags:
+                - FileManager
+            description: 解压指定压缩包(系统级)
+            operationId: FileManager_UnzipFileSystem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UnzipFileSystemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UnzipFileSystemResponse'
     /api/v1/file/upload/cancel:
         post:
             tags:
@@ -1493,6 +1531,25 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
+        v1.BatchCompressFileSystemRequest:
+            type: object
+            properties:
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 路径列表
+                targetPath:
+                    type: string
+                    description: 目标压缩文件路径，不传时由服务端自动生成
+            description: 批量压缩系统文件请求
+        v1.BatchCompressFileSystemResponse:
+            type: object
+            properties:
+                outputPath:
+                    type: string
+                    description: 实际生成的压缩文件路径
+            description: 批量压缩系统文件响应
         v1.BatchDeleteFileSystemRequest:
             type: object
             properties:
@@ -2425,6 +2482,23 @@ components:
                 fingerprint:
                     type: string
                     description: 服务端主机指纹
+        v1.UnzipFileSystemRequest:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 压缩文件路径
+                targetPath:
+                    type: string
+                    description: 解压目标目录，不传时由服务端自动生成
+            description: 解压系统文件请求
+        v1.UnzipFileSystemResponse:
+            type: object
+            properties:
+                outputPath:
+                    type: string
+                    description: 实际生成的解压目录路径
+            description: 解压系统文件响应
         v1.UpdateInstanceRequest:
             type: object
             properties:

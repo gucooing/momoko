@@ -111,6 +111,36 @@ func (f *FileUsecase) BatchDeleteFileSystem(ctx context.Context, req *v1.BatchDe
 	}, nil
 }
 
+// BatchCompressFileSystem 压缩系统文件或目录。
+func (f *FileUsecase) BatchCompressFileSystem(ctx context.Context, req *v1.BatchCompressFileSystemRequest) (*v1.BatchCompressFileSystemResponse, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	outputPath, err := fileOper.BatchCompress(req.Paths, req.GetTargetPath())
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	return &v1.BatchCompressFileSystemResponse{OutputPath: outputPath}, nil
+}
+
+// UnzipFileSystem 解压系统压缩包。
+func (f *FileUsecase) UnzipFileSystem(ctx context.Context, req *v1.UnzipFileSystemRequest) (*v1.UnzipFileSystemResponse, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	outputPath, err := fileOper.Unzip(req.Path, req.GetTargetPath())
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	return &v1.UnzipFileSystemResponse{OutputPath: outputPath}, nil
+}
+
 // CreateFileSystem 创建文件。
 func (f *FileUsecase) CreateFileSystem(ctx context.Context, req *v1.CreateFileSystemRequest) (*v1.CreateFileSystemResponse, error) {
 	fileOper, err := f.newSystemInstance()
