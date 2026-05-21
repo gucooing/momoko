@@ -37,6 +37,8 @@ const (
 	FieldTags = "tags"
 	// EdgeRole holds the string denoting the role edge name in mutations.
 	EdgeRole = "role"
+	// EdgeSharedSSHHosts holds the string denoting the shared_ssh_hosts edge name in mutations.
+	EdgeSharedSSHHosts = "shared_ssh_hosts"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RoleTable is the table that holds the role relation/edge.
@@ -46,6 +48,11 @@ const (
 	RoleInverseTable = "roles"
 	// RoleColumn is the table column denoting the role relation/edge.
 	RoleColumn = "user_role"
+	// SharedSSHHostsTable is the table that holds the shared_ssh_hosts relation/edge. The primary key declared below.
+	SharedSSHHostsTable = "ssh_host_shares"
+	// SharedSSHHostsInverseTable is the table name for the SSHHost entity.
+	// It exists in this package in order to avoid circular dependency with the "sshhost" package.
+	SharedSSHHostsInverseTable = "ssh_hosts"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -69,6 +76,12 @@ var ForeignKeys = []string{
 	"instance_users",
 	"user_role",
 }
+
+var (
+	// SharedSSHHostsPrimaryKey and SharedSSHHostsColumn2 are the table columns denoting the
+	// primary key for the shared_ssh_hosts relation (M2M).
+	SharedSSHHostsPrimaryKey = []string{"ssh_host_id", "user_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -192,10 +205,31 @@ func ByRoleField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRoleStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// BySharedSSHHostsCount orders the results by shared_ssh_hosts count.
+func BySharedSSHHostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSharedSSHHostsStep(), opts...)
+	}
+}
+
+// BySharedSSHHosts orders the results by shared_ssh_hosts terms.
+func BySharedSSHHosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSharedSSHHostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newRoleStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoleInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, RoleTable, RoleColumn),
+	)
+}
+func newSharedSSHHostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SharedSSHHostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, SharedSSHHostsTable, SharedSSHHostsPrimaryKey...),
 	)
 }

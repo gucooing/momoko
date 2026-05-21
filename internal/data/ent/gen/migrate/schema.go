@@ -213,6 +213,38 @@ var (
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
 	}
+	// SSHHostsColumns holds the columns for the "ssh_hosts" table.
+	SSHHostsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "host", Type: field.TypeString},
+		{Name: "port", Type: field.TypeInt, Default: 22},
+		{Name: "username", Type: field.TypeString},
+		{Name: "auth_type", Type: field.TypeEnum, Enums: []string{"password", "key"}},
+		{Name: "credential", Type: field.TypeString},
+		{Name: "passphrase", Type: field.TypeString, Nullable: true},
+		{Name: "fingerprint", Type: field.TypeString, Nullable: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "tags", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"unknown", "online", "offline"}, Default: "unknown"},
+		{Name: "ssh_host_owner", Type: field.TypeString},
+	}
+	// SSHHostsTable holds the schema information for the "ssh_hosts" table.
+	SSHHostsTable = &schema.Table{
+		Name:       "ssh_hosts",
+		Columns:    SSHHostsColumns,
+		PrimaryKey: []*schema.Column{SSHHostsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ssh_hosts_users_owner",
+				Columns:    []*schema.Column{SSHHostsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// ConfigsColumns holds the columns for the "configs" table.
 	ConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -288,6 +320,31 @@ var (
 			},
 		},
 	}
+	// SSHHostSharesColumns holds the columns for the "ssh_host_shares" table.
+	SSHHostSharesColumns = []*schema.Column{
+		{Name: "ssh_host_id", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// SSHHostSharesTable holds the schema information for the "ssh_host_shares" table.
+	SSHHostSharesTable = &schema.Table{
+		Name:       "ssh_host_shares",
+		Columns:    SSHHostSharesColumns,
+		PrimaryKey: []*schema.Column{SSHHostSharesColumns[0], SSHHostSharesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ssh_host_shares_ssh_host_id",
+				Columns:    []*schema.Column{SSHHostSharesColumns[0]},
+				RefColumns: []*schema.Column{SSHHostsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "ssh_host_shares_user_id",
+				Columns:    []*schema.Column{SSHHostSharesColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuthsTable,
@@ -297,9 +354,11 @@ var (
 		InstanceTypesTable,
 		MenusTable,
 		RolesTable,
+		SSHHostsTable,
 		ConfigsTable,
 		UsersTable,
 		RoleMenusTable,
+		SSHHostSharesTable,
 	}
 )
 
@@ -308,6 +367,7 @@ func init() {
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
+	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",
 	}
@@ -315,4 +375,6 @@ func init() {
 	UsersTable.ForeignKeys[1].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[0].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[1].RefTable = MenusTable
+	SSHHostSharesTable.ForeignKeys[0].RefTable = SSHHostsTable
+	SSHHostSharesTable.ForeignKeys[1].RefTable = UsersTable
 }

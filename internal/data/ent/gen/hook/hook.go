@@ -92,6 +92,18 @@ func (f RoleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.RoleMutation", m)
 }
 
+// The SSHHostFunc type is an adapter to allow the use of ordinary
+// function as SSHHost mutator.
+type SSHHostFunc func(context.Context, *gen.SSHHostMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SSHHostFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.SSHHostMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SSHHostMutation", m)
+}
+
 // The SystemConfigFunc type is an adapter to allow the use of ordinary
 // function as SystemConfig mutator.
 type SystemConfigFunc func(context.Context, *gen.SystemConfigMutation) (gen.Value, error)

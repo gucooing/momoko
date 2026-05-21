@@ -28,6 +28,8 @@ type Tx struct {
 	Menu *MenuClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SSHHost is the client for interacting with the SSHHost builders.
+	SSHHost *SSHHostClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
 	// User is the client for interacting with the User builders.
@@ -170,6 +172,7 @@ func (tx *Tx) init() {
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

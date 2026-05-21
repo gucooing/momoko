@@ -730,6 +730,193 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetInstanceInfoResponse'
+    /api/v1/openssh/host:
+        get:
+            tags:
+                - OpenSSHManager
+            description: 获取 SSH 服务端列表
+            operationId: OpenSSHManager_GetSSHHosts
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 名称/标签/主机地址
+                  schema:
+                    type: string
+                - name: host
+                  in: query
+                  description: 主机地址
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSSHHostsResponse'
+        post:
+            tags:
+                - OpenSSHManager
+            description: 创建 SSH 服务端
+            operationId: OpenSSHManager_CreateSSHHost
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateSSHHostRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateSSHHostResponse'
+    /api/v1/openssh/host/batch-test:
+        post:
+            tags:
+                - OpenSSHManager
+            description: 批量测试 SSH 服务端连接
+            operationId: OpenSSHManager_BatchTestSSHHosts
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BatchTestSSHHostsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BatchTestSSHHostsResponse'
+    /api/v1/openssh/host/{id}:
+        get:
+            tags:
+                - OpenSSHManager
+            description: 获取 SSH 服务端详情
+            operationId: OpenSSHManager_GetSSHHostInfo
+            parameters:
+                - name: id
+                  in: path
+                  description: SSH 服务端 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSSHHostInfoResponse'
+        put:
+            tags:
+                - OpenSSHManager
+            description: 更新 SSH 服务端
+            operationId: OpenSSHManager_UpdateSSHHost
+            parameters:
+                - name: id
+                  in: path
+                  description: SSH 服务端 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateSSHHostRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateSSHHostResponse'
+        delete:
+            tags:
+                - OpenSSHManager
+            description: 删除 SSH 服务端
+            operationId: OpenSSHManager_DeleteSSHHost
+            parameters:
+                - name: id
+                  in: path
+                  description: SSH 服务端 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteSSHHostResponse'
+    /api/v1/openssh/host/{id}/share:
+        post:
+            tags:
+                - OpenSSHManager
+            description: 分享 SSH 服务端
+            operationId: OpenSSHManager_ShareSSHHost
+            parameters:
+                - name: id
+                  in: path
+                  description: SSH 服务端 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ShareSSHHostRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ShareSSHHostResponse'
+    /api/v1/openssh/host/{id}/test:
+        post:
+            tags:
+                - OpenSSHManager
+            description: 测试 SSH 服务端连接
+            operationId: OpenSSHManager_TestSSHHost
+            parameters:
+                - name: id
+                  in: path
+                  description: SSH 服务端 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestSSHHostRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestSSHHostResponse'
     /api/v1/permissions/admin:
         get:
             tags:
@@ -1324,6 +1511,22 @@ components:
                         $ref: '#/components/schemas/v1.FileOperationResult'
                     description: 删除结果列表
             description: 批量删除系统文件响应
+        v1.BatchTestSSHHostsRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+                    description: SSH 服务端 id
+        v1.BatchTestSSHHostsResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.SSHHostTestResult'
+                    description: 检测结果
         v1.CancelFileUploadRequest:
             type: object
             properties:
@@ -1417,6 +1620,56 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.CreateSSHHostRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                host:
+                    type: string
+                    description: 主机地址
+                port:
+                    type: integer
+                    description: 端口
+                    format: int32
+                username:
+                    type: string
+                    description: 用户名
+                authType:
+                    type: integer
+                    description: 认证方式
+                    format: enum
+                password:
+                    type: string
+                    description: 密码认证时填写
+                privateKey:
+                    type: string
+                    description: 密钥认证时填写
+                passphrase:
+                    type: string
+                    description: 私钥口令
+                fingerprint:
+                    type: string
+                    description: 主机指纹
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+                sharedUserIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 分享给指定用户
+        v1.CreateSSHHostResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SSHHostInfo'
+                    description: SSH 服务端详情
         v1.DelInstanceLogResponse:
             type: object
             properties: {}
@@ -1433,6 +1686,9 @@ components:
             type: object
             properties: {}
             description: 删除已登录的设备响应
+        v1.DeleteSSHHostResponse:
+            type: object
+            properties: {}
         v1.DeleteUserResponse:
             type: object
             properties: {}
@@ -1652,6 +1908,30 @@ components:
                         $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 列表
             description: 获取实例列表响应
+        v1.GetSSHHostInfoResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SSHHostInfo'
+                    description: SSH 服务端详情
+        v1.GetSSHHostsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.SSHHostInfo'
+                    description: 列表
         v1.GetTerminalInfoResponse:
             type: object
             properties:
@@ -1979,6 +2259,108 @@ components:
                         type: string
                     description: 角色菜单id
             description: 角色详情
+        v1.SSHHostInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: SSH 服务端 id
+                name:
+                    type: string
+                    description: 名称
+                host:
+                    type: string
+                    description: 主机地址
+                port:
+                    type: integer
+                    description: 端口
+                    format: int32
+                username:
+                    type: string
+                    description: 用户名
+                authType:
+                    type: integer
+                    description: 认证方式
+                    format: enum
+                fingerprint:
+                    type: string
+                    description: 主机指纹
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+                ownerUserId:
+                    type: string
+                    description: 所属用户 id
+                sharedUsers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.SSHHostSharedUser'
+                    description: 分享用户信息
+                accessRole:
+                    type: integer
+                    description: 当前用户访问身份
+                    format: enum
+                status:
+                    type: integer
+                    description: 连接状态
+                    format: enum
+                wsPath:
+                    type: string
+                    description: WebSocket 路径
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+        v1.SSHHostSharedUser:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户id
+                name:
+                    type: string
+                    description: 用户名称
+        v1.SSHHostTestResult:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: SSH 服务端 id
+                status:
+                    type: integer
+                    description: 连接状态
+                    format: enum
+                message:
+                    type: string
+                    description: 测试结果
+                fingerprint:
+                    type: string
+                    description: 服务端主机指纹
+        v1.ShareSSHHostRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: SSH 服务端 id
+                userIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 分享给指定用户；传空数组表示取消全部分享
+        v1.ShareSSHHostResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SSHHostInfo'
+                    description: SSH 服务端详情
         v1.StartInstanceRequest:
             type: object
             properties:
@@ -2024,6 +2406,25 @@ components:
             type: object
             properties: {}
             description: 停止终端响应
+        v1.TestSSHHostRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: SSH 服务端 id
+        v1.TestSSHHostResponse:
+            type: object
+            properties:
+                status:
+                    type: integer
+                    description: 连接状态
+                    format: enum
+                message:
+                    type: string
+                    description: 测试结果
+                fingerprint:
+                    type: string
+                    description: 服务端主机指纹
         v1.UpdateInstanceRequest:
             type: object
             properties:
@@ -2131,6 +2532,54 @@ components:
             type: object
             properties: {}
             description: 更新密码响应
+        v1.UpdateSSHHostRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: SSH 服务端 id
+                name:
+                    type: string
+                    description: 名称
+                host:
+                    type: string
+                    description: 主机地址
+                port:
+                    type: integer
+                    description: 端口
+                    format: int32
+                username:
+                    type: string
+                    description: 用户名
+                authType:
+                    type: integer
+                    description: 认证方式
+                    format: enum
+                password:
+                    type: string
+                    description: 密码认证时填写
+                privateKey:
+                    type: string
+                    description: 密钥认证时填写
+                passphrase:
+                    type: string
+                    description: 私钥口令
+                fingerprint:
+                    type: string
+                    description: 主机指纹
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+        v1.UpdateSSHHostResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SSHHostInfo'
+                    description: SSH 服务端详情
         v1.UploadInfo:
             type: object
             properties:
@@ -2223,6 +2672,8 @@ tags:
       description: 文件管理
     - name: InstanceManager
       description: 应用管理
+    - name: OpenSSHManager
+      description: OpenSSH 管理
     - name: System
       description: 系统管理
     - name: UserService

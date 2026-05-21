@@ -13,6 +13,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.17
 	go.einride.tech/aip v0.76.0
 	go.uber.org/automaxprocs v1.5.1
+	golang.org/x/crypto v0.46.0
 	golang.org/x/net v0.48.0
 	golang.org/x/sys v0.39.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2

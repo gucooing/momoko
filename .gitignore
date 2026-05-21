@@ -38,7 +38,6 @@ bin/
 .cache/
 .idea/
 *.swp
-*.pb.go
 /dist
 /test/bedrock-server
 /servers

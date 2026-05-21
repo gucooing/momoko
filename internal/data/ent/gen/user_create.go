@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/user"
 	"time"
 
@@ -163,6 +164,21 @@ func (_c *UserCreate) SetNillableRoleID(id *string) *UserCreate {
 // SetRole sets the "role" edge to the Role entity.
 func (_c *UserCreate) SetRole(v *Role) *UserCreate {
 	return _c.SetRoleID(v.ID)
+}
+
+// AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
+func (_c *UserCreate) AddSharedSSHHostIDs(ids ...string) *UserCreate {
+	_c.mutation.AddSharedSSHHostIDs(ids...)
+	return _c
+}
+
+// AddSharedSSHHosts adds the "shared_ssh_hosts" edges to the SSHHost entity.
+func (_c *UserCreate) AddSharedSSHHosts(v ...*SSHHost) *UserCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSharedSSHHostIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -354,6 +370,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_role = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SharedSSHHostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -62,6 +62,7 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", ptr("menu_2"), 0, ""),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "Element:MessageBox", ptr("menu_2"), 1, ""),
 		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", ptr("menu_2"), 2, ""),
+		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:CubeIcon", ptr("menu_2"), 3, ""),
 
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, ""),
 		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "Element:Folder", ptr("menu_3"), 0, constant.Terminal),

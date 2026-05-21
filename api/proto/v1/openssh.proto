@@ -1,0 +1,284 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// OpenSSH 管理
+service OpenSSHManager {
+  // 获取 SSH 服务端列表
+  rpc GetSSHHosts(GetSSHHostsRequest) returns (GetSSHHostsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/openssh/host"
+    };
+  }
+  // 创建 SSH 服务端
+  rpc CreateSSHHost(CreateSSHHostRequest) returns (CreateSSHHostResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/openssh/host"
+      body: "*"
+    };
+  }
+  // 获取 SSH 服务端详情
+  rpc GetSSHHostInfo(GetSSHHostInfoRequest) returns (GetSSHHostInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/openssh/host/{id}"
+    };
+  }
+  // 更新 SSH 服务端
+  rpc UpdateSSHHost(UpdateSSHHostRequest) returns (UpdateSSHHostResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/openssh/host/{id}"
+      body: "*"
+    };
+  }
+  // 删除 SSH 服务端
+  rpc DeleteSSHHost(DeleteSSHHostRequest) returns (DeleteSSHHostResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/openssh/host/{id}"
+    };
+  }
+  // 分享 SSH 服务端
+  rpc ShareSSHHost(ShareSSHHostRequest) returns (ShareSSHHostResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/openssh/host/{id}/share"
+      body: "*"
+    };
+  }
+  // 测试 SSH 服务端连接
+  rpc TestSSHHost(TestSSHHostRequest) returns (TestSSHHostResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/openssh/host/{id}/test"
+      body: "*"
+    };
+  }
+  // 批量测试 SSH 服务端连接
+  rpc BatchTestSSHHosts(BatchTestSSHHostsRequest) returns (BatchTestSSHHostsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/openssh/host/batch-test"
+      body: "*"
+    };
+  }
+}
+
+message GetSSHHostsRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // 名称/标签/主机地址
+  optional string keywords = 3;
+  // 主机地址
+  optional string host = 4;
+}
+
+message GetSSHHostsResponse {
+  // actual page
+  int64 page = 1;
+  // actual page size
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 列表
+  repeated SSHHostInfo infos = 4;
+}
+
+message CreateSSHHostRequest {
+  // 名称
+  string name = 1;
+  // 主机地址
+  string host = 2;
+  // 端口
+  int32 port = 3;
+  // 用户名
+  string username = 4;
+  // 认证方式
+  SSHAuthType auth_type = 5;
+  // 密码认证时填写
+  string password = 6;
+  // 密钥认证时填写
+  string private_key = 7;
+  // 私钥口令
+  string passphrase = 8;
+  // 主机指纹
+  string fingerprint = 9;
+  // 备注
+  string remark = 10;
+  // 标签
+  string tags = 11;
+  // 分享给指定用户
+  repeated string shared_user_ids = 12;
+}
+
+message CreateSSHHostResponse {
+  // SSH 服务端详情
+  SSHHostInfo info = 1;
+}
+
+message GetSSHHostInfoRequest {
+  // SSH 服务端 id
+  string id = 1;
+}
+
+message GetSSHHostInfoResponse {
+  // SSH 服务端详情
+  SSHHostInfo info = 1;
+}
+
+message UpdateSSHHostRequest {
+  // SSH 服务端 id
+  string id = 1;
+  // 名称
+  optional string name = 2;
+  // 主机地址
+  optional string host = 3;
+  // 端口
+  optional int32 port = 4;
+  // 用户名
+  optional string username = 5;
+  // 认证方式
+  optional SSHAuthType auth_type = 6;
+  // 密码认证时填写
+  optional string password = 7;
+  // 密钥认证时填写
+  optional string private_key = 8;
+  // 私钥口令
+  optional string passphrase = 9;
+  // 主机指纹
+  optional string fingerprint = 10;
+  // 备注
+  optional string remark = 11;
+  // 标签
+  optional string tags = 12;
+}
+
+message UpdateSSHHostResponse {
+  // SSH 服务端详情
+  SSHHostInfo info = 1;
+}
+
+message DeleteSSHHostRequest {
+  // SSH 服务端 id
+  string id = 1;
+}
+
+message DeleteSSHHostResponse {}
+
+message ShareSSHHostRequest {
+  // SSH 服务端 id
+  string id = 1;
+  // 分享给指定用户；传空数组表示取消全部分享
+  repeated string user_ids = 2;
+}
+
+message ShareSSHHostResponse {
+  // SSH 服务端详情
+  SSHHostInfo info = 1;
+}
+
+message TestSSHHostRequest {
+  // SSH 服务端 id
+  string id = 1;
+}
+
+message TestSSHHostResponse {
+  // 连接状态
+  SSHHostStatus status = 1;
+  // 测试结果
+  string message = 2;
+  // 服务端主机指纹
+  string fingerprint = 3;
+}
+
+message BatchTestSSHHostsRequest {
+  // SSH 服务端 id
+  repeated string ids = 1;
+}
+
+message BatchTestSSHHostsResponse {
+  // 检测结果
+  repeated SSHHostTestResult results = 1;
+}
+
+message SSHHostTestResult {
+  // SSH 服务端 id
+  string id = 1;
+  // 连接状态
+  SSHHostStatus status = 2;
+  // 测试结果
+  string message = 3;
+  // 服务端主机指纹
+  string fingerprint = 4;
+}
+
+message SSHHostInfo {
+  // SSH 服务端 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 主机地址
+  string host = 3;
+  // 端口
+  int32 port = 4;
+  // 用户名
+  string username = 5;
+  // 认证方式
+  SSHAuthType auth_type = 6;
+  // 主机指纹
+  string fingerprint = 7;
+  // 备注
+  string remark = 8;
+  // 标签
+  string tags = 9;
+  // 所属用户 id
+  string owner_user_id = 10;
+  // 分享用户信息
+  repeated SSHHostSharedUser shared_users = 11;
+  // 当前用户访问身份
+  SSHHostAccessRole access_role = 12;
+  // 连接状态
+  SSHHostStatus status = 13;
+  // WebSocket 路径
+  string ws_path = 14;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 15;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 16;
+}
+
+message SSHHostSharedUser {
+  // 用户id
+  string user_id = 1;
+  // 用户名称
+  string name = 2;
+}
+
+enum SSHAuthType {
+  // 未指定
+  SSH_AUTH_TYPE_UNSPECIFIED = 0;
+  // 密码
+  SSH_AUTH_TYPE_PASSWORD = 1;
+  // 私钥
+  SSH_AUTH_TYPE_KEY = 2;
+}
+
+enum SSHHostAccessRole {
+  // 未指定
+  SSH_HOST_ACCESS_ROLE_UNSPECIFIED = 0;
+  // 创建者
+  SSH_HOST_ACCESS_ROLE_OWNER = 1;
+  // 被分享者
+  SSH_HOST_ACCESS_ROLE_SHARED = 2;
+}
+
+enum SSHHostStatus {
+  // 未检测
+  SSH_HOST_STATUS_UNKNOWN = 0;
+  // 在线
+  SSH_HOST_STATUS_ONLINE = 1;
+  // 离线
+  SSH_HOST_STATUS_OFFLINE = 2;
+}

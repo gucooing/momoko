@@ -10,6 +10,7 @@ import (
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/schema"
@@ -223,6 +224,43 @@ func init() {
 	roleDescID := roleFields[0].Descriptor()
 	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	role.IDValidator = roleDescID.Validators[0].(func(string) error)
+	sshhostMixin := schema.SSHHost{}.Mixin()
+	sshhostMixinFields0 := sshhostMixin[0].Fields()
+	_ = sshhostMixinFields0
+	sshhostFields := schema.SSHHost{}.Fields()
+	_ = sshhostFields
+	// sshhostDescCreateTime is the schema descriptor for create_time field.
+	sshhostDescCreateTime := sshhostMixinFields0[0].Descriptor()
+	// sshhost.DefaultCreateTime holds the default value on creation for the create_time field.
+	sshhost.DefaultCreateTime = sshhostDescCreateTime.Default.(func() time.Time)
+	// sshhostDescUpdateTime is the schema descriptor for update_time field.
+	sshhostDescUpdateTime := sshhostMixinFields0[1].Descriptor()
+	// sshhost.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sshhost.DefaultUpdateTime = sshhostDescUpdateTime.Default.(func() time.Time)
+	// sshhost.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sshhost.UpdateDefaultUpdateTime = sshhostDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sshhostDescName is the schema descriptor for name field.
+	sshhostDescName := sshhostFields[1].Descriptor()
+	// sshhost.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	sshhost.NameValidator = sshhostDescName.Validators[0].(func(string) error)
+	// sshhostDescHost is the schema descriptor for host field.
+	sshhostDescHost := sshhostFields[2].Descriptor()
+	// sshhost.HostValidator is a validator for the "host" field. It is called by the builders before save.
+	sshhost.HostValidator = sshhostDescHost.Validators[0].(func(string) error)
+	// sshhostDescPort is the schema descriptor for port field.
+	sshhostDescPort := sshhostFields[3].Descriptor()
+	// sshhost.DefaultPort holds the default value on creation for the port field.
+	sshhost.DefaultPort = sshhostDescPort.Default.(int)
+	// sshhost.PortValidator is a validator for the "port" field. It is called by the builders before save.
+	sshhost.PortValidator = sshhostDescPort.Validators[0].(func(int) error)
+	// sshhostDescUsername is the schema descriptor for username field.
+	sshhostDescUsername := sshhostFields[4].Descriptor()
+	// sshhost.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	sshhost.UsernameValidator = sshhostDescUsername.Validators[0].(func(string) error)
+	// sshhostDescID is the schema descriptor for id field.
+	sshhostDescID := sshhostFields[0].Descriptor()
+	// sshhost.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sshhost.IDValidator = sshhostDescID.Validators[0].(func(string) error)
 	systemconfigMixin := schema.SystemConfig{}.Mixin()
 	systemconfigMixinFields0 := systemconfigMixin[0].Fields()
 	_ = systemconfigMixinFields0

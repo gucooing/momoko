@@ -174,6 +174,7 @@ func (f *FileUsecase) FileDownload(path string, w http.ResponseWriter, r *http.R
 		return
 	}
 	w.Header().Set("Content-Disposition", `attachment; filename="`+info.Name()+`"`)
+	w.Header().Set("Accept-Ranges", "bytes")
 	http.ServeContent(w, r, info.Name(), info.ModTime(), fs)
 }
 

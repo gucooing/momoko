@@ -28,6 +28,7 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("role", Role.Type).Unique().Comment("关联的角色"),
+		edge.From("shared_ssh_hosts", SSHHost.Type).Ref("shared_users").Comment("被分享的SSH服务端"),
 	}
 }
 

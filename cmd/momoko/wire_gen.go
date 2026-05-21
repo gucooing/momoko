@@ -54,7 +54,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 		return nil, nil, err
 	}
 	instanceService := service.NewInstanceService(instanceUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, authService, fileService, userService, systemService, instanceService)
+	openSSHRepo := data.NewOpenSSHRepo(dataData)
+	openSSHUsecase := biz.NewOpenSSHUsecase(openSSHRepo)
+	openSSHService := service.NewOpenSSHService(openSSHUsecase)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, authService, fileService, userService, systemService, instanceService, openSSHService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup2()

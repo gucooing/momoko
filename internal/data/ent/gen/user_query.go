@@ -4,10 +4,12 @@ package gen
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/user"
 
 	"entgo.io/ent"
@@ -19,12 +21,13 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx        *QueryContext
-	order      []user.OrderOption
-	inters     []Interceptor
-	predicates []predicate.User
-	withRole   *RoleQuery
-	withFKs    bool
+	ctx                *QueryContext
+	order              []user.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.User
+	withRole           *RoleQuery
+	withSharedSSHHosts *SSHHostQuery
+	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +79,28 @@ func (_q *UserQuery) QueryRole() *RoleQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, user.RoleTable, user.RoleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySharedSSHHosts chains the current query on the "shared_ssh_hosts" edge.
+func (_q *UserQuery) QuerySharedSSHHosts() *SSHHostQuery {
+	query := (&SSHHostClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(sshhost.Table, sshhost.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.SharedSSHHostsTable, user.SharedSSHHostsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +295,13 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]user.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.User{}, _q.predicates...),
-		withRole:   _q.withRole.Clone(),
+		config:             _q.config,
+		ctx:                _q.ctx.Clone(),
+		order:              append([]user.OrderOption{}, _q.order...),
+		inters:             append([]Interceptor{}, _q.inters...),
+		predicates:         append([]predicate.User{}, _q.predicates...),
+		withRole:           _q.withRole.Clone(),
+		withSharedSSHHosts: _q.withSharedSSHHosts.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +316,17 @@ func (_q *UserQuery) WithRole(opts ...func(*RoleQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withRole = query
+	return _q
+}
+
+// WithSharedSSHHosts tells the query-builder to eager-load the nodes that are connected to
+// the "shared_ssh_hosts" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithSharedSSHHosts(opts ...func(*SSHHostQuery)) *UserQuery {
+	query := (&SSHHostClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSharedSSHHosts = query
 	return _q
 }
 
@@ -372,8 +409,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withRole != nil,
+			_q.withSharedSSHHosts != nil,
 		}
 	)
 	if _q.withRole != nil {
@@ -403,6 +441,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if query := _q.withRole; query != nil {
 		if err := _q.loadRole(ctx, query, nodes, nil,
 			func(n *User, e *Role) { n.Edges.Role = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSharedSSHHosts; query != nil {
+		if err := _q.loadSharedSSHHosts(ctx, query, nodes,
+			func(n *User) { n.Edges.SharedSSHHosts = []*SSHHost{} },
+			func(n *User, e *SSHHost) { n.Edges.SharedSSHHosts = append(n.Edges.SharedSSHHosts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -437,6 +482,67 @@ func (_q *UserQuery) loadRole(ctx context.Context, query *RoleQuery, nodes []*Us
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *UserQuery) loadSharedSSHHosts(ctx context.Context, query *SSHHostQuery, nodes []*User, init func(*User), assign func(*User, *SSHHost)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*User)
+	nids := make(map[string]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.SharedSSHHostsTable)
+		s.Join(joinT).On(s.C(sshhost.FieldID), joinT.C(user.SharedSSHHostsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(user.SharedSSHHostsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.SharedSSHHostsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullString)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := values[0].(*sql.NullString).String
+				inValue := values[1].(*sql.NullString).String
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*SSHHost](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "shared_ssh_hosts" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

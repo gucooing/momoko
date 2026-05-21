@@ -14,6 +14,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
 	"sync"
@@ -39,6 +40,7 @@ const (
 	TypeInstanceType    = "InstanceType"
 	TypeMenu            = "Menu"
 	TypeRole            = "Role"
+	TypeSSHHost         = "SSHHost"
 	TypeSystemConfig    = "SystemConfig"
 	TypeUser            = "User"
 )
@@ -6062,6 +6064,1253 @@ func (m *RoleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Role edge %s", name)
 }
 
+// SSHHostMutation represents an operation that mutates the SSHHost nodes in the graph.
+type SSHHostMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *string
+	create_time         *time.Time
+	update_time         *time.Time
+	name                *string
+	host                *string
+	port                *int
+	addport             *int
+	username            *string
+	auth_type           *sshhost.AuthType
+	credential          *string
+	passphrase          *string
+	fingerprint         *string
+	remark              *string
+	tags                *string
+	status              *sshhost.Status
+	clearedFields       map[string]struct{}
+	owner               *string
+	clearedowner        bool
+	shared_users        map[string]struct{}
+	removedshared_users map[string]struct{}
+	clearedshared_users bool
+	done                bool
+	oldValue            func(context.Context) (*SSHHost, error)
+	predicates          []predicate.SSHHost
+}
+
+var _ ent.Mutation = (*SSHHostMutation)(nil)
+
+// sshhostOption allows management of the mutation configuration using functional options.
+type sshhostOption func(*SSHHostMutation)
+
+// newSSHHostMutation creates new mutation for the SSHHost entity.
+func newSSHHostMutation(c config, op Op, opts ...sshhostOption) *SSHHostMutation {
+	m := &SSHHostMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSSHHost,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSSHHostID sets the ID field of the mutation.
+func withSSHHostID(id string) sshhostOption {
+	return func(m *SSHHostMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SSHHost
+		)
+		m.oldValue = func(ctx context.Context) (*SSHHost, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SSHHost.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSSHHost sets the old SSHHost of the mutation.
+func withSSHHost(node *SSHHost) sshhostOption {
+	return func(m *SSHHostMutation) {
+		m.oldValue = func(context.Context) (*SSHHost, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SSHHostMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SSHHostMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SSHHost entities.
+func (m *SSHHostMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SSHHostMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SSHHostMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SSHHost.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *SSHHostMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *SSHHostMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *SSHHostMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *SSHHostMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *SSHHostMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *SSHHostMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the "name" field.
+func (m *SSHHostMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *SSHHostMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *SSHHostMutation) ResetName() {
+	m.name = nil
+}
+
+// SetHost sets the "host" field.
+func (m *SSHHostMutation) SetHost(s string) {
+	m.host = &s
+}
+
+// Host returns the value of the "host" field in the mutation.
+func (m *SSHHostMutation) Host() (r string, exists bool) {
+	v := m.host
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHost returns the old "host" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldHost(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHost: %w", err)
+	}
+	return oldValue.Host, nil
+}
+
+// ResetHost resets all changes to the "host" field.
+func (m *SSHHostMutation) ResetHost() {
+	m.host = nil
+}
+
+// SetPort sets the "port" field.
+func (m *SSHHostMutation) SetPort(i int) {
+	m.port = &i
+	m.addport = nil
+}
+
+// Port returns the value of the "port" field in the mutation.
+func (m *SSHHostMutation) Port() (r int, exists bool) {
+	v := m.port
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPort returns the old "port" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldPort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPort: %w", err)
+	}
+	return oldValue.Port, nil
+}
+
+// AddPort adds i to the "port" field.
+func (m *SSHHostMutation) AddPort(i int) {
+	if m.addport != nil {
+		*m.addport += i
+	} else {
+		m.addport = &i
+	}
+}
+
+// AddedPort returns the value that was added to the "port" field in this mutation.
+func (m *SSHHostMutation) AddedPort() (r int, exists bool) {
+	v := m.addport
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPort resets all changes to the "port" field.
+func (m *SSHHostMutation) ResetPort() {
+	m.port = nil
+	m.addport = nil
+}
+
+// SetUsername sets the "username" field.
+func (m *SSHHostMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *SSHHostMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *SSHHostMutation) ResetUsername() {
+	m.username = nil
+}
+
+// SetAuthType sets the "auth_type" field.
+func (m *SSHHostMutation) SetAuthType(st sshhost.AuthType) {
+	m.auth_type = &st
+}
+
+// AuthType returns the value of the "auth_type" field in the mutation.
+func (m *SSHHostMutation) AuthType() (r sshhost.AuthType, exists bool) {
+	v := m.auth_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuthType returns the old "auth_type" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldAuthType(ctx context.Context) (v sshhost.AuthType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuthType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuthType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuthType: %w", err)
+	}
+	return oldValue.AuthType, nil
+}
+
+// ResetAuthType resets all changes to the "auth_type" field.
+func (m *SSHHostMutation) ResetAuthType() {
+	m.auth_type = nil
+}
+
+// SetCredential sets the "credential" field.
+func (m *SSHHostMutation) SetCredential(s string) {
+	m.credential = &s
+}
+
+// Credential returns the value of the "credential" field in the mutation.
+func (m *SSHHostMutation) Credential() (r string, exists bool) {
+	v := m.credential
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCredential returns the old "credential" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldCredential(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCredential is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCredential requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCredential: %w", err)
+	}
+	return oldValue.Credential, nil
+}
+
+// ResetCredential resets all changes to the "credential" field.
+func (m *SSHHostMutation) ResetCredential() {
+	m.credential = nil
+}
+
+// SetPassphrase sets the "passphrase" field.
+func (m *SSHHostMutation) SetPassphrase(s string) {
+	m.passphrase = &s
+}
+
+// Passphrase returns the value of the "passphrase" field in the mutation.
+func (m *SSHHostMutation) Passphrase() (r string, exists bool) {
+	v := m.passphrase
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPassphrase returns the old "passphrase" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldPassphrase(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPassphrase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPassphrase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPassphrase: %w", err)
+	}
+	return oldValue.Passphrase, nil
+}
+
+// ClearPassphrase clears the value of the "passphrase" field.
+func (m *SSHHostMutation) ClearPassphrase() {
+	m.passphrase = nil
+	m.clearedFields[sshhost.FieldPassphrase] = struct{}{}
+}
+
+// PassphraseCleared returns if the "passphrase" field was cleared in this mutation.
+func (m *SSHHostMutation) PassphraseCleared() bool {
+	_, ok := m.clearedFields[sshhost.FieldPassphrase]
+	return ok
+}
+
+// ResetPassphrase resets all changes to the "passphrase" field.
+func (m *SSHHostMutation) ResetPassphrase() {
+	m.passphrase = nil
+	delete(m.clearedFields, sshhost.FieldPassphrase)
+}
+
+// SetFingerprint sets the "fingerprint" field.
+func (m *SSHHostMutation) SetFingerprint(s string) {
+	m.fingerprint = &s
+}
+
+// Fingerprint returns the value of the "fingerprint" field in the mutation.
+func (m *SSHHostMutation) Fingerprint() (r string, exists bool) {
+	v := m.fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFingerprint returns the old "fingerprint" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFingerprint: %w", err)
+	}
+	return oldValue.Fingerprint, nil
+}
+
+// ClearFingerprint clears the value of the "fingerprint" field.
+func (m *SSHHostMutation) ClearFingerprint() {
+	m.fingerprint = nil
+	m.clearedFields[sshhost.FieldFingerprint] = struct{}{}
+}
+
+// FingerprintCleared returns if the "fingerprint" field was cleared in this mutation.
+func (m *SSHHostMutation) FingerprintCleared() bool {
+	_, ok := m.clearedFields[sshhost.FieldFingerprint]
+	return ok
+}
+
+// ResetFingerprint resets all changes to the "fingerprint" field.
+func (m *SSHHostMutation) ResetFingerprint() {
+	m.fingerprint = nil
+	delete(m.clearedFields, sshhost.FieldFingerprint)
+}
+
+// SetRemark sets the "remark" field.
+func (m *SSHHostMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *SSHHostMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *SSHHostMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[sshhost.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *SSHHostMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[sshhost.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *SSHHostMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, sshhost.FieldRemark)
+}
+
+// SetTags sets the "tags" field.
+func (m *SSHHostMutation) SetTags(s string) {
+	m.tags = &s
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *SSHHostMutation) Tags() (r string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldTags(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *SSHHostMutation) ClearTags() {
+	m.tags = nil
+	m.clearedFields[sshhost.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *SSHHostMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[sshhost.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *SSHHostMutation) ResetTags() {
+	m.tags = nil
+	delete(m.clearedFields, sshhost.FieldTags)
+}
+
+// SetStatus sets the "status" field.
+func (m *SSHHostMutation) SetStatus(s sshhost.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *SSHHostMutation) Status() (r sshhost.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the SSHHost entity.
+// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SSHHostMutation) OldStatus(ctx context.Context) (v sshhost.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *SSHHostMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetOwnerID sets the "owner" edge to the User entity by id.
+func (m *SSHHostMutation) SetOwnerID(id string) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (m *SSHHostMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
+func (m *SSHHostMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *SSHHostMutation) OwnerID() (id string, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *SSHHostMutation) OwnerIDs() (ids []string) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *SSHHostMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// AddSharedUserIDs adds the "shared_users" edge to the User entity by ids.
+func (m *SSHHostMutation) AddSharedUserIDs(ids ...string) {
+	if m.shared_users == nil {
+		m.shared_users = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.shared_users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSharedUsers clears the "shared_users" edge to the User entity.
+func (m *SSHHostMutation) ClearSharedUsers() {
+	m.clearedshared_users = true
+}
+
+// SharedUsersCleared reports if the "shared_users" edge to the User entity was cleared.
+func (m *SSHHostMutation) SharedUsersCleared() bool {
+	return m.clearedshared_users
+}
+
+// RemoveSharedUserIDs removes the "shared_users" edge to the User entity by IDs.
+func (m *SSHHostMutation) RemoveSharedUserIDs(ids ...string) {
+	if m.removedshared_users == nil {
+		m.removedshared_users = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.shared_users, ids[i])
+		m.removedshared_users[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSharedUsers returns the removed IDs of the "shared_users" edge to the User entity.
+func (m *SSHHostMutation) RemovedSharedUsersIDs() (ids []string) {
+	for id := range m.removedshared_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SharedUsersIDs returns the "shared_users" edge IDs in the mutation.
+func (m *SSHHostMutation) SharedUsersIDs() (ids []string) {
+	for id := range m.shared_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSharedUsers resets all changes to the "shared_users" edge.
+func (m *SSHHostMutation) ResetSharedUsers() {
+	m.shared_users = nil
+	m.clearedshared_users = false
+	m.removedshared_users = nil
+}
+
+// Where appends a list predicates to the SSHHostMutation builder.
+func (m *SSHHostMutation) Where(ps ...predicate.SSHHost) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SSHHostMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SSHHostMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SSHHost, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SSHHostMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SSHHostMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SSHHost).
+func (m *SSHHostMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SSHHostMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.create_time != nil {
+		fields = append(fields, sshhost.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sshhost.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, sshhost.FieldName)
+	}
+	if m.host != nil {
+		fields = append(fields, sshhost.FieldHost)
+	}
+	if m.port != nil {
+		fields = append(fields, sshhost.FieldPort)
+	}
+	if m.username != nil {
+		fields = append(fields, sshhost.FieldUsername)
+	}
+	if m.auth_type != nil {
+		fields = append(fields, sshhost.FieldAuthType)
+	}
+	if m.credential != nil {
+		fields = append(fields, sshhost.FieldCredential)
+	}
+	if m.passphrase != nil {
+		fields = append(fields, sshhost.FieldPassphrase)
+	}
+	if m.fingerprint != nil {
+		fields = append(fields, sshhost.FieldFingerprint)
+	}
+	if m.remark != nil {
+		fields = append(fields, sshhost.FieldRemark)
+	}
+	if m.tags != nil {
+		fields = append(fields, sshhost.FieldTags)
+	}
+	if m.status != nil {
+		fields = append(fields, sshhost.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SSHHostMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sshhost.FieldCreateTime:
+		return m.CreateTime()
+	case sshhost.FieldUpdateTime:
+		return m.UpdateTime()
+	case sshhost.FieldName:
+		return m.Name()
+	case sshhost.FieldHost:
+		return m.Host()
+	case sshhost.FieldPort:
+		return m.Port()
+	case sshhost.FieldUsername:
+		return m.Username()
+	case sshhost.FieldAuthType:
+		return m.AuthType()
+	case sshhost.FieldCredential:
+		return m.Credential()
+	case sshhost.FieldPassphrase:
+		return m.Passphrase()
+	case sshhost.FieldFingerprint:
+		return m.Fingerprint()
+	case sshhost.FieldRemark:
+		return m.Remark()
+	case sshhost.FieldTags:
+		return m.Tags()
+	case sshhost.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SSHHostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sshhost.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sshhost.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sshhost.FieldName:
+		return m.OldName(ctx)
+	case sshhost.FieldHost:
+		return m.OldHost(ctx)
+	case sshhost.FieldPort:
+		return m.OldPort(ctx)
+	case sshhost.FieldUsername:
+		return m.OldUsername(ctx)
+	case sshhost.FieldAuthType:
+		return m.OldAuthType(ctx)
+	case sshhost.FieldCredential:
+		return m.OldCredential(ctx)
+	case sshhost.FieldPassphrase:
+		return m.OldPassphrase(ctx)
+	case sshhost.FieldFingerprint:
+		return m.OldFingerprint(ctx)
+	case sshhost.FieldRemark:
+		return m.OldRemark(ctx)
+	case sshhost.FieldTags:
+		return m.OldTags(ctx)
+	case sshhost.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown SSHHost field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SSHHostMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sshhost.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sshhost.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sshhost.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case sshhost.FieldHost:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHost(v)
+		return nil
+	case sshhost.FieldPort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPort(v)
+		return nil
+	case sshhost.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
+	case sshhost.FieldAuthType:
+		v, ok := value.(sshhost.AuthType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuthType(v)
+		return nil
+	case sshhost.FieldCredential:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCredential(v)
+		return nil
+	case sshhost.FieldPassphrase:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPassphrase(v)
+		return nil
+	case sshhost.FieldFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFingerprint(v)
+		return nil
+	case sshhost.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case sshhost.FieldTags:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
+		return nil
+	case sshhost.FieldStatus:
+		v, ok := value.(sshhost.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SSHHostMutation) AddedFields() []string {
+	var fields []string
+	if m.addport != nil {
+		fields = append(fields, sshhost.FieldPort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SSHHostMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sshhost.FieldPort:
+		return m.AddedPort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SSHHostMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sshhost.FieldPort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SSHHostMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sshhost.FieldPassphrase) {
+		fields = append(fields, sshhost.FieldPassphrase)
+	}
+	if m.FieldCleared(sshhost.FieldFingerprint) {
+		fields = append(fields, sshhost.FieldFingerprint)
+	}
+	if m.FieldCleared(sshhost.FieldRemark) {
+		fields = append(fields, sshhost.FieldRemark)
+	}
+	if m.FieldCleared(sshhost.FieldTags) {
+		fields = append(fields, sshhost.FieldTags)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SSHHostMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SSHHostMutation) ClearField(name string) error {
+	switch name {
+	case sshhost.FieldPassphrase:
+		m.ClearPassphrase()
+		return nil
+	case sshhost.FieldFingerprint:
+		m.ClearFingerprint()
+		return nil
+	case sshhost.FieldRemark:
+		m.ClearRemark()
+		return nil
+	case sshhost.FieldTags:
+		m.ClearTags()
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SSHHostMutation) ResetField(name string) error {
+	switch name {
+	case sshhost.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sshhost.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sshhost.FieldName:
+		m.ResetName()
+		return nil
+	case sshhost.FieldHost:
+		m.ResetHost()
+		return nil
+	case sshhost.FieldPort:
+		m.ResetPort()
+		return nil
+	case sshhost.FieldUsername:
+		m.ResetUsername()
+		return nil
+	case sshhost.FieldAuthType:
+		m.ResetAuthType()
+		return nil
+	case sshhost.FieldCredential:
+		m.ResetCredential()
+		return nil
+	case sshhost.FieldPassphrase:
+		m.ResetPassphrase()
+		return nil
+	case sshhost.FieldFingerprint:
+		m.ResetFingerprint()
+		return nil
+	case sshhost.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case sshhost.FieldTags:
+		m.ResetTags()
+		return nil
+	case sshhost.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SSHHostMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.owner != nil {
+		edges = append(edges, sshhost.EdgeOwner)
+	}
+	if m.shared_users != nil {
+		edges = append(edges, sshhost.EdgeSharedUsers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SSHHostMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case sshhost.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	case sshhost.EdgeSharedUsers:
+		ids := make([]ent.Value, 0, len(m.shared_users))
+		for id := range m.shared_users {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SSHHostMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedshared_users != nil {
+		edges = append(edges, sshhost.EdgeSharedUsers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SSHHostMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case sshhost.EdgeSharedUsers:
+		ids := make([]ent.Value, 0, len(m.removedshared_users))
+		for id := range m.removedshared_users {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SSHHostMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedowner {
+		edges = append(edges, sshhost.EdgeOwner)
+	}
+	if m.clearedshared_users {
+		edges = append(edges, sshhost.EdgeSharedUsers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SSHHostMutation) EdgeCleared(name string) bool {
+	switch name {
+	case sshhost.EdgeOwner:
+		return m.clearedowner
+	case sshhost.EdgeSharedUsers:
+		return m.clearedshared_users
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SSHHostMutation) ClearEdge(name string) error {
+	switch name {
+	case sshhost.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SSHHostMutation) ResetEdge(name string) error {
+	switch name {
+	case sshhost.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	case sshhost.EdgeSharedUsers:
+		m.ResetSharedUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown SSHHost edge %s", name)
+}
+
 // SystemConfigMutation represents an operation that mutates the SystemConfig nodes in the graph.
 type SystemConfigMutation struct {
 	config
@@ -6553,25 +7802,28 @@ func (m *SystemConfigMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	create_time   *time.Time
-	update_time   *time.Time
-	username      *string
-	password      *string
-	email         *string
-	status        *user.Status
-	avatar        *string
-	bio           *string
-	name          *string
-	tags          *string
-	clearedFields map[string]struct{}
-	role          *string
-	clearedrole   bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op                      Op
+	typ                     string
+	id                      *string
+	create_time             *time.Time
+	update_time             *time.Time
+	username                *string
+	password                *string
+	email                   *string
+	status                  *user.Status
+	avatar                  *string
+	bio                     *string
+	name                    *string
+	tags                    *string
+	clearedFields           map[string]struct{}
+	role                    *string
+	clearedrole             bool
+	shared_ssh_hosts        map[string]struct{}
+	removedshared_ssh_hosts map[string]struct{}
+	clearedshared_ssh_hosts bool
+	done                    bool
+	oldValue                func(context.Context) (*User, error)
+	predicates              []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -7103,6 +8355,60 @@ func (m *UserMutation) ResetRole() {
 	m.clearedrole = false
 }
 
+// AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by ids.
+func (m *UserMutation) AddSharedSSHHostIDs(ids ...string) {
+	if m.shared_ssh_hosts == nil {
+		m.shared_ssh_hosts = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.shared_ssh_hosts[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSharedSSHHosts clears the "shared_ssh_hosts" edge to the SSHHost entity.
+func (m *UserMutation) ClearSharedSSHHosts() {
+	m.clearedshared_ssh_hosts = true
+}
+
+// SharedSSHHostsCleared reports if the "shared_ssh_hosts" edge to the SSHHost entity was cleared.
+func (m *UserMutation) SharedSSHHostsCleared() bool {
+	return m.clearedshared_ssh_hosts
+}
+
+// RemoveSharedSSHHostIDs removes the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
+func (m *UserMutation) RemoveSharedSSHHostIDs(ids ...string) {
+	if m.removedshared_ssh_hosts == nil {
+		m.removedshared_ssh_hosts = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.shared_ssh_hosts, ids[i])
+		m.removedshared_ssh_hosts[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSharedSSHHosts returns the removed IDs of the "shared_ssh_hosts" edge to the SSHHost entity.
+func (m *UserMutation) RemovedSharedSSHHostsIDs() (ids []string) {
+	for id := range m.removedshared_ssh_hosts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SharedSSHHostsIDs returns the "shared_ssh_hosts" edge IDs in the mutation.
+func (m *UserMutation) SharedSSHHostsIDs() (ids []string) {
+	for id := range m.shared_ssh_hosts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSharedSSHHosts resets all changes to the "shared_ssh_hosts" edge.
+func (m *UserMutation) ResetSharedSSHHosts() {
+	m.shared_ssh_hosts = nil
+	m.clearedshared_ssh_hosts = false
+	m.removedshared_ssh_hosts = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -7404,9 +8710,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.role != nil {
 		edges = append(edges, user.EdgeRole)
+	}
+	if m.shared_ssh_hosts != nil {
+		edges = append(edges, user.EdgeSharedSSHHosts)
 	}
 	return edges
 }
@@ -7419,27 +8728,47 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.role; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeSharedSSHHosts:
+		ids := make([]ent.Value, 0, len(m.shared_ssh_hosts))
+		for id := range m.shared_ssh_hosts {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedshared_ssh_hosts != nil {
+		edges = append(edges, user.EdgeSharedSSHHosts)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeSharedSSHHosts:
+		ids := make([]ent.Value, 0, len(m.removedshared_ssh_hosts))
+		for id := range m.removedshared_ssh_hosts {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedrole {
 		edges = append(edges, user.EdgeRole)
+	}
+	if m.clearedshared_ssh_hosts {
+		edges = append(edges, user.EdgeSharedSSHHosts)
 	}
 	return edges
 }
@@ -7450,6 +8779,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeRole:
 		return m.clearedrole
+	case user.EdgeSharedSSHHosts:
+		return m.clearedshared_ssh_hosts
 	}
 	return false
 }
@@ -7471,6 +8802,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeRole:
 		m.ResetRole()
+		return nil
+	case user.EdgeSharedSSHHosts:
+		m.ResetSharedSSHHosts()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

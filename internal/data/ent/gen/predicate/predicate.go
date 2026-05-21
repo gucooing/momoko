@@ -27,6 +27,9 @@ type Menu func(*sql.Selector)
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 
+// SSHHost is the predicate function for sshhost builders.
+type SSHHost func(*sql.Selector)
+
 // SystemConfig is the predicate function for systemconfig builders.
 type SystemConfig func(*sql.Selector)
 

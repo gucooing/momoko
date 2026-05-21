@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/user"
 	"time"
 
@@ -178,6 +179,21 @@ func (_u *UserUpdate) SetRole(v *Role) *UserUpdate {
 	return _u.SetRoleID(v.ID)
 }
 
+// AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
+func (_u *UserUpdate) AddSharedSSHHostIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddSharedSSHHostIDs(ids...)
+	return _u
+}
+
+// AddSharedSSHHosts adds the "shared_ssh_hosts" edges to the SSHHost entity.
+func (_u *UserUpdate) AddSharedSSHHosts(v ...*SSHHost) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSharedSSHHostIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -187,6 +203,27 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 func (_u *UserUpdate) ClearRole() *UserUpdate {
 	_u.mutation.ClearRole()
 	return _u
+}
+
+// ClearSharedSSHHosts clears all "shared_ssh_hosts" edges to the SSHHost entity.
+func (_u *UserUpdate) ClearSharedSSHHosts() *UserUpdate {
+	_u.mutation.ClearSharedSSHHosts()
+	return _u
+}
+
+// RemoveSharedSSHHostIDs removes the "shared_ssh_hosts" edge to SSHHost entities by IDs.
+func (_u *UserUpdate) RemoveSharedSSHHostIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveSharedSSHHostIDs(ids...)
+	return _u
+}
+
+// RemoveSharedSSHHosts removes "shared_ssh_hosts" edges to SSHHost entities.
+func (_u *UserUpdate) RemoveSharedSSHHosts(v ...*SSHHost) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSharedSSHHostIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -307,6 +344,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SharedSSHHostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSharedSSHHostsIDs(); len(nodes) > 0 && !_u.mutation.SharedSSHHostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SharedSSHHostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -483,6 +565,21 @@ func (_u *UserUpdateOne) SetRole(v *Role) *UserUpdateOne {
 	return _u.SetRoleID(v.ID)
 }
 
+// AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
+func (_u *UserUpdateOne) AddSharedSSHHostIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddSharedSSHHostIDs(ids...)
+	return _u
+}
+
+// AddSharedSSHHosts adds the "shared_ssh_hosts" edges to the SSHHost entity.
+func (_u *UserUpdateOne) AddSharedSSHHosts(v ...*SSHHost) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSharedSSHHostIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -492,6 +589,27 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 func (_u *UserUpdateOne) ClearRole() *UserUpdateOne {
 	_u.mutation.ClearRole()
 	return _u
+}
+
+// ClearSharedSSHHosts clears all "shared_ssh_hosts" edges to the SSHHost entity.
+func (_u *UserUpdateOne) ClearSharedSSHHosts() *UserUpdateOne {
+	_u.mutation.ClearSharedSSHHosts()
+	return _u
+}
+
+// RemoveSharedSSHHostIDs removes the "shared_ssh_hosts" edge to SSHHost entities by IDs.
+func (_u *UserUpdateOne) RemoveSharedSSHHostIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveSharedSSHHostIDs(ids...)
+	return _u
+}
+
+// RemoveSharedSSHHosts removes "shared_ssh_hosts" edges to SSHHost entities.
+func (_u *UserUpdateOne) RemoveSharedSSHHosts(v ...*SSHHost) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSharedSSHHostIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -642,6 +760,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SharedSSHHostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSharedSSHHostsIDs(); len(nodes) > 0 && !_u.mutation.SharedSSHHostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SharedSSHHostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.SharedSSHHostsTable,
+			Columns: user.SharedSSHHostsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sshhost.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

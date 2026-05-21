@@ -51,9 +51,11 @@ type User struct {
 type UserEdges struct {
 	// 关联的角色
 	Role *Role `json:"role,omitempty"`
+	// 被分享的SSH服务端
+	SharedSSHHosts []*SSHHost `json:"shared_ssh_hosts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RoleOrErr returns the Role value or an error if the edge
@@ -65,6 +67,15 @@ func (e UserEdges) RoleOrErr() (*Role, error) {
 		return nil, &NotFoundError{label: role.Label}
 	}
 	return nil, &NotLoadedError{edge: "role"}
+}
+
+// SharedSSHHostsOrErr returns the SharedSSHHosts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SharedSSHHostsOrErr() ([]*SSHHost, error) {
+	if e.loadedTypes[1] {
+		return e.SharedSSHHosts, nil
+	}
+	return nil, &NotLoadedError{edge: "shared_ssh_hosts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -191,6 +202,11 @@ func (_m *User) Value(name string) (ent.Value, error) {
 // QueryRole queries the "role" edge of the User entity.
 func (_m *User) QueryRole() *RoleQuery {
 	return NewUserClient(_m.config).QueryRole(_m)
+}
+
+// QuerySharedSSHHosts queries the "shared_ssh_hosts" edge of the User entity.
+func (_m *User) QuerySharedSSHHosts() *SSHHostQuery {
+	return NewUserClient(_m.config).QuerySharedSSHHosts(_m)
 }
 
 // Update returns a builder for updating this User.

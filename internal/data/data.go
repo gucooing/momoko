@@ -23,6 +23,7 @@ var ProviderSet = wire.NewSet(
 	NewSystemRepo,
 	NewConfigRepo,
 	NewInstanceRepo,
+	NewOpenSSHRepo,
 	NewFileRepo,
 )
 
