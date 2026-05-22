@@ -18,7 +18,7 @@ import (
 const (
 	apiPrefix                 = "/api/v1"
 	distIndex                 = "index.html"
-	distFolder                = "dist"
+	distFolder                = "frontend/dist"
 	distEncodingBrotli        = "br"
 	distEncodingGzip          = "gzip"
 	distFileSuffixBrotli      = ".br"

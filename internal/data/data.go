@@ -8,9 +8,9 @@ import (
 
 	"momoko/internal/data/ent/gen/migrate"
 
+	_ "github.com/glebarez/go-sqlite/compat"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/wire"
-	_ "github.com/mattn/go-sqlite3"
 
 	"momoko/internal/conf"
 )

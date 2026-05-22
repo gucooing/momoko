@@ -8,6 +8,6 @@ server:
 data:
   database:
     driver: sqlite3
-    source: file:./data/momoko.db?&_fk=1
+    source: file:./data/momoko.db?_pragma=foreign_keys(1)
 auth:
   secret: gucooing.auth
