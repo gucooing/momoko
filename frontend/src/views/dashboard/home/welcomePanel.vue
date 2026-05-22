@@ -76,50 +76,37 @@
             </div>
           </div>
           <div
-            class="flex flex-col md:flex-row px-2 md:px-6 py-6 md:py-10 items-center gap-6 md:gap-0"
+            class="flex flex-wrap px-2 md:px-6 py-6 md:py-10 items-center gap-3"
           >
-            <div class="flex w-full md:flex-1 flex-col gap-2">
-              <div class="text-xs font-semibold text-(--el-text-color-secondary)">今日任务进度</div>
-              <div class="flex items-center gap-2">
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-xl font-extrabold text-(--el-color-primary)">{{
-                    todayTask.done
-                  }}</span>
-                  <span class="text-sm font-semibold text-(--el-text-color-secondary)"
-                    >/ {{ todayTask.total }}</span
-                  >
-                </div>
-                <el-progress :percentage="todayTask.percentage" :stroke-width="8" class="flex-1" />
-              </div>
+            <div class="sys-info-chip">
+              <el-icon size="13">
+                <component :is="menuStore.iconComponents['HOutline:ServerStackIcon']" />
+              </el-icon>
+              <span>{{ overview?.version?.hostname || '--' }}</span>
             </div>
-            <div class="hidden md:block mx-7">
-              <el-divider direction="vertical" />
+            <div class="sys-info-chip">
+              <el-icon size="13">
+                <component :is="menuStore.iconComponents['HOutline:Cog6ToothIcon']" />
+              </el-icon>
+              <span>{{ overview?.version?.os || '--' }} {{ overview?.version?.platformVersion || '' }}</span>
             </div>
-            <div class="flex w-full md:flex-1 flex-col gap-2">
-              <div class="text-xs font-semibold text-(--el-text-color-secondary)">待处理审批</div>
-              <div class="flex items-center gap-2">
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-xl font-extrabold text-(--el-color-primary)">{{
-                    pendingApproval.count
-                  }}</span>
-                  <span class="text-sm font-semibold text-(--el-text-color-secondary)">个任务</span>
-                </div>
-                <div class="flex items-center">
-                  <el-avatar
-                    v-for="(avatar, index) in pendingApproval.avatars"
-                    :key="avatar"
-                    :size="20"
-                    :src="avatar"
-                    :class="['border-2 rounded-full shadow-xl', { '-ml-2': index > 0 }]"
-                  />
-                  <span class="text-xs ml-1 font-semibold text-(--el-text-color-secondary)"
-                    >+{{ pendingApproval.extraCount }}</span
-                  >
-                </div>
-              </div>
+            <div class="sys-info-chip">
+              <el-icon size="13">
+                <component :is="menuStore.iconComponents['HOutline:BoltIcon']" />
+              </el-icon>
+              <span>{{ overview?.version?.kernelArch || '--' }} · {{ overview?.version?.kernelVersion || '--' }}</span>
             </div>
-            <div class="hidden md:block mx-7">
-              <el-divider direction="vertical" />
+            <div class="sys-info-chip">
+              <el-icon size="13">
+                <component :is="menuStore.iconComponents['HOutline:ClockIcon']" />
+              </el-icon>
+              <span>开机 {{ formatUptime(overview?.uptimeSeconds) }}</span>
+            </div>
+            <div class="sys-info-chip">
+              <el-icon size="13">
+                <component :is="menuStore.iconComponents['Element:Calendar']" />
+              </el-icon>
+              <span>{{ formatBootTime(overview?.bootTime) }}</span>
             </div>
           </div>
         </div>
@@ -129,35 +116,85 @@
         </div>
 
         <div class="flex-1 xl:flex-[0.8] grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div
-            v-for="item in welcomeCardsWithOption"
-            :key="item.label"
-            class="flex flex-col justify-between p-4 rounded-2xl relative transition-all duration-300 cursor-pointer hover:shadow-xl hover:-translate-y-1"
-          >
-            <div
-              class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3"
-              :style="{ color: item.color, backgroundColor: item.color + '10' }"
-            >
+          <div class="sys-stat-item">
+            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #6366f1; background-color: #6366f110">
               <el-icon size="18">
-                <component :is="menuStore.iconComponents[item.icon]" />
+                <component :is="menuStore.iconComponents['HOutline:BoltIcon']" />
               </el-icon>
             </div>
             <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">
-                {{ item.label }}
-              </div>
+              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">CPU 使用率</div>
               <div class="flex items-baseline gap-2">
-                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">{{
-                  item.value
-                }}</span>
-                <BaseTag
-                  :text="item.trend"
-                  :type="item.trendType === 'up' ? 'success' : 'danger'"
-                />
+                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
+                  {{ (status?.cpu?.totalPercent ?? 0).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1 truncate">
+                {{ overview?.cpu?.modelName || '--' }}
               </div>
             </div>
-            <div class="w-20 h-10 opacity-60 absolute -bottom-1 -right-1">
-              <VChart class="w-full h-full" :option="item.chartOption" autoresize />
+          </div>
+          <div class="sys-stat-item">
+            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #10b981; background-color: #10b98110">
+              <el-icon size="18">
+                <component :is="menuStore.iconComponents['Element:Monitor']" />
+              </el-icon>
+            </div>
+            <div>
+              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">物理内存</div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
+                  {{ (status?.memory?.physicalMemory?.usedPercent ?? 0).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1">
+                {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}
+              </div>
+              <div class="text-[11px] text-(--el-text-color-placeholder) mt-0.5">
+                Swap {{ (status?.memory?.virtualMemory?.usedPercent ?? 0).toFixed(1) }}% · {{ formatBytes(status?.memory?.virtualMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.virtualMemory?.totalBytes) }}
+              </div>
+            </div>
+          </div>
+          <div class="sys-stat-item">
+            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #f59e0b; background-color: #f59e0b10">
+              <el-icon size="18">
+                <component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" />
+              </el-icon>
+            </div>
+            <div>
+              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">网络信息</div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[13px] font-extrabold text-(--el-color-success)">
+                  ↓ {{ formatBytes(status?.network?.total?.downloadRateBytesPerSecond) }}/s
+                </span>
+                <span class="text-[11px] text-(--el-text-color-placeholder)">
+                  总接收 {{ formatBytes(status?.network?.total?.bytesRecv) }}
+                </span>
+                <span class="text-[13px] font-extrabold text-(--el-color-primary)">
+                  ↑ {{ formatBytes(status?.network?.total?.uploadRateBytesPerSecond) }}/s
+                </span>
+                <span class="text-[11px] text-(--el-text-color-placeholder)">
+                  总发送 {{ formatBytes(status?.network?.total?.bytesSent) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="sys-stat-item">
+            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #ef4444; background-color: #ef444410">
+              <el-icon size="18">
+                <component :is="menuStore.iconComponents['HOutline:FolderIcon']" />
+              </el-icon>
+            </div>
+            <div>
+              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">磁盘 使用率</div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
+                  {{ (status?.disk?.total?.usedPercent ?? 0).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1">
+                {{ formatBytes(status?.disk?.total?.usedBytes) }} / {{ formatBytes(status?.disk?.total?.totalBytes) }}
+              </div>
             </div>
           </div>
         </div>
@@ -168,9 +205,9 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import VChart from '@/components/chart/VChart.vue'
 import LottieAnimation from '@/components/animation/LottieAnimation.vue'
 import workTimeLottieUrl from '@/assets/lotties/welcome.json?url'
+import dayjs from 'dayjs'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import { useUserProfileStore } from '@/stores/user/profile'
 
@@ -179,46 +216,33 @@ const userProfileStore = useUserProfileStore()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
 
-const { currentDate, weatherText, todayTask, pendingApproval, welcomeCards } =
+const { currentDate, weatherText, overview, status } =
   storeToRefs(dashboardHomeStore)
 const { startCurrentDateTicker, stopCurrentDateTicker } = dashboardHomeStore
 
-const createMiniLineChart = (data: number[], color: string) => {
-  return {
-    grid: { left: 0, right: 0, top: 10, bottom: 0 },
-    xAxis: { type: 'category', show: false },
-    yAxis: { type: 'value', show: false },
-    series: [
-      {
-        data,
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { color, width: 2 },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: color + '30' },
-              { offset: 1, color: 'transparent' },
-            ],
-          },
-        },
-      },
-    ],
-  }
+const formatBytes = (bytes?: number | string) => {
+  const num = Number(bytes)
+  if (!num || num <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const base = 1024
+  const i = Math.min(Math.floor(Math.log(num) / Math.log(base)), units.length - 1)
+  return (num / base ** i).toFixed(i === 0 ? 0 : 1) + ' ' + units[i]
 }
 
-const welcomeCardsWithOption = computed(() =>
-  welcomeCards.value.map((item) => ({
-    ...item,
-    chartOption: createMiniLineChart(item.chartData, item.color),
-  })),
-)
+const formatUptime = (seconds?: number) => {
+  if (seconds == null) return '--'
+  const d = Math.floor(seconds / 86400)
+  const h = Math.floor((seconds % 86400) / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (d > 0) return `${d}天 ${h}时 ${m}分`
+  if (h > 0) return `${h}时 ${m}分`
+  return `${m}分`
+}
+
+const formatBootTime = (t?: Date) => {
+  if (!t) return '--'
+  return dayjs(t).format('YYYY-MM-DD HH:mm')
+}
 
 onMounted(() => {
   startCurrentDateTicker()
@@ -233,5 +257,33 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .el-divider--vertical {
   height: 2.5rem;
+}
+
+.sys-stat-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 1rem;
+  position: relative;
+  transition: all 0.3s;
+  cursor: default;
+
+  &:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+.sys-info-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  padding: 6px 12px;
+  background: var(--el-bg-color-page);
+  border-radius: 10px;
 }
 </style>

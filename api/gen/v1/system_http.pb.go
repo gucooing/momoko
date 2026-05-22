@@ -30,6 +30,8 @@ const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
+const OperationSystemSystemOverview = "/v1.System/SystemOverview"
+const OperationSystemSystemStatus = "/v1.System/SystemStatus"
 
 type SystemHTTPServer interface {
 	// AdminAddPermissions 管理员添加权限菜单
@@ -54,6 +56,10 @@ type SystemHTTPServer interface {
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
+	// SystemOverview 获取系统信息概览
+	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
+	// SystemStatus 获取系统实时状态
+	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
 }
 
 func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
@@ -69,6 +75,8 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.POST("/api/v1/role/admin/add", _System_AdminAddRole0_HTTP_Handler(srv))
 	r.POST("/api/v1/role/admin/{role_id}", _System_AdminEditRole0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/role/admin/del", _System_AdminDeleteRole0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 }
 
 func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
@@ -307,6 +315,44 @@ func _System_AdminDeleteRole0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.C
 	}
 }
 
+func _System_SystemOverview0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SystemOverviewRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemSystemOverview)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SystemOverview(ctx, req.(*SystemOverviewRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SystemOverviewResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_SystemStatus0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SystemStatusRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemSystemStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SystemStatus(ctx, req.(*SystemStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SystemStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SystemHTTPClient interface {
 	// AdminAddPermissions 管理员添加权限菜单
 	AdminAddPermissions(ctx context.Context, req *AdminAddPermissionsRequest, opts ...http.CallOption) (rsp *AdminAddPermissionsResponse, err error)
@@ -330,6 +376,10 @@ type SystemHTTPClient interface {
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(ctx context.Context, req *MePermissionsRequest, opts ...http.CallOption) (rsp *MePermissionsResponse, err error)
+	// SystemOverview 获取系统信息概览
+	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
+	// SystemStatus 获取系统实时状态
+	SystemStatus(ctx context.Context, req *SystemStatusRequest, opts ...http.CallOption) (rsp *SystemStatusResponse, err error)
 }
 
 type SystemHTTPClientImpl struct {
@@ -486,6 +536,34 @@ func (c *SystemHTTPClientImpl) MePermissions(ctx context.Context, in *MePermissi
 	pattern := "/api/v1/permissions/me"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemMePermissions))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SystemOverview 获取系统信息概览
+func (c *SystemHTTPClientImpl) SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...http.CallOption) (*SystemOverviewResponse, error) {
+	var out SystemOverviewResponse
+	pattern := "/api/v1/system/overview"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemSystemOverview))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SystemStatus 获取系统实时状态
+func (c *SystemHTTPClientImpl) SystemStatus(ctx context.Context, in *SystemStatusRequest, opts ...http.CallOption) (*SystemStatusResponse, error) {
+	var out SystemStatusResponse
+	pattern := "/api/v1/system/status"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemSystemStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

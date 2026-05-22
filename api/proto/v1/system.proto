@@ -79,6 +79,18 @@ service System {
       delete: "/api/v1/role/admin/del"
     };
   }
+  // 获取系统信息概览
+  rpc SystemOverview(SystemOverviewRequest) returns (SystemOverviewResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/overview"
+    };
+  }
+  // 获取系统实时状态
+  rpc SystemStatus(SystemStatusRequest) returns (SystemStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/status"
+    };
+  }
 }
 
 // 获取当前角色的全部权限请求
@@ -321,3 +333,348 @@ message AdminDeleteRoleRequest {
 
 // 删除角色响应
 message AdminDeleteRoleResponse{}
+
+// 获取系统信息概览请求
+message SystemOverviewRequest {}
+
+// 获取系统信息概览响应
+message SystemOverviewResponse {
+  // 系统版本信息
+  SystemVersionInfo version = 1;
+  // 开机时间
+  google.protobuf.Timestamp boot_time = 2;
+  // 运行时长秒数
+  uint64 uptime_seconds = 3;
+  // CPU基础信息
+  CpuOverview cpu = 4;
+  // 内存基础信息
+  MemoryOverview memory = 5;
+  // 网卡列表
+  repeated NetworkInterfaceOverview network_interfaces = 6;
+  // 磁盘分区列表
+  repeated DiskPartitionOverview disk_partitions = 7;
+  // 磁盘IO列表
+  repeated DiskIOOverview disk_ios = 8;
+  // 采样时间
+  google.protobuf.Timestamp sample_time = 9;
+}
+
+// 获取系统实时状态请求
+message SystemStatusRequest {
+  // 网卡名称
+  optional string interface_name = 1;
+  // 磁盘名称
+  optional string disk_name = 2;
+  // 挂载点
+  optional string mountpoint = 3;
+}
+
+// 获取系统实时状态响应
+message SystemStatusResponse {
+  // CPU实时状态
+  CpuStatus cpu = 1;
+  // 内存实时状态
+  MemoryStatus memory = 2;
+  // 网络实时状态
+  NetworkStatus network = 3;
+  // 磁盘实时状态
+  DiskStatus disk = 4;
+  // 采样时间
+  google.protobuf.Timestamp sample_time = 5;
+}
+
+// 系统版本信息
+message SystemVersionInfo {
+  // 主机名
+  string hostname = 1;
+  // 操作系统
+  string os = 2;
+  // 平台名称
+  string platform = 3;
+  // 平台族
+  string platform_family = 4;
+  // 平台版本
+  string platform_version = 5;
+  // 内核版本
+  string kernel_version = 6;
+  // 内核架构
+  string kernel_arch = 7;
+}
+
+// CPU基础信息
+message CpuOverview {
+  // 逻辑核心数
+  int32 logical_count = 1;
+  // 物理核心数
+  int32 physical_count = 2;
+  // CPU型号名称
+  string model_name = 3;
+}
+
+// CPU实时状态
+message CpuStatus {
+  // 总CPU占用百分比
+  double total_percent = 1;
+  // 每个核心CPU占用百分比
+  repeated CpuCoreStatus cores = 2;
+  // 逻辑核心数
+  int32 logical_count = 3;
+  // 物理核心数
+  int32 physical_count = 4;
+}
+
+// CPU核心状态
+message CpuCoreStatus {
+  // 核心编号
+  int32 core_id = 1;
+  // CPU占用百分比
+  double percent = 2;
+}
+
+// 内存基础信息
+message MemoryOverview {
+  // 物理内存基础信息
+  PhysicalMemoryOverview physical_memory = 1;
+  // 虚拟内存基础信息
+  VirtualMemoryOverview virtual_memory = 2;
+}
+
+// 内存实时状态
+message MemoryStatus {
+  // 物理内存实时状态
+  PhysicalMemoryStatus physical_memory = 1;
+  // 虚拟内存实时状态
+  VirtualMemoryStatus virtual_memory = 2;
+}
+
+// 物理内存基础信息
+message PhysicalMemoryOverview {
+  // 物理内存总字节数
+  uint64 total_bytes = 1;
+}
+
+// 物理内存实时状态
+message PhysicalMemoryStatus {
+  // 物理内存总字节数
+  uint64 total_bytes = 1;
+  // 物理内存可用字节数
+  uint64 available_bytes = 2;
+  // 物理内存已用字节数
+  uint64 used_bytes = 3;
+  // 物理内存空闲字节数
+  uint64 free_bytes = 4;
+  // 物理内存占用百分比
+  double used_percent = 5;
+}
+
+// 虚拟内存基础信息
+message VirtualMemoryOverview {
+  // 虚拟内存总字节数
+  uint64 total_bytes = 1;
+}
+
+// 虚拟内存实时状态
+message VirtualMemoryStatus {
+  // 虚拟内存总字节数
+  uint64 total_bytes = 1;
+  // 虚拟内存已用字节数
+  uint64 used_bytes = 2;
+  // 虚拟内存空闲字节数
+  uint64 free_bytes = 3;
+  // 虚拟内存占用百分比
+  double used_percent = 4;
+  // 累计换入字节数
+  uint64 swap_in_bytes = 5;
+  // 累计换出字节数
+  uint64 swap_out_bytes = 6;
+  // 累计换入页数
+  uint64 page_in_count = 7;
+  // 累计换出页数
+  uint64 page_out_count = 8;
+  // 累计缺页次数
+  uint64 page_fault_count = 9;
+  // 累计主缺页次数
+  uint64 page_maj_fault_count = 10;
+}
+
+// 网卡概览
+message NetworkInterfaceOverview {
+  // 网卡名称
+  string name = 1;
+  // MAC地址
+  string hardware_addr = 2;
+  // MTU
+  int32 mtu = 3;
+  // 网卡标记
+  repeated string flags = 4;
+  // 网卡地址
+  repeated string addrs = 5;
+  // 是否启用
+  bool is_up = 6;
+  // 是否为回环网卡
+  bool is_loopback = 7;
+}
+
+// 网络实时状态
+message NetworkStatus {
+  // 全部网卡汇总流量
+  NetworkInterfaceStatus total = 1;
+  // 网卡实时状态列表
+  repeated NetworkInterfaceStatus interfaces = 2;
+  // 当前选中网卡
+  NetworkInterfaceStatus selected_interface = 3;
+  // 网络连接统计
+  NetworkConnectionStatus connections = 4;
+}
+
+// 网卡实时状态
+message NetworkInterfaceStatus {
+  // 网卡名称
+  string name = 1;
+  // MAC地址
+  string hardware_addr = 2;
+  // MTU
+  int32 mtu = 3;
+  // 网卡标记
+  repeated string flags = 4;
+  // 网卡地址
+  repeated string addrs = 5;
+  // 是否启用
+  bool is_up = 6;
+  // 是否为回环网卡
+  bool is_loopback = 7;
+  // 累计发送字节数
+  uint64 bytes_sent = 8;
+  // 累计接收字节数
+  uint64 bytes_recv = 9;
+  // 累计发送包数
+  uint64 packets_sent = 10;
+  // 累计接收包数
+  uint64 packets_recv = 11;
+  // 累计接收错误数
+  uint64 err_in = 12;
+  // 累计发送错误数
+  uint64 err_out = 13;
+  // 累计接收丢包数
+  uint64 drop_in = 14;
+  // 累计发送丢包数
+  uint64 drop_out = 15;
+  // 当前上传速率字节每秒
+  double upload_rate_bytes_per_second = 16;
+  // 当前下载速率字节每秒
+  double download_rate_bytes_per_second = 17;
+}
+
+// 网络连接状态
+message NetworkConnectionStatus {
+  // 当前平台是否支持连接统计
+  bool supported = 1;
+  // 连接统计错误信息
+  string error = 2;
+  // TCP连接数
+  int64 tcp_count = 3;
+  // UDP连接数
+  int64 udp_count = 4;
+  // 总连接数
+  int64 total_count = 5;
+  // TCP状态统计
+  map<string, int64> tcp_statuses = 6;
+}
+
+// 磁盘分区概览
+message DiskPartitionOverview {
+  // 设备名称
+  string device = 1;
+  // 挂载点
+  string mountpoint = 2;
+  // 文件系统类型
+  string fstype = 3;
+  // 挂载选项
+  repeated string opts = 4;
+}
+
+// 磁盘IO概览
+message DiskIOOverview {
+  // 磁盘名称
+  string name = 1;
+  // 序列号
+  string serial_number = 2;
+  // 卷标
+  string label = 3;
+}
+
+// 磁盘实时状态
+message DiskStatus {
+  // 全部分区汇总使用情况
+  DiskPartitionStatus total = 1;
+  // 分区使用情况列表
+  repeated DiskPartitionStatus partitions = 2;
+  // 当前选中分区使用情况
+  DiskPartitionStatus selected_partition = 3;
+  // 全部磁盘汇总IO状态
+  DiskIOStatus total_io = 4;
+  // 磁盘IO状态列表
+  repeated DiskIOStatus ios = 5;
+  // 当前选中磁盘IO状态
+  DiskIOStatus selected_io = 6;
+  // 当前平台是否支持磁盘IO统计
+  bool io_supported = 7;
+  // 磁盘IO统计错误信息
+  string io_error = 8;
+}
+
+// 磁盘分区实时状态
+message DiskPartitionStatus {
+  // 设备名称
+  string device = 1;
+  // 挂载点
+  string mountpoint = 2;
+  // 文件系统类型
+  string fstype = 3;
+  // 是否支持使用量统计
+  bool supported = 4;
+  // 使用量统计错误信息
+  string error = 5;
+  // 总容量字节数
+  uint64 total_bytes = 6;
+  // 可用容量字节数
+  uint64 free_bytes = 7;
+  // 已用容量字节数
+  uint64 used_bytes = 8;
+  // 容量占用百分比
+  double used_percent = 9;
+  // inode总数
+  uint64 inodes_total = 10;
+  // 已用inode数
+  uint64 inodes_used = 11;
+  // 空闲inode数
+  uint64 inodes_free = 12;
+  // inode占用百分比
+  double inodes_used_percent = 13;
+}
+
+// 磁盘IO实时状态
+message DiskIOStatus {
+  // 磁盘名称
+  string name = 1;
+  // 序列号
+  string serial_number = 2;
+  // 卷标
+  string label = 3;
+  // 累计读取次数
+  uint64 read_count = 4;
+  // 累计写入次数
+  uint64 write_count = 5;
+  // 累计读取字节数
+  uint64 read_bytes = 6;
+  // 累计写入字节数
+  uint64 write_bytes = 7;
+  // 当前读取速率字节每秒
+  double read_rate_bytes_per_second = 8;
+  // 当前写入速率字节每秒
+  double write_rate_bytes_per_second = 9;
+  // 正在进行的IO数量
+  uint64 iops_in_progress = 10;
+  // 累计IO耗时
+  uint64 io_time = 11;
+}

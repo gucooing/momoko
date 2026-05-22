@@ -19,7 +19,7 @@ func (SSHHost) Fields() []ent.Field {
 		field.Int("port").Default(22).Positive().Comment("端口"),
 		field.String("username").NotEmpty().Comment("用户名"),
 		field.Enum("auth_type").Values("password", "key").Comment("认证方式"),
-		field.String("credential").Sensitive().Comment("加密后的密码或私钥"),
+		field.Text("credential").Sensitive().Comment("加密后的密码或私钥"),
 		field.String("passphrase").Optional().Sensitive().Comment("加密后的私钥口令"),
 		field.String("fingerprint").Optional().Comment("SSH主机指纹"),
 		field.String("remark").Optional().Comment("备注"),

@@ -223,7 +223,7 @@ var (
 		{Name: "port", Type: field.TypeInt, Default: 22},
 		{Name: "username", Type: field.TypeString},
 		{Name: "auth_type", Type: field.TypeEnum, Enums: []string{"password", "key"}},
-		{Name: "credential", Type: field.TypeString},
+		{Name: "credential", Type: field.TypeString, Size: 2147483647},
 		{Name: "passphrase", Type: field.TypeString, Nullable: true},
 		{Name: "fingerprint", Type: field.TypeString, Nullable: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true},

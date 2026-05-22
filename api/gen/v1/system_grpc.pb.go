@@ -30,6 +30,8 @@ const (
 	System_AdminAddRole_FullMethodName           = "/v1.System/AdminAddRole"
 	System_AdminEditRole_FullMethodName          = "/v1.System/AdminEditRole"
 	System_AdminDeleteRole_FullMethodName        = "/v1.System/AdminDeleteRole"
+	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
+	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
 )
 
 // SystemClient is the client API for System service.
@@ -60,6 +62,10 @@ type SystemClient interface {
 	AdminEditRole(ctx context.Context, in *AdminEditRoleRequest, opts ...grpc.CallOption) (*AdminEditRoleResponse, error)
 	// 删除角色
 	AdminDeleteRole(ctx context.Context, in *AdminDeleteRoleRequest, opts ...grpc.CallOption) (*AdminDeleteRoleResponse, error)
+	// 获取系统信息概览
+	SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error)
+	// 获取系统实时状态
+	SystemStatus(ctx context.Context, in *SystemStatusRequest, opts ...grpc.CallOption) (*SystemStatusResponse, error)
 }
 
 type systemClient struct {
@@ -180,6 +186,26 @@ func (c *systemClient) AdminDeleteRole(ctx context.Context, in *AdminDeleteRoleR
 	return out, nil
 }
 
+func (c *systemClient) SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SystemOverviewResponse)
+	err := c.cc.Invoke(ctx, System_SystemOverview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) SystemStatus(ctx context.Context, in *SystemStatusRequest, opts ...grpc.CallOption) (*SystemStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SystemStatusResponse)
+	err := c.cc.Invoke(ctx, System_SystemStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServer is the server API for System service.
 // All implementations must embed UnimplementedSystemServer
 // for forward compatibility.
@@ -208,6 +234,10 @@ type SystemServer interface {
 	AdminEditRole(context.Context, *AdminEditRoleRequest) (*AdminEditRoleResponse, error)
 	// 删除角色
 	AdminDeleteRole(context.Context, *AdminDeleteRoleRequest) (*AdminDeleteRoleResponse, error)
+	// 获取系统信息概览
+	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
+	// 获取系统实时状态
+	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
 	mustEmbedUnimplementedSystemServer()
 }
 
@@ -250,6 +280,12 @@ func (UnimplementedSystemServer) AdminEditRole(context.Context, *AdminEditRoleRe
 }
 func (UnimplementedSystemServer) AdminDeleteRole(context.Context, *AdminDeleteRoleRequest) (*AdminDeleteRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AdminDeleteRole not implemented")
+}
+func (UnimplementedSystemServer) SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SystemOverview not implemented")
+}
+func (UnimplementedSystemServer) SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SystemStatus not implemented")
 }
 func (UnimplementedSystemServer) mustEmbedUnimplementedSystemServer() {}
 func (UnimplementedSystemServer) testEmbeddedByValue()                {}
@@ -470,6 +506,42 @@ func _System_AdminDeleteRole_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_SystemOverview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SystemOverviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).SystemOverview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_SystemOverview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).SystemOverview(ctx, req.(*SystemOverviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_SystemStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SystemStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).SystemStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_SystemStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).SystemStatus(ctx, req.(*SystemStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // System_ServiceDesc is the grpc.ServiceDesc for System service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -520,6 +592,14 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminDeleteRole",
 			Handler:    _System_AdminDeleteRole_Handler,
+		},
+		{
+			MethodName: "SystemOverview",
+			Handler:    _System_SystemOverview_Handler,
+		},
+		{
+			MethodName: "SystemStatus",
+			Handler:    _System_SystemStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

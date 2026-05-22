@@ -267,3 +267,390 @@ export interface AdminDeleteRoleRequest {
 /** 删除角色响应 */
 export interface AdminDeleteRoleResponse {
 }
+
+/** 获取系统信息概览请求 */
+export interface SystemOverviewRequest {
+}
+
+/** 获取系统信息概览响应 */
+export interface SystemOverviewResponse {
+  /** 系统版本信息 */
+  version:
+    | SystemVersionInfo
+    | undefined;
+  /** 开机时间 */
+  bootTime:
+    | Date
+    | undefined;
+  /** 运行时长秒数 */
+  uptimeSeconds: number;
+  /** CPU基础信息 */
+  cpu:
+    | CpuOverview
+    | undefined;
+  /** 内存基础信息 */
+  memory:
+    | MemoryOverview
+    | undefined;
+  /** 网卡列表 */
+  networkInterfaces: NetworkInterfaceOverview[];
+  /** 磁盘分区列表 */
+  diskPartitions: DiskPartitionOverview[];
+  /** 磁盘IO列表 */
+  diskIos: DiskIOOverview[];
+  /** 采样时间 */
+  sampleTime: Date | undefined;
+}
+
+/** 获取系统实时状态请求 */
+export interface SystemStatusRequest {
+  /** 网卡名称 */
+  interfaceName?:
+    | string
+    | undefined;
+  /** 磁盘名称 */
+  diskName?:
+    | string
+    | undefined;
+  /** 挂载点 */
+  mountpoint?: string | undefined;
+}
+
+/** 获取系统实时状态响应 */
+export interface SystemStatusResponse {
+  /** CPU实时状态 */
+  cpu:
+    | CpuStatus
+    | undefined;
+  /** 内存实时状态 */
+  memory:
+    | MemoryStatus
+    | undefined;
+  /** 网络实时状态 */
+  network:
+    | NetworkStatus
+    | undefined;
+  /** 磁盘实时状态 */
+  disk:
+    | DiskStatus
+    | undefined;
+  /** 采样时间 */
+  sampleTime: Date | undefined;
+}
+
+/** 系统版本信息 */
+export interface SystemVersionInfo {
+  /** 主机名 */
+  hostname: string;
+  /** 操作系统 */
+  os: string;
+  /** 平台名称 */
+  platform: string;
+  /** 平台族 */
+  platformFamily: string;
+  /** 平台版本 */
+  platformVersion: string;
+  /** 内核版本 */
+  kernelVersion: string;
+  /** 内核架构 */
+  kernelArch: string;
+}
+
+/** CPU基础信息 */
+export interface CpuOverview {
+  /** 逻辑核心数 */
+  logicalCount: number;
+  /** 物理核心数 */
+  physicalCount: number;
+  /** CPU型号名称 */
+  modelName: string;
+}
+
+/** CPU实时状态 */
+export interface CpuStatus {
+  /** 总CPU占用百分比 */
+  totalPercent: number;
+  /** 每个核心CPU占用百分比 */
+  cores: CpuCoreStatus[];
+  /** 逻辑核心数 */
+  logicalCount: number;
+  /** 物理核心数 */
+  physicalCount: number;
+}
+
+/** CPU核心状态 */
+export interface CpuCoreStatus {
+  /** 核心编号 */
+  coreId: number;
+  /** CPU占用百分比 */
+  percent: number;
+}
+
+/** 内存基础信息 */
+export interface MemoryOverview {
+  /** 物理内存基础信息 */
+  physicalMemory:
+    | PhysicalMemoryOverview
+    | undefined;
+  /** 虚拟内存基础信息 */
+  virtualMemory: VirtualMemoryOverview | undefined;
+}
+
+/** 内存实时状态 */
+export interface MemoryStatus {
+  /** 物理内存实时状态 */
+  physicalMemory:
+    | PhysicalMemoryStatus
+    | undefined;
+  /** 虚拟内存实时状态 */
+  virtualMemory: VirtualMemoryStatus | undefined;
+}
+
+/** 物理内存基础信息 */
+export interface PhysicalMemoryOverview {
+  /** 物理内存总字节数 */
+  totalBytes: number;
+}
+
+/** 物理内存实时状态 */
+export interface PhysicalMemoryStatus {
+  /** 物理内存总字节数 */
+  totalBytes: number;
+  /** 物理内存可用字节数 */
+  availableBytes: number;
+  /** 物理内存已用字节数 */
+  usedBytes: number;
+  /** 物理内存空闲字节数 */
+  freeBytes: number;
+  /** 物理内存占用百分比 */
+  usedPercent: number;
+}
+
+/** 虚拟内存基础信息 */
+export interface VirtualMemoryOverview {
+  /** 虚拟内存总字节数 */
+  totalBytes: number;
+}
+
+/** 虚拟内存实时状态 */
+export interface VirtualMemoryStatus {
+  /** 虚拟内存总字节数 */
+  totalBytes: number;
+  /** 虚拟内存已用字节数 */
+  usedBytes: number;
+  /** 虚拟内存空闲字节数 */
+  freeBytes: number;
+  /** 虚拟内存占用百分比 */
+  usedPercent: number;
+  /** 累计换入字节数 */
+  swapInBytes: number;
+  /** 累计换出字节数 */
+  swapOutBytes: number;
+  /** 累计换入页数 */
+  pageInCount: number;
+  /** 累计换出页数 */
+  pageOutCount: number;
+  /** 累计缺页次数 */
+  pageFaultCount: number;
+  /** 累计主缺页次数 */
+  pageMajFaultCount: number;
+}
+
+/** 网卡概览 */
+export interface NetworkInterfaceOverview {
+  /** 网卡名称 */
+  name: string;
+  /** MAC地址 */
+  hardwareAddr: string;
+  /** MTU */
+  mtu: number;
+  /** 网卡标记 */
+  flags: string[];
+  /** 网卡地址 */
+  addrs: string[];
+  /** 是否启用 */
+  isUp: boolean;
+  /** 是否为回环网卡 */
+  isLoopback: boolean;
+}
+
+/** 网络实时状态 */
+export interface NetworkStatus {
+  /** 全部网卡汇总流量 */
+  total:
+    | NetworkInterfaceStatus
+    | undefined;
+  /** 网卡实时状态列表 */
+  interfaces: NetworkInterfaceStatus[];
+  /** 当前选中网卡 */
+  selectedInterface:
+    | NetworkInterfaceStatus
+    | undefined;
+  /** 网络连接统计 */
+  connections: NetworkConnectionStatus | undefined;
+}
+
+/** 网卡实时状态 */
+export interface NetworkInterfaceStatus {
+  /** 网卡名称 */
+  name: string;
+  /** MAC地址 */
+  hardwareAddr: string;
+  /** MTU */
+  mtu: number;
+  /** 网卡标记 */
+  flags: string[];
+  /** 网卡地址 */
+  addrs: string[];
+  /** 是否启用 */
+  isUp: boolean;
+  /** 是否为回环网卡 */
+  isLoopback: boolean;
+  /** 累计发送字节数 */
+  bytesSent: number;
+  /** 累计接收字节数 */
+  bytesRecv: number;
+  /** 累计发送包数 */
+  packetsSent: number;
+  /** 累计接收包数 */
+  packetsRecv: number;
+  /** 累计接收错误数 */
+  errIn: number;
+  /** 累计发送错误数 */
+  errOut: number;
+  /** 累计接收丢包数 */
+  dropIn: number;
+  /** 累计发送丢包数 */
+  dropOut: number;
+  /** 当前上传速率字节每秒 */
+  uploadRateBytesPerSecond: number;
+  /** 当前下载速率字节每秒 */
+  downloadRateBytesPerSecond: number;
+}
+
+/** 网络连接状态 */
+export interface NetworkConnectionStatus {
+  /** 当前平台是否支持连接统计 */
+  supported: boolean;
+  /** 连接统计错误信息 */
+  error: string;
+  /** TCP连接数 */
+  tcpCount: number;
+  /** UDP连接数 */
+  udpCount: number;
+  /** 总连接数 */
+  totalCount: number;
+  /** TCP状态统计 */
+  tcpStatuses: { [key: string]: number };
+}
+
+export interface NetworkConnectionStatus_TcpStatusesEntry {
+  key: string;
+  value: number;
+}
+
+/** 磁盘分区概览 */
+export interface DiskPartitionOverview {
+  /** 设备名称 */
+  device: string;
+  /** 挂载点 */
+  mountpoint: string;
+  /** 文件系统类型 */
+  fstype: string;
+  /** 挂载选项 */
+  opts: string[];
+}
+
+/** 磁盘IO概览 */
+export interface DiskIOOverview {
+  /** 磁盘名称 */
+  name: string;
+  /** 序列号 */
+  serialNumber: string;
+  /** 卷标 */
+  label: string;
+}
+
+/** 磁盘实时状态 */
+export interface DiskStatus {
+  /** 全部分区汇总使用情况 */
+  total:
+    | DiskPartitionStatus
+    | undefined;
+  /** 分区使用情况列表 */
+  partitions: DiskPartitionStatus[];
+  /** 当前选中分区使用情况 */
+  selectedPartition:
+    | DiskPartitionStatus
+    | undefined;
+  /** 全部磁盘汇总IO状态 */
+  totalIo:
+    | DiskIOStatus
+    | undefined;
+  /** 磁盘IO状态列表 */
+  ios: DiskIOStatus[];
+  /** 当前选中磁盘IO状态 */
+  selectedIo:
+    | DiskIOStatus
+    | undefined;
+  /** 当前平台是否支持磁盘IO统计 */
+  ioSupported: boolean;
+  /** 磁盘IO统计错误信息 */
+  ioError: string;
+}
+
+/** 磁盘分区实时状态 */
+export interface DiskPartitionStatus {
+  /** 设备名称 */
+  device: string;
+  /** 挂载点 */
+  mountpoint: string;
+  /** 文件系统类型 */
+  fstype: string;
+  /** 是否支持使用量统计 */
+  supported: boolean;
+  /** 使用量统计错误信息 */
+  error: string;
+  /** 总容量字节数 */
+  totalBytes: number;
+  /** 可用容量字节数 */
+  freeBytes: number;
+  /** 已用容量字节数 */
+  usedBytes: number;
+  /** 容量占用百分比 */
+  usedPercent: number;
+  /** inode总数 */
+  inodesTotal: number;
+  /** 已用inode数 */
+  inodesUsed: number;
+  /** 空闲inode数 */
+  inodesFree: number;
+  /** inode占用百分比 */
+  inodesUsedPercent: number;
+}
+
+/** 磁盘IO实时状态 */
+export interface DiskIOStatus {
+  /** 磁盘名称 */
+  name: string;
+  /** 序列号 */
+  serialNumber: string;
+  /** 卷标 */
+  label: string;
+  /** 累计读取次数 */
+  readCount: number;
+  /** 累计写入次数 */
+  writeCount: number;
+  /** 累计读取字节数 */
+  readBytes: number;
+  /** 累计写入字节数 */
+  writeBytes: number;
+  /** 当前读取速率字节每秒 */
+  readRateBytesPerSecond: number;
+  /** 当前写入速率字节每秒 */
+  writeRateBytesPerSecond: number;
+  /** 正在进行的IO数量 */
+  iopsInProgress: number;
+  /** 累计IO耗时 */
+  ioTime: number;
+}

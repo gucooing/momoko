@@ -151,3 +151,11 @@ func (s *SystemService) AdminDeleteRole(ctx context.Context, req *v1.AdminDelete
 	}
 	return &v1.AdminDeleteRoleResponse{}, nil
 }
+
+func (s *SystemService) SystemOverview(ctx context.Context, req *v1.SystemOverviewRequest) (*v1.SystemOverviewResponse, error) {
+	return s.uc.SystemOverview(ctx)
+}
+
+func (s *SystemService) SystemStatus(ctx context.Context, req *v1.SystemStatusRequest) (*v1.SystemStatusResponse, error) {
+	return s.uc.SystemStatus(ctx, req)
+}

@@ -1593,6 +1593,48 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+    /api/v1/system/overview:
+        get:
+            tags:
+                - System
+            description: 获取系统信息概览
+            operationId: System_SystemOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SystemOverviewResponse'
+    /api/v1/system/status:
+        get:
+            tags:
+                - System
+            description: 获取系统实时状态
+            operationId: System_SystemStatus
+            parameters:
+                - name: interfaceName
+                  in: query
+                  description: 网卡名称
+                  schema:
+                    type: string
+                - name: diskName
+                  in: query
+                  description: 磁盘名称
+                  schema:
+                    type: string
+                - name: mountpoint
+                  in: query
+                  description: 挂载点
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SystemStatusResponse'
     /api/v1/user/add:
         post:
             tags:
@@ -2103,6 +2145,54 @@ components:
                         - $ref: '#/components/schemas/v1.FileTaskInfo'
                     description: 异步任务信息
             description: 复制实例文件响应
+        v1.CpuCoreStatus:
+            type: object
+            properties:
+                coreId:
+                    type: integer
+                    description: 核心编号
+                    format: int32
+                percent:
+                    type: number
+                    description: CPU占用百分比
+                    format: double
+            description: CPU核心状态
+        v1.CpuOverview:
+            type: object
+            properties:
+                logicalCount:
+                    type: integer
+                    description: 逻辑核心数
+                    format: int32
+                physicalCount:
+                    type: integer
+                    description: 物理核心数
+                    format: int32
+                modelName:
+                    type: string
+                    description: CPU型号名称
+            description: CPU基础信息
+        v1.CpuStatus:
+            type: object
+            properties:
+                totalPercent:
+                    type: number
+                    description: 总CPU占用百分比
+                    format: double
+                cores:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.CpuCoreStatus'
+                    description: 每个核心CPU占用百分比
+                logicalCount:
+                    type: integer
+                    description: 逻辑核心数
+                    format: int32
+                physicalCount:
+                    type: integer
+                    description: 物理核心数
+                    format: int32
+            description: CPU实时状态
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -2317,6 +2407,157 @@ components:
                     type: string
                     description: 当前设备id
             description: 获取登录设备响应
+        v1.DiskIOOverview:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 磁盘名称
+                serialNumber:
+                    type: string
+                    description: 序列号
+                label:
+                    type: string
+                    description: 卷标
+            description: 磁盘IO概览
+        v1.DiskIOStatus:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 磁盘名称
+                serialNumber:
+                    type: string
+                    description: 序列号
+                label:
+                    type: string
+                    description: 卷标
+                readCount:
+                    type: string
+                    description: 累计读取次数
+                writeCount:
+                    type: string
+                    description: 累计写入次数
+                readBytes:
+                    type: string
+                    description: 累计读取字节数
+                writeBytes:
+                    type: string
+                    description: 累计写入字节数
+                readRateBytesPerSecond:
+                    type: number
+                    description: 当前读取速率字节每秒
+                    format: double
+                writeRateBytesPerSecond:
+                    type: number
+                    description: 当前写入速率字节每秒
+                    format: double
+                iopsInProgress:
+                    type: string
+                    description: 正在进行的IO数量
+                ioTime:
+                    type: string
+                    description: 累计IO耗时
+            description: 磁盘IO实时状态
+        v1.DiskPartitionOverview:
+            type: object
+            properties:
+                device:
+                    type: string
+                    description: 设备名称
+                mountpoint:
+                    type: string
+                    description: 挂载点
+                fstype:
+                    type: string
+                    description: 文件系统类型
+                opts:
+                    type: array
+                    items:
+                        type: string
+                    description: 挂载选项
+            description: 磁盘分区概览
+        v1.DiskPartitionStatus:
+            type: object
+            properties:
+                device:
+                    type: string
+                    description: 设备名称
+                mountpoint:
+                    type: string
+                    description: 挂载点
+                fstype:
+                    type: string
+                    description: 文件系统类型
+                supported:
+                    type: boolean
+                    description: 是否支持使用量统计
+                error:
+                    type: string
+                    description: 使用量统计错误信息
+                totalBytes:
+                    type: string
+                    description: 总容量字节数
+                freeBytes:
+                    type: string
+                    description: 可用容量字节数
+                usedBytes:
+                    type: string
+                    description: 已用容量字节数
+                usedPercent:
+                    type: number
+                    description: 容量占用百分比
+                    format: double
+                inodesTotal:
+                    type: string
+                    description: inode总数
+                inodesUsed:
+                    type: string
+                    description: 已用inode数
+                inodesFree:
+                    type: string
+                    description: 空闲inode数
+                inodesUsedPercent:
+                    type: number
+                    description: inode占用百分比
+                    format: double
+            description: 磁盘分区实时状态
+        v1.DiskStatus:
+            type: object
+            properties:
+                total:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DiskPartitionStatus'
+                    description: 全部分区汇总使用情况
+                partitions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DiskPartitionStatus'
+                    description: 分区使用情况列表
+                selectedPartition:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DiskPartitionStatus'
+                    description: 当前选中分区使用情况
+                totalIo:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DiskIOStatus'
+                    description: 全部磁盘汇总IO状态
+                ios:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DiskIOStatus'
+                    description: 磁盘IO状态列表
+                selectedIo:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DiskIOStatus'
+                    description: 当前选中磁盘IO状态
+                ioSupported:
+                    type: boolean
+                    description: 当前平台是否支持磁盘IO统计
+                ioError:
+                    type: string
+                    description: 磁盘IO统计错误信息
+            description: 磁盘实时状态
         v1.EditUserRequest:
             type: object
             properties:
@@ -2811,6 +3052,30 @@ components:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 权限菜单
             description: 获取当前角色的全部权限响应
+        v1.MemoryOverview:
+            type: object
+            properties:
+                physicalMemory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PhysicalMemoryOverview'
+                    description: 物理内存基础信息
+                virtualMemory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.VirtualMemoryOverview'
+                    description: 虚拟内存基础信息
+            description: 内存基础信息
+        v1.MemoryStatus:
+            type: object
+            properties:
+                physicalMemory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PhysicalMemoryStatus'
+                    description: 物理内存实时状态
+                virtualMemory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.VirtualMemoryStatus'
+                    description: 虚拟内存实时状态
+            description: 内存实时状态
         v1.MenuInfo:
             type: object
             properties:
@@ -2861,6 +3126,143 @@ components:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 子权限菜单
             description: 权限菜单信息
+        v1.NetworkConnectionStatus:
+            type: object
+            properties:
+                supported:
+                    type: boolean
+                    description: 当前平台是否支持连接统计
+                error:
+                    type: string
+                    description: 连接统计错误信息
+                tcpCount:
+                    type: string
+                    description: TCP连接数
+                udpCount:
+                    type: string
+                    description: UDP连接数
+                totalCount:
+                    type: string
+                    description: 总连接数
+                tcpStatuses:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: TCP状态统计
+            description: 网络连接状态
+        v1.NetworkInterfaceOverview:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 网卡名称
+                hardwareAddr:
+                    type: string
+                    description: MAC地址
+                mtu:
+                    type: integer
+                    description: MTU
+                    format: int32
+                flags:
+                    type: array
+                    items:
+                        type: string
+                    description: 网卡标记
+                addrs:
+                    type: array
+                    items:
+                        type: string
+                    description: 网卡地址
+                isUp:
+                    type: boolean
+                    description: 是否启用
+                isLoopback:
+                    type: boolean
+                    description: 是否为回环网卡
+            description: 网卡概览
+        v1.NetworkInterfaceStatus:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 网卡名称
+                hardwareAddr:
+                    type: string
+                    description: MAC地址
+                mtu:
+                    type: integer
+                    description: MTU
+                    format: int32
+                flags:
+                    type: array
+                    items:
+                        type: string
+                    description: 网卡标记
+                addrs:
+                    type: array
+                    items:
+                        type: string
+                    description: 网卡地址
+                isUp:
+                    type: boolean
+                    description: 是否启用
+                isLoopback:
+                    type: boolean
+                    description: 是否为回环网卡
+                bytesSent:
+                    type: string
+                    description: 累计发送字节数
+                bytesRecv:
+                    type: string
+                    description: 累计接收字节数
+                packetsSent:
+                    type: string
+                    description: 累计发送包数
+                packetsRecv:
+                    type: string
+                    description: 累计接收包数
+                errIn:
+                    type: string
+                    description: 累计接收错误数
+                errOut:
+                    type: string
+                    description: 累计发送错误数
+                dropIn:
+                    type: string
+                    description: 累计接收丢包数
+                dropOut:
+                    type: string
+                    description: 累计发送丢包数
+                uploadRateBytesPerSecond:
+                    type: number
+                    description: 当前上传速率字节每秒
+                    format: double
+                downloadRateBytesPerSecond:
+                    type: number
+                    description: 当前下载速率字节每秒
+                    format: double
+            description: 网卡实时状态
+        v1.NetworkStatus:
+            type: object
+            properties:
+                total:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NetworkInterfaceStatus'
+                    description: 全部网卡汇总流量
+                interfaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.NetworkInterfaceStatus'
+                    description: 网卡实时状态列表
+                selectedInterface:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NetworkInterfaceStatus'
+                    description: 当前选中网卡
+                connections:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NetworkConnectionStatus'
+                    description: 网络连接统计
+            description: 网络实时状态
         v1.OpenFileSystemFileRequest:
             type: object
             properties:
@@ -2894,6 +3296,33 @@ components:
                     description: 文件内容
                     format: bytes
             description: 打开实例文件响应
+        v1.PhysicalMemoryOverview:
+            type: object
+            properties:
+                totalBytes:
+                    type: string
+                    description: 物理内存总字节数
+            description: 物理内存基础信息
+        v1.PhysicalMemoryStatus:
+            type: object
+            properties:
+                totalBytes:
+                    type: string
+                    description: 物理内存总字节数
+                availableBytes:
+                    type: string
+                    description: 物理内存可用字节数
+                usedBytes:
+                    type: string
+                    description: 物理内存已用字节数
+                freeBytes:
+                    type: string
+                    description: 物理内存空闲字节数
+                usedPercent:
+                    type: number
+                    description: 物理内存占用百分比
+                    format: double
+            description: 物理内存实时状态
         v1.RefreshRequest:
             type: object
             properties:
@@ -3154,6 +3583,97 @@ components:
             type: object
             properties: {}
             description: 停止终端响应
+        v1.SystemOverviewResponse:
+            type: object
+            properties:
+                version:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SystemVersionInfo'
+                    description: 系统版本信息
+                bootTime:
+                    type: string
+                    description: 开机时间
+                    format: date-time
+                uptimeSeconds:
+                    type: string
+                    description: 运行时长秒数
+                cpu:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.CpuOverview'
+                    description: CPU基础信息
+                memory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.MemoryOverview'
+                    description: 内存基础信息
+                networkInterfaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.NetworkInterfaceOverview'
+                    description: 网卡列表
+                diskPartitions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DiskPartitionOverview'
+                    description: 磁盘分区列表
+                diskIos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DiskIOOverview'
+                    description: 磁盘IO列表
+                sampleTime:
+                    type: string
+                    description: 采样时间
+                    format: date-time
+            description: 获取系统信息概览响应
+        v1.SystemStatusResponse:
+            type: object
+            properties:
+                cpu:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.CpuStatus'
+                    description: CPU实时状态
+                memory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.MemoryStatus'
+                    description: 内存实时状态
+                network:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NetworkStatus'
+                    description: 网络实时状态
+                disk:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DiskStatus'
+                    description: 磁盘实时状态
+                sampleTime:
+                    type: string
+                    description: 采样时间
+                    format: date-time
+            description: 获取系统实时状态响应
+        v1.SystemVersionInfo:
+            type: object
+            properties:
+                hostname:
+                    type: string
+                    description: 主机名
+                os:
+                    type: string
+                    description: 操作系统
+                platform:
+                    type: string
+                    description: 平台名称
+                platformFamily:
+                    type: string
+                    description: 平台族
+                platformVersion:
+                    type: string
+                    description: 平台版本
+                kernelVersion:
+                    type: string
+                    description: 内核版本
+                kernelArch:
+                    type: string
+                    description: 内核架构
+            description: 系统版本信息
         v1.TestSSHHostRequest:
             type: object
             properties:
@@ -3450,6 +3970,48 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 获取用户详情响应
+        v1.VirtualMemoryOverview:
+            type: object
+            properties:
+                totalBytes:
+                    type: string
+                    description: 虚拟内存总字节数
+            description: 虚拟内存基础信息
+        v1.VirtualMemoryStatus:
+            type: object
+            properties:
+                totalBytes:
+                    type: string
+                    description: 虚拟内存总字节数
+                usedBytes:
+                    type: string
+                    description: 虚拟内存已用字节数
+                freeBytes:
+                    type: string
+                    description: 虚拟内存空闲字节数
+                usedPercent:
+                    type: number
+                    description: 虚拟内存占用百分比
+                    format: double
+                swapInBytes:
+                    type: string
+                    description: 累计换入字节数
+                swapOutBytes:
+                    type: string
+                    description: 累计换出字节数
+                pageInCount:
+                    type: string
+                    description: 累计换入页数
+                pageOutCount:
+                    type: string
+                    description: 累计换出页数
+                pageFaultCount:
+                    type: string
+                    description: 累计缺页次数
+                pageMajFaultCount:
+                    type: string
+                    description: 累计主缺页次数
+            description: 虚拟内存实时状态
 tags:
     - name: AuthService
       description: 认证服务

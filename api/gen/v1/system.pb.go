@@ -1635,6 +1635,2000 @@ func (*AdminDeleteRoleResponse) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{23}
 }
 
+// 获取系统信息概览请求
+type SystemOverviewRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemOverviewRequest) Reset() {
+	*x = SystemOverviewRequest{}
+	mi := &file_v1_system_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemOverviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemOverviewRequest) ProtoMessage() {}
+
+func (x *SystemOverviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemOverviewRequest.ProtoReflect.Descriptor instead.
+func (*SystemOverviewRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{24}
+}
+
+// 获取系统信息概览响应
+type SystemOverviewResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 系统版本信息
+	Version *SystemVersionInfo `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	// 开机时间
+	BootTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=boot_time,json=bootTime,proto3" json:"boot_time,omitempty"`
+	// 运行时长秒数
+	UptimeSeconds uint64 `protobuf:"varint,3,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	// CPU基础信息
+	Cpu *CpuOverview `protobuf:"bytes,4,opt,name=cpu,proto3" json:"cpu,omitempty"`
+	// 内存基础信息
+	Memory *MemoryOverview `protobuf:"bytes,5,opt,name=memory,proto3" json:"memory,omitempty"`
+	// 网卡列表
+	NetworkInterfaces []*NetworkInterfaceOverview `protobuf:"bytes,6,rep,name=network_interfaces,json=networkInterfaces,proto3" json:"network_interfaces,omitempty"`
+	// 磁盘分区列表
+	DiskPartitions []*DiskPartitionOverview `protobuf:"bytes,7,rep,name=disk_partitions,json=diskPartitions,proto3" json:"disk_partitions,omitempty"`
+	// 磁盘IO列表
+	DiskIos []*DiskIOOverview `protobuf:"bytes,8,rep,name=disk_ios,json=diskIos,proto3" json:"disk_ios,omitempty"`
+	// 采样时间
+	SampleTime    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=sample_time,json=sampleTime,proto3" json:"sample_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemOverviewResponse) Reset() {
+	*x = SystemOverviewResponse{}
+	mi := &file_v1_system_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemOverviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemOverviewResponse) ProtoMessage() {}
+
+func (x *SystemOverviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemOverviewResponse.ProtoReflect.Descriptor instead.
+func (*SystemOverviewResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *SystemOverviewResponse) GetVersion() *SystemVersionInfo {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetBootTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.BootTime
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetUptimeSeconds() uint64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
+func (x *SystemOverviewResponse) GetCpu() *CpuOverview {
+	if x != nil {
+		return x.Cpu
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetMemory() *MemoryOverview {
+	if x != nil {
+		return x.Memory
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetNetworkInterfaces() []*NetworkInterfaceOverview {
+	if x != nil {
+		return x.NetworkInterfaces
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetDiskPartitions() []*DiskPartitionOverview {
+	if x != nil {
+		return x.DiskPartitions
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetDiskIos() []*DiskIOOverview {
+	if x != nil {
+		return x.DiskIos
+	}
+	return nil
+}
+
+func (x *SystemOverviewResponse) GetSampleTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SampleTime
+	}
+	return nil
+}
+
+// 获取系统实时状态请求
+type SystemStatusRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 网卡名称
+	InterfaceName *string `protobuf:"bytes,1,opt,name=interface_name,json=interfaceName,proto3,oneof" json:"interface_name,omitempty"`
+	// 磁盘名称
+	DiskName *string `protobuf:"bytes,2,opt,name=disk_name,json=diskName,proto3,oneof" json:"disk_name,omitempty"`
+	// 挂载点
+	Mountpoint    *string `protobuf:"bytes,3,opt,name=mountpoint,proto3,oneof" json:"mountpoint,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemStatusRequest) Reset() {
+	*x = SystemStatusRequest{}
+	mi := &file_v1_system_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemStatusRequest) ProtoMessage() {}
+
+func (x *SystemStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemStatusRequest.ProtoReflect.Descriptor instead.
+func (*SystemStatusRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SystemStatusRequest) GetInterfaceName() string {
+	if x != nil && x.InterfaceName != nil {
+		return *x.InterfaceName
+	}
+	return ""
+}
+
+func (x *SystemStatusRequest) GetDiskName() string {
+	if x != nil && x.DiskName != nil {
+		return *x.DiskName
+	}
+	return ""
+}
+
+func (x *SystemStatusRequest) GetMountpoint() string {
+	if x != nil && x.Mountpoint != nil {
+		return *x.Mountpoint
+	}
+	return ""
+}
+
+// 获取系统实时状态响应
+type SystemStatusResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// CPU实时状态
+	Cpu *CpuStatus `protobuf:"bytes,1,opt,name=cpu,proto3" json:"cpu,omitempty"`
+	// 内存实时状态
+	Memory *MemoryStatus `protobuf:"bytes,2,opt,name=memory,proto3" json:"memory,omitempty"`
+	// 网络实时状态
+	Network *NetworkStatus `protobuf:"bytes,3,opt,name=network,proto3" json:"network,omitempty"`
+	// 磁盘实时状态
+	Disk *DiskStatus `protobuf:"bytes,4,opt,name=disk,proto3" json:"disk,omitempty"`
+	// 采样时间
+	SampleTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=sample_time,json=sampleTime,proto3" json:"sample_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemStatusResponse) Reset() {
+	*x = SystemStatusResponse{}
+	mi := &file_v1_system_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemStatusResponse) ProtoMessage() {}
+
+func (x *SystemStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemStatusResponse.ProtoReflect.Descriptor instead.
+func (*SystemStatusResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SystemStatusResponse) GetCpu() *CpuStatus {
+	if x != nil {
+		return x.Cpu
+	}
+	return nil
+}
+
+func (x *SystemStatusResponse) GetMemory() *MemoryStatus {
+	if x != nil {
+		return x.Memory
+	}
+	return nil
+}
+
+func (x *SystemStatusResponse) GetNetwork() *NetworkStatus {
+	if x != nil {
+		return x.Network
+	}
+	return nil
+}
+
+func (x *SystemStatusResponse) GetDisk() *DiskStatus {
+	if x != nil {
+		return x.Disk
+	}
+	return nil
+}
+
+func (x *SystemStatusResponse) GetSampleTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SampleTime
+	}
+	return nil
+}
+
+// 系统版本信息
+type SystemVersionInfo struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 主机名
+	Hostname string `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	// 操作系统
+	Os string `protobuf:"bytes,2,opt,name=os,proto3" json:"os,omitempty"`
+	// 平台名称
+	Platform string `protobuf:"bytes,3,opt,name=platform,proto3" json:"platform,omitempty"`
+	// 平台族
+	PlatformFamily string `protobuf:"bytes,4,opt,name=platform_family,json=platformFamily,proto3" json:"platform_family,omitempty"`
+	// 平台版本
+	PlatformVersion string `protobuf:"bytes,5,opt,name=platform_version,json=platformVersion,proto3" json:"platform_version,omitempty"`
+	// 内核版本
+	KernelVersion string `protobuf:"bytes,6,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
+	// 内核架构
+	KernelArch    string `protobuf:"bytes,7,opt,name=kernel_arch,json=kernelArch,proto3" json:"kernel_arch,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SystemVersionInfo) Reset() {
+	*x = SystemVersionInfo{}
+	mi := &file_v1_system_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SystemVersionInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SystemVersionInfo) ProtoMessage() {}
+
+func (x *SystemVersionInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SystemVersionInfo.ProtoReflect.Descriptor instead.
+func (*SystemVersionInfo) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *SystemVersionInfo) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetOs() string {
+	if x != nil {
+		return x.Os
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetPlatformFamily() string {
+	if x != nil {
+		return x.PlatformFamily
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetPlatformVersion() string {
+	if x != nil {
+		return x.PlatformVersion
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetKernelVersion() string {
+	if x != nil {
+		return x.KernelVersion
+	}
+	return ""
+}
+
+func (x *SystemVersionInfo) GetKernelArch() string {
+	if x != nil {
+		return x.KernelArch
+	}
+	return ""
+}
+
+// CPU基础信息
+type CpuOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 逻辑核心数
+	LogicalCount int32 `protobuf:"varint,1,opt,name=logical_count,json=logicalCount,proto3" json:"logical_count,omitempty"`
+	// 物理核心数
+	PhysicalCount int32 `protobuf:"varint,2,opt,name=physical_count,json=physicalCount,proto3" json:"physical_count,omitempty"`
+	// CPU型号名称
+	ModelName     string `protobuf:"bytes,3,opt,name=model_name,json=modelName,proto3" json:"model_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CpuOverview) Reset() {
+	*x = CpuOverview{}
+	mi := &file_v1_system_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CpuOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CpuOverview) ProtoMessage() {}
+
+func (x *CpuOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CpuOverview.ProtoReflect.Descriptor instead.
+func (*CpuOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CpuOverview) GetLogicalCount() int32 {
+	if x != nil {
+		return x.LogicalCount
+	}
+	return 0
+}
+
+func (x *CpuOverview) GetPhysicalCount() int32 {
+	if x != nil {
+		return x.PhysicalCount
+	}
+	return 0
+}
+
+func (x *CpuOverview) GetModelName() string {
+	if x != nil {
+		return x.ModelName
+	}
+	return ""
+}
+
+// CPU实时状态
+type CpuStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 总CPU占用百分比
+	TotalPercent float64 `protobuf:"fixed64,1,opt,name=total_percent,json=totalPercent,proto3" json:"total_percent,omitempty"`
+	// 每个核心CPU占用百分比
+	Cores []*CpuCoreStatus `protobuf:"bytes,2,rep,name=cores,proto3" json:"cores,omitempty"`
+	// 逻辑核心数
+	LogicalCount int32 `protobuf:"varint,3,opt,name=logical_count,json=logicalCount,proto3" json:"logical_count,omitempty"`
+	// 物理核心数
+	PhysicalCount int32 `protobuf:"varint,4,opt,name=physical_count,json=physicalCount,proto3" json:"physical_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CpuStatus) Reset() {
+	*x = CpuStatus{}
+	mi := &file_v1_system_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CpuStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CpuStatus) ProtoMessage() {}
+
+func (x *CpuStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CpuStatus.ProtoReflect.Descriptor instead.
+func (*CpuStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *CpuStatus) GetTotalPercent() float64 {
+	if x != nil {
+		return x.TotalPercent
+	}
+	return 0
+}
+
+func (x *CpuStatus) GetCores() []*CpuCoreStatus {
+	if x != nil {
+		return x.Cores
+	}
+	return nil
+}
+
+func (x *CpuStatus) GetLogicalCount() int32 {
+	if x != nil {
+		return x.LogicalCount
+	}
+	return 0
+}
+
+func (x *CpuStatus) GetPhysicalCount() int32 {
+	if x != nil {
+		return x.PhysicalCount
+	}
+	return 0
+}
+
+// CPU核心状态
+type CpuCoreStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 核心编号
+	CoreId int32 `protobuf:"varint,1,opt,name=core_id,json=coreId,proto3" json:"core_id,omitempty"`
+	// CPU占用百分比
+	Percent       float64 `protobuf:"fixed64,2,opt,name=percent,proto3" json:"percent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CpuCoreStatus) Reset() {
+	*x = CpuCoreStatus{}
+	mi := &file_v1_system_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CpuCoreStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CpuCoreStatus) ProtoMessage() {}
+
+func (x *CpuCoreStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CpuCoreStatus.ProtoReflect.Descriptor instead.
+func (*CpuCoreStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CpuCoreStatus) GetCoreId() int32 {
+	if x != nil {
+		return x.CoreId
+	}
+	return 0
+}
+
+func (x *CpuCoreStatus) GetPercent() float64 {
+	if x != nil {
+		return x.Percent
+	}
+	return 0
+}
+
+// 内存基础信息
+type MemoryOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 物理内存基础信息
+	PhysicalMemory *PhysicalMemoryOverview `protobuf:"bytes,1,opt,name=physical_memory,json=physicalMemory,proto3" json:"physical_memory,omitempty"`
+	// 虚拟内存基础信息
+	VirtualMemory *VirtualMemoryOverview `protobuf:"bytes,2,opt,name=virtual_memory,json=virtualMemory,proto3" json:"virtual_memory,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoryOverview) Reset() {
+	*x = MemoryOverview{}
+	mi := &file_v1_system_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoryOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoryOverview) ProtoMessage() {}
+
+func (x *MemoryOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoryOverview.ProtoReflect.Descriptor instead.
+func (*MemoryOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *MemoryOverview) GetPhysicalMemory() *PhysicalMemoryOverview {
+	if x != nil {
+		return x.PhysicalMemory
+	}
+	return nil
+}
+
+func (x *MemoryOverview) GetVirtualMemory() *VirtualMemoryOverview {
+	if x != nil {
+		return x.VirtualMemory
+	}
+	return nil
+}
+
+// 内存实时状态
+type MemoryStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 物理内存实时状态
+	PhysicalMemory *PhysicalMemoryStatus `protobuf:"bytes,1,opt,name=physical_memory,json=physicalMemory,proto3" json:"physical_memory,omitempty"`
+	// 虚拟内存实时状态
+	VirtualMemory *VirtualMemoryStatus `protobuf:"bytes,2,opt,name=virtual_memory,json=virtualMemory,proto3" json:"virtual_memory,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MemoryStatus) Reset() {
+	*x = MemoryStatus{}
+	mi := &file_v1_system_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MemoryStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MemoryStatus) ProtoMessage() {}
+
+func (x *MemoryStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MemoryStatus.ProtoReflect.Descriptor instead.
+func (*MemoryStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *MemoryStatus) GetPhysicalMemory() *PhysicalMemoryStatus {
+	if x != nil {
+		return x.PhysicalMemory
+	}
+	return nil
+}
+
+func (x *MemoryStatus) GetVirtualMemory() *VirtualMemoryStatus {
+	if x != nil {
+		return x.VirtualMemory
+	}
+	return nil
+}
+
+// 物理内存基础信息
+type PhysicalMemoryOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 物理内存总字节数
+	TotalBytes    uint64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PhysicalMemoryOverview) Reset() {
+	*x = PhysicalMemoryOverview{}
+	mi := &file_v1_system_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PhysicalMemoryOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PhysicalMemoryOverview) ProtoMessage() {}
+
+func (x *PhysicalMemoryOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PhysicalMemoryOverview.ProtoReflect.Descriptor instead.
+func (*PhysicalMemoryOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *PhysicalMemoryOverview) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+// 物理内存实时状态
+type PhysicalMemoryStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 物理内存总字节数
+	TotalBytes uint64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	// 物理内存可用字节数
+	AvailableBytes uint64 `protobuf:"varint,2,opt,name=available_bytes,json=availableBytes,proto3" json:"available_bytes,omitempty"`
+	// 物理内存已用字节数
+	UsedBytes uint64 `protobuf:"varint,3,opt,name=used_bytes,json=usedBytes,proto3" json:"used_bytes,omitempty"`
+	// 物理内存空闲字节数
+	FreeBytes uint64 `protobuf:"varint,4,opt,name=free_bytes,json=freeBytes,proto3" json:"free_bytes,omitempty"`
+	// 物理内存占用百分比
+	UsedPercent   float64 `protobuf:"fixed64,5,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PhysicalMemoryStatus) Reset() {
+	*x = PhysicalMemoryStatus{}
+	mi := &file_v1_system_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PhysicalMemoryStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PhysicalMemoryStatus) ProtoMessage() {}
+
+func (x *PhysicalMemoryStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PhysicalMemoryStatus.ProtoReflect.Descriptor instead.
+func (*PhysicalMemoryStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *PhysicalMemoryStatus) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *PhysicalMemoryStatus) GetAvailableBytes() uint64 {
+	if x != nil {
+		return x.AvailableBytes
+	}
+	return 0
+}
+
+func (x *PhysicalMemoryStatus) GetUsedBytes() uint64 {
+	if x != nil {
+		return x.UsedBytes
+	}
+	return 0
+}
+
+func (x *PhysicalMemoryStatus) GetFreeBytes() uint64 {
+	if x != nil {
+		return x.FreeBytes
+	}
+	return 0
+}
+
+func (x *PhysicalMemoryStatus) GetUsedPercent() float64 {
+	if x != nil {
+		return x.UsedPercent
+	}
+	return 0
+}
+
+// 虚拟内存基础信息
+type VirtualMemoryOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 虚拟内存总字节数
+	TotalBytes    uint64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VirtualMemoryOverview) Reset() {
+	*x = VirtualMemoryOverview{}
+	mi := &file_v1_system_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VirtualMemoryOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VirtualMemoryOverview) ProtoMessage() {}
+
+func (x *VirtualMemoryOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VirtualMemoryOverview.ProtoReflect.Descriptor instead.
+func (*VirtualMemoryOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *VirtualMemoryOverview) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+// 虚拟内存实时状态
+type VirtualMemoryStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 虚拟内存总字节数
+	TotalBytes uint64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	// 虚拟内存已用字节数
+	UsedBytes uint64 `protobuf:"varint,2,opt,name=used_bytes,json=usedBytes,proto3" json:"used_bytes,omitempty"`
+	// 虚拟内存空闲字节数
+	FreeBytes uint64 `protobuf:"varint,3,opt,name=free_bytes,json=freeBytes,proto3" json:"free_bytes,omitempty"`
+	// 虚拟内存占用百分比
+	UsedPercent float64 `protobuf:"fixed64,4,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
+	// 累计换入字节数
+	SwapInBytes uint64 `protobuf:"varint,5,opt,name=swap_in_bytes,json=swapInBytes,proto3" json:"swap_in_bytes,omitempty"`
+	// 累计换出字节数
+	SwapOutBytes uint64 `protobuf:"varint,6,opt,name=swap_out_bytes,json=swapOutBytes,proto3" json:"swap_out_bytes,omitempty"`
+	// 累计换入页数
+	PageInCount uint64 `protobuf:"varint,7,opt,name=page_in_count,json=pageInCount,proto3" json:"page_in_count,omitempty"`
+	// 累计换出页数
+	PageOutCount uint64 `protobuf:"varint,8,opt,name=page_out_count,json=pageOutCount,proto3" json:"page_out_count,omitempty"`
+	// 累计缺页次数
+	PageFaultCount uint64 `protobuf:"varint,9,opt,name=page_fault_count,json=pageFaultCount,proto3" json:"page_fault_count,omitempty"`
+	// 累计主缺页次数
+	PageMajFaultCount uint64 `protobuf:"varint,10,opt,name=page_maj_fault_count,json=pageMajFaultCount,proto3" json:"page_maj_fault_count,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *VirtualMemoryStatus) Reset() {
+	*x = VirtualMemoryStatus{}
+	mi := &file_v1_system_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VirtualMemoryStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VirtualMemoryStatus) ProtoMessage() {}
+
+func (x *VirtualMemoryStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VirtualMemoryStatus.ProtoReflect.Descriptor instead.
+func (*VirtualMemoryStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *VirtualMemoryStatus) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetUsedBytes() uint64 {
+	if x != nil {
+		return x.UsedBytes
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetFreeBytes() uint64 {
+	if x != nil {
+		return x.FreeBytes
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetUsedPercent() float64 {
+	if x != nil {
+		return x.UsedPercent
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetSwapInBytes() uint64 {
+	if x != nil {
+		return x.SwapInBytes
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetSwapOutBytes() uint64 {
+	if x != nil {
+		return x.SwapOutBytes
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetPageInCount() uint64 {
+	if x != nil {
+		return x.PageInCount
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetPageOutCount() uint64 {
+	if x != nil {
+		return x.PageOutCount
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetPageFaultCount() uint64 {
+	if x != nil {
+		return x.PageFaultCount
+	}
+	return 0
+}
+
+func (x *VirtualMemoryStatus) GetPageMajFaultCount() uint64 {
+	if x != nil {
+		return x.PageMajFaultCount
+	}
+	return 0
+}
+
+// 网卡概览
+type NetworkInterfaceOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 网卡名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// MAC地址
+	HardwareAddr string `protobuf:"bytes,2,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	// MTU
+	Mtu int32 `protobuf:"varint,3,opt,name=mtu,proto3" json:"mtu,omitempty"`
+	// 网卡标记
+	Flags []string `protobuf:"bytes,4,rep,name=flags,proto3" json:"flags,omitempty"`
+	// 网卡地址
+	Addrs []string `protobuf:"bytes,5,rep,name=addrs,proto3" json:"addrs,omitempty"`
+	// 是否启用
+	IsUp bool `protobuf:"varint,6,opt,name=is_up,json=isUp,proto3" json:"is_up,omitempty"`
+	// 是否为回环网卡
+	IsLoopback    bool `protobuf:"varint,7,opt,name=is_loopback,json=isLoopback,proto3" json:"is_loopback,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkInterfaceOverview) Reset() {
+	*x = NetworkInterfaceOverview{}
+	mi := &file_v1_system_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkInterfaceOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkInterfaceOverview) ProtoMessage() {}
+
+func (x *NetworkInterfaceOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkInterfaceOverview.ProtoReflect.Descriptor instead.
+func (*NetworkInterfaceOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *NetworkInterfaceOverview) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NetworkInterfaceOverview) GetHardwareAddr() string {
+	if x != nil {
+		return x.HardwareAddr
+	}
+	return ""
+}
+
+func (x *NetworkInterfaceOverview) GetMtu() int32 {
+	if x != nil {
+		return x.Mtu
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceOverview) GetFlags() []string {
+	if x != nil {
+		return x.Flags
+	}
+	return nil
+}
+
+func (x *NetworkInterfaceOverview) GetAddrs() []string {
+	if x != nil {
+		return x.Addrs
+	}
+	return nil
+}
+
+func (x *NetworkInterfaceOverview) GetIsUp() bool {
+	if x != nil {
+		return x.IsUp
+	}
+	return false
+}
+
+func (x *NetworkInterfaceOverview) GetIsLoopback() bool {
+	if x != nil {
+		return x.IsLoopback
+	}
+	return false
+}
+
+// 网络实时状态
+type NetworkStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 全部网卡汇总流量
+	Total *NetworkInterfaceStatus `protobuf:"bytes,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 网卡实时状态列表
+	Interfaces []*NetworkInterfaceStatus `protobuf:"bytes,2,rep,name=interfaces,proto3" json:"interfaces,omitempty"`
+	// 当前选中网卡
+	SelectedInterface *NetworkInterfaceStatus `protobuf:"bytes,3,opt,name=selected_interface,json=selectedInterface,proto3" json:"selected_interface,omitempty"`
+	// 网络连接统计
+	Connections   *NetworkConnectionStatus `protobuf:"bytes,4,opt,name=connections,proto3" json:"connections,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkStatus) Reset() {
+	*x = NetworkStatus{}
+	mi := &file_v1_system_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkStatus) ProtoMessage() {}
+
+func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkStatus.ProtoReflect.Descriptor instead.
+func (*NetworkStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *NetworkStatus) GetTotal() *NetworkInterfaceStatus {
+	if x != nil {
+		return x.Total
+	}
+	return nil
+}
+
+func (x *NetworkStatus) GetInterfaces() []*NetworkInterfaceStatus {
+	if x != nil {
+		return x.Interfaces
+	}
+	return nil
+}
+
+func (x *NetworkStatus) GetSelectedInterface() *NetworkInterfaceStatus {
+	if x != nil {
+		return x.SelectedInterface
+	}
+	return nil
+}
+
+func (x *NetworkStatus) GetConnections() *NetworkConnectionStatus {
+	if x != nil {
+		return x.Connections
+	}
+	return nil
+}
+
+// 网卡实时状态
+type NetworkInterfaceStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 网卡名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// MAC地址
+	HardwareAddr string `protobuf:"bytes,2,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	// MTU
+	Mtu int32 `protobuf:"varint,3,opt,name=mtu,proto3" json:"mtu,omitempty"`
+	// 网卡标记
+	Flags []string `protobuf:"bytes,4,rep,name=flags,proto3" json:"flags,omitempty"`
+	// 网卡地址
+	Addrs []string `protobuf:"bytes,5,rep,name=addrs,proto3" json:"addrs,omitempty"`
+	// 是否启用
+	IsUp bool `protobuf:"varint,6,opt,name=is_up,json=isUp,proto3" json:"is_up,omitempty"`
+	// 是否为回环网卡
+	IsLoopback bool `protobuf:"varint,7,opt,name=is_loopback,json=isLoopback,proto3" json:"is_loopback,omitempty"`
+	// 累计发送字节数
+	BytesSent uint64 `protobuf:"varint,8,opt,name=bytes_sent,json=bytesSent,proto3" json:"bytes_sent,omitempty"`
+	// 累计接收字节数
+	BytesRecv uint64 `protobuf:"varint,9,opt,name=bytes_recv,json=bytesRecv,proto3" json:"bytes_recv,omitempty"`
+	// 累计发送包数
+	PacketsSent uint64 `protobuf:"varint,10,opt,name=packets_sent,json=packetsSent,proto3" json:"packets_sent,omitempty"`
+	// 累计接收包数
+	PacketsRecv uint64 `protobuf:"varint,11,opt,name=packets_recv,json=packetsRecv,proto3" json:"packets_recv,omitempty"`
+	// 累计接收错误数
+	ErrIn uint64 `protobuf:"varint,12,opt,name=err_in,json=errIn,proto3" json:"err_in,omitempty"`
+	// 累计发送错误数
+	ErrOut uint64 `protobuf:"varint,13,opt,name=err_out,json=errOut,proto3" json:"err_out,omitempty"`
+	// 累计接收丢包数
+	DropIn uint64 `protobuf:"varint,14,opt,name=drop_in,json=dropIn,proto3" json:"drop_in,omitempty"`
+	// 累计发送丢包数
+	DropOut uint64 `protobuf:"varint,15,opt,name=drop_out,json=dropOut,proto3" json:"drop_out,omitempty"`
+	// 当前上传速率字节每秒
+	UploadRateBytesPerSecond float64 `protobuf:"fixed64,16,opt,name=upload_rate_bytes_per_second,json=uploadRateBytesPerSecond,proto3" json:"upload_rate_bytes_per_second,omitempty"`
+	// 当前下载速率字节每秒
+	DownloadRateBytesPerSecond float64 `protobuf:"fixed64,17,opt,name=download_rate_bytes_per_second,json=downloadRateBytesPerSecond,proto3" json:"download_rate_bytes_per_second,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *NetworkInterfaceStatus) Reset() {
+	*x = NetworkInterfaceStatus{}
+	mi := &file_v1_system_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkInterfaceStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkInterfaceStatus) ProtoMessage() {}
+
+func (x *NetworkInterfaceStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkInterfaceStatus.ProtoReflect.Descriptor instead.
+func (*NetworkInterfaceStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *NetworkInterfaceStatus) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NetworkInterfaceStatus) GetHardwareAddr() string {
+	if x != nil {
+		return x.HardwareAddr
+	}
+	return ""
+}
+
+func (x *NetworkInterfaceStatus) GetMtu() int32 {
+	if x != nil {
+		return x.Mtu
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetFlags() []string {
+	if x != nil {
+		return x.Flags
+	}
+	return nil
+}
+
+func (x *NetworkInterfaceStatus) GetAddrs() []string {
+	if x != nil {
+		return x.Addrs
+	}
+	return nil
+}
+
+func (x *NetworkInterfaceStatus) GetIsUp() bool {
+	if x != nil {
+		return x.IsUp
+	}
+	return false
+}
+
+func (x *NetworkInterfaceStatus) GetIsLoopback() bool {
+	if x != nil {
+		return x.IsLoopback
+	}
+	return false
+}
+
+func (x *NetworkInterfaceStatus) GetBytesSent() uint64 {
+	if x != nil {
+		return x.BytesSent
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetBytesRecv() uint64 {
+	if x != nil {
+		return x.BytesRecv
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetPacketsSent() uint64 {
+	if x != nil {
+		return x.PacketsSent
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetPacketsRecv() uint64 {
+	if x != nil {
+		return x.PacketsRecv
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetErrIn() uint64 {
+	if x != nil {
+		return x.ErrIn
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetErrOut() uint64 {
+	if x != nil {
+		return x.ErrOut
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetDropIn() uint64 {
+	if x != nil {
+		return x.DropIn
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetDropOut() uint64 {
+	if x != nil {
+		return x.DropOut
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetUploadRateBytesPerSecond() float64 {
+	if x != nil {
+		return x.UploadRateBytesPerSecond
+	}
+	return 0
+}
+
+func (x *NetworkInterfaceStatus) GetDownloadRateBytesPerSecond() float64 {
+	if x != nil {
+		return x.DownloadRateBytesPerSecond
+	}
+	return 0
+}
+
+// 网络连接状态
+type NetworkConnectionStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前平台是否支持连接统计
+	Supported bool `protobuf:"varint,1,opt,name=supported,proto3" json:"supported,omitempty"`
+	// 连接统计错误信息
+	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	// TCP连接数
+	TcpCount int64 `protobuf:"varint,3,opt,name=tcp_count,json=tcpCount,proto3" json:"tcp_count,omitempty"`
+	// UDP连接数
+	UdpCount int64 `protobuf:"varint,4,opt,name=udp_count,json=udpCount,proto3" json:"udp_count,omitempty"`
+	// 总连接数
+	TotalCount int64 `protobuf:"varint,5,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	// TCP状态统计
+	TcpStatuses   map[string]int64 `protobuf:"bytes,6,rep,name=tcp_statuses,json=tcpStatuses,proto3" json:"tcp_statuses,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkConnectionStatus) Reset() {
+	*x = NetworkConnectionStatus{}
+	mi := &file_v1_system_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkConnectionStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkConnectionStatus) ProtoMessage() {}
+
+func (x *NetworkConnectionStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkConnectionStatus.ProtoReflect.Descriptor instead.
+func (*NetworkConnectionStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *NetworkConnectionStatus) GetSupported() bool {
+	if x != nil {
+		return x.Supported
+	}
+	return false
+}
+
+func (x *NetworkConnectionStatus) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *NetworkConnectionStatus) GetTcpCount() int64 {
+	if x != nil {
+		return x.TcpCount
+	}
+	return 0
+}
+
+func (x *NetworkConnectionStatus) GetUdpCount() int64 {
+	if x != nil {
+		return x.UdpCount
+	}
+	return 0
+}
+
+func (x *NetworkConnectionStatus) GetTotalCount() int64 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *NetworkConnectionStatus) GetTcpStatuses() map[string]int64 {
+	if x != nil {
+		return x.TcpStatuses
+	}
+	return nil
+}
+
+// 磁盘分区概览
+type DiskPartitionOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 设备名称
+	Device string `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	// 挂载点
+	Mountpoint string `protobuf:"bytes,2,opt,name=mountpoint,proto3" json:"mountpoint,omitempty"`
+	// 文件系统类型
+	Fstype string `protobuf:"bytes,3,opt,name=fstype,proto3" json:"fstype,omitempty"`
+	// 挂载选项
+	Opts          []string `protobuf:"bytes,4,rep,name=opts,proto3" json:"opts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DiskPartitionOverview) Reset() {
+	*x = DiskPartitionOverview{}
+	mi := &file_v1_system_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskPartitionOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskPartitionOverview) ProtoMessage() {}
+
+func (x *DiskPartitionOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskPartitionOverview.ProtoReflect.Descriptor instead.
+func (*DiskPartitionOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *DiskPartitionOverview) GetDevice() string {
+	if x != nil {
+		return x.Device
+	}
+	return ""
+}
+
+func (x *DiskPartitionOverview) GetMountpoint() string {
+	if x != nil {
+		return x.Mountpoint
+	}
+	return ""
+}
+
+func (x *DiskPartitionOverview) GetFstype() string {
+	if x != nil {
+		return x.Fstype
+	}
+	return ""
+}
+
+func (x *DiskPartitionOverview) GetOpts() []string {
+	if x != nil {
+		return x.Opts
+	}
+	return nil
+}
+
+// 磁盘IO概览
+type DiskIOOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 磁盘名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 序列号
+	SerialNumber string `protobuf:"bytes,2,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
+	// 卷标
+	Label         string `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DiskIOOverview) Reset() {
+	*x = DiskIOOverview{}
+	mi := &file_v1_system_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskIOOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskIOOverview) ProtoMessage() {}
+
+func (x *DiskIOOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskIOOverview.ProtoReflect.Descriptor instead.
+func (*DiskIOOverview) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *DiskIOOverview) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DiskIOOverview) GetSerialNumber() string {
+	if x != nil {
+		return x.SerialNumber
+	}
+	return ""
+}
+
+func (x *DiskIOOverview) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+// 磁盘实时状态
+type DiskStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 全部分区汇总使用情况
+	Total *DiskPartitionStatus `protobuf:"bytes,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 分区使用情况列表
+	Partitions []*DiskPartitionStatus `protobuf:"bytes,2,rep,name=partitions,proto3" json:"partitions,omitempty"`
+	// 当前选中分区使用情况
+	SelectedPartition *DiskPartitionStatus `protobuf:"bytes,3,opt,name=selected_partition,json=selectedPartition,proto3" json:"selected_partition,omitempty"`
+	// 全部磁盘汇总IO状态
+	TotalIo *DiskIOStatus `protobuf:"bytes,4,opt,name=total_io,json=totalIo,proto3" json:"total_io,omitempty"`
+	// 磁盘IO状态列表
+	Ios []*DiskIOStatus `protobuf:"bytes,5,rep,name=ios,proto3" json:"ios,omitempty"`
+	// 当前选中磁盘IO状态
+	SelectedIo *DiskIOStatus `protobuf:"bytes,6,opt,name=selected_io,json=selectedIo,proto3" json:"selected_io,omitempty"`
+	// 当前平台是否支持磁盘IO统计
+	IoSupported bool `protobuf:"varint,7,opt,name=io_supported,json=ioSupported,proto3" json:"io_supported,omitempty"`
+	// 磁盘IO统计错误信息
+	IoError       string `protobuf:"bytes,8,opt,name=io_error,json=ioError,proto3" json:"io_error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DiskStatus) Reset() {
+	*x = DiskStatus{}
+	mi := &file_v1_system_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskStatus) ProtoMessage() {}
+
+func (x *DiskStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskStatus.ProtoReflect.Descriptor instead.
+func (*DiskStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *DiskStatus) GetTotal() *DiskPartitionStatus {
+	if x != nil {
+		return x.Total
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetPartitions() []*DiskPartitionStatus {
+	if x != nil {
+		return x.Partitions
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetSelectedPartition() *DiskPartitionStatus {
+	if x != nil {
+		return x.SelectedPartition
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetTotalIo() *DiskIOStatus {
+	if x != nil {
+		return x.TotalIo
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetIos() []*DiskIOStatus {
+	if x != nil {
+		return x.Ios
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetSelectedIo() *DiskIOStatus {
+	if x != nil {
+		return x.SelectedIo
+	}
+	return nil
+}
+
+func (x *DiskStatus) GetIoSupported() bool {
+	if x != nil {
+		return x.IoSupported
+	}
+	return false
+}
+
+func (x *DiskStatus) GetIoError() string {
+	if x != nil {
+		return x.IoError
+	}
+	return ""
+}
+
+// 磁盘分区实时状态
+type DiskPartitionStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 设备名称
+	Device string `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	// 挂载点
+	Mountpoint string `protobuf:"bytes,2,opt,name=mountpoint,proto3" json:"mountpoint,omitempty"`
+	// 文件系统类型
+	Fstype string `protobuf:"bytes,3,opt,name=fstype,proto3" json:"fstype,omitempty"`
+	// 是否支持使用量统计
+	Supported bool `protobuf:"varint,4,opt,name=supported,proto3" json:"supported,omitempty"`
+	// 使用量统计错误信息
+	Error string `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
+	// 总容量字节数
+	TotalBytes uint64 `protobuf:"varint,6,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	// 可用容量字节数
+	FreeBytes uint64 `protobuf:"varint,7,opt,name=free_bytes,json=freeBytes,proto3" json:"free_bytes,omitempty"`
+	// 已用容量字节数
+	UsedBytes uint64 `protobuf:"varint,8,opt,name=used_bytes,json=usedBytes,proto3" json:"used_bytes,omitempty"`
+	// 容量占用百分比
+	UsedPercent float64 `protobuf:"fixed64,9,opt,name=used_percent,json=usedPercent,proto3" json:"used_percent,omitempty"`
+	// inode总数
+	InodesTotal uint64 `protobuf:"varint,10,opt,name=inodes_total,json=inodesTotal,proto3" json:"inodes_total,omitempty"`
+	// 已用inode数
+	InodesUsed uint64 `protobuf:"varint,11,opt,name=inodes_used,json=inodesUsed,proto3" json:"inodes_used,omitempty"`
+	// 空闲inode数
+	InodesFree uint64 `protobuf:"varint,12,opt,name=inodes_free,json=inodesFree,proto3" json:"inodes_free,omitempty"`
+	// inode占用百分比
+	InodesUsedPercent float64 `protobuf:"fixed64,13,opt,name=inodes_used_percent,json=inodesUsedPercent,proto3" json:"inodes_used_percent,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DiskPartitionStatus) Reset() {
+	*x = DiskPartitionStatus{}
+	mi := &file_v1_system_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskPartitionStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskPartitionStatus) ProtoMessage() {}
+
+func (x *DiskPartitionStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskPartitionStatus.ProtoReflect.Descriptor instead.
+func (*DiskPartitionStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *DiskPartitionStatus) GetDevice() string {
+	if x != nil {
+		return x.Device
+	}
+	return ""
+}
+
+func (x *DiskPartitionStatus) GetMountpoint() string {
+	if x != nil {
+		return x.Mountpoint
+	}
+	return ""
+}
+
+func (x *DiskPartitionStatus) GetFstype() string {
+	if x != nil {
+		return x.Fstype
+	}
+	return ""
+}
+
+func (x *DiskPartitionStatus) GetSupported() bool {
+	if x != nil {
+		return x.Supported
+	}
+	return false
+}
+
+func (x *DiskPartitionStatus) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *DiskPartitionStatus) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetFreeBytes() uint64 {
+	if x != nil {
+		return x.FreeBytes
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetUsedBytes() uint64 {
+	if x != nil {
+		return x.UsedBytes
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetUsedPercent() float64 {
+	if x != nil {
+		return x.UsedPercent
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetInodesTotal() uint64 {
+	if x != nil {
+		return x.InodesTotal
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetInodesUsed() uint64 {
+	if x != nil {
+		return x.InodesUsed
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetInodesFree() uint64 {
+	if x != nil {
+		return x.InodesFree
+	}
+	return 0
+}
+
+func (x *DiskPartitionStatus) GetInodesUsedPercent() float64 {
+	if x != nil {
+		return x.InodesUsedPercent
+	}
+	return 0
+}
+
+// 磁盘IO实时状态
+type DiskIOStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 磁盘名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 序列号
+	SerialNumber string `protobuf:"bytes,2,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
+	// 卷标
+	Label string `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	// 累计读取次数
+	ReadCount uint64 `protobuf:"varint,4,opt,name=read_count,json=readCount,proto3" json:"read_count,omitempty"`
+	// 累计写入次数
+	WriteCount uint64 `protobuf:"varint,5,opt,name=write_count,json=writeCount,proto3" json:"write_count,omitempty"`
+	// 累计读取字节数
+	ReadBytes uint64 `protobuf:"varint,6,opt,name=read_bytes,json=readBytes,proto3" json:"read_bytes,omitempty"`
+	// 累计写入字节数
+	WriteBytes uint64 `protobuf:"varint,7,opt,name=write_bytes,json=writeBytes,proto3" json:"write_bytes,omitempty"`
+	// 当前读取速率字节每秒
+	ReadRateBytesPerSecond float64 `protobuf:"fixed64,8,opt,name=read_rate_bytes_per_second,json=readRateBytesPerSecond,proto3" json:"read_rate_bytes_per_second,omitempty"`
+	// 当前写入速率字节每秒
+	WriteRateBytesPerSecond float64 `protobuf:"fixed64,9,opt,name=write_rate_bytes_per_second,json=writeRateBytesPerSecond,proto3" json:"write_rate_bytes_per_second,omitempty"`
+	// 正在进行的IO数量
+	IopsInProgress uint64 `protobuf:"varint,10,opt,name=iops_in_progress,json=iopsInProgress,proto3" json:"iops_in_progress,omitempty"`
+	// 累计IO耗时
+	IoTime        uint64 `protobuf:"varint,11,opt,name=io_time,json=ioTime,proto3" json:"io_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DiskIOStatus) Reset() {
+	*x = DiskIOStatus{}
+	mi := &file_v1_system_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiskIOStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiskIOStatus) ProtoMessage() {}
+
+func (x *DiskIOStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiskIOStatus.ProtoReflect.Descriptor instead.
+func (*DiskIOStatus) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *DiskIOStatus) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DiskIOStatus) GetSerialNumber() string {
+	if x != nil {
+		return x.SerialNumber
+	}
+	return ""
+}
+
+func (x *DiskIOStatus) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *DiskIOStatus) GetReadCount() uint64 {
+	if x != nil {
+		return x.ReadCount
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetWriteCount() uint64 {
+	if x != nil {
+		return x.WriteCount
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetReadBytes() uint64 {
+	if x != nil {
+		return x.ReadBytes
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetWriteBytes() uint64 {
+	if x != nil {
+		return x.WriteBytes
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetReadRateBytesPerSecond() float64 {
+	if x != nil {
+		return x.ReadRateBytesPerSecond
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetWriteRateBytesPerSecond() float64 {
+	if x != nil {
+		return x.WriteRateBytesPerSecond
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetIopsInProgress() uint64 {
+	if x != nil {
+		return x.IopsInProgress
+	}
+	return 0
+}
+
+func (x *DiskIOStatus) GetIoTime() uint64 {
+	if x != nil {
+		return x.IoTime
+	}
+	return 0
+}
+
 var File_v1_system_proto protoreflect.FileDescriptor
 
 const file_v1_system_proto_rawDesc = "" +
@@ -1735,7 +3729,206 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x04role\x18\x01 \x01(\v2\f.v1.RoleInfoR\x04role\"3\n" +
 	"\x16AdminDeleteRoleRequest\x12\x19\n" +
 	"\brole_ids\x18\x01 \x03(\tR\aroleIds\"\x19\n" +
-	"\x17AdminDeleteRoleResponse*<\n" +
+	"\x17AdminDeleteRoleResponse\"\x17\n" +
+	"\x15SystemOverviewRequest\"\xf5\x03\n" +
+	"\x16SystemOverviewResponse\x12/\n" +
+	"\aversion\x18\x01 \x01(\v2\x15.v1.SystemVersionInfoR\aversion\x127\n" +
+	"\tboot_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\bbootTime\x12%\n" +
+	"\x0euptime_seconds\x18\x03 \x01(\x04R\ruptimeSeconds\x12!\n" +
+	"\x03cpu\x18\x04 \x01(\v2\x0f.v1.CpuOverviewR\x03cpu\x12*\n" +
+	"\x06memory\x18\x05 \x01(\v2\x12.v1.MemoryOverviewR\x06memory\x12K\n" +
+	"\x12network_interfaces\x18\x06 \x03(\v2\x1c.v1.NetworkInterfaceOverviewR\x11networkInterfaces\x12B\n" +
+	"\x0fdisk_partitions\x18\a \x03(\v2\x19.v1.DiskPartitionOverviewR\x0ediskPartitions\x12-\n" +
+	"\bdisk_ios\x18\b \x03(\v2\x12.v1.DiskIOOverviewR\adiskIos\x12;\n" +
+	"\vsample_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"sampleTime\"\xb8\x01\n" +
+	"\x13SystemStatusRequest\x12*\n" +
+	"\x0einterface_name\x18\x01 \x01(\tH\x00R\rinterfaceName\x88\x01\x01\x12 \n" +
+	"\tdisk_name\x18\x02 \x01(\tH\x01R\bdiskName\x88\x01\x01\x12#\n" +
+	"\n" +
+	"mountpoint\x18\x03 \x01(\tH\x02R\n" +
+	"mountpoint\x88\x01\x01B\x11\n" +
+	"\x0f_interface_nameB\f\n" +
+	"\n" +
+	"_disk_nameB\r\n" +
+	"\v_mountpoint\"\xef\x01\n" +
+	"\x14SystemStatusResponse\x12\x1f\n" +
+	"\x03cpu\x18\x01 \x01(\v2\r.v1.CpuStatusR\x03cpu\x12(\n" +
+	"\x06memory\x18\x02 \x01(\v2\x10.v1.MemoryStatusR\x06memory\x12+\n" +
+	"\anetwork\x18\x03 \x01(\v2\x11.v1.NetworkStatusR\anetwork\x12\"\n" +
+	"\x04disk\x18\x04 \x01(\v2\x0e.v1.DiskStatusR\x04disk\x12;\n" +
+	"\vsample_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"sampleTime\"\xf7\x01\n" +
+	"\x11SystemVersionInfo\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x0e\n" +
+	"\x02os\x18\x02 \x01(\tR\x02os\x12\x1a\n" +
+	"\bplatform\x18\x03 \x01(\tR\bplatform\x12'\n" +
+	"\x0fplatform_family\x18\x04 \x01(\tR\x0eplatformFamily\x12)\n" +
+	"\x10platform_version\x18\x05 \x01(\tR\x0fplatformVersion\x12%\n" +
+	"\x0ekernel_version\x18\x06 \x01(\tR\rkernelVersion\x12\x1f\n" +
+	"\vkernel_arch\x18\a \x01(\tR\n" +
+	"kernelArch\"x\n" +
+	"\vCpuOverview\x12#\n" +
+	"\rlogical_count\x18\x01 \x01(\x05R\flogicalCount\x12%\n" +
+	"\x0ephysical_count\x18\x02 \x01(\x05R\rphysicalCount\x12\x1d\n" +
+	"\n" +
+	"model_name\x18\x03 \x01(\tR\tmodelName\"\xa5\x01\n" +
+	"\tCpuStatus\x12#\n" +
+	"\rtotal_percent\x18\x01 \x01(\x01R\ftotalPercent\x12'\n" +
+	"\x05cores\x18\x02 \x03(\v2\x11.v1.CpuCoreStatusR\x05cores\x12#\n" +
+	"\rlogical_count\x18\x03 \x01(\x05R\flogicalCount\x12%\n" +
+	"\x0ephysical_count\x18\x04 \x01(\x05R\rphysicalCount\"B\n" +
+	"\rCpuCoreStatus\x12\x17\n" +
+	"\acore_id\x18\x01 \x01(\x05R\x06coreId\x12\x18\n" +
+	"\apercent\x18\x02 \x01(\x01R\apercent\"\x97\x01\n" +
+	"\x0eMemoryOverview\x12C\n" +
+	"\x0fphysical_memory\x18\x01 \x01(\v2\x1a.v1.PhysicalMemoryOverviewR\x0ephysicalMemory\x12@\n" +
+	"\x0evirtual_memory\x18\x02 \x01(\v2\x19.v1.VirtualMemoryOverviewR\rvirtualMemory\"\x91\x01\n" +
+	"\fMemoryStatus\x12A\n" +
+	"\x0fphysical_memory\x18\x01 \x01(\v2\x18.v1.PhysicalMemoryStatusR\x0ephysicalMemory\x12>\n" +
+	"\x0evirtual_memory\x18\x02 \x01(\v2\x17.v1.VirtualMemoryStatusR\rvirtualMemory\"9\n" +
+	"\x16PhysicalMemoryOverview\x12\x1f\n" +
+	"\vtotal_bytes\x18\x01 \x01(\x04R\n" +
+	"totalBytes\"\xc1\x01\n" +
+	"\x14PhysicalMemoryStatus\x12\x1f\n" +
+	"\vtotal_bytes\x18\x01 \x01(\x04R\n" +
+	"totalBytes\x12'\n" +
+	"\x0favailable_bytes\x18\x02 \x01(\x04R\x0eavailableBytes\x12\x1d\n" +
+	"\n" +
+	"used_bytes\x18\x03 \x01(\x04R\tusedBytes\x12\x1d\n" +
+	"\n" +
+	"free_bytes\x18\x04 \x01(\x04R\tfreeBytes\x12!\n" +
+	"\fused_percent\x18\x05 \x01(\x01R\vusedPercent\"8\n" +
+	"\x15VirtualMemoryOverview\x12\x1f\n" +
+	"\vtotal_bytes\x18\x01 \x01(\x04R\n" +
+	"totalBytes\"\x86\x03\n" +
+	"\x13VirtualMemoryStatus\x12\x1f\n" +
+	"\vtotal_bytes\x18\x01 \x01(\x04R\n" +
+	"totalBytes\x12\x1d\n" +
+	"\n" +
+	"used_bytes\x18\x02 \x01(\x04R\tusedBytes\x12\x1d\n" +
+	"\n" +
+	"free_bytes\x18\x03 \x01(\x04R\tfreeBytes\x12!\n" +
+	"\fused_percent\x18\x04 \x01(\x01R\vusedPercent\x12\"\n" +
+	"\rswap_in_bytes\x18\x05 \x01(\x04R\vswapInBytes\x12$\n" +
+	"\x0eswap_out_bytes\x18\x06 \x01(\x04R\fswapOutBytes\x12\"\n" +
+	"\rpage_in_count\x18\a \x01(\x04R\vpageInCount\x12$\n" +
+	"\x0epage_out_count\x18\b \x01(\x04R\fpageOutCount\x12(\n" +
+	"\x10page_fault_count\x18\t \x01(\x04R\x0epageFaultCount\x12/\n" +
+	"\x14page_maj_fault_count\x18\n" +
+	" \x01(\x04R\x11pageMajFaultCount\"\xc7\x01\n" +
+	"\x18NetworkInterfaceOverview\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\rhardware_addr\x18\x02 \x01(\tR\fhardwareAddr\x12\x10\n" +
+	"\x03mtu\x18\x03 \x01(\x05R\x03mtu\x12\x14\n" +
+	"\x05flags\x18\x04 \x03(\tR\x05flags\x12\x14\n" +
+	"\x05addrs\x18\x05 \x03(\tR\x05addrs\x12\x13\n" +
+	"\x05is_up\x18\x06 \x01(\bR\x04isUp\x12\x1f\n" +
+	"\vis_loopback\x18\a \x01(\bR\n" +
+	"isLoopback\"\x87\x02\n" +
+	"\rNetworkStatus\x120\n" +
+	"\x05total\x18\x01 \x01(\v2\x1a.v1.NetworkInterfaceStatusR\x05total\x12:\n" +
+	"\n" +
+	"interfaces\x18\x02 \x03(\v2\x1a.v1.NetworkInterfaceStatusR\n" +
+	"interfaces\x12I\n" +
+	"\x12selected_interface\x18\x03 \x01(\v2\x1a.v1.NetworkInterfaceStatusR\x11selectedInterface\x12=\n" +
+	"\vconnections\x18\x04 \x01(\v2\x1b.v1.NetworkConnectionStatusR\vconnections\"\xb1\x04\n" +
+	"\x16NetworkInterfaceStatus\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\rhardware_addr\x18\x02 \x01(\tR\fhardwareAddr\x12\x10\n" +
+	"\x03mtu\x18\x03 \x01(\x05R\x03mtu\x12\x14\n" +
+	"\x05flags\x18\x04 \x03(\tR\x05flags\x12\x14\n" +
+	"\x05addrs\x18\x05 \x03(\tR\x05addrs\x12\x13\n" +
+	"\x05is_up\x18\x06 \x01(\bR\x04isUp\x12\x1f\n" +
+	"\vis_loopback\x18\a \x01(\bR\n" +
+	"isLoopback\x12\x1d\n" +
+	"\n" +
+	"bytes_sent\x18\b \x01(\x04R\tbytesSent\x12\x1d\n" +
+	"\n" +
+	"bytes_recv\x18\t \x01(\x04R\tbytesRecv\x12!\n" +
+	"\fpackets_sent\x18\n" +
+	" \x01(\x04R\vpacketsSent\x12!\n" +
+	"\fpackets_recv\x18\v \x01(\x04R\vpacketsRecv\x12\x15\n" +
+	"\x06err_in\x18\f \x01(\x04R\x05errIn\x12\x17\n" +
+	"\aerr_out\x18\r \x01(\x04R\x06errOut\x12\x17\n" +
+	"\adrop_in\x18\x0e \x01(\x04R\x06dropIn\x12\x19\n" +
+	"\bdrop_out\x18\x0f \x01(\x04R\adropOut\x12>\n" +
+	"\x1cupload_rate_bytes_per_second\x18\x10 \x01(\x01R\x18uploadRateBytesPerSecond\x12B\n" +
+	"\x1edownload_rate_bytes_per_second\x18\x11 \x01(\x01R\x1adownloadRateBytesPerSecond\"\xb9\x02\n" +
+	"\x17NetworkConnectionStatus\x12\x1c\n" +
+	"\tsupported\x18\x01 \x01(\bR\tsupported\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\x12\x1b\n" +
+	"\ttcp_count\x18\x03 \x01(\x03R\btcpCount\x12\x1b\n" +
+	"\tudp_count\x18\x04 \x01(\x03R\budpCount\x12\x1f\n" +
+	"\vtotal_count\x18\x05 \x01(\x03R\n" +
+	"totalCount\x12O\n" +
+	"\ftcp_statuses\x18\x06 \x03(\v2,.v1.NetworkConnectionStatus.TcpStatusesEntryR\vtcpStatuses\x1a>\n" +
+	"\x10TcpStatusesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"{\n" +
+	"\x15DiskPartitionOverview\x12\x16\n" +
+	"\x06device\x18\x01 \x01(\tR\x06device\x12\x1e\n" +
+	"\n" +
+	"mountpoint\x18\x02 \x01(\tR\n" +
+	"mountpoint\x12\x16\n" +
+	"\x06fstype\x18\x03 \x01(\tR\x06fstype\x12\x12\n" +
+	"\x04opts\x18\x04 \x03(\tR\x04opts\"_\n" +
+	"\x0eDiskIOOverview\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\rserial_number\x18\x02 \x01(\tR\fserialNumber\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\"\xfe\x02\n" +
+	"\n" +
+	"DiskStatus\x12-\n" +
+	"\x05total\x18\x01 \x01(\v2\x17.v1.DiskPartitionStatusR\x05total\x127\n" +
+	"\n" +
+	"partitions\x18\x02 \x03(\v2\x17.v1.DiskPartitionStatusR\n" +
+	"partitions\x12F\n" +
+	"\x12selected_partition\x18\x03 \x01(\v2\x17.v1.DiskPartitionStatusR\x11selectedPartition\x12+\n" +
+	"\btotal_io\x18\x04 \x01(\v2\x10.v1.DiskIOStatusR\atotalIo\x12\"\n" +
+	"\x03ios\x18\x05 \x03(\v2\x10.v1.DiskIOStatusR\x03ios\x121\n" +
+	"\vselected_io\x18\x06 \x01(\v2\x10.v1.DiskIOStatusR\n" +
+	"selectedIo\x12!\n" +
+	"\fio_supported\x18\a \x01(\bR\vioSupported\x12\x19\n" +
+	"\bio_error\x18\b \x01(\tR\aioError\"\xb0\x03\n" +
+	"\x13DiskPartitionStatus\x12\x16\n" +
+	"\x06device\x18\x01 \x01(\tR\x06device\x12\x1e\n" +
+	"\n" +
+	"mountpoint\x18\x02 \x01(\tR\n" +
+	"mountpoint\x12\x16\n" +
+	"\x06fstype\x18\x03 \x01(\tR\x06fstype\x12\x1c\n" +
+	"\tsupported\x18\x04 \x01(\bR\tsupported\x12\x14\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\x12\x1f\n" +
+	"\vtotal_bytes\x18\x06 \x01(\x04R\n" +
+	"totalBytes\x12\x1d\n" +
+	"\n" +
+	"free_bytes\x18\a \x01(\x04R\tfreeBytes\x12\x1d\n" +
+	"\n" +
+	"used_bytes\x18\b \x01(\x04R\tusedBytes\x12!\n" +
+	"\fused_percent\x18\t \x01(\x01R\vusedPercent\x12!\n" +
+	"\finodes_total\x18\n" +
+	" \x01(\x04R\vinodesTotal\x12\x1f\n" +
+	"\vinodes_used\x18\v \x01(\x04R\n" +
+	"inodesUsed\x12\x1f\n" +
+	"\vinodes_free\x18\f \x01(\x04R\n" +
+	"inodesFree\x12.\n" +
+	"\x13inodes_used_percent\x18\r \x01(\x01R\x11inodesUsedPercent\"\x9a\x03\n" +
+	"\fDiskIOStatus\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\rserial_number\x18\x02 \x01(\tR\fserialNumber\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\x12\x1d\n" +
+	"\n" +
+	"read_count\x18\x04 \x01(\x04R\treadCount\x12\x1f\n" +
+	"\vwrite_count\x18\x05 \x01(\x04R\n" +
+	"writeCount\x12\x1d\n" +
+	"\n" +
+	"read_bytes\x18\x06 \x01(\x04R\treadBytes\x12\x1f\n" +
+	"\vwrite_bytes\x18\a \x01(\x04R\n" +
+	"writeBytes\x12:\n" +
+	"\x1aread_rate_bytes_per_second\x18\b \x01(\x01R\x16readRateBytesPerSecond\x12<\n" +
+	"\x1bwrite_rate_bytes_per_second\x18\t \x01(\x01R\x17writeRateBytesPerSecond\x12(\n" +
+	"\x10iops_in_progress\x18\n" +
+	" \x01(\x04R\x0eiopsInProgress\x12\x17\n" +
+	"\aio_time\x18\v \x01(\x04R\x06ioTime*<\n" +
 	"\n" +
 	"MenuStatus\x12\x17\n" +
 	"\x13MenuStatus_InActive\x10\x00\x12\x15\n" +
@@ -1747,8 +3940,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\n" +
 	"RoleStatus\x12\x17\n" +
 	"\x13RoleStatus_InActive\x10\x00\x12\x15\n" +
-	"\x11RoleStatus_Active\x10\x012\x81\n" +
-	"\n" +
+	"\x11RoleStatus_Active\x10\x012\xcd\v\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +
@@ -1761,7 +3953,9 @@ const file_v1_system_proto_rawDesc = "" +
 	"\tAdminRole\x12\x14.v1.AdminRoleRequest\x1a\x15.v1.AdminRoleResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/role/admin/{role_id}\x12d\n" +
 	"\fAdminAddRole\x12\x17.v1.AdminAddRoleRequest\x1a\x18.v1.AdminAddRoleResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/role/admin/add\x12m\n" +
 	"\rAdminEditRole\x12\x18.v1.AdminEditRoleRequest\x1a\x19.v1.AdminEditRoleResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/role/admin/{role_id}\x12j\n" +
-	"\x0fAdminDeleteRole\x12\x1a.v1.AdminDeleteRoleRequest\x1a\x1b.v1.AdminDeleteRoleResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/role/admin/delB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x0fAdminDeleteRole\x12\x1a.v1.AdminDeleteRoleRequest\x1a\x1b.v1.AdminDeleteRoleResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/role/admin/del\x12h\n" +
+	"\x0eSystemOverview\x12\x19.v1.SystemOverviewRequest\x1a\x1a.v1.SystemOverviewResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/system/overview\x12`\n" +
+	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/statusB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_system_proto_rawDescOnce sync.Once
@@ -1776,7 +3970,7 @@ func file_v1_system_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_v1_system_proto_goTypes = []any{
 	(MenuStatus)(0),                        // 0: v1.MenuStatus
 	(MenuType)(0),                          // 1: v1.MenuType
@@ -1805,14 +3999,38 @@ var file_v1_system_proto_goTypes = []any{
 	(*AdminEditRoleResponse)(nil),          // 24: v1.AdminEditRoleResponse
 	(*AdminDeleteRoleRequest)(nil),         // 25: v1.AdminDeleteRoleRequest
 	(*AdminDeleteRoleResponse)(nil),        // 26: v1.AdminDeleteRoleResponse
-	(*timestamppb.Timestamp)(nil),          // 27: google.protobuf.Timestamp
+	(*SystemOverviewRequest)(nil),          // 27: v1.SystemOverviewRequest
+	(*SystemOverviewResponse)(nil),         // 28: v1.SystemOverviewResponse
+	(*SystemStatusRequest)(nil),            // 29: v1.SystemStatusRequest
+	(*SystemStatusResponse)(nil),           // 30: v1.SystemStatusResponse
+	(*SystemVersionInfo)(nil),              // 31: v1.SystemVersionInfo
+	(*CpuOverview)(nil),                    // 32: v1.CpuOverview
+	(*CpuStatus)(nil),                      // 33: v1.CpuStatus
+	(*CpuCoreStatus)(nil),                  // 34: v1.CpuCoreStatus
+	(*MemoryOverview)(nil),                 // 35: v1.MemoryOverview
+	(*MemoryStatus)(nil),                   // 36: v1.MemoryStatus
+	(*PhysicalMemoryOverview)(nil),         // 37: v1.PhysicalMemoryOverview
+	(*PhysicalMemoryStatus)(nil),           // 38: v1.PhysicalMemoryStatus
+	(*VirtualMemoryOverview)(nil),          // 39: v1.VirtualMemoryOverview
+	(*VirtualMemoryStatus)(nil),            // 40: v1.VirtualMemoryStatus
+	(*NetworkInterfaceOverview)(nil),       // 41: v1.NetworkInterfaceOverview
+	(*NetworkStatus)(nil),                  // 42: v1.NetworkStatus
+	(*NetworkInterfaceStatus)(nil),         // 43: v1.NetworkInterfaceStatus
+	(*NetworkConnectionStatus)(nil),        // 44: v1.NetworkConnectionStatus
+	(*DiskPartitionOverview)(nil),          // 45: v1.DiskPartitionOverview
+	(*DiskIOOverview)(nil),                 // 46: v1.DiskIOOverview
+	(*DiskStatus)(nil),                     // 47: v1.DiskStatus
+	(*DiskPartitionStatus)(nil),            // 48: v1.DiskPartitionStatus
+	(*DiskIOStatus)(nil),                   // 49: v1.DiskIOStatus
+	nil,                                    // 50: v1.NetworkConnectionStatus.TcpStatusesEntry
+	(*timestamppb.Timestamp)(nil),          // 51: google.protobuf.Timestamp
 }
 var file_v1_system_proto_depIdxs = []int32{
 	5,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
 	0,  // 1: v1.MenuInfo.status:type_name -> v1.MenuStatus
 	1,  // 2: v1.MenuInfo.type:type_name -> v1.MenuType
-	27, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
-	27, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
+	51, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
+	51, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
 	5,  // 5: v1.MenuInfo.children:type_name -> v1.MenuInfo
 	5,  // 6: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
 	5,  // 7: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
@@ -1822,40 +4040,73 @@ var file_v1_system_proto_depIdxs = []int32{
 	2,  // 11: v1.AdminRolesRequest.status:type_name -> v1.RoleStatus
 	18, // 12: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
 	2,  // 13: v1.RoleInfo.status:type_name -> v1.RoleStatus
-	27, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
-	27, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
+	51, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
+	51, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
 	18, // 16: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
 	2,  // 17: v1.AdminAddRoleRequest.status:type_name -> v1.RoleStatus
 	18, // 18: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
 	2,  // 19: v1.AdminEditRoleRequest.status:type_name -> v1.RoleStatus
 	18, // 20: v1.AdminEditRoleResponse.role:type_name -> v1.RoleInfo
-	3,  // 21: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
-	6,  // 22: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
-	8,  // 23: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
-	10, // 24: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
-	12, // 25: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
-	14, // 26: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
-	16, // 27: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
-	19, // 28: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
-	21, // 29: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
-	23, // 30: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
-	25, // 31: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
-	4,  // 32: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
-	7,  // 33: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
-	9,  // 34: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
-	11, // 35: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
-	13, // 36: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
-	15, // 37: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
-	17, // 38: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
-	20, // 39: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
-	22, // 40: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
-	24, // 41: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
-	26, // 42: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
-	32, // [32:43] is the sub-list for method output_type
-	21, // [21:32] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	31, // 21: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
+	51, // 22: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
+	32, // 23: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
+	35, // 24: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
+	41, // 25: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
+	45, // 26: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
+	46, // 27: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
+	51, // 28: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
+	33, // 29: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
+	36, // 30: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
+	42, // 31: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
+	47, // 32: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
+	51, // 33: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
+	34, // 34: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
+	37, // 35: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
+	39, // 36: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
+	38, // 37: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
+	40, // 38: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
+	43, // 39: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
+	43, // 40: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
+	43, // 41: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
+	44, // 42: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
+	50, // 43: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
+	48, // 44: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
+	48, // 45: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
+	48, // 46: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
+	49, // 47: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
+	49, // 48: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
+	49, // 49: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
+	3,  // 50: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
+	6,  // 51: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
+	8,  // 52: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
+	10, // 53: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
+	12, // 54: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
+	14, // 55: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
+	16, // 56: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
+	19, // 57: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
+	21, // 58: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
+	23, // 59: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
+	25, // 60: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
+	27, // 61: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
+	29, // 62: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
+	4,  // 63: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
+	7,  // 64: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
+	9,  // 65: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
+	11, // 66: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
+	13, // 67: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
+	15, // 68: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
+	17, // 69: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
+	20, // 70: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
+	22, // 71: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
+	24, // 72: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
+	26, // 73: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
+	28, // 74: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
+	30, // 75: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
+	63, // [63:76] is the sub-list for method output_type
+	50, // [50:63] is the sub-list for method input_type
+	50, // [50:50] is the sub-list for extension type_name
+	50, // [50:50] is the sub-list for extension extendee
+	0,  // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_v1_system_proto_init() }
@@ -1864,13 +4115,14 @@ func file_v1_system_proto_init() {
 		return
 	}
 	file_v1_system_proto_msgTypes[13].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[26].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_system_proto_rawDesc), len(file_v1_system_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   24,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

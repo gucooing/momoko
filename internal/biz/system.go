@@ -15,11 +15,13 @@ import (
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/constant"
+	"momoko/pkg/sysinfo"
 )
 
 type SystemUsecase struct {
 	sys      SystemRepo
 	userRepo UserRepo
+	sysInfo  *sysinfo.Collector
 
 	cache cache.Cache[string, *RoleOjb]
 }
@@ -68,7 +70,28 @@ func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
 	return &SystemUsecase{
 		sys:      sys,
 		userRepo: userRepo,
+		sysInfo:  sysinfo.NewCollector(),
 	}
+}
+
+func (s *SystemUsecase) SystemOverview(ctx context.Context) (*v1.SystemOverviewResponse, error) {
+	overview, err := s.sysInfo.Overview(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toSystemOverviewResponse(overview), nil
+}
+
+func (s *SystemUsecase) SystemStatus(ctx context.Context, req *v1.SystemStatusRequest) (*v1.SystemStatusResponse, error) {
+	status, err := s.sysInfo.Status(ctx, sysinfo.StatusFilter{
+		InterfaceName: req.InterfaceName,
+		DiskName:      req.DiskName,
+		Mountpoint:    req.Mountpoint,
+	})
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toSystemStatusResponse(status), nil
 }
 
 func (s *SystemUsecase) GetRoleOjbByUserID(ctx context.Context, userID string) (*RoleOjb, error) {
@@ -384,5 +407,271 @@ func toEntRoleStatus(data v1.RoleStatus) role.Status {
 		return role.StatusInactive
 	default:
 		return role.StatusInactive
+	}
+}
+
+func toSystemOverviewResponse(data *sysinfo.Overview) *v1.SystemOverviewResponse {
+	interfaces := make([]*v1.NetworkInterfaceOverview, 0, len(data.NetworkInterfaces))
+	for _, item := range data.NetworkInterfaces {
+		interfaces = append(interfaces, toNetworkInterfaceOverview(item))
+	}
+	partitions := make([]*v1.DiskPartitionOverview, 0, len(data.DiskPartitions))
+	for _, item := range data.DiskPartitions {
+		partitions = append(partitions, toDiskPartitionOverview(item))
+	}
+	diskIOs := make([]*v1.DiskIOOverview, 0, len(data.DiskIOs))
+	for _, item := range data.DiskIOs {
+		diskIOs = append(diskIOs, toDiskIOOverview(item))
+	}
+	return &v1.SystemOverviewResponse{
+		Version: &v1.SystemVersionInfo{
+			Hostname:        data.Version.Hostname,
+			Os:              data.Version.OS,
+			Platform:        data.Version.Platform,
+			PlatformFamily:  data.Version.PlatformFamily,
+			PlatformVersion: data.Version.PlatformVersion,
+			KernelVersion:   data.Version.KernelVersion,
+			KernelArch:      data.Version.KernelArch,
+		},
+		BootTime:          timestamppb.New(data.BootTime),
+		UptimeSeconds:     data.UptimeSeconds,
+		Cpu:               toCPUOverview(data.CPU),
+		Memory:            toMemoryOverview(data.Memory),
+		NetworkInterfaces: interfaces,
+		DiskPartitions:    partitions,
+		DiskIos:           diskIOs,
+		SampleTime:        timestamppb.New(data.SampleTime),
+	}
+}
+
+func toSystemStatusResponse(data *sysinfo.Status) *v1.SystemStatusResponse {
+	return &v1.SystemStatusResponse{
+		Cpu:        toCPUStatus(data.CPU),
+		Memory:     toMemoryStatus(data.Memory),
+		Network:    toNetworkStatus(data.Network),
+		Disk:       toDiskStatus(data.Disk),
+		SampleTime: timestamppb.New(data.SampleTime),
+	}
+}
+
+func toCPUOverview(data sysinfo.CPUOverview) *v1.CpuOverview {
+	return &v1.CpuOverview{
+		LogicalCount:  int32(data.LogicalCount),
+		PhysicalCount: int32(data.PhysicalCount),
+		ModelName:     data.ModelName,
+	}
+}
+
+func toCPUStatus(data sysinfo.CPUStatus) *v1.CpuStatus {
+	cores := make([]*v1.CpuCoreStatus, 0, len(data.Cores))
+	for _, item := range data.Cores {
+		cores = append(cores, &v1.CpuCoreStatus{
+			CoreId:  int32(item.CoreID),
+			Percent: item.Percent,
+		})
+	}
+	return &v1.CpuStatus{
+		TotalPercent:  data.TotalPercent,
+		Cores:         cores,
+		LogicalCount:  int32(data.LogicalCount),
+		PhysicalCount: int32(data.PhysicalCount),
+	}
+}
+
+func toMemoryOverview(data sysinfo.MemoryOverview) *v1.MemoryOverview {
+	return &v1.MemoryOverview{
+		PhysicalMemory: toPhysicalMemoryOverview(data.PhysicalMemory),
+		VirtualMemory:  toVirtualMemoryOverview(data.VirtualMemory),
+	}
+}
+
+func toMemoryStatus(data sysinfo.MemoryStatus) *v1.MemoryStatus {
+	return &v1.MemoryStatus{
+		PhysicalMemory: toPhysicalMemoryStatus(data.PhysicalMemory),
+		VirtualMemory:  toVirtualMemoryStatus(data.VirtualMemory),
+	}
+}
+
+func toPhysicalMemoryOverview(data sysinfo.PhysicalMemoryOverview) *v1.PhysicalMemoryOverview {
+	return &v1.PhysicalMemoryOverview{
+		TotalBytes: data.TotalBytes,
+	}
+}
+
+func toPhysicalMemoryStatus(data sysinfo.PhysicalMemoryStatus) *v1.PhysicalMemoryStatus {
+	return &v1.PhysicalMemoryStatus{
+		TotalBytes:     data.TotalBytes,
+		AvailableBytes: data.AvailableBytes,
+		UsedBytes:      data.UsedBytes,
+		FreeBytes:      data.FreeBytes,
+		UsedPercent:    data.UsedPercent,
+	}
+}
+
+func toVirtualMemoryOverview(data sysinfo.VirtualMemoryOverview) *v1.VirtualMemoryOverview {
+	return &v1.VirtualMemoryOverview{
+		TotalBytes: data.TotalBytes,
+	}
+}
+
+func toVirtualMemoryStatus(data sysinfo.VirtualMemoryStatus) *v1.VirtualMemoryStatus {
+	return &v1.VirtualMemoryStatus{
+		TotalBytes:        data.TotalBytes,
+		UsedBytes:         data.UsedBytes,
+		FreeBytes:         data.FreeBytes,
+		UsedPercent:       data.UsedPercent,
+		SwapInBytes:       data.SwapInBytes,
+		SwapOutBytes:      data.SwapOutBytes,
+		PageInCount:       data.PageInCount,
+		PageOutCount:      data.PageOutCount,
+		PageFaultCount:    data.PageFaultCount,
+		PageMajFaultCount: data.PageMajFaultCount,
+	}
+}
+
+func toNetworkInterfaceOverview(data sysinfo.NetworkInterfaceOverview) *v1.NetworkInterfaceOverview {
+	return &v1.NetworkInterfaceOverview{
+		Name:         data.Name,
+		HardwareAddr: data.HardwareAddr,
+		Mtu:          int32(data.MTU),
+		Flags:        data.Flags,
+		Addrs:        data.Addrs,
+		IsUp:         data.IsUp,
+		IsLoopback:   data.IsLoopback,
+	}
+}
+
+func toNetworkStatus(data sysinfo.NetworkStatus) *v1.NetworkStatus {
+	interfaces := make([]*v1.NetworkInterfaceStatus, 0, len(data.Interfaces))
+	for _, item := range data.Interfaces {
+		interfaces = append(interfaces, toNetworkInterfaceStatus(item))
+	}
+	return &v1.NetworkStatus{
+		Total:             toNetworkInterfaceStatus(data.Total),
+		Interfaces:        interfaces,
+		SelectedInterface: toNetworkInterfaceStatusPtr(data.SelectedInterface),
+		Connections: &v1.NetworkConnectionStatus{
+			Supported:   data.Connections.Supported,
+			Error:       data.Connections.Error,
+			TcpCount:    data.Connections.TCPCount,
+			UdpCount:    data.Connections.UDPCount,
+			TotalCount:  data.Connections.TotalCount,
+			TcpStatuses: data.Connections.TCPStatuses,
+		},
+	}
+}
+
+func toNetworkInterfaceStatusPtr(data *sysinfo.NetworkInterfaceStatus) *v1.NetworkInterfaceStatus {
+	if data == nil {
+		return nil
+	}
+	return toNetworkInterfaceStatus(*data)
+}
+
+func toNetworkInterfaceStatus(data sysinfo.NetworkInterfaceStatus) *v1.NetworkInterfaceStatus {
+	return &v1.NetworkInterfaceStatus{
+		Name:                       data.Name,
+		HardwareAddr:               data.HardwareAddr,
+		Mtu:                        int32(data.MTU),
+		Flags:                      data.Flags,
+		Addrs:                      data.Addrs,
+		IsUp:                       data.IsUp,
+		IsLoopback:                 data.IsLoopback,
+		BytesSent:                  data.BytesSent,
+		BytesRecv:                  data.BytesRecv,
+		PacketsSent:                data.PacketsSent,
+		PacketsRecv:                data.PacketsRecv,
+		ErrIn:                      data.ErrIn,
+		ErrOut:                     data.ErrOut,
+		DropIn:                     data.DropIn,
+		DropOut:                    data.DropOut,
+		UploadRateBytesPerSecond:   data.UploadRateBytesPerSecond,
+		DownloadRateBytesPerSecond: data.DownloadRateBytesPerSecond,
+	}
+}
+
+func toDiskPartitionOverview(data sysinfo.DiskPartitionOverview) *v1.DiskPartitionOverview {
+	return &v1.DiskPartitionOverview{
+		Device:     data.Device,
+		Mountpoint: data.Mountpoint,
+		Fstype:     data.Fstype,
+		Opts:       data.Opts,
+	}
+}
+
+func toDiskIOOverview(data sysinfo.DiskIOOverview) *v1.DiskIOOverview {
+	return &v1.DiskIOOverview{
+		Name:         data.Name,
+		SerialNumber: data.SerialNumber,
+		Label:        data.Label,
+	}
+}
+
+func toDiskStatus(data sysinfo.DiskStatus) *v1.DiskStatus {
+	partitions := make([]*v1.DiskPartitionStatus, 0, len(data.Partitions))
+	for _, item := range data.Partitions {
+		partitions = append(partitions, toDiskPartitionStatus(item))
+	}
+	ios := make([]*v1.DiskIOStatus, 0, len(data.IOs))
+	for _, item := range data.IOs {
+		ios = append(ios, toDiskIOStatus(item))
+	}
+	return &v1.DiskStatus{
+		Total:             toDiskPartitionStatus(data.Total),
+		Partitions:        partitions,
+		SelectedPartition: toDiskPartitionStatusPtr(data.SelectedPartition),
+		TotalIo:           toDiskIOStatus(data.TotalIO),
+		Ios:               ios,
+		SelectedIo:        toDiskIOStatusPtr(data.SelectedIO),
+		IoSupported:       data.IOSupported,
+		IoError:           data.IOError,
+	}
+}
+
+func toDiskPartitionStatusPtr(data *sysinfo.DiskPartitionStatus) *v1.DiskPartitionStatus {
+	if data == nil {
+		return nil
+	}
+	return toDiskPartitionStatus(*data)
+}
+
+func toDiskPartitionStatus(data sysinfo.DiskPartitionStatus) *v1.DiskPartitionStatus {
+	return &v1.DiskPartitionStatus{
+		Device:            data.Device,
+		Mountpoint:        data.Mountpoint,
+		Fstype:            data.Fstype,
+		Supported:         data.Supported,
+		Error:             data.Error,
+		TotalBytes:        data.TotalBytes,
+		FreeBytes:         data.FreeBytes,
+		UsedBytes:         data.UsedBytes,
+		UsedPercent:       data.UsedPercent,
+		InodesTotal:       data.InodesTotal,
+		InodesUsed:        data.InodesUsed,
+		InodesFree:        data.InodesFree,
+		InodesUsedPercent: data.InodesUsedPercent,
+	}
+}
+
+func toDiskIOStatusPtr(data *sysinfo.DiskIOStatus) *v1.DiskIOStatus {
+	if data == nil {
+		return nil
+	}
+	return toDiskIOStatus(*data)
+}
+
+func toDiskIOStatus(data sysinfo.DiskIOStatus) *v1.DiskIOStatus {
+	return &v1.DiskIOStatus{
+		Name:                    data.Name,
+		SerialNumber:            data.SerialNumber,
+		Label:                   data.Label,
+		ReadCount:               data.ReadCount,
+		WriteCount:              data.WriteCount,
+		ReadBytes:               data.ReadBytes,
+		WriteBytes:              data.WriteBytes,
+		ReadRateBytesPerSecond:  data.ReadRateBytesPerSecond,
+		WriteRateBytesPerSecond: data.WriteRateBytesPerSecond,
+		IopsInProgress:          data.IopsInProgress,
+		IoTime:                  data.IOTime,
 	}
 }
