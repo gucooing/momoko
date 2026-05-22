@@ -557,8 +557,8 @@ func (i *InstanceUsecase) newFileOper(ctx context.Context, userID, instanceID st
 	return fileOper, nil
 }
 
-func (u *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v1.GetInstanceFileListRequest) (*v1.GetInstanceFileListResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v1.GetInstanceFileListRequest) (*v1.GetInstanceFileListResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -606,8 +606,8 @@ func (u *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v
 	}, nil
 }
 
-func (u *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -620,8 +620,8 @@ func (u *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1
 	return &v1.CreateInstanceFileResponse{}, nil
 }
 
-func (u *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1.RenameInstanceFileRequest) (*v1.RenameInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1.RenameInstanceFileRequest) (*v1.RenameInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -632,8 +632,8 @@ func (u *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1
 	return &v1.RenameInstanceFileResponse{Path: path}, nil
 }
 
-func (u *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -641,8 +641,8 @@ func (u *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, re
 	return &v1.BatchDeleteInstanceFileResponse{Items: items}, nil
 }
 
-func (u *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, req *v1.BatchCompressInstanceFileRequest) (*v1.BatchCompressInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, req *v1.BatchCompressInstanceFileRequest) (*v1.BatchCompressInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -653,8 +653,8 @@ func (u *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, 
 	return &v1.BatchCompressInstanceFileResponse{OutputPath: outputPath}, nil
 }
 
-func (u *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.UnzipInstanceFileRequest) (*v1.UnzipInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.UnzipInstanceFileRequest) (*v1.UnzipInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -665,8 +665,8 @@ func (u *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.
 	return &v1.UnzipInstanceFileResponse{OutputPath: outputPath}, nil
 }
 
-func (u *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -677,8 +677,8 @@ func (u *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.O
 	return &v1.OpenInstanceFileResponse{Info: content}, nil
 }
 
-func (u *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+func (i *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -697,11 +697,11 @@ func (u *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v
 	return &v1.InstanceFilePreSignResponse{DownloadUrlPath: fmt.Sprintf("%s?sign=%s", PreFileDownload, sign)}, nil
 }
 
-func (u *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, req *v1.InstanceFilePreSignUploadRequest) (*v1.UploadInfo, error) {
+func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, req *v1.InstanceFilePreSignUploadRequest) (*v1.UploadInfo, error) {
 	if req.FileSize > math.MaxInt64 {
 		return nil, ErrUploadRequestInvalid
 	}
-	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -710,7 +710,7 @@ func (u *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 		return nil, ErrSystem(err)
 	}
 	upload := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize)
-	info, err := u.fileRepo.GetOrCreate(ctx, userID, upload)
+	info, err := i.fileRepo.GetOrCreate(ctx, userID, upload)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
