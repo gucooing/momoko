@@ -224,6 +224,14 @@ func (i *InstanceService) CreateInstanceFile(ctx context.Context, req *v1.Create
 	return i.uc.CreateFile(ctx, authCtx.UserID, req)
 }
 
+func (i *InstanceService) RenameInstanceFile(ctx context.Context, req *v1.RenameInstanceFileRequest) (*v1.RenameInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.RenameFile(ctx, authCtx.UserID, req)
+}
+
 func (i *InstanceService) BatchDeleteInstanceFile(ctx context.Context, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

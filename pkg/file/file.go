@@ -303,6 +303,40 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 	return nil
 }
 
+// Rename 重命名文件或目录，目标名称不能包含路径分隔符。
+func (f *FileOper) Rename(path, newName string) (string, error) {
+	newName = strings.TrimSpace(newName)
+	if newName == "" || newName == "." || newName == ".." {
+		return "", errors.New("新名称无效")
+	}
+	if filepath.VolumeName(newName) != "" || strings.ContainsAny(newName, `/\`) {
+		return "", errors.New("新名称不能包含路径")
+	}
+
+	sourcePath, err := f.ResolveRealPath(path)
+	if err != nil {
+		return "", err
+	}
+	targetDir, err := f.ResolveRealPath(filepath.Dir(sourcePath))
+	if err != nil {
+		return "", err
+	}
+	targetPath := filepath.Join(targetDir, newName)
+	if sourcePath == targetPath {
+		return targetPath, nil
+	}
+	if _, err = os.Stat(targetPath); err == nil {
+		return "", errors.New("目标名称已存在")
+	} else if !os.IsNotExist(err) {
+		return "", err
+	}
+
+	if err = os.Rename(sourcePath, targetPath); err != nil {
+		return "", err
+	}
+	return targetPath, nil
+}
+
 type ChunkedUpload struct {
 	*gen.FileUpload
 	Sing     string

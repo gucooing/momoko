@@ -37,6 +37,33 @@ func Test_ListDir(t *testing.T) {
 	}
 }
 
+func Test_Rename(t *testing.T) {
+	basePath := t.TempDir()
+	f, err := NewFileOper(basePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sourcePath := filepath.Join(basePath, "old.txt")
+	if err = os.WriteFile(sourcePath, []byte("ok"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	targetPath, err := f.Rename("old.txt", "new.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if targetPath != filepath.Join(basePath, "new.txt") {
+		t.Fatalf("unexpected target path: %s", targetPath)
+	}
+
+	if _, err = f.Rename("", "out"); err == nil {
+		t.Fatal("expected base path rename to be rejected")
+	}
+	if _, err = f.Rename("new.txt", "../bad.txt"); err == nil {
+		t.Fatal("expected path name to be rejected")
+	}
+}
+
 func Test_Download(t *testing.T) {
 	f, err := NewFileOper("")
 	if err != nil {

@@ -155,6 +155,20 @@ func (f *FileUsecase) CreateFileSystem(ctx context.Context, req *v1.CreateFileSy
 	return &v1.CreateFileSystemResponse{}, nil
 }
 
+// RenameFileSystem 重命名文件或目录。
+func (f *FileUsecase) RenameFileSystem(ctx context.Context, req *v1.RenameFileSystemRequest) (*v1.RenameFileSystemResponse, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	path, err := fileOper.Rename(req.Path, req.NewName)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.RenameFileSystemResponse{Path: path}, nil
+}
+
 // OpenFileSystemFile 打开文件并返回内容。
 func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
 	fileOper, err := f.newSystemInstance()

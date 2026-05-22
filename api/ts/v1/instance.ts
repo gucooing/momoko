@@ -397,6 +397,22 @@ export interface CreateInstanceFileRequest {
 export interface CreateInstanceFileResponse {
 }
 
+/** 重命名实例文件请求 */
+export interface RenameInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 原路径 */
+  path: string;
+  /** 新名称，不包含路径 */
+  newName: string;
+}
+
+/** 重命名实例文件响应 */
+export interface RenameInstanceFileResponse {
+  /** 重命名后的路径 */
+  path: string;
+}
+
 /** 批量删除实例文件请求 */
 export interface BatchDeleteInstanceFileRequest {
   /** 实例id */

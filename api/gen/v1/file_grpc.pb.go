@@ -22,6 +22,7 @@ const (
 	FileManager_GetFileSystemList_FullMethodName       = "/v1.FileManager/GetFileSystemList"
 	FileManager_BatchDeleteFileSystem_FullMethodName   = "/v1.FileManager/BatchDeleteFileSystem"
 	FileManager_CreateFileSystem_FullMethodName        = "/v1.FileManager/CreateFileSystem"
+	FileManager_RenameFileSystem_FullMethodName        = "/v1.FileManager/RenameFileSystem"
 	FileManager_BatchCompressFileSystem_FullMethodName = "/v1.FileManager/BatchCompressFileSystem"
 	FileManager_UnzipFileSystem_FullMethodName         = "/v1.FileManager/UnzipFileSystem"
 	FileManager_OpenFileSystemFile_FullMethodName      = "/v1.FileManager/OpenFileSystemFile"
@@ -44,6 +45,8 @@ type FileManagerClient interface {
 	BatchDeleteFileSystem(ctx context.Context, in *BatchDeleteFileSystemRequest, opts ...grpc.CallOption) (*BatchDeleteFileSystemResponse, error)
 	// 创建指定文件/文件夹(系统级)
 	CreateFileSystem(ctx context.Context, in *CreateFileSystemRequest, opts ...grpc.CallOption) (*CreateFileSystemResponse, error)
+	// 重命名指定文件/文件夹(系统级)
+	RenameFileSystem(ctx context.Context, in *RenameFileSystemRequest, opts ...grpc.CallOption) (*RenameFileSystemResponse, error)
 	// 压缩指定文件/文件夹(系统级)
 	BatchCompressFileSystem(ctx context.Context, in *BatchCompressFileSystemRequest, opts ...grpc.CallOption) (*BatchCompressFileSystemResponse, error)
 	// 解压指定压缩包(系统级)
@@ -94,6 +97,16 @@ func (c *fileManagerClient) CreateFileSystem(ctx context.Context, in *CreateFile
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateFileSystemResponse)
 	err := c.cc.Invoke(ctx, FileManager_CreateFileSystem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) RenameFileSystem(ctx context.Context, in *RenameFileSystemRequest, opts ...grpc.CallOption) (*RenameFileSystemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RenameFileSystemResponse)
+	err := c.cc.Invoke(ctx, FileManager_RenameFileSystem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +205,8 @@ type FileManagerServer interface {
 	BatchDeleteFileSystem(context.Context, *BatchDeleteFileSystemRequest) (*BatchDeleteFileSystemResponse, error)
 	// 创建指定文件/文件夹(系统级)
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
+	// 重命名指定文件/文件夹(系统级)
+	RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error)
 	// 压缩指定文件/文件夹(系统级)
 	BatchCompressFileSystem(context.Context, *BatchCompressFileSystemRequest) (*BatchCompressFileSystemResponse, error)
 	// 解压指定压缩包(系统级)
@@ -226,6 +241,9 @@ func (UnimplementedFileManagerServer) BatchDeleteFileSystem(context.Context, *Ba
 }
 func (UnimplementedFileManagerServer) CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFileSystem not implemented")
+}
+func (UnimplementedFileManagerServer) RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RenameFileSystem not implemented")
 }
 func (UnimplementedFileManagerServer) BatchCompressFileSystem(context.Context, *BatchCompressFileSystemRequest) (*BatchCompressFileSystemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCompressFileSystem not implemented")
@@ -322,6 +340,24 @@ func _FileManager_CreateFileSystem_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileManagerServer).CreateFileSystem(ctx, req.(*CreateFileSystemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_RenameFileSystem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenameFileSystemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).RenameFileSystem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_RenameFileSystem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).RenameFileSystem(ctx, req.(*RenameFileSystemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -488,6 +524,10 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateFileSystem",
 			Handler:    _FileManager_CreateFileSystem_Handler,
+		},
+		{
+			MethodName: "RenameFileSystem",
+			Handler:    _FileManager_RenameFileSystem_Handler,
 		},
 		{
 			MethodName: "BatchCompressFileSystem",

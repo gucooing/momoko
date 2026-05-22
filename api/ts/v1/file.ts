@@ -137,6 +137,20 @@ export interface CreateFileSystemRequest {
 export interface CreateFileSystemResponse {
 }
 
+/** 重命名系统文件请求 */
+export interface RenameFileSystemRequest {
+  /** 原路径 */
+  path: string;
+  /** 新名称，不包含路径 */
+  newName: string;
+}
+
+/** 重命名系统文件响应 */
+export interface RenameFileSystemResponse {
+  /** 重命名后的路径 */
+  path: string;
+}
+
 /** 批量压缩系统文件请求 */
 export interface BatchCompressFileSystemRequest {
   /** 路径列表 */

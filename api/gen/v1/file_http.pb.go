@@ -29,6 +29,7 @@ const OperationFileManagerFileSystemPreSignUpload = "/v1.FileManager/FileSystemP
 const OperationFileManagerGetFileSystemList = "/v1.FileManager/GetFileSystemList"
 const OperationFileManagerGetFileUploadStatus = "/v1.FileManager/GetFileUploadStatus"
 const OperationFileManagerOpenFileSystemFile = "/v1.FileManager/OpenFileSystemFile"
+const OperationFileManagerRenameFileSystem = "/v1.FileManager/RenameFileSystem"
 const OperationFileManagerUnzipFileSystem = "/v1.FileManager/UnzipFileSystem"
 
 type FileManagerHTTPServer interface {
@@ -52,6 +53,8 @@ type FileManagerHTTPServer interface {
 	GetFileUploadStatus(context.Context, *GetFileUploadStatusRequest) (*GetFileUploadStatusResponse, error)
 	// OpenFileSystemFile 打开指定文件(系统级)
 	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
+	// RenameFileSystem 重命名指定文件/文件夹(系统级)
+	RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
 }
@@ -61,6 +64,7 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.GET("/api/v1/file/system", _FileManager_GetFileSystemList0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/deletes", _FileManager_BatchDeleteFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/create", _FileManager_CreateFileSystem0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/system/rename", _FileManager_RenameFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/compress", _FileManager_BatchCompressFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/unzip", _FileManager_UnzipFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/open/file", _FileManager_OpenFileSystemFile0_HTTP_Handler(srv))
@@ -130,6 +134,28 @@ func _FileManager_CreateFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func
 			return err
 		}
 		reply := out.(*CreateFileSystemResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_RenameFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RenameFileSystemRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerRenameFileSystem)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RenameFileSystem(ctx, req.(*RenameFileSystemRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RenameFileSystemResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -322,6 +348,8 @@ type FileManagerHTTPClient interface {
 	GetFileUploadStatus(ctx context.Context, req *GetFileUploadStatusRequest, opts ...http.CallOption) (rsp *GetFileUploadStatusResponse, err error)
 	// OpenFileSystemFile 打开指定文件(系统级)
 	OpenFileSystemFile(ctx context.Context, req *OpenFileSystemFileRequest, opts ...http.CallOption) (rsp *OpenFileSystemFileResponse, err error)
+	// RenameFileSystem 重命名指定文件/文件夹(系统级)
+	RenameFileSystem(ctx context.Context, req *RenameFileSystemRequest, opts ...http.CallOption) (rsp *RenameFileSystemResponse, err error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(ctx context.Context, req *UnzipFileSystemRequest, opts ...http.CallOption) (rsp *UnzipFileSystemResponse, err error)
 }
@@ -466,6 +494,20 @@ func (c *FileManagerHTTPClientImpl) OpenFileSystemFile(ctx context.Context, in *
 	pattern := "/api/v1/file/system/open/file"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerOpenFileSystemFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RenameFileSystem 重命名指定文件/文件夹(系统级)
+func (c *FileManagerHTTPClientImpl) RenameFileSystem(ctx context.Context, in *RenameFileSystemRequest, opts ...http.CallOption) (*RenameFileSystemResponse, error) {
+	var out RenameFileSystemResponse
+	pattern := "/api/v1/file/system/rename"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerRenameFileSystem))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

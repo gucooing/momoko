@@ -48,6 +48,10 @@ func (f *FileService) CreateFileSystem(ctx context.Context, req *v1.CreateFileSy
 	return f.uc.CreateFileSystem(ctx, req)
 }
 
+func (f *FileService) RenameFileSystem(ctx context.Context, req *v1.RenameFileSystemRequest) (*v1.RenameFileSystemResponse, error) {
+	return f.uc.RenameFileSystem(ctx, req)
+}
+
 func (f *FileService) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
 	return f.uc.OpenFileSystemFile(ctx, req)
 }

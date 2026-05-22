@@ -318,6 +318,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.OpenFileSystemFileResponse'
+    /api/v1/file/system/rename:
+        post:
+            tags:
+                - FileManager
+            description: 重命名指定文件/文件夹(系统级)
+            operationId: FileManager_RenameFileSystem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RenameFileSystemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RenameFileSystemResponse'
     /api/v1/file/system/unzip:
         post:
             tags:
@@ -583,6 +602,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.InstanceFilePreSignResponse'
+    /api/v1/instance/file/rename/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 重命名实例目录内文件/文件夹
+            operationId: InstanceManager_RenameInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RenameInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RenameInstanceFileResponse'
     /api/v1/instance/file/unzip/{id}:
         post:
             tags:
@@ -2630,6 +2675,43 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RenameFileSystemRequest:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 原路径
+                newName:
+                    type: string
+                    description: 新名称，不包含路径
+            description: 重命名系统文件请求
+        v1.RenameFileSystemResponse:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 重命名后的路径
+            description: 重命名系统文件响应
+        v1.RenameInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                path:
+                    type: string
+                    description: 原路径
+                newName:
+                    type: string
+                    description: 新名称，不包含路径
+            description: 重命名实例文件请求
+        v1.RenameInstanceFileResponse:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 重命名后的路径
+            description: 重命名实例文件响应
         v1.RestartInstanceRequest:
             type: object
             properties:

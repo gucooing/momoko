@@ -620,6 +620,18 @@ func (u *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1
 	return &v1.CreateInstanceFileResponse{}, nil
 }
 
+func (u *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1.RenameInstanceFileRequest) (*v1.RenameInstanceFileResponse, error) {
+	fileOper, err := u.newFileOper(ctx, userID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	path, err := fileOper.Rename(req.Path, req.NewName)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.RenameInstanceFileResponse{Path: path}, nil
+}
+
 func (u *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
 	fileOper, err := u.newFileOper(ctx, userID, req.Id)
 	if err != nil {

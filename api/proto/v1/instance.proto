@@ -142,6 +142,13 @@ service InstanceManager {
       body: "*"
     };
   }
+  // 重命名实例目录内文件/文件夹
+  rpc RenameInstanceFile(RenameInstanceFileRequest) returns (RenameInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/rename/{id}"
+      body: "*"
+    };
+  }
   // 批量删除实例目录内文件/文件夹
   rpc BatchDeleteInstanceFile(BatchDeleteInstanceFileRequest) returns (BatchDeleteInstanceFileResponse) {
     option (google.api.http) = {
@@ -518,6 +525,22 @@ message CreateInstanceFileRequest {
 
 // 创建实例文件响应
 message CreateInstanceFileResponse {}
+
+// 重命名实例文件请求
+message RenameInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 原路径
+  string path = 2;
+  // 新名称，不包含路径
+  string new_name = 3;
+}
+
+// 重命名实例文件响应
+message RenameInstanceFileResponse {
+  // 重命名后的路径
+  string path = 1;
+}
 
 // 批量删除实例文件请求
 message BatchDeleteInstanceFileRequest {

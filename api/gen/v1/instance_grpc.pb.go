@@ -38,6 +38,7 @@ const (
 	InstanceManager_DelInstanceLog_FullMethodName            = "/v1.InstanceManager/DelInstanceLog"
 	InstanceManager_GetInstanceFileList_FullMethodName       = "/v1.InstanceManager/GetInstanceFileList"
 	InstanceManager_CreateInstanceFile_FullMethodName        = "/v1.InstanceManager/CreateInstanceFile"
+	InstanceManager_RenameInstanceFile_FullMethodName        = "/v1.InstanceManager/RenameInstanceFile"
 	InstanceManager_BatchDeleteInstanceFile_FullMethodName   = "/v1.InstanceManager/BatchDeleteInstanceFile"
 	InstanceManager_BatchCompressInstanceFile_FullMethodName = "/v1.InstanceManager/BatchCompressInstanceFile"
 	InstanceManager_UnzipInstanceFile_FullMethodName         = "/v1.InstanceManager/UnzipInstanceFile"
@@ -93,6 +94,8 @@ type InstanceManagerClient interface {
 	GetInstanceFileList(ctx context.Context, in *GetInstanceFileListRequest, opts ...grpc.CallOption) (*GetInstanceFileListResponse, error)
 	// 创建实例目录内文件/文件夹
 	CreateInstanceFile(ctx context.Context, in *CreateInstanceFileRequest, opts ...grpc.CallOption) (*CreateInstanceFileResponse, error)
+	// 重命名实例目录内文件/文件夹
+	RenameInstanceFile(ctx context.Context, in *RenameInstanceFileRequest, opts ...grpc.CallOption) (*RenameInstanceFileResponse, error)
 	// 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error)
 	// 压缩实例目录内文件/文件夹
@@ -305,6 +308,16 @@ func (c *instanceManagerClient) CreateInstanceFile(ctx context.Context, in *Crea
 	return out, nil
 }
 
+func (c *instanceManagerClient) RenameInstanceFile(ctx context.Context, in *RenameInstanceFileRequest, opts ...grpc.CallOption) (*RenameInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RenameInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_RenameInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceManagerClient) BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchDeleteInstanceFileResponse)
@@ -412,6 +425,8 @@ type InstanceManagerServer interface {
 	GetInstanceFileList(context.Context, *GetInstanceFileListRequest) (*GetInstanceFileListResponse, error)
 	// 创建实例目录内文件/文件夹
 	CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
+	// 重命名实例目录内文件/文件夹
+	RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error)
 	// 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
 	// 压缩实例目录内文件/文件夹
@@ -490,6 +505,9 @@ func (UnimplementedInstanceManagerServer) GetInstanceFileList(context.Context, *
 }
 func (UnimplementedInstanceManagerServer) CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RenameInstanceFile not implemented")
 }
 func (UnimplementedInstanceManagerServer) BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchDeleteInstanceFile not implemented")
@@ -872,6 +890,24 @@ func _InstanceManager_CreateInstanceFile_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceManager_RenameInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenameInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).RenameInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_RenameInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).RenameInstanceFile(ctx, req.(*RenameInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InstanceManager_BatchDeleteInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BatchDeleteInstanceFileRequest)
 	if err := dec(in); err != nil {
@@ -1062,6 +1098,10 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateInstanceFile",
 			Handler:    _InstanceManager_CreateInstanceFile_Handler,
+		},
+		{
+			MethodName: "RenameInstanceFile",
+			Handler:    _InstanceManager_RenameInstanceFile_Handler,
 		},
 		{
 			MethodName: "BatchDeleteInstanceFile",

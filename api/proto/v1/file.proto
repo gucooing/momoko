@@ -29,6 +29,13 @@ service FileManager {
       body: "*"
     };
   }
+  // 重命名指定文件/文件夹(系统级)
+  rpc RenameFileSystem(RenameFileSystemRequest) returns (RenameFileSystemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/rename"
+      body: "*"
+    };
+  }
   // 压缩指定文件/文件夹(系统级)
   rpc BatchCompressFileSystem(BatchCompressFileSystemRequest) returns (BatchCompressFileSystemResponse) {
     option (google.api.http) = {
@@ -204,6 +211,20 @@ message CreateFileSystemRequest {
 
 // 批量创建系统文件响应
 message CreateFileSystemResponse {}
+
+// 重命名系统文件请求
+message RenameFileSystemRequest {
+  // 原路径
+  string path = 1;
+  // 新名称，不包含路径
+  string new_name = 2;
+}
+
+// 重命名系统文件响应
+message RenameFileSystemResponse {
+  // 重命名后的路径
+  string path = 1;
+}
 
 // 批量压缩系统文件请求
 message BatchCompressFileSystemRequest {
