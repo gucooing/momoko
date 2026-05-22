@@ -1,0 +1,52 @@
+import type { Component } from 'vue'
+import type { LoginDevice, UpdatePasswordRequest } from '@/types/v1/auth'
+import type { UpdateMeRequest } from '@/types/v1/user'
+
+export type ProfileCurrentTab =
+  | 'personalInfo'
+  | 'permissions'
+  | 'messages'
+  | 'logs'
+  | 'devices'
+
+export interface ProfileTabsMenuItem {
+  key: string
+  label: string
+  badge?: number | string
+  disabled?: boolean
+  icon?: string | Component
+}
+
+export type MessageType = 'system' | 'user' | 'todo'
+
+export interface UserMessageItem {
+  id: string
+  title: string
+  content: string
+  type: MessageType
+  read: boolean
+  time: string
+  avatar?: string
+}
+
+export type UserProfileFormValue = {
+  [K in keyof Pick<
+    UpdateMeRequest,
+    'username' | 'name' | 'email' | 'avatar' | 'bio' | 'tags'
+  >]-?: NonNullable<UpdateMeRequest[K]>
+}
+
+export interface UserPasswordFormValue extends UpdatePasswordRequest {
+  confirmPassword: string
+}
+
+export interface LoginDeviceRow extends LoginDevice, Record<string, unknown> {}
+
+export interface LoginLogItem {
+  device: string
+  browser: string
+  ip: string
+  location: string
+  time: string
+  status: 'success' | 'danger'
+}

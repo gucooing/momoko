@@ -58,9 +58,7 @@ func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo) (*InstanceUsecase,
 		fileRepo: fileRepo,
 	}
 	go usecase.start()
-	return usecase, func() {
-		usecase.Close()
-	}, nil
+	return usecase, usecase.Close, nil
 }
 
 func (i *InstanceUsecase) start() {

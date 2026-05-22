@@ -1,0 +1,122 @@
+<div id="__app-loading__" class="app-loading">
+  <div class="app-loading-content">
+    <img src="/logo.svg" alt="logo" class="loading-logo" />
+    <div class="loading-text">DFAN Admin</div>
+  </div>
+</div>
+
+<script>
+  ;(function () {
+    const root = document.documentElement
+    const storedThemeMode = localStorage.getItem('themeMode')
+    const themeMode =
+      storedThemeMode === 'dark' || storedThemeMode === 'light' || storedThemeMode === 'auto'
+        ? storedThemeMode
+        : 'light'
+
+    const systemPrefersDark =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    const htmlHasDark = root.classList.contains('dark')
+    const isDark = themeMode === 'dark' || (themeMode === 'auto' && systemPrefersDark)
+
+    if (isDark || htmlHasDark) {
+      root.classList.add('dark')
+      const loadingEl = document.getElementById('__app-loading__')
+      if (loadingEl) {
+        loadingEl.classList.add('dark-mode')
+      }
+    }
+  })()
+</script>
+
+<style>
+  .app-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    z-index: 99999;
+    transition: background-color 0.3s ease;
+  }
+
+  .app-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .loading-logo {
+    width: 120px;
+    height: 120px;
+    animation: logoSpin 2s ease-in-out infinite;
+  }
+
+  @media (max-width: 992px) {
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+    }
+  }
+
+  @keyframes logoSpin {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(90deg) scale(1.1);
+    }
+    50% {
+      transform: rotate(180deg) scale(1);
+    }
+    75% {
+      transform: rotate(270deg) scale(1.1);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+
+  .loading-text {
+    color: #666;
+    font-size: 32px;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 992px) {
+    .loading-text {
+      font-size: 24px;
+    }
+  }
+
+  /* Dark mode */
+  .app-loading.dark-mode {
+    background: #1d1e1f;
+  }
+
+  .app-loading.dark-mode .loading-text {
+    color: #a8abb2;
+  }
+
+  /* Respect the dark class on html root */
+  html.dark .app-loading {
+    background: #1d1e1f;
+  }
+
+  html.dark .app-loading .loading-text {
+    color: #a8abb2;
+  }
+
+  /* Hidden after app loading is finished */
+  .app-loading.hidden {
+    display: none;
+  }
+</style>

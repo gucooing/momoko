@@ -1,0 +1,33 @@
+/*
+ * 用 Element Plus 的样式变量覆盖 VXE Table 样式变量
+ * 在此查阅所有可自定义的变量：http://github.com/x-extends/vxe-table/blob/master/styles/variable.scss
+ */
+
+:root {
+  /* 文字 */
+  --vxe-ui-font-color: var(--el-text-color-regular);
+  --vxe-ui-font-family: var(--el-font-family);
+
+  /* 按钮样式变量 */
+  --vxe-ui-font-primary-color: var(--el-color-primary);
+  --vxe-ui-font-primary-lighten-color: var(--el-color-primary);
+  --vxe-ui-font-primary-darken-color: var(--el-color-primary);
+  --vxe-ui-font-primary-disabled-color: var(--el-color-primary-light-5);
+
+  /* 表格样式变量 */
+  --vxe-ui-table-header-font-color: var(--el-text-color-secondary);
+  --vxe-ui-table-border-color: var(--el-border-color-lighter);
+  --vxe-ui-table-header-background-color: var(--el-bg-color);
+  --vxe-ui-table-footer-background-color: var(--el-bg-color);
+  --vxe-ui-layout-background-color: var(--el-bg-color);
+  --vxe-ui-table-row-hover-background-color: var(--el-bg-color-page);
+  --vxe-ui-table-row-checkbox-checked-background-color: var(--el-bg-color-page);
+  --vxe-ui-table-row-hover-checkbox-checked-background-color: var(--el-bg-color-page);
+  --vxe-ui-table-menu-background-color: var(--el-bg-color);
+  --vxe-ui-base-popup-border-color: var(--el-card-border-color);
+  --vxe-ui-loading-background-color: var(--el-mask-color-extra-light);
+
+  /* modal */
+  --vxe-ui-modal-header-background-color: var(--el-dialog-bg-color);
+  --vxe-ui-input-border-color: var(--el-border-color);
+}
