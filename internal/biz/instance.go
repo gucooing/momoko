@@ -637,21 +637,10 @@ func (i *InstanceUsecase) CopyFile(ctx context.Context, userID string, req *v1.C
 	if err != nil {
 		return nil, err
 	}
-	if err = validateFileTransferRequest(req.Paths, req.TargetPath); err != nil {
+	task, err := fileOper.StartCopyToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationInstanceCopy)
+	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	paths := append([]string(nil), req.Paths...)
-	targetPath := req.TargetPath
-
-	task := startFileTransferTask(
-		ctx,
-		userID,
-		fileTaskOperationInstanceCopy,
-		paths,
-		func(ctx context.Context, path string) *v1.FileOperationResult {
-			return firstFileOperationResult(path, fileOper.CopyToDir([]string{path}, targetPath))
-		},
-	)
 	return &v1.CopyInstanceFileResponse{Task: task}, nil
 }
 
@@ -660,21 +649,10 @@ func (i *InstanceUsecase) CutFile(ctx context.Context, userID string, req *v1.Cu
 	if err != nil {
 		return nil, err
 	}
-	if err = validateFileTransferRequest(req.Paths, req.TargetPath); err != nil {
+	task, err := fileOper.StartMoveToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationInstanceCut)
+	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	paths := append([]string(nil), req.Paths...)
-	targetPath := req.TargetPath
-
-	task := startFileTransferTask(
-		ctx,
-		userID,
-		fileTaskOperationInstanceCut,
-		paths,
-		func(ctx context.Context, path string) *v1.FileOperationResult {
-			return firstFileOperationResult(path, fileOper.MoveToDir([]string{path}, targetPath))
-		},
-	)
 	return &v1.CutInstanceFileResponse{Task: task}, nil
 }
 
