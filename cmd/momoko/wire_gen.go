@@ -53,7 +53,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 		cleanup()
 		return nil, nil, err
 	}
-	instanceService := service.NewInstanceService(instanceUsecase)
+	instanceFileUsecase := biz.NewInstanceFileUsecase(instanceRepo, fileUsecase)
+	instanceService := service.NewInstanceService(instanceUsecase, instanceFileUsecase)
 	openSSHRepo := data.NewOpenSSHRepo(dataData)
 	openSSHUsecase := biz.NewOpenSSHUsecase(openSSHRepo)
 	openSSHService := service.NewOpenSSHService(openSSHUsecase)

@@ -6,6 +6,7 @@ option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "v1/file.proto";
 
 // 应用管理
 service InstanceManager {
@@ -125,6 +126,60 @@ service InstanceManager {
   rpc DelInstanceLog(DelInstanceLogRequest) returns (DelInstanceLogResponse) {
     option (google.api.http) = {
       delete: "/api/v1/instance/instance/del/log/{id}"
+    };
+  }
+
+  // 获取实例目录文件列表
+  rpc GetInstanceFileList(GetInstanceFileListRequest) returns (GetInstanceFileListResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/file/{id}"
+    };
+  }
+  // 创建实例目录内文件/文件夹
+  rpc CreateInstanceFile(CreateInstanceFileRequest) returns (CreateInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/create/{id}"
+      body: "*"
+    };
+  }
+  // 批量删除实例目录内文件/文件夹
+  rpc BatchDeleteInstanceFile(BatchDeleteInstanceFileRequest) returns (BatchDeleteInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/deletes/{id}"
+      body: "*"
+    };
+  }
+  // 压缩实例目录内文件/文件夹
+  rpc BatchCompressInstanceFile(BatchCompressInstanceFileRequest) returns (BatchCompressInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/compress/{id}"
+      body: "*"
+    };
+  }
+  // 解压实例目录内压缩包
+  rpc UnzipInstanceFile(UnzipInstanceFileRequest) returns (UnzipInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/unzip/{id}"
+      body: "*"
+    };
+  }
+  // 打开实例目录内文件
+  rpc OpenInstanceFile(OpenInstanceFileRequest) returns (OpenInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/open/{id}"
+      body: "*"
+    };
+  }
+  // 实例目录内文件下载预签名
+  rpc InstanceFilePreSign(InstanceFilePreSignRequest) returns (InstanceFilePreSignResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/file/pre-sign/{id}"
+    };
+  }
+  // 实例目录内文件上传预签名
+  rpc InstanceFilePreSignUpload(InstanceFilePreSignUploadRequest) returns (InstanceFilePreSignUploadResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/file/upload/pre-sign/{id}"
     };
   }
 }
@@ -417,4 +472,145 @@ enum InstanceStatus {
   INSTANCE_STATUS_RUNNING = 2;
   // 维护
   INSTANCE_STATUS_MAINTENANCE = 3;
+}
+
+// 获取实例文件列表请求
+message GetInstanceFileListRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径；空值表示实例根目录
+  string path = 2;
+  // 页码
+  int64 page = 3;
+  // 每页数量
+  int64 page_size = 4;
+  // 搜索关键字
+  optional string keywords = 5;
+  // 搜索时是否包含子目录
+  optional bool include_sub_dir = 6;
+  // 排序字段
+  FileSortField sort_field = 7;
+  // 排序是否倒序
+  bool is_desc = 8;
+}
+
+// 获取实例文件列表响应
+message GetInstanceFileListResponse {
+  // 当前目录信息
+  FileDirectoryInfo directory = 1;
+  // 文件列表
+  repeated FileEntryInfo items = 2;
+  // 当前页码
+  int64 page = 3;
+  // 每页数量
+  int64 page_size = 4;
+  // 总数
+  int64 total = 5;
+}
+
+// 创建实例文件请求
+message CreateInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 创建信息；path 为实例目录内相对路径
+  FileCreateItem info = 2;
+}
+
+// 创建实例文件响应
+message CreateInstanceFileResponse {}
+
+// 批量删除实例文件请求
+message BatchDeleteInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径列表
+  repeated string paths = 2;
+}
+
+// 批量删除实例文件响应
+message BatchDeleteInstanceFileResponse {
+  // 删除结果列表
+  repeated FileOperationResult items = 1;
+}
+
+// 压缩实例文件请求
+message BatchCompressInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径列表
+  repeated string paths = 2;
+  // 目标压缩文件相对路径，不传时由服务端自动生成
+  optional string target_path = 3;
+}
+
+// 压缩实例文件响应
+message BatchCompressInstanceFileResponse {
+  // 实际生成的相对路径
+  string output_path = 1;
+}
+
+// 解压实例文件请求
+message UnzipInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 压缩文件相对路径
+  string path = 2;
+  // 解压目标目录相对路径，不传时由服务端自动生成
+  optional string target_path = 3;
+}
+
+// 解压实例文件响应
+message UnzipInstanceFileResponse {
+  // 实际生成的相对路径
+  string output_path = 1;
+}
+
+// 打开实例文件请求
+message OpenInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 文件相对路径
+  string path = 2;
+}
+
+// 打开实例文件响应
+message OpenInstanceFileResponse {
+  // 文件内容
+  bytes info = 1;
+}
+
+// 实例文件下载预签名请求
+message InstanceFilePreSignRequest {
+  // 实例id
+  string id = 1;
+  // 文件相对路径
+  string path = 2;
+}
+
+// 实例文件下载预签名响应
+message InstanceFilePreSignResponse {
+  // 下载路径
+  string download_url_path = 1;
+}
+
+// 实例文件上传预签名请求
+message InstanceFilePreSignUploadRequest {
+  // 实例id
+  string id = 1;
+  // 上传目录相对路径
+  string path = 2;
+  // 文件名称
+  string file_name = 3;
+  // 文件总大小（字节）
+  uint64 file_size = 4;
+  // 快速hash
+  string hash = 5;
+  // 分片大小（字节），不传时由服务端自动决定
+  optional uint64 part_size = 6;
+}
+
+// 实例文件上传预签名响应
+message InstanceFilePreSignUploadResponse {
+  // 上传信息
+  UploadInfo info = 1;
 }

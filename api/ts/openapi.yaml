@@ -454,6 +454,262 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateInstanceResponse'
+    /api/v1/instance/file/compress/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 压缩实例目录内文件/文件夹
+            operationId: InstanceManager_BatchCompressInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BatchCompressInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BatchCompressInstanceFileResponse'
+    /api/v1/instance/file/create/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 创建实例目录内文件/文件夹
+            operationId: InstanceManager_CreateInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateInstanceFileResponse'
+    /api/v1/instance/file/deletes/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 批量删除实例目录内文件/文件夹
+            operationId: InstanceManager_BatchDeleteInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BatchDeleteInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BatchDeleteInstanceFileResponse'
+    /api/v1/instance/file/open/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 打开实例目录内文件
+            operationId: InstanceManager_OpenInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.OpenInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.OpenInstanceFileResponse'
+    /api/v1/instance/file/pre-sign/{id}:
+        get:
+            tags:
+                - InstanceManager
+            description: 实例目录内文件下载预签名
+            operationId: InstanceManager_InstanceFilePreSign
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  description: 文件相对路径
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.InstanceFilePreSignResponse'
+    /api/v1/instance/file/unzip/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 解压实例目录内压缩包
+            operationId: InstanceManager_UnzipInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UnzipInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UnzipInstanceFileResponse'
+    /api/v1/instance/file/upload/pre-sign/{id}:
+        get:
+            tags:
+                - InstanceManager
+            description: 实例目录内文件上传预签名
+            operationId: InstanceManager_InstanceFilePreSignUpload
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  description: 上传目录相对路径
+                  schema:
+                    type: string
+                - name: fileName
+                  in: query
+                  description: 文件名称
+                  schema:
+                    type: string
+                - name: fileSize
+                  in: query
+                  description: 文件总大小（字节）
+                  schema:
+                    type: string
+                - name: hash
+                  in: query
+                  description: 快速hash
+                  schema:
+                    type: string
+                - name: partSize
+                  in: query
+                  description: 分片大小（字节），不传时由服务端自动决定
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.InstanceFilePreSignUploadResponse'
+    /api/v1/instance/file/{id}:
+        get:
+            tags:
+                - InstanceManager
+            description: 获取实例目录文件列表
+            operationId: InstanceManager_GetInstanceFileList
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  description: 实例目录内相对路径；空值表示实例根目录
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 搜索关键字
+                  schema:
+                    type: string
+                - name: includeSubDir
+                  in: query
+                  description: 搜索时是否包含子目录
+                  schema:
+                    type: boolean
+                - name: sortField
+                  in: query
+                  description: 排序字段
+                  schema:
+                    type: integer
+                    format: enum
+                - name: isDesc
+                  in: query
+                  description: 排序是否倒序
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstanceFileListResponse'
     /api/v1/instance/instance/del/log/{id}:
         delete:
             tags:
@@ -1550,6 +1806,28 @@ components:
                     type: string
                     description: 实际生成的压缩文件路径
             description: 批量压缩系统文件响应
+        v1.BatchCompressInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 实例目录内相对路径列表
+                targetPath:
+                    type: string
+                    description: 目标压缩文件相对路径，不传时由服务端自动生成
+            description: 压缩实例文件请求
+        v1.BatchCompressInstanceFileResponse:
+            type: object
+            properties:
+                outputPath:
+                    type: string
+                    description: 实际生成的相对路径
+            description: 压缩实例文件响应
         v1.BatchDeleteFileSystemRequest:
             type: object
             properties:
@@ -1568,6 +1846,27 @@ components:
                         $ref: '#/components/schemas/v1.FileOperationResult'
                     description: 删除结果列表
             description: 批量删除系统文件响应
+        v1.BatchDeleteInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 实例目录内相对路径列表
+            description: 批量删除实例文件请求
+        v1.BatchDeleteInstanceFileResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.FileOperationResult'
+                    description: 删除结果列表
+            description: 批量删除实例文件响应
         v1.BatchTestSSHHostsRequest:
             type: object
             properties:
@@ -1618,6 +1917,21 @@ components:
             type: object
             properties: {}
             description: 批量创建系统文件响应
+        v1.CreateInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileCreateItem'
+                    description: 创建信息；path 为实例目录内相对路径
+            description: 创建实例文件请求
+        v1.CreateInstanceFileResponse:
+            type: object
+            properties: {}
+            description: 创建实例文件响应
         v1.CreateInstanceRequest:
             type: object
             properties:
@@ -1930,6 +2244,28 @@ components:
                         - $ref: '#/components/schemas/v1.UploadInfo'
                     description: 信息
             description: 获取上传状态响应
+        v1.GetInstanceFileListResponse:
+            type: object
+            properties:
+                directory:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileDirectoryInfo'
+                    description: 当前目录信息
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.FileEntryInfo'
+                    description: 文件列表
+                page:
+                    type: string
+                    description: 当前页码
+                pageSize:
+                    type: string
+                    description: 每页数量
+                total:
+                    type: string
+                    description: 总数
+            description: 获取实例文件列表响应
         v1.GetInstanceInfoResponse:
             type: object
             properties:
@@ -1997,6 +2333,21 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 信息
             description: 获取终端详情响应
+        v1.InstanceFilePreSignResponse:
+            type: object
+            properties:
+                downloadUrlPath:
+                    type: string
+                    description: 下载路径
+            description: 实例文件下载预签名响应
+        v1.InstanceFilePreSignUploadResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UploadInfo'
+                    description: 上传信息
+            description: 实例文件上传预签名响应
         v1.InstanceInfo:
             type: object
             properties:
@@ -2240,6 +2591,24 @@ components:
                     description: 文件内容
                     format: bytes
             description: 打开系统文件响应
+        v1.OpenInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                path:
+                    type: string
+                    description: 文件相对路径
+            description: 打开实例文件请求
+        v1.OpenInstanceFileResponse:
+            type: object
+            properties:
+                info:
+                    type: string
+                    description: 文件内容
+                    format: bytes
+            description: 打开实例文件响应
         v1.RefreshRequest:
             type: object
             properties:
@@ -2499,6 +2868,26 @@ components:
                     type: string
                     description: 实际生成的解压目录路径
             description: 解压系统文件响应
+        v1.UnzipInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                path:
+                    type: string
+                    description: 压缩文件相对路径
+                targetPath:
+                    type: string
+                    description: 解压目标目录相对路径，不传时由服务端自动生成
+            description: 解压实例文件请求
+        v1.UnzipInstanceFileResponse:
+            type: object
+            properties:
+                outputPath:
+                    type: string
+                    description: 实际生成的相对路径
+            description: 解压实例文件响应
         v1.UpdateInstanceRequest:
             type: object
             properties:

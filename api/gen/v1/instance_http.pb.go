@@ -19,27 +19,41 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationInstanceManagerBatchCompressInstanceFile = "/v1.InstanceManager/BatchCompressInstanceFile"
+const OperationInstanceManagerBatchDeleteInstanceFile = "/v1.InstanceManager/BatchDeleteInstanceFile"
 const OperationInstanceManagerCreateInstance = "/v1.InstanceManager/CreateInstance"
+const OperationInstanceManagerCreateInstanceFile = "/v1.InstanceManager/CreateInstanceFile"
 const OperationInstanceManagerCreateInstanceType = "/v1.InstanceManager/CreateInstanceType"
 const OperationInstanceManagerDelInstance = "/v1.InstanceManager/DelInstance"
 const OperationInstanceManagerDelInstanceLog = "/v1.InstanceManager/DelInstanceLog"
 const OperationInstanceManagerDelInstanceType = "/v1.InstanceManager/DelInstanceType"
+const OperationInstanceManagerGetInstanceFileList = "/v1.InstanceManager/GetInstanceFileList"
 const OperationInstanceManagerGetInstanceInfo = "/v1.InstanceManager/GetInstanceInfo"
 const OperationInstanceManagerGetInstanceTypes = "/v1.InstanceManager/GetInstanceTypes"
 const OperationInstanceManagerGetInstances = "/v1.InstanceManager/GetInstances"
 const OperationInstanceManagerGetTerminalInfo = "/v1.InstanceManager/GetTerminalInfo"
+const OperationInstanceManagerInstanceFilePreSign = "/v1.InstanceManager/InstanceFilePreSign"
+const OperationInstanceManagerInstanceFilePreSignUpload = "/v1.InstanceManager/InstanceFilePreSignUpload"
+const OperationInstanceManagerOpenInstanceFile = "/v1.InstanceManager/OpenInstanceFile"
 const OperationInstanceManagerRestartInstance = "/v1.InstanceManager/RestartInstance"
 const OperationInstanceManagerRestartTerminal = "/v1.InstanceManager/RestartTerminal"
 const OperationInstanceManagerStartInstance = "/v1.InstanceManager/StartInstance"
 const OperationInstanceManagerStartTerminal = "/v1.InstanceManager/StartTerminal"
 const OperationInstanceManagerStopInstance = "/v1.InstanceManager/StopInstance"
 const OperationInstanceManagerStopTerminal = "/v1.InstanceManager/StopTerminal"
+const OperationInstanceManagerUnzipInstanceFile = "/v1.InstanceManager/UnzipInstanceFile"
 const OperationInstanceManagerUpdateInstance = "/v1.InstanceManager/UpdateInstance"
 const OperationInstanceManagerUpdateInstanceType = "/v1.InstanceManager/UpdateInstanceType"
 
 type InstanceManagerHTTPServer interface {
+	// BatchCompressInstanceFile 压缩实例目录内文件/文件夹
+	BatchCompressInstanceFile(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error)
+	// BatchDeleteInstanceFile 批量删除实例目录内文件/文件夹
+	BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
 	// CreateInstance 创建实例
 	CreateInstance(context.Context, *CreateInstanceRequest) (*CreateInstanceResponse, error)
+	// CreateInstanceFile 创建实例目录内文件/文件夹
+	CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
 	// CreateInstanceType 创建实例类型
 	CreateInstanceType(context.Context, *CreateInstanceTypeRequest) (*CreateInstanceTypeResponse, error)
 	// DelInstance 删除实例
@@ -48,6 +62,8 @@ type InstanceManagerHTTPServer interface {
 	DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error)
 	// DelInstanceType 删除实例类型
 	DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error)
+	// GetInstanceFileList 获取实例目录文件列表
+	GetInstanceFileList(context.Context, *GetInstanceFileListRequest) (*GetInstanceFileListResponse, error)
 	// GetInstanceInfo 获取实例详情
 	GetInstanceInfo(context.Context, *GetInstanceInfoRequest) (*GetInstanceInfoResponse, error)
 	// GetInstanceTypes 实例类型管理
@@ -59,6 +75,12 @@ type InstanceManagerHTTPServer interface {
 	// GetTerminalInfo 终端管理
 	// 获取终端详情
 	GetTerminalInfo(context.Context, *GetTerminalInfoRequest) (*GetTerminalInfoResponse, error)
+	// InstanceFilePreSign 实例目录内文件下载预签名
+	InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error)
+	// InstanceFilePreSignUpload 实例目录内文件上传预签名
+	InstanceFilePreSignUpload(context.Context, *InstanceFilePreSignUploadRequest) (*InstanceFilePreSignUploadResponse, error)
+	// OpenInstanceFile 打开实例目录内文件
+	OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error)
 	// RestartInstance 重启实例
 	RestartInstance(context.Context, *RestartInstanceRequest) (*RestartInstanceResponse, error)
 	// RestartTerminal 重启终端
@@ -71,6 +93,8 @@ type InstanceManagerHTTPServer interface {
 	StopInstance(context.Context, *StopInstanceRequest) (*StopInstanceResponse, error)
 	// StopTerminal 停止终端
 	StopTerminal(context.Context, *StopTerminalRequest) (*StopTerminalResponse, error)
+	// UnzipInstanceFile 解压实例目录内压缩包
+	UnzipInstanceFile(context.Context, *UnzipInstanceFileRequest) (*UnzipInstanceFileResponse, error)
 	// UpdateInstance 更新实例
 	UpdateInstance(context.Context, *UpdateInstanceRequest) (*UpdateInstanceResponse, error)
 	// UpdateInstanceType 更新实例类型
@@ -96,6 +120,14 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.DELETE("/api/v1/instance/instance/del/{id}", _InstanceManager_DelInstance0_HTTP_Handler(srv))
 	r.PUT("/api/v1/instance/instance/{id}", _InstanceManager_UpdateInstance0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/instance/instance/del/log/{id}", _InstanceManager_DelInstanceLog0_HTTP_Handler(srv))
+	r.GET("/api/v1/instance/file/{id}", _InstanceManager_GetInstanceFileList0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/create/{id}", _InstanceManager_CreateInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/deletes/{id}", _InstanceManager_BatchDeleteInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/compress/{id}", _InstanceManager_BatchCompressInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/unzip/{id}", _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/open/{id}", _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv))
+	r.GET("/api/v1/instance/file/pre-sign/{id}", _InstanceManager_InstanceFilePreSign0_HTTP_Handler(srv))
+	r.GET("/api/v1/instance/file/upload/pre-sign/{id}", _InstanceManager_InstanceFilePreSignUpload0_HTTP_Handler(srv))
 }
 
 func _InstanceManager_GetInstanceTypes0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
@@ -478,9 +510,206 @@ func _InstanceManager_DelInstanceLog0_HTTP_Handler(srv InstanceManagerHTTPServer
 	}
 }
 
+func _InstanceManager_GetInstanceFileList0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetInstanceFileListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerGetInstanceFileList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetInstanceFileList(ctx, req.(*GetInstanceFileListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetInstanceFileListResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_CreateInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerCreateInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateInstanceFile(ctx, req.(*CreateInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_BatchDeleteInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchDeleteInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerBatchDeleteInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchDeleteInstanceFile(ctx, req.(*BatchDeleteInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchDeleteInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_BatchCompressInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchCompressInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerBatchCompressInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchCompressInstanceFile(ctx, req.(*BatchCompressInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchCompressInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnzipInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerUnzipInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnzipInstanceFile(ctx, req.(*UnzipInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UnzipInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in OpenInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerOpenInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OpenInstanceFile(ctx, req.(*OpenInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OpenInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_InstanceFilePreSign0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in InstanceFilePreSignRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerInstanceFilePreSign)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.InstanceFilePreSign(ctx, req.(*InstanceFilePreSignRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*InstanceFilePreSignResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_InstanceFilePreSignUpload0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in InstanceFilePreSignUploadRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerInstanceFilePreSignUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.InstanceFilePreSignUpload(ctx, req.(*InstanceFilePreSignUploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*InstanceFilePreSignUploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type InstanceManagerHTTPClient interface {
+	// BatchCompressInstanceFile 压缩实例目录内文件/文件夹
+	BatchCompressInstanceFile(ctx context.Context, req *BatchCompressInstanceFileRequest, opts ...http.CallOption) (rsp *BatchCompressInstanceFileResponse, err error)
+	// BatchDeleteInstanceFile 批量删除实例目录内文件/文件夹
+	BatchDeleteInstanceFile(ctx context.Context, req *BatchDeleteInstanceFileRequest, opts ...http.CallOption) (rsp *BatchDeleteInstanceFileResponse, err error)
 	// CreateInstance 创建实例
 	CreateInstance(ctx context.Context, req *CreateInstanceRequest, opts ...http.CallOption) (rsp *CreateInstanceResponse, err error)
+	// CreateInstanceFile 创建实例目录内文件/文件夹
+	CreateInstanceFile(ctx context.Context, req *CreateInstanceFileRequest, opts ...http.CallOption) (rsp *CreateInstanceFileResponse, err error)
 	// CreateInstanceType 创建实例类型
 	CreateInstanceType(ctx context.Context, req *CreateInstanceTypeRequest, opts ...http.CallOption) (rsp *CreateInstanceTypeResponse, err error)
 	// DelInstance 删除实例
@@ -489,6 +718,8 @@ type InstanceManagerHTTPClient interface {
 	DelInstanceLog(ctx context.Context, req *DelInstanceLogRequest, opts ...http.CallOption) (rsp *DelInstanceLogResponse, err error)
 	// DelInstanceType 删除实例类型
 	DelInstanceType(ctx context.Context, req *DelInstanceTypeRequest, opts ...http.CallOption) (rsp *DelInstanceTypeResponse, err error)
+	// GetInstanceFileList 获取实例目录文件列表
+	GetInstanceFileList(ctx context.Context, req *GetInstanceFileListRequest, opts ...http.CallOption) (rsp *GetInstanceFileListResponse, err error)
 	// GetInstanceInfo 获取实例详情
 	GetInstanceInfo(ctx context.Context, req *GetInstanceInfoRequest, opts ...http.CallOption) (rsp *GetInstanceInfoResponse, err error)
 	// GetInstanceTypes 实例类型管理
@@ -500,6 +731,12 @@ type InstanceManagerHTTPClient interface {
 	// GetTerminalInfo 终端管理
 	// 获取终端详情
 	GetTerminalInfo(ctx context.Context, req *GetTerminalInfoRequest, opts ...http.CallOption) (rsp *GetTerminalInfoResponse, err error)
+	// InstanceFilePreSign 实例目录内文件下载预签名
+	InstanceFilePreSign(ctx context.Context, req *InstanceFilePreSignRequest, opts ...http.CallOption) (rsp *InstanceFilePreSignResponse, err error)
+	// InstanceFilePreSignUpload 实例目录内文件上传预签名
+	InstanceFilePreSignUpload(ctx context.Context, req *InstanceFilePreSignUploadRequest, opts ...http.CallOption) (rsp *InstanceFilePreSignUploadResponse, err error)
+	// OpenInstanceFile 打开实例目录内文件
+	OpenInstanceFile(ctx context.Context, req *OpenInstanceFileRequest, opts ...http.CallOption) (rsp *OpenInstanceFileResponse, err error)
 	// RestartInstance 重启实例
 	RestartInstance(ctx context.Context, req *RestartInstanceRequest, opts ...http.CallOption) (rsp *RestartInstanceResponse, err error)
 	// RestartTerminal 重启终端
@@ -512,6 +749,8 @@ type InstanceManagerHTTPClient interface {
 	StopInstance(ctx context.Context, req *StopInstanceRequest, opts ...http.CallOption) (rsp *StopInstanceResponse, err error)
 	// StopTerminal 停止终端
 	StopTerminal(ctx context.Context, req *StopTerminalRequest, opts ...http.CallOption) (rsp *StopTerminalResponse, err error)
+	// UnzipInstanceFile 解压实例目录内压缩包
+	UnzipInstanceFile(ctx context.Context, req *UnzipInstanceFileRequest, opts ...http.CallOption) (rsp *UnzipInstanceFileResponse, err error)
 	// UpdateInstance 更新实例
 	UpdateInstance(ctx context.Context, req *UpdateInstanceRequest, opts ...http.CallOption) (rsp *UpdateInstanceResponse, err error)
 	// UpdateInstanceType 更新实例类型
@@ -526,12 +765,54 @@ func NewInstanceManagerHTTPClient(client *http.Client) InstanceManagerHTTPClient
 	return &InstanceManagerHTTPClientImpl{client}
 }
 
+// BatchCompressInstanceFile 压缩实例目录内文件/文件夹
+func (c *InstanceManagerHTTPClientImpl) BatchCompressInstanceFile(ctx context.Context, in *BatchCompressInstanceFileRequest, opts ...http.CallOption) (*BatchCompressInstanceFileResponse, error) {
+	var out BatchCompressInstanceFileResponse
+	pattern := "/api/v1/instance/file/compress/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerBatchCompressInstanceFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// BatchDeleteInstanceFile 批量删除实例目录内文件/文件夹
+func (c *InstanceManagerHTTPClientImpl) BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...http.CallOption) (*BatchDeleteInstanceFileResponse, error) {
+	var out BatchDeleteInstanceFileResponse
+	pattern := "/api/v1/instance/file/deletes/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerBatchDeleteInstanceFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CreateInstance 创建实例
 func (c *InstanceManagerHTTPClientImpl) CreateInstance(ctx context.Context, in *CreateInstanceRequest, opts ...http.CallOption) (*CreateInstanceResponse, error) {
 	var out CreateInstanceResponse
 	pattern := "/api/v1/instance"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationInstanceManagerCreateInstance))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreateInstanceFile 创建实例目录内文件/文件夹
+func (c *InstanceManagerHTTPClientImpl) CreateInstanceFile(ctx context.Context, in *CreateInstanceFileRequest, opts ...http.CallOption) (*CreateInstanceFileResponse, error) {
+	var out CreateInstanceFileResponse
+	pattern := "/api/v1/instance/file/create/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerCreateInstanceFile))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -596,6 +877,20 @@ func (c *InstanceManagerHTTPClientImpl) DelInstanceType(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetInstanceFileList 获取实例目录文件列表
+func (c *InstanceManagerHTTPClientImpl) GetInstanceFileList(ctx context.Context, in *GetInstanceFileListRequest, opts ...http.CallOption) (*GetInstanceFileListResponse, error) {
+	var out GetInstanceFileListResponse
+	pattern := "/api/v1/instance/file/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationInstanceManagerGetInstanceFileList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetInstanceInfo 获取实例详情
 func (c *InstanceManagerHTTPClientImpl) GetInstanceInfo(ctx context.Context, in *GetInstanceInfoRequest, opts ...http.CallOption) (*GetInstanceInfoResponse, error) {
 	var out GetInstanceInfoResponse
@@ -649,6 +944,48 @@ func (c *InstanceManagerHTTPClientImpl) GetTerminalInfo(ctx context.Context, in 
 	opts = append(opts, http.Operation(OperationInstanceManagerGetTerminalInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// InstanceFilePreSign 实例目录内文件下载预签名
+func (c *InstanceManagerHTTPClientImpl) InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...http.CallOption) (*InstanceFilePreSignResponse, error) {
+	var out InstanceFilePreSignResponse
+	pattern := "/api/v1/instance/file/pre-sign/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationInstanceManagerInstanceFilePreSign))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// InstanceFilePreSignUpload 实例目录内文件上传预签名
+func (c *InstanceManagerHTTPClientImpl) InstanceFilePreSignUpload(ctx context.Context, in *InstanceFilePreSignUploadRequest, opts ...http.CallOption) (*InstanceFilePreSignUploadResponse, error) {
+	var out InstanceFilePreSignUploadResponse
+	pattern := "/api/v1/instance/file/upload/pre-sign/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationInstanceManagerInstanceFilePreSignUpload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// OpenInstanceFile 打开实例目录内文件
+func (c *InstanceManagerHTTPClientImpl) OpenInstanceFile(ctx context.Context, in *OpenInstanceFileRequest, opts ...http.CallOption) (*OpenInstanceFileResponse, error) {
+	var out OpenInstanceFileResponse
+	pattern := "/api/v1/instance/file/open/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerOpenInstanceFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -731,6 +1068,20 @@ func (c *InstanceManagerHTTPClientImpl) StopTerminal(ctx context.Context, in *St
 	pattern := "/api/v1/instance/terminal/stop"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationInstanceManagerStopTerminal))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UnzipInstanceFile 解压实例目录内压缩包
+func (c *InstanceManagerHTTPClientImpl) UnzipInstanceFile(ctx context.Context, in *UnzipInstanceFileRequest, opts ...http.CallOption) (*UnzipInstanceFileResponse, error) {
+	var out UnzipInstanceFileResponse
+	pattern := "/api/v1/instance/file/unzip/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerUnzipInstanceFile))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

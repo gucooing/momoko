@@ -19,23 +19,31 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InstanceManager_GetInstanceTypes_FullMethodName   = "/v1.InstanceManager/GetInstanceTypes"
-	InstanceManager_CreateInstanceType_FullMethodName = "/v1.InstanceManager/CreateInstanceType"
-	InstanceManager_UpdateInstanceType_FullMethodName = "/v1.InstanceManager/UpdateInstanceType"
-	InstanceManager_DelInstanceType_FullMethodName    = "/v1.InstanceManager/DelInstanceType"
-	InstanceManager_GetTerminalInfo_FullMethodName    = "/v1.InstanceManager/GetTerminalInfo"
-	InstanceManager_StartTerminal_FullMethodName      = "/v1.InstanceManager/StartTerminal"
-	InstanceManager_StopTerminal_FullMethodName       = "/v1.InstanceManager/StopTerminal"
-	InstanceManager_RestartTerminal_FullMethodName    = "/v1.InstanceManager/RestartTerminal"
-	InstanceManager_GetInstances_FullMethodName       = "/v1.InstanceManager/GetInstances"
-	InstanceManager_CreateInstance_FullMethodName     = "/v1.InstanceManager/CreateInstance"
-	InstanceManager_GetInstanceInfo_FullMethodName    = "/v1.InstanceManager/GetInstanceInfo"
-	InstanceManager_StartInstance_FullMethodName      = "/v1.InstanceManager/StartInstance"
-	InstanceManager_StopInstance_FullMethodName       = "/v1.InstanceManager/StopInstance"
-	InstanceManager_RestartInstance_FullMethodName    = "/v1.InstanceManager/RestartInstance"
-	InstanceManager_DelInstance_FullMethodName        = "/v1.InstanceManager/DelInstance"
-	InstanceManager_UpdateInstance_FullMethodName     = "/v1.InstanceManager/UpdateInstance"
-	InstanceManager_DelInstanceLog_FullMethodName     = "/v1.InstanceManager/DelInstanceLog"
+	InstanceManager_GetInstanceTypes_FullMethodName          = "/v1.InstanceManager/GetInstanceTypes"
+	InstanceManager_CreateInstanceType_FullMethodName        = "/v1.InstanceManager/CreateInstanceType"
+	InstanceManager_UpdateInstanceType_FullMethodName        = "/v1.InstanceManager/UpdateInstanceType"
+	InstanceManager_DelInstanceType_FullMethodName           = "/v1.InstanceManager/DelInstanceType"
+	InstanceManager_GetTerminalInfo_FullMethodName           = "/v1.InstanceManager/GetTerminalInfo"
+	InstanceManager_StartTerminal_FullMethodName             = "/v1.InstanceManager/StartTerminal"
+	InstanceManager_StopTerminal_FullMethodName              = "/v1.InstanceManager/StopTerminal"
+	InstanceManager_RestartTerminal_FullMethodName           = "/v1.InstanceManager/RestartTerminal"
+	InstanceManager_GetInstances_FullMethodName              = "/v1.InstanceManager/GetInstances"
+	InstanceManager_CreateInstance_FullMethodName            = "/v1.InstanceManager/CreateInstance"
+	InstanceManager_GetInstanceInfo_FullMethodName           = "/v1.InstanceManager/GetInstanceInfo"
+	InstanceManager_StartInstance_FullMethodName             = "/v1.InstanceManager/StartInstance"
+	InstanceManager_StopInstance_FullMethodName              = "/v1.InstanceManager/StopInstance"
+	InstanceManager_RestartInstance_FullMethodName           = "/v1.InstanceManager/RestartInstance"
+	InstanceManager_DelInstance_FullMethodName               = "/v1.InstanceManager/DelInstance"
+	InstanceManager_UpdateInstance_FullMethodName            = "/v1.InstanceManager/UpdateInstance"
+	InstanceManager_DelInstanceLog_FullMethodName            = "/v1.InstanceManager/DelInstanceLog"
+	InstanceManager_GetInstanceFileList_FullMethodName       = "/v1.InstanceManager/GetInstanceFileList"
+	InstanceManager_CreateInstanceFile_FullMethodName        = "/v1.InstanceManager/CreateInstanceFile"
+	InstanceManager_BatchDeleteInstanceFile_FullMethodName   = "/v1.InstanceManager/BatchDeleteInstanceFile"
+	InstanceManager_BatchCompressInstanceFile_FullMethodName = "/v1.InstanceManager/BatchCompressInstanceFile"
+	InstanceManager_UnzipInstanceFile_FullMethodName         = "/v1.InstanceManager/UnzipInstanceFile"
+	InstanceManager_OpenInstanceFile_FullMethodName          = "/v1.InstanceManager/OpenInstanceFile"
+	InstanceManager_InstanceFilePreSign_FullMethodName       = "/v1.InstanceManager/InstanceFilePreSign"
+	InstanceManager_InstanceFilePreSignUpload_FullMethodName = "/v1.InstanceManager/InstanceFilePreSignUpload"
 )
 
 // InstanceManagerClient is the client API for InstanceManager service.
@@ -81,6 +89,22 @@ type InstanceManagerClient interface {
 	UpdateInstance(ctx context.Context, in *UpdateInstanceRequest, opts ...grpc.CallOption) (*UpdateInstanceResponse, error)
 	// 清空终端日志
 	DelInstanceLog(ctx context.Context, in *DelInstanceLogRequest, opts ...grpc.CallOption) (*DelInstanceLogResponse, error)
+	// 获取实例目录文件列表
+	GetInstanceFileList(ctx context.Context, in *GetInstanceFileListRequest, opts ...grpc.CallOption) (*GetInstanceFileListResponse, error)
+	// 创建实例目录内文件/文件夹
+	CreateInstanceFile(ctx context.Context, in *CreateInstanceFileRequest, opts ...grpc.CallOption) (*CreateInstanceFileResponse, error)
+	// 批量删除实例目录内文件/文件夹
+	BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error)
+	// 压缩实例目录内文件/文件夹
+	BatchCompressInstanceFile(ctx context.Context, in *BatchCompressInstanceFileRequest, opts ...grpc.CallOption) (*BatchCompressInstanceFileResponse, error)
+	// 解压实例目录内压缩包
+	UnzipInstanceFile(ctx context.Context, in *UnzipInstanceFileRequest, opts ...grpc.CallOption) (*UnzipInstanceFileResponse, error)
+	// 打开实例目录内文件
+	OpenInstanceFile(ctx context.Context, in *OpenInstanceFileRequest, opts ...grpc.CallOption) (*OpenInstanceFileResponse, error)
+	// 实例目录内文件下载预签名
+	InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...grpc.CallOption) (*InstanceFilePreSignResponse, error)
+	// 实例目录内文件上传预签名
+	InstanceFilePreSignUpload(ctx context.Context, in *InstanceFilePreSignUploadRequest, opts ...grpc.CallOption) (*InstanceFilePreSignUploadResponse, error)
 }
 
 type instanceManagerClient struct {
@@ -261,6 +285,86 @@ func (c *instanceManagerClient) DelInstanceLog(ctx context.Context, in *DelInsta
 	return out, nil
 }
 
+func (c *instanceManagerClient) GetInstanceFileList(ctx context.Context, in *GetInstanceFileListRequest, opts ...grpc.CallOption) (*GetInstanceFileListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInstanceFileListResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_GetInstanceFileList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) CreateInstanceFile(ctx context.Context, in *CreateInstanceFileRequest, opts ...grpc.CallOption) (*CreateInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_CreateInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchDeleteInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_BatchDeleteInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) BatchCompressInstanceFile(ctx context.Context, in *BatchCompressInstanceFileRequest, opts ...grpc.CallOption) (*BatchCompressInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCompressInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_BatchCompressInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) UnzipInstanceFile(ctx context.Context, in *UnzipInstanceFileRequest, opts ...grpc.CallOption) (*UnzipInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnzipInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_UnzipInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) OpenInstanceFile(ctx context.Context, in *OpenInstanceFileRequest, opts ...grpc.CallOption) (*OpenInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OpenInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_OpenInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...grpc.CallOption) (*InstanceFilePreSignResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstanceFilePreSignResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_InstanceFilePreSign_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) InstanceFilePreSignUpload(ctx context.Context, in *InstanceFilePreSignUploadRequest, opts ...grpc.CallOption) (*InstanceFilePreSignUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstanceFilePreSignUploadResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_InstanceFilePreSignUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InstanceManagerServer is the server API for InstanceManager service.
 // All implementations must embed UnimplementedInstanceManagerServer
 // for forward compatibility.
@@ -304,6 +408,22 @@ type InstanceManagerServer interface {
 	UpdateInstance(context.Context, *UpdateInstanceRequest) (*UpdateInstanceResponse, error)
 	// 清空终端日志
 	DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error)
+	// 获取实例目录文件列表
+	GetInstanceFileList(context.Context, *GetInstanceFileListRequest) (*GetInstanceFileListResponse, error)
+	// 创建实例目录内文件/文件夹
+	CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
+	// 批量删除实例目录内文件/文件夹
+	BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
+	// 压缩实例目录内文件/文件夹
+	BatchCompressInstanceFile(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error)
+	// 解压实例目录内压缩包
+	UnzipInstanceFile(context.Context, *UnzipInstanceFileRequest) (*UnzipInstanceFileResponse, error)
+	// 打开实例目录内文件
+	OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error)
+	// 实例目录内文件下载预签名
+	InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error)
+	// 实例目录内文件上传预签名
+	InstanceFilePreSignUpload(context.Context, *InstanceFilePreSignUploadRequest) (*InstanceFilePreSignUploadResponse, error)
 	mustEmbedUnimplementedInstanceManagerServer()
 }
 
@@ -364,6 +484,30 @@ func (UnimplementedInstanceManagerServer) UpdateInstance(context.Context, *Updat
 }
 func (UnimplementedInstanceManagerServer) DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelInstanceLog not implemented")
+}
+func (UnimplementedInstanceManagerServer) GetInstanceFileList(context.Context, *GetInstanceFileListRequest) (*GetInstanceFileListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInstanceFileList not implemented")
+}
+func (UnimplementedInstanceManagerServer) CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchDeleteInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) BatchCompressInstanceFile(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCompressInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) UnzipInstanceFile(context.Context, *UnzipInstanceFileRequest) (*UnzipInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnzipInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method OpenInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InstanceFilePreSign not implemented")
+}
+func (UnimplementedInstanceManagerServer) InstanceFilePreSignUpload(context.Context, *InstanceFilePreSignUploadRequest) (*InstanceFilePreSignUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InstanceFilePreSignUpload not implemented")
 }
 func (UnimplementedInstanceManagerServer) mustEmbedUnimplementedInstanceManagerServer() {}
 func (UnimplementedInstanceManagerServer) testEmbeddedByValue()                         {}
@@ -692,6 +836,150 @@ func _InstanceManager_DelInstanceLog_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceManager_GetInstanceFileList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInstanceFileListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).GetInstanceFileList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_GetInstanceFileList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).GetInstanceFileList(ctx, req.(*GetInstanceFileListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_CreateInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).CreateInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_CreateInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).CreateInstanceFile(ctx, req.(*CreateInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_BatchDeleteInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDeleteInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).BatchDeleteInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_BatchDeleteInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).BatchDeleteInstanceFile(ctx, req.(*BatchDeleteInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_BatchCompressInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCompressInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).BatchCompressInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_BatchCompressInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).BatchCompressInstanceFile(ctx, req.(*BatchCompressInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_UnzipInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnzipInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).UnzipInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_UnzipInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).UnzipInstanceFile(ctx, req.(*UnzipInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_OpenInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OpenInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).OpenInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_OpenInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).OpenInstanceFile(ctx, req.(*OpenInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_InstanceFilePreSign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InstanceFilePreSignRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).InstanceFilePreSign(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_InstanceFilePreSign_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).InstanceFilePreSign(ctx, req.(*InstanceFilePreSignRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_InstanceFilePreSignUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InstanceFilePreSignUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).InstanceFilePreSignUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_InstanceFilePreSignUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).InstanceFilePreSignUpload(ctx, req.(*InstanceFilePreSignUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InstanceManager_ServiceDesc is the grpc.ServiceDesc for InstanceManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -766,6 +1054,38 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelInstanceLog",
 			Handler:    _InstanceManager_DelInstanceLog_Handler,
+		},
+		{
+			MethodName: "GetInstanceFileList",
+			Handler:    _InstanceManager_GetInstanceFileList_Handler,
+		},
+		{
+			MethodName: "CreateInstanceFile",
+			Handler:    _InstanceManager_CreateInstanceFile_Handler,
+		},
+		{
+			MethodName: "BatchDeleteInstanceFile",
+			Handler:    _InstanceManager_BatchDeleteInstanceFile_Handler,
+		},
+		{
+			MethodName: "BatchCompressInstanceFile",
+			Handler:    _InstanceManager_BatchCompressInstanceFile_Handler,
+		},
+		{
+			MethodName: "UnzipInstanceFile",
+			Handler:    _InstanceManager_UnzipInstanceFile_Handler,
+		},
+		{
+			MethodName: "OpenInstanceFile",
+			Handler:    _InstanceManager_OpenInstanceFile_Handler,
+		},
+		{
+			MethodName: "InstanceFilePreSign",
+			Handler:    _InstanceManager_InstanceFilePreSign_Handler,
+		},
+		{
+			MethodName: "InstanceFilePreSignUpload",
+			Handler:    _InstanceManager_InstanceFilePreSignUpload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

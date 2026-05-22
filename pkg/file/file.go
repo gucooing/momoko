@@ -63,7 +63,14 @@ func (f *FileOper) ResolveRealPath(targetPath string) (string, error) {
 		}
 		return targetAbs, nil
 	}
-	targetAbs, err := filepath.Abs(targetPath)
+	var candidate string
+	if filepath.IsAbs(targetPath) {
+		candidate = targetPath
+	} else {
+		candidate = filepath.Join(f.basePath, targetPath)
+	}
+
+	targetAbs, err := filepath.Abs(candidate)
 	if err != nil {
 		return "", errors.New("路径不存在")
 	}
@@ -216,9 +223,19 @@ func (f *FileOper) DirInfo(dir string) (*v1.FileDirectoryInfo, error) {
 		fileCount++
 	}
 
+	if f.basePath != SystemPath {
+		path, err = filepath.Rel(f.basePath, path)
+		if err != nil {
+			return nil, errors.New("获取相对路径失败")
+		}
+		if path != "." && !strings.HasPrefix(path, "..") {
+			path = "." + string(filepath.Separator) + path
+		}
+	}
+
 	return &v1.FileDirectoryInfo{
 		Name:       filepath.Base(path),
-		Path:       dir,
+		Path:       path,
 		ParentPath: path,
 		DirCount:   dirCount,
 		FileCount:  fileCount,

@@ -14,12 +14,14 @@ import (
 type InstanceService struct {
 	v1.UnimplementedInstanceManagerServer
 
-	uc *biz.InstanceUsecase
+	uc     *biz.InstanceUsecase
+	fileUC *biz.InstanceFileUsecase
 }
 
-func NewInstanceService(uc *biz.InstanceUsecase) *InstanceService {
+func NewInstanceService(uc *biz.InstanceUsecase, fileUC *biz.InstanceFileUsecase) *InstanceService {
 	return &InstanceService{
-		uc: uc,
+		uc:     uc,
+		fileUC: fileUC,
 	}
 }
 
@@ -206,6 +208,74 @@ func (i *InstanceService) DelInstanceLog(ctx context.Context, req *v1.DelInstanc
 		return nil, err
 	}
 	return &v1.DelInstanceLogResponse{}, nil
+}
+
+func (i *InstanceService) GetInstanceFileList(ctx context.Context, req *v1.GetInstanceFileListRequest) (*v1.GetInstanceFileListResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.GetFileList(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) CreateInstanceFile(ctx context.Context, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.CreateFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) BatchDeleteInstanceFile(ctx context.Context, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.BatchDeleteFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) BatchCompressInstanceFile(ctx context.Context, req *v1.BatchCompressInstanceFileRequest) (*v1.BatchCompressInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.BatchCompressFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) UnzipInstanceFile(ctx context.Context, req *v1.UnzipInstanceFileRequest) (*v1.UnzipInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.UnzipFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) OpenInstanceFile(ctx context.Context, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.OpenFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) InstanceFilePreSign(ctx context.Context, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.fileUC.FilePreSign(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) InstanceFilePreSignUpload(ctx context.Context, req *v1.InstanceFilePreSignUploadRequest) (*v1.InstanceFilePreSignUploadResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	item, err := i.fileUC.FilePreSignUpload(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.InstanceFilePreSignUploadResponse{Info: item}, nil
 }
 
 // RunTerminalWsConn 启动终端连接

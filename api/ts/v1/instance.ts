@@ -5,6 +5,14 @@
 // source: v1/instance.proto
 
 /* eslint-disable */
+import type {
+  FileCreateItem,
+  FileDirectoryInfo,
+  FileEntryInfo,
+  FileOperationResult,
+  FileSortField,
+  UploadInfo,
+} from "./file";
 
 export const protobufPackage = "v1";
 
@@ -335,4 +343,152 @@ export interface InstanceInfo {
   autoStart: boolean;
   /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
   env: string[];
+}
+
+/** 获取实例文件列表请求 */
+export interface GetInstanceFileListRequest {
+  /** 实例id */
+  id: string;
+  /** 实例目录内相对路径；空值表示实例根目录 */
+  path: string;
+  /** 页码 */
+  page: number;
+  /** 每页数量 */
+  pageSize: number;
+  /** 搜索关键字 */
+  keywords?:
+    | string
+    | undefined;
+  /** 搜索时是否包含子目录 */
+  includeSubDir?:
+    | boolean
+    | undefined;
+  /** 排序字段 */
+  sortField: FileSortField;
+  /** 排序是否倒序 */
+  isDesc: boolean;
+}
+
+/** 获取实例文件列表响应 */
+export interface GetInstanceFileListResponse {
+  /** 当前目录信息 */
+  directory:
+    | FileDirectoryInfo
+    | undefined;
+  /** 文件列表 */
+  items: FileEntryInfo[];
+  /** 当前页码 */
+  page: number;
+  /** 每页数量 */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+}
+
+/** 创建实例文件请求 */
+export interface CreateInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 创建信息；path 为实例目录内相对路径 */
+  info: FileCreateItem | undefined;
+}
+
+/** 创建实例文件响应 */
+export interface CreateInstanceFileResponse {
+}
+
+/** 批量删除实例文件请求 */
+export interface BatchDeleteInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 实例目录内相对路径列表 */
+  paths: string[];
+}
+
+/** 批量删除实例文件响应 */
+export interface BatchDeleteInstanceFileResponse {
+  /** 删除结果列表 */
+  items: FileOperationResult[];
+}
+
+/** 压缩实例文件请求 */
+export interface BatchCompressInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 实例目录内相对路径列表 */
+  paths: string[];
+  /** 目标压缩文件相对路径，不传时由服务端自动生成 */
+  targetPath?: string | undefined;
+}
+
+/** 压缩实例文件响应 */
+export interface BatchCompressInstanceFileResponse {
+  /** 实际生成的相对路径 */
+  outputPath: string;
+}
+
+/** 解压实例文件请求 */
+export interface UnzipInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 压缩文件相对路径 */
+  path: string;
+  /** 解压目标目录相对路径，不传时由服务端自动生成 */
+  targetPath?: string | undefined;
+}
+
+/** 解压实例文件响应 */
+export interface UnzipInstanceFileResponse {
+  /** 实际生成的相对路径 */
+  outputPath: string;
+}
+
+/** 打开实例文件请求 */
+export interface OpenInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 文件相对路径 */
+  path: string;
+}
+
+/** 打开实例文件响应 */
+export interface OpenInstanceFileResponse {
+  /** 文件内容 */
+  info: Uint8Array;
+}
+
+/** 实例文件下载预签名请求 */
+export interface InstanceFilePreSignRequest {
+  /** 实例id */
+  id: string;
+  /** 文件相对路径 */
+  path: string;
+}
+
+/** 实例文件下载预签名响应 */
+export interface InstanceFilePreSignResponse {
+  /** 下载路径 */
+  downloadUrlPath: string;
+}
+
+/** 实例文件上传预签名请求 */
+export interface InstanceFilePreSignUploadRequest {
+  /** 实例id */
+  id: string;
+  /** 上传目录相对路径 */
+  path: string;
+  /** 文件名称 */
+  fileName: string;
+  /** 文件总大小（字节） */
+  fileSize: number;
+  /** 快速hash */
+  hash: string;
+  /** 分片大小（字节），不传时由服务端自动决定 */
+  partSize?: number | undefined;
+}
+
+/** 实例文件上传预签名响应 */
+export interface InstanceFilePreSignUploadResponse {
+  /** 上传信息 */
+  info: UploadInfo | undefined;
 }
