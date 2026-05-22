@@ -276,7 +276,7 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 			Where(
 				fileupload.IDEQ(uploadID),
 				fileupload.UserIDEQ(userID),
-			).Only(ctx)
+			).WithChunks().Only(ctx)
 		if err != nil {
 			return err
 		}
@@ -285,11 +285,11 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 		if err != nil {
 			return err
 		}
-		info.Completed = true
 		err = info.Complete()
 		if err != nil {
 			return err
 		}
+		info.Completed = true
 
 		return nil
 	})
