@@ -11,6 +11,7 @@ import type {
   FileEntryInfo,
   FileOperationResult,
   FileSortField,
+  FileTaskInfo,
   UploadInfo,
 } from "./file";
 
@@ -411,6 +412,38 @@ export interface RenameInstanceFileRequest {
 export interface RenameInstanceFileResponse {
   /** 重命名后的路径 */
   path: string;
+}
+
+/** 复制实例文件请求 */
+export interface CopyInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 实例目录内相对路径列表 */
+  paths: string[];
+  /** 目标目录相对路径 */
+  targetPath: string;
+}
+
+/** 复制实例文件响应 */
+export interface CopyInstanceFileResponse {
+  /** 异步任务信息 */
+  task: FileTaskInfo | undefined;
+}
+
+/** 剪贴实例文件请求 */
+export interface CutInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 实例目录内相对路径列表 */
+  paths: string[];
+  /** 目标目录相对路径 */
+  targetPath: string;
+}
+
+/** 剪贴实例文件响应 */
+export interface CutInstanceFileResponse {
+  /** 异步任务信息 */
+  task: FileTaskInfo | undefined;
 }
 
 /** 批量删除实例文件请求 */

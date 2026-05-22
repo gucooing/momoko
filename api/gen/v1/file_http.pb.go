@@ -23,10 +23,13 @@ const OperationFileManagerBatchCompressFileSystem = "/v1.FileManager/BatchCompre
 const OperationFileManagerBatchDeleteFileSystem = "/v1.FileManager/BatchDeleteFileSystem"
 const OperationFileManagerCancelFileUpload = "/v1.FileManager/CancelFileUpload"
 const OperationFileManagerCompleteFileUpload = "/v1.FileManager/CompleteFileUpload"
+const OperationFileManagerCopyFileSystem = "/v1.FileManager/CopyFileSystem"
 const OperationFileManagerCreateFileSystem = "/v1.FileManager/CreateFileSystem"
+const OperationFileManagerCutFileSystem = "/v1.FileManager/CutFileSystem"
 const OperationFileManagerFileSystemPreSign = "/v1.FileManager/FileSystemPreSign"
 const OperationFileManagerFileSystemPreSignUpload = "/v1.FileManager/FileSystemPreSignUpload"
 const OperationFileManagerGetFileSystemList = "/v1.FileManager/GetFileSystemList"
+const OperationFileManagerGetFileTask = "/v1.FileManager/GetFileTask"
 const OperationFileManagerGetFileUploadStatus = "/v1.FileManager/GetFileUploadStatus"
 const OperationFileManagerOpenFileSystemFile = "/v1.FileManager/OpenFileSystemFile"
 const OperationFileManagerRenameFileSystem = "/v1.FileManager/RenameFileSystem"
@@ -41,14 +44,20 @@ type FileManagerHTTPServer interface {
 	CancelFileUpload(context.Context, *CancelFileUploadRequest) (*CancelFileUploadResponse, error)
 	// CompleteFileUpload 上传完成合并分片
 	CompleteFileUpload(context.Context, *CompleteFileUploadRequest) (*CompleteFileUploadResponse, error)
+	// CopyFileSystem 复制指定文件/文件夹(系统级)
+	CopyFileSystem(context.Context, *CopyFileSystemRequest) (*CopyFileSystemResponse, error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
+	// CutFileSystem 剪贴指定文件/文件夹(系统级)
+	CutFileSystem(context.Context, *CutFileSystemRequest) (*CutFileSystemResponse, error)
 	// FileSystemPreSign 文件下载预签名(系统级)
 	FileSystemPreSign(context.Context, *FileSystemPreSignRequest) (*FileSystemPreSignResponse, error)
 	// FileSystemPreSignUpload 文件上传预签名(系统级)
 	FileSystemPreSignUpload(context.Context, *FileSystemPreSignUploadRequest) (*FileSystemPreSignUploadResponse, error)
 	// GetFileSystemList 获取整个系统指定路径的文件
 	GetFileSystemList(context.Context, *GetFileSystemListRequest) (*GetFileSystemListResponse, error)
+	// GetFileTask 获取文件任务状态
+	GetFileTask(context.Context, *GetFileTaskRequest) (*GetFileTaskResponse, error)
 	// GetFileUploadStatus 获取上传状态
 	GetFileUploadStatus(context.Context, *GetFileUploadStatusRequest) (*GetFileUploadStatusResponse, error)
 	// OpenFileSystemFile 打开指定文件(系统级)
@@ -65,6 +74,9 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.POST("/api/v1/file/system/deletes", _FileManager_BatchDeleteFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/create", _FileManager_CreateFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/rename", _FileManager_RenameFileSystem0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/system/copy", _FileManager_CopyFileSystem0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/system/cut", _FileManager_CutFileSystem0_HTTP_Handler(srv))
+	r.GET("/api/v1/file/task/{task_id}", _FileManager_GetFileTask0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/compress", _FileManager_BatchCompressFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/unzip", _FileManager_UnzipFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/open/file", _FileManager_OpenFileSystemFile0_HTTP_Handler(srv))
@@ -156,6 +168,72 @@ func _FileManager_RenameFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func
 			return err
 		}
 		reply := out.(*RenameFileSystemResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_CopyFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CopyFileSystemRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerCopyFileSystem)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CopyFileSystem(ctx, req.(*CopyFileSystemRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CopyFileSystemResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_CutFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CutFileSystemRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerCutFileSystem)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CutFileSystem(ctx, req.(*CutFileSystemRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CutFileSystemResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_GetFileTask0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetFileTaskRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerGetFileTask)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetFileTask(ctx, req.(*GetFileTaskRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetFileTaskResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -336,14 +414,20 @@ type FileManagerHTTPClient interface {
 	CancelFileUpload(ctx context.Context, req *CancelFileUploadRequest, opts ...http.CallOption) (rsp *CancelFileUploadResponse, err error)
 	// CompleteFileUpload 上传完成合并分片
 	CompleteFileUpload(ctx context.Context, req *CompleteFileUploadRequest, opts ...http.CallOption) (rsp *CompleteFileUploadResponse, err error)
+	// CopyFileSystem 复制指定文件/文件夹(系统级)
+	CopyFileSystem(ctx context.Context, req *CopyFileSystemRequest, opts ...http.CallOption) (rsp *CopyFileSystemResponse, err error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(ctx context.Context, req *CreateFileSystemRequest, opts ...http.CallOption) (rsp *CreateFileSystemResponse, err error)
+	// CutFileSystem 剪贴指定文件/文件夹(系统级)
+	CutFileSystem(ctx context.Context, req *CutFileSystemRequest, opts ...http.CallOption) (rsp *CutFileSystemResponse, err error)
 	// FileSystemPreSign 文件下载预签名(系统级)
 	FileSystemPreSign(ctx context.Context, req *FileSystemPreSignRequest, opts ...http.CallOption) (rsp *FileSystemPreSignResponse, err error)
 	// FileSystemPreSignUpload 文件上传预签名(系统级)
 	FileSystemPreSignUpload(ctx context.Context, req *FileSystemPreSignUploadRequest, opts ...http.CallOption) (rsp *FileSystemPreSignUploadResponse, err error)
 	// GetFileSystemList 获取整个系统指定路径的文件
 	GetFileSystemList(ctx context.Context, req *GetFileSystemListRequest, opts ...http.CallOption) (rsp *GetFileSystemListResponse, err error)
+	// GetFileTask 获取文件任务状态
+	GetFileTask(ctx context.Context, req *GetFileTaskRequest, opts ...http.CallOption) (rsp *GetFileTaskResponse, err error)
 	// GetFileUploadStatus 获取上传状态
 	GetFileUploadStatus(ctx context.Context, req *GetFileUploadStatusRequest, opts ...http.CallOption) (rsp *GetFileUploadStatusResponse, err error)
 	// OpenFileSystemFile 打开指定文件(系统级)
@@ -418,12 +502,40 @@ func (c *FileManagerHTTPClientImpl) CompleteFileUpload(ctx context.Context, in *
 	return &out, nil
 }
 
+// CopyFileSystem 复制指定文件/文件夹(系统级)
+func (c *FileManagerHTTPClientImpl) CopyFileSystem(ctx context.Context, in *CopyFileSystemRequest, opts ...http.CallOption) (*CopyFileSystemResponse, error) {
+	var out CopyFileSystemResponse
+	pattern := "/api/v1/file/system/copy"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerCopyFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CreateFileSystem 创建指定文件/文件夹(系统级)
 func (c *FileManagerHTTPClientImpl) CreateFileSystem(ctx context.Context, in *CreateFileSystemRequest, opts ...http.CallOption) (*CreateFileSystemResponse, error) {
 	var out CreateFileSystemResponse
 	pattern := "/api/v1/file/system/create"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerCreateFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CutFileSystem 剪贴指定文件/文件夹(系统级)
+func (c *FileManagerHTTPClientImpl) CutFileSystem(ctx context.Context, in *CutFileSystemRequest, opts ...http.CallOption) (*CutFileSystemResponse, error) {
+	var out CutFileSystemResponse
+	pattern := "/api/v1/file/system/cut"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerCutFileSystem))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -466,6 +578,20 @@ func (c *FileManagerHTTPClientImpl) GetFileSystemList(ctx context.Context, in *G
 	pattern := "/api/v1/file/system"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationFileManagerGetFileSystemList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetFileTask 获取文件任务状态
+func (c *FileManagerHTTPClientImpl) GetFileTask(ctx context.Context, in *GetFileTaskRequest, opts ...http.CallOption) (*GetFileTaskResponse, error) {
+	var out GetFileTaskResponse
+	pattern := "/api/v1/file/task/{task_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationFileManagerGetFileTask))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

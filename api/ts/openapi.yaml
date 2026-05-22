@@ -203,6 +203,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.BatchCompressFileSystemResponse'
+    /api/v1/file/system/copy:
+        post:
+            tags:
+                - FileManager
+            description: 复制指定文件/文件夹(系统级)
+            operationId: FileManager_CopyFileSystem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CopyFileSystemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CopyFileSystemResponse'
     /api/v1/file/system/create:
         post:
             tags:
@@ -222,6 +241,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateFileSystemResponse'
+    /api/v1/file/system/cut:
+        post:
+            tags:
+                - FileManager
+            description: 剪贴指定文件/文件夹(系统级)
+            operationId: FileManager_CutFileSystem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CutFileSystemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CutFileSystemResponse'
     /api/v1/file/system/deletes:
         post:
             tags:
@@ -356,6 +394,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UnzipFileSystemResponse'
+    /api/v1/file/task/{taskId}:
+        get:
+            tags:
+                - FileManager
+            description: 获取文件任务状态
+            operationId: FileManager_GetFileTask
+            parameters:
+                - name: taskId
+                  in: path
+                  description: 任务id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetFileTaskResponse'
     /api/v1/file/upload/cancel:
         post:
             tags:
@@ -499,6 +557,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.BatchCompressInstanceFileResponse'
+    /api/v1/instance/file/copy/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 复制实例目录内文件/文件夹
+            operationId: InstanceManager_CopyInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CopyInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CopyInstanceFileResponse'
     /api/v1/instance/file/create/{id}:
         post:
             tags:
@@ -525,6 +609,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateInstanceFileResponse'
+    /api/v1/instance/file/cut/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 剪贴实例目录内文件/文件夹
+            operationId: InstanceManager_CutInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CutInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CutInstanceFileResponse'
     /api/v1/instance/file/deletes/{id}:
         post:
             tags:
@@ -1950,6 +2060,49 @@ components:
             type: object
             properties: {}
             description: 上传完成合并分片响应
+        v1.CopyFileSystemRequest:
+            type: object
+            properties:
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 路径列表
+                targetPath:
+                    type: string
+                    description: 目标目录路径
+            description: 复制系统文件请求
+        v1.CopyFileSystemResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 异步任务信息
+            description: 复制系统文件响应
+        v1.CopyInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 实例目录内相对路径列表
+                targetPath:
+                    type: string
+                    description: 目标目录相对路径
+            description: 复制实例文件请求
+        v1.CopyInstanceFileResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 异步任务信息
+            description: 复制实例文件响应
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -2086,6 +2239,49 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.CutFileSystemRequest:
+            type: object
+            properties:
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 路径列表
+                targetPath:
+                    type: string
+                    description: 目标目录路径
+            description: 剪贴系统文件请求
+        v1.CutFileSystemResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 异步任务信息
+            description: 剪贴系统文件响应
+        v1.CutInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 实例目录内相对路径列表
+                targetPath:
+                    type: string
+                    description: 目标目录相对路径
+            description: 剪贴实例文件请求
+        v1.CutInstanceFileResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 异步任务信息
+            description: 剪贴实例文件响应
         v1.DelInstanceLogResponse:
             type: object
             properties: {}
@@ -2259,6 +2455,42 @@ components:
                         - $ref: '#/components/schemas/v1.UploadInfo'
                     description: 信息
             description: 文件上传预签名(系统级)响应
+        v1.FileTaskInfo:
+            type: object
+            properties:
+                taskId:
+                    type: string
+                    description: 任务id
+                operation:
+                    type: string
+                    description: 操作类型
+                status:
+                    type: integer
+                    description: 任务状态
+                    format: enum
+                total:
+                    type: string
+                    description: 总任务数
+                finished:
+                    type: string
+                    description: 已完成任务数
+                message:
+                    type: string
+                    description: 消息
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.FileOperationResult'
+                    description: 文件操作结果
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+            description: 文件异步任务信息
         v1.GetFileSystemListResponse:
             type: object
             properties:
@@ -2281,6 +2513,14 @@ components:
                     type: string
                     description: 总数
             description: 获取系统文件列表响应
+        v1.GetFileTaskResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 任务信息
+            description: 获取文件任务响应
         v1.GetFileUploadStatusResponse:
             type: object
             properties:

@@ -21,9 +21,11 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationInstanceManagerBatchCompressInstanceFile = "/v1.InstanceManager/BatchCompressInstanceFile"
 const OperationInstanceManagerBatchDeleteInstanceFile = "/v1.InstanceManager/BatchDeleteInstanceFile"
+const OperationInstanceManagerCopyInstanceFile = "/v1.InstanceManager/CopyInstanceFile"
 const OperationInstanceManagerCreateInstance = "/v1.InstanceManager/CreateInstance"
 const OperationInstanceManagerCreateInstanceFile = "/v1.InstanceManager/CreateInstanceFile"
 const OperationInstanceManagerCreateInstanceType = "/v1.InstanceManager/CreateInstanceType"
+const OperationInstanceManagerCutInstanceFile = "/v1.InstanceManager/CutInstanceFile"
 const OperationInstanceManagerDelInstance = "/v1.InstanceManager/DelInstance"
 const OperationInstanceManagerDelInstanceLog = "/v1.InstanceManager/DelInstanceLog"
 const OperationInstanceManagerDelInstanceType = "/v1.InstanceManager/DelInstanceType"
@@ -51,12 +53,16 @@ type InstanceManagerHTTPServer interface {
 	BatchCompressInstanceFile(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error)
 	// BatchDeleteInstanceFile 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
+	// CopyInstanceFile 复制实例目录内文件/文件夹
+	CopyInstanceFile(context.Context, *CopyInstanceFileRequest) (*CopyInstanceFileResponse, error)
 	// CreateInstance 创建实例
 	CreateInstance(context.Context, *CreateInstanceRequest) (*CreateInstanceResponse, error)
 	// CreateInstanceFile 创建实例目录内文件/文件夹
 	CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
 	// CreateInstanceType 创建实例类型
 	CreateInstanceType(context.Context, *CreateInstanceTypeRequest) (*CreateInstanceTypeResponse, error)
+	// CutInstanceFile 剪贴实例目录内文件/文件夹
+	CutInstanceFile(context.Context, *CutInstanceFileRequest) (*CutInstanceFileResponse, error)
 	// DelInstance 删除实例
 	DelInstance(context.Context, *DelInstanceRequest) (*DelInstanceResponse, error)
 	// DelInstanceLog 清空终端日志
@@ -126,6 +132,8 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.GET("/api/v1/instance/file/{id}", _InstanceManager_GetInstanceFileList0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/create/{id}", _InstanceManager_CreateInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/rename/{id}", _InstanceManager_RenameInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/copy/{id}", _InstanceManager_CopyInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/cut/{id}", _InstanceManager_CutInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/deletes/{id}", _InstanceManager_BatchDeleteInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/compress/{id}", _InstanceManager_BatchCompressInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/unzip/{id}", _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv))
@@ -586,6 +594,56 @@ func _InstanceManager_RenameInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPSe
 	}
 }
 
+func _InstanceManager_CopyInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CopyInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerCopyInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CopyInstanceFile(ctx, req.(*CopyInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CopyInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_CutInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CutInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerCutInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CutInstanceFile(ctx, req.(*CutInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CutInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _InstanceManager_BatchDeleteInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in BatchDeleteInstanceFileRequest
@@ -735,12 +793,16 @@ type InstanceManagerHTTPClient interface {
 	BatchCompressInstanceFile(ctx context.Context, req *BatchCompressInstanceFileRequest, opts ...http.CallOption) (rsp *BatchCompressInstanceFileResponse, err error)
 	// BatchDeleteInstanceFile 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(ctx context.Context, req *BatchDeleteInstanceFileRequest, opts ...http.CallOption) (rsp *BatchDeleteInstanceFileResponse, err error)
+	// CopyInstanceFile 复制实例目录内文件/文件夹
+	CopyInstanceFile(ctx context.Context, req *CopyInstanceFileRequest, opts ...http.CallOption) (rsp *CopyInstanceFileResponse, err error)
 	// CreateInstance 创建实例
 	CreateInstance(ctx context.Context, req *CreateInstanceRequest, opts ...http.CallOption) (rsp *CreateInstanceResponse, err error)
 	// CreateInstanceFile 创建实例目录内文件/文件夹
 	CreateInstanceFile(ctx context.Context, req *CreateInstanceFileRequest, opts ...http.CallOption) (rsp *CreateInstanceFileResponse, err error)
 	// CreateInstanceType 创建实例类型
 	CreateInstanceType(ctx context.Context, req *CreateInstanceTypeRequest, opts ...http.CallOption) (rsp *CreateInstanceTypeResponse, err error)
+	// CutInstanceFile 剪贴实例目录内文件/文件夹
+	CutInstanceFile(ctx context.Context, req *CutInstanceFileRequest, opts ...http.CallOption) (rsp *CutInstanceFileResponse, err error)
 	// DelInstance 删除实例
 	DelInstance(ctx context.Context, req *DelInstanceRequest, opts ...http.CallOption) (rsp *DelInstanceResponse, err error)
 	// DelInstanceLog 清空终端日志
@@ -824,6 +886,20 @@ func (c *InstanceManagerHTTPClientImpl) BatchDeleteInstanceFile(ctx context.Cont
 	return &out, nil
 }
 
+// CopyInstanceFile 复制实例目录内文件/文件夹
+func (c *InstanceManagerHTTPClientImpl) CopyInstanceFile(ctx context.Context, in *CopyInstanceFileRequest, opts ...http.CallOption) (*CopyInstanceFileResponse, error) {
+	var out CopyInstanceFileResponse
+	pattern := "/api/v1/instance/file/copy/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerCopyInstanceFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CreateInstance 创建实例
 func (c *InstanceManagerHTTPClientImpl) CreateInstance(ctx context.Context, in *CreateInstanceRequest, opts ...http.CallOption) (*CreateInstanceResponse, error) {
 	var out CreateInstanceResponse
@@ -858,6 +934,20 @@ func (c *InstanceManagerHTTPClientImpl) CreateInstanceType(ctx context.Context, 
 	pattern := "/api/v1/instance/type"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationInstanceManagerCreateInstanceType))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CutInstanceFile 剪贴实例目录内文件/文件夹
+func (c *InstanceManagerHTTPClientImpl) CutInstanceFile(ctx context.Context, in *CutInstanceFileRequest, opts ...http.CallOption) (*CutInstanceFileResponse, error) {
+	var out CutInstanceFileResponse
+	pattern := "/api/v1/instance/file/cut/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerCutInstanceFile))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

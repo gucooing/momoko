@@ -632,6 +632,52 @@ func (i *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1
 	return &v1.RenameInstanceFileResponse{Path: path}, nil
 }
 
+func (i *InstanceUsecase) CopyFile(ctx context.Context, userID string, req *v1.CopyInstanceFileRequest) (*v1.CopyInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	if err = validateFileTransferRequest(req.Paths, req.TargetPath); err != nil {
+		return nil, ErrSystem(err)
+	}
+	paths := append([]string(nil), req.Paths...)
+	targetPath := req.TargetPath
+
+	task := startFileTransferTask(
+		ctx,
+		userID,
+		fileTaskOperationInstanceCopy,
+		paths,
+		func(ctx context.Context, path string) *v1.FileOperationResult {
+			return firstFileOperationResult(path, fileOper.CopyToDir([]string{path}, targetPath))
+		},
+	)
+	return &v1.CopyInstanceFileResponse{Task: task}, nil
+}
+
+func (i *InstanceUsecase) CutFile(ctx context.Context, userID string, req *v1.CutInstanceFileRequest) (*v1.CutInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	if err = validateFileTransferRequest(req.Paths, req.TargetPath); err != nil {
+		return nil, ErrSystem(err)
+	}
+	paths := append([]string(nil), req.Paths...)
+	targetPath := req.TargetPath
+
+	task := startFileTransferTask(
+		ctx,
+		userID,
+		fileTaskOperationInstanceCut,
+		paths,
+		func(ctx context.Context, path string) *v1.FileOperationResult {
+			return firstFileOperationResult(path, fileOper.MoveToDir([]string{path}, targetPath))
+		},
+	)
+	return &v1.CutInstanceFileResponse{Task: task}, nil
+}
+
 func (i *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
 	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {

@@ -149,6 +149,20 @@ service InstanceManager {
       body: "*"
     };
   }
+  // 复制实例目录内文件/文件夹
+  rpc CopyInstanceFile(CopyInstanceFileRequest) returns (CopyInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/copy/{id}"
+      body: "*"
+    };
+  }
+  // 剪贴实例目录内文件/文件夹
+  rpc CutInstanceFile(CutInstanceFileRequest) returns (CutInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/cut/{id}"
+      body: "*"
+    };
+  }
   // 批量删除实例目录内文件/文件夹
   rpc BatchDeleteInstanceFile(BatchDeleteInstanceFileRequest) returns (BatchDeleteInstanceFileResponse) {
     option (google.api.http) = {
@@ -540,6 +554,38 @@ message RenameInstanceFileRequest {
 message RenameInstanceFileResponse {
   // 重命名后的路径
   string path = 1;
+}
+
+// 复制实例文件请求
+message CopyInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径列表
+  repeated string paths = 2;
+  // 目标目录相对路径
+  string target_path = 3;
+}
+
+// 复制实例文件响应
+message CopyInstanceFileResponse {
+  // 异步任务信息
+  FileTaskInfo task = 1;
+}
+
+// 剪贴实例文件请求
+message CutInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径列表
+  repeated string paths = 2;
+  // 目标目录相对路径
+  string target_path = 3;
+}
+
+// 剪贴实例文件响应
+message CutInstanceFileResponse {
+  // 异步任务信息
+  FileTaskInfo task = 1;
 }
 
 // 批量删除实例文件请求

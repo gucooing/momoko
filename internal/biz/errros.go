@@ -25,6 +25,7 @@ var (
 	ErrSSHCredentialInvalid  = response.BadRequest(400, "SSH凭据不能为空")
 	ErrSSHHostAccess         = response.BadRequest(500, "您没有该SSH服务端权限")
 	ErrFileNotExist          = response.BadRequest(500, "文件不存在")
+	ErrFileTaskNotFound      = response.BadRequest(404, "文件任务不存在")
 	ErrSign                  = response.BadRequest(500, "签名失败")
 	ErrUploadRequestInvalid  = response.BadRequest(400, "上传请求参数无效")
 	ErrUploadSessionNotFound = response.BadRequest(404, "上传会话不存在")

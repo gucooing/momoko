@@ -19,6 +19,21 @@ export enum FileSortField {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 文件任务状态 */
+export enum FileTaskStatus {
+  /** FILE_TASK_STATUS_UNSPECIFIED - 未指定 */
+  FILE_TASK_STATUS_UNSPECIFIED = "FILE_TASK_STATUS_UNSPECIFIED",
+  /** FILE_TASK_STATUS_PENDING - 等待执行 */
+  FILE_TASK_STATUS_PENDING = "FILE_TASK_STATUS_PENDING",
+  /** FILE_TASK_STATUS_RUNNING - 执行中 */
+  FILE_TASK_STATUS_RUNNING = "FILE_TASK_STATUS_RUNNING",
+  /** FILE_TASK_STATUS_SUCCESS - 已完成 */
+  FILE_TASK_STATUS_SUCCESS = "FILE_TASK_STATUS_SUCCESS",
+  /** FILE_TASK_STATUS_FAILED - 执行失败 */
+  FILE_TASK_STATUS_FAILED = "FILE_TASK_STATUS_FAILED",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 获取系统文件列表请求 */
 export interface GetFileSystemListRequest {
   /** 目录路径 */
@@ -149,6 +164,70 @@ export interface RenameFileSystemRequest {
 export interface RenameFileSystemResponse {
   /** 重命名后的路径 */
   path: string;
+}
+
+/** 复制系统文件请求 */
+export interface CopyFileSystemRequest {
+  /** 路径列表 */
+  paths: string[];
+  /** 目标目录路径 */
+  targetPath: string;
+}
+
+/** 复制系统文件响应 */
+export interface CopyFileSystemResponse {
+  /** 异步任务信息 */
+  task: FileTaskInfo | undefined;
+}
+
+/** 剪贴系统文件请求 */
+export interface CutFileSystemRequest {
+  /** 路径列表 */
+  paths: string[];
+  /** 目标目录路径 */
+  targetPath: string;
+}
+
+/** 剪贴系统文件响应 */
+export interface CutFileSystemResponse {
+  /** 异步任务信息 */
+  task: FileTaskInfo | undefined;
+}
+
+/** 获取文件任务请求 */
+export interface GetFileTaskRequest {
+  /** 任务id */
+  taskId: string;
+}
+
+/** 获取文件任务响应 */
+export interface GetFileTaskResponse {
+  /** 任务信息 */
+  task: FileTaskInfo | undefined;
+}
+
+/** 文件异步任务信息 */
+export interface FileTaskInfo {
+  /** 任务id */
+  taskId: string;
+  /** 操作类型 */
+  operation: string;
+  /** 任务状态 */
+  status: FileTaskStatus;
+  /** 总任务数 */
+  total: number;
+  /** 已完成任务数 */
+  finished: number;
+  /** 消息 */
+  message: string;
+  /** 文件操作结果 */
+  items: FileOperationResult[];
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 更新时间 */
+  updateTime: Date | undefined;
 }
 
 /** 批量压缩系统文件请求 */

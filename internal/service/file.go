@@ -52,6 +52,34 @@ func (f *FileService) RenameFileSystem(ctx context.Context, req *v1.RenameFileSy
 	return f.uc.RenameFileSystem(ctx, req)
 }
 
+func (f *FileService) CopyFileSystem(ctx context.Context, req *v1.CopyFileSystemRequest) (*v1.CopyFileSystemResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return f.uc.CopyFileSystem(ctx, authCtx.UserID, req)
+}
+
+func (f *FileService) CutFileSystem(ctx context.Context, req *v1.CutFileSystemRequest) (*v1.CutFileSystemResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return f.uc.CutFileSystem(ctx, authCtx.UserID, req)
+}
+
+func (f *FileService) GetFileTask(ctx context.Context, req *v1.GetFileTaskRequest) (*v1.GetFileTaskResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	task, err := f.uc.GetFileTask(ctx, authCtx.UserID, req.TaskId)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetFileTaskResponse{Task: task}, nil
+}
+
 func (f *FileService) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
 	return f.uc.OpenFileSystemFile(ctx, req)
 }

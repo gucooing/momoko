@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -167,6 +168,76 @@ func (f *FileUsecase) RenameFileSystem(ctx context.Context, req *v1.RenameFileSy
 		return nil, ErrSystem(err)
 	}
 	return &v1.RenameFileSystemResponse{Path: path}, nil
+}
+
+func (f *FileUsecase) CopyFileSystem(
+	ctx context.Context,
+	userID string,
+	req *v1.CopyFileSystemRequest,
+) (*v1.CopyFileSystemResponse, error) {
+	task, err := f.startSystemFileTask(ctx, userID, fileTaskOperationSystemCopy, req.Paths, req.TargetPath, true)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CopyFileSystemResponse{Task: task}, nil
+}
+
+func (f *FileUsecase) CutFileSystem(
+	ctx context.Context,
+	userID string,
+	req *v1.CutFileSystemRequest,
+) (*v1.CutFileSystemResponse, error) {
+	task, err := f.startSystemFileTask(ctx, userID, fileTaskOperationSystemCut, req.Paths, req.TargetPath, false)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CutFileSystemResponse{Task: task}, nil
+}
+
+func (f *FileUsecase) startSystemFileTask(
+	ctx context.Context,
+	userID string,
+	operation string,
+	paths []string,
+	targetPath string,
+	copy bool,
+) (*v1.FileTaskInfo, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if err = validateFileTransferRequest(paths, targetPath); err != nil {
+		return nil, ErrSystem(err)
+	}
+	taskPaths := append([]string(nil), paths...)
+
+	return startFileTransferTask(
+		ctx,
+		userID,
+		operation,
+		taskPaths,
+		func(ctx context.Context, path string) *v1.FileOperationResult {
+			if copy {
+				return firstFileOperationResult(path, fileOper.CopyToDir([]string{path}, targetPath))
+			}
+			return firstFileOperationResult(path, fileOper.MoveToDir([]string{path}, targetPath))
+		},
+	), nil
+}
+
+func (f *FileUsecase) GetFileTask(ctx context.Context, userID, taskID string) (*v1.FileTaskInfo, error) {
+	task, ok := fileTasks.get(userID, taskID)
+	if !ok {
+		return nil, ErrFileTaskNotFound
+	}
+	return task, nil
+}
+
+func validateFileTransferRequest(paths []string, targetPath string) error {
+	if len(paths) == 0 {
+		return errors.New("路径列表不能为空")
+	}
+	return nil
 }
 
 // OpenFileSystemFile 打开文件并返回内容。

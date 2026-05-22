@@ -39,6 +39,8 @@ const (
 	InstanceManager_GetInstanceFileList_FullMethodName       = "/v1.InstanceManager/GetInstanceFileList"
 	InstanceManager_CreateInstanceFile_FullMethodName        = "/v1.InstanceManager/CreateInstanceFile"
 	InstanceManager_RenameInstanceFile_FullMethodName        = "/v1.InstanceManager/RenameInstanceFile"
+	InstanceManager_CopyInstanceFile_FullMethodName          = "/v1.InstanceManager/CopyInstanceFile"
+	InstanceManager_CutInstanceFile_FullMethodName           = "/v1.InstanceManager/CutInstanceFile"
 	InstanceManager_BatchDeleteInstanceFile_FullMethodName   = "/v1.InstanceManager/BatchDeleteInstanceFile"
 	InstanceManager_BatchCompressInstanceFile_FullMethodName = "/v1.InstanceManager/BatchCompressInstanceFile"
 	InstanceManager_UnzipInstanceFile_FullMethodName         = "/v1.InstanceManager/UnzipInstanceFile"
@@ -96,6 +98,10 @@ type InstanceManagerClient interface {
 	CreateInstanceFile(ctx context.Context, in *CreateInstanceFileRequest, opts ...grpc.CallOption) (*CreateInstanceFileResponse, error)
 	// 重命名实例目录内文件/文件夹
 	RenameInstanceFile(ctx context.Context, in *RenameInstanceFileRequest, opts ...grpc.CallOption) (*RenameInstanceFileResponse, error)
+	// 复制实例目录内文件/文件夹
+	CopyInstanceFile(ctx context.Context, in *CopyInstanceFileRequest, opts ...grpc.CallOption) (*CopyInstanceFileResponse, error)
+	// 剪贴实例目录内文件/文件夹
+	CutInstanceFile(ctx context.Context, in *CutInstanceFileRequest, opts ...grpc.CallOption) (*CutInstanceFileResponse, error)
 	// 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error)
 	// 压缩实例目录内文件/文件夹
@@ -318,6 +324,26 @@ func (c *instanceManagerClient) RenameInstanceFile(ctx context.Context, in *Rena
 	return out, nil
 }
 
+func (c *instanceManagerClient) CopyInstanceFile(ctx context.Context, in *CopyInstanceFileRequest, opts ...grpc.CallOption) (*CopyInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CopyInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_CopyInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceManagerClient) CutInstanceFile(ctx context.Context, in *CutInstanceFileRequest, opts ...grpc.CallOption) (*CutInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CutInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_CutInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceManagerClient) BatchDeleteInstanceFile(ctx context.Context, in *BatchDeleteInstanceFileRequest, opts ...grpc.CallOption) (*BatchDeleteInstanceFileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchDeleteInstanceFileResponse)
@@ -427,6 +453,10 @@ type InstanceManagerServer interface {
 	CreateInstanceFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
 	// 重命名实例目录内文件/文件夹
 	RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error)
+	// 复制实例目录内文件/文件夹
+	CopyInstanceFile(context.Context, *CopyInstanceFileRequest) (*CopyInstanceFileResponse, error)
+	// 剪贴实例目录内文件/文件夹
+	CutInstanceFile(context.Context, *CutInstanceFileRequest) (*CutInstanceFileResponse, error)
 	// 批量删除实例目录内文件/文件夹
 	BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
 	// 压缩实例目录内文件/文件夹
@@ -508,6 +538,12 @@ func (UnimplementedInstanceManagerServer) CreateInstanceFile(context.Context, *C
 }
 func (UnimplementedInstanceManagerServer) RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RenameInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) CopyInstanceFile(context.Context, *CopyInstanceFileRequest) (*CopyInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CopyInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) CutInstanceFile(context.Context, *CutInstanceFileRequest) (*CutInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CutInstanceFile not implemented")
 }
 func (UnimplementedInstanceManagerServer) BatchDeleteInstanceFile(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchDeleteInstanceFile not implemented")
@@ -908,6 +944,42 @@ func _InstanceManager_RenameInstanceFile_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceManager_CopyInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CopyInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).CopyInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_CopyInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).CopyInstanceFile(ctx, req.(*CopyInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_CutInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CutInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).CutInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_CutInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).CutInstanceFile(ctx, req.(*CutInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InstanceManager_BatchDeleteInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BatchDeleteInstanceFileRequest)
 	if err := dec(in); err != nil {
@@ -1102,6 +1174,14 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenameInstanceFile",
 			Handler:    _InstanceManager_RenameInstanceFile_Handler,
+		},
+		{
+			MethodName: "CopyInstanceFile",
+			Handler:    _InstanceManager_CopyInstanceFile_Handler,
+		},
+		{
+			MethodName: "CutInstanceFile",
+			Handler:    _InstanceManager_CutInstanceFile_Handler,
 		},
 		{
 			MethodName: "BatchDeleteInstanceFile",

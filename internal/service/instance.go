@@ -232,6 +232,22 @@ func (i *InstanceService) RenameInstanceFile(ctx context.Context, req *v1.Rename
 	return i.uc.RenameFile(ctx, authCtx.UserID, req)
 }
 
+func (i *InstanceService) CopyInstanceFile(ctx context.Context, req *v1.CopyInstanceFileRequest) (*v1.CopyInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.CopyFile(ctx, authCtx.UserID, req)
+}
+
+func (i *InstanceService) CutInstanceFile(ctx context.Context, req *v1.CutInstanceFileRequest) (*v1.CutInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.CutFile(ctx, authCtx.UserID, req)
+}
+
 func (i *InstanceService) BatchDeleteInstanceFile(ctx context.Context, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {
