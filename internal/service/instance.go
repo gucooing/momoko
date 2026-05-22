@@ -14,14 +14,12 @@ import (
 type InstanceService struct {
 	v1.UnimplementedInstanceManagerServer
 
-	uc     *biz.InstanceUsecase
-	fileUC *biz.InstanceFileUsecase
+	uc *biz.InstanceUsecase
 }
 
-func NewInstanceService(uc *biz.InstanceUsecase, fileUC *biz.InstanceFileUsecase) *InstanceService {
+func NewInstanceService(uc *biz.InstanceUsecase) *InstanceService {
 	return &InstanceService{
-		uc:     uc,
-		fileUC: fileUC,
+		uc: uc,
 	}
 }
 
@@ -215,7 +213,7 @@ func (i *InstanceService) GetInstanceFileList(ctx context.Context, req *v1.GetIn
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.GetFileList(ctx, authCtx.UserID, req)
+	return i.uc.GetFileList(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) CreateInstanceFile(ctx context.Context, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
@@ -223,7 +221,7 @@ func (i *InstanceService) CreateInstanceFile(ctx context.Context, req *v1.Create
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.CreateFile(ctx, authCtx.UserID, req)
+	return i.uc.CreateFile(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) BatchDeleteInstanceFile(ctx context.Context, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
@@ -231,7 +229,7 @@ func (i *InstanceService) BatchDeleteInstanceFile(ctx context.Context, req *v1.B
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.BatchDeleteFile(ctx, authCtx.UserID, req)
+	return i.uc.BatchDeleteFile(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) BatchCompressInstanceFile(ctx context.Context, req *v1.BatchCompressInstanceFileRequest) (*v1.BatchCompressInstanceFileResponse, error) {
@@ -239,7 +237,7 @@ func (i *InstanceService) BatchCompressInstanceFile(ctx context.Context, req *v1
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.BatchCompressFile(ctx, authCtx.UserID, req)
+	return i.uc.BatchCompressFile(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) UnzipInstanceFile(ctx context.Context, req *v1.UnzipInstanceFileRequest) (*v1.UnzipInstanceFileResponse, error) {
@@ -247,7 +245,7 @@ func (i *InstanceService) UnzipInstanceFile(ctx context.Context, req *v1.UnzipIn
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.UnzipFile(ctx, authCtx.UserID, req)
+	return i.uc.UnzipFile(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) OpenInstanceFile(ctx context.Context, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
@@ -255,7 +253,7 @@ func (i *InstanceService) OpenInstanceFile(ctx context.Context, req *v1.OpenInst
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.OpenFile(ctx, authCtx.UserID, req)
+	return i.uc.OpenFile(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) InstanceFilePreSign(ctx context.Context, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
@@ -263,7 +261,7 @@ func (i *InstanceService) InstanceFilePreSign(ctx context.Context, req *v1.Insta
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return i.fileUC.FilePreSign(ctx, authCtx.UserID, req)
+	return i.uc.FilePreSign(ctx, authCtx.UserID, req)
 }
 
 func (i *InstanceService) InstanceFilePreSignUpload(ctx context.Context, req *v1.InstanceFilePreSignUploadRequest) (*v1.InstanceFilePreSignUploadResponse, error) {
@@ -271,7 +269,7 @@ func (i *InstanceService) InstanceFilePreSignUpload(ctx context.Context, req *v1
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	item, err := i.fileUC.FilePreSignUpload(ctx, authCtx.UserID, req)
+	item, err := i.uc.FilePreSignUpload(ctx, authCtx.UserID, req)
 	if err != nil {
 		return nil, err
 	}

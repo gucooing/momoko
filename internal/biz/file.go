@@ -28,6 +28,8 @@ const (
 	UploadPeriod = 2 * time.Hour
 )
 
+var uploadCache = cache.New[string, *file.ChunkedUpload](UploadPeriod) // 全局上传缓存
+
 type FileRepo interface {
 	GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*gen.FileUpload, error)
 	WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error
@@ -38,8 +40,6 @@ type FileRepo interface {
 
 type FileUsecase struct {
 	repo FileRepo
-
-	uploadCache *cache.Cache[string, *file.ChunkedUpload]
 }
 
 // NewFileUsecase 创建文件操作用例。
@@ -48,8 +48,7 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 		os.MkdirAll(file.ServersPath, 0755)
 	}
 	return &FileUsecase{
-		repo:        repo,
-		uploadCache: cache.New[string, *file.ChunkedUpload](UploadPeriod),
+		repo: repo,
 	}
 }
 
@@ -233,14 +232,14 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 	}
 	upload.FileUpload = info
 	upload.Sing = sign
-	f.uploadCache.Set(info.ID, upload)
+	uploadCache.Set(info.ID, upload)
 
 	return toUploadInfo(info, sign), nil
 }
 
 // 获取指定上传会话
 func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID string) (*file.ChunkedUpload, error) {
-	upload, ok := f.uploadCache.Get(uploadID)
+	upload, ok := uploadCache.Get(uploadID)
 	if !ok {
 		info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
 		if err != nil {
@@ -253,7 +252,7 @@ func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID str
 		}
 		upload.FileUpload = info
 		upload.Sing = sign
-		f.uploadCache.Set(info.ID, upload)
+		uploadCache.Set(info.ID, upload)
 	}
 	return upload, nil
 }
@@ -315,7 +314,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 		if err != nil {
 			return err
 		}
-		f.uploadCache.Del(uploadID)
+		uploadCache.Del(uploadID)
 		return nil
 	})
 	if err != nil {
