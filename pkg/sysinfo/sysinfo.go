@@ -422,8 +422,10 @@ func (c *Collector) readNetworkStatus(ctx context.Context, interfaceName string,
 	}
 
 	network := NetworkStatus{
-		Interfaces:  make([]*NetworkInterfaceStatus, 0, len(counters)),
-		Connections: readNetworkConnections(ctx),
+		Total:             new(NetworkInterfaceStatus),
+		Interfaces:        make([]*NetworkInterfaceStatus, 0, len(counters)),
+		SelectedInterface: nil,
+		Connections:       readNetworkConnections(ctx),
 	}
 
 	c.mu.Lock()
@@ -599,8 +601,14 @@ func (c *Collector) readDiskStatus(ctx context.Context, filter StatusFilter, now
 		return DiskStatus{}, fmt.Errorf("disk partitions: %w", err)
 	}
 	status := DiskStatus{
-		Partitions:  make([]*DiskPartitionStatus, 0, len(partitions)),
-		IOSupported: true,
+		Total:             new(DiskPartitionStatus),
+		Partitions:        make([]*DiskPartitionStatus, 0, len(partitions)),
+		SelectedPartition: nil,
+		TotalIO:           nil,
+		IOs:               nil,
+		SelectedIO:        nil,
+		IOSupported:       true,
+		IOError:           "",
 	}
 	for _, partition := range partitions {
 		item := readDiskPartitionStatus(ctx, partition)
