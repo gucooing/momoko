@@ -2,7 +2,12 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"momoko/internal/data/ent/gen/user"
 	"momoko/pkg/tools"
+	"momoko/pkg/utils"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -11,7 +16,10 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/auth"
 	auth2 "momoko/pkg/auth"
+	"momoko/pkg/cache"
 )
+
+const emailCodeLength = 6
 
 type Auth struct {
 	UserID    string
@@ -21,6 +29,13 @@ type Auth struct {
 	IP        string
 	Type      auth.Type
 }
+
+type EmailCodeType string
+
+const (
+	EmailCodeTypeRegister EmailCodeType = "register"
+	EmailCodeTypeLogin    EmailCodeType = "login"
+)
 
 type AuthRepo interface {
 	CreateAuth(context.Context, *Auth) (*gen.Auth, error)
@@ -32,11 +47,72 @@ type AuthRepo interface {
 }
 
 type AuthUsecase struct {
-	auth AuthRepo
+	auth       AuthRepo
+	user       UserRepo
+	emailCodes *cache.Cache[string, string]
 }
 
-func NewAuthUsecase(auth AuthRepo) *AuthUsecase {
-	return &AuthUsecase{auth: auth}
+func NewAuthUsecase(auth AuthRepo, user UserRepo) *AuthUsecase {
+	return &AuthUsecase{
+		auth:       auth,
+		user:       user,
+		emailCodes: cache.New[string, string](5 * time.Minute),
+	}
+}
+
+func (a *AuthUsecase) LoginByUsername(ctx context.Context, username, password string) (*gen.User, error) {
+	userInfo, err := a.user.FindByName(ctx, username)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, ErrAdminNotFound
+		}
+		return nil, ErrSystem(err)
+	}
+	if userInfo.Password != auth2.EncodePassword(password) {
+		return nil, ErrInvalidPassword
+	}
+	if userInfo.Status != user.StatusActive {
+		return nil, ErrUserInactive
+	}
+	return userInfo, nil
+}
+
+func (a *AuthUsecase) LoginByEmail(ctx context.Context, email, code string) (*gen.User, error) {
+	userInfo, err := a.user.FindByEmail(ctx, email)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, ErrAdminNotFound
+		}
+		return nil, ErrSystem(err)
+	}
+	if userInfo.Status != user.StatusActive {
+		return nil, ErrUserInactive
+	}
+	if err = a.VerifyEmailCode(email, code, EmailCodeTypeLogin); err != nil {
+		return nil, err
+	}
+	return userInfo, nil
+}
+
+func (a *AuthUsecase) NewEmailCode(email string, codeType EmailCodeType) (string, error) {
+	key := emailCodeCacheKey(codeType, email)
+
+	code, err := utils.GenerateEmailCode(emailCodeLength)
+	if err != nil {
+		return "", ErrSystem(err)
+	}
+	a.emailCodes.Set(key, code)
+	return code, nil
+}
+
+func (a *AuthUsecase) VerifyEmailCode(email string, code string, codeType EmailCodeType) error {
+	key := emailCodeCacheKey(codeType, email)
+	cachedCode, ok := a.emailCodes.Get(key)
+	if !ok || cachedCode != strings.TrimSpace(code) {
+		return ErrEmailCodeInvalid
+	}
+	a.emailCodes.Del(key)
+	return nil
 }
 
 func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1.LoginRequest) (*gen.Auth, error) {
@@ -116,4 +192,8 @@ func (a *AuthUsecase) Logout(ctx context.Context, userID string, deviceID string
 		return ErrSystem(err)
 	}
 	return nil
+}
+
+func emailCodeCacheKey(codeType EmailCodeType, email string) string {
+	return fmt.Sprintf("%s:%s", codeType, strings.ToLower(email))
 }

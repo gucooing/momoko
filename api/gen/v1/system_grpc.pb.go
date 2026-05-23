@@ -34,6 +34,7 @@ const (
 	System_UpdateLoginConfig_FullMethodName      = "/v1.System/UpdateLoginConfig"
 	System_EmailConfig_FullMethodName            = "/v1.System/EmailConfig"
 	System_UpdateEmailConfig_FullMethodName      = "/v1.System/UpdateEmailConfig"
+	System_UpdateEmailTemplate_FullMethodName    = "/v1.System/UpdateEmailTemplate"
 	System_TestEmailConfig_FullMethodName        = "/v1.System/TestEmailConfig"
 	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
 	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
@@ -76,6 +77,8 @@ type SystemClient interface {
 	EmailConfig(ctx context.Context, in *EmailConfigRequest, opts ...grpc.CallOption) (*EmailConfigResponse, error)
 	// 更新邮件配置
 	UpdateEmailConfig(ctx context.Context, in *UpdateEmailConfigRequest, opts ...grpc.CallOption) (*UpdateEmailConfigResponse, error)
+	// 更新邮件模板
+	UpdateEmailTemplate(ctx context.Context, in *UpdateEmailTemplateRequest, opts ...grpc.CallOption) (*UpdateEmailTemplateResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...grpc.CallOption) (*TestEmailConfigResponse, error)
 	// 获取系统信息概览
@@ -244,6 +247,16 @@ func (c *systemClient) UpdateEmailConfig(ctx context.Context, in *UpdateEmailCon
 	return out, nil
 }
 
+func (c *systemClient) UpdateEmailTemplate(ctx context.Context, in *UpdateEmailTemplateRequest, opts ...grpc.CallOption) (*UpdateEmailTemplateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateEmailTemplateResponse)
+	err := c.cc.Invoke(ctx, System_UpdateEmailTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *systemClient) TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...grpc.CallOption) (*TestEmailConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TestEmailConfigResponse)
@@ -320,6 +333,8 @@ type SystemServer interface {
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// 更新邮件配置
 	UpdateEmailConfig(context.Context, *UpdateEmailConfigRequest) (*UpdateEmailConfigResponse, error)
+	// 更新邮件模板
+	UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
 	// 获取系统信息概览
@@ -382,6 +397,9 @@ func (UnimplementedSystemServer) EmailConfig(context.Context, *EmailConfigReques
 }
 func (UnimplementedSystemServer) UpdateEmailConfig(context.Context, *UpdateEmailConfigRequest) (*UpdateEmailConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateEmailConfig not implemented")
+}
+func (UnimplementedSystemServer) UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEmailTemplate not implemented")
 }
 func (UnimplementedSystemServer) TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestEmailConfig not implemented")
@@ -686,6 +704,24 @@ func _System_UpdateEmailConfig_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_UpdateEmailTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEmailTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateEmailTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateEmailTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateEmailTemplate(ctx, req.(*UpdateEmailTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _System_TestEmailConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TestEmailConfigRequest)
 	if err := dec(in); err != nil {
@@ -824,6 +860,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateEmailConfig",
 			Handler:    _System_UpdateEmailConfig_Handler,
+		},
+		{
+			MethodName: "UpdateEmailTemplate",
+			Handler:    _System_UpdateEmailTemplate_Handler,
 		},
 		{
 			MethodName: "TestEmailConfig",

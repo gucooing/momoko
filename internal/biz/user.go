@@ -43,21 +43,8 @@ func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager)
 	}
 }
 
-func (u *UserUsecase) LoginByUsername(ctx context.Context, username, password string) (*gen.User, error) {
-	userInfo, err := u.user.FindByName(ctx, username)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return nil, ErrAdminNotFound
-		}
-		return nil, ErrSystem(err)
-	}
-	if userInfo.Password != auth.EncodePassword(password) {
-		return nil, ErrInvalidPassword
-	}
-	if userInfo.Status != user.StatusActive {
-		return nil, ErrUserInactive
-	}
-	return userInfo, nil
+func (u *UserUsecase) FindByEmail(ctx context.Context, email string) (*gen.User, error) {
+	return u.user.FindByEmail(ctx, email)
 }
 
 func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo, error) {

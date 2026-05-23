@@ -37,6 +37,7 @@ const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
 const OperationSystemTestEmailConfig = "/v1.System/TestEmailConfig"
 const OperationSystemUpdateEmailConfig = "/v1.System/UpdateEmailConfig"
+const OperationSystemUpdateEmailTemplate = "/v1.System/UpdateEmailTemplate"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
 
 type SystemHTTPServer interface {
@@ -76,6 +77,8 @@ type SystemHTTPServer interface {
 	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
 	// UpdateEmailConfig 更新邮件配置
 	UpdateEmailConfig(context.Context, *UpdateEmailConfigRequest) (*UpdateEmailConfigResponse, error)
+	// UpdateEmailTemplate 更新邮件模板
+	UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
 }
@@ -97,6 +100,7 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/email-config", _System_EmailConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/email-config", _System_UpdateEmailConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/email-template", _System_UpdateEmailTemplate0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/email-config/test", _System_TestEmailConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
@@ -421,6 +425,28 @@ func _System_UpdateEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http
 	}
 }
 
+func _System_UpdateEmailTemplate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateEmailTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateEmailTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateEmailTemplate(ctx, req.(*UpdateEmailTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateEmailTemplateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_TestEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in TestEmailConfigRequest
@@ -537,6 +563,8 @@ type SystemHTTPClient interface {
 	TestEmailConfig(ctx context.Context, req *TestEmailConfigRequest, opts ...http.CallOption) (rsp *TestEmailConfigResponse, err error)
 	// UpdateEmailConfig 更新邮件配置
 	UpdateEmailConfig(ctx context.Context, req *UpdateEmailConfigRequest, opts ...http.CallOption) (rsp *UpdateEmailConfigResponse, err error)
+	// UpdateEmailTemplate 更新邮件模板
+	UpdateEmailTemplate(ctx context.Context, req *UpdateEmailTemplateRequest, opts ...http.CallOption) (rsp *UpdateEmailTemplateResponse, err error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(ctx context.Context, req *UpdateLoginConfigRequest, opts ...http.CallOption) (rsp *UpdateLoginConfigResponse, err error)
 }
@@ -793,6 +821,20 @@ func (c *SystemHTTPClientImpl) UpdateEmailConfig(ctx context.Context, in *Update
 	pattern := "/api/v1/system/email-config"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSystemUpdateEmailConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateEmailTemplate 更新邮件模板
+func (c *SystemHTTPClientImpl) UpdateEmailTemplate(ctx context.Context, in *UpdateEmailTemplateRequest, opts ...http.CallOption) (*UpdateEmailTemplateResponse, error) {
+	var out UpdateEmailTemplateResponse
+	pattern := "/api/v1/system/email-template"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateEmailTemplate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

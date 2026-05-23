@@ -17,6 +17,20 @@ service AuthService {
       body: "*"
     };
   }
+  // 发送注册邮件验证码
+  rpc SendRegisterEmailCode(SendRegisterEmailCodeRequest) returns (SendRegisterEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/register/email-code"
+      body: "*"
+    };
+  }
+  // 发送登录邮件验证码
+  rpc SendLoginEmailCode(SendLoginEmailCodeRequest) returns (SendLoginEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login/email-code"
+      body: "*"
+    };
+  }
   // 刷新token
   rpc Refresh(RefreshRequest) returns (RefreshResponse) {
     option (google.api.http) = {
@@ -67,7 +81,27 @@ message LoginRequest {
   string device = 4;
   // 设备码
   string device_id = 5;
+  // 邮箱验证码
+  string code = 6;
 }
+
+// 发送注册邮件验证码请求
+message SendRegisterEmailCodeRequest {
+  // 邮箱
+  string email = 1;
+}
+
+// 发送注册邮件验证码响应
+message SendRegisterEmailCodeResponse {}
+
+// 发送登录邮件验证码请求
+message SendLoginEmailCodeRequest {
+  // 邮箱
+  string email = 1;
+}
+
+// 发送登录邮件验证码响应
+message SendLoginEmailCodeResponse {}
 
 // 账号登录响应
 message LoginResponse {

@@ -4,6 +4,7 @@ package gen
 
 import (
 	"momoko/internal/data/ent/gen/auth"
+	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/instance"
@@ -53,6 +54,33 @@ func init() {
 	authDescUserID := authFields[3].Descriptor()
 	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
+	emailtemplateMixin := schema.EmailTemplate{}.Mixin()
+	emailtemplateMixinFields0 := emailtemplateMixin[0].Fields()
+	_ = emailtemplateMixinFields0
+	emailtemplateFields := schema.EmailTemplate{}.Fields()
+	_ = emailtemplateFields
+	// emailtemplateDescCreateTime is the schema descriptor for create_time field.
+	emailtemplateDescCreateTime := emailtemplateMixinFields0[0].Descriptor()
+	// emailtemplate.DefaultCreateTime holds the default value on creation for the create_time field.
+	emailtemplate.DefaultCreateTime = emailtemplateDescCreateTime.Default.(func() time.Time)
+	// emailtemplateDescUpdateTime is the schema descriptor for update_time field.
+	emailtemplateDescUpdateTime := emailtemplateMixinFields0[1].Descriptor()
+	// emailtemplate.DefaultUpdateTime holds the default value on creation for the update_time field.
+	emailtemplate.DefaultUpdateTime = emailtemplateDescUpdateTime.Default.(func() time.Time)
+	// emailtemplate.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	emailtemplate.UpdateDefaultUpdateTime = emailtemplateDescUpdateTime.UpdateDefault.(func() time.Time)
+	// emailtemplateDescType is the schema descriptor for type field.
+	emailtemplateDescType := emailtemplateFields[0].Descriptor()
+	// emailtemplate.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	emailtemplate.TypeValidator = emailtemplateDescType.Validators[0].(func(string) error)
+	// emailtemplateDescSubject is the schema descriptor for subject field.
+	emailtemplateDescSubject := emailtemplateFields[1].Descriptor()
+	// emailtemplate.DefaultSubject holds the default value on creation for the subject field.
+	emailtemplate.DefaultSubject = emailtemplateDescSubject.Default.(string)
+	// emailtemplateDescTemplate is the schema descriptor for template field.
+	emailtemplateDescTemplate := emailtemplateFields[2].Descriptor()
+	// emailtemplate.DefaultTemplate holds the default value on creation for the template field.
+	emailtemplate.DefaultTemplate = emailtemplateDescTemplate.Default.(string)
 	fileuploadMixin := schema.FileUpload{}.Mixin()
 	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
 	_ = fileuploadMixinFields0

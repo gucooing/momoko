@@ -11,6 +11,8 @@ import type {
   TestEmailConfigResponse,
   UpdateEmailConfigRequest,
   UpdateEmailConfigResponse,
+  UpdateEmailTemplateRequest,
+  UpdateEmailTemplateResponse,
 } from '@/types/v1/system'
 
 export const getSystemOverview = () => {
@@ -35,4 +37,8 @@ export const updateEmailConfig = (params: UpdateEmailConfigRequest) => {
 
 export const testEmailConfig = (params: TestEmailConfigRequest) => {
   return request.post<TestEmailConfigResponse>('/system/email-config/test', params)
+}
+
+export const updateEmailTemplate = (params: UpdateEmailTemplateRequest) => {
+  return request.put<UpdateEmailTemplateResponse>('/system/email-template', params)
 }

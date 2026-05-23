@@ -24,6 +24,8 @@ const OperationAuthServiceDevices = "/v1.AuthService/Devices"
 const OperationAuthServiceLogin = "/v1.AuthService/Login"
 const OperationAuthServiceLogout = "/v1.AuthService/Logout"
 const OperationAuthServiceRefresh = "/v1.AuthService/Refresh"
+const OperationAuthServiceSendLoginEmailCode = "/v1.AuthService/SendLoginEmailCode"
+const OperationAuthServiceSendRegisterEmailCode = "/v1.AuthService/SendRegisterEmailCode"
 const OperationAuthServiceUpdatePassword = "/v1.AuthService/UpdatePassword"
 
 type AuthServiceHTTPServer interface {
@@ -37,6 +39,10 @@ type AuthServiceHTTPServer interface {
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	// Refresh 刷新token
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
+	// SendLoginEmailCode 发送登录邮件验证码
+	SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error)
+	// SendRegisterEmailCode 发送注册邮件验证码
+	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
 	// UpdatePassword 更新密码
 	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordResponse, error)
 }
@@ -44,6 +50,8 @@ type AuthServiceHTTPServer interface {
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
 	r.POST("/api/v1/auth/login", _AuthService_Login0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/register/email-code", _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/login/email-code", _AuthService_SendLoginEmailCode0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/refresh", _AuthService_Refresh0_HTTP_Handler(srv))
 	r.GET("/api/v1/auth/devices", _AuthService_Devices0_HTTP_Handler(srv))
 	r.PUT("/api/v1/auth/password", _AuthService_UpdatePassword0_HTTP_Handler(srv))
@@ -69,6 +77,50 @@ func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.C
 			return err
 		}
 		reply := out.(*LoginResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendRegisterEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceSendRegisterEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendRegisterEmailCode(ctx, req.(*SendRegisterEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendRegisterEmailCodeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_SendLoginEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendLoginEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceSendLoginEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendLoginEmailCode(ctx, req.(*SendLoginEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendLoginEmailCodeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -191,6 +243,10 @@ type AuthServiceHTTPClient interface {
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
 	// Refresh 刷新token
 	Refresh(ctx context.Context, req *RefreshRequest, opts ...http.CallOption) (rsp *RefreshResponse, err error)
+	// SendLoginEmailCode 发送登录邮件验证码
+	SendLoginEmailCode(ctx context.Context, req *SendLoginEmailCodeRequest, opts ...http.CallOption) (rsp *SendLoginEmailCodeResponse, err error)
+	// SendRegisterEmailCode 发送注册邮件验证码
+	SendRegisterEmailCode(ctx context.Context, req *SendRegisterEmailCodeRequest, opts ...http.CallOption) (rsp *SendRegisterEmailCodeResponse, err error)
 	// UpdatePassword 更新密码
 	UpdatePassword(ctx context.Context, req *UpdatePasswordRequest, opts ...http.CallOption) (rsp *UpdatePasswordResponse, err error)
 }
@@ -265,6 +321,34 @@ func (c *AuthServiceHTTPClientImpl) Refresh(ctx context.Context, in *RefreshRequ
 	pattern := "/api/v1/auth/refresh"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAuthServiceRefresh))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendLoginEmailCode 发送登录邮件验证码
+func (c *AuthServiceHTTPClientImpl) SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...http.CallOption) (*SendLoginEmailCodeResponse, error) {
+	var out SendLoginEmailCodeResponse
+	pattern := "/api/v1/auth/login/email-code"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceSendLoginEmailCode))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendRegisterEmailCode 发送注册邮件验证码
+func (c *AuthServiceHTTPClientImpl) SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...http.CallOption) (*SendRegisterEmailCodeResponse, error) {
+	var out SendRegisterEmailCodeResponse
+	pattern := "/api/v1/auth/register/email-code"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceSendRegisterEmailCode))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

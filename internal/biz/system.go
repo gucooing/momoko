@@ -120,6 +120,7 @@ func (s *SystemUsecase) TestEmailConfig(ctx context.Context, req *v1.TestEmailCo
 	if req.Messages != nil {
 		message.Subject = req.Messages.Subject
 		message.Template = req.Messages.Template
+		message.Data = req.Data
 	}
 
 	err := email.Test(ctx, toEmailConfig(config), message)
@@ -127,6 +128,22 @@ func (s *SystemUsecase) TestEmailConfig(ctx context.Context, req *v1.TestEmailCo
 		return ErrSystem(err)
 	}
 	return nil
+}
+
+func (s *SystemUsecase) SendEmail(ctx context.Context, templateType v1.EmailTemplateType, recipient string, data any) error {
+	if s.emailClient == nil {
+		return ErrEmailNot
+	}
+	template, err := s.config.EmailTemplate(ctx, templateType)
+	if err != nil {
+		return ErrEmailNotFound
+	}
+	return s.emailClient.Send(ctx, email.Message{
+		Recipient: recipient,
+		Template:  template.Template,
+		Subject:   template.Subject,
+		Data:      data,
+	})
 }
 
 func (s *SystemUsecase) SystemOverview(ctx context.Context) (*v1.SystemOverviewResponse, error) {

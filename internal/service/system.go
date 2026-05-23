@@ -198,6 +198,17 @@ func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEma
 	return &v1.UpdateEmailConfigResponse{Config: config}, nil
 }
 
+func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*v1.UpdateEmailTemplateResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
+		return nil, err
+	}
+	template, err := s.config.UpdateEmailTemplate(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateEmailTemplateResponse{Template: template}, nil
+}
+
 func (s *SystemService) TestEmailConfig(ctx context.Context, req *v1.TestEmailConfigRequest) (*v1.TestEmailConfigResponse, error) {
 	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
 		return nil, err

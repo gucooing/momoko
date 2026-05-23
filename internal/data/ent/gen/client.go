@@ -12,6 +12,7 @@ import (
 	"momoko/internal/data/ent/gen/migrate"
 
 	"momoko/internal/data/ent/gen/auth"
+	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/instance"
@@ -38,6 +39,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Auth is the client for interacting with the Auth builders.
 	Auth *AuthClient
+	// EmailTemplate is the client for interacting with the EmailTemplate builders.
+	EmailTemplate *EmailTemplateClient
 	// FileUpload is the client for interacting with the FileUpload builders.
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
@@ -70,6 +73,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Auth = NewAuthClient(c.config)
+	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileUpload = NewFileUploadClient(c.config)
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
@@ -173,6 +177,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:             ctx,
 		config:          cfg,
 		Auth:            NewAuthClient(cfg),
+		EmailTemplate:   NewEmailTemplateClient(cfg),
 		FileUpload:      NewFileUploadClient(cfg),
 		FileUploadChunk: NewFileUploadChunkClient(cfg),
 		Instance:        NewInstanceClient(cfg),
@@ -203,6 +208,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:             ctx,
 		config:          cfg,
 		Auth:            NewAuthClient(cfg),
+		EmailTemplate:   NewEmailTemplateClient(cfg),
 		FileUpload:      NewFileUploadClient(cfg),
 		FileUploadChunk: NewFileUploadChunkClient(cfg),
 		Instance:        NewInstanceClient(cfg),
@@ -242,8 +248,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.FileUpload, c.FileUploadChunk, c.Instance, c.InstanceType, c.Menu,
-		c.OperationLog, c.Role, c.SSHHost, c.SystemConfig, c.User,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
+		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -253,8 +260,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.FileUpload, c.FileUploadChunk, c.Instance, c.InstanceType, c.Menu,
-		c.OperationLog, c.Role, c.SSHHost, c.SystemConfig, c.User,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
+		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -265,6 +273,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AuthMutation:
 		return c.Auth.mutate(ctx, m)
+	case *EmailTemplateMutation:
+		return c.EmailTemplate.mutate(ctx, m)
 	case *FileUploadMutation:
 		return c.FileUpload.mutate(ctx, m)
 	case *FileUploadChunkMutation:
@@ -420,6 +430,139 @@ func (c *AuthClient) mutate(ctx context.Context, m *AuthMutation) (Value, error)
 		return (&AuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Auth mutation op: %q", m.Op())
+	}
+}
+
+// EmailTemplateClient is a client for the EmailTemplate schema.
+type EmailTemplateClient struct {
+	config
+}
+
+// NewEmailTemplateClient returns a client for the EmailTemplate from the given config.
+func NewEmailTemplateClient(c config) *EmailTemplateClient {
+	return &EmailTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `emailtemplate.Hooks(f(g(h())))`.
+func (c *EmailTemplateClient) Use(hooks ...Hook) {
+	c.hooks.EmailTemplate = append(c.hooks.EmailTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `emailtemplate.Intercept(f(g(h())))`.
+func (c *EmailTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EmailTemplate = append(c.inters.EmailTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a EmailTemplate entity.
+func (c *EmailTemplateClient) Create() *EmailTemplateCreate {
+	mutation := newEmailTemplateMutation(c.config, OpCreate)
+	return &EmailTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmailTemplate entities.
+func (c *EmailTemplateClient) CreateBulk(builders ...*EmailTemplateCreate) *EmailTemplateCreateBulk {
+	return &EmailTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EmailTemplateClient) MapCreateBulk(slice any, setFunc func(*EmailTemplateCreate, int)) *EmailTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EmailTemplateCreateBulk{err: fmt.Errorf("calling to EmailTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EmailTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EmailTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmailTemplate.
+func (c *EmailTemplateClient) Update() *EmailTemplateUpdate {
+	mutation := newEmailTemplateMutation(c.config, OpUpdate)
+	return &EmailTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmailTemplateClient) UpdateOne(_m *EmailTemplate) *EmailTemplateUpdateOne {
+	mutation := newEmailTemplateMutation(c.config, OpUpdateOne, withEmailTemplate(_m))
+	return &EmailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmailTemplateClient) UpdateOneID(id int) *EmailTemplateUpdateOne {
+	mutation := newEmailTemplateMutation(c.config, OpUpdateOne, withEmailTemplateID(id))
+	return &EmailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmailTemplate.
+func (c *EmailTemplateClient) Delete() *EmailTemplateDelete {
+	mutation := newEmailTemplateMutation(c.config, OpDelete)
+	return &EmailTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmailTemplateClient) DeleteOne(_m *EmailTemplate) *EmailTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmailTemplateClient) DeleteOneID(id int) *EmailTemplateDeleteOne {
+	builder := c.Delete().Where(emailtemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmailTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for EmailTemplate.
+func (c *EmailTemplateClient) Query() *EmailTemplateQuery {
+	return &EmailTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEmailTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EmailTemplate entity by its id.
+func (c *EmailTemplateClient) Get(ctx context.Context, id int) (*EmailTemplate, error) {
+	return c.Query().Where(emailtemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmailTemplateClient) GetX(ctx context.Context, id int) *EmailTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *EmailTemplateClient) Hooks() []Hook {
+	return c.hooks.EmailTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *EmailTemplateClient) Interceptors() []Interceptor {
+	return c.inters.EmailTemplate
+}
+
+func (c *EmailTemplateClient) mutate(ctx context.Context, m *EmailTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EmailTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EmailTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EmailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EmailTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown EmailTemplate mutation op: %q", m.Op())
 	}
 }
 
@@ -1964,12 +2107,12 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, FileUpload, FileUploadChunk, Instance, InstanceType, Menu, OperationLog,
-		Role, SSHHost, SystemConfig, User []ent.Hook
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
+		OperationLog, Role, SSHHost, SystemConfig, User []ent.Hook
 	}
 	inters struct {
-		Auth, FileUpload, FileUploadChunk, Instance, InstanceType, Menu, OperationLog,
-		Role, SSHHost, SystemConfig, User []ent.Interceptor
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
+		OperationLog, Role, SSHHost, SystemConfig, User []ent.Interceptor
 	}
 )
 

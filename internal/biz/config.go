@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	v1 "momoko/api/gen/v1"
+	"momoko/internal/data/ent/gen"
 	"momoko/pkg/response"
 	"net/mail"
 	"strings"
@@ -13,6 +14,8 @@ type ConfigRepo interface {
 	UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.LoginConfig, error)
 	EmailConfig(ctx context.Context) (*v1.EmailConfig, error)
 	UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.EmailConfig, error)
+	UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*gen.EmailTemplate, error)
+	EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*gen.EmailTemplate, error)
 }
 
 type ConfigUsecase struct {
@@ -61,6 +64,18 @@ func (c *ConfigUsecase) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEma
 	return updated, nil
 }
 
+func (c *ConfigUsecase) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*v1.EmailTemplate, error) {
+	if err := validateEmailTemplate(req); err != nil {
+		return nil, err
+	}
+
+	updated, err := c.config.UpdateEmailTemplate(ctx, req)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return toEmailTemplate(updated), nil
+}
+
 func validateEmailConfig(req *v1.UpdateEmailConfigRequest) error {
 	req.Host = strings.TrimSpace(req.Host)
 	req.Username = strings.TrimSpace(req.Username)
@@ -91,4 +106,49 @@ func validateEmailConfig(req *v1.UpdateEmailConfigRequest) error {
 		}
 	}
 	return nil
+}
+
+func validateEmailTemplate(req *v1.UpdateEmailTemplateRequest) error {
+	req.Subject = strings.TrimSpace(req.Subject)
+	req.Template = strings.TrimSpace(req.Template)
+
+	if !isEmailTemplateTypeValid(req.Type) {
+		return ErrEmailTemplateType
+	}
+	if req.Subject == "" {
+		return ErrEmailTemplateSubject
+	}
+	if req.Template == "" {
+		return ErrEmailTemplateContent
+	}
+	return nil
+}
+
+func toEmailTemplate(data *gen.EmailTemplate) *v1.EmailTemplate {
+	if data == nil {
+		return nil
+	}
+	return &v1.EmailTemplate{
+		Subject:  data.Subject,
+		Template: data.Template,
+		Type:     emailTemplateTypeFromString(data.Type),
+	}
+}
+
+func isEmailTemplateTypeValid(data v1.EmailTemplateType) bool {
+	switch data {
+	case v1.EmailTemplateType_EmailTemplateType_Register:
+		return true
+	case v1.EmailTemplateType_EmailTemplateType_Login:
+		return true
+	default:
+		return false
+	}
+}
+
+func emailTemplateTypeFromString(data string) v1.EmailTemplateType {
+	if value, ok := v1.EmailTemplateType_value[data]; ok {
+		return v1.EmailTemplateType(value)
+	}
+	return v1.EmailTemplateType_EmailTemplateType_Register
 }

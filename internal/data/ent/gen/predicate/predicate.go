@@ -9,6 +9,9 @@ import (
 // Auth is the predicate function for auth builders.
 type Auth func(*sql.Selector)
 
+// EmailTemplate is the predicate function for emailtemplate builders.
+type EmailTemplate func(*sql.Selector)
+
 // FileUpload is the predicate function for fileupload builders.
 type FileUpload func(*sql.Selector)
 

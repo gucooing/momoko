@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/gen/auth"
+	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/instance"
@@ -84,6 +85,7 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			auth.Table:            auth.ValidColumn,
+			emailtemplate.Table:   emailtemplate.ValidColumn,
 			fileupload.Table:      fileupload.ValidColumn,
 			fileuploadchunk.Table: fileuploadchunk.ValidColumn,
 			instance.Table:        instance.ValidColumn,

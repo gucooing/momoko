@@ -105,6 +105,14 @@ service System {
       body: "*"
     };
   }
+  // 更新邮件模板
+  rpc UpdateEmailTemplate(UpdateEmailTemplateRequest) returns (UpdateEmailTemplateResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/system/email-template"
+      body: "*"
+    };
+  }
+  // 获取指定邮件模板
   // 测试邮件配置
   rpc TestEmailConfig(TestEmailConfigRequest) returns (TestEmailConfigResponse) {
     option (google.api.http) = {
@@ -432,10 +440,19 @@ message EmailConfig {
   int32 ccs_n = 10;
 }
 
+// 邮件模板类型
+enum EmailTemplateType {
+  // 注册
+  EmailTemplateType_Register = 0;
+  // 登录
+  EmailTemplateType_Login = 1;
+}
+
 // 模板配置
 message EmailTemplate {
   string subject = 1;// 邮件主题 TEXT 模板
   string template = 2;// 邮件内容 HTML 模板
+  EmailTemplateType type = 3;// 模板类型
 }
 
 // 获取邮件配置请求
@@ -477,6 +494,22 @@ message UpdateEmailConfigResponse {
   EmailConfig config = 1;
 }
 
+// 更新邮件模板请求
+message UpdateEmailTemplateRequest {
+  // 模板类型
+  EmailTemplateType type = 1;
+  // 邮件主题 TEXT 模板
+  string subject = 2;
+  // 邮件内容 HTML 模板
+  string template = 3;
+}
+
+// 更新邮件模板响应
+message UpdateEmailTemplateResponse {
+  // 邮件模板
+  EmailTemplate template = 1;
+}
+
 // 测试邮件配置请求
 message TestEmailConfigRequest {
   // 收件邮箱
@@ -485,6 +518,8 @@ message TestEmailConfigRequest {
   EmailConfig config = 2;
   // 测试邮件内容;不传时使用默认配置
   optional EmailTemplate messages = 3;
+  // 模板占位符
+  map<string,string> Data = 4;
 }
 
 // 测试邮件配置响应
@@ -847,6 +882,10 @@ enum OperationType {
   OperationTypeAuthUpdatePassword = 3;
   // 登录设备删除
   OperationTypeAuthDeviceDelete = 4;
+  // 注册邮件验证码发送
+  OperationTypeAuthRegisterEmailCode = 55;
+  // 登录邮件验证码发送
+  OperationTypeAuthLoginEmailCode = 56;
   // 个人信息更新
   OperationTypeUserUpdateMe = 5;
   // 用户新增
@@ -945,6 +984,8 @@ enum OperationType {
   OperationTypeSystemEmailConfigUpdate = 52;
   // 邮件配置测试
   OperationTypeSystemEmailConfigTest = 53;
+  // 邮件模板更新
+  OperationTypeSystemEmailTemplateUpdate = 54;
 }
 
 message ListOperationLogsRequest {

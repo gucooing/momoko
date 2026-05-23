@@ -212,6 +212,81 @@
             </div>
           </div>
 
+          <div class="setting-module">
+            <div class="setting-group">
+              <div class="setting-group-header">模板配置</div>
+              <div class="setting-item">
+                <div class="setting-item-info">
+                  <span class="setting-item-label">模板类型</span>
+                  <span class="setting-item-desc">选择要编辑的邮件模板</span>
+                </div>
+                <el-select
+                  v-model="templateType"
+                  :disabled="!canEdit"
+                  style="width: 200px"
+                  @change="handleTemplateTypeChange"
+                >
+                  <el-option
+                    v-for="tpl in templateTypeOptions"
+                    :key="tpl.value"
+                    :label="tpl.label"
+                    :value="tpl.value"
+                  />
+                </el-select>
+              </div>
+              <div class="setting-item">
+                <div class="setting-item-info">
+                  <span class="setting-item-label">邮件主题</span>
+                  <span class="setting-item-desc"><span v-pre>支持 Go text/template 语法，如 {{.Code}}</span></span>
+                </div>
+                <el-input
+                  v-model="templateForm.subject"
+                  :disabled="!canEdit"
+                  placeholder="邮件主题模板"
+                  style="width: 400px"
+                />
+              </div>
+              <div class="setting-item setting-item-vertical">
+                <div class="setting-item-info">
+                  <span class="setting-item-label">邮件内容</span>
+                  <span class="setting-item-desc"><span v-pre>支持 Go html/template 语法，如 {{.Username}}、{{.Code}}</span></span>
+                </div>
+                <el-input
+                  v-model="templateForm.template"
+                  :disabled="!canEdit"
+                  type="textarea"
+                  :rows="12"
+                  placeholder="<html><body>...</body></html>"
+                />
+              </div>
+            </div>
+
+            <div class="setting-footer">
+              <el-button
+                type="primary"
+                :loading="templateSaving"
+                :disabled="!canEdit"
+                @click="handleTemplateSave"
+              >
+                保存模板
+              </el-button>
+              <el-button
+                :loading="templateTesting"
+                :disabled="!canEdit"
+                @click="openTemplateTestDialog"
+              >
+                测试发送
+              </el-button>
+              <el-button
+                :disabled="!canEdit"
+                @click="openPreviewDialog"
+              >
+                预览
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 邮件服务测试对话框 -->
           <el-dialog
             v-model="testDialogVisible"
             title="测试邮件发送"
@@ -238,6 +313,66 @@
               </el-button>
             </template>
           </el-dialog>
+
+          <!-- 模板测试发送对话框 -->
+          <el-dialog
+            v-model="templateTestDialogVisible"
+            title="测试模板邮件发送"
+            width="520px"
+            :close-on-click-modal="false"
+          >
+            <el-form label-position="top">
+              <el-form-item label="收件邮箱">
+                <el-input
+                  v-model="templateTestRecipient"
+                  placeholder="输入收件邮箱地址"
+                />
+              </el-form-item>
+              <el-form-item
+                v-for="field in templateTestFields"
+                :key="field.name"
+                :label="field.name"
+              >
+                <el-input
+                  v-model="field.value"
+                  :placeholder="`输入 ${field.name} 的值`"
+                />
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="templateTestDialogVisible = false">取消</el-button>
+              <el-button
+                type="primary"
+                :loading="templateTesting"
+                :disabled="!templateTestRecipient"
+                @click="handleTemplateTest"
+              >
+                发送
+              </el-button>
+            </template>
+          </el-dialog>
+
+          <!-- 模板预览对话框 -->
+          <el-dialog
+            v-model="previewDialogVisible"
+            title="邮件模板预览"
+            width="720px"
+            :close-on-click-modal="false"
+          >
+            <div class="preview-subject">
+              <span class="preview-label">主题：</span>
+              <span>{{ renderedPreviewSubject }}</span>
+            </div>
+            <div class="preview-divider" />
+            <iframe
+              :srcdoc="renderedPreviewBody"
+              class="preview-iframe"
+              sandbox="allow-same-origin"
+            />
+            <template #footer>
+              <el-button @click="previewDialogVisible = false">关闭</el-button>
+            </template>
+          </el-dialog>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -246,7 +381,8 @@
 
 <script setup lang="ts">
 import { getLoginConfig, updateLoginConfig } from '@/api/login'
-import { getEmailConfig, updateEmailConfig, testEmailConfig } from '@/api/system'
+import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate } from '@/api/system'
+import { EmailTemplateType } from '@/types/v1/system'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 
@@ -259,7 +395,23 @@ const emailTesting = ref(false)
 const testRecipient = ref('')
 const testDialogVisible = ref(false)
 
+const templateSaving = ref(false)
+const templateTesting = ref(false)
+const templateTestDialogVisible = ref(false)
+const templateTestRecipient = ref('')
+const previewDialogVisible = ref(false)
+
 const canEdit = useButtonPermission([PERM.SYSTEM_CONFIG_EDIT], [])
+
+const TEMPLATE_TYPE_LABELS: Record<string, string> = {
+  [EmailTemplateType.EmailTemplateType_Register]: '注册邮件模板',
+  [EmailTemplateType.EmailTemplateType_Login]: '登录邮件模板',
+}
+
+const templateTypeOptions = Object.entries(TEMPLATE_TYPE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
 
 const loginForm = reactive({
   registerEnabled: false,
@@ -279,6 +431,130 @@ const emailForm = reactive({
   timeoutSeconds: 10,
   ccsN: 5,
 })
+
+const templateType = ref(EmailTemplateType.EmailTemplateType_Register)
+const templateForm = reactive({
+  subject: '',
+  template: '',
+})
+
+interface TemplateField {
+  name: string
+  value: string
+}
+const templateTestFields = ref<TemplateField[]>([])
+
+const renderedPreviewSubject = ref('')
+const renderedPreviewBody = ref('')
+
+const extractPlaceholders = (content: string): string[] => {
+  const regex = /\{\{\.(\w+)\}\}/g
+  const names = new Set<string>()
+  let match
+  while ((match = regex.exec(content)) !== null) {
+    names.add(match[1])
+  }
+  return Array.from(names)
+}
+
+const renderTemplate = (source: string, data: Record<string, string>): string => {
+  return source.replace(/\{\{\.(\w+)\}\}/g, (_, name) => {
+    return data[name] ?? `{{.${name}}}`
+  })
+}
+
+const highlightPlaceholders = (source: string): string => {
+  return source.replace(/\{\{\.(\w+)\}\}/g, (_, name) => {
+    return `<span style="background:#ffe58f;padding:0 3px;border-radius:2px;font-family:monospace;">${name}</span>`
+  })
+}
+
+const handleTemplateTypeChange = () => {
+  templateForm.subject = ''
+  templateForm.template = ''
+}
+
+const handleTemplateSave = async () => {
+  templateSaving.value = true
+  try {
+    await updateEmailTemplate({
+      type: templateType.value as EmailTemplateType,
+      subject: templateForm.subject,
+      template: templateForm.template,
+    })
+    ElMessage.success('保存成功')
+  } catch {
+    ElMessage.error('保存失败')
+  } finally {
+    templateSaving.value = false
+  }
+}
+
+const openTemplateTestDialog = () => {
+  const placeholders = extractPlaceholders(
+    templateForm.subject + ' ' + templateForm.template
+  )
+  templateTestFields.value = placeholders.map((name) => ({ name, value: '' }))
+  templateTestRecipient.value = ''
+  templateTestDialogVisible.value = true
+}
+
+const handleTemplateTest = async () => {
+  const data: Record<string, string> = {}
+  for (const field of templateTestFields.value) {
+    if (field.value) {
+      data[field.name] = field.value
+    }
+  }
+
+  templateTesting.value = true
+  try {
+    await testEmailConfig({
+      recipient: templateTestRecipient.value,
+      config: {
+        enabled: emailForm.enabled,
+        host: emailForm.host,
+        port: emailForm.port,
+        username: emailForm.username,
+        password: emailForm.password,
+        from: emailForm.from,
+        fromName: emailForm.fromName,
+        useTls: emailForm.useTls,
+        timeoutSeconds: emailForm.timeoutSeconds,
+        ccsN: emailForm.ccsN,
+      },
+      messages: {
+        subject: templateForm.subject,
+        template: templateForm.template,
+        type: templateType.value as EmailTemplateType,
+      },
+      Data: data,
+    })
+    ElMessage.success('测试邮件发送成功')
+    templateTestDialogVisible.value = false
+  } catch {
+    ElMessage.error('测试邮件发送失败')
+  } finally {
+    templateTesting.value = false
+  }
+}
+
+const openPreviewDialog = () => {
+  const subjectPlaceholders = extractPlaceholders(templateForm.subject)
+  const bodyPlaceholders = extractPlaceholders(templateForm.template)
+  const data: Record<string, string> = {}
+  for (const field of templateTestFields.value) {
+    data[field.name] = field.value
+  }
+  for (const name of [...subjectPlaceholders, ...bodyPlaceholders]) {
+    if (!(name in data)) {
+      data[name] = ''
+    }
+  }
+  renderedPreviewSubject.value = renderTemplate(templateForm.subject, data)
+  renderedPreviewBody.value = highlightPlaceholders(templateForm.template)
+  previewDialogVisible.value = true
+}
 
 const loadLoginConfig = async () => {
   try {
@@ -420,6 +696,16 @@ onMounted(() => {
   background: var(--el-bg-color-overlay);
 }
 
+.setting-item-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  .setting-item-info {
+    margin-right: 0;
+  }
+}
+
 .setting-item-info {
   display: flex;
   flex-direction: column;
@@ -441,5 +727,28 @@ onMounted(() => {
 
 .setting-footer {
   margin-top: 1rem;
+}
+
+.preview-subject {
+  font-size: 0.9rem;
+  color: var(--el-text-color-primary);
+  padding: 0.5rem 0;
+}
+
+.preview-label {
+  font-weight: 600;
+}
+
+.preview-divider {
+  height: 1px;
+  background: var(--el-border-color-lighter);
+  margin: 0.5rem 0;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 400px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
 }
 </style>

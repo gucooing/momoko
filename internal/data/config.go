@@ -9,6 +9,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/pkg/common"
 	"momoko/pkg/response"
@@ -169,6 +170,31 @@ func (c *ConfigRepo) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailC
 		return nil, err
 	}
 	return c.EmailConfig(ctx)
+}
+
+func (c *ConfigRepo) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*gen.EmailTemplate, error) {
+	templateType := req.Type.String()
+
+	err := c.data.db.EmailTemplate.Create().
+		SetType(templateType).
+		SetSubject(req.Subject).
+		SetTemplate(req.Template).
+		OnConflictColumns(emailtemplate.FieldType).
+		UpdateNewValues().
+		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.data.db.EmailTemplate.Query().
+		Where(emailtemplate.TypeEQ(templateType)).
+		Only(ctx)
+}
+
+func (c *ConfigRepo) EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*gen.EmailTemplate, error) {
+	return c.data.db.EmailTemplate.Query().
+		Where(emailtemplate.TypeEQ(templateType.String())).
+		Only(ctx)
 }
 
 func (c *ConfigRepo) getBoolConfig(ctx context.Context, key common.ConfigKey) (bool, error) {

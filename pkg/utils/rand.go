@@ -13,3 +13,14 @@ func GenerateRandomString(length int) string {
 	}
 	return base64.URLEncoding.EncodeToString(bytes)[:length]
 }
+
+func GenerateEmailCode(length int) (string, error) {
+	raw := make([]byte, length)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	for i, b := range raw {
+		raw[i] = '0' + b%10
+	}
+	return string(raw), nil
+}

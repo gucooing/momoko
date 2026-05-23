@@ -36,6 +36,15 @@ export enum RoleStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 邮件模板类型 */
+export enum EmailTemplateType {
+  /** 注册邮件模板 */
+  EmailTemplateType_Register = "EmailTemplateType_Register",
+  /** 登录邮件模板 */
+  EmailTemplateType_Login = "EmailTemplateType_Login",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 操作日志类型 */
 export enum OperationType {
   /** OperationTypeUncategorized - 未分类操作 */
@@ -447,6 +456,8 @@ export interface EmailTemplate {
   subject: string;
   /** 邮件内容 HTML 模板 */
   template: string;
+  /** 模板类型 */
+  type: EmailTemplateType;
 }
 
 /** 获取邮件配置请求 */
@@ -489,6 +500,22 @@ export interface UpdateEmailConfigResponse {
   config: EmailConfig | undefined;
 }
 
+/** 更新邮件模板请求 */
+export interface UpdateEmailTemplateRequest {
+  /** 模板类型 */
+  type: EmailTemplateType;
+  /** 邮件主题 TEXT 模板 */
+  subject: string;
+  /** 邮件内容 HTML 模板 */
+  template: string;
+}
+
+/** 更新邮件模板响应 */
+export interface UpdateEmailTemplateResponse {
+  /** 邮件模板 */
+  template: EmailTemplate | undefined;
+}
+
 /** 测试邮件配置请求 */
 export interface TestEmailConfigRequest {
   /** 收件邮箱 */
@@ -498,7 +525,11 @@ export interface TestEmailConfigRequest {
     | EmailConfig
     | undefined;
   /** 测试邮件内容;不传时使用默认配置 */
-  messages?: EmailTemplate | undefined;
+  messages?:
+    | EmailTemplate
+    | undefined;
+  /** 模板占位符 */
+  Data: { [key: string]: string };
 }
 
 /** 测试邮件配置响应 */

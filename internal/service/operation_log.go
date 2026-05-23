@@ -103,6 +103,8 @@ func operationUserID(ctx context.Context, operation string, reply any, handlerEr
 
 var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationAuthServiceLogin:                         v1.OperationType_OperationTypeAuthLogin,
+	v1.OperationAuthServiceSendRegisterEmailCode:         v1.OperationType_OperationTypeAuthRegisterEmailCode,
+	v1.OperationAuthServiceSendLoginEmailCode:            v1.OperationType_OperationTypeAuthLoginEmailCode,
 	v1.OperationAuthServiceLogout:                        v1.OperationType_OperationTypeAuthLogout,
 	v1.OperationAuthServiceUpdatePassword:                v1.OperationType_OperationTypeAuthUpdatePassword,
 	v1.OperationAuthServiceDelLogin:                      v1.OperationType_OperationTypeAuthDeviceDelete,
@@ -118,6 +120,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemAdminDeleteRole:                    v1.OperationType_OperationTypeSystemRoleDelete,
 	v1.OperationSystemUpdateLoginConfig:                  v1.OperationType_OperationTypeSystemLoginConfigUpdate,
 	v1.OperationSystemUpdateEmailConfig:                  v1.OperationType_OperationTypeSystemEmailConfigUpdate,
+	v1.OperationSystemUpdateEmailTemplate:                v1.OperationType_OperationTypeSystemEmailTemplateUpdate,
 	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,
 	v1.OperationFileManagerCreateFileSystem:              v1.OperationType_OperationTypeFileCreate,
 	v1.OperationFileManagerRenameFileSystem:              v1.OperationType_OperationTypeFileRename,

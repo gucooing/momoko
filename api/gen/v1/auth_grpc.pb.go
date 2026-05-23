@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName          = "/v1.AuthService/Login"
-	AuthService_Refresh_FullMethodName        = "/v1.AuthService/Refresh"
-	AuthService_Devices_FullMethodName        = "/v1.AuthService/Devices"
-	AuthService_UpdatePassword_FullMethodName = "/v1.AuthService/UpdatePassword"
-	AuthService_Logout_FullMethodName         = "/v1.AuthService/Logout"
-	AuthService_DelLogin_FullMethodName       = "/v1.AuthService/DelLogin"
+	AuthService_Login_FullMethodName                 = "/v1.AuthService/Login"
+	AuthService_SendRegisterEmailCode_FullMethodName = "/v1.AuthService/SendRegisterEmailCode"
+	AuthService_SendLoginEmailCode_FullMethodName    = "/v1.AuthService/SendLoginEmailCode"
+	AuthService_Refresh_FullMethodName               = "/v1.AuthService/Refresh"
+	AuthService_Devices_FullMethodName               = "/v1.AuthService/Devices"
+	AuthService_UpdatePassword_FullMethodName        = "/v1.AuthService/UpdatePassword"
+	AuthService_Logout_FullMethodName                = "/v1.AuthService/Logout"
+	AuthService_DelLogin_FullMethodName              = "/v1.AuthService/DelLogin"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -35,6 +37,10 @@ const (
 type AuthServiceClient interface {
 	// 账号登录
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	// 发送注册邮件验证码
+	SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...grpc.CallOption) (*SendRegisterEmailCodeResponse, error)
+	// 发送登录邮件验证码
+	SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...grpc.CallOption) (*SendLoginEmailCodeResponse, error)
 	// 刷新token
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
 	// 获取登录设备
@@ -59,6 +65,26 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...grpc.CallOption) (*SendRegisterEmailCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendRegisterEmailCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_SendRegisterEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...grpc.CallOption) (*SendLoginEmailCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendLoginEmailCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_SendLoginEmailCode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +149,10 @@ func (c *authServiceClient) DelLogin(ctx context.Context, in *DelLoginRequest, o
 type AuthServiceServer interface {
 	// 账号登录
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	// 发送注册邮件验证码
+	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
+	// 发送登录邮件验证码
+	SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error)
 	// 刷新token
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
 	// 获取登录设备
@@ -145,6 +175,12 @@ type UnimplementedAuthServiceServer struct{}
 
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthServiceServer) SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendRegisterEmailCode not implemented")
+}
+func (UnimplementedAuthServiceServer) SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendLoginEmailCode not implemented")
 }
 func (UnimplementedAuthServiceServer) Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Refresh not implemented")
@@ -196,6 +232,42 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).Login(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_SendRegisterEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRegisterEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendRegisterEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendRegisterEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendRegisterEmailCode(ctx, req.(*SendRegisterEmailCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_SendLoginEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendLoginEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendLoginEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendLoginEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendLoginEmailCode(ctx, req.(*SendLoginEmailCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -300,6 +372,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
+		},
+		{
+			MethodName: "SendRegisterEmailCode",
+			Handler:    _AuthService_SendRegisterEmailCode_Handler,
+		},
+		{
+			MethodName: "SendLoginEmailCode",
+			Handler:    _AuthService_SendLoginEmailCode_Handler,
 		},
 		{
 			MethodName: "Refresh",

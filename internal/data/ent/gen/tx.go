@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// Auth is the client for interacting with the Auth builders.
 	Auth *AuthClient
+	// EmailTemplate is the client for interacting with the EmailTemplate builders.
+	EmailTemplate *EmailTemplateClient
 	// FileUpload is the client for interacting with the FileUpload builders.
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
@@ -168,6 +170,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Auth = NewAuthClient(tx.config)
+	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileUpload = NewFileUploadClient(tx.config)
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
 	tx.Instance = NewInstanceClient(tx.config)

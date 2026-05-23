@@ -54,6 +54,21 @@ var (
 			},
 		},
 	}
+	// EmailTemplatesColumns holds the columns for the "email_templates" table.
+	EmailTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString, Unique: true},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "template", Type: field.TypeString, Size: 2147483647, Default: ""},
+	}
+	// EmailTemplatesTable holds the schema information for the "email_templates" table.
+	EmailTemplatesTable = &schema.Table{
+		Name:       "email_templates",
+		Columns:    EmailTemplatesColumns,
+		PrimaryKey: []*schema.Column{EmailTemplatesColumns[0]},
+	}
 	// FileUploadsColumns holds the columns for the "file_uploads" table.
 	FileUploadsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -397,6 +412,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuthsTable,
+		EmailTemplatesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
 		InstancesTable,
@@ -413,6 +429,9 @@ var (
 )
 
 func init() {
+	EmailTemplatesTable.Annotation = &entsql.Annotation{
+		Table: "email_templates",
+	}
 	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable

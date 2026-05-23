@@ -9,6 +9,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	auth2 "momoko/internal/data/ent/gen/auth"
+	genuser "momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
 
@@ -18,16 +19,18 @@ import (
 type AuthService struct {
 	v1.UnimplementedAuthServiceServer
 
-	uc   *biz.AuthUsecase
-	user *biz.UserUsecase
-	conf *biz.ConfigUsecase
+	uc     *biz.AuthUsecase
+	user   *biz.UserUsecase
+	conf   *biz.ConfigUsecase
+	system *biz.SystemUsecase
 }
 
-func NewAuthService(uc *biz.AuthUsecase, user *biz.UserUsecase, conf *biz.ConfigUsecase) *AuthService {
+func NewAuthService(uc *biz.AuthUsecase, user *biz.UserUsecase, conf *biz.ConfigUsecase, system *biz.SystemUsecase) *AuthService {
 	return &AuthService{
-		uc:   uc,
-		user: user,
-		conf: conf,
+		uc:     uc,
+		user:   user,
+		conf:   conf,
+		system: system,
 	}
 }
 
@@ -45,12 +48,12 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		if !loginConfig.UsernameLoginEnabled {
 			return nil, biz.ErrUsernameLoginDisabled
 		}
-		user, err = s.user.LoginByUsername(ctx, req.GetUsername(), req.GetPassword())
+		user, err = s.uc.LoginByUsername(ctx, req.GetUsername(), req.GetPassword())
 	case *v1.LoginRequest_Email:
 		if !loginConfig.EmailLoginEnabled {
 			return nil, biz.ErrEmailLoginDisabled
 		}
-		return nil, response.BadRequest(500, "Email validation failed")
+		user, err = s.uc.LoginByEmail(ctx, req.GetEmail(), req.GetCode())
 	default:
 		return nil, response.BadRequest(400, "请选择登录方式")
 	}
@@ -79,6 +82,68 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		RefreshToken: refreshToken,
 		ExpiresIn:    durationpb.New(time.Hour),
 	}, nil
+}
+
+func (s *AuthService) SendRegisterEmailCode(ctx context.Context, req *v1.SendRegisterEmailCodeRequest) (*v1.SendRegisterEmailCodeResponse, error) {
+	loginConfig, err := s.conf.LoginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !loginConfig.RegisterEnabled {
+		return nil, biz.ErrRegisterDisabled
+	}
+
+	if _, err = s.user.FindByEmail(ctx, req.Email); err == nil {
+		return nil, biz.ErrEmailRegistered
+	} else if !gen.IsNotFound(err) {
+		return nil, biz.ErrSystem(err)
+	}
+
+	code, err := s.uc.NewEmailCode(req.Email, biz.EmailCodeTypeRegister)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Register, req.Email, map[string]string{
+		"code":  code,
+		"email": req.Email,
+	}); err != nil {
+		return nil, err
+	}
+	return &v1.SendRegisterEmailCodeResponse{}, nil
+}
+
+func (s *AuthService) SendLoginEmailCode(ctx context.Context, req *v1.SendLoginEmailCodeRequest) (*v1.SendLoginEmailCodeResponse, error) {
+	loginConfig, err := s.conf.LoginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !loginConfig.EmailLoginEnabled {
+		return nil, biz.ErrEmailLoginDisabled
+	}
+
+	userInfo, err := s.user.FindByEmail(ctx, req.Email)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, biz.ErrAdminNotFound
+		}
+		return nil, biz.ErrSystem(err)
+	}
+	if userInfo.Status != genuser.StatusActive {
+		return nil, biz.ErrUserInactive
+	}
+
+	code, err := s.uc.NewEmailCode(req.Email, biz.EmailCodeTypeLogin)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Login, req.Email, map[string]string{
+		"code":  code,
+		"email": req.Email,
+		"name":  userInfo.Name,
+	}); err != nil {
+		return nil, err
+	}
+	return &v1.SendLoginEmailCodeResponse{}, nil
 }
 
 func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.RefreshResponse, error) {
