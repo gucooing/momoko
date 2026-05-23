@@ -153,6 +153,8 @@ const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeAuthLogout]: '退出登录',
   [OperationType.OperationTypeAuthUpdatePassword]: '修改密码',
   [OperationType.OperationTypeAuthDeviceDelete]: '登录设备删除',
+  [OperationType.OperationTypeAuthRegisterEmailCode]: '注册邮件验证码发送',
+  [OperationType.OperationTypeAuthLoginEmailCode]: '登录邮件验证码发送',
   [OperationType.OperationTypeUserUpdateMe]: '个人信息更新',
   [OperationType.OperationTypeUserCreate]: '用户新增',
   [OperationType.OperationTypeUserUpdate]: '用户编辑',
@@ -200,6 +202,9 @@ const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeSSHHostShare]: 'SSH连接分享',
   [OperationType.OperationTypeSSHHostTest]: 'SSH连接测试',
   [OperationType.OperationTypeSSHHostBatchTest]: 'SSH连接批量测试',
+  [OperationType.OperationTypeSystemEmailConfigUpdate]: '邮件配置更新',
+  [OperationType.OperationTypeSystemEmailConfigTest]: '邮件配置测试',
+  [OperationType.OperationTypeSystemEmailTemplateUpdate]: '邮件模板更新',
 }
 
 const operationTypeOptions = Object.entries(operationTypeLabels).map(([value, label]) => ({

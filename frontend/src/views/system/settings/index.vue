@@ -555,6 +555,7 @@ const handleTemplateTest = async () => {
   try {
     await testEmailConfig({
       recipient: templateTestRecipient.value,
+      config:  undefined, // 使用全局邮件配置
       messages: {
         subject: templateForm.subject,
         template: templateForm.template,
@@ -673,7 +674,7 @@ const handleEmailTest = async () => {
         timeoutSeconds: emailForm.timeoutSeconds,
         ccsN: emailForm.ccsN,
       },
-      Data: {},
+      Data: {}, // 使用全局邮件模板测试发送
     })
     ElMessage.success('测试邮件发送成功')
     testDialogVisible.value = false
