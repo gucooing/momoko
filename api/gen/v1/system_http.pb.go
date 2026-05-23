@@ -29,6 +29,7 @@ const OperationSystemAdminPermissions = "/v1.System/AdminPermissions"
 const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
+const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
 const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
@@ -56,6 +57,8 @@ type SystemHTTPServer interface {
 	AdminRole(context.Context, *AdminRoleRequest) (*AdminRoleResponse, error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
+	// ListOperationLogs 获取操作日志
+	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	// LoginConfig 获取登录配置
 	LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error)
 	// MePermissions 获取当前角色的全部权限
@@ -85,6 +88,7 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/status", _System_ListOperationLogs0_HTTP_Handler(srv))
 }
 
 func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
@@ -402,6 +406,25 @@ func _System_SystemStatus0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Cont
 	}
 }
 
+func _System_ListOperationLogs0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListOperationLogsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemListOperationLogs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListOperationLogs(ctx, req.(*ListOperationLogsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListOperationLogsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SystemHTTPClient interface {
 	// AdminAddPermissions 管理员添加权限菜单
 	AdminAddPermissions(ctx context.Context, req *AdminAddPermissionsRequest, opts ...http.CallOption) (rsp *AdminAddPermissionsResponse, err error)
@@ -423,6 +446,8 @@ type SystemHTTPClient interface {
 	AdminRole(ctx context.Context, req *AdminRoleRequest, opts ...http.CallOption) (rsp *AdminRoleResponse, err error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
+	// ListOperationLogs 获取操作日志
+	ListOperationLogs(ctx context.Context, req *ListOperationLogsRequest, opts ...http.CallOption) (rsp *ListOperationLogsResponse, err error)
 	// LoginConfig 获取登录配置
 	LoginConfig(ctx context.Context, req *LoginConfigRequest, opts ...http.CallOption) (rsp *LoginConfigResponse, err error)
 	// MePermissions 获取当前角色的全部权限
@@ -575,6 +600,20 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 	pattern := "/api/v1/role/admin"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemAdminRoles))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListOperationLogs 获取操作日志
+func (c *SystemHTTPClientImpl) ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...http.CallOption) (*ListOperationLogsResponse, error) {
+	var out ListOperationLogsResponse
+	pattern := "/api/v1/system/status"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemListOperationLogs))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

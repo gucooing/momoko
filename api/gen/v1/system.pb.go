@@ -3886,6 +3886,306 @@ func (x *DiskIOStatus) GetIoTime() uint64 {
 	return 0
 }
 
+// 查询操作日志请求
+type ListOperationLogsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 操作用户id
+	UserId *string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
+	// 操作类型
+	OperationType *string `protobuf:"bytes,2,opt,name=operation_type,json=operationType,proto3,oneof" json:"operation_type,omitempty"`
+	// 操作是否成功
+	Success *bool `protobuf:"varint,3,opt,name=success,proto3,oneof" json:"success,omitempty"`
+	// 请求路径
+	Path *string `protobuf:"bytes,4,opt,name=path,proto3,oneof" json:"path,omitempty"`
+	// page
+	Page int64 `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	// page size
+	PageSize int64 `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 开始时间
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 结束时间
+	EndTime       *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOperationLogsRequest) Reset() {
+	*x = ListOperationLogsRequest{}
+	mi := &file_v1_system_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOperationLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOperationLogsRequest) ProtoMessage() {}
+
+func (x *ListOperationLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOperationLogsRequest.ProtoReflect.Descriptor instead.
+func (*ListOperationLogsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *ListOperationLogsRequest) GetUserId() string {
+	if x != nil && x.UserId != nil {
+		return *x.UserId
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetOperationType() string {
+	if x != nil && x.OperationType != nil {
+		return *x.OperationType
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetSuccess() bool {
+	if x != nil && x.Success != nil {
+		return *x.Success
+	}
+	return false
+}
+
+func (x *ListOperationLogsRequest) GetPath() string {
+	if x != nil && x.Path != nil {
+		return *x.Path
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetPage() int64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListOperationLogsRequest) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListOperationLogsRequest) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *ListOperationLogsRequest) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EndTime
+	}
+	return nil
+}
+
+// 查询操作日志响应
+type ListOperationLogsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 操作日志
+	Logs []*OperationLogInfo `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
+	// actual page
+	Page int64 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	// actual page size
+	PageSize int64 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 总数
+	Total         int64 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOperationLogsResponse) Reset() {
+	*x = ListOperationLogsResponse{}
+	mi := &file_v1_system_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOperationLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOperationLogsResponse) ProtoMessage() {}
+
+func (x *ListOperationLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOperationLogsResponse.ProtoReflect.Descriptor instead.
+func (*ListOperationLogsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *ListOperationLogsResponse) GetLogs() []*OperationLogInfo {
+	if x != nil {
+		return x.Logs
+	}
+	return nil
+}
+
+func (x *ListOperationLogsResponse) GetPage() int64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListOperationLogsResponse) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListOperationLogsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+// 操作日志信息
+type OperationLogInfo struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 操作用户id
+	UserId *string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
+	// 操作类型
+	OperationType string `protobuf:"bytes,2,opt,name=operation_type,json=operationType,proto3" json:"operation_type,omitempty"`
+	// 操作是否成功
+	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// 操作详情
+	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
+	// ip
+	Ip string `protobuf:"bytes,5,opt,name=ip,proto3" json:"ip,omitempty"`
+	// ua
+	UserAgent string `protobuf:"bytes,6,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	// 请求路径
+	Path string `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
+	// 耗时毫秒
+	DurationMs int64 `protobuf:"varint,8,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	// 操作时间
+	OperationTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=operation_time,json=operationTime,proto3" json:"operation_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperationLogInfo) Reset() {
+	*x = OperationLogInfo{}
+	mi := &file_v1_system_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperationLogInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperationLogInfo) ProtoMessage() {}
+
+func (x *OperationLogInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OperationLogInfo.ProtoReflect.Descriptor instead.
+func (*OperationLogInfo) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *OperationLogInfo) GetUserId() string {
+	if x != nil && x.UserId != nil {
+		return *x.UserId
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetOperationType() string {
+	if x != nil {
+		return x.OperationType
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *OperationLogInfo) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *OperationLogInfo) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *OperationLogInfo) GetOperationTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.OperationTime
+	}
+	return nil
+}
+
 var File_v1_system_proto protoreflect.FileDescriptor
 
 const file_v1_system_proto_rawDesc = "" +
@@ -4198,7 +4498,42 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1bwrite_rate_bytes_per_second\x18\t \x01(\x01R\x17writeRateBytesPerSecond\x12(\n" +
 	"\x10iops_in_progress\x18\n" +
 	" \x01(\x04R\x0eiopsInProgress\x12\x17\n" +
-	"\aio_time\x18\v \x01(\x04R\x06ioTime*<\n" +
+	"\aio_time\x18\v \x01(\x04R\x06ioTime\"\xf3\x02\n" +
+	"\x18ListOperationLogsRequest\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12*\n" +
+	"\x0eoperation_type\x18\x02 \x01(\tH\x01R\roperationType\x88\x01\x01\x12\x1d\n" +
+	"\asuccess\x18\x03 \x01(\bH\x02R\asuccess\x88\x01\x01\x12\x17\n" +
+	"\x04path\x18\x04 \x01(\tH\x03R\x04path\x88\x01\x01\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x03R\bpageSize\x129\n" +
+	"\n" +
+	"start_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
+	"\bend_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\aendTimeB\n" +
+	"\n" +
+	"\b_user_idB\x11\n" +
+	"\x0f_operation_typeB\n" +
+	"\n" +
+	"\b_successB\a\n" +
+	"\x05_path\"\x8c\x01\n" +
+	"\x19ListOperationLogsResponse\x12(\n" +
+	"\x04logs\x18\x01 \x03(\v2\x14.v1.OperationLogInfoR\x04logs\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\xbc\x02\n" +
+	"\x10OperationLogInfo\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12%\n" +
+	"\x0eoperation_type\x18\x02 \x01(\tR\roperationType\x12\x18\n" +
+	"\asuccess\x18\x03 \x01(\bR\asuccess\x12\x16\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12\x0e\n" +
+	"\x02ip\x18\x05 \x01(\tR\x02ip\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x06 \x01(\tR\tuserAgent\x12\x12\n" +
+	"\x04path\x18\a \x01(\tR\x04path\x12\x1f\n" +
+	"\vduration_ms\x18\b \x01(\x03R\n" +
+	"durationMs\x12A\n" +
+	"\x0eoperation_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\roperationTimeB\n" +
+	"\n" +
+	"\b_user_id*<\n" +
 	"\n" +
 	"MenuStatus\x12\x17\n" +
 	"\x13MenuStatus_InActive\x10\x00\x12\x15\n" +
@@ -4210,7 +4545,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\n" +
 	"RoleStatus\x12\x17\n" +
 	"\x13RoleStatus_InActive\x10\x00\x12\x15\n" +
-	"\x11RoleStatus_Active\x10\x012\xac\r\n" +
+	"\x11RoleStatus_Active\x10\x012\x9d\x0e\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +
@@ -4227,7 +4562,8 @@ const file_v1_system_proto_rawDesc = "" +
 	"\vLoginConfig\x12\x16.v1.LoginConfigRequest\x1a\x17.v1.LoginConfigResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/system/login-config\x12x\n" +
 	"\x11UpdateLoginConfig\x12\x1c.v1.UpdateLoginConfigRequest\x1a\x1d.v1.UpdateLoginConfigResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/system/login-config\x12h\n" +
 	"\x0eSystemOverview\x12\x19.v1.SystemOverviewRequest\x1a\x1a.v1.SystemOverviewResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/system/overview\x12`\n" +
-	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/statusB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/status\x12o\n" +
+	"\x11ListOperationLogs\x12\x1c.v1.ListOperationLogsRequest\x1a\x1d.v1.ListOperationLogsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/statusB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_system_proto_rawDescOnce sync.Once
@@ -4242,7 +4578,7 @@ func file_v1_system_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 53)
+var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
 var file_v1_system_proto_goTypes = []any{
 	(MenuStatus)(0),                        // 0: v1.MenuStatus
 	(MenuType)(0),                          // 1: v1.MenuType
@@ -4299,15 +4635,18 @@ var file_v1_system_proto_goTypes = []any{
 	(*DiskStatus)(nil),                     // 52: v1.DiskStatus
 	(*DiskPartitionStatus)(nil),            // 53: v1.DiskPartitionStatus
 	(*DiskIOStatus)(nil),                   // 54: v1.DiskIOStatus
-	nil,                                    // 55: v1.NetworkConnectionStatus.TcpStatusesEntry
-	(*timestamppb.Timestamp)(nil),          // 56: google.protobuf.Timestamp
+	(*ListOperationLogsRequest)(nil),       // 55: v1.ListOperationLogsRequest
+	(*ListOperationLogsResponse)(nil),      // 56: v1.ListOperationLogsResponse
+	(*OperationLogInfo)(nil),               // 57: v1.OperationLogInfo
+	nil,                                    // 58: v1.NetworkConnectionStatus.TcpStatusesEntry
+	(*timestamppb.Timestamp)(nil),          // 59: google.protobuf.Timestamp
 }
 var file_v1_system_proto_depIdxs = []int32{
 	5,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
 	0,  // 1: v1.MenuInfo.status:type_name -> v1.MenuStatus
 	1,  // 2: v1.MenuInfo.type:type_name -> v1.MenuType
-	56, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
-	56, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
+	59, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
+	59, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
 	5,  // 5: v1.MenuInfo.children:type_name -> v1.MenuInfo
 	5,  // 6: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
 	5,  // 7: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
@@ -4317,8 +4656,8 @@ var file_v1_system_proto_depIdxs = []int32{
 	2,  // 11: v1.AdminRolesRequest.status:type_name -> v1.RoleStatus
 	18, // 12: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
 	2,  // 13: v1.RoleInfo.status:type_name -> v1.RoleStatus
-	56, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
-	56, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
+	59, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
+	59, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
 	18, // 16: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
 	2,  // 17: v1.AdminAddRoleRequest.status:type_name -> v1.RoleStatus
 	18, // 18: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
@@ -4327,18 +4666,18 @@ var file_v1_system_proto_depIdxs = []int32{
 	27, // 21: v1.LoginConfigResponse.config:type_name -> v1.LoginConfig
 	27, // 22: v1.UpdateLoginConfigResponse.config:type_name -> v1.LoginConfig
 	36, // 23: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
-	56, // 24: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
+	59, // 24: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
 	37, // 25: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
 	40, // 26: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
 	46, // 27: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
 	50, // 28: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
 	51, // 29: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
-	56, // 30: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
+	59, // 30: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
 	38, // 31: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
 	41, // 32: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
 	47, // 33: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
 	52, // 34: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
-	56, // 35: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
+	59, // 35: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
 	39, // 36: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
 	42, // 37: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
 	44, // 38: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
@@ -4348,48 +4687,54 @@ var file_v1_system_proto_depIdxs = []int32{
 	48, // 42: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
 	48, // 43: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
 	49, // 44: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
-	55, // 45: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
+	58, // 45: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
 	53, // 46: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
 	53, // 47: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
 	53, // 48: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
 	54, // 49: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
 	54, // 50: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
 	54, // 51: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
-	3,  // 52: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
-	6,  // 53: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
-	8,  // 54: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
-	10, // 55: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
-	12, // 56: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
-	14, // 57: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
-	16, // 58: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
-	19, // 59: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
-	21, // 60: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
-	23, // 61: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
-	25, // 62: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
-	28, // 63: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
-	30, // 64: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
-	32, // 65: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
-	34, // 66: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
-	4,  // 67: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
-	7,  // 68: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
-	9,  // 69: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
-	11, // 70: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
-	13, // 71: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
-	15, // 72: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
-	17, // 73: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
-	20, // 74: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
-	22, // 75: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
-	24, // 76: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
-	26, // 77: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
-	29, // 78: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
-	31, // 79: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
-	33, // 80: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
-	35, // 81: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
-	67, // [67:82] is the sub-list for method output_type
-	52, // [52:67] is the sub-list for method input_type
-	52, // [52:52] is the sub-list for extension type_name
-	52, // [52:52] is the sub-list for extension extendee
-	0,  // [0:52] is the sub-list for field type_name
+	59, // 52: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
+	59, // 53: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
+	57, // 54: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
+	59, // 55: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
+	3,  // 56: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
+	6,  // 57: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
+	8,  // 58: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
+	10, // 59: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
+	12, // 60: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
+	14, // 61: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
+	16, // 62: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
+	19, // 63: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
+	21, // 64: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
+	23, // 65: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
+	25, // 66: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
+	28, // 67: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
+	30, // 68: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
+	32, // 69: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
+	34, // 70: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
+	55, // 71: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
+	4,  // 72: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
+	7,  // 73: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
+	9,  // 74: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
+	11, // 75: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
+	13, // 76: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
+	15, // 77: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
+	17, // 78: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
+	20, // 79: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
+	22, // 80: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
+	24, // 81: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
+	26, // 82: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
+	29, // 83: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
+	31, // 84: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
+	33, // 85: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
+	35, // 86: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
+	56, // 87: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
+	72, // [72:88] is the sub-list for method output_type
+	56, // [56:72] is the sub-list for method input_type
+	56, // [56:56] is the sub-list for extension type_name
+	56, // [56:56] is the sub-list for extension extendee
+	0,  // [0:56] is the sub-list for field type_name
 }
 
 func init() { file_v1_system_proto_init() }
@@ -4399,13 +4744,15 @@ func file_v1_system_proto_init() {
 	}
 	file_v1_system_proto_msgTypes[13].OneofWrappers = []any{}
 	file_v1_system_proto_msgTypes[31].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[52].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[54].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_system_proto_rawDesc), len(file_v1_system_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   53,
+			NumMessages:   56,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

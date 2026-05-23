@@ -197,6 +197,55 @@ var (
 		Columns:    MenusColumns,
 		PrimaryKey: []*schema.Column{MenusColumns[0]},
 	}
+	// OperationLogsColumns holds the columns for the "operation_logs" table.
+	OperationLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "operation_type", Type: field.TypeString},
+		{Name: "success", Type: field.TypeBool, Default: true},
+		{Name: "detail", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "ip", Type: field.TypeString, Default: ""},
+		{Name: "user_agent", Type: field.TypeString, Default: ""},
+		{Name: "path", Type: field.TypeString, Default: ""},
+		{Name: "duration_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "operation_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString, Nullable: true},
+	}
+	// OperationLogsTable holds the schema information for the "operation_logs" table.
+	OperationLogsTable = &schema.Table{
+		Name:       "operation_logs",
+		Columns:    OperationLogsColumns,
+		PrimaryKey: []*schema.Column{OperationLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "operation_logs_users_user",
+				Columns:    []*schema.Column{OperationLogsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "operationlog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{OperationLogsColumns[9]},
+			},
+			{
+				Name:    "operationlog_operation_type",
+				Unique:  false,
+				Columns: []*schema.Column{OperationLogsColumns[1]},
+			},
+			{
+				Name:    "operationlog_path",
+				Unique:  false,
+				Columns: []*schema.Column{OperationLogsColumns[6]},
+			},
+			{
+				Name:    "operationlog_operation_time",
+				Unique:  false,
+				Columns: []*schema.Column{OperationLogsColumns[8]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -353,6 +402,7 @@ var (
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
+		OperationLogsTable,
 		RolesTable,
 		SSHHostsTable,
 		ConfigsTable,
@@ -367,6 +417,7 @@ func init() {
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
+	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable
 	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",

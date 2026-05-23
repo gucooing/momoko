@@ -104,6 +104,12 @@ service System {
       get: "/api/v1/system/status"
     };
   }
+  // 获取操作日志
+  rpc ListOperationLogs(ListOperationLogsRequest) returns (ListOperationLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/status"
+    };
+  }
 }
 
 // 获取当前角色的全部权限请求
@@ -725,4 +731,58 @@ message DiskIOStatus {
   uint64 iops_in_progress = 10;
   // 累计IO耗时
   uint64 io_time = 11;
+}
+
+// 查询操作日志请求
+message ListOperationLogsRequest {
+  // 操作用户id
+  optional string user_id = 1;
+  // 操作类型
+  optional string operation_type = 2;
+  // 操作是否成功
+  optional bool success = 3;
+  // 请求路径
+  optional string path = 4;
+  // page
+  int64 page = 5;
+  // page size
+  int64 page_size = 6;
+  // 开始时间
+  google.protobuf.Timestamp start_time = 7;
+  // 结束时间
+  google.protobuf.Timestamp end_time = 8;
+}
+
+// 查询操作日志响应
+message ListOperationLogsResponse {
+  // 操作日志
+  repeated OperationLogInfo logs = 1;
+  // actual page
+  int64 page = 2;
+  // actual page size
+  int64 page_size = 3;
+  // 总数
+  int64 total = 4;
+}
+
+// 操作日志信息
+message OperationLogInfo {
+  // 操作用户id
+  optional string user_id = 1;
+  // 操作类型
+  string operation_type = 2;
+  // 操作是否成功
+  bool success = 3;
+  // 操作详情
+  string detail = 4;
+  // ip
+  string ip = 5;
+  // ua
+  string user_agent = 6;
+  // 请求路径
+  string path = 7;
+  // 耗时毫秒
+  int64 duration_ms = 8;
+  // 操作时间
+  google.protobuf.Timestamp operation_time = 9;
 }

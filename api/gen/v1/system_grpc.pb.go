@@ -34,6 +34,7 @@ const (
 	System_UpdateLoginConfig_FullMethodName      = "/v1.System/UpdateLoginConfig"
 	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
 	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
+	System_ListOperationLogs_FullMethodName      = "/v1.System/ListOperationLogs"
 )
 
 // SystemClient is the client API for System service.
@@ -72,6 +73,8 @@ type SystemClient interface {
 	SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
 	SystemStatus(ctx context.Context, in *SystemStatusRequest, opts ...grpc.CallOption) (*SystemStatusResponse, error)
+	// 获取操作日志
+	ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...grpc.CallOption) (*ListOperationLogsResponse, error)
 }
 
 type systemClient struct {
@@ -232,6 +235,16 @@ func (c *systemClient) SystemStatus(ctx context.Context, in *SystemStatusRequest
 	return out, nil
 }
 
+func (c *systemClient) ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...grpc.CallOption) (*ListOperationLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOperationLogsResponse)
+	err := c.cc.Invoke(ctx, System_ListOperationLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServer is the server API for System service.
 // All implementations must embed UnimplementedSystemServer
 // for forward compatibility.
@@ -268,6 +281,8 @@ type SystemServer interface {
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
 	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
+	// 获取操作日志
+	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	mustEmbedUnimplementedSystemServer()
 }
 
@@ -322,6 +337,9 @@ func (UnimplementedSystemServer) SystemOverview(context.Context, *SystemOverview
 }
 func (UnimplementedSystemServer) SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SystemStatus not implemented")
+}
+func (UnimplementedSystemServer) ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOperationLogs not implemented")
 }
 func (UnimplementedSystemServer) mustEmbedUnimplementedSystemServer() {}
 func (UnimplementedSystemServer) testEmbeddedByValue()                {}
@@ -614,6 +632,24 @@ func _System_SystemStatus_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_ListOperationLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOperationLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ListOperationLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ListOperationLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ListOperationLogs(ctx, req.(*ListOperationLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // System_ServiceDesc is the grpc.ServiceDesc for System service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -680,6 +716,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SystemStatus",
 			Handler:    _System_SystemStatus_Handler,
+		},
+		{
+			MethodName: "ListOperationLogs",
+			Handler:    _System_ListOperationLogs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -20,6 +20,7 @@ import (
 func NewHTTPServer(c *conf.Server,
 	avatarManager *avatar.Manager,
 	authorization *Authorization,
+	operationLog *service.OperationLogMiddleware,
 	authApi *service.AuthService,
 	fileApi *service.FileService,
 	userApi *service.UserService,
@@ -35,6 +36,7 @@ func NewHTTPServer(c *conf.Server,
 			authorization.Middleware(), // 身份验证
 		),
 		http.Middleware(
+			operationLog.Middleware(),
 			recovery.Recovery(),
 			validate.Middleware(),
 		),

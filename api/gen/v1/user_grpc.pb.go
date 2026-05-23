@@ -19,13 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_MeInfo_FullMethodName     = "/v1.UserService/MeInfo"
-	UserService_UpdateMe_FullMethodName   = "/v1.UserService/UpdateMe"
-	UserService_ListUser_FullMethodName   = "/v1.UserService/ListUser"
-	UserService_UserInfo_FullMethodName   = "/v1.UserService/UserInfo"
-	UserService_AddUser_FullMethodName    = "/v1.UserService/AddUser"
-	UserService_EditUser_FullMethodName   = "/v1.UserService/EditUser"
-	UserService_DeleteUser_FullMethodName = "/v1.UserService/DeleteUser"
+	UserService_MeInfo_FullMethodName      = "/v1.UserService/MeInfo"
+	UserService_UpdateMe_FullMethodName    = "/v1.UserService/UpdateMe"
+	UserService_MyLoginLogs_FullMethodName = "/v1.UserService/MyLoginLogs"
+	UserService_ListUser_FullMethodName    = "/v1.UserService/ListUser"
+	UserService_UserInfo_FullMethodName    = "/v1.UserService/UserInfo"
+	UserService_AddUser_FullMethodName     = "/v1.UserService/AddUser"
+	UserService_EditUser_FullMethodName    = "/v1.UserService/EditUser"
+	UserService_DeleteUser_FullMethodName  = "/v1.UserService/DeleteUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -38,6 +39,8 @@ type UserServiceClient interface {
 	MeInfo(ctx context.Context, in *MeInfoRequest, opts ...grpc.CallOption) (*MeInfoResponse, error)
 	// 更新个人资料
 	UpdateMe(ctx context.Context, in *UpdateMeRequest, opts ...grpc.CallOption) (*UpdateMeResponse, error)
+	// 获取自己的登录日志
+	MyLoginLogs(ctx context.Context, in *MyLoginLogsRequest, opts ...grpc.CallOption) (*MyLoginLogsResponse, error)
 	// 获取用户列表
 	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
 	// 获取用户详情
@@ -72,6 +75,16 @@ func (c *userServiceClient) UpdateMe(ctx context.Context, in *UpdateMeRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateMeResponse)
 	err := c.cc.Invoke(ctx, UserService_UpdateMe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) MyLoginLogs(ctx context.Context, in *MyLoginLogsRequest, opts ...grpc.CallOption) (*MyLoginLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MyLoginLogsResponse)
+	err := c.cc.Invoke(ctx, UserService_MyLoginLogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +151,8 @@ type UserServiceServer interface {
 	MeInfo(context.Context, *MeInfoRequest) (*MeInfoResponse, error)
 	// 更新个人资料
 	UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error)
+	// 获取自己的登录日志
+	MyLoginLogs(context.Context, *MyLoginLogsRequest) (*MyLoginLogsResponse, error)
 	// 获取用户列表
 	ListUser(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	// 获取用户详情
@@ -163,6 +178,9 @@ func (UnimplementedUserServiceServer) MeInfo(context.Context, *MeInfoRequest) (*
 }
 func (UnimplementedUserServiceServer) UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMe not implemented")
+}
+func (UnimplementedUserServiceServer) MyLoginLogs(context.Context, *MyLoginLogsRequest) (*MyLoginLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MyLoginLogs not implemented")
 }
 func (UnimplementedUserServiceServer) ListUser(context.Context, *ListUserRequest) (*ListUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUser not implemented")
@@ -232,6 +250,24 @@ func _UserService_UpdateMe_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).UpdateMe(ctx, req.(*UpdateMeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_MyLoginLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MyLoginLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).MyLoginLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_MyLoginLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).MyLoginLogs(ctx, req.(*MyLoginLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -340,6 +376,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMe",
 			Handler:    _UserService_UpdateMe_Handler,
+		},
+		{
+			MethodName: "MyLoginLogs",
+			Handler:    _UserService_MyLoginLogs_Handler,
 		},
 		{
 			MethodName: "ListUser",

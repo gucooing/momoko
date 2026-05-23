@@ -6,6 +6,7 @@ option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "v1/system.proto";
 
 // 用户服务
 service UserService {
@@ -20,6 +21,12 @@ service UserService {
     option (google.api.http) = {
       put: "/api/v1/auth/me"
       body: "*"
+    };
+  }
+  // 获取自己的登录日志
+  rpc MyLoginLogs(MyLoginLogsRequest) returns (MyLoginLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/me/login-logs"
     };
   }
   // 获取用户列表
@@ -85,6 +92,26 @@ message UpdateMeRequest {
 message UpdateMeResponse {
   // 用户信息
   UserInfo user = 1;
+}
+
+// 获取自己的登录日志请求
+message MyLoginLogsRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+}
+
+// 获取自己的登录日志响应
+message MyLoginLogsResponse {
+  // 登录日志
+  repeated OperationLogInfo logs = 1;
+  // actual page
+  int64 page = 2;
+  // actual page size
+  int64 page_size = 3;
+  // 总数
+  int64 total = 4;
 }
 
 // 获取用户列表请求

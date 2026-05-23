@@ -24,6 +24,7 @@ const OperationUserServiceDeleteUser = "/v1.UserService/DeleteUser"
 const OperationUserServiceEditUser = "/v1.UserService/EditUser"
 const OperationUserServiceListUser = "/v1.UserService/ListUser"
 const OperationUserServiceMeInfo = "/v1.UserService/MeInfo"
+const OperationUserServiceMyLoginLogs = "/v1.UserService/MyLoginLogs"
 const OperationUserServiceUpdateMe = "/v1.UserService/UpdateMe"
 const OperationUserServiceUserInfo = "/v1.UserService/UserInfo"
 
@@ -38,6 +39,8 @@ type UserServiceHTTPServer interface {
 	ListUser(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	// MeInfo 获取自己的信息
 	MeInfo(context.Context, *MeInfoRequest) (*MeInfoResponse, error)
+	// MyLoginLogs 获取自己的登录日志
+	MyLoginLogs(context.Context, *MyLoginLogsRequest) (*MyLoginLogsResponse, error)
 	// UpdateMe 更新个人资料
 	UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error)
 	// UserInfo 获取用户详情
@@ -48,6 +51,7 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/user/me", _UserService_MeInfo0_HTTP_Handler(srv))
 	r.PUT("/api/v1/auth/me", _UserService_UpdateMe0_HTTP_Handler(srv))
+	r.GET("/api/v1/user/me/login-logs", _UserService_MyLoginLogs0_HTTP_Handler(srv))
 	r.GET("/api/v1/user/list", _UserService_ListUser0_HTTP_Handler(srv))
 	r.GET("/api/v1/user/{user_id}", _UserService_UserInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/user/add", _UserService_AddUser0_HTTP_Handler(srv))
@@ -92,6 +96,25 @@ func _UserService_UpdateMe0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx htt
 			return err
 		}
 		reply := out.(*UpdateMeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserService_MyLoginLogs0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MyLoginLogsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceMyLoginLogs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MyLoginLogs(ctx, req.(*MyLoginLogsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MyLoginLogsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -214,6 +237,8 @@ type UserServiceHTTPClient interface {
 	ListUser(ctx context.Context, req *ListUserRequest, opts ...http.CallOption) (rsp *ListUserResponse, err error)
 	// MeInfo 获取自己的信息
 	MeInfo(ctx context.Context, req *MeInfoRequest, opts ...http.CallOption) (rsp *MeInfoResponse, err error)
+	// MyLoginLogs 获取自己的登录日志
+	MyLoginLogs(ctx context.Context, req *MyLoginLogsRequest, opts ...http.CallOption) (rsp *MyLoginLogsResponse, err error)
 	// UpdateMe 更新个人资料
 	UpdateMe(ctx context.Context, req *UpdateMeRequest, opts ...http.CallOption) (rsp *UpdateMeResponse, err error)
 	// UserInfo 获取用户详情
@@ -290,6 +315,20 @@ func (c *UserServiceHTTPClientImpl) MeInfo(ctx context.Context, in *MeInfoReques
 	pattern := "/api/v1/user/me"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserServiceMeInfo))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// MyLoginLogs 获取自己的登录日志
+func (c *UserServiceHTTPClientImpl) MyLoginLogs(ctx context.Context, in *MyLoginLogsRequest, opts ...http.CallOption) (*MyLoginLogsResponse, error) {
+	var out MyLoginLogsResponse
+	pattern := "/api/v1/user/me/login-logs"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserServiceMyLoginLogs))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

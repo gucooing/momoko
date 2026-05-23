@@ -1641,31 +1641,58 @@ paths:
         get:
             tags:
                 - System
-            description: 获取系统实时状态
-            operationId: System_SystemStatus
+            description: 获取操作日志
+            operationId: System_ListOperationLogs
             parameters:
-                - name: interfaceName
+                - name: userId
                   in: query
-                  description: 网卡名称
+                  description: 操作用户id
                   schema:
                     type: string
-                - name: diskName
+                - name: operationType
                   in: query
-                  description: 磁盘名称
+                  description: 操作类型
                   schema:
                     type: string
-                - name: mountpoint
+                - name: success
                   in: query
-                  description: 挂载点
+                  description: 操作是否成功
+                  schema:
+                    type: boolean
+                - name: path
+                  in: query
+                  description: 请求路径
                   schema:
                     type: string
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: startTime
+                  in: query
+                  description: 开始时间
+                  schema:
+                    type: string
+                    format: date-time
+                - name: endTime
+                  in: query
+                  description: 结束时间
+                  schema:
+                    type: string
+                    format: date-time
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1.SystemStatusResponse'
+                                $ref: '#/components/schemas/v1.ListOperationLogsResponse'
     /api/v1/user/add:
         post:
             tags:
@@ -1754,6 +1781,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MeInfoResponse'
+    /api/v1/user/me/login-logs:
+        get:
+            tags:
+                - UserService
+            description: 获取自己的登录日志
+            operationId: UserService_MyLoginLogs
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.MyLoginLogsResponse'
     /api/v1/user/{userId}:
         get:
             tags:
@@ -2975,6 +3026,24 @@ components:
                     type: boolean
                     description: 是否启用
             description: 实例类型信息
+        v1.ListOperationLogsResponse:
+            type: object
+            properties:
+                logs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.OperationLogInfo'
+                    description: 操作日志
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+            description: 查询操作日志响应
         v1.ListUserResponse:
             type: object
             properties:
@@ -3178,6 +3247,24 @@ components:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 子权限菜单
             description: 权限菜单信息
+        v1.MyLoginLogsResponse:
+            type: object
+            properties:
+                logs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.OperationLogInfo'
+                    description: 登录日志
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+            description: 获取自己的登录日志响应
         v1.NetworkConnectionStatus:
             type: object
             properties:
@@ -3348,6 +3435,38 @@ components:
                     description: 文件内容
                     format: bytes
             description: 打开实例文件响应
+        v1.OperationLogInfo:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 操作用户id
+                operationType:
+                    type: string
+                    description: 操作类型
+                success:
+                    type: boolean
+                    description: 操作是否成功
+                detail:
+                    type: string
+                    description: 操作详情
+                ip:
+                    type: string
+                    description: ip
+                userAgent:
+                    type: string
+                    description: ua
+                path:
+                    type: string
+                    description: 请求路径
+                durationMs:
+                    type: string
+                    description: 耗时毫秒
+                operationTime:
+                    type: string
+                    description: 操作时间
+                    format: date-time
+            description: 操作日志信息
         v1.PhysicalMemoryOverview:
             type: object
             properties:

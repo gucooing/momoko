@@ -12,6 +12,7 @@ import (
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -88,6 +89,7 @@ func checkColumn(t, c string) error {
 			instance.Table:        instance.ValidColumn,
 			instancetype.Table:    instancetype.ValidColumn,
 			menu.Table:            menu.ValidColumn,
+			operationlog.Table:    operationlog.ValidColumn,
 			role.Table:            role.ValidColumn,
 			sshhost.Table:         sshhost.ValidColumn,
 			systemconfig.Table:    systemconfig.ValidColumn,

@@ -14,12 +14,14 @@ type UserService struct {
 
 	uc  *biz.UserUsecase
 	sys *biz.SystemUsecase
+	log *biz.OperationLogUsecase
 }
 
-func NewUserService(uc *biz.UserUsecase, sys *biz.SystemUsecase) *UserService {
+func NewUserService(uc *biz.UserUsecase, sys *biz.SystemUsecase, operationLog *biz.OperationLogUsecase) *UserService {
 	return &UserService{
 		uc:  uc,
 		sys: sys,
+		log: operationLog,
 	}
 }
 
@@ -49,6 +51,18 @@ func (u *UserService) UpdateMe(ctx context.Context, req *v1.UpdateMeRequest) (*v
 		return nil, err
 	}
 	return &v1.UpdateMeResponse{User: info}, nil
+}
+
+func (u *UserService) MyLoginLogs(ctx context.Context, req *v1.MyLoginLogsRequest) (*v1.MyLoginLogsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	logs, err := u.log.MyLoginLogs(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
 }
 
 func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v1.ListUserResponse, error) {

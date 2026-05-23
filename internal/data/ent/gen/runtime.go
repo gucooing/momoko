@@ -9,6 +9,7 @@ import (
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -193,6 +194,36 @@ func init() {
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	menu.IDValidator = menuDescID.Validators[0].(func(string) error)
+	operationlogFields := schema.OperationLog{}.Fields()
+	_ = operationlogFields
+	// operationlogDescOperationType is the schema descriptor for operation_type field.
+	operationlogDescOperationType := operationlogFields[1].Descriptor()
+	// operationlog.OperationTypeValidator is a validator for the "operation_type" field. It is called by the builders before save.
+	operationlog.OperationTypeValidator = operationlogDescOperationType.Validators[0].(func(string) error)
+	// operationlogDescSuccess is the schema descriptor for success field.
+	operationlogDescSuccess := operationlogFields[2].Descriptor()
+	// operationlog.DefaultSuccess holds the default value on creation for the success field.
+	operationlog.DefaultSuccess = operationlogDescSuccess.Default.(bool)
+	// operationlogDescIP is the schema descriptor for ip field.
+	operationlogDescIP := operationlogFields[4].Descriptor()
+	// operationlog.DefaultIP holds the default value on creation for the ip field.
+	operationlog.DefaultIP = operationlogDescIP.Default.(string)
+	// operationlogDescUserAgent is the schema descriptor for user_agent field.
+	operationlogDescUserAgent := operationlogFields[5].Descriptor()
+	// operationlog.DefaultUserAgent holds the default value on creation for the user_agent field.
+	operationlog.DefaultUserAgent = operationlogDescUserAgent.Default.(string)
+	// operationlogDescPath is the schema descriptor for path field.
+	operationlogDescPath := operationlogFields[6].Descriptor()
+	// operationlog.DefaultPath holds the default value on creation for the path field.
+	operationlog.DefaultPath = operationlogDescPath.Default.(string)
+	// operationlogDescDurationMs is the schema descriptor for duration_ms field.
+	operationlogDescDurationMs := operationlogFields[7].Descriptor()
+	// operationlog.DefaultDurationMs holds the default value on creation for the duration_ms field.
+	operationlog.DefaultDurationMs = operationlogDescDurationMs.Default.(int64)
+	// operationlogDescOperationTime is the schema descriptor for operation_time field.
+	operationlogDescOperationTime := operationlogFields[8].Descriptor()
+	// operationlog.DefaultOperationTime holds the default value on creation for the operation_time field.
+	operationlog.DefaultOperationTime = operationlogDescOperationTime.Default.(func() time.Time)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0

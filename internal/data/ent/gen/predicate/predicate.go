@@ -24,6 +24,9 @@ type InstanceType func(*sql.Selector)
 // Menu is the predicate function for menu builders.
 type Menu func(*sql.Selector)
 
+// OperationLog is the predicate function for operationlog builders.
+type OperationLog func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

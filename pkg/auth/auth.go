@@ -33,3 +33,11 @@ func EncodePassword(password string) string {
 	sum := md5.Sum([]byte(password))
 	return hex.EncodeToString(sum[:])
 }
+
+func GetUserIDFromContext(ctx context.Context) *string {
+	auth, ok := FromContext(ctx)
+	if !ok {
+		return nil
+	}
+	return &auth.UserID
+}

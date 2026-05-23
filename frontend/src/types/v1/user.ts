@@ -5,6 +5,7 @@
 // source: v1/user.proto
 
 /* eslint-disable */
+import type { OperationLogInfo } from "./system";
 
 export const protobufPackage = "v1";
 
@@ -66,6 +67,26 @@ export interface UpdateMeRequest {
 export interface UpdateMeResponse {
   /** 用户信息 */
   user: UserInfo | undefined;
+}
+
+/** 获取自己的登录日志请求 */
+export interface MyLoginLogsRequest {
+  /** page */
+  page: number;
+  /** page size */
+  pageSize: number;
+}
+
+/** 获取自己的登录日志响应 */
+export interface MyLoginLogsResponse {
+  /** 登录日志 */
+  logs: OperationLogInfo[];
+  /** actual page */
+  page: number;
+  /** actual page size */
+  pageSize: number;
+  /** 总数 */
+  total: number;
 }
 
 /** 获取用户列表请求 */

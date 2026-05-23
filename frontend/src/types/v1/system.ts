@@ -690,3 +690,69 @@ export interface DiskIOStatus {
   /** 累计IO耗时 */
   ioTime: number;
 }
+
+/** 查询操作日志请求 */
+export interface ListOperationLogsRequest {
+  /** 操作用户id */
+  userId?:
+    | string
+    | undefined;
+  /** 操作类型 */
+  operationType?:
+    | string
+    | undefined;
+  /** 操作是否成功 */
+  success?:
+    | boolean
+    | undefined;
+  /** 请求路径 */
+  path?:
+    | string
+    | undefined;
+  /** page */
+  page: number;
+  /** page size */
+  pageSize: number;
+  /** 开始时间 */
+  startTime:
+    | Date
+    | undefined;
+  /** 结束时间 */
+  endTime: Date | undefined;
+}
+
+/** 查询操作日志响应 */
+export interface ListOperationLogsResponse {
+  /** 操作日志 */
+  logs: OperationLogInfo[];
+  /** actual page */
+  page: number;
+  /** actual page size */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+}
+
+/** 操作日志信息 */
+export interface OperationLogInfo {
+  /** 操作用户id */
+  userId?:
+    | string
+    | undefined;
+  /** 操作类型 */
+  operationType: string;
+  /** 操作是否成功 */
+  success: boolean;
+  /** 操作详情 */
+  detail: string;
+  /** ip */
+  ip: string;
+  /** ua */
+  userAgent: string;
+  /** 请求路径 */
+  path: string;
+  /** 耗时毫秒 */
+  durationMs: number;
+  /** 操作时间 */
+  operationTime: Date | undefined;
+}
