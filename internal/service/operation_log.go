@@ -98,8 +98,7 @@ func operationUserID(ctx context.Context, operation string, reply any, handlerEr
 	if err != nil || claims.UserID == "" {
 		return nil
 	}
-	userID := claims.UserID
-	return &userID
+	return new(claims.UserID)
 }
 
 var keyOperationTypes = map[string]v1.OperationType{

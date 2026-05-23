@@ -44,7 +44,11 @@ func New[K Key, V any](cacheTime time.Duration) *Cache[K, V] {
 }
 
 func (c *Cache[K, V]) check() {
-	ticker := time.NewTicker(time.Minute * 15)
+	duration := time.Minute * 15
+	if duration > c.cacheTime/2 {
+		duration = c.cacheTime / 2
+	}
+	ticker := time.NewTicker(duration)
 	for range ticker.C {
 		c.dict.Range(func(k, v any) bool {
 			ojb := v.(*valueInterface)

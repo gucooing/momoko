@@ -90,23 +90,8 @@ export const triggerFileDownload = (blobUrl: string, fileName: string) => {
   link.remove()
 }
 
-export const downloadFileFromUrl = async (url: string, fileName: string) => {
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`下载失败：${response.status}`)
-  }
-
-  const blob = await response.blob()
-  const blobUrl = URL.createObjectURL(blob)
-
-  try {
-    triggerFileDownload(blobUrl, fileName)
-  } finally {
-    window.setTimeout(() => {
-      URL.revokeObjectURL(blobUrl)
-    }, 1000)
-  }
+export const downloadFileFromUrl = (url: string, _fileName: string) => {
+  window.open(url, '_blank')
 }
 
 export const copyTextToClipboard = async (value: string) => {
