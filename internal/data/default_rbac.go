@@ -83,6 +83,8 @@ var (
 		newDefaultMenu("menu_12_3_button_1", entmenu.TypeButton, "", "编辑菜单", "", new("menu_12_3"), 1, constant.MenuEdit),
 		newDefaultMenu("menu_12_3_button_2", entmenu.TypeButton, "", "删除菜单", "", new("menu_12_3"), 2, constant.MenuDelete),
 		newDefaultMenu("menu_12_3_button_3", entmenu.TypeButton, "", "查看菜单", "", new("menu_12_3"), 3, constant.MenuView),
+		newDefaultMenu("menu_12_4", entmenu.TypeMenu, "/system/settings", "系统配置", "HOutline:CogIcon", new("menu_12"), 3, constant.SystemConfigView),
+		newDefaultMenu("menu_12_4_button_1", entmenu.TypeButton, "", "编辑系统配置", "", new("menu_12_4"), 0, constant.SystemConfigEdit),
 
 		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, constant.Dev),
 		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", new("menu_13"), 0, constant.Dev),

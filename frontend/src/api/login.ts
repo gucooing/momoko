@@ -13,7 +13,22 @@ import type {
   RefreshResponse,
 } from '@/types/v1/auth'
 import type { MeInfoRequest, MeInfoResponse } from '@/types/v1/user'
-import type { MePermissionsRequest, MePermissionsResponse } from '@/types/v1/system'
+import type {
+  LoginConfigRequest,
+  LoginConfigResponse,
+  MePermissionsRequest,
+  MePermissionsResponse,
+  UpdateLoginConfigRequest,
+  UpdateLoginConfigResponse,
+} from '@/types/v1/system'
+
+export const getLoginConfig = (params: LoginConfigRequest = {}) => {
+  return request.get<LoginConfigResponse>('/system/login-config', { params })
+}
+
+export const updateLoginConfig = (params: UpdateLoginConfigRequest) => {
+  return request.put<UpdateLoginConfigResponse>('/system/login-config', params)
+}
 
 export const login = (params: LoginRequest) => {
   return request.post<LoginResponse>('/auth/login', params)

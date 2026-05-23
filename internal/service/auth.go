@@ -20,12 +20,14 @@ type AuthService struct {
 
 	uc   *biz.AuthUsecase
 	user *biz.UserUsecase
+	conf *biz.ConfigUsecase
 }
 
-func NewAuthService(uc *biz.AuthUsecase, user *biz.UserUsecase) *AuthService {
+func NewAuthService(uc *biz.AuthUsecase, user *biz.UserUsecase, conf *biz.ConfigUsecase) *AuthService {
 	return &AuthService{
 		uc:   uc,
 		user: user,
+		conf: conf,
 	}
 }
 
@@ -34,11 +36,23 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		user *gen.User
 		err  error
 	)
+	loginConfig, err := s.conf.LoginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
 	switch req.Identity.(type) {
 	case *v1.LoginRequest_Username:
+		if !loginConfig.UsernameLoginEnabled {
+			return nil, biz.ErrUsernameLoginDisabled
+		}
 		user, err = s.user.LoginByUsername(ctx, req.GetUsername(), req.GetPassword())
 	case *v1.LoginRequest_Email:
+		if !loginConfig.EmailLoginEnabled {
+			return nil, biz.ErrEmailLoginDisabled
+		}
 		return nil, response.BadRequest(500, "Email validation failed")
+	default:
+		return nil, response.BadRequest(400, "请选择登录方式")
 	}
 	if err != nil {
 		return nil, err

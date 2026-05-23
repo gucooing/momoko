@@ -12,7 +12,7 @@
       class="login-form"
       @keyup.enter="handleLogin"
     >
-      <div class="login-type-switch" :class="`type-${loginType}`">
+      <div v-if="showLoginTypeSwitch" class="login-type-switch" :class="`type-${loginType}`">
         <span class="switch-indicator"></span>
         <button
           type="button"
@@ -87,7 +87,7 @@
       </el-button>
     </el-form>
 
-    <p class="register-link">
+    <p v-if="registerEnabled" class="register-link">
       <span>还没有账号？</span>
       <el-link type="primary" :underline="false" @click="emits('goToMode', 'register')"
         >立即注册</el-link
@@ -124,6 +124,12 @@ const SEND_CODE_COUNTDOWN_SECONDS = 60
 
 defineOptions({ name: 'AccountLogin' })
 
+const props = defineProps<{
+  usernameLoginEnabled: boolean
+  emailLoginEnabled: boolean
+  registerEnabled: boolean
+}>()
+
 const emits = defineEmits<IEmits>()
 
 const router = useRouter()
@@ -140,7 +146,15 @@ const loginForm = ref<ILoginFormModel>({
   remember: false,
 })
 
-const loginType = ref<LoginType>('username')
+const showLoginTypeSwitch = computed(() => props.usernameLoginEnabled && props.emailLoginEnabled)
+
+const resolveDefaultLoginType = (): LoginType => {
+  if (props.usernameLoginEnabled) return 'username'
+  if (props.emailLoginEnabled) return 'email'
+  return 'username'
+}
+
+const loginType = ref<LoginType>(resolveDefaultLoginType())
 const isEmailMode = computed(() => loginType.value === 'email')
 const accountValue = computed(() => loginForm.value.username.trim())
 const loginInputPlaceholder = computed(() => {
@@ -161,7 +175,12 @@ const setLoginType = (type: LoginType) => {
 }
 
 const handleAccountInput = (value: string | number) => {
-  if (typeof value === 'string' && value.includes('@') && !isEmailMode.value) {
+  if (
+    typeof value === 'string' &&
+    value.includes('@') &&
+    !isEmailMode.value &&
+    props.emailLoginEnabled
+  ) {
     loginType.value = 'email'
     resetCredentialInput()
   }
@@ -172,7 +191,7 @@ const loadRememberedUsername = () => {
   const rememberedUsername = localStorage.getItem(REMEMBER_USERNAME_KEY)
   if (rememberedUsername) {
     loginForm.value.username = rememberedUsername
-    if (rememberedUsername.includes('@') && !isEmailMode.value) {
+    if (rememberedUsername.includes('@') && !isEmailMode.value && props.emailLoginEnabled) {
       loginType.value = 'email'
     }
     loginForm.value.remember = true
@@ -339,6 +358,19 @@ const loginRules = reactive<FormRules>({
   username: [{ validator: validateAccount, trigger: 'blur' }],
   password: [{ validator: validateCredential, trigger: 'blur' }],
 })
+
+watch(
+  () => [props.usernameLoginEnabled, props.emailLoginEnabled],
+  () => {
+    if (loginType.value === 'username' && !props.usernameLoginEnabled) {
+      loginType.value = resolveDefaultLoginType()
+      resetCredentialInput()
+    } else if (loginType.value === 'email' && !props.emailLoginEnabled) {
+      loginType.value = resolveDefaultLoginType()
+      resetCredentialInput()
+    }
+  },
+)
 
 onMounted(() => {
   loadRememberedUsername()

@@ -33,6 +33,11 @@ const (
 	// MenuView 允许查看菜单。
 	MenuView Permissions = "menu:view"
 
+	// SystemConfigView 允许查看系统配置。
+	SystemConfigView Permissions = "system_config:view"
+	// SystemConfigEdit 允许编辑系统配置。
+	SystemConfigEdit Permissions = "system_config:edit"
+
 	// Terminal 终端页面
 	Terminal Permissions = "terminal"
 )

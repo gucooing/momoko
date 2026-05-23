@@ -19,6 +19,7 @@ import (
 
 type UserRepo interface {
 	FindByName(ctx context.Context, name string) (*gen.User, error)
+	FindByEmail(ctx context.Context, email string) (*gen.User, error)
 	FindByID(ctx context.Context, id string) (*gen.User, error)
 	ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*gen.User, int64, error)
 	CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error)

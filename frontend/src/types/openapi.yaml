@@ -1593,6 +1593,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+    /api/v1/system/login-config:
+        get:
+            tags:
+                - System
+            description: 获取登录配置
+            operationId: System_LoginConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.LoginConfigResponse'
+        put:
+            tags:
+                - System
+            description: 更新登录配置
+            operationId: System_UpdateLoginConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateLoginConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateLoginConfigResponse'
     /api/v1/system/overview:
         get:
             tags:
@@ -2962,6 +2993,27 @@ components:
                     type: string
                     description: 总数
             description: 获取用户列表响应
+        v1.LoginConfig:
+            type: object
+            properties:
+                registerEnabled:
+                    type: boolean
+                    description: 是否开启注册
+                usernameLoginEnabled:
+                    type: boolean
+                    description: 是否开启用户名登录
+                emailLoginEnabled:
+                    type: boolean
+                    description: 是否开启邮箱登录
+            description: 登录配置
+        v1.LoginConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.LoginConfig'
+                    description: 登录配置
+            description: 获取登录配置响应
         v1.LoginDevice:
             type: object
             properties:
@@ -3793,6 +3845,27 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 更新实例类型响应
+        v1.UpdateLoginConfigRequest:
+            type: object
+            properties:
+                registerEnabled:
+                    type: boolean
+                    description: 是否开启注册
+                usernameLoginEnabled:
+                    type: boolean
+                    description: 是否开启用户名登录
+                emailLoginEnabled:
+                    type: boolean
+                    description: 是否开启邮箱登录
+            description: 更新登录配置请求
+        v1.UpdateLoginConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.LoginConfig'
+                    description: 登录配置
+            description: 更新登录配置响应
         v1.UpdateMeRequest:
             type: object
             properties:

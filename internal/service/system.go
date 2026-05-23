@@ -12,12 +12,14 @@ import (
 type SystemService struct {
 	v1.UnimplementedSystemServer
 
-	uc *biz.SystemUsecase
+	uc     *biz.SystemUsecase
+	config *biz.ConfigUsecase
 }
 
-func NewSystemService(uc *biz.SystemUsecase) *SystemService {
+func NewSystemService(uc *biz.SystemUsecase, config *biz.ConfigUsecase) *SystemService {
 	return &SystemService{
-		uc: uc,
+		uc:     uc,
+		config: config,
 	}
 }
 
@@ -150,6 +152,25 @@ func (s *SystemService) AdminDeleteRole(ctx context.Context, req *v1.AdminDelete
 		return nil, err
 	}
 	return &v1.AdminDeleteRoleResponse{}, nil
+}
+
+func (s *SystemService) LoginConfig(ctx context.Context, req *v1.LoginConfigRequest) (*v1.LoginConfigResponse, error) {
+	config, err := s.config.LoginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.LoginConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.UpdateLoginConfigResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
+		return nil, err
+	}
+	config, err := s.config.UpdateLoginConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateLoginConfigResponse{Config: config}, nil
 }
 
 func (s *SystemService) SystemOverview(ctx context.Context, req *v1.SystemOverviewRequest) (*v1.SystemOverviewResponse, error) {

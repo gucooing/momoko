@@ -268,6 +268,42 @@ export interface AdminDeleteRoleRequest {
 export interface AdminDeleteRoleResponse {
 }
 
+/** 登录配置 */
+export interface LoginConfig {
+  /** 是否开启注册 */
+  registerEnabled: boolean;
+  /** 是否开启用户名登录 */
+  usernameLoginEnabled: boolean;
+  /** 是否开启邮箱登录 */
+  emailLoginEnabled: boolean;
+}
+
+/** 获取登录配置请求 */
+export interface LoginConfigRequest {
+}
+
+/** 获取登录配置响应 */
+export interface LoginConfigResponse {
+  /** 登录配置 */
+  config: LoginConfig | undefined;
+}
+
+/** 更新登录配置请求 */
+export interface UpdateLoginConfigRequest {
+  /** 是否开启注册 */
+  registerEnabled: boolean;
+  /** 是否开启用户名登录 */
+  usernameLoginEnabled: boolean;
+  /** 是否开启邮箱登录 */
+  emailLoginEnabled: boolean;
+}
+
+/** 更新登录配置响应 */
+export interface UpdateLoginConfigResponse {
+  /** 登录配置 */
+  config: LoginConfig | undefined;
+}
+
 /** 获取系统信息概览请求 */
 export interface SystemOverviewRequest {
 }

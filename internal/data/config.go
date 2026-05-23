@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/pkg/common"
@@ -17,7 +18,7 @@ type ConfigRepo struct {
 	cache map[common.ConfigKey]string
 }
 
-func NewConfigRepo(data *Data) *ConfigRepo {
+func NewConfigRepo(data *Data) biz.ConfigRepo {
 	return &ConfigRepo{
 		data:  data,
 		sync:  sync.RWMutex{},
@@ -51,7 +52,12 @@ func (c *ConfigRepo) Get(ctx context.Context, key common.ConfigKey) (string, err
 		return "", err
 	}
 
-	return c.GetWithDefault(ctx, key)
+	value, err = c.GetWithDefault(ctx, key)
+	if err != nil {
+		return "", err
+	}
+	c.cache[key] = value
+	return value, nil
 }
 
 func (c *ConfigRepo) GetWithDefault(ctx context.Context, key common.ConfigKey) (string, error) {

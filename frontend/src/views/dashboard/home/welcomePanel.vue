@@ -141,14 +141,14 @@
               </el-icon>
             </div>
             <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">物理内存</div>
+              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">内存信息</div>
               <div class="flex items-baseline gap-2">
                 <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
                   {{ (status?.memory?.physicalMemory?.usedPercent ?? 0).toFixed(1) }}%
                 </span>
               </div>
               <div class="text-[11px] text-(--el-text-color-placeholder) mt-1">
-                {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}
+                物理内存 {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}
               </div>
               <div class="text-[11px] text-(--el-text-color-placeholder) mt-0.5">
                 Swap {{ (status?.memory?.virtualMemory?.usedPercent ?? 0).toFixed(1) }}% · {{ formatBytes(status?.memory?.virtualMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.virtualMemory?.totalBytes) }}

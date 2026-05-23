@@ -27,6 +27,14 @@ func (ur *userRepo) FindByName(ctx context.Context, name string) (*gen.User, err
 	return query.First(ctx)
 }
 
+func (ur *userRepo) FindByEmail(ctx context.Context, email string) (*gen.User, error) {
+	query := ur.data.db.User.Query()
+
+	query.Where(user.EmailEQ(email)).WithRole()
+
+	return query.First(ctx)
+}
+
 func (ur *userRepo) FindByID(ctx context.Context, id string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 

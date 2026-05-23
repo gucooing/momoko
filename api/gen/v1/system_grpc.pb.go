@@ -30,6 +30,8 @@ const (
 	System_AdminAddRole_FullMethodName           = "/v1.System/AdminAddRole"
 	System_AdminEditRole_FullMethodName          = "/v1.System/AdminEditRole"
 	System_AdminDeleteRole_FullMethodName        = "/v1.System/AdminDeleteRole"
+	System_LoginConfig_FullMethodName            = "/v1.System/LoginConfig"
+	System_UpdateLoginConfig_FullMethodName      = "/v1.System/UpdateLoginConfig"
 	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
 	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
 )
@@ -62,6 +64,10 @@ type SystemClient interface {
 	AdminEditRole(ctx context.Context, in *AdminEditRoleRequest, opts ...grpc.CallOption) (*AdminEditRoleResponse, error)
 	// 删除角色
 	AdminDeleteRole(ctx context.Context, in *AdminDeleteRoleRequest, opts ...grpc.CallOption) (*AdminDeleteRoleResponse, error)
+	// 获取登录配置
+	LoginConfig(ctx context.Context, in *LoginConfigRequest, opts ...grpc.CallOption) (*LoginConfigResponse, error)
+	// 更新登录配置
+	UpdateLoginConfig(ctx context.Context, in *UpdateLoginConfigRequest, opts ...grpc.CallOption) (*UpdateLoginConfigResponse, error)
 	// 获取系统信息概览
 	SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
@@ -186,6 +192,26 @@ func (c *systemClient) AdminDeleteRole(ctx context.Context, in *AdminDeleteRoleR
 	return out, nil
 }
 
+func (c *systemClient) LoginConfig(ctx context.Context, in *LoginConfigRequest, opts ...grpc.CallOption) (*LoginConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginConfigResponse)
+	err := c.cc.Invoke(ctx, System_LoginConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) UpdateLoginConfig(ctx context.Context, in *UpdateLoginConfigRequest, opts ...grpc.CallOption) (*UpdateLoginConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateLoginConfigResponse)
+	err := c.cc.Invoke(ctx, System_UpdateLoginConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *systemClient) SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SystemOverviewResponse)
@@ -234,6 +260,10 @@ type SystemServer interface {
 	AdminEditRole(context.Context, *AdminEditRoleRequest) (*AdminEditRoleResponse, error)
 	// 删除角色
 	AdminDeleteRole(context.Context, *AdminDeleteRoleRequest) (*AdminDeleteRoleResponse, error)
+	// 获取登录配置
+	LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error)
+	// 更新登录配置
+	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
 	// 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
@@ -280,6 +310,12 @@ func (UnimplementedSystemServer) AdminEditRole(context.Context, *AdminEditRoleRe
 }
 func (UnimplementedSystemServer) AdminDeleteRole(context.Context, *AdminDeleteRoleRequest) (*AdminDeleteRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AdminDeleteRole not implemented")
+}
+func (UnimplementedSystemServer) LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LoginConfig not implemented")
+}
+func (UnimplementedSystemServer) UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateLoginConfig not implemented")
 }
 func (UnimplementedSystemServer) SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SystemOverview not implemented")
@@ -506,6 +542,42 @@ func _System_AdminDeleteRole_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_LoginConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).LoginConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_LoginConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).LoginConfig(ctx, req.(*LoginConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_UpdateLoginConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLoginConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateLoginConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateLoginConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateLoginConfig(ctx, req.(*UpdateLoginConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _System_SystemOverview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SystemOverviewRequest)
 	if err := dec(in); err != nil {
@@ -592,6 +664,14 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminDeleteRole",
 			Handler:    _System_AdminDeleteRole_Handler,
+		},
+		{
+			MethodName: "LoginConfig",
+			Handler:    _System_LoginConfig_Handler,
+		},
+		{
+			MethodName: "UpdateLoginConfig",
+			Handler:    _System_UpdateLoginConfig_Handler,
 		},
 		{
 			MethodName: "SystemOverview",

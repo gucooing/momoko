@@ -30,7 +30,13 @@
         <div class="login-card-bottom">
           <div class="login-form-wrap">
             <Transition name="fade-slide" mode="out-in">
-              <AccountLogin v-if="loginMode === 'login'" @goToMode="goToMode" />
+              <AccountLogin
+                v-if="loginMode === 'login'"
+                :username-login-enabled="loginConfig.usernameLoginEnabled"
+                :email-login-enabled="loginConfig.emailLoginEnabled"
+                :register-enabled="loginConfig.registerEnabled"
+                @goToMode="goToMode"
+              />
               <ForgotPassword v-else-if="loginMode === 'forgot'" @goToMode="goToMode" />
               <Register v-else @goToMode="goToMode" />
             </Transition>
@@ -48,11 +54,13 @@
 
 <script setup lang="ts">
 import { APP_CONFIG } from '@/config/app.config'
+import { getLoginConfig } from '@/api/login'
 import AccountLogin from '@/views/login/accountLogin.vue'
 import ForgotPassword from '@/views/login/forgotPassword.vue'
 import Register from '@/views/login/register.vue'
 import ThemeConfig from '@/components/ThemeConfig.vue'
 import I18nDropdown from '@/layouts/i18nDropdown.vue'
+import type { LoginConfig } from '@/types/v1/system'
 
 defineOptions({ name: 'LoginView' })
 
@@ -62,9 +70,29 @@ type LoginMode = 'login' | 'forgot' | 'register'
 
 const loginMode = ref<LoginMode>('login')
 
+const loginConfig = reactive<LoginConfig>({
+  registerEnabled: false,
+  usernameLoginEnabled: true,
+  emailLoginEnabled: false,
+})
+
 const goToMode = (mode: LoginMode) => {
+  if (mode === 'register' && !loginConfig.registerEnabled) return
   loginMode.value = mode
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await getLoginConfig()
+    if (data?.config) {
+      loginConfig.registerEnabled = data.config.registerEnabled
+      loginConfig.usernameLoginEnabled = data.config.usernameLoginEnabled
+      loginConfig.emailLoginEnabled = data.config.emailLoginEnabled
+    }
+  } catch {
+    // 使用默认值
+  }
+})
 </script>
 
 <style scoped lang="scss">

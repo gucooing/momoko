@@ -29,9 +29,11 @@ const OperationSystemAdminPermissions = "/v1.System/AdminPermissions"
 const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
+const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
+const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
 
 type SystemHTTPServer interface {
 	// AdminAddPermissions 管理员添加权限菜单
@@ -54,12 +56,16 @@ type SystemHTTPServer interface {
 	AdminRole(context.Context, *AdminRoleRequest) (*AdminRoleResponse, error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
+	// LoginConfig 获取登录配置
+	LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// SystemStatus 获取系统实时状态
 	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
+	// UpdateLoginConfig 更新登录配置
+	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
 }
 
 func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
@@ -75,6 +81,8 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.POST("/api/v1/role/admin/add", _System_AdminAddRole0_HTTP_Handler(srv))
 	r.POST("/api/v1/role/admin/{role_id}", _System_AdminEditRole0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/role/admin/del", _System_AdminDeleteRole0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/login-config", _System_LoginConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 }
@@ -315,6 +323,47 @@ func _System_AdminDeleteRole0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.C
 	}
 }
 
+func _System_LoginConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in LoginConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemLoginConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.LoginConfig(ctx, req.(*LoginConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*LoginConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_UpdateLoginConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateLoginConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateLoginConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateLoginConfig(ctx, req.(*UpdateLoginConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateLoginConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_SystemOverview0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SystemOverviewRequest
@@ -374,12 +423,16 @@ type SystemHTTPClient interface {
 	AdminRole(ctx context.Context, req *AdminRoleRequest, opts ...http.CallOption) (rsp *AdminRoleResponse, err error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
+	// LoginConfig 获取登录配置
+	LoginConfig(ctx context.Context, req *LoginConfigRequest, opts ...http.CallOption) (rsp *LoginConfigResponse, err error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(ctx context.Context, req *MePermissionsRequest, opts ...http.CallOption) (rsp *MePermissionsResponse, err error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
 	// SystemStatus 获取系统实时状态
 	SystemStatus(ctx context.Context, req *SystemStatusRequest, opts ...http.CallOption) (rsp *SystemStatusResponse, err error)
+	// UpdateLoginConfig 更新登录配置
+	UpdateLoginConfig(ctx context.Context, req *UpdateLoginConfigRequest, opts ...http.CallOption) (rsp *UpdateLoginConfigResponse, err error)
 }
 
 type SystemHTTPClientImpl struct {
@@ -530,6 +583,20 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 	return &out, nil
 }
 
+// LoginConfig 获取登录配置
+func (c *SystemHTTPClientImpl) LoginConfig(ctx context.Context, in *LoginConfigRequest, opts ...http.CallOption) (*LoginConfigResponse, error) {
+	var out LoginConfigResponse
+	pattern := "/api/v1/system/login-config"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemLoginConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // MePermissions 获取当前角色的全部权限
 func (c *SystemHTTPClientImpl) MePermissions(ctx context.Context, in *MePermissionsRequest, opts ...http.CallOption) (*MePermissionsResponse, error) {
 	var out MePermissionsResponse
@@ -566,6 +633,20 @@ func (c *SystemHTTPClientImpl) SystemStatus(ctx context.Context, in *SystemStatu
 	opts = append(opts, http.Operation(OperationSystemSystemStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateLoginConfig 更新登录配置
+func (c *SystemHTTPClientImpl) UpdateLoginConfig(ctx context.Context, in *UpdateLoginConfigRequest, opts ...http.CallOption) (*UpdateLoginConfigResponse, error) {
+	var out UpdateLoginConfigResponse
+	pattern := "/api/v1/system/login-config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateLoginConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

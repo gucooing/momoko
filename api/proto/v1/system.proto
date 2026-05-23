@@ -79,6 +79,19 @@ service System {
       delete: "/api/v1/role/admin/del"
     };
   }
+  // 获取登录配置
+  rpc LoginConfig(LoginConfigRequest) returns (LoginConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/login-config"
+    };
+  }
+  // 更新登录配置
+  rpc UpdateLoginConfig(UpdateLoginConfigRequest) returns (UpdateLoginConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/system/login-config"
+      body: "*"
+    };
+  }
   // 获取系统信息概览
   rpc SystemOverview(SystemOverviewRequest) returns (SystemOverviewResponse) {
     option (google.api.http) = {
@@ -333,6 +346,41 @@ message AdminDeleteRoleRequest {
 
 // 删除角色响应
 message AdminDeleteRoleResponse{}
+
+// 登录配置
+message LoginConfig {
+  // 是否开启注册
+  bool register_enabled = 1;
+  // 是否开启用户名登录
+  bool username_login_enabled = 2;
+  // 是否开启邮箱登录
+  bool email_login_enabled = 3;
+}
+
+// 获取登录配置请求
+message LoginConfigRequest {}
+
+// 获取登录配置响应
+message LoginConfigResponse {
+  // 登录配置
+  LoginConfig config = 1;
+}
+
+// 更新登录配置请求
+message UpdateLoginConfigRequest {
+  // 是否开启注册
+  bool register_enabled = 1;
+  // 是否开启用户名登录
+  bool username_login_enabled = 2;
+  // 是否开启邮箱登录
+  bool email_login_enabled = 3;
+}
+
+// 更新登录配置响应
+message UpdateLoginConfigResponse {
+  // 登录配置
+  LoginConfig config = 1;
+}
 
 // 获取系统信息概览请求
 message SystemOverviewRequest {}

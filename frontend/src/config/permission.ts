@@ -19,6 +19,10 @@ export const PERM = {
   MENU_ADD: 'menu:add',
   MENU_EDIT: 'menu:edit',
   MENU_DELETE: 'menu:delete',
+
+  // ---- 系统配置 ----
+  SYSTEM_CONFIG_VIEW: 'system_config:view',
+  SYSTEM_CONFIG_EDIT: 'system_config:edit',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

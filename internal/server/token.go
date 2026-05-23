@@ -13,6 +13,11 @@ import (
 	"momoko/pkg/response"
 )
 
+type publicRoute struct {
+	method string
+	path   string
+}
+
 type Authorization struct {
 	ar biz.AuthRepo
 }
@@ -24,11 +29,12 @@ func NewAuthorization(ar biz.AuthRepo) *Authorization {
 }
 
 var (
-	noAuthPaths = map[string]struct{}{
-		"/api/v1/auth/login":   {},
-		"/api/v1/auth/refresh": {},
-		biz.PreFileDownload:    {},
-		biz.PreFileUpload:      {},
+	noAuthRoutes = map[publicRoute]struct{}{
+		{method: http.MethodPost, path: "/api/v1/auth/login"}:         {},
+		{method: http.MethodPost, path: "/api/v1/auth/refresh"}:       {},
+		{method: http.MethodGet, path: "/api/v1/system/login-config"}: {},
+		{method: http.MethodGet, path: biz.PreFileDownload}:           {},
+		{method: http.MethodPost, path: biz.PreFileUpload}:            {},
 	}
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
@@ -37,7 +43,7 @@ var (
 func (a *Authorization) Middleware() httpm.FilterFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if _, ok := noAuthPaths[r.URL.Path]; ok {
+			if _, ok := noAuthRoutes[publicRoute{method: r.Method, path: r.URL.Path}]; ok {
 				next.ServeHTTP(w, r)
 				return
 			}
