@@ -11,6 +11,10 @@ import type {
   LogoutResponse,
   RefreshRequest,
   RefreshResponse,
+  SendLoginEmailCodeRequest,
+  SendLoginEmailCodeResponse,
+  SendRegisterEmailCodeRequest,
+  SendRegisterEmailCodeResponse,
 } from '@/types/v1/auth'
 import type {
   MeInfoRequest,
@@ -41,6 +45,14 @@ export const updateLoginConfig = (params: UpdateLoginConfigRequest) => {
 
 export const login = (params: LoginRequest) => {
   return request.post<LoginResponse>('/auth/login', params)
+}
+
+export const sendLoginEmailCode = (params: SendLoginEmailCodeRequest) => {
+  return request.post<SendLoginEmailCodeResponse>('/auth/login/email-code', params)
+}
+
+export const sendRegisterEmailCode = (params: SendRegisterEmailCodeRequest) => {
+  return request.post<SendRegisterEmailCodeResponse>('/auth/register/email-code', params)
 }
 
 export const refreshTokenRequest = (params: RefreshRequest) => {

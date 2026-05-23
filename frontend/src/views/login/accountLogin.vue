@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import platform from 'platform'
-import { login } from '@/api/login'
+import { login, sendLoginEmailCode } from '@/api/login'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import type { LoginRequest } from '@/types/v1/auth'
@@ -251,9 +251,13 @@ const handleSendCode = async () => {
     return
   }
 
-  // 当前版本先前端模拟发送；后续接入真实邮件验证码接口。
-  ElMessage.success('验证码已发送，请注意查收')
-  startSendCodeCountdown()
+  try {
+    await sendLoginEmailCode({ email })
+    ElMessage.success('验证码已发送，请注意查收')
+    startSendCodeCountdown()
+  } catch {
+    ElMessage.error('验证码发送失败，请稍后重试')
+  }
 }
 
 const buildLoginPayload = async (): Promise<LoginRequest> => {
@@ -263,7 +267,7 @@ const buildLoginPayload = async (): Promise<LoginRequest> => {
   const useEmail = isEmailMode.value
 
   return useEmail
-    ? { email: account, password: loginForm.value.password, device, deviceId, code: '' }
+    ? { email: account, password: '', device, deviceId, code: loginForm.value.password }
     : { username: account, password: loginForm.value.password, device, deviceId, code: '' }
 }
 
