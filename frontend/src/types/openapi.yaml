@@ -58,6 +58,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.LoginResponse'
+    /api/v1/auth/login/email-code:
+        post:
+            tags:
+                - AuthService
+            description: 发送登录邮件验证码
+            operationId: AuthService_SendLoginEmailCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SendLoginEmailCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SendLoginEmailCodeResponse'
     /api/v1/auth/logout:
         post:
             tags:
@@ -134,6 +153,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/auth/register/email-code:
+        post:
+            tags:
+                - AuthService
+            description: 发送注册邮件验证码
+            operationId: AuthService_SendRegisterEmailCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SendRegisterEmailCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SendRegisterEmailCodeResponse'
     /api/v1/file/system:
         get:
             tags:
@@ -1643,6 +1681,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TestEmailConfigResponse'
+    /api/v1/system/email-template:
+        get:
+            tags:
+                - System
+            description: 获取指定邮件模板
+            operationId: System_EmailTemplate
+            parameters:
+                - name: type
+                  in: query
+                  description: 模板类型
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.EmailTemplateResponse'
+        put:
+            tags:
+                - System
+            description: 更新邮件模板
+            operationId: System_UpdateEmailTemplate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateEmailTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateEmailTemplateResponse'
     /api/v1/system/login-config:
         get:
             tags:
@@ -2809,7 +2885,18 @@ components:
                     type: string
                 template:
                     type: string
+                type:
+                    type: integer
+                    format: enum
             description: 模板配置
+        v1.EmailTemplateResponse:
+            type: object
+            properties:
+                template:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailTemplate'
+                    description: 邮件模板
+            description: 获取指定邮件模板响应
         v1.FileCreateItem:
             type: object
             properties:
@@ -3258,6 +3345,9 @@ components:
                 deviceId:
                     type: string
                     description: 设备码
+                code:
+                    type: string
+                    description: 邮箱验证码
             description: 账号登录请求
         v1.LoginResponse:
             type: object
@@ -3822,6 +3912,28 @@ components:
                 fingerprint:
                     type: string
                     description: 服务端主机指纹
+        v1.SendLoginEmailCodeRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: 邮箱
+            description: 发送登录邮件验证码请求
+        v1.SendLoginEmailCodeResponse:
+            type: object
+            properties: {}
+            description: 发送登录邮件验证码响应
+        v1.SendRegisterEmailCodeRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: 邮箱
+            description: 发送注册邮件验证码请求
+        v1.SendRegisterEmailCodeResponse:
+            type: object
+            properties: {}
+            description: 发送注册邮件验证码响应
         v1.ShareSSHHostRequest:
             type: object
             properties:
@@ -3990,6 +4102,11 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.EmailTemplate'
                     description: 测试邮件内容;不传时使用默认配置
+                Data:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 模板占位符
             description: 测试邮件配置请求
         v1.TestEmailConfigResponse:
             type: object
@@ -4096,6 +4213,28 @@ components:
                         - $ref: '#/components/schemas/v1.EmailConfig'
                     description: 邮件配置
             description: 更新邮件配置响应
+        v1.UpdateEmailTemplateRequest:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    description: 模板类型
+                    format: enum
+                subject:
+                    type: string
+                    description: 邮件主题 TEXT 模板
+                template:
+                    type: string
+                    description: 邮件内容 HTML 模板
+            description: 更新邮件模板请求
+        v1.UpdateEmailTemplateResponse:
+            type: object
+            properties:
+                template:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailTemplate'
+                    description: 邮件模板
+            description: 更新邮件模板响应
         v1.UpdateInstanceRequest:
             type: object
             properties:

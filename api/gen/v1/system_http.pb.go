@@ -30,6 +30,7 @@ const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
 const OperationSystemEmailConfig = "/v1.System/EmailConfig"
+const OperationSystemEmailTemplate = "/v1.System/EmailTemplate"
 const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
 const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
@@ -63,6 +64,8 @@ type SystemHTTPServer interface {
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
+	// EmailTemplate 获取指定邮件模板
+	EmailTemplate(context.Context, *EmailTemplateRequest) (*EmailTemplateResponse, error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	// LoginConfig 获取登录配置
@@ -101,6 +104,7 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.GET("/api/v1/system/email-config", _System_EmailConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/email-config", _System_UpdateEmailConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/email-template", _System_UpdateEmailTemplate0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/email-template", _System_EmailTemplate0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/email-config/test", _System_TestEmailConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
@@ -447,6 +451,25 @@ func _System_UpdateEmailTemplate0_HTTP_Handler(srv SystemHTTPServer) func(ctx ht
 	}
 }
 
+func _System_EmailTemplate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EmailTemplateRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemEmailTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EmailTemplate(ctx, req.(*EmailTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EmailTemplateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_TestEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in TestEmailConfigRequest
@@ -549,6 +572,8 @@ type SystemHTTPClient interface {
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(ctx context.Context, req *EmailConfigRequest, opts ...http.CallOption) (rsp *EmailConfigResponse, err error)
+	// EmailTemplate 获取指定邮件模板
+	EmailTemplate(ctx context.Context, req *EmailTemplateRequest, opts ...http.CallOption) (rsp *EmailTemplateResponse, err error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(ctx context.Context, req *ListOperationLogsRequest, opts ...http.CallOption) (rsp *ListOperationLogsResponse, err error)
 	// LoginConfig 获取登录配置
@@ -723,6 +748,20 @@ func (c *SystemHTTPClientImpl) EmailConfig(ctx context.Context, in *EmailConfigR
 	pattern := "/api/v1/system/email-config"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemEmailConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// EmailTemplate 获取指定邮件模板
+func (c *SystemHTTPClientImpl) EmailTemplate(ctx context.Context, in *EmailTemplateRequest, opts ...http.CallOption) (*EmailTemplateResponse, error) {
+	var out EmailTemplateResponse
+	pattern := "/api/v1/system/email-template"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemEmailTemplate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

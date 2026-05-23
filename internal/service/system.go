@@ -209,6 +209,17 @@ func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateE
 	return &v1.UpdateEmailTemplateResponse{Template: template}, nil
 }
 
+func (s *SystemService) EmailTemplate(ctx context.Context, req *v1.EmailTemplateRequest) (*v1.EmailTemplateResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
+		return nil, err
+	}
+	template, err := s.config.EmailTemplate(ctx, req.Type)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.EmailTemplateResponse{Template: template}, nil
+}
+
 func (s *SystemService) TestEmailConfig(ctx context.Context, req *v1.TestEmailConfigRequest) (*v1.TestEmailConfigResponse, error) {
 	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
 		return nil, err

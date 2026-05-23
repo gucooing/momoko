@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card shadow="never">
-      <el-tabs v-model="activeTab" type="border-card">
+      <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
         <el-tab-pane label="安全与认证" name="security">
           <div class="setting-module">
             <div class="setting-group">
@@ -237,19 +237,20 @@
               <div class="setting-item">
                 <div class="setting-item-info">
                   <span class="setting-item-label">邮件主题</span>
-                  <span class="setting-item-desc"><span v-pre>支持 Go text/template 语法，如 {{.Code}}</span></span>
+                  <span class="setting-item-desc"><span v-pre>支持 Go text/template 语法，如 {{.name}}</span></span>
                 </div>
                 <el-input
                   v-model="templateForm.subject"
                   :disabled="!canEdit"
                   placeholder="邮件主题模板"
                   style="width: 400px"
+                  @focus="onInputFocus"
                 />
               </div>
               <div class="setting-item setting-item-vertical">
                 <div class="setting-item-info">
                   <span class="setting-item-label">邮件内容</span>
-                  <span class="setting-item-desc"><span v-pre>支持 Go html/template 语法，如 {{.Username}}、{{.Code}}</span></span>
+                  <span class="setting-item-desc"><span v-pre>支持 Go html/template 语法，如 {{.email}}、{{.code}}</span></span>
                 </div>
                 <el-input
                   v-model="templateForm.template"
@@ -257,7 +258,21 @@
                   type="textarea"
                   :rows="12"
                   placeholder="<html><body>...</body></html>"
+                  @focus="onInputFocus"
                 />
+              </div>
+              <div class="placeholder-strip">
+                <span class="placeholder-strip-label">快捷插入：</span>
+                <el-tag
+                  v-for="p in placeholders"
+                  :key="p"
+                  size="small"
+                  class="placeholder-tag"
+                  :class="{ 'tag-disabled': !canEdit }"
+                  @click="canEdit && insertPlaceholder(p)"
+                >
+                  {{ p }}
+                </el-tag>
               </div>
             </div>
 
@@ -331,11 +346,11 @@
               <el-form-item
                 v-for="field in templateTestFields"
                 :key="field.name"
-                :label="field.name"
+                :label="'{{.' + field.name + '}}'"
               >
                 <el-input
                   v-model="field.value"
-                  :placeholder="`输入 ${field.name} 的值`"
+                  :placeholder="`输入 {{.${field.name}}} 的值`"
                 />
               </el-form-item>
             </el-form>
@@ -381,7 +396,7 @@
 
 <script setup lang="ts">
 import { getLoginConfig, updateLoginConfig } from '@/api/login'
-import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate } from '@/api/system'
+import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate, getEmailTemplate } from '@/api/system'
 import { EmailTemplateType } from '@/types/v1/system'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
@@ -402,6 +417,26 @@ const templateTestRecipient = ref('')
 const previewDialogVisible = ref(false)
 
 const canEdit = useButtonPermission([PERM.SYSTEM_CONFIG_EDIT], [])
+
+const placeholders = ['{{.name}}', '{{.email}}', '{{.code}}']
+
+const lastFocusedEl = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+const onInputFocus = (e: FocusEvent) => {
+  lastFocusedEl.value = e.target as HTMLInputElement | HTMLTextAreaElement
+}
+
+const insertPlaceholder = (text: string) => {
+  const el = lastFocusedEl.value
+  if (!el) return
+  const start = el.selectionStart ?? 0
+  const end = el.selectionEnd ?? 0
+
+  el.value = el.value.slice(0, start) + text + el.value.slice(end)
+  el.setSelectionRange(start + text.length, start + text.length)
+  el.focus()
+  el.dispatchEvent(new Event('input', { bubbles: true }))
+}
 
 const TEMPLATE_TYPE_LABELS: Record<string, string> = {
   [EmailTemplateType.EmailTemplateType_Register]: '注册邮件模板',
@@ -450,9 +485,9 @@ const renderedPreviewBody = ref('')
 const extractPlaceholders = (content: string): string[] => {
   const regex = /\{\{\.(\w+)\}\}/g
   const names = new Set<string>()
-  let match
+  let match: RegExpExecArray | null
   while ((match = regex.exec(content)) !== null) {
-    names.add(match[1])
+    if (match[1]) names.add(match[1])
   }
   return Array.from(names)
 }
@@ -469,9 +504,20 @@ const highlightPlaceholders = (source: string): string => {
   })
 }
 
-const handleTemplateTypeChange = () => {
-  templateForm.subject = ''
-  templateForm.template = ''
+const handleTemplateTypeChange = async () => {
+  try {
+    const { data } = await getEmailTemplate({ type: templateType.value as EmailTemplateType })
+    if (data?.template) {
+      templateForm.subject = data.template.subject
+      templateForm.template = data.template.template
+    } else {
+      templateForm.subject = ''
+      templateForm.template = ''
+    }
+  } catch {
+    templateForm.subject = ''
+    templateForm.template = ''
+  }
 }
 
 const handleTemplateSave = async () => {
@@ -483,9 +529,7 @@ const handleTemplateSave = async () => {
       template: templateForm.template,
     })
     ElMessage.success('保存成功')
-  } catch {
-    ElMessage.error('保存失败')
-  } finally {
+  }finally {
     templateSaving.value = false
   }
 }
@@ -511,18 +555,6 @@ const handleTemplateTest = async () => {
   try {
     await testEmailConfig({
       recipient: templateTestRecipient.value,
-      config: {
-        enabled: emailForm.enabled,
-        host: emailForm.host,
-        port: emailForm.port,
-        username: emailForm.username,
-        password: emailForm.password,
-        from: emailForm.from,
-        fromName: emailForm.fromName,
-        useTls: emailForm.useTls,
-        timeoutSeconds: emailForm.timeoutSeconds,
-        ccsN: emailForm.ccsN,
-      },
       messages: {
         subject: templateForm.subject,
         template: templateForm.template,
@@ -598,9 +630,7 @@ const handleLoginSave = async () => {
       emailLoginEnabled: loginForm.emailLoginEnabled,
     })
     ElMessage.success('保存成功')
-  } catch {
-    ElMessage.error('保存失败')
-  } finally {
+  }finally {
     loginSaving.value = false
   }
 }
@@ -621,9 +651,7 @@ const handleEmailSave = async () => {
       ccsN: emailForm.ccsN,
     })
     ElMessage.success('保存成功')
-  } catch {
-    ElMessage.error('保存失败')
-  } finally {
+  }finally {
     emailSaving.value = false
   }
 }
@@ -645,6 +673,7 @@ const handleEmailTest = async () => {
         timeoutSeconds: emailForm.timeoutSeconds,
         ccsN: emailForm.ccsN,
       },
+      Data: {},
     })
     ElMessage.success('测试邮件发送成功')
     testDialogVisible.value = false
@@ -656,9 +685,22 @@ const handleEmailTest = async () => {
   }
 }
 
+const loadedTabs = ref(new Set<string>())
+
+const onTabChange = (name: string | number) => {
+  const tab = String(name)
+  if (loadedTabs.value.has(tab)) return
+  loadedTabs.value.add(tab)
+  if (tab === 'security') {
+    loadLoginConfig()
+  } else if (tab === 'email') {
+    loadEmailConfig()
+    handleTemplateTypeChange()
+  }
+}
+
 onMounted(() => {
-  loadLoginConfig()
-  loadEmailConfig()
+  onTabChange(activeTab.value)
 })
 </script>
 
@@ -750,5 +792,36 @@ onMounted(() => {
   height: 400px;
   border: 1px solid var(--el-border-color);
   border-radius: 4px;
+}
+
+.placeholder-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0.75rem;
+  background: var(--el-bg-color-overlay);
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.placeholder-strip-label {
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
+  margin-right: 0.15rem;
+  white-space: nowrap;
+}
+
+.placeholder-tag {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.tag-disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 </style>

@@ -2,6 +2,8 @@ import request from '@/utils/request'
 import type {
   EmailConfigRequest,
   EmailConfigResponse,
+  EmailTemplateRequest,
+  EmailTemplateResponse,
   ListOperationLogsRequest,
   ListOperationLogsResponse,
   SystemOverviewResponse,
@@ -37,6 +39,10 @@ export const updateEmailConfig = (params: UpdateEmailConfigRequest) => {
 
 export const testEmailConfig = (params: TestEmailConfigRequest) => {
   return request.post<TestEmailConfigResponse>('/system/email-config/test', params)
+}
+
+export const getEmailTemplate = (params: EmailTemplateRequest) => {
+  return request.get<EmailTemplateResponse>('/system/email-template', { params })
 }
 
 export const updateEmailTemplate = (params: UpdateEmailTemplateRequest) => {

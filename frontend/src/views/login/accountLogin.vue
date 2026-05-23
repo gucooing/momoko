@@ -263,8 +263,8 @@ const buildLoginPayload = async (): Promise<LoginRequest> => {
   const useEmail = isEmailMode.value
 
   return useEmail
-    ? { email: account, password: loginForm.value.password, device, deviceId }
-    : { username: account, password: loginForm.value.password, device, deviceId }
+    ? { email: account, password: loginForm.value.password, device, deviceId, code: '' }
+    : { username: account, password: loginForm.value.password, device, deviceId, code: '' }
 }
 
 // 登录

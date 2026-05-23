@@ -76,6 +76,21 @@ func (c *ConfigUsecase) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateE
 	return toEmailTemplate(updated), nil
 }
 
+func (c *ConfigUsecase) EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*v1.EmailTemplate, error) {
+	if !isEmailTemplateTypeValid(templateType) {
+		return nil, ErrEmailTemplateType
+	}
+
+	template, err := c.config.EmailTemplate(ctx, templateType)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return new(v1.EmailTemplate), nil
+		}
+		return nil, ErrSystem(err)
+	}
+	return toEmailTemplate(template), nil
+}
+
 func validateEmailConfig(req *v1.UpdateEmailConfigRequest) error {
 	req.Host = strings.TrimSpace(req.Host)
 	req.Username = strings.TrimSpace(req.Username)

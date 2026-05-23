@@ -25,6 +25,28 @@ export interface LoginRequest {
   device: string;
   /** 设备码 */
   deviceId: string;
+  /** 邮箱验证码 */
+  code: string;
+}
+
+/** 发送注册邮件验证码请求 */
+export interface SendRegisterEmailCodeRequest {
+  /** 邮箱 */
+  email: string;
+}
+
+/** 发送注册邮件验证码响应 */
+export interface SendRegisterEmailCodeResponse {
+}
+
+/** 发送登录邮件验证码请求 */
+export interface SendLoginEmailCodeRequest {
+  /** 邮箱 */
+  email: string;
+}
+
+/** 发送登录邮件验证码响应 */
+export interface SendLoginEmailCodeResponse {
 }
 
 /** 账号登录响应 */

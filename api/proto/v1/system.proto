@@ -113,6 +113,11 @@ service System {
     };
   }
   // 获取指定邮件模板
+  rpc EmailTemplate(EmailTemplateRequest) returns (EmailTemplateResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/email-template"
+    };
+  }
   // 测试邮件配置
   rpc TestEmailConfig(TestEmailConfigRequest) returns (TestEmailConfigResponse) {
     option (google.api.http) = {
@@ -506,6 +511,18 @@ message UpdateEmailTemplateRequest {
 
 // 更新邮件模板响应
 message UpdateEmailTemplateResponse {
+  // 邮件模板
+  EmailTemplate template = 1;
+}
+
+// 获取指定邮件模板请求
+message EmailTemplateRequest {
+  // 模板类型
+  EmailTemplateType type = 1;
+}
+
+// 获取指定邮件模板响应
+message EmailTemplateResponse {
   // 邮件模板
   EmailTemplate template = 1;
 }

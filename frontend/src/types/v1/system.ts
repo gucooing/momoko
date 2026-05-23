@@ -38,9 +38,9 @@ export enum RoleStatus {
 
 /** 邮件模板类型 */
 export enum EmailTemplateType {
-  /** 注册邮件模板 */
+  /** EmailTemplateType_Register - 注册 */
   EmailTemplateType_Register = "EmailTemplateType_Register",
-  /** 登录邮件模板 */
+  /** EmailTemplateType_Login - 登录 */
   EmailTemplateType_Login = "EmailTemplateType_Login",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
@@ -57,6 +57,10 @@ export enum OperationType {
   OperationTypeAuthUpdatePassword = "OperationTypeAuthUpdatePassword",
   /** OperationTypeAuthDeviceDelete - 登录设备删除 */
   OperationTypeAuthDeviceDelete = "OperationTypeAuthDeviceDelete",
+  /** OperationTypeAuthRegisterEmailCode - 注册邮件验证码发送 */
+  OperationTypeAuthRegisterEmailCode = "OperationTypeAuthRegisterEmailCode",
+  /** OperationTypeAuthLoginEmailCode - 登录邮件验证码发送 */
+  OperationTypeAuthLoginEmailCode = "OperationTypeAuthLoginEmailCode",
   /** OperationTypeUserUpdateMe - 个人信息更新 */
   OperationTypeUserUpdateMe = "OperationTypeUserUpdateMe",
   /** OperationTypeUserCreate - 用户新增 */
@@ -155,6 +159,8 @@ export enum OperationType {
   OperationTypeSystemEmailConfigUpdate = "OperationTypeSystemEmailConfigUpdate",
   /** OperationTypeSystemEmailConfigTest - 邮件配置测试 */
   OperationTypeSystemEmailConfigTest = "OperationTypeSystemEmailConfigTest",
+  /** OperationTypeSystemEmailTemplateUpdate - 邮件模板更新 */
+  OperationTypeSystemEmailTemplateUpdate = "OperationTypeSystemEmailTemplateUpdate",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -516,6 +522,18 @@ export interface UpdateEmailTemplateResponse {
   template: EmailTemplate | undefined;
 }
 
+/** 获取指定邮件模板请求 */
+export interface EmailTemplateRequest {
+  /** 模板类型 */
+  type: EmailTemplateType;
+}
+
+/** 获取指定邮件模板响应 */
+export interface EmailTemplateResponse {
+  /** 邮件模板 */
+  template: EmailTemplate | undefined;
+}
+
 /** 测试邮件配置请求 */
 export interface TestEmailConfigRequest {
   /** 收件邮箱 */
@@ -530,6 +548,11 @@ export interface TestEmailConfigRequest {
     | undefined;
   /** 模板占位符 */
   Data: { [key: string]: string };
+}
+
+export interface TestEmailConfigRequest_DataEntry {
+  key: string;
+  value: string;
 }
 
 /** 测试邮件配置响应 */
