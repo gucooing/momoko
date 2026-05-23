@@ -117,6 +117,8 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemAdminEditRole:                      v1.OperationType_OperationTypeSystemRoleUpdate,
 	v1.OperationSystemAdminDeleteRole:                    v1.OperationType_OperationTypeSystemRoleDelete,
 	v1.OperationSystemUpdateLoginConfig:                  v1.OperationType_OperationTypeSystemLoginConfigUpdate,
+	v1.OperationSystemUpdateEmailConfig:                  v1.OperationType_OperationTypeSystemEmailConfigUpdate,
+	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,
 	v1.OperationFileManagerCreateFileSystem:              v1.OperationType_OperationTypeFileCreate,
 	v1.OperationFileManagerRenameFileSystem:              v1.OperationType_OperationTypeFileRename,
 	v1.OperationFileManagerCopyFileSystem:                v1.OperationType_OperationTypeFileCopy,

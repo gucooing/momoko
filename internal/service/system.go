@@ -175,6 +175,39 @@ func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLog
 	return &v1.UpdateLoginConfigResponse{Config: config}, nil
 }
 
+func (s *SystemService) EmailConfig(ctx context.Context, req *v1.EmailConfigRequest) (*v1.EmailConfigResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
+		return nil, err
+	}
+	config, err := s.config.EmailConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.EmailConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.UpdateEmailConfigResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
+		return nil, err
+	}
+	config, err := s.config.UpdateEmailConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	s.uc.NewEmailClient(ctx)
+	return &v1.UpdateEmailConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) TestEmailConfig(ctx context.Context, req *v1.TestEmailConfigRequest) (*v1.TestEmailConfigResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
+		return nil, err
+	}
+	if err := s.uc.TestEmailConfig(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.TestEmailConfigResponse{}, nil
+}
+
 func (s *SystemService) SystemOverview(ctx context.Context, req *v1.SystemOverviewRequest) (*v1.SystemOverviewResponse, error) {
 	return s.uc.SystemOverview(ctx)
 }

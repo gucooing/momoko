@@ -142,6 +142,10 @@ export enum OperationType {
   OperationTypeSSHHostTest = "OperationTypeSSHHostTest",
   /** OperationTypeSSHHostBatchTest - SSH连接批量测试 */
   OperationTypeSSHHostBatchTest = "OperationTypeSSHHostBatchTest",
+  /** OperationTypeSystemEmailConfigUpdate - 邮件配置更新 */
+  OperationTypeSystemEmailConfigUpdate = "OperationTypeSystemEmailConfigUpdate",
+  /** OperationTypeSystemEmailConfigTest - 邮件配置测试 */
+  OperationTypeSystemEmailConfigTest = "OperationTypeSystemEmailConfigTest",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -411,6 +415,94 @@ export interface UpdateLoginConfigRequest {
 export interface UpdateLoginConfigResponse {
   /** 登录配置 */
   config: LoginConfig | undefined;
+}
+
+/** 邮件配置 */
+export interface EmailConfig {
+  /** 是否启用邮件服务 */
+  enabled: boolean;
+  /** SMTP 服务地址 */
+  host: string;
+  /** SMTP 服务端口 */
+  port: number;
+  /** SMTP 用户名 */
+  username: string;
+  /** SMTP 密码 */
+  password: string;
+  /** 发件邮箱 */
+  from: string;
+  /** 发件人名称 */
+  fromName: string;
+  /** 是否使用 TLS */
+  useTls: boolean;
+  /** 超时时间，单位秒 */
+  timeoutSeconds: number;
+  /** 并发发送协程数 */
+  ccsN: number;
+}
+
+/** 模板配置 */
+export interface EmailTemplate {
+  /** 邮件主题 TEXT 模板 */
+  subject: string;
+  /** 邮件内容 HTML 模板 */
+  template: string;
+}
+
+/** 获取邮件配置请求 */
+export interface EmailConfigRequest {
+}
+
+/** 获取邮件配置响应 */
+export interface EmailConfigResponse {
+  /** 邮件配置 */
+  config: EmailConfig | undefined;
+}
+
+/** 更新邮件配置请求 */
+export interface UpdateEmailConfigRequest {
+  /** 是否启用邮件服务 */
+  enabled: boolean;
+  /** SMTP 服务地址 */
+  host: string;
+  /** SMTP 服务端口 */
+  port: number;
+  /** SMTP 用户名 */
+  username: string;
+  /** SMTP 密码 */
+  password: string;
+  /** 发件邮箱 */
+  from: string;
+  /** 发件人名称 */
+  fromName: string;
+  /** 是否使用 TLS */
+  useTls: boolean;
+  /** 超时时间，单位秒 */
+  timeoutSeconds: number;
+  /** 并发发送协程数 */
+  ccsN: number;
+}
+
+/** 更新邮件配置响应 */
+export interface UpdateEmailConfigResponse {
+  /** 邮件配置 */
+  config: EmailConfig | undefined;
+}
+
+/** 测试邮件配置请求 */
+export interface TestEmailConfigRequest {
+  /** 收件邮箱 */
+  recipient: string;
+  /** 邮件配置；不传时使用数据库中的邮件配置 */
+  config:
+    | EmailConfig
+    | undefined;
+  /** 测试邮件内容;不传时使用默认配置 */
+  messages?: EmailTemplate | undefined;
+}
+
+/** 测试邮件配置响应 */
+export interface TestEmailConfigResponse {
 }
 
 /** 获取系统信息概览请求 */

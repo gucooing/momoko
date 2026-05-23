@@ -49,7 +49,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	fileUsecase := biz.NewFileUsecase(fileRepo)
 	fileService := service.NewFileService(fileUsecase)
 	systemRepo := data.NewSystemRepo(dataData)
-	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo)
+	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo, configRepo)
 	userService := service.NewUserService(userUsecase, systemUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)

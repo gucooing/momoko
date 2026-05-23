@@ -2,16 +2,17 @@ package biz
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-
 	v1 "momoko/api/gen/v1"
-	"momoko/pkg/common"
+	"momoko/pkg/response"
+	"net/mail"
+	"strings"
 )
 
 type ConfigRepo interface {
-	Get(ctx context.Context, key common.ConfigKey) (string, error)
-	BatchUpdate(ctx context.Context, configs map[common.ConfigKey]string) error
+	LoginConfig(ctx context.Context) (*v1.LoginConfig, error)
+	UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.LoginConfig, error)
+	EmailConfig(ctx context.Context) (*v1.EmailConfig, error)
+	UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.EmailConfig, error)
 }
 
 type ConfigUsecase struct {
@@ -25,46 +26,69 @@ func NewConfigUsecase(config ConfigRepo) *ConfigUsecase {
 }
 
 func (c *ConfigUsecase) LoginConfig(ctx context.Context) (*v1.LoginConfig, error) {
-	registerEnabled, err := c.getBoolConfig(ctx, common.ConfigLoginRegisterEnabled)
+	config, err := c.config.LoginConfig(ctx)
 	if err != nil {
-		return nil, err
+		return nil, ErrSystem(err)
 	}
-	usernameLoginEnabled, err := c.getBoolConfig(ctx, common.ConfigLoginUsernameLoginEnabled)
-	if err != nil {
-		return nil, err
-	}
-	emailLoginEnabled, err := c.getBoolConfig(ctx, common.ConfigLoginEmailLoginEnabled)
-	if err != nil {
-		return nil, err
-	}
-
-	return &v1.LoginConfig{
-		RegisterEnabled:      registerEnabled,
-		UsernameLoginEnabled: usernameLoginEnabled,
-		EmailLoginEnabled:    emailLoginEnabled,
-	}, nil
+	return config, nil
 }
 
 func (c *ConfigUsecase) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.LoginConfig, error) {
-	configs := map[common.ConfigKey]string{
-		common.ConfigLoginRegisterEnabled:      strconv.FormatBool(req.RegisterEnabled),
-		common.ConfigLoginUsernameLoginEnabled: strconv.FormatBool(req.UsernameLoginEnabled),
-		common.ConfigLoginEmailLoginEnabled:    strconv.FormatBool(req.EmailLoginEnabled),
-	}
-	if err := c.config.BatchUpdate(ctx, configs); err != nil {
+	updated, err := c.config.UpdateLoginConfig(ctx, req)
+	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return c.LoginConfig(ctx)
+	return updated, nil
 }
 
-func (c *ConfigUsecase) getBoolConfig(ctx context.Context, key common.ConfigKey) (bool, error) {
-	value, err := c.config.Get(ctx, key)
+func (c *ConfigUsecase) EmailConfig(ctx context.Context) (*v1.EmailConfig, error) {
+	config, err := c.config.EmailConfig(ctx)
 	if err != nil {
-		return false, ErrSystem(err)
+		return nil, ErrSystem(err)
 	}
-	enabled, err := strconv.ParseBool(value)
+	return config, nil
+}
+
+func (c *ConfigUsecase) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.EmailConfig, error) {
+	if err := validateEmailConfig(req); err != nil {
+		return nil, err
+	}
+
+	updated, err := c.config.UpdateEmailConfig(ctx, req)
 	if err != nil {
-		return false, ErrSystem(fmt.Errorf("invalid bool config %s=%q: %w", key, value, err))
+		return nil, ErrSystem(err)
 	}
-	return enabled, nil
+	return updated, nil
+}
+
+func validateEmailConfig(req *v1.UpdateEmailConfigRequest) error {
+	req.Host = strings.TrimSpace(req.Host)
+	req.Username = strings.TrimSpace(req.Username)
+	req.From = strings.TrimSpace(req.From)
+	req.FromName = strings.TrimSpace(req.FromName)
+	if req.Port <= 0 {
+		if req.UseTls {
+			req.Port = 465
+		} else {
+			req.Port = 25
+		}
+	}
+	if req.TimeoutSeconds <= 0 {
+		req.TimeoutSeconds = 10
+	}
+	if req.CcsN <= 0 {
+		req.CcsN = 5
+	}
+	if req.Enabled {
+		if req.Host == "" {
+			return response.BadRequest(400, "邮件服务地址不能为空")
+		}
+		if req.From == "" {
+			return response.BadRequest(400, "发件邮箱不能为空")
+		}
+		if _, err := mail.ParseAddress(req.From); err != nil {
+			return response.BadRequest(400, "发件邮箱格式不正确")
+		}
+	}
+	return nil
 }

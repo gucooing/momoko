@@ -81,6 +81,11 @@ func NewClient(config Config) (*Client, error) {
 	}, nil
 }
 
+func Test(ctx context.Context, config Config, message Message) error {
+	c := &Client{config: config}
+	return c.send(ctx, message)
+}
+
 func (c *Client) Start() {
 	for i := 0; i < c.config.CcsN; i++ {
 		c.wg.Add(1)
@@ -88,12 +93,19 @@ func (c *Client) Start() {
 	}
 }
 
+func (c *Client) Close() {
+	close(c.stopChan)
+}
+
 func (c *Client) worker(id int) {
 	defer c.wg.Done()
 
 	for {
 		select {
-		case task := <-c.taskChan:
+		case task, ok := <-c.taskChan:
+			if !ok {
+				return
+			}
 			c.processTask(id, task)
 		case <-c.stopChan:
 			return

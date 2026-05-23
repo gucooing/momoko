@@ -15,15 +15,18 @@ import (
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/constant"
+	"momoko/pkg/email"
 	"momoko/pkg/sysinfo"
 )
 
 type SystemUsecase struct {
 	sys      SystemRepo
 	userRepo UserRepo
-	sysInfo  *sysinfo.Collector
+	config   ConfigRepo
 
-	cache cache.Cache[string, *RoleOjb]
+	emailClient *email.Client
+	sysInfo     *sysinfo.Collector
+	cache       cache.Cache[string, *RoleOjb]
 }
 
 // 权限缓存
@@ -66,12 +69,64 @@ type SystemRepo interface {
 	DeleteRole(ctx context.Context, roleIds []string) error
 }
 
-func NewSystemUsecase(sys SystemRepo, userRepo UserRepo) *SystemUsecase {
-	return &SystemUsecase{
+func NewSystemUsecase(sys SystemRepo, userRepo UserRepo, config ConfigRepo) *SystemUsecase {
+	systemUc := &SystemUsecase{
 		sys:      sys,
 		userRepo: userRepo,
+		config:   config,
 		sysInfo:  sysinfo.NewCollector(),
 	}
+	systemUc.init()
+
+	return systemUc
+}
+
+// 初始化
+func (s *SystemUsecase) init() {
+	ctx := context.Background()
+	s.NewEmailClient(ctx)
+}
+
+func (s *SystemUsecase) NewEmailClient(ctx context.Context) {
+	if s.emailClient != nil {
+		s.emailClient.Close()
+	}
+	emailConfig, err := s.config.EmailConfig(ctx)
+	if err != nil || !emailConfig.Enabled {
+		return
+	}
+	emailClient, err := email.NewClient(toEmailConfig(emailConfig))
+	if err != nil {
+		return
+	}
+	emailClient.Start()
+	s.emailClient = emailClient
+}
+
+func (s *SystemUsecase) TestEmailConfig(ctx context.Context, req *v1.TestEmailConfigRequest) error {
+	config := req.Config
+	if config == nil {
+		var err error
+		config, err = s.config.EmailConfig(ctx)
+		if err != nil {
+			return ErrSystem(err)
+		}
+	}
+	message := email.Message{
+		Recipient: req.Recipient,
+		Subject:   "Momoko 邮件配置测试",
+		Template:  "<p>这是一封 Momoko 邮件配置测试邮件。</p>",
+	}
+	if req.Messages != nil {
+		message.Subject = req.Messages.Subject
+		message.Template = req.Messages.Template
+	}
+
+	err := email.Test(ctx, toEmailConfig(config), message)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	return nil
 }
 
 func (s *SystemUsecase) SystemOverview(ctx context.Context) (*v1.SystemOverviewResponse, error) {
@@ -640,5 +695,19 @@ func toDiskIOStatus(data *sysinfo.DiskIOStatus) *v1.DiskIOStatus {
 		WriteRateBytesPerSecond: data.WriteRateBytesPerSecond,
 		IopsInProgress:          data.IopsInProgress,
 		IoTime:                  data.IOTime,
+	}
+}
+
+func toEmailConfig(config *v1.EmailConfig) email.Config {
+	return email.Config{
+		Host:     config.Host,
+		Port:     int(config.Port),
+		Username: config.Username,
+		Password: config.Password,
+		From:     config.From,
+		FromName: config.FromName,
+		UseTLS:   config.UseTls,
+		Timeout:  time.Duration(config.TimeoutSeconds) * time.Second,
+		CcsN:     int(config.CcsN),
 	}
 }

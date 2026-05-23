@@ -29,11 +29,14 @@ const OperationSystemAdminPermissions = "/v1.System/AdminPermissions"
 const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
+const OperationSystemEmailConfig = "/v1.System/EmailConfig"
 const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
 const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
+const OperationSystemTestEmailConfig = "/v1.System/TestEmailConfig"
+const OperationSystemUpdateEmailConfig = "/v1.System/UpdateEmailConfig"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
 
 type SystemHTTPServer interface {
@@ -57,6 +60,8 @@ type SystemHTTPServer interface {
 	AdminRole(context.Context, *AdminRoleRequest) (*AdminRoleResponse, error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
+	// EmailConfig 获取邮件配置
+	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	// LoginConfig 获取登录配置
@@ -67,6 +72,10 @@ type SystemHTTPServer interface {
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// SystemStatus 获取系统实时状态
 	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
+	// TestEmailConfig 测试邮件配置
+	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
+	// UpdateEmailConfig 更新邮件配置
+	UpdateEmailConfig(context.Context, *UpdateEmailConfigRequest) (*UpdateEmailConfigResponse, error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
 }
@@ -86,6 +95,9 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.DELETE("/api/v1/role/admin/del", _System_AdminDeleteRole0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/login-config", _System_LoginConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/email-config", _System_EmailConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/email-config", _System_UpdateEmailConfig0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/email-config/test", _System_TestEmailConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/operation-logs", _System_ListOperationLogs0_HTTP_Handler(srv))
@@ -368,6 +380,69 @@ func _System_UpdateLoginConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http
 	}
 }
 
+func _System_EmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EmailConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemEmailConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EmailConfig(ctx, req.(*EmailConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EmailConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_UpdateEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateEmailConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateEmailConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateEmailConfig(ctx, req.(*UpdateEmailConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateEmailConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_TestEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestEmailConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemTestEmailConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestEmailConfig(ctx, req.(*TestEmailConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestEmailConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_SystemOverview0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SystemOverviewRequest
@@ -446,6 +521,8 @@ type SystemHTTPClient interface {
 	AdminRole(ctx context.Context, req *AdminRoleRequest, opts ...http.CallOption) (rsp *AdminRoleResponse, err error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
+	// EmailConfig 获取邮件配置
+	EmailConfig(ctx context.Context, req *EmailConfigRequest, opts ...http.CallOption) (rsp *EmailConfigResponse, err error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(ctx context.Context, req *ListOperationLogsRequest, opts ...http.CallOption) (rsp *ListOperationLogsResponse, err error)
 	// LoginConfig 获取登录配置
@@ -456,6 +533,10 @@ type SystemHTTPClient interface {
 	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
 	// SystemStatus 获取系统实时状态
 	SystemStatus(ctx context.Context, req *SystemStatusRequest, opts ...http.CallOption) (rsp *SystemStatusResponse, err error)
+	// TestEmailConfig 测试邮件配置
+	TestEmailConfig(ctx context.Context, req *TestEmailConfigRequest, opts ...http.CallOption) (rsp *TestEmailConfigResponse, err error)
+	// UpdateEmailConfig 更新邮件配置
+	UpdateEmailConfig(ctx context.Context, req *UpdateEmailConfigRequest, opts ...http.CallOption) (rsp *UpdateEmailConfigResponse, err error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(ctx context.Context, req *UpdateLoginConfigRequest, opts ...http.CallOption) (rsp *UpdateLoginConfigResponse, err error)
 }
@@ -608,6 +689,20 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 	return &out, nil
 }
 
+// EmailConfig 获取邮件配置
+func (c *SystemHTTPClientImpl) EmailConfig(ctx context.Context, in *EmailConfigRequest, opts ...http.CallOption) (*EmailConfigResponse, error) {
+	var out EmailConfigResponse
+	pattern := "/api/v1/system/email-config"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemEmailConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListOperationLogs 获取操作日志
 func (c *SystemHTTPClientImpl) ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...http.CallOption) (*ListOperationLogsResponse, error) {
 	var out ListOperationLogsResponse
@@ -672,6 +767,34 @@ func (c *SystemHTTPClientImpl) SystemStatus(ctx context.Context, in *SystemStatu
 	opts = append(opts, http.Operation(OperationSystemSystemStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TestEmailConfig 测试邮件配置
+func (c *SystemHTTPClientImpl) TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...http.CallOption) (*TestEmailConfigResponse, error) {
+	var out TestEmailConfigResponse
+	pattern := "/api/v1/system/email-config/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemTestEmailConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateEmailConfig 更新邮件配置
+func (c *SystemHTTPClientImpl) UpdateEmailConfig(ctx context.Context, in *UpdateEmailConfigRequest, opts ...http.CallOption) (*UpdateEmailConfigResponse, error) {
+	var out UpdateEmailConfigResponse
+	pattern := "/api/v1/system/email-config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateEmailConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

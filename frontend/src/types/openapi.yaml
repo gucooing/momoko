@@ -1593,6 +1593,56 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+    /api/v1/system/email-config:
+        get:
+            tags:
+                - System
+            description: 获取邮件配置
+            operationId: System_EmailConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.EmailConfigResponse'
+        put:
+            tags:
+                - System
+            description: 更新邮件配置
+            operationId: System_UpdateEmailConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateEmailConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateEmailConfigResponse'
+    /api/v1/system/email-config/test:
+        post:
+            tags:
+                - System
+            description: 测试邮件配置
+            operationId: System_TestEmailConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestEmailConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestEmailConfigResponse'
     /api/v1/system/login-config:
         get:
             tags:
@@ -2707,6 +2757,59 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新用户响应
+        v1.EmailConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用邮件服务
+                host:
+                    type: string
+                    description: SMTP 服务地址
+                port:
+                    type: integer
+                    description: SMTP 服务端口
+                    format: int32
+                username:
+                    type: string
+                    description: SMTP 用户名
+                password:
+                    type: string
+                    description: SMTP 密码
+                from:
+                    type: string
+                    description: 发件邮箱
+                fromName:
+                    type: string
+                    description: 发件人名称
+                useTls:
+                    type: boolean
+                    description: 是否使用 TLS
+                timeoutSeconds:
+                    type: integer
+                    description: 超时时间，单位秒
+                    format: int32
+                ccsN:
+                    type: integer
+                    description: 并发发送协程数
+                    format: int32
+            description: 邮件配置
+        v1.EmailConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailConfig'
+                    description: 邮件配置
+            description: 获取邮件配置响应
+        v1.EmailTemplate:
+            type: object
+            properties:
+                subject:
+                    type: string
+                template:
+                    type: string
+            description: 模板配置
         v1.FileCreateItem:
             type: object
             properties:
@@ -3873,6 +3976,25 @@ components:
                     type: string
                     description: 内核架构
             description: 系统版本信息
+        v1.TestEmailConfigRequest:
+            type: object
+            properties:
+                recipient:
+                    type: string
+                    description: 收件邮箱
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailConfig'
+                    description: 邮件配置；不传时使用数据库中的邮件配置
+                messages:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailTemplate'
+                    description: 测试邮件内容;不传时使用默认配置
+            description: 测试邮件配置请求
+        v1.TestEmailConfigResponse:
+            type: object
+            properties: {}
+            description: 测试邮件配置响应
         v1.TestSSHHostRequest:
             type: object
             properties:
@@ -3929,6 +4051,51 @@ components:
                     type: string
                     description: 实际生成的相对路径
             description: 解压实例文件响应
+        v1.UpdateEmailConfigRequest:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用邮件服务
+                host:
+                    type: string
+                    description: SMTP 服务地址
+                port:
+                    type: integer
+                    description: SMTP 服务端口
+                    format: int32
+                username:
+                    type: string
+                    description: SMTP 用户名
+                password:
+                    type: string
+                    description: SMTP 密码
+                from:
+                    type: string
+                    description: 发件邮箱
+                fromName:
+                    type: string
+                    description: 发件人名称
+                useTls:
+                    type: boolean
+                    description: 是否使用 TLS
+                timeoutSeconds:
+                    type: integer
+                    description: 超时时间，单位秒
+                    format: int32
+                ccsN:
+                    type: integer
+                    description: 并发发送协程数
+                    format: int32
+            description: 更新邮件配置请求
+        v1.UpdateEmailConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.EmailConfig'
+                    description: 邮件配置
+            description: 更新邮件配置响应
         v1.UpdateInstanceRequest:
             type: object
             properties:
