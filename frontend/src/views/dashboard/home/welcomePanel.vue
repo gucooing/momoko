@@ -75,38 +75,40 @@
               />
             </div>
           </div>
-          <div
-            class="flex flex-wrap px-2 md:px-6 py-6 md:py-10 items-center gap-3"
-          >
-            <div class="sys-info-chip">
-              <el-icon size="13">
-                <component :is="menuStore.iconComponents['HOutline:ServerStackIcon']" />
-              </el-icon>
-              <span>{{ overview?.version?.hostname || '--' }}</span>
-            </div>
-            <div class="sys-info-chip">
-              <el-icon size="13">
-                <component :is="menuStore.iconComponents['HOutline:Cog6ToothIcon']" />
-              </el-icon>
-              <span>{{ overview?.version?.os || '--' }} {{ overview?.version?.platformVersion || '' }}</span>
-            </div>
-            <div class="sys-info-chip">
-              <el-icon size="13">
-                <component :is="menuStore.iconComponents['HOutline:BoltIcon']" />
-              </el-icon>
-              <span>{{ overview?.version?.kernelArch || '--' }} · {{ overview?.version?.kernelVersion || '--' }}</span>
-            </div>
-            <div class="sys-info-chip">
-              <el-icon size="13">
-                <component :is="menuStore.iconComponents['HOutline:ClockIcon']" />
-              </el-icon>
-              <span>开机 {{ formatUptime(overview?.uptimeSeconds) }}</span>
-            </div>
-            <div class="sys-info-chip">
-              <el-icon size="13">
-                <component :is="menuStore.iconComponents['Element:Calendar']" />
-              </el-icon>
-              <span>{{ formatBootTime(overview?.bootTime) }}</span>
+          <div class="px-2 md:px-6 py-6 md:py-10">
+            <div class="sys-info-grid">
+              <div class="sys-info-line">
+                <span class="sys-info-label">设备名称</span>
+                <span>{{ overview?.version?.hostname || '--' }}</span>
+              </div>
+               <div class="sys-info-line">
+                <span class="sys-info-label">CPU</span>
+                <span>{{ overview?.cpu?.modelName || '--' }}</span>
+              </div>
+               <div class="sys-info-line">
+                <span class="sys-info-label">OS</span>
+                <span>{{ overview?.version?.os || '--' }}</span>
+              </div>
+              <div class="sys-info-line">
+                <span class="sys-info-label">系统架构</span>
+                <span>{{ overview?.version?.kernelArch || '--' }}</span>
+              </div>
+              <div class="sys-info-line">
+                <span class="sys-info-label">操作系统</span>
+                <span>{{ overview?.version?.os || '--' }} {{ overview?.version?.platformVersion || '' }}</span>
+              </div>
+              <div class="sys-info-line">
+                <span class="sys-info-label">内核版本</span>
+                <span>{{ overview?.version?.kernelVersion || '--' }}</span>
+              </div>
+              <div class="sys-info-line">
+                <span class="sys-info-label">运行时间</span>
+                <span>{{ formatUptime(overview?.uptimeSeconds) }}</span>
+              </div>
+              <div class="sys-info-line">
+                <span class="sys-info-label">启动时间</span>
+                <span>{{ formatBootTime(overview?.bootTime) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -275,15 +277,23 @@ onBeforeUnmount(() => {
   }
 }
 
-.sys-info-chip {
+.sys-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2rem;
+  row-gap: 0.5rem;
+}
+
+.sys-info-line {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--el-text-color-primary);
+}
+
+.sys-info-label {
   font-weight: 600;
   color: var(--el-text-color-secondary);
-  padding: 6px 12px;
-  background: var(--el-bg-color-page);
-  border-radius: 10px;
+  min-width: 4.5rem;
 }
 </style>

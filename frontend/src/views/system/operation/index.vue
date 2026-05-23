@@ -85,7 +85,7 @@
           }}</span>
         </template>
         <template #column-duration="{ row }">
-          {{ row.durationMs > 0 ? `${row.durationMs}ms` : '-' }}
+          {{ `${row.durationMs}ms` }}
         </template>
         <template #column-operationTime="{ row }">
           {{ formatTime(row.operationTime) }}
