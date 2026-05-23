@@ -91,7 +91,13 @@ func (s *SystemUsecase) SystemStatus(ctx context.Context, req *v1.SystemStatusRe
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return toSystemStatusResponse(status), nil
+	return &v1.SystemStatusResponse{
+		Cpu:        toCPUStatus(status.CPU),
+		Memory:     toMemoryStatus(status.Memory),
+		Network:    toNetworkStatus(status.Network),
+		Disk:       toDiskStatus(status.Disk),
+		SampleTime: timestamppb.New(status.SampleTime),
+	}, nil
 }
 
 func (s *SystemUsecase) GetRoleOjbByUserID(ctx context.Context, userID string) (*RoleOjb, error) {
@@ -433,32 +439,21 @@ func toSystemOverviewResponse(data *sysinfo.Overview) *v1.SystemOverviewResponse
 			KernelVersion:   data.Version.KernelVersion,
 			KernelArch:      data.Version.KernelArch,
 		},
-		BootTime:          timestamppb.New(data.BootTime),
-		UptimeSeconds:     data.UptimeSeconds,
-		Cpu:               toCPUOverview(data.CPU),
-		Memory:            toMemoryOverview(data.Memory),
+		BootTime:      timestamppb.New(data.BootTime),
+		UptimeSeconds: data.UptimeSeconds,
+		Cpu: &v1.CpuOverview{
+			LogicalCount:  int32(data.CPU.LogicalCount),
+			PhysicalCount: int32(data.CPU.PhysicalCount),
+			ModelName:     data.CPU.ModelName,
+		},
+		Memory: &v1.MemoryOverview{
+			PhysicalMemory: toPhysicalMemoryOverview(data.Memory.PhysicalMemory),
+			VirtualMemory:  toVirtualMemoryOverview(data.Memory.VirtualMemory),
+		},
 		NetworkInterfaces: interfaces,
 		DiskPartitions:    partitions,
 		DiskIos:           diskIOs,
 		SampleTime:        timestamppb.New(data.SampleTime),
-	}
-}
-
-func toSystemStatusResponse(data *sysinfo.Status) *v1.SystemStatusResponse {
-	return &v1.SystemStatusResponse{
-		Cpu:        toCPUStatus(data.CPU),
-		Memory:     toMemoryStatus(data.Memory),
-		Network:    toNetworkStatus(data.Network),
-		Disk:       toDiskStatus(data.Disk),
-		SampleTime: timestamppb.New(data.SampleTime),
-	}
-}
-
-func toCPUOverview(data sysinfo.CPUOverview) *v1.CpuOverview {
-	return &v1.CpuOverview{
-		LogicalCount:  int32(data.LogicalCount),
-		PhysicalCount: int32(data.PhysicalCount),
-		ModelName:     data.ModelName,
 	}
 }
 
@@ -475,13 +470,6 @@ func toCPUStatus(data sysinfo.CPUStatus) *v1.CpuStatus {
 		Cores:         cores,
 		LogicalCount:  int32(data.LogicalCount),
 		PhysicalCount: int32(data.PhysicalCount),
-	}
-}
-
-func toMemoryOverview(data sysinfo.MemoryOverview) *v1.MemoryOverview {
-	return &v1.MemoryOverview{
-		PhysicalMemory: toPhysicalMemoryOverview(data.PhysicalMemory),
-		VirtualMemory:  toVirtualMemoryOverview(data.VirtualMemory),
 	}
 }
 
@@ -549,7 +537,7 @@ func toNetworkStatus(data sysinfo.NetworkStatus) *v1.NetworkStatus {
 	return &v1.NetworkStatus{
 		Total:             toNetworkInterfaceStatus(data.Total),
 		Interfaces:        interfaces,
-		SelectedInterface: toNetworkInterfaceStatusPtr(data.SelectedInterface),
+		SelectedInterface: toNetworkInterfaceStatus(data.SelectedInterface),
 		Connections: &v1.NetworkConnectionStatus{
 			Supported:   data.Connections.Supported,
 			Error:       data.Connections.Error,
@@ -561,14 +549,7 @@ func toNetworkStatus(data sysinfo.NetworkStatus) *v1.NetworkStatus {
 	}
 }
 
-func toNetworkInterfaceStatusPtr(data *sysinfo.NetworkInterfaceStatus) *v1.NetworkInterfaceStatus {
-	if data == nil {
-		return nil
-	}
-	return toNetworkInterfaceStatus(*data)
-}
-
-func toNetworkInterfaceStatus(data sysinfo.NetworkInterfaceStatus) *v1.NetworkInterfaceStatus {
+func toNetworkInterfaceStatus(data *sysinfo.NetworkInterfaceStatus) *v1.NetworkInterfaceStatus {
 	return &v1.NetworkInterfaceStatus{
 		Name:                       data.Name,
 		HardwareAddr:               data.HardwareAddr,
@@ -619,23 +600,16 @@ func toDiskStatus(data sysinfo.DiskStatus) *v1.DiskStatus {
 	return &v1.DiskStatus{
 		Total:             toDiskPartitionStatus(data.Total),
 		Partitions:        partitions,
-		SelectedPartition: toDiskPartitionStatusPtr(data.SelectedPartition),
+		SelectedPartition: toDiskPartitionStatus(data.SelectedPartition),
 		TotalIo:           toDiskIOStatus(data.TotalIO),
 		Ios:               ios,
-		SelectedIo:        toDiskIOStatusPtr(data.SelectedIO),
+		SelectedIo:        toDiskIOStatus(data.SelectedIO),
 		IoSupported:       data.IOSupported,
 		IoError:           data.IOError,
 	}
 }
 
-func toDiskPartitionStatusPtr(data *sysinfo.DiskPartitionStatus) *v1.DiskPartitionStatus {
-	if data == nil {
-		return nil
-	}
-	return toDiskPartitionStatus(*data)
-}
-
-func toDiskPartitionStatus(data sysinfo.DiskPartitionStatus) *v1.DiskPartitionStatus {
+func toDiskPartitionStatus(data *sysinfo.DiskPartitionStatus) *v1.DiskPartitionStatus {
 	return &v1.DiskPartitionStatus{
 		Device:            data.Device,
 		Mountpoint:        data.Mountpoint,
@@ -653,14 +627,7 @@ func toDiskPartitionStatus(data sysinfo.DiskPartitionStatus) *v1.DiskPartitionSt
 	}
 }
 
-func toDiskIOStatusPtr(data *sysinfo.DiskIOStatus) *v1.DiskIOStatus {
-	if data == nil {
-		return nil
-	}
-	return toDiskIOStatus(*data)
-}
-
-func toDiskIOStatus(data sysinfo.DiskIOStatus) *v1.DiskIOStatus {
+func toDiskIOStatus(data *sysinfo.DiskIOStatus) *v1.DiskIOStatus {
 	return &v1.DiskIOStatus{
 		Name:                    data.Name,
 		SerialNumber:            data.SerialNumber,

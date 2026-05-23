@@ -125,8 +125,8 @@ type NetworkInterfaceOverview struct {
 }
 
 type NetworkStatus struct {
-	Total             NetworkInterfaceStatus
-	Interfaces        []NetworkInterfaceStatus
+	Total             *NetworkInterfaceStatus
+	Interfaces        []*NetworkInterfaceStatus
 	SelectedInterface *NetworkInterfaceStatus
 	Connections       NetworkConnections
 }
@@ -168,11 +168,11 @@ type DiskIOOverview struct {
 }
 
 type DiskStatus struct {
-	Total             DiskPartitionStatus
-	Partitions        []DiskPartitionStatus
+	Total             *DiskPartitionStatus
+	Partitions        []*DiskPartitionStatus
 	SelectedPartition *DiskPartitionStatus
-	TotalIO           DiskIOStatus
-	IOs               []DiskIOStatus
+	TotalIO           *DiskIOStatus
+	IOs               []*DiskIOStatus
 	SelectedIO        *DiskIOStatus
 	IOSupported       bool
 	IOError           string
@@ -422,7 +422,7 @@ func (c *Collector) readNetworkStatus(ctx context.Context, interfaceName string,
 	}
 
 	network := NetworkStatus{
-		Interfaces:  make([]NetworkInterfaceStatus, 0, len(counters)),
+		Interfaces:  make([]*NetworkInterfaceStatus, 0, len(counters)),
 		Connections: readNetworkConnections(ctx),
 	}
 
@@ -432,9 +432,9 @@ func (c *Collector) readNetworkStatus(ctx context.Context, interfaceName string,
 	next := make(map[string]byteSample, len(counters)+1)
 	for _, counter := range counters {
 		item := toNetworkInterfaceStatus(counter, interfaceMap[counter.Name])
-		applyNetworkRate(&item, c.previousNetwork[item.Name], now)
+		applyNetworkRate(item, c.previousNetwork[item.Name], now)
 		network.Interfaces = append(network.Interfaces, item)
-		addNetworkTotal(&network.Total, item)
+		addNetworkTotal(network.Total, item)
 		next[item.Name] = byteSample{
 			readOrRecv:  item.BytesRecv,
 			writeOrSent: item.BytesSent,
@@ -443,7 +443,7 @@ func (c *Collector) readNetworkStatus(ctx context.Context, interfaceName string,
 	}
 
 	network.Total.NetworkInterfaceOverview.Name = "total"
-	applyNetworkRate(&network.Total, c.previousNetwork[network.Total.Name], now)
+	applyNetworkRate(network.Total, c.previousNetwork[network.Total.Name], now)
 	next[network.Total.Name] = byteSample{
 		readOrRecv:  network.Total.BytesRecv,
 		writeOrSent: network.Total.BytesSent,
@@ -474,12 +474,12 @@ func toNetworkInterfaceOverview(info gnet.InterfaceStat) NetworkInterfaceOvervie
 	}
 }
 
-func toNetworkInterfaceStatus(counter gnet.IOCountersStat, info gnet.InterfaceStat) NetworkInterfaceStatus {
+func toNetworkInterfaceStatus(counter gnet.IOCountersStat, info gnet.InterfaceStat) *NetworkInterfaceStatus {
 	overview := toNetworkInterfaceOverview(info)
 	if overview.Name == "" {
 		overview.Name = counter.Name
 	}
-	return NetworkInterfaceStatus{
+	return &NetworkInterfaceStatus{
 		NetworkInterfaceOverview: overview,
 		BytesSent:                counter.BytesSent,
 		BytesRecv:                counter.BytesRecv,
@@ -492,7 +492,7 @@ func toNetworkInterfaceStatus(counter gnet.IOCountersStat, info gnet.InterfaceSt
 	}
 }
 
-func addNetworkTotal(total *NetworkInterfaceStatus, item NetworkInterfaceStatus) {
+func addNetworkTotal(total *NetworkInterfaceStatus, item *NetworkInterfaceStatus) {
 	total.BytesSent += item.BytesSent
 	total.BytesRecv += item.BytesRecv
 	total.PacketsSent += item.PacketsSent
@@ -509,23 +509,23 @@ func applyNetworkRate(item *NetworkInterfaceStatus, previous byteSample, now tim
 	item.DownloadRateBytesPerSecond = download
 }
 
-func selectNetworkInterface(items []NetworkInterfaceStatus, name string) *NetworkInterfaceStatus {
+func selectNetworkInterface(items []*NetworkInterfaceStatus, name string) *NetworkInterfaceStatus {
 	if name != "" {
 		for i := range items {
 			if items[i].Name == name {
-				return &items[i]
+				return items[i]
 			}
 		}
 	}
 	for i := range items {
 		if items[i].IsUp && !items[i].IsLoopback {
-			return &items[i]
+			return items[i]
 		}
 	}
 	if len(items) == 0 {
 		return nil
 	}
-	return &items[0]
+	return items[0]
 }
 
 func readNetworkConnections(ctx context.Context) NetworkConnections {
@@ -599,13 +599,13 @@ func (c *Collector) readDiskStatus(ctx context.Context, filter StatusFilter, now
 		return DiskStatus{}, fmt.Errorf("disk partitions: %w", err)
 	}
 	status := DiskStatus{
-		Partitions:  make([]DiskPartitionStatus, 0, len(partitions)),
+		Partitions:  make([]*DiskPartitionStatus, 0, len(partitions)),
 		IOSupported: true,
 	}
 	for _, partition := range partitions {
 		item := readDiskPartitionStatus(ctx, partition)
 		status.Partitions = append(status.Partitions, item)
-		addDiskPartitionTotal(&status.Total, item)
+		addDiskPartitionTotal(status.Total, item)
 	}
 	sort.Slice(status.Partitions, func(i, j int) bool {
 		return status.Partitions[i].Mountpoint < status.Partitions[j].Mountpoint
@@ -618,7 +618,7 @@ func (c *Collector) readDiskStatus(ctx context.Context, filter StatusFilter, now
 	if err != nil {
 		status.IOSupported = false
 		status.IOError = err.Error()
-		status.IOs = make([]DiskIOStatus, 0)
+		status.IOs = make([]*DiskIOStatus, 0)
 		return status, nil
 	}
 	status.TotalIO = totalDiskIO(status.IOs)
@@ -626,8 +626,8 @@ func (c *Collector) readDiskStatus(ctx context.Context, filter StatusFilter, now
 	return status, nil
 }
 
-func readDiskPartitionStatus(ctx context.Context, partition gdisk.PartitionStat) DiskPartitionStatus {
-	item := DiskPartitionStatus{
+func readDiskPartitionStatus(ctx context.Context, partition gdisk.PartitionStat) *DiskPartitionStatus {
+	item := &DiskPartitionStatus{
 		DiskPartitionOverview: toDiskPartitionOverview(partition),
 		Supported:             true,
 	}
@@ -657,7 +657,7 @@ func toDiskPartitionOverview(partition gdisk.PartitionStat) DiskPartitionOvervie
 	}
 }
 
-func addDiskPartitionTotal(total *DiskPartitionStatus, item DiskPartitionStatus) {
+func addDiskPartitionTotal(total *DiskPartitionStatus, item *DiskPartitionStatus) {
 	if !item.Supported {
 		return
 	}
@@ -675,28 +675,28 @@ func addDiskPartitionTotal(total *DiskPartitionStatus, item DiskPartitionStatus)
 	}
 }
 
-func selectDiskPartition(items []DiskPartitionStatus, diskName, mountpoint string) *DiskPartitionStatus {
+func selectDiskPartition(items []*DiskPartitionStatus, diskName, mountpoint string) *DiskPartitionStatus {
 	if mountpoint != "" {
 		for i := range items {
 			if items[i].Mountpoint == mountpoint {
-				return &items[i]
+				return items[i]
 			}
 		}
 	}
 	if diskName != "" {
 		for i := range items {
 			if items[i].Device == diskName || items[i].Mountpoint == diskName {
-				return &items[i]
+				return items[i]
 			}
 		}
 	}
 	if len(items) == 0 {
 		return nil
 	}
-	return &items[0]
+	return items[0]
 }
 
-func (c *Collector) readDiskIOStatus(ctx context.Context, now time.Time) ([]DiskIOStatus, error) {
+func (c *Collector) readDiskIOStatus(ctx context.Context, now time.Time) ([]*DiskIOStatus, error) {
 	counters, err := gdisk.IOCountersWithContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("disk io: %w", err)
@@ -705,10 +705,10 @@ func (c *Collector) readDiskIOStatus(ctx context.Context, now time.Time) ([]Disk
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	items := make([]DiskIOStatus, 0, len(counters))
+	items := make([]*DiskIOStatus, 0, len(counters))
 	next := make(map[string]byteSample, len(counters)+1)
 	for name, counter := range counters {
-		item := DiskIOStatus{
+		item := &DiskIOStatus{
 			Name:           name,
 			SerialNumber:   counter.SerialNumber,
 			Label:          counter.Label,
@@ -719,7 +719,7 @@ func (c *Collector) readDiskIOStatus(ctx context.Context, now time.Time) ([]Disk
 			IopsInProgress: counter.IopsInProgress,
 			IOTime:         counter.IoTime,
 		}
-		applyDiskRate(&item, c.previousDisk[name], now)
+		applyDiskRate(item, c.previousDisk[name], now)
 		items = append(items, item)
 		next[name] = byteSample{
 			readOrRecv:  item.ReadBytes,
@@ -740,8 +740,8 @@ func applyDiskRate(item *DiskIOStatus, previous byteSample, now time.Time) {
 	item.ReadRateBytesPerSecond = read
 }
 
-func totalDiskIO(items []DiskIOStatus) DiskIOStatus {
-	total := DiskIOStatus{Name: "total"}
+func totalDiskIO(items []*DiskIOStatus) *DiskIOStatus {
+	total := &DiskIOStatus{Name: "total"}
 	for _, item := range items {
 		total.ReadCount += item.ReadCount
 		total.WriteCount += item.WriteCount
@@ -755,18 +755,18 @@ func totalDiskIO(items []DiskIOStatus) DiskIOStatus {
 	return total
 }
 
-func selectDiskIO(items []DiskIOStatus, name string) *DiskIOStatus {
+func selectDiskIO(items []*DiskIOStatus, name string) *DiskIOStatus {
 	if name != "" {
 		for i := range items {
 			if items[i].Name == name {
-				return &items[i]
+				return items[i]
 			}
 		}
 	}
 	if len(items) == 0 {
 		return nil
 	}
-	return &items[0]
+	return items[0]
 }
 
 func rates(previousWrite, currentWrite, previousRead, currentRead uint64, previousTime, now time.Time) (float64, float64) {
