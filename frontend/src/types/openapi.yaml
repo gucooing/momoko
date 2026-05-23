@@ -1624,20 +1624,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateLoginConfigResponse'
-    /api/v1/system/overview:
-        get:
-            tags:
-                - System
-            description: 获取系统信息概览
-            operationId: System_SystemOverview
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.SystemOverviewResponse'
-    /api/v1/system/status:
+    /api/v1/system/operation-logs:
         get:
             tags:
                 - System
@@ -1653,7 +1640,8 @@ paths:
                   in: query
                   description: 操作类型
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
                 - name: success
                   in: query
                   description: 操作是否成功
@@ -1693,6 +1681,48 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListOperationLogsResponse'
+    /api/v1/system/overview:
+        get:
+            tags:
+                - System
+            description: 获取系统信息概览
+            operationId: System_SystemOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SystemOverviewResponse'
+    /api/v1/system/status:
+        get:
+            tags:
+                - System
+            description: 获取系统实时状态
+            operationId: System_SystemStatus
+            parameters:
+                - name: interfaceName
+                  in: query
+                  description: 网卡名称
+                  schema:
+                    type: string
+                - name: diskName
+                  in: query
+                  description: 磁盘名称
+                  schema:
+                    type: string
+                - name: mountpoint
+                  in: query
+                  description: 挂载点
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SystemStatusResponse'
     /api/v1/user/add:
         post:
             tags:
@@ -3122,9 +3152,6 @@ components:
                 device:
                     type: string
                     description: 登录设备
-                ip:
-                    type: string
-                    description: ip地址
                 deviceId:
                     type: string
                     description: 设备码
@@ -3442,8 +3469,9 @@ components:
                     type: string
                     description: 操作用户id
                 operationType:
-                    type: string
+                    type: integer
                     description: 操作类型
+                    format: enum
                 success:
                     type: boolean
                     description: 操作是否成功

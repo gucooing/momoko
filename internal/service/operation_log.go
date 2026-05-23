@@ -13,7 +13,6 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
-	"momoko/pkg/common"
 	"momoko/pkg/tools"
 )
 
@@ -47,18 +46,24 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 		return
 	}
 
+	operation := tr.Operation()
+	operationType, ok := toOperationType(operation)
+	if !ok {
+		return
+	}
+
 	detail := tools.Detail{
 		Method:     httpReq.Method,
 		Path:       httpReq.URL.Path,
-		Operation:  tr.Operation(),
+		Operation:  operation,
 		Request:    req,
 		Success:    handlerErr == nil,
 		DurationMS: duration.Milliseconds(),
 	}
 
 	entry := &v1.OperationLogInfo{
-		UserId:        auth.GetUserIDFromContext(ctx),
-		OperationType: toOperationType(tr.Operation()),
+		UserId:        operationUserID(ctx, operation, reply, handlerErr),
+		OperationType: operationType,
 		Success:       handlerErr == nil,
 		Detail:        detail.MarshalDetail(),
 		Ip:            tools.ClientIP(httpReq),
@@ -77,11 +82,81 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 	}()
 }
 
-func toOperationType(operation string) string {
-	switch operation {
-	case v1.OperationAuthServiceLogin: // 登录
-		return common.OperationTypeLogin.String()
-	default:
-		return ""
+func operationUserID(ctx context.Context, operation string, reply any, handlerErr error) *string {
+	if userID := auth.GetUserIDFromContext(ctx); userID != nil && *userID != "" {
+		return userID
 	}
+	if operation != v1.OperationAuthServiceLogin || handlerErr != nil {
+		return nil
+	}
+
+	loginReply, ok := reply.(*v1.LoginResponse)
+	if !ok || loginReply.GetAccessToken() == "" {
+		return nil
+	}
+	claims, err := auth.ParseToken(loginReply.GetAccessToken())
+	if err != nil || claims.UserID == "" {
+		return nil
+	}
+	userID := claims.UserID
+	return &userID
+}
+
+var keyOperationTypes = map[string]v1.OperationType{
+	v1.OperationAuthServiceLogin:                         v1.OperationType_OperationTypeAuthLogin,
+	v1.OperationAuthServiceLogout:                        v1.OperationType_OperationTypeAuthLogout,
+	v1.OperationAuthServiceUpdatePassword:                v1.OperationType_OperationTypeAuthUpdatePassword,
+	v1.OperationAuthServiceDelLogin:                      v1.OperationType_OperationTypeAuthDeviceDelete,
+	v1.OperationUserServiceUpdateMe:                      v1.OperationType_OperationTypeUserUpdateMe,
+	v1.OperationUserServiceAddUser:                       v1.OperationType_OperationTypeUserCreate,
+	v1.OperationUserServiceEditUser:                      v1.OperationType_OperationTypeUserUpdate,
+	v1.OperationUserServiceDeleteUser:                    v1.OperationType_OperationTypeUserDelete,
+	v1.OperationSystemAdminAddPermissions:                v1.OperationType_OperationTypeSystemPermissionCreate,
+	v1.OperationSystemAdminEditPermissions:               v1.OperationType_OperationTypeSystemPermissionUpdate,
+	v1.OperationSystemAdminDeletePermissions:             v1.OperationType_OperationTypeSystemPermissionDelete,
+	v1.OperationSystemAdminAddRole:                       v1.OperationType_OperationTypeSystemRoleCreate,
+	v1.OperationSystemAdminEditRole:                      v1.OperationType_OperationTypeSystemRoleUpdate,
+	v1.OperationSystemAdminDeleteRole:                    v1.OperationType_OperationTypeSystemRoleDelete,
+	v1.OperationSystemUpdateLoginConfig:                  v1.OperationType_OperationTypeSystemLoginConfigUpdate,
+	v1.OperationFileManagerCreateFileSystem:              v1.OperationType_OperationTypeFileCreate,
+	v1.OperationFileManagerRenameFileSystem:              v1.OperationType_OperationTypeFileRename,
+	v1.OperationFileManagerCopyFileSystem:                v1.OperationType_OperationTypeFileCopy,
+	v1.OperationFileManagerCutFileSystem:                 v1.OperationType_OperationTypeFileMove,
+	v1.OperationFileManagerBatchDeleteFileSystem:         v1.OperationType_OperationTypeFileDelete,
+	v1.OperationFileManagerBatchCompressFileSystem:       v1.OperationType_OperationTypeFileCompress,
+	v1.OperationFileManagerUnzipFileSystem:               v1.OperationType_OperationTypeFileDecompress,
+	v1.OperationFileManagerCompleteFileUpload:            v1.OperationType_OperationTypeFileUploadComplete,
+	v1.OperationFileManagerCancelFileUpload:              v1.OperationType_OperationTypeFileUploadCancel,
+	v1.OperationInstanceManagerCreateInstanceType:        v1.OperationType_OperationTypeInstanceTypeCreate,
+	v1.OperationInstanceManagerUpdateInstanceType:        v1.OperationType_OperationTypeInstanceTypeUpdate,
+	v1.OperationInstanceManagerDelInstanceType:           v1.OperationType_OperationTypeInstanceTypeDelete,
+	v1.OperationInstanceManagerStartTerminal:             v1.OperationType_OperationTypeInstanceTerminalStart,
+	v1.OperationInstanceManagerStopTerminal:              v1.OperationType_OperationTypeInstanceTerminalStop,
+	v1.OperationInstanceManagerRestartTerminal:           v1.OperationType_OperationTypeInstanceTerminalRestart,
+	v1.OperationInstanceManagerCreateInstance:            v1.OperationType_OperationTypeInstanceCreate,
+	v1.OperationInstanceManagerStartInstance:             v1.OperationType_OperationTypeInstanceStart,
+	v1.OperationInstanceManagerStopInstance:              v1.OperationType_OperationTypeInstanceStop,
+	v1.OperationInstanceManagerRestartInstance:           v1.OperationType_OperationTypeInstanceRestart,
+	v1.OperationInstanceManagerDelInstance:               v1.OperationType_OperationTypeInstanceDelete,
+	v1.OperationInstanceManagerUpdateInstance:            v1.OperationType_OperationTypeInstanceUpdate,
+	v1.OperationInstanceManagerDelInstanceLog:            v1.OperationType_OperationTypeInstanceLogDelete,
+	v1.OperationInstanceManagerCreateInstanceFile:        v1.OperationType_OperationTypeInstanceFileCreate,
+	v1.OperationInstanceManagerRenameInstanceFile:        v1.OperationType_OperationTypeInstanceFileRename,
+	v1.OperationInstanceManagerCopyInstanceFile:          v1.OperationType_OperationTypeInstanceFileCopy,
+	v1.OperationInstanceManagerCutInstanceFile:           v1.OperationType_OperationTypeInstanceFileMove,
+	v1.OperationInstanceManagerBatchDeleteInstanceFile:   v1.OperationType_OperationTypeInstanceFileDelete,
+	v1.OperationInstanceManagerBatchCompressInstanceFile: v1.OperationType_OperationTypeInstanceFileCompress,
+	v1.OperationInstanceManagerUnzipInstanceFile:         v1.OperationType_OperationTypeInstanceFileDecompress,
+	v1.OperationInstanceManagerInstanceFilePreSignUpload: v1.OperationType_OperationTypeInstanceFileUploadPreSign,
+	v1.OperationOpenSSHManagerCreateSSHHost:              v1.OperationType_OperationTypeSSHHostCreate,
+	v1.OperationOpenSSHManagerUpdateSSHHost:              v1.OperationType_OperationTypeSSHHostUpdate,
+	v1.OperationOpenSSHManagerDeleteSSHHost:              v1.OperationType_OperationTypeSSHHostDelete,
+	v1.OperationOpenSSHManagerShareSSHHost:               v1.OperationType_OperationTypeSSHHostShare,
+	v1.OperationOpenSSHManagerTestSSHHost:                v1.OperationType_OperationTypeSSHHostTest,
+	v1.OperationOpenSSHManagerBatchTestSSHHosts:          v1.OperationType_OperationTypeSSHHostBatchTest,
+}
+
+func toOperationType(operation string) (v1.OperationType, bool) {
+	operationType, ok := keyOperationTypes[operation]
+	return operationType, ok
 }

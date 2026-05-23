@@ -12,7 +12,16 @@ import type {
   RefreshRequest,
   RefreshResponse,
 } from '@/types/v1/auth'
-import type { MeInfoRequest, MeInfoResponse } from '@/types/v1/user'
+import type {
+  MeInfoRequest,
+  MeInfoResponse,
+  MyLoginLogsRequest,
+  MyLoginLogsResponse,
+} from '@/types/v1/user'
+
+export const myLoginLogs = (params: MyLoginLogsRequest) => {
+  return request.get<MyLoginLogsResponse>('/user/me/login-logs', { params })
+}
 import type {
   LoginConfigRequest,
   LoginConfigResponse,

@@ -107,7 +107,7 @@ service System {
   // 获取操作日志
   rpc ListOperationLogs(ListOperationLogsRequest) returns (ListOperationLogsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/system/status"
+      get: "/api/v1/system/operation-logs"
     };
   }
 }
@@ -733,12 +733,119 @@ message DiskIOStatus {
   uint64 io_time = 11;
 }
 
-// 查询操作日志请求
+// 操作日志类型
+enum OperationType {
+  // 未分类操作
+  OperationTypeUncategorized = 0;
+  // 登录
+  OperationTypeAuthLogin = 1;
+  // 退出登录
+  OperationTypeAuthLogout = 2;
+  // 修改密码
+  OperationTypeAuthUpdatePassword = 3;
+  // 登录设备删除
+  OperationTypeAuthDeviceDelete = 4;
+  // 个人信息更新
+  OperationTypeUserUpdateMe = 5;
+  // 用户新增
+  OperationTypeUserCreate = 6;
+  // 用户编辑
+  OperationTypeUserUpdate = 7;
+  // 用户删除
+  OperationTypeUserDelete = 8;
+  // 权限菜单新增
+  OperationTypeSystemPermissionCreate = 9;
+  // 权限菜单编辑
+  OperationTypeSystemPermissionUpdate = 10;
+  // 权限菜单删除
+  OperationTypeSystemPermissionDelete = 11;
+  // 角色新增
+  OperationTypeSystemRoleCreate = 12;
+  // 角色编辑
+  OperationTypeSystemRoleUpdate = 13;
+  // 角色删除
+  OperationTypeSystemRoleDelete = 14;
+  // 登录配置更新
+  OperationTypeSystemLoginConfigUpdate = 15;
+  // 文件创建
+  OperationTypeFileCreate = 16;
+  // 文件重命名
+  OperationTypeFileRename = 17;
+  // 文件复制
+  OperationTypeFileCopy = 18;
+  // 文件移动
+  OperationTypeFileMove = 19;
+  // 文件删除
+  OperationTypeFileDelete = 20;
+  // 文件压缩
+  OperationTypeFileCompress = 21;
+  // 文件解压
+  OperationTypeFileDecompress = 22;
+  // 文件上传完成
+  OperationTypeFileUploadComplete = 23;
+  // 文件上传取消
+  OperationTypeFileUploadCancel = 24;
+  // 实例类型新增
+  OperationTypeInstanceTypeCreate = 25;
+  // 实例类型编辑
+  OperationTypeInstanceTypeUpdate = 26;
+  // 实例类型删除
+  OperationTypeInstanceTypeDelete = 27;
+  // 终端启动
+  OperationTypeInstanceTerminalStart = 28;
+  // 终端停止
+  OperationTypeInstanceTerminalStop = 29;
+  // 终端重启
+  OperationTypeInstanceTerminalRestart = 30;
+  // 实例新增
+  OperationTypeInstanceCreate = 31;
+  // 实例启动
+  OperationTypeInstanceStart = 32;
+  // 实例停止
+  OperationTypeInstanceStop = 33;
+  // 实例重启
+  OperationTypeInstanceRestart = 34;
+  // 实例删除
+  OperationTypeInstanceDelete = 35;
+  // 实例编辑
+  OperationTypeInstanceUpdate = 36;
+  // 实例日志删除
+  OperationTypeInstanceLogDelete = 37;
+  // 实例文件创建
+  OperationTypeInstanceFileCreate = 38;
+  // 实例文件重命名
+  OperationTypeInstanceFileRename = 39;
+  // 实例文件复制
+  OperationTypeInstanceFileCopy = 40;
+  // 实例文件移动
+  OperationTypeInstanceFileMove = 41;
+  // 实例文件删除
+  OperationTypeInstanceFileDelete = 42;
+  // 实例文件压缩
+  OperationTypeInstanceFileCompress = 43;
+  // 实例文件解压
+  OperationTypeInstanceFileDecompress = 44;
+  // 实例文件上传签名
+  OperationTypeInstanceFileUploadPreSign = 45;
+  // SSH连接新增
+  OperationTypeSSHHostCreate = 46;
+  // SSH连接编辑
+  OperationTypeSSHHostUpdate = 47;
+  // SSH连接删除
+  OperationTypeSSHHostDelete = 48;
+  // SSH连接分享
+  OperationTypeSSHHostShare = 49;
+  // SSH连接测试
+  OperationTypeSSHHostTest = 50;
+  // SSH连接批量测试
+  OperationTypeSSHHostBatchTest = 51;
+}
+
 message ListOperationLogsRequest {
   // 操作用户id
   optional string user_id = 1;
   // 操作类型
-  optional string operation_type = 2;
+  optional OperationType operation_type = 2;
   // 操作是否成功
   optional bool success = 3;
   // 请求路径
@@ -770,7 +877,7 @@ message OperationLogInfo {
   // 操作用户id
   optional string user_id = 1;
   // 操作类型
-  string operation_type = 2;
+  OperationType operation_type = 2;
   // 操作是否成功
   bool success = 3;
   // 操作详情

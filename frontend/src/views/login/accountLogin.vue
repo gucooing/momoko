@@ -211,22 +211,6 @@ const handleRememberChange = (value: boolean | string | number) => {
   }
 }
 
-const getClientIp = async (): Promise<string> => {
-  const abortController = new AbortController()
-  const timer = setTimeout(() => abortController.abort(), 1500)
-
-  try {
-    const response = await fetch('https://ipapi.co/json/', { signal: abortController.signal })
-    const data = await response.json()
-    return (data.ip as string) || '0.0.0.0'
-  } catch (error) {
-    console.warn('[login] get client ip failed:', error)
-    return '0.0.0.0'
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
 const isValidEmail = (email: string) => {
   return EMAIL_REGEXP.test(email)
 }
@@ -275,13 +259,12 @@ const handleSendCode = async () => {
 const buildLoginPayload = async (): Promise<LoginRequest> => {
   const account = accountValue.value
   const device = `${platform.os?.toString() || '未知'} / ${platform.name || '未知'} ${platform.version || ''}`.trim()
-  const ip = await getClientIp()
   const deviceId = getDeviceId()
   const useEmail = isEmailMode.value
 
   return useEmail
-    ? { email: account, password: loginForm.value.password, device, ip, deviceId }
-    : { username: account, password: loginForm.value.password, device, ip, deviceId }
+    ? { email: account, password: loginForm.value.password, device, deviceId }
+    : { username: account, password: loginForm.value.password, device, deviceId }
 }
 
 // 登录

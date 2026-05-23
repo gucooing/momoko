@@ -23,8 +23,6 @@ export interface LoginRequest {
     | undefined;
   /** 登录设备 */
   device: string;
-  /** ip地址 */
-  ip: string;
   /** 设备码 */
   deviceId: string;
 }

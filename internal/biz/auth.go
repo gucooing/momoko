@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"momoko/pkg/tools"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,7 +43,7 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  req.DeviceId,
-		IP:        req.Ip,
+		IP:        tools.ClientIPFromContext(ctx),
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeToken,
@@ -58,7 +59,7 @@ func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId string, req *v
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  req.DeviceId,
-		IP:        req.Ip,
+		IP:        tools.ClientIPFromContext(ctx),
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeRefreshToken,

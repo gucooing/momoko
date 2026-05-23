@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
-import { deleteLoginDeviceRequest, devicesRequest } from '@/api/login'
+import { deleteLoginDeviceRequest, devicesRequest, myLoginLogs } from '@/api/login'
 import defaultSystemAvatar from '@/assets/images/defaultSystemAvatar.svg'
 import type {
   LoginDeviceRow,
@@ -10,6 +10,7 @@ import type {
   UserProfileFormValue,
   UserMessageItem,
 } from '@/stores/user/types'
+import type { OperationLogInfo } from '@/types/v1/system'
 import type { UserInfo } from '@/types/v1/user'
 
 const COLUMN_WIDTH_MIN = 150
@@ -72,32 +73,13 @@ const createDefaultMessages = (): UserMessageItem[] => [
   },
 ]
 
-const createDefaultLoginLogs = (): LoginLogItem[] => [
-  {
-    device: 'Windows 11 · Chrome',
-    browser: 'Chrome 134.0.6998',
-    ip: '203.0.113.24',
-    location: '中国香港',
-    time: '2026-03-21 09:12:33',
-    status: 'success',
-  },
-  {
-    device: 'macOS 15 · Safari',
-    browser: 'Safari 18.3',
-    ip: '198.51.100.13',
-    location: '新加坡',
-    time: '2026-03-20 22:45:17',
-    status: 'success',
-  },
-  {
-    device: 'Windows 10 · Edge',
-    browser: 'Edge 134.0.3124',
-    ip: '192.0.2.77',
-    location: '日本东京',
-    time: '2026-03-20 18:26:54',
-    status: 'danger',
-  },
-]
+const toLoginLogItem = (log: OperationLogInfo): LoginLogItem => ({
+  detail: log.detail,
+  userAgent: log.userAgent,
+  ip: log.ip,
+  operationTime: log.operationTime ? dayjs(log.operationTime).format('YYYY-MM-DD HH:mm:ss') : '-',
+  success: log.success,
+})
 
 const SKILL_TAG_TYPES = ['success', 'info', 'warning', 'danger', 'primary'] as const
 type SkillTagType = (typeof SKILL_TAG_TYPES)[number]
@@ -146,7 +128,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const loginDevices = ref<LoginDeviceRow[]>([])
   const currentDeviceId = ref('')
   const deletingDeviceIds = ref<string[]>([])
-  const loginLogs = ref<LoginLogItem[]>(createDefaultLoginLogs())
+  const loginLogs = ref<LoginLogItem[]>([])
 
   const currentDeviceLabel = computed(() => {
     if (!currentDeviceId.value) return '-'
@@ -362,6 +344,25 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     return [...currentDevices, ...otherDevices]
   }
 
+  const loginLogsPagination = ref({ page: 1, pageSize: 10, total: 0 })
+
+  const getMyLoginLogs = async () => {
+    try {
+      const { data } = await myLoginLogs({
+        page: loginLogsPagination.value.page,
+        pageSize: loginLogsPagination.value.pageSize,
+      })
+      loginLogs.value = (data?.logs || []).map(toLoginLogItem)
+      loginLogsPagination.value = {
+        page: Number(data?.page || 1),
+        pageSize: Number(data?.pageSize || 10),
+        total: Number(data?.total || 0),
+      }
+    } catch {
+      loginLogs.value = []
+    }
+  }
+
   const getLoginDevices = async () => {
     loading.value = true
 
@@ -414,7 +415,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     loginDevices.value = []
     currentDeviceId.value = ''
     deletingDeviceIds.value = []
-    loginLogs.value = createDefaultLoginLogs()
+    loginLogs.value = []
   }
 
   return {
@@ -431,6 +432,8 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     loading,
     loginDevices,
     loginLogs,
+    loginLogsPagination,
+    getMyLoginLogs,
     currentDeviceLabel,
     extraColumns,
     deviceColumnWidth,

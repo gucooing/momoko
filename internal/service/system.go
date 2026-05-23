@@ -12,14 +12,16 @@ import (
 type SystemService struct {
 	v1.UnimplementedSystemServer
 
-	uc     *biz.SystemUsecase
-	config *biz.ConfigUsecase
+	uc           *biz.SystemUsecase
+	config       *biz.ConfigUsecase
+	operationLog *biz.OperationLogUsecase
 }
 
-func NewSystemService(uc *biz.SystemUsecase, config *biz.ConfigUsecase) *SystemService {
+func NewSystemService(uc *biz.SystemUsecase, config *biz.ConfigUsecase, operationLog *biz.OperationLogUsecase) *SystemService {
 	return &SystemService{
-		uc:     uc,
-		config: config,
+		uc:           uc,
+		config:       config,
+		operationLog: operationLog,
 	}
 }
 
@@ -179,4 +181,11 @@ func (s *SystemService) SystemOverview(ctx context.Context, req *v1.SystemOvervi
 
 func (s *SystemService) SystemStatus(ctx context.Context, req *v1.SystemStatusRequest) (*v1.SystemStatusResponse, error) {
 	return s.uc.SystemStatus(ctx, req)
+}
+
+func (s *SystemService) ListOperationLogs(ctx context.Context, req *v1.ListOperationLogsRequest) (*v1.ListOperationLogsResponse, error) {
+	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
+		return nil, err
+	}
+	return s.operationLog.ListOperationLogs(ctx, req)
 }

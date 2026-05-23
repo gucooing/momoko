@@ -38,10 +38,8 @@ type LoginRequest struct {
 	Identity isLoginRequest_Identity `protobuf_oneof:"identity"`
 	// 登录设备
 	Device string `protobuf:"bytes,4,opt,name=device,proto3" json:"device,omitempty"`
-	// ip地址
-	Ip string `protobuf:"bytes,5,opt,name=ip,proto3" json:"ip,omitempty"`
 	// 设备码
-	DeviceId      string `protobuf:"bytes,6,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	DeviceId      string `protobuf:"bytes,5,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -111,13 +109,6 @@ func (x *LoginRequest) GetEmail() string {
 func (x *LoginRequest) GetDevice() string {
 	if x != nil {
 		return x.Device
-	}
-	return ""
-}
-
-func (x *LoginRequest) GetIp() string {
-	if x != nil {
-		return x.Ip
 	}
 	return ""
 }
@@ -757,14 +748,13 @@ var File_v1_auth_proto protoreflect.FileDescriptor
 
 const file_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/auth.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb1\x01\n" +
+	"\rv1/auth.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa1\x01\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\bpassword\x18\x01 \x01(\tR\bpassword\x12\x1c\n" +
 	"\busername\x18\x02 \x01(\tH\x00R\busername\x12\x16\n" +
 	"\x05email\x18\x03 \x01(\tH\x00R\x05email\x12\x16\n" +
-	"\x06device\x18\x04 \x01(\tR\x06device\x12\x0e\n" +
-	"\x02ip\x18\x05 \x01(\tR\x02ip\x12\x1b\n" +
-	"\tdevice_id\x18\x06 \x01(\tR\bdeviceIdB\n" +
+	"\x06device\x18\x04 \x01(\tR\x06device\x12\x1b\n" +
+	"\tdevice_id\x18\x05 \x01(\tR\bdeviceIdB\n" +
 	"\n" +
 	"\bidentity\"\x91\x01\n" +
 	"\rLoginResponse\x12!\n" +

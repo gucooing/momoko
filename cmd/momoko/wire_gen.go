@@ -51,7 +51,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	systemRepo := data.NewSystemRepo(dataData)
 	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo)
 	userService := service.NewUserService(userUsecase, systemUsecase, operationLogUsecase)
-	systemService := service.NewSystemService(systemUsecase, configUsecase)
+	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)
 	instanceUsecase, cleanup2, err := biz.NewInstanceUsecase(instanceRepo, fileRepo)
 	if err != nil {

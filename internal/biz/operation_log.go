@@ -5,7 +5,6 @@ import (
 	"momoko/internal/data/ent/gen"
 
 	"momoko/api/gen/v1"
-	"momoko/pkg/common"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -72,7 +71,7 @@ func (u *OperationLogUsecase) MyLoginLogs(ctx context.Context, userID string, re
 
 	logs, err := u.ListOperationLogs(ctx, &v1.ListOperationLogsRequest{
 		UserId:        &userID,
-		OperationType: new(common.OperationTypeLogin.String()),
+		OperationType: v1.OperationType_OperationTypeAuthLogin.Enum(),
 		Page:          req.Page,
 		PageSize:      req.PageSize,
 	})
@@ -91,7 +90,7 @@ func (u *OperationLogUsecase) MyLoginLogs(ctx context.Context, userID string, re
 func toOperationLogInfo(log *gen.OperationLog) *v1.OperationLogInfo {
 	return &v1.OperationLogInfo{
 		UserId:        log.UserID,
-		OperationType: log.OperationType,
+		OperationType: operationTypeFromString(log.OperationType),
 		Success:       log.Success,
 		Detail:        log.Detail,
 		Ip:            log.IP,
@@ -100,4 +99,11 @@ func toOperationLogInfo(log *gen.OperationLog) *v1.OperationLogInfo {
 		DurationMs:    log.DurationMs,
 		OperationTime: timestamppb.New(log.OperationTime),
 	}
+}
+
+func operationTypeFromString(value string) v1.OperationType {
+	if item, ok := v1.OperationType_value[value]; ok {
+		return v1.OperationType(item)
+	}
+	return v1.OperationType_OperationTypeUncategorized
 }

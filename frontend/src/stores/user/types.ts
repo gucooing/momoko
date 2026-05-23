@@ -43,10 +43,9 @@ export interface UserPasswordFormValue extends UpdatePasswordRequest {
 export interface LoginDeviceRow extends LoginDevice, Record<string, unknown> {}
 
 export interface LoginLogItem {
-  device: string
-  browser: string
+  detail: string
+  userAgent: string
   ip: string
-  location: string
-  time: string
-  status: 'success' | 'danger'
+  operationTime: string
+  success: boolean
 }

@@ -173,6 +173,255 @@ func (RoleStatus) EnumDescriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{2}
 }
 
+// 操作日志类型
+type OperationType int32
+
+const (
+	// 未分类操作
+	OperationType_OperationTypeUncategorized OperationType = 0
+	// 登录
+	OperationType_OperationTypeAuthLogin OperationType = 1
+	// 退出登录
+	OperationType_OperationTypeAuthLogout OperationType = 2
+	// 修改密码
+	OperationType_OperationTypeAuthUpdatePassword OperationType = 3
+	// 登录设备删除
+	OperationType_OperationTypeAuthDeviceDelete OperationType = 4
+	// 个人信息更新
+	OperationType_OperationTypeUserUpdateMe OperationType = 5
+	// 用户新增
+	OperationType_OperationTypeUserCreate OperationType = 6
+	// 用户编辑
+	OperationType_OperationTypeUserUpdate OperationType = 7
+	// 用户删除
+	OperationType_OperationTypeUserDelete OperationType = 8
+	// 权限菜单新增
+	OperationType_OperationTypeSystemPermissionCreate OperationType = 9
+	// 权限菜单编辑
+	OperationType_OperationTypeSystemPermissionUpdate OperationType = 10
+	// 权限菜单删除
+	OperationType_OperationTypeSystemPermissionDelete OperationType = 11
+	// 角色新增
+	OperationType_OperationTypeSystemRoleCreate OperationType = 12
+	// 角色编辑
+	OperationType_OperationTypeSystemRoleUpdate OperationType = 13
+	// 角色删除
+	OperationType_OperationTypeSystemRoleDelete OperationType = 14
+	// 登录配置更新
+	OperationType_OperationTypeSystemLoginConfigUpdate OperationType = 15
+	// 文件创建
+	OperationType_OperationTypeFileCreate OperationType = 16
+	// 文件重命名
+	OperationType_OperationTypeFileRename OperationType = 17
+	// 文件复制
+	OperationType_OperationTypeFileCopy OperationType = 18
+	// 文件移动
+	OperationType_OperationTypeFileMove OperationType = 19
+	// 文件删除
+	OperationType_OperationTypeFileDelete OperationType = 20
+	// 文件压缩
+	OperationType_OperationTypeFileCompress OperationType = 21
+	// 文件解压
+	OperationType_OperationTypeFileDecompress OperationType = 22
+	// 文件上传完成
+	OperationType_OperationTypeFileUploadComplete OperationType = 23
+	// 文件上传取消
+	OperationType_OperationTypeFileUploadCancel OperationType = 24
+	// 实例类型新增
+	OperationType_OperationTypeInstanceTypeCreate OperationType = 25
+	// 实例类型编辑
+	OperationType_OperationTypeInstanceTypeUpdate OperationType = 26
+	// 实例类型删除
+	OperationType_OperationTypeInstanceTypeDelete OperationType = 27
+	// 终端启动
+	OperationType_OperationTypeInstanceTerminalStart OperationType = 28
+	// 终端停止
+	OperationType_OperationTypeInstanceTerminalStop OperationType = 29
+	// 终端重启
+	OperationType_OperationTypeInstanceTerminalRestart OperationType = 30
+	// 实例新增
+	OperationType_OperationTypeInstanceCreate OperationType = 31
+	// 实例启动
+	OperationType_OperationTypeInstanceStart OperationType = 32
+	// 实例停止
+	OperationType_OperationTypeInstanceStop OperationType = 33
+	// 实例重启
+	OperationType_OperationTypeInstanceRestart OperationType = 34
+	// 实例删除
+	OperationType_OperationTypeInstanceDelete OperationType = 35
+	// 实例编辑
+	OperationType_OperationTypeInstanceUpdate OperationType = 36
+	// 实例日志删除
+	OperationType_OperationTypeInstanceLogDelete OperationType = 37
+	// 实例文件创建
+	OperationType_OperationTypeInstanceFileCreate OperationType = 38
+	// 实例文件重命名
+	OperationType_OperationTypeInstanceFileRename OperationType = 39
+	// 实例文件复制
+	OperationType_OperationTypeInstanceFileCopy OperationType = 40
+	// 实例文件移动
+	OperationType_OperationTypeInstanceFileMove OperationType = 41
+	// 实例文件删除
+	OperationType_OperationTypeInstanceFileDelete OperationType = 42
+	// 实例文件压缩
+	OperationType_OperationTypeInstanceFileCompress OperationType = 43
+	// 实例文件解压
+	OperationType_OperationTypeInstanceFileDecompress OperationType = 44
+	// 实例文件上传签名
+	OperationType_OperationTypeInstanceFileUploadPreSign OperationType = 45
+	// SSH连接新增
+	OperationType_OperationTypeSSHHostCreate OperationType = 46
+	// SSH连接编辑
+	OperationType_OperationTypeSSHHostUpdate OperationType = 47
+	// SSH连接删除
+	OperationType_OperationTypeSSHHostDelete OperationType = 48
+	// SSH连接分享
+	OperationType_OperationTypeSSHHostShare OperationType = 49
+	// SSH连接测试
+	OperationType_OperationTypeSSHHostTest OperationType = 50
+	// SSH连接批量测试
+	OperationType_OperationTypeSSHHostBatchTest OperationType = 51
+)
+
+// Enum value maps for OperationType.
+var (
+	OperationType_name = map[int32]string{
+		0:  "OperationTypeUncategorized",
+		1:  "OperationTypeAuthLogin",
+		2:  "OperationTypeAuthLogout",
+		3:  "OperationTypeAuthUpdatePassword",
+		4:  "OperationTypeAuthDeviceDelete",
+		5:  "OperationTypeUserUpdateMe",
+		6:  "OperationTypeUserCreate",
+		7:  "OperationTypeUserUpdate",
+		8:  "OperationTypeUserDelete",
+		9:  "OperationTypeSystemPermissionCreate",
+		10: "OperationTypeSystemPermissionUpdate",
+		11: "OperationTypeSystemPermissionDelete",
+		12: "OperationTypeSystemRoleCreate",
+		13: "OperationTypeSystemRoleUpdate",
+		14: "OperationTypeSystemRoleDelete",
+		15: "OperationTypeSystemLoginConfigUpdate",
+		16: "OperationTypeFileCreate",
+		17: "OperationTypeFileRename",
+		18: "OperationTypeFileCopy",
+		19: "OperationTypeFileMove",
+		20: "OperationTypeFileDelete",
+		21: "OperationTypeFileCompress",
+		22: "OperationTypeFileDecompress",
+		23: "OperationTypeFileUploadComplete",
+		24: "OperationTypeFileUploadCancel",
+		25: "OperationTypeInstanceTypeCreate",
+		26: "OperationTypeInstanceTypeUpdate",
+		27: "OperationTypeInstanceTypeDelete",
+		28: "OperationTypeInstanceTerminalStart",
+		29: "OperationTypeInstanceTerminalStop",
+		30: "OperationTypeInstanceTerminalRestart",
+		31: "OperationTypeInstanceCreate",
+		32: "OperationTypeInstanceStart",
+		33: "OperationTypeInstanceStop",
+		34: "OperationTypeInstanceRestart",
+		35: "OperationTypeInstanceDelete",
+		36: "OperationTypeInstanceUpdate",
+		37: "OperationTypeInstanceLogDelete",
+		38: "OperationTypeInstanceFileCreate",
+		39: "OperationTypeInstanceFileRename",
+		40: "OperationTypeInstanceFileCopy",
+		41: "OperationTypeInstanceFileMove",
+		42: "OperationTypeInstanceFileDelete",
+		43: "OperationTypeInstanceFileCompress",
+		44: "OperationTypeInstanceFileDecompress",
+		45: "OperationTypeInstanceFileUploadPreSign",
+		46: "OperationTypeSSHHostCreate",
+		47: "OperationTypeSSHHostUpdate",
+		48: "OperationTypeSSHHostDelete",
+		49: "OperationTypeSSHHostShare",
+		50: "OperationTypeSSHHostTest",
+		51: "OperationTypeSSHHostBatchTest",
+	}
+	OperationType_value = map[string]int32{
+		"OperationTypeUncategorized":             0,
+		"OperationTypeAuthLogin":                 1,
+		"OperationTypeAuthLogout":                2,
+		"OperationTypeAuthUpdatePassword":        3,
+		"OperationTypeAuthDeviceDelete":          4,
+		"OperationTypeUserUpdateMe":              5,
+		"OperationTypeUserCreate":                6,
+		"OperationTypeUserUpdate":                7,
+		"OperationTypeUserDelete":                8,
+		"OperationTypeSystemPermissionCreate":    9,
+		"OperationTypeSystemPermissionUpdate":    10,
+		"OperationTypeSystemPermissionDelete":    11,
+		"OperationTypeSystemRoleCreate":          12,
+		"OperationTypeSystemRoleUpdate":          13,
+		"OperationTypeSystemRoleDelete":          14,
+		"OperationTypeSystemLoginConfigUpdate":   15,
+		"OperationTypeFileCreate":                16,
+		"OperationTypeFileRename":                17,
+		"OperationTypeFileCopy":                  18,
+		"OperationTypeFileMove":                  19,
+		"OperationTypeFileDelete":                20,
+		"OperationTypeFileCompress":              21,
+		"OperationTypeFileDecompress":            22,
+		"OperationTypeFileUploadComplete":        23,
+		"OperationTypeFileUploadCancel":          24,
+		"OperationTypeInstanceTypeCreate":        25,
+		"OperationTypeInstanceTypeUpdate":        26,
+		"OperationTypeInstanceTypeDelete":        27,
+		"OperationTypeInstanceTerminalStart":     28,
+		"OperationTypeInstanceTerminalStop":      29,
+		"OperationTypeInstanceTerminalRestart":   30,
+		"OperationTypeInstanceCreate":            31,
+		"OperationTypeInstanceStart":             32,
+		"OperationTypeInstanceStop":              33,
+		"OperationTypeInstanceRestart":           34,
+		"OperationTypeInstanceDelete":            35,
+		"OperationTypeInstanceUpdate":            36,
+		"OperationTypeInstanceLogDelete":         37,
+		"OperationTypeInstanceFileCreate":        38,
+		"OperationTypeInstanceFileRename":        39,
+		"OperationTypeInstanceFileCopy":          40,
+		"OperationTypeInstanceFileMove":          41,
+		"OperationTypeInstanceFileDelete":        42,
+		"OperationTypeInstanceFileCompress":      43,
+		"OperationTypeInstanceFileDecompress":    44,
+		"OperationTypeInstanceFileUploadPreSign": 45,
+		"OperationTypeSSHHostCreate":             46,
+		"OperationTypeSSHHostUpdate":             47,
+		"OperationTypeSSHHostDelete":             48,
+		"OperationTypeSSHHostShare":              49,
+		"OperationTypeSSHHostTest":               50,
+		"OperationTypeSSHHostBatchTest":          51,
+	}
+)
+
+func (x OperationType) Enum() *OperationType {
+	p := new(OperationType)
+	*p = x
+	return p
+}
+
+func (x OperationType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OperationType) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_system_proto_enumTypes[3].Descriptor()
+}
+
+func (OperationType) Type() protoreflect.EnumType {
+	return &file_v1_system_proto_enumTypes[3]
+}
+
+func (x OperationType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OperationType.Descriptor instead.
+func (OperationType) EnumDescriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{3}
+}
+
 // 获取当前角色的全部权限请求
 type MePermissionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -3886,13 +4135,12 @@ func (x *DiskIOStatus) GetIoTime() uint64 {
 	return 0
 }
 
-// 查询操作日志请求
 type ListOperationLogsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 操作用户id
 	UserId *string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
 	// 操作类型
-	OperationType *string `protobuf:"bytes,2,opt,name=operation_type,json=operationType,proto3,oneof" json:"operation_type,omitempty"`
+	OperationType *OperationType `protobuf:"varint,2,opt,name=operation_type,json=operationType,proto3,enum=v1.OperationType,oneof" json:"operation_type,omitempty"`
 	// 操作是否成功
 	Success *bool `protobuf:"varint,3,opt,name=success,proto3,oneof" json:"success,omitempty"`
 	// 请求路径
@@ -3946,11 +4194,11 @@ func (x *ListOperationLogsRequest) GetUserId() string {
 	return ""
 }
 
-func (x *ListOperationLogsRequest) GetOperationType() string {
+func (x *ListOperationLogsRequest) GetOperationType() OperationType {
 	if x != nil && x.OperationType != nil {
 		return *x.OperationType
 	}
-	return ""
+	return OperationType_OperationTypeUncategorized
 }
 
 func (x *ListOperationLogsRequest) GetSuccess() bool {
@@ -4074,7 +4322,7 @@ type OperationLogInfo struct {
 	// 操作用户id
 	UserId *string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
 	// 操作类型
-	OperationType string `protobuf:"bytes,2,opt,name=operation_type,json=operationType,proto3" json:"operation_type,omitempty"`
+	OperationType OperationType `protobuf:"varint,2,opt,name=operation_type,json=operationType,proto3,enum=v1.OperationType" json:"operation_type,omitempty"`
 	// 操作是否成功
 	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
 	// 操作详情
@@ -4130,11 +4378,11 @@ func (x *OperationLogInfo) GetUserId() string {
 	return ""
 }
 
-func (x *OperationLogInfo) GetOperationType() string {
+func (x *OperationLogInfo) GetOperationType() OperationType {
 	if x != nil {
 		return x.OperationType
 	}
-	return ""
+	return OperationType_OperationTypeUncategorized
 }
 
 func (x *OperationLogInfo) GetSuccess() bool {
@@ -4498,10 +4746,10 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1bwrite_rate_bytes_per_second\x18\t \x01(\x01R\x17writeRateBytesPerSecond\x12(\n" +
 	"\x10iops_in_progress\x18\n" +
 	" \x01(\x04R\x0eiopsInProgress\x12\x17\n" +
-	"\aio_time\x18\v \x01(\x04R\x06ioTime\"\xf3\x02\n" +
+	"\aio_time\x18\v \x01(\x04R\x06ioTime\"\x86\x03\n" +
 	"\x18ListOperationLogsRequest\x12\x1c\n" +
-	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12*\n" +
-	"\x0eoperation_type\x18\x02 \x01(\tH\x01R\roperationType\x88\x01\x01\x12\x1d\n" +
+	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12=\n" +
+	"\x0eoperation_type\x18\x02 \x01(\x0e2\x11.v1.OperationTypeH\x01R\roperationType\x88\x01\x01\x12\x1d\n" +
 	"\asuccess\x18\x03 \x01(\bH\x02R\asuccess\x88\x01\x01\x12\x17\n" +
 	"\x04path\x18\x04 \x01(\tH\x03R\x04path\x88\x01\x01\x12\x12\n" +
 	"\x04page\x18\x05 \x01(\x03R\x04page\x12\x1b\n" +
@@ -4519,10 +4767,10 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x04logs\x18\x01 \x03(\v2\x14.v1.OperationLogInfoR\x04logs\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\xbc\x02\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\xcf\x02\n" +
 	"\x10OperationLogInfo\x12\x1c\n" +
-	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12%\n" +
-	"\x0eoperation_type\x18\x02 \x01(\tR\roperationType\x12\x18\n" +
+	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x128\n" +
+	"\x0eoperation_type\x18\x02 \x01(\x0e2\x11.v1.OperationTypeR\roperationType\x12\x18\n" +
 	"\asuccess\x18\x03 \x01(\bR\asuccess\x12\x16\n" +
 	"\x06detail\x18\x04 \x01(\tR\x06detail\x12\x0e\n" +
 	"\x02ip\x18\x05 \x01(\tR\x02ip\x12\x1d\n" +
@@ -4545,7 +4793,61 @@ const file_v1_system_proto_rawDesc = "" +
 	"\n" +
 	"RoleStatus\x12\x17\n" +
 	"\x13RoleStatus_InActive\x10\x00\x12\x15\n" +
-	"\x11RoleStatus_Active\x10\x012\x9d\x0e\n" +
+	"\x11RoleStatus_Active\x10\x01*\x8a\x0e\n" +
+	"\rOperationType\x12\x1e\n" +
+	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
+	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
+	"\x17OperationTypeAuthLogout\x10\x02\x12#\n" +
+	"\x1fOperationTypeAuthUpdatePassword\x10\x03\x12!\n" +
+	"\x1dOperationTypeAuthDeviceDelete\x10\x04\x12\x1d\n" +
+	"\x19OperationTypeUserUpdateMe\x10\x05\x12\x1b\n" +
+	"\x17OperationTypeUserCreate\x10\x06\x12\x1b\n" +
+	"\x17OperationTypeUserUpdate\x10\a\x12\x1b\n" +
+	"\x17OperationTypeUserDelete\x10\b\x12'\n" +
+	"#OperationTypeSystemPermissionCreate\x10\t\x12'\n" +
+	"#OperationTypeSystemPermissionUpdate\x10\n" +
+	"\x12'\n" +
+	"#OperationTypeSystemPermissionDelete\x10\v\x12!\n" +
+	"\x1dOperationTypeSystemRoleCreate\x10\f\x12!\n" +
+	"\x1dOperationTypeSystemRoleUpdate\x10\r\x12!\n" +
+	"\x1dOperationTypeSystemRoleDelete\x10\x0e\x12(\n" +
+	"$OperationTypeSystemLoginConfigUpdate\x10\x0f\x12\x1b\n" +
+	"\x17OperationTypeFileCreate\x10\x10\x12\x1b\n" +
+	"\x17OperationTypeFileRename\x10\x11\x12\x19\n" +
+	"\x15OperationTypeFileCopy\x10\x12\x12\x19\n" +
+	"\x15OperationTypeFileMove\x10\x13\x12\x1b\n" +
+	"\x17OperationTypeFileDelete\x10\x14\x12\x1d\n" +
+	"\x19OperationTypeFileCompress\x10\x15\x12\x1f\n" +
+	"\x1bOperationTypeFileDecompress\x10\x16\x12#\n" +
+	"\x1fOperationTypeFileUploadComplete\x10\x17\x12!\n" +
+	"\x1dOperationTypeFileUploadCancel\x10\x18\x12#\n" +
+	"\x1fOperationTypeInstanceTypeCreate\x10\x19\x12#\n" +
+	"\x1fOperationTypeInstanceTypeUpdate\x10\x1a\x12#\n" +
+	"\x1fOperationTypeInstanceTypeDelete\x10\x1b\x12&\n" +
+	"\"OperationTypeInstanceTerminalStart\x10\x1c\x12%\n" +
+	"!OperationTypeInstanceTerminalStop\x10\x1d\x12(\n" +
+	"$OperationTypeInstanceTerminalRestart\x10\x1e\x12\x1f\n" +
+	"\x1bOperationTypeInstanceCreate\x10\x1f\x12\x1e\n" +
+	"\x1aOperationTypeInstanceStart\x10 \x12\x1d\n" +
+	"\x19OperationTypeInstanceStop\x10!\x12 \n" +
+	"\x1cOperationTypeInstanceRestart\x10\"\x12\x1f\n" +
+	"\x1bOperationTypeInstanceDelete\x10#\x12\x1f\n" +
+	"\x1bOperationTypeInstanceUpdate\x10$\x12\"\n" +
+	"\x1eOperationTypeInstanceLogDelete\x10%\x12#\n" +
+	"\x1fOperationTypeInstanceFileCreate\x10&\x12#\n" +
+	"\x1fOperationTypeInstanceFileRename\x10'\x12!\n" +
+	"\x1dOperationTypeInstanceFileCopy\x10(\x12!\n" +
+	"\x1dOperationTypeInstanceFileMove\x10)\x12#\n" +
+	"\x1fOperationTypeInstanceFileDelete\x10*\x12%\n" +
+	"!OperationTypeInstanceFileCompress\x10+\x12'\n" +
+	"#OperationTypeInstanceFileDecompress\x10,\x12*\n" +
+	"&OperationTypeInstanceFileUploadPreSign\x10-\x12\x1e\n" +
+	"\x1aOperationTypeSSHHostCreate\x10.\x12\x1e\n" +
+	"\x1aOperationTypeSSHHostUpdate\x10/\x12\x1e\n" +
+	"\x1aOperationTypeSSHHostDelete\x100\x12\x1d\n" +
+	"\x19OperationTypeSSHHostShare\x101\x12\x1c\n" +
+	"\x18OperationTypeSSHHostTest\x102\x12!\n" +
+	"\x1dOperationTypeSSHHostBatchTest\x1032\xa5\x0e\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +
@@ -4562,8 +4864,8 @@ const file_v1_system_proto_rawDesc = "" +
 	"\vLoginConfig\x12\x16.v1.LoginConfigRequest\x1a\x17.v1.LoginConfigResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/system/login-config\x12x\n" +
 	"\x11UpdateLoginConfig\x12\x1c.v1.UpdateLoginConfigRequest\x1a\x1d.v1.UpdateLoginConfigResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/system/login-config\x12h\n" +
 	"\x0eSystemOverview\x12\x19.v1.SystemOverviewRequest\x1a\x1a.v1.SystemOverviewResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/system/overview\x12`\n" +
-	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/status\x12o\n" +
-	"\x11ListOperationLogs\x12\x1c.v1.ListOperationLogsRequest\x1a\x1d.v1.ListOperationLogsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/statusB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/status\x12w\n" +
+	"\x11ListOperationLogs\x12\x1c.v1.ListOperationLogsRequest\x1a\x1d.v1.ListOperationLogsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/system/operation-logsB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_system_proto_rawDescOnce sync.Once
@@ -4577,164 +4879,167 @@ func file_v1_system_proto_rawDescGZIP() []byte {
 	return file_v1_system_proto_rawDescData
 }
 
-var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
 var file_v1_system_proto_goTypes = []any{
 	(MenuStatus)(0),                        // 0: v1.MenuStatus
 	(MenuType)(0),                          // 1: v1.MenuType
 	(RoleStatus)(0),                        // 2: v1.RoleStatus
-	(*MePermissionsRequest)(nil),           // 3: v1.MePermissionsRequest
-	(*MePermissionsResponse)(nil),          // 4: v1.MePermissionsResponse
-	(*MenuInfo)(nil),                       // 5: v1.MenuInfo
-	(*AdminPermissionsRequest)(nil),        // 6: v1.AdminPermissionsRequest
-	(*AdminPermissionsResponse)(nil),       // 7: v1.AdminPermissionsResponse
-	(*AdminPermissionsInfoRequest)(nil),    // 8: v1.AdminPermissionsInfoRequest
-	(*AdminPermissionsInfoResponse)(nil),   // 9: v1.AdminPermissionsInfoResponse
-	(*AdminAddPermissionsRequest)(nil),     // 10: v1.AdminAddPermissionsRequest
-	(*AdminAddPermissionsResponse)(nil),    // 11: v1.AdminAddPermissionsResponse
-	(*AdminEditPermissionsRequest)(nil),    // 12: v1.AdminEditPermissionsRequest
-	(*AdminEditPermissionsResponse)(nil),   // 13: v1.AdminEditPermissionsResponse
-	(*AdminDeletePermissionsRequest)(nil),  // 14: v1.AdminDeletePermissionsRequest
-	(*AdminDeletePermissionsResponse)(nil), // 15: v1.AdminDeletePermissionsResponse
-	(*AdminRolesRequest)(nil),              // 16: v1.AdminRolesRequest
-	(*AdminRolesResponse)(nil),             // 17: v1.AdminRolesResponse
-	(*RoleInfo)(nil),                       // 18: v1.RoleInfo
-	(*AdminRoleRequest)(nil),               // 19: v1.AdminRoleRequest
-	(*AdminRoleResponse)(nil),              // 20: v1.AdminRoleResponse
-	(*AdminAddRoleRequest)(nil),            // 21: v1.AdminAddRoleRequest
-	(*AdminAddRoleResponse)(nil),           // 22: v1.AdminAddRoleResponse
-	(*AdminEditRoleRequest)(nil),           // 23: v1.AdminEditRoleRequest
-	(*AdminEditRoleResponse)(nil),          // 24: v1.AdminEditRoleResponse
-	(*AdminDeleteRoleRequest)(nil),         // 25: v1.AdminDeleteRoleRequest
-	(*AdminDeleteRoleResponse)(nil),        // 26: v1.AdminDeleteRoleResponse
-	(*LoginConfig)(nil),                    // 27: v1.LoginConfig
-	(*LoginConfigRequest)(nil),             // 28: v1.LoginConfigRequest
-	(*LoginConfigResponse)(nil),            // 29: v1.LoginConfigResponse
-	(*UpdateLoginConfigRequest)(nil),       // 30: v1.UpdateLoginConfigRequest
-	(*UpdateLoginConfigResponse)(nil),      // 31: v1.UpdateLoginConfigResponse
-	(*SystemOverviewRequest)(nil),          // 32: v1.SystemOverviewRequest
-	(*SystemOverviewResponse)(nil),         // 33: v1.SystemOverviewResponse
-	(*SystemStatusRequest)(nil),            // 34: v1.SystemStatusRequest
-	(*SystemStatusResponse)(nil),           // 35: v1.SystemStatusResponse
-	(*SystemVersionInfo)(nil),              // 36: v1.SystemVersionInfo
-	(*CpuOverview)(nil),                    // 37: v1.CpuOverview
-	(*CpuStatus)(nil),                      // 38: v1.CpuStatus
-	(*CpuCoreStatus)(nil),                  // 39: v1.CpuCoreStatus
-	(*MemoryOverview)(nil),                 // 40: v1.MemoryOverview
-	(*MemoryStatus)(nil),                   // 41: v1.MemoryStatus
-	(*PhysicalMemoryOverview)(nil),         // 42: v1.PhysicalMemoryOverview
-	(*PhysicalMemoryStatus)(nil),           // 43: v1.PhysicalMemoryStatus
-	(*VirtualMemoryOverview)(nil),          // 44: v1.VirtualMemoryOverview
-	(*VirtualMemoryStatus)(nil),            // 45: v1.VirtualMemoryStatus
-	(*NetworkInterfaceOverview)(nil),       // 46: v1.NetworkInterfaceOverview
-	(*NetworkStatus)(nil),                  // 47: v1.NetworkStatus
-	(*NetworkInterfaceStatus)(nil),         // 48: v1.NetworkInterfaceStatus
-	(*NetworkConnectionStatus)(nil),        // 49: v1.NetworkConnectionStatus
-	(*DiskPartitionOverview)(nil),          // 50: v1.DiskPartitionOverview
-	(*DiskIOOverview)(nil),                 // 51: v1.DiskIOOverview
-	(*DiskStatus)(nil),                     // 52: v1.DiskStatus
-	(*DiskPartitionStatus)(nil),            // 53: v1.DiskPartitionStatus
-	(*DiskIOStatus)(nil),                   // 54: v1.DiskIOStatus
-	(*ListOperationLogsRequest)(nil),       // 55: v1.ListOperationLogsRequest
-	(*ListOperationLogsResponse)(nil),      // 56: v1.ListOperationLogsResponse
-	(*OperationLogInfo)(nil),               // 57: v1.OperationLogInfo
-	nil,                                    // 58: v1.NetworkConnectionStatus.TcpStatusesEntry
-	(*timestamppb.Timestamp)(nil),          // 59: google.protobuf.Timestamp
+	(OperationType)(0),                     // 3: v1.OperationType
+	(*MePermissionsRequest)(nil),           // 4: v1.MePermissionsRequest
+	(*MePermissionsResponse)(nil),          // 5: v1.MePermissionsResponse
+	(*MenuInfo)(nil),                       // 6: v1.MenuInfo
+	(*AdminPermissionsRequest)(nil),        // 7: v1.AdminPermissionsRequest
+	(*AdminPermissionsResponse)(nil),       // 8: v1.AdminPermissionsResponse
+	(*AdminPermissionsInfoRequest)(nil),    // 9: v1.AdminPermissionsInfoRequest
+	(*AdminPermissionsInfoResponse)(nil),   // 10: v1.AdminPermissionsInfoResponse
+	(*AdminAddPermissionsRequest)(nil),     // 11: v1.AdminAddPermissionsRequest
+	(*AdminAddPermissionsResponse)(nil),    // 12: v1.AdminAddPermissionsResponse
+	(*AdminEditPermissionsRequest)(nil),    // 13: v1.AdminEditPermissionsRequest
+	(*AdminEditPermissionsResponse)(nil),   // 14: v1.AdminEditPermissionsResponse
+	(*AdminDeletePermissionsRequest)(nil),  // 15: v1.AdminDeletePermissionsRequest
+	(*AdminDeletePermissionsResponse)(nil), // 16: v1.AdminDeletePermissionsResponse
+	(*AdminRolesRequest)(nil),              // 17: v1.AdminRolesRequest
+	(*AdminRolesResponse)(nil),             // 18: v1.AdminRolesResponse
+	(*RoleInfo)(nil),                       // 19: v1.RoleInfo
+	(*AdminRoleRequest)(nil),               // 20: v1.AdminRoleRequest
+	(*AdminRoleResponse)(nil),              // 21: v1.AdminRoleResponse
+	(*AdminAddRoleRequest)(nil),            // 22: v1.AdminAddRoleRequest
+	(*AdminAddRoleResponse)(nil),           // 23: v1.AdminAddRoleResponse
+	(*AdminEditRoleRequest)(nil),           // 24: v1.AdminEditRoleRequest
+	(*AdminEditRoleResponse)(nil),          // 25: v1.AdminEditRoleResponse
+	(*AdminDeleteRoleRequest)(nil),         // 26: v1.AdminDeleteRoleRequest
+	(*AdminDeleteRoleResponse)(nil),        // 27: v1.AdminDeleteRoleResponse
+	(*LoginConfig)(nil),                    // 28: v1.LoginConfig
+	(*LoginConfigRequest)(nil),             // 29: v1.LoginConfigRequest
+	(*LoginConfigResponse)(nil),            // 30: v1.LoginConfigResponse
+	(*UpdateLoginConfigRequest)(nil),       // 31: v1.UpdateLoginConfigRequest
+	(*UpdateLoginConfigResponse)(nil),      // 32: v1.UpdateLoginConfigResponse
+	(*SystemOverviewRequest)(nil),          // 33: v1.SystemOverviewRequest
+	(*SystemOverviewResponse)(nil),         // 34: v1.SystemOverviewResponse
+	(*SystemStatusRequest)(nil),            // 35: v1.SystemStatusRequest
+	(*SystemStatusResponse)(nil),           // 36: v1.SystemStatusResponse
+	(*SystemVersionInfo)(nil),              // 37: v1.SystemVersionInfo
+	(*CpuOverview)(nil),                    // 38: v1.CpuOverview
+	(*CpuStatus)(nil),                      // 39: v1.CpuStatus
+	(*CpuCoreStatus)(nil),                  // 40: v1.CpuCoreStatus
+	(*MemoryOverview)(nil),                 // 41: v1.MemoryOverview
+	(*MemoryStatus)(nil),                   // 42: v1.MemoryStatus
+	(*PhysicalMemoryOverview)(nil),         // 43: v1.PhysicalMemoryOverview
+	(*PhysicalMemoryStatus)(nil),           // 44: v1.PhysicalMemoryStatus
+	(*VirtualMemoryOverview)(nil),          // 45: v1.VirtualMemoryOverview
+	(*VirtualMemoryStatus)(nil),            // 46: v1.VirtualMemoryStatus
+	(*NetworkInterfaceOverview)(nil),       // 47: v1.NetworkInterfaceOverview
+	(*NetworkStatus)(nil),                  // 48: v1.NetworkStatus
+	(*NetworkInterfaceStatus)(nil),         // 49: v1.NetworkInterfaceStatus
+	(*NetworkConnectionStatus)(nil),        // 50: v1.NetworkConnectionStatus
+	(*DiskPartitionOverview)(nil),          // 51: v1.DiskPartitionOverview
+	(*DiskIOOverview)(nil),                 // 52: v1.DiskIOOverview
+	(*DiskStatus)(nil),                     // 53: v1.DiskStatus
+	(*DiskPartitionStatus)(nil),            // 54: v1.DiskPartitionStatus
+	(*DiskIOStatus)(nil),                   // 55: v1.DiskIOStatus
+	(*ListOperationLogsRequest)(nil),       // 56: v1.ListOperationLogsRequest
+	(*ListOperationLogsResponse)(nil),      // 57: v1.ListOperationLogsResponse
+	(*OperationLogInfo)(nil),               // 58: v1.OperationLogInfo
+	nil,                                    // 59: v1.NetworkConnectionStatus.TcpStatusesEntry
+	(*timestamppb.Timestamp)(nil),          // 60: google.protobuf.Timestamp
 }
 var file_v1_system_proto_depIdxs = []int32{
-	5,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
+	6,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
 	0,  // 1: v1.MenuInfo.status:type_name -> v1.MenuStatus
 	1,  // 2: v1.MenuInfo.type:type_name -> v1.MenuType
-	59, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
-	59, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
-	5,  // 5: v1.MenuInfo.children:type_name -> v1.MenuInfo
-	5,  // 6: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
-	5,  // 7: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
+	60, // 3: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
+	60, // 4: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
+	6,  // 5: v1.MenuInfo.children:type_name -> v1.MenuInfo
+	6,  // 6: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
+	6,  // 7: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
 	1,  // 8: v1.AdminAddPermissionsRequest.type:type_name -> v1.MenuType
 	0,  // 9: v1.AdminAddPermissionsRequest.status:type_name -> v1.MenuStatus
 	0,  // 10: v1.AdminEditPermissionsRequest.status:type_name -> v1.MenuStatus
 	2,  // 11: v1.AdminRolesRequest.status:type_name -> v1.RoleStatus
-	18, // 12: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
+	19, // 12: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
 	2,  // 13: v1.RoleInfo.status:type_name -> v1.RoleStatus
-	59, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
-	59, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
-	18, // 16: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
+	60, // 14: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
+	60, // 15: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
+	19, // 16: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
 	2,  // 17: v1.AdminAddRoleRequest.status:type_name -> v1.RoleStatus
-	18, // 18: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
+	19, // 18: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
 	2,  // 19: v1.AdminEditRoleRequest.status:type_name -> v1.RoleStatus
-	18, // 20: v1.AdminEditRoleResponse.role:type_name -> v1.RoleInfo
-	27, // 21: v1.LoginConfigResponse.config:type_name -> v1.LoginConfig
-	27, // 22: v1.UpdateLoginConfigResponse.config:type_name -> v1.LoginConfig
-	36, // 23: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
-	59, // 24: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
-	37, // 25: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
-	40, // 26: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
-	46, // 27: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
-	50, // 28: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
-	51, // 29: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
-	59, // 30: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
-	38, // 31: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
-	41, // 32: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
-	47, // 33: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
-	52, // 34: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
-	59, // 35: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
-	39, // 36: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
-	42, // 37: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
-	44, // 38: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
-	43, // 39: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
-	45, // 40: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
-	48, // 41: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
-	48, // 42: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
-	48, // 43: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
-	49, // 44: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
-	58, // 45: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
-	53, // 46: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
-	53, // 47: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
-	53, // 48: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
-	54, // 49: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
-	54, // 50: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
-	54, // 51: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
-	59, // 52: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
-	59, // 53: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
-	57, // 54: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
-	59, // 55: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
-	3,  // 56: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
-	6,  // 57: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
-	8,  // 58: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
-	10, // 59: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
-	12, // 60: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
-	14, // 61: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
-	16, // 62: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
-	19, // 63: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
-	21, // 64: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
-	23, // 65: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
-	25, // 66: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
-	28, // 67: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
-	30, // 68: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
-	32, // 69: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
-	34, // 70: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
-	55, // 71: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
-	4,  // 72: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
-	7,  // 73: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
-	9,  // 74: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
-	11, // 75: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
-	13, // 76: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
-	15, // 77: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
-	17, // 78: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
-	20, // 79: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
-	22, // 80: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
-	24, // 81: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
-	26, // 82: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
-	29, // 83: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
-	31, // 84: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
-	33, // 85: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
-	35, // 86: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
-	56, // 87: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
-	72, // [72:88] is the sub-list for method output_type
-	56, // [56:72] is the sub-list for method input_type
-	56, // [56:56] is the sub-list for extension type_name
-	56, // [56:56] is the sub-list for extension extendee
-	0,  // [0:56] is the sub-list for field type_name
+	19, // 20: v1.AdminEditRoleResponse.role:type_name -> v1.RoleInfo
+	28, // 21: v1.LoginConfigResponse.config:type_name -> v1.LoginConfig
+	28, // 22: v1.UpdateLoginConfigResponse.config:type_name -> v1.LoginConfig
+	37, // 23: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
+	60, // 24: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
+	38, // 25: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
+	41, // 26: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
+	47, // 27: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
+	51, // 28: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
+	52, // 29: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
+	60, // 30: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
+	39, // 31: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
+	42, // 32: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
+	48, // 33: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
+	53, // 34: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
+	60, // 35: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
+	40, // 36: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
+	43, // 37: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
+	45, // 38: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
+	44, // 39: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
+	46, // 40: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
+	49, // 41: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
+	49, // 42: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
+	49, // 43: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
+	50, // 44: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
+	59, // 45: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
+	54, // 46: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
+	54, // 47: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
+	54, // 48: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
+	55, // 49: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
+	55, // 50: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
+	55, // 51: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
+	3,  // 52: v1.ListOperationLogsRequest.operation_type:type_name -> v1.OperationType
+	60, // 53: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
+	60, // 54: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
+	58, // 55: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
+	3,  // 56: v1.OperationLogInfo.operation_type:type_name -> v1.OperationType
+	60, // 57: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
+	4,  // 58: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
+	7,  // 59: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
+	9,  // 60: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
+	11, // 61: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
+	13, // 62: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
+	15, // 63: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
+	17, // 64: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
+	20, // 65: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
+	22, // 66: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
+	24, // 67: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
+	26, // 68: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
+	29, // 69: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
+	31, // 70: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
+	33, // 71: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
+	35, // 72: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
+	56, // 73: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
+	5,  // 74: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
+	8,  // 75: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
+	10, // 76: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
+	12, // 77: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
+	14, // 78: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
+	16, // 79: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
+	18, // 80: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
+	21, // 81: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
+	23, // 82: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
+	25, // 83: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
+	27, // 84: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
+	30, // 85: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
+	32, // 86: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
+	34, // 87: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
+	36, // 88: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
+	57, // 89: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
+	74, // [74:90] is the sub-list for method output_type
+	58, // [58:74] is the sub-list for method input_type
+	58, // [58:58] is the sub-list for extension type_name
+	58, // [58:58] is the sub-list for extension extendee
+	0,  // [0:58] is the sub-list for field type_name
 }
 
 func init() { file_v1_system_proto_init() }
@@ -4751,7 +5056,7 @@ func file_v1_system_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_system_proto_rawDesc), len(file_v1_system_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   56,
 			NumExtensions: 0,
 			NumServices:   1,

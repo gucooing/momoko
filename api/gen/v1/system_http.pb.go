@@ -88,7 +88,7 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
-	r.GET("/api/v1/system/status", _System_ListOperationLogs0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/operation-logs", _System_ListOperationLogs0_HTTP_Handler(srv))
 }
 
 func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
@@ -611,7 +611,7 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 // ListOperationLogs 获取操作日志
 func (c *SystemHTTPClientImpl) ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...http.CallOption) (*ListOperationLogsResponse, error) {
 	var out ListOperationLogsResponse
-	pattern := "/api/v1/system/status"
+	pattern := "/api/v1/system/operation-logs"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemListOperationLogs))
 	opts = append(opts, http.PathTemplate(pattern))

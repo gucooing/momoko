@@ -36,6 +36,115 @@ export enum RoleStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 操作日志类型 */
+export enum OperationType {
+  /** OperationTypeUncategorized - 未分类操作 */
+  OperationTypeUncategorized = "OperationTypeUncategorized",
+  /** OperationTypeAuthLogin - 登录 */
+  OperationTypeAuthLogin = "OperationTypeAuthLogin",
+  /** OperationTypeAuthLogout - 退出登录 */
+  OperationTypeAuthLogout = "OperationTypeAuthLogout",
+  /** OperationTypeAuthUpdatePassword - 修改密码 */
+  OperationTypeAuthUpdatePassword = "OperationTypeAuthUpdatePassword",
+  /** OperationTypeAuthDeviceDelete - 登录设备删除 */
+  OperationTypeAuthDeviceDelete = "OperationTypeAuthDeviceDelete",
+  /** OperationTypeUserUpdateMe - 个人信息更新 */
+  OperationTypeUserUpdateMe = "OperationTypeUserUpdateMe",
+  /** OperationTypeUserCreate - 用户新增 */
+  OperationTypeUserCreate = "OperationTypeUserCreate",
+  /** OperationTypeUserUpdate - 用户编辑 */
+  OperationTypeUserUpdate = "OperationTypeUserUpdate",
+  /** OperationTypeUserDelete - 用户删除 */
+  OperationTypeUserDelete = "OperationTypeUserDelete",
+  /** OperationTypeSystemPermissionCreate - 权限菜单新增 */
+  OperationTypeSystemPermissionCreate = "OperationTypeSystemPermissionCreate",
+  /** OperationTypeSystemPermissionUpdate - 权限菜单编辑 */
+  OperationTypeSystemPermissionUpdate = "OperationTypeSystemPermissionUpdate",
+  /** OperationTypeSystemPermissionDelete - 权限菜单删除 */
+  OperationTypeSystemPermissionDelete = "OperationTypeSystemPermissionDelete",
+  /** OperationTypeSystemRoleCreate - 角色新增 */
+  OperationTypeSystemRoleCreate = "OperationTypeSystemRoleCreate",
+  /** OperationTypeSystemRoleUpdate - 角色编辑 */
+  OperationTypeSystemRoleUpdate = "OperationTypeSystemRoleUpdate",
+  /** OperationTypeSystemRoleDelete - 角色删除 */
+  OperationTypeSystemRoleDelete = "OperationTypeSystemRoleDelete",
+  /** OperationTypeSystemLoginConfigUpdate - 登录配置更新 */
+  OperationTypeSystemLoginConfigUpdate = "OperationTypeSystemLoginConfigUpdate",
+  /** OperationTypeFileCreate - 文件创建 */
+  OperationTypeFileCreate = "OperationTypeFileCreate",
+  /** OperationTypeFileRename - 文件重命名 */
+  OperationTypeFileRename = "OperationTypeFileRename",
+  /** OperationTypeFileCopy - 文件复制 */
+  OperationTypeFileCopy = "OperationTypeFileCopy",
+  /** OperationTypeFileMove - 文件移动 */
+  OperationTypeFileMove = "OperationTypeFileMove",
+  /** OperationTypeFileDelete - 文件删除 */
+  OperationTypeFileDelete = "OperationTypeFileDelete",
+  /** OperationTypeFileCompress - 文件压缩 */
+  OperationTypeFileCompress = "OperationTypeFileCompress",
+  /** OperationTypeFileDecompress - 文件解压 */
+  OperationTypeFileDecompress = "OperationTypeFileDecompress",
+  /** OperationTypeFileUploadComplete - 文件上传完成 */
+  OperationTypeFileUploadComplete = "OperationTypeFileUploadComplete",
+  /** OperationTypeFileUploadCancel - 文件上传取消 */
+  OperationTypeFileUploadCancel = "OperationTypeFileUploadCancel",
+  /** OperationTypeInstanceTypeCreate - 实例类型新增 */
+  OperationTypeInstanceTypeCreate = "OperationTypeInstanceTypeCreate",
+  /** OperationTypeInstanceTypeUpdate - 实例类型编辑 */
+  OperationTypeInstanceTypeUpdate = "OperationTypeInstanceTypeUpdate",
+  /** OperationTypeInstanceTypeDelete - 实例类型删除 */
+  OperationTypeInstanceTypeDelete = "OperationTypeInstanceTypeDelete",
+  /** OperationTypeInstanceTerminalStart - 终端启动 */
+  OperationTypeInstanceTerminalStart = "OperationTypeInstanceTerminalStart",
+  /** OperationTypeInstanceTerminalStop - 终端停止 */
+  OperationTypeInstanceTerminalStop = "OperationTypeInstanceTerminalStop",
+  /** OperationTypeInstanceTerminalRestart - 终端重启 */
+  OperationTypeInstanceTerminalRestart = "OperationTypeInstanceTerminalRestart",
+  /** OperationTypeInstanceCreate - 实例新增 */
+  OperationTypeInstanceCreate = "OperationTypeInstanceCreate",
+  /** OperationTypeInstanceStart - 实例启动 */
+  OperationTypeInstanceStart = "OperationTypeInstanceStart",
+  /** OperationTypeInstanceStop - 实例停止 */
+  OperationTypeInstanceStop = "OperationTypeInstanceStop",
+  /** OperationTypeInstanceRestart - 实例重启 */
+  OperationTypeInstanceRestart = "OperationTypeInstanceRestart",
+  /** OperationTypeInstanceDelete - 实例删除 */
+  OperationTypeInstanceDelete = "OperationTypeInstanceDelete",
+  /** OperationTypeInstanceUpdate - 实例编辑 */
+  OperationTypeInstanceUpdate = "OperationTypeInstanceUpdate",
+  /** OperationTypeInstanceLogDelete - 实例日志删除 */
+  OperationTypeInstanceLogDelete = "OperationTypeInstanceLogDelete",
+  /** OperationTypeInstanceFileCreate - 实例文件创建 */
+  OperationTypeInstanceFileCreate = "OperationTypeInstanceFileCreate",
+  /** OperationTypeInstanceFileRename - 实例文件重命名 */
+  OperationTypeInstanceFileRename = "OperationTypeInstanceFileRename",
+  /** OperationTypeInstanceFileCopy - 实例文件复制 */
+  OperationTypeInstanceFileCopy = "OperationTypeInstanceFileCopy",
+  /** OperationTypeInstanceFileMove - 实例文件移动 */
+  OperationTypeInstanceFileMove = "OperationTypeInstanceFileMove",
+  /** OperationTypeInstanceFileDelete - 实例文件删除 */
+  OperationTypeInstanceFileDelete = "OperationTypeInstanceFileDelete",
+  /** OperationTypeInstanceFileCompress - 实例文件压缩 */
+  OperationTypeInstanceFileCompress = "OperationTypeInstanceFileCompress",
+  /** OperationTypeInstanceFileDecompress - 实例文件解压 */
+  OperationTypeInstanceFileDecompress = "OperationTypeInstanceFileDecompress",
+  /** OperationTypeInstanceFileUploadPreSign - 实例文件上传签名 */
+  OperationTypeInstanceFileUploadPreSign = "OperationTypeInstanceFileUploadPreSign",
+  /** OperationTypeSSHHostCreate - SSH连接新增 */
+  OperationTypeSSHHostCreate = "OperationTypeSSHHostCreate",
+  /** OperationTypeSSHHostUpdate - SSH连接编辑 */
+  OperationTypeSSHHostUpdate = "OperationTypeSSHHostUpdate",
+  /** OperationTypeSSHHostDelete - SSH连接删除 */
+  OperationTypeSSHHostDelete = "OperationTypeSSHHostDelete",
+  /** OperationTypeSSHHostShare - SSH连接分享 */
+  OperationTypeSSHHostShare = "OperationTypeSSHHostShare",
+  /** OperationTypeSSHHostTest - SSH连接测试 */
+  OperationTypeSSHHostTest = "OperationTypeSSHHostTest",
+  /** OperationTypeSSHHostBatchTest - SSH连接批量测试 */
+  OperationTypeSSHHostBatchTest = "OperationTypeSSHHostBatchTest",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 获取当前角色的全部权限请求 */
 export interface MePermissionsRequest {
 }
@@ -691,7 +800,6 @@ export interface DiskIOStatus {
   ioTime: number;
 }
 
-/** 查询操作日志请求 */
 export interface ListOperationLogsRequest {
   /** 操作用户id */
   userId?:
@@ -699,7 +807,7 @@ export interface ListOperationLogsRequest {
     | undefined;
   /** 操作类型 */
   operationType?:
-    | string
+    | OperationType
     | undefined;
   /** 操作是否成功 */
   success?:
@@ -740,7 +848,7 @@ export interface OperationLogInfo {
     | string
     | undefined;
   /** 操作类型 */
-  operationType: string;
+  operationType: OperationType;
   /** 操作是否成功 */
   success: boolean;
   /** 操作详情 */

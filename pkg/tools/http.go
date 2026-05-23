@@ -1,9 +1,12 @@
 package tools
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"strings"
+
+	httptransport "github.com/go-kratos/kratos/v2/transport/http"
 )
 
 func ClientIP(r *http.Request) string {
@@ -24,6 +27,14 @@ func ClientIP(r *http.Request) string {
 		return host
 	}
 	return r.RemoteAddr
+}
+
+func ClientIPFromContext(ctx context.Context) string {
+	httpReq, ok := httptransport.RequestFromServerContext(ctx)
+	if !ok {
+		return ""
+	}
+	return ClientIP(httpReq)
 }
 
 func UserAgent(r *http.Request) string {

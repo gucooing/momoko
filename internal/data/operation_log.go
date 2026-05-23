@@ -24,7 +24,7 @@ func (r *operationLogRepo) CreateOperationLog(ctx context.Context, log *v1.Opera
 		return nil
 	}
 	create := r.data.db.OperationLog.Create().
-		SetOperationType(log.OperationType).
+		SetOperationType(log.OperationType.String()).
 		SetSuccess(log.Success).
 		SetDetail(log.Detail).
 		SetIP(log.Ip).
@@ -45,8 +45,8 @@ func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOp
 	if req.UserId != nil && *req.UserId != "" {
 		query = query.Where(operationlog.UserIDEQ(*req.UserId))
 	}
-	if req.OperationType != nil && *req.OperationType != "" {
-		query = query.Where(operationlog.OperationTypeEQ(*req.OperationType))
+	if req.OperationType != nil {
+		query = query.Where(operationlog.OperationTypeEQ(req.OperationType.String()))
 	}
 	if req.Success != nil {
 		query = query.Where(operationlog.SuccessEQ(*req.Success))
