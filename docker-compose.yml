@@ -3,15 +3,18 @@ services:
     image: ${MOMOKO_IMAGE:-gucooing/momoko:latest}
     container_name: momoko
     restart: unless-stopped
-    # depends_on:
-    #   mysql:
-    #     condition: service_healthy
     network_mode: host
+    environment:
+      PATH: /app/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
       - ./configs:/app/configs
       - ./data:/app/data
       - ./servers:/app/servers
+      - /usr/bin:/app/bin
     command: ["/app/momoko"]
+    # depends_on:
+    #   mysql:
+    #     condition: service_healthy
 
   # mysql:
   #   image: mysql:8.4
