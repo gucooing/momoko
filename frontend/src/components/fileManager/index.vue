@@ -364,7 +364,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             <el-checkbox
               :model-value="selectedEntries.some((e: FileManagerWorkbenchItem) => e.id === row.id)"
               size="small"
-              @change="(v: boolean) => toggleMobileFileSelect(row, v)"
+              @change="(v) => toggleMobileFileSelect(row, v as boolean)"
             />
           </div>
           <div class="fm-mobile-card-main" @click="handleOpen(row)">

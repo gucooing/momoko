@@ -86,7 +86,7 @@
         <div v-if="!roleList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
         <div v-for="row in roleList" :key="row.roleId" class="mobile-card" :class="{ 'is-selected': deleteRoleIds.includes(row.roleId) && !row.isBuiltin }">
           <div class="mobile-card-check" @click.stop>
-            <el-checkbox v-if="!row.isBuiltin" :model-value="deleteRoleIds.includes(row.roleId)" size="small" @change="(v: boolean) => toggleMobileRoleSelect(row.roleId, v)" />
+            <el-checkbox v-if="!row.isBuiltin" :model-value="deleteRoleIds.includes(row.roleId)" size="small" @change="(v) => toggleMobileRoleSelect(row.roleId, v as boolean)" />
           </div>
           <div class="mobile-card-body">
             <div class="mobile-card-header">

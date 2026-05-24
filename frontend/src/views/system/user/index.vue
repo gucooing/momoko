@@ -91,7 +91,7 @@
         <div v-if="!userList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
         <div v-for="row in userList" :key="row.userId" class="mobile-card" :class="{ 'is-selected': deleteUserIds.includes(row.userId) }">
           <div class="mobile-card-check" @click.stop>
-            <el-checkbox :model-value="deleteUserIds.includes(row.userId)" size="small" @change="(v: boolean) => toggleMobileUserSelect(row.userId, v)" />
+            <el-checkbox :model-value="deleteUserIds.includes(row.userId)" size="small" @change="(v) => toggleMobileUserSelect(row.userId, v as boolean)" />
           </div>
           <div class="mobile-card-body">
             <div class="mobile-card-header">
