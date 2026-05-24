@@ -31,6 +31,7 @@ func NewAuthorization(ar biz.AuthRepo) *Authorization {
 var (
 	noAuthRoutes = map[publicRoute]struct{}{
 		{method: http.MethodPost, path: "/api/v1/auth/login"}:               {},
+		{method: http.MethodPost, path: "/api/v1/auth/register"}:            {},
 		{method: http.MethodPost, path: "/api/v1/auth/refresh"}:             {},
 		{method: http.MethodPost, path: "/api/v1/auth/register/email-code"}: {},
 		{method: http.MethodPost, path: "/api/v1/auth/login/email-code"}:    {},

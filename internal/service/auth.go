@@ -84,6 +84,22 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 	}, nil
 }
 
+func (s *AuthService) Register(ctx context.Context, req *v1.RegisterRequest) (*v1.RegisterResponse, error) {
+	loginConfig, err := s.conf.LoginConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !loginConfig.RegisterEnabled {
+		return nil, biz.ErrRegisterDisabled
+	}
+
+	userInfo, err := s.uc.Register(ctx, req, loginConfig.RegisterEmailVerificationRequired)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RegisterResponse{UserId: userInfo.ID}, nil
+}
+
 func (s *AuthService) SendRegisterEmailCode(ctx context.Context, req *v1.SendRegisterEmailCodeRequest) (*v1.SendRegisterEmailCodeResponse, error) {
 	loginConfig, err := s.conf.LoginConfig(ctx)
 	if err != nil {

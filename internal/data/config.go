@@ -77,19 +77,25 @@ func (c *ConfigRepo) LoginConfig(ctx context.Context) (*v1.LoginConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	registerEmailVerificationRequired, err := c.getBoolConfig(ctx, common.ConfigLoginRegisterEmailVerificationRequired)
+	if err != nil {
+		return nil, err
+	}
 
 	return &v1.LoginConfig{
-		RegisterEnabled:      registerEnabled,
-		UsernameLoginEnabled: usernameLoginEnabled,
-		EmailLoginEnabled:    emailLoginEnabled,
+		RegisterEnabled:                   registerEnabled,
+		UsernameLoginEnabled:              usernameLoginEnabled,
+		EmailLoginEnabled:                 emailLoginEnabled,
+		RegisterEmailVerificationRequired: registerEmailVerificationRequired,
 	}, nil
 }
 
 func (c *ConfigRepo) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.LoginConfig, error) {
 	configs := map[common.ConfigKey]string{
-		common.ConfigLoginRegisterEnabled:      strconv.FormatBool(req.RegisterEnabled),
-		common.ConfigLoginUsernameLoginEnabled: strconv.FormatBool(req.UsernameLoginEnabled),
-		common.ConfigLoginEmailLoginEnabled:    strconv.FormatBool(req.EmailLoginEnabled),
+		common.ConfigLoginRegisterEnabled:                   strconv.FormatBool(req.RegisterEnabled),
+		common.ConfigLoginUsernameLoginEnabled:              strconv.FormatBool(req.UsernameLoginEnabled),
+		common.ConfigLoginEmailLoginEnabled:                 strconv.FormatBool(req.EmailLoginEnabled),
+		common.ConfigLoginRegisterEmailVerificationRequired: strconv.FormatBool(req.RegisterEmailVerificationRequired),
 	}
 	if err := c.BatchUpdate(ctx, configs); err != nil {
 		return nil, err

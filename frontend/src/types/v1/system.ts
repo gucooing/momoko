@@ -57,10 +57,6 @@ export enum OperationType {
   OperationTypeAuthUpdatePassword = "OperationTypeAuthUpdatePassword",
   /** OperationTypeAuthDeviceDelete - 登录设备删除 */
   OperationTypeAuthDeviceDelete = "OperationTypeAuthDeviceDelete",
-  /** OperationTypeAuthRegisterEmailCode - 注册邮件验证码发送 */
-  OperationTypeAuthRegisterEmailCode = "OperationTypeAuthRegisterEmailCode",
-  /** OperationTypeAuthLoginEmailCode - 登录邮件验证码发送 */
-  OperationTypeAuthLoginEmailCode = "OperationTypeAuthLoginEmailCode",
   /** OperationTypeUserUpdateMe - 个人信息更新 */
   OperationTypeUserUpdateMe = "OperationTypeUserUpdateMe",
   /** OperationTypeUserCreate - 用户新增 */
@@ -161,6 +157,12 @@ export enum OperationType {
   OperationTypeSystemEmailConfigTest = "OperationTypeSystemEmailConfigTest",
   /** OperationTypeSystemEmailTemplateUpdate - 邮件模板更新 */
   OperationTypeSystemEmailTemplateUpdate = "OperationTypeSystemEmailTemplateUpdate",
+  /** OperationTypeAuthRegisterEmailCode - 注册邮件验证码发送 */
+  OperationTypeAuthRegisterEmailCode = "OperationTypeAuthRegisterEmailCode",
+  /** OperationTypeAuthLoginEmailCode - 登录邮件验证码发送 */
+  OperationTypeAuthLoginEmailCode = "OperationTypeAuthLoginEmailCode",
+  /** OperationTypeAuthRegister - 用户注册 */
+  OperationTypeAuthRegister = "OperationTypeAuthRegister",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -404,6 +406,8 @@ export interface LoginConfig {
   usernameLoginEnabled: boolean;
   /** 是否开启邮箱登录 */
   emailLoginEnabled: boolean;
+  /** 注册时是否强制验证邮箱 */
+  registerEmailVerificationRequired: boolean;
 }
 
 /** 获取登录配置请求 */
@@ -424,6 +428,8 @@ export interface UpdateLoginConfigRequest {
   usernameLoginEnabled: boolean;
   /** 是否开启邮箱登录 */
   emailLoginEnabled: boolean;
+  /** 注册时是否强制验证邮箱 */
+  registerEmailVerificationRequired: boolean;
 }
 
 /** 更新登录配置响应 */

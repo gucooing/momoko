@@ -150,6 +150,7 @@ const pagination = ref({
 const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeUncategorized]: '未分类',
   [OperationType.OperationTypeAuthLogin]: '登录',
+  [OperationType.OperationTypeAuthRegister]: '注册',
   [OperationType.OperationTypeAuthLogout]: '退出登录',
   [OperationType.OperationTypeAuthUpdatePassword]: '修改密码',
   [OperationType.OperationTypeAuthDeviceDelete]: '登录设备删除',

@@ -236,10 +236,6 @@ const (
 	OperationType_OperationTypeAuthUpdatePassword OperationType = 3
 	// 登录设备删除
 	OperationType_OperationTypeAuthDeviceDelete OperationType = 4
-	// 注册邮件验证码发送
-	OperationType_OperationTypeAuthRegisterEmailCode OperationType = 55
-	// 登录邮件验证码发送
-	OperationType_OperationTypeAuthLoginEmailCode OperationType = 56
 	// 个人信息更新
 	OperationType_OperationTypeUserUpdateMe OperationType = 5
 	// 用户新增
@@ -340,6 +336,12 @@ const (
 	OperationType_OperationTypeSystemEmailConfigTest OperationType = 53
 	// 邮件模板更新
 	OperationType_OperationTypeSystemEmailTemplateUpdate OperationType = 54
+	// 注册邮件验证码发送
+	OperationType_OperationTypeAuthRegisterEmailCode OperationType = 55
+	// 登录邮件验证码发送
+	OperationType_OperationTypeAuthLoginEmailCode OperationType = 56
+	// 用户注册
+	OperationType_OperationTypeAuthRegister OperationType = 57
 )
 
 // Enum value maps for OperationType.
@@ -350,8 +352,6 @@ var (
 		2:  "OperationTypeAuthLogout",
 		3:  "OperationTypeAuthUpdatePassword",
 		4:  "OperationTypeAuthDeviceDelete",
-		55: "OperationTypeAuthRegisterEmailCode",
-		56: "OperationTypeAuthLoginEmailCode",
 		5:  "OperationTypeUserUpdateMe",
 		6:  "OperationTypeUserCreate",
 		7:  "OperationTypeUserUpdate",
@@ -402,6 +402,9 @@ var (
 		52: "OperationTypeSystemEmailConfigUpdate",
 		53: "OperationTypeSystemEmailConfigTest",
 		54: "OperationTypeSystemEmailTemplateUpdate",
+		55: "OperationTypeAuthRegisterEmailCode",
+		56: "OperationTypeAuthLoginEmailCode",
+		57: "OperationTypeAuthRegister",
 	}
 	OperationType_value = map[string]int32{
 		"OperationTypeUncategorized":             0,
@@ -409,8 +412,6 @@ var (
 		"OperationTypeAuthLogout":                2,
 		"OperationTypeAuthUpdatePassword":        3,
 		"OperationTypeAuthDeviceDelete":          4,
-		"OperationTypeAuthRegisterEmailCode":     55,
-		"OperationTypeAuthLoginEmailCode":        56,
 		"OperationTypeUserUpdateMe":              5,
 		"OperationTypeUserCreate":                6,
 		"OperationTypeUserUpdate":                7,
@@ -461,6 +462,9 @@ var (
 		"OperationTypeSystemEmailConfigUpdate":   52,
 		"OperationTypeSystemEmailConfigTest":     53,
 		"OperationTypeSystemEmailTemplateUpdate": 54,
+		"OperationTypeAuthRegisterEmailCode":     55,
+		"OperationTypeAuthLoginEmailCode":        56,
+		"OperationTypeAuthRegister":              57,
 	}
 )
 
@@ -1962,8 +1966,10 @@ type LoginConfig struct {
 	UsernameLoginEnabled bool `protobuf:"varint,2,opt,name=username_login_enabled,json=usernameLoginEnabled,proto3" json:"username_login_enabled,omitempty"`
 	// 是否开启邮箱登录
 	EmailLoginEnabled bool `protobuf:"varint,3,opt,name=email_login_enabled,json=emailLoginEnabled,proto3" json:"email_login_enabled,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// 注册时是否强制验证邮箱
+	RegisterEmailVerificationRequired bool `protobuf:"varint,4,opt,name=register_email_verification_required,json=registerEmailVerificationRequired,proto3" json:"register_email_verification_required,omitempty"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
 }
 
 func (x *LoginConfig) Reset() {
@@ -2013,6 +2019,13 @@ func (x *LoginConfig) GetUsernameLoginEnabled() bool {
 func (x *LoginConfig) GetEmailLoginEnabled() bool {
 	if x != nil {
 		return x.EmailLoginEnabled
+	}
+	return false
+}
+
+func (x *LoginConfig) GetRegisterEmailVerificationRequired() bool {
+	if x != nil {
+		return x.RegisterEmailVerificationRequired
 	}
 	return false
 }
@@ -2109,8 +2122,10 @@ type UpdateLoginConfigRequest struct {
 	UsernameLoginEnabled bool `protobuf:"varint,2,opt,name=username_login_enabled,json=usernameLoginEnabled,proto3" json:"username_login_enabled,omitempty"`
 	// 是否开启邮箱登录
 	EmailLoginEnabled bool `protobuf:"varint,3,opt,name=email_login_enabled,json=emailLoginEnabled,proto3" json:"email_login_enabled,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// 注册时是否强制验证邮箱
+	RegisterEmailVerificationRequired bool `protobuf:"varint,4,opt,name=register_email_verification_required,json=registerEmailVerificationRequired,proto3" json:"register_email_verification_required,omitempty"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
 }
 
 func (x *UpdateLoginConfigRequest) Reset() {
@@ -2160,6 +2175,13 @@ func (x *UpdateLoginConfigRequest) GetUsernameLoginEnabled() bool {
 func (x *UpdateLoginConfigRequest) GetEmailLoginEnabled() bool {
 	if x != nil {
 		return x.EmailLoginEnabled
+	}
+	return false
+}
+
+func (x *UpdateLoginConfigRequest) GetRegisterEmailVerificationRequired() bool {
+	if x != nil {
+		return x.RegisterEmailVerificationRequired
 	}
 	return false
 }
@@ -5359,18 +5381,20 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x04role\x18\x01 \x01(\v2\f.v1.RoleInfoR\x04role\"3\n" +
 	"\x16AdminDeleteRoleRequest\x12\x19\n" +
 	"\brole_ids\x18\x01 \x03(\tR\aroleIds\"\x19\n" +
-	"\x17AdminDeleteRoleResponse\"\x9e\x01\n" +
+	"\x17AdminDeleteRoleResponse\"\xef\x01\n" +
 	"\vLoginConfig\x12)\n" +
 	"\x10register_enabled\x18\x01 \x01(\bR\x0fregisterEnabled\x124\n" +
 	"\x16username_login_enabled\x18\x02 \x01(\bR\x14usernameLoginEnabled\x12.\n" +
-	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\"\x14\n" +
+	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\x12O\n" +
+	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\"\x14\n" +
 	"\x12LoginConfigRequest\">\n" +
 	"\x13LoginConfigResponse\x12'\n" +
-	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\xab\x01\n" +
+	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\xfc\x01\n" +
 	"\x18UpdateLoginConfigRequest\x12)\n" +
 	"\x10register_enabled\x18\x01 \x01(\bR\x0fregisterEnabled\x124\n" +
 	"\x16username_login_enabled\x18\x02 \x01(\bR\x14usernameLoginEnabled\x12.\n" +
-	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\"D\n" +
+	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\x12O\n" +
+	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\"D\n" +
 	"\x19UpdateLoginConfigResponse\x12'\n" +
 	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\x8f\x02\n" +
 	"\vEmailConfig\x12\x18\n" +
@@ -5674,15 +5698,13 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x11RoleStatus_Active\x10\x01*P\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xd5\x0f\n" +
+	"\x17EmailTemplateType_Login\x10\x01*\xf4\x0f\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
 	"\x17OperationTypeAuthLogout\x10\x02\x12#\n" +
 	"\x1fOperationTypeAuthUpdatePassword\x10\x03\x12!\n" +
-	"\x1dOperationTypeAuthDeviceDelete\x10\x04\x12&\n" +
-	"\"OperationTypeAuthRegisterEmailCode\x107\x12#\n" +
-	"\x1fOperationTypeAuthLoginEmailCode\x108\x12\x1d\n" +
+	"\x1dOperationTypeAuthDeviceDelete\x10\x04\x12\x1d\n" +
 	"\x19OperationTypeUserUpdateMe\x10\x05\x12\x1b\n" +
 	"\x17OperationTypeUserCreate\x10\x06\x12\x1b\n" +
 	"\x17OperationTypeUserUpdate\x10\a\x12\x1b\n" +
@@ -5733,7 +5755,10 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1dOperationTypeSSHHostBatchTest\x103\x12(\n" +
 	"$OperationTypeSystemEmailConfigUpdate\x104\x12&\n" +
 	"\"OperationTypeSystemEmailConfigTest\x105\x12*\n" +
-	"&OperationTypeSystemEmailTemplateUpdate\x1062\xed\x12\n" +
+	"&OperationTypeSystemEmailTemplateUpdate\x106\x12&\n" +
+	"\"OperationTypeAuthRegisterEmailCode\x107\x12#\n" +
+	"\x1fOperationTypeAuthLoginEmailCode\x108\x12\x1d\n" +
+	"\x19OperationTypeAuthRegister\x1092\xed\x12\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +

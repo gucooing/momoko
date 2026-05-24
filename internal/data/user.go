@@ -73,7 +73,7 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status 
 
 func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
 	if roleId == "" {
-		roleId = noPermissionRoleID
+		roleId = noPermissionRoleID // 注册时默认给予无权限
 	}
 	builder := ur.data.db.User.Create().
 		SetID(userInfo.ID).

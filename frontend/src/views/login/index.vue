@@ -38,7 +38,7 @@
                 @goToMode="goToMode"
               />
               <ForgotPassword v-else-if="loginMode === 'forgot'" @goToMode="goToMode" />
-              <Register v-else @goToMode="goToMode" />
+              <Register v-else :register-email-verification-required="loginConfig.registerEmailVerificationRequired" @goToMode="goToMode" />
             </Transition>
           </div>
         </div>
@@ -74,6 +74,7 @@ const loginConfig = reactive<LoginConfig>({
   registerEnabled: false,
   usernameLoginEnabled: true,
   emailLoginEnabled: false,
+  registerEmailVerificationRequired: false,
 })
 
 const goToMode = (mode: LoginMode) => {
@@ -88,6 +89,7 @@ onMounted(async () => {
       loginConfig.registerEnabled = data.config.registerEnabled
       loginConfig.usernameLoginEnabled = data.config.usernameLoginEnabled
       loginConfig.emailLoginEnabled = data.config.emailLoginEnabled
+      loginConfig.registerEmailVerificationRequired = data.config.registerEmailVerificationRequired
     }
   } catch {
     // 使用默认值

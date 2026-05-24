@@ -29,6 +29,24 @@ export interface LoginRequest {
   code: string;
 }
 
+/** 注册请求 */
+export interface RegisterRequest {
+  /** 用户名 */
+  username: string;
+  /** 密码 */
+  password: string;
+  /** 邮箱 */
+  email: string;
+  /** 邮箱验证码 */
+  code: string;
+}
+
+/** 注册响应 */
+export interface RegisterResponse {
+  /** 用户id */
+  userId: string;
+}
+
 /** 发送注册邮件验证码请求 */
 export interface SendRegisterEmailCodeRequest {
   /** 邮箱 */

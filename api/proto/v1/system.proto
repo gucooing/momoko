@@ -394,6 +394,8 @@ message LoginConfig {
   bool username_login_enabled = 2;
   // 是否开启邮箱登录
   bool email_login_enabled = 3;
+  // 注册时是否强制验证邮箱
+  bool register_email_verification_required = 4;
 }
 
 // 获取登录配置请求
@@ -413,6 +415,8 @@ message UpdateLoginConfigRequest {
   bool username_login_enabled = 2;
   // 是否开启邮箱登录
   bool email_login_enabled = 3;
+  // 注册时是否强制验证邮箱
+  bool register_email_verification_required = 4;
 }
 
 // 更新登录配置响应
@@ -899,10 +903,6 @@ enum OperationType {
   OperationTypeAuthUpdatePassword = 3;
   // 登录设备删除
   OperationTypeAuthDeviceDelete = 4;
-  // 注册邮件验证码发送
-  OperationTypeAuthRegisterEmailCode = 55;
-  // 登录邮件验证码发送
-  OperationTypeAuthLoginEmailCode = 56;
   // 个人信息更新
   OperationTypeUserUpdateMe = 5;
   // 用户新增
@@ -1003,6 +1003,12 @@ enum OperationType {
   OperationTypeSystemEmailConfigTest = 53;
   // 邮件模板更新
   OperationTypeSystemEmailTemplateUpdate = 54;
+  // 注册邮件验证码发送
+  OperationTypeAuthRegisterEmailCode = 55;
+  // 登录邮件验证码发送
+  OperationTypeAuthLoginEmailCode = 56;
+  // 用户注册
+  OperationTypeAuthRegister = 57;
 }
 
 message ListOperationLogsRequest {

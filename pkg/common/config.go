@@ -3,9 +3,10 @@ package common
 type ConfigKey string
 
 const (
-	ConfigLoginRegisterEnabled      ConfigKey = "login.register_enabled"
-	ConfigLoginUsernameLoginEnabled ConfigKey = "login.username_login_enabled"
-	ConfigLoginEmailLoginEnabled    ConfigKey = "login.email_login_enabled"
+	ConfigLoginRegisterEnabled                   ConfigKey = "login.register_enabled"
+	ConfigLoginUsernameLoginEnabled              ConfigKey = "login.username_login_enabled"
+	ConfigLoginEmailLoginEnabled                 ConfigKey = "login.email_login_enabled"
+	ConfigLoginRegisterEmailVerificationRequired ConfigKey = "login.register_email_verification_required"
 
 	ConfigEmailEnabled        ConfigKey = "email.enabled"
 	ConfigEmailHost           ConfigKey = "email.host"
@@ -20,9 +21,10 @@ const (
 )
 
 var configDefaults = map[ConfigKey]string{
-	ConfigLoginRegisterEnabled:      "false",
-	ConfigLoginUsernameLoginEnabled: "true",
-	ConfigLoginEmailLoginEnabled:    "false",
+	ConfigLoginRegisterEnabled:                   "false",
+	ConfigLoginUsernameLoginEnabled:              "true",
+	ConfigLoginEmailLoginEnabled:                 "false",
+	ConfigLoginRegisterEmailVerificationRequired: "false",
 
 	ConfigEmailEnabled:        "false",
 	ConfigEmailHost:           "",

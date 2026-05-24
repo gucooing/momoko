@@ -11,6 +11,8 @@ import type {
   LogoutResponse,
   RefreshRequest,
   RefreshResponse,
+  RegisterRequest,
+  RegisterResponse,
   SendLoginEmailCodeRequest,
   SendLoginEmailCodeResponse,
   SendRegisterEmailCodeRequest,
@@ -53,6 +55,10 @@ export const sendLoginEmailCode = (params: SendLoginEmailCodeRequest) => {
 
 export const sendRegisterEmailCode = (params: SendRegisterEmailCodeRequest) => {
   return request.post<SendRegisterEmailCodeResponse>('/auth/register/email-code', params)
+}
+
+export const register = (params: RegisterRequest) => {
+  return request.post<RegisterResponse>('/auth/register', params)
 }
 
 export const refreshTokenRequest = (params: RefreshRequest) => {

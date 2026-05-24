@@ -6,6 +6,7 @@ import (
 	"momoko/internal/data/ent/gen/user"
 	"momoko/pkg/tools"
 	"momoko/pkg/utils"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -90,6 +91,53 @@ func (a *AuthUsecase) LoginByEmail(ctx context.Context, email, code string) (*ge
 	}
 	if err = a.VerifyEmailCode(email, code, EmailCodeTypeLogin); err != nil {
 		return nil, err
+	}
+	return userInfo, nil
+}
+
+func (a *AuthUsecase) Register(ctx context.Context, req *v1.RegisterRequest, registerEmailVerificationRequired bool) (*gen.User, error) {
+	if req.Username == "" {
+		return nil, ErrUsernameEmpty
+	}
+	if req.Password == "" {
+		return nil, ErrPasswordEmpty
+	}
+	if req.Email == "" {
+		return nil, ErrEmailEmpty
+	}
+	if _, err := mail.ParseAddress(req.GetEmail()); err != nil {
+		return nil, ErrEmailInvalid
+	}
+
+	if _, err := a.user.FindByName(ctx, req.Username); err == nil {
+		return nil, ErrUsernameRegistered
+	} else if !gen.IsNotFound(err) {
+		return nil, ErrSystem(err)
+	}
+	if _, err := a.user.FindByEmail(ctx, req.Email); err == nil {
+		return nil, ErrEmailRegistered
+	} else if !gen.IsNotFound(err) {
+		return nil, ErrSystem(err)
+	}
+	if registerEmailVerificationRequired {
+		if err := a.VerifyEmailCode(req.Email, req.Code, EmailCodeTypeRegister); err != nil {
+			return nil, err
+		}
+	}
+
+	userInfo, err := a.user.CreateUser(ctx, &gen.User{
+		ID:       fmt.Sprintf("user_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
+		Username: req.Username,
+		Password: auth2.EncodePassword(req.Password),
+		Email:    req.Email,
+		Status:   user.StatusActive,
+		Name:     req.Username,
+	}, "")
+	if err != nil {
+		if gen.IsConstraintError(err) {
+			return nil, ErrUsernameEmailRegistered
+		}
+		return nil, ErrSystem(err)
 	}
 	return userInfo, nil
 }

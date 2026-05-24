@@ -86,23 +86,35 @@ func operationUserID(ctx context.Context, operation string, reply any, handlerEr
 	if userID := auth.GetUserIDFromContext(ctx); userID != nil && *userID != "" {
 		return userID
 	}
-	if operation != v1.OperationAuthServiceLogin || handlerErr != nil {
+	if handlerErr != nil {
 		return nil
 	}
 
-	loginReply, ok := reply.(*v1.LoginResponse)
-	if !ok || loginReply.GetAccessToken() == "" {
+	switch operation {
+	case v1.OperationAuthServiceLogin:
+		loginReply, ok := reply.(*v1.LoginResponse)
+		if !ok || loginReply.GetAccessToken() == "" {
+			return nil
+		}
+		claims, err := auth.ParseToken(loginReply.GetAccessToken())
+		if err != nil || claims.UserID == "" {
+			return nil
+		}
+		return new(claims.UserID)
+	case v1.OperationAuthServiceRegister:
+		registerReply, ok := reply.(*v1.RegisterResponse)
+		if !ok || registerReply.GetUserId() == "" {
+			return nil
+		}
+		return new(registerReply.GetUserId())
+	default:
 		return nil
 	}
-	claims, err := auth.ParseToken(loginReply.GetAccessToken())
-	if err != nil || claims.UserID == "" {
-		return nil
-	}
-	return new(claims.UserID)
 }
 
 var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationAuthServiceLogin:                         v1.OperationType_OperationTypeAuthLogin,
+	v1.OperationAuthServiceRegister:                      v1.OperationType_OperationTypeAuthRegister,
 	v1.OperationAuthServiceSendRegisterEmailCode:         v1.OperationType_OperationTypeAuthRegisterEmailCode,
 	v1.OperationAuthServiceSendLoginEmailCode:            v1.OperationType_OperationTypeAuthLoginEmailCode,
 	v1.OperationAuthServiceLogout:                        v1.OperationType_OperationTypeAuthLogout,

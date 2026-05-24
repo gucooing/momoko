@@ -45,6 +45,19 @@
                   inactive-text="关闭"
                 />
               </div>
+              <div class="setting-item">
+                <div class="setting-item-info">
+                  <span class="setting-item-label">注册邮箱验证</span>
+                  <span class="setting-item-desc">开启后注册时需通过邮箱验证码完成验证</span>
+                </div>
+                <el-switch
+                  v-model="loginForm.registerEmailVerificationRequired"
+                  :disabled="!canEdit"
+                  inline-prompt
+                  active-text="开启"
+                  inactive-text="关闭"
+                />
+              </div>
             </div>
 
             <div class="setting-footer">
@@ -452,6 +465,7 @@ const loginForm = reactive({
   registerEnabled: false,
   usernameLoginEnabled: true,
   emailLoginEnabled: false,
+  registerEmailVerificationRequired: false,
 })
 
 const emailForm = reactive({
@@ -596,6 +610,7 @@ const loadLoginConfig = async () => {
       loginForm.registerEnabled = data.config.registerEnabled
       loginForm.usernameLoginEnabled = data.config.usernameLoginEnabled
       loginForm.emailLoginEnabled = data.config.emailLoginEnabled
+      loginForm.registerEmailVerificationRequired = data.config.registerEmailVerificationRequired
     }
   } catch {
     ElMessage.error('获取登录配置失败')
@@ -629,6 +644,7 @@ const handleLoginSave = async () => {
       registerEnabled: loginForm.registerEnabled,
       usernameLoginEnabled: loginForm.usernameLoginEnabled,
       emailLoginEnabled: loginForm.emailLoginEnabled,
+      registerEmailVerificationRequired: loginForm.registerEmailVerificationRequired,
     })
     ElMessage.success('保存成功')
   }finally {

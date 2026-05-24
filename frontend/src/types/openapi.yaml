@@ -153,6 +153,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshResponse'
+    /api/v1/auth/register:
+        post:
+            tags:
+                - AuthService
+            description: 注册
+            operationId: AuthService_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RegisterResponse'
     /api/v1/auth/register/email-code:
         post:
             tags:
@@ -3294,6 +3313,9 @@ components:
                 emailLoginEnabled:
                     type: boolean
                     description: 是否开启邮箱登录
+                registerEmailVerificationRequired:
+                    type: boolean
+                    description: 注册时是否强制验证邮箱
             description: 登录配置
         v1.LoginConfigResponse:
             type: object
@@ -3736,6 +3758,29 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RegisterRequest:
+            type: object
+            properties:
+                username:
+                    type: string
+                    description: 用户名
+                password:
+                    type: string
+                    description: 密码
+                email:
+                    type: string
+                    description: 邮箱
+                code:
+                    type: string
+                    description: 邮箱验证码
+            description: 注册请求
+        v1.RegisterResponse:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户id
+            description: 注册响应
         v1.RenameFileSystemRequest:
             type: object
             properties:
@@ -4310,6 +4355,9 @@ components:
                 emailLoginEnabled:
                     type: boolean
                     description: 是否开启邮箱登录
+                registerEmailVerificationRequired:
+                    type: boolean
+                    description: 注册时是否强制验证邮箱
             description: 更新登录配置请求
         v1.UpdateLoginConfigResponse:
             type: object
