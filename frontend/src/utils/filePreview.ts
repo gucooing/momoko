@@ -90,8 +90,17 @@ export const triggerFileDownload = (blobUrl: string, fileName: string) => {
   link.remove()
 }
 
-export const downloadFileFromUrl = (url: string, _fileName: string) => {
-  window.open(url, '_blank')
+export const downloadFileFromUrl = (url: string, fileName: string) => {
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  link.rel = 'noopener'
+  link.target = '_blank'
+  link.style.display = 'none'
+
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
 }
 
 export const copyTextToClipboard = async (value: string) => {

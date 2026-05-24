@@ -94,8 +94,9 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     if (!entry) return
 
     entry.session.dispose()
-    const { [normalizedRouteKey]: _removedEntry, ...restEntries } = sessionEntries.value
-    sessionEntries.value = restEntries
+    const nextEntries = { ...sessionEntries.value }
+    delete nextEntries[normalizedRouteKey]
+    sessionEntries.value = nextEntries
 
     if (activeSessionKey.value === normalizedRouteKey) {
       activeSessionKey.value = ''

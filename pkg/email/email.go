@@ -202,6 +202,12 @@ func (c *Client) buildMessage(message Message) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if hasHeaderLineBreak(subject) {
+		return nil, errors.New("invalid subject header")
+	}
+	if hasHeaderLineBreak(message.Recipient) {
+		return nil, errors.New("invalid recipient header")
+	}
 
 	body, err := renderHTML("body", message.Template, message.Data)
 	if err != nil {
@@ -259,4 +265,8 @@ func writeHeader(buf *bytes.Buffer, key, value string) {
 
 func hasLineBreak(value string) string {
 	return strings.NewReplacer("\r", "", "\n", "").Replace(value)
+}
+
+func hasHeaderLineBreak(value string) bool {
+	return strings.ContainsAny(value, "\r\n")
 }

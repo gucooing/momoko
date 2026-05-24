@@ -1,162 +1,164 @@
 <div align="center">
-  <img src="./public/logo.svg" alt="DFAN Admin Logo" width="120" />
+  <img src="./public/logo.svg" alt="Momoko Frontend Logo" width="120" />
 
-# DFAN Admin
+# Momoko Frontend
 
 </div>
 
-DFAN Admin 是一款基于 Vue 3、Element Plus 和 Vite 构建的现代化后台管理解决方案。项目已切换为真实后端 API 对接模式，适用于中后台系统开发、演示系统搭建及 Vue 生态学习。
+Momoko Frontend 是 Momoko 管理面板的前端工程，基于 Vue 3、TypeScript、Element Plus 与 Vite 构建，负责提供登录、权限菜单、系统监控、实例管理、SSH 终端、文件管理和系统配置等后台管理界面。
 
-**核心特色：** 基于 TypeScript + Vue 3 的工程化后台模板，支持快速对接真实 API 并扩展业务模块。
+> 原项目标注：本前端基于 [DFAN Admin](https://github.com/DFANNN/DFAN-Admin) 二次开发，原作者为 DFANNN，原项目使用 MIT License。Momoko 在此基础上接入真实后端 API，并扩展了游戏服务器/应用实例管理相关业务模块。
 
-> 🚧 **开发状态 (WIP)**
->
-> - 核心架构（Vue 3 + Element Plus + Vite）已完成
-> - 部分业务模块持续迭代中
-> - 发现问题或缺少功能，欢迎提 Issue / Star 关注更新
+## 功能概览
 
-## 🌐 在线演示
+- 登录、刷新令牌、登录设备管理与个人中心
+- 后端动态菜单、角色权限与按钮级权限控制
+- 用户、角色、菜单、系统配置与操作日志管理
+- 系统概览、CPU/内存/网络/磁盘状态监控
+- 实例列表、实例类型、实例控制台与实例文件管理
+- SSH 主机管理与 Web SSH 终端
+- 文件管理、分片上传、下载、预览和在线编辑
+- 明暗主题、标签页、响应式布局和常用后台组件示例
 
-立即体验完整功能：
+## 技术栈
 
-**🔗 [https://dfannn.github.io/DFAN-Admin/](https://dfannn.github.io/DFAN-Admin/)**
+| 分类 | 技术 |
+| --- | --- |
+| 核心框架 | Vue 3, TypeScript |
+| 构建工具 | Vite |
+| 状态与路由 | Pinia, Vue Router |
+| UI 组件 | Element Plus |
+| 表格 | VxeTable, VxePC UI |
+| 图表与终端 | ECharts, xterm.js, Monaco Editor |
+| 请求层 | Axios |
+| 工具库 | Day.js, VueUse, noble hashes |
+| 样式 | Sass, Tailwind CSS |
+| 类型来源 | 后端 proto 生成的 TypeScript 类型 |
 
-> **💡 提示**：演示环境的所有数据均存储在您浏览器的 **IndexedDB** 本地数据库中。刷新页面数据不丢失；如需重置数据，请清除浏览器缓存或删除 IndexedDB 数据。
->
-> 如果遇到无法访问、页面一直加载或数据错乱，请清除 LocalStorage 和 IndexedDB 后再访问；如有重要数据请谨慎操作。
+## 环境要求
 
----
+- Node.js: `^20.19.0` 或 `>=22.12.0`
+- pnpm: `>=10.4.1`，当前锁定版本见 `packageManager`
 
-## ✨ 核心特性
+## 快速开始
 
-### 🚀 灵活的架构设计
-
-- **真实接口驱动**：默认对接后端 API，满足真实业务场景下的增删改查与权限管理。
-- **环境配置清晰**：通过环境变量快速切换不同环境接口地址，便于联调与部署。
-
-### 🎨 清爽规范的开发体验
-
-- **零过度封装**：尽可能保持 Element Plus 原生写法，代码逻辑清晰，降低学习和二开成本。
-- **统一配置**：通过 `src/config` 目录下的配置文件，即可快速调整系统标题、Logo、主题色及组件默认行为。
-- **TypeScript**：全量使用 TypeScript，提供完整的类型推断。
-
-### 🧩 完整的功能模块
-
-- **用户/角色/菜单管理**：内置完善的 RBAC 权限管理模型。
-- **个人中心**：支持资料修改、头像上传、密码变更。
-- **高性能表格**：集成 VxeTable，支持虚拟滚动、右键菜单、表单搜索、拖拽排序、数据导入/导出等企业级功能。
-- **UI 交互**：支持明暗主题切换、响应式布局、多标签页导航。
-- **图标选择**：集成 Heroicons 与 Element Plus 图标库，支持丰富的图标选取体验。
-- **移动端适配**：界面全面适配手机端，支持小屏设备流畅访问与操作。
-
-## 🛠️ 技术栈
-
-| 类别          | 技术                  | 说明                                         |
-| :------------ | :-------------------- | :------------------------------------------- |
-| **核心框架**  | Vue 3                 | 组合式 API (Composition API)                 |
-| **构建工具**  | Vite                  | 极速的开发服务器与打包工具                   |
-| **语言**      | TypeScript            | 强类型 JavaScript 超集                       |
-| **UI 组件**   | Element Plus          | 经典的 Vue 3 组件库                          |
-| **表格组件**  | VxeTable + VxePC UI   | 企业级表格组件，支持虚拟滚动与高级功能       |
-| **状态/路由** | Pinia + Vue Router    | 官方推荐的状态与路由管理                     |
-| **数据来源**  | **后端 API**          | **通过 Axios 统一请求层对接真实服务**         |
-| **工具库**    | Axios, Day.js, VueUse | HTTP 请求与常用工具函数                      |
-
-## 🚀 快速开始
-
-### 环境要求
-
-- **Node.js**: `^20.19.0` 或 `>=22.12.0`
-- **pnpm**: `>=10.4.1` (推荐)
-
-### 1\. 安装依赖
+启动前请先在仓库根目录运行后端：
 
 ```bash
-pnpm install
+go run ./cmd/momoko -conf ./configs
 ```
 
-### 2\. 启动开发服务器
+然后启动前端：
 
 ```bash
+cd frontend
+pnpm install
 pnpm dev
 ```
 
-启动后访问 `http://localhost:3007`，应用会请求 `.env` 中配置的 `VITE_API_BASE_URL`。
+开发服务器默认地址为 `http://localhost:3007`。默认后端 API 地址来自 `.env.development`：
 
-### 3\. 构建生产版本
-
-```bash
-pnpm build
+```env
+VITE_API_BASE_URL="http://localhost:22633/api/v1"
+VITE_STATIC_URL="/"
 ```
 
-## ⚙️ 核心配置
-
-项目秉持“约定优于配置”的原则，主要配置集中管理：
-
-- **全局应用配置** (`src/config/app.config.ts`)
-  - 修改项目名称 (`name`)
-  - 替换 Logo 和 Favicon
-  - 配置首页轮播图
-  - ...
-- **UI 组件配置** (`src/config/elementConfig.ts`)
-  - 统一设置表格边框、对齐方式
-  - 全局定义分页器布局和页码大小
-  - ...
-
-## 📁 项目目录
+默认管理员账号：
 
 ```text
-DFAN-Admin/
-├── public/                 # 静态资源
-├── src/
-│   ├── api/                # API 接口定义
-│   ├── components/         # 公共组件
-│   ├── config/             # 全局配置文件 (App & Element)
-│   ├── router/             # 路由配置
-│   ├── stores/             # Pinia 状态仓库
-│   ├── views/              # 页面视图
-│   └── main.ts             # 入口文件
-└── vite.config.ts          # Vite 配置
+用户名: admin
+密码: admin
 ```
 
-## 💡 开发指南
+## 环境变量
 
-### 数据请求机制
+| 变量 | 说明 |
+| --- | --- |
+| `VITE_API_BASE_URL` | 后端 API 基础地址，开发环境默认为 `http://localhost:22633/api/v1` |
+| `VITE_STATIC_URL` | 静态资源和路由 base，默认 `/` |
 
-1.  **请求**：页面通过 `src/api` 中的接口函数发起请求。
-2.  **处理**：`src/utils/request.ts` 统一处理鉴权、错误提示与响应结构。
-3.  **渲染**：页面根据后端返回数据更新表格、表单与权限视图。
+生产环境 `.env.production` 默认使用相对 API 地址 `/api/v1`，适合由后端二进制同时托管前端静态资源和 API。
 
-### VxeTable 表格示例
+## 常用命令
 
-项目内置了完整的 VxeTable 使用示例（`src/views/demo/vxeTable`），展示了以下功能：
+```bash
+# 启动开发服务器
+pnpm dev
 
-- **虚拟滚动**：支持大数据量（1000+ 条）流畅渲染
-- **表单搜索**：集成搜索表单，支持筛选和重置
-- **CRUD 操作**：新增、编辑、删除（含确认框）
-- **右键菜单**：支持复制单元格内容等自定义操作
-- **工具栏功能**：打印、导入、导出、刷新、自定义列等
-- **高级特性**：拖拽排序、列宽调整、复选框选择、分页等
+# 类型检查并构建生产版本
+pnpm build
 
-可直接参考该示例进行二次开发和功能扩展。
+# 仅预览 dist 产物
+pnpm preview
 
-### 对接真实后端
+# ESLint 自动修复
+pnpm lint
 
-若需切换后端环境，只需修改 `.env.development/.env.production` 中的 `VITE_API_BASE_URL`。
+# 格式化 src 目录
+pnpm format
+```
 
-## 👥 适合人群
+`pnpm build` 会执行类型检查、Vite 构建、复制 `dist/index.html` 为 `dist/404.html`，并通过 `scripts/compress-dist.mjs` 生成压缩资源，供后端静态资源服务优先返回 gzip/brotli 版本。
 
-- 需要快速搭建**中后台原型**的前端开发者。
-- 学习 **Vue 3 + TypeScript + Pinia** 全家桶的初学者。
-- 希望学习中后台权限系统与真实接口联调流程的进阶开发者。
-- 寻找**纯前端**可部署演示系统的讲师或学生。
+## 与后端集成
 
-## 📄 许可证
+前端 API 类型和 OpenAPI 文件由根目录 proto 生成：
 
-Copyright (c) 2025 DFANNN
+```bash
+cd ..
+make api
+```
 
-本项目采用 [MIT License](./LICENSE) 开源协议。
+生成结果主要包括：
 
----
+- `frontend/src/types/v1/*.ts`
+- `frontend/src/types/openapi.yaml`
 
-**⭐ 如果这个项目对你有帮助，欢迎点个 Star！**
+后端打包时会通过根目录 `dist_embed.go` 嵌入 `frontend/dist`。完整一体化构建顺序：
+
+```bash
+cd frontend
+pnpm install
+pnpm build
+cd ..
+go build -ldflags "-X main.Name=momoko -X main.Version=dev" -o ./bin/momoko ./cmd/momoko
+```
+
+## 目录结构
+
+```text
+frontend/
+├── public/              # 静态资源
+├── scripts/             # 构建辅助脚本
+├── src/
+│   ├── api/             # 后端 API 封装
+│   ├── assets/          # 图片、Logo、动效等资源
+│   ├── components/      # 公共组件
+│   ├── composables/     # 组合式函数
+│   ├── config/          # 应用、权限、组件配置
+│   ├── directives/      # 自定义指令
+│   ├── layouts/         # 后台布局
+│   ├── router/          # 静态路由与动态路由转换
+│   ├── stores/          # Pinia 状态
+│   ├── styles/          # 全局样式
+│   ├── types/           # proto/openapi 生成类型
+│   ├── utils/           # 请求、资源、格式化等工具
+│   └── views/           # 页面视图
+├── vite.config.ts       # Vite 配置
+└── package.json         # 脚本与依赖
+```
+
+## 开发约定
+
+- 新增接口优先放在 `src/api`，并复用 `src/utils/request.ts` 的统一请求实例。
+- 后端菜单会通过 `src/router/menuToRoute.ts` 转换为动态路由，页面路径需与 `src/views` 下的文件路径匹配。
+- 按钮权限通过后端返回的权限码和 `src/directives/permission.ts` 控制。
+- 应用名称、Logo、Favicon 和主题配置集中在 `src/config/app.config.ts`。
+- Element Plus 全局默认行为集中在 `src/config/elementConfig.ts`。
+
+## 原项目与许可证
+
+- 原项目仓库：[DFANNN/DFAN-Admin](https://github.com/DFANNN/DFAN-Admin)
+- 原项目作者：DFANNN
+- 原项目许可证：MIT License，见 [frontend/LICENSE](./LICENSE)
+- Momoko 仓库许可证：见根目录 [LICENSE](../LICENSE)

@@ -1,0 +1,39 @@
+services:
+  momoko:
+    image: ${MOMOKO_IMAGE:-gucooing/momoko:latest}
+    container_name: momoko
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${MOMOKO_HTTP_PORT:-22633}:22633"
+      - "${MOMOKO_GRPC_PORT:-22733}:22733"
+    volumes:
+      - ./configs:/app/configs
+      - ./data:/app/data
+      - ./servers:/app/servers
+    command: ["/app/momoko"]
+
+  # mysql:
+  #   image: mysql:8.4
+  #   container_name: momoko-mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_DATABASE: ${MYSQL_DATABASE:-momoko}
+  #     MYSQL_USER: ${MYSQL_USER:-momoko}
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-momoko}
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-momoko_root}
+  #     TZ: ${TZ:-Asia/Shanghai}
+  #   ports:
+  #     - "${MYSQL_PORT:-3306}:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+
+volumes:
+  # mysql_data:

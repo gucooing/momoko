@@ -427,6 +427,8 @@ import {
 import { useWindowSize } from '@vueuse/core'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 
+defineOptions({ name: 'FileManagerWorkbench' })
+
 const props = withDefaults(
   defineProps<{
     path: string

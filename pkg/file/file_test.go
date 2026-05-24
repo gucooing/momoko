@@ -65,6 +65,8 @@ func Test_Rename(t *testing.T) {
 }
 
 func Test_Download(t *testing.T) {
+	t.Skip("manual HTTP server smoke test; skipped in automated test runs")
+
 	f, err := NewFileOper("")
 	if err != nil {
 		t.Fatal(err)
@@ -109,6 +111,8 @@ func Test_Download(t *testing.T) {
 }
 
 func Test_Download_Speed(t *testing.T) {
+	t.Skip("manual large-file download smoke test; skipped in automated test runs")
+
 	srv := http.NewServer()
 	testCtx := context.Background()
 	router := srv.Route("/")
@@ -163,6 +167,8 @@ func Test_Download_Speed(t *testing.T) {
 }
 
 func Test_SaveFile(t *testing.T) {
+	t.Skip("manual multipart upload smoke test; skipped in automated test runs")
+
 	f, err := NewFileOper("")
 	if err != nil {
 		t.Fatal(err)

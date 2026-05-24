@@ -93,7 +93,7 @@ const handleRestart = () => {
   })
 }
 
-const handleFeature = (key: string) => {
+const handleFeature = () => {
   ElMessage.info('功能暂未实现')
 }
 </script>
