@@ -361,17 +361,11 @@ onBeforeUnmount(() => {
       }
     }
 
-    @media (max-width: 768px) {
-      .code-row {
-        flex-direction: column;
-      }
-
-      .code-input-item {
-        width: 100%;
-      }
-
+    @media (max-width: 400px) {
       .send-code-btn {
-        width: 100%;
+        min-width: 6.5rem;
+        padding: 0 0.6rem;
+        font-size: 0.75rem;
       }
     }
 

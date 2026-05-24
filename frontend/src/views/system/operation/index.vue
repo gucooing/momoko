@@ -69,28 +69,42 @@
     </el-card>
 
     <el-card shadow="never">
-      <VxeGrid v-bind="gridConfig">
+      <!-- desktop: table -->
+      <VxeGrid v-if="!menuStore.isMobile" v-bind="gridConfig">
         <template #column-operationType="{ row }">
           <span class="op-type-tag">{{ operationTypeLabels[row.operationType] || row.operationType }}</span>
         </template>
         <template #column-success="{ row }">
-          <BaseTag
-            :type="row.success ? 'success' : 'danger'"
-            :text="row.success ? '成功' : '失败'"
-          />
+          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
         </template>
         <template #column-detail="{ row }">
-          <span class="detail-preview" @click="showDetailDialog(row.detail)">{{
-            row.detail || '-'
-          }}</span>
+          <span class="detail-preview" @click="showDetailDialog(row.detail)">{{ row.detail || '-' }}</span>
         </template>
-        <template #column-duration="{ row }">
-          {{ `${row.durationMs}ms` }}
-        </template>
-        <template #column-operationTime="{ row }">
-          {{ formatTime(row.operationTime) }}
-        </template>
+        <template #column-duration="{ row }">{{ `${row.durationMs}ms` }}</template>
+        <template #column-operationTime="{ row }">{{ formatTime(row.operationTime) }}</template>
       </VxeGrid>
+
+      <!-- mobile: cards -->
+      <div v-else class="mobile-card-list">
+        <div v-if="!logs.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-for="(row, idx) in logs" :key="idx" class="mobile-card" @click="row.detail && showDetailDialog(row.detail)">
+          <div class="mobile-card-body">
+            <div class="mobile-card-header">
+              <span class="mobile-card-title">{{ operationTypeLabels[row.operationType] || row.operationType }}</span>
+              <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
+            </div>
+            <div class="mobile-card-meta">
+              <span>用户: {{ row.userId }}</span>
+              <span class="meta-sep">·</span>
+              <span>IP: {{ row.ip || '-' }}</span>
+              <span class="meta-sep">·</span>
+              <span>{{ row.durationMs }}ms</span>
+            </div>
+            <div class="mobile-card-meta">{{ formatTime(row.operationTime) }}</div>
+            <div v-if="row.detail" class="mobile-card-detail">{{ row.detail }}</div>
+          </div>
+        </div>
+      </div>
 
       <TablePagination
         v-model:current-page="pagination.page"
@@ -101,8 +115,11 @@
       />
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="操作详情" width="560px" :append-to-body="true">
-      <div class="detail-dialog-body">{{ detailContent }}</div>
+    <BaseDialog v-model="detailVisible" title="操作详情" width="560">
+      <el-scrollbar max-height="60vh">
+        <pre v-if="isDetailJson" class="detail-json">{{ detailContent }}</pre>
+        <div v-else class="detail-dialog-body">{{ detailContent }}</div>
+      </el-scrollbar>
       <template #footer>
         <el-button @click="copyDetail">
           <template #icon>
@@ -112,13 +129,14 @@
         </el-button>
         <el-button type="primary" @click="detailVisible = false">关闭</el-button>
       </template>
-    </el-dialog>
+    </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { listOperationLogs } from '@/api/system'
 import { userPage } from '@/api/user'
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { useClipboard } from '@vueuse/core'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -233,9 +251,24 @@ const gridConfig = computed<VxeGridProps>(() => ({
 const { copy } = useClipboard()
 const detailVisible = ref(false)
 const detailContent = ref('')
+const isDetailJson = ref(false)
 
 const showDetailDialog = (detail: string) => {
-  detailContent.value = detail || '-'
+  if (!detail) {
+    detailContent.value = '-'
+    isDetailJson.value = false
+    detailVisible.value = true
+    return
+  }
+
+  try {
+    const parsed = JSON.parse(detail)
+    detailContent.value = JSON.stringify(parsed, null, 2)
+    isDetailJson.value = true
+  } catch {
+    detailContent.value = detail
+    isDetailJson.value = false
+  }
   detailVisible.value = true
 }
 
@@ -339,7 +372,28 @@ onMounted(() => {
 .detail-dialog-body {
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 400px;
-  overflow-y: auto;
 }
+
+.detail-json {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--el-fill-color) 60%, transparent);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  line-height: 1.55;
+  color: var(--el-text-color-primary);
+  overflow-x: auto;
+}
+
+/* mobile */
+.mobile-card-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.mobile-empty { padding: 1.5rem 0; }
+.mobile-card { padding: 0.65rem 0.75rem; border: 1px solid var(--el-border-color-extra-light); border-radius: 0.6rem; background: var(--el-bg-color); }
+.mobile-card-body { min-width: 0; }
+.mobile-card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.mobile-card-title { font-size: 0.85rem; font-weight: 700; color: var(--el-text-color-primary); }
+.mobile-card-meta { display: flex; align-items: center; gap: 0.25rem; margin-top: 0.2rem; font-size: 0.72rem; color: var(--el-text-color-secondary); flex-wrap: wrap; }
+.meta-sep { color: var(--el-text-color-placeholder); }
+.mobile-card-detail { margin-top: 0.3rem; font-size: 0.7rem; color: var(--el-text-color-placeholder); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 </style>

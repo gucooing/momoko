@@ -315,92 +315,48 @@
           </div>
 
           <!-- 邮件服务测试对话框 -->
-          <el-dialog
-            v-model="testDialogVisible"
-            title="测试邮件发送"
-            width="420px"
-            :close-on-click-modal="false"
-          >
+          <BaseDialog v-model="testDialogVisible" title="测试邮件发送" width="420">
             <el-form label-position="top">
               <el-form-item label="收件邮箱">
-                <el-input
-                  v-model="testRecipient"
-                  placeholder="输入收件邮箱地址"
-                />
+                <el-input v-model="testRecipient" placeholder="输入收件邮箱地址" />
               </el-form-item>
             </el-form>
             <template #footer>
               <el-button @click="testDialogVisible = false">取消</el-button>
-              <el-button
-                type="primary"
-                :loading="emailTesting"
-                :disabled="!testRecipient"
-                @click="handleEmailTest"
-              >
-                发送
-              </el-button>
+              <el-button type="primary" :loading="emailTesting" :disabled="!testRecipient" @click="handleEmailTest">发送</el-button>
             </template>
-          </el-dialog>
+          </BaseDialog>
 
           <!-- 模板测试发送对话框 -->
-          <el-dialog
-            v-model="templateTestDialogVisible"
-            title="测试模板邮件发送"
-            width="520px"
-            :close-on-click-modal="false"
-          >
+          <BaseDialog v-model="templateTestDialogVisible" title="测试模板邮件发送" width="420">
             <el-form label-position="top">
               <el-form-item label="收件邮箱">
-                <el-input
-                  v-model="templateTestRecipient"
-                  placeholder="输入收件邮箱地址"
-                />
+                <el-input v-model="templateTestRecipient" placeholder="输入收件邮箱地址" />
               </el-form-item>
-              <el-form-item
-                v-for="field in templateTestFields"
-                :key="field.name"
-                :label="'{{.' + field.name + '}}'"
-              >
-                <el-input
-                  v-model="field.value"
-                  :placeholder="`输入 {{.${field.name}}} 的值`"
-                />
+              <el-form-item v-for="field in templateTestFields" :key="field.name" :label="'{{.' + field.name + '}}'">
+                <el-input v-model="field.value" :placeholder="`输入 {{.${field.name}}} 的值`" />
               </el-form-item>
             </el-form>
             <template #footer>
               <el-button @click="templateTestDialogVisible = false">取消</el-button>
-              <el-button
-                type="primary"
-                :loading="templateTesting"
-                :disabled="!templateTestRecipient"
-                @click="handleTemplateTest"
-              >
-                发送
-              </el-button>
+              <el-button type="primary" :loading="templateTesting" :disabled="!templateTestRecipient" @click="handleTemplateTest">发送</el-button>
             </template>
-          </el-dialog>
+          </BaseDialog>
 
           <!-- 模板预览对话框 -->
-          <el-dialog
-            v-model="previewDialogVisible"
-            title="邮件模板预览"
-            width="720px"
-            :close-on-click-modal="false"
-          >
-            <div class="preview-subject">
-              <span class="preview-label">主题：</span>
-              <span>{{ renderedPreviewSubject }}</span>
-            </div>
-            <div class="preview-divider" />
-            <iframe
-              :srcdoc="renderedPreviewBody"
-              class="preview-iframe"
-              sandbox="allow-same-origin"
-            />
+          <BaseDialog v-model="previewDialogVisible" title="邮件模板预览" width="750" resizable>
+            <el-scrollbar max-height="60vh">
+              <div class="preview-subject">
+                <span class="preview-label">主题：</span>
+                <span>{{ renderedPreviewSubject }}</span>
+              </div>
+              <div class="preview-divider" />
+              <iframe :srcdoc="renderedPreviewBody" class="preview-iframe" sandbox="allow-same-origin" />
+            </el-scrollbar>
             <template #footer>
               <el-button @click="previewDialogVisible = false">关闭</el-button>
             </template>
-          </el-dialog>
+          </BaseDialog>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -413,6 +369,7 @@ import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate
 import { EmailTemplateType } from '@/types/v1/system'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 
 defineOptions({ name: 'SystemSettingsView' })
 
@@ -832,13 +789,42 @@ onMounted(() => {
   cursor: pointer;
   user-select: none;
 
-  &:hover {
-    opacity: 0.8;
+  &:hover { opacity: 0.8; }
+  &.tag-disabled { cursor: not-allowed; opacity: 0.6; }
+}
+
+/* mobile */
+@media (width <= 768px) {
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
   }
 
-  &.tag-disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+  .setting-item-info {
+    margin-right: 0;
+  }
+
+  .setting-item :deep(.el-input),
+  .setting-item :deep(.el-input-number),
+  .setting-item :deep(.el-select) {
+    width: 100% !important;
+  }
+
+  .setting-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .setting-footer :deep(.el-button) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .preview-iframe {
+    height: 260px;
   }
 }
 </style>

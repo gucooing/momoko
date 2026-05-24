@@ -56,7 +56,9 @@
         </AdaptiveConfirm>
       </div>
 
+      <!-- desktop: table -->
       <VxeGrid
+        v-if="!menuStore.isMobile"
         v-bind="gridConfig"
         @checkbox-change="selectionChange"
         @checkbox-all="selectionChange"
@@ -66,19 +68,16 @@
             {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? '密钥' : '密码' }}
           </el-tag>
         </template>
-
         <template #column-status="{ row }">
           <el-tag :type="statusTagType(row.status)" size="small">
             {{ statusText(row.status) }}
           </el-tag>
         </template>
-
         <template #column-accessRole="{ row }">
           <el-tag :type="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? 'primary' : 'info'" size="small">
             {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? '创建者' : '被分享' }}
           </el-tag>
         </template>
-
         <template #column-operation="{ row }">
           <div class="ssh-actions">
             <el-button
@@ -124,6 +123,68 @@
           </div>
         </template>
       </VxeGrid>
+
+      <!-- mobile: cards -->
+      <div v-else v-loading="loading" class="mobile-card-list">
+        <div v-if="!list.length" class="mobile-empty">
+          <el-empty description="暂无数据" />
+        </div>
+        <div v-for="row in list" :key="row.id" class="ssh-card" :class="{ 'is-selected': deleteIds.includes(row.id) }">
+          <div class="ssh-card-check" @click.stop="toggleMobileSelect(row.id)">
+            <el-checkbox :model-value="deleteIds.includes(row.id)" size="small" />
+          </div>
+
+          <div class="ssh-card-header">
+            <span class="ssh-card-name">{{ row.name }}</span>
+            <el-tag :type="statusTagType(row.status)" size="small">
+              {{ statusText(row.status) }}
+            </el-tag>
+          </div>
+
+          <div class="ssh-card-body">
+            <div class="ssh-card-meta">
+              <el-icon size="12"><component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" /></el-icon>
+              <span>{{ row.host }}:{{ row.port }}</span>
+            </div>
+            <div class="ssh-card-meta">
+              <el-icon size="12"><component :is="menuStore.iconComponents['Element:User']" /></el-icon>
+              <span>{{ row.username }}</span>
+            </div>
+            <div class="ssh-card-tags">
+              <el-tag :type="row.authType === 'SSH_AUTH_TYPE_KEY' ? 'warning' : 'info'" size="small">
+                {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? '密钥' : '密码' }}
+              </el-tag>
+              <el-tag :type="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? 'primary' : 'info'" size="small">
+                {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? '创建者' : '被分享' }}
+              </el-tag>
+            </div>
+            <div v-if="row.remark" class="ssh-card-remark">{{ row.remark }}</div>
+            <div class="ssh-card-time">{{ row.createTime }}</div>
+          </div>
+
+          <div class="ssh-card-footer">
+            <el-button size="small" plain type="primary" @click="connectSsh(row)">连接</el-button>
+            <el-button size="small" plain @click="testConnect(row)">测试</el-button>
+            <el-dropdown v-if="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER'" trigger="click">
+              <el-button size="small" plain>更多</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="openEditDialog(row)">编辑</el-dropdown-item>
+                  <el-dropdown-item @click="openShareDialog(row)">分享</el-dropdown-item>
+                  <el-dropdown-item divided @click="confirmDelete(row)">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
+
+      <!-- mobile: batch bar -->
+      <div v-if="menuStore.isMobile && deleteIds.length" class="mobile-batch-bar">
+        <span>已选 {{ deleteIds.length }} 项</span>
+        <el-button size="small" :loading="batchTesting" @click="batchTest">批量测试</el-button>
+        <el-button size="small" type="danger" @click="batchDelete">批量删除</el-button>
+      </div>
 
       <TablePagination
         v-model:current-page="pagination.page"
@@ -277,6 +338,15 @@ const selectionChange = ({ records }: { records: SSHHostInfo[] }) => {
   deleteIds.value = records.map((item) => item.id)
 }
 
+const toggleMobileSelect = (id: string) => {
+  const idx = deleteIds.value.indexOf(id)
+  if (idx === -1) {
+    deleteIds.value = [...deleteIds.value, id]
+  } else {
+    deleteIds.value = deleteIds.value.filter((d) => d !== id)
+  }
+}
+
 const openCreateDialog = () => {
   createRef.value?.showDialog()
 }
@@ -419,7 +489,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ssh-actions {
   display: flex;
   align-items: center;
@@ -436,8 +506,115 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 6px;
 }
+
 .text-placeholder {
   color: var(--el-text-color-placeholder);
   font-size: 0.88rem;
+}
+
+/* ===== mobile ===== */
+.mobile-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.mobile-empty {
+  padding: 1.5rem 0;
+}
+
+.ssh-card {
+  position: relative;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 0.65rem;
+  background: var(--el-bg-color);
+  transition: border-color 0.15s;
+}
+
+.ssh-card.is-selected {
+  border-color: var(--el-color-primary);
+  background: color-mix(in srgb, var(--el-color-primary) 4%, var(--el-bg-color));
+}
+
+.ssh-card-check {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  z-index: 1;
+}
+
+.ssh-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 2rem;
+}
+
+.ssh-card-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ssh-card-body {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ssh-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  color: var(--el-text-color-secondary);
+}
+
+.ssh-card-tags {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.ssh-card-remark {
+  font-size: 0.74rem;
+  color: var(--el-text-color-placeholder);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ssh-card-time {
+  font-size: 0.7rem;
+  color: var(--el-text-color-placeholder);
+}
+
+.ssh-card-footer {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--el-border-color-extra-light);
+}
+
+/* ===== mobile batch bar ===== */
+.mobile-batch-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.65rem -0.5rem -0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--el-bg-color);
+  border-top: 1px solid var(--el-border-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
 }
 </style>

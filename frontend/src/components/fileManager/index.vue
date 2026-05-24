@@ -274,7 +274,8 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
 
       <div class="panel-note">{{ note }}</div>
 
-      <Transition name="directory-switch" mode="out-in">
+      <!-- desktop: table -->
+      <Transition v-if="!isMobile" name="directory-switch" mode="out-in">
         <div
           :key="tableTransitionKey"
           :class="[
@@ -293,18 +294,11 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             @sort-change="handleSortChange"
           >
             <el-table-column type="selection" width="48" />
-            <el-table-column
-              prop="name"
-              label="名称"
-              min-width="340"
-              :sortable="getSortMode('name')"
-            >
+            <el-table-column prop="name" label="名称" min-width="340" :sortable="getSortMode('name')">
               <template #default="{ row }">
                 <div class="file-name-cell">
                   <span class="file-kind-icon" :class="row.isDirectory ? 'is-folder' : 'is-file'">
-                    <el-icon size="15"
-                      ><component :is="row.isDirectory ? FolderIcon : DocumentTextIcon"
-                    /></el-icon>
+                    <el-icon size="15"><component :is="row.isDirectory ? FolderIcon : DocumentTextIcon" /></el-icon>
                   </span>
                   <div class="file-name-copy">
                     <span class="file-name">{{ row.name }}</span>
@@ -314,60 +308,29 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
               </template>
             </el-table-column>
             <el-table-column prop="extension" label="拓展名" width="85">
-                <template #default="{ row }">
-                  <span v-if="row.extension" class="file-extension">{{ row.extension }}</span>
-                  <span v-else class="file-extension file-extension--muted">--</span>
-                </template></el-table-column
-              >
-              <el-table-column prop="permission" label="权限" width="110" />
+              <template #default="{ row }">
+                <span v-if="row.extension" class="file-extension">{{ row.extension }}</span>
+                <span v-else class="file-extension file-extension--muted">--</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="permission" label="权限" width="110" />
             <el-table-column prop="ownerGroup" label="用户 / 用户组" min-width="190" />
-            <el-table-column prop="size" label="大小" width="120" :sortable="getSortMode('size')"
-              ><template #default="{ row }">{{ row.sizeLabel }}</template></el-table-column
-            >
-            <el-table-column
-              prop="updatedAt"
-              label="修改时间"
-              min-width="180"
-              :sortable="getSortMode('updatedAt')"
-              ><template #default="{ row }">{{ row.updatedAtLabel }}</template></el-table-column
-            >
+            <el-table-column prop="size" label="大小" width="120" :sortable="getSortMode('size')">
+              <template #default="{ row }">{{ row.sizeLabel }}</template>
+            </el-table-column>
+            <el-table-column prop="updatedAt" label="修改时间" min-width="180" :sortable="getSortMode('updatedAt')">
+              <template #default="{ row }">{{ row.updatedAtLabel }}</template>
+            </el-table-column>
             <el-table-column label="操作" width="180" fixed="right">
               <template #default="{ row }">
                 <div class="row-actions">
-                  <button
-                    v-if="canOpenEntry(row)"
-                    type="button"
-                    class="row-action"
-                    :disabled="props.pasteLoading"
-                    @click.stop="handleOpen(row)"
-                  >
-                    打开
-                  </button>
-                  <button
-                    v-if="supportsAction('download') && !row.isDirectory"
-                    type="button"
-                    class="row-action"
-                    :disabled="props.pasteLoading"
-                    @click.stop="emit('action', 'download', activePath, [row])"
-                  >
-                    下载
-                  </button>
-                  <el-dropdown
-                    v-if="getRowMoreActions(row).length"
-                    :disabled="props.pasteLoading"
-                    @command="(command) => handleRowMore(command, row)"
-                  >
-                    <button type="button" class="row-action" :disabled="props.pasteLoading" @click.stop>
-                      更多 <el-icon size="12"><component :is="ArrowDown" /></el-icon>
-                    </button>
+                  <button v-if="canOpenEntry(row)" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="handleOpen(row)">打开</button>
+                  <button v-if="supportsAction('download') && !row.isDirectory" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="emit('action', 'download', activePath, [row])">下载</button>
+                  <el-dropdown v-if="getRowMoreActions(row).length" :disabled="props.pasteLoading" @command="(command) => handleRowMore(command, row)">
+                    <button type="button" class="row-action" :disabled="props.pasteLoading" @click.stop>更多 <el-icon size="12"><component :is="ArrowDown" /></el-icon></button>
                     <template #dropdown>
                       <el-dropdown-menu>
-                        <el-dropdown-item
-                          v-for="item in getRowMoreActions(row)"
-                          :key="item.command"
-                          :command="item.command"
-                          >{{ item.label }}</el-dropdown-item
-                        >
+                        <el-dropdown-item v-for="item in getRowMoreActions(row)" :key="item.command" :command="item.command">{{ item.label }}</el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
@@ -385,6 +348,51 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
           </Transition>
         </div>
       </Transition>
+
+      <!-- mobile: cards -->
+      <div v-else v-loading="loading" class="fm-mobile-list">
+        <div v-if="!visibleItems.length" class="fm-mobile-empty">
+          <el-empty :description="loading ? '目录加载中...' : '当前目录暂无文件'" />
+        </div>
+        <div
+          v-for="row in visibleItems"
+          :key="row.id"
+          class="fm-mobile-card"
+          :class="{ 'is-selected': selectedEntries.some((e: FileManagerWorkbenchItem) => e.id === row.id) }"
+        >
+          <div class="fm-mobile-card-check" @click.stop>
+            <el-checkbox
+              :model-value="selectedEntries.some((e: FileManagerWorkbenchItem) => e.id === row.id)"
+              size="small"
+              @change="(v: boolean) => toggleMobileFileSelect(row, v)"
+            />
+          </div>
+          <div class="fm-mobile-card-main" @click="handleOpen(row)">
+            <span class="fm-mobile-card-icon" :class="row.isDirectory ? 'is-folder' : 'is-file'">
+              <el-icon size="18"><component :is="row.isDirectory ? FolderIcon : DocumentTextIcon" /></el-icon>
+            </span>
+            <div class="fm-mobile-card-info">
+              <span class="fm-mobile-card-name">{{ row.name }}</span>
+              <span class="fm-mobile-card-meta">
+                <template v-if="row.extension">.{{ row.extension }} · </template>
+                {{ row.sizeLabel }} · {{ row.updatedAtLabel }}
+              </span>
+              <span class="fm-mobile-card-path">{{ row.path }}</span>
+            </div>
+          </div>
+          <div class="fm-mobile-card-actions">
+            <el-button v-if="supportsAction('download') && !row.isDirectory" size="small" plain @click.stop="emit('action', 'download', activePath, [row])">下载</el-button>
+            <el-dropdown v-if="getRowMoreActions(row).length" @command="(cmd: any) => handleRowMore(cmd, row)">
+              <el-button size="small" plain @click.stop>更多</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="item in getRowMoreActions(row)" :key="item.command" :command="item.command">{{ item.label }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
 
       <div class="panel-footer">
         <div class="footer-summary">
@@ -774,6 +782,14 @@ const goUp = () => {
 }
 const handleSelectionChange = (rows: FileManagerWorkbenchItem[]) => {
   selectedEntries.value = rows
+}
+
+const toggleMobileFileSelect = (row: FileManagerWorkbenchItem, checked: boolean) => {
+  if (checked) {
+    selectedEntries.value = [...selectedEntries.value, row]
+  } else {
+    selectedEntries.value = selectedEntries.value.filter((e) => e.id !== row.id)
+  }
 }
 const emitSearch = (keyword: string) =>
   emit('search', {
@@ -1290,6 +1306,7 @@ const handleSortChange = (payload: {
   white-space: nowrap;
 }
 
+
 .row-actions {
   display: flex;
   align-items: center;
@@ -1423,10 +1440,114 @@ const handleSortChange = (payload: {
   }
 }
 
+/* ===== mobile card list ===== */
+.fm-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.fm-mobile-empty {
+  padding: 1.5rem 0;
+}
+
+.fm-mobile-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 0.6rem;
+  background: var(--el-bg-color);
+  transition: border-color 0.15s;
+}
+
+.fm-mobile-card.is-selected {
+  border-color: var(--el-color-primary);
+  background: color-mix(in srgb, var(--el-color-primary) 3%, var(--el-bg-color));
+}
+
+.fm-mobile-card-check {
+  flex-shrink: 0;
+  padding-top: 0.15rem;
+}
+
+.fm-mobile-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.fm-mobile-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.45rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.fm-mobile-card-icon.is-folder {
+  background: color-mix(in srgb, var(--el-color-primary) 10%, var(--el-bg-color));
+  color: var(--el-color-primary);
+}
+
+.fm-mobile-card-icon.is-file {
+  background: color-mix(in srgb, #000000 5%, var(--el-bg-color));
+  color: var(--el-text-color-secondary);
+}
+
+.fm-mobile-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.fm-mobile-card-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-mobile-card-meta {
+  font-size: 0.7rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-mobile-card-path {
+  font-size: 0.66rem;
+  color: var(--el-text-color-placeholder);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.fm-mobile-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
 @media (width <= 768px) {
   .file-manager-nav,
   .file-manager-panel {
-    padding: 0.74rem;
+    padding: 0.65rem;
   }
 
   .nav-address-bar {
@@ -1438,11 +1559,36 @@ const handleSortChange = (payload: {
   }
 
   .file-table-shell {
-    min-height: 18rem;
+    min-height: 12rem;
   }
 
   .toolbar-divider {
     display: none;
+  }
+
+  .panel-toolbar {
+    gap: 0.08rem;
+  }
+
+  .toolbar-button {
+    padding: 0 0.42rem;
+    font-size: 0.74rem;
+  }
+
+  .toolbar-button :deep(.toolbar-button__content span:last-child) {
+    display: none;
+  }
+
+  .toolbar-button :deep(.toolbar-button__icon--standalone) {
+    margin-right: 0;
+  }
+
+  .toolbar-chevron {
+    display: none;
+  }
+
+  .footer-summary {
+    font-size: 0.72rem;
   }
 }
 

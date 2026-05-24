@@ -58,7 +58,9 @@
         </AdaptiveConfirm>
       </div>
 
+      <!-- desktop: table -->
       <VxeGrid
+        v-if="!menuStore.isMobile"
         v-bind="roleGridConfig"
         @checkbox-change="tableSelectionChange"
         @checkbox-all="tableSelectionChange"
@@ -66,45 +68,44 @@
         <template #column-type="{ row }: { row: RoleInfo }">
           <BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? '内置' : '自定义'" />
         </template>
-
         <template #column-status="{ row }: { row: RoleInfo }">
-          <BaseTag
-            :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'"
-            :text="row.status === RoleStatus.RoleStatus_Active ? '启用' : '停用'"
-          />
+          <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? '启用' : '停用'" />
         </template>
-
         <template #column-operation="{ row }: { row: RoleInfo }">
-          <el-button
-            v-if="!row.isBuiltin"
-            type="primary"
-            :icon="menuStore.iconComponents.Edit"
-            link
-            @click="openRoleEdit(row)"
-            v-permission="[PERM.ROLE_EDIT]"
-          >
-            编辑
-          </el-button>
-          <AdaptiveConfirm
-            v-if="!row.isBuiltin"
-            title="确定要删除选中的角色吗？"
-            :placement="POPCONFIRM_CONFIG.placement"
-            :width="POPCONFIRM_CONFIG.width"
-            @confirm="deleteRoleHandle([row.roleId])"
-          >
+          <el-button v-if="!row.isBuiltin" type="primary" :icon="menuStore.iconComponents.Edit" link @click="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">编辑</el-button>
+          <AdaptiveConfirm v-if="!row.isBuiltin" title="确定要删除选中的角色吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
             <template #reference>
-              <el-button
-                type="danger"
-                :icon="menuStore.iconComponents.Delete"
-                link
-                v-permission="[PERM.ROLE_DELETE]"
-              >
-                删除
-              </el-button>
+              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.ROLE_DELETE]">删除</el-button>
             </template>
           </AdaptiveConfirm>
         </template>
       </VxeGrid>
+
+      <!-- mobile: cards -->
+      <div v-else class="mobile-card-list">
+        <div v-if="!roleList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-for="row in roleList" :key="row.roleId" class="mobile-card" :class="{ 'is-selected': deleteRoleIds.includes(row.roleId) && !row.isBuiltin }">
+          <div class="mobile-card-check" @click.stop>
+            <el-checkbox v-if="!row.isBuiltin" :model-value="deleteRoleIds.includes(row.roleId)" size="small" @change="(v: boolean) => toggleMobileRoleSelect(row.roleId, v)" />
+          </div>
+          <div class="mobile-card-body">
+            <div class="mobile-card-header">
+              <span class="mobile-card-title">{{ row.name }}</span>
+              <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? '启用' : '停用'" />
+            </div>
+            <div class="mobile-card-meta">{{ row.description || '-' }}</div>
+            <div class="mobile-card-meta"><BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? '内置' : '自定义'" /></div>
+          </div>
+          <div v-if="!row.isBuiltin" class="mobile-card-actions">
+            <el-button size="small" plain type="primary" @click.stop="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">编辑</el-button>
+            <AdaptiveConfirm title="确定要删除选中的角色吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
+              <template #reference>
+                <el-button size="small" plain type="danger" v-permission="[PERM.ROLE_DELETE]">删除</el-button>
+              </template>
+            </AdaptiveConfirm>
+          </div>
+        </div>
+      </div>
 
       <TablePagination
         v-model:current-page="pagination.page"
@@ -194,6 +195,14 @@ const tableSelectionChange = ({ records }: { records: RoleInfo[] }) => {
   deleteRoleIds.value = records.map((item) => item.roleId)
 }
 
+const toggleMobileRoleSelect = (roleId: string, checked: boolean) => {
+  if (checked) {
+    deleteRoleIds.value = [...deleteRoleIds.value, roleId]
+  } else {
+    deleteRoleIds.value = deleteRoleIds.value.filter((id) => id !== roleId)
+  }
+}
+
 const openRoleEdit = (role: RoleInfo) => {
   if (role.isBuiltin) return
   roleCreateRef.value?.showDialog(role.roleId)
@@ -227,4 +236,15 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.mobile-card-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.mobile-empty { padding: 1.5rem 0; }
+.mobile-card { position: relative; display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.7rem 0.8rem; border: 1px solid var(--el-border-color-extra-light); border-radius: 0.6rem; background: var(--el-bg-color); }
+.mobile-card.is-selected { border-color: var(--el-color-primary); background: color-mix(in srgb, var(--el-color-primary) 3%, var(--el-bg-color)); }
+.mobile-card-check { flex-shrink: 0; padding-top: 0.1rem; min-width: 18px; }
+.mobile-card-body { flex: 1; min-width: 0; }
+.mobile-card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.mobile-card-title { font-size: 0.88rem; font-weight: 700; color: var(--el-text-color-primary); }
+.mobile-card-meta { margin-top: 0.25rem; font-size: 0.74rem; color: var(--el-text-color-secondary); }
+.mobile-card-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+</style>

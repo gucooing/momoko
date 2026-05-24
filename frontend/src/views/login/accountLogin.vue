@@ -573,19 +573,11 @@ onBeforeUnmount(() => {
     }
   }
 
-  @media (max-width: 768px) {
-    .login-form {
-      .code-row {
-        flex-direction: column;
-      }
-
-      .code-input-item {
-        width: 100%;
-      }
-
-      .send-code-btn--standalone {
-        width: 100%;
-      }
+  @media (max-width: 400px) {
+    .send-code-btn {
+      min-width: 6.5rem;
+      padding: 0 0.5rem;
+      font-size: 0.72rem;
     }
   }
 

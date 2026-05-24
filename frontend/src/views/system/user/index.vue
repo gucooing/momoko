@@ -62,7 +62,9 @@
         </AdaptiveConfirm>
       </div>
 
+      <!-- desktop: table -->
       <VxeGrid
+        v-if="!menuStore.isMobile"
         v-bind="userGridConfig"
         @checkbox-change="tableSelectionChange"
         @checkbox-all="tableSelectionChange"
@@ -71,40 +73,51 @@
           <BaseTag v-if="row.roleName" :text="row.roleName" />
           <span v-else>-</span>
         </template>
-
         <template #column-status="{ row }: { row: UserInfo }">
           <BaseTag :type="getStatusTagType(row.status)" :text="getStatusLabel(row.status)" />
         </template>
-
         <template #column-operation="{ row }: { row: UserInfo }">
-          <el-button
-            type="primary"
-            :icon="menuStore.iconComponents.Edit"
-            link
-            @click="openUserEdit(row)"
-            v-permission="[PERM.USER_EDIT]"
-          >
-            编辑
-          </el-button>
-          <AdaptiveConfirm
-            title="确定要删除选中的用户吗？"
-            :placement="POPCONFIRM_CONFIG.placement"
-            :width="POPCONFIRM_CONFIG.width"
-            @confirm="deleteUserHandle([row.userId])"
-          >
+          <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">编辑</el-button>
+          <AdaptiveConfirm title="确定要删除选中的用户吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
             <template #reference>
-              <el-button
-                type="danger"
-                :icon="menuStore.iconComponents.Delete"
-                link
-                v-permission="[PERM.USER_DELETE]"
-              >
-                删除
-              </el-button>
+              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.USER_DELETE]">删除</el-button>
             </template>
           </AdaptiveConfirm>
         </template>
       </VxeGrid>
+
+      <!-- mobile: cards -->
+      <div v-else class="mobile-card-list">
+        <div v-if="!userList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-for="row in userList" :key="row.userId" class="mobile-card" :class="{ 'is-selected': deleteUserIds.includes(row.userId) }">
+          <div class="mobile-card-check" @click.stop>
+            <el-checkbox :model-value="deleteUserIds.includes(row.userId)" size="small" @change="(v: boolean) => toggleMobileUserSelect(row.userId, v)" />
+          </div>
+          <div class="mobile-card-body">
+            <div class="mobile-card-header">
+              <span class="mobile-card-title">{{ row.username }}</span>
+              <BaseTag :type="getStatusTagType(row.status)" :text="getStatusLabel(row.status)" />
+            </div>
+            <div class="mobile-card-meta">
+              <span>{{ row.name || '-' }}</span>
+              <span class="meta-sep">·</span>
+              <span>{{ row.email || '-' }}</span>
+            </div>
+            <div class="mobile-card-meta">
+              <BaseTag v-if="row.roleName" :text="row.roleName" />
+              <span v-else class="text-muted">无角色</span>
+            </div>
+          </div>
+          <div class="mobile-card-actions">
+            <el-button size="small" plain type="primary" @click.stop="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">编辑</el-button>
+            <AdaptiveConfirm title="确定要删除选中的用户吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
+              <template #reference>
+                <el-button size="small" plain type="danger" v-permission="[PERM.USER_DELETE]">删除</el-button>
+              </template>
+            </AdaptiveConfirm>
+          </div>
+        </div>
+      </div>
 
       <TablePagination
         v-model:current-page="pagination.page"
@@ -206,6 +219,14 @@ const tableSelectionChange = ({ records }: { records: UserInfo[] }) => {
   deleteUserIds.value = records.map((item) => item.userId)
 }
 
+const toggleMobileUserSelect = (userId: string, checked: boolean) => {
+  if (checked) {
+    deleteUserIds.value = [...deleteUserIds.value, userId]
+  } else {
+    deleteUserIds.value = deleteUserIds.value.filter((id) => id !== userId)
+  }
+}
+
 const openUserEdit = (row: UserInfo) => {
   userCreateRef.value?.showDialog({
     userId: row.userId,
@@ -233,4 +254,21 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.mobile-card-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.mobile-empty { padding: 1.5rem 0; }
+.mobile-card {
+  position: relative; display: flex; align-items: flex-start; gap: 0.6rem;
+  padding: 0.7rem 0.8rem; border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 0.6rem; background: var(--el-bg-color);
+}
+.mobile-card.is-selected { border-color: var(--el-color-primary); background: color-mix(in srgb, var(--el-color-primary) 3%, var(--el-bg-color)); }
+.mobile-card-check { flex-shrink: 0; padding-top: 0.1rem; }
+.mobile-card-body { flex: 1; min-width: 0; }
+.mobile-card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.mobile-card-title { font-size: 0.88rem; font-weight: 700; color: var(--el-text-color-primary); }
+.mobile-card-meta { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.25rem; font-size: 0.74rem; color: var(--el-text-color-secondary); }
+.meta-sep { color: var(--el-text-color-placeholder); }
+.text-muted { color: var(--el-text-color-placeholder); }
+.mobile-card-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+</style>

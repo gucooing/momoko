@@ -9,7 +9,7 @@
           size="small"
           @click="goBack"
         >
-          返回
+          <span class="ssh-bar__btn-label">返回</span>
         </el-button>
       </div>
       <div class="ssh-bar__center">
@@ -28,7 +28,7 @@
           :loading="socketStatus === 'connecting'"
           @click="reconnect"
         >
-          重连
+          <span class="ssh-bar__btn-label">重连</span>
         </el-button>
       </div>
     </header>
@@ -463,8 +463,43 @@ onBeforeUnmount(() => {
 /* Responsive */
 @media (width <= 768px) {
   .ssh-page {
-    height: calc(100vh - 5.5rem);
-    min-height: 18rem;
+    height: calc(100dvh - 3.5rem);
+    min-height: 16rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .ssh-bar {
+    padding: 0 8px;
+    height: 32px;
+    gap: 4px;
+  }
+
+  .ssh-bar__btn-label {
+    display: none;
+  }
+
+  .ssh-bar__center {
+    font-size: 0.72rem;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .ssh-bar__host {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ssh-bar__label {
+    display: none;
+  }
+
+  .ssh-foot {
+    padding: 0 8px;
+    height: 22px;
+    font-size: 0.62rem;
   }
 }
 </style>
