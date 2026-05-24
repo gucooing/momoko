@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 h-full flex flex-col gap-6">
+  <div class="dashboard-home">
     <WelcomePanel />
     <system-realtime-charts
       :cpu-history="cpuHistory"
@@ -14,12 +14,12 @@
       @interface-change="onInterfaceChange"
       @disk-change="onDiskChange"
     />
-    <el-row :gutter="20">
+    <el-row :gutter="20" class="dashboard-bottom-row">
       <el-col :xs="24" :lg="16">
         <RunningInstanceSection />
       </el-col>
-      <el-col :xs="24" :lg="8" class="mt-5 lg:mt-0">
-        <ShortcutSection class="mt-4 min-[1200px]:mt-0" />
+      <el-col :xs="24" :lg="8" class="dashboard-bottom-right">
+        <ShortcutSection />
       </el-col>
     </el-row>
   </div>
@@ -79,4 +79,24 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style></style>
+<style scoped lang="scss">
+.dashboard-home {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (width >= 640px) {
+    gap: 1.5rem;
+  }
+}
+
+.dashboard-bottom-right {
+  margin-top: 1rem;
+
+  @media (width >= 1024px) {
+    margin-top: 0;
+  }
+}
+</style>

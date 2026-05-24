@@ -2,8 +2,8 @@
   <BaseCard title="正在运行中的实例" title-icon="HOutline:ServerStackIcon">
     <div v-loading="runningInstancesLoading">
       <el-empty v-if="!runningInstancesLoading && !runningInstances.length" description="暂无运行中的实例" />
-      <el-scrollbar v-else :height="520">
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5 pt-3">
+      <el-scrollbar v-else :height="520" class="running-scrollbar">
+        <div class="running-grid">
           <RunningInstanceCard
             v-for="instance in runningInstances"
             :key="instance.id"
@@ -41,4 +41,23 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.running-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  padding-top: 0.75rem;
+
+  @media (width >= 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.running-scrollbar {
+  @media (width <= 640px) {
+    max-height: 360px !important;
+    height: auto;
+  }
+}
+</style>

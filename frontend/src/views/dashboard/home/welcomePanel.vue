@@ -1,91 +1,56 @@
 <template>
   <BaseCard>
-    <!-- 欢迎面板 -->
-    <el-scrollbar :max-height="620">
-      <div class="flex flex-col xl:flex-row justify-between p-6 lg:p-8">
-        <div class="flex-1">
-          <div class="flex flex-col lg:flex-row items-center lg:items-start xl:items-center gap-6">
+    <el-scrollbar :max-height="620" class="welcome-scrollbar">
+      <div class="welcome-body">
+        <div class="welcome-main">
+          <div class="welcome-hero">
             <div class="relative shrink-0">
-              <el-avatar :size="110" :src="userStore.resolvedUserAvatar" />
-              <div
-                class="absolute h-5 w-5 bottom-2 right-2 rounded-full border-3 border-(--el-bg-color) bg-(--el-color-success)"
-              ></div>
+              <el-avatar class="welcome-avatar" :src="userStore.resolvedUserAvatar" />
+              <div class="avatar-dot"></div>
             </div>
 
-            <div class="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left">
-              <h2
-                class="flex text-2xl md:text-3xl font-black text-(--el-text-color-primary) cursor-pointer"
-              >
+            <div class="welcome-greeting">
+              <h2 class="welcome-title-row">
                 <TextEllipsis
                   :text="`${userStore.userInfo?.name! || userStore.userInfo?.username!}，欢迎回来！`"
                   :clickable="false"
-                  class="text-2xl md:text-3xl font-black text-(--el-text-color-primary)"
+                  class="welcome-title"
                 />
-                <div>👋</div>
+                <span>👋</span>
               </h2>
               <TextEllipsis
                 :text="`“ ${userStore.userInfo?.bio} ”`"
-                class="text-(--el-text-color-regular) italic text-sm md:base cursor-pointer"
+                class="welcome-bio"
               />
-              <div class="flex flex-wrap justify-center lg:justify-start items-center gap-3">
-                <div
-                  class="flex items-center gap-2 text-xs font-semibold px-3 py-2 text-(--el-text-color-primary) bg-(--el-bg-color-page) rounded-lg"
-                >
-                  <el-icon>
-                    <component
-                      :is="menuStore.iconComponents['Element:Orange']"
-                      class="text-orange-500"
-                    />
-                  </el-icon>
+              <div class="welcome-tags">
+                <div class="welcome-tag">
+                  <el-icon><component :is="menuStore.iconComponents['Element:Orange']" class="text-orange-500" /></el-icon>
                   <span>{{ weatherText }}</span>
                 </div>
-                <div
-                  class="flex items-center gap-2 text-xs font-semibold px-3 py-2 text-(--el-text-color-primary) bg-(--el-bg-color-page) rounded-lg"
-                >
-                  <el-icon>
-                    <component
-                      :is="menuStore.iconComponents['Element:Monitor']"
-                      class="text-indigo-500"
-                    />
-                  </el-icon>
-                  <span
-                    >{{ userProfileStore.address.country }} · {{ userProfileStore.address.region }} ·
-                    {{ userProfileStore.address.city }}</span
-                  >
+                <div class="welcome-tag">
+                  <el-icon><component :is="menuStore.iconComponents['Element:Monitor']" class="text-indigo-500" /></el-icon>
+                  <span>{{ userProfileStore.address.country }} · {{ userProfileStore.address.region }} · {{ userProfileStore.address.city }}</span>
                 </div>
-                <div
-                  class="flex items-center gap-2 text-xs font-semibold px-3 py-2 text-(--el-text-color-primary) bg-(--el-bg-color-page) rounded-lg"
-                >
-                  <el-icon>
-                    <component
-                      :is="menuStore.iconComponents['Element:Calendar']"
-                      class="text-emerald-500"
-                    />
-                  </el-icon>
+                <div class="welcome-tag">
+                  <el-icon><component :is="menuStore.iconComponents['Element:Calendar']" class="text-emerald-500" /></el-icon>
                   <span>{{ currentDate }}</span>
                 </div>
               </div>
             </div>
-            <div class="flex-1 flex justify-center lg:justify-end xl:justify-center">
-              <LottieAnimation
-                :path="workTimeLottieUrl"
-                :width="180"
-                :height="140"
-                class="hidden lg:block"
-              />
-            </div>
+
           </div>
-          <div class="px-2 md:px-6 py-6 md:py-10">
+
+          <div class="welcome-info-section">
             <div class="sys-info-grid">
               <div class="sys-info-line">
                 <span class="sys-info-label">设备名称</span>
                 <span>{{ overview?.version?.hostname || '--' }}</span>
               </div>
-               <div class="sys-info-line">
+              <div class="sys-info-line">
                 <span class="sys-info-label">CPU</span>
                 <span>{{ overview?.cpu?.modelName || '--' }}</span>
               </div>
-               <div class="sys-info-line">
+              <div class="sys-info-line">
                 <span class="sys-info-label">OS</span>
                 <span>{{ overview?.version?.os || '--' }}</span>
               </div>
@@ -113,90 +78,52 @@
           </div>
         </div>
 
-        <div class="hidden xl:block mx-7 my-6">
-          <div class="w-px h-full border-(--el-border-color) border-l"></div>
-        </div>
+        <div class="welcome-divider"></div>
 
-        <div class="flex-1 xl:flex-[0.8] grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="welcome-stats">
           <div class="sys-stat-item">
-            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #6366f1; background-color: #6366f110">
-              <el-icon size="18">
-                <component :is="menuStore.iconComponents['HOutline:BoltIcon']" />
-              </el-icon>
+            <div class="sys-stat-icon" style="color: #6366f1; background-color: #6366f110">
+              <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:BoltIcon']" /></el-icon>
             </div>
             <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">CPU 使用率</div>
-              <div class="flex items-baseline gap-2">
-                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
-                  {{ (status?.cpu?.totalPercent ?? 0).toFixed(1) }}%
-                </span>
-              </div>
-              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1 truncate">
-                {{ overview?.cpu?.modelName || '--' }}
+              <div class="sys-stat-label">CPU 使用率</div>
+              <div class="sys-stat-value">{{ (status?.cpu?.totalPercent ?? 0).toFixed(1) }}%</div>
+              <div class="sys-stat-desc truncate">{{ overview?.cpu?.modelName || '--' }}</div>
+            </div>
+          </div>
+          <div class="sys-stat-item">
+            <div class="sys-stat-icon" style="color: #10b981; background-color: #10b98110">
+              <el-icon size="18"><component :is="menuStore.iconComponents['Element:Monitor']" /></el-icon>
+            </div>
+            <div>
+              <div class="sys-stat-label">内存信息</div>
+              <div class="sys-stat-value">{{ (status?.memory?.physicalMemory?.usedPercent ?? 0).toFixed(1) }}%</div>
+              <div class="sys-stat-desc">物理内存 {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}</div>
+              <div class="sys-stat-desc">Swap {{ (status?.memory?.virtualMemory?.usedPercent ?? 0).toFixed(1) }}% · {{ formatBytes(status?.memory?.virtualMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.virtualMemory?.totalBytes) }}</div>
+            </div>
+          </div>
+          <div class="sys-stat-item">
+            <div class="sys-stat-icon" style="color: #f59e0b; background-color: #f59e0b10">
+              <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" /></el-icon>
+            </div>
+            <div>
+              <div class="sys-stat-label">网络信息</div>
+              <div class="net-stat">
+                <span class="net-stat-down">↓ {{ formatBytes(status?.network?.total?.downloadRateBytesPerSecond) }}/s</span>
+                <span class="net-stat-detail">总接收 {{ formatBytes(status?.network?.total?.bytesRecv) }}</span>
+                <span class="net-stat-up">↑ {{ formatBytes(status?.network?.total?.uploadRateBytesPerSecond) }}/s</span>
+                <span class="net-stat-detail">总发送 {{ formatBytes(status?.network?.total?.bytesSent) }}</span>
               </div>
             </div>
           </div>
           <div class="sys-stat-item">
-            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #10b981; background-color: #10b98110">
-              <el-icon size="18">
-                <component :is="menuStore.iconComponents['Element:Monitor']" />
-              </el-icon>
+            <div class="sys-stat-icon" style="color: #ef4444; background-color: #ef444410">
+              <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:FolderIcon']" /></el-icon>
             </div>
             <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">内存信息</div>
-              <div class="flex items-baseline gap-2">
-                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
-                  {{ (status?.memory?.physicalMemory?.usedPercent ?? 0).toFixed(1) }}%
-                </span>
-              </div>
-              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1">
-                物理内存 {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}
-              </div>
-              <div class="text-[11px] text-(--el-text-color-placeholder) mt-0.5">
-                Swap {{ (status?.memory?.virtualMemory?.usedPercent ?? 0).toFixed(1) }}% · {{ formatBytes(status?.memory?.virtualMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.virtualMemory?.totalBytes) }}
-              </div>
-            </div>
-          </div>
-          <div class="sys-stat-item">
-            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #f59e0b; background-color: #f59e0b10">
-              <el-icon size="18">
-                <component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" />
-              </el-icon>
-            </div>
-            <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">网络信息</div>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-extrabold text-(--el-color-success)">
-                  ↓ {{ formatBytes(status?.network?.total?.downloadRateBytesPerSecond) }}/s
-                </span>
-                <span class="text-[11px] text-(--el-text-color-placeholder)">
-                  总接收 {{ formatBytes(status?.network?.total?.bytesRecv) }}
-                </span>
-                <span class="text-[13px] font-extrabold text-(--el-color-primary)">
-                  ↑ {{ formatBytes(status?.network?.total?.uploadRateBytesPerSecond) }}/s
-                </span>
-                <span class="text-[11px] text-(--el-text-color-placeholder)">
-                  总发送 {{ formatBytes(status?.network?.total?.bytesSent) }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="sys-stat-item">
-            <div class="flex items-center justify-center w-9 h-9 rounded-[10px] p-2 mb-3" style="color: #ef4444; background-color: #ef444410">
-              <el-icon size="18">
-                <component :is="menuStore.iconComponents['HOutline:FolderIcon']" />
-              </el-icon>
-            </div>
-            <div>
-              <div class="text-[13px] font-semibold text-(--el-text-color-secondary) mb-1">磁盘 使用率</div>
-              <div class="flex items-baseline gap-2">
-                <span class="text-[20px] font-extrabold text-(--el-text-color-primary)">
-                  {{ (status?.disk?.total?.usedPercent ?? 0).toFixed(1) }}%
-                </span>
-              </div>
-              <div class="text-[11px] text-(--el-text-color-placeholder) mt-1">
-                {{ formatBytes(status?.disk?.total?.usedBytes) }} / {{ formatBytes(status?.disk?.total?.totalBytes) }}
-              </div>
+              <div class="sys-stat-label">磁盘 使用率</div>
+              <div class="sys-stat-value">{{ (status?.disk?.total?.usedPercent ?? 0).toFixed(1) }}%</div>
+              <div class="sys-stat-desc">{{ formatBytes(status?.disk?.total?.usedBytes) }} / {{ formatBytes(status?.disk?.total?.totalBytes) }}</div>
             </div>
           </div>
         </div>
@@ -207,8 +134,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import LottieAnimation from '@/components/animation/LottieAnimation.vue'
-import workTimeLottieUrl from '@/assets/lotties/welcome.json?url'
 import dayjs from 'dayjs'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import { useUserProfileStore } from '@/stores/user/profile'
@@ -257,19 +182,229 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.el-divider--vertical {
-  height: 2.5rem;
+/* ===== layout ===== */
+.welcome-body {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem;
+
+  @media (width >= 640px) {
+    padding: 1.5rem;
+  }
+
+  @media (width >= 1024px) {
+    padding: 2rem;
+  }
+
+  @media (width >= 1280px) {
+    flex-direction: row;
+    padding: 2rem 2.5rem;
+  }
+}
+
+.welcome-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== hero ===== */
+.welcome-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+
+  @media (width >= 640px) {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.welcome-avatar {
+  width: 80px;
+  height: 80px;
+
+  @media (width >= 640px) {
+    width: 110px;
+    height: 110px;
+  }
+}
+
+.avatar-dot {
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  bottom: 4px;
+  right: 4px;
+  border-radius: 999px;
+  border: 3px solid var(--el-bg-color);
+  background: var(--el-color-success);
+
+  @media (width >= 640px) {
+    height: 20px;
+    width: 20px;
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+.welcome-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+
+  @media (width >= 640px) {
+    align-items: flex-start;
+  }
+}
+
+.welcome-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--el-text-color-primary);
+  cursor: pointer;
+
+  @media (width >= 640px) {
+    font-size: 1.5rem;
+  }
+
+  @media (width >= 768px) {
+    font-size: 1.875rem;
+  }
+}
+
+.welcome-title {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.welcome-bio {
+  color: var(--el-text-color-regular);
+  font-style: italic;
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  @media (width >= 768px) {
+    font-size: 0.875rem;
+  }
+}
+
+.welcome-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+
+  @media (width >= 640px) {
+    justify-content: flex-start;
+  }
+}
+
+.welcome-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.4rem 0.65rem;
+  color: var(--el-text-color-primary);
+  background: var(--el-bg-color-page);
+  border-radius: 0.5rem;
+}
+
+/* ===== system info grid ===== */
+.welcome-info-section {
+  padding: 1rem 0.25rem 0;
+
+  @media (width >= 640px) {
+    padding: 1.5rem 0.5rem 0;
+  }
+
+  @media (width >= 768px) {
+    padding: 2rem 1.5rem 0;
+  }
+}
+
+.sys-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+
+  @media (width >= 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+  }
+}
+
+.sys-info-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--el-text-color-primary);
+
+  @media (width >= 640px) {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+.sys-info-label {
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  flex-shrink: 0;
+
+  @media (width >= 640px) {
+    min-width: 4.5rem;
+  }
+}
+
+/* ===== divider ===== */
+.welcome-divider {
+  display: none;
+
+  @media (width >= 1280px) {
+    display: block;
+    margin: 0 1.5rem;
+    width: 1px;
+    align-self: stretch;
+    background: var(--el-border-color);
+  }
+}
+
+/* ===== stat cards ===== */
+.welcome-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+
+  @media (width >= 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (width >= 1280px) {
+    flex: 0.8;
+  }
 }
 
 .sys-stat-item {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 1rem;
-  border-radius: 1rem;
-  position: relative;
-  transition: all 0.3s;
-  cursor: default;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  background: var(--el-bg-color-page);
+  transition: box-shadow 0.3s, transform 0.3s;
 
   &:hover {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
@@ -277,23 +412,56 @@ onBeforeUnmount(() => {
   }
 }
 
-.sys-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 2rem;
-  row-gap: 0.5rem;
-}
-
-.sys-info-line {
+.sys-stat-icon {
   display: flex;
-  gap: 0.75rem;
-  font-size: 0.8rem;
-  color: var(--el-text-color-primary);
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  margin-bottom: 0.65rem;
 }
 
-.sys-info-label {
+.sys-stat-label {
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--el-text-color-secondary);
-  min-width: 4.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.sys-stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  line-height: 1.2;
+}
+
+.sys-stat-desc {
+  font-size: 0.68rem;
+  color: var(--el-text-color-placeholder);
+  margin-top: 0.2rem;
+}
+
+.net-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.net-stat-down {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--el-color-success);
+}
+
+.net-stat-up {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--el-color-primary);
+}
+
+.net-stat-detail {
+  font-size: 0.68rem;
+  color: var(--el-text-color-placeholder);
 }
 </style>

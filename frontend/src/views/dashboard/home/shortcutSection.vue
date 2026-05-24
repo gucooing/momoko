@@ -1,7 +1,7 @@
 <!-- 快捷方式 -->
 <template>
   <BaseCard title="便捷工具" title-icon="HOutline:WrenchScrewdriverIcon">
-    <div class="grid grid-cols-4 gap-6">
+    <div class="shortcuts-grid">
       <div
         v-for="item in shortcuts"
         :key="item.label"
@@ -38,4 +38,19 @@ const dashboardHomeStore = useDashboardHomeStore()
 const { shortcuts } = storeToRefs(dashboardHomeStore)
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  @media (width >= 480px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (width >= 768px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+</style>

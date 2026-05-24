@@ -1,8 +1,8 @@
 <template>
   <BaseCard>
     <template #header-right>
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-(--el-text-color-secondary)">刷新间隔:</span>
+      <div class="chart-header-right">
+        <span class="chart-interval-label">刷新间隔:</span>
         <el-radio-group
           :model-value="refreshInterval"
           size="small"
@@ -305,28 +305,58 @@ const diskChartOption = computed(() => ({
 </script>
 
 <style scoped lang="scss">
+.chart-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chart-interval-label {
+  font-size: 0.7rem;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+
 .chart-panel {
   background: var(--el-bg-color-page);
   border-radius: 1rem;
-  padding: 16px;
+  padding: 12px;
+
+  @media (width >= 640px) {
+    padding: 16px;
+  }
 
   .chart-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--el-text-color-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     flex-shrink: 0;
+
+    @media (width >= 640px) {
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
   }
 
   .chart-box {
     width: 100%;
-    height: 240px;
+    height: 200px;
     overflow: visible;
+
+    @media (width >= 640px) {
+      height: 240px;
+    }
   }
 
   .selector {
-    width: 160px;
+    width: 130px;
     flex-shrink: 0;
+
+    @media (width >= 640px) {
+      width: 160px;
+    }
   }
 }
 </style>

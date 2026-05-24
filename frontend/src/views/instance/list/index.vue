@@ -1,61 +1,102 @@
 <template>
   <div class="instance-list-page">
-    <div class="instance-surface">
-      <section class="instance-section instance-section--overview">
-        <OverviewStats :cards="summaryCards" />
-      </section>
+    <OverviewStats :cards="summaryCards" />
 
-      <section class="instance-section instance-section--filters">
-        <InstanceFilters
-          v-model="queryForm"
-          :type-options="typeOptions"
-          :status-options="statusOptions"
-          @search="applyFilters"
-          @reset="resetFilters"
-        />
-      </section>
+    <BaseCard title="实例列表" title-icon="HOutline:ServerStackIcon">
+      <div v-loading="loading">
+        <div class="list-toolbar">
+          <div class="toolbar-filters">
+            <el-input
+              :model-value="queryForm.keyword"
+              placeholder="搜索实例名 / 标签"
+              clearable
+              style="width: 180px"
+              @update:model-value="(v: string) => queryForm.keyword = v"
+              @keyup.enter="applyFilters"
+            />
+            <el-select
+              :model-value="queryForm.type"
+              placeholder="类型"
+              clearable
+              style="width: 130px"
+              @update:model-value="(v: string) => queryForm.type = v"
+            >
+              <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <el-select
+              :model-value="queryForm.status"
+              placeholder="状态"
+              clearable
+              style="width: 110px"
+              @update:model-value="(v: any) => queryForm.status = v"
+            >
+              <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <el-button type="primary" size="small" @click="applyFilters">搜索</el-button>
+            <el-button size="small" @click="resetFilters">重置</el-button>
+          </div>
 
-      <section class="instance-section instance-section--workspace" v-loading="loading">
-        <InstanceToolbar
-          :selected-count="selectedIds.length"
-          :can-batch-start="canBatchStart"
-          :can-batch-stop="canBatchStop"
-          :can-batch-delete="canBatchDelete"
-          :is-current-page-all-selected="isCurrentPageAllSelected"
-          @create="handleOpenCreateEditor"
-          @batch-start="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
-          @batch-stop="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
-          @batch-delete="handleBatchDelete"
-          @toggle-current-page="toggleCurrentPageSelection"
-          @refresh="handleRefreshStatus"
-        />
+          <div class="toolbar-actions">
+            <span v-if="selectedIds.length" class="selection-text">已选 {{ selectedIds.length }} 项</span>
+            <el-button
+              type="primary"
+              :icon="menuStore.iconComponents['HOutline:PlusCircleIcon']"
+              @click="handleOpenCreateEditor"
+            >
+              新建
+            </el-button>
+            <el-button
+              :icon="menuStore.iconComponents['HOutline:PlayIcon']"
+              :disabled="!canBatchStart"
+              @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
+            >
+              批量启动
+            </el-button>
+            <el-button
+              :icon="menuStore.iconComponents['HOutline:StopIcon']"
+              :disabled="!canBatchStop"
+              @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
+            >
+              批量停止
+            </el-button>
+            <el-button
+              type="danger"
+              :icon="menuStore.iconComponents['HOutline:TrashIcon']"
+              :disabled="!canBatchDelete"
+              @click="handleBatchDelete"
+            >
+              批量删除
+            </el-button>
+            <el-button link @click="toggleCurrentPageSelection">
+              {{ isCurrentPageAllSelected ? '取消全选' : '全选当前页' }}
+            </el-button>
+            <el-button link :icon="menuStore.iconComponents['HOutline:ArrowPathRoundedSquareIcon']" @click="handleRefreshStatus">
+              刷新
+            </el-button>
+          </div>
+        </div>
 
         <Transition name="instance-page-switch" mode="out-in">
           <div v-if="pagedInstances.length" :key="gridTransitionKey" class="instance-grid">
-            <div
-              v-for="(item, index) in pagedInstances"
+            <InstanceCard
+              v-for="item in pagedInstances"
               :key="item.id"
-              class="instance-grid-item"
-              :style="{ '--instance-card-order': index }"
-            >
-              <InstanceCard
-                :item="item"
-                :type-label="resolveTypeLabel(item.type)"
-                :can-delete="item.userId === currentUserId"
-                :selected="selectedIdSet.has(item.id)"
-                @toggle-select="setSelection(item.id, $event)"
-                @console="openInstanceConsole(item)"
-                @config="handleOpenEditEditor(item.id)"
-                @change-status="handleChangeInstanceStatus(item.id, $event)"
-                @more-action="handleMoreAction(item.id, $event)"
-              />
-            </div>
+              :item="item"
+              :type-label="resolveTypeLabel(item.type)"
+              :can-delete="item.userId === currentUserId"
+              :selected="selectedIdSet.has(item.id)"
+              @toggle-select="setSelection(item.id, $event)"
+              @console="openInstanceConsole(item)"
+              @config="handleOpenEditEditor(item.id)"
+              @change-status="handleChangeInstanceStatus(item.id, $event)"
+              @more-action="handleMoreAction(item.id, $event)"
+            />
           </div>
 
-          <el-empty v-else key="instance-empty" class="instance-empty" description="暂无匹配实例" />
+          <el-empty v-else key="instance-empty" description="暂无匹配实例" />
         </Transition>
 
-        <div class="pagination-container instance-pagination">
+        <div class="instance-pagination">
           <TablePagination
             v-model:current-page="pagination.page"
             v-model:page-size="pagination.pageSize"
@@ -65,8 +106,8 @@
             @change="handlePageChange"
           />
         </div>
-      </section>
-    </div>
+      </div>
+    </BaseCard>
 
     <InstanceEditor
       :visible="instanceEditorVisible"
@@ -83,6 +124,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import BaseCard from '@/components/card/BaseCard.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { useInstanceListStore } from '@/stores/instance/list'
 import {
@@ -95,8 +137,6 @@ import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
 import InstanceCard from '@/views/instance/list/instanceCard.vue'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
-import InstanceFilters from '@/views/instance/list/instanceFilters.vue'
-import InstanceToolbar from '@/views/instance/list/instanceToolbar.vue'
 import OverviewStats from '@/views/instance/list/overviewStats.vue'
 
 defineOptions({ name: 'ListView' })
@@ -155,9 +195,7 @@ const {
 const openInstanceConsole = (item: InstanceRecord) => {
   router.push({
     path: `/instance/console/${item.id}`,
-    query: {
-      tabTitle: item.name,
-    },
+    query: { tabTitle: item.name },
   })
 }
 
@@ -193,7 +231,6 @@ const handleEditorClose = () => {
 
 const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
   const mode = instanceEditorMode.value
-
   try {
     instanceEditorForm.value = { ...form }
     await submitInstanceEditor()
@@ -214,10 +251,8 @@ const executeBatchChangeStatus = async (
     | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
 ) => {
   if (!selectedIds.value.length) return
-
   const { successCount, failedCount } = await batchChangeStatus(targetStatus)
   if (!successCount && failedCount) return
-
   ElMessage.success(
     targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING
       ? `已批量启动 ${successCount} 个实例${failedCount ? `，失败 ${failedCount} 个` : ''}`
@@ -231,20 +266,16 @@ const handleBatchChangeStatus = async (
     | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
 ) => {
   if (!selectedIds.value.length) return
-
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
       title: '确认批量停止实例',
       content: `确定要停止当前选中的 ${selectedIds.value.length} 个实例吗？`,
       cancelText: '取消',
       confirmText: '确认停止',
-      onConfirm: async () => {
-        await executeBatchChangeStatus(targetStatus)
-      },
+      onConfirm: async () => { await executeBatchChangeStatus(targetStatus) },
     })
     return
   }
-
   await executeBatchChangeStatus(targetStatus)
 }
 
@@ -256,7 +287,6 @@ const executeChangeInstanceStatus = async (
 ) => {
   const success = await changeInstanceStatus(id, targetStatus)
   if (!success) return
-
   ElMessage.success(
     targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING ? '实例已启动' : '实例已停止',
   )
@@ -270,33 +300,28 @@ const handleChangeInstanceStatus = async (
 ) => {
   const current = findInstanceById(id)
   if (!current) return
-
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
       title: '确认停止实例',
       content: `确定要停止实例「${current.name}」吗？`,
       cancelText: '取消',
       confirmText: '确认停止',
-      onConfirm: async () => {
-        await executeChangeInstanceStatus(id, targetStatus)
-      },
+      onConfirm: async () => { await executeChangeInstanceStatus(id, targetStatus) },
     })
     return
   }
-
   await executeChangeInstanceStatus(id, targetStatus)
 }
 
 const handleBatchDelete = async () => {
   Dialog.confirm({
     title: '确认批量删除实例',
-    content: `确定要删除当前选中的实例吗？删除后不可恢复。`,
+    content: '确定要删除当前选中的实例吗？删除后不可恢复。',
     cancelText: '取消',
     confirmText: '确认删除',
     onConfirm: async () => {
       const { successCount, failedCount } = await batchDeleteInstances()
       if (!successCount && failedCount) return
-
       ElMessage.success(`已批量删除 ${successCount} 个实例${failedCount ? `，失败 ${failedCount} 个` : ''}`)
     },
   })
@@ -322,10 +347,7 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
   }
 
   if (action === 'delete') {
-    if (current.userId !== currentUserId.value) {
-      return
-    }
-
+    if (current.userId !== currentUserId.value) return
     Dialog.confirm({
       title: '确认删除实例',
       content: `确定要删除实例「${current.name}」吗？删除后不可恢复。`,
@@ -334,7 +356,6 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
       onConfirm: async () => {
         const { successCount, failedCount } = await deleteInstances([id])
         if (!successCount && failedCount) return
-
         ElMessage.success(`${current.name} 已删除${failedCount ? `（失败 ${failedCount} 个）` : ''}`)
       },
     })
@@ -352,99 +373,74 @@ onMounted(() => {
 <style scoped lang="scss">
 .instance-list-page {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 100%;
-  margin: -1rem;
-  padding: 1rem;
-  background: var(--el-bg-color-page);
-  box-sizing: border-box;
-}
-
-.instance-surface {
-  display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.instance-section {
-  padding: 1rem 1.05rem;
-  border-radius: 1rem;
-  background: var(--el-bg-color);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+.list-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.selection-text {
+  font-size: 0.8rem;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
 }
 
 .instance-grid {
   display: grid;
-  grid-auto-flow: row;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 0.9rem;
-  margin-top: 0.9rem;
-}
-
-.instance-grid-item {
-  min-width: 0;
-}
-
-.instance-empty {
-  padding-block: 1.25rem;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
 }
 
 .instance-pagination {
-  padding-top: 0.6rem;
+  margin-top: 1rem;
 }
 
 .instance-page-switch-enter-active,
 .instance-page-switch-leave-active {
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s ease;
-}
-
-.instance-page-switch-enter-active .instance-grid-item {
-  animation: instance-card-rise 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--instance-card-order) * 42ms);
+  transition: opacity 0.2s ease;
 }
 
 .instance-page-switch-enter-from,
 .instance-page-switch-leave-to {
   opacity: 0;
-  transform: translateY(12px);
 }
 
-@keyframes instance-card-rise {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.985);
+@media (width <= 992px) {
+  .list-toolbar {
+    flex-direction: column;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .instance-page-switch-enter-active,
-  .instance-page-switch-leave-active {
-    transition-duration: 0.01ms;
+  .toolbar-filters {
+    width: 100%;
   }
 
-  .instance-page-switch-enter-active .instance-grid-item {
-    animation: none;
+  .toolbar-actions {
+    width: 100%;
   }
 }
 
 @media (width <= 768px) {
-  .instance-list-page {
-    margin: -1rem;
-    padding: 1rem;
-  }
-
-  .instance-section {
-    padding: 0.92rem;
-  }
-
   .instance-grid {
     grid-template-columns: 1fr;
   }
