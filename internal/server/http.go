@@ -9,7 +9,6 @@ import (
 	"momoko/internal/service"
 	"momoko/pkg/avatar"
 	"momoko/pkg/response"
-	"momoko/pkg/validate"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -39,7 +38,7 @@ func NewHTTPServer(c *conf.Server,
 		http.Middleware(
 			operationLog.Middleware(),
 			recovery.Recovery(),
-			validate.Middleware(),
+			Middleware(),
 		),
 		http.NotFoundHandler(nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
 			response.WriteError(w, r, errors.NotFound("NOT_FOUND", "Not Found"))
@@ -71,5 +70,33 @@ func NewHTTPServer(c *conf.Server,
 	openSSHApi.RegisterWsServer(srv)
 	fileApi.RegisterDownloadServer(srv)
 
+	return srv
+}
+
+func NewInitializeHTTPServer(c *conf.Server, initializeApi *service.InitializeService) *http.Server {
+	var opts = []http.ServerOption{
+		http.Filter(
+			corsMiddleware(),
+			distMiddleware(),
+		),
+		http.Middleware(
+			recovery.Recovery(),
+			Middleware(),
+		),
+		http.ResponseEncoder(response.ResponseEncoder),
+		http.ErrorEncoder(response.ErrorEncoder),
+	}
+	if c.Http.Network != "" {
+		opts = append(opts, http.Network(c.Http.Network))
+	}
+	if c.Http.Addr != "" {
+		opts = append(opts, http.Address(c.Http.Addr))
+	}
+	if c.Http.Timeout != nil {
+		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
+	}
+
+	srv := http.NewServer(opts...)
+	v1.RegisterInitializeHTTPServer(srv, initializeApi)
 	return srv
 }

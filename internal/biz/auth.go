@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"momoko/internal/data/ent/gen/user"
-	"momoko/pkg/tools"
 	"momoko/pkg/utils"
 	"net/mail"
 	"strings"
@@ -167,7 +166,7 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  req.DeviceId,
-		IP:        tools.ClientIPFromContext(ctx),
+		IP:        utils.ClientIPFromContext(ctx),
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeToken,
@@ -183,7 +182,7 @@ func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId string, req *v
 	info := &Auth{
 		UserID:    userId,
 		DeviceID:  req.DeviceId,
-		IP:        tools.ClientIPFromContext(ctx),
+		IP:        utils.ClientIPFromContext(ctx),
 		Device:    req.Device,
 		SessionID: uuid.NewString(),
 		Type:      auth.TypeRefreshToken,

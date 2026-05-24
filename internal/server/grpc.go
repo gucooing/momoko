@@ -2,18 +2,20 @@ package server
 
 import (
 	"momoko/internal/conf"
-	"momoko/pkg/validate"
 
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server) *grpc.Server {
+func NewGRPCServer(c *conf.Server,
+	authorization *Authorization,
+) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
-			validate.Middleware(),
+			Middleware(),
+			authorization.GRPCMiddleware(),
 		),
 	}
 	if c.Grpc.Network != "" {

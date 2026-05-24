@@ -71,6 +71,11 @@ all:
 	make config;
 	make gen;
 
+# test all
+test:
+	go test -v ./...
+	cd ./frontend && pnpm exec eslint . --max-warnings=0 && pnpm build
+
 # show help
 help:
 	@echo ''

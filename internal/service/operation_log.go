@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"momoko/pkg/utils"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -13,7 +14,6 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
-	"momoko/pkg/tools"
 )
 
 type OperationLogMiddleware struct {
@@ -52,7 +52,7 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 		return
 	}
 
-	detail := tools.Detail{
+	detail := utils.Detail{
 		Method:     httpReq.Method,
 		Path:       httpReq.URL.Path,
 		Operation:  operation,
@@ -66,8 +66,8 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 		OperationType: operationType,
 		Success:       handlerErr == nil,
 		Detail:        detail.MarshalDetail(),
-		Ip:            tools.ClientIP(httpReq),
-		UserAgent:     tools.UserAgent(httpReq),
+		Ip:            utils.ClientIP(httpReq),
+		UserAgent:     utils.UserAgent(httpReq),
 		Path:          httpReq.URL.Path,
 		DurationMs:    duration.Milliseconds(),
 		OperationTime: timestamppb.New(time.Now()),

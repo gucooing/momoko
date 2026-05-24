@@ -25,17 +25,18 @@ import (
 
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logger log.Logger) (*kratos.App, func(), error) {
-	grpcServer := server.NewGRPCServer(confServer)
-	manager, err := avatar.NewManager()
-	if err != nil {
-		return nil, nil, err
-	}
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
 	}
 	authRepo := data.NewAuthRepo(dataData)
 	authorization := server.NewAuthorization(authRepo)
+	grpcServer := server.NewGRPCServer(confServer, authorization)
+	manager, err := avatar.NewManager()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	operationLogRepo := data.NewOperationLogRepo(dataData)
 	operationLogUsecase := biz.NewOperationLogUsecase(operationLogRepo)
 	operationLogMiddleware := service.NewOperationLogMiddleware(operationLogUsecase, logger)

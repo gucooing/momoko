@@ -2,7 +2,7 @@ package biz
 
 import (
 	"context"
-	"strings"
+	"momoko/pkg/utils"
 	"sync"
 
 	"golang.org/x/net/websocket"
@@ -65,7 +65,7 @@ func (o *OpenSSHUsecase) CreateSSHHost(ctx context.Context, req *v1.CreateSSHHos
 	if err := validateCreateSSHHost(req); err != nil {
 		return nil, err
 	}
-	item, err := o.repo.CreateSSHHost(ctx, req, userID, uniqueNonEmpty(req.SharedUserIds, userID))
+	item, err := o.repo.CreateSSHHost(ctx, req, userID, utils.UniqueNonEmpty(req.SharedUserIds, userID))
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -96,7 +96,7 @@ func (o *OpenSSHUsecase) DeleteSSHHost(ctx context.Context, userID, hostID strin
 }
 
 func (o *OpenSSHUsecase) ShareSSHHost(ctx context.Context, req *v1.ShareSSHHostRequest, userID string) (*v1.SSHHostInfo, error) {
-	item, err := o.repo.ShareSSHHost(ctx, userID, req.Id, uniqueNonEmpty(req.UserIds, userID))
+	item, err := o.repo.ShareSSHHost(ctx, userID, req.Id, utils.UniqueNonEmpty(req.UserIds, userID))
 	if err != nil {
 		return nil, o.wrapSSHRepoErr(err)
 	}
@@ -116,7 +116,7 @@ func (o *OpenSSHUsecase) TestSSHHost(ctx context.Context, userID, hostID string)
 }
 
 func (o *OpenSSHUsecase) BatchTestSSHHosts(ctx context.Context, userID string, ids []string) (*v1.BatchTestSSHHostsResponse, error) {
-	ids = uniqueNonEmpty(ids, "")
+	ids = utils.UniqueNonEmpty(ids, "")
 	results := make([]*v1.SSHHostTestResult, len(ids))
 
 	jobs := make(chan int)
@@ -195,10 +195,6 @@ func (o *OpenSSHUsecase) StartSSHWebSocket(conn *websocket.Conn, userID, hostID 
 }
 
 func validateCreateSSHHost(req *v1.CreateSSHHostRequest) error {
-	req.Host = strings.TrimSpace(req.Host)
-	req.Username = strings.TrimSpace(req.Username)
-	req.Name = strings.TrimSpace(req.Name)
-	req.Fingerprint = strings.TrimSpace(req.Fingerprint)
 	if req.Name == "" || req.Host == "" || req.Username == "" {
 		return ErrSSHHostInvalid
 	}
@@ -208,19 +204,14 @@ func validateCreateSSHHost(req *v1.CreateSSHHostRequest) error {
 	if req.Port < 1 || req.Port > 65535 {
 		return ErrSSHHostInvalid
 	}
-
-	return validateCreateCredential(req.AuthType, req.Password, req.PrivateKey)
-}
-
-func validateCreateCredential(authType v1.SSHAuthType, password, privateKey string) error {
-	switch authType {
+	switch req.AuthType {
 	case v1.SSHAuthType_SSH_AUTH_TYPE_PASSWORD:
-		if strings.TrimSpace(password) == "" {
+		if req.Password == "" {
 			return ErrSSHCredentialInvalid
 		}
 		return nil
 	case v1.SSHAuthType_SSH_AUTH_TYPE_KEY:
-		if strings.TrimSpace(privateKey) == "" {
+		if req.PrivateKey == "" {
 			return ErrSSHCredentialInvalid
 		}
 		return nil
@@ -290,21 +281,4 @@ func (o *OpenSSHUsecase) wrapSSHRepoErr(err error) error {
 		return ErrSSHHostAccess
 	}
 	return ErrSystem(err)
-}
-
-func uniqueNonEmpty(ids []string, exclude string) []string {
-	seen := make(map[string]struct{}, len(ids))
-	result := make([]string, 0, len(ids))
-	for _, id := range ids {
-		id = strings.TrimSpace(id)
-		if id == "" || id == exclude {
-			continue
-		}
-		if _, ok := seen[id]; ok {
-			continue
-		}
-		seen[id] = struct{}{}
-		result = append(result, id)
-	}
-	return result
 }
