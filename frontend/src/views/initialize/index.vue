@@ -400,7 +400,7 @@ async function handleTestConnection() {
     } else {
       ElMessage.error('数据库连接失败')
     }
-  } catch (e: any) {
+  } catch {
     // error already shown by request interceptor
   } finally {
     testing.value = false
