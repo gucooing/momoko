@@ -699,7 +699,7 @@ func selectDiskPartition(items []*DiskPartitionStatus, diskName, mountpoint stri
 		}
 	}
 	if len(items) == 0 {
-		return nil
+		return new(DiskPartitionStatus)
 	}
 	return items[0]
 }
@@ -772,7 +772,7 @@ func selectDiskIO(items []*DiskIOStatus, name string) *DiskIOStatus {
 		}
 	}
 	if len(items) == 0 {
-		return nil
+		return new(DiskIOStatus)
 	}
 	return items[0]
 }

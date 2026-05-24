@@ -129,7 +129,7 @@ Linux/macOS 下可运行：
 docker compose up -d
 ```
 
-Compose 会读取 `configs/config.docker.yaml`，其中数据库连接指向 compose 内的 `mysql:3306`。默认端口：
+Compose 会读取 `configs/config.yaml`，默认端口：
 
 - Momoko HTTP: `22633`
 - Momoko gRPC: `22733`
