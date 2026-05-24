@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "run-s \"build-only {@}\" type-check --",
     "preview": "vite preview",
     "build-only": "vite build && node -e \"require('node:fs').copyFileSync('dist/index.html','dist/404.html')\" && node scripts/compress-dist.mjs",
     "type-check": "vue-tsc --build",

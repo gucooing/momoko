@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:22.12.0-bookworm-slim AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:25.9.0-bookworm-slim AS frontend-builder
 
 WORKDIR /src/frontend
 
