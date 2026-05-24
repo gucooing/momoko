@@ -49,4 +49,7 @@ var (
 	ErrUploadPartInvalid       = response.BadRequest(500, "上传分片参数无效")
 	ErrUploadIncomplete        = response.BadRequest(500, "文件分片尚未全部上传完成")
 	ErrUploadCompleted         = response.BadRequest(500, "上传已完成")
+	ErrInitializeDone          = response.BadRequest(500, "系统已初始化")
+	ErrInitializeDatabaseEmpty = response.BadRequest(500, "数据库配置不能为空")
+	ErrInitializeAdminEmpty    = response.BadRequest(500, "超级管理员不能为空")
 )

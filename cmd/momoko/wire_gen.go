@@ -24,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(confServer)
 	manager, err := avatar.NewManager()
 	if err != nil {
@@ -52,6 +52,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	fileService := service.NewFileService(fileUsecase)
 	userService := service.NewUserService(userUsecase, systemUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
+	initializeRepo := data.NewInitializeRepo(string2)
+	initializeUsecase := biz.NewInitializeUsecase(initializeRepo)
+	initializeService := service.NewInitializeService(initializeUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)
 	instanceUsecase, cleanup2, err := biz.NewInstanceUsecase(instanceRepo, fileRepo)
 	if err != nil {
@@ -62,10 +65,19 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	openSSHRepo := data.NewOpenSSHRepo(dataData)
 	openSSHUsecase := biz.NewOpenSSHUsecase(openSSHRepo)
 	openSSHService := service.NewOpenSSHService(openSSHUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, instanceService, openSSHService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup2()
 		cleanup()
 	}, nil
+}
+
+func wireInitializeApp(confServer *conf.Server, string2 string, logger log.Logger) *kratos.App {
+	initializeRepo := data.NewInitializeRepo(string2)
+	initializeUsecase := biz.NewInitializeUsecase(initializeRepo)
+	initializeService := service.NewInitializeService(initializeUsecase)
+	httpServer := server.NewInitializeHTTPServer(confServer, initializeService)
+	app := newInitializeApp(logger, httpServer)
+	return app
 }

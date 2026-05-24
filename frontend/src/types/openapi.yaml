@@ -1738,6 +1738,57 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateEmailTemplateResponse'
+    /api/v1/system/initialize/confirm:
+        post:
+            tags:
+                - Initialize
+            description: 确认系统初始化
+            operationId: Initialize_ConfirmInitialize
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ConfirmInitializeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ConfirmInitializeResponse'
+    /api/v1/system/initialize/database/test:
+        post:
+            tags:
+                - Initialize
+            description: 测试数据库连接
+            operationId: Initialize_TestInitializeDatabase
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestInitializeDatabaseRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestInitializeDatabaseResponse'
+    /api/v1/system/initialize/status:
+        get:
+            tags:
+                - Initialize
+            description: 获取系统初始化状态
+            operationId: Initialize_InitializeStatus
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.InitializeStatusResponse'
     /api/v1/system/login-config:
         get:
             tags:
@@ -2359,6 +2410,28 @@ components:
             type: object
             properties: {}
             description: 上传完成合并分片响应
+        v1.ConfirmInitializeRequest:
+            type: object
+            properties:
+                database:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InitializeDatabaseConfig'
+                    description: 数据库配置
+                admin:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InitializeAdminUser'
+                    description: 超级管理员
+            description: 确认系统初始化请求
+        v1.ConfirmInitializeResponse:
+            type: object
+            properties:
+                initialized:
+                    type: boolean
+                    description: 是否已初始化
+                restartRequired:
+                    type: boolean
+                    description: 是否需要重启服务
+            description: 确认系统初始化响应
         v1.CopyFileSystemRequest:
             type: object
             properties:
@@ -3180,6 +3253,58 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 信息
             description: 获取终端详情响应
+        v1.InitializeAdminUser:
+            type: object
+            properties:
+                username:
+                    type: string
+                    description: 用户名
+                password:
+                    type: string
+                    description: 密码
+                email:
+                    type: string
+                    description: 邮箱
+                name:
+                    type: string
+                    description: 昵称
+            description: 初始化超级管理员
+        v1.InitializeDatabaseConfig:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    description: 数据库类型
+                    format: enum
+                sqlitePath:
+                    type: string
+                    description: SQLite 数据库文件路径
+                address:
+                    type: string
+                    description: MySQL/PostgreSQL 连接地址，格式为 host 或 host:port
+                username:
+                    type: string
+                    description: MySQL/PostgreSQL 用户名
+                password:
+                    type: string
+                    description: MySQL/PostgreSQL 密码
+                databaseName:
+                    type: string
+                    description: MySQL/PostgreSQL 数据库名
+            description: 初始化数据库配置
+        v1.InitializeStatusResponse:
+            type: object
+            properties:
+                initialized:
+                    type: boolean
+                    description: 是否已初始化
+                supportedDatabaseTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: 支持的数据库类型
+            description: 获取系统初始化状态响应
         v1.InstanceFilePreSignResponse:
             type: object
             properties:
@@ -4157,6 +4282,21 @@ components:
             type: object
             properties: {}
             description: 测试邮件配置响应
+        v1.TestInitializeDatabaseRequest:
+            type: object
+            properties:
+                database:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InitializeDatabaseConfig'
+                    description: 数据库配置
+            description: 测试数据库连接请求
+        v1.TestInitializeDatabaseResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    description: 是否连接成功
+            description: 测试数据库连接响应
         v1.TestSSHHostRequest:
             type: object
             properties:
@@ -4591,6 +4731,8 @@ tags:
       description: 认证服务
     - name: FileManager
       description: 文件管理
+    - name: Initialize
+      description: 系统初始化
     - name: InstanceManager
       description: 应用管理
     - name: OpenSSHManager

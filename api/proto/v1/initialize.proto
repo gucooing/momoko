@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+
+// 系统初始化
+service Initialize {
+  // 获取系统初始化状态
+  rpc InitializeStatus(InitializeStatusRequest) returns (InitializeStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/initialize/status"
+    };
+  }
+  // 确认系统初始化
+  rpc ConfirmInitialize(ConfirmInitializeRequest) returns (ConfirmInitializeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/system/initialize/confirm"
+      body: "*"
+    };
+  }
+  // 测试数据库连接
+  rpc TestInitializeDatabase(TestInitializeDatabaseRequest) returns (TestInitializeDatabaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/system/initialize/database/test"
+      body: "*"
+    };
+  }
+}
+
+// 数据库类型
+enum DatabaseType {
+  // 未指定
+  DatabaseType_Unspecified = 0;
+  // SQLite
+  DatabaseType_SQLite = 1;
+  // MySQL
+  DatabaseType_MySQL = 2;
+  // PostgreSQL
+  DatabaseType_PostgreSQL = 3;
+}
+
+// 初始化数据库配置
+message InitializeDatabaseConfig {
+  // 数据库类型
+  DatabaseType type = 1;
+  // SQLite 数据库文件路径
+  string sqlite_path = 2;
+  // MySQL/PostgreSQL 连接地址，格式为 host 或 host:port
+  string address = 3;
+  // MySQL/PostgreSQL 用户名
+  string username = 4;
+  // MySQL/PostgreSQL 密码
+  string password = 5;
+  // MySQL/PostgreSQL 数据库名
+  string database_name = 6;
+}
+
+// 初始化超级管理员
+message InitializeAdminUser {
+  // 用户名
+  string username = 1;
+  // 密码
+  string password = 2;
+  // 邮箱
+  string email = 3;
+  // 昵称
+  string name = 4;
+}
+
+// 获取系统初始化状态请求
+message InitializeStatusRequest {}
+
+// 获取系统初始化状态响应
+message InitializeStatusResponse {
+  // 是否已初始化
+  bool initialized = 1;
+  // 支持的数据库类型
+  repeated DatabaseType supported_database_types = 2;
+}
+
+// 确认系统初始化请求
+message ConfirmInitializeRequest {
+  // 数据库配置
+  InitializeDatabaseConfig database = 1;
+  // 超级管理员
+  InitializeAdminUser admin = 2;
+}
+
+// 确认系统初始化响应
+message ConfirmInitializeResponse {
+  // 是否已初始化
+  bool initialized = 1;
+  // 是否需要重启服务
+  bool restart_required = 2;
+}
+
+// 测试数据库连接请求
+message TestInitializeDatabaseRequest {
+  // 数据库配置
+  InitializeDatabaseConfig database = 1;
+}
+
+// 测试数据库连接响应
+message TestInitializeDatabaseResponse {
+  // 是否连接成功
+  bool success = 1;
+}

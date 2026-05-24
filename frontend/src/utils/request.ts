@@ -28,6 +28,7 @@ const ACCESS_TOKEN_KEY = 'accessToken'
 const REFRESH_TOKEN_KEY = 'refreshToken'
 const AUTH_LOGIN_PATH = '/auth/login'
 const AUTH_REFRESH_PATH = '/auth/refresh'
+const INITIALIZE_PATH = '/system/initialize'
 
 let refreshTokenPromise: Promise<string> | null = null
 let isHandlingAuthExpired = false
@@ -96,6 +97,11 @@ const isAuthPath = (url?: string) => {
   return url.includes(AUTH_LOGIN_PATH) || url.includes(AUTH_REFRESH_PATH)
 }
 
+const isPublicPath = (url?: string) => {
+  if (!url) return false
+  return isAuthPath(url) || url.includes(INITIALIZE_PATH)
+}
+
 const isWrappedResponse = (data: unknown): data is WrappedResponse => {
   return !!data && typeof data === 'object' && 'code' in data
 }
@@ -144,7 +150,7 @@ const tryRefreshAndRetry = async (requestConfig?: IAuthAxiosRequestConfig) => {
     return null
   }
 
-  if (isAuthPath(requestConfig.url) || !getRefreshToken()) {
+  if (isPublicPath(requestConfig.url) || !getRefreshToken()) {
     return null
   }
 
@@ -168,7 +174,7 @@ const tryRefreshAndRetry = async (requestConfig?: IAuthAxiosRequestConfig) => {
 service.interceptors.request.use(
   (config) => {
     const token = getAccessToken()
-    if (token && !isAuthPath(config.url)) {
+    if (token && !isPublicPath(config.url)) {
       config.headers.Authorization = toBearerAuthHeader(token)
     }
     return config
@@ -202,7 +208,7 @@ service.interceptors.response.use(
         return Promise.reject(createRequestError(message || '未授权', { code }))
       }
 
-      if (isAuthPath(originalRequest.url)) {
+      if (isPublicPath(originalRequest.url)) {
         const errorMessage = message || '未授权'
         ElMessage.error(errorMessage)
         return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
@@ -247,7 +253,7 @@ service.interceptors.response.use(
             )
           }
 
-          if (!isAuthPath(originalRequest?.url)) {
+          if (!isPublicPath(originalRequest?.url)) {
             try {
               const retryResponse = await tryRefreshAndRetry(originalRequest)
               if (retryResponse) return retryResponse

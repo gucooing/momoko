@@ -25,6 +25,7 @@ func NewHTTPServer(c *conf.Server,
 	fileApi *service.FileService,
 	userApi *service.UserService,
 	systemApi *service.SystemService,
+	initializeApi *service.InitializeService,
 	instanceApi *service.InstanceService,
 	openSSHApi *service.OpenSSHService,
 ) *http.Server {
@@ -62,6 +63,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterAuthServiceHTTPServer(srv, authApi)
 	v1.RegisterFileManagerHTTPServer(srv, fileApi)
 	v1.RegisterUserServiceHTTPServer(srv, userApi)
+	v1.RegisterInitializeHTTPServer(srv, initializeApi)
 	v1.RegisterSystemHTTPServer(srv, systemApi)
 	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
 	v1.RegisterOpenSSHManagerHTTPServer(srv, openSSHApi)

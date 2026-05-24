@@ -10,6 +10,12 @@ export const staticRoutes = [
     meta: { keepAlive: false },
   },
   {
+    path: '/initialize',
+    name: 'initialize',
+    component: () => import('@/views/initialize/index.vue'),
+    meta: { keepAlive: false },
+  },
+  {
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/index.vue'),

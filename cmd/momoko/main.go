@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"momoko/internal/conf"
+	"momoko/internal/initialize"
 	"momoko/pkg/auth"
 
 	"github.com/go-kratos/kratos/v2"
@@ -48,6 +50,20 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 	)
 }
 
+func newInitializeApp(logger log.Logger, hs *http.Server) *kratos.App {
+	return kratos.New(
+		kratos.ID(id),
+		kratos.Name(Name),
+		kratos.Version(Version),
+		kratos.Metadata(map[string]string{
+			"mode": "initialize",
+		}),
+		kratos.Logger(logger),
+		kratos.StopTimeout(5*time.Second),
+		kratos.Server(hs),
+	)
+}
+
 func main() {
 	flag.Parse()
 	logger := log.With(log.NewStdLogger(os.Stdout),
@@ -76,7 +92,21 @@ func main() {
 	}
 	auth.AuthSecretKey = bc.GetAuth().Secret
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	if !initialize.IsInitialized() {
+		app := wireInitializeApp(bc.Server, flagconf, logger)
+		go func() {
+			<-initialize.RestartRequested()
+			if err := app.Stop(); err != nil {
+				log.Errorf("stop initialize server failed: %v", err)
+			}
+		}()
+		if err := app.Run(); err != nil {
+			panic(err)
+		}
+		main()
+	}
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data, flagconf, logger)
 	if err != nil {
 		panic(err)
 	}

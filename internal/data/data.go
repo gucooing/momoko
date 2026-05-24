@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"log"
 	"momoko/internal/data/ent/gen"
 	"os"
 
@@ -11,6 +10,7 @@ import (
 	_ "github.com/glebarez/go-sqlite/compat"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/wire"
+	_ "github.com/lib/pq"
 
 	"momoko/internal/conf"
 )
@@ -26,6 +26,7 @@ var ProviderSet = wire.NewSet(
 	NewOpenSSHRepo,
 	NewFileRepo,
 	NewOperationLogRepo,
+	NewInitializeRepo,
 )
 
 // Data is a struct that contains the database client.
@@ -37,7 +38,7 @@ type Data struct {
 func NewData(c *conf.Data) (*Data, func(), error) {
 	db, err := gen.Open(c.Database.Driver, c.Database.Source)
 	if err != nil {
-		log.Fatalf("failed opening connection to database: %v", err)
+		return nil, nil, err
 	}
 	if os.Getenv("DEPLOY_ENV") == "dev" {
 		// Enable debug mode for detailed logging.

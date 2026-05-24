@@ -3,6 +3,7 @@ import { menuToRoute } from '@/router/menuToRoute'
 import { staticRoutes } from '@/router/route'
 import { useTabsStore } from '@/stores/tabs'
 import { buildLoginRoute } from '@/utils/authRedirect'
+import { getInitializeStatus } from '@/api/initialize'
 import NProgress from 'nprogress'
 
 // 配置 NProgress
@@ -26,8 +27,17 @@ router.beforeEach(async (to) => {
   NProgress.start()
   const token = localStorage.getItem('accessToken')
 
-  // 未登录：跳转到登录页面
+  // 未登录：先检查初始化状态
   if (!token) {
+    if (to.path === '/initialize') return true
+    try {
+      const { data } = await getInitializeStatus()
+      if (data && !data.initialized) {
+        return { path: '/initialize', replace: true }
+      }
+    } catch {
+      // 接口不可用时忽略，走正常登录流程
+    }
     if (to.path !== '/login') return buildLoginRoute(to.fullPath)
     return true
   }
@@ -68,6 +78,11 @@ router.beforeEach(async (to) => {
   }
 
   // 已加载：正常处理
+  // 已登录用户访问初始化页面，重定向到首页
+  if (to.path === '/initialize') {
+    return { path: '/', replace: true }
+  }
+
   // 访问 403 / 404 等异常页时，直接放行（此时权限已加载，403 是真的没有权限）
   if (to.name === '403' || to.name === '404') {
     return true

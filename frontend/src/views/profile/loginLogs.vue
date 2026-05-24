@@ -77,7 +77,7 @@ import { useUserProfileStore } from '@/stores/user/profile'
 import { TABLE_CONFIG } from '@/config/elementConfig'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import type { OperationLogInfo } from '@/types/v1/system'
+import type { LoginLogItem } from '@/stores/user/types'
 
 const menuStore = useMenuStore()
 const userProfileStore = useUserProfileStore()
@@ -93,7 +93,7 @@ const formatTime = (value: unknown) => {
   return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : String(value)
 }
 
-const openDetail = (row: OperationLogInfo) => {
+const openDetail = (row: LoginLogItem) => {
   const detail = row.detail
   if (!detail) {
     detailContent.value = '-'

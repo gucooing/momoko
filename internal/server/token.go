@@ -30,14 +30,17 @@ func NewAuthorization(ar biz.AuthRepo) *Authorization {
 
 var (
 	noAuthRoutes = map[publicRoute]struct{}{
-		{method: http.MethodPost, path: "/api/v1/auth/login"}:               {},
-		{method: http.MethodPost, path: "/api/v1/auth/register"}:            {},
-		{method: http.MethodPost, path: "/api/v1/auth/refresh"}:             {},
-		{method: http.MethodPost, path: "/api/v1/auth/register/email-code"}: {},
-		{method: http.MethodPost, path: "/api/v1/auth/login/email-code"}:    {},
-		{method: http.MethodGet, path: "/api/v1/system/login-config"}:       {},
-		{method: http.MethodGet, path: biz.PreFileDownload}:                 {},
-		{method: http.MethodPost, path: biz.PreFileUpload}:                  {},
+		{method: http.MethodPost, path: "/api/v1/auth/login"}:                      {},
+		{method: http.MethodPost, path: "/api/v1/auth/register"}:                   {},
+		{method: http.MethodPost, path: "/api/v1/auth/refresh"}:                    {},
+		{method: http.MethodPost, path: "/api/v1/auth/register/email-code"}:        {},
+		{method: http.MethodPost, path: "/api/v1/auth/login/email-code"}:           {},
+		{method: http.MethodGet, path: "/api/v1/system/login-config"}:              {},
+		{method: http.MethodGet, path: "/api/v1/system/initialize/status"}:         {},
+		{method: http.MethodPost, path: "/api/v1/system/initialize/confirm"}:       {},
+		{method: http.MethodPost, path: "/api/v1/system/initialize/database/test"}: {},
+		{method: http.MethodGet, path: biz.PreFileDownload}:                        {},
+		{method: http.MethodPost, path: biz.PreFileUpload}:                         {},
 	}
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )

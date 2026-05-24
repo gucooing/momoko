@@ -116,20 +116,7 @@ var (
 			Status:      entrole.StatusActive,
 		},
 	}
-	defaultUsers = []*defaultUser{
-		{
-			ID:       "admin_1",
-			Username: "admin",
-			Password: "admin",
-			Email:    "admin@alsl.xyz",
-			Status:   entuser.StatusActive,
-			Avatar:   "",
-			Bio:      "",
-			Name:     "超级管理员",
-			Tags:     "",
-			RoleID:   adminPermissionRoleID,
-		},
-	}
+	defaultUsers = []*defaultUser{}
 )
 
 func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, parentID *string, order int, permission constant.Permissions) defaultMenu {
@@ -148,6 +135,10 @@ func newDefaultMenu(id string, menuType entmenu.Type, path, title, icon string, 
 }
 
 func syncDefaultRBAC(ctx context.Context, client *gen.Client) error {
+	return syncDefaultRBACWithUsers(ctx, client, defaultUsers)
+}
+
+func syncDefaultRBACWithUsers(ctx context.Context, client *gen.Client, users []*defaultUser) error {
 	menuIDs := make(map[string]struct{}, len(builtinDefaultMenus))
 	builtinMenuIDs := make([]string, 0, len(builtinDefaultMenus))
 	for _, menu := range builtinDefaultMenus {
@@ -169,8 +160,8 @@ func syncDefaultRBAC(ctx context.Context, client *gen.Client) error {
 			return fmt.Errorf("builtin role for menu perms not found: %s", roleID)
 		}
 	}
-	userIDs := make(map[string]struct{}, len(defaultUsers))
-	for _, user := range defaultUsers {
+	userIDs := make(map[string]struct{}, len(users))
+	for _, user := range users {
 		if _, ok := userIDs[user.ID]; ok {
 			return fmt.Errorf("duplicate default user id: %s", user.ID)
 		}
@@ -256,8 +247,8 @@ func syncDefaultRBAC(ctx context.Context, client *gen.Client) error {
 		}
 	}
 
-	userBuilders := make([]*gen.UserCreate, 0, len(defaultUsers))
-	for _, item := range defaultUsers {
+	userBuilders := make([]*gen.UserCreate, 0, len(users))
+	for _, item := range users {
 		builder := tx.User.Create().
 			SetID(item.ID).
 			SetUsername(item.Username).
