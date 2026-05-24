@@ -2,7 +2,7 @@ FROM --platform=$BUILDPLATFORM node:25.9.0-bookworm-slim AS frontend-builder
 
 WORKDIR /src/frontend
 
-RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
+RUN npm install -g pnpm@10.30.3
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
