@@ -359,6 +359,37 @@ var (
 			},
 		},
 	}
+	// UserAPIKeysColumns holds the columns for the "user_api_keys" table.
+	UserAPIKeysColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "api_key", Type: field.TypeString, Unique: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// UserAPIKeysTable holds the schema information for the "user_api_keys" table.
+	UserAPIKeysTable = &schema.Table{
+		Name:       "user_api_keys",
+		Columns:    UserAPIKeysColumns,
+		PrimaryKey: []*schema.Column{UserAPIKeysColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_api_keys_users_user",
+				Columns:    []*schema.Column{UserAPIKeysColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userapikey_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserAPIKeysColumns[6]},
+			},
+		},
+	}
 	// RoleMenusColumns holds the columns for the "role_menus" table.
 	RoleMenusColumns = []*schema.Column{
 		{Name: "role_id", Type: field.TypeString},
@@ -423,6 +454,7 @@ var (
 		SSHHostsTable,
 		ConfigsTable,
 		UsersTable,
+		UserAPIKeysTable,
 		RoleMenusTable,
 		SSHHostSharesTable,
 	}
@@ -443,6 +475,7 @@ func init() {
 	}
 	UsersTable.ForeignKeys[0].RefTable = InstancesTable
 	UsersTable.ForeignKeys[1].RefTable = RolesTable
+	UserAPIKeysTable.ForeignKeys[0].RefTable = UsersTable
 	RoleMenusTable.ForeignKeys[0].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[1].RefTable = MenusTable
 	SSHHostSharesTable.ForeignKeys[0].RefTable = SSHHostsTable

@@ -40,4 +40,10 @@ const (
 
 	// Terminal 终端页面
 	Terminal Permissions = "terminal"
+
+	// ApiKeyAdd api key 添加
+	ApiKeyAdd    Permissions = "api_key:add"
+	ApiKeyEdit   Permissions = "api_key:edit"
+	ApiKeyDelete Permissions = "api_key:delete"
+	ApiKeyView   Permissions = "api_key:view"
 )

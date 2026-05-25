@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 节点服务
+service NodeService {
+  // 创建 API Key
+  rpc CreateAPIKey(CreateAPIKeyRequest) returns (CreateAPIKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/node/api-key"
+      body: "*"
+    };
+  }
+  // 获取 API Key 列表
+  rpc ListAPIKeys(ListAPIKeysRequest) returns (ListAPIKeysResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/node/api-key"
+    };
+  }
+  // 复制 API Key
+  rpc CopyAPIKey(CopyAPIKeyRequest) returns (CopyAPIKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/node/api-key/{id}/copy"
+      body: "*"
+    };
+  }
+  // 更新 API Key
+  rpc UpdateAPIKey(UpdateAPIKeyRequest) returns (UpdateAPIKeyResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/node/api-key/{id}"
+      body: "*"
+    };
+  }
+}
+
+message CreateAPIKeyRequest {
+  // 名称
+  string name = 1;
+  // 过期时间；不传表示永久有效
+  optional google.protobuf.Timestamp expires_at = 2;
+}
+
+message CreateAPIKeyResponse {
+  // API Key 信息
+  APIKeyInfo info = 1;
+}
+
+message ListAPIKeysRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // 名称关键字
+  optional string keywords = 3;
+}
+
+message ListAPIKeysResponse {
+  // actual page
+  int64 page = 1;
+  // actual page size
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 列表
+  repeated APIKeyInfo infos = 4;
+}
+
+message CopyAPIKeyRequest {
+  // API Key id
+  string id = 1;
+}
+
+message CopyAPIKeyResponse {
+  // API Key 信息
+  APIKeyInfo info = 1;
+}
+
+message UpdateAPIKeyRequest {
+  // API Key id
+  string id = 1;
+  // 名称
+  optional string name = 2;
+  // 过期时间
+  optional google.protobuf.Timestamp expires_at = 3;
+  // 设为永久有效
+  optional bool never_expires = 4;
+}
+
+message UpdateAPIKeyResponse {
+  // API Key 信息
+  APIKeyInfo info = 1;
+}
+
+message APIKeyInfo {
+  // API Key id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // API Key；列表和更新接口不返回完整值
+  string api_key = 3;
+  // 过期时间；空表示永久有效
+  optional google.protobuf.Timestamp expires_at = 4;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 5;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 6;
+}

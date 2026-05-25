@@ -10,11 +10,19 @@ import (
 
 // Auth user auth.
 type Auth struct {
-	UserID    string `json:"id"`
-	DeviceId  string `json:"device_id"`
-	SessionID string `json:"session_id"`
+	UserID    string   `json:"id"`
+	DeviceId  string   `json:"device_id"`
+	SessionID string   `json:"session_id"`
+	Type      AuthType `json:"type"`
 	jwt.RegisteredClaims
 }
+
+type AuthType int
+
+const (
+	AuthTypeJWT AuthType = iota
+	AuthTypeApiKey
+)
 
 type authKey struct{}
 

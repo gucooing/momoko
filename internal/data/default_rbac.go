@@ -62,10 +62,13 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", new("menu_2"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "Element:MessageBox", new("menu_2"), 1, "", entmenu.StatusActive),
 		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", new("menu_2"), 2, "", entmenu.StatusActive),
-		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:CubeIcon", new("menu_2"), 3, "", entmenu.StatusActive),
+		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_2"), 3, "", entmenu.StatusActive),
 
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "Element:Folder", new("menu_3"), 0, constant.Terminal, entmenu.StatusActive),
+
+		newDefaultMenu("menu_4", entmenu.TypeDirectory, "", "节点管理", "HOutline:SignalIcon", nil, 3, "", entmenu.StatusActive),
+		newDefaultMenu("menu_4_1", entmenu.TypeMenu, "/node/key", "ApiKey", "HOutline:KeyIcon", new("menu_4"), 1, constant.ApiKeyView, entmenu.StatusActive),
 
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),

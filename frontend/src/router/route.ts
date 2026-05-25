@@ -57,6 +57,12 @@ export const staticRoutes = [
         meta: { title: '实例文件', icon: 'HOutline:FolderIcon', keepAlive: true },
       },
       {
+        path: '/node/key',
+        name: 'ApiKeyView',
+        component: () => import('@/views/node/key/index.vue'),
+        meta: { title: 'API Key 管理', icon: 'HOutline:KeyIcon', keepAlive: true },
+      },
+      {
         path: '/exception/403',
         name: '403',
         component: () => import('@/views/exception/403/index.vue'),

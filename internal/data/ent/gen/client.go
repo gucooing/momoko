@@ -23,6 +23,7 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/gen/userapikey"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -61,6 +62,8 @@ type Client struct {
 	SystemConfig *SystemConfigClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserAPIKey is the client for interacting with the UserAPIKey builders.
+	UserAPIKey *UserAPIKeyClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -84,6 +87,7 @@ func (c *Client) init() {
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserAPIKey = NewUserAPIKeyClient(c.config)
 }
 
 type (
@@ -188,6 +192,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SSHHost:         NewSSHHostClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
 		User:            NewUserClient(cfg),
+		UserAPIKey:      NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -219,6 +224,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SSHHost:         NewSSHHostClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
 		User:            NewUserClient(cfg),
+		UserAPIKey:      NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -250,7 +256,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
 		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
-		c.User,
+		c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -262,7 +268,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
 		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
-		c.User,
+		c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -295,6 +301,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SystemConfig.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserAPIKeyMutation:
+		return c.UserAPIKey.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("gen: unknown mutation type %T", m)
 	}
@@ -2104,15 +2112,164 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserAPIKeyClient is a client for the UserAPIKey schema.
+type UserAPIKeyClient struct {
+	config
+}
+
+// NewUserAPIKeyClient returns a client for the UserAPIKey from the given config.
+func NewUserAPIKeyClient(c config) *UserAPIKeyClient {
+	return &UserAPIKeyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userapikey.Hooks(f(g(h())))`.
+func (c *UserAPIKeyClient) Use(hooks ...Hook) {
+	c.hooks.UserAPIKey = append(c.hooks.UserAPIKey, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userapikey.Intercept(f(g(h())))`.
+func (c *UserAPIKeyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserAPIKey = append(c.inters.UserAPIKey, interceptors...)
+}
+
+// Create returns a builder for creating a UserAPIKey entity.
+func (c *UserAPIKeyClient) Create() *UserAPIKeyCreate {
+	mutation := newUserAPIKeyMutation(c.config, OpCreate)
+	return &UserAPIKeyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserAPIKey entities.
+func (c *UserAPIKeyClient) CreateBulk(builders ...*UserAPIKeyCreate) *UserAPIKeyCreateBulk {
+	return &UserAPIKeyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserAPIKeyClient) MapCreateBulk(slice any, setFunc func(*UserAPIKeyCreate, int)) *UserAPIKeyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserAPIKeyCreateBulk{err: fmt.Errorf("calling to UserAPIKeyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserAPIKeyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserAPIKeyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserAPIKey.
+func (c *UserAPIKeyClient) Update() *UserAPIKeyUpdate {
+	mutation := newUserAPIKeyMutation(c.config, OpUpdate)
+	return &UserAPIKeyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserAPIKeyClient) UpdateOne(_m *UserAPIKey) *UserAPIKeyUpdateOne {
+	mutation := newUserAPIKeyMutation(c.config, OpUpdateOne, withUserAPIKey(_m))
+	return &UserAPIKeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserAPIKeyClient) UpdateOneID(id string) *UserAPIKeyUpdateOne {
+	mutation := newUserAPIKeyMutation(c.config, OpUpdateOne, withUserAPIKeyID(id))
+	return &UserAPIKeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserAPIKey.
+func (c *UserAPIKeyClient) Delete() *UserAPIKeyDelete {
+	mutation := newUserAPIKeyMutation(c.config, OpDelete)
+	return &UserAPIKeyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserAPIKeyClient) DeleteOne(_m *UserAPIKey) *UserAPIKeyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserAPIKeyClient) DeleteOneID(id string) *UserAPIKeyDeleteOne {
+	builder := c.Delete().Where(userapikey.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserAPIKeyDeleteOne{builder}
+}
+
+// Query returns a query builder for UserAPIKey.
+func (c *UserAPIKeyClient) Query() *UserAPIKeyQuery {
+	return &UserAPIKeyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserAPIKey},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserAPIKey entity by its id.
+func (c *UserAPIKeyClient) Get(ctx context.Context, id string) (*UserAPIKey, error) {
+	return c.Query().Where(userapikey.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserAPIKeyClient) GetX(ctx context.Context, id string) *UserAPIKey {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserAPIKey.
+func (c *UserAPIKeyClient) QueryUser(_m *UserAPIKey) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userapikey.Table, userapikey.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, userapikey.UserTable, userapikey.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserAPIKeyClient) Hooks() []Hook {
+	return c.hooks.UserAPIKey
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserAPIKeyClient) Interceptors() []Interceptor {
+	return c.inters.UserAPIKey
+}
+
+func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserAPIKeyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserAPIKeyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserAPIKeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserAPIKeyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown UserAPIKey mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, Role, SSHHost, SystemConfig, User []ent.Hook
+		OperationLog, Role, SSHHost, SystemConfig, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, Role, SSHHost, SystemConfig, User []ent.Interceptor
+		OperationLog, Role, SSHHost, SystemConfig, User, UserAPIKey []ent.Interceptor
 	}
 )
 

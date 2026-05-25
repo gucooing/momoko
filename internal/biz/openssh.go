@@ -220,7 +220,7 @@ func validateCreateSSHHost(req *v1.CreateSSHHostRequest) error {
 	}
 }
 
-func toV1SSHAuthType(authType string) v1.SSHAuthType {
+func toV1SSHAuthType(authType sshhost.AuthType) v1.SSHAuthType {
 	switch authType {
 	case sshcore.AuthPassword:
 		return v1.SSHAuthType_SSH_AUTH_TYPE_PASSWORD
@@ -249,7 +249,7 @@ func (o *OpenSSHUsecase) toSSHHostInfo(item *gen.SSHHost, userID string) *v1.SSH
 		Host:        item.Host,
 		Port:        int32(item.Port),
 		Username:    item.Username,
-		AuthType:    toV1SSHAuthType(string(item.AuthType)),
+		AuthType:    toV1SSHAuthType(item.AuthType),
 		Fingerprint: item.Fingerprint,
 		Remark:      item.Remark,
 		Tags:        item.Tags,

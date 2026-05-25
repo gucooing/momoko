@@ -1236,6 +1236,105 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetInstanceInfoResponse'
+    /api/v1/node/api-key:
+        get:
+            tags:
+                - NodeService
+            description: 获取 API Key 列表
+            operationId: NodeService_ListAPIKeys
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 名称关键字
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAPIKeysResponse'
+        post:
+            tags:
+                - NodeService
+            description: 创建 API Key
+            operationId: NodeService_CreateAPIKey
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAPIKeyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAPIKeyResponse'
+    /api/v1/node/api-key/{id}:
+        put:
+            tags:
+                - NodeService
+            description: 更新 API Key
+            operationId: NodeService_UpdateAPIKey
+            parameters:
+                - name: id
+                  in: path
+                  description: API Key id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAPIKeyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAPIKeyResponse'
+    /api/v1/node/api-key/{id}/copy:
+        post:
+            tags:
+                - NodeService
+            description: 复制 API Key
+            operationId: NodeService_CopyAPIKey
+            parameters:
+                - name: id
+                  in: path
+                  description: API Key id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CopyAPIKeyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CopyAPIKeyResponse'
     /api/v1/openssh/host:
         get:
             tags:
@@ -2078,6 +2177,30 @@ paths:
                                 $ref: '#/components/schemas/v1.EditUserResponse'
 components:
     schemas:
+        v1.APIKeyInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Key id
+                name:
+                    type: string
+                    description: 名称
+                apiKey:
+                    type: string
+                    description: API Key；列表和更新接口不返回完整值
+                expiresAt:
+                    type: string
+                    description: 过期时间；空表示永久有效
+                    format: date-time
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
         v1.AddUserRequest:
             type: object
             properties:
@@ -2432,6 +2555,19 @@ components:
                     type: boolean
                     description: 是否需要重启服务
             description: 确认系统初始化响应
+        v1.CopyAPIKeyRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Key id
+        v1.CopyAPIKeyResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyInfo'
+                    description: API Key 信息
         v1.CopyFileSystemRequest:
             type: object
             properties:
@@ -2523,6 +2659,23 @@ components:
                     description: 物理核心数
                     format: int32
             description: CPU实时状态
+        v1.CreateAPIKeyRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                expiresAt:
+                    type: string
+                    description: 过期时间；不传表示永久有效
+                    format: date-time
+        v1.CreateAPIKeyResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyInfo'
+                    description: API Key 信息
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -3390,6 +3543,23 @@ components:
                     type: boolean
                     description: 是否启用
             description: 实例类型信息
+        v1.ListAPIKeysResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.APIKeyInfo'
+                    description: 列表
         v1.ListOperationLogsResponse:
             type: object
             properties:
@@ -4353,6 +4523,29 @@ components:
                     type: string
                     description: 实际生成的相对路径
             description: 解压实例文件响应
+        v1.UpdateAPIKeyRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Key id
+                name:
+                    type: string
+                    description: 名称
+                expiresAt:
+                    type: string
+                    description: 过期时间
+                    format: date-time
+                neverExpires:
+                    type: boolean
+                    description: 设为永久有效
+        v1.UpdateAPIKeyResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyInfo'
+                    description: API Key 信息
         v1.UpdateEmailConfigRequest:
             type: object
             properties:
@@ -4735,6 +4928,8 @@ tags:
       description: 系统初始化
     - name: InstanceManager
       description: 应用管理
+    - name: NodeService
+      description: 节点服务
     - name: OpenSSHManager
       description: OpenSSH 管理
     - name: System

@@ -48,7 +48,7 @@ func GenerateToken(authDb *gen.Auth) (string, error) {
 
 // ParseToken parses the JWT token string and returns the Auth claims.
 func ParseToken(tokenStr string) (*Auth, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &Auth{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Auth{Type: AuthTypeJWT}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(AuthSecretKey), nil
 	}, jwt.WithoutClaimsValidation())
 	if err != nil {

@@ -38,6 +38,8 @@ type Tx struct {
 	SystemConfig *SystemConfigClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserAPIKey is the client for interacting with the UserAPIKey builders.
+	UserAPIKey *UserAPIKeyClient
 
 	// lazily loaded.
 	client     *Client
@@ -181,6 +183,7 @@ func (tx *Tx) init() {
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserAPIKey = NewUserAPIKeyClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

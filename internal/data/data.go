@@ -24,6 +24,8 @@ var ProviderSet = wire.NewSet(
 	NewConfigRepo,
 	NewInstanceRepo,
 	NewOpenSSHRepo,
+	NewUserAPIKeyRepo,
+	NewAPIKeyRepo,
 	NewFileRepo,
 	NewOperationLogRepo,
 	NewInitializeRepo,

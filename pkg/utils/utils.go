@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 func UniqueNonEmpty(ids []string, exclude string) []string {
 	seen := make(map[string]struct{}, len(ids))
@@ -17,4 +20,11 @@ func UniqueNonEmpty(ids []string, exclude string) []string {
 		result = append(result, id)
 	}
 	return result
+}
+
+func PrivacyString(str string) string {
+	if len(str) <= 10 {
+		return "******"
+	}
+	return fmt.Sprintf("%s*******%s", str[:6], str[len(str)-3:])
 }

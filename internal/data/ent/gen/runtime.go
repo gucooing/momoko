@@ -15,6 +15,7 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/internal/data/ent/schema"
 	"time"
 )
@@ -374,4 +375,35 @@ func init() {
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	user.IDValidator = userDescID.Validators[0].(func(string) error)
+	userapikeyMixin := schema.UserAPIKey{}.Mixin()
+	userapikeyMixinFields0 := userapikeyMixin[0].Fields()
+	_ = userapikeyMixinFields0
+	userapikeyFields := schema.UserAPIKey{}.Fields()
+	_ = userapikeyFields
+	// userapikeyDescCreateTime is the schema descriptor for create_time field.
+	userapikeyDescCreateTime := userapikeyMixinFields0[0].Descriptor()
+	// userapikey.DefaultCreateTime holds the default value on creation for the create_time field.
+	userapikey.DefaultCreateTime = userapikeyDescCreateTime.Default.(func() time.Time)
+	// userapikeyDescUpdateTime is the schema descriptor for update_time field.
+	userapikeyDescUpdateTime := userapikeyMixinFields0[1].Descriptor()
+	// userapikey.DefaultUpdateTime holds the default value on creation for the update_time field.
+	userapikey.DefaultUpdateTime = userapikeyDescUpdateTime.Default.(func() time.Time)
+	// userapikey.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	userapikey.UpdateDefaultUpdateTime = userapikeyDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userapikeyDescName is the schema descriptor for name field.
+	userapikeyDescName := userapikeyFields[1].Descriptor()
+	// userapikey.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	userapikey.NameValidator = userapikeyDescName.Validators[0].(func(string) error)
+	// userapikeyDescAPIKey is the schema descriptor for api_key field.
+	userapikeyDescAPIKey := userapikeyFields[2].Descriptor()
+	// userapikey.APIKeyValidator is a validator for the "api_key" field. It is called by the builders before save.
+	userapikey.APIKeyValidator = userapikeyDescAPIKey.Validators[0].(func(string) error)
+	// userapikeyDescUserID is the schema descriptor for user_id field.
+	userapikeyDescUserID := userapikeyFields[4].Descriptor()
+	// userapikey.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	userapikey.UserIDValidator = userapikeyDescUserID.Validators[0].(func(string) error)
+	// userapikeyDescID is the schema descriptor for id field.
+	userapikeyDescID := userapikeyFields[0].Descriptor()
+	// userapikey.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	userapikey.IDValidator = userapikeyDescID.Validators[0].(func(string) error)
 }

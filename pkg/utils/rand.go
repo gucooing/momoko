@@ -3,6 +3,11 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
+)
+
+const (
+	apiKeyAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
 )
 
 func GenerateRandomString(length int) string {
@@ -23,4 +28,15 @@ func GenerateEmailCode(length int) (string, error) {
 		raw[i] = '0' + b%10
 	}
 	return string(raw), nil
+}
+
+func GenerateAPIKey() (string, error) {
+	raw := make([]byte, 20)
+	if _, err := rand.Read(raw); err != nil {
+		return "", fmt.Errorf("generate api key: %w", err)
+	}
+	for i, b := range raw {
+		raw[i] = apiKeyAlphabet[int(b)%len(apiKeyAlphabet)]
+	}
+	return "mk-" + string(raw), nil
 }

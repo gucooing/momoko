@@ -58,11 +58,16 @@ outputPartialMethods=false:./frontend/src/types \
 build:
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
+# build pnpm
+build-pnpm:
+	cd ./frontend && pnpm build
+
 .PHONY: gen
 # generate
 gen:
 	go generate ./...
 	go mod tidy
+	cd ./frontend && pnpm build
 
 .PHONY: all
 # generate all

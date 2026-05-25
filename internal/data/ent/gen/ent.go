@@ -18,6 +18,7 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/gen/userapikey"
 	"reflect"
 	"sync"
 
@@ -96,6 +97,7 @@ func checkColumn(t, c string) error {
 			sshhost.Table:         sshhost.ValidColumn,
 			systemconfig.Table:    systemconfig.ValidColumn,
 			user.Table:            user.ValidColumn,
+			userapikey.Table:      userapikey.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
