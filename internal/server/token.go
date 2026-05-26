@@ -60,7 +60,7 @@ var (
 		{method: http.MethodPost, path: "/api/v1/system/initialize/confirm"}:       {},
 		{method: http.MethodPost, path: "/api/v1/system/initialize/database/test"}: {},
 		{method: http.MethodGet, path: biz.PreFileDownload}:                        {},
-		{method: http.MethodPost, path: biz.PreFileUpload}:                         {},
+		{method: http.MethodPut, path: biz.PreFileUpload}:                          {},
 	}
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
