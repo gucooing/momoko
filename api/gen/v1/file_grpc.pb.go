@@ -29,6 +29,7 @@ const (
 	FileManager_BatchCompressFileSystem_FullMethodName = "/v1.FileManager/BatchCompressFileSystem"
 	FileManager_UnzipFileSystem_FullMethodName         = "/v1.FileManager/UnzipFileSystem"
 	FileManager_OpenFileSystemFile_FullMethodName      = "/v1.FileManager/OpenFileSystemFile"
+	FileManager_EditFileSystemFile_FullMethodName      = "/v1.FileManager/EditFileSystemFile"
 	FileManager_FileSystemPreSign_FullMethodName       = "/v1.FileManager/FileSystemPreSign"
 	FileManager_FileSystemPreSignUpload_FullMethodName = "/v1.FileManager/FileSystemPreSignUpload"
 	FileManager_GetFileUploadStatus_FullMethodName     = "/v1.FileManager/GetFileUploadStatus"
@@ -62,6 +63,8 @@ type FileManagerClient interface {
 	UnzipFileSystem(ctx context.Context, in *UnzipFileSystemRequest, opts ...grpc.CallOption) (*UnzipFileSystemResponse, error)
 	// 打开指定文件(系统级)
 	OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...grpc.CallOption) (*OpenFileSystemFileResponse, error)
+	// 编辑指定文件(系统级)
+	EditFileSystemFile(ctx context.Context, in *EditFileSystemFileRequest, opts ...grpc.CallOption) (*EditFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
 	FileSystemPreSign(ctx context.Context, in *FileSystemPreSignRequest, opts ...grpc.CallOption) (*FileSystemPreSignResponse, error)
 	// 文件上传预签名(系统级)
@@ -182,6 +185,16 @@ func (c *fileManagerClient) OpenFileSystemFile(ctx context.Context, in *OpenFile
 	return out, nil
 }
 
+func (c *fileManagerClient) EditFileSystemFile(ctx context.Context, in *EditFileSystemFileRequest, opts ...grpc.CallOption) (*EditFileSystemFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EditFileSystemFileResponse)
+	err := c.cc.Invoke(ctx, FileManager_EditFileSystemFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fileManagerClient) FileSystemPreSign(ctx context.Context, in *FileSystemPreSignRequest, opts ...grpc.CallOption) (*FileSystemPreSignResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FileSystemPreSignResponse)
@@ -258,6 +271,8 @@ type FileManagerServer interface {
 	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
 	// 打开指定文件(系统级)
 	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
+	// 编辑指定文件(系统级)
+	EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
 	FileSystemPreSign(context.Context, *FileSystemPreSignRequest) (*FileSystemPreSignResponse, error)
 	// 文件上传预签名(系统级)
@@ -307,6 +322,9 @@ func (UnimplementedFileManagerServer) UnzipFileSystem(context.Context, *UnzipFil
 }
 func (UnimplementedFileManagerServer) OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OpenFileSystemFile not implemented")
+}
+func (UnimplementedFileManagerServer) EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EditFileSystemFile not implemented")
 }
 func (UnimplementedFileManagerServer) FileSystemPreSign(context.Context, *FileSystemPreSignRequest) (*FileSystemPreSignResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FileSystemPreSign not implemented")
@@ -524,6 +542,24 @@ func _FileManager_OpenFileSystemFile_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileManager_EditFileSystemFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditFileSystemFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).EditFileSystemFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_EditFileSystemFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).EditFileSystemFile(ctx, req.(*EditFileSystemFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FileManager_FileSystemPreSign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FileSystemPreSignRequest)
 	if err := dec(in); err != nil {
@@ -660,6 +696,10 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OpenFileSystemFile",
 			Handler:    _FileManager_OpenFileSystemFile_Handler,
+		},
+		{
+			MethodName: "EditFileSystemFile",
+			Handler:    _FileManager_EditFileSystemFile_Handler,
 		},
 		{
 			MethodName: "FileSystemPreSign",

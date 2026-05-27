@@ -506,6 +506,20 @@ export interface OpenInstanceFileResponse {
   info: Uint8Array;
 }
 
+/** 编辑实例文件请求 */
+export interface EditInstanceFileRequest {
+  /** 实例id */
+  id: string;
+  /** 文件相对路径 */
+  path: string;
+  /** 文件内容 */
+  content: Uint8Array;
+}
+
+/** 编辑实例文件响应 */
+export interface EditInstanceFileResponse {
+}
+
 /** 实例文件下载预签名请求 */
 export interface InstanceFilePreSignRequest {
   /** 实例id */

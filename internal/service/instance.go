@@ -280,6 +280,14 @@ func (i *InstanceService) OpenInstanceFile(ctx context.Context, req *v1.OpenInst
 	return i.uc.OpenFile(ctx, authCtx.UserID, req)
 }
 
+func (i *InstanceService) EditInstanceFile(ctx context.Context, req *v1.EditInstanceFileRequest) (*v1.EditInstanceFileResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.EditFile(ctx, authCtx.UserID, req)
+}
+
 func (i *InstanceService) InstanceFilePreSign(ctx context.Context, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

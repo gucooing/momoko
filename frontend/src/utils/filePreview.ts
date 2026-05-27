@@ -49,6 +49,14 @@ export const decodeBase64ToBytes = (value: string) => {
   }
 }
 
+export const encodeBytesToBase64 = (value: Uint8Array) => {
+  let binary = ''
+  value.forEach((byte) => {
+    binary += String.fromCharCode(byte)
+  })
+  return window.btoa(binary)
+}
+
 export const toUint8Array = (value: unknown) => {
   if (value instanceof Uint8Array) return value
   if (Array.isArray(value)) return Uint8Array.from(value)

@@ -276,6 +276,8 @@ const (
 	OperationType_OperationTypeFileUploadComplete OperationType = 23
 	// 文件上传取消
 	OperationType_OperationTypeFileUploadCancel OperationType = 24
+	// 文件编辑
+	OperationType_OperationTypeFileEdit OperationType = 62
 	// 实例类型新增
 	OperationType_OperationTypeInstanceTypeCreate OperationType = 25
 	// 实例类型编辑
@@ -318,6 +320,8 @@ const (
 	OperationType_OperationTypeInstanceFileDecompress OperationType = 44
 	// 实例文件上传签名
 	OperationType_OperationTypeInstanceFileUploadPreSign OperationType = 45
+	// 实例文件编辑
+	OperationType_OperationTypeInstanceFileEdit OperationType = 63
 	// SSH连接新增
 	OperationType_OperationTypeSSHHostCreate OperationType = 46
 	// SSH连接编辑
@@ -380,6 +384,7 @@ var (
 		22: "OperationTypeFileDecompress",
 		23: "OperationTypeFileUploadComplete",
 		24: "OperationTypeFileUploadCancel",
+		62: "OperationTypeFileEdit",
 		25: "OperationTypeInstanceTypeCreate",
 		26: "OperationTypeInstanceTypeUpdate",
 		27: "OperationTypeInstanceTypeDelete",
@@ -401,6 +406,7 @@ var (
 		43: "OperationTypeInstanceFileCompress",
 		44: "OperationTypeInstanceFileDecompress",
 		45: "OperationTypeInstanceFileUploadPreSign",
+		63: "OperationTypeInstanceFileEdit",
 		46: "OperationTypeSSHHostCreate",
 		47: "OperationTypeSSHHostUpdate",
 		48: "OperationTypeSSHHostDelete",
@@ -444,6 +450,7 @@ var (
 		"OperationTypeFileDecompress":            22,
 		"OperationTypeFileUploadComplete":        23,
 		"OperationTypeFileUploadCancel":          24,
+		"OperationTypeFileEdit":                  62,
 		"OperationTypeInstanceTypeCreate":        25,
 		"OperationTypeInstanceTypeUpdate":        26,
 		"OperationTypeInstanceTypeDelete":        27,
@@ -465,6 +472,7 @@ var (
 		"OperationTypeInstanceFileCompress":      43,
 		"OperationTypeInstanceFileDecompress":    44,
 		"OperationTypeInstanceFileUploadPreSign": 45,
+		"OperationTypeInstanceFileEdit":          63,
 		"OperationTypeSSHHostCreate":             46,
 		"OperationTypeSSHHostUpdate":             47,
 		"OperationTypeSSHHostDelete":             48,
@@ -5714,7 +5722,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x11RoleStatus_Active\x10\x01*P\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xff\x10\n" +
+	"\x17EmailTemplateType_Login\x10\x01*\xbd\x11\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
@@ -5741,7 +5749,8 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x19OperationTypeFileCompress\x10\x15\x12\x1f\n" +
 	"\x1bOperationTypeFileDecompress\x10\x16\x12#\n" +
 	"\x1fOperationTypeFileUploadComplete\x10\x17\x12!\n" +
-	"\x1dOperationTypeFileUploadCancel\x10\x18\x12#\n" +
+	"\x1dOperationTypeFileUploadCancel\x10\x18\x12\x19\n" +
+	"\x15OperationTypeFileEdit\x10>\x12#\n" +
 	"\x1fOperationTypeInstanceTypeCreate\x10\x19\x12#\n" +
 	"\x1fOperationTypeInstanceTypeUpdate\x10\x1a\x12#\n" +
 	"\x1fOperationTypeInstanceTypeDelete\x10\x1b\x12&\n" +
@@ -5762,7 +5771,8 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1fOperationTypeInstanceFileDelete\x10*\x12%\n" +
 	"!OperationTypeInstanceFileCompress\x10+\x12'\n" +
 	"#OperationTypeInstanceFileDecompress\x10,\x12*\n" +
-	"&OperationTypeInstanceFileUploadPreSign\x10-\x12\x1e\n" +
+	"&OperationTypeInstanceFileUploadPreSign\x10-\x12!\n" +
+	"\x1dOperationTypeInstanceFileEdit\x10?\x12\x1e\n" +
 	"\x1aOperationTypeSSHHostCreate\x10.\x12\x1e\n" +
 	"\x1aOperationTypeSSHHostUpdate\x10/\x12\x1e\n" +
 	"\x1aOperationTypeSSHHostDelete\x100\x12\x1d\n" +

@@ -60,12 +60,16 @@ export interface FileManagerDownloadResult {
     :on-get-upload-pre-sign="props.onGetUploadPreSign"
   />
 
-  <el-dialog
+  <BaseDialog
     v-model="createDialog.visible"
     :title="createDialogTitle"
     width="min(420px, calc(100vw - 24px))"
-    destroy-on-close
-    @closed="resetCreateDialog"
+    :show-fullscreen-button="false"
+    :resizable="false"
+    confirm-text="确认创建"
+    :show-confirm-loading="false"
+    @close="resetCreateDialog"
+    @confirm="submitCreateDialog"
   >
     <div class="dialog-body">
       <el-input
@@ -77,22 +81,16 @@ export interface FileManagerDownloadResult {
       />
       <p v-if="createDialog.errorText" class="dialog-error">{{ createDialog.errorText }}</p>
     </div>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="createDialog.visible = false">取消</el-button>
-        <el-button type="primary" :loading="createDialog.submitting" @click="submitCreateDialog">
-          确认创建
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  </BaseDialog>
 
-  <el-dialog
+  <BaseDialog
     v-model="deleteDialog.visible"
     title="确认删除"
     width="min(420px, calc(100vw - 24px))"
-    destroy-on-close
-    @closed="resetDeleteDialog"
+    :show-fullscreen-button="false"
+    :resizable="false"
+    :show-footer="false"
+    @close="resetDeleteDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">{{ deleteDialogCopy }}</p>
@@ -114,22 +112,39 @@ export interface FileManagerDownloadResult {
         </el-button>
       </div>
     </template>
-  </el-dialog>
+  </BaseDialog>
 
-  <el-dialog
+  <BaseDialog
+    v-if="mediaDialog.visible && mediaDialog.kind === 'audio'"
     v-model="mediaDialog.visible"
-    class="file-media-dialog"
     :title="mediaDialog.fileName"
-    :width="mediaDialogWidth"
-    destroy-on-close
-    @closed="closeMediaDialog"
+    width="min(720px, calc(100vw - 32px))"
+    :show-fullscreen-button="false"
+    :show-footer="false"
+    @close="closeMediaDialog"
   >
     <FileMediaDialogContent
-      v-if="mediaDialog.visible"
       :kind="mediaDialog.kind"
       :object-url="mediaDialog.objectUrl"
     />
-  </el-dialog>
+  </BaseDialog>
+
+  <Transition name="media-overlay-fade">
+    <div
+      v-if="mediaDialog.visible && mediaDialog.kind !== 'audio'"
+      class="media-fullscreen-overlay"
+      @click.self="closeMediaDialog"
+      @keydown.escape="closeMediaDialog"
+    >
+      <button class="media-fullscreen-close" aria-label="关闭" @click="closeMediaDialog">
+        <el-icon size="22"><Close /></el-icon>
+      </button>
+      <FileMediaDialogContent
+        :kind="mediaDialog.kind"
+        :object-url="mediaDialog.objectUrl"
+      />
+    </div>
+  </Transition>
 
   <el-dialog
     v-model="editorDialog.visible"
@@ -145,15 +160,20 @@ export interface FileManagerDownloadResult {
       :file-path="editorDialog.filePath"
       :content="editorDialog.content"
       :on-close="closeEditorDialog"
+      :on-save="handleSaveEntry"
     />
   </el-dialog>
 
-  <el-dialog
+  <BaseDialog
     v-model="compressDialog.visible"
     title="压缩文件"
     width="min(480px, calc(100vw - 24px))"
-    destroy-on-close
-    @closed="resetCompressDialog"
+    :show-fullscreen-button="false"
+    :resizable="false"
+    confirm-text="确认压缩"
+    :show-confirm-loading="false"
+    @close="resetCompressDialog"
+    @confirm="submitCompressDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">{{ compressDialogCopy }}</p>
@@ -175,22 +195,18 @@ export interface FileManagerDownloadResult {
       />
       <p v-if="compressDialog.errorText" class="dialog-error">{{ compressDialog.errorText }}</p>
     </div>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="compressDialog.visible = false">取消</el-button>
-        <el-button type="primary" :loading="compressDialog.submitting" @click="submitCompressDialog">
-          确认压缩
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  </BaseDialog>
 
-  <el-dialog
+  <BaseDialog
     v-model="unzipDialog.visible"
     title="解压文件"
     width="min(480px, calc(100vw - 24px))"
-    destroy-on-close
-    @closed="resetUnzipDialog"
+    :show-fullscreen-button="false"
+    :resizable="false"
+    confirm-text="确认解压"
+    :show-confirm-loading="false"
+    @close="resetUnzipDialog"
+    @confirm="submitUnzipDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">
@@ -205,22 +221,18 @@ export interface FileManagerDownloadResult {
       />
       <p v-if="unzipDialog.errorText" class="dialog-error">{{ unzipDialog.errorText }}</p>
     </div>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="unzipDialog.visible = false">取消</el-button>
-        <el-button type="primary" :loading="unzipDialog.submitting" @click="submitUnzipDialog">
-          确认解压
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  </BaseDialog>
 
-  <el-dialog
+  <BaseDialog
     v-model="renameDialog.visible"
     title="重命名"
     width="min(480px, calc(100vw - 24px))"
-    destroy-on-close
-    @closed="resetRenameDialog"
+    :show-fullscreen-button="false"
+    :resizable="false"
+    confirm-text="确认重命名"
+    :show-confirm-loading="false"
+    @close="resetRenameDialog"
+    @confirm="submitRenameDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">
@@ -235,18 +247,11 @@ export interface FileManagerDownloadResult {
       />
       <p v-if="renameDialog.errorText" class="dialog-error">{{ renameDialog.errorText }}</p>
     </div>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="renameDialog.visible = false">取消</el-button>
-        <el-button type="primary" :loading="renameDialog.submitting" @click="submitRenameDialog">
-          确认重命名
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import FileEditorDialogContent from '@/components/fileManager/FileEditorDialogContent.vue'
 import FileManager, {
   type FileManagerAction,
@@ -262,6 +267,7 @@ import FileManager, {
   type FileManagerWorkbenchStats,
   type FileManagerPaginationMode,
 } from '@/components/fileManager/index.vue'
+import { Close } from '@element-plus/icons-vue'
 import FileMediaDialogContent from '@/components/fileManager/FileMediaDialogContent.vue'
 import FileUploadDialog from '@/components/fileManager/FileUploadDialog.vue'
 import { fileManagerActionTextMap } from '@/stores/instance/types'
@@ -307,6 +313,7 @@ const props = withDefaults(
     onUnzipEntry?: (path: string, entry: FileManagerWorkbenchItem[], targetPath: string) => Promise<string | void> | void
     onRenameEntry?: (path: string, entry: FileManagerWorkbenchItem, newName: string) => Promise<string | void> | void
     onOpenEntry?: (entry: FileManagerWorkbenchItem) => Promise<FileManagerOpenResult | void> | void
+    onSaveEntry?: (entry: FileManagerWorkbenchItem, content: string) => Promise<void> | void
     onReleaseObjectUrl?: (value?: string) => void
     onCopyEntries?: (path: string, entries: FileManagerWorkbenchItem[]) => Promise<void> | void
     onCutEntries?: (path: string, entries: FileManagerWorkbenchItem[]) => Promise<void> | void
@@ -333,6 +340,7 @@ const props = withDefaults(
     onUnzipEntry: undefined,
     onRenameEntry: undefined,
     onOpenEntry: undefined,
+    onSaveEntry: undefined,
     onReleaseObjectUrl: undefined,
     onCopyEntries: undefined,
     onCutEntries: undefined,
@@ -445,12 +453,6 @@ const deleteDialogCopy = computed(() => {
   return `确定删除当前选中的 ${deleteDialog.entries.length} 个条目吗？删除后不可恢复。`
 })
 
-const mediaDialogWidth = computed(() =>
-  mediaDialog.kind === 'audio'
-    ? 'min(720px, calc(100vw - 32px))'
-    : 'min(1120px, calc(100vw - 32px))',
-)
-
 const compressDialogCopy = computed(() => {
   if (!compressDialog.entries.length) return '请选择要压缩的文件或目录。'
   if (compressDialog.entries.length === 1) {
@@ -520,11 +522,18 @@ const closeMediaDialog = () => {
   mediaDialog.objectUrl = ''
 }
 
+const currentEditorEntry = ref<FileManagerWorkbenchItem | null>(null)
+
 const closeEditorDialog = () => {
   editorDialog.visible = false
   editorDialog.fileName = ''
   editorDialog.filePath = ''
   editorDialog.content = ''
+  currentEditorEntry.value = null
+}
+
+const handleSaveEntry = async (content: string) => {
+  return props.onSaveEntry!(currentEditorEntry.value!, content)
 }
 
 const resetRenameDialog = () => {
@@ -909,6 +918,7 @@ const handleOpenAction = async (
     editorDialog.fileName = result.fileName
     editorDialog.filePath = result.filePath
     editorDialog.content = result.content
+    currentEditorEntry.value = targetEntry
   } catch (error) {
     showRequestError(error, '文件打开失败')
   }
@@ -1129,5 +1139,48 @@ onBeforeUnmount(() => {
   padding: 0.3rem 0.7rem;
   color: var(--el-text-color-primary);
   font-size: 0.78rem;
+}
+
+.media-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 82%);
+  backdrop-filter: blur(6px);
+}
+
+.media-fullscreen-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.media-fullscreen-close:hover {
+  background: rgb(255 255 255 / 24%);
+}
+
+.media-overlay-fade-enter-active,
+.media-overlay-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.media-overlay-fade-enter-from,
+.media-overlay-fade-leave-to {
+  opacity: 0;
 }
 </style>

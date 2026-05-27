@@ -46,6 +46,8 @@ import type {
   UnzipInstanceFileResponse,
   OpenInstanceFileRequest,
   OpenInstanceFileResponse,
+  EditInstanceFileRequest,
+  EditInstanceFileResponse,
   RenameInstanceFileRequest,
   RenameInstanceFileResponse,
   InstanceFilePreSignRequest,
@@ -57,6 +59,7 @@ import type {
   CutInstanceFileRequest,
   CutInstanceFileResponse,
 } from '@/types/v1/instance'
+import { encodeBytesToBase64 } from '@/utils/filePreview'
 
 export const getInstances = (params: GetInstancesRequest) => {
   return request.get<GetInstancesResponse>('/instance', { params })
@@ -176,6 +179,17 @@ export const unzipInstanceFileRequest = (data: UnzipInstanceFileRequest) => {
 
 export const copyInstanceFileRequest = (data: CopyInstanceFileRequest) => {
   return request.post<CopyInstanceFileResponse>(`/instance/file/copy/${data.id}`, data)
+}
+
+
+export const editInstanceFileRequest = (data: EditInstanceFileRequest) => {
+  const payload = {
+    id: data.id,
+    path: data.path,
+    content: encodeBytesToBase64(data.content),
+  }
+
+  return request.post<EditInstanceFileResponse>(`/instance/file/edit/${data.id}`, payload)
 }
 
 export const cutInstanceFileRequest = (data: CutInstanceFileRequest) => {

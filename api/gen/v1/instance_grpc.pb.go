@@ -45,6 +45,7 @@ const (
 	InstanceManager_BatchCompressInstanceFile_FullMethodName = "/v1.InstanceManager/BatchCompressInstanceFile"
 	InstanceManager_UnzipInstanceFile_FullMethodName         = "/v1.InstanceManager/UnzipInstanceFile"
 	InstanceManager_OpenInstanceFile_FullMethodName          = "/v1.InstanceManager/OpenInstanceFile"
+	InstanceManager_EditInstanceFile_FullMethodName          = "/v1.InstanceManager/EditInstanceFile"
 	InstanceManager_InstanceFilePreSign_FullMethodName       = "/v1.InstanceManager/InstanceFilePreSign"
 	InstanceManager_InstanceFilePreSignUpload_FullMethodName = "/v1.InstanceManager/InstanceFilePreSignUpload"
 )
@@ -110,6 +111,8 @@ type InstanceManagerClient interface {
 	UnzipInstanceFile(ctx context.Context, in *UnzipInstanceFileRequest, opts ...grpc.CallOption) (*UnzipInstanceFileResponse, error)
 	// 打开实例目录内文件
 	OpenInstanceFile(ctx context.Context, in *OpenInstanceFileRequest, opts ...grpc.CallOption) (*OpenInstanceFileResponse, error)
+	// 编辑实例目录内文件
+	EditInstanceFile(ctx context.Context, in *EditInstanceFileRequest, opts ...grpc.CallOption) (*EditInstanceFileResponse, error)
 	// 实例目录内文件下载预签名
 	InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...grpc.CallOption) (*InstanceFilePreSignResponse, error)
 	// 实例目录内文件上传预签名
@@ -384,6 +387,16 @@ func (c *instanceManagerClient) OpenInstanceFile(ctx context.Context, in *OpenIn
 	return out, nil
 }
 
+func (c *instanceManagerClient) EditInstanceFile(ctx context.Context, in *EditInstanceFileRequest, opts ...grpc.CallOption) (*EditInstanceFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EditInstanceFileResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_EditInstanceFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceManagerClient) InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...grpc.CallOption) (*InstanceFilePreSignResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(InstanceFilePreSignResponse)
@@ -465,6 +478,8 @@ type InstanceManagerServer interface {
 	UnzipInstanceFile(context.Context, *UnzipInstanceFileRequest) (*UnzipInstanceFileResponse, error)
 	// 打开实例目录内文件
 	OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error)
+	// 编辑实例目录内文件
+	EditInstanceFile(context.Context, *EditInstanceFileRequest) (*EditInstanceFileResponse, error)
 	// 实例目录内文件下载预签名
 	InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error)
 	// 实例目录内文件上传预签名
@@ -556,6 +571,9 @@ func (UnimplementedInstanceManagerServer) UnzipInstanceFile(context.Context, *Un
 }
 func (UnimplementedInstanceManagerServer) OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OpenInstanceFile not implemented")
+}
+func (UnimplementedInstanceManagerServer) EditInstanceFile(context.Context, *EditInstanceFileRequest) (*EditInstanceFileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EditInstanceFile not implemented")
 }
 func (UnimplementedInstanceManagerServer) InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method InstanceFilePreSign not implemented")
@@ -1052,6 +1070,24 @@ func _InstanceManager_OpenInstanceFile_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceManager_EditInstanceFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditInstanceFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).EditInstanceFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_EditInstanceFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).EditInstanceFile(ctx, req.(*EditInstanceFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InstanceManager_InstanceFilePreSign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InstanceFilePreSignRequest)
 	if err := dec(in); err != nil {
@@ -1198,6 +1234,10 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OpenInstanceFile",
 			Handler:    _InstanceManager_OpenInstanceFile_Handler,
+		},
+		{
+			MethodName: "EditInstanceFile",
+			Handler:    _InstanceManager_EditInstanceFile_Handler,
 		},
 		{
 			MethodName: "InstanceFilePreSign",

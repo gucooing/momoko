@@ -20,6 +20,7 @@
     :on-unzip-entry="handleUnzipEntry"
     :on-rename-entry="handleRenameEntry"
     :on-open-entry="openEntry"
+    :on-save-entry="handleSaveEntry"
     :on-release-object-url="releaseObjectUrl"
     :on-copy-entries="handleCopyEntries"
     :on-cut-entries="handleCutEntries"
@@ -77,6 +78,7 @@ const {
   cutEntries,
   getUploadPreSign,
   openEntry,
+  saveEntry,
   releaseObjectUrl,
 } = fileManagerStore
 
@@ -239,6 +241,10 @@ const handleRenameEntry = async (
   newName: string,
 ) => {
   return renameEntry(path, entry, newName)
+}
+
+const handleSaveEntry = async (entry: FileManagerWorkbenchItem, content: string) => {
+  await saveEntry(entry, content)
 }
 
 const handleCopyEntries = async (path: string, entries: FileManagerWorkbenchItem[]) => {

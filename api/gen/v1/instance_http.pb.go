@@ -29,6 +29,7 @@ const OperationInstanceManagerCutInstanceFile = "/v1.InstanceManager/CutInstance
 const OperationInstanceManagerDelInstance = "/v1.InstanceManager/DelInstance"
 const OperationInstanceManagerDelInstanceLog = "/v1.InstanceManager/DelInstanceLog"
 const OperationInstanceManagerDelInstanceType = "/v1.InstanceManager/DelInstanceType"
+const OperationInstanceManagerEditInstanceFile = "/v1.InstanceManager/EditInstanceFile"
 const OperationInstanceManagerGetInstanceFileList = "/v1.InstanceManager/GetInstanceFileList"
 const OperationInstanceManagerGetInstanceInfo = "/v1.InstanceManager/GetInstanceInfo"
 const OperationInstanceManagerGetInstanceTypes = "/v1.InstanceManager/GetInstanceTypes"
@@ -69,6 +70,8 @@ type InstanceManagerHTTPServer interface {
 	DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error)
 	// DelInstanceType 删除实例类型
 	DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error)
+	// EditInstanceFile 编辑实例目录内文件
+	EditInstanceFile(context.Context, *EditInstanceFileRequest) (*EditInstanceFileResponse, error)
 	// GetInstanceFileList 获取实例目录文件列表
 	GetInstanceFileList(context.Context, *GetInstanceFileListRequest) (*GetInstanceFileListResponse, error)
 	// GetInstanceInfo 获取实例详情
@@ -138,6 +141,7 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.POST("/api/v1/instance/file/compress/{id}", _InstanceManager_BatchCompressInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/unzip/{id}", _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/open/{id}", _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/instance/file/edit/{id}", _InstanceManager_EditInstanceFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/pre-sign/{id}", _InstanceManager_InstanceFilePreSign0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/upload/pre-sign/{id}", _InstanceManager_InstanceFilePreSignUpload0_HTTP_Handler(srv))
 }
@@ -744,6 +748,31 @@ func _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServ
 	}
 }
 
+func _InstanceManager_EditInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EditInstanceFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerEditInstanceFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EditInstanceFile(ctx, req.(*EditInstanceFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EditInstanceFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _InstanceManager_InstanceFilePreSign0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in InstanceFilePreSignRequest
@@ -809,6 +838,8 @@ type InstanceManagerHTTPClient interface {
 	DelInstanceLog(ctx context.Context, req *DelInstanceLogRequest, opts ...http.CallOption) (rsp *DelInstanceLogResponse, err error)
 	// DelInstanceType 删除实例类型
 	DelInstanceType(ctx context.Context, req *DelInstanceTypeRequest, opts ...http.CallOption) (rsp *DelInstanceTypeResponse, err error)
+	// EditInstanceFile 编辑实例目录内文件
+	EditInstanceFile(ctx context.Context, req *EditInstanceFileRequest, opts ...http.CallOption) (rsp *EditInstanceFileResponse, err error)
 	// GetInstanceFileList 获取实例目录文件列表
 	GetInstanceFileList(ctx context.Context, req *GetInstanceFileListRequest, opts ...http.CallOption) (rsp *GetInstanceFileListResponse, err error)
 	// GetInstanceInfo 获取实例详情
@@ -992,6 +1023,20 @@ func (c *InstanceManagerHTTPClientImpl) DelInstanceType(ctx context.Context, in 
 	opts = append(opts, http.Operation(OperationInstanceManagerDelInstanceType))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// EditInstanceFile 编辑实例目录内文件
+func (c *InstanceManagerHTTPClientImpl) EditInstanceFile(ctx context.Context, in *EditInstanceFileRequest, opts ...http.CallOption) (*EditInstanceFileResponse, error) {
+	var out EditInstanceFileResponse
+	pattern := "/api/v1/instance/file/edit/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationInstanceManagerEditInstanceFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

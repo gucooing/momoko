@@ -5,6 +5,7 @@ import {
   createFileSystemRequest,
   cutFileSystemRequest,
   deleteFileSystemEntriesRequest,
+  editFileSystemFileRequest,
   getFileSystemPreSignRequest,
   getFileSystemUploadPreSignRequest,
   getFileSystemListRequest,
@@ -270,6 +271,14 @@ export const useFileIndexStore = defineStore('file-index', () => {
     }
   }
 
+  const saveEntry = async (entry: FileManagerWorkbenchItem, content: string) => {
+    const encoder = new TextEncoder()
+    await editFileSystemFileRequest({
+      path: entry.path,
+      content: encoder.encode(content),
+    })
+  }
+
   const releaseObjectUrl = (value?: string) => {
     if (value && isBlobUrl(value)) {
       URL.revokeObjectURL(value)
@@ -297,6 +306,7 @@ export const useFileIndexStore = defineStore('file-index', () => {
     cutEntries,
     getUploadPreSign,
     openEntry,
+    saveEntry,
     releaseObjectUrl,
   }
 })

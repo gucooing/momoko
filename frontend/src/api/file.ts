@@ -14,6 +14,8 @@ import type {
   CreateFileSystemResponse,
   CutFileSystemRequest,
   CutFileSystemResponse,
+  EditFileSystemFileRequest,
+  EditFileSystemFileResponse,
   FileSystemPreSignRequest,
   FileSystemPreSignResponse,
   FileSystemPreSignUploadRequest,
@@ -30,14 +32,7 @@ import type {
   UnzipFileSystemRequest,
   UnzipFileSystemResponse,
 } from '@/types/v1/file'
-
-const encodeBytesToBase64 = (value: Uint8Array) => {
-  let binary = ''
-  value.forEach((byte) => {
-    binary += String.fromCharCode(byte)
-  })
-  return window.btoa(binary)
-}
+import { encodeBytesToBase64 } from '@/utils/filePreview'
 
 export const getFileSystemListRequest = (params: GetFileSystemListRequest) => {
   return request.get<GetFileSystemListResponse>('/file/system', { params })
@@ -111,6 +106,15 @@ export const copyFileSystemRequest = (data: CopyFileSystemRequest) =>
 
 export const cutFileSystemRequest = (data: CutFileSystemRequest) =>
   request.post<CutFileSystemResponse>('/file/system/cut', data)
+
+export const editFileSystemFileRequest = (data: EditFileSystemFileRequest = { path: '', content: new Uint8Array() }) => {
+  const payload = {
+    path: data.path,
+    content: encodeBytesToBase64(data.content),
+  }
+
+  return request.post<EditFileSystemFileResponse>('/file/system/edit/file', payload)
+}
 
 export const getFileTaskRequest = (taskId: string) =>
   request.get<GetFileTaskResponse>(`/file/task/${taskId}`)

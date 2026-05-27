@@ -194,6 +194,7 @@ const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeFileDecompress]: '文件解压',
   [OperationType.OperationTypeFileUploadComplete]: '文件上传完成',
   [OperationType.OperationTypeFileUploadCancel]: '文件上传取消',
+  [OperationType.OperationTypeFileEdit]: '文件编辑',
   [OperationType.OperationTypeInstanceTypeCreate]: '实例类型新增',
   [OperationType.OperationTypeInstanceTypeUpdate]: '实例类型编辑',
   [OperationType.OperationTypeInstanceTypeDelete]: '实例类型删除',
@@ -215,6 +216,7 @@ const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeInstanceFileCompress]: '实例文件压缩',
   [OperationType.OperationTypeInstanceFileDecompress]: '实例文件解压',
   [OperationType.OperationTypeInstanceFileUploadPreSign]: '实例文件上传签名',
+  [OperationType.OperationTypeInstanceFileEdit]: '实例文件编辑',
   [OperationType.OperationTypeSSHHostCreate]: 'SSH连接新增',
   [OperationType.OperationTypeSSHHostUpdate]: 'SSH连接编辑',
   [OperationType.OperationTypeSSHHostDelete]: 'SSH连接删除',
@@ -224,6 +226,10 @@ const operationTypeLabels: Record<string, string> = {
   [OperationType.OperationTypeSystemEmailConfigUpdate]: '邮件配置更新',
   [OperationType.OperationTypeSystemEmailConfigTest]: '邮件配置测试',
   [OperationType.OperationTypeSystemEmailTemplateUpdate]: '邮件模板更新',
+  [OperationType.OperationTypeNodeAPIKeyCreate]: 'API Key 创建',
+  [OperationType.OperationTypeNodeAPIKeyCopy]: 'API Key 复制',
+  [OperationType.OperationTypeNodeAPIKeyUpdate]: 'API Key 更新',
+  [OperationType.OperationTypeNodeAPIKeyRefresh]: 'API Key 刷新',
 }
 
 const operationTypeOptions = Object.entries(operationTypeLabels).map(([value, label]) => ({

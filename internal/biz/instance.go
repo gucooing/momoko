@@ -699,6 +699,17 @@ func (i *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.O
 	return &v1.OpenInstanceFileResponse{Info: content}, nil
 }
 
+func (i *InstanceUsecase) EditFile(ctx context.Context, userID string, req *v1.EditInstanceFileRequest) (*v1.EditInstanceFileResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	if err = fileOper.SaveFile(req.Path, req.Content); err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.EditInstanceFileResponse{}, nil
+}
+
 func (i *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
 	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {

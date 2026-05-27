@@ -336,6 +336,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.BatchDeleteFileSystemResponse'
+    /api/v1/file/system/edit/file:
+        post:
+            tags:
+                - FileManager
+            description: 编辑指定文件(系统级)
+            operationId: FileManager_EditFileSystemFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.EditFileSystemFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.EditFileSystemFileResponse'
     /api/v1/file/system/file/pre-sign:
         get:
             tags:
@@ -718,6 +737,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.BatchDeleteInstanceFileResponse'
+    /api/v1/instance/file/edit/{id}:
+        post:
+            tags:
+                - InstanceManager
+            description: 编辑实例目录内文件
+            operationId: InstanceManager_EditInstanceFile
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.EditInstanceFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.EditInstanceFileResponse'
     /api/v1/instance/file/open/{id}:
         post:
             tags:
@@ -3067,6 +3112,39 @@ components:
                     type: string
                     description: 磁盘IO统计错误信息
             description: 磁盘实时状态
+        v1.EditFileSystemFileRequest:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 文件路径
+                content:
+                    type: string
+                    description: 文件内容
+                    format: bytes
+            description: 编辑系统文件请求
+        v1.EditFileSystemFileResponse:
+            type: object
+            properties: {}
+            description: 编辑系统文件响应
+        v1.EditInstanceFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 实例id
+                path:
+                    type: string
+                    description: 文件相对路径
+                content:
+                    type: string
+                    description: 文件内容
+                    format: bytes
+            description: 编辑实例文件请求
+        v1.EditInstanceFileResponse:
+            type: object
+            properties: {}
+            description: 编辑实例文件响应
         v1.EditUserRequest:
             type: object
             properties:

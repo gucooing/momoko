@@ -223,6 +223,19 @@ func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSy
 	return &v1.OpenFileSystemFileResponse{Info: content}, nil
 }
 
+// EditFileSystemFile 覆盖保存文件内容。
+func (f *FileUsecase) EditFileSystemFile(ctx context.Context, req *v1.EditFileSystemFileRequest) (*v1.EditFileSystemFileResponse, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+
+	if err = fileOper.SaveFile(req.Path, req.Content); err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.EditFileSystemFileResponse{}, nil
+}
+
 func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID, path string) (string, error) {
 	fileOper, err := f.newSystemInstance()
 	if err != nil {

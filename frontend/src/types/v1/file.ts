@@ -290,6 +290,18 @@ export interface OpenFileSystemFileResponse {
   info: Uint8Array;
 }
 
+/** 编辑系统文件请求 */
+export interface EditFileSystemFileRequest {
+  /** 文件路径 */
+  path: string;
+  /** 文件内容 */
+  content: Uint8Array;
+}
+
+/** 编辑系统文件响应 */
+export interface EditFileSystemFileResponse {
+}
+
 /** 文件下载预签名请求 */
 export interface FileSystemPreSignRequest {
   /** 路径 */

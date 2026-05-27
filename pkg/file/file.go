@@ -265,6 +265,27 @@ func (f *FileOper) LoadFile(path string) ([]byte, error) {
 	return io.ReadAll(file)
 }
 
+// SaveFile 覆盖保存已有文件内容。
+func (f *FileOper) SaveFile(path string, content []byte) error {
+	if len(content) > MaxLoadFileSize {
+		return errors.New("文件太大")
+	}
+
+	absPath, err := f.ResolveRealPath(path)
+	if err != nil {
+		return err
+	}
+	info, err := os.Stat(absPath)
+	if err != nil {
+		return errors.New("文件不存在")
+	}
+	if info.IsDir() {
+		return errors.New("目标路径不能是目录")
+	}
+
+	return os.WriteFile(absPath, content, info.Mode().Perm())
+}
+
 // BatchDelete 批量删除文件或文件夹
 func (f *FileOper) BatchDelete(paths []string) []*v1.FileOperationResult {
 	results := make([]*v1.FileOperationResult, 0, len(paths))

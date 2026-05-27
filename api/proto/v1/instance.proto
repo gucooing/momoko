@@ -191,6 +191,13 @@ service InstanceManager {
       body: "*"
     };
   }
+  // 编辑实例目录内文件
+  rpc EditInstanceFile(EditInstanceFileRequest) returns (EditInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/instance/file/edit/{id}"
+      body: "*"
+    };
+  }
   // 实例目录内文件下载预签名
   rpc InstanceFilePreSign(InstanceFilePreSignRequest) returns (InstanceFilePreSignResponse) {
     option (google.api.http) = {
@@ -647,6 +654,19 @@ message OpenInstanceFileResponse {
   // 文件内容
   bytes info = 1;
 }
+
+// 编辑实例文件请求
+message EditInstanceFileRequest {
+  // 实例id
+  string id = 1;
+  // 文件相对路径
+  string path = 2;
+  // 文件内容
+  bytes content = 3;
+}
+
+// 编辑实例文件响应
+message EditInstanceFileResponse {}
 
 // 实例文件下载预签名请求
 message InstanceFilePreSignRequest {

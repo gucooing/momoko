@@ -26,6 +26,7 @@ const OperationFileManagerCompleteFileUpload = "/v1.FileManager/CompleteFileUplo
 const OperationFileManagerCopyFileSystem = "/v1.FileManager/CopyFileSystem"
 const OperationFileManagerCreateFileSystem = "/v1.FileManager/CreateFileSystem"
 const OperationFileManagerCutFileSystem = "/v1.FileManager/CutFileSystem"
+const OperationFileManagerEditFileSystemFile = "/v1.FileManager/EditFileSystemFile"
 const OperationFileManagerFileSystemPreSign = "/v1.FileManager/FileSystemPreSign"
 const OperationFileManagerFileSystemPreSignUpload = "/v1.FileManager/FileSystemPreSignUpload"
 const OperationFileManagerGetFileSystemList = "/v1.FileManager/GetFileSystemList"
@@ -50,6 +51,8 @@ type FileManagerHTTPServer interface {
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(context.Context, *CutFileSystemRequest) (*CutFileSystemResponse, error)
+	// EditFileSystemFile 编辑指定文件(系统级)
+	EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error)
 	// FileSystemPreSign 文件下载预签名(系统级)
 	FileSystemPreSign(context.Context, *FileSystemPreSignRequest) (*FileSystemPreSignResponse, error)
 	// FileSystemPreSignUpload 文件上传预签名(系统级)
@@ -80,6 +83,7 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.POST("/api/v1/file/system/compress", _FileManager_BatchCompressFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/unzip", _FileManager_UnzipFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/open/file", _FileManager_OpenFileSystemFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/system/edit/file", _FileManager_EditFileSystemFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/file/system/file/pre-sign", _FileManager_FileSystemPreSign0_HTTP_Handler(srv))
 	r.GET("/api/v1/file/system/file/upload/pre-sign", _FileManager_FileSystemPreSignUpload0_HTTP_Handler(srv))
 	r.GET("/api/v1/file/upload/status", _FileManager_GetFileUploadStatus0_HTTP_Handler(srv))
@@ -304,6 +308,28 @@ func _FileManager_OpenFileSystemFile0_HTTP_Handler(srv FileManagerHTTPServer) fu
 	}
 }
 
+func _FileManager_EditFileSystemFile0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EditFileSystemFileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerEditFileSystemFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EditFileSystemFile(ctx, req.(*EditFileSystemFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EditFileSystemFileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _FileManager_FileSystemPreSign0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in FileSystemPreSignRequest
@@ -420,6 +446,8 @@ type FileManagerHTTPClient interface {
 	CreateFileSystem(ctx context.Context, req *CreateFileSystemRequest, opts ...http.CallOption) (rsp *CreateFileSystemResponse, err error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(ctx context.Context, req *CutFileSystemRequest, opts ...http.CallOption) (rsp *CutFileSystemResponse, err error)
+	// EditFileSystemFile 编辑指定文件(系统级)
+	EditFileSystemFile(ctx context.Context, req *EditFileSystemFileRequest, opts ...http.CallOption) (rsp *EditFileSystemFileResponse, err error)
 	// FileSystemPreSign 文件下载预签名(系统级)
 	FileSystemPreSign(ctx context.Context, req *FileSystemPreSignRequest, opts ...http.CallOption) (rsp *FileSystemPreSignResponse, err error)
 	// FileSystemPreSignUpload 文件上传预签名(系统级)
@@ -536,6 +564,20 @@ func (c *FileManagerHTTPClientImpl) CutFileSystem(ctx context.Context, in *CutFi
 	pattern := "/api/v1/file/system/cut"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerCutFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// EditFileSystemFile 编辑指定文件(系统级)
+func (c *FileManagerHTTPClientImpl) EditFileSystemFile(ctx context.Context, in *EditFileSystemFileRequest, opts ...http.CallOption) (*EditFileSystemFileResponse, error) {
+	var out EditFileSystemFileResponse
+	pattern := "/api/v1/file/system/edit/file"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerEditFileSystemFile))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

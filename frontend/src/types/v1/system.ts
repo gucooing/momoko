@@ -97,6 +97,8 @@ export enum OperationType {
   OperationTypeFileUploadComplete = "OperationTypeFileUploadComplete",
   /** OperationTypeFileUploadCancel - 文件上传取消 */
   OperationTypeFileUploadCancel = "OperationTypeFileUploadCancel",
+  /** OperationTypeFileEdit - 文件编辑 */
+  OperationTypeFileEdit = "OperationTypeFileEdit",
   /** OperationTypeInstanceTypeCreate - 实例类型新增 */
   OperationTypeInstanceTypeCreate = "OperationTypeInstanceTypeCreate",
   /** OperationTypeInstanceTypeUpdate - 实例类型编辑 */
@@ -139,6 +141,8 @@ export enum OperationType {
   OperationTypeInstanceFileDecompress = "OperationTypeInstanceFileDecompress",
   /** OperationTypeInstanceFileUploadPreSign - 实例文件上传签名 */
   OperationTypeInstanceFileUploadPreSign = "OperationTypeInstanceFileUploadPreSign",
+  /** OperationTypeInstanceFileEdit - 实例文件编辑 */
+  OperationTypeInstanceFileEdit = "OperationTypeInstanceFileEdit",
   /** OperationTypeSSHHostCreate - SSH连接新增 */
   OperationTypeSSHHostCreate = "OperationTypeSSHHostCreate",
   /** OperationTypeSSHHostUpdate - SSH连接编辑 */

@@ -4,6 +4,7 @@ import {
   createInstanceFileRequest,
   batchDeleteInstanceFileRequest,
   openInstanceFileRequest,
+  editInstanceFileRequest,
   getInstanceFilePreSignRequest,
   getInstanceFilePreSignUploadRequest,
   batchCompressInstanceFileRequest,
@@ -285,6 +286,15 @@ export const useInstanceFileManagerStore = defineStore('instance-file-manager', 
     }
   }
 
+  const saveEntry = async (entry: FileManagerWorkbenchItem, content: string) => {
+    const encoder = new TextEncoder()
+    await editInstanceFileRequest({
+      id: instanceId.value,
+      path: entry.path,
+      content: encoder.encode(content),
+    })
+  }
+
   const releaseObjectUrl = (value?: string) => {
     if (value && isBlobUrl(value)) {
       URL.revokeObjectURL(value)
@@ -312,6 +322,7 @@ export const useInstanceFileManagerStore = defineStore('instance-file-manager', 
     cutEntries,
     getUploadPreSign,
     openEntry,
+    saveEntry,
     releaseObjectUrl,
   }
 })

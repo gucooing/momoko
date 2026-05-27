@@ -13,7 +13,7 @@ const isAudio = computed(() => props.kind === 'audio')
 </script>
 
 <template>
-  <section class="file-media-dialog-content" :class="[`is-${props.kind}`]">
+  <section class="file-media-content" :class="[`is-${props.kind}`]">
     <el-image v-if="isImage" class="file-media-image" :src="props.objectUrl" fit="contain">
       <template #error>
         <div class="file-media-empty">图片加载失败</div>
@@ -40,52 +40,48 @@ const isAudio = computed(() => props.kind === 'audio')
 </template>
 
 <style scoped lang="scss">
-.file-media-dialog-content {
+.file-media-content {
   display: flex;
-  min-height: min(78vh, 48rem);
   align-items: center;
   justify-content: center;
-  background: transparent;
+}
+
+.file-media-content.is-audio {
+  width: 100%;
 }
 
 .file-media-image {
-  width: 100%;
-  min-height: min(78vh, 48rem);
-  overflow: hidden;
-  background: transparent;
+  max-width: 92vw;
+  max-height: 92vh;
 }
 
 .file-media-image :deep(.el-image__inner) {
-  width: 100%;
-  max-height: min(78vh, 48rem);
+  max-width: 92vw;
+  max-height: 92vh;
   object-fit: contain;
 }
 
 .file-media-empty {
   display: flex;
-  width: 100%;
-  min-height: min(78vh, 48rem);
   align-items: center;
   justify-content: center;
-  color: var(--el-text-color-secondary);
+  width: 20rem;
+  height: 16rem;
+  color: rgb(255 255 255 / 55%);
   font-size: 0.9rem;
 }
 
 .file-media-player {
   display: block;
-  width: 100%;
 }
 
 .file-media-video {
-  max-height: min(78vh, 48rem);
+  max-width: 92vw;
+  max-height: 92vh;
   background: #000;
 }
 
 .file-media-audio {
   width: min(100%, 42rem);
-}
-
-:global(.file-media-dialog.el-dialog .el-dialog__body) {
-  padding: 0 !important;
 }
 </style>

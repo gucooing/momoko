@@ -3149,6 +3149,107 @@ func (x *OpenInstanceFileResponse) GetInfo() []byte {
 	return nil
 }
 
+// 编辑实例文件请求
+type EditInstanceFileRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 实例id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 文件相对路径
+	Path string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	// 文件内容
+	Content       []byte `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EditInstanceFileRequest) Reset() {
+	*x = EditInstanceFileRequest{}
+	mi := &file_v1_instance_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EditInstanceFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EditInstanceFileRequest) ProtoMessage() {}
+
+func (x *EditInstanceFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EditInstanceFileRequest.ProtoReflect.Descriptor instead.
+func (*EditInstanceFileRequest) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *EditInstanceFileRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EditInstanceFileRequest) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *EditInstanceFileRequest) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+// 编辑实例文件响应
+type EditInstanceFileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EditInstanceFileResponse) Reset() {
+	*x = EditInstanceFileResponse{}
+	mi := &file_v1_instance_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EditInstanceFileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EditInstanceFileResponse) ProtoMessage() {}
+
+func (x *EditInstanceFileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EditInstanceFileResponse.ProtoReflect.Descriptor instead.
+func (*EditInstanceFileResponse) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{57}
+}
+
 // 实例文件下载预签名请求
 type InstanceFilePreSignRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3162,7 +3263,7 @@ type InstanceFilePreSignRequest struct {
 
 func (x *InstanceFilePreSignRequest) Reset() {
 	*x = InstanceFilePreSignRequest{}
-	mi := &file_v1_instance_proto_msgTypes[56]
+	mi := &file_v1_instance_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3174,7 +3275,7 @@ func (x *InstanceFilePreSignRequest) String() string {
 func (*InstanceFilePreSignRequest) ProtoMessage() {}
 
 func (x *InstanceFilePreSignRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[56]
+	mi := &file_v1_instance_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3187,7 +3288,7 @@ func (x *InstanceFilePreSignRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignRequest.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{56}
+	return file_v1_instance_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *InstanceFilePreSignRequest) GetId() string {
@@ -3215,7 +3316,7 @@ type InstanceFilePreSignResponse struct {
 
 func (x *InstanceFilePreSignResponse) Reset() {
 	*x = InstanceFilePreSignResponse{}
-	mi := &file_v1_instance_proto_msgTypes[57]
+	mi := &file_v1_instance_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3227,7 +3328,7 @@ func (x *InstanceFilePreSignResponse) String() string {
 func (*InstanceFilePreSignResponse) ProtoMessage() {}
 
 func (x *InstanceFilePreSignResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[57]
+	mi := &file_v1_instance_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3240,7 +3341,7 @@ func (x *InstanceFilePreSignResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignResponse.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{57}
+	return file_v1_instance_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *InstanceFilePreSignResponse) GetDownloadUrlPath() string {
@@ -3271,7 +3372,7 @@ type InstanceFilePreSignUploadRequest struct {
 
 func (x *InstanceFilePreSignUploadRequest) Reset() {
 	*x = InstanceFilePreSignUploadRequest{}
-	mi := &file_v1_instance_proto_msgTypes[58]
+	mi := &file_v1_instance_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3283,7 +3384,7 @@ func (x *InstanceFilePreSignUploadRequest) String() string {
 func (*InstanceFilePreSignUploadRequest) ProtoMessage() {}
 
 func (x *InstanceFilePreSignUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[58]
+	mi := &file_v1_instance_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3296,7 +3397,7 @@ func (x *InstanceFilePreSignUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignUploadRequest.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{58}
+	return file_v1_instance_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *InstanceFilePreSignUploadRequest) GetId() string {
@@ -3352,7 +3453,7 @@ type InstanceFilePreSignUploadResponse struct {
 
 func (x *InstanceFilePreSignUploadResponse) Reset() {
 	*x = InstanceFilePreSignUploadResponse{}
-	mi := &file_v1_instance_proto_msgTypes[59]
+	mi := &file_v1_instance_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3364,7 +3465,7 @@ func (x *InstanceFilePreSignUploadResponse) String() string {
 func (*InstanceFilePreSignUploadResponse) ProtoMessage() {}
 
 func (x *InstanceFilePreSignUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[59]
+	mi := &file_v1_instance_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3377,7 +3478,7 @@ func (x *InstanceFilePreSignUploadResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use InstanceFilePreSignUploadResponse.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{59}
+	return file_v1_instance_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *InstanceFilePreSignUploadResponse) GetInfo() *UploadInfo {
@@ -3591,7 +3692,12 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\".\n" +
 	"\x18OpenInstanceFileResponse\x12\x12\n" +
-	"\x04info\x18\x01 \x01(\fR\x04info\"@\n" +
+	"\x04info\x18\x01 \x01(\fR\x04info\"W\n" +
+	"\x17EditInstanceFileRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\fR\acontent\"\x1a\n" +
+	"\x18EditInstanceFileResponse\"@\n" +
 	"\x1aInstanceFilePreSignRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\"I\n" +
@@ -3612,7 +3718,7 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x1bINSTANCE_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17INSTANCE_STATUS_STOPPED\x10\x01\x12\x1b\n" +
 	"\x17INSTANCE_STATUS_RUNNING\x10\x02\x12\x1f\n" +
-	"\x1bINSTANCE_STATUS_MAINTENANCE\x10\x032\xdf\x1a\n" +
+	"\x1bINSTANCE_STATUS_MAINTENANCE\x10\x032\xda\x1b\n" +
 	"\x0fInstanceManager\x12l\n" +
 	"\x10GetInstanceTypes\x12\x1b.v1.GetInstanceTypesRequest\x1a\x1c.v1.GetInstanceTypesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/instance/type\x12u\n" +
 	"\x12CreateInstanceType\x12\x1d.v1.CreateInstanceTypeRequest\x1a\x1e.v1.CreateInstanceTypeResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/instance/type\x12z\n" +
@@ -3639,7 +3745,8 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x17BatchDeleteInstanceFile\x12\".v1.BatchDeleteInstanceFileRequest\x1a#.v1.BatchDeleteInstanceFileResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/instance/file/deletes/{id}\x12\x98\x01\n" +
 	"\x19BatchCompressInstanceFile\x12$.v1.BatchCompressInstanceFileRequest\x1a%.v1.BatchCompressInstanceFileResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/instance/file/compress/{id}\x12}\n" +
 	"\x11UnzipInstanceFile\x12\x1c.v1.UnzipInstanceFileRequest\x1a\x1d.v1.UnzipInstanceFileResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/instance/file/unzip/{id}\x12y\n" +
-	"\x10OpenInstanceFile\x12\x1b.v1.OpenInstanceFileRequest\x1a\x1c.v1.OpenInstanceFileResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/instance/file/open/{id}\x12\x83\x01\n" +
+	"\x10OpenInstanceFile\x12\x1b.v1.OpenInstanceFileRequest\x1a\x1c.v1.OpenInstanceFileResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/instance/file/open/{id}\x12y\n" +
+	"\x10EditInstanceFile\x12\x1b.v1.EditInstanceFileRequest\x1a\x1c.v1.EditInstanceFileResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/instance/file/edit/{id}\x12\x83\x01\n" +
 	"\x13InstanceFilePreSign\x12\x1e.v1.InstanceFilePreSignRequest\x1a\x1f.v1.InstanceFilePreSignResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/instance/file/pre-sign/{id}\x12\x9c\x01\n" +
 	"\x19InstanceFilePreSignUpload\x12$.v1.InstanceFilePreSignUploadRequest\x1a%.v1.InstanceFilePreSignUploadResponse\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1/instance/file/upload/pre-sign/{id}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
@@ -3656,7 +3763,7 @@ func file_v1_instance_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_instance_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
+var file_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
 var file_v1_instance_proto_goTypes = []any{
 	(InstanceStatus)(0),                       // 0: v1.InstanceStatus
 	(*GetInstanceTypesRequest)(nil),           // 1: v1.GetInstanceTypesRequest
@@ -3715,18 +3822,20 @@ var file_v1_instance_proto_goTypes = []any{
 	(*UnzipInstanceFileResponse)(nil),         // 54: v1.UnzipInstanceFileResponse
 	(*OpenInstanceFileRequest)(nil),           // 55: v1.OpenInstanceFileRequest
 	(*OpenInstanceFileResponse)(nil),          // 56: v1.OpenInstanceFileResponse
-	(*InstanceFilePreSignRequest)(nil),        // 57: v1.InstanceFilePreSignRequest
-	(*InstanceFilePreSignResponse)(nil),       // 58: v1.InstanceFilePreSignResponse
-	(*InstanceFilePreSignUploadRequest)(nil),  // 59: v1.InstanceFilePreSignUploadRequest
-	(*InstanceFilePreSignUploadResponse)(nil), // 60: v1.InstanceFilePreSignUploadResponse
-	(*timestamppb.Timestamp)(nil),             // 61: google.protobuf.Timestamp
-	(FileSortField)(0),                        // 62: v1.FileSortField
-	(*FileDirectoryInfo)(nil),                 // 63: v1.FileDirectoryInfo
-	(*FileEntryInfo)(nil),                     // 64: v1.FileEntryInfo
-	(*FileCreateItem)(nil),                    // 65: v1.FileCreateItem
-	(*FileTaskInfo)(nil),                      // 66: v1.FileTaskInfo
-	(*FileOperationResult)(nil),               // 67: v1.FileOperationResult
-	(*UploadInfo)(nil),                        // 68: v1.UploadInfo
+	(*EditInstanceFileRequest)(nil),           // 57: v1.EditInstanceFileRequest
+	(*EditInstanceFileResponse)(nil),          // 58: v1.EditInstanceFileResponse
+	(*InstanceFilePreSignRequest)(nil),        // 59: v1.InstanceFilePreSignRequest
+	(*InstanceFilePreSignResponse)(nil),       // 60: v1.InstanceFilePreSignResponse
+	(*InstanceFilePreSignUploadRequest)(nil),  // 61: v1.InstanceFilePreSignUploadRequest
+	(*InstanceFilePreSignUploadResponse)(nil), // 62: v1.InstanceFilePreSignUploadResponse
+	(*timestamppb.Timestamp)(nil),             // 63: google.protobuf.Timestamp
+	(FileSortField)(0),                        // 64: v1.FileSortField
+	(*FileDirectoryInfo)(nil),                 // 65: v1.FileDirectoryInfo
+	(*FileEntryInfo)(nil),                     // 66: v1.FileEntryInfo
+	(*FileCreateItem)(nil),                    // 67: v1.FileCreateItem
+	(*FileTaskInfo)(nil),                      // 68: v1.FileTaskInfo
+	(*FileOperationResult)(nil),               // 69: v1.FileOperationResult
+	(*UploadInfo)(nil),                        // 70: v1.UploadInfo
 }
 var file_v1_instance_proto_depIdxs = []int32{
 	9,  // 0: v1.GetInstanceTypesResponse.types:type_name -> v1.InstanceTypeInfo
@@ -3740,16 +3849,16 @@ var file_v1_instance_proto_depIdxs = []int32{
 	38, // 8: v1.StartInstanceResponse.info:type_name -> v1.InstanceInfo
 	38, // 9: v1.UpdateInstanceResponse.info:type_name -> v1.InstanceInfo
 	0,  // 10: v1.InstanceInfo.status:type_name -> v1.InstanceStatus
-	61, // 11: v1.InstanceInfo.start_time:type_name -> google.protobuf.Timestamp
-	61, // 12: v1.InstanceInfo.create_time:type_name -> google.protobuf.Timestamp
-	62, // 13: v1.GetInstanceFileListRequest.sort_field:type_name -> v1.FileSortField
-	63, // 14: v1.GetInstanceFileListResponse.directory:type_name -> v1.FileDirectoryInfo
-	64, // 15: v1.GetInstanceFileListResponse.items:type_name -> v1.FileEntryInfo
-	65, // 16: v1.CreateInstanceFileRequest.info:type_name -> v1.FileCreateItem
-	66, // 17: v1.CopyInstanceFileResponse.task:type_name -> v1.FileTaskInfo
-	66, // 18: v1.CutInstanceFileResponse.task:type_name -> v1.FileTaskInfo
-	67, // 19: v1.BatchDeleteInstanceFileResponse.items:type_name -> v1.FileOperationResult
-	68, // 20: v1.InstanceFilePreSignUploadResponse.info:type_name -> v1.UploadInfo
+	63, // 11: v1.InstanceInfo.start_time:type_name -> google.protobuf.Timestamp
+	63, // 12: v1.InstanceInfo.create_time:type_name -> google.protobuf.Timestamp
+	64, // 13: v1.GetInstanceFileListRequest.sort_field:type_name -> v1.FileSortField
+	65, // 14: v1.GetInstanceFileListResponse.directory:type_name -> v1.FileDirectoryInfo
+	66, // 15: v1.GetInstanceFileListResponse.items:type_name -> v1.FileEntryInfo
+	67, // 16: v1.CreateInstanceFileRequest.info:type_name -> v1.FileCreateItem
+	68, // 17: v1.CopyInstanceFileResponse.task:type_name -> v1.FileTaskInfo
+	68, // 18: v1.CutInstanceFileResponse.task:type_name -> v1.FileTaskInfo
+	69, // 19: v1.BatchDeleteInstanceFileResponse.items:type_name -> v1.FileOperationResult
+	70, // 20: v1.InstanceFilePreSignUploadResponse.info:type_name -> v1.UploadInfo
 	1,  // 21: v1.InstanceManager.GetInstanceTypes:input_type -> v1.GetInstanceTypesRequest
 	3,  // 22: v1.InstanceManager.CreateInstanceType:input_type -> v1.CreateInstanceTypeRequest
 	5,  // 23: v1.InstanceManager.UpdateInstanceType:input_type -> v1.UpdateInstanceTypeRequest
@@ -3776,38 +3885,40 @@ var file_v1_instance_proto_depIdxs = []int32{
 	51, // 44: v1.InstanceManager.BatchCompressInstanceFile:input_type -> v1.BatchCompressInstanceFileRequest
 	53, // 45: v1.InstanceManager.UnzipInstanceFile:input_type -> v1.UnzipInstanceFileRequest
 	55, // 46: v1.InstanceManager.OpenInstanceFile:input_type -> v1.OpenInstanceFileRequest
-	57, // 47: v1.InstanceManager.InstanceFilePreSign:input_type -> v1.InstanceFilePreSignRequest
-	59, // 48: v1.InstanceManager.InstanceFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
-	2,  // 49: v1.InstanceManager.GetInstanceTypes:output_type -> v1.GetInstanceTypesResponse
-	4,  // 50: v1.InstanceManager.CreateInstanceType:output_type -> v1.CreateInstanceTypeResponse
-	6,  // 51: v1.InstanceManager.UpdateInstanceType:output_type -> v1.UpdateInstanceTypeResponse
-	8,  // 52: v1.InstanceManager.DelInstanceType:output_type -> v1.DelInstanceTypeResponse
-	11, // 53: v1.InstanceManager.GetTerminalInfo:output_type -> v1.GetTerminalInfoResponse
-	13, // 54: v1.InstanceManager.StartTerminal:output_type -> v1.StartTerminalResponse
-	15, // 55: v1.InstanceManager.StopTerminal:output_type -> v1.StopTerminalResponse
-	17, // 56: v1.InstanceManager.RestartTerminal:output_type -> v1.RestartTerminalResponse
-	19, // 57: v1.InstanceManager.GetInstances:output_type -> v1.GetInstancesResponse
-	21, // 58: v1.InstanceManager.CreateInstance:output_type -> v1.CreateInstanceResponse
-	23, // 59: v1.InstanceManager.GetInstanceInfo:output_type -> v1.GetInstanceInfoResponse
-	27, // 60: v1.InstanceManager.StartInstance:output_type -> v1.StartInstanceResponse
-	29, // 61: v1.InstanceManager.StopInstance:output_type -> v1.StopInstanceResponse
-	31, // 62: v1.InstanceManager.RestartInstance:output_type -> v1.RestartInstanceResponse
-	33, // 63: v1.InstanceManager.DelInstance:output_type -> v1.DelInstanceResponse
-	35, // 64: v1.InstanceManager.UpdateInstance:output_type -> v1.UpdateInstanceResponse
-	37, // 65: v1.InstanceManager.DelInstanceLog:output_type -> v1.DelInstanceLogResponse
-	40, // 66: v1.InstanceManager.GetInstanceFileList:output_type -> v1.GetInstanceFileListResponse
-	42, // 67: v1.InstanceManager.CreateInstanceFile:output_type -> v1.CreateInstanceFileResponse
-	44, // 68: v1.InstanceManager.RenameInstanceFile:output_type -> v1.RenameInstanceFileResponse
-	46, // 69: v1.InstanceManager.CopyInstanceFile:output_type -> v1.CopyInstanceFileResponse
-	48, // 70: v1.InstanceManager.CutInstanceFile:output_type -> v1.CutInstanceFileResponse
-	50, // 71: v1.InstanceManager.BatchDeleteInstanceFile:output_type -> v1.BatchDeleteInstanceFileResponse
-	52, // 72: v1.InstanceManager.BatchCompressInstanceFile:output_type -> v1.BatchCompressInstanceFileResponse
-	54, // 73: v1.InstanceManager.UnzipInstanceFile:output_type -> v1.UnzipInstanceFileResponse
-	56, // 74: v1.InstanceManager.OpenInstanceFile:output_type -> v1.OpenInstanceFileResponse
-	58, // 75: v1.InstanceManager.InstanceFilePreSign:output_type -> v1.InstanceFilePreSignResponse
-	60, // 76: v1.InstanceManager.InstanceFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
-	49, // [49:77] is the sub-list for method output_type
-	21, // [21:49] is the sub-list for method input_type
+	57, // 47: v1.InstanceManager.EditInstanceFile:input_type -> v1.EditInstanceFileRequest
+	59, // 48: v1.InstanceManager.InstanceFilePreSign:input_type -> v1.InstanceFilePreSignRequest
+	61, // 49: v1.InstanceManager.InstanceFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
+	2,  // 50: v1.InstanceManager.GetInstanceTypes:output_type -> v1.GetInstanceTypesResponse
+	4,  // 51: v1.InstanceManager.CreateInstanceType:output_type -> v1.CreateInstanceTypeResponse
+	6,  // 52: v1.InstanceManager.UpdateInstanceType:output_type -> v1.UpdateInstanceTypeResponse
+	8,  // 53: v1.InstanceManager.DelInstanceType:output_type -> v1.DelInstanceTypeResponse
+	11, // 54: v1.InstanceManager.GetTerminalInfo:output_type -> v1.GetTerminalInfoResponse
+	13, // 55: v1.InstanceManager.StartTerminal:output_type -> v1.StartTerminalResponse
+	15, // 56: v1.InstanceManager.StopTerminal:output_type -> v1.StopTerminalResponse
+	17, // 57: v1.InstanceManager.RestartTerminal:output_type -> v1.RestartTerminalResponse
+	19, // 58: v1.InstanceManager.GetInstances:output_type -> v1.GetInstancesResponse
+	21, // 59: v1.InstanceManager.CreateInstance:output_type -> v1.CreateInstanceResponse
+	23, // 60: v1.InstanceManager.GetInstanceInfo:output_type -> v1.GetInstanceInfoResponse
+	27, // 61: v1.InstanceManager.StartInstance:output_type -> v1.StartInstanceResponse
+	29, // 62: v1.InstanceManager.StopInstance:output_type -> v1.StopInstanceResponse
+	31, // 63: v1.InstanceManager.RestartInstance:output_type -> v1.RestartInstanceResponse
+	33, // 64: v1.InstanceManager.DelInstance:output_type -> v1.DelInstanceResponse
+	35, // 65: v1.InstanceManager.UpdateInstance:output_type -> v1.UpdateInstanceResponse
+	37, // 66: v1.InstanceManager.DelInstanceLog:output_type -> v1.DelInstanceLogResponse
+	40, // 67: v1.InstanceManager.GetInstanceFileList:output_type -> v1.GetInstanceFileListResponse
+	42, // 68: v1.InstanceManager.CreateInstanceFile:output_type -> v1.CreateInstanceFileResponse
+	44, // 69: v1.InstanceManager.RenameInstanceFile:output_type -> v1.RenameInstanceFileResponse
+	46, // 70: v1.InstanceManager.CopyInstanceFile:output_type -> v1.CopyInstanceFileResponse
+	48, // 71: v1.InstanceManager.CutInstanceFile:output_type -> v1.CutInstanceFileResponse
+	50, // 72: v1.InstanceManager.BatchDeleteInstanceFile:output_type -> v1.BatchDeleteInstanceFileResponse
+	52, // 73: v1.InstanceManager.BatchCompressInstanceFile:output_type -> v1.BatchCompressInstanceFileResponse
+	54, // 74: v1.InstanceManager.UnzipInstanceFile:output_type -> v1.UnzipInstanceFileResponse
+	56, // 75: v1.InstanceManager.OpenInstanceFile:output_type -> v1.OpenInstanceFileResponse
+	58, // 76: v1.InstanceManager.EditInstanceFile:output_type -> v1.EditInstanceFileResponse
+	60, // 77: v1.InstanceManager.InstanceFilePreSign:output_type -> v1.InstanceFilePreSignResponse
+	62, // 78: v1.InstanceManager.InstanceFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
+	50, // [50:79] is the sub-list for method output_type
+	21, // [21:50] is the sub-list for method input_type
 	21, // [21:21] is the sub-list for extension type_name
 	21, // [21:21] is the sub-list for extension extendee
 	0,  // [0:21] is the sub-list for field type_name
@@ -3825,14 +3936,14 @@ func file_v1_instance_proto_init() {
 	file_v1_instance_proto_msgTypes[38].OneofWrappers = []any{}
 	file_v1_instance_proto_msgTypes[50].OneofWrappers = []any{}
 	file_v1_instance_proto_msgTypes[52].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[58].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[60].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_instance_proto_rawDesc), len(file_v1_instance_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   60,
+			NumMessages:   62,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

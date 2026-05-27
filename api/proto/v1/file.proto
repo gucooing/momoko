@@ -77,6 +77,13 @@ service FileManager {
       body: "*"
     };
   }
+  // 编辑指定文件(系统级)
+  rpc EditFileSystemFile(EditFileSystemFileRequest) returns (EditFileSystemFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/system/edit/file"
+      body: "*"
+    };
+  }
   // 文件下载预签名(系统级)
   rpc FileSystemPreSign(FileSystemPreSignRequest) returns (FileSystemPreSignResponse) {
     option (google.api.http) = {
@@ -381,6 +388,17 @@ message OpenFileSystemFileResponse {
   // 文件内容
   bytes info = 1;
 }
+
+// 编辑系统文件请求
+message EditFileSystemFileRequest {
+  // 文件路径
+  string path = 1;
+  // 文件内容
+  bytes content = 2;
+}
+
+// 编辑系统文件响应
+message EditFileSystemFileResponse {}
 
 // 文件下载预签名请求
 message FileSystemPreSignRequest {

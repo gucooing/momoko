@@ -943,6 +943,8 @@ enum OperationType {
   OperationTypeFileUploadComplete = 23;
   // 文件上传取消
   OperationTypeFileUploadCancel = 24;
+  // 文件编辑
+  OperationTypeFileEdit = 62;
   // 实例类型新增
   OperationTypeInstanceTypeCreate = 25;
   // 实例类型编辑
@@ -985,6 +987,8 @@ enum OperationType {
   OperationTypeInstanceFileDecompress = 44;
   // 实例文件上传签名
   OperationTypeInstanceFileUploadPreSign = 45;
+  // 实例文件编辑
+  OperationTypeInstanceFileEdit = 63;
   // SSH连接新增
   OperationTypeSSHHostCreate = 46;
   // SSH连接编辑

@@ -84,6 +84,10 @@ func (f *FileService) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSy
 	return f.uc.OpenFileSystemFile(ctx, req)
 }
 
+func (f *FileService) EditFileSystemFile(ctx context.Context, req *v1.EditFileSystemFileRequest) (*v1.EditFileSystemFileResponse, error) {
+	return f.uc.EditFileSystemFile(ctx, req)
+}
+
 func (f *FileService) FileSystemPreSign(ctx context.Context, req *v1.FileSystemPreSignRequest) (*v1.FileSystemPreSignResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

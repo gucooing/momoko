@@ -30,6 +30,7 @@ const props = defineProps<{
   filePath: string
   content: string
   onClose: () => void
+  onSave: (content: string) => Promise<void>
 }>()
 
 const editorHostRef = useTemplateRef<HTMLDivElement>('editorHost')
@@ -342,7 +343,11 @@ const handleSave = async () => {
   saveLoading.value = true
 
   try {
-    ElMessage.info('暂未接入保存接口，当前仅支持编辑预览')
+    await props.onSave(draftContent.value)
+    originalContent.value = draftContent.value
+    ElMessage.success('文件保存成功')
+  } catch (error: any) {
+    ElMessage.error(error?.message || '文件保存失败')
   } finally {
     saveLoading.value = false
   }
