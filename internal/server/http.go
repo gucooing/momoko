@@ -28,6 +28,7 @@ func NewHTTPServer(c *conf.Server,
 	instanceApi *service.InstanceService,
 	openSSHApi *service.OpenSSHService,
 	nodeApi *service.NodeService,
+	dockerApi *service.DockerService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -68,9 +69,11 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
 	v1.RegisterOpenSSHManagerHTTPServer(srv, openSSHApi)
 	v1.RegisterNodeServiceHTTPServer(srv, nodeApi)
+	v1.RegisterDockerManagerHTTPServer(srv, dockerApi)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)
 	fileApi.RegisterDownloadServer(srv)
+	dockerApi.RegisterWsServer(srv)
 
 	return srv
 }

@@ -175,6 +175,72 @@ export enum OperationType {
   OperationTypeNodeAPIKeyUpdate = "OperationTypeNodeAPIKeyUpdate",
   /** OperationTypeNodeAPIKeyRefresh - API Key 刷新 */
   OperationTypeNodeAPIKeyRefresh = "OperationTypeNodeAPIKeyRefresh",
+  /** OperationTypeDockerConfigUpdate - Docker 配置更新 */
+  OperationTypeDockerConfigUpdate = "OperationTypeDockerConfigUpdate",
+  /** OperationTypeDockerContainerCreate - Docker 容器创建 */
+  OperationTypeDockerContainerCreate = "OperationTypeDockerContainerCreate",
+  /** OperationTypeDockerContainerUpdate - Docker 容器更新 */
+  OperationTypeDockerContainerUpdate = "OperationTypeDockerContainerUpdate",
+  /** OperationTypeDockerContainerDelete - Docker 容器删除 */
+  OperationTypeDockerContainerDelete = "OperationTypeDockerContainerDelete",
+  /** OperationTypeDockerContainerStart - Docker 容器启动 */
+  OperationTypeDockerContainerStart = "OperationTypeDockerContainerStart",
+  /** OperationTypeDockerContainerStop - Docker 容器停止 */
+  OperationTypeDockerContainerStop = "OperationTypeDockerContainerStop",
+  /** OperationTypeDockerContainerRestart - Docker 容器重启 */
+  OperationTypeDockerContainerRestart = "OperationTypeDockerContainerRestart",
+  /** OperationTypeDockerContainerKill - Docker 容器强制停止 */
+  OperationTypeDockerContainerKill = "OperationTypeDockerContainerKill",
+  /** OperationTypeDockerContainerPause - Docker 容器暂停 */
+  OperationTypeDockerContainerPause = "OperationTypeDockerContainerPause",
+  /** OperationTypeDockerContainerUnpause - Docker 容器恢复 */
+  OperationTypeDockerContainerUnpause = "OperationTypeDockerContainerUnpause",
+  /** OperationTypeDockerContainerRename - Docker 容器重命名 */
+  OperationTypeDockerContainerRename = "OperationTypeDockerContainerRename",
+  /** OperationTypeDockerContainerRecreate - Docker 容器重建 */
+  OperationTypeDockerContainerRecreate = "OperationTypeDockerContainerRecreate",
+  /** OperationTypeDockerImagePull - Docker 镜像拉取 */
+  OperationTypeDockerImagePull = "OperationTypeDockerImagePull",
+  /** OperationTypeDockerImageBuild - Docker 镜像构建 */
+  OperationTypeDockerImageBuild = "OperationTypeDockerImageBuild",
+  /** OperationTypeDockerImageTagsUpdate - Docker 镜像标签更新 */
+  OperationTypeDockerImageTagsUpdate = "OperationTypeDockerImageTagsUpdate",
+  /** OperationTypeDockerImageTag - Docker 镜像打标签 */
+  OperationTypeDockerImageTag = "OperationTypeDockerImageTag",
+  /** OperationTypeDockerImageDelete - Docker 镜像删除 */
+  OperationTypeDockerImageDelete = "OperationTypeDockerImageDelete",
+  /** OperationTypeDockerImagePrune - Docker 镜像清理 */
+  OperationTypeDockerImagePrune = "OperationTypeDockerImagePrune",
+  /** OperationTypeDockerNetworkCreate - Docker 网络创建 */
+  OperationTypeDockerNetworkCreate = "OperationTypeDockerNetworkCreate",
+  /** OperationTypeDockerNetworkUpdate - Docker 网络更新 */
+  OperationTypeDockerNetworkUpdate = "OperationTypeDockerNetworkUpdate",
+  /** OperationTypeDockerNetworkRecreate - Docker 网络重建 */
+  OperationTypeDockerNetworkRecreate = "OperationTypeDockerNetworkRecreate",
+  /** OperationTypeDockerNetworkDelete - Docker 网络删除 */
+  OperationTypeDockerNetworkDelete = "OperationTypeDockerNetworkDelete",
+  /** OperationTypeDockerNetworkConnect - Docker 网络连接容器 */
+  OperationTypeDockerNetworkConnect = "OperationTypeDockerNetworkConnect",
+  /** OperationTypeDockerNetworkDisconnect - Docker 网络断开容器 */
+  OperationTypeDockerNetworkDisconnect = "OperationTypeDockerNetworkDisconnect",
+  /** OperationTypeDockerNetworkPrune - Docker 网络清理 */
+  OperationTypeDockerNetworkPrune = "OperationTypeDockerNetworkPrune",
+  /** OperationTypeDockerVolumeCreate - Docker 储存卷创建 */
+  OperationTypeDockerVolumeCreate = "OperationTypeDockerVolumeCreate",
+  /** OperationTypeDockerVolumeUpdate - Docker 储存卷更新 */
+  OperationTypeDockerVolumeUpdate = "OperationTypeDockerVolumeUpdate",
+  /** OperationTypeDockerVolumeRecreate - Docker 储存卷重建 */
+  OperationTypeDockerVolumeRecreate = "OperationTypeDockerVolumeRecreate",
+  /** OperationTypeDockerVolumeDelete - Docker 储存卷删除 */
+  OperationTypeDockerVolumeDelete = "OperationTypeDockerVolumeDelete",
+  /** OperationTypeDockerVolumePrune - Docker 储存卷清理 */
+  OperationTypeDockerVolumePrune = "OperationTypeDockerVolumePrune",
+  /** OperationTypeDockerVolumeExport - Docker 储存卷导出 */
+  OperationTypeDockerVolumeExport = "OperationTypeDockerVolumeExport",
+  /** OperationTypeDockerVolumeRestore - Docker 储存卷恢复 */
+  OperationTypeDockerVolumeRestore = "OperationTypeDockerVolumeRestore",
+  /** OperationTypeDockerConfigTest - Docker 配置测试 */
+  OperationTypeDockerConfigTest = "OperationTypeDockerConfigTest",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 

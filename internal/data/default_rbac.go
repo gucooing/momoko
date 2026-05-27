@@ -70,6 +70,18 @@ var (
 		newDefaultMenu("menu_4", entmenu.TypeDirectory, "", "节点管理", "HOutline:SignalIcon", nil, 3, "", entmenu.StatusActive),
 		newDefaultMenu("menu_4_1", entmenu.TypeMenu, "/node/key", "ApiKey", "HOutline:KeyIcon", new("menu_4"), 1, constant.ApiKeyView, entmenu.StatusActive),
 
+		newDefaultMenu("menu_5", entmenu.TypeDirectory, "", "Docker", "HOutline:CircleStackIcon", nil, 4, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_1", entmenu.TypeMenu, "/docker/container", "容器", "HOutline:CubeIcon", new("menu_5"), 0, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_1_button_0", entmenu.TypeButton, "", "管理容器", "", new("menu_5_1"), 0, constant.DockerContainerManage, entmenu.StatusActive),
+		newDefaultMenu("menu_5_2", entmenu.TypeMenu, "/docker/image", "镜像", "HOutline:PhotoIcon", new("menu_5"), 1, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_2_button_0", entmenu.TypeButton, "", "管理镜像", "", new("menu_5_2"), 0, constant.DockerImageManage, entmenu.StatusActive),
+		newDefaultMenu("menu_5_3", entmenu.TypeMenu, "/docker/network", "网络", "HOutline:GlobeAltIcon", new("menu_5"), 2, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_3_button_0", entmenu.TypeButton, "", "管理网络", "", new("menu_5_3"), 0, constant.DockerNetworkManage, entmenu.StatusActive),
+		newDefaultMenu("menu_5_4", entmenu.TypeMenu, "/docker/volume", "储存卷", "HOutline:ArchiveBoxIcon", new("menu_5"), 3, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_4_button_0", entmenu.TypeButton, "", "管理储存卷", "", new("menu_5_4"), 0, constant.DockerVolumeManage, entmenu.StatusActive),
+		newDefaultMenu("menu_5_5", entmenu.TypeMenu, "/docker/config", "配置", "HOutline:Cog6ToothIcon", new("menu_5"), 4, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5_5_button_0", entmenu.TypeButton, "", "编辑Docker配置", "", new("menu_5_5"), 0, constant.DockerConfigEdit, entmenu.StatusActive),
+
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", new("menu_12_1"), 0, constant.UserAdd, entmenu.StatusActive),

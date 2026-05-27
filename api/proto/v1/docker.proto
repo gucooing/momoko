@@ -1,0 +1,1612 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// Docker管理
+service DockerManager {
+  // 获取Docker连接状态
+  rpc DockerStatus(DockerStatusRequest) returns (DockerStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/status"
+    };
+  }
+  // 获取Docker配置
+  rpc GetDockerConfig(GetDockerConfigRequest) returns (GetDockerConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/config"
+    };
+  }
+  // 更新Docker配置
+  rpc UpdateDockerConfig(UpdateDockerConfigRequest) returns (UpdateDockerConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/docker/config"
+      body: "*"
+    };
+  }
+  // 测试Docker配置
+  rpc TestDockerConfig(TestDockerConfigRequest) returns (TestDockerConfigResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/config/test"
+      body: "*"
+    };
+  }
+  // 获取Docker任务列表
+  rpc ListDockerTasks(ListDockerTasksRequest) returns (ListDockerTasksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/tasks"
+    };
+  }
+  // 获取Docker任务详情
+  rpc GetDockerTask(GetDockerTaskRequest) returns (GetDockerTaskResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/tasks/{task_id}"
+    };
+  }
+
+  // 获取容器列表
+  rpc ListDockerContainers(ListDockerContainersRequest) returns (ListDockerContainersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/containers"
+    };
+  }
+  // 获取容器详情
+  rpc GetDockerContainer(GetDockerContainerRequest) returns (GetDockerContainerResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/containers/{id}"
+    };
+  }
+  // 创建容器
+  rpc CreateDockerContainer(CreateDockerContainerRequest) returns (CreateDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers"
+      body: "*"
+    };
+  }
+  // 更新容器可变配置
+  rpc UpdateDockerContainer(UpdateDockerContainerRequest) returns (UpdateDockerContainerResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/docker/containers/{id}"
+      body: "*"
+    };
+  }
+  // 重建容器
+  rpc RecreateDockerContainer(RecreateDockerContainerRequest) returns (RecreateDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/recreate"
+      body: "*"
+    };
+  }
+  // 启动容器
+  rpc StartDockerContainer(StartDockerContainerRequest) returns (StartDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/start"
+      body: "*"
+    };
+  }
+  // 停止容器
+  rpc StopDockerContainer(StopDockerContainerRequest) returns (StopDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/stop"
+      body: "*"
+    };
+  }
+  // 重启容器
+  rpc RestartDockerContainer(RestartDockerContainerRequest) returns (RestartDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/restart"
+      body: "*"
+    };
+  }
+  // 强制停止容器
+  rpc KillDockerContainer(KillDockerContainerRequest) returns (KillDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/kill"
+      body: "*"
+    };
+  }
+  // 暂停容器
+  rpc PauseDockerContainer(PauseDockerContainerRequest) returns (PauseDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/pause"
+      body: "*"
+    };
+  }
+  // 恢复容器
+  rpc UnpauseDockerContainer(UnpauseDockerContainerRequest) returns (UnpauseDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/unpause"
+      body: "*"
+    };
+  }
+  // 重命名容器
+  rpc RenameDockerContainer(RenameDockerContainerRequest) returns (RenameDockerContainerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{id}/rename"
+      body: "*"
+    };
+  }
+  // 删除容器
+  rpc DeleteDockerContainer(DeleteDockerContainerRequest) returns (DeleteDockerContainerResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/docker/containers/{id}"
+    };
+  }
+  // 获取容器日志
+  rpc ContainerLogs(ContainerLogsRequest) returns (ContainerLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/containers/{id}/logs"
+    };
+  }
+  // 获取容器资源状态
+  rpc ContainerStats(ContainerStatsRequest) returns (ContainerStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/containers/{id}/stats"
+    };
+  }
+  // 创建容器执行会话
+  rpc CreateContainerExec(CreateContainerExecRequest) returns (CreateContainerExecResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/containers/{container_id}/exec"
+      body: "*"
+    };
+  }
+
+  // 获取镜像列表
+  rpc ListDockerImages(ListDockerImagesRequest) returns (ListDockerImagesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/images"
+    };
+  }
+  // 获取镜像详情
+  rpc GetDockerImage(GetDockerImageRequest) returns (GetDockerImageResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/images/{id}"
+    };
+  }
+  // 拉取镜像
+  rpc PullDockerImage(PullDockerImageRequest) returns (PullDockerImageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/images/pull"
+      body: "*"
+    };
+  }
+  // 构建镜像
+  rpc BuildDockerImage(BuildDockerImageRequest) returns (BuildDockerImageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/images/build"
+      body: "*"
+    };
+  }
+  // 更新镜像标签
+  rpc UpdateDockerImageTags(UpdateDockerImageTagsRequest) returns (UpdateDockerImageTagsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/docker/images/{image_id}/tags"
+      body: "*"
+    };
+  }
+  // 给镜像打标签
+  rpc TagDockerImage(TagDockerImageRequest) returns (TagDockerImageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/images/{id}/tag"
+      body: "*"
+    };
+  }
+  // 删除镜像
+  rpc DeleteDockerImage(DeleteDockerImageRequest) returns (DeleteDockerImageResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/docker/images/{id}"
+    };
+  }
+  // 清理镜像
+  rpc PruneDockerImages(PruneDockerImagesRequest) returns (PruneDockerImagesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/images/prune"
+      body: "*"
+    };
+  }
+  // 获取镜像历史
+  rpc ImageHistory(ImageHistoryRequest) returns (ImageHistoryResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/images/{id}/history"
+    };
+  }
+
+  // 获取网络列表
+  rpc ListDockerNetworks(ListDockerNetworksRequest) returns (ListDockerNetworksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/networks"
+    };
+  }
+  // 获取网络详情
+  rpc GetDockerNetwork(GetDockerNetworkRequest) returns (GetDockerNetworkResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/networks/{id}"
+    };
+  }
+  // 创建网络
+  rpc CreateDockerNetwork(CreateDockerNetworkRequest) returns (CreateDockerNetworkResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/networks"
+      body: "*"
+    };
+  }
+  // 更新网络
+  rpc UpdateDockerNetwork(UpdateDockerNetworkRequest) returns (UpdateDockerNetworkResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/docker/networks/{id}"
+      body: "*"
+    };
+  }
+  // 重建网络
+  rpc RecreateDockerNetwork(RecreateDockerNetworkRequest) returns (RecreateDockerNetworkResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/networks/{id}/recreate"
+      body: "*"
+    };
+  }
+  // 删除网络
+  rpc DeleteDockerNetwork(DeleteDockerNetworkRequest) returns (DeleteDockerNetworkResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/docker/networks/{id}"
+    };
+  }
+  // 连接容器到网络
+  rpc ConnectDockerNetwork(ConnectDockerNetworkRequest) returns (ConnectDockerNetworkResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/networks/{network_id}/connect"
+      body: "*"
+    };
+  }
+  // 断开容器网络
+  rpc DisconnectDockerNetwork(DisconnectDockerNetworkRequest) returns (DisconnectDockerNetworkResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/networks/{network_id}/disconnect"
+      body: "*"
+    };
+  }
+  // 清理网络
+  rpc PruneDockerNetworks(PruneDockerNetworksRequest) returns (PruneDockerNetworksResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/networks/prune"
+      body: "*"
+    };
+  }
+
+  // 获取储存卷列表
+  rpc ListDockerVolumes(ListDockerVolumesRequest) returns (ListDockerVolumesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/volumes"
+    };
+  }
+  // 获取储存卷详情
+  rpc GetDockerVolume(GetDockerVolumeRequest) returns (GetDockerVolumeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/volumes/{name}"
+    };
+  }
+  // 创建储存卷
+  rpc CreateDockerVolume(CreateDockerVolumeRequest) returns (CreateDockerVolumeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/volumes"
+      body: "*"
+    };
+  }
+  // 更新储存卷
+  rpc UpdateDockerVolume(UpdateDockerVolumeRequest) returns (UpdateDockerVolumeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/docker/volumes/{name}"
+      body: "*"
+    };
+  }
+  // 重建储存卷
+  rpc RecreateDockerVolume(RecreateDockerVolumeRequest) returns (RecreateDockerVolumeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/volumes/{name}/recreate"
+      body: "*"
+    };
+  }
+  // 删除储存卷
+  rpc DeleteDockerVolume(DeleteDockerVolumeRequest) returns (DeleteDockerVolumeResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/docker/volumes/{name}"
+    };
+  }
+  // 清理储存卷
+  rpc PruneDockerVolumes(PruneDockerVolumesRequest) returns (PruneDockerVolumesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/volumes/prune"
+      body: "*"
+    };
+  }
+  // 导出储存卷
+  rpc ExportDockerVolume(ExportDockerVolumeRequest) returns (ExportDockerVolumeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/volumes/{name}/export"
+      body: "*"
+    };
+  }
+  // 恢复储存卷
+  rpc RestoreDockerVolume(RestoreDockerVolumeRequest) returns (RestoreDockerVolumeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/volumes/{name}/restore"
+      body: "*"
+    };
+  }
+}
+
+// Docker连接状态请求
+message DockerStatusRequest {}
+
+// Docker连接状态响应
+message DockerStatusResponse {
+  // 是否启用
+  bool enabled = 1;
+  // 是否已连接
+  bool connected = 2;
+  // 错误信息
+  string error = 3;
+  // 引擎信息
+  DockerEngineInfo info = 4;
+  // 版本信息
+  DockerEngineVersion version = 5;
+}
+
+// Docker引擎信息
+message DockerEngineInfo {
+  // 引擎ID
+  string id = 1;
+  // 主机名称
+  string name = 2;
+  // 服务端版本
+  string server_version = 3;
+  // 操作系统
+  string operating_system = 4;
+  // 操作系统类型
+  string os_type = 5;
+  // CPU架构
+  string architecture = 6;
+  // Docker根目录
+  string docker_root_dir = 7;
+  // 容器总数
+  int32 containers = 8;
+  // 运行中容器数
+  int32 containers_running = 9;
+  // 暂停容器数
+  int32 containers_paused = 10;
+  // 停止容器数
+  int32 containers_stopped = 11;
+  // 镜像数量
+  int32 images = 12;
+  // 存储驱动
+  string driver = 13;
+  // cgroup驱动
+  string cgroup_driver = 14;
+  // cgroup版本
+  string cgroup_version = 15;
+  // 内存总量
+  int64 memory_total = 16;
+  // CPU数量
+  int32 cpus = 17;
+  // 标签
+  repeated string labels = 18;
+}
+
+// Docker引擎版本
+message DockerEngineVersion {
+  // Docker版本
+  string version = 1;
+  // API版本
+  string api_version = 2;
+  // 最低API版本
+  string min_api_version = 3;
+  // Git提交
+  string git_commit = 4;
+  // Go版本
+  string go_version = 5;
+  // 操作系统
+  string os = 6;
+  // CPU架构
+  string arch = 7;
+  // 内核版本
+  string kernel_version = 8;
+  // 构建时间
+  string build_time = 9;
+}
+
+// 获取Docker配置请求
+message GetDockerConfigRequest {}
+
+// 获取Docker配置响应
+message GetDockerConfigResponse {
+  // Docker配置
+  DockerConfigInfo config = 1;
+}
+
+// 更新Docker配置请求
+message UpdateDockerConfigRequest {
+  // Docker配置
+  DockerConfigInfo config = 1;
+}
+
+// 更新Docker配置响应
+message UpdateDockerConfigResponse {
+  // Docker配置
+  DockerConfigInfo config = 1;
+}
+
+// 测试Docker配置请求
+message TestDockerConfigRequest {
+  // Docker配置
+  DockerConfigInfo config = 1;
+}
+
+// 测试Docker配置响应
+message TestDockerConfigResponse {
+  // 连接状态
+  DockerStatusResponse status = 1;
+}
+
+// Docker配置
+message DockerConfigInfo {
+  // 是否启用
+  bool enabled = 1;
+  // Docker连接地址
+  string host = 2;
+  // 是否启用TLS
+  bool tls_enabled = 3;
+  // CA证书路径
+  string tls_ca_path = 4;
+  // 客户端证书路径
+  string tls_cert_path = 5;
+  // 客户端私钥路径
+  string tls_key_path = 6;
+  // API版本
+  string api_version = 7;
+  // 请求超时秒数
+  int32 request_timeout_seconds = 8;
+  // 默认平台
+  string default_platform = 9;
+  // 默认日志行数
+  int32 default_log_tail = 10;
+  // 任务超时秒数
+  int32 task_timeout_seconds = 11;
+  // 仓库认证配置
+  repeated DockerRegistryAuth registry_auths = 12;
+}
+
+// Docker仓库认证
+message DockerRegistryAuth {
+  // 仓库地址
+  string server_address = 1;
+  // 用户名
+  string username = 2;
+  // 密码
+  string password = 3;
+  // Token
+  string token = 4;
+}
+
+// 获取Docker任务列表请求
+message ListDockerTasksRequest {}
+
+// 获取Docker任务列表响应
+message ListDockerTasksResponse {
+  // 任务列表
+  repeated DockerTaskInfo tasks = 1;
+}
+
+// 获取Docker任务详情请求
+message GetDockerTaskRequest {
+  // 任务ID
+  string task_id = 1;
+}
+
+// 获取Docker任务详情响应
+message GetDockerTaskResponse {
+  // 任务详情
+  DockerTaskInfo task = 1;
+}
+
+// Docker任务
+message DockerTaskInfo {
+  // 任务ID
+  string id = 1;
+  // 任务类型
+  string type = 2;
+  // 任务状态
+  string status = 3;
+  // 进度信息
+  string progress = 4;
+  // 消息
+  string message = 5;
+  // 错误信息
+  string error = 6;
+  // 结果路径
+  string result_path = 7;
+  // 开始时间
+  google.protobuf.Timestamp start_time = 8;
+  // 结束时间
+  google.protobuf.Timestamp end_time = 9;
+  // 任务事件
+  repeated DockerTaskEvent events = 10;
+}
+
+// Docker任务事件
+message DockerTaskEvent {
+  // 事件时间
+  google.protobuf.Timestamp time = 1;
+  // 状态
+  string status = 2;
+  // 进度
+  string progress = 3;
+  // 事件ID
+  string id = 4;
+  // 消息
+  string message = 5;
+  // 错误信息
+  string error = 6;
+}
+
+// 获取容器列表请求
+message ListDockerContainersRequest {
+  // 是否包含停止容器
+  bool all = 1;
+  // 状态筛选
+  string status = 2;
+  // 名称筛选
+  string name = 3;
+  // 镜像筛选
+  string image = 4;
+  // 网络筛选
+  string network = 5;
+  // 标签筛选
+  map<string, string> labels = 6;
+  // 页码
+  int64 page = 7;
+  // 每页数量
+  int64 page_size = 8;
+}
+
+// 获取容器列表响应
+message ListDockerContainersResponse {
+  // 容器列表
+  repeated DockerContainerSummary items = 1;
+  // 总数
+  int64 total = 2;
+}
+
+// 获取容器详情请求
+message GetDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 获取容器详情响应
+message GetDockerContainerResponse {
+  // 容器详情
+  DockerContainerInfo info = 1;
+}
+
+// 创建容器请求
+message CreateDockerContainerRequest {
+  // 创建参数
+  DockerContainerCreateOptions options = 1;
+}
+
+// 创建容器响应
+message CreateDockerContainerResponse {
+  // 容器ID
+  string id = 1;
+}
+
+// 更新容器请求
+message UpdateDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 容器名称
+  string name = 2;
+  // 重启策略
+  string restart_policy = 3;
+  // 内存限制
+  int64 memory = 4;
+  // swap限制
+  int64 memory_swap = 5;
+  // CPU权重
+  int64 cpu_shares = 6;
+  // CPU配额
+  int64 cpu_quota = 7;
+  // CPU周期
+  int64 cpu_period = 8;
+  // Nano CPU数量
+  int64 nano_cpus = 9;
+  // 完整重建参数
+  DockerContainerCreateOptions options = 10;
+  // 是否通过重建完成编辑
+  bool recreate = 11;
+  // 是否强制删除旧容器
+  bool force = 12;
+  // 是否删除匿名卷
+  bool remove_volumes = 13;
+}
+
+// 更新容器响应
+message UpdateDockerContainerResponse {
+  // 容器详情
+  DockerContainerInfo info = 1;
+  // 重建任务
+  DockerTaskInfo task = 2;
+}
+
+// 重建容器请求
+message RecreateDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 创建参数
+  DockerContainerCreateOptions options = 2;
+  // 是否强制删除旧容器
+  bool force = 3;
+  // 是否删除匿名卷
+  bool remove_volumes = 4;
+}
+
+// 重建容器响应
+message RecreateDockerContainerResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 启动容器请求
+message StartDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 启动容器响应
+message StartDockerContainerResponse {}
+
+// 停止容器请求
+message StopDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 超时秒数
+  int32 timeout_seconds = 2;
+}
+
+// 停止容器响应
+message StopDockerContainerResponse {}
+
+// 重启容器请求
+message RestartDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 超时秒数
+  int32 timeout_seconds = 2;
+}
+
+// 重启容器响应
+message RestartDockerContainerResponse {}
+
+// 强制停止容器请求
+message KillDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 信号
+  string signal = 2;
+}
+
+// 强制停止容器响应
+message KillDockerContainerResponse {}
+
+// 暂停容器请求
+message PauseDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 暂停容器响应
+message PauseDockerContainerResponse {}
+
+// 恢复容器请求
+message UnpauseDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 恢复容器响应
+message UnpauseDockerContainerResponse {}
+
+// 重命名容器请求
+message RenameDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 新名称
+  string name = 2;
+}
+
+// 重命名容器响应
+message RenameDockerContainerResponse {}
+
+// 删除容器请求
+message DeleteDockerContainerRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 是否强制删除
+  bool force = 2;
+  // 是否删除匿名卷
+  bool remove_volumes = 3;
+}
+
+// 删除容器响应
+message DeleteDockerContainerResponse {}
+
+// 获取容器日志请求
+message ContainerLogsRequest {
+  // 容器ID或名称
+  string id = 1;
+  // 是否显示stdout
+  bool stdout = 2;
+  // 是否显示stderr
+  bool stderr = 3;
+  // 起始时间
+  string since = 4;
+  // 结束时间
+  string until = 5;
+  // 是否显示时间戳
+  bool timestamps = 6;
+  // 尾部行数
+  string tail = 7;
+  // 是否显示详情
+  bool details = 8;
+}
+
+// 获取容器日志响应
+message ContainerLogsResponse {
+  // 日志内容
+  string logs = 1;
+}
+
+// 获取容器资源状态请求
+message ContainerStatsRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 获取容器资源状态响应
+message ContainerStatsResponse {
+  // 原始状态JSON
+  string json = 1;
+}
+
+// 创建容器执行会话请求
+message CreateContainerExecRequest {
+  // 容器ID或名称
+  string container_id = 1;
+  // 执行命令
+  repeated string cmd = 2;
+  // 环境变量
+  repeated string env = 3;
+  // 用户
+  string user = 4;
+  // 工作目录
+  string working_dir = 5;
+  // 是否开启TTY
+  bool tty = 6;
+}
+
+// 创建容器执行会话响应
+message CreateContainerExecResponse {
+  // 执行会话ID
+  string exec_id = 1;
+}
+
+// 容器创建参数
+message DockerContainerCreateOptions {
+  // 容器名称
+  string name = 1;
+  // 镜像
+  string image = 2;
+  // 主机名
+  string hostname = 3;
+  // 用户
+  string user = 4;
+  // 环境变量
+  repeated string env = 5;
+  // 启动命令
+  repeated string cmd = 6;
+  // 入口命令
+  repeated string entrypoint = 7;
+  // 工作目录
+  string working_dir = 8;
+  // 标签
+  map<string, string> labels = 9;
+  // 是否开启TTY
+  bool tty = 10;
+  // 是否打开stdin
+  bool open_stdin = 11;
+  // 网络名称
+  string network = 12;
+  // 重启策略
+  string restart_policy = 13;
+  // 是否自动删除
+  bool auto_remove = 14;
+  // 是否特权模式
+  bool privileged = 15;
+  // 端口映射
+  repeated DockerPortBinding ports = 16;
+  // 挂载配置
+  repeated DockerMount mounts = 17;
+  // 内存限制
+  int64 memory = 18;
+  // swap限制
+  int64 memory_swap = 19;
+  // CPU权重
+  int64 cpu_shares = 20;
+  // CPU配额
+  int64 cpu_quota = 21;
+  // CPU周期
+  int64 cpu_period = 22;
+  // Nano CPU数量
+  int64 nano_cpus = 23;
+  // 平台
+  string platform = 24;
+}
+
+// 容器摘要
+message DockerContainerSummary {
+  // 容器ID
+  string id = 1;
+  // 容器名称
+  repeated string names = 2;
+  // 镜像
+  string image = 3;
+  // 镜像ID
+  string image_id = 4;
+  // 命令
+  string command = 5;
+  // 创建时间
+  google.protobuf.Timestamp created = 6;
+  // 状态
+  string state = 7;
+  // 状态描述
+  string status = 8;
+  // 标签
+  map<string, string> labels = 9;
+  // 端口
+  repeated DockerPort ports = 10;
+  // 挂载点
+  repeated DockerMountPoint mounts = 11;
+  // 网络模式
+  string network_mode = 12;
+  // 网络
+  repeated string networks = 13;
+}
+
+// 容器详情
+message DockerContainerInfo {
+  // 容器ID
+  string id = 1;
+  // 容器名称
+  string name = 2;
+  // 镜像
+  string image = 3;
+  // 镜像ID
+  string image_id = 4;
+  // 启动路径
+  string path = 5;
+  // 启动参数
+  repeated string args = 6;
+  // 创建时间
+  string created = 7;
+  // 状态
+  DockerContainerState state = 8;
+  // 容器配置
+  google.protobuf.Struct config = 9;
+  // 主机配置
+  google.protobuf.Struct host_config = 10;
+  // 网络配置
+  google.protobuf.Struct network = 11;
+  // 挂载点
+  repeated DockerMountPoint mounts = 12;
+  // 重启次数
+  int32 restart_count = 13;
+  // 平台
+  string platform = 14;
+  // 存储驱动
+  string driver = 15;
+  // 日志路径
+  string log_path = 16;
+}
+
+// 容器状态
+message DockerContainerState {
+  // 状态
+  string status = 1;
+  // 是否运行中
+  bool running = 2;
+  // 是否暂停
+  bool paused = 3;
+  // 是否重启中
+  bool restarting = 4;
+  // 是否OOM
+  bool oom_killed = 5;
+  // 是否已死亡
+  bool dead = 6;
+  // 进程ID
+  int32 pid = 7;
+  // 退出码
+  int32 exit_code = 8;
+  // 错误信息
+  string error = 9;
+  // 启动时间
+  string started_at = 10;
+  // 结束时间
+  string finished_at = 11;
+}
+
+// 端口
+message DockerPort {
+  // IP地址
+  string ip = 1;
+  // 容器端口
+  uint32 private_port = 2;
+  // 主机端口
+  uint32 public_port = 3;
+  // 协议类型
+  string type = 4;
+}
+
+// 端口映射
+message DockerPortBinding {
+  // 容器端口
+  string container_port = 1;
+  // 主机IP
+  string host_ip = 2;
+  // 主机端口
+  string host_port = 3;
+}
+
+// 挂载配置
+message DockerMount {
+  // 挂载类型
+  string type = 1;
+  // 来源
+  string source = 2;
+  // 目标路径
+  string target = 3;
+  // 是否只读
+  bool read_only = 4;
+}
+
+// 挂载点
+message DockerMountPoint {
+  // 挂载类型
+  string type = 1;
+  // 名称
+  string name = 2;
+  // 来源
+  string source = 3;
+  // 目标路径
+  string destination = 4;
+  // 驱动
+  string driver = 5;
+  // 模式
+  string mode = 6;
+  // 是否可写
+  bool rw = 7;
+  // 传播模式
+  string propagation = 8;
+}
+
+// 获取镜像列表请求
+message ListDockerImagesRequest {
+  // 是否包含中间镜像
+  bool all = 1;
+  // 是否悬空
+  optional bool dangling = 2;
+  // 关键字
+  string keyword = 3;
+  // 标签筛选
+  map<string, string> labels = 4;
+  // 页码
+  int64 page = 5;
+  // 每页数量
+  int64 page_size = 6;
+}
+
+// 获取镜像列表响应
+message ListDockerImagesResponse {
+  // 镜像列表
+  repeated DockerImageSummary items = 1;
+  // 总数
+  int64 total = 2;
+}
+
+// 获取镜像详情请求
+message GetDockerImageRequest {
+  // 镜像ID或名称
+  string id = 1;
+}
+
+// 获取镜像详情响应
+message GetDockerImageResponse {
+  // 镜像详情
+  DockerImageInfo info = 1;
+}
+
+// 拉取镜像请求
+message PullDockerImageRequest {
+  // 镜像引用
+  string reference = 1;
+  // 平台
+  string platform = 2;
+  // 仓库认证
+  DockerRegistryAuth registry_auth = 3;
+}
+
+// 拉取镜像响应
+message PullDockerImageResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 构建镜像请求
+message BuildDockerImageRequest {
+  // 上下文路径
+  string context_path = 1;
+  // Dockerfile路径
+  string dockerfile = 2;
+  // 镜像标签
+  repeated string tags = 3;
+  // 构建参数
+  map<string, string> build_args = 4;
+  // 标签
+  map<string, string> labels = 5;
+  // 平台
+  string platform = 6;
+  // 是否禁用缓存
+  bool no_cache = 7;
+  // 是否拉取父镜像
+  bool pull_parent = 8;
+  // 是否删除中间容器
+  bool remove = 9;
+  // 是否强制删除中间容器
+  bool force_remove = 10;
+}
+
+// 构建镜像响应
+message BuildDockerImageResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 更新镜像标签请求
+message UpdateDockerImageTagsRequest {
+  // 镜像ID
+  string image_id = 1;
+  // 新增标签
+  repeated string add_tags = 2;
+  // 删除标签
+  repeated string delete_tags = 3;
+  // 是否强制删除标签
+  bool force_delete = 4;
+}
+
+// 更新镜像标签响应
+message UpdateDockerImageTagsResponse {
+  // 镜像详情
+  DockerImageInfo info = 1;
+}
+
+// 给镜像打标签请求
+message TagDockerImageRequest {
+  // 镜像ID
+  string id = 1;
+  // 目标标签
+  string target = 2;
+}
+
+// 给镜像打标签响应
+message TagDockerImageResponse {}
+
+// 删除镜像请求
+message DeleteDockerImageRequest {
+  // 镜像ID或标签
+  string id = 1;
+  // 是否强制删除
+  bool force = 2;
+  // 是否清理子镜像
+  bool prune_children = 3;
+}
+
+// 删除镜像响应
+message DeleteDockerImageResponse {}
+
+// 清理镜像请求
+message PruneDockerImagesRequest {
+  // 是否只清理悬空镜像
+  bool dangling_only = 1;
+}
+
+// 清理镜像响应
+message PruneDockerImagesResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 获取镜像历史请求
+message ImageHistoryRequest {
+  // 镜像ID或名称
+  string id = 1;
+}
+
+// 获取镜像历史响应
+message ImageHistoryResponse {
+  // 历史记录
+  repeated DockerImageHistoryItem items = 1;
+}
+
+// 镜像摘要
+message DockerImageSummary {
+  // 镜像ID
+  string id = 1;
+  // 仓库标签
+  repeated string repo_tags = 2;
+  // 仓库摘要
+  repeated string repo_digests = 3;
+  // 父镜像ID
+  string parent_id = 4;
+  // 创建时间
+  google.protobuf.Timestamp created = 5;
+  // 大小
+  int64 size = 6;
+  // 共享大小
+  int64 shared_size = 7;
+  // 使用容器数
+  int64 containers = 8;
+  // 标签
+  map<string, string> labels = 9;
+}
+
+// 镜像详情
+message DockerImageInfo {
+  // 镜像ID
+  string id = 1;
+  // 仓库标签
+  repeated string repo_tags = 2;
+  // 仓库摘要
+  repeated string repo_digests = 3;
+  // 父镜像
+  string parent = 4;
+  // 创建时间
+  string created = 5;
+  // 作者
+  string author = 6;
+  // CPU架构
+  string architecture = 7;
+  // 操作系统
+  string os = 8;
+  // 大小
+  int64 size = 9;
+  // 虚拟大小
+  int64 virtual_size = 10;
+  // 标签
+  map<string, string> labels = 11;
+  // 层信息
+  repeated string layers = 12;
+}
+
+// 镜像历史记录
+message DockerImageHistoryItem {
+  // 记录ID
+  string id = 1;
+  // 创建时间
+  google.protobuf.Timestamp created = 2;
+  // 创建命令
+  string created_by = 3;
+  // 标签
+  repeated string tags = 4;
+  // 大小
+  int64 size = 5;
+  // 备注
+  string comment = 6;
+}
+
+// 获取网络列表请求
+message ListDockerNetworksRequest {
+  // 名称筛选
+  string name = 1;
+  // 驱动筛选
+  string driver = 2;
+  // 作用域筛选
+  string scope = 3;
+  // 标签筛选
+  map<string, string> labels = 4;
+  // 页码
+  int64 page = 5;
+  // 每页数量
+  int64 page_size = 6;
+}
+
+// 获取网络列表响应
+message ListDockerNetworksResponse {
+  // 网络列表
+  repeated DockerNetworkInfo items = 1;
+  // 总数
+  int64 total = 2;
+}
+
+// 获取网络详情请求
+message GetDockerNetworkRequest {
+  // 网络ID或名称
+  string id = 1;
+}
+
+// 获取网络详情响应
+message GetDockerNetworkResponse {
+  // 网络详情
+  DockerNetworkInfo info = 1;
+}
+
+// 创建网络请求
+message CreateDockerNetworkRequest {
+  // 创建参数
+  DockerNetworkCreateOptions options = 1;
+}
+
+// 创建网络响应
+message CreateDockerNetworkResponse {
+  // 网络ID
+  string id = 1;
+}
+
+// 更新网络请求
+message UpdateDockerNetworkRequest {
+  // 网络ID或名称
+  string id = 1;
+  // 标签
+  map<string, string> labels = 2;
+  // 网络创建参数
+  DockerNetworkCreateOptions options = 3;
+  // 是否强制重建
+  bool force = 4;
+}
+
+// 更新网络响应
+message UpdateDockerNetworkResponse {
+  // 网络详情
+  DockerNetworkInfo info = 1;
+  // 重建任务
+  DockerTaskInfo task = 2;
+}
+
+// 重建网络请求
+message RecreateDockerNetworkRequest {
+  // 网络ID或名称
+  string id = 1;
+  // 创建参数
+  DockerNetworkCreateOptions options = 2;
+  // 是否强制重建
+  bool force = 3;
+}
+
+// 重建网络响应
+message RecreateDockerNetworkResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 删除网络请求
+message DeleteDockerNetworkRequest {
+  // 网络ID或名称
+  string id = 1;
+}
+
+// 删除网络响应
+message DeleteDockerNetworkResponse {}
+
+// 连接容器到网络请求
+message ConnectDockerNetworkRequest {
+  // 网络ID或名称
+  string network_id = 1;
+  // 容器ID或名称
+  string container_id = 2;
+  // 网络别名
+  repeated string aliases = 3;
+  // 固定IPv4地址
+  string ipv4_address = 4;
+  // 固定IPv6地址
+  string ipv6_address = 5;
+}
+
+// 连接容器到网络响应
+message ConnectDockerNetworkResponse {}
+
+// 断开容器网络请求
+message DisconnectDockerNetworkRequest {
+  // 网络ID或名称
+  string network_id = 1;
+  // 容器ID或名称
+  string container_id = 2;
+  // 是否强制断开
+  bool force = 3;
+}
+
+// 断开容器网络响应
+message DisconnectDockerNetworkResponse {}
+
+// 清理网络请求
+message PruneDockerNetworksRequest {}
+
+// 清理网络响应
+message PruneDockerNetworksResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 网络创建参数
+message DockerNetworkCreateOptions {
+  // 网络名称
+  string name = 1;
+  // 网络驱动
+  string driver = 2;
+  // 作用域
+  string scope = 3;
+  // 是否启用IPv4
+  optional bool enable_ipv4 = 4;
+  // 是否启用IPv6
+  optional bool enable_ipv6 = 5;
+  // 是否内部网络
+  bool internal = 6;
+  // 是否可附加
+  bool attachable = 7;
+  // 是否入口网络
+  bool ingress = 8;
+  // IPAM配置
+  DockerIPAM ipam = 9;
+  // 驱动参数
+  map<string, string> options = 10;
+  // 标签
+  map<string, string> labels = 11;
+}
+
+// 网络详情
+message DockerNetworkInfo {
+  // 网络ID
+  string id = 1;
+  // 网络名称
+  string name = 2;
+  // 创建时间
+  string created = 3;
+  // 作用域
+  string scope = 4;
+  // 驱动
+  string driver = 5;
+  // 是否启用IPv4
+  bool enable_ipv4 = 6;
+  // 是否启用IPv6
+  bool enable_ipv6 = 7;
+  // 是否内部网络
+  bool internal = 8;
+  // 是否可附加
+  bool attachable = 9;
+  // 是否入口网络
+  bool ingress = 10;
+  // IPAM配置
+  DockerIPAM ipam = 11;
+  // 已连接容器
+  map<string, DockerNetworkContainer> containers = 12;
+  // 驱动参数
+  map<string, string> options = 13;
+  // 标签
+  map<string, string> labels = 14;
+}
+
+// IPAM配置
+message DockerIPAM {
+  // 驱动
+  string driver = 1;
+  // 参数
+  map<string, string> options = 2;
+  // 地址配置
+  repeated DockerIPAMConfig config = 3;
+}
+
+// IPAM地址配置
+message DockerIPAMConfig {
+  // 子网
+  string subnet = 1;
+  // IP范围
+  string ip_range = 2;
+  // 网关
+  string gateway = 3;
+  // 辅助地址
+  map<string, string> aux_address = 4;
+}
+
+// 网络容器
+message DockerNetworkContainer {
+  // 容器名称
+  string name = 1;
+  // 端点ID
+  string endpoint_id = 2;
+  // MAC地址
+  string mac_address = 3;
+  // IPv4地址
+  string ipv4_address = 4;
+  // IPv6地址
+  string ipv6_address = 5;
+}
+
+// 获取储存卷列表请求
+message ListDockerVolumesRequest {
+  // 名称筛选
+  string name = 1;
+  // 驱动筛选
+  string driver = 2;
+  // 标签筛选
+  map<string, string> labels = 3;
+  // 页码
+  int64 page = 4;
+  // 每页数量
+  int64 page_size = 5;
+}
+
+// 获取储存卷列表响应
+message ListDockerVolumesResponse {
+  // 储存卷列表
+  repeated DockerVolumeInfo items = 1;
+  // 总数
+  int64 total = 2;
+}
+
+// 获取储存卷详情请求
+message GetDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+}
+
+// 获取储存卷详情响应
+message GetDockerVolumeResponse {
+  // 储存卷详情
+  DockerVolumeInfo info = 1;
+}
+
+// 创建储存卷请求
+message CreateDockerVolumeRequest {
+  // 创建参数
+  DockerVolumeCreateOptions options = 1;
+}
+
+// 创建储存卷响应
+message CreateDockerVolumeResponse {
+  // 储存卷详情
+  DockerVolumeInfo info = 1;
+}
+
+// 更新储存卷请求
+message UpdateDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+  // 标签
+  map<string, string> labels = 2;
+  // 驱动参数
+  map<string, string> driver_opts = 3;
+  // 储存卷创建参数
+  DockerVolumeCreateOptions options = 4;
+  // 是否强制重建
+  bool force = 5;
+}
+
+// 更新储存卷响应
+message UpdateDockerVolumeResponse {
+  // 储存卷详情
+  DockerVolumeInfo info = 1;
+  // 重建任务
+  DockerTaskInfo task = 2;
+}
+
+// 重建储存卷请求
+message RecreateDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+  // 创建参数
+  DockerVolumeCreateOptions options = 2;
+  // 是否强制删除
+  bool force = 3;
+}
+
+// 重建储存卷响应
+message RecreateDockerVolumeResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 删除储存卷请求
+message DeleteDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+  // 是否强制删除
+  bool force = 2;
+}
+
+// 删除储存卷响应
+message DeleteDockerVolumeResponse {}
+
+// 清理储存卷请求
+message PruneDockerVolumesRequest {}
+
+// 清理储存卷响应
+message PruneDockerVolumesResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 导出储存卷请求
+message ExportDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+  // 导出路径
+  string archive_path = 2;
+}
+
+// 导出储存卷响应
+message ExportDockerVolumeResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 恢复储存卷请求
+message RestoreDockerVolumeRequest {
+  // 储存卷名称
+  string name = 1;
+  // 归档路径
+  string archive_path = 2;
+}
+
+// 恢复储存卷响应
+message RestoreDockerVolumeResponse {
+  // 任务
+  DockerTaskInfo task = 1;
+}
+
+// 储存卷创建参数
+message DockerVolumeCreateOptions {
+  // 储存卷名称
+  string name = 1;
+  // 驱动
+  string driver = 2;
+  // 标签
+  map<string, string> labels = 3;
+  // 驱动参数
+  map<string, string> driver_opts = 4;
+}
+
+// 储存卷详情
+message DockerVolumeInfo {
+  // 储存卷名称
+  string name = 1;
+  // 驱动
+  string driver = 2;
+  // 挂载点
+  string mountpoint = 3;
+  // 创建时间
+  string created_at = 4;
+  // 状态
+  map<string, string> status = 5;
+  // 标签
+  map<string, string> labels = 6;
+  // 作用域
+  string scope = 7;
+  // 驱动参数
+  map<string, string> options = 8;
+  // 占用大小
+  int64 usage_size = 9;
+  // 引用数量
+  int64 ref_count = 10;
+}

@@ -191,6 +191,1205 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SendRegisterEmailCodeResponse'
+    /api/v1/docker/config:
+        get:
+            tags:
+                - DockerManager
+            description: 获取Docker配置
+            operationId: DockerManager_GetDockerConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerConfigResponse'
+        put:
+            tags:
+                - DockerManager
+            description: 更新Docker配置
+            operationId: DockerManager_UpdateDockerConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateDockerConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateDockerConfigResponse'
+    /api/v1/docker/config/test:
+        post:
+            tags:
+                - DockerManager
+            description: 测试Docker配置
+            operationId: DockerManager_TestDockerConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestDockerConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestDockerConfigResponse'
+    /api/v1/docker/containers:
+        get:
+            tags:
+                - DockerManager
+            description: 获取容器列表
+            operationId: DockerManager_ListDockerContainers
+            parameters:
+                - name: all
+                  in: query
+                  description: 是否包含停止容器
+                  schema:
+                    type: boolean
+                - name: status
+                  in: query
+                  description: 状态筛选
+                  schema:
+                    type: string
+                - name: name
+                  in: query
+                  description: 名称筛选
+                  schema:
+                    type: string
+                - name: image
+                  in: query
+                  description: 镜像筛选
+                  schema:
+                    type: string
+                - name: network
+                  in: query
+                  description: 网络筛选
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerContainersResponse'
+        post:
+            tags:
+                - DockerManager
+            description: 创建容器
+            operationId: DockerManager_CreateDockerContainer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateDockerContainerResponse'
+    /api/v1/docker/containers/{containerId}/exec:
+        post:
+            tags:
+                - DockerManager
+            description: 创建容器执行会话
+            operationId: DockerManager_CreateContainerExec
+            parameters:
+                - name: containerId
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateContainerExecRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateContainerExecResponse'
+    /api/v1/docker/containers/{id}:
+        get:
+            tags:
+                - DockerManager
+            description: 获取容器详情
+            operationId: DockerManager_GetDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerContainerResponse'
+        put:
+            tags:
+                - DockerManager
+            description: 更新容器可变配置
+            operationId: DockerManager_UpdateDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateDockerContainerResponse'
+        delete:
+            tags:
+                - DockerManager
+            description: 删除容器
+            operationId: DockerManager_DeleteDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+                - name: force
+                  in: query
+                  description: 是否强制删除
+                  schema:
+                    type: boolean
+                - name: removeVolumes
+                  in: query
+                  description: 是否删除匿名卷
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteDockerContainerResponse'
+    /api/v1/docker/containers/{id}/kill:
+        post:
+            tags:
+                - DockerManager
+            description: 强制停止容器
+            operationId: DockerManager_KillDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.KillDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.KillDockerContainerResponse'
+    /api/v1/docker/containers/{id}/logs:
+        get:
+            tags:
+                - DockerManager
+            description: 获取容器日志
+            operationId: DockerManager_ContainerLogs
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+                - name: stdout
+                  in: query
+                  description: 是否显示stdout
+                  schema:
+                    type: boolean
+                - name: stderr
+                  in: query
+                  description: 是否显示stderr
+                  schema:
+                    type: boolean
+                - name: since
+                  in: query
+                  description: 起始时间
+                  schema:
+                    type: string
+                - name: until
+                  in: query
+                  description: 结束时间
+                  schema:
+                    type: string
+                - name: timestamps
+                  in: query
+                  description: 是否显示时间戳
+                  schema:
+                    type: boolean
+                - name: tail
+                  in: query
+                  description: 尾部行数
+                  schema:
+                    type: string
+                - name: details
+                  in: query
+                  description: 是否显示详情
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ContainerLogsResponse'
+    /api/v1/docker/containers/{id}/pause:
+        post:
+            tags:
+                - DockerManager
+            description: 暂停容器
+            operationId: DockerManager_PauseDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PauseDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PauseDockerContainerResponse'
+    /api/v1/docker/containers/{id}/recreate:
+        post:
+            tags:
+                - DockerManager
+            description: 重建容器
+            operationId: DockerManager_RecreateDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RecreateDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RecreateDockerContainerResponse'
+    /api/v1/docker/containers/{id}/rename:
+        post:
+            tags:
+                - DockerManager
+            description: 重命名容器
+            operationId: DockerManager_RenameDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RenameDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RenameDockerContainerResponse'
+    /api/v1/docker/containers/{id}/restart:
+        post:
+            tags:
+                - DockerManager
+            description: 重启容器
+            operationId: DockerManager_RestartDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RestartDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RestartDockerContainerResponse'
+    /api/v1/docker/containers/{id}/start:
+        post:
+            tags:
+                - DockerManager
+            description: 启动容器
+            operationId: DockerManager_StartDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StartDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StartDockerContainerResponse'
+    /api/v1/docker/containers/{id}/stats:
+        get:
+            tags:
+                - DockerManager
+            description: 获取容器资源状态
+            operationId: DockerManager_ContainerStats
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ContainerStatsResponse'
+    /api/v1/docker/containers/{id}/stop:
+        post:
+            tags:
+                - DockerManager
+            description: 停止容器
+            operationId: DockerManager_StopDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StopDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StopDockerContainerResponse'
+    /api/v1/docker/containers/{id}/unpause:
+        post:
+            tags:
+                - DockerManager
+            description: 恢复容器
+            operationId: DockerManager_UnpauseDockerContainer
+            parameters:
+                - name: id
+                  in: path
+                  description: 容器ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UnpauseDockerContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UnpauseDockerContainerResponse'
+    /api/v1/docker/images:
+        get:
+            tags:
+                - DockerManager
+            description: 获取镜像列表
+            operationId: DockerManager_ListDockerImages
+            parameters:
+                - name: all
+                  in: query
+                  description: 是否包含中间镜像
+                  schema:
+                    type: boolean
+                - name: dangling
+                  in: query
+                  description: 是否悬空
+                  schema:
+                    type: boolean
+                - name: keyword
+                  in: query
+                  description: 关键字
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerImagesResponse'
+    /api/v1/docker/images/build:
+        post:
+            tags:
+                - DockerManager
+            description: 构建镜像
+            operationId: DockerManager_BuildDockerImage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BuildDockerImageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BuildDockerImageResponse'
+    /api/v1/docker/images/prune:
+        post:
+            tags:
+                - DockerManager
+            description: 清理镜像
+            operationId: DockerManager_PruneDockerImages
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PruneDockerImagesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PruneDockerImagesResponse'
+    /api/v1/docker/images/pull:
+        post:
+            tags:
+                - DockerManager
+            description: 拉取镜像
+            operationId: DockerManager_PullDockerImage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PullDockerImageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PullDockerImageResponse'
+    /api/v1/docker/images/{id}:
+        get:
+            tags:
+                - DockerManager
+            description: 获取镜像详情
+            operationId: DockerManager_GetDockerImage
+            parameters:
+                - name: id
+                  in: path
+                  description: 镜像ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerImageResponse'
+        delete:
+            tags:
+                - DockerManager
+            description: 删除镜像
+            operationId: DockerManager_DeleteDockerImage
+            parameters:
+                - name: id
+                  in: path
+                  description: 镜像ID或标签
+                  required: true
+                  schema:
+                    type: string
+                - name: force
+                  in: query
+                  description: 是否强制删除
+                  schema:
+                    type: boolean
+                - name: pruneChildren
+                  in: query
+                  description: 是否清理子镜像
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteDockerImageResponse'
+    /api/v1/docker/images/{id}/history:
+        get:
+            tags:
+                - DockerManager
+            description: 获取镜像历史
+            operationId: DockerManager_ImageHistory
+            parameters:
+                - name: id
+                  in: path
+                  description: 镜像ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ImageHistoryResponse'
+    /api/v1/docker/images/{id}/tag:
+        post:
+            tags:
+                - DockerManager
+            description: 给镜像打标签
+            operationId: DockerManager_TagDockerImage
+            parameters:
+                - name: id
+                  in: path
+                  description: 镜像ID
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TagDockerImageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TagDockerImageResponse'
+    /api/v1/docker/images/{imageId}/tags:
+        put:
+            tags:
+                - DockerManager
+            description: 更新镜像标签
+            operationId: DockerManager_UpdateDockerImageTags
+            parameters:
+                - name: imageId
+                  in: path
+                  description: 镜像ID
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateDockerImageTagsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateDockerImageTagsResponse'
+    /api/v1/docker/networks:
+        get:
+            tags:
+                - DockerManager
+            description: 获取网络列表
+            operationId: DockerManager_ListDockerNetworks
+            parameters:
+                - name: name
+                  in: query
+                  description: 名称筛选
+                  schema:
+                    type: string
+                - name: driver
+                  in: query
+                  description: 驱动筛选
+                  schema:
+                    type: string
+                - name: scope
+                  in: query
+                  description: 作用域筛选
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerNetworksResponse'
+        post:
+            tags:
+                - DockerManager
+            description: 创建网络
+            operationId: DockerManager_CreateDockerNetwork
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateDockerNetworkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateDockerNetworkResponse'
+    /api/v1/docker/networks/prune:
+        post:
+            tags:
+                - DockerManager
+            description: 清理网络
+            operationId: DockerManager_PruneDockerNetworks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PruneDockerNetworksRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PruneDockerNetworksResponse'
+    /api/v1/docker/networks/{id}:
+        get:
+            tags:
+                - DockerManager
+            description: 获取网络详情
+            operationId: DockerManager_GetDockerNetwork
+            parameters:
+                - name: id
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerNetworkResponse'
+        put:
+            tags:
+                - DockerManager
+            description: 更新网络
+            operationId: DockerManager_UpdateDockerNetwork
+            parameters:
+                - name: id
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateDockerNetworkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateDockerNetworkResponse'
+        delete:
+            tags:
+                - DockerManager
+            description: 删除网络
+            operationId: DockerManager_DeleteDockerNetwork
+            parameters:
+                - name: id
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteDockerNetworkResponse'
+    /api/v1/docker/networks/{id}/recreate:
+        post:
+            tags:
+                - DockerManager
+            description: 重建网络
+            operationId: DockerManager_RecreateDockerNetwork
+            parameters:
+                - name: id
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RecreateDockerNetworkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RecreateDockerNetworkResponse'
+    /api/v1/docker/networks/{networkId}/connect:
+        post:
+            tags:
+                - DockerManager
+            description: 连接容器到网络
+            operationId: DockerManager_ConnectDockerNetwork
+            parameters:
+                - name: networkId
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ConnectDockerNetworkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ConnectDockerNetworkResponse'
+    /api/v1/docker/networks/{networkId}/disconnect:
+        post:
+            tags:
+                - DockerManager
+            description: 断开容器网络
+            operationId: DockerManager_DisconnectDockerNetwork
+            parameters:
+                - name: networkId
+                  in: path
+                  description: 网络ID或名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DisconnectDockerNetworkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DisconnectDockerNetworkResponse'
+    /api/v1/docker/status:
+        get:
+            tags:
+                - DockerManager
+            description: 获取Docker连接状态
+            operationId: DockerManager_DockerStatus
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DockerStatusResponse'
+    /api/v1/docker/tasks:
+        get:
+            tags:
+                - DockerManager
+            description: 获取Docker任务列表
+            operationId: DockerManager_ListDockerTasks
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerTasksResponse'
+    /api/v1/docker/tasks/{taskId}:
+        get:
+            tags:
+                - DockerManager
+            description: 获取Docker任务详情
+            operationId: DockerManager_GetDockerTask
+            parameters:
+                - name: taskId
+                  in: path
+                  description: 任务ID
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerTaskResponse'
+    /api/v1/docker/volumes:
+        get:
+            tags:
+                - DockerManager
+            description: 获取储存卷列表
+            operationId: DockerManager_ListDockerVolumes
+            parameters:
+                - name: name
+                  in: query
+                  description: 名称筛选
+                  schema:
+                    type: string
+                - name: driver
+                  in: query
+                  description: 驱动筛选
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerVolumesResponse'
+        post:
+            tags:
+                - DockerManager
+            description: 创建储存卷
+            operationId: DockerManager_CreateDockerVolume
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateDockerVolumeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateDockerVolumeResponse'
+    /api/v1/docker/volumes/prune:
+        post:
+            tags:
+                - DockerManager
+            description: 清理储存卷
+            operationId: DockerManager_PruneDockerVolumes
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PruneDockerVolumesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PruneDockerVolumesResponse'
+    /api/v1/docker/volumes/{name}:
+        get:
+            tags:
+                - DockerManager
+            description: 获取储存卷详情
+            operationId: DockerManager_GetDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetDockerVolumeResponse'
+        put:
+            tags:
+                - DockerManager
+            description: 更新储存卷
+            operationId: DockerManager_UpdateDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateDockerVolumeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateDockerVolumeResponse'
+        delete:
+            tags:
+                - DockerManager
+            description: 删除储存卷
+            operationId: DockerManager_DeleteDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+                - name: force
+                  in: query
+                  description: 是否强制删除
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteDockerVolumeResponse'
+    /api/v1/docker/volumes/{name}/export:
+        post:
+            tags:
+                - DockerManager
+            description: 导出储存卷
+            operationId: DockerManager_ExportDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ExportDockerVolumeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ExportDockerVolumeResponse'
+    /api/v1/docker/volumes/{name}/recreate:
+        post:
+            tags:
+                - DockerManager
+            description: 重建储存卷
+            operationId: DockerManager_RecreateDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RecreateDockerVolumeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RecreateDockerVolumeResponse'
+    /api/v1/docker/volumes/{name}/restore:
+        post:
+            tags:
+                - DockerManager
+            description: 恢复储存卷
+            operationId: DockerManager_RestoreDockerVolume
+            parameters:
+                - name: name
+                  in: path
+                  description: 储存卷名称
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RestoreDockerVolumeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RestoreDockerVolumeResponse'
     /api/v1/file/system:
         get:
             tags:
@@ -2582,6 +3781,54 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.SSHHostTestResult'
                     description: 检测结果
+        v1.BuildDockerImageRequest:
+            type: object
+            properties:
+                contextPath:
+                    type: string
+                    description: 上下文路径
+                dockerfile:
+                    type: string
+                    description: Dockerfile路径
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: 镜像标签
+                buildArgs:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 构建参数
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                platform:
+                    type: string
+                    description: 平台
+                noCache:
+                    type: boolean
+                    description: 是否禁用缓存
+                pullParent:
+                    type: boolean
+                    description: 是否拉取父镜像
+                remove:
+                    type: boolean
+                    description: 是否删除中间容器
+                forceRemove:
+                    type: boolean
+                    description: 是否强制删除中间容器
+            description: 构建镜像请求
+        v1.BuildDockerImageResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 构建镜像响应
         v1.CancelFileUploadRequest:
             type: object
             properties:
@@ -2626,6 +3873,45 @@ components:
                     type: boolean
                     description: 是否需要重启服务
             description: 确认系统初始化响应
+        v1.ConnectDockerNetworkRequest:
+            type: object
+            properties:
+                networkId:
+                    type: string
+                    description: 网络ID或名称
+                containerId:
+                    type: string
+                    description: 容器ID或名称
+                aliases:
+                    type: array
+                    items:
+                        type: string
+                    description: 网络别名
+                ipv4Address:
+                    type: string
+                    description: 固定IPv4地址
+                ipv6Address:
+                    type: string
+                    description: 固定IPv6地址
+            description: 连接容器到网络请求
+        v1.ConnectDockerNetworkResponse:
+            type: object
+            properties: {}
+            description: 连接容器到网络响应
+        v1.ContainerLogsResponse:
+            type: object
+            properties:
+                logs:
+                    type: string
+                    description: 日志内容
+            description: 获取容器日志响应
+        v1.ContainerStatsResponse:
+            type: object
+            properties:
+                json:
+                    type: string
+                    description: 原始状态JSON
+            description: 获取容器资源状态响应
         v1.CopyAPIKeyRequest:
             type: object
             properties:
@@ -2747,6 +4033,85 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
+        v1.CreateContainerExecRequest:
+            type: object
+            properties:
+                containerId:
+                    type: string
+                    description: 容器ID或名称
+                cmd:
+                    type: array
+                    items:
+                        type: string
+                    description: 执行命令
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量
+                user:
+                    type: string
+                    description: 用户
+                workingDir:
+                    type: string
+                    description: 工作目录
+                tty:
+                    type: boolean
+                    description: 是否开启TTY
+            description: 创建容器执行会话请求
+        v1.CreateContainerExecResponse:
+            type: object
+            properties:
+                execId:
+                    type: string
+                    description: 执行会话ID
+            description: 创建容器执行会话响应
+        v1.CreateDockerContainerRequest:
+            type: object
+            properties:
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerCreateOptions'
+                    description: 创建参数
+            description: 创建容器请求
+        v1.CreateDockerContainerResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID
+            description: 创建容器响应
+        v1.CreateDockerNetworkRequest:
+            type: object
+            properties:
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerNetworkCreateOptions'
+                    description: 创建参数
+            description: 创建网络请求
+        v1.CreateDockerNetworkResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 网络ID
+            description: 创建网络响应
+        v1.CreateDockerVolumeRequest:
+            type: object
+            properties:
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
+                    description: 创建参数
+            description: 创建储存卷请求
+        v1.CreateDockerVolumeResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
+                    description: 储存卷详情
+            description: 创建储存卷响应
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -2942,6 +4307,22 @@ components:
             type: object
             properties: {}
             description: 删除已登录的设备响应
+        v1.DeleteDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 删除容器响应
+        v1.DeleteDockerImageResponse:
+            type: object
+            properties: {}
+            description: 删除镜像响应
+        v1.DeleteDockerNetworkResponse:
+            type: object
+            properties: {}
+            description: 删除网络响应
+        v1.DeleteDockerVolumeResponse:
+            type: object
+            properties: {}
+            description: 删除储存卷响应
         v1.DeleteSSHHostResponse:
             type: object
             properties: {}
@@ -2961,6 +4342,23 @@ components:
                     type: string
                     description: 当前设备id
             description: 获取登录设备响应
+        v1.DisconnectDockerNetworkRequest:
+            type: object
+            properties:
+                networkId:
+                    type: string
+                    description: 网络ID或名称
+                containerId:
+                    type: string
+                    description: 容器ID或名称
+                force:
+                    type: boolean
+                    description: 是否强制断开
+            description: 断开容器网络请求
+        v1.DisconnectDockerNetworkResponse:
+            type: object
+            properties: {}
+            description: 断开容器网络响应
         v1.DiskIOOverview:
             type: object
             properties:
@@ -3112,6 +4510,880 @@ components:
                     type: string
                     description: 磁盘IO统计错误信息
             description: 磁盘实时状态
+        v1.DockerConfigInfo:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用
+                host:
+                    type: string
+                    description: Docker连接地址
+                tlsEnabled:
+                    type: boolean
+                    description: 是否启用TLS
+                tlsCaPath:
+                    type: string
+                    description: CA证书路径
+                tlsCertPath:
+                    type: string
+                    description: 客户端证书路径
+                tlsKeyPath:
+                    type: string
+                    description: 客户端私钥路径
+                apiVersion:
+                    type: string
+                    description: API版本
+                requestTimeoutSeconds:
+                    type: integer
+                    description: 请求超时秒数
+                    format: int32
+                defaultPlatform:
+                    type: string
+                    description: 默认平台
+                defaultLogTail:
+                    type: integer
+                    description: 默认日志行数
+                    format: int32
+                taskTimeoutSeconds:
+                    type: integer
+                    description: 任务超时秒数
+                    format: int32
+                registryAuths:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerRegistryAuth'
+                    description: 仓库认证配置
+            description: Docker配置
+        v1.DockerContainerCreateOptions:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 容器名称
+                image:
+                    type: string
+                    description: 镜像
+                hostname:
+                    type: string
+                    description: 主机名
+                user:
+                    type: string
+                    description: 用户
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量
+                cmd:
+                    type: array
+                    items:
+                        type: string
+                    description: 启动命令
+                entrypoint:
+                    type: array
+                    items:
+                        type: string
+                    description: 入口命令
+                workingDir:
+                    type: string
+                    description: 工作目录
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                tty:
+                    type: boolean
+                    description: 是否开启TTY
+                openStdin:
+                    type: boolean
+                    description: 是否打开stdin
+                network:
+                    type: string
+                    description: 网络名称
+                restartPolicy:
+                    type: string
+                    description: 重启策略
+                autoRemove:
+                    type: boolean
+                    description: 是否自动删除
+                privileged:
+                    type: boolean
+                    description: 是否特权模式
+                ports:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerPortBinding'
+                    description: 端口映射
+                mounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerMount'
+                    description: 挂载配置
+                memory:
+                    type: string
+                    description: 内存限制
+                memorySwap:
+                    type: string
+                    description: swap限制
+                cpuShares:
+                    type: string
+                    description: CPU权重
+                cpuQuota:
+                    type: string
+                    description: CPU配额
+                cpuPeriod:
+                    type: string
+                    description: CPU周期
+                nanoCpus:
+                    type: string
+                    description: Nano CPU数量
+                platform:
+                    type: string
+                    description: 平台
+            description: 容器创建参数
+        v1.DockerContainerInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID
+                name:
+                    type: string
+                    description: 容器名称
+                image:
+                    type: string
+                    description: 镜像
+                imageId:
+                    type: string
+                    description: 镜像ID
+                path:
+                    type: string
+                    description: 启动路径
+                args:
+                    type: array
+                    items:
+                        type: string
+                    description: 启动参数
+                created:
+                    type: string
+                    description: 创建时间
+                state:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerState'
+                    description: 状态
+                config:
+                    type: object
+                    description: 容器配置
+                hostConfig:
+                    type: object
+                    description: 主机配置
+                network:
+                    type: object
+                    description: 网络配置
+                mounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerMountPoint'
+                    description: 挂载点
+                restartCount:
+                    type: integer
+                    description: 重启次数
+                    format: int32
+                platform:
+                    type: string
+                    description: 平台
+                driver:
+                    type: string
+                    description: 存储驱动
+                logPath:
+                    type: string
+                    description: 日志路径
+            description: 容器详情
+        v1.DockerContainerState:
+            type: object
+            properties:
+                status:
+                    type: string
+                    description: 状态
+                running:
+                    type: boolean
+                    description: 是否运行中
+                paused:
+                    type: boolean
+                    description: 是否暂停
+                restarting:
+                    type: boolean
+                    description: 是否重启中
+                oomKilled:
+                    type: boolean
+                    description: 是否OOM
+                dead:
+                    type: boolean
+                    description: 是否已死亡
+                pid:
+                    type: integer
+                    description: 进程ID
+                    format: int32
+                exitCode:
+                    type: integer
+                    description: 退出码
+                    format: int32
+                error:
+                    type: string
+                    description: 错误信息
+                startedAt:
+                    type: string
+                    description: 启动时间
+                finishedAt:
+                    type: string
+                    description: 结束时间
+            description: 容器状态
+        v1.DockerContainerSummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID
+                names:
+                    type: array
+                    items:
+                        type: string
+                    description: 容器名称
+                image:
+                    type: string
+                    description: 镜像
+                imageId:
+                    type: string
+                    description: 镜像ID
+                command:
+                    type: string
+                    description: 命令
+                created:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                state:
+                    type: string
+                    description: 状态
+                status:
+                    type: string
+                    description: 状态描述
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                ports:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerPort'
+                    description: 端口
+                mounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerMountPoint'
+                    description: 挂载点
+                networkMode:
+                    type: string
+                    description: 网络模式
+                networks:
+                    type: array
+                    items:
+                        type: string
+                    description: 网络
+            description: 容器摘要
+        v1.DockerEngineInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 引擎ID
+                name:
+                    type: string
+                    description: 主机名称
+                serverVersion:
+                    type: string
+                    description: 服务端版本
+                operatingSystem:
+                    type: string
+                    description: 操作系统
+                osType:
+                    type: string
+                    description: 操作系统类型
+                architecture:
+                    type: string
+                    description: CPU架构
+                dockerRootDir:
+                    type: string
+                    description: Docker根目录
+                containers:
+                    type: integer
+                    description: 容器总数
+                    format: int32
+                containersRunning:
+                    type: integer
+                    description: 运行中容器数
+                    format: int32
+                containersPaused:
+                    type: integer
+                    description: 暂停容器数
+                    format: int32
+                containersStopped:
+                    type: integer
+                    description: 停止容器数
+                    format: int32
+                images:
+                    type: integer
+                    description: 镜像数量
+                    format: int32
+                driver:
+                    type: string
+                    description: 存储驱动
+                cgroupDriver:
+                    type: string
+                    description: cgroup驱动
+                cgroupVersion:
+                    type: string
+                    description: cgroup版本
+                memoryTotal:
+                    type: string
+                    description: 内存总量
+                cpus:
+                    type: integer
+                    description: CPU数量
+                    format: int32
+                labels:
+                    type: array
+                    items:
+                        type: string
+                    description: 标签
+            description: Docker引擎信息
+        v1.DockerEngineVersion:
+            type: object
+            properties:
+                version:
+                    type: string
+                    description: Docker版本
+                apiVersion:
+                    type: string
+                    description: API版本
+                minApiVersion:
+                    type: string
+                    description: 最低API版本
+                gitCommit:
+                    type: string
+                    description: Git提交
+                goVersion:
+                    type: string
+                    description: Go版本
+                os:
+                    type: string
+                    description: 操作系统
+                arch:
+                    type: string
+                    description: CPU架构
+                kernelVersion:
+                    type: string
+                    description: 内核版本
+                buildTime:
+                    type: string
+                    description: 构建时间
+            description: Docker引擎版本
+        v1.DockerIPAM:
+            type: object
+            properties:
+                driver:
+                    type: string
+                    description: 驱动
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 参数
+                config:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerIPAMConfig'
+                    description: 地址配置
+            description: IPAM配置
+        v1.DockerIPAMConfig:
+            type: object
+            properties:
+                subnet:
+                    type: string
+                    description: 子网
+                ipRange:
+                    type: string
+                    description: IP范围
+                gateway:
+                    type: string
+                    description: 网关
+                auxAddress:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 辅助地址
+            description: IPAM地址配置
+        v1.DockerImageHistoryItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 记录ID
+                created:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                createdBy:
+                    type: string
+                    description: 创建命令
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    description: 标签
+                size:
+                    type: string
+                    description: 大小
+                comment:
+                    type: string
+                    description: 备注
+            description: 镜像历史记录
+        v1.DockerImageInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 镜像ID
+                repoTags:
+                    type: array
+                    items:
+                        type: string
+                    description: 仓库标签
+                repoDigests:
+                    type: array
+                    items:
+                        type: string
+                    description: 仓库摘要
+                parent:
+                    type: string
+                    description: 父镜像
+                created:
+                    type: string
+                    description: 创建时间
+                author:
+                    type: string
+                    description: 作者
+                architecture:
+                    type: string
+                    description: CPU架构
+                os:
+                    type: string
+                    description: 操作系统
+                size:
+                    type: string
+                    description: 大小
+                virtualSize:
+                    type: string
+                    description: 虚拟大小
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                layers:
+                    type: array
+                    items:
+                        type: string
+                    description: 层信息
+            description: 镜像详情
+        v1.DockerImageSummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 镜像ID
+                repoTags:
+                    type: array
+                    items:
+                        type: string
+                    description: 仓库标签
+                repoDigests:
+                    type: array
+                    items:
+                        type: string
+                    description: 仓库摘要
+                parentId:
+                    type: string
+                    description: 父镜像ID
+                created:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                size:
+                    type: string
+                    description: 大小
+                sharedSize:
+                    type: string
+                    description: 共享大小
+                containers:
+                    type: string
+                    description: 使用容器数
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+            description: 镜像摘要
+        v1.DockerMount:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: 挂载类型
+                source:
+                    type: string
+                    description: 来源
+                target:
+                    type: string
+                    description: 目标路径
+                readOnly:
+                    type: boolean
+                    description: 是否只读
+            description: 挂载配置
+        v1.DockerMountPoint:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: 挂载类型
+                name:
+                    type: string
+                    description: 名称
+                source:
+                    type: string
+                    description: 来源
+                destination:
+                    type: string
+                    description: 目标路径
+                driver:
+                    type: string
+                    description: 驱动
+                mode:
+                    type: string
+                    description: 模式
+                rw:
+                    type: boolean
+                    description: 是否可写
+                propagation:
+                    type: string
+                    description: 传播模式
+            description: 挂载点
+        v1.DockerNetworkContainer:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 容器名称
+                endpointId:
+                    type: string
+                    description: 端点ID
+                macAddress:
+                    type: string
+                    description: MAC地址
+                ipv4Address:
+                    type: string
+                    description: IPv4地址
+                ipv6Address:
+                    type: string
+                    description: IPv6地址
+            description: 网络容器
+        v1.DockerNetworkCreateOptions:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 网络名称
+                driver:
+                    type: string
+                    description: 网络驱动
+                scope:
+                    type: string
+                    description: 作用域
+                enableIpv4:
+                    type: boolean
+                    description: 是否启用IPv4
+                enableIpv6:
+                    type: boolean
+                    description: 是否启用IPv6
+                internal:
+                    type: boolean
+                    description: 是否内部网络
+                attachable:
+                    type: boolean
+                    description: 是否可附加
+                ingress:
+                    type: boolean
+                    description: 是否入口网络
+                ipam:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerIPAM'
+                    description: IPAM配置
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 驱动参数
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+            description: 网络创建参数
+        v1.DockerNetworkInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 网络ID
+                name:
+                    type: string
+                    description: 网络名称
+                created:
+                    type: string
+                    description: 创建时间
+                scope:
+                    type: string
+                    description: 作用域
+                driver:
+                    type: string
+                    description: 驱动
+                enableIpv4:
+                    type: boolean
+                    description: 是否启用IPv4
+                enableIpv6:
+                    type: boolean
+                    description: 是否启用IPv6
+                internal:
+                    type: boolean
+                    description: 是否内部网络
+                attachable:
+                    type: boolean
+                    description: 是否可附加
+                ingress:
+                    type: boolean
+                    description: 是否入口网络
+                ipam:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerIPAM'
+                    description: IPAM配置
+                containers:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/v1.DockerNetworkContainer'
+                    description: 已连接容器
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 驱动参数
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+            description: 网络详情
+        v1.DockerPort:
+            type: object
+            properties:
+                ip:
+                    type: string
+                    description: IP地址
+                privatePort:
+                    type: integer
+                    description: 容器端口
+                    format: uint32
+                publicPort:
+                    type: integer
+                    description: 主机端口
+                    format: uint32
+                type:
+                    type: string
+                    description: 协议类型
+            description: 端口
+        v1.DockerPortBinding:
+            type: object
+            properties:
+                containerPort:
+                    type: string
+                    description: 容器端口
+                hostIp:
+                    type: string
+                    description: 主机IP
+                hostPort:
+                    type: string
+                    description: 主机端口
+            description: 端口映射
+        v1.DockerRegistryAuth:
+            type: object
+            properties:
+                serverAddress:
+                    type: string
+                    description: 仓库地址
+                username:
+                    type: string
+                    description: 用户名
+                password:
+                    type: string
+                    description: 密码
+                token:
+                    type: string
+                    description: Token
+            description: Docker仓库认证
+        v1.DockerStatusResponse:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用
+                connected:
+                    type: boolean
+                    description: 是否已连接
+                error:
+                    type: string
+                    description: 错误信息
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerEngineInfo'
+                    description: 引擎信息
+                version:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerEngineVersion'
+                    description: 版本信息
+            description: Docker连接状态响应
+        v1.DockerTaskEvent:
+            type: object
+            properties:
+                time:
+                    type: string
+                    description: 事件时间
+                    format: date-time
+                status:
+                    type: string
+                    description: 状态
+                progress:
+                    type: string
+                    description: 进度
+                id:
+                    type: string
+                    description: 事件ID
+                message:
+                    type: string
+                    description: 消息
+                error:
+                    type: string
+                    description: 错误信息
+            description: Docker任务事件
+        v1.DockerTaskInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 任务ID
+                type:
+                    type: string
+                    description: 任务类型
+                status:
+                    type: string
+                    description: 任务状态
+                progress:
+                    type: string
+                    description: 进度信息
+                message:
+                    type: string
+                    description: 消息
+                error:
+                    type: string
+                    description: 错误信息
+                resultPath:
+                    type: string
+                    description: 结果路径
+                startTime:
+                    type: string
+                    description: 开始时间
+                    format: date-time
+                endTime:
+                    type: string
+                    description: 结束时间
+                    format: date-time
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerTaskEvent'
+                    description: 任务事件
+            description: Docker任务
+        v1.DockerVolumeCreateOptions:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                driver:
+                    type: string
+                    description: 驱动
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                driverOpts:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 驱动参数
+            description: 储存卷创建参数
+        v1.DockerVolumeInfo:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                driver:
+                    type: string
+                    description: 驱动
+                mountpoint:
+                    type: string
+                    description: 挂载点
+                createdAt:
+                    type: string
+                    description: 创建时间
+                status:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 状态
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                scope:
+                    type: string
+                    description: 作用域
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 驱动参数
+                usageSize:
+                    type: string
+                    description: 占用大小
+                refCount:
+                    type: string
+                    description: 引用数量
+            description: 储存卷详情
         v1.EditFileSystemFileRequest:
             type: object
             properties:
@@ -3246,6 +5518,24 @@ components:
                         - $ref: '#/components/schemas/v1.EmailTemplate'
                     description: 邮件模板
             description: 获取指定邮件模板响应
+        v1.ExportDockerVolumeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                archivePath:
+                    type: string
+                    description: 导出路径
+            description: 导出储存卷请求
+        v1.ExportDockerVolumeResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 导出储存卷响应
         v1.FileCreateItem:
             type: object
             properties:
@@ -3383,6 +5673,54 @@ components:
                     description: 更新时间
                     format: date-time
             description: 文件异步任务信息
+        v1.GetDockerConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerConfigInfo'
+                    description: Docker配置
+            description: 获取Docker配置响应
+        v1.GetDockerContainerResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerInfo'
+                    description: 容器详情
+            description: 获取容器详情响应
+        v1.GetDockerImageResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerImageInfo'
+                    description: 镜像详情
+            description: 获取镜像详情响应
+        v1.GetDockerNetworkResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerNetworkInfo'
+                    description: 网络详情
+            description: 获取网络详情响应
+        v1.GetDockerTaskResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务详情
+            description: 获取Docker任务详情响应
+        v1.GetDockerVolumeResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
+                    description: 储存卷详情
+            description: 获取储存卷详情响应
         v1.GetFileSystemListResponse:
             type: object
             properties:
@@ -3510,6 +5848,15 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 信息
             description: 获取终端详情响应
+        v1.ImageHistoryResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerImageHistoryItem'
+                    description: 历史记录
+            description: 获取镜像历史响应
         v1.InitializeAdminUser:
             type: object
             properties:
@@ -3647,6 +5994,20 @@ components:
                     type: boolean
                     description: 是否启用
             description: 实例类型信息
+        v1.KillDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                signal:
+                    type: string
+                    description: 信号
+            description: 强制停止容器请求
+        v1.KillDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 强制停止容器响应
         v1.ListAPIKeysResponse:
             type: object
             properties:
@@ -3664,6 +6025,63 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: 列表
+        v1.ListDockerContainersResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerContainerSummary'
+                    description: 容器列表
+                total:
+                    type: string
+                    description: 总数
+            description: 获取容器列表响应
+        v1.ListDockerImagesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerImageSummary'
+                    description: 镜像列表
+                total:
+                    type: string
+                    description: 总数
+            description: 获取镜像列表响应
+        v1.ListDockerNetworksResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerNetworkInfo'
+                    description: 网络列表
+                total:
+                    type: string
+                    description: 总数
+            description: 获取网络列表响应
+        v1.ListDockerTasksResponse:
+            type: object
+            properties:
+                tasks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务列表
+            description: 获取Docker任务列表响应
+        v1.ListDockerVolumesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerVolumeInfo'
+                    description: 储存卷列表
+                total:
+                    type: string
+                    description: 总数
+            description: 获取储存卷列表响应
         v1.ListOperationLogsResponse:
             type: object
             properties:
@@ -4109,6 +6527,17 @@ components:
                     description: 操作时间
                     format: date-time
             description: 操作日志信息
+        v1.PauseDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+            description: 暂停容器请求
+        v1.PauseDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 暂停容器响应
         v1.PhysicalMemoryOverview:
             type: object
             properties:
@@ -4136,6 +6565,136 @@ components:
                     description: 物理内存占用百分比
                     format: double
             description: 物理内存实时状态
+        v1.PruneDockerImagesRequest:
+            type: object
+            properties:
+                danglingOnly:
+                    type: boolean
+                    description: 是否只清理悬空镜像
+            description: 清理镜像请求
+        v1.PruneDockerImagesResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 清理镜像响应
+        v1.PruneDockerNetworksRequest:
+            type: object
+            properties: {}
+            description: 清理网络请求
+        v1.PruneDockerNetworksResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 清理网络响应
+        v1.PruneDockerVolumesRequest:
+            type: object
+            properties: {}
+            description: 清理储存卷请求
+        v1.PruneDockerVolumesResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 清理储存卷响应
+        v1.PullDockerImageRequest:
+            type: object
+            properties:
+                reference:
+                    type: string
+                    description: 镜像引用
+                platform:
+                    type: string
+                    description: 平台
+                registryAuth:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerRegistryAuth'
+                    description: 仓库认证
+            description: 拉取镜像请求
+        v1.PullDockerImageResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 拉取镜像响应
+        v1.RecreateDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerCreateOptions'
+                    description: 创建参数
+                force:
+                    type: boolean
+                    description: 是否强制删除旧容器
+                removeVolumes:
+                    type: boolean
+                    description: 是否删除匿名卷
+            description: 重建容器请求
+        v1.RecreateDockerContainerResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 重建容器响应
+        v1.RecreateDockerNetworkRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 网络ID或名称
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerNetworkCreateOptions'
+                    description: 创建参数
+                force:
+                    type: boolean
+                    description: 是否强制重建
+            description: 重建网络请求
+        v1.RecreateDockerNetworkResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 重建网络响应
+        v1.RecreateDockerVolumeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
+                    description: 创建参数
+                force:
+                    type: boolean
+                    description: 是否强制删除
+            description: 重建储存卷请求
+        v1.RecreateDockerVolumeResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 重建储存卷响应
         v1.RefreshAPIKeyRequest:
             type: object
             properties:
@@ -4193,6 +6752,20 @@ components:
                     type: string
                     description: 用户id
             description: 注册响应
+        v1.RenameDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                name:
+                    type: string
+                    description: 新名称
+            description: 重命名容器请求
+        v1.RenameDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 重命名容器响应
         v1.RenameFileSystemRequest:
             type: object
             properties:
@@ -4230,6 +6803,21 @@ components:
                     type: string
                     description: 重命名后的路径
             description: 重命名实例文件响应
+        v1.RestartDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                timeoutSeconds:
+                    type: integer
+                    description: 超时秒数
+                    format: int32
+            description: 重启容器请求
+        v1.RestartDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 重启容器响应
         v1.RestartInstanceRequest:
             type: object
             properties:
@@ -4252,6 +6840,24 @@ components:
             type: object
             properties: {}
             description: 重启终端响应
+        v1.RestoreDockerVolumeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                archivePath:
+                    type: string
+                    description: 归档路径
+            description: 恢复储存卷请求
+        v1.RestoreDockerVolumeResponse:
+            type: object
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 任务
+            description: 恢复储存卷响应
         v1.RoleInfo:
             type: object
             properties:
@@ -4409,6 +7015,17 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.StartDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+            description: 启动容器请求
+        v1.StartDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 启动容器响应
         v1.StartInstanceRequest:
             type: object
             properties:
@@ -4432,6 +7049,21 @@ components:
             type: object
             properties: {}
             description: 启动终端响应
+        v1.StopDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                timeoutSeconds:
+                    type: integer
+                    description: 超时秒数
+                    format: int32
+            description: 停止容器请求
+        v1.StopDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 停止容器响应
         v1.StopInstanceRequest:
             type: object
             properties:
@@ -4545,6 +7177,36 @@ components:
                     type: string
                     description: 内核架构
             description: 系统版本信息
+        v1.TagDockerImageRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 镜像ID
+                target:
+                    type: string
+                    description: 目标标签
+            description: 给镜像打标签请求
+        v1.TagDockerImageResponse:
+            type: object
+            properties: {}
+            description: 给镜像打标签响应
+        v1.TestDockerConfigRequest:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerConfigInfo'
+                    description: Docker配置
+            description: 测试Docker配置请求
+        v1.TestDockerConfigResponse:
+            type: object
+            properties:
+                status:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerStatusResponse'
+                    description: 连接状态
+            description: 测试Docker配置响应
         v1.TestEmailConfigRequest:
             type: object
             properties:
@@ -4603,6 +7265,17 @@ components:
                 fingerprint:
                     type: string
                     description: 服务端主机指纹
+        v1.UnpauseDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+            description: 恢复容器请求
+        v1.UnpauseDockerContainerResponse:
+            type: object
+            properties: {}
+            description: 恢复容器响应
         v1.UnzipFileSystemRequest:
             type: object
             properties:
@@ -4663,6 +7336,173 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
+        v1.UpdateDockerConfigRequest:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerConfigInfo'
+                    description: Docker配置
+            description: 更新Docker配置请求
+        v1.UpdateDockerConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerConfigInfo'
+                    description: Docker配置
+            description: 更新Docker配置响应
+        v1.UpdateDockerContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID或名称
+                name:
+                    type: string
+                    description: 容器名称
+                restartPolicy:
+                    type: string
+                    description: 重启策略
+                memory:
+                    type: string
+                    description: 内存限制
+                memorySwap:
+                    type: string
+                    description: swap限制
+                cpuShares:
+                    type: string
+                    description: CPU权重
+                cpuQuota:
+                    type: string
+                    description: CPU配额
+                cpuPeriod:
+                    type: string
+                    description: CPU周期
+                nanoCpus:
+                    type: string
+                    description: Nano CPU数量
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerCreateOptions'
+                    description: 完整重建参数
+                recreate:
+                    type: boolean
+                    description: 是否通过重建完成编辑
+                force:
+                    type: boolean
+                    description: 是否强制删除旧容器
+                removeVolumes:
+                    type: boolean
+                    description: 是否删除匿名卷
+            description: 更新容器请求
+        v1.UpdateDockerContainerResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerInfo'
+                    description: 容器详情
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 重建任务
+            description: 更新容器响应
+        v1.UpdateDockerImageTagsRequest:
+            type: object
+            properties:
+                imageId:
+                    type: string
+                    description: 镜像ID
+                addTags:
+                    type: array
+                    items:
+                        type: string
+                    description: 新增标签
+                deleteTags:
+                    type: array
+                    items:
+                        type: string
+                    description: 删除标签
+                forceDelete:
+                    type: boolean
+                    description: 是否强制删除标签
+            description: 更新镜像标签请求
+        v1.UpdateDockerImageTagsResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerImageInfo'
+                    description: 镜像详情
+            description: 更新镜像标签响应
+        v1.UpdateDockerNetworkRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 网络ID或名称
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerNetworkCreateOptions'
+                    description: 网络创建参数
+                force:
+                    type: boolean
+                    description: 是否强制重建
+            description: 更新网络请求
+        v1.UpdateDockerNetworkResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerNetworkInfo'
+                    description: 网络详情
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 重建任务
+            description: 更新网络响应
+        v1.UpdateDockerVolumeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 储存卷名称
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                driverOpts:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 驱动参数
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
+                    description: 储存卷创建参数
+                force:
+                    type: boolean
+                    description: 是否强制重建
+            description: 更新储存卷请求
+        v1.UpdateDockerVolumeResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
+                    description: 储存卷详情
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 重建任务
+            description: 更新储存卷响应
         v1.UpdateEmailConfigRequest:
             type: object
             properties:
@@ -5039,6 +7879,8 @@ components:
 tags:
     - name: AuthService
       description: 认证服务
+    - name: DockerManager
+      description: Docker管理
     - name: FileManager
       description: 文件管理
     - name: Initialize

@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/pkg/common"
 	"momoko/pkg/response"
 	"net/mail"
 	"strings"
@@ -16,6 +17,8 @@ type ConfigRepo interface {
 	UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.EmailConfig, error)
 	UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*gen.EmailTemplate, error)
 	EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*gen.EmailTemplate, error)
+	Get(ctx context.Context, key common.ConfigKey) (string, error)
+	BatchUpdate(ctx context.Context, configs map[common.ConfigKey]string) error
 }
 
 type ConfigUsecase struct {

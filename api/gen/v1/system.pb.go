@@ -354,6 +354,72 @@ const (
 	OperationType_OperationTypeNodeAPIKeyUpdate OperationType = 60
 	// API Key 刷新
 	OperationType_OperationTypeNodeAPIKeyRefresh OperationType = 61
+	// Docker 配置更新
+	OperationType_OperationTypeDockerConfigUpdate OperationType = 64
+	// Docker 容器创建
+	OperationType_OperationTypeDockerContainerCreate OperationType = 65
+	// Docker 容器更新
+	OperationType_OperationTypeDockerContainerUpdate OperationType = 66
+	// Docker 容器删除
+	OperationType_OperationTypeDockerContainerDelete OperationType = 67
+	// Docker 容器启动
+	OperationType_OperationTypeDockerContainerStart OperationType = 68
+	// Docker 容器停止
+	OperationType_OperationTypeDockerContainerStop OperationType = 69
+	// Docker 容器重启
+	OperationType_OperationTypeDockerContainerRestart OperationType = 70
+	// Docker 容器强制停止
+	OperationType_OperationTypeDockerContainerKill OperationType = 71
+	// Docker 容器暂停
+	OperationType_OperationTypeDockerContainerPause OperationType = 72
+	// Docker 容器恢复
+	OperationType_OperationTypeDockerContainerUnpause OperationType = 73
+	// Docker 容器重命名
+	OperationType_OperationTypeDockerContainerRename OperationType = 74
+	// Docker 容器重建
+	OperationType_OperationTypeDockerContainerRecreate OperationType = 75
+	// Docker 镜像拉取
+	OperationType_OperationTypeDockerImagePull OperationType = 76
+	// Docker 镜像构建
+	OperationType_OperationTypeDockerImageBuild OperationType = 77
+	// Docker 镜像标签更新
+	OperationType_OperationTypeDockerImageTagsUpdate OperationType = 78
+	// Docker 镜像打标签
+	OperationType_OperationTypeDockerImageTag OperationType = 79
+	// Docker 镜像删除
+	OperationType_OperationTypeDockerImageDelete OperationType = 80
+	// Docker 镜像清理
+	OperationType_OperationTypeDockerImagePrune OperationType = 81
+	// Docker 网络创建
+	OperationType_OperationTypeDockerNetworkCreate OperationType = 82
+	// Docker 网络更新
+	OperationType_OperationTypeDockerNetworkUpdate OperationType = 83
+	// Docker 网络重建
+	OperationType_OperationTypeDockerNetworkRecreate OperationType = 84
+	// Docker 网络删除
+	OperationType_OperationTypeDockerNetworkDelete OperationType = 85
+	// Docker 网络连接容器
+	OperationType_OperationTypeDockerNetworkConnect OperationType = 86
+	// Docker 网络断开容器
+	OperationType_OperationTypeDockerNetworkDisconnect OperationType = 87
+	// Docker 网络清理
+	OperationType_OperationTypeDockerNetworkPrune OperationType = 88
+	// Docker 储存卷创建
+	OperationType_OperationTypeDockerVolumeCreate OperationType = 89
+	// Docker 储存卷更新
+	OperationType_OperationTypeDockerVolumeUpdate OperationType = 90
+	// Docker 储存卷重建
+	OperationType_OperationTypeDockerVolumeRecreate OperationType = 91
+	// Docker 储存卷删除
+	OperationType_OperationTypeDockerVolumeDelete OperationType = 92
+	// Docker 储存卷清理
+	OperationType_OperationTypeDockerVolumePrune OperationType = 93
+	// Docker 储存卷导出
+	OperationType_OperationTypeDockerVolumeExport OperationType = 94
+	// Docker 储存卷恢复
+	OperationType_OperationTypeDockerVolumeRestore OperationType = 95
+	// Docker 配置测试
+	OperationType_OperationTypeDockerConfigTest OperationType = 96
 )
 
 // Enum value maps for OperationType.
@@ -423,6 +489,39 @@ var (
 		59: "OperationTypeNodeAPIKeyCopy",
 		60: "OperationTypeNodeAPIKeyUpdate",
 		61: "OperationTypeNodeAPIKeyRefresh",
+		64: "OperationTypeDockerConfigUpdate",
+		65: "OperationTypeDockerContainerCreate",
+		66: "OperationTypeDockerContainerUpdate",
+		67: "OperationTypeDockerContainerDelete",
+		68: "OperationTypeDockerContainerStart",
+		69: "OperationTypeDockerContainerStop",
+		70: "OperationTypeDockerContainerRestart",
+		71: "OperationTypeDockerContainerKill",
+		72: "OperationTypeDockerContainerPause",
+		73: "OperationTypeDockerContainerUnpause",
+		74: "OperationTypeDockerContainerRename",
+		75: "OperationTypeDockerContainerRecreate",
+		76: "OperationTypeDockerImagePull",
+		77: "OperationTypeDockerImageBuild",
+		78: "OperationTypeDockerImageTagsUpdate",
+		79: "OperationTypeDockerImageTag",
+		80: "OperationTypeDockerImageDelete",
+		81: "OperationTypeDockerImagePrune",
+		82: "OperationTypeDockerNetworkCreate",
+		83: "OperationTypeDockerNetworkUpdate",
+		84: "OperationTypeDockerNetworkRecreate",
+		85: "OperationTypeDockerNetworkDelete",
+		86: "OperationTypeDockerNetworkConnect",
+		87: "OperationTypeDockerNetworkDisconnect",
+		88: "OperationTypeDockerNetworkPrune",
+		89: "OperationTypeDockerVolumeCreate",
+		90: "OperationTypeDockerVolumeUpdate",
+		91: "OperationTypeDockerVolumeRecreate",
+		92: "OperationTypeDockerVolumeDelete",
+		93: "OperationTypeDockerVolumePrune",
+		94: "OperationTypeDockerVolumeExport",
+		95: "OperationTypeDockerVolumeRestore",
+		96: "OperationTypeDockerConfigTest",
 	}
 	OperationType_value = map[string]int32{
 		"OperationTypeUncategorized":             0,
@@ -489,6 +588,39 @@ var (
 		"OperationTypeNodeAPIKeyCopy":            59,
 		"OperationTypeNodeAPIKeyUpdate":          60,
 		"OperationTypeNodeAPIKeyRefresh":         61,
+		"OperationTypeDockerConfigUpdate":        64,
+		"OperationTypeDockerContainerCreate":     65,
+		"OperationTypeDockerContainerUpdate":     66,
+		"OperationTypeDockerContainerDelete":     67,
+		"OperationTypeDockerContainerStart":      68,
+		"OperationTypeDockerContainerStop":       69,
+		"OperationTypeDockerContainerRestart":    70,
+		"OperationTypeDockerContainerKill":       71,
+		"OperationTypeDockerContainerPause":      72,
+		"OperationTypeDockerContainerUnpause":    73,
+		"OperationTypeDockerContainerRename":     74,
+		"OperationTypeDockerContainerRecreate":   75,
+		"OperationTypeDockerImagePull":           76,
+		"OperationTypeDockerImageBuild":          77,
+		"OperationTypeDockerImageTagsUpdate":     78,
+		"OperationTypeDockerImageTag":            79,
+		"OperationTypeDockerImageDelete":         80,
+		"OperationTypeDockerImagePrune":          81,
+		"OperationTypeDockerNetworkCreate":       82,
+		"OperationTypeDockerNetworkUpdate":       83,
+		"OperationTypeDockerNetworkRecreate":     84,
+		"OperationTypeDockerNetworkDelete":       85,
+		"OperationTypeDockerNetworkConnect":      86,
+		"OperationTypeDockerNetworkDisconnect":   87,
+		"OperationTypeDockerNetworkPrune":        88,
+		"OperationTypeDockerVolumeCreate":        89,
+		"OperationTypeDockerVolumeUpdate":        90,
+		"OperationTypeDockerVolumeRecreate":      91,
+		"OperationTypeDockerVolumeDelete":        92,
+		"OperationTypeDockerVolumePrune":         93,
+		"OperationTypeDockerVolumeExport":        94,
+		"OperationTypeDockerVolumeRestore":       95,
+		"OperationTypeDockerConfigTest":          96,
 	}
 )
 
@@ -5722,7 +5854,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x11RoleStatus_Active\x10\x01*P\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xbd\x11\n" +
+	"\x17EmailTemplateType_Login\x10\x01*\xa5\x1b\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
@@ -5788,7 +5920,40 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1dOperationTypeNodeAPIKeyCreate\x10:\x12\x1f\n" +
 	"\x1bOperationTypeNodeAPIKeyCopy\x10;\x12!\n" +
 	"\x1dOperationTypeNodeAPIKeyUpdate\x10<\x12\"\n" +
-	"\x1eOperationTypeNodeAPIKeyRefresh\x10=2\xed\x12\n" +
+	"\x1eOperationTypeNodeAPIKeyRefresh\x10=\x12#\n" +
+	"\x1fOperationTypeDockerConfigUpdate\x10@\x12&\n" +
+	"\"OperationTypeDockerContainerCreate\x10A\x12&\n" +
+	"\"OperationTypeDockerContainerUpdate\x10B\x12&\n" +
+	"\"OperationTypeDockerContainerDelete\x10C\x12%\n" +
+	"!OperationTypeDockerContainerStart\x10D\x12$\n" +
+	" OperationTypeDockerContainerStop\x10E\x12'\n" +
+	"#OperationTypeDockerContainerRestart\x10F\x12$\n" +
+	" OperationTypeDockerContainerKill\x10G\x12%\n" +
+	"!OperationTypeDockerContainerPause\x10H\x12'\n" +
+	"#OperationTypeDockerContainerUnpause\x10I\x12&\n" +
+	"\"OperationTypeDockerContainerRename\x10J\x12(\n" +
+	"$OperationTypeDockerContainerRecreate\x10K\x12 \n" +
+	"\x1cOperationTypeDockerImagePull\x10L\x12!\n" +
+	"\x1dOperationTypeDockerImageBuild\x10M\x12&\n" +
+	"\"OperationTypeDockerImageTagsUpdate\x10N\x12\x1f\n" +
+	"\x1bOperationTypeDockerImageTag\x10O\x12\"\n" +
+	"\x1eOperationTypeDockerImageDelete\x10P\x12!\n" +
+	"\x1dOperationTypeDockerImagePrune\x10Q\x12$\n" +
+	" OperationTypeDockerNetworkCreate\x10R\x12$\n" +
+	" OperationTypeDockerNetworkUpdate\x10S\x12&\n" +
+	"\"OperationTypeDockerNetworkRecreate\x10T\x12$\n" +
+	" OperationTypeDockerNetworkDelete\x10U\x12%\n" +
+	"!OperationTypeDockerNetworkConnect\x10V\x12(\n" +
+	"$OperationTypeDockerNetworkDisconnect\x10W\x12#\n" +
+	"\x1fOperationTypeDockerNetworkPrune\x10X\x12#\n" +
+	"\x1fOperationTypeDockerVolumeCreate\x10Y\x12#\n" +
+	"\x1fOperationTypeDockerVolumeUpdate\x10Z\x12%\n" +
+	"!OperationTypeDockerVolumeRecreate\x10[\x12#\n" +
+	"\x1fOperationTypeDockerVolumeDelete\x10\\\x12\"\n" +
+	"\x1eOperationTypeDockerVolumePrune\x10]\x12#\n" +
+	"\x1fOperationTypeDockerVolumeExport\x10^\x12$\n" +
+	" OperationTypeDockerVolumeRestore\x10_\x12!\n" +
+	"\x1dOperationTypeDockerConfigTest\x10`2\xed\x12\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +
