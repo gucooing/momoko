@@ -36,6 +36,13 @@ service NodeService {
       body: "*"
     };
   }
+  // 刷新 API Key
+  rpc RefreshAPIKey(RefreshAPIKeyRequest) returns (RefreshAPIKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/node/api-key/{id}/refresh"
+      body: "*"
+    };
+  }
 }
 
 message CreateAPIKeyRequest {
@@ -92,6 +99,16 @@ message UpdateAPIKeyRequest {
 }
 
 message UpdateAPIKeyResponse {
+  // API Key 信息
+  APIKeyInfo info = 1;
+}
+
+message RefreshAPIKeyRequest {
+  // API Key id
+  string id = 1;
+}
+
+message RefreshAPIKeyResponse {
   // API Key 信息
   APIKeyInfo info = 1;
 }

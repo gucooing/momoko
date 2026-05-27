@@ -70,3 +70,15 @@ func (n *NodeService) UpdateAPIKey(ctx context.Context, req *v1.UpdateAPIKeyRequ
 	}
 	return &v1.UpdateAPIKeyResponse{Info: info}, nil
 }
+
+func (n *NodeService) RefreshAPIKey(ctx context.Context, req *v1.RefreshAPIKeyRequest) (*v1.RefreshAPIKeyResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := n.uc.RefreshAPIKey(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RefreshAPIKeyResponse{Info: info}, nil
+}

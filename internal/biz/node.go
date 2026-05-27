@@ -20,6 +20,7 @@ type APIKeyRepo interface {
 	GetUserAPIKey(ctx context.Context, userID, id string) (*gen.UserAPIKey, error)
 	ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string) ([]*gen.UserAPIKey, int64, error)
 	UpdateUserAPIKey(ctx context.Context, userID, id string, name *string, expiresAt *time.Time, clearExpiresAt *bool) (*gen.UserAPIKey, error)
+	RefreshUserAPIKey(ctx context.Context, userID, id, apiKey string) (*gen.UserAPIKey, error)
 }
 
 type NodeUsecase struct {
@@ -111,6 +112,28 @@ func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.U
 		return nil, ErrAPIKeyNotFound
 	}
 	return n.toAPIKeyInfo(item, false), nil
+}
+
+func (n *NodeUsecase) RefreshAPIKey(ctx context.Context, userID string, req *v1.RefreshAPIKeyRequest) (*v1.APIKeyInfo, error) {
+	for range apiKeyCreateRetry {
+		apiKey, err := utils.GenerateAPIKey()
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+
+		item, err := n.repo.RefreshUserAPIKey(ctx, userID, req.Id, apiKey)
+		if err == nil {
+			return n.toAPIKeyInfo(item, true), nil
+		}
+		if gen.IsNotFound(err) {
+			return nil, ErrAPIKeyNotFound
+		}
+		if !gen.IsConstraintError(err) {
+			return nil, ErrSystem(err)
+		}
+	}
+
+	return nil, ErrAPIKeyGenerate
 }
 
 func (n *NodeUsecase) toAPIKeyInfo(item *gen.UserAPIKey, includeSecret bool) *v1.APIKeyInfo {

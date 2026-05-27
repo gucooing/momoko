@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationNodeServiceCopyAPIKey = "/v1.NodeService/CopyAPIKey"
 const OperationNodeServiceCreateAPIKey = "/v1.NodeService/CreateAPIKey"
 const OperationNodeServiceListAPIKeys = "/v1.NodeService/ListAPIKeys"
+const OperationNodeServiceRefreshAPIKey = "/v1.NodeService/RefreshAPIKey"
 const OperationNodeServiceUpdateAPIKey = "/v1.NodeService/UpdateAPIKey"
 
 type NodeServiceHTTPServer interface {
@@ -31,6 +32,8 @@ type NodeServiceHTTPServer interface {
 	CreateAPIKey(context.Context, *CreateAPIKeyRequest) (*CreateAPIKeyResponse, error)
 	// ListAPIKeys 获取 API Key 列表
 	ListAPIKeys(context.Context, *ListAPIKeysRequest) (*ListAPIKeysResponse, error)
+	// RefreshAPIKey 刷新 API Key
+	RefreshAPIKey(context.Context, *RefreshAPIKeyRequest) (*RefreshAPIKeyResponse, error)
 	// UpdateAPIKey 更新 API Key
 	UpdateAPIKey(context.Context, *UpdateAPIKeyRequest) (*UpdateAPIKeyResponse, error)
 }
@@ -41,6 +44,7 @@ func RegisterNodeServiceHTTPServer(s *http.Server, srv NodeServiceHTTPServer) {
 	r.GET("/api/v1/node/api-key", _NodeService_ListAPIKeys0_HTTP_Handler(srv))
 	r.POST("/api/v1/node/api-key/{id}/copy", _NodeService_CopyAPIKey0_HTTP_Handler(srv))
 	r.PUT("/api/v1/node/api-key/{id}", _NodeService_UpdateAPIKey0_HTTP_Handler(srv))
+	r.POST("/api/v1/node/api-key/{id}/refresh", _NodeService_RefreshAPIKey0_HTTP_Handler(srv))
 }
 
 func _NodeService_CreateAPIKey0_HTTP_Handler(srv NodeServiceHTTPServer) func(ctx http.Context) error {
@@ -134,6 +138,31 @@ func _NodeService_UpdateAPIKey0_HTTP_Handler(srv NodeServiceHTTPServer) func(ctx
 	}
 }
 
+func _NodeService_RefreshAPIKey0_HTTP_Handler(srv NodeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RefreshAPIKeyRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNodeServiceRefreshAPIKey)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RefreshAPIKey(ctx, req.(*RefreshAPIKeyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RefreshAPIKeyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NodeServiceHTTPClient interface {
 	// CopyAPIKey 复制 API Key
 	CopyAPIKey(ctx context.Context, req *CopyAPIKeyRequest, opts ...http.CallOption) (rsp *CopyAPIKeyResponse, err error)
@@ -141,6 +170,8 @@ type NodeServiceHTTPClient interface {
 	CreateAPIKey(ctx context.Context, req *CreateAPIKeyRequest, opts ...http.CallOption) (rsp *CreateAPIKeyResponse, err error)
 	// ListAPIKeys 获取 API Key 列表
 	ListAPIKeys(ctx context.Context, req *ListAPIKeysRequest, opts ...http.CallOption) (rsp *ListAPIKeysResponse, err error)
+	// RefreshAPIKey 刷新 API Key
+	RefreshAPIKey(ctx context.Context, req *RefreshAPIKeyRequest, opts ...http.CallOption) (rsp *RefreshAPIKeyResponse, err error)
 	// UpdateAPIKey 更新 API Key
 	UpdateAPIKey(ctx context.Context, req *UpdateAPIKeyRequest, opts ...http.CallOption) (rsp *UpdateAPIKeyResponse, err error)
 }
@@ -189,6 +220,20 @@ func (c *NodeServiceHTTPClientImpl) ListAPIKeys(ctx context.Context, in *ListAPI
 	opts = append(opts, http.Operation(OperationNodeServiceListAPIKeys))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RefreshAPIKey 刷新 API Key
+func (c *NodeServiceHTTPClientImpl) RefreshAPIKey(ctx context.Context, in *RefreshAPIKeyRequest, opts ...http.CallOption) (*RefreshAPIKeyResponse, error) {
+	var out RefreshAPIKeyResponse
+	pattern := "/api/v1/node/api-key/{id}/refresh"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationNodeServiceRefreshAPIKey))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

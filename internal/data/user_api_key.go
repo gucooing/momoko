@@ -98,6 +98,13 @@ func (r *UserAPIKeyRepo) UpdateUserAPIKey(ctx context.Context, userID string, id
 	return update.Save(ctx)
 }
 
+func (r *UserAPIKeyRepo) RefreshUserAPIKey(ctx context.Context, userID, id, apiKey string) (*gen.UserAPIKey, error) {
+	return r.data.db.UserAPIKey.UpdateOneID(id).
+		Where(userapikey.UserIDEQ(userID)).
+		SetAPIKey(apiKey).
+		Save(ctx)
+}
+
 func (r *UserAPIKeyRepo) DeleteUserAPIKey(ctx context.Context, userID, id string) error {
 	return r.data.db.UserAPIKey.DeleteOneID(id).
 		Where(userapikey.UserIDEQ(userID)).

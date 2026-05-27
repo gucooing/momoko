@@ -1335,6 +1335,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CopyAPIKeyResponse'
+    /api/v1/node/api-key/{id}/refresh:
+        post:
+            tags:
+                - NodeService
+            description: 刷新 API Key
+            operationId: NodeService_RefreshAPIKey
+            parameters:
+                - name: id
+                  in: path
+                  description: API Key id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RefreshAPIKeyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RefreshAPIKeyResponse'
     /api/v1/openssh/host:
         get:
             tags:
@@ -4032,6 +4058,19 @@ components:
                     description: 物理内存占用百分比
                     format: double
             description: 物理内存实时状态
+        v1.RefreshAPIKeyRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Key id
+        v1.RefreshAPIKeyResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyInfo'
+                    description: API Key 信息
         v1.RefreshRequest:
             type: object
             properties:

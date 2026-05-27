@@ -342,6 +342,14 @@ const (
 	OperationType_OperationTypeAuthLoginEmailCode OperationType = 56
 	// 用户注册
 	OperationType_OperationTypeAuthRegister OperationType = 57
+	// API Key 创建
+	OperationType_OperationTypeNodeAPIKeyCreate OperationType = 58
+	// API Key 复制
+	OperationType_OperationTypeNodeAPIKeyCopy OperationType = 59
+	// API Key 更新
+	OperationType_OperationTypeNodeAPIKeyUpdate OperationType = 60
+	// API Key 刷新
+	OperationType_OperationTypeNodeAPIKeyRefresh OperationType = 61
 )
 
 // Enum value maps for OperationType.
@@ -405,6 +413,10 @@ var (
 		55: "OperationTypeAuthRegisterEmailCode",
 		56: "OperationTypeAuthLoginEmailCode",
 		57: "OperationTypeAuthRegister",
+		58: "OperationTypeNodeAPIKeyCreate",
+		59: "OperationTypeNodeAPIKeyCopy",
+		60: "OperationTypeNodeAPIKeyUpdate",
+		61: "OperationTypeNodeAPIKeyRefresh",
 	}
 	OperationType_value = map[string]int32{
 		"OperationTypeUncategorized":             0,
@@ -465,6 +477,10 @@ var (
 		"OperationTypeAuthRegisterEmailCode":     55,
 		"OperationTypeAuthLoginEmailCode":        56,
 		"OperationTypeAuthRegister":              57,
+		"OperationTypeNodeAPIKeyCreate":          58,
+		"OperationTypeNodeAPIKeyCopy":            59,
+		"OperationTypeNodeAPIKeyUpdate":          60,
+		"OperationTypeNodeAPIKeyRefresh":         61,
 	}
 )
 
@@ -5698,7 +5714,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x11RoleStatus_Active\x10\x01*P\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xf4\x0f\n" +
+	"\x17EmailTemplateType_Login\x10\x01*\xff\x10\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
@@ -5758,7 +5774,11 @@ const file_v1_system_proto_rawDesc = "" +
 	"&OperationTypeSystemEmailTemplateUpdate\x106\x12&\n" +
 	"\"OperationTypeAuthRegisterEmailCode\x107\x12#\n" +
 	"\x1fOperationTypeAuthLoginEmailCode\x108\x12\x1d\n" +
-	"\x19OperationTypeAuthRegister\x1092\xed\x12\n" +
+	"\x19OperationTypeAuthRegister\x109\x12!\n" +
+	"\x1dOperationTypeNodeAPIKeyCreate\x10:\x12\x1f\n" +
+	"\x1bOperationTypeNodeAPIKeyCopy\x10;\x12!\n" +
+	"\x1dOperationTypeNodeAPIKeyUpdate\x10<\x12\"\n" +
+	"\x1eOperationTypeNodeAPIKeyRefresh\x10=2\xed\x12\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12p\n" +
 	"\x10AdminPermissions\x12\x1b.v1.AdminPermissionsRequest\x1a\x1c.v1.AdminPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/permissions/admin\x12\x86\x01\n" +

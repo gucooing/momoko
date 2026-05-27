@@ -8,6 +8,8 @@ import type {
   CopyAPIKeyResponse,
   UpdateAPIKeyRequest,
   UpdateAPIKeyResponse,
+  RefreshAPIKeyRequest,
+  RefreshAPIKeyResponse,
 } from '@/types/v1/node'
 
 export const createAPIKey = (data: CreateAPIKeyRequest) => {
@@ -24,4 +26,8 @@ export const copyAPIKey = (data: CopyAPIKeyRequest) => {
 
 export const updateAPIKey = (data: UpdateAPIKeyRequest) => {
   return request.put<UpdateAPIKeyResponse>(`/node/api-key/${data.id}`, data)
+}
+
+export const refreshAPIKey = (data: RefreshAPIKeyRequest) => {
+  return request.post<RefreshAPIKeyResponse>(`/node/api-key/${data.id}/refresh`, data)
 }

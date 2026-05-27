@@ -70,6 +70,16 @@ export interface UpdateAPIKeyResponse {
   info: APIKeyInfo | undefined;
 }
 
+export interface RefreshAPIKeyRequest {
+  /** API Key id */
+  id: string;
+}
+
+export interface RefreshAPIKeyResponse {
+  /** API Key 信息 */
+  info: APIKeyInfo | undefined;
+}
+
 export interface APIKeyInfo {
   /** API Key id */
   id: string;

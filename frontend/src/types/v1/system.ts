@@ -163,6 +163,14 @@ export enum OperationType {
   OperationTypeAuthLoginEmailCode = "OperationTypeAuthLoginEmailCode",
   /** OperationTypeAuthRegister - 用户注册 */
   OperationTypeAuthRegister = "OperationTypeAuthRegister",
+  /** OperationTypeNodeAPIKeyCreate - API Key 创建 */
+  OperationTypeNodeAPIKeyCreate = "OperationTypeNodeAPIKeyCreate",
+  /** OperationTypeNodeAPIKeyCopy - API Key 复制 */
+  OperationTypeNodeAPIKeyCopy = "OperationTypeNodeAPIKeyCopy",
+  /** OperationTypeNodeAPIKeyUpdate - API Key 更新 */
+  OperationTypeNodeAPIKeyUpdate = "OperationTypeNodeAPIKeyUpdate",
+  /** OperationTypeNodeAPIKeyRefresh - API Key 刷新 */
+  OperationTypeNodeAPIKeyRefresh = "OperationTypeNodeAPIKeyRefresh",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 

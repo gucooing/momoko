@@ -464,6 +464,96 @@ func (x *UpdateAPIKeyResponse) GetInfo() *APIKeyInfo {
 	return nil
 }
 
+type RefreshAPIKeyRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// API Key id
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshAPIKeyRequest) Reset() {
+	*x = RefreshAPIKeyRequest{}
+	mi := &file_v1_node_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshAPIKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshAPIKeyRequest) ProtoMessage() {}
+
+func (x *RefreshAPIKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_node_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshAPIKeyRequest.ProtoReflect.Descriptor instead.
+func (*RefreshAPIKeyRequest) Descriptor() ([]byte, []int) {
+	return file_v1_node_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *RefreshAPIKeyRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RefreshAPIKeyResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// API Key 信息
+	Info          *APIKeyInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshAPIKeyResponse) Reset() {
+	*x = RefreshAPIKeyResponse{}
+	mi := &file_v1_node_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshAPIKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshAPIKeyResponse) ProtoMessage() {}
+
+func (x *RefreshAPIKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_node_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshAPIKeyResponse.ProtoReflect.Descriptor instead.
+func (*RefreshAPIKeyResponse) Descriptor() ([]byte, []int) {
+	return file_v1_node_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RefreshAPIKeyResponse) GetInfo() *APIKeyInfo {
+	if x != nil {
+		return x.Info
+	}
+	return nil
+}
+
 type APIKeyInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// API Key id
@@ -484,7 +574,7 @@ type APIKeyInfo struct {
 
 func (x *APIKeyInfo) Reset() {
 	*x = APIKeyInfo{}
-	mi := &file_v1_node_proto_msgTypes[8]
+	mi := &file_v1_node_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -496,7 +586,7 @@ func (x *APIKeyInfo) String() string {
 func (*APIKeyInfo) ProtoMessage() {}
 
 func (x *APIKeyInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_node_proto_msgTypes[8]
+	mi := &file_v1_node_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +599,7 @@ func (x *APIKeyInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use APIKeyInfo.ProtoReflect.Descriptor instead.
 func (*APIKeyInfo) Descriptor() ([]byte, []int) {
-	return file_v1_node_proto_rawDescGZIP(), []int{8}
+	return file_v1_node_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *APIKeyInfo) GetId() string {
@@ -590,6 +680,10 @@ const file_v1_node_proto_rawDesc = "" +
 	"\v_expires_atB\x10\n" +
 	"\x0e_never_expires\":\n" +
 	"\x14UpdateAPIKeyResponse\x12\"\n" +
+	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"&\n" +
+	"\x14RefreshAPIKeyRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\";\n" +
+	"\x15RefreshAPIKeyResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"\x92\x02\n" +
 	"\n" +
 	"APIKeyInfo\x12\x0e\n" +
@@ -602,13 +696,14 @@ const file_v1_node_proto_rawDesc = "" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTimeB\r\n" +
-	"\v_expires_at2\xa0\x03\n" +
+	"\v_expires_at2\x94\x04\n" +
 	"\vNodeService\x12b\n" +
 	"\fCreateAPIKey\x12\x17.v1.CreateAPIKeyRequest\x1a\x18.v1.CreateAPIKeyResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/node/api-key\x12\\\n" +
 	"\vListAPIKeys\x12\x16.v1.ListAPIKeysRequest\x1a\x17.v1.ListAPIKeysResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/node/api-key\x12f\n" +
 	"\n" +
 	"CopyAPIKey\x12\x15.v1.CopyAPIKeyRequest\x1a\x16.v1.CopyAPIKeyResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/node/api-key/{id}/copy\x12g\n" +
-	"\fUpdateAPIKey\x12\x17.v1.UpdateAPIKeyRequest\x1a\x18.v1.UpdateAPIKeyResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\x1a\x19/api/v1/node/api-key/{id}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\fUpdateAPIKey\x12\x17.v1.UpdateAPIKeyRequest\x1a\x18.v1.UpdateAPIKeyResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\x1a\x19/api/v1/node/api-key/{id}\x12r\n" +
+	"\rRefreshAPIKey\x12\x18.v1.RefreshAPIKeyRequest\x1a\x19.v1.RefreshAPIKeyResponse\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/node/api-key/{id}/refreshB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_node_proto_rawDescOnce sync.Once
@@ -622,7 +717,7 @@ func file_v1_node_proto_rawDescGZIP() []byte {
 	return file_v1_node_proto_rawDescData
 }
 
-var file_v1_node_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_v1_node_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_node_proto_goTypes = []any{
 	(*CreateAPIKeyRequest)(nil),   // 0: v1.CreateAPIKeyRequest
 	(*CreateAPIKeyResponse)(nil),  // 1: v1.CreateAPIKeyResponse
@@ -632,32 +727,37 @@ var file_v1_node_proto_goTypes = []any{
 	(*CopyAPIKeyResponse)(nil),    // 5: v1.CopyAPIKeyResponse
 	(*UpdateAPIKeyRequest)(nil),   // 6: v1.UpdateAPIKeyRequest
 	(*UpdateAPIKeyResponse)(nil),  // 7: v1.UpdateAPIKeyResponse
-	(*APIKeyInfo)(nil),            // 8: v1.APIKeyInfo
-	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*RefreshAPIKeyRequest)(nil),  // 8: v1.RefreshAPIKeyRequest
+	(*RefreshAPIKeyResponse)(nil), // 9: v1.RefreshAPIKeyResponse
+	(*APIKeyInfo)(nil),            // 10: v1.APIKeyInfo
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_v1_node_proto_depIdxs = []int32{
-	9,  // 0: v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
-	8,  // 1: v1.CreateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	8,  // 2: v1.ListAPIKeysResponse.infos:type_name -> v1.APIKeyInfo
-	8,  // 3: v1.CopyAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	9,  // 4: v1.UpdateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
-	8,  // 5: v1.UpdateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	9,  // 6: v1.APIKeyInfo.expires_at:type_name -> google.protobuf.Timestamp
-	9,  // 7: v1.APIKeyInfo.create_time:type_name -> google.protobuf.Timestamp
-	9,  // 8: v1.APIKeyInfo.update_time:type_name -> google.protobuf.Timestamp
-	0,  // 9: v1.NodeService.CreateAPIKey:input_type -> v1.CreateAPIKeyRequest
-	2,  // 10: v1.NodeService.ListAPIKeys:input_type -> v1.ListAPIKeysRequest
-	4,  // 11: v1.NodeService.CopyAPIKey:input_type -> v1.CopyAPIKeyRequest
-	6,  // 12: v1.NodeService.UpdateAPIKey:input_type -> v1.UpdateAPIKeyRequest
-	1,  // 13: v1.NodeService.CreateAPIKey:output_type -> v1.CreateAPIKeyResponse
-	3,  // 14: v1.NodeService.ListAPIKeys:output_type -> v1.ListAPIKeysResponse
-	5,  // 15: v1.NodeService.CopyAPIKey:output_type -> v1.CopyAPIKeyResponse
-	7,  // 16: v1.NodeService.UpdateAPIKey:output_type -> v1.UpdateAPIKeyResponse
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	11, // 0: v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	10, // 1: v1.CreateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	10, // 2: v1.ListAPIKeysResponse.infos:type_name -> v1.APIKeyInfo
+	10, // 3: v1.CopyAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	11, // 4: v1.UpdateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	10, // 5: v1.UpdateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	10, // 6: v1.RefreshAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	11, // 7: v1.APIKeyInfo.expires_at:type_name -> google.protobuf.Timestamp
+	11, // 8: v1.APIKeyInfo.create_time:type_name -> google.protobuf.Timestamp
+	11, // 9: v1.APIKeyInfo.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 10: v1.NodeService.CreateAPIKey:input_type -> v1.CreateAPIKeyRequest
+	2,  // 11: v1.NodeService.ListAPIKeys:input_type -> v1.ListAPIKeysRequest
+	4,  // 12: v1.NodeService.CopyAPIKey:input_type -> v1.CopyAPIKeyRequest
+	6,  // 13: v1.NodeService.UpdateAPIKey:input_type -> v1.UpdateAPIKeyRequest
+	8,  // 14: v1.NodeService.RefreshAPIKey:input_type -> v1.RefreshAPIKeyRequest
+	1,  // 15: v1.NodeService.CreateAPIKey:output_type -> v1.CreateAPIKeyResponse
+	3,  // 16: v1.NodeService.ListAPIKeys:output_type -> v1.ListAPIKeysResponse
+	5,  // 17: v1.NodeService.CopyAPIKey:output_type -> v1.CopyAPIKeyResponse
+	7,  // 18: v1.NodeService.UpdateAPIKey:output_type -> v1.UpdateAPIKeyResponse
+	9,  // 19: v1.NodeService.RefreshAPIKey:output_type -> v1.RefreshAPIKeyResponse
+	15, // [15:20] is the sub-list for method output_type
+	10, // [10:15] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_v1_node_proto_init() }
@@ -668,14 +768,14 @@ func file_v1_node_proto_init() {
 	file_v1_node_proto_msgTypes[0].OneofWrappers = []any{}
 	file_v1_node_proto_msgTypes[2].OneofWrappers = []any{}
 	file_v1_node_proto_msgTypes[6].OneofWrappers = []any{}
-	file_v1_node_proto_msgTypes[8].OneofWrappers = []any{}
+	file_v1_node_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_node_proto_rawDesc), len(file_v1_node_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

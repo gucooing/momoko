@@ -170,6 +170,10 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationOpenSSHManagerShareSSHHost:               v1.OperationType_OperationTypeSSHHostShare,
 	v1.OperationOpenSSHManagerTestSSHHost:                v1.OperationType_OperationTypeSSHHostTest,
 	v1.OperationOpenSSHManagerBatchTestSSHHosts:          v1.OperationType_OperationTypeSSHHostBatchTest,
+	v1.OperationNodeServiceCreateAPIKey:                  v1.OperationType_OperationTypeNodeAPIKeyCreate,
+	v1.OperationNodeServiceCopyAPIKey:                    v1.OperationType_OperationTypeNodeAPIKeyCopy,
+	v1.OperationNodeServiceUpdateAPIKey:                  v1.OperationType_OperationTypeNodeAPIKeyUpdate,
+	v1.OperationNodeServiceRefreshAPIKey:                 v1.OperationType_OperationTypeNodeAPIKeyRefresh,
 }
 
 func toOperationType(operation string) (v1.OperationType, bool) {

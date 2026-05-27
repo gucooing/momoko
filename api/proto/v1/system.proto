@@ -1009,6 +1009,14 @@ enum OperationType {
   OperationTypeAuthLoginEmailCode = 56;
   // 用户注册
   OperationTypeAuthRegister = 57;
+  // API Key 创建
+  OperationTypeNodeAPIKeyCreate = 58;
+  // API Key 复制
+  OperationTypeNodeAPIKeyCopy = 59;
+  // API Key 更新
+  OperationTypeNodeAPIKeyUpdate = 60;
+  // API Key 刷新
+  OperationTypeNodeAPIKeyRefresh = 61;
 }
 
 message ListOperationLogsRequest {

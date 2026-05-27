@@ -47,6 +47,7 @@
           <el-button type="primary" :icon="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" link @click="openCopy(row)">
             复制
           </el-button>
+          <el-button type="primary" :icon="menuStore.iconComponents.Refresh" link @click="openRefresh(row)">刷新</el-button>
         </template>
       </VxeGrid>
 
@@ -72,6 +73,7 @@
           <div class="mobile-card-actions">
             <el-button size="small" plain type="primary" @click.stop="openEdit(row)">编辑</el-button>
             <el-button size="small" plain type="primary" @click.stop="openCopy(row)">复制</el-button>
+            <el-button size="small" plain type="primary" @click.stop="openRefresh(row)">刷新</el-button>
           </div>
         </div>
       </div>
@@ -122,9 +124,10 @@
 </template>
 
 <script setup lang="ts">
-import { copyAPIKey, listAPIKeys } from '@/api/node'
+import { copyAPIKey, listAPIKeys, refreshAPIKey } from '@/api/node'
 import { VxeGrid } from '@/plugins/vxeGrid'
 import type { APIKeyInfo } from '@/types/v1/node'
+import { Dialog } from '@/utils/dialog'
 import ApiKeyCreate from '@/views/node/key/create.vue'
 import type { FormInstance } from 'element-plus'
 import type { VxeGridProps } from 'vxe-table'
@@ -168,7 +171,7 @@ const gridConfig = computed<VxeGridProps>(() => ({
     { field: 'expiresAt', title: '过期时间', minWidth: 180, slots: { default: 'column-expiresAt' } },
     { field: 'createTime', title: '创建时间', minWidth: 180, slots: { default: 'column-createTime' } },
     { field: 'updateTime', title: '更新时间', minWidth: 180, slots: { default: 'column-updateTime' } },
-    { title: '操作', width: 160, fixed: 'right', slots: { default: 'column-operation' } },
+    { title: '操作', width: 220, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -199,6 +202,22 @@ const openCopy = async (row: APIKeyInfo) => {
   const { data: res } = await copyAPIKey({ id: row.id })
   copyKeyValue.value = res?.info?.apiKey || ''
   copyDialogOpen.value = true
+}
+
+const openRefresh = async (row: APIKeyInfo) => {
+  try {
+    await Dialog.confirm({
+      title: '刷新 API Key',
+      content: '刷新后将生成新的 API Key，原 Key 将失效，确定刷新？',
+      confirmText: '确定',
+      cancelText: '取消',
+    })
+  } catch {
+    return
+  }
+  await refreshAPIKey({ id: row.id })
+  ElMessage.success('刷新成功，API Key 已更新')
+  getList()
 }
 
 const doCopy = async () => {
@@ -236,4 +255,5 @@ onMounted(() => {
 .mobile-card-meta { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.25rem; font-size: 0.74rem; color: var(--el-text-color-secondary); }
 .text-muted { color: var(--el-text-color-placeholder); }
 .mobile-card-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+.mobile-card-actions .el-button + .el-button { margin-left: 0; }
 </style>

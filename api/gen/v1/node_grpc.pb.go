@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NodeService_CreateAPIKey_FullMethodName = "/v1.NodeService/CreateAPIKey"
-	NodeService_ListAPIKeys_FullMethodName  = "/v1.NodeService/ListAPIKeys"
-	NodeService_CopyAPIKey_FullMethodName   = "/v1.NodeService/CopyAPIKey"
-	NodeService_UpdateAPIKey_FullMethodName = "/v1.NodeService/UpdateAPIKey"
+	NodeService_CreateAPIKey_FullMethodName  = "/v1.NodeService/CreateAPIKey"
+	NodeService_ListAPIKeys_FullMethodName   = "/v1.NodeService/ListAPIKeys"
+	NodeService_CopyAPIKey_FullMethodName    = "/v1.NodeService/CopyAPIKey"
+	NodeService_UpdateAPIKey_FullMethodName  = "/v1.NodeService/UpdateAPIKey"
+	NodeService_RefreshAPIKey_FullMethodName = "/v1.NodeService/RefreshAPIKey"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -39,6 +40,8 @@ type NodeServiceClient interface {
 	CopyAPIKey(ctx context.Context, in *CopyAPIKeyRequest, opts ...grpc.CallOption) (*CopyAPIKeyResponse, error)
 	// 更新 API Key
 	UpdateAPIKey(ctx context.Context, in *UpdateAPIKeyRequest, opts ...grpc.CallOption) (*UpdateAPIKeyResponse, error)
+	// 刷新 API Key
+	RefreshAPIKey(ctx context.Context, in *RefreshAPIKeyRequest, opts ...grpc.CallOption) (*RefreshAPIKeyResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -89,6 +92,16 @@ func (c *nodeServiceClient) UpdateAPIKey(ctx context.Context, in *UpdateAPIKeyRe
 	return out, nil
 }
 
+func (c *nodeServiceClient) RefreshAPIKey(ctx context.Context, in *RefreshAPIKeyRequest, opts ...grpc.CallOption) (*RefreshAPIKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshAPIKeyResponse)
+	err := c.cc.Invoke(ctx, NodeService_RefreshAPIKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -103,6 +116,8 @@ type NodeServiceServer interface {
 	CopyAPIKey(context.Context, *CopyAPIKeyRequest) (*CopyAPIKeyResponse, error)
 	// 更新 API Key
 	UpdateAPIKey(context.Context, *UpdateAPIKeyRequest) (*UpdateAPIKeyResponse, error)
+	// 刷新 API Key
+	RefreshAPIKey(context.Context, *RefreshAPIKeyRequest) (*RefreshAPIKeyResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -124,6 +139,9 @@ func (UnimplementedNodeServiceServer) CopyAPIKey(context.Context, *CopyAPIKeyReq
 }
 func (UnimplementedNodeServiceServer) UpdateAPIKey(context.Context, *UpdateAPIKeyRequest) (*UpdateAPIKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAPIKey not implemented")
+}
+func (UnimplementedNodeServiceServer) RefreshAPIKey(context.Context, *RefreshAPIKeyRequest) (*RefreshAPIKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefreshAPIKey not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -218,6 +236,24 @@ func _NodeService_UpdateAPIKey_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_RefreshAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshAPIKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).RefreshAPIKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_RefreshAPIKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).RefreshAPIKey(ctx, req.(*RefreshAPIKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -240,6 +276,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAPIKey",
 			Handler:    _NodeService_UpdateAPIKey_Handler,
+		},
+		{
+			MethodName: "RefreshAPIKey",
+			Handler:    _NodeService_RefreshAPIKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
