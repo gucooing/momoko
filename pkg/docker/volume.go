@@ -157,7 +157,7 @@ func (m *Manager) ExportVolume(ctx context.Context, opts VolumeArchiveOptions) *
 		if err != nil {
 			return "", err
 		}
-		defer m.DeleteContainer(context.Background(), containerID, true, false)
+		defer m.DeleteContainer(taskCtx, containerID, true, false)
 		if err := m.StartContainer(taskCtx, containerID); err != nil {
 			return "", err
 		}
@@ -204,7 +204,7 @@ func (m *Manager) RestoreVolume(ctx context.Context, opts VolumeArchiveOptions) 
 		if err != nil {
 			return "", err
 		}
-		defer m.DeleteContainer(context.Background(), containerID, true, false)
+		defer m.DeleteContainer(taskCtx, containerID, true, false)
 		if err := m.StartContainer(taskCtx, containerID); err != nil {
 			return "", err
 		}

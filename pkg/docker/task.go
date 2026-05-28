@@ -62,7 +62,7 @@ func (r *taskRunner) Start(parent context.Context, typ string, timeout time.Dura
 	if timeout <= 0 {
 		timeout = 30 * time.Minute
 	}
-	ctx, cancel := context.WithTimeout(parent, timeout)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), timeout)
 	id := uuid.NewString()
 	task := &Task{
 		ID:        id,

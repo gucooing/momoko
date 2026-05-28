@@ -339,16 +339,20 @@ func (c *ConfigRepo) getRegistryAuth(ctx context.Context, key common.ConfigKey) 
 	}
 	box := secretbox.New(authpkg.AuthSecretKey)
 	for i := range auths {
-		password, err := box.Encrypt(auths[i].Password)
-		if err != nil {
-			return nil, err
+		if strings.HasPrefix(auths[i].Password, "v1:") {
+			password, err := box.Decrypt(auths[i].Password)
+			if err != nil {
+				return nil, err
+			}
+			auths[i].Password = password
 		}
-		token, err := box.Encrypt(auths[i].Token)
-		if err != nil {
-			return nil, err
+		if strings.HasPrefix(auths[i].Token, "v1:") {
+			token, err := box.Decrypt(auths[i].Token)
+			if err != nil {
+				return nil, err
+			}
+			auths[i].Token = token
 		}
-		auths[i].Password = password
-		auths[i].Token = token
 	}
 	return auths, nil
 }
@@ -356,21 +360,18 @@ func (c *ConfigRepo) getRegistryAuth(ctx context.Context, key common.ConfigKey) 
 func (c *ConfigRepo) saveRegistryAuth(auths []*v1.DockerRegistryAuth) (string, error) {
 	box := secretbox.New(authpkg.AuthSecretKey)
 	for i := range auths {
-		if strings.HasPrefix(auths[i].Password, "v1:") {
-			password, err := box.Decrypt(auths[i].Password)
-			if err != nil {
-				return "", err
-			}
-			auths[i].Password = password
+		password, err := box.Encrypt(auths[i].Password)
+		if err != nil {
+			return "", err
 		}
-		if strings.HasPrefix(auths[i].Token, "v1:") {
-			token, err := box.Decrypt(auths[i].Token)
-			if err != nil {
-				return "", err
-			}
-			auths[i].Token = token
+		token, err := box.Encrypt(auths[i].Token)
+		if err != nil {
+			return "", err
 		}
+		auths[i].Password = password
+		auths[i].Token = token
 	}
+
 	authsRaw, err := json.Marshal(auths)
 	if err != nil {
 		return "", err
