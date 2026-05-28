@@ -29,6 +29,7 @@
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">创建储存卷</el-button>
         <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用卷</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
       </div>
 
       <div v-loading="loading">
@@ -46,7 +47,7 @@
             <el-button type="primary" link size="small" @click="openDetail(row)">详情</el-button>
             <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
             <el-button type="primary" link size="small" @click="openExport(row)">导出</el-button>
-            <el-button type="primary" link size="small" @click="openRestore(row)">恢复</el-button>
+            <el-button type="primary" link size="small" @click="openRestore()">恢复</el-button>
             <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </VxeGrid>
@@ -197,6 +198,8 @@
         <el-button type="primary" :loading="restoreSubmitting" @click="submitRestore">恢复</el-button>
       </template>
     </BaseDialog>
+
+    <DockerTaskDrawer v-model="taskDrawerVisible" :active-task="activeTask" @finished="handleTaskFinished" />
   </div>
 </template>
 
@@ -207,6 +210,7 @@ import {
   updateDockerVolume,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import DockerTaskDrawer from '@/views/docker/components/DockerTaskDrawer.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -214,7 +218,7 @@ import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
-import type { DockerVolumeInfo } from '@/types/v1/docker'
+import type { DockerTaskInfo, DockerVolumeInfo } from '@/types/v1/docker'
 import type { VxeGridProps } from 'vxe-table'
 
 defineOptions({ name: 'DockerVolumeView' })
@@ -271,6 +275,18 @@ const getList = async () => {
 const search = () => { pagination.value.page = 1; getList() }
 const reset = () => { queryForm.name = ''; queryForm.driver = ''; search() }
 
+const taskDrawerVisible = ref(false)
+const activeTask = ref<DockerTaskInfo | null>(null)
+const openTasks = () => { taskDrawerVisible.value = true }
+const openTask = (task: DockerTaskInfo | undefined) => {
+  if (!task?.id) return
+  activeTask.value = task
+  taskDrawerVisible.value = true
+}
+const handleTaskFinished = async () => {
+  await getList()
+}
+
 // -- create --
 const createVisible = ref(false)
 const createSubmitting = ref(false)
@@ -325,8 +341,8 @@ const handlePrune = async () => {
   } catch { return }
   try {
     const { data } = await pruneDockerVolumes({})
-    ElMessage.success(`清理任务已创建：${data?.task?.id || '-'}`)
-    await getList()
+    ElMessage.success('清理任务已创建')
+    openTask(data?.task)
   } catch (e) { showRequestError(e, '清理储存卷失败') }
 }
 
@@ -357,7 +373,8 @@ const submitExport = async () => {
   exportSubmitting.value = true
   try {
     const { data } = await exportDockerVolume({ name: exportVolumeName.value, archivePath })
-    ElMessage.success(`导出任务已创建：${data?.task?.id || '-'}`)
+    ElMessage.success('导出任务已创建')
+    openTask(data?.task)
     exportVisible.value = false
   } catch (e) { showRequestError(e, '导出储存卷失败') }
   finally { exportSubmitting.value = false }
@@ -368,7 +385,7 @@ const restoreVisible = ref(false)
 const restoreSubmitting = ref(false)
 const restoreName = ref('')
 const restorePath = ref('')
-const openRestore = (_row: DockerVolumeInfo) => {
+const openRestore = () => {
   restoreName.value = ''; restorePath.value = ''; restoreVisible.value = true
 }
 const submitRestore = async () => {
@@ -378,9 +395,9 @@ const submitRestore = async () => {
   restoreSubmitting.value = true
   try {
     const { data } = await restoreDockerVolume({ name, archivePath })
-    ElMessage.success(`恢复任务已创建：${data?.task?.id || '-'}`)
+    ElMessage.success('恢复任务已创建')
+    openTask(data?.task)
     restoreVisible.value = false
-    await getList()
   } catch (e) { showRequestError(e, '恢复储存卷失败') }
   finally { restoreSubmitting.value = false }
 }
@@ -417,17 +434,18 @@ const submitEdit = async () => {
   editSubmitting.value = true
   try {
     if (editRecreate.value) {
-      await updateDockerVolume({
+      const { data } = await updateDockerVolume({
         name: editName.value, labels: parseKV(editLabelsText.value),
         driverOpts: parseKV(editDriverOptsText.value), force: editForce.value,
         options: { name: editName.value, driver: editDriver.value, labels: parseKV(editLabelsText.value), driverOpts: parseKV(editDriverOptsText.value) },
       })
+      openTask(data?.task)
     } else {
-      await updateDockerVolume({ name: editName.value, labels: parseKV(editLabelsText.value), driverOpts: parseKV(editDriverOptsText.value), force: false, options: undefined })
+      const { data } = await updateDockerVolume({ name: editName.value, labels: parseKV(editLabelsText.value), driverOpts: parseKV(editDriverOptsText.value), force: false, options: undefined })
+      openTask(data?.task)
     }
-    ElMessage.success(editRecreate.value ? '储存卷重建更新成功' : '储存卷更新成功')
+    ElMessage.success(editRecreate.value ? '储存卷重建任务已创建' : '储存卷更新任务已创建')
     editVisible.value = false
-    await getList()
   } catch (e) { showRequestError(e, '更新储存卷失败') }
   finally { editSubmitting.value = false }
 }

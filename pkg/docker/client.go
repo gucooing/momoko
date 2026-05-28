@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	v1 "momoko/api/gen/v1"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -19,11 +20,9 @@ import (
 	buildtypes "github.com/docker/docker/api/types/build"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
-	imagetypes "github.com/docker/docker/api/types/image"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -37,12 +36,12 @@ var (
 
 type Manager struct {
 	mu     sync.RWMutex
-	cfg    Config
+	cfg    *v1.DockerConfigInfo
 	client *client.Client
 	tasks  *taskRunner
 }
 
-func NewManager(cfg Config) (*Manager, error) {
+func NewManager(cfg *v1.DockerConfigInfo) (*Manager, error) {
 	m := &Manager{
 		cfg:   cfg,
 		tasks: newTaskRunner(),
@@ -55,7 +54,7 @@ func NewManager(cfg Config) (*Manager, error) {
 	return m, nil
 }
 
-func (m *Manager) Reconfigure(cfg Config) error {
+func (m *Manager) Reconfigure(cfg *v1.DockerConfigInfo) error {
 	cli, err := newClient(cfg)
 	if err != nil {
 		return err
@@ -73,7 +72,7 @@ func (m *Manager) Reconfigure(cfg Config) error {
 	return nil
 }
 
-func (m *Manager) Config() Config {
+func (m *Manager) Config() *v1.DockerConfigInfo {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.cfg
@@ -107,7 +106,7 @@ func (m *Manager) Status(ctx context.Context) Status {
 	return status
 }
 
-func (m *Manager) Test(ctx context.Context, cfg Config) (Status, error) {
+func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (Status, error) {
 	if !cfg.Enabled {
 		return Status{Enabled: false, Error: ErrDisabled.Error()}, nil
 	}
@@ -180,7 +179,7 @@ func (m *Manager) taskTimeout() time.Duration {
 	return time.Duration(cfg.TaskTimeoutSeconds) * time.Second
 }
 
-func newClient(cfg Config) (*client.Client, error) {
+func newClient(cfg *v1.DockerConfigInfo) (*client.Client, error) {
 	if !cfg.Enabled {
 		return nil, nil
 	}
@@ -191,22 +190,22 @@ func newClient(cfg Config) (*client.Client, error) {
 	if cfg.Host != "" {
 		opts = append(opts, client.WithHost(cfg.Host))
 	}
-	if cfg.APIVersion != "" {
-		opts = append(opts, client.WithVersion(cfg.APIVersion))
+	if cfg.ApiVersion != "" {
+		opts = append(opts, client.WithVersion(cfg.ApiVersion))
 	}
 	timeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if timeout <= 0 {
 		timeout = 30 * time.Second
 	}
 	opts = append(opts, client.WithHTTPClient(&http.Client{Timeout: timeout}))
-	if cfg.TLSEnabled {
-		if cfg.TLSCAPath == "" || cfg.TLSCertPath == "" || cfg.TLSKeyPath == "" {
+	if cfg.TlsEnabled {
+		if cfg.TlsCaPath == "" || cfg.TlsCertPath == "" || cfg.TlsKeyPath == "" {
 			return nil, errors.New("docker TLS 证书路径不能为空")
 		}
 		opts = append(opts, client.WithTLSClientConfig(
-			cfg.TLSCAPath,
-			cfg.TLSCertPath,
-			cfg.TLSKeyPath,
+			cfg.TlsCaPath,
+			cfg.TlsCertPath,
+			cfg.TlsKeyPath,
 		))
 	}
 	return client.NewClientWithOpts(opts...)
@@ -308,8 +307,7 @@ func buildArgs(args map[string]string) map[string]*string {
 	}
 	result := make(map[string]*string, len(args))
 	for k, v := range args {
-		value := v
-		result[k] = &value
+		result[k] = new(v)
 	}
 	return result
 }
@@ -368,7 +366,8 @@ func toPortBindings(bindings []PortBinding) (nat.PortSet, nat.PortMap, error) {
 			}
 			continue
 		}
-		port, err := nat.NewPort("tcp", item.ContainerPort)
+		proto, portNumber := nat.SplitProtoPort(item.ContainerPort)
+		port, err := nat.NewPort(proto, portNumber)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -459,13 +458,6 @@ func stringMapStatus(data map[string]interface{}) map[string]string {
 	return result
 }
 
-func contextError(ctx context.Context, err error) error {
-	if err != nil {
-		return err
-	}
-	return ctx.Err()
-}
-
 func filtersFromLabels(labels map[string]string) filters.Args {
 	args := filters.NewArgs()
 	for k, v := range labels {
@@ -492,6 +484,3 @@ func pageSlice[T any](items []T, page, pageSize int64) []T {
 	}
 	return items[start:end]
 }
-
-var _ = imagetypes.ListOptions{}
-var _ = volumetypes.ListOptions{}

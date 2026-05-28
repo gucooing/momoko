@@ -31,6 +31,7 @@
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openPull">拉取镜像</el-button>
         <el-button type="success" :disabled="!canManage" @click="openBuild">构建镜像</el-button>
         <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用镜像</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
       </div>
 
       <div v-loading="loading">
@@ -199,6 +200,8 @@
         <el-button @click="historyVisible = false">关闭</el-button>
       </template>
     </BaseDialog>
+
+    <DockerTaskDrawer v-model="taskDrawerVisible" :active-task="activeTask" @finished="handleTaskFinished" />
   </div>
 </template>
 
@@ -209,6 +212,7 @@ import {
   updateDockerImageTags,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import DockerTaskDrawer from '@/views/docker/components/DockerTaskDrawer.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -216,7 +220,7 @@ import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
-import type { DockerImageHistoryItem, DockerImageInfo, DockerImageSummary } from '@/types/v1/docker'
+import type { DockerImageHistoryItem, DockerImageInfo, DockerImageSummary, DockerTaskInfo } from '@/types/v1/docker'
 import type { VxeGridProps } from 'vxe-table'
 
 defineOptions({ name: 'DockerImageView' })
@@ -276,6 +280,18 @@ const getList = async () => {
 const search = () => { pagination.value.page = 1; getList() }
 const reset = () => { queryForm.keyword = ''; queryForm.dangling = undefined; search() }
 
+const taskDrawerVisible = ref(false)
+const activeTask = ref<DockerTaskInfo | null>(null)
+const openTasks = () => { taskDrawerVisible.value = true }
+const openTask = (task: DockerTaskInfo | undefined) => {
+  if (!task?.id) return
+  activeTask.value = task
+  taskDrawerVisible.value = true
+}
+const handleTaskFinished = async () => {
+  await getList()
+}
+
 // -- pull --
 const pullVisible = ref(false)
 const pullSubmitting = ref(false)
@@ -287,9 +303,9 @@ const submitPull = async () => {
   pullSubmitting.value = true
   try {
     const { data } = await pullDockerImage({ reference, platform: pullForm.platform.trim(), registryAuth: undefined })
-    ElMessage.success(`拉取任务已创建：${data?.task?.id || '-'}`)
+    ElMessage.success('拉取任务已创建')
+    openTask(data?.task)
     pullVisible.value = false
-    await getList()
   } catch (e) { showRequestError(e, '拉取镜像失败') }
   finally { pullSubmitting.value = false }
 }
@@ -310,9 +326,9 @@ const submitBuild = async () => {
       tags, buildArgs: {}, labels: {}, platform: '', noCache: false,
       pullParent: false, remove: true, forceRemove: false,
     })
-    ElMessage.success(`构建任务已创建：${data?.task?.id || '-'}`)
+    ElMessage.success('构建任务已创建')
+    openTask(data?.task)
     buildVisible.value = false
-    await getList()
   } catch (e) { showRequestError(e, '构建镜像失败') }
   finally { buildSubmitting.value = false }
 }
@@ -345,7 +361,11 @@ const handleDelete = async (row: DockerImageSummary) => {
 const handlePrune = async () => {
   try { await Dialog.confirm({ title: '清理未使用镜像', content: '确定要清理所有未使用的镜像吗？', confirmText: '确认清理', cancelText: '取消' }) }
   catch { return }
-  try { const { data } = await pruneDockerImages({ danglingOnly: false }); ElMessage.success(`清理任务已创建：${data?.task?.id || '-'}`); await getList() }
+  try {
+    const { data } = await pruneDockerImages({ danglingOnly: false })
+    ElMessage.success('清理任务已创建')
+    openTask(data?.task)
+  }
   catch (e) { showRequestError(e, '清理镜像失败') }
 }
 

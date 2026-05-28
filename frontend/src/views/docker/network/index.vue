@@ -31,6 +31,7 @@
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">创建网络</el-button>
         <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用网络</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
       </div>
 
       <div v-loading="loading">
@@ -159,6 +160,11 @@
             <el-table-column prop="name" label="名称" />
             <el-table-column prop="ipv4Address" label="IPv4" width="160" />
             <el-table-column prop="macAddress" label="MAC" width="150" />
+            <el-table-column v-if="canManage" label="操作" width="80">
+              <template #default="{ row: c }">
+                <el-button type="danger" link size="small" @click="handleDisconnect(detail, c.containerId)">断开</el-button>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </div>
@@ -227,16 +233,19 @@
         <el-button type="primary" :loading="connectSubmitting" @click="submitConnect">连接</el-button>
       </template>
     </BaseDialog>
+
+    <DockerTaskDrawer v-model="taskDrawerVisible" :active-task="activeTask" @finished="handleTaskFinished" />
   </div>
 </template>
 
 <script setup lang="ts">
 import {
   connectDockerNetwork, createDockerNetwork, deleteDockerNetwork,
-  getDockerNetwork, listDockerNetworks, pruneDockerNetworks,
+  disconnectDockerNetwork, getDockerNetwork, listDockerNetworks, pruneDockerNetworks,
   updateDockerNetwork,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import DockerTaskDrawer from '@/views/docker/components/DockerTaskDrawer.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -244,7 +253,7 @@ import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
-import type { DockerNetworkInfo } from '@/types/v1/docker'
+import type { DockerNetworkInfo, DockerTaskInfo } from '@/types/v1/docker'
 import type { VxeGridProps } from 'vxe-table'
 
 defineOptions({ name: 'DockerNetworkView' })
@@ -290,6 +299,18 @@ const getList = async () => {
 const search = () => { pagination.value.page = 1; getList() }
 const reset = () => { queryForm.name = ''; queryForm.driver = ''; search() }
 
+const taskDrawerVisible = ref(false)
+const activeTask = ref<DockerTaskInfo | null>(null)
+const openTasks = () => { taskDrawerVisible.value = true }
+const openTask = (task: DockerTaskInfo | undefined) => {
+  if (!task?.id) return
+  activeTask.value = task
+  taskDrawerVisible.value = true
+}
+const handleTaskFinished = async () => {
+  await getList()
+}
+
 // -- create --
 const createVisible = ref(false)
 const createSubmitting = ref(false)
@@ -332,7 +353,11 @@ const handleDelete = async (row: DockerNetworkInfo) => {
 const handlePrune = async () => {
   try { await Dialog.confirm({ title: '清理未使用网络', content: '确定要清理所有未使用的网络吗？', confirmText: '确认清理', cancelText: '取消' }) }
   catch { return }
-  try { const { data } = await pruneDockerNetworks({}); ElMessage.success(`清理任务已创建：${data?.task?.id || '-'}`); await getList() }
+  try {
+    const { data } = await pruneDockerNetworks({})
+    ElMessage.success('清理任务已创建')
+    openTask(data?.task)
+  }
   catch (e) { showRequestError(e, '清理网络失败') }
 }
 
@@ -373,6 +398,19 @@ const submitConnect = async () => {
   finally { connectSubmitting.value = false }
 }
 
+const handleDisconnect = async (network: DockerNetworkInfo, containerId: string) => {
+  try {
+    await Dialog.confirm({ title: '断开网络连接', content: `确定要断开容器「${containerId.slice(0, 12)}」吗？`, confirmText: '确认断开', cancelText: '取消' })
+  } catch { return }
+  try {
+    await disconnectDockerNetwork({ networkId: network.id, containerId, force: false })
+    ElMessage.success('网络连接已断开')
+    const { data } = await getDockerNetwork({ id: network.id })
+    detail.value = data?.info || null
+    await getList()
+  } catch (e) { showRequestError(e, '断开网络连接失败') }
+}
+
 // -- edit --
 const editVisible = ref(false)
 const editSubmitting = ref(false)
@@ -407,7 +445,7 @@ const submitEdit = async () => {
   try {
     if (editRecreate.value) {
       const ipamConfig = editSubnet.value.trim() ? [{ subnet: editSubnet.value.trim(), gateway: editGateway.value.trim(), ipRange: '', auxAddress: {} }] : []
-      await updateDockerNetwork({
+      const { data } = await updateDockerNetwork({
         id: editId.value, labels: parseLabels(editLabelsText.value), force: editForce.value,
         options: {
           name: '', driver: editDriver.value, scope: '', enableIpv4: undefined, enableIpv6: undefined,
@@ -416,12 +454,13 @@ const submitEdit = async () => {
           options: {}, labels: parseLabels(editLabelsText.value),
         },
       })
+      openTask(data?.task)
     } else {
       await updateDockerNetwork({ id: editId.value, labels: parseLabels(editLabelsText.value), force: false, options: undefined })
     }
-    ElMessage.success(editRecreate.value ? '网络重建更新成功' : '网络更新成功')
+    ElMessage.success(editRecreate.value ? '网络重建任务已创建' : '网络更新成功')
     editVisible.value = false
-    await getList()
+    if (!editRecreate.value) await getList()
   } catch (e) { showRequestError(e, '更新网络失败') }
   finally { editSubmitting.value = false }
 }

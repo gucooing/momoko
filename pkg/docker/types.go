@@ -5,21 +5,6 @@ import (
 	"time"
 )
 
-type Config struct {
-	Enabled               bool
-	Host                  string
-	TLSEnabled            bool
-	TLSCAPath             string
-	TLSCertPath           string
-	TLSKeyPath            string
-	APIVersion            string
-	RequestTimeoutSeconds int32
-	DefaultPlatform       string
-	DefaultLogTail        int32
-	TaskTimeoutSeconds    int32
-	RegistryAuths         []RegistryAuth
-}
-
 type RegistryAuth struct {
 	ServerAddress string
 	Username      string

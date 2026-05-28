@@ -3,20 +3,13 @@ package biz
 import (
 	"context"
 	"encoding/json"
-	"io"
-	"strconv"
-	"strings"
-
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"io"
 
 	v1 "momoko/api/gen/v1"
-	authpkg "momoko/pkg/auth"
-	"momoko/pkg/common"
 	"momoko/pkg/constant"
 	dockerpkg "momoko/pkg/docker"
-	"momoko/pkg/response"
-	"momoko/pkg/secretbox"
 )
 
 const (
@@ -33,7 +26,8 @@ type DockerUsecase struct {
 }
 
 func NewDockerUsecase(sys *SystemUsecase, config ConfigRepo) (*DockerUsecase, error) {
-	cfg, err := loadDockerConfig(context.Background(), config)
+	ctx := context.Background()
+	cfg, err := config.DockerConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -48,61 +42,28 @@ func (d *DockerUsecase) Config(ctx context.Context) (*v1.DockerConfigInfo, error
 	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
 		return nil, err
 	}
-	cfg, err := loadDockerConfig(ctx, d.config)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return toDockerConfigInfo(cfg), nil
+	return d.config.DockerConfig(ctx)
 }
 
 func (d *DockerUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateDockerConfigRequest) (*v1.DockerConfigInfo, error) {
 	if err := d.sys.Check(ctx, constant.DockerConfigEdit); err != nil {
 		return nil, err
 	}
-	cfg := fromDockerConfigInfo(req.GetConfig())
-	if err := validateDockerConfig(cfg); err != nil {
+	cfg, err := d.config.UpdateDockerConfig(ctx, req.Config)
+	if err != nil {
 		return nil, err
 	}
-	storeCfg := cfg
-	storeCfg.RegistryAuths = append([]dockerpkg.RegistryAuth(nil), cfg.RegistryAuths...)
-	if err := encryptDockerRegistryAuths(storeCfg.RegistryAuths); err != nil {
+	if err = d.docker.Reconfigure(cfg); err != nil {
 		return nil, ErrSystem(err)
 	}
-	rawAuths, err := json.Marshal(storeCfg.RegistryAuths)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if err := d.config.BatchUpdate(ctx, map[common.ConfigKey]string{
-		common.ConfigDockerEnabled:               strconv.FormatBool(cfg.Enabled),
-		common.ConfigDockerHost:                  cfg.Host,
-		common.ConfigDockerTLSEnabled:            strconv.FormatBool(cfg.TLSEnabled),
-		common.ConfigDockerTLSCAPath:             cfg.TLSCAPath,
-		common.ConfigDockerTLSCertPath:           cfg.TLSCertPath,
-		common.ConfigDockerTLSKeyPath:            cfg.TLSKeyPath,
-		common.ConfigDockerAPIVersion:            cfg.APIVersion,
-		common.ConfigDockerRequestTimeoutSeconds: strconv.FormatInt(int64(cfg.RequestTimeoutSeconds), 10),
-		common.ConfigDockerDefaultPlatform:       cfg.DefaultPlatform,
-		common.ConfigDockerDefaultLogTail:        strconv.FormatInt(int64(cfg.DefaultLogTail), 10),
-		common.ConfigDockerTaskTimeoutSeconds:    strconv.FormatInt(int64(cfg.TaskTimeoutSeconds), 10),
-		common.ConfigDockerRegistryAuths:         string(rawAuths),
-	}); err != nil {
-		return nil, ErrSystem(err)
-	}
-	if err := d.docker.Reconfigure(cfg); err != nil {
-		return nil, ErrSystem(err)
-	}
-	return toDockerConfigInfo(cfg), nil
+	return cfg, nil
 }
 
 func (d *DockerUsecase) TestConfig(ctx context.Context, req *v1.TestDockerConfigRequest) (*v1.DockerStatusResponse, error) {
 	if err := d.sys.Check(ctx, constant.DockerConfigEdit); err != nil {
 		return nil, err
 	}
-	cfg := fromDockerConfigInfo(req.GetConfig())
-	if err := validateDockerConfig(cfg); err != nil {
-		return nil, err
-	}
-	status, _ := d.docker.Test(ctx, cfg)
+	status, _ := d.docker.Test(ctx, req.GetConfig())
 	return toDockerStatus(status), nil
 }
 
@@ -668,163 +629,6 @@ func (d *DockerUsecase) containerAction(ctx context.Context, fn func() error) er
 	}
 	if err := fn(); err != nil {
 		return ErrSystem(err)
-	}
-	return nil
-}
-
-func loadDockerConfig(ctx context.Context, repo ConfigRepo) (dockerpkg.Config, error) {
-	enabled, err := boolConfig(ctx, repo, common.ConfigDockerEnabled)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	tlsEnabled, err := boolConfig(ctx, repo, common.ConfigDockerTLSEnabled)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	requestTimeout, err := int32Config(ctx, repo, common.ConfigDockerRequestTimeoutSeconds)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	logTail, err := int32Config(ctx, repo, common.ConfigDockerDefaultLogTail)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	taskTimeout, err := int32Config(ctx, repo, common.ConfigDockerTaskTimeoutSeconds)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	authsRaw, err := repo.Get(ctx, common.ConfigDockerRegistryAuths)
-	if err != nil {
-		return dockerpkg.Config{}, err
-	}
-	var auths []dockerpkg.RegistryAuth
-	if strings.TrimSpace(authsRaw) != "" {
-		if err := json.Unmarshal([]byte(authsRaw), &auths); err != nil {
-			return dockerpkg.Config{}, err
-		}
-		if err := decryptDockerRegistryAuths(auths); err != nil {
-			return dockerpkg.Config{}, err
-		}
-	}
-	host, _ := repo.Get(ctx, common.ConfigDockerHost)
-	caPath, _ := repo.Get(ctx, common.ConfigDockerTLSCAPath)
-	certPath, _ := repo.Get(ctx, common.ConfigDockerTLSCertPath)
-	keyPath, _ := repo.Get(ctx, common.ConfigDockerTLSKeyPath)
-	apiVersion, _ := repo.Get(ctx, common.ConfigDockerAPIVersion)
-	defaultPlatform, _ := repo.Get(ctx, common.ConfigDockerDefaultPlatform)
-	return dockerpkg.Config{
-		Enabled: enabled, Host: host, TLSEnabled: tlsEnabled, TLSCAPath: caPath,
-		TLSCertPath: certPath, TLSKeyPath: keyPath, APIVersion: apiVersion,
-		RequestTimeoutSeconds: requestTimeout, DefaultPlatform: defaultPlatform,
-		DefaultLogTail: logTail, TaskTimeoutSeconds: taskTimeout, RegistryAuths: auths,
-	}, nil
-}
-
-func boolConfig(ctx context.Context, repo ConfigRepo, key common.ConfigKey) (bool, error) {
-	value, err := repo.Get(ctx, key)
-	if err != nil {
-		return false, err
-	}
-	return strconv.ParseBool(value)
-}
-
-func int32Config(ctx context.Context, repo ConfigRepo, key common.ConfigKey) (int32, error) {
-	value, err := repo.Get(ctx, key)
-	if err != nil {
-		return 0, err
-	}
-	number, err := strconv.ParseInt(value, 10, 32)
-	return int32(number), err
-}
-
-func validateDockerConfig(cfg dockerpkg.Config) error {
-	if cfg.TLSEnabled && (cfg.TLSCAPath == "" || cfg.TLSCertPath == "" || cfg.TLSKeyPath == "") {
-		return response.BadRequest(400, "Docker TLS证书路径不能为空")
-	}
-	return nil
-}
-
-func toDockerConfigInfo(cfg dockerpkg.Config) *v1.DockerConfigInfo {
-	auths := make([]*v1.DockerRegistryAuth, 0, len(cfg.RegistryAuths))
-	for _, item := range cfg.RegistryAuths {
-		auths = append(auths, &v1.DockerRegistryAuth{
-			ServerAddress: item.ServerAddress, Username: item.Username,
-			Password: item.Password, Token: item.Token,
-		})
-	}
-	return &v1.DockerConfigInfo{
-		Enabled: cfg.Enabled, Host: cfg.Host, TlsEnabled: cfg.TLSEnabled,
-		TlsCaPath: cfg.TLSCAPath, TlsCertPath: cfg.TLSCertPath, TlsKeyPath: cfg.TLSKeyPath,
-		ApiVersion: cfg.APIVersion, RequestTimeoutSeconds: cfg.RequestTimeoutSeconds,
-		DefaultPlatform: cfg.DefaultPlatform, DefaultLogTail: cfg.DefaultLogTail,
-		TaskTimeoutSeconds: cfg.TaskTimeoutSeconds, RegistryAuths: auths,
-	}
-}
-
-func fromDockerConfigInfo(info *v1.DockerConfigInfo) dockerpkg.Config {
-	if info == nil {
-		return dockerpkg.Config{RequestTimeoutSeconds: 30, DefaultLogTail: 200, TaskTimeoutSeconds: 1800}
-	}
-	auths := make([]dockerpkg.RegistryAuth, 0, len(info.RegistryAuths))
-	for _, item := range info.RegistryAuths {
-		auths = append(auths, dockerpkg.RegistryAuth{
-			ServerAddress: item.ServerAddress, Username: item.Username,
-			Password: item.Password, Token: item.Token,
-		})
-	}
-	cfg := dockerpkg.Config{
-		Enabled: info.Enabled, Host: strings.TrimSpace(info.Host), TLSEnabled: info.TlsEnabled,
-		TLSCAPath: strings.TrimSpace(info.TlsCaPath), TLSCertPath: strings.TrimSpace(info.TlsCertPath),
-		TLSKeyPath: strings.TrimSpace(info.TlsKeyPath), APIVersion: strings.TrimSpace(info.ApiVersion),
-		RequestTimeoutSeconds: info.RequestTimeoutSeconds, DefaultPlatform: strings.TrimSpace(info.DefaultPlatform),
-		DefaultLogTail: info.DefaultLogTail, TaskTimeoutSeconds: info.TaskTimeoutSeconds, RegistryAuths: auths,
-	}
-	if cfg.RequestTimeoutSeconds <= 0 {
-		cfg.RequestTimeoutSeconds = 30
-	}
-	if cfg.DefaultLogTail <= 0 {
-		cfg.DefaultLogTail = 200
-	}
-	if cfg.TaskTimeoutSeconds <= 0 {
-		cfg.TaskTimeoutSeconds = 1800
-	}
-	return cfg
-}
-
-func encryptDockerRegistryAuths(auths []dockerpkg.RegistryAuth) error {
-	box := secretbox.New(authpkg.AuthSecretKey)
-	for i := range auths {
-		password, err := box.Encrypt(auths[i].Password)
-		if err != nil {
-			return err
-		}
-		token, err := box.Encrypt(auths[i].Token)
-		if err != nil {
-			return err
-		}
-		auths[i].Password = password
-		auths[i].Token = token
-	}
-	return nil
-}
-
-func decryptDockerRegistryAuths(auths []dockerpkg.RegistryAuth) error {
-	box := secretbox.New(authpkg.AuthSecretKey)
-	for i := range auths {
-		if strings.HasPrefix(auths[i].Password, "v1:") {
-			password, err := box.Decrypt(auths[i].Password)
-			if err != nil {
-				return err
-			}
-			auths[i].Password = password
-		}
-		if strings.HasPrefix(auths[i].Token, "v1:") {
-			token, err := box.Decrypt(auths[i].Token)
-			if err != nil {
-				return err
-			}
-			auths[i].Token = token
-		}
 	}
 	return nil
 }

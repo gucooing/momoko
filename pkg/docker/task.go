@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 	"errors"
-	"io"
 	"sync"
 	"time"
 
@@ -242,23 +241,4 @@ func cloneTask(task *Task) *Task {
 	cloned := *task
 	cloned.Events = append([]TaskEvent(nil), task.Events...)
 	return &cloned
-}
-
-func streamEvents(ctx context.Context, r io.Reader, emit func(TaskEvent)) error {
-	buf := make([]byte, 32*1024)
-	for {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		n, err := r.Read(buf)
-		if n > 0 {
-			emit(TaskEvent{Message: string(buf[:n])})
-		}
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return nil
-			}
-			return err
-		}
-	}
 }

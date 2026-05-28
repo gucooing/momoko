@@ -227,6 +227,13 @@ onMounted(() => { onTabChange(activeTab.value) })
 .setting-item-desc { font-size: 0.75rem; color: var(--el-text-color-placeholder); }
 .setting-item-value { font-size: 0.875rem; color: var(--el-text-color-secondary); text-align: right; }
 .setting-footer { margin-top: 1rem; }
+.setting-group > .setting-footer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--el-bg-color-overlay);
+}
 .status-value { display: flex; align-items: center; }
 .status-error { font-size: 0.85rem; color: var(--el-color-danger); }
 .text-muted { color: var(--el-text-color-placeholder); font-size: 0.85rem; }

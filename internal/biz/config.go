@@ -17,6 +17,8 @@ type ConfigRepo interface {
 	UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.EmailConfig, error)
 	UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*gen.EmailTemplate, error)
 	EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*gen.EmailTemplate, error)
+	DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, error)
+	UpdateDockerConfig(ctx context.Context, req *v1.DockerConfigInfo) (*v1.DockerConfigInfo, error)
 	Get(ctx context.Context, key common.ConfigKey) (string, error)
 	BatchUpdate(ctx context.Context, configs map[common.ConfigKey]string) error
 }
