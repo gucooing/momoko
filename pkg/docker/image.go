@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"strconv"
 	"strings"
 
-	buildtypes "github.com/docker/docker/api/types/build"
 	imagetypes "github.com/docker/docker/api/types/image"
 )
 
@@ -21,7 +21,7 @@ func (m *Manager) ListImages(ctx context.Context, opts ImageListOptions) ([]Imag
 
 	filters := filtersFromLabels(opts.Labels)
 	if opts.Dangling != nil {
-		filters.Add("dangling", strconvBool(*opts.Dangling))
+		filters.Add("dangling", strconv.FormatBool(*opts.Dangling))
 	}
 	if opts.Keyword != "" {
 		filters.Add("reference", opts.Keyword)
@@ -236,14 +236,4 @@ func streamJSONEvents(ctx context.Context, reader io.Reader, emit func(TaskEvent
 			return errors.New(errText)
 		}
 	}
-	return nil
 }
-
-func strconvBool(value bool) string {
-	if value {
-		return "true"
-	}
-	return "false"
-}
-
-var _ = buildtypes.ImageBuildOptions{}
