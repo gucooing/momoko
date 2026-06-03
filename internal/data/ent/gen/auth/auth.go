@@ -30,6 +30,8 @@ const (
 	FieldIP = "ip"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldExpiresAt holds the string denoting the expires_at field in the database.
+	FieldExpiresAt = "expires_at"
 	// Table holds the table name of the auth in the database.
 	Table = "auths"
 )
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldIP,
 	FieldType,
+	FieldExpiresAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -143,4 +146,9 @@ func ByIP(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByExpiresAt orders the results by the expires_at field.
+func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
 }

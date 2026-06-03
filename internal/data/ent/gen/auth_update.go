@@ -118,6 +118,26 @@ func (_u *AuthUpdate) SetNillableType(v *auth.Type) *AuthUpdate {
 	return _u
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (_u *AuthUpdate) SetExpiresAt(v time.Time) *AuthUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *AuthUpdate) SetNillableExpiresAt(v *time.Time) *AuthUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *AuthUpdate) ClearExpiresAt() *AuthUpdate {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
 // Mutation returns the AuthMutation object of the builder.
 func (_u *AuthUpdate) Mutation() *AuthMutation {
 	return _u.mutation
@@ -221,6 +241,12 @@ func (_u *AuthUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(auth.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(auth.FieldExpiresAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -329,6 +355,26 @@ func (_u *AuthUpdateOne) SetNillableType(v *auth.Type) *AuthUpdateOne {
 	if v != nil {
 		_u.SetType(*v)
 	}
+	return _u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_u *AuthUpdateOne) SetExpiresAt(v time.Time) *AuthUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *AuthUpdateOne) SetNillableExpiresAt(v *time.Time) *AuthUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *AuthUpdateOne) ClearExpiresAt() *AuthUpdateOne {
+	_u.mutation.ClearExpiresAt()
 	return _u
 }
 
@@ -465,6 +511,12 @@ func (_u *AuthUpdateOne) sqlSave(ctx context.Context) (_node *Auth, err error) {
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(auth.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(auth.FieldExpiresAt, field.TypeTime)
 	}
 	_node = &Auth{config: _u.config}
 	_spec.Assign = _node.assignValues

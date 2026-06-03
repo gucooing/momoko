@@ -12,8 +12,6 @@ import (
 	genuser "momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
-
-	"time"
 )
 
 type AuthService struct {
@@ -80,7 +78,7 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 	return &v1.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		ExpiresIn:    durationpb.New(time.Hour),
+		ExpiresIn:    durationpb.New(auth.AccessTokenExpiresIn),
 	}, nil
 }
 
@@ -167,9 +165,6 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 	if err != nil {
 		return nil, biz.ErrTokenInvalid
 	}
-	if refreshAuth.NotBefore.Add(7 * 24 * time.Hour).Before(time.Now()) {
-		return nil, biz.ErrTokenInvalid
-	}
 	if !s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
 		return nil, biz.ErrTokenInvalid
 	}
@@ -190,7 +185,7 @@ func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.
 	return &v1.RefreshResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		ExpiresIn:    durationpb.New(time.Hour),
+		ExpiresIn:    durationpb.New(auth.AccessTokenExpiresIn),
 	}, nil
 }
 

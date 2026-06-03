@@ -20,6 +20,7 @@ var (
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"token", "refresh_token"}},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
 	}
 	// AuthsTable holds the schema information for the "auths" table.
 	AuthsTable = &schema.Table{

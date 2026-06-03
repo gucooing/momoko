@@ -11,7 +11,10 @@ import (
 )
 
 const (
-	tokenExpiresAt = 2 * time.Hour
+	AccessTokenExpiresIn  = time.Hour
+	RefreshTokenExpiresIn = 14 * 24 * time.Hour
+	tokenIssuer           = "momoko"
+	tokenSubject          = "user"
 )
 
 var (
@@ -29,28 +32,35 @@ func GenerateToken(authDb *gen.Auth) (string, error) {
 		SessionID: authDb.SessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        authDb.SessionID,
-			Issuer:    "kratos",
-			Subject:   "user",
+			Issuer:    tokenIssuer,
+			Subject:   tokenSubject,
 			IssuedAt:  jwt.NewNumericDate(authDb.CreateTime),
-			NotBefore: jwt.NewNumericDate(authDb.CreateTime),
-			ExpiresAt: jwt.NewNumericDate(authDb.UpdateTime.Add(func() time.Duration {
-				switch authDb.Type {
-				case auth.TypeToken:
-					return tokenExpiresAt
-				default:
-					return 0
-				}
-			}())),
+			NotBefore: jwt.NewNumericDate(authDb.UpdateTime),
+			ExpiresAt: jwt.NewNumericDate(authDb.ExpiresAt),
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(AuthSecretKey))
+}
+
+func TokenExpiresIn(tokenType auth.Type) time.Duration {
+	switch tokenType {
+	case auth.TypeRefreshToken:
+		return RefreshTokenExpiresIn
+	default:
+		return AccessTokenExpiresIn
+	}
 }
 
 // ParseToken parses the JWT token string and returns the Auth claims.
 func ParseToken(tokenStr string) (*Auth, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Auth{Type: AuthTypeJWT}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(AuthSecretKey), nil
-	}, jwt.WithoutClaimsValidation())
+	},
+		jwt.WithExpirationRequired(),
+		jwt.WithIssuer(tokenIssuer),
+		jwt.WithSubject(tokenSubject),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+	)
 	if err != nil {
 		return nil, err
 	}

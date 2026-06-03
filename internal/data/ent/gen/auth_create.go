@@ -86,6 +86,20 @@ func (_c *AuthCreate) SetType(v auth.Type) *AuthCreate {
 	return _c
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (_c *AuthCreate) SetExpiresAt(v time.Time) *AuthCreate {
+	_c.mutation.SetExpiresAt(v)
+	return _c
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_c *AuthCreate) SetNillableExpiresAt(v *time.Time) *AuthCreate {
+	if v != nil {
+		_c.SetExpiresAt(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AuthMutation object of the builder.
 func (_c *AuthCreate) Mutation() *AuthMutation {
 	return _c.mutation
@@ -241,6 +255,10 @@ func (_c *AuthCreate) createSpec() (*Auth, *sqlgraph.CreateSpec) {
 		_spec.SetField(auth.FieldType, field.TypeEnum, value)
 		_node.Type = value
 	}
+	if value, ok := _c.mutation.ExpiresAt(); ok {
+		_spec.SetField(auth.FieldExpiresAt, field.TypeTime, value)
+		_node.ExpiresAt = value
+	}
 	return _node, _spec
 }
 
@@ -374,6 +392,24 @@ func (u *AuthUpsert) SetType(v auth.Type) *AuthUpsert {
 // UpdateType sets the "type" field to the value that was provided on create.
 func (u *AuthUpsert) UpdateType() *AuthUpsert {
 	u.SetExcluded(auth.FieldType)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthUpsert) SetExpiresAt(v time.Time) *AuthUpsert {
+	u.Set(auth.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthUpsert) UpdateExpiresAt() *AuthUpsert {
+	u.SetExcluded(auth.FieldExpiresAt)
+	return u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthUpsert) ClearExpiresAt() *AuthUpsert {
+	u.SetNull(auth.FieldExpiresAt)
 	return u
 }
 
@@ -517,6 +553,27 @@ func (u *AuthUpsertOne) SetType(v auth.Type) *AuthUpsertOne {
 func (u *AuthUpsertOne) UpdateType() *AuthUpsertOne {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateType()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthUpsertOne) SetExpiresAt(v time.Time) *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthUpsertOne) UpdateExpiresAt() *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthUpsertOne) ClearExpiresAt() *AuthUpsertOne {
+	return u.Update(func(s *AuthUpsert) {
+		s.ClearExpiresAt()
 	})
 }
 
@@ -826,6 +883,27 @@ func (u *AuthUpsertBulk) SetType(v auth.Type) *AuthUpsertBulk {
 func (u *AuthUpsertBulk) UpdateType() *AuthUpsertBulk {
 	return u.Update(func(s *AuthUpsert) {
 		s.UpdateType()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthUpsertBulk) SetExpiresAt(v time.Time) *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthUpsertBulk) UpdateExpiresAt() *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthUpsertBulk) ClearExpiresAt() *AuthUpsertBulk {
+	return u.Update(func(s *AuthUpsert) {
+		s.ClearExpiresAt()
 	})
 }
 

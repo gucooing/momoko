@@ -18,6 +18,7 @@ func (Auth) Fields() []ent.Field {
 		field.String("user_id").NotEmpty().Comment("所属用户id"),
 		field.String("ip").Comment("登录ip"),
 		field.Enum("type").Values("token", "refresh_token").Comment("token类型"),
+		field.Time("expires_at").Optional().Comment("过期时间"),
 	}
 }
 

@@ -8,7 +8,8 @@ import (
 
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
-	"momoko/internal/data/ent/gen/auth"
+	entauth "momoko/internal/data/ent/gen/auth"
+	tokenauth "momoko/pkg/auth"
 	"momoko/pkg/cache"
 )
 
@@ -26,6 +27,7 @@ func NewAuthRepo(data *Data) biz.AuthRepo {
 }
 
 func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Auth, error) {
+	now := time.Now()
 	err := ar.data.db.Auth.
 		Create().
 		SetSessionID(authInfo.SessionID).
@@ -34,7 +36,8 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Au
 		SetDevice(authInfo.Device).
 		SetIP(authInfo.IP).
 		SetType(authInfo.Type).
-		OnConflictColumns(auth.FieldDeviceID, auth.FieldType).
+		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(authInfo.Type))).
+		OnConflictColumns(entauth.FieldDeviceID, entauth.FieldType).
 		UpdateNewValues().
 		Exec(ctx)
 	if err != nil {
@@ -43,81 +46,95 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Au
 	authData, err := ar.data.db.Auth.
 		Query().
 		Where(
-			auth.DeviceIDEQ(authInfo.DeviceID),
-			auth.TypeEQ(authInfo.Type),
+			entauth.DeviceIDEQ(authInfo.DeviceID),
+			entauth.TypeEQ(authInfo.Type),
 		).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if authInfo.Type == auth.TypeToken {
+	if authInfo.Type == entauth.TypeToken {
 		ar.cacheToken.Set(authInfo.DeviceID, authData)
 	}
 	return authData, nil
 }
 
 func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*gen.Auth, *gen.Auth, error) {
-	_, err := ar.data.db.Auth.Update().
-		Where(
-			auth.UserIDEQ(userId),
-			auth.DeviceIDEQ(deviceId),
-		).
-		SetSessionID(uuid.NewString()).Save(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
 	rows, err := ar.data.db.Auth.Query().
 		Where(
-			auth.UserIDEQ(userId),
-			auth.DeviceIDEQ(deviceId),
+			entauth.UserIDEQ(userId),
+			entauth.DeviceIDEQ(deviceId),
 		).All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	var (
-		access, refresh *gen.Auth
+		accessAuth  *gen.Auth
+		refreshAuth *gen.Auth
 	)
 	for _, row := range rows {
 		switch row.Type {
-		case auth.TypeToken:
-			access = row
-			ar.cacheToken.Set(access.DeviceID, access)
-		case auth.TypeRefreshToken:
-			refresh = row
+		case entauth.TypeToken:
+			accessAuth = row
+		case entauth.TypeRefreshToken:
+			refreshAuth = row
 		}
 	}
+
+	if accessAuth == nil || refreshAuth == nil {
+		return nil, nil, biz.ErrTokenInvalid
+	}
+
+	now := time.Now()
+	sessionID := uuid.NewString()
+	access, err := ar.data.db.Auth.UpdateOneID(accessAuth.ID).
+		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(entauth.TypeToken))).
+		SetSessionID(sessionID).
+		Save(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	refresh, err := ar.data.db.Auth.UpdateOneID(refreshAuth.ID).
+		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(entauth.TypeRefreshToken))).
+		SetSessionID(sessionID).
+		Save(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	ar.cacheToken.Set(access.DeviceID, access)
 
 	return access, refresh, nil
 }
 
-func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*gen.Auth, error) {
+func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType entauth.Type) (*gen.Auth, error) {
 	return ar.data.db.Auth.Query().
 		Where(
-			auth.SessionIDEQ(sessionID),
-			auth.TypeEQ(tokenType),
+			entauth.SessionIDEQ(sessionID),
+			entauth.TypeEQ(tokenType),
 		).First(ctx)
 }
 
-func (ar *authRepo) ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*gen.Auth, error) {
+func (ar *authRepo) ListAuth(ctx context.Context, tokenType *entauth.Type, userId string) ([]*gen.Auth, error) {
 	query := ar.data.db.Auth.Query().
-		Where(auth.UserIDEQ(userId))
+		Where(entauth.UserIDEQ(userId))
 
 	if tokenType != nil {
-		query.Where(auth.TypeEQ(*tokenType))
+		query.Where(entauth.TypeEQ(*tokenType))
 	}
 
 	return query.All(ctx)
 }
 
-func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*gen.Auth, error) {
+func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType entauth.Type) (*gen.Auth, error) {
 	add := func() (*gen.Auth, error) {
 		return ar.data.db.Auth.Query().
 			Where(
-				auth.DeviceIDEQ(deviceID),
-				auth.TypeEQ(tokenType),
+				entauth.DeviceIDEQ(deviceID),
+				entauth.TypeEQ(tokenType),
 			).First(ctx)
 	}
-	if tokenType == auth.TypeToken {
+	if tokenType == entauth.TypeToken {
 		authData, ok := ar.cacheToken.GetByAdd(deviceID, add)
 		if !ok {
 			return nil, biz.ErrTokenInvalid
@@ -129,10 +146,10 @@ func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, toke
 
 func (ar *authRepo) DeleteAuth(ctx context.Context, userID string, deviceID *string) error {
 	del := ar.data.db.Auth.Delete().
-		Where(auth.UserIDEQ(userID))
+		Where(entauth.UserIDEQ(userID))
 
 	if deviceID != nil {
-		del = del.Where(auth.DeviceIDEQ(*deviceID))
+		del = del.Where(entauth.DeviceIDEQ(*deviceID))
 	}
 
 	_, err := del.Exec(ctx)

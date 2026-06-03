@@ -65,6 +65,7 @@ type AuthMutation struct {
 	user_id       *string
 	ip            *string
 	_type         *auth.Type
+	expires_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Auth, error)
@@ -457,6 +458,55 @@ func (m *AuthMutation) ResetType() {
 	m._type = nil
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (m *AuthMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *AuthMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the Auth entity.
+// If the Auth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AuthMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *AuthMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[auth.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *AuthMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[auth.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *AuthMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, auth.FieldExpiresAt)
+}
+
 // Where appends a list predicates to the AuthMutation builder.
 func (m *AuthMutation) Where(ps ...predicate.Auth) {
 	m.predicates = append(m.predicates, ps...)
@@ -491,7 +541,7 @@ func (m *AuthMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AuthMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.create_time != nil {
 		fields = append(fields, auth.FieldCreateTime)
 	}
@@ -515,6 +565,9 @@ func (m *AuthMutation) Fields() []string {
 	}
 	if m._type != nil {
 		fields = append(fields, auth.FieldType)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, auth.FieldExpiresAt)
 	}
 	return fields
 }
@@ -540,6 +593,8 @@ func (m *AuthMutation) Field(name string) (ent.Value, bool) {
 		return m.IP()
 	case auth.FieldType:
 		return m.GetType()
+	case auth.FieldExpiresAt:
+		return m.ExpiresAt()
 	}
 	return nil, false
 }
@@ -565,6 +620,8 @@ func (m *AuthMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIP(ctx)
 	case auth.FieldType:
 		return m.OldType(ctx)
+	case auth.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Auth field %s", name)
 }
@@ -630,6 +687,13 @@ func (m *AuthMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetType(v)
 		return nil
+	case auth.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Auth field %s", name)
 }
@@ -659,7 +723,11 @@ func (m *AuthMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AuthMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(auth.FieldExpiresAt) {
+		fields = append(fields, auth.FieldExpiresAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -672,6 +740,11 @@ func (m *AuthMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AuthMutation) ClearField(name string) error {
+	switch name {
+	case auth.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	}
 	return fmt.Errorf("unknown Auth nullable field %s", name)
 }
 
@@ -702,6 +775,9 @@ func (m *AuthMutation) ResetField(name string) error {
 		return nil
 	case auth.FieldType:
 		m.ResetType()
+		return nil
+	case auth.FieldExpiresAt:
+		m.ResetExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Auth field %s", name)
