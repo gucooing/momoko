@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	v1 "momoko/api/gen/v1"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,9 +54,13 @@ func NewManager(cfg *v1.DockerConfigInfo) (*Manager, error) {
 }
 
 func (m *Manager) Reconfigure(cfg *v1.DockerConfigInfo) error {
-	cli, err := newClient(cfg)
-	if err != nil {
-		return err
+	var cli *client.Client
+	if cfg.Enabled {
+		var err error
+		cli, err = newClient(cfg)
+		if err != nil {
+			return err
+		}
 	}
 
 	m.mu.Lock()
@@ -107,9 +110,6 @@ func (m *Manager) Status(ctx context.Context) Status {
 }
 
 func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (Status, error) {
-	if !cfg.Enabled {
-		return Status{Enabled: false, Error: ErrDisabled.Error()}, nil
-	}
 	cli, err := newClient(cfg)
 	if err != nil {
 		return Status{Enabled: cfg.Enabled, Error: err.Error()}, err
@@ -180,9 +180,6 @@ func (m *Manager) taskTimeout() time.Duration {
 }
 
 func newClient(cfg *v1.DockerConfigInfo) (*client.Client, error) {
-	if !cfg.Enabled {
-		return nil, nil
-	}
 	opts := []client.Opt{
 		client.FromEnv,
 		client.WithAPIVersionNegotiation(),
@@ -197,7 +194,7 @@ func newClient(cfg *v1.DockerConfigInfo) (*client.Client, error) {
 	if timeout <= 0 {
 		timeout = 30 * time.Second
 	}
-	opts = append(opts, client.WithHTTPClient(&http.Client{Timeout: timeout}))
+	opts = append(opts, client.WithTimeout(timeout))
 	if cfg.TlsEnabled {
 		if cfg.TlsCaPath == "" || cfg.TlsCertPath == "" || cfg.TlsKeyPath == "" {
 			return nil, errors.New("docker TLS 证书路径不能为空")
