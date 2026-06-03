@@ -13,4 +13,5 @@ var ProviderSet = wire.NewSet(
 	NewNodeService,
 	NewOperationLogMiddleware,
 	NewInitializeService,
+	NewDockerService,
 )

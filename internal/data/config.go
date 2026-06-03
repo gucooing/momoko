@@ -2,8 +2,12 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	authpkg "momoko/pkg/auth"
+	"momoko/pkg/secretbox"
 	"strconv"
+	"strings"
 	"sync"
 
 	v1 "momoko/api/gen/v1"
@@ -203,6 +207,98 @@ func (c *ConfigRepo) EmailTemplate(ctx context.Context, templateType v1.EmailTem
 		Only(ctx)
 }
 
+func (c *ConfigRepo) DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, error) {
+	enabled, err := c.getBoolConfig(ctx, common.ConfigDockerEnabled)
+	if err != nil {
+		return nil, err
+	}
+	tlsEnabled, err := c.getBoolConfig(ctx, common.ConfigDockerTLSEnabled)
+	if err != nil {
+		return nil, err
+	}
+	requestTimeout, err := c.getInt32Config(ctx, common.ConfigDockerRequestTimeoutSeconds)
+	if err != nil {
+		return nil, err
+	}
+	logTail, err := c.getInt32Config(ctx, common.ConfigDockerDefaultLogTail)
+	if err != nil {
+		return nil, err
+	}
+	taskTimeout, err := c.getInt32Config(ctx, common.ConfigDockerTaskTimeoutSeconds)
+	if err != nil {
+		return nil, err
+	}
+	host, err := c.getStringConfig(ctx, common.ConfigDockerHost)
+	if err != nil {
+		return nil, err
+	}
+	caPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSCAPath)
+	if err != nil {
+		return nil, err
+	}
+	certPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSCertPath)
+	if err != nil {
+		return nil, err
+	}
+	keyPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	apiVersion, err := c.getStringConfig(ctx, common.ConfigDockerAPIVersion)
+	if err != nil {
+		return nil, err
+	}
+	defaultPlatform, err := c.getStringConfig(ctx, common.ConfigDockerDefaultPlatform)
+	if err != nil {
+		return nil, err
+	}
+	authsRaw, err := c.getRegistryAuth(ctx, common.ConfigDockerRegistryAuths)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.DockerConfigInfo{
+		Enabled:               enabled,
+		Host:                  host,
+		TlsEnabled:            tlsEnabled,
+		TlsCaPath:             caPath,
+		TlsCertPath:           certPath,
+		TlsKeyPath:            keyPath,
+		ApiVersion:            apiVersion,
+		RequestTimeoutSeconds: requestTimeout,
+		DefaultPlatform:       defaultPlatform,
+		DefaultLogTail:        logTail,
+		TaskTimeoutSeconds:    taskTimeout,
+		RegistryAuths:         authsRaw,
+	}, nil
+}
+
+func (c *ConfigRepo) UpdateDockerConfig(ctx context.Context, req *v1.DockerConfigInfo) (*v1.DockerConfigInfo, error) {
+	authsRaw, err := c.saveRegistryAuth(req.RegistryAuths)
+	if err != nil {
+		return nil, err
+	}
+
+	configs := map[common.ConfigKey]string{
+		common.ConfigDockerEnabled:               strconv.FormatBool(req.Enabled),
+		common.ConfigDockerTLSEnabled:            strconv.FormatBool(req.TlsEnabled),
+		common.ConfigDockerRequestTimeoutSeconds: strconv.FormatInt(int64(req.RequestTimeoutSeconds), 10),
+		common.ConfigDockerDefaultLogTail:        strconv.FormatInt(int64(req.DefaultLogTail), 10),
+		common.ConfigDockerTaskTimeoutSeconds:    strconv.FormatInt(int64(req.TaskTimeoutSeconds), 10),
+		common.ConfigDockerHost:                  req.Host,
+		common.ConfigDockerTLSCAPath:             req.TlsCaPath,
+		common.ConfigDockerTLSCertPath:           req.TlsCertPath,
+		common.ConfigDockerTLSKeyPath:            req.TlsKeyPath,
+		common.ConfigDockerAPIVersion:            req.ApiVersion,
+		common.ConfigDockerDefaultPlatform:       req.DefaultPlatform,
+		common.ConfigDockerRegistryAuths:         authsRaw,
+	}
+	if err = c.BatchUpdate(ctx, configs); err != nil {
+		return nil, err
+	}
+	return c.DockerConfig(ctx)
+}
+
 func (c *ConfigRepo) getBoolConfig(ctx context.Context, key common.ConfigKey) (bool, error) {
 	value, err := c.Get(ctx, key)
 	if err != nil {
@@ -229,6 +325,58 @@ func (c *ConfigRepo) getInt32Config(ctx context.Context, key common.ConfigKey) (
 
 func (c *ConfigRepo) getStringConfig(ctx context.Context, key common.ConfigKey) (string, error) {
 	return c.Get(ctx, key)
+}
+
+func (c *ConfigRepo) getRegistryAuth(ctx context.Context, key common.ConfigKey) ([]*v1.DockerRegistryAuth, error) {
+	value, err := c.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	var auths []*v1.DockerRegistryAuth
+	err = json.Unmarshal([]byte(value), &auths)
+	if err != nil {
+		return nil, err
+	}
+	box := secretbox.New(authpkg.AuthSecretKey)
+	for i := range auths {
+		if strings.HasPrefix(auths[i].Password, "v1:") {
+			password, err := box.Decrypt(auths[i].Password)
+			if err != nil {
+				return nil, err
+			}
+			auths[i].Password = password
+		}
+		if strings.HasPrefix(auths[i].Token, "v1:") {
+			token, err := box.Decrypt(auths[i].Token)
+			if err != nil {
+				return nil, err
+			}
+			auths[i].Token = token
+		}
+	}
+	return auths, nil
+}
+
+func (c *ConfigRepo) saveRegistryAuth(auths []*v1.DockerRegistryAuth) (string, error) {
+	box := secretbox.New(authpkg.AuthSecretKey)
+	for i := range auths {
+		password, err := box.Encrypt(auths[i].Password)
+		if err != nil {
+			return "", err
+		}
+		token, err := box.Encrypt(auths[i].Token)
+		if err != nil {
+			return "", err
+		}
+		auths[i].Password = password
+		auths[i].Token = token
+	}
+
+	authsRaw, err := json.Marshal(auths)
+	if err != nil {
+		return "", err
+	}
+	return string(authsRaw), nil
 }
 
 func (c *ConfigRepo) GetWithDefault(ctx context.Context, key common.ConfigKey) (string, error) {

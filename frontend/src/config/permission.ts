@@ -23,6 +23,14 @@ export const PERM = {
   // ---- 系统配置 ----
   SYSTEM_CONFIG_VIEW: 'system_config:view',
   SYSTEM_CONFIG_EDIT: 'system_config:edit',
+
+  // ---- Docker 管理 ----
+  DOCKER_VIEW: 'docker:view',
+  DOCKER_CONFIG_EDIT: 'docker_config:edit',
+  DOCKER_CONTAINER_MANAGE: 'docker_container:manage',
+  DOCKER_IMAGE_MANAGE: 'docker_image:manage',
+  DOCKER_NETWORK_MANAGE: 'docker_network:manage',
+  DOCKER_VOLUME_MANAGE: 'docker_volume:manage',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

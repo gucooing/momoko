@@ -14,4 +14,5 @@ var ProviderSet = wire.NewSet(
 	NewNodeUsecase,
 	NewOperationLogUsecase,
 	NewInitializeUsecase,
+	NewDockerUsecase,
 )

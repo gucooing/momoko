@@ -46,4 +46,17 @@ const (
 	ApiKeyEdit   Permissions = "api_key:edit"
 	ApiKeyDelete Permissions = "api_key:delete"
 	ApiKeyView   Permissions = "api_key:view"
+
+	// DockerView 允许查看 Docker 资源。
+	DockerView Permissions = "docker:view"
+	// DockerConfigEdit 允许编辑 Docker 配置。
+	DockerConfigEdit Permissions = "docker_config:edit"
+	// DockerContainerManage 允许管理 Docker 容器。
+	DockerContainerManage Permissions = "docker_container:manage"
+	// DockerImageManage 允许管理 Docker 镜像。
+	DockerImageManage Permissions = "docker_image:manage"
+	// DockerNetworkManage 允许管理 Docker 网络。
+	DockerNetworkManage Permissions = "docker_network:manage"
+	// DockerVolumeManage 允许管理 Docker 储存卷。
+	DockerVolumeManage Permissions = "docker_volume:manage"
 )

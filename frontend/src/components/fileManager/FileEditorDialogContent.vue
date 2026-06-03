@@ -346,8 +346,8 @@ const handleSave = async () => {
     await props.onSave(draftContent.value)
     originalContent.value = draftContent.value
     ElMessage.success('文件保存成功')
-  } catch (error: any) {
-    ElMessage.error(error?.message || '文件保存失败')
+  } catch (error: unknown) {
+    ElMessage.error((error as Error)?.message || '文件保存失败')
   } finally {
     saveLoading.value = false
   }

@@ -82,7 +82,8 @@ const typeIconMap: Record<IDialogType, { icon: string; color: string }> = {
 }
 
 // 创建对话框
-const createDialog = (options: IDialogCallOptions) => {
+const createDialog = (options: IDialogCallOptions): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
   // 1. 创建挂载容器
   const container = document.createElement('div')
 
@@ -116,6 +117,7 @@ const createDialog = (options: IDialogCallOptions) => {
       options.onClose?.()
       updateVNode(false)
       destroy()
+      reject(new Error('cancel'))
     },
     onConfirm: async () => {
       try {
@@ -125,6 +127,7 @@ const createDialog = (options: IDialogCallOptions) => {
       }
       updateVNode(false)
       destroy()
+      resolve()
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any
@@ -173,6 +176,7 @@ const createDialog = (options: IDialogCallOptions) => {
 
   // 8. 挂载容器
   document.body.appendChild(container)
+  })
 }
 
 // 封装快捷调用

@@ -18,6 +18,19 @@ const (
 	ConfigEmailUseTLS         ConfigKey = "email.use_tls"
 	ConfigEmailTimeoutSeconds ConfigKey = "email.timeout_seconds"
 	ConfigEmailCcsN           ConfigKey = "email.ccs_n"
+
+	ConfigDockerEnabled               ConfigKey = "docker.enabled"
+	ConfigDockerHost                  ConfigKey = "docker.host"
+	ConfigDockerTLSEnabled            ConfigKey = "docker.tls_enabled"
+	ConfigDockerTLSCAPath             ConfigKey = "docker.tls_ca_path"
+	ConfigDockerTLSCertPath           ConfigKey = "docker.tls_cert_path"
+	ConfigDockerTLSKeyPath            ConfigKey = "docker.tls_key_path"
+	ConfigDockerAPIVersion            ConfigKey = "docker.api_version"
+	ConfigDockerRequestTimeoutSeconds ConfigKey = "docker.request_timeout_seconds"
+	ConfigDockerDefaultPlatform       ConfigKey = "docker.default_platform"
+	ConfigDockerDefaultLogTail        ConfigKey = "docker.default_log_tail"
+	ConfigDockerTaskTimeoutSeconds    ConfigKey = "docker.task_timeout_seconds"
+	ConfigDockerRegistryAuths         ConfigKey = "docker.registry_auths"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -36,6 +49,19 @@ var configDefaults = map[ConfigKey]string{
 	ConfigEmailUseTLS:         "true",
 	ConfigEmailTimeoutSeconds: "10",
 	ConfigEmailCcsN:           "5",
+
+	ConfigDockerEnabled:               "false",
+	ConfigDockerHost:                  "",
+	ConfigDockerTLSEnabled:            "false",
+	ConfigDockerTLSCAPath:             "",
+	ConfigDockerTLSCertPath:           "",
+	ConfigDockerTLSKeyPath:            "",
+	ConfigDockerAPIVersion:            "",
+	ConfigDockerRequestTimeoutSeconds: "30",
+	ConfigDockerDefaultPlatform:       "",
+	ConfigDockerDefaultLogTail:        "200",
+	ConfigDockerTaskTimeoutSeconds:    "1800",
+	ConfigDockerRegistryAuths:         "[]",
 }
 
 func (k ConfigKey) String() string {
