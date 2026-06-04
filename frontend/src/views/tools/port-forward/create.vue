@@ -9,6 +9,7 @@
       ref="formRef"
       :model="form"
       :rules="formRules"
+      class="port-forward-form"
       label-width="100px"
       label-position="right"
     >
@@ -23,28 +24,40 @@
         </el-radio-group>
       </el-form-item>
 
-      <el-row :gutter="10">
-        <el-col :span="14">
+      <el-row :gutter="10" class="address-port-row">
+        <el-col :xs="24" :sm="14">
           <el-form-item label="监听地址" prop="listenAddress" label-width="100px">
             <el-input v-model="form.listenAddress" placeholder="0.0.0.0" />
           </el-form-item>
         </el-col>
-        <el-col :span="10">
+        <el-col :xs="24" :sm="10">
           <el-form-item label="端口" prop="listenPort" label-width="60px">
-            <el-input-number v-model="form.listenPort" :min="1" :max="65535" style="width: 100%" />
+            <el-input-number
+              v-model="form.listenPort"
+              :min="1"
+              :max="65535"
+              controls-position="right"
+              class="port-input"
+            />
           </el-form-item>
         </el-col>
       </el-row>
 
-      <el-row :gutter="10">
-        <el-col :span="14">
+      <el-row :gutter="10" class="address-port-row">
+        <el-col :xs="24" :sm="14">
           <el-form-item label="目标地址" prop="targetAddress" label-width="100px">
             <el-input v-model="form.targetAddress" placeholder="127.0.0.1" />
           </el-form-item>
         </el-col>
-        <el-col :span="10">
+        <el-col :xs="24" :sm="10">
           <el-form-item label="端口" prop="targetPort" label-width="60px">
-            <el-input-number v-model="form.targetPort" :min="1" :max="65535" style="width: 100%" />
+            <el-input-number
+              v-model="form.targetPort"
+              :min="1"
+              :max="65535"
+              controls-position="right"
+              class="port-input"
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -185,3 +198,27 @@ const showDialog = (payload?: PortForwardInfo) => {
 
 defineExpose({ showDialog })
 </script>
+
+<style scoped lang="scss">
+.port-input {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .address-port-row + .address-port-row {
+    margin-top: 0;
+  }
+
+  .port-forward-form :deep(.address-port-row .el-form-item) {
+    margin-bottom: 18px;
+  }
+
+  .port-forward-form :deep(.address-port-row .el-col:last-child .el-form-item) {
+    margin-top: -2px;
+  }
+
+  .port-forward-form :deep(.address-port-row .el-col:last-child .el-form-item__label) {
+    width: 100px !important;
+  }
+}
+</style>
