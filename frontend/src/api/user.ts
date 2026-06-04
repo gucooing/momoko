@@ -28,7 +28,7 @@ export const userInfo = (params: UserInfoRequest) => {
 }
 
 export const updateUser = (data: EditUserRequest) => {
-  return request.post<EditUserResponse>(`/user/${data.userId}`, data)
+  return request.put<EditUserResponse>(`/user/${data.userId}`, data)
 }
 
 export const deleteUser = (params: DeleteUserRequest) => {

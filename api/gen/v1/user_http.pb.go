@@ -55,7 +55,7 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r.GET("/api/v1/user/list", _UserService_ListUser0_HTTP_Handler(srv))
 	r.GET("/api/v1/user/{user_id}", _UserService_UserInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/user/add", _UserService_AddUser0_HTTP_Handler(srv))
-	r.POST("/api/v1/user/{user_id}", _UserService_EditUser0_HTTP_Handler(srv))
+	r.PUT("/api/v1/user/{user_id}", _UserService_EditUser0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/user/del", _UserService_DeleteUser0_HTTP_Handler(srv))
 }
 
@@ -288,7 +288,7 @@ func (c *UserServiceHTTPClientImpl) EditUser(ctx context.Context, in *EditUserRe
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserServiceEditUser))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

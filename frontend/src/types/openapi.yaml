@@ -3420,7 +3420,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UserInfoResponse'
-        post:
+        put:
             tags:
                 - UserService
             description: 更新用户

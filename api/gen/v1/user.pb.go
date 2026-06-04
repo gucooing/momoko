@@ -1436,7 +1436,7 @@ const file_v1_user_proto_rawDesc = "" +
 	"\bListUser\x12\x13.v1.ListUserRequest\x1a\x14.v1.ListUserResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/v1/user/list\x12U\n" +
 	"\bUserInfo\x12\x13.v1.UserInfoRequest\x1a\x14.v1.UserInfoResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/user/{user_id}\x12O\n" +
 	"\aAddUser\x12\x12.v1.AddUserRequest\x1a\x13.v1.AddUserResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/user/add\x12X\n" +
-	"\bEditUser\x12\x13.v1.EditUserRequest\x1a\x14.v1.EditUserResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/user/{user_id}\x12U\n" +
+	"\bEditUser\x12\x13.v1.EditUserRequest\x1a\x14.v1.EditUserResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/api/v1/user/{user_id}\x12U\n" +
 	"\n" +
 	"DeleteUser\x12\x15.v1.DeleteUserRequest\x1a\x16.v1.DeleteUserResponse\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/api/v1/user/delB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
