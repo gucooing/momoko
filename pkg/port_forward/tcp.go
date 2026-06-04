@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"sync"
 )
 
 // TCPPortForward tcp端口转发
@@ -37,7 +36,6 @@ func (t *TCPPortForward) Option() *Option {
 }
 
 func (t *TCPPortForward) Start() error {
-	defer t.listener.Close()
 	for {
 		select {
 		case <-t.ctx.Done():
@@ -54,6 +52,7 @@ func (t *TCPPortForward) Start() error {
 
 func (t *TCPPortForward) Stop() {
 	t.cancel()
+	t.listener.Close()
 }
 
 func (t *TCPPortForward) forwardTCPConn(client net.Conn) {
@@ -65,17 +64,16 @@ func (t *TCPPortForward) forwardTCPConn(client net.Conn) {
 	}
 	defer target.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	go copyTCP(target, client)
+	go copyTCP(client, target)
 
-	go copyTCP(&wg, target, client)
-	go copyTCP(&wg, client, target)
-
-	wg.Wait()
+	select {
+	case <-t.ctx.Done():
+		target.Close()
+		client.Close()
+	}
 }
 
-func copyTCP(wg *sync.WaitGroup, dst net.Conn, src net.Conn) {
-	defer wg.Done()
-
+func copyTCP(dst net.Conn, src net.Conn) {
 	_, _ = io.Copy(dst, src)
 }

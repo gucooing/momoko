@@ -100,22 +100,18 @@ func (m *Manager) UnRegisterExample(id string) {
 
 // 重载端口转发
 func (m *Manager) Retry(opt *Option) error {
-	m.sync.RLock()
+	m.sync.Lock()
 	example, ok := m.examples[opt.ID]
 	if ok {
 		example.Stop()
+		delete(m.examples, opt.ID)
 	}
-	m.sync.RUnlock()
+	m.sync.Unlock()
 
 	return m.RegisterExample(opt)
 }
 
 func (m *Manager) Run(example PortForward) {
-	defer func() {
-		m.sync.Lock()
-		defer m.sync.Unlock()
-		delete(m.examples, example.Option().ID)
-	}()
 	select {
 	case <-m.ctx.Done():
 		return
