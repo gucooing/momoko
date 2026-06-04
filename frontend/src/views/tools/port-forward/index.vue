@@ -95,13 +95,11 @@
             {{ tag }}
           </el-tag>
         </template>
-        <template #column-error="{ row }">
+        <template #column-name="{ row }">
+          <span>{{ row.name }}</span>
           <el-tooltip v-if="row.error" :content="row.error" placement="top" :show-after="300">
-            <el-icon color="var(--el-color-danger)" size="16">
-              <component :is="menuStore.iconComponents['HSolid:ExclamationCircleIcon']" />
-            </el-icon>
+            <span class="error-hint">?</span>
           </el-tooltip>
-          <span v-else class="text-placeholder">-</span>
         </template>
         <template #column-operation="{ row }">
           <div class="pf-actions">
@@ -149,6 +147,9 @@
 
           <div class="pf-card-header">
             <span class="pf-card-name">{{ row.name }}</span>
+            <el-tooltip v-if="row.error" :content="row.error" placement="top" :show-after="300">
+              <span class="error-hint">?</span>
+            </el-tooltip>
             <el-switch
               :model-value="row.isEnable"
               size="small"
@@ -179,12 +180,6 @@
               >
                 {{ tag }}
               </el-tag>
-            </div>
-            <div v-if="row.error" class="pf-card-error">
-              <el-icon size="14" color="var(--el-color-danger)">
-                <component :is="menuStore.iconComponents['HSolid:ExclamationCircleIcon']" />
-              </el-icon>
-              <span>{{ row.error }}</span>
             </div>
             <div v-if="row.remark" class="pf-card-remark">{{ row.remark }}</div>
             <div class="pf-card-time">{{ row.createTime }}</div>
@@ -271,14 +266,13 @@ const gridConfig = computed<VxeGridProps>(() => ({
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
     { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'name', title: '名称', minWidth: 140, fixed: 'left' },
+    { field: 'name', title: '名称', minWidth: 80, fixed: 'left', slots: { default: 'column-name' } },
     { field: 'type', title: '类型', width: 80, slots: { default: 'column-type' } },
     { title: '监听地址', minWidth: 180, slots: { default: 'column-listen' } },
     { title: '目标地址', minWidth: 180, slots: { default: 'column-target' } },
     { field: 'isEnable', title: '启用', width: 80, slots: { default: 'column-isEnable' } },
-    { field: 'error', title: '错误', width: 70, slots: { default: 'column-error' } },
-    { field: 'tags', title: '标签', minWidth: 160, slots: { default: 'column-tags' } },
-    { field: 'remark', title: '备注', minWidth: 180 },
+    { field: 'tags', title: '标签', minWidth: 80, slots: { default: 'column-tags' } },
+    { field: 'remark', title: '备注', minWidth: 120 },
     { field: 'createTime', title: '创建时间', minWidth: 180 },
     { title: '操作', width: 160, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
   ],
@@ -330,9 +324,16 @@ const openEditDialog = (row: PortForwardInfo) => {
 
 const toggleEnable = async (row: PortForwardInfo, val: boolean) => {
   try {
-    await updatePortForward({ id: row.id, isEnable: val })
-    row.isEnable = val
-    ElMessage.success(val ? '已启用' : '已禁用')
+    const { data } = await updatePortForward({ id: row.id, isEnable: val })
+    if (data?.info) {
+      row.isEnable = data.info.isEnable
+      row.error = data.info.error
+      if (data.info.error) {
+        ElMessage.error(data.info.error)
+      } else {
+        ElMessage.success(data.info.isEnable ? '已启用' : '已禁用')
+      }
+    }
   } catch {
     // error handled by interceptor
   }
@@ -397,6 +398,24 @@ onMounted(() => {
 .tag-item {
   margin-right: 4px;
   margin-bottom: 2px;
+}
+
+.error-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--el-color-danger);
+  border: 1px solid var(--el-color-danger);
+  border-radius: 50%;
+  cursor: help;
+  vertical-align: middle;
+  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .text-placeholder {
@@ -472,14 +491,6 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.15rem;
-}
-
-.pf-card-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.3rem;
-  font-size: 0.74rem;
-  color: var(--el-color-danger);
 }
 
 .pf-card-remark {

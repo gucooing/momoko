@@ -114,8 +114,9 @@ const confirm = async () => {
   await formRef.value?.validate()
   loading.value = true
   try {
+    let info: PortForwardInfo | undefined
     if (editingId.value) {
-      await updatePortForward({
+      const { data } = await updatePortForward({
         id: editingId.value,
         name: form.value.name || undefined,
         type: form.value.type as PortForwardType,
@@ -127,8 +128,9 @@ const confirm = async () => {
         tags: form.value.tags || undefined,
         remark: form.value.remark || undefined,
       })
+      info = data?.info
     } else {
-      await createPortForward({
+      const { data } = await createPortForward({
         name: form.value.name,
         type: form.value.type as PortForwardType,
         listenAddress: form.value.listenAddress,
@@ -139,9 +141,14 @@ const confirm = async () => {
         tags: form.value.tags,
         remark: form.value.remark,
       })
+      info = data?.info
     }
 
-    ElMessage.success(editingId.value ? '编辑成功' : '新增成功')
+    if (info?.error) {
+      ElMessage.error(info.error)
+    } else {
+      ElMessage.success(editingId.value ? '编辑成功' : '新增成功')
+    }
     emits('refresh', editingId.value ? 'update' : 'create')
     close()
   } finally {
