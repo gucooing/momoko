@@ -104,6 +104,18 @@ func (f OperationLogFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.OperationLogMutation", m)
 }
 
+// The PortForwardFunc type is an adapter to allow the use of ordinary
+// function as PortForward mutator.
+type PortForwardFunc func(context.Context, *gen.PortForwardMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PortForwardFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PortForwardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PortForwardMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *gen.RoleMutation) (gen.Value, error)

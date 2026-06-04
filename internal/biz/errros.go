@@ -43,6 +43,7 @@ var (
 	ErrAPIKeyNameEmpty         = response.BadRequest(500, "API Key名称不能为空")
 	ErrAPIKeyNotFound          = response.BadRequest(500, "API Key不存在")
 	ErrAPIKeyGenerate          = response.BadRequest(500, "API Key生成失败")
+	ErrNetworkNotImplemented   = response.BadRequest(500, "网络管理功能未实现")
 	ErrFileNotExist            = response.BadRequest(500, "文件不存在")
 	ErrFileTaskNotFound        = response.BadRequest(500, "文件任务不存在")
 	ErrSign                    = response.BadRequest(500, "签名失败")

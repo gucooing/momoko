@@ -28,6 +28,7 @@ func NewHTTPServer(c *conf.Server,
 	instanceApi *service.InstanceService,
 	openSSHApi *service.OpenSSHService,
 	nodeApi *service.NodeService,
+	networkApi *service.NetworkService,
 	dockerApi *service.DockerService,
 ) *http.Server {
 	var opts = []http.ServerOption{
@@ -69,6 +70,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterInstanceManagerHTTPServer(srv, instanceApi)
 	v1.RegisterOpenSSHManagerHTTPServer(srv, openSSHApi)
 	v1.RegisterNodeServiceHTTPServer(srv, nodeApi)
+	v1.RegisterNetworkManagerHTTPServer(srv, networkApi)
 	v1.RegisterDockerManagerHTTPServer(srv, dockerApi)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)

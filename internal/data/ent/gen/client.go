@@ -19,6 +19,7 @@ import (
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
+	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -54,6 +55,8 @@ type Client struct {
 	Menu *MenuClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
+	// PortForward is the client for interacting with the PortForward builders.
+	PortForward *PortForwardClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
@@ -83,6 +86,7 @@ func (c *Client) init() {
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
+	c.PortForward = NewPortForwardClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
@@ -188,6 +192,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
 		OperationLog:    NewOperationLogClient(cfg),
+		PortForward:     NewPortForwardClient(cfg),
 		Role:            NewRoleClient(cfg),
 		SSHHost:         NewSSHHostClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
@@ -220,6 +225,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
 		OperationLog:    NewOperationLogClient(cfg),
+		PortForward:     NewPortForwardClient(cfg),
 		Role:            NewRoleClient(cfg),
 		SSHHost:         NewSSHHostClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
@@ -255,8 +261,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
-		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
-		c.User, c.UserAPIKey,
+		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.Role, c.SSHHost,
+		c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -267,8 +273,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
-		c.InstanceType, c.Menu, c.OperationLog, c.Role, c.SSHHost, c.SystemConfig,
-		c.User, c.UserAPIKey,
+		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.Role, c.SSHHost,
+		c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -293,6 +299,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Menu.mutate(ctx, m)
 	case *OperationLogMutation:
 		return c.OperationLog.mutate(ctx, m)
+	case *PortForwardMutation:
+		return c.PortForward.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *SSHHostMutation:
@@ -1500,6 +1508,155 @@ func (c *OperationLogClient) mutate(ctx context.Context, m *OperationLogMutation
 	}
 }
 
+// PortForwardClient is a client for the PortForward schema.
+type PortForwardClient struct {
+	config
+}
+
+// NewPortForwardClient returns a client for the PortForward from the given config.
+func NewPortForwardClient(c config) *PortForwardClient {
+	return &PortForwardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `portforward.Hooks(f(g(h())))`.
+func (c *PortForwardClient) Use(hooks ...Hook) {
+	c.hooks.PortForward = append(c.hooks.PortForward, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `portforward.Intercept(f(g(h())))`.
+func (c *PortForwardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PortForward = append(c.inters.PortForward, interceptors...)
+}
+
+// Create returns a builder for creating a PortForward entity.
+func (c *PortForwardClient) Create() *PortForwardCreate {
+	mutation := newPortForwardMutation(c.config, OpCreate)
+	return &PortForwardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PortForward entities.
+func (c *PortForwardClient) CreateBulk(builders ...*PortForwardCreate) *PortForwardCreateBulk {
+	return &PortForwardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PortForwardClient) MapCreateBulk(slice any, setFunc func(*PortForwardCreate, int)) *PortForwardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PortForwardCreateBulk{err: fmt.Errorf("calling to PortForwardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PortForwardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PortForwardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PortForward.
+func (c *PortForwardClient) Update() *PortForwardUpdate {
+	mutation := newPortForwardMutation(c.config, OpUpdate)
+	return &PortForwardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PortForwardClient) UpdateOne(_m *PortForward) *PortForwardUpdateOne {
+	mutation := newPortForwardMutation(c.config, OpUpdateOne, withPortForward(_m))
+	return &PortForwardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PortForwardClient) UpdateOneID(id string) *PortForwardUpdateOne {
+	mutation := newPortForwardMutation(c.config, OpUpdateOne, withPortForwardID(id))
+	return &PortForwardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PortForward.
+func (c *PortForwardClient) Delete() *PortForwardDelete {
+	mutation := newPortForwardMutation(c.config, OpDelete)
+	return &PortForwardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PortForwardClient) DeleteOne(_m *PortForward) *PortForwardDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PortForwardClient) DeleteOneID(id string) *PortForwardDeleteOne {
+	builder := c.Delete().Where(portforward.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PortForwardDeleteOne{builder}
+}
+
+// Query returns a query builder for PortForward.
+func (c *PortForwardClient) Query() *PortForwardQuery {
+	return &PortForwardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePortForward},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PortForward entity by its id.
+func (c *PortForwardClient) Get(ctx context.Context, id string) (*PortForward, error) {
+	return c.Query().Where(portforward.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PortForwardClient) GetX(ctx context.Context, id string) *PortForward {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a PortForward.
+func (c *PortForwardClient) QueryUser(_m *PortForward) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(portforward.Table, portforward.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, portforward.UserTable, portforward.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PortForwardClient) Hooks() []Hook {
+	return c.hooks.PortForward
+}
+
+// Interceptors returns the client interceptors.
+func (c *PortForwardClient) Interceptors() []Interceptor {
+	return c.inters.PortForward
+}
+
+func (c *PortForwardClient) mutate(ctx context.Context, m *PortForwardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PortForwardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PortForwardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PortForwardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PortForwardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PortForward mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -2265,11 +2422,13 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 type (
 	hooks struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, Role, SSHHost, SystemConfig, User, UserAPIKey []ent.Hook
+		OperationLog, PortForward, Role, SSHHost, SystemConfig, User,
+		UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, Role, SSHHost, SystemConfig, User, UserAPIKey []ent.Interceptor
+		OperationLog, PortForward, Role, SSHHost, SystemConfig, User,
+		UserAPIKey []ent.Interceptor
 	}
 )
 

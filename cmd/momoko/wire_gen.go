@@ -69,16 +69,26 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	apiKeyRepo := data.NewAPIKeyRepo(dataData)
 	nodeUsecase := biz.NewNodeUsecase(apiKeyRepo)
 	nodeService := service.NewNodeService(nodeUsecase)
-	dockerUsecase, err := biz.NewDockerUsecase(systemUsecase, configRepo)
+	networkRepo := data.NewNetworkRepo(dataData)
+	networkUsecase, cleanup3, err := biz.NewNetworkUsecase(networkRepo)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
+	networkService := service.NewNetworkService(networkUsecase)
+	dockerUsecase, err := biz.NewDockerUsecase(systemUsecase, configRepo)
+	if err != nil {
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	dockerService := service.NewDockerService(dockerUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, dockerService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, dockerService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

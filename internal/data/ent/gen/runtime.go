@@ -11,6 +11,7 @@ import (
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
+	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -253,6 +254,53 @@ func init() {
 	operationlogDescOperationTime := operationlogFields[8].Descriptor()
 	// operationlog.DefaultOperationTime holds the default value on creation for the operation_time field.
 	operationlog.DefaultOperationTime = operationlogDescOperationTime.Default.(func() time.Time)
+	portforwardMixin := schema.PortForward{}.Mixin()
+	portforwardMixinFields0 := portforwardMixin[0].Fields()
+	_ = portforwardMixinFields0
+	portforwardFields := schema.PortForward{}.Fields()
+	_ = portforwardFields
+	// portforwardDescCreateTime is the schema descriptor for create_time field.
+	portforwardDescCreateTime := portforwardMixinFields0[0].Descriptor()
+	// portforward.DefaultCreateTime holds the default value on creation for the create_time field.
+	portforward.DefaultCreateTime = portforwardDescCreateTime.Default.(func() time.Time)
+	// portforwardDescUpdateTime is the schema descriptor for update_time field.
+	portforwardDescUpdateTime := portforwardMixinFields0[1].Descriptor()
+	// portforward.DefaultUpdateTime holds the default value on creation for the update_time field.
+	portforward.DefaultUpdateTime = portforwardDescUpdateTime.Default.(func() time.Time)
+	// portforward.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	portforward.UpdateDefaultUpdateTime = portforwardDescUpdateTime.UpdateDefault.(func() time.Time)
+	// portforwardDescName is the schema descriptor for name field.
+	portforwardDescName := portforwardFields[1].Descriptor()
+	// portforward.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	portforward.NameValidator = portforwardDescName.Validators[0].(func(string) error)
+	// portforwardDescUserID is the schema descriptor for user_id field.
+	portforwardDescUserID := portforwardFields[2].Descriptor()
+	// portforward.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	portforward.UserIDValidator = portforwardDescUserID.Validators[0].(func(string) error)
+	// portforwardDescListenAddress is the schema descriptor for listen_address field.
+	portforwardDescListenAddress := portforwardFields[4].Descriptor()
+	// portforward.DefaultListenAddress holds the default value on creation for the listen_address field.
+	portforward.DefaultListenAddress = portforwardDescListenAddress.Default.(string)
+	// portforwardDescListenPort is the schema descriptor for listen_port field.
+	portforwardDescListenPort := portforwardFields[5].Descriptor()
+	// portforward.DefaultListenPort holds the default value on creation for the listen_port field.
+	portforward.DefaultListenPort = portforwardDescListenPort.Default.(int)
+	// portforwardDescTargetAddress is the schema descriptor for target_address field.
+	portforwardDescTargetAddress := portforwardFields[6].Descriptor()
+	// portforward.DefaultTargetAddress holds the default value on creation for the target_address field.
+	portforward.DefaultTargetAddress = portforwardDescTargetAddress.Default.(string)
+	// portforwardDescTargetPort is the schema descriptor for target_port field.
+	portforwardDescTargetPort := portforwardFields[7].Descriptor()
+	// portforward.DefaultTargetPort holds the default value on creation for the target_port field.
+	portforward.DefaultTargetPort = portforwardDescTargetPort.Default.(int)
+	// portforwardDescIsEnable is the schema descriptor for is_enable field.
+	portforwardDescIsEnable := portforwardFields[8].Descriptor()
+	// portforward.DefaultIsEnable holds the default value on creation for the is_enable field.
+	portforward.DefaultIsEnable = portforwardDescIsEnable.Default.(bool)
+	// portforwardDescID is the schema descriptor for id field.
+	portforwardDescID := portforwardFields[0].Descriptor()
+	// portforward.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	portforward.IDValidator = portforwardDescID.Validators[0].(func(string) error)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0

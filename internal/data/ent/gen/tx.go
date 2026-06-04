@@ -30,6 +30,8 @@ type Tx struct {
 	Menu *MenuClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
+	// PortForward is the client for interacting with the PortForward builders.
+	PortForward *PortForwardClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
@@ -179,6 +181,7 @@ func (tx *Tx) init() {
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)
 	tx.OperationLog = NewOperationLogClient(tx.config)
+	tx.PortForward = NewPortForwardClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)

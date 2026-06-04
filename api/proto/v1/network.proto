@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 网络管理
+service NetworkManager {
+  // 获取端口转发列表
+  rpc ListPortForwards(ListPortForwardsRequest) returns (ListPortForwardsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/network/port-forwards"
+    };
+  }
+  // 创建端口转发
+  rpc CreatePortForward(CreatePortForwardRequest) returns (CreatePortForwardResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/network/port-forwards"
+      body: "*"
+    };
+  }
+  // 获取端口转发详情
+  rpc GetPortForward(GetPortForwardRequest) returns (GetPortForwardResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/network/port-forwards/{id}"
+    };
+  }
+  // 更新端口转发
+  rpc UpdatePortForward(UpdatePortForwardRequest) returns (UpdatePortForwardResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/network/port-forwards/{id}"
+      body: "*"
+    };
+  }
+  // 删除端口转发
+  rpc DeletePortForward(DeletePortForwardRequest) returns (DeletePortForwardResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/network/port-forwards/{id}"
+    };
+  }
+}
+
+message ListPortForwardsRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // 名称/地址/标签
+  optional string keywords = 3;
+  // 转发类型
+  optional PortForwardType type = 4;
+  // 是否启用
+  optional bool is_enable = 5;
+}
+
+message ListPortForwardsResponse {
+  // actual page
+  int64 page = 1;
+  // actual page size
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 列表
+  repeated PortForwardInfo infos = 4;
+}
+
+message CreatePortForwardRequest {
+  // 名称
+  string name = 1;
+  // 转发类型
+  PortForwardType type = 2;
+  // 监听地址
+  string listen_address = 3;
+  // 监听端口
+  int32 listen_port = 4;
+  // 目标地址
+  string target_address = 5;
+  // 目标端口
+  int32 target_port = 6;
+  // 是否启用
+  bool is_enable = 7;
+  // 备注
+  string remark = 8;
+  // 标签
+  string tags = 9;
+}
+
+message CreatePortForwardResponse {
+  // 端口转发详情
+  PortForwardInfo info = 1;
+}
+
+message GetPortForwardRequest {
+  // 端口转发 id
+  string id = 1;
+}
+
+message GetPortForwardResponse {
+  // 端口转发详情
+  PortForwardInfo info = 1;
+}
+
+message UpdatePortForwardRequest {
+  // 端口转发 id
+  string id = 1;
+  // 名称
+  optional string name = 2;
+  // 转发类型
+  optional PortForwardType type = 3;
+  // 监听地址
+  optional string listen_address = 4;
+  // 监听端口
+  optional int32 listen_port = 5;
+  // 目标地址
+  optional string target_address = 6;
+  // 目标端口
+  optional int32 target_port = 7;
+  // 是否启用
+  optional bool is_enable = 8;
+  // 备注
+  optional string remark = 9;
+  // 标签
+  optional string tags = 10;
+}
+
+message UpdatePortForwardResponse {
+  // 端口转发详情
+  PortForwardInfo info = 1;
+}
+
+message DeletePortForwardRequest {
+  // 端口转发 id
+  string id = 1;
+}
+
+message DeletePortForwardResponse {}
+
+message PortForwardInfo {
+  // 端口转发 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 所属用户 id
+  string user_id = 3;
+  // 转发类型
+  PortForwardType type = 4;
+  // 监听地址
+  string listen_address = 5;
+  // 监听端口
+  int32 listen_port = 6;
+  // 目标地址
+  string target_address = 7;
+  // 目标端口
+  int32 target_port = 8;
+  // 是否启用
+  bool is_enable = 9;
+  // 备注
+  string remark = 10;
+  // 标签
+  string tags = 11;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 12;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 13;
+  // 运行错误
+  string error = 14;
+}
+
+enum PortForwardType {
+  // 未指定
+  PORT_FORWARD_TYPE_UNSPECIFIED = 0;
+  // TCP
+  PORT_FORWARD_TYPE_TCP = 1;
+  // UDP
+  PORT_FORWARD_TYPE_UDP = 2;
+}

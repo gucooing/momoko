@@ -30,6 +30,9 @@ type Menu func(*sql.Selector)
 // OperationLog is the predicate function for operationlog builders.
 type OperationLog func(*sql.Selector)
 
+// PortForward is the predicate function for portforward builders.
+type PortForward func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

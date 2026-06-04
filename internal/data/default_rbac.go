@@ -82,6 +82,9 @@ var (
 		newDefaultMenu("menu_5_5", entmenu.TypeMenu, "/docker/config", "配置", "HOutline:Cog6ToothIcon", new("menu_5"), 4, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_5_button_0", entmenu.TypeButton, "", "编辑Docker配置", "", new("menu_5_5"), 0, constant.DockerConfigEdit, entmenu.StatusActive),
 
+		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "Element:Box", nil, 5, "", entmenu.StatusActive),
+		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 1, "", entmenu.StatusActive),
+
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", new("menu_12_1"), 0, constant.UserAdd, entmenu.StatusActive),

@@ -262,6 +262,48 @@ var (
 			},
 		},
 	}
+	// PortForwardsColumns holds the columns for the "port_forwards" table.
+	PortForwardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "protocol", Type: field.TypeEnum, Enums: []string{"tcp", "udp"}},
+		{Name: "listen_address", Type: field.TypeString, Default: "0.0.0.0"},
+		{Name: "listen_port", Type: field.TypeInt, Default: 0},
+		{Name: "target_address", Type: field.TypeString, Default: "0.0.0.0"},
+		{Name: "target_port", Type: field.TypeInt, Default: 0},
+		{Name: "is_enable", Type: field.TypeBool, Default: false},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "tags", Type: field.TypeString, Nullable: true},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// PortForwardsTable holds the schema information for the "port_forwards" table.
+	PortForwardsTable = &schema.Table{
+		Name:       "port_forwards",
+		Columns:    PortForwardsColumns,
+		PrimaryKey: []*schema.Column{PortForwardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "port_forwards_users_user",
+				Columns:    []*schema.Column{PortForwardsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "portforward_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PortForwardsColumns[12]},
+			},
+			{
+				Name:    "portforward_is_enable",
+				Unique:  false,
+				Columns: []*schema.Column{PortForwardsColumns[9]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -451,6 +493,7 @@ var (
 		InstanceTypesTable,
 		MenusTable,
 		OperationLogsTable,
+		PortForwardsTable,
 		RolesTable,
 		SSHHostsTable,
 		ConfigsTable,
@@ -470,6 +513,7 @@ func init() {
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable
+	PortForwardsTable.ForeignKeys[0].RefTable = UsersTable
 	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",

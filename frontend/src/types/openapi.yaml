@@ -2480,6 +2480,128 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetInstanceInfoResponse'
+    /api/v1/network/port-forwards:
+        get:
+            tags:
+                - NetworkManager
+            description: 获取端口转发列表
+            operationId: NetworkManager_ListPortForwards
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 名称/地址/标签
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: 转发类型
+                  schema:
+                    type: integer
+                    format: enum
+                - name: isEnable
+                  in: query
+                  description: 是否启用
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListPortForwardsResponse'
+        post:
+            tags:
+                - NetworkManager
+            description: 创建端口转发
+            operationId: NetworkManager_CreatePortForward
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreatePortForwardRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreatePortForwardResponse'
+    /api/v1/network/port-forwards/{id}:
+        get:
+            tags:
+                - NetworkManager
+            description: 获取端口转发详情
+            operationId: NetworkManager_GetPortForward
+            parameters:
+                - name: id
+                  in: path
+                  description: 端口转发 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetPortForwardResponse'
+        put:
+            tags:
+                - NetworkManager
+            description: 更新端口转发
+            operationId: NetworkManager_UpdatePortForward
+            parameters:
+                - name: id
+                  in: path
+                  description: 端口转发 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdatePortForwardRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdatePortForwardResponse'
+        delete:
+            tags:
+                - NetworkManager
+            description: 删除端口转发
+            operationId: NetworkManager_DeletePortForward
+            parameters:
+                - name: id
+                  in: path
+                  description: 端口转发 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeletePortForwardResponse'
     /api/v1/node/api-key:
         get:
             tags:
@@ -4198,6 +4320,46 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.CreatePortForwardRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                type:
+                    type: integer
+                    description: 转发类型
+                    format: enum
+                listenAddress:
+                    type: string
+                    description: 监听地址
+                listenPort:
+                    type: integer
+                    description: 监听端口
+                    format: int32
+                targetAddress:
+                    type: string
+                    description: 目标地址
+                targetPort:
+                    type: integer
+                    description: 目标端口
+                    format: int32
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+        v1.CreatePortForwardResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PortForwardInfo'
+                    description: 端口转发详情
         v1.CreateSSHHostRequest:
             type: object
             properties:
@@ -4323,6 +4485,9 @@ components:
             type: object
             properties: {}
             description: 删除储存卷响应
+        v1.DeletePortForwardResponse:
+            type: object
+            properties: {}
         v1.DeleteSSHHostResponse:
             type: object
             properties: {}
@@ -5816,6 +5981,13 @@ components:
                         $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 列表
             description: 获取实例列表响应
+        v1.GetPortForwardResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PortForwardInfo'
+                    description: 端口转发详情
         v1.GetSSHHostInfoResponse:
             type: object
             properties:
@@ -6100,6 +6272,23 @@ components:
                     type: string
                     description: 总数
             description: 查询操作日志响应
+        v1.ListPortForwardsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.PortForwardInfo'
+                    description: 列表
         v1.ListUserResponse:
             type: object
             properties:
@@ -6565,6 +6754,56 @@ components:
                     description: 物理内存占用百分比
                     format: double
             description: 物理内存实时状态
+        v1.PortForwardInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 端口转发 id
+                name:
+                    type: string
+                    description: 名称
+                userId:
+                    type: string
+                    description: 所属用户 id
+                type:
+                    type: integer
+                    description: 转发类型
+                    format: enum
+                listenAddress:
+                    type: string
+                    description: 监听地址
+                listenPort:
+                    type: integer
+                    description: 监听端口
+                    format: int32
+                targetAddress:
+                    type: string
+                    description: 目标地址
+                targetPort:
+                    type: integer
+                    description: 目标端口
+                    format: int32
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                error:
+                    type: string
+                    description: 运行错误
         v1.PruneDockerImagesRequest:
             type: object
             properties:
@@ -7701,6 +7940,49 @@ components:
             type: object
             properties: {}
             description: 更新密码响应
+        v1.UpdatePortForwardRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 端口转发 id
+                name:
+                    type: string
+                    description: 名称
+                type:
+                    type: integer
+                    description: 转发类型
+                    format: enum
+                listenAddress:
+                    type: string
+                    description: 监听地址
+                listenPort:
+                    type: integer
+                    description: 监听端口
+                    format: int32
+                targetAddress:
+                    type: string
+                    description: 目标地址
+                targetPort:
+                    type: integer
+                    description: 目标端口
+                    format: int32
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+                remark:
+                    type: string
+                    description: 备注
+                tags:
+                    type: string
+                    description: 标签
+        v1.UpdatePortForwardResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PortForwardInfo'
+                    description: 端口转发详情
         v1.UpdateSSHHostRequest:
             type: object
             properties:
@@ -7887,6 +8169,8 @@ tags:
       description: 系统初始化
     - name: InstanceManager
       description: 应用管理
+    - name: NetworkManager
+      description: 网络管理
     - name: NodeService
       description: 节点服务
     - name: OpenSSHManager
