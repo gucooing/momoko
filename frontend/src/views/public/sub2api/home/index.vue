@@ -126,7 +126,7 @@
 
       <footer class="footer">
         <span>© {{ year }} {{ home.title || 'Sub2API' }}</span>
-        <a v-if="dashboardUrl" :href="dashboardUrl" target="_blank" rel="noopener">前往控制台</a>
+        <a v-if="dashboardUrl" :href="dashboardUrl">前往控制台</a>
       </footer>
 
       <!-- 公告入口弹窗 -->
@@ -220,7 +220,7 @@ const dashboardUrl = computed(() => {
   return `${base.replace(/\/+$/, '')}/dashboard`
 })
 const openConsole = () => {
-  if (dashboardUrl.value) window.open(dashboardUrl.value, '_blank', 'noopener')
+  if (dashboardUrl.value) window.location.href = dashboardUrl.value
 }
 
 const heroLead = '统一接入，洞察用量'

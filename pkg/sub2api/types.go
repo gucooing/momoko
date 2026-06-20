@@ -113,7 +113,7 @@ type UsageListResult struct {
 	Total   int
 }
 
-// Totals 区间/全量聚合结果。
+// Totals 区间/全量聚合结果（由 BuildSnapshot/BuildStats 读取记录后在内存中算出）。
 type Totals struct {
 	TotalCount       int64
 	RequestCount     int64
@@ -123,49 +123,16 @@ type Totals struct {
 	AverageTPS       float64
 }
 
-// 数据层返回的原始聚合行（不含派生计算）。
-type DailyUsageRow struct {
-	Date         string
-	RequestCount int64
-	TokenCount   int64
-}
-
-type DateCountRow struct {
-	Date  string
-	Count int64
-}
-
-type DateLatencyRow struct {
-	Date             string
-	AverageLatencyMS float64
-}
-
-type NamedUsageRow struct {
-	Name         string
-	RequestCount int64
-	TokenCount   int64
-	AverageTPS   float64
-}
-
-type NameCountRow struct {
-	Name  string
-	Count int64
-}
-
-// UsageStore 数据层需实现的持久化与查询接口（仅做 ent CRUD/聚合查询）。
+// UsageStore 数据层需实现的持久化与读取接口（仅做 ent CRUD/读取）。
+// 统计聚合改为读取记录后在内存中计算，数据层只需提供一次性读取入口，
+// 避免一个页面触发数十次聚合查询。
 type UsageStore interface {
 	SaveUsageRecords(ctx context.Context, records []*UsageRecord) error
 	ClearUsageRecords(ctx context.Context) error
 	LatestUsageRecordTime(ctx context.Context) (*time.Time, error)
 	LatestUpstreamErrorRecordTime(ctx context.Context) (*time.Time, error)
-	Totals(ctx context.Context, start *time.Time, excludeTestModels bool) (Totals, error)
-	DailyUsage(ctx context.Context, start time.Time) ([]DailyUsageRow, error)
-	DailySuccess(ctx context.Context, start time.Time) ([]DateCountRow, error)
-	DailyLatency(ctx context.Context, start time.Time) ([]DateLatencyRow, error)
-	TopUsage(ctx context.Context, start time.Time, field GroupField) ([]NamedUsageRow, error)
-	TopSuccess(ctx context.Context, start time.Time, field GroupField) ([]NameCountRow, error)
-	RecentRecords(ctx context.Context, limit int) ([]*UsageRecord, error)
-	RecordsSince(ctx context.Context, start time.Time) ([]*UsageRecord, error)
+	// RecordsSince 按时间升序返回 start（含）之后的记录；start 为 nil 时返回全部记录。
+	RecordsSince(ctx context.Context, start *time.Time) ([]*UsageRecord, error)
 }
 
 // ConfigStore KV 配置存储（由数据层 ConfigRepo 适配）。

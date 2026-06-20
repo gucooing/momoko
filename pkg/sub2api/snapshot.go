@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	v1 "momoko/api/gen/v1"
@@ -20,39 +19,22 @@ const (
 )
 
 // BuildSnapshot 聚合本地使用记录，构造完整的用量快照（含派生指标）。
+// 整段只读取一次记录：全量统计、窗口趋势/排行、今日曲线与最近请求都在内存中算出，
+// 把原先一个首页数十次的聚合查询降到一次。
 func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, state SyncState) (*v1.Sub2APIUsageSnapshot, error) {
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	windowStart := todayStart.AddDate(0, 0, -int(cfg.HistoryDays)+1)
 
-	totals, err := store.Totals(ctx, nil, true)
+	records, err := store.RecordsSince(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	todayTotals, err := store.Totals(ctx, &todayStart, true)
-	if err != nil {
-		return nil, err
-	}
-	trend, err := buildTrend(ctx, store, windowStart, cfg.HistoryDays)
-	if err != nil {
-		return nil, err
-	}
-	modelUsage, err := buildTopItems(ctx, store, windowStart, GroupByModel, topItemsLimit)
-	if err != nil {
-		return nil, err
-	}
-	endpointUsage, err := buildTopItems(ctx, store, windowStart, GroupByEndpoint, topItemsLimit)
-	if err != nil {
-		return nil, err
-	}
-	recent, err := buildRecentRequests(ctx, store)
-	if err != nil {
-		return nil, err
-	}
-	todaySeries, err := buildTodaySeries(ctx, store, todayStart)
-	if err != nil {
-		return nil, err
-	}
+	windowRecords := recordsFrom(records, windowStart)
+	todayRecords := recordsFrom(records, todayStart)
+
+	totals := totalsFromRecords(records)
+	todayTotals := totalsFromRecords(todayRecords)
 
 	status := state.Status
 	if status == "" {
@@ -81,14 +63,14 @@ func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig,
 		TodayTokenCount:       todayTotals.TokenCount,
 		DataRange:             "最近 " + strconv.FormatInt(int64(cfg.HistoryDays), 10) + " 天",
 		GeneratedAt:           timestamppb.New(now),
-		Trend:                 trend,
-		ModelUsage:            modelUsage,
-		EndpointUsage:         endpointUsage,
-		RecentRequests:        recent,
+		Trend:                 buildTrend(windowRecords, windowStart, cfg.HistoryDays),
+		ModelUsage:            buildTopItems(windowRecords, GroupByModel, topItemsLimit),
+		EndpointUsage:         buildTopItems(windowRecords, GroupByEndpoint, topItemsLimit),
+		RecentRequests:        buildRecentRequests(records),
 		RecentTps:             tps,
 		RecentQps:             0,
 		RecentWindowSeconds:   0,
-		TodaySeries:           todaySeries,
+		TodaySeries:           buildTodaySeries(todayRecords),
 	}, nil
 }
 
@@ -105,34 +87,27 @@ func StripForPublic(snapshot *v1.Sub2APIUsageSnapshot) {
 }
 
 // BuildStats 聚合指定时间区间（今日/最近 N 天）的用量统计，按模型/接口拆分。
+// 区间记录只读取一次，汇总、趋势、模型/接口排行都在内存中算出。
 func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, rangeDays int32) (*v1.Sub2APIStats, error) {
 	days := normalizeRangeDays(rangeDays, cfg.HistoryDays)
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	start := todayStart.AddDate(0, 0, -(int(days) - 1))
 
-	totals, err := store.Totals(ctx, &start, false)
+	records, err := store.RecordsSince(ctx, &start)
 	if err != nil {
 		return nil, err
 	}
+	totals := totalsFromRecords(records)
+
 	// 单日（今日）按时间分桶展示日内趋势，否则按天展示，避免单日只有一个数据点。
 	var trend []*v1.Sub2APITrendPoint
 	if days <= 1 {
-		trend, err = buildIntradayTrend(ctx, store, todayStart)
+		trend = buildIntradayTrend(records)
 	} else {
-		trend, err = buildTrend(ctx, store, start, days)
+		trend = buildTrend(records, start, days)
 	}
-	if err != nil {
-		return nil, err
-	}
-	models, err := buildTopItems(ctx, store, start, GroupByModel, 0)
-	if err != nil {
-		return nil, err
-	}
-	endpoints, err := buildTopItems(ctx, store, start, GroupByEndpoint, 0)
-	if err != nil {
-		return nil, err
-	}
+
 	return &v1.Sub2APIStats{
 		RangeDays:        days,
 		RangeLabel:       rangeLabel(days),
@@ -143,8 +118,8 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		AverageLatencyMs: totals.AverageLatencyMS,
 		AverageTps:       totals.AverageTPS,
 		Trend:            trend,
-		Models:           models,
-		Endpoints:        endpoints,
+		Models:           buildTopItems(records, GroupByModel, 0),
+		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
 	}, nil
 }
 
@@ -168,100 +143,171 @@ func rangeLabel(days int32) string {
 	return "最近 " + strconv.FormatInt(int64(days), 10) + " 天"
 }
 
-func buildTrend(ctx context.Context, store UsageStore, start time.Time, days int32) ([]*v1.Sub2APITrendPoint, error) {
-	usageRows, err := store.DailyUsage(ctx, start)
-	if err != nil {
-		return nil, err
-	}
-	successRows, err := store.DailySuccess(ctx, start)
-	if err != nil {
-		return nil, err
-	}
-	latencyRows, err := store.DailyLatency(ctx, start)
-	if err != nil {
-		return nil, err
-	}
+// recordsFrom 返回 records 中 RequestTime >= start 的尾部切片（records 已按时间升序）。
+func recordsFrom(records []*UsageRecord, start time.Time) []*UsageRecord {
+	i := sort.Search(len(records), func(i int) bool {
+		return !records[i].RequestTime.Before(start)
+	})
+	return records[i:]
+}
 
-	stats := make(map[string]*v1.Sub2APITrendPoint, len(usageRows))
-	for _, row := range usageRows {
-		stats[row.Date] = &v1.Sub2APITrendPoint{
-			Date:         row.Date,
-			RequestCount: row.RequestCount,
-			TokenCount:   row.TokenCount,
+// totalsFromRecords 在内存中汇总一批记录的指标，口径与原先按区间聚合一致：
+// 计费请求=成功或上游错误；平均延迟仅统计成功请求；平均生成速度仅统计 tps>0 的请求；Token 计入全部记录。
+func totalsFromRecords(records []*UsageRecord) Totals {
+	var (
+		totals       Totals
+		latencySum   float64
+		latencyCount int64
+		tpsSum       float64
+		tpsCount     int64
+	)
+	for _, rec := range records {
+		totals.TotalCount++
+		totals.TokenCount += rec.TokenCount
+		if isRateEligible(rec) {
+			totals.RequestCount++
+		}
+		if rec.Success {
+			totals.SuccessCount++
+			latencySum += float64(rec.LatencyMS)
+			latencyCount++
+		}
+		if rec.TPS > 0 {
+			tpsSum += rec.TPS
+			tpsCount++
 		}
 	}
-	for _, row := range successRows {
-		if stat := stats[row.Date]; stat != nil {
-			stat.SuccessCount = row.Count
-			stat.SuccessRate = percent(row.Count, stat.RequestCount)
-		}
+	if latencyCount > 0 {
+		totals.AverageLatencyMS = latencySum / float64(latencyCount)
 	}
-	for _, row := range latencyRows {
-		if stat := stats[row.Date]; stat != nil {
-			stat.AverageLatencyMs = row.AverageLatencyMS
+	if tpsCount > 0 {
+		totals.AverageTPS = tpsSum / float64(tpsCount)
+	}
+	return totals
+}
+
+// buildTrend 按天聚合记录为趋势点，并补齐 [start, start+days) 区间内没有数据的日期。
+func buildTrend(records []*UsageRecord, start time.Time, days int32) []*v1.Sub2APITrendPoint {
+	type dayAgg struct {
+		request, success, token int64
+		latencySum              float64
+		latencyCount            int64
+	}
+	daily := make(map[string]*dayAgg)
+	for _, rec := range records {
+		agg := daily[rec.RequestDate]
+		if agg == nil {
+			agg = &dayAgg{}
+			daily[rec.RequestDate] = agg
+		}
+		if isRateEligible(rec) {
+			agg.request++
+			agg.token += rec.TokenCount
+		}
+		if rec.Success {
+			agg.success++
+			agg.latencySum += float64(rec.LatencyMS)
+			agg.latencyCount++
 		}
 	}
 
 	result := make([]*v1.Sub2APITrendPoint, 0, days)
 	for i := int32(0); i < days; i++ {
 		date := start.AddDate(0, 0, int(i)).Format("2006-01-02")
-		if stat := stats[date]; stat != nil {
-			result = append(result, stat)
-		} else {
+		agg := daily[date]
+		if agg == nil {
 			result = append(result, &v1.Sub2APITrendPoint{Date: date})
+			continue
 		}
+		point := &v1.Sub2APITrendPoint{
+			Date:         date,
+			RequestCount: agg.request,
+			SuccessCount: agg.success,
+			SuccessRate:  percent(agg.success, agg.request),
+			TokenCount:   agg.token,
+		}
+		if agg.latencyCount > 0 {
+			point.AverageLatencyMs = agg.latencySum / float64(agg.latencyCount)
+		}
+		result = append(result, point)
 	}
-	return result, nil
+	return result
 }
 
-func buildTopItems(ctx context.Context, store UsageStore, start time.Time, field GroupField, limit int) ([]*v1.Sub2APITopItem, error) {
-	usageRows, err := store.TopUsage(ctx, start, field)
-	if err != nil {
-		return nil, err
+// buildTopItems 按模型/接口维度聚合记录，仅保留有计费请求的分组，按请求数、Token 排序后截断。
+func buildTopItems(records []*UsageRecord, field GroupField, limit int) []*v1.Sub2APITopItem {
+	type itemAgg struct {
+		request, success, token int64
+		tpsSum                  float64
+		tpsCount                int64
 	}
-	successRows, err := store.TopSuccess(ctx, start, field)
-	if err != nil {
-		return nil, err
-	}
-
-	successByName := make(map[string]int64, len(successRows))
-	for _, row := range successRows {
-		successByName[row.Name] = row.Count
-	}
-	sort.SliceStable(usageRows, func(i, j int) bool {
-		if usageRows[i].RequestCount == usageRows[j].RequestCount {
-			return usageRows[i].TokenCount > usageRows[j].TokenCount
+	groups := make(map[string]*itemAgg)
+	for _, rec := range records {
+		name := rec.Model
+		if field == GroupByEndpoint {
+			name = rec.Endpoint
 		}
-		return usageRows[i].RequestCount > usageRows[j].RequestCount
-	})
-	if limit > 0 && len(usageRows) > limit {
-		usageRows = usageRows[:limit]
-	}
-
-	result := make([]*v1.Sub2APITopItem, 0, len(usageRows))
-	for _, row := range usageRows {
-		name := row.Name
 		if name == "" {
-			name = "未标记"
+			continue // 排除分组维度为空的记录，避免上游错误等无模型记录污染统计
 		}
-		result = append(result, &v1.Sub2APITopItem{
-			Name:         name,
-			RequestCount: row.RequestCount,
-			TokenCount:   row.TokenCount,
-			SuccessRate:  percent(successByName[row.Name], row.RequestCount),
-			AvgTps:       row.AverageTPS,
-		})
+		agg := groups[name]
+		if agg == nil {
+			agg = &itemAgg{}
+			groups[name] = agg
+		}
+		if isRateEligible(rec) {
+			agg.request++
+			agg.token += rec.TokenCount
+		}
+		if rec.Success {
+			agg.success++
+		}
+		if rec.TPS > 0 {
+			agg.tpsSum += rec.TPS
+			agg.tpsCount++
+		}
 	}
-	return result, nil
+
+	items := make([]*v1.Sub2APITopItem, 0, len(groups))
+	for name, agg := range groups {
+		if agg.request == 0 {
+			continue // 只保留有计费请求的分组
+		}
+		item := &v1.Sub2APITopItem{
+			Name:         name,
+			RequestCount: agg.request,
+			TokenCount:   agg.token,
+			SuccessRate:  percent(agg.success, agg.request),
+		}
+		if agg.tpsCount > 0 {
+			item.AvgTps = agg.tpsSum / float64(agg.tpsCount)
+		}
+		items = append(items, item)
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		if items[i].RequestCount != items[j].RequestCount {
+			return items[i].RequestCount > items[j].RequestCount
+		}
+		if items[i].TokenCount != items[j].TokenCount {
+			return items[i].TokenCount > items[j].TokenCount
+		}
+		return items[i].Name < items[j].Name
+	})
+	if limit > 0 && len(items) > limit {
+		items = items[:limit]
+	}
+	return items
 }
 
-func buildRecentRequests(ctx context.Context, store UsageStore) ([]*v1.Sub2APIRecentRequest, error) {
-	records, err := store.RecentRecords(ctx, recentRecordsLimit)
-	if err != nil {
-		return nil, err
+// buildRecentRequests 取最近的若干条请求（records 按时间升序，取末尾并倒序输出，最新在前）。
+func buildRecentRequests(records []*UsageRecord) []*v1.Sub2APIRecentRequest {
+	count := recentRecordsLimit
+	if len(records) < count {
+		count = len(records)
 	}
-	result := make([]*v1.Sub2APIRecentRequest, 0, len(records))
-	for _, record := range records {
+	result := make([]*v1.Sub2APIRecentRequest, 0, count)
+	for i := 0; i < count; i++ {
+		record := records[len(records)-1-i]
 		result = append(result, &v1.Sub2APIRecentRequest{
 			RequestId:   record.ID,
 			Model:       record.Model,
@@ -273,18 +319,14 @@ func buildRecentRequests(ctx context.Context, store UsageStore) ([]*v1.Sub2APIRe
 			RequestTime: timestamppb.New(record.RequestTime),
 		})
 	}
-	return result, nil
+	return result
 }
 
 // buildTodaySeries 将当日记录按固定时间桶聚合为“成功率 + 生成速度”时间序列，
 // 供首页绘制随时间移动的曲线（前端使用 time 轴，短时段也能铺满）。
-func buildTodaySeries(ctx context.Context, store UsageStore, todayStart time.Time) ([]*v1.Sub2APITimePoint, error) {
-	records, err := store.RecordsSince(ctx, todayStart)
-	if err != nil {
-		return nil, err
-	}
+func buildTodaySeries(records []*UsageRecord) []*v1.Sub2APITimePoint {
 	if len(records) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	bucket := time.Duration(todayBucketMinutes) * time.Minute
@@ -308,7 +350,7 @@ func buildTodaySeries(ctx context.Context, store UsageStore, todayStart time.Tim
 		if rec.Success {
 			agg.success++
 		}
-		if rec.TPS > 0 && !isTestModel(rec.Model) {
+		if rec.TPS > 0 {
 			agg.tpsSum += rec.TPS
 			agg.tpsCount++
 		}
@@ -328,12 +370,7 @@ func buildTodaySeries(ctx context.Context, store UsageStore, todayStart time.Tim
 		}
 		points = append(points, point)
 	}
-	return points, nil
-}
-
-// isTestModel 判定是否为后端测试模型（名称含 mini），用于在生成速度统计中剔除。
-func isTestModel(model string) bool {
-	return strings.Contains(strings.ToLower(model), "mini")
+	return points
 }
 
 func isRateEligible(rec *UsageRecord) bool {
@@ -342,13 +379,9 @@ func isRateEligible(rec *UsageRecord) bool {
 
 // buildIntradayTrend 将当日记录按时间桶聚合为趋势点（标签为 HH:MM），
 // 用于详情页“今日”视图，避免按天聚合时单日只有一个数据点。
-func buildIntradayTrend(ctx context.Context, store UsageStore, todayStart time.Time) ([]*v1.Sub2APITrendPoint, error) {
-	records, err := store.RecordsSince(ctx, todayStart)
-	if err != nil {
-		return nil, err
-	}
+func buildIntradayTrend(records []*UsageRecord) []*v1.Sub2APITrendPoint {
 	if len(records) == 0 {
-		return nil, nil
+		return nil
 	}
 	bucket := time.Duration(todayBucketMinutes) * time.Minute
 	type agg struct {
@@ -387,7 +420,7 @@ func buildIntradayTrend(ctx context.Context, store UsageStore, todayStart time.T
 			TokenCount:   a.token,
 		})
 	}
-	return points, nil
+	return points
 }
 
 func percent(part, total int64) float64 {

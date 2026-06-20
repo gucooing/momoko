@@ -18,7 +18,7 @@
       <div class="head">
         <div>
           <h1>用量统计</h1>
-          <p>按模型拆分的真实请求统计（Token 生成速度按请求平均，已剔除缓存与测试模型）。</p>
+          <p>按模型拆分的真实请求统计（Token 生成速度按请求平均，不含缓存）。</p>
         </div>
         <el-segmented v-model="range" :options="rangeOptions" @change="onRange" />
       </div>

@@ -9,7 +9,6 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
-	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
@@ -95,230 +94,15 @@ func (r *sub2APIRepo) LatestUpstreamErrorRecordTime(ctx context.Context) (*time.
 	return &record.RequestTime, nil
 }
 
-func (r *sub2APIRepo) Totals(ctx context.Context, start *time.Time, excludeTestModels bool) (sub2apipkg.Totals, error) {
-	base := func() *gen.Sub2APIUsageRecordQuery {
-		query := r.data.db.Sub2APIUsageRecord.Query()
-		if start != nil {
-			query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
-		}
-		return query
+// RecordsSince 按时间升序读取 start（含）之后的记录；start 为 nil 时返回全部记录。
+// 聚合统计统一改为读取记录后在内存中计算（见 pkg/sub2api），因此数据层只保留这一个读取入口，
+// 把原先一个页面数十次的聚合查询降到一次。
+func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time) ([]*sub2apipkg.UsageRecord, error) {
+	query := r.data.db.Sub2APIUsageRecord.Query()
+	if start != nil {
+		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
 	}
-
-	totalCount, err := base().Count(ctx)
-	if err != nil || totalCount == 0 {
-		return sub2apipkg.Totals{}, err
-	}
-	requestCount, err := base().Where(rateEligiblePredicate()).Count(ctx)
-	if err != nil {
-		return sub2apipkg.Totals{}, err
-	}
-	successCount, err := base().Where(sub2apiusagerecord.SuccessEQ(true)).Count(ctx)
-	if err != nil {
-		return sub2apipkg.Totals{}, err
-	}
-
-	var tokenRows []struct {
-		TokenCount int64 `json:"token_count"`
-	}
-	if err = base().Aggregate(
-		gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "token_count"),
-	).Scan(ctx, &tokenRows); err != nil {
-		return sub2apipkg.Totals{}, err
-	}
-
-	var latencyRows []struct {
-		AverageLatencyMS float64 `json:"average_latency_ms"`
-	}
-	if err = base().Where(sub2apiusagerecord.SuccessEQ(true)).Aggregate(
-		gen.As(gen.Mean(sub2apiusagerecord.FieldLatencyMs), "average_latency_ms"),
-	).Scan(ctx, &latencyRows); err != nil {
-		return sub2apipkg.Totals{}, err
-	}
-
-	var tpsRows []struct {
-		AverageTPS float64 `json:"average_tps"`
-	}
-	tpsQuery := base().Where(sub2apiusagerecord.TpsGT(0))
-	if excludeTestModels {
-		tpsQuery = tpsQuery.Where(excludeTestModelPredicate())
-	}
-	if err = tpsQuery.Aggregate(
-		gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "average_tps"),
-	).Scan(ctx, &tpsRows); err != nil {
-		return sub2apipkg.Totals{}, err
-	}
-
-	totals := sub2apipkg.Totals{
-		TotalCount:   int64(totalCount),
-		RequestCount: int64(requestCount),
-		SuccessCount: int64(successCount),
-	}
-	if len(tokenRows) > 0 {
-		totals.TokenCount = tokenRows[0].TokenCount
-	}
-	if len(latencyRows) > 0 {
-		totals.AverageLatencyMS = latencyRows[0].AverageLatencyMS
-	}
-	if len(tpsRows) > 0 {
-		totals.AverageTPS = tpsRows[0].AverageTPS
-	}
-	return totals, nil
-}
-
-func (r *sub2APIRepo) DailyUsage(ctx context.Context, start time.Time) ([]sub2apipkg.DailyUsageRow, error) {
-	var rows []struct {
-		RequestDate  string `json:"request_date"`
-		RequestCount int64  `json:"count"`
-		TokenCount   int64  `json:"token_count"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), rateEligiblePredicate()).
-		GroupBy(sub2apiusagerecord.FieldRequestDate).
-		Aggregate(gen.Count(), gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "token_count")).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-	result := make([]sub2apipkg.DailyUsageRow, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, sub2apipkg.DailyUsageRow{
-			Date:         row.RequestDate,
-			RequestCount: row.RequestCount,
-			TokenCount:   row.TokenCount,
-		})
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) DailySuccess(ctx context.Context, start time.Time) ([]sub2apipkg.DateCountRow, error) {
-	var rows []struct {
-		RequestDate string `json:"request_date"`
-		Count       int64  `json:"count"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), sub2apiusagerecord.SuccessEQ(true)).
-		GroupBy(sub2apiusagerecord.FieldRequestDate).
-		Aggregate(gen.Count()).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-	result := make([]sub2apipkg.DateCountRow, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, sub2apipkg.DateCountRow{Date: row.RequestDate, Count: row.Count})
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) DailyLatency(ctx context.Context, start time.Time) ([]sub2apipkg.DateLatencyRow, error) {
-	var rows []struct {
-		RequestDate      string  `json:"request_date"`
-		AverageLatencyMS float64 `json:"average_latency_ms"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), sub2apiusagerecord.SuccessEQ(true)).
-		GroupBy(sub2apiusagerecord.FieldRequestDate).
-		Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldLatencyMs), "average_latency_ms")).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-	result := make([]sub2apipkg.DateLatencyRow, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, sub2apipkg.DateLatencyRow{Date: row.RequestDate, AverageLatencyMS: row.AverageLatencyMS})
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) TopUsage(ctx context.Context, start time.Time, field sub2apipkg.GroupField) ([]sub2apipkg.NamedUsageRow, error) {
-	column := groupFieldColumn(field)
-	var rows []struct {
-		Model        string `json:"model"`
-		Endpoint     string `json:"endpoint"`
-		RequestCount int64  `json:"count"`
-		TokenCount   int64  `json:"token_count"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), rateEligiblePredicate(), nonEmptyGroupPredicate(field)).
-		GroupBy(column).
-		Aggregate(gen.Count(), gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "token_count")).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-
-	// 平均 token 生成速度：仅统计 tps>0 的请求，0 不参与计算以免拉低均值。
-	// 此处按模型拆分，mini 等测试模型作为独立条目正常统计，不在明细中剔除。
-	var tpsRows []struct {
-		Model      string  `json:"model"`
-		Endpoint   string  `json:"endpoint"`
-		AverageTPS float64 `json:"average_tps"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), sub2apiusagerecord.TpsGT(0), nonEmptyGroupPredicate(field)).
-		GroupBy(column).
-		Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "average_tps")).
-		Scan(ctx, &tpsRows); err != nil {
-		return nil, err
-	}
-	tpsByName := make(map[string]float64, len(tpsRows))
-	for _, row := range tpsRows {
-		tpsByName[pickGroupName(field, row.Model, row.Endpoint)] = row.AverageTPS
-	}
-
-	result := make([]sub2apipkg.NamedUsageRow, 0, len(rows))
-	for _, row := range rows {
-		name := pickGroupName(field, row.Model, row.Endpoint)
-		result = append(result, sub2apipkg.NamedUsageRow{
-			Name:         name,
-			RequestCount: row.RequestCount,
-			TokenCount:   row.TokenCount,
-			AverageTPS:   tpsByName[name],
-		})
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) TopSuccess(ctx context.Context, start time.Time, field sub2apipkg.GroupField) ([]sub2apipkg.NameCountRow, error) {
-	column := groupFieldColumn(field)
-	var rows []struct {
-		Model    string `json:"model"`
-		Endpoint string `json:"endpoint"`
-		Count    int64  `json:"count"`
-	}
-	if err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start), sub2apiusagerecord.SuccessEQ(true), nonEmptyGroupPredicate(field)).
-		GroupBy(column).
-		Aggregate(gen.Count()).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-	result := make([]sub2apipkg.NameCountRow, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, sub2apipkg.NameCountRow{
-			Name:  pickGroupName(field, row.Model, row.Endpoint),
-			Count: row.Count,
-		})
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) RecentRecords(ctx context.Context, limit int) ([]*sub2apipkg.UsageRecord, error) {
-	records, err := r.data.db.Sub2APIUsageRecord.Query().
-		Order(gen.Desc(sub2apiusagerecord.FieldRequestTime)).
-		Limit(limit).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*sub2apipkg.UsageRecord, 0, len(records))
-	for _, record := range records {
-		result = append(result, toUsageRecord(record))
-	}
-	return result, nil
-}
-
-func (r *sub2APIRepo) RecordsSince(ctx context.Context, start time.Time) ([]*sub2apipkg.UsageRecord, error) {
-	records, err := r.data.db.Sub2APIUsageRecord.Query().
-		Where(sub2apiusagerecord.RequestTimeGTE(start)).
-		Order(gen.Asc(sub2apiusagerecord.FieldRequestTime)).
-		All(ctx)
+	records, err := query.Order(gen.Asc(sub2apiusagerecord.FieldRequestTime)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -343,40 +127,6 @@ func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 		OutputTokens: record.OutputTokens,
 		TPS:          record.Tps,
 	}
-}
-
-func groupFieldColumn(field sub2apipkg.GroupField) string {
-	if field == sub2apipkg.GroupByEndpoint {
-		return sub2apiusagerecord.FieldEndpoint
-	}
-	return sub2apiusagerecord.FieldModel
-}
-
-// nonEmptyGroupPredicate 排除分组维度为空的记录，避免上游错误等无模型记录污染为“未标记”。
-func nonEmptyGroupPredicate(field sub2apipkg.GroupField) predicate.Sub2APIUsageRecord {
-	if field == sub2apipkg.GroupByEndpoint {
-		return sub2apiusagerecord.EndpointNEQ("")
-	}
-	return sub2apiusagerecord.ModelNEQ("")
-}
-
-// excludeTestModelPredicate 在计算 token 生成速度时剔除名称含 "mini" 的后端测试模型（token 极少，会拉偏均值）。
-func excludeTestModelPredicate() predicate.Sub2APIUsageRecord {
-	return sub2apiusagerecord.Not(sub2apiusagerecord.ModelContainsFold("mini"))
-}
-
-func pickGroupName(field sub2apipkg.GroupField, model, endpoint string) string {
-	if field == sub2apipkg.GroupByEndpoint {
-		return endpoint
-	}
-	return model
-}
-
-func rateEligiblePredicate() predicate.Sub2APIUsageRecord {
-	return sub2apiusagerecord.Or(
-		sub2apiusagerecord.SuccessEQ(true),
-		sub2apiusagerecord.StatusEQ(sub2apipkg.StatusUpstreamError),
-	)
 }
 
 // ---------- 公告 CRUD ----------
