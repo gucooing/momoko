@@ -32,9 +32,19 @@ const (
 	ConfigDockerTaskTimeoutSeconds    ConfigKey = "docker.task_timeout_seconds"
 	ConfigDockerRegistryAuths         ConfigKey = "docker.registry_auths"
 
-	// ConfigSub2APIConfig 存储 Sub2API 模块的完整配置（JSON）。
-	ConfigSub2APIConfig ConfigKey = "sub2api.config"
-	// ConfigSub2APISyncState 存储 Sub2API 最近一次同步状态（JSON）。
+	// Sub2API 配置（按字段拆分为独立 KV）
+	ConfigSub2APIHomeEnabled         ConfigKey = "sub2api.home_enabled"
+	ConfigSub2APISyncEnabled         ConfigKey = "sub2api.sync_enabled"
+	ConfigSub2APIBaseURL             ConfigKey = "sub2api.base_url"
+	ConfigSub2APIAdminAPIKey         ConfigKey = "sub2api.admin_api_key"
+	ConfigSub2APIConsoleURL          ConfigKey = "sub2api.console_url"
+	ConfigSub2APITitle               ConfigKey = "sub2api.title"
+	ConfigSub2APISubtitle            ConfigKey = "sub2api.subtitle"
+	ConfigSub2APIIntroduction        ConfigKey = "sub2api.introduction"
+	ConfigSub2APISyncIntervalMinutes ConfigKey = "sub2api.sync_interval_minutes"
+	ConfigSub2APIHistoryDays         ConfigKey = "sub2api.history_days"
+	ConfigSub2APIPageSize            ConfigKey = "sub2api.page_size"
+	// ConfigSub2APISyncState 存储 Sub2API 最近一次同步状态（运行时状态，JSON）。
 	ConfigSub2APISyncState ConfigKey = "sub2api.sync_state"
 )
 
@@ -68,8 +78,18 @@ var configDefaults = map[ConfigKey]string{
 	ConfigDockerTaskTimeoutSeconds:    "1800",
 	ConfigDockerRegistryAuths:         "[]",
 
-	ConfigSub2APIConfig:    "",
-	ConfigSub2APISyncState: "",
+	ConfigSub2APIHomeEnabled:         "false",
+	ConfigSub2APISyncEnabled:         "true",
+	ConfigSub2APIBaseURL:             "",
+	ConfigSub2APIAdminAPIKey:         "",
+	ConfigSub2APIConsoleURL:          "",
+	ConfigSub2APITitle:               "Sub2API",
+	ConfigSub2APISubtitle:            "统一订阅转换与模型调用看板",
+	ConfigSub2APIIntroduction:        "",
+	ConfigSub2APISyncIntervalMinutes: "10",
+	ConfigSub2APIHistoryDays:         "30",
+	ConfigSub2APIPageSize:            "500",
+	ConfigSub2APISyncState:           "",
 }
 
 func (k ConfigKey) String() string {
