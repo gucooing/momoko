@@ -126,7 +126,7 @@
 
       <footer class="footer">
         <span>© {{ year }} {{ home.title || 'Sub2API' }}</span>
-        <a v-if="dashboardUrl" :href="dashboardUrl">前往控制台</a>
+        <a v-if="dashboardUrl" :href="dashboardUrl" target="_top">前往控制台</a>
       </footer>
 
       <!-- 公告入口弹窗 -->
@@ -220,7 +220,9 @@ const dashboardUrl = computed(() => {
   return `${base.replace(/\/+$/, '')}/dashboard`
 })
 const openConsole = () => {
-  if (dashboardUrl.value) window.location.href = dashboardUrl.value
+  // 首页可能以 iframe 形式嵌入运营站点，直接改 location 只会导航 iframe 自身，
+  // 会被父级 frame-src CSP 拦截；跳转顶层窗口以离开 iframe。
+  if (dashboardUrl.value) (window.top ?? window).location.href = dashboardUrl.value
 }
 
 const heroLead = '统一接入，洞察用量'
