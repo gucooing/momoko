@@ -16,6 +16,18 @@ export const staticRoutes = [
     meta: { keepAlive: false },
   },
   {
+    path: '/public/sub2api/home',
+    name: 'Sub2APIPublicHome',
+    component: () => import('@/views/public/sub2api/home/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
+    path: '/public/sub2api/stats',
+    name: 'Sub2APIPublicStats',
+    component: () => import('@/views/public/sub2api/stats/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/index.vue'),

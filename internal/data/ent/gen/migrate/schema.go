@@ -352,6 +352,112 @@ var (
 			},
 		},
 	}
+	// Sub2apiAnnouncementsColumns holds the columns for the "sub2api_announcements" table.
+	Sub2apiAnnouncementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "content", Type: field.TypeString, Nullable: true},
+		{Name: "level", Type: field.TypeString, Default: "info"},
+		{Name: "pinned", Type: field.TypeBool, Default: false},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+	}
+	// Sub2apiAnnouncementsTable holds the schema information for the "sub2api_announcements" table.
+	Sub2apiAnnouncementsTable = &schema.Table{
+		Name:       "sub2api_announcements",
+		Columns:    Sub2apiAnnouncementsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiAnnouncementsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apiannouncement_pinned",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiAnnouncementsColumns[6]},
+			},
+			{
+				Name:    "sub2apiannouncement_published_at",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiAnnouncementsColumns[7]},
+			},
+		},
+	}
+	// Sub2apiTimelineItemsColumns holds the columns for the "sub2api_timeline_items" table.
+	Sub2apiTimelineItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "content", Type: field.TypeString, Nullable: true},
+		{Name: "category", Type: field.TypeString, Default: "更新"},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+	}
+	// Sub2apiTimelineItemsTable holds the schema information for the "sub2api_timeline_items" table.
+	Sub2apiTimelineItemsTable = &schema.Table{
+		Name:       "sub2api_timeline_items",
+		Columns:    Sub2apiTimelineItemsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiTimelineItemsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apitimelineitem_published_at",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiTimelineItemsColumns[6]},
+			},
+		},
+	}
+	// Sub2apiUsageRecordsColumns holds the columns for the "sub2api_usage_records" table.
+	Sub2apiUsageRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "request_time", Type: field.TypeTime},
+		{Name: "request_date", Type: field.TypeString},
+		{Name: "model", Type: field.TypeString, Nullable: true},
+		{Name: "endpoint", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeString, Nullable: true},
+		{Name: "success", Type: field.TypeBool, Default: false},
+		{Name: "latency_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "token_count", Type: field.TypeInt64, Default: 0},
+		{Name: "output_tokens", Type: field.TypeInt64, Default: 0},
+		{Name: "tps", Type: field.TypeFloat64, Default: 0},
+	}
+	// Sub2apiUsageRecordsTable holds the schema information for the "sub2api_usage_records" table.
+	Sub2apiUsageRecordsTable = &schema.Table{
+		Name:       "sub2api_usage_records",
+		Columns:    Sub2apiUsageRecordsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiUsageRecordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apiusagerecord_request_time",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[3]},
+			},
+			{
+				Name:    "sub2apiusagerecord_request_date",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[4]},
+			},
+			{
+				Name:    "sub2apiusagerecord_success",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
+			},
+			{
+				Name:    "sub2apiusagerecord_status",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[7]},
+			},
+			{
+				Name:    "sub2apiusagerecord_model",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[5]},
+			},
+			{
+				Name:    "sub2apiusagerecord_endpoint",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[6]},
+			},
+		},
+	}
 	// ConfigsColumns holds the columns for the "configs" table.
 	ConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -496,6 +602,9 @@ var (
 		PortForwardsTable,
 		RolesTable,
 		SSHHostsTable,
+		Sub2apiAnnouncementsTable,
+		Sub2apiTimelineItemsTable,
+		Sub2apiUsageRecordsTable,
 		ConfigsTable,
 		UsersTable,
 		UserAPIKeysTable,

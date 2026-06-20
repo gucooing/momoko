@@ -31,6 +31,11 @@ const (
 	ConfigDockerDefaultLogTail        ConfigKey = "docker.default_log_tail"
 	ConfigDockerTaskTimeoutSeconds    ConfigKey = "docker.task_timeout_seconds"
 	ConfigDockerRegistryAuths         ConfigKey = "docker.registry_auths"
+
+	// ConfigSub2APIConfig 存储 Sub2API 模块的完整配置（JSON）。
+	ConfigSub2APIConfig ConfigKey = "sub2api.config"
+	// ConfigSub2APISyncState 存储 Sub2API 最近一次同步状态（JSON）。
+	ConfigSub2APISyncState ConfigKey = "sub2api.sync_state"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -62,6 +67,9 @@ var configDefaults = map[ConfigKey]string{
 	ConfigDockerDefaultLogTail:        "200",
 	ConfigDockerTaskTimeoutSeconds:    "1800",
 	ConfigDockerRegistryAuths:         "[]",
+
+	ConfigSub2APIConfig:    "",
+	ConfigSub2APISyncState: "",
 }
 
 func (k ConfigKey) String() string {

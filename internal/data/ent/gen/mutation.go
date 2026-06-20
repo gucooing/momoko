@@ -18,6 +18,9 @@ import (
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
+	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apitimelineitem"
+	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
@@ -37,20 +40,23 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAuth            = "Auth"
-	TypeEmailTemplate   = "EmailTemplate"
-	TypeFileUpload      = "FileUpload"
-	TypeFileUploadChunk = "FileUploadChunk"
-	TypeInstance        = "Instance"
-	TypeInstanceType    = "InstanceType"
-	TypeMenu            = "Menu"
-	TypeOperationLog    = "OperationLog"
-	TypePortForward     = "PortForward"
-	TypeRole            = "Role"
-	TypeSSHHost         = "SSHHost"
-	TypeSystemConfig    = "SystemConfig"
-	TypeUser            = "User"
-	TypeUserAPIKey      = "UserAPIKey"
+	TypeAuth                = "Auth"
+	TypeEmailTemplate       = "EmailTemplate"
+	TypeFileUpload          = "FileUpload"
+	TypeFileUploadChunk     = "FileUploadChunk"
+	TypeInstance            = "Instance"
+	TypeInstanceType        = "InstanceType"
+	TypeMenu                = "Menu"
+	TypeOperationLog        = "OperationLog"
+	TypePortForward         = "PortForward"
+	TypeRole                = "Role"
+	TypeSSHHost             = "SSHHost"
+	TypeSub2APIAnnouncement = "Sub2APIAnnouncement"
+	TypeSub2APITimelineItem = "Sub2APITimelineItem"
+	TypeSub2APIUsageRecord  = "Sub2APIUsageRecord"
+	TypeSystemConfig        = "SystemConfig"
+	TypeUser                = "User"
+	TypeUserAPIKey          = "UserAPIKey"
 )
 
 // AuthMutation represents an operation that mutates the Auth nodes in the graph.
@@ -9914,6 +9920,2505 @@ func (m *SSHHostMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown SSHHost edge %s", name)
+}
+
+// Sub2APIAnnouncementMutation represents an operation that mutates the Sub2APIAnnouncement nodes in the graph.
+type Sub2APIAnnouncementMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
+	title         *string
+	content       *string
+	level         *string
+	pinned        *bool
+	published_at  *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Sub2APIAnnouncement, error)
+	predicates    []predicate.Sub2APIAnnouncement
+}
+
+var _ ent.Mutation = (*Sub2APIAnnouncementMutation)(nil)
+
+// sub2apiannouncementOption allows management of the mutation configuration using functional options.
+type sub2apiannouncementOption func(*Sub2APIAnnouncementMutation)
+
+// newSub2APIAnnouncementMutation creates new mutation for the Sub2APIAnnouncement entity.
+func newSub2APIAnnouncementMutation(c config, op Op, opts ...sub2apiannouncementOption) *Sub2APIAnnouncementMutation {
+	m := &Sub2APIAnnouncementMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APIAnnouncement,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APIAnnouncementID sets the ID field of the mutation.
+func withSub2APIAnnouncementID(id string) sub2apiannouncementOption {
+	return func(m *Sub2APIAnnouncementMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APIAnnouncement
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APIAnnouncement, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APIAnnouncement.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APIAnnouncement sets the old Sub2APIAnnouncement of the mutation.
+func withSub2APIAnnouncement(node *Sub2APIAnnouncement) sub2apiannouncementOption {
+	return func(m *Sub2APIAnnouncementMutation) {
+		m.oldValue = func(context.Context) (*Sub2APIAnnouncement, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APIAnnouncementMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APIAnnouncementMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Sub2APIAnnouncement entities.
+func (m *Sub2APIAnnouncementMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APIAnnouncementMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APIAnnouncementMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APIAnnouncement.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APIAnnouncementMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APIAnnouncementMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APIAnnouncementMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APIAnnouncementMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *Sub2APIAnnouncementMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *Sub2APIAnnouncementMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[sub2apiannouncement.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[sub2apiannouncement.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *Sub2APIAnnouncementMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, sub2apiannouncement.FieldTitle)
+}
+
+// SetContent sets the "content" field.
+func (m *Sub2APIAnnouncementMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ClearContent clears the value of the "content" field.
+func (m *Sub2APIAnnouncementMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[sub2apiannouncement.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[sub2apiannouncement.FieldContent]
+	return ok
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *Sub2APIAnnouncementMutation) ResetContent() {
+	m.content = nil
+	delete(m.clearedFields, sub2apiannouncement.FieldContent)
+}
+
+// SetLevel sets the "level" field.
+func (m *Sub2APIAnnouncementMutation) SetLevel(s string) {
+	m.level = &s
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) Level() (r string, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldLevel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *Sub2APIAnnouncementMutation) ResetLevel() {
+	m.level = nil
+}
+
+// SetPinned sets the "pinned" field.
+func (m *Sub2APIAnnouncementMutation) SetPinned(b bool) {
+	m.pinned = &b
+}
+
+// Pinned returns the value of the "pinned" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) Pinned() (r bool, exists bool) {
+	v := m.pinned
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPinned returns the old "pinned" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldPinned(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPinned is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPinned requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPinned: %w", err)
+	}
+	return oldValue.Pinned, nil
+}
+
+// ResetPinned resets all changes to the "pinned" field.
+func (m *Sub2APIAnnouncementMutation) ResetPinned() {
+	m.pinned = nil
+}
+
+// SetPublishedAt sets the "published_at" field.
+func (m *Sub2APIAnnouncementMutation) SetPublishedAt(t time.Time) {
+	m.published_at = &t
+}
+
+// PublishedAt returns the value of the "published_at" field in the mutation.
+func (m *Sub2APIAnnouncementMutation) PublishedAt() (r time.Time, exists bool) {
+	v := m.published_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedAt returns the old "published_at" field's value of the Sub2APIAnnouncement entity.
+// If the Sub2APIAnnouncement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIAnnouncementMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedAt: %w", err)
+	}
+	return oldValue.PublishedAt, nil
+}
+
+// ClearPublishedAt clears the value of the "published_at" field.
+func (m *Sub2APIAnnouncementMutation) ClearPublishedAt() {
+	m.published_at = nil
+	m.clearedFields[sub2apiannouncement.FieldPublishedAt] = struct{}{}
+}
+
+// PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) PublishedAtCleared() bool {
+	_, ok := m.clearedFields[sub2apiannouncement.FieldPublishedAt]
+	return ok
+}
+
+// ResetPublishedAt resets all changes to the "published_at" field.
+func (m *Sub2APIAnnouncementMutation) ResetPublishedAt() {
+	m.published_at = nil
+	delete(m.clearedFields, sub2apiannouncement.FieldPublishedAt)
+}
+
+// Where appends a list predicates to the Sub2APIAnnouncementMutation builder.
+func (m *Sub2APIAnnouncementMutation) Where(ps ...predicate.Sub2APIAnnouncement) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APIAnnouncementMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APIAnnouncementMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APIAnnouncement, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APIAnnouncementMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APIAnnouncementMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APIAnnouncement).
+func (m *Sub2APIAnnouncementMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APIAnnouncementMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.create_time != nil {
+		fields = append(fields, sub2apiannouncement.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apiannouncement.FieldUpdateTime)
+	}
+	if m.title != nil {
+		fields = append(fields, sub2apiannouncement.FieldTitle)
+	}
+	if m.content != nil {
+		fields = append(fields, sub2apiannouncement.FieldContent)
+	}
+	if m.level != nil {
+		fields = append(fields, sub2apiannouncement.FieldLevel)
+	}
+	if m.pinned != nil {
+		fields = append(fields, sub2apiannouncement.FieldPinned)
+	}
+	if m.published_at != nil {
+		fields = append(fields, sub2apiannouncement.FieldPublishedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APIAnnouncementMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apiannouncement.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apiannouncement.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apiannouncement.FieldTitle:
+		return m.Title()
+	case sub2apiannouncement.FieldContent:
+		return m.Content()
+	case sub2apiannouncement.FieldLevel:
+		return m.Level()
+	case sub2apiannouncement.FieldPinned:
+		return m.Pinned()
+	case sub2apiannouncement.FieldPublishedAt:
+		return m.PublishedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APIAnnouncementMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apiannouncement.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apiannouncement.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apiannouncement.FieldTitle:
+		return m.OldTitle(ctx)
+	case sub2apiannouncement.FieldContent:
+		return m.OldContent(ctx)
+	case sub2apiannouncement.FieldLevel:
+		return m.OldLevel(ctx)
+	case sub2apiannouncement.FieldPinned:
+		return m.OldPinned(ctx)
+	case sub2apiannouncement.FieldPublishedAt:
+		return m.OldPublishedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APIAnnouncement field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIAnnouncementMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apiannouncement.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apiannouncement.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apiannouncement.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case sub2apiannouncement.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case sub2apiannouncement.FieldLevel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case sub2apiannouncement.FieldPinned:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPinned(v)
+		return nil
+	case sub2apiannouncement.FieldPublishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIAnnouncement field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APIAnnouncementMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APIAnnouncementMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIAnnouncementMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Sub2APIAnnouncement numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APIAnnouncementMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sub2apiannouncement.FieldTitle) {
+		fields = append(fields, sub2apiannouncement.FieldTitle)
+	}
+	if m.FieldCleared(sub2apiannouncement.FieldContent) {
+		fields = append(fields, sub2apiannouncement.FieldContent)
+	}
+	if m.FieldCleared(sub2apiannouncement.FieldPublishedAt) {
+		fields = append(fields, sub2apiannouncement.FieldPublishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APIAnnouncementMutation) ClearField(name string) error {
+	switch name {
+	case sub2apiannouncement.FieldTitle:
+		m.ClearTitle()
+		return nil
+	case sub2apiannouncement.FieldContent:
+		m.ClearContent()
+		return nil
+	case sub2apiannouncement.FieldPublishedAt:
+		m.ClearPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIAnnouncement nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APIAnnouncementMutation) ResetField(name string) error {
+	switch name {
+	case sub2apiannouncement.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apiannouncement.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apiannouncement.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case sub2apiannouncement.FieldContent:
+		m.ResetContent()
+		return nil
+	case sub2apiannouncement.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case sub2apiannouncement.FieldPinned:
+		m.ResetPinned()
+		return nil
+	case sub2apiannouncement.FieldPublishedAt:
+		m.ResetPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIAnnouncement field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APIAnnouncementMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APIAnnouncementMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APIAnnouncementMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APIAnnouncementMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APIAnnouncementMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APIAnnouncementMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APIAnnouncement unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APIAnnouncementMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APIAnnouncement edge %s", name)
+}
+
+// Sub2APITimelineItemMutation represents an operation that mutates the Sub2APITimelineItem nodes in the graph.
+type Sub2APITimelineItemMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
+	title         *string
+	content       *string
+	category      *string
+	published_at  *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Sub2APITimelineItem, error)
+	predicates    []predicate.Sub2APITimelineItem
+}
+
+var _ ent.Mutation = (*Sub2APITimelineItemMutation)(nil)
+
+// sub2apitimelineitemOption allows management of the mutation configuration using functional options.
+type sub2apitimelineitemOption func(*Sub2APITimelineItemMutation)
+
+// newSub2APITimelineItemMutation creates new mutation for the Sub2APITimelineItem entity.
+func newSub2APITimelineItemMutation(c config, op Op, opts ...sub2apitimelineitemOption) *Sub2APITimelineItemMutation {
+	m := &Sub2APITimelineItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APITimelineItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APITimelineItemID sets the ID field of the mutation.
+func withSub2APITimelineItemID(id string) sub2apitimelineitemOption {
+	return func(m *Sub2APITimelineItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APITimelineItem
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APITimelineItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APITimelineItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APITimelineItem sets the old Sub2APITimelineItem of the mutation.
+func withSub2APITimelineItem(node *Sub2APITimelineItem) sub2apitimelineitemOption {
+	return func(m *Sub2APITimelineItemMutation) {
+		m.oldValue = func(context.Context) (*Sub2APITimelineItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APITimelineItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APITimelineItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Sub2APITimelineItem entities.
+func (m *Sub2APITimelineItemMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APITimelineItemMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APITimelineItemMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APITimelineItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APITimelineItemMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APITimelineItemMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APITimelineItemMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APITimelineItemMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APITimelineItemMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APITimelineItemMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *Sub2APITimelineItemMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *Sub2APITimelineItemMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *Sub2APITimelineItemMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[sub2apitimelineitem.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[sub2apitimelineitem.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *Sub2APITimelineItemMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, sub2apitimelineitem.FieldTitle)
+}
+
+// SetContent sets the "content" field.
+func (m *Sub2APITimelineItemMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *Sub2APITimelineItemMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ClearContent clears the value of the "content" field.
+func (m *Sub2APITimelineItemMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[sub2apitimelineitem.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[sub2apitimelineitem.FieldContent]
+	return ok
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *Sub2APITimelineItemMutation) ResetContent() {
+	m.content = nil
+	delete(m.clearedFields, sub2apitimelineitem.FieldContent)
+}
+
+// SetCategory sets the "category" field.
+func (m *Sub2APITimelineItemMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *Sub2APITimelineItemMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldCategory(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *Sub2APITimelineItemMutation) ResetCategory() {
+	m.category = nil
+}
+
+// SetPublishedAt sets the "published_at" field.
+func (m *Sub2APITimelineItemMutation) SetPublishedAt(t time.Time) {
+	m.published_at = &t
+}
+
+// PublishedAt returns the value of the "published_at" field in the mutation.
+func (m *Sub2APITimelineItemMutation) PublishedAt() (r time.Time, exists bool) {
+	v := m.published_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedAt returns the old "published_at" field's value of the Sub2APITimelineItem entity.
+// If the Sub2APITimelineItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APITimelineItemMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedAt: %w", err)
+	}
+	return oldValue.PublishedAt, nil
+}
+
+// ClearPublishedAt clears the value of the "published_at" field.
+func (m *Sub2APITimelineItemMutation) ClearPublishedAt() {
+	m.published_at = nil
+	m.clearedFields[sub2apitimelineitem.FieldPublishedAt] = struct{}{}
+}
+
+// PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) PublishedAtCleared() bool {
+	_, ok := m.clearedFields[sub2apitimelineitem.FieldPublishedAt]
+	return ok
+}
+
+// ResetPublishedAt resets all changes to the "published_at" field.
+func (m *Sub2APITimelineItemMutation) ResetPublishedAt() {
+	m.published_at = nil
+	delete(m.clearedFields, sub2apitimelineitem.FieldPublishedAt)
+}
+
+// Where appends a list predicates to the Sub2APITimelineItemMutation builder.
+func (m *Sub2APITimelineItemMutation) Where(ps ...predicate.Sub2APITimelineItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APITimelineItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APITimelineItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APITimelineItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APITimelineItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APITimelineItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APITimelineItem).
+func (m *Sub2APITimelineItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APITimelineItemMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, sub2apitimelineitem.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apitimelineitem.FieldUpdateTime)
+	}
+	if m.title != nil {
+		fields = append(fields, sub2apitimelineitem.FieldTitle)
+	}
+	if m.content != nil {
+		fields = append(fields, sub2apitimelineitem.FieldContent)
+	}
+	if m.category != nil {
+		fields = append(fields, sub2apitimelineitem.FieldCategory)
+	}
+	if m.published_at != nil {
+		fields = append(fields, sub2apitimelineitem.FieldPublishedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APITimelineItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apitimelineitem.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apitimelineitem.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apitimelineitem.FieldTitle:
+		return m.Title()
+	case sub2apitimelineitem.FieldContent:
+		return m.Content()
+	case sub2apitimelineitem.FieldCategory:
+		return m.Category()
+	case sub2apitimelineitem.FieldPublishedAt:
+		return m.PublishedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APITimelineItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apitimelineitem.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apitimelineitem.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apitimelineitem.FieldTitle:
+		return m.OldTitle(ctx)
+	case sub2apitimelineitem.FieldContent:
+		return m.OldContent(ctx)
+	case sub2apitimelineitem.FieldCategory:
+		return m.OldCategory(ctx)
+	case sub2apitimelineitem.FieldPublishedAt:
+		return m.OldPublishedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APITimelineItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APITimelineItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apitimelineitem.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apitimelineitem.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apitimelineitem.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case sub2apitimelineitem.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case sub2apitimelineitem.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case sub2apitimelineitem.FieldPublishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APITimelineItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APITimelineItemMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APITimelineItemMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APITimelineItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Sub2APITimelineItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APITimelineItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sub2apitimelineitem.FieldTitle) {
+		fields = append(fields, sub2apitimelineitem.FieldTitle)
+	}
+	if m.FieldCleared(sub2apitimelineitem.FieldContent) {
+		fields = append(fields, sub2apitimelineitem.FieldContent)
+	}
+	if m.FieldCleared(sub2apitimelineitem.FieldPublishedAt) {
+		fields = append(fields, sub2apitimelineitem.FieldPublishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APITimelineItemMutation) ClearField(name string) error {
+	switch name {
+	case sub2apitimelineitem.FieldTitle:
+		m.ClearTitle()
+		return nil
+	case sub2apitimelineitem.FieldContent:
+		m.ClearContent()
+		return nil
+	case sub2apitimelineitem.FieldPublishedAt:
+		m.ClearPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APITimelineItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APITimelineItemMutation) ResetField(name string) error {
+	switch name {
+	case sub2apitimelineitem.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apitimelineitem.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apitimelineitem.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case sub2apitimelineitem.FieldContent:
+		m.ResetContent()
+		return nil
+	case sub2apitimelineitem.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case sub2apitimelineitem.FieldPublishedAt:
+		m.ResetPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APITimelineItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APITimelineItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APITimelineItemMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APITimelineItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APITimelineItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APITimelineItemMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APITimelineItemMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APITimelineItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APITimelineItemMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APITimelineItem edge %s", name)
+}
+
+// Sub2APIUsageRecordMutation represents an operation that mutates the Sub2APIUsageRecord nodes in the graph.
+type Sub2APIUsageRecordMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *string
+	create_time      *time.Time
+	update_time      *time.Time
+	request_time     *time.Time
+	request_date     *string
+	model            *string
+	endpoint         *string
+	status           *string
+	success          *bool
+	latency_ms       *int64
+	addlatency_ms    *int64
+	token_count      *int64
+	addtoken_count   *int64
+	output_tokens    *int64
+	addoutput_tokens *int64
+	tps              *float64
+	addtps           *float64
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*Sub2APIUsageRecord, error)
+	predicates       []predicate.Sub2APIUsageRecord
+}
+
+var _ ent.Mutation = (*Sub2APIUsageRecordMutation)(nil)
+
+// sub2apiusagerecordOption allows management of the mutation configuration using functional options.
+type sub2apiusagerecordOption func(*Sub2APIUsageRecordMutation)
+
+// newSub2APIUsageRecordMutation creates new mutation for the Sub2APIUsageRecord entity.
+func newSub2APIUsageRecordMutation(c config, op Op, opts ...sub2apiusagerecordOption) *Sub2APIUsageRecordMutation {
+	m := &Sub2APIUsageRecordMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APIUsageRecord,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APIUsageRecordID sets the ID field of the mutation.
+func withSub2APIUsageRecordID(id string) sub2apiusagerecordOption {
+	return func(m *Sub2APIUsageRecordMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APIUsageRecord
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APIUsageRecord, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APIUsageRecord.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APIUsageRecord sets the old Sub2APIUsageRecord of the mutation.
+func withSub2APIUsageRecord(node *Sub2APIUsageRecord) sub2apiusagerecordOption {
+	return func(m *Sub2APIUsageRecordMutation) {
+		m.oldValue = func(context.Context) (*Sub2APIUsageRecord, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APIUsageRecordMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APIUsageRecordMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Sub2APIUsageRecord entities.
+func (m *Sub2APIUsageRecordMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APIUsageRecordMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APIUsageRecordMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APIUsageRecord.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APIUsageRecordMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APIUsageRecordMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APIUsageRecordMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APIUsageRecordMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetRequestTime sets the "request_time" field.
+func (m *Sub2APIUsageRecordMutation) SetRequestTime(t time.Time) {
+	m.request_time = &t
+}
+
+// RequestTime returns the value of the "request_time" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) RequestTime() (r time.Time, exists bool) {
+	v := m.request_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestTime returns the old "request_time" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldRequestTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestTime: %w", err)
+	}
+	return oldValue.RequestTime, nil
+}
+
+// ResetRequestTime resets all changes to the "request_time" field.
+func (m *Sub2APIUsageRecordMutation) ResetRequestTime() {
+	m.request_time = nil
+}
+
+// SetRequestDate sets the "request_date" field.
+func (m *Sub2APIUsageRecordMutation) SetRequestDate(s string) {
+	m.request_date = &s
+}
+
+// RequestDate returns the value of the "request_date" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) RequestDate() (r string, exists bool) {
+	v := m.request_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestDate returns the old "request_date" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldRequestDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestDate: %w", err)
+	}
+	return oldValue.RequestDate, nil
+}
+
+// ResetRequestDate resets all changes to the "request_date" field.
+func (m *Sub2APIUsageRecordMutation) ResetRequestDate() {
+	m.request_date = nil
+}
+
+// SetModel sets the "model" field.
+func (m *Sub2APIUsageRecordMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ClearModel clears the value of the "model" field.
+func (m *Sub2APIUsageRecordMutation) ClearModel() {
+	m.model = nil
+	m.clearedFields[sub2apiusagerecord.FieldModel] = struct{}{}
+}
+
+// ModelCleared returns if the "model" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) ModelCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldModel]
+	return ok
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *Sub2APIUsageRecordMutation) ResetModel() {
+	m.model = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldModel)
+}
+
+// SetEndpoint sets the "endpoint" field.
+func (m *Sub2APIUsageRecordMutation) SetEndpoint(s string) {
+	m.endpoint = &s
+}
+
+// Endpoint returns the value of the "endpoint" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Endpoint() (r string, exists bool) {
+	v := m.endpoint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndpoint returns the old "endpoint" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldEndpoint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndpoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndpoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndpoint: %w", err)
+	}
+	return oldValue.Endpoint, nil
+}
+
+// ClearEndpoint clears the value of the "endpoint" field.
+func (m *Sub2APIUsageRecordMutation) ClearEndpoint() {
+	m.endpoint = nil
+	m.clearedFields[sub2apiusagerecord.FieldEndpoint] = struct{}{}
+}
+
+// EndpointCleared returns if the "endpoint" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) EndpointCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldEndpoint]
+	return ok
+}
+
+// ResetEndpoint resets all changes to the "endpoint" field.
+func (m *Sub2APIUsageRecordMutation) ResetEndpoint() {
+	m.endpoint = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldEndpoint)
+}
+
+// SetStatus sets the "status" field.
+func (m *Sub2APIUsageRecordMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *Sub2APIUsageRecordMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[sub2apiusagerecord.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *Sub2APIUsageRecordMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldStatus)
+}
+
+// SetSuccess sets the "success" field.
+func (m *Sub2APIUsageRecordMutation) SetSuccess(b bool) {
+	m.success = &b
+}
+
+// Success returns the value of the "success" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Success() (r bool, exists bool) {
+	v := m.success
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuccess returns the old "success" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldSuccess(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuccess is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuccess requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuccess: %w", err)
+	}
+	return oldValue.Success, nil
+}
+
+// ResetSuccess resets all changes to the "success" field.
+func (m *Sub2APIUsageRecordMutation) ResetSuccess() {
+	m.success = nil
+}
+
+// SetLatencyMs sets the "latency_ms" field.
+func (m *Sub2APIUsageRecordMutation) SetLatencyMs(i int64) {
+	m.latency_ms = &i
+	m.addlatency_ms = nil
+}
+
+// LatencyMs returns the value of the "latency_ms" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) LatencyMs() (r int64, exists bool) {
+	v := m.latency_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLatencyMs returns the old "latency_ms" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldLatencyMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLatencyMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLatencyMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLatencyMs: %w", err)
+	}
+	return oldValue.LatencyMs, nil
+}
+
+// AddLatencyMs adds i to the "latency_ms" field.
+func (m *Sub2APIUsageRecordMutation) AddLatencyMs(i int64) {
+	if m.addlatency_ms != nil {
+		*m.addlatency_ms += i
+	} else {
+		m.addlatency_ms = &i
+	}
+}
+
+// AddedLatencyMs returns the value that was added to the "latency_ms" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedLatencyMs() (r int64, exists bool) {
+	v := m.addlatency_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLatencyMs resets all changes to the "latency_ms" field.
+func (m *Sub2APIUsageRecordMutation) ResetLatencyMs() {
+	m.latency_ms = nil
+	m.addlatency_ms = nil
+}
+
+// SetTokenCount sets the "token_count" field.
+func (m *Sub2APIUsageRecordMutation) SetTokenCount(i int64) {
+	m.token_count = &i
+	m.addtoken_count = nil
+}
+
+// TokenCount returns the value of the "token_count" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) TokenCount() (r int64, exists bool) {
+	v := m.token_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenCount returns the old "token_count" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldTokenCount(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenCount: %w", err)
+	}
+	return oldValue.TokenCount, nil
+}
+
+// AddTokenCount adds i to the "token_count" field.
+func (m *Sub2APIUsageRecordMutation) AddTokenCount(i int64) {
+	if m.addtoken_count != nil {
+		*m.addtoken_count += i
+	} else {
+		m.addtoken_count = &i
+	}
+}
+
+// AddedTokenCount returns the value that was added to the "token_count" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedTokenCount() (r int64, exists bool) {
+	v := m.addtoken_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTokenCount resets all changes to the "token_count" field.
+func (m *Sub2APIUsageRecordMutation) ResetTokenCount() {
+	m.token_count = nil
+	m.addtoken_count = nil
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (m *Sub2APIUsageRecordMutation) SetOutputTokens(i int64) {
+	m.output_tokens = &i
+	m.addoutput_tokens = nil
+}
+
+// OutputTokens returns the value of the "output_tokens" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) OutputTokens() (r int64, exists bool) {
+	v := m.output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputTokens returns the old "output_tokens" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldOutputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputTokens: %w", err)
+	}
+	return oldValue.OutputTokens, nil
+}
+
+// AddOutputTokens adds i to the "output_tokens" field.
+func (m *Sub2APIUsageRecordMutation) AddOutputTokens(i int64) {
+	if m.addoutput_tokens != nil {
+		*m.addoutput_tokens += i
+	} else {
+		m.addoutput_tokens = &i
+	}
+}
+
+// AddedOutputTokens returns the value that was added to the "output_tokens" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedOutputTokens() (r int64, exists bool) {
+	v := m.addoutput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOutputTokens resets all changes to the "output_tokens" field.
+func (m *Sub2APIUsageRecordMutation) ResetOutputTokens() {
+	m.output_tokens = nil
+	m.addoutput_tokens = nil
+}
+
+// SetTps sets the "tps" field.
+func (m *Sub2APIUsageRecordMutation) SetTps(f float64) {
+	m.tps = &f
+	m.addtps = nil
+}
+
+// Tps returns the value of the "tps" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Tps() (r float64, exists bool) {
+	v := m.tps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTps returns the old "tps" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldTps(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTps: %w", err)
+	}
+	return oldValue.Tps, nil
+}
+
+// AddTps adds f to the "tps" field.
+func (m *Sub2APIUsageRecordMutation) AddTps(f float64) {
+	if m.addtps != nil {
+		*m.addtps += f
+	} else {
+		m.addtps = &f
+	}
+}
+
+// AddedTps returns the value that was added to the "tps" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedTps() (r float64, exists bool) {
+	v := m.addtps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTps resets all changes to the "tps" field.
+func (m *Sub2APIUsageRecordMutation) ResetTps() {
+	m.tps = nil
+	m.addtps = nil
+}
+
+// Where appends a list predicates to the Sub2APIUsageRecordMutation builder.
+func (m *Sub2APIUsageRecordMutation) Where(ps ...predicate.Sub2APIUsageRecord) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APIUsageRecordMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APIUsageRecordMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APIUsageRecord, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APIUsageRecordMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APIUsageRecordMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APIUsageRecord).
+func (m *Sub2APIUsageRecordMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APIUsageRecordMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.create_time != nil {
+		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apiusagerecord.FieldUpdateTime)
+	}
+	if m.request_time != nil {
+		fields = append(fields, sub2apiusagerecord.FieldRequestTime)
+	}
+	if m.request_date != nil {
+		fields = append(fields, sub2apiusagerecord.FieldRequestDate)
+	}
+	if m.model != nil {
+		fields = append(fields, sub2apiusagerecord.FieldModel)
+	}
+	if m.endpoint != nil {
+		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
+	}
+	if m.status != nil {
+		fields = append(fields, sub2apiusagerecord.FieldStatus)
+	}
+	if m.success != nil {
+		fields = append(fields, sub2apiusagerecord.FieldSuccess)
+	}
+	if m.latency_ms != nil {
+		fields = append(fields, sub2apiusagerecord.FieldLatencyMs)
+	}
+	if m.token_count != nil {
+		fields = append(fields, sub2apiusagerecord.FieldTokenCount)
+	}
+	if m.output_tokens != nil {
+		fields = append(fields, sub2apiusagerecord.FieldOutputTokens)
+	}
+	if m.tps != nil {
+		fields = append(fields, sub2apiusagerecord.FieldTps)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apiusagerecord.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apiusagerecord.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apiusagerecord.FieldRequestTime:
+		return m.RequestTime()
+	case sub2apiusagerecord.FieldRequestDate:
+		return m.RequestDate()
+	case sub2apiusagerecord.FieldModel:
+		return m.Model()
+	case sub2apiusagerecord.FieldEndpoint:
+		return m.Endpoint()
+	case sub2apiusagerecord.FieldStatus:
+		return m.Status()
+	case sub2apiusagerecord.FieldSuccess:
+		return m.Success()
+	case sub2apiusagerecord.FieldLatencyMs:
+		return m.LatencyMs()
+	case sub2apiusagerecord.FieldTokenCount:
+		return m.TokenCount()
+	case sub2apiusagerecord.FieldOutputTokens:
+		return m.OutputTokens()
+	case sub2apiusagerecord.FieldTps:
+		return m.Tps()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apiusagerecord.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apiusagerecord.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apiusagerecord.FieldRequestTime:
+		return m.OldRequestTime(ctx)
+	case sub2apiusagerecord.FieldRequestDate:
+		return m.OldRequestDate(ctx)
+	case sub2apiusagerecord.FieldModel:
+		return m.OldModel(ctx)
+	case sub2apiusagerecord.FieldEndpoint:
+		return m.OldEndpoint(ctx)
+	case sub2apiusagerecord.FieldStatus:
+		return m.OldStatus(ctx)
+	case sub2apiusagerecord.FieldSuccess:
+		return m.OldSuccess(ctx)
+	case sub2apiusagerecord.FieldLatencyMs:
+		return m.OldLatencyMs(ctx)
+	case sub2apiusagerecord.FieldTokenCount:
+		return m.OldTokenCount(ctx)
+	case sub2apiusagerecord.FieldOutputTokens:
+		return m.OldOutputTokens(ctx)
+	case sub2apiusagerecord.FieldTps:
+		return m.OldTps(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apiusagerecord.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apiusagerecord.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apiusagerecord.FieldRequestTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestTime(v)
+		return nil
+	case sub2apiusagerecord.FieldRequestDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestDate(v)
+		return nil
+	case sub2apiusagerecord.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case sub2apiusagerecord.FieldEndpoint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndpoint(v)
+		return nil
+	case sub2apiusagerecord.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case sub2apiusagerecord.FieldSuccess:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuccess(v)
+		return nil
+	case sub2apiusagerecord.FieldLatencyMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLatencyMs(v)
+		return nil
+	case sub2apiusagerecord.FieldTokenCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenCount(v)
+		return nil
+	case sub2apiusagerecord.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputTokens(v)
+		return nil
+	case sub2apiusagerecord.FieldTps:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTps(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
+	var fields []string
+	if m.addlatency_ms != nil {
+		fields = append(fields, sub2apiusagerecord.FieldLatencyMs)
+	}
+	if m.addtoken_count != nil {
+		fields = append(fields, sub2apiusagerecord.FieldTokenCount)
+	}
+	if m.addoutput_tokens != nil {
+		fields = append(fields, sub2apiusagerecord.FieldOutputTokens)
+	}
+	if m.addtps != nil {
+		fields = append(fields, sub2apiusagerecord.FieldTps)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apiusagerecord.FieldLatencyMs:
+		return m.AddedLatencyMs()
+	case sub2apiusagerecord.FieldTokenCount:
+		return m.AddedTokenCount()
+	case sub2apiusagerecord.FieldOutputTokens:
+		return m.AddedOutputTokens()
+	case sub2apiusagerecord.FieldTps:
+		return m.AddedTps()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIUsageRecordMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sub2apiusagerecord.FieldLatencyMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLatencyMs(v)
+		return nil
+	case sub2apiusagerecord.FieldTokenCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTokenCount(v)
+		return nil
+	case sub2apiusagerecord.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOutputTokens(v)
+		return nil
+	case sub2apiusagerecord.FieldTps:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTps(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIUsageRecord numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APIUsageRecordMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sub2apiusagerecord.FieldModel) {
+		fields = append(fields, sub2apiusagerecord.FieldModel)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldEndpoint) {
+		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldStatus) {
+		fields = append(fields, sub2apiusagerecord.FieldStatus)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APIUsageRecordMutation) ClearField(name string) error {
+	switch name {
+	case sub2apiusagerecord.FieldModel:
+		m.ClearModel()
+		return nil
+	case sub2apiusagerecord.FieldEndpoint:
+		m.ClearEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldStatus:
+		m.ClearStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIUsageRecord nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
+	switch name {
+	case sub2apiusagerecord.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apiusagerecord.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apiusagerecord.FieldRequestTime:
+		m.ResetRequestTime()
+		return nil
+	case sub2apiusagerecord.FieldRequestDate:
+		m.ResetRequestDate()
+		return nil
+	case sub2apiusagerecord.FieldModel:
+		m.ResetModel()
+		return nil
+	case sub2apiusagerecord.FieldEndpoint:
+		m.ResetEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case sub2apiusagerecord.FieldSuccess:
+		m.ResetSuccess()
+		return nil
+	case sub2apiusagerecord.FieldLatencyMs:
+		m.ResetLatencyMs()
+		return nil
+	case sub2apiusagerecord.FieldTokenCount:
+		m.ResetTokenCount()
+		return nil
+	case sub2apiusagerecord.FieldOutputTokens:
+		m.ResetOutputTokens()
+		return nil
+	case sub2apiusagerecord.FieldTps:
+		m.ResetTps()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APIUsageRecordMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APIUsageRecordMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APIUsageRecordMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APIUsageRecord unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APIUsageRecordMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APIUsageRecord edge %s", name)
 }
 
 // SystemConfigMutation represents an operation that mutates the SystemConfig nodes in the graph.

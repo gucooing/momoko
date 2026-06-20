@@ -140,6 +140,42 @@ func (f SSHHostFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SSHHostMutation", m)
 }
 
+// The Sub2APIAnnouncementFunc type is an adapter to allow the use of ordinary
+// function as Sub2APIAnnouncement mutator.
+type Sub2APIAnnouncementFunc func(context.Context, *gen.Sub2APIAnnouncementMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Sub2APIAnnouncementFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.Sub2APIAnnouncementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIAnnouncementMutation", m)
+}
+
+// The Sub2APITimelineItemFunc type is an adapter to allow the use of ordinary
+// function as Sub2APITimelineItem mutator.
+type Sub2APITimelineItemFunc func(context.Context, *gen.Sub2APITimelineItemMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Sub2APITimelineItemFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.Sub2APITimelineItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APITimelineItemMutation", m)
+}
+
+// The Sub2APIUsageRecordFunc type is an adapter to allow the use of ordinary
+// function as Sub2APIUsageRecord mutator.
+type Sub2APIUsageRecordFunc func(context.Context, *gen.Sub2APIUsageRecordMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Sub2APIUsageRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.Sub2APIUsageRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIUsageRecordMutation", m)
+}
+
 // The SystemConfigFunc type is an adapter to allow the use of ordinary
 // function as SystemConfig mutator.
 type SystemConfigFunc func(context.Context, *gen.SystemConfigMutation) (gen.Value, error)

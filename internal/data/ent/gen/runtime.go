@@ -14,6 +14,9 @@ import (
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
+	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apitimelineitem"
+	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
@@ -369,6 +372,95 @@ func init() {
 	sshhostDescID := sshhostFields[0].Descriptor()
 	// sshhost.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	sshhost.IDValidator = sshhostDescID.Validators[0].(func(string) error)
+	sub2apiannouncementMixin := schema.Sub2APIAnnouncement{}.Mixin()
+	sub2apiannouncementMixinFields0 := sub2apiannouncementMixin[0].Fields()
+	_ = sub2apiannouncementMixinFields0
+	sub2apiannouncementFields := schema.Sub2APIAnnouncement{}.Fields()
+	_ = sub2apiannouncementFields
+	// sub2apiannouncementDescCreateTime is the schema descriptor for create_time field.
+	sub2apiannouncementDescCreateTime := sub2apiannouncementMixinFields0[0].Descriptor()
+	// sub2apiannouncement.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apiannouncement.DefaultCreateTime = sub2apiannouncementDescCreateTime.Default.(func() time.Time)
+	// sub2apiannouncementDescUpdateTime is the schema descriptor for update_time field.
+	sub2apiannouncementDescUpdateTime := sub2apiannouncementMixinFields0[1].Descriptor()
+	// sub2apiannouncement.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apiannouncement.DefaultUpdateTime = sub2apiannouncementDescUpdateTime.Default.(func() time.Time)
+	// sub2apiannouncement.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apiannouncement.UpdateDefaultUpdateTime = sub2apiannouncementDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apiannouncementDescLevel is the schema descriptor for level field.
+	sub2apiannouncementDescLevel := sub2apiannouncementFields[3].Descriptor()
+	// sub2apiannouncement.DefaultLevel holds the default value on creation for the level field.
+	sub2apiannouncement.DefaultLevel = sub2apiannouncementDescLevel.Default.(string)
+	// sub2apiannouncementDescPinned is the schema descriptor for pinned field.
+	sub2apiannouncementDescPinned := sub2apiannouncementFields[4].Descriptor()
+	// sub2apiannouncement.DefaultPinned holds the default value on creation for the pinned field.
+	sub2apiannouncement.DefaultPinned = sub2apiannouncementDescPinned.Default.(bool)
+	// sub2apiannouncementDescID is the schema descriptor for id field.
+	sub2apiannouncementDescID := sub2apiannouncementFields[0].Descriptor()
+	// sub2apiannouncement.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sub2apiannouncement.IDValidator = sub2apiannouncementDescID.Validators[0].(func(string) error)
+	sub2apitimelineitemMixin := schema.Sub2APITimelineItem{}.Mixin()
+	sub2apitimelineitemMixinFields0 := sub2apitimelineitemMixin[0].Fields()
+	_ = sub2apitimelineitemMixinFields0
+	sub2apitimelineitemFields := schema.Sub2APITimelineItem{}.Fields()
+	_ = sub2apitimelineitemFields
+	// sub2apitimelineitemDescCreateTime is the schema descriptor for create_time field.
+	sub2apitimelineitemDescCreateTime := sub2apitimelineitemMixinFields0[0].Descriptor()
+	// sub2apitimelineitem.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apitimelineitem.DefaultCreateTime = sub2apitimelineitemDescCreateTime.Default.(func() time.Time)
+	// sub2apitimelineitemDescUpdateTime is the schema descriptor for update_time field.
+	sub2apitimelineitemDescUpdateTime := sub2apitimelineitemMixinFields0[1].Descriptor()
+	// sub2apitimelineitem.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apitimelineitem.DefaultUpdateTime = sub2apitimelineitemDescUpdateTime.Default.(func() time.Time)
+	// sub2apitimelineitem.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apitimelineitem.UpdateDefaultUpdateTime = sub2apitimelineitemDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apitimelineitemDescCategory is the schema descriptor for category field.
+	sub2apitimelineitemDescCategory := sub2apitimelineitemFields[3].Descriptor()
+	// sub2apitimelineitem.DefaultCategory holds the default value on creation for the category field.
+	sub2apitimelineitem.DefaultCategory = sub2apitimelineitemDescCategory.Default.(string)
+	// sub2apitimelineitemDescID is the schema descriptor for id field.
+	sub2apitimelineitemDescID := sub2apitimelineitemFields[0].Descriptor()
+	// sub2apitimelineitem.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sub2apitimelineitem.IDValidator = sub2apitimelineitemDescID.Validators[0].(func(string) error)
+	sub2apiusagerecordMixin := schema.Sub2APIUsageRecord{}.Mixin()
+	sub2apiusagerecordMixinFields0 := sub2apiusagerecordMixin[0].Fields()
+	_ = sub2apiusagerecordMixinFields0
+	sub2apiusagerecordFields := schema.Sub2APIUsageRecord{}.Fields()
+	_ = sub2apiusagerecordFields
+	// sub2apiusagerecordDescCreateTime is the schema descriptor for create_time field.
+	sub2apiusagerecordDescCreateTime := sub2apiusagerecordMixinFields0[0].Descriptor()
+	// sub2apiusagerecord.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apiusagerecord.DefaultCreateTime = sub2apiusagerecordDescCreateTime.Default.(func() time.Time)
+	// sub2apiusagerecordDescUpdateTime is the schema descriptor for update_time field.
+	sub2apiusagerecordDescUpdateTime := sub2apiusagerecordMixinFields0[1].Descriptor()
+	// sub2apiusagerecord.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apiusagerecord.DefaultUpdateTime = sub2apiusagerecordDescUpdateTime.Default.(func() time.Time)
+	// sub2apiusagerecord.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apiusagerecord.UpdateDefaultUpdateTime = sub2apiusagerecordDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apiusagerecordDescSuccess is the schema descriptor for success field.
+	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[6].Descriptor()
+	// sub2apiusagerecord.DefaultSuccess holds the default value on creation for the success field.
+	sub2apiusagerecord.DefaultSuccess = sub2apiusagerecordDescSuccess.Default.(bool)
+	// sub2apiusagerecordDescLatencyMs is the schema descriptor for latency_ms field.
+	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[7].Descriptor()
+	// sub2apiusagerecord.DefaultLatencyMs holds the default value on creation for the latency_ms field.
+	sub2apiusagerecord.DefaultLatencyMs = sub2apiusagerecordDescLatencyMs.Default.(int64)
+	// sub2apiusagerecordDescTokenCount is the schema descriptor for token_count field.
+	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[8].Descriptor()
+	// sub2apiusagerecord.DefaultTokenCount holds the default value on creation for the token_count field.
+	sub2apiusagerecord.DefaultTokenCount = sub2apiusagerecordDescTokenCount.Default.(int64)
+	// sub2apiusagerecordDescOutputTokens is the schema descriptor for output_tokens field.
+	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[9].Descriptor()
+	// sub2apiusagerecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
+	sub2apiusagerecord.DefaultOutputTokens = sub2apiusagerecordDescOutputTokens.Default.(int64)
+	// sub2apiusagerecordDescTps is the schema descriptor for tps field.
+	sub2apiusagerecordDescTps := sub2apiusagerecordFields[10].Descriptor()
+	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
+	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
+	// sub2apiusagerecordDescID is the schema descriptor for id field.
+	sub2apiusagerecordDescID := sub2apiusagerecordFields[0].Descriptor()
+	// sub2apiusagerecord.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sub2apiusagerecord.IDValidator = sub2apiusagerecordDescID.Validators[0].(func(string) error)
 	systemconfigMixin := schema.SystemConfig{}.Mixin()
 	systemconfigMixinFields0 := systemconfigMixin[0].Fields()
 	_ = systemconfigMixinFields0

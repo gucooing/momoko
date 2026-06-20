@@ -17,6 +17,9 @@ import (
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
+	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apitimelineitem"
+	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
@@ -86,20 +89,23 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			auth.Table:            auth.ValidColumn,
-			emailtemplate.Table:   emailtemplate.ValidColumn,
-			fileupload.Table:      fileupload.ValidColumn,
-			fileuploadchunk.Table: fileuploadchunk.ValidColumn,
-			instance.Table:        instance.ValidColumn,
-			instancetype.Table:    instancetype.ValidColumn,
-			menu.Table:            menu.ValidColumn,
-			operationlog.Table:    operationlog.ValidColumn,
-			portforward.Table:     portforward.ValidColumn,
-			role.Table:            role.ValidColumn,
-			sshhost.Table:         sshhost.ValidColumn,
-			systemconfig.Table:    systemconfig.ValidColumn,
-			user.Table:            user.ValidColumn,
-			userapikey.Table:      userapikey.ValidColumn,
+			auth.Table:                auth.ValidColumn,
+			emailtemplate.Table:       emailtemplate.ValidColumn,
+			fileupload.Table:          fileupload.ValidColumn,
+			fileuploadchunk.Table:     fileuploadchunk.ValidColumn,
+			instance.Table:            instance.ValidColumn,
+			instancetype.Table:        instancetype.ValidColumn,
+			menu.Table:                menu.ValidColumn,
+			operationlog.Table:        operationlog.ValidColumn,
+			portforward.Table:         portforward.ValidColumn,
+			role.Table:                role.ValidColumn,
+			sshhost.Table:             sshhost.ValidColumn,
+			sub2apiannouncement.Table: sub2apiannouncement.ValidColumn,
+			sub2apitimelineitem.Table: sub2apitimelineitem.ValidColumn,
+			sub2apiusagerecord.Table:  sub2apiusagerecord.ValidColumn,
+			systemconfig.Table:        systemconfig.ValidColumn,
+			user.Table:                user.ValidColumn,
+			userapikey.Table:          userapikey.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

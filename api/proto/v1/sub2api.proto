@@ -1,0 +1,350 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// Sub2API 公共首页与管理
+service Sub2APIManager {
+  // 获取 Sub2API 公开首页数据（无需鉴权）
+  rpc PublicSub2APIHome(PublicSub2APIHomeRequest) returns (PublicSub2APIHomeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/home"
+    };
+  }
+  // 获取 Sub2API 配置
+  rpc GetSub2APIConfig(GetSub2APIConfigRequest) returns (GetSub2APIConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/config"
+    };
+  }
+  // 更新 Sub2API 配置
+  rpc UpdateSub2APIConfig(UpdateSub2APIConfigRequest) returns (UpdateSub2APIConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/sub2api/config"
+      body: "*"
+    };
+  }
+  // 测试 Sub2API 管理员连接
+  rpc TestSub2APIConnection(TestSub2APIConnectionRequest) returns (TestSub2APIConnectionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/config/test"
+      body: "*"
+    };
+  }
+  // 手动同步 Sub2API 使用记录
+  rpc SyncSub2APIUsage(SyncSub2APIUsageRequest) returns (SyncSub2APIUsageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/sync"
+      body: "*"
+    };
+  }
+  // 获取 Sub2API 当前聚合快照
+  rpc GetSub2APISnapshot(GetSub2APISnapshotRequest) returns (GetSub2APISnapshotResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/snapshot"
+    };
+  }
+  // 获取指定时间区间的公开用量统计（无需鉴权）
+  rpc GetPublicSub2APIStats(GetSub2APIStatsRequest) returns (GetSub2APIStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/stats"
+    };
+  }
+
+  // 公告管理
+  rpc ListSub2APIAnnouncements(ListSub2APIAnnouncementsRequest) returns (ListSub2APIAnnouncementsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/announcements"
+    };
+  }
+  rpc CreateSub2APIAnnouncement(CreateSub2APIAnnouncementRequest) returns (Sub2APIAnnouncementResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/announcements"
+      body: "*"
+    };
+  }
+  rpc UpdateSub2APIAnnouncement(UpdateSub2APIAnnouncementRequest) returns (Sub2APIAnnouncementResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/sub2api/announcements/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteSub2APIAnnouncement(DeleteSub2APIAnnouncementRequest) returns (DeleteSub2APIAnnouncementResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/sub2api/announcements/{id}"
+    };
+  }
+
+  // 时间线管理
+  rpc ListSub2APITimeline(ListSub2APITimelineRequest) returns (ListSub2APITimelineResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/timeline"
+    };
+  }
+  rpc CreateSub2APITimelineItem(CreateSub2APITimelineItemRequest) returns (Sub2APITimelineItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/timeline"
+      body: "*"
+    };
+  }
+  rpc UpdateSub2APITimelineItem(UpdateSub2APITimelineItemRequest) returns (Sub2APITimelineItemResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/sub2api/timeline/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteSub2APITimelineItem(DeleteSub2APITimelineItemRequest) returns (DeleteSub2APITimelineItemResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/sub2api/timeline/{id}"
+    };
+  }
+}
+
+message PublicSub2APIHomeRequest {}
+
+message PublicSub2APIHomeResponse {
+  Sub2APIHome home = 1;
+}
+
+message GetSub2APIConfigRequest {}
+
+message GetSub2APIConfigResponse {
+  Sub2APIConfig config = 1;
+}
+
+message UpdateSub2APIConfigRequest {
+  Sub2APIConfig config = 1;
+}
+
+message UpdateSub2APIConfigResponse {
+  Sub2APIConfig config = 1;
+}
+
+message TestSub2APIConnectionRequest {
+  Sub2APIConfig config = 1;
+}
+
+message TestSub2APIConnectionResponse {
+  bool connected = 1;
+  string message = 2;
+}
+
+message SyncSub2APIUsageRequest {
+  // 是否强制全量同步
+  bool full = 1;
+}
+
+message SyncSub2APIUsageResponse {
+  Sub2APIUsageSnapshot snapshot = 1;
+}
+
+message GetSub2APISnapshotRequest {}
+
+message GetSub2APISnapshotResponse {
+  Sub2APIUsageSnapshot snapshot = 1;
+}
+
+message GetSub2APIStatsRequest {
+  // 统计区间天数：<=1 表示今日，否则为最近 N 天
+  int32 range_days = 1;
+}
+
+message GetSub2APIStatsResponse {
+  Sub2APIStats stats = 1;
+}
+
+message Sub2APIStats {
+  int32 range_days = 1;
+  string range_label = 2;
+  int64 request_count = 3;
+  int64 success_count = 4;
+  double success_rate = 5;
+  int64 token_count = 6;
+  double average_latency_ms = 7;
+  double average_tps = 8;
+  repeated Sub2APITrendPoint trend = 9;
+  repeated Sub2APITopItem models = 10;
+  repeated Sub2APITopItem endpoints = 11;
+}
+
+// 仅包含连接与展示配置，公告/时间线为独立资源。
+message Sub2APIConfig {
+  bool home_enabled = 1;
+  bool sync_enabled = 2;
+  string base_url = 3;
+  string admin_api_key = 4;
+  string console_url = 5;
+  string title = 6;
+  string subtitle = 7;
+  string introduction = 8;
+  int32 sync_interval_minutes = 9;
+  int32 history_days = 10;
+  int32 page_size = 11;
+}
+
+message Sub2APIHome {
+  bool enabled = 1;
+  string console_url = 2;
+  string title = 3;
+  string subtitle = 4;
+  string introduction = 5;
+  Sub2APIUsageSnapshot snapshot = 6;
+  repeated Sub2APIAnnouncement announcements = 7;
+  repeated Sub2APITimelineItem timeline = 8;
+}
+
+message Sub2APIAnnouncement {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string level = 4;
+  google.protobuf.Timestamp published_at = 5;
+  bool pinned = 6;
+}
+
+message Sub2APITimelineItem {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string category = 4;
+  google.protobuf.Timestamp published_at = 5;
+}
+
+// 公告管理消息
+message ListSub2APIAnnouncementsRequest {}
+
+message ListSub2APIAnnouncementsResponse {
+  repeated Sub2APIAnnouncement announcements = 1;
+}
+
+message CreateSub2APIAnnouncementRequest {
+  string title = 1;
+  string content = 2;
+  string level = 3;
+  bool pinned = 4;
+  google.protobuf.Timestamp published_at = 5;
+}
+
+message UpdateSub2APIAnnouncementRequest {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string level = 4;
+  bool pinned = 5;
+  google.protobuf.Timestamp published_at = 6;
+}
+
+message Sub2APIAnnouncementResponse {
+  Sub2APIAnnouncement announcement = 1;
+}
+
+message DeleteSub2APIAnnouncementRequest {
+  string id = 1;
+}
+
+message DeleteSub2APIAnnouncementResponse {}
+
+// 时间线管理消息
+message ListSub2APITimelineRequest {}
+
+message ListSub2APITimelineResponse {
+  repeated Sub2APITimelineItem timeline = 1;
+}
+
+message CreateSub2APITimelineItemRequest {
+  string title = 1;
+  string content = 2;
+  string category = 3;
+  google.protobuf.Timestamp published_at = 4;
+}
+
+message UpdateSub2APITimelineItemRequest {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string category = 4;
+  google.protobuf.Timestamp published_at = 5;
+}
+
+message Sub2APITimelineItemResponse {
+  Sub2APITimelineItem item = 1;
+}
+
+message DeleteSub2APITimelineItemRequest {
+  string id = 1;
+}
+
+message DeleteSub2APITimelineItemResponse {}
+
+message Sub2APIUsageSnapshot {
+  bool configured = 1;
+  string status = 2;
+  string error = 3;
+  google.protobuf.Timestamp last_sync_time = 4;
+  google.protobuf.Timestamp next_sync_time = 5;
+  google.protobuf.Timestamp latest_record_time = 6;
+  int64 synced_records = 7;
+  int64 total_records = 8;
+  int64 request_count = 9;
+  int64 success_count = 10;
+  double success_rate = 11;
+  double average_latency_ms = 12;
+  int64 token_count = 13;
+  int64 today_request_count = 14;
+  int64 today_success_count = 15;
+  double today_success_rate = 16;
+  double today_average_latency_ms = 17;
+  int64 today_token_count = 18;
+  string data_range = 19;
+  google.protobuf.Timestamp generated_at = 20;
+  repeated Sub2APITrendPoint trend = 21;
+  repeated Sub2APITopItem model_usage = 22;
+  repeated Sub2APITopItem endpoint_usage = 23;
+  repeated Sub2APIRecentRequest recent_requests = 24;
+  // 最近滑动窗口内的真实吞吐（锚定最新记录时间，避免随墙钟衰减）
+  double recent_tps = 25;
+  double recent_qps = 26;
+  int32 recent_window_seconds = 27;
+  // 当日按时间分桶的成功率/生成速度序列（用于首页随时间移动的曲线）
+  repeated Sub2APITimePoint today_series = 28;
+}
+
+message Sub2APITimePoint {
+  google.protobuf.Timestamp time = 1;
+  int64 request_count = 2;
+  double success_rate = 3;
+  double avg_tps = 4;
+}
+
+message Sub2APITrendPoint {
+  string date = 1;
+  int64 request_count = 2;
+  int64 success_count = 3;
+  double success_rate = 4;
+  double average_latency_ms = 5;
+  int64 token_count = 6;
+}
+
+message Sub2APITopItem {
+  string name = 1;
+  int64 request_count = 2;
+  int64 token_count = 3;
+  double success_rate = 4;
+  // 该模型的平均 token 生成速度（输出token/秒，按请求平均，不含缓存）
+  double avg_tps = 5;
+}
+
+message Sub2APIRecentRequest {
+  string request_id = 1;
+  string model = 2;
+  string endpoint = 3;
+  string status = 4;
+  bool success = 5;
+  int64 latency_ms = 6;
+  int64 token_count = 7;
+  google.protobuf.Timestamp request_time = 8;
+}

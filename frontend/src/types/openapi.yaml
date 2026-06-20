@@ -3021,6 +3021,39 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MePermissionsResponse'
+    /api/v1/public/sub2api/home:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取 Sub2API 公开首页数据（无需鉴权）
+            operationId: Sub2APIManager_PublicSub2APIHome
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PublicSub2APIHomeResponse'
+    /api/v1/public/sub2api/stats:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取指定时间区间的公开用量统计（无需鉴权）
+            operationId: Sub2APIManager_GetPublicSub2APIStats
+            parameters:
+                - name: rangeDays
+                  in: query
+                  description: 统计区间天数：<=1 表示今日，否则为最近 N 天
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIStatsResponse'
     /api/v1/role/admin:
         get:
             tags:
@@ -3141,6 +3174,230 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.AdminEditRoleResponse'
+    /api/v1/sub2api/announcements:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 公告管理
+            operationId: Sub2APIManager_ListSub2APIAnnouncements
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListSub2APIAnnouncementsResponse'
+        post:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_CreateSub2APIAnnouncement
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateSub2APIAnnouncementRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.Sub2APIAnnouncementResponse'
+    /api/v1/sub2api/announcements/{id}:
+        put:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_UpdateSub2APIAnnouncement
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateSub2APIAnnouncementRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.Sub2APIAnnouncementResponse'
+        delete:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_DeleteSub2APIAnnouncement
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteSub2APIAnnouncementResponse'
+    /api/v1/sub2api/config:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取 Sub2API 配置
+            operationId: Sub2APIManager_GetSub2APIConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIConfigResponse'
+        put:
+            tags:
+                - Sub2APIManager
+            description: 更新 Sub2API 配置
+            operationId: Sub2APIManager_UpdateSub2APIConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateSub2APIConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateSub2APIConfigResponse'
+    /api/v1/sub2api/config/test:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 测试 Sub2API 管理员连接
+            operationId: Sub2APIManager_TestSub2APIConnection
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestSub2APIConnectionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestSub2APIConnectionResponse'
+    /api/v1/sub2api/snapshot:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取 Sub2API 当前聚合快照
+            operationId: Sub2APIManager_GetSub2APISnapshot
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APISnapshotResponse'
+    /api/v1/sub2api/sync:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 手动同步 Sub2API 使用记录
+            operationId: Sub2APIManager_SyncSub2APIUsage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SyncSub2APIUsageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SyncSub2APIUsageResponse'
+    /api/v1/sub2api/timeline:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 时间线管理
+            operationId: Sub2APIManager_ListSub2APITimeline
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListSub2APITimelineResponse'
+        post:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_CreateSub2APITimelineItem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateSub2APITimelineItemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.Sub2APITimelineItemResponse'
+    /api/v1/sub2api/timeline/{id}:
+        put:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_UpdateSub2APITimelineItem
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateSub2APITimelineItemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.Sub2APITimelineItemResponse'
+        delete:
+            tags:
+                - Sub2APIManager
+            operationId: Sub2APIManager_DeleteSub2APITimelineItem
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteSub2APITimelineItemResponse'
     /api/v1/system/email-config:
         get:
             tags:
@@ -4410,6 +4667,32 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.CreateSub2APIAnnouncementRequest:
+            type: object
+            properties:
+                title:
+                    type: string
+                content:
+                    type: string
+                level:
+                    type: string
+                pinned:
+                    type: boolean
+                publishedAt:
+                    type: string
+                    format: date-time
+        v1.CreateSub2APITimelineItemRequest:
+            type: object
+            properties:
+                title:
+                    type: string
+                content:
+                    type: string
+                category:
+                    type: string
+                publishedAt:
+                    type: string
+                    format: date-time
         v1.CutFileSystemRequest:
             type: object
             properties:
@@ -4489,6 +4772,12 @@ components:
             type: object
             properties: {}
         v1.DeleteSSHHostResponse:
+            type: object
+            properties: {}
+        v1.DeleteSub2APIAnnouncementResponse:
+            type: object
+            properties: {}
+        v1.DeleteSub2APITimelineItemResponse:
             type: object
             properties: {}
         v1.DeleteUserResponse:
@@ -6012,6 +6301,21 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: 列表
+        v1.GetSub2APIConfigResponse:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.Sub2APIConfig'
+        v1.GetSub2APISnapshotResponse:
+            type: object
+            properties:
+                snapshot:
+                    $ref: '#/components/schemas/v1.Sub2APIUsageSnapshot'
+        v1.GetSub2APIStatsResponse:
+            type: object
+            properties:
+                stats:
+                    $ref: '#/components/schemas/v1.Sub2APIStats'
         v1.GetTerminalInfoResponse:
             type: object
             properties:
@@ -6289,6 +6593,20 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.PortForwardInfo'
                     description: 列表
+        v1.ListSub2APIAnnouncementsResponse:
+            type: object
+            properties:
+                announcements:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APIAnnouncement'
+        v1.ListSub2APITimelineResponse:
+            type: object
+            properties:
+                timeline:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITimelineItem'
         v1.ListUserResponse:
             type: object
             properties:
@@ -6843,6 +7161,11 @@ components:
                         - $ref: '#/components/schemas/v1.DockerTaskInfo'
                     description: 任务
             description: 清理储存卷响应
+        v1.PublicSub2APIHomeResponse:
+            type: object
+            properties:
+                home:
+                    $ref: '#/components/schemas/v1.Sub2APIHome'
         v1.PullDockerImageRequest:
             type: object
             properties:
@@ -7325,6 +7648,293 @@ components:
             type: object
             properties: {}
             description: 停止终端响应
+        v1.Sub2APIAnnouncement:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                level:
+                    type: string
+                publishedAt:
+                    type: string
+                    format: date-time
+                pinned:
+                    type: boolean
+        v1.Sub2APIAnnouncementResponse:
+            type: object
+            properties:
+                announcement:
+                    $ref: '#/components/schemas/v1.Sub2APIAnnouncement'
+        v1.Sub2APIConfig:
+            type: object
+            properties:
+                homeEnabled:
+                    type: boolean
+                syncEnabled:
+                    type: boolean
+                baseUrl:
+                    type: string
+                adminApiKey:
+                    type: string
+                consoleUrl:
+                    type: string
+                title:
+                    type: string
+                subtitle:
+                    type: string
+                introduction:
+                    type: string
+                syncIntervalMinutes:
+                    type: integer
+                    format: int32
+                historyDays:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+            description: 仅包含连接与展示配置，公告/时间线为独立资源。
+        v1.Sub2APIHome:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                consoleUrl:
+                    type: string
+                title:
+                    type: string
+                subtitle:
+                    type: string
+                introduction:
+                    type: string
+                snapshot:
+                    $ref: '#/components/schemas/v1.Sub2APIUsageSnapshot'
+                announcements:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APIAnnouncement'
+                timeline:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITimelineItem'
+        v1.Sub2APIRecentRequest:
+            type: object
+            properties:
+                requestId:
+                    type: string
+                model:
+                    type: string
+                endpoint:
+                    type: string
+                status:
+                    type: string
+                success:
+                    type: boolean
+                latencyMs:
+                    type: string
+                tokenCount:
+                    type: string
+                requestTime:
+                    type: string
+                    format: date-time
+        v1.Sub2APIStats:
+            type: object
+            properties:
+                rangeDays:
+                    type: integer
+                    format: int32
+                rangeLabel:
+                    type: string
+                requestCount:
+                    type: string
+                successCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                tokenCount:
+                    type: string
+                averageLatencyMs:
+                    type: number
+                    format: double
+                averageTps:
+                    type: number
+                    format: double
+                trend:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITrendPoint'
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                endpoints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+        v1.Sub2APITimePoint:
+            type: object
+            properties:
+                time:
+                    type: string
+                    format: date-time
+                requestCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                avgTps:
+                    type: number
+                    format: double
+        v1.Sub2APITimelineItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                category:
+                    type: string
+                publishedAt:
+                    type: string
+                    format: date-time
+        v1.Sub2APITimelineItemResponse:
+            type: object
+            properties:
+                item:
+                    $ref: '#/components/schemas/v1.Sub2APITimelineItem'
+        v1.Sub2APITopItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                requestCount:
+                    type: string
+                tokenCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                avgTps:
+                    type: number
+                    description: 该模型的平均 token 生成速度（输出token/秒，按请求平均，不含缓存）
+                    format: double
+        v1.Sub2APITrendPoint:
+            type: object
+            properties:
+                date:
+                    type: string
+                requestCount:
+                    type: string
+                successCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                averageLatencyMs:
+                    type: number
+                    format: double
+                tokenCount:
+                    type: string
+        v1.Sub2APIUsageSnapshot:
+            type: object
+            properties:
+                configured:
+                    type: boolean
+                status:
+                    type: string
+                error:
+                    type: string
+                lastSyncTime:
+                    type: string
+                    format: date-time
+                nextSyncTime:
+                    type: string
+                    format: date-time
+                latestRecordTime:
+                    type: string
+                    format: date-time
+                syncedRecords:
+                    type: string
+                totalRecords:
+                    type: string
+                requestCount:
+                    type: string
+                successCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                averageLatencyMs:
+                    type: number
+                    format: double
+                tokenCount:
+                    type: string
+                todayRequestCount:
+                    type: string
+                todaySuccessCount:
+                    type: string
+                todaySuccessRate:
+                    type: number
+                    format: double
+                todayAverageLatencyMs:
+                    type: number
+                    format: double
+                todayTokenCount:
+                    type: string
+                dataRange:
+                    type: string
+                generatedAt:
+                    type: string
+                    format: date-time
+                trend:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITrendPoint'
+                modelUsage:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                endpointUsage:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                recentRequests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APIRecentRequest'
+                recentTps:
+                    type: number
+                    description: 最近滑动窗口内的真实吞吐（锚定最新记录时间，避免随墙钟衰减）
+                    format: double
+                recentQps:
+                    type: number
+                    format: double
+                recentWindowSeconds:
+                    type: integer
+                    format: int32
+                todaySeries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITimePoint'
+                    description: 当日按时间分桶的成功率/生成速度序列（用于首页随时间移动的曲线）
+        v1.SyncSub2APIUsageRequest:
+            type: object
+            properties:
+                full:
+                    type: boolean
+                    description: 是否强制全量同步
+        v1.SyncSub2APIUsageResponse:
+            type: object
+            properties:
+                snapshot:
+                    $ref: '#/components/schemas/v1.Sub2APIUsageSnapshot'
         v1.SystemOverviewResponse:
             type: object
             properties:
@@ -7504,6 +8114,18 @@ components:
                 fingerprint:
                     type: string
                     description: 服务端主机指纹
+        v1.TestSub2APIConnectionRequest:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.Sub2APIConfig'
+        v1.TestSub2APIConnectionResponse:
+            type: object
+            properties:
+                connected:
+                    type: boolean
+                message:
+                    type: string
         v1.UnpauseDockerContainerRequest:
             type: object
             properties:
@@ -8031,6 +8653,46 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.UpdateSub2APIAnnouncementRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                level:
+                    type: string
+                pinned:
+                    type: boolean
+                publishedAt:
+                    type: string
+                    format: date-time
+        v1.UpdateSub2APIConfigRequest:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.Sub2APIConfig'
+        v1.UpdateSub2APIConfigResponse:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.Sub2APIConfig'
+        v1.UpdateSub2APITimelineItemRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                category:
+                    type: string
+                publishedAt:
+                    type: string
+                    format: date-time
         v1.UploadInfo:
             type: object
             properties:
@@ -8175,6 +8837,8 @@ tags:
       description: 节点服务
     - name: OpenSSHManager
       description: OpenSSH 管理
+    - name: Sub2APIManager
+      description: Sub2API 公共首页与管理
     - name: System
       description: 系统管理
     - name: UserService

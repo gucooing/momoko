@@ -39,6 +39,15 @@ type Role func(*sql.Selector)
 // SSHHost is the predicate function for sshhost builders.
 type SSHHost func(*sql.Selector)
 
+// Sub2APIAnnouncement is the predicate function for sub2apiannouncement builders.
+type Sub2APIAnnouncement func(*sql.Selector)
+
+// Sub2APITimelineItem is the predicate function for sub2apitimelineitem builders.
+type Sub2APITimelineItem func(*sql.Selector)
+
+// Sub2APIUsageRecord is the predicate function for sub2apiusagerecord builders.
+type Sub2APIUsageRecord func(*sql.Selector)
+
 // SystemConfig is the predicate function for systemconfig builders.
 type SystemConfig func(*sql.Selector)
 

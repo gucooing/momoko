@@ -56,4 +56,8 @@ var (
 	ErrInitializeDone          = response.BadRequest(500, "系统已初始化")
 	ErrInitializeDatabaseEmpty = response.BadRequest(500, "数据库配置不能为空")
 	ErrInitializeAdminEmpty    = response.BadRequest(500, "超级管理员不能为空")
+	ErrSub2APIConfigRequired   = response.BadRequest(500, "Sub2API 地址与管理员 API Key 不能为空")
+	ErrSub2APIHomeConfig       = response.BadRequest(500, "开启公开首页前需完成 Sub2API 地址与管理员 API Key 配置")
+	ErrSub2APISyncRunning      = response.BadRequest(500, "同步任务进行中，请稍后再试")
+	ErrSub2APIRecordID         = response.BadRequest(500, "记录ID不能为空")
 )

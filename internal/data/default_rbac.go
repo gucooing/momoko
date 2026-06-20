@@ -84,6 +84,8 @@ var (
 
 		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "Element:Box", nil, 5, "", entmenu.StatusActive),
 		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 1, "", entmenu.StatusActive),
+		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/sub2api", "Sub2API", "HOutline:CloudIcon", new("menu_6"), 2, constant.Sub2APIView, entmenu.StatusActive),
+		newDefaultMenu("menu_6_2_button_0", entmenu.TypeButton, "", "编辑Sub2API", "", new("menu_6_2"), 0, constant.Sub2APIEdit, entmenu.StatusActive),
 
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),
