@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
+import { useWindowSize } from '@vueuse/core'
 import {
   createSub2APIAnnouncement,
   createSub2APITimelineItem,
@@ -75,6 +76,8 @@ const emptyChartOption = (text = '暂无数据') => ({
 
 export const useSub2APIStore = defineStore('sub2api', () => {
   const themeStore = useThemeStore()
+  const { width: viewportWidth } = useWindowSize()
+  const isCompactChart = computed(() => viewportWidth.value <= 640)
 
   const config = ref<Sub2APIConfig>(createDefaultConfig())
   const configForm = reactive<Sub2APIConfig>(createDefaultConfig())
@@ -214,9 +217,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const saveAnnouncement = async (
-    payload: CreateSub2APIAnnouncementRequest & { id?: string },
-  ) => {
+  const saveAnnouncement = async (payload: CreateSub2APIAnnouncementRequest & { id?: string }) => {
     listLoading.value = true
     try {
       if (payload.id) {
@@ -245,9 +246,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const saveTimelineItem = async (
-    payload: CreateSub2APITimelineItemRequest & { id?: string },
-  ) => {
+  const saveTimelineItem = async (payload: CreateSub2APITimelineItemRequest & { id?: string }) => {
     listLoading.value = true
     try {
       if (payload.id) {
@@ -362,11 +361,23 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     if (!trend.length) return emptyChartOption()
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
+    const compact = isCompactChart.value
     return {
       color: ['#3b82f6', '#8b5cf6', '#10b981'],
       tooltip: { trigger: 'axis', confine: true },
-      legend: { top: 0, textStyle: { color: axisColor } },
-      grid: { left: 44, right: 48, top: 36, bottom: 28 },
+      legend: {
+        top: 0,
+        left: 0,
+        right: 0,
+        type: compact ? 'scroll' : 'plain',
+        textStyle: { color: axisColor },
+      },
+      grid: {
+        left: compact ? 36 : 44,
+        right: compact ? 32 : 48,
+        top: compact ? 50 : 36,
+        bottom: 28,
+      },
       xAxis: {
         type: 'category',
         data: trend.map((item) => {
@@ -378,15 +389,49 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       },
       yAxis: [
         // 左侧可见轴：Token 数（用 K/M/B 紧凑显示）
-        { type: 'value', splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } }, axisLabel: { color: axisColor, fontSize: 11, formatter: (val: number) => formatToken(val) } },
-        { type: 'value', max: 100, axisLabel: { formatter: '{value}%', color: axisColor, fontSize: 11 }, splitLine: { show: false } },
+        {
+          type: 'value',
+          splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } },
+          axisLabel: {
+            color: axisColor,
+            fontSize: 11,
+            formatter: (val: number) => formatToken(val),
+          },
+        },
+        {
+          type: 'value',
+          max: 100,
+          axisLabel: { formatter: '{value}%', color: axisColor, fontSize: 11 },
+          splitLine: { show: false },
+        },
         // 请求量独立缩放轴：不在侧边显示，仅用于让折线按自身量级铺开
         { type: 'value', show: false },
       ],
       series: [
-        { name: '请求量', type: 'line', yAxisIndex: 2, smooth: true, symbol: 'none', data: trend.map((item) => item.requestCount) },
-        { name: 'Token', type: 'line', yAxisIndex: 0, smooth: true, symbol: 'none', data: trend.map((item) => item.tokenCount) },
-        { name: '成功率', type: 'line', yAxisIndex: 1, smooth: true, symbol: 'none', data: trend.map((item) => Number(toNumber(item.successRate).toFixed(2))) },
+        {
+          name: '请求量',
+          type: 'line',
+          yAxisIndex: 2,
+          smooth: true,
+          symbol: 'none',
+          data: trend.map((item) => item.requestCount),
+        },
+        {
+          name: 'Token',
+          type: 'line',
+          yAxisIndex: 0,
+          smooth: true,
+          symbol: 'none',
+          data: trend.map((item) => item.tokenCount),
+        },
+        {
+          name: '成功率',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: true,
+          symbol: 'none',
+          data: trend.map((item) => Number(toNumber(item.successRate).toFixed(2))),
+        },
       ],
     }
   }
@@ -395,15 +440,30 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     if (!items.length) return emptyChartOption()
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
+    const compact = isCompactChart.value
     const chartItems = [...items].reverse()
     return {
       color: ['#6366f1'],
-      tooltip: { trigger: 'axis' },
-      grid: { left: 96, right: 18, top: 16, bottom: 20 },
-      xAxis: { type: 'value', axisLabel: { color: axisColor, fontSize: 11 }, splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } } },
-      yAxis: { type: 'category', data: chartItems.map((item) => item.name || '未标记'), axisLabel: { color: axisColor, fontSize: 11 } },
+      tooltip: { trigger: 'axis', confine: true },
+      grid: { left: compact ? 72 : 96, right: compact ? 8 : 18, top: 16, bottom: 20 },
+      xAxis: {
+        type: 'value',
+        axisLabel: { color: axisColor, fontSize: 11 },
+        splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } },
+      },
+      yAxis: {
+        type: 'category',
+        data: chartItems.map((item) => item.name || '未标记'),
+        axisLabel: { color: axisColor, fontSize: 11 },
+      },
       series: [
-        { name: title, type: 'bar', barMaxWidth: 16, itemStyle: { borderRadius: [0, 4, 4, 0] }, data: chartItems.map((item) => item.requestCount) },
+        {
+          name: title,
+          type: 'bar',
+          barMaxWidth: 16,
+          itemStyle: { borderRadius: [0, 4, 4, 0] },
+          data: chartItems.map((item) => item.requestCount),
+        },
       ],
     }
   }
@@ -420,6 +480,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     if (!series.length) return emptyChartOption('今日暂无数据')
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
+    const compact = isCompactChart.value
     const toMs = (t: unknown) => (t ? new Date(t as string | Date).getTime() : 0)
     return {
       color: ['#10b981', '#3b82f6', '#f59e0b'],
@@ -427,21 +488,76 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         trigger: 'axis',
         confine: true,
       },
-      legend: { top: 0, textStyle: { color: axisColor } },
-      grid: { left: 48, right: 78, top: 36, bottom: 28 },
+      legend: {
+        top: 0,
+        left: 0,
+        right: 0,
+        type: compact ? 'scroll' : 'plain',
+        textStyle: { color: axisColor },
+      },
+      grid: {
+        left: compact ? 36 : 48,
+        right: compact ? 36 : 78,
+        top: compact ? 50 : 36,
+        bottom: 28,
+      },
       xAxis: {
         type: 'time',
         axisLabel: { color: axisColor, fontSize: 11, hideOverlap: true },
       },
       yAxis: [
-        { type: 'value', name: 'token/s', position: 'left', nameTextStyle: { color: axisColor }, axisLabel: { color: axisColor, fontSize: 11 }, splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } } },
-        { type: 'value', name: '成功率', position: 'right', max: 100, axisLabel: { formatter: '{value}%', color: axisColor, fontSize: 11 }, splitLine: { show: false } },
-        { type: 'value', name: '请求数', position: 'right', offset: 46, axisLabel: { color: axisColor, fontSize: 11 }, splitLine: { show: false } },
+        {
+          type: 'value',
+          name: compact ? '' : 'token/s',
+          position: 'left',
+          nameTextStyle: { color: axisColor },
+          axisLabel: { color: axisColor, fontSize: 11 },
+          splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } },
+        },
+        {
+          type: 'value',
+          name: compact ? '' : '成功率',
+          position: 'right',
+          max: 100,
+          axisLabel: { formatter: '{value}%', color: axisColor, fontSize: 11 },
+          splitLine: { show: false },
+        },
+        {
+          type: 'value',
+          name: '请求数',
+          position: 'right',
+          offset: 46,
+          show: !compact,
+          axisLabel: { color: axisColor, fontSize: 11 },
+          splitLine: { show: false },
+        },
       ],
       series: [
-        { name: '成功率', type: 'line', yAxisIndex: 1, smooth: true, symbol: 'none', areaStyle: { opacity: 0.06 }, data: series.map((p) => [toMs(p.time), Number(toNumber(p.successRate).toFixed(2))]) },
-        { name: '生成速度', type: 'line', yAxisIndex: 0, smooth: true, symbol: 'none', data: series.map((p) => [toMs(p.time), Number(toNumber(p.avgTps).toFixed(1))]) },
-        { name: '请求数', type: 'line', yAxisIndex: 2, smooth: true, symbol: 'none', data: series.map((p) => [toMs(p.time), toNumber(p.requestCount)]) },
+        {
+          name: '成功率',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: true,
+          symbol: 'none',
+          areaStyle: { opacity: 0.06 },
+          data: series.map((p) => [toMs(p.time), Number(toNumber(p.successRate).toFixed(2))]),
+        },
+        {
+          name: '生成速度',
+          type: 'line',
+          yAxisIndex: 0,
+          smooth: true,
+          symbol: 'none',
+          data: series.map((p) => [toMs(p.time), Number(toNumber(p.avgTps).toFixed(1))]),
+        },
+        {
+          name: '请求数',
+          type: 'line',
+          yAxisIndex: 2,
+          smooth: true,
+          symbol: 'none',
+          data: series.map((p) => [toMs(p.time), toNumber(p.requestCount)]),
+        },
       ],
     }
   })
@@ -449,11 +565,41 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const statsMetricCards = computed<Sub2APIMetricCard[]>(() => {
     const s = stats.value
     return [
-      { label: '请求数', value: formatNumber(s?.requestCount), detail: s?.rangeLabel || '', icon: 'HOutline:ArrowPathRoundedSquareIcon', tone: 'blue' },
-      { label: 'Token', value: formatToken(s?.tokenCount), detail: '区间累计', icon: 'HOutline:CircleStackIcon', tone: 'blue' },
-      { label: '成功率', value: formatPercent(s?.successRate), detail: `成功 ${formatNumber(s?.successCount)}`, icon: 'HOutline:CheckCircleIcon', tone: 'green' },
-      { label: '平均延迟', value: formatLatency(s?.averageLatencyMs), detail: '成功请求均值', icon: 'HOutline:ClockIcon', tone: 'amber' },
-      { label: 'Token 生成速度', value: `${formatThroughput(s?.averageTps)} token/s`, detail: '按请求平均 · 不含缓存', icon: 'HOutline:BoltIcon', tone: 'red' },
+      {
+        label: '请求数',
+        value: formatNumber(s?.requestCount),
+        detail: s?.rangeLabel || '',
+        icon: 'HOutline:ArrowPathRoundedSquareIcon',
+        tone: 'blue',
+      },
+      {
+        label: 'Token',
+        value: formatToken(s?.tokenCount),
+        detail: '区间累计',
+        icon: 'HOutline:CircleStackIcon',
+        tone: 'blue',
+      },
+      {
+        label: '成功率',
+        value: formatPercent(s?.successRate),
+        detail: `成功 ${formatNumber(s?.successCount)}`,
+        icon: 'HOutline:CheckCircleIcon',
+        tone: 'green',
+      },
+      {
+        label: '平均延迟',
+        value: formatLatency(s?.averageLatencyMs),
+        detail: '成功请求均值',
+        icon: 'HOutline:ClockIcon',
+        tone: 'amber',
+      },
+      {
+        label: 'Token 生成速度',
+        value: `${formatThroughput(s?.averageTps)} token/s`,
+        detail: '按请求平均 · 不含缓存',
+        icon: 'HOutline:BoltIcon',
+        tone: 'red',
+      },
     ]
   })
 

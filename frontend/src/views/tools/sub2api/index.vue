@@ -10,7 +10,9 @@
           {{ store.statusText(snapshot?.status) }}
         </el-tag>
         <el-button :loading="store.syncing" @click="onSync(false)">增量同步</el-button>
-        <el-button type="primary" :loading="store.syncing" @click="onSync(true)">全量同步</el-button>
+        <el-button type="primary" :loading="store.syncing" @click="onSync(true)"
+          >全量同步</el-button
+        >
       </div>
     </header>
 
@@ -18,7 +20,12 @@
       <!-- 概览 -->
       <el-tab-pane label="用量概览" name="overview">
         <div class="metric-row">
-          <div v-for="card in store.adminMetricCards" :key="card.label" class="metric-card" :class="`tone-${card.tone}`">
+          <div
+            v-for="card in store.adminMetricCards"
+            :key="card.label"
+            class="metric-card"
+            :class="`tone-${card.tone}`"
+          >
             <span class="metric-label">{{ card.label }}</span>
             <strong class="metric-value">{{ card.value }}</strong>
             <small class="metric-detail">{{ card.detail }}</small>
@@ -26,7 +33,9 @@
           <div class="metric-card tone-blue">
             <span class="metric-label">累计 Token</span>
             <strong class="metric-value">{{ store.formatToken(snapshot?.tokenCount) }}</strong>
-            <small class="metric-detail">累计请求 {{ store.formatNumber(snapshot?.requestCount) }}</small>
+            <small class="metric-detail"
+              >累计请求 {{ store.formatNumber(snapshot?.requestCount) }}</small
+            >
           </div>
         </div>
 
@@ -39,23 +48,43 @@
 
         <el-card shadow="never" class="chart-card">
           <template #header><span class="card-title">用量趋势</span></template>
-          <VChart class="chart" :option="store.adminTrendOption" :update-options="chartUpdate" autoresize />
+          <VChart
+            class="chart"
+            :option="store.adminTrendOption"
+            :update-options="chartUpdate"
+            autoresize
+          />
         </el-card>
 
         <div class="chart-grid">
           <el-card shadow="never" class="chart-card">
             <template #header><span class="card-title">模型请求量 Top</span></template>
-            <VChart class="chart sm" :option="store.adminModelOption" :update-options="chartUpdate" autoresize />
+            <VChart
+              class="chart sm"
+              :option="store.adminModelOption"
+              :update-options="chartUpdate"
+              autoresize
+            />
           </el-card>
           <el-card shadow="never" class="chart-card">
             <template #header><span class="card-title">接口请求量 Top</span></template>
-            <VChart class="chart sm" :option="store.adminEndpointOption" :update-options="chartUpdate" autoresize />
+            <VChart
+              class="chart sm"
+              :option="store.adminEndpointOption"
+              :update-options="chartUpdate"
+              autoresize
+            />
           </el-card>
         </div>
 
         <el-card shadow="never" class="chart-card">
           <template #header><span class="card-title">最近请求</span></template>
-          <el-table :data="snapshot?.recentRequests || []" size="small" stripe>
+          <el-table
+            class="desktop-table"
+            :data="snapshot?.recentRequests || []"
+            size="small"
+            stripe
+          >
             <el-table-column prop="model" label="模型" min-width="140" show-overflow-tooltip />
             <el-table-column prop="endpoint" label="接口" min-width="140" show-overflow-tooltip />
             <el-table-column label="状态" width="90">
@@ -76,6 +105,26 @@
             </el-table-column>
             <template #empty>暂无请求记录</template>
           </el-table>
+          <div class="mobile-list request-list">
+            <article
+              v-for="row in snapshot?.recentRequests || []"
+              :key="`${row.requestTime}-${row.model}-${row.endpoint}`"
+              class="mobile-row"
+            >
+              <strong class="row-title">{{ row.model || '未标记模型' }}</strong>
+              <span class="row-content">{{ row.endpoint || '-' }}</span>
+              <span class="row-meta"
+                >{{ store.formatLatency(row.latencyMs) }} ·
+                {{ store.formatToken(row.tokenCount) }}</span
+              >
+              <span class="row-status">
+                <el-tag size="small" :type="row.success ? 'success' : 'danger'" effect="light">
+                  {{ row.success ? '成功' : '失败' }}
+                </el-tag>
+              </span>
+            </article>
+            <el-empty v-if="!(snapshot?.recentRequests || []).length" description="暂无请求记录" />
+          </div>
         </el-card>
       </el-tab-pane>
 
@@ -94,7 +143,12 @@
               <el-input v-model="form.baseUrl" placeholder="https://your-sub2api.example.com" />
             </el-form-item>
             <el-form-item label="管理员 API Key">
-              <el-input v-model="form.adminApiKey" type="password" show-password placeholder="sk-..." />
+              <el-input
+                v-model="form.adminApiKey"
+                type="password"
+                show-password
+                placeholder="sk-..."
+              />
             </el-form-item>
             <el-form-item label="控制台地址">
               <el-input v-model="form.consoleUrl" placeholder="https://your-sub2api.example.com" />
@@ -132,16 +186,25 @@
           <span>共 {{ store.announcements.length }} 条</span>
           <el-button type="primary" @click="openAnnouncement()">新增公告</el-button>
         </div>
-        <el-table :data="store.announcements" v-loading="store.listLoading" stripe>
+        <el-table
+          class="desktop-table"
+          :data="store.announcements"
+          v-loading="store.listLoading"
+          stripe
+        >
           <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
           <el-table-column prop="content" label="内容" min-width="220" show-overflow-tooltip />
           <el-table-column label="级别" width="100">
             <template #default="{ row }">
-              <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{ levelText(row.level) }}</el-tag>
+              <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
+                levelText(row.level)
+              }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="置顶" width="80">
-            <template #default="{ row }"><el-tag v-if="row.pinned" size="small" type="warning">置顶</el-tag></template>
+            <template #default="{ row }"
+              ><el-tag v-if="row.pinned" size="small" type="warning">置顶</el-tag></template
+            >
           </el-table-column>
           <el-table-column label="发布时间" min-width="170">
             <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
@@ -154,6 +217,28 @@
           </el-table-column>
           <template #empty>暂无公告</template>
         </el-table>
+        <div class="mobile-list edit-list" v-loading="store.listLoading">
+          <article v-for="row in store.announcements" :key="row.id" class="edit-card">
+            <div class="edit-card-head">
+              <strong>{{ row.title || '公告' }}</strong>
+              <span>
+                <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
+                  levelText(row.level)
+                }}</el-tag>
+                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">置顶</el-tag>
+              </span>
+            </div>
+            <p>{{ row.content || '-' }}</p>
+            <div class="edit-card-foot">
+              <time>{{ store.formatDateTime(row.publishedAt) }}</time>
+              <span>
+                <el-button link type="primary" @click="openAnnouncement(row)">编辑</el-button>
+                <el-button link type="danger" @click="onDeleteAnnouncement(row)">删除</el-button>
+              </span>
+            </div>
+          </article>
+          <el-empty v-if="!store.announcements.length" description="暂无公告" />
+        </div>
       </el-tab-pane>
 
       <!-- 时间线 -->
@@ -162,7 +247,7 @@
           <span>共 {{ store.timeline.length }} 条</span>
           <el-button type="primary" @click="openTimeline()">新增时间线</el-button>
         </div>
-        <el-table :data="store.timeline" v-loading="store.listLoading" stripe>
+        <el-table class="desktop-table" :data="store.timeline" v-loading="store.listLoading" stripe>
           <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
           <el-table-column prop="content" label="内容" min-width="220" show-overflow-tooltip />
           <el-table-column prop="category" label="分类" width="120" />
@@ -177,14 +262,37 @@
           </el-table-column>
           <template #empty>暂无时间线</template>
         </el-table>
+        <div class="mobile-list edit-list" v-loading="store.listLoading">
+          <article v-for="row in store.timeline" :key="row.id" class="edit-card">
+            <div class="edit-card-head">
+              <strong>{{ row.title || '更新' }}</strong>
+              <el-tag size="small" effect="light">{{ row.category || '更新' }}</el-tag>
+            </div>
+            <p>{{ row.content || '-' }}</p>
+            <div class="edit-card-foot">
+              <time>{{ store.formatDateTime(row.publishedAt) }}</time>
+              <span>
+                <el-button link type="primary" @click="openTimeline(row)">编辑</el-button>
+                <el-button link type="danger" @click="onDeleteTimeline(row)">删除</el-button>
+              </span>
+            </div>
+          </article>
+          <el-empty v-if="!store.timeline.length" description="暂无时间线" />
+        </div>
       </el-tab-pane>
     </el-tabs>
 
     <!-- 公告弹窗 -->
-    <el-dialog v-model="announcementDialog" :title="annForm.id ? '编辑公告' : '新增公告'" width="520px">
+    <BaseDialog
+      v-model="announcementDialog"
+      :title="annForm.id ? '编辑公告' : '新增公告'"
+      width="520px"
+    >
       <el-form :model="annForm" label-width="90px">
         <el-form-item label="标题"><el-input v-model="annForm.title" /></el-form-item>
-        <el-form-item label="内容"><el-input v-model="annForm.content" type="textarea" :rows="4" /></el-form-item>
+        <el-form-item label="内容"
+          ><el-input v-model="annForm.content" type="textarea" :rows="4"
+        /></el-form-item>
         <el-form-item label="级别">
           <el-select v-model="annForm.level">
             <el-option label="信息" value="info" />
@@ -195,37 +303,55 @@
         </el-form-item>
         <el-form-item label="置顶"><el-switch v-model="annForm.pinned" /></el-form-item>
         <el-form-item label="发布时间">
-          <el-date-picker v-model="annForm.publishedAt" type="datetime" placeholder="默认当前时间" />
+          <el-date-picker
+            v-model="annForm.publishedAt"
+            type="datetime"
+            placeholder="默认当前时间"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="announcementDialog = false">取消</el-button>
-        <el-button type="primary" :loading="store.listLoading" @click="submitAnnouncement">保存</el-button>
+        <el-button type="primary" :loading="store.listLoading" @click="submitAnnouncement"
+          >保存</el-button
+        >
       </template>
-    </el-dialog>
+    </BaseDialog>
 
     <!-- 时间线弹窗 -->
-    <el-dialog v-model="timelineDialog" :title="tlForm.id ? '编辑时间线' : '新增时间线'" width="520px">
+    <BaseDialog
+      v-model="timelineDialog"
+      :title="tlForm.id ? '编辑时间线' : '新增时间线'"
+      width="520px"
+    >
       <el-form :model="tlForm" label-width="90px">
         <el-form-item label="标题"><el-input v-model="tlForm.title" /></el-form-item>
-        <el-form-item label="内容"><el-input v-model="tlForm.content" type="textarea" :rows="4" /></el-form-item>
-        <el-form-item label="分类"><el-input v-model="tlForm.category" placeholder="更新" /></el-form-item>
+        <el-form-item label="内容"
+          ><el-input v-model="tlForm.content" type="textarea" :rows="4"
+        /></el-form-item>
+        <el-form-item label="分类"
+          ><el-input v-model="tlForm.category" placeholder="更新"
+        /></el-form-item>
         <el-form-item label="发布时间">
           <el-date-picker v-model="tlForm.publishedAt" type="datetime" placeholder="默认当前时间" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="timelineDialog = false">取消</el-button>
-        <el-button type="primary" :loading="store.listLoading" @click="submitTimeline">保存</el-button>
+        <el-button type="primary" :loading="store.listLoading" @click="submitTimeline"
+          >保存</el-button
+        >
       </template>
-    </el-dialog>
+    </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import VChart from '@/components/chart/VChart.vue'
 import { useSub2APIStore } from '@/stores/sub2api'
+import { Dialog } from '@/utils/dialog'
 import type { Sub2APIAnnouncement, Sub2APITimelineItem } from '@/types/v1/sub2api'
 
 defineOptions({ name: 'Sub2APIAdmin' })
@@ -256,7 +382,14 @@ const onSave = async () => {
 
 // 公告
 const announcementDialog = ref(false)
-const annForm = reactive<{ id?: string; title: string; content: string; level: string; pinned: boolean; publishedAt: Date | undefined }>({
+const annForm = reactive<{
+  id?: string
+  title: string
+  content: string
+  level: string
+  pinned: boolean
+  publishedAt: Date | undefined
+}>({
   title: '',
   content: '',
   level: 'info',
@@ -281,14 +414,25 @@ const submitAnnouncement = async () => {
     ElMessage.success('已保存')
   }
 }
-const onDeleteAnnouncement = async (row: Sub2APIAnnouncement) => {
-  await ElMessageBox.confirm('确定删除该公告？', '提示', { type: 'warning' })
-  if (await store.removeAnnouncement(row.id)) ElMessage.success('已删除')
+const onDeleteAnnouncement = (row: Sub2APIAnnouncement) => {
+  Dialog.confirm({
+    title: '提示',
+    content: '确定删除该公告？',
+    onConfirm: async () => {
+      if (await store.removeAnnouncement(row.id)) ElMessage.success('已删除')
+    },
+  }).catch(() => undefined)
 }
 
 // 时间线
 const timelineDialog = ref(false)
-const tlForm = reactive<{ id?: string; title: string; content: string; category: string; publishedAt: Date | undefined }>({
+const tlForm = reactive<{
+  id?: string
+  title: string
+  content: string
+  category: string
+  publishedAt: Date | undefined
+}>({
   title: '',
   content: '',
   category: '更新',
@@ -311,9 +455,14 @@ const submitTimeline = async () => {
     ElMessage.success('已保存')
   }
 }
-const onDeleteTimeline = async (row: Sub2APITimelineItem) => {
-  await ElMessageBox.confirm('确定删除该时间线？', '提示', { type: 'warning' })
-  if (await store.removeTimelineItem(row.id)) ElMessage.success('已删除')
+const onDeleteTimeline = (row: Sub2APITimelineItem) => {
+  Dialog.confirm({
+    title: '提示',
+    content: '确定删除该时间线？',
+    onConfirm: async () => {
+      if (await store.removeTimelineItem(row.id)) ElMessage.success('已删除')
+    },
+  }).catch(() => undefined)
 }
 
 const levelText = (level: string) =>
@@ -359,6 +508,10 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+
+  :deep(.el-button + .el-button) {
+    margin-left: 0;
+  }
 }
 
 .metric-row {
@@ -378,9 +531,15 @@ onMounted(() => {
   background: var(--el-bg-color-overlay);
   border-left: 3px solid var(--el-color-primary);
 
-  &.tone-green { border-left-color: var(--el-color-success); }
-  &.tone-amber { border-left-color: var(--el-color-warning); }
-  &.tone-red { border-left-color: var(--el-color-danger); }
+  &.tone-green {
+    border-left-color: var(--el-color-success);
+  }
+  &.tone-amber {
+    border-left-color: var(--el-color-warning);
+  }
+  &.tone-red {
+    border-left-color: var(--el-color-danger);
+  }
 }
 
 .metric-label {
@@ -412,6 +571,7 @@ onMounted(() => {
 .chart-card {
   margin-bottom: 14px;
   border-radius: 12px;
+  min-width: 0;
 }
 
 .card-title {
@@ -454,9 +614,328 @@ onMounted(() => {
   font-size: 13px;
 }
 
+.mobile-list {
+  display: none;
+}
+
+.mobile-list-head,
+.mobile-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-list-head {
+  min-height: 32px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mobile-row {
+  min-height: 38px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 12.5px;
+}
+
+.mobile-row:last-child {
+  border-bottom: 0;
+}
+
+.row-title,
+.row-content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-title {
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+}
+
+.row-content {
+  display: block;
+  color: var(--el-text-color-regular);
+}
+
+.row-main {
+  min-width: 0;
+}
+
+.row-main small {
+  display: block;
+  margin-top: 2px;
+  color: var(--el-text-color-secondary);
+  font-size: 11.5px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-status,
+.row-actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.request-list .mobile-row {
+  grid-template-columns: 96px minmax(0, 1fr) 78px 46px;
+}
+
+.request-list .row-meta {
+  min-width: 0;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.edit-list {
+  gap: 8px;
+}
+
+.edit-card {
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-bg-color-overlay);
+  padding: 10px 12px;
+}
+
+.edit-card-head,
+.edit-card-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.edit-card-head strong {
+  min-width: 0;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.edit-card-head > span,
+.edit-card-foot > span {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-card p {
+  margin: 7px 0;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.edit-card time {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.edit-card-foot :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
 @media (max-width: 900px) {
   .metric-row,
   .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .sub2api-admin {
+    padding: 10px;
+  }
+
+  .page-head {
+    gap: 10px;
+    margin-bottom: 8px;
+
+    h1 {
+      font-size: 19px;
+    }
+
+    p {
+      margin-top: 4px;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+  }
+
+  .head-actions {
+    gap: 8px;
+    flex-wrap: wrap;
+
+    :deep(.el-button) {
+      padding: 8px 14px;
+    }
+  }
+
+  .admin-tabs {
+    :deep(.el-tabs__header) {
+      margin-bottom: 10px;
+    }
+
+    :deep(.el-tabs__item) {
+      height: 36px;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+  }
+
+  .metric-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .metric-card {
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 9px;
+  }
+
+  .metric-label {
+    font-size: 12px;
+  }
+
+  .metric-value {
+    font-size: 18px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .metric-detail {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .sync-meta {
+    gap: 4px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .chart-card {
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  .chart-card :deep(.el-card__header) {
+    padding: 10px 12px;
+  }
+
+  .chart-card :deep(.el-card__body) {
+    padding: 10px 12px;
+  }
+
+  .chart {
+    height: 240px;
+  }
+
+  .chart.sm {
+    height: 210px;
+  }
+
+  .chart-grid {
+    gap: 10px;
+  }
+
+  .form-card {
+    max-width: none;
+    border-radius: 10px;
+  }
+
+  .form-card :deep(.el-card__body) {
+    padding: 12px;
+  }
+
+  .form-card :deep(.el-form-item) {
+    display: block;
+    margin-bottom: 13px;
+  }
+
+  .form-card :deep(.el-form-item__label) {
+    display: block;
+    width: auto !important;
+    height: auto;
+    margin-bottom: 5px;
+    padding: 0;
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  .form-card :deep(.el-form-item__content) {
+    width: 100%;
+    margin-left: 0 !important;
+    line-height: 32px;
+  }
+
+  .form-card :deep(.el-input),
+  .form-card :deep(.el-textarea),
+  .form-card :deep(.el-input-number),
+  .form-card :deep(.el-date-editor),
+  .form-card :deep(.el-select) {
+    width: 100%;
+  }
+
+  .form-hint {
+    display: block;
+    width: 100%;
+    margin: 4px 0 0;
+    line-height: 1.45;
+  }
+
+  .list-toolbar {
+    margin-bottom: 8px;
+
+    :deep(.el-button) {
+      padding: 8px 14px;
+    }
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .edit-list {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .metric-row {
     grid-template-columns: 1fr;
   }
 }

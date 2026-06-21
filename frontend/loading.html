@@ -7,6 +7,13 @@
 
 <script>
   ;(function () {
+    const loadingEl = document.getElementById('__app-loading__')
+    const isPublicRoute = window.location.pathname.startsWith('/public/')
+
+    if (isPublicRoute && loadingEl) {
+      loadingEl.classList.add('hidden')
+    }
+
     const root = document.documentElement
     const storedThemeMode = localStorage.getItem('themeMode')
     const themeMode =
@@ -22,7 +29,6 @@
 
     if (isDark || htmlHasDark) {
       root.classList.add('dark')
-      const loadingEl = document.getElementById('__app-loading__')
       if (loadingEl) {
         loadingEl.classList.add('dark-mode')
       }

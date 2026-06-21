@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -196,6 +197,9 @@ func jsonString(data map[string]any, keys ...string) string {
 	for _, key := range keys {
 		value, ok := lookupJSONValue(data, key)
 		if !ok || value == nil {
+			continue
+		}
+		if reflect.DeepEqual(value, reflect.Zero(reflect.TypeOf(value)).Interface()) {
 			continue
 		}
 		switch v := value.(type) {

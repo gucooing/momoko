@@ -19,7 +19,9 @@
               <el-icon><Bell /></el-icon>
             </button>
             <el-button round @click="goStats()">用量详情</el-button>
-            <el-button v-if="dashboardUrl" type="primary" round @click="openConsole">前往控制台</el-button>
+            <el-button v-if="dashboardUrl" type="primary" round @click="openConsole"
+              >前往控制台</el-button
+            >
           </div>
         </div>
       </header>
@@ -63,7 +65,12 @@
               <h3>成功率 &amp; 生成速度</h3>
               <span>当日 · 随时间</span>
             </div>
-            <VChart class="chart" :option="store.todaySeriesOption" :update-options="chartUpdate" autoresize />
+            <VChart
+              class="chart"
+              :option="store.todaySeriesOption"
+              :update-options="chartUpdate"
+              autoresize
+            />
           </article>
           <article class="panel rank-panel">
             <div class="panel-head">
@@ -76,11 +83,16 @@
                 <div class="rank-body">
                   <div class="rank-line">
                     <b>{{ item.name || '未标记模型' }}</b>
-                    <span>{{ store.formatThroughput(item.avgTps) }} t/s · {{ store.formatToken(item.tokenCount) }}</span>
+                    <span
+                      >{{ store.formatThroughput(item.avgTps) }} t/s ·
+                      {{ store.formatToken(item.tokenCount) }}</span
+                    >
                   </div>
                   <div class="rank-bar"><i :style="{ width: barWidth(item.tokenCount) }" /></div>
                 </div>
-                <span class="rank-rate">{{ store.formatPercent(item.successRate) }}</span>
+                <span class="rank-rate"
+                  ><em>成功率</em>{{ store.formatPercent(item.successRate) }}</span
+                >
               </div>
             </div>
             <div v-else class="empty">今日暂无模型数据</div>
@@ -94,10 +106,17 @@
           <article v-if="announcements.length" class="panel">
             <div class="panel-head"><h3>平台公告</h3></div>
             <div class="notice-list">
-              <div v-for="item in announcements" :key="item.id" class="notice" :class="`lv-${item.level || 'info'}`">
+              <div
+                v-for="item in announcements"
+                :key="item.id"
+                class="notice"
+                :class="`lv-${item.level || 'info'}`"
+              >
                 <div class="notice-head">
                   <b>{{ item.title || '公告' }}</b>
-                  <el-tag v-if="item.pinned" size="small" type="warning" effect="light">置顶</el-tag>
+                  <el-tag v-if="item.pinned" size="small" type="warning" effect="light"
+                    >置顶</el-tag
+                  >
                 </div>
                 <p>{{ item.content }}</p>
                 <time v-if="item.publishedAt">{{ store.formatDateTime(item.publishedAt) }}</time>
@@ -130,9 +149,14 @@
       </footer>
 
       <!-- 公告入口弹窗 -->
-      <el-dialog v-model="announcementVisible" title="平台公告" width="520px" align-center>
+      <BaseDialog v-model="announcementVisible" title="平台公告" width="520px" :show-footer="false">
         <div v-if="announcements.length" class="notice-list">
-          <div v-for="item in announcements" :key="item.id" class="notice" :class="`lv-${item.level || 'info'}`">
+          <div
+            v-for="item in announcements"
+            :key="item.id"
+            class="notice"
+            :class="`lv-${item.level || 'info'}`"
+          >
             <div class="notice-head">
               <b>{{ item.title || '公告' }}</b>
               <el-tag v-if="item.pinned" size="small" type="warning" effect="light">置顶</el-tag>
@@ -142,7 +166,7 @@
           </div>
         </div>
         <el-empty v-else description="暂无公告" />
-      </el-dialog>
+      </BaseDialog>
     </template>
 
     <section v-else class="disabled">
@@ -155,6 +179,7 @@
 <script setup lang="ts">
 import { ArrowRight, Bell, Moon, Sunny } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import VChart from '@/components/chart/VChart.vue'
 import { useSub2APIStore } from '@/stores/sub2api'
 import { useThemeStore } from '@/stores/theme'
@@ -212,7 +237,11 @@ const snapshot = computed(() => home.value?.snapshot)
 const announcements = computed(() => home.value?.announcements || [])
 const timeline = computed(() => home.value?.timeline || [])
 // 首页只看今日：模型排行取今日区间
-const models = computed(() => (store.stats?.models || []).slice(0, 8))
+const models = computed(() =>
+  [...(store.stats?.models || [])]
+    .sort((a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0))
+    .slice(0, 8),
+)
 
 const dashboardUrl = computed(() => {
   const base = home.value?.consoleUrl?.trim()
@@ -262,7 +291,8 @@ const heroStats = computed(() => {
 })
 
 const maxToken = computed(() => Math.max(...models.value.map((m) => Number(m.tokenCount) || 0), 1))
-const barWidth = (token: unknown) => `${Math.max(((Number(token) || 0) / maxToken.value) * 100, 4)}%`
+const barWidth = (token: unknown) =>
+  `${Math.max(((Number(token) || 0) / maxToken.value) * 100, 4)}%`
 
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
@@ -277,6 +307,8 @@ onMounted(async () => {
 .s2a-home {
   position: relative;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
   color: var(--el-text-color-primary);
   background: var(--el-bg-color-page);
 }
@@ -289,8 +321,16 @@ onMounted(async () => {
   pointer-events: none;
   opacity: 0.5;
   background:
-    radial-gradient(ellipse 48% 40% at 20% 0%, color-mix(in srgb, var(--el-color-primary) 30%, transparent), transparent 62%),
-    radial-gradient(ellipse 44% 36% at 82% 6%, color-mix(in srgb, #22d3ee 26%, transparent), transparent 64%);
+    radial-gradient(
+      ellipse 48% 40% at 20% 0%,
+      color-mix(in srgb, var(--el-color-primary) 30%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 44% 36% at 82% 6%,
+      color-mix(in srgb, #22d3ee 26%, transparent),
+      transparent 64%
+    );
 }
 
 .is-dark .bg-accent {
@@ -359,7 +399,9 @@ onMounted(async () => {
   color: var(--el-text-color-primary);
   font-size: 17px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 
   &:hover {
     border-color: var(--el-color-primary);
@@ -388,24 +430,42 @@ onMounted(async () => {
   font-weight: 700;
 
   --chip: var(--el-color-primary);
-  &.tone-green { --chip: #10b981; }
-  &.tone-amber { --chip: #f59e0b; }
-  &.tone-red { --chip: #ef4444; }
-  &.tone-blue { --chip: #3b82f6; }
+  &.tone-green {
+    --chip: #10b981;
+  }
+  &.tone-amber {
+    --chip: #f59e0b;
+  }
+  &.tone-red {
+    --chip: #ef4444;
+  }
+  &.tone-blue {
+    --chip: #3b82f6;
+  }
 
-  i, b {
+  i,
+  b {
     position: absolute;
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: var(--chip);
   }
-  i { position: static; }
-  b { animation: chip-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; margin-left: -7px; }
+  i {
+    position: static;
+  }
+  b {
+    animation: chip-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+    margin-left: -7px;
+  }
 }
 
 @keyframes chip-ping {
-  75%, 100% { transform: scale(2.4); opacity: 0; }
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
 }
 
 .hero-title {
@@ -437,7 +497,9 @@ onMounted(async () => {
   gap: 12px;
   margin-top: 28px;
 
-  .ml { margin-left: 4px; }
+  .ml {
+    margin-left: 4px;
+  }
 }
 
 .stat-strip {
@@ -470,7 +532,8 @@ onMounted(async () => {
 }
 
 /* sections */
-.usage, .updates {
+.usage,
+.updates {
   position: relative;
   z-index: 1;
   padding: 56px 0;
@@ -496,6 +559,7 @@ onMounted(async () => {
 }
 
 .panel {
+  min-width: 0;
   border: 1px solid var(--el-border-color-light);
   border-radius: 16px;
   background: var(--el-bg-color-overlay);
@@ -508,12 +572,20 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 12px;
 
-  h3 { margin: 0; font-size: 16px; font-weight: 700; }
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
   strong {
     font-variant-numeric: tabular-nums;
     font-size: 18px;
     font-weight: 800;
-    span { color: var(--el-text-color-placeholder); font-size: 11px; font-weight: 600; }
+    span {
+      color: var(--el-text-color-placeholder);
+      font-size: 11px;
+      font-weight: 600;
+    }
   }
 }
 
@@ -523,9 +595,19 @@ onMounted(async () => {
   gap: 16px;
 }
 
-.chart { width: 100%; height: 320px; }
+.chart {
+  width: 100%;
+  height: 320px;
+}
 
-.rank-list { display: flex; flex-direction: column; }
+.rank-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.rank-body {
+  min-width: 0;
+}
 
 .rank-row {
   display: grid;
@@ -534,19 +616,26 @@ onMounted(async () => {
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
-  &:last-child { border-bottom: 0; }
+  &:last-child {
+    border-bottom: 0;
+  }
 }
 
 .rank-no {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px; height: 22px;
+  width: 22px;
+  height: 22px;
   border-radius: 7px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
-  font-size: 12px; font-weight: 700;
-  &.top { color: #fff; background: var(--el-color-primary); }
+  font-size: 12px;
+  font-weight: 700;
+  &.top {
+    color: #fff;
+    background: var(--el-color-primary);
+  }
 }
 
 .rank-line {
@@ -554,18 +643,49 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
-  b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
-  span { flex: none; color: var(--el-text-color-secondary); font-size: 12px; }
+  b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+  }
+  span {
+    flex: none;
+    color: var(--el-text-color-secondary);
+    font-size: 12px;
+  }
 }
 
 .rank-bar {
-  height: 5px; border-radius: 999px;
+  height: 5px;
+  border-radius: 999px;
   background: var(--el-fill-color);
   overflow: hidden;
-  i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--el-color-primary), #22d3ee); }
+  i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--el-color-primary), #22d3ee);
+  }
 }
 
-.rank-rate { text-align: right; color: #10b981; font-size: 12px; font-weight: 700; }
+.rank-rate {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  text-align: right;
+  color: #10b981;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rank-rate em {
+  color: var(--el-text-color-placeholder);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+}
 
 .empty {
   padding: 40px;
@@ -579,7 +699,11 @@ onMounted(async () => {
   gap: 16px;
 }
 
-.notice-list { display: flex; flex-direction: column; gap: 12px; }
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
 .notice {
   padding: 14px 16px;
@@ -587,16 +711,44 @@ onMounted(async () => {
   border-left: 3px solid var(--el-color-primary);
   border-radius: 10px;
   background: var(--el-fill-color-lighter);
-  &.lv-success { border-left-color: var(--el-color-success); }
-  &.lv-warning { border-left-color: var(--el-color-warning); }
-  &.lv-danger { border-left-color: var(--el-color-danger); }
+  &.lv-success {
+    border-left-color: var(--el-color-success);
+  }
+  &.lv-warning {
+    border-left-color: var(--el-color-warning);
+  }
+  &.lv-danger {
+    border-left-color: var(--el-color-danger);
+  }
 
-  .notice-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; b { font-size: 14px; } }
-  p { margin: 8px 0 0; color: var(--el-text-color-regular); font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
-  time { display: block; margin-top: 8px; color: var(--el-text-color-placeholder); font-size: 12px; }
+  .notice-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    b {
+      font-size: 14px;
+    }
+  }
+  p {
+    margin: 8px 0 0;
+    color: var(--el-text-color-regular);
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  time {
+    display: block;
+    margin-top: 8px;
+    color: var(--el-text-color-placeholder);
+    font-size: 12px;
+  }
 }
 
-.timeline { display: flex; flex-direction: column; }
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
 
 .tl-item {
   display: grid;
@@ -607,28 +759,60 @@ onMounted(async () => {
   &::before {
     content: '';
     position: absolute;
-    left: 5px; top: 16px; bottom: -2px;
+    left: 5px;
+    top: 16px;
+    bottom: -2px;
     width: 1px;
     background: var(--el-border-color-light);
   }
-  &:last-child { padding-bottom: 0; &::before { display: none; } }
+  &:last-child {
+    padding-bottom: 0;
+    &::before {
+      display: none;
+    }
+  }
 }
 
 .tl-dot {
-  width: 11px; height: 11px; margin-top: 4px;
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
   border-radius: 50%;
   background: var(--el-color-primary);
   border: 3px solid color-mix(in srgb, var(--el-color-primary) 26%, transparent);
 }
 
 .tl-head {
-  display: flex; align-items: center; gap: 10px;
-  b { font-size: 14px; }
-  em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--el-color-primary); background: color-mix(in srgb, var(--el-color-primary) 12%, transparent); padding: 2px 8px; border-radius: 999px; }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  b {
+    font-size: 14px;
+  }
+  em {
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--el-color-primary);
+    background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
 }
 
-.tl-body p { margin: 7px 0 0; color: var(--el-text-color-regular); font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
-.tl-body time { display: block; margin-top: 7px; color: var(--el-text-color-placeholder); font-size: 12px; }
+.tl-body p {
+  margin: 7px 0 0;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.tl-body time {
+  display: block;
+  margin-top: 7px;
+  color: var(--el-text-color-placeholder);
+  font-size: 12px;
+}
 
 .footer {
   position: relative;
@@ -641,7 +825,11 @@ onMounted(async () => {
   border-top: 1px solid var(--el-border-color-lighter);
   color: var(--el-text-color-secondary);
   font-size: 13px;
-  a { color: var(--el-color-primary); font-weight: 700; text-decoration: none; }
+  a {
+    color: var(--el-color-primary);
+    font-weight: 700;
+    text-decoration: none;
+  }
 }
 
 .disabled {
@@ -654,12 +842,100 @@ onMounted(async () => {
   border: 1px solid var(--el-border-color-light);
   border-radius: 16px;
   background: var(--el-bg-color-overlay);
-  h1 { margin: 0 0 10px; font-size: 22px; }
-  p { margin: 0; color: var(--el-text-color-secondary); line-height: 1.7; }
+  h1 {
+    margin: 0 0 10px;
+    font-size: 22px;
+  }
+  p {
+    margin: 0;
+    color: var(--el-text-color-secondary);
+    line-height: 1.7;
+  }
 }
 
 @media (max-width: 900px) {
-  .usage-grid, .updates-grid { grid-template-columns: 1fr; }
-  .stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .usage-grid,
+  .updates-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar-inner,
+  .hero,
+  .usage,
+  .updates,
+  .footer {
+    width: min(1180px, calc(100% - 24px));
+  }
+
+  .usage,
+  .updates {
+    padding: 34px 0;
+  }
+
+  .section-head {
+    margin-bottom: 16px;
+
+    h2 {
+      font-size: 24px;
+    }
+
+    span {
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+  }
+
+  .panel {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .panel-head {
+    margin-bottom: 10px;
+
+    h3 {
+      font-size: 15px;
+    }
+  }
+
+  .chart {
+    height: 250px;
+  }
+
+  .rank-row {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 9px 0;
+  }
+
+  .rank-line {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+
+    b {
+      overflow: visible;
+      white-space: normal;
+      line-height: 1.35;
+    }
+
+    span {
+      flex: auto;
+      line-height: 1.35;
+    }
+  }
+
+  .rank-rate {
+    white-space: nowrap;
+  }
+
+  .empty {
+    padding: 24px;
+  }
 }
 </style>
