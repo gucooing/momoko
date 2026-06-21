@@ -9,7 +9,9 @@ import {
   getPublicSub2APIHome,
   getPublicSub2APIStats,
   getSub2APIConfig,
+  getSub2APIRecentRequests,
   getSub2APISnapshot,
+  getSub2APIStats,
   listSub2APIAnnouncements,
   listSub2APITimeline,
   syncSub2APIUsage,
@@ -26,6 +28,7 @@ import type {
   Sub2APIAnnouncement,
   Sub2APIConfig,
   Sub2APIHome,
+  Sub2APIRecentRequest,
   Sub2APIStats,
   Sub2APITimelineItem,
   Sub2APITopItem,
@@ -84,6 +87,13 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const snapshot = ref<Sub2APIUsageSnapshot>()
   const home = ref<Sub2APIHome>()
   const stats = ref<Sub2APIStats>()
+  // 管理端概览：按所选时间区间聚合（与公开首页/统计页的 stats 区分开）
+  const adminStats = ref<Sub2APIStats>()
+  // 最近请求：按时间区间分页（独立于概览统计，翻页只刷新本列表）
+  const adminRecent = ref<Sub2APIRecentRequest[]>([])
+  const adminRecentTotal = ref(0)
+  const recentPage = ref(1)
+  const recentPageSize = ref(10)
   const announcements = ref<Sub2APIAnnouncement[]>([])
   const timeline = ref<Sub2APITimelineItem[]>([])
 
@@ -91,6 +101,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const snapshotLoading = ref(false)
   const publicLoading = ref(false)
   const statsLoading = ref(false)
+  const adminStatsLoading = ref(false)
+  const recentLoading = ref(false)
   const saving = ref(false)
   const testing = ref(false)
   const syncing = ref(false)
@@ -151,6 +163,41 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       showRequestError(error, '获取 Sub2API 统计失败')
     } finally {
       statsLoading.value = false
+    }
+  }
+
+  // 管理端用量概览：统计 [startTime, endTime] 时间段（Unix 毫秒，精度到分钟）
+  const loadAdminStats = async (startTime: number, endTime: number) => {
+    adminStatsLoading.value = true
+    try {
+      const { data } = await getSub2APIStats({ startTime, endTime })
+      adminStats.value = data?.stats
+      return adminStats.value
+    } catch (error) {
+      showRequestError(error, '获取 Sub2API 用量统计失败')
+    } finally {
+      adminStatsLoading.value = false
+    }
+  }
+
+  // 管理端最近请求：按时间区间分页加载（page 从 1 起）
+  const loadAdminRecent = async (startTime: number, endTime: number, page = recentPage.value) => {
+    recentLoading.value = true
+    try {
+      const { data } = await getSub2APIRecentRequests({
+        startTime,
+        endTime,
+        page,
+        pageSize: recentPageSize.value,
+      })
+      adminRecent.value = data?.recentRequests || []
+      adminRecentTotal.value = Number(data?.total || 0)
+      recentPage.value = page
+      return adminRecent.value
+    } catch (error) {
+      showRequestError(error, '获取 Sub2API 最近请求失败')
+    } finally {
+      recentLoading.value = false
     }
   }
 
@@ -297,6 +344,14 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     if (tps >= 100) return `${Math.round(tps)}`
     return tps.toFixed(1)
   }
+  // 费用展示（USD）：金额越小保留越多位，避免小额请求显示为 $0
+  const formatCost = (value: unknown) => {
+    const cost = toNumber(value)
+    if (cost <= 0) return '$0'
+    if (cost < 0.01) return `$${cost.toFixed(6)}`
+    if (cost < 1) return `$${cost.toFixed(4)}`
+    return `$${cost.toFixed(2)}`
+  }
   const formatDateTime = (value: DateLike) => {
     if (!value) return '-'
     const time = dayjs(value)
@@ -354,7 +409,6 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     ]
   }
 
-  const adminMetricCards = computed(() => buildMetricCards(snapshot.value))
   const publicMetricCards = computed(() => buildMetricCards(home.value?.snapshot))
 
   const trendOption = (trend: Sub2APITrendPoint[] = []) => {
@@ -468,9 +522,9 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const adminTrendOption = computed(() => trendOption(snapshot.value?.trend))
-  const adminModelOption = computed(() => topOption(snapshot.value?.modelUsage, '模型请求量'))
-  const adminEndpointOption = computed(() => topOption(snapshot.value?.endpointUsage, '接口请求量'))
+  const adminTrendOption = computed(() => trendOption(adminStats.value?.trend))
+  const adminModelOption = computed(() => topOption(adminStats.value?.models, '模型请求量'))
+  const adminEndpointOption = computed(() => topOption(adminStats.value?.endpoints, '接口请求量'))
   const publicTrendOption = computed(() => trendOption(home.value?.snapshot?.trend))
   const statsTrendOption = computed(() => trendOption(stats.value?.trend))
 
@@ -496,9 +550,10 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         textStyle: { color: axisColor },
       },
       grid: {
+        // 非紧凑模式额外显示坐标轴名（token/s、成功率、请求数），需为图例与轴名各留一行，避免与顶部图例重叠
         left: compact ? 36 : 48,
         right: compact ? 36 : 78,
-        top: compact ? 50 : 36,
+        top: compact ? 50 : 58,
         bottom: 28,
       },
       xAxis: {
@@ -562,46 +617,46 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   })
 
-  const statsMetricCards = computed<Sub2APIMetricCard[]>(() => {
-    const s = stats.value
-    return [
-      {
-        label: '请求数',
-        value: formatNumber(s?.requestCount),
-        detail: s?.rangeLabel || '',
-        icon: 'HOutline:ArrowPathRoundedSquareIcon',
-        tone: 'blue',
-      },
-      {
-        label: 'Token',
-        value: formatToken(s?.tokenCount),
-        detail: '区间累计',
-        icon: 'HOutline:CircleStackIcon',
-        tone: 'blue',
-      },
-      {
-        label: '成功率',
-        value: formatPercent(s?.successRate),
-        detail: `成功 ${formatNumber(s?.successCount)}`,
-        icon: 'HOutline:CheckCircleIcon',
-        tone: 'green',
-      },
-      {
-        label: '平均延迟',
-        value: formatLatency(s?.averageLatencyMs),
-        detail: '成功请求均值',
-        icon: 'HOutline:ClockIcon',
-        tone: 'amber',
-      },
-      {
-        label: 'Token 生成速度',
-        value: `${formatThroughput(s?.averageTps)} token/s`,
-        detail: '按请求平均 · 不含缓存',
-        icon: 'HOutline:BoltIcon',
-        tone: 'red',
-      },
-    ]
-  })
+  const buildStatsCards = (s?: Sub2APIStats): Sub2APIMetricCard[] => [
+    {
+      label: '请求数',
+      value: formatNumber(s?.requestCount),
+      detail: s?.rangeLabel || '',
+      icon: 'HOutline:ArrowPathRoundedSquareIcon',
+      tone: 'blue',
+    },
+    {
+      label: 'Token',
+      value: formatToken(s?.tokenCount),
+      detail: '区间累计',
+      icon: 'HOutline:CircleStackIcon',
+      tone: 'blue',
+    },
+    {
+      label: '成功率',
+      value: formatPercent(s?.successRate),
+      detail: `成功 ${formatNumber(s?.successCount)}`,
+      icon: 'HOutline:CheckCircleIcon',
+      tone: 'green',
+    },
+    {
+      label: '平均延迟',
+      value: formatLatency(s?.averageLatencyMs),
+      detail: '成功请求均值',
+      icon: 'HOutline:ClockIcon',
+      tone: 'amber',
+    },
+    {
+      label: 'Token 生成速度',
+      value: `${formatThroughput(s?.averageTps)} token/s`,
+      detail: '按请求平均 · 不含缓存',
+      icon: 'HOutline:BoltIcon',
+      tone: 'red',
+    },
+  ]
+
+  const statsMetricCards = computed(() => buildStatsCards(stats.value))
+  const adminStatsMetricCards = computed(() => buildStatsCards(adminStats.value))
 
   return {
     config,
@@ -609,19 +664,26 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     snapshot,
     home,
     stats,
+    adminStats,
+    adminRecent,
+    adminRecentTotal,
+    recentPage,
+    recentPageSize,
     announcements,
     timeline,
     configLoading,
     snapshotLoading,
     publicLoading,
     statsLoading,
+    adminStatsLoading,
+    recentLoading,
     saving,
     testing,
     syncing,
     listLoading,
-    adminMetricCards,
     publicMetricCards,
     statsMetricCards,
+    adminStatsMetricCards,
     adminTrendOption,
     adminModelOption,
     adminEndpointOption,
@@ -632,6 +694,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     loadSnapshot,
     loadPublicHome,
     loadStats,
+    loadAdminStats,
+    loadAdminRecent,
     loadAdmin,
     saveConfig,
     testConfig,
@@ -647,6 +711,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     formatLatency,
     formatToken,
     formatThroughput,
+    formatCost,
     formatDateTime,
     statusText,
     statusType,

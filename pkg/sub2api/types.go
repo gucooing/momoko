@@ -75,6 +75,13 @@ type UsageRecord struct {
 	TokenCount   int64
 	OutputTokens int64
 	TPS          float64
+	// 详情字段：供最近请求详情展示
+	Cost            float64 // 费用（USD）
+	FirstTokenMS    int64   // 首 token 延迟（毫秒）
+	ReasoningEffort string  // 推理强度
+	AccountName     string  // 账号名称
+	ErrorMessage    string  // 错误详情（失败/上游错误请求）
+	HTTPStatus      int     // HTTP 状态码
 }
 
 // SyncState 最近一次同步的状态。
@@ -133,6 +140,9 @@ type UsageStore interface {
 	LatestUpstreamErrorRecordTime(ctx context.Context) (*time.Time, error)
 	// RecordsSince 按时间升序返回 start（含）之后的记录；start 为 nil 时返回全部记录。
 	RecordsSince(ctx context.Context, start *time.Time) ([]*UsageRecord, error)
+	// RecordsPage 按时间倒序（最新在前）返回 [start, end] 区间内分页的记录及区间总数。
+	// start/end 为 nil 时不施加对应边界。
+	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int) ([]*UsageRecord, int, error)
 }
 
 // ConfigStore KV 配置存储（由数据层 ConfigRepo 适配）。

@@ -41,7 +41,19 @@ type Sub2APIUsageRecord struct {
 	// 输出 token 数（不含输入与缓存）
 	OutputTokens int64 `json:"output_tokens,omitempty"`
 	// 单请求 token 生成速度（输出token/秒，按请求计，不含缓存）
-	Tps          float64 `json:"tps,omitempty"`
+	Tps float64 `json:"tps,omitempty"`
+	// 费用（USD，total_cost）
+	Cost float64 `json:"cost,omitempty"`
+	// 首 token 延迟（毫秒）
+	FirstTokenMs int64 `json:"first_token_ms,omitempty"`
+	// 推理强度
+	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+	// 账号名称
+	AccountName string `json:"account_name,omitempty"`
+	// 错误详情（失败/上游错误请求）
+	ErrorMessage string `json:"error_message,omitempty"`
+	// HTTP 状态码
+	HTTPStatus   int `json:"http_status,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -52,11 +64,11 @@ func (*Sub2APIUsageRecord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case sub2apiusagerecord.FieldSuccess:
 			values[i] = new(sql.NullBool)
-		case sub2apiusagerecord.FieldTps:
+		case sub2apiusagerecord.FieldTps, sub2apiusagerecord.FieldCost:
 			values[i] = new(sql.NullFloat64)
-		case sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens:
+		case sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
 			values[i] = new(sql.NullInt64)
-		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldStatus:
+		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case sub2apiusagerecord.FieldCreateTime, sub2apiusagerecord.FieldUpdateTime, sub2apiusagerecord.FieldRequestTime:
 			values[i] = new(sql.NullTime)
@@ -153,6 +165,42 @@ func (_m *Sub2APIUsageRecord) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.Tps = value.Float64
 			}
+		case sub2apiusagerecord.FieldCost:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field cost", values[i])
+			} else if value.Valid {
+				_m.Cost = value.Float64
+			}
+		case sub2apiusagerecord.FieldFirstTokenMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field first_token_ms", values[i])
+			} else if value.Valid {
+				_m.FirstTokenMs = value.Int64
+			}
+		case sub2apiusagerecord.FieldReasoningEffort:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reasoning_effort", values[i])
+			} else if value.Valid {
+				_m.ReasoningEffort = value.String
+			}
+		case sub2apiusagerecord.FieldAccountName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field account_name", values[i])
+			} else if value.Valid {
+				_m.AccountName = value.String
+			}
+		case sub2apiusagerecord.FieldErrorMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field error_message", values[i])
+			} else if value.Valid {
+				_m.ErrorMessage = value.String
+			}
+		case sub2apiusagerecord.FieldHTTPStatus:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field http_status", values[i])
+			} else if value.Valid {
+				_m.HTTPStatus = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -224,6 +272,24 @@ func (_m *Sub2APIUsageRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tps=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Tps))
+	builder.WriteString(", ")
+	builder.WriteString("cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Cost))
+	builder.WriteString(", ")
+	builder.WriteString("first_token_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FirstTokenMs))
+	builder.WriteString(", ")
+	builder.WriteString("reasoning_effort=")
+	builder.WriteString(_m.ReasoningEffort)
+	builder.WriteString(", ")
+	builder.WriteString("account_name=")
+	builder.WriteString(_m.AccountName)
+	builder.WriteString(", ")
+	builder.WriteString("error_message=")
+	builder.WriteString(_m.ErrorMessage)
+	builder.WriteString(", ")
+	builder.WriteString("http_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HTTPStatus))
 	builder.WriteByte(')')
 	return builder.String()
 }

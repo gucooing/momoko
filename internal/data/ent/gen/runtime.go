@@ -457,6 +457,18 @@ func init() {
 	sub2apiusagerecordDescTps := sub2apiusagerecordFields[10].Descriptor()
 	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
 	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
+	// sub2apiusagerecordDescCost is the schema descriptor for cost field.
+	sub2apiusagerecordDescCost := sub2apiusagerecordFields[11].Descriptor()
+	// sub2apiusagerecord.DefaultCost holds the default value on creation for the cost field.
+	sub2apiusagerecord.DefaultCost = sub2apiusagerecordDescCost.Default.(float64)
+	// sub2apiusagerecordDescFirstTokenMs is the schema descriptor for first_token_ms field.
+	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[12].Descriptor()
+	// sub2apiusagerecord.DefaultFirstTokenMs holds the default value on creation for the first_token_ms field.
+	sub2apiusagerecord.DefaultFirstTokenMs = sub2apiusagerecordDescFirstTokenMs.Default.(int64)
+	// sub2apiusagerecordDescHTTPStatus is the schema descriptor for http_status field.
+	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[16].Descriptor()
+	// sub2apiusagerecord.DefaultHTTPStatus holds the default value on creation for the http_status field.
+	sub2apiusagerecord.DefaultHTTPStatus = sub2apiusagerecordDescHTTPStatus.Default.(int)
 	// sub2apiusagerecordDescID is the schema descriptor for id field.
 	sub2apiusagerecordDescID := sub2apiusagerecordFields[0].Descriptor()
 	// sub2apiusagerecord.IDValidator is a validator for the "id" field. It is called by the builders before save.

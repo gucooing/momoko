@@ -625,6 +625,242 @@ func (x *GetSub2APIStatsResponse) GetStats() *Sub2APIStats {
 	return nil
 }
 
+type GetSub2APIAdminStatsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
+	// start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+	StartTime     int64 `protobuf:"varint,1,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime       int64 `protobuf:"varint,2,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSub2APIAdminStatsRequest) Reset() {
+	*x = GetSub2APIAdminStatsRequest{}
+	mi := &file_v1_sub2api_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIAdminStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIAdminStatsRequest) ProtoMessage() {}
+
+func (x *GetSub2APIAdminStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIAdminStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetSub2APIAdminStatsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetSub2APIAdminStatsRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *GetSub2APIAdminStatsRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
+}
+
+type GetSub2APIAdminStatsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stats         *Sub2APIStats          `protobuf:"bytes,1,opt,name=stats,proto3" json:"stats,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSub2APIAdminStatsResponse) Reset() {
+	*x = GetSub2APIAdminStatsResponse{}
+	mi := &file_v1_sub2api_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIAdminStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIAdminStatsResponse) ProtoMessage() {}
+
+func (x *GetSub2APIAdminStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIAdminStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetSub2APIAdminStatsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetSub2APIAdminStatsResponse) GetStats() *Sub2APIStats {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
+type GetSub2APIRecentRequestsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+	StartTime int64 `protobuf:"varint,1,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime   int64 `protobuf:"varint,2,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	// 页码（从 1 起）与每页条数。
+	Page          int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSub2APIRecentRequestsRequest) Reset() {
+	*x = GetSub2APIRecentRequestsRequest{}
+	mi := &file_v1_sub2api_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIRecentRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIRecentRequestsRequest) ProtoMessage() {}
+
+func (x *GetSub2APIRecentRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIRecentRequestsRequest.ProtoReflect.Descriptor instead.
+func (*GetSub2APIRecentRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetSub2APIRecentRequestsRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *GetSub2APIRecentRequestsRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
+}
+
+func (x *GetSub2APIRecentRequestsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetSub2APIRecentRequestsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetSub2APIRecentRequestsResponse struct {
+	state          protoimpl.MessageState  `protogen:"open.v1"`
+	RecentRequests []*Sub2APIRecentRequest `protobuf:"bytes,1,rep,name=recent_requests,json=recentRequests,proto3" json:"recent_requests,omitempty"`
+	Total          int64                   `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Page           int32                   `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize       int32                   `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetSub2APIRecentRequestsResponse) Reset() {
+	*x = GetSub2APIRecentRequestsResponse{}
+	mi := &file_v1_sub2api_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIRecentRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIRecentRequestsResponse) ProtoMessage() {}
+
+func (x *GetSub2APIRecentRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIRecentRequestsResponse.ProtoReflect.Descriptor instead.
+func (*GetSub2APIRecentRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetSub2APIRecentRequestsResponse) GetRecentRequests() []*Sub2APIRecentRequest {
+	if x != nil {
+		return x.RecentRequests
+	}
+	return nil
+}
+
+func (x *GetSub2APIRecentRequestsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *GetSub2APIRecentRequestsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetSub2APIRecentRequestsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type Sub2APIStats struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	RangeDays        int32                  `protobuf:"varint,1,opt,name=range_days,json=rangeDays,proto3" json:"range_days,omitempty"`
@@ -644,7 +880,7 @@ type Sub2APIStats struct {
 
 func (x *Sub2APIStats) Reset() {
 	*x = Sub2APIStats{}
-	mi := &file_v1_sub2api_proto_msgTypes[14]
+	mi := &file_v1_sub2api_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -656,7 +892,7 @@ func (x *Sub2APIStats) String() string {
 func (*Sub2APIStats) ProtoMessage() {}
 
 func (x *Sub2APIStats) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[14]
+	mi := &file_v1_sub2api_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -669,7 +905,7 @@ func (x *Sub2APIStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIStats.ProtoReflect.Descriptor instead.
 func (*Sub2APIStats) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{14}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Sub2APIStats) GetRangeDays() int32 {
@@ -769,7 +1005,7 @@ type Sub2APIConfig struct {
 
 func (x *Sub2APIConfig) Reset() {
 	*x = Sub2APIConfig{}
-	mi := &file_v1_sub2api_proto_msgTypes[15]
+	mi := &file_v1_sub2api_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +1017,7 @@ func (x *Sub2APIConfig) String() string {
 func (*Sub2APIConfig) ProtoMessage() {}
 
 func (x *Sub2APIConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[15]
+	mi := &file_v1_sub2api_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +1030,7 @@ func (x *Sub2APIConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIConfig.ProtoReflect.Descriptor instead.
 func (*Sub2APIConfig) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{15}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Sub2APIConfig) GetHomeEnabled() bool {
@@ -890,7 +1126,7 @@ type Sub2APIHome struct {
 
 func (x *Sub2APIHome) Reset() {
 	*x = Sub2APIHome{}
-	mi := &file_v1_sub2api_proto_msgTypes[16]
+	mi := &file_v1_sub2api_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -902,7 +1138,7 @@ func (x *Sub2APIHome) String() string {
 func (*Sub2APIHome) ProtoMessage() {}
 
 func (x *Sub2APIHome) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[16]
+	mi := &file_v1_sub2api_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -915,7 +1151,7 @@ func (x *Sub2APIHome) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIHome.ProtoReflect.Descriptor instead.
 func (*Sub2APIHome) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{16}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Sub2APIHome) GetEnabled() bool {
@@ -988,7 +1224,7 @@ type Sub2APIAnnouncement struct {
 
 func (x *Sub2APIAnnouncement) Reset() {
 	*x = Sub2APIAnnouncement{}
-	mi := &file_v1_sub2api_proto_msgTypes[17]
+	mi := &file_v1_sub2api_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1000,7 +1236,7 @@ func (x *Sub2APIAnnouncement) String() string {
 func (*Sub2APIAnnouncement) ProtoMessage() {}
 
 func (x *Sub2APIAnnouncement) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[17]
+	mi := &file_v1_sub2api_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1013,7 +1249,7 @@ func (x *Sub2APIAnnouncement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIAnnouncement.ProtoReflect.Descriptor instead.
 func (*Sub2APIAnnouncement) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{17}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Sub2APIAnnouncement) GetId() string {
@@ -1071,7 +1307,7 @@ type Sub2APITimelineItem struct {
 
 func (x *Sub2APITimelineItem) Reset() {
 	*x = Sub2APITimelineItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[18]
+	mi := &file_v1_sub2api_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1083,7 +1319,7 @@ func (x *Sub2APITimelineItem) String() string {
 func (*Sub2APITimelineItem) ProtoMessage() {}
 
 func (x *Sub2APITimelineItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[18]
+	mi := &file_v1_sub2api_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1332,7 @@ func (x *Sub2APITimelineItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimelineItem.ProtoReflect.Descriptor instead.
 func (*Sub2APITimelineItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{18}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Sub2APITimelineItem) GetId() string {
@@ -1143,7 +1379,7 @@ type ListSub2APIAnnouncementsRequest struct {
 
 func (x *ListSub2APIAnnouncementsRequest) Reset() {
 	*x = ListSub2APIAnnouncementsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[19]
+	mi := &file_v1_sub2api_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1155,7 +1391,7 @@ func (x *ListSub2APIAnnouncementsRequest) String() string {
 func (*ListSub2APIAnnouncementsRequest) ProtoMessage() {}
 
 func (x *ListSub2APIAnnouncementsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[19]
+	mi := &file_v1_sub2api_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1168,7 +1404,7 @@ func (x *ListSub2APIAnnouncementsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APIAnnouncementsRequest.ProtoReflect.Descriptor instead.
 func (*ListSub2APIAnnouncementsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{19}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{23}
 }
 
 type ListSub2APIAnnouncementsResponse struct {
@@ -1180,7 +1416,7 @@ type ListSub2APIAnnouncementsResponse struct {
 
 func (x *ListSub2APIAnnouncementsResponse) Reset() {
 	*x = ListSub2APIAnnouncementsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[20]
+	mi := &file_v1_sub2api_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1192,7 +1428,7 @@ func (x *ListSub2APIAnnouncementsResponse) String() string {
 func (*ListSub2APIAnnouncementsResponse) ProtoMessage() {}
 
 func (x *ListSub2APIAnnouncementsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[20]
+	mi := &file_v1_sub2api_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1205,7 +1441,7 @@ func (x *ListSub2APIAnnouncementsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APIAnnouncementsResponse.ProtoReflect.Descriptor instead.
 func (*ListSub2APIAnnouncementsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{20}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListSub2APIAnnouncementsResponse) GetAnnouncements() []*Sub2APIAnnouncement {
@@ -1228,7 +1464,7 @@ type CreateSub2APIAnnouncementRequest struct {
 
 func (x *CreateSub2APIAnnouncementRequest) Reset() {
 	*x = CreateSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[21]
+	mi := &file_v1_sub2api_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1240,7 +1476,7 @@ func (x *CreateSub2APIAnnouncementRequest) String() string {
 func (*CreateSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *CreateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[21]
+	mi := &file_v1_sub2api_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1253,7 +1489,7 @@ func (x *CreateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*CreateSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{21}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateSub2APIAnnouncementRequest) GetTitle() string {
@@ -1305,7 +1541,7 @@ type UpdateSub2APIAnnouncementRequest struct {
 
 func (x *UpdateSub2APIAnnouncementRequest) Reset() {
 	*x = UpdateSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[22]
+	mi := &file_v1_sub2api_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1553,7 @@ func (x *UpdateSub2APIAnnouncementRequest) String() string {
 func (*UpdateSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *UpdateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[22]
+	mi := &file_v1_sub2api_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1566,7 @@ func (x *UpdateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{22}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateSub2APIAnnouncementRequest) GetId() string {
@@ -1384,7 +1620,7 @@ type Sub2APIAnnouncementResponse struct {
 
 func (x *Sub2APIAnnouncementResponse) Reset() {
 	*x = Sub2APIAnnouncementResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[23]
+	mi := &file_v1_sub2api_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1396,7 +1632,7 @@ func (x *Sub2APIAnnouncementResponse) String() string {
 func (*Sub2APIAnnouncementResponse) ProtoMessage() {}
 
 func (x *Sub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[23]
+	mi := &file_v1_sub2api_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +1645,7 @@ func (x *Sub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIAnnouncementResponse.ProtoReflect.Descriptor instead.
 func (*Sub2APIAnnouncementResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{23}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Sub2APIAnnouncementResponse) GetAnnouncement() *Sub2APIAnnouncement {
@@ -1428,7 +1664,7 @@ type DeleteSub2APIAnnouncementRequest struct {
 
 func (x *DeleteSub2APIAnnouncementRequest) Reset() {
 	*x = DeleteSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[24]
+	mi := &file_v1_sub2api_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1440,7 +1676,7 @@ func (x *DeleteSub2APIAnnouncementRequest) String() string {
 func (*DeleteSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *DeleteSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[24]
+	mi := &file_v1_sub2api_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1453,7 +1689,7 @@ func (x *DeleteSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{24}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeleteSub2APIAnnouncementRequest) GetId() string {
@@ -1471,7 +1707,7 @@ type DeleteSub2APIAnnouncementResponse struct {
 
 func (x *DeleteSub2APIAnnouncementResponse) Reset() {
 	*x = DeleteSub2APIAnnouncementResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[25]
+	mi := &file_v1_sub2api_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1483,7 +1719,7 @@ func (x *DeleteSub2APIAnnouncementResponse) String() string {
 func (*DeleteSub2APIAnnouncementResponse) ProtoMessage() {}
 
 func (x *DeleteSub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[25]
+	mi := &file_v1_sub2api_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1496,7 +1732,7 @@ func (x *DeleteSub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteSub2APIAnnouncementResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APIAnnouncementResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{25}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{29}
 }
 
 // 时间线管理消息
@@ -1508,7 +1744,7 @@ type ListSub2APITimelineRequest struct {
 
 func (x *ListSub2APITimelineRequest) Reset() {
 	*x = ListSub2APITimelineRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[26]
+	mi := &file_v1_sub2api_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1520,7 +1756,7 @@ func (x *ListSub2APITimelineRequest) String() string {
 func (*ListSub2APITimelineRequest) ProtoMessage() {}
 
 func (x *ListSub2APITimelineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[26]
+	mi := &file_v1_sub2api_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1533,7 +1769,7 @@ func (x *ListSub2APITimelineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APITimelineRequest.ProtoReflect.Descriptor instead.
 func (*ListSub2APITimelineRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{26}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{30}
 }
 
 type ListSub2APITimelineResponse struct {
@@ -1545,7 +1781,7 @@ type ListSub2APITimelineResponse struct {
 
 func (x *ListSub2APITimelineResponse) Reset() {
 	*x = ListSub2APITimelineResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[27]
+	mi := &file_v1_sub2api_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1557,7 +1793,7 @@ func (x *ListSub2APITimelineResponse) String() string {
 func (*ListSub2APITimelineResponse) ProtoMessage() {}
 
 func (x *ListSub2APITimelineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[27]
+	mi := &file_v1_sub2api_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1570,7 +1806,7 @@ func (x *ListSub2APITimelineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APITimelineResponse.ProtoReflect.Descriptor instead.
 func (*ListSub2APITimelineResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{27}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListSub2APITimelineResponse) GetTimeline() []*Sub2APITimelineItem {
@@ -1592,7 +1828,7 @@ type CreateSub2APITimelineItemRequest struct {
 
 func (x *CreateSub2APITimelineItemRequest) Reset() {
 	*x = CreateSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[28]
+	mi := &file_v1_sub2api_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1604,7 +1840,7 @@ func (x *CreateSub2APITimelineItemRequest) String() string {
 func (*CreateSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *CreateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[28]
+	mi := &file_v1_sub2api_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1617,7 +1853,7 @@ func (x *CreateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*CreateSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{28}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CreateSub2APITimelineItemRequest) GetTitle() string {
@@ -1661,7 +1897,7 @@ type UpdateSub2APITimelineItemRequest struct {
 
 func (x *UpdateSub2APITimelineItemRequest) Reset() {
 	*x = UpdateSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[29]
+	mi := &file_v1_sub2api_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1673,7 +1909,7 @@ func (x *UpdateSub2APITimelineItemRequest) String() string {
 func (*UpdateSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *UpdateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[29]
+	mi := &file_v1_sub2api_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1686,7 +1922,7 @@ func (x *UpdateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{29}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *UpdateSub2APITimelineItemRequest) GetId() string {
@@ -1733,7 +1969,7 @@ type Sub2APITimelineItemResponse struct {
 
 func (x *Sub2APITimelineItemResponse) Reset() {
 	*x = Sub2APITimelineItemResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[30]
+	mi := &file_v1_sub2api_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1745,7 +1981,7 @@ func (x *Sub2APITimelineItemResponse) String() string {
 func (*Sub2APITimelineItemResponse) ProtoMessage() {}
 
 func (x *Sub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[30]
+	mi := &file_v1_sub2api_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1758,7 +1994,7 @@ func (x *Sub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimelineItemResponse.ProtoReflect.Descriptor instead.
 func (*Sub2APITimelineItemResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{30}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *Sub2APITimelineItemResponse) GetItem() *Sub2APITimelineItem {
@@ -1777,7 +2013,7 @@ type DeleteSub2APITimelineItemRequest struct {
 
 func (x *DeleteSub2APITimelineItemRequest) Reset() {
 	*x = DeleteSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[31]
+	mi := &file_v1_sub2api_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +2025,7 @@ func (x *DeleteSub2APITimelineItemRequest) String() string {
 func (*DeleteSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *DeleteSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[31]
+	mi := &file_v1_sub2api_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +2038,7 @@ func (x *DeleteSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{31}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *DeleteSub2APITimelineItemRequest) GetId() string {
@@ -1820,7 +2056,7 @@ type DeleteSub2APITimelineItemResponse struct {
 
 func (x *DeleteSub2APITimelineItemResponse) Reset() {
 	*x = DeleteSub2APITimelineItemResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[32]
+	mi := &file_v1_sub2api_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1832,7 +2068,7 @@ func (x *DeleteSub2APITimelineItemResponse) String() string {
 func (*DeleteSub2APITimelineItemResponse) ProtoMessage() {}
 
 func (x *DeleteSub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[32]
+	mi := &file_v1_sub2api_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1845,7 +2081,7 @@ func (x *DeleteSub2APITimelineItemResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteSub2APITimelineItemResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APITimelineItemResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{32}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{36}
 }
 
 type Sub2APIUsageSnapshot struct {
@@ -1886,7 +2122,7 @@ type Sub2APIUsageSnapshot struct {
 
 func (x *Sub2APIUsageSnapshot) Reset() {
 	*x = Sub2APIUsageSnapshot{}
-	mi := &file_v1_sub2api_proto_msgTypes[33]
+	mi := &file_v1_sub2api_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1898,7 +2134,7 @@ func (x *Sub2APIUsageSnapshot) String() string {
 func (*Sub2APIUsageSnapshot) ProtoMessage() {}
 
 func (x *Sub2APIUsageSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[33]
+	mi := &file_v1_sub2api_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1911,7 +2147,7 @@ func (x *Sub2APIUsageSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIUsageSnapshot.ProtoReflect.Descriptor instead.
 func (*Sub2APIUsageSnapshot) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{33}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *Sub2APIUsageSnapshot) GetConfigured() bool {
@@ -2122,7 +2358,7 @@ type Sub2APITimePoint struct {
 
 func (x *Sub2APITimePoint) Reset() {
 	*x = Sub2APITimePoint{}
-	mi := &file_v1_sub2api_proto_msgTypes[34]
+	mi := &file_v1_sub2api_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2134,7 +2370,7 @@ func (x *Sub2APITimePoint) String() string {
 func (*Sub2APITimePoint) ProtoMessage() {}
 
 func (x *Sub2APITimePoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[34]
+	mi := &file_v1_sub2api_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2147,7 +2383,7 @@ func (x *Sub2APITimePoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimePoint.ProtoReflect.Descriptor instead.
 func (*Sub2APITimePoint) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{34}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *Sub2APITimePoint) GetTime() *timestamppb.Timestamp {
@@ -2192,7 +2428,7 @@ type Sub2APITrendPoint struct {
 
 func (x *Sub2APITrendPoint) Reset() {
 	*x = Sub2APITrendPoint{}
-	mi := &file_v1_sub2api_proto_msgTypes[35]
+	mi := &file_v1_sub2api_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2204,7 +2440,7 @@ func (x *Sub2APITrendPoint) String() string {
 func (*Sub2APITrendPoint) ProtoMessage() {}
 
 func (x *Sub2APITrendPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[35]
+	mi := &file_v1_sub2api_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2217,7 +2453,7 @@ func (x *Sub2APITrendPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITrendPoint.ProtoReflect.Descriptor instead.
 func (*Sub2APITrendPoint) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{35}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Sub2APITrendPoint) GetDate() string {
@@ -2276,7 +2512,7 @@ type Sub2APITopItem struct {
 
 func (x *Sub2APITopItem) Reset() {
 	*x = Sub2APITopItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[36]
+	mi := &file_v1_sub2api_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2288,7 +2524,7 @@ func (x *Sub2APITopItem) String() string {
 func (*Sub2APITopItem) ProtoMessage() {}
 
 func (x *Sub2APITopItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[36]
+	mi := &file_v1_sub2api_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2301,7 +2537,7 @@ func (x *Sub2APITopItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITopItem.ProtoReflect.Descriptor instead.
 func (*Sub2APITopItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{36}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *Sub2APITopItem) GetName() string {
@@ -2340,22 +2576,30 @@ func (x *Sub2APITopItem) GetAvgTps() float64 {
 }
 
 type Sub2APIRecentRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RequestId     string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	Model         string                 `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
-	Endpoint      string                 `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	Success       bool                   `protobuf:"varint,5,opt,name=success,proto3" json:"success,omitempty"`
-	LatencyMs     int64                  `protobuf:"varint,6,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
-	TokenCount    int64                  `protobuf:"varint,7,opt,name=token_count,json=tokenCount,proto3" json:"token_count,omitempty"`
-	RequestTime   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=request_time,json=requestTime,proto3" json:"request_time,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	RequestId   string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Model       string                 `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
+	Endpoint    string                 `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Status      string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Success     bool                   `protobuf:"varint,5,opt,name=success,proto3" json:"success,omitempty"`
+	LatencyMs   int64                  `protobuf:"varint,6,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
+	TokenCount  int64                  `protobuf:"varint,7,opt,name=token_count,json=tokenCount,proto3" json:"token_count,omitempty"`
+	RequestTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=request_time,json=requestTime,proto3" json:"request_time,omitempty"`
+	// 详情字段（成功请求）
+	Cost            float64 `protobuf:"fixed64,9,opt,name=cost,proto3" json:"cost,omitempty"`                                             // 费用（USD）
+	FirstTokenMs    int64   `protobuf:"varint,10,opt,name=first_token_ms,json=firstTokenMs,proto3" json:"first_token_ms,omitempty"`       // 首 token 延迟（毫秒）
+	ReasoningEffort string  `protobuf:"bytes,11,opt,name=reasoning_effort,json=reasoningEffort,proto3" json:"reasoning_effort,omitempty"` // 推理强度
+	AccountName     string  `protobuf:"bytes,12,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`             // 账号名称
+	// 详情字段（失败/上游错误请求）
+	ErrorMessage  string `protobuf:"bytes,13,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"` // 错误详情
+	HttpStatus    int32  `protobuf:"varint,14,opt,name=http_status,json=httpStatus,proto3" json:"http_status,omitempty"`      // HTTP 状态码
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Sub2APIRecentRequest) Reset() {
 	*x = Sub2APIRecentRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[37]
+	mi := &file_v1_sub2api_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2367,7 +2611,7 @@ func (x *Sub2APIRecentRequest) String() string {
 func (*Sub2APIRecentRequest) ProtoMessage() {}
 
 func (x *Sub2APIRecentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[37]
+	mi := &file_v1_sub2api_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2380,7 +2624,7 @@ func (x *Sub2APIRecentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIRecentRequest.ProtoReflect.Descriptor instead.
 func (*Sub2APIRecentRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{37}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *Sub2APIRecentRequest) GetRequestId() string {
@@ -2439,6 +2683,48 @@ func (x *Sub2APIRecentRequest) GetRequestTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Sub2APIRecentRequest) GetCost() float64 {
+	if x != nil {
+		return x.Cost
+	}
+	return 0
+}
+
+func (x *Sub2APIRecentRequest) GetFirstTokenMs() int64 {
+	if x != nil {
+		return x.FirstTokenMs
+	}
+	return 0
+}
+
+func (x *Sub2APIRecentRequest) GetReasoningEffort() string {
+	if x != nil {
+		return x.ReasoningEffort
+	}
+	return ""
+}
+
+func (x *Sub2APIRecentRequest) GetAccountName() string {
+	if x != nil {
+		return x.AccountName
+	}
+	return ""
+}
+
+func (x *Sub2APIRecentRequest) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+func (x *Sub2APIRecentRequest) GetHttpStatus() int32 {
+	if x != nil {
+		return x.HttpStatus
+	}
+	return 0
+}
+
 var File_v1_sub2api_proto protoreflect.FileDescriptor
 
 const file_v1_sub2api_proto_rawDesc = "" +
@@ -2470,7 +2756,24 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\n" +
 	"range_days\x18\x01 \x01(\x05R\trangeDays\"A\n" +
 	"\x17GetSub2APIStatsResponse\x12&\n" +
-	"\x05stats\x18\x01 \x01(\v2\x10.v1.Sub2APIStatsR\x05stats\"\xb6\x03\n" +
+	"\x05stats\x18\x01 \x01(\v2\x10.v1.Sub2APIStatsR\x05stats\"W\n" +
+	"\x1bGetSub2APIAdminStatsRequest\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x01 \x01(\x03R\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x02 \x01(\x03R\aendTime\"F\n" +
+	"\x1cGetSub2APIAdminStatsResponse\x12&\n" +
+	"\x05stats\x18\x01 \x01(\v2\x10.v1.Sub2APIStatsR\x05stats\"\x8c\x01\n" +
+	"\x1fGetSub2APIRecentRequestsRequest\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x01 \x01(\x03R\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x02 \x01(\x03R\aendTime\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xac\x01\n" +
+	" GetSub2APIRecentRequestsResponse\x12A\n" +
+	"\x0frecent_requests\x18\x01 \x03(\v2\x18.v1.Sub2APIRecentRequestR\x0erecentRequests\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xb6\x03\n" +
 	"\fSub2APIStats\x12\x1d\n" +
 	"\n" +
 	"range_days\x18\x01 \x01(\x05R\trangeDays\x12\x1f\n" +
@@ -2622,7 +2925,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\vtoken_count\x18\x03 \x01(\x03R\n" +
 	"tokenCount\x12!\n" +
 	"\fsuccess_rate\x18\x04 \x01(\x01R\vsuccessRate\x12\x17\n" +
-	"\aavg_tps\x18\x05 \x01(\x01R\x06avgTps\"\x98\x02\n" +
+	"\aavg_tps\x18\x05 \x01(\x01R\x06avgTps\"\xe6\x03\n" +
 	"\x14Sub2APIRecentRequest\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x14\n" +
@@ -2634,7 +2937,15 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"latency_ms\x18\x06 \x01(\x03R\tlatencyMs\x12\x1f\n" +
 	"\vtoken_count\x18\a \x01(\x03R\n" +
 	"tokenCount\x12=\n" +
-	"\frequest_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\vrequestTime2\xc5\x0f\n" +
+	"\frequest_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\vrequestTime\x12\x12\n" +
+	"\x04cost\x18\t \x01(\x01R\x04cost\x12$\n" +
+	"\x0efirst_token_ms\x18\n" +
+	" \x01(\x03R\ffirstTokenMs\x12)\n" +
+	"\x10reasoning_effort\x18\v \x01(\tR\x0freasoningEffort\x12!\n" +
+	"\faccount_name\x18\f \x01(\tR\vaccountName\x12#\n" +
+	"\rerror_message\x18\r \x01(\tR\ferrorMessage\x12\x1f\n" +
+	"\vhttp_status\x18\x0e \x01(\x05R\n" +
+	"httpStatus2\xcb\x11\n" +
 	"\x0eSub2APIManager\x12u\n" +
 	"\x11PublicSub2APIHome\x12\x1c.v1.PublicSub2APIHomeRequest\x1a\x1d.v1.PublicSub2APIHomeResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/public/sub2api/home\x12m\n" +
 	"\x10GetSub2APIConfig\x12\x1b.v1.GetSub2APIConfigRequest\x1a\x1c.v1.GetSub2APIConfigResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/sub2api/config\x12y\n" +
@@ -2642,7 +2953,9 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x15TestSub2APIConnection\x12 .v1.TestSub2APIConnectionRequest\x1a!.v1.TestSub2APIConnectionResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/sub2api/config/test\x12n\n" +
 	"\x10SyncSub2APIUsage\x12\x1b.v1.SyncSub2APIUsageRequest\x1a\x1c.v1.SyncSub2APIUsageResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/sub2api/sync\x12u\n" +
 	"\x12GetSub2APISnapshot\x12\x1d.v1.GetSub2APISnapshotRequest\x1a\x1e.v1.GetSub2APISnapshotResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/sub2api/snapshot\x12v\n" +
-	"\x15GetPublicSub2APIStats\x12\x1a.v1.GetSub2APIStatsRequest\x1a\x1b.v1.GetSub2APIStatsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/public/sub2api/stats\x12\x8c\x01\n" +
+	"\x15GetPublicSub2APIStats\x12\x1a.v1.GetSub2APIStatsRequest\x1a\x1b.v1.GetSub2APIStatsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/public/sub2api/stats\x12s\n" +
+	"\x0fGetSub2APIStats\x12\x1f.v1.GetSub2APIAdminStatsRequest\x1a .v1.GetSub2APIAdminStatsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/sub2api/stats\x12\x8e\x01\n" +
+	"\x18GetSub2APIRecentRequests\x12#.v1.GetSub2APIRecentRequestsRequest\x1a$.v1.GetSub2APIRecentRequestsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/sub2api/recent-requests\x12\x8c\x01\n" +
 	"\x18ListSub2APIAnnouncements\x12#.v1.ListSub2APIAnnouncementsRequest\x1a$.v1.ListSub2APIAnnouncementsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/sub2api/announcements\x12\x8c\x01\n" +
 	"\x19CreateSub2APIAnnouncement\x12$.v1.CreateSub2APIAnnouncementRequest\x1a\x1f.v1.Sub2APIAnnouncementResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/sub2api/announcements\x12\x91\x01\n" +
 	"\x19UpdateSub2APIAnnouncement\x12$.v1.UpdateSub2APIAnnouncementRequest\x1a\x1f.v1.Sub2APIAnnouncementResponse\"-\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/sub2api/announcements/{id}\x12\x94\x01\n" +
@@ -2664,7 +2977,7 @@ func file_v1_sub2api_proto_rawDescGZIP() []byte {
 	return file_v1_sub2api_proto_rawDescData
 }
 
-var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_v1_sub2api_proto_goTypes = []any{
 	(*PublicSub2APIHomeRequest)(nil),          // 0: v1.PublicSub2APIHomeRequest
 	(*PublicSub2APIHomeResponse)(nil),         // 1: v1.PublicSub2APIHomeResponse
@@ -2680,103 +2993,113 @@ var file_v1_sub2api_proto_goTypes = []any{
 	(*GetSub2APISnapshotResponse)(nil),        // 11: v1.GetSub2APISnapshotResponse
 	(*GetSub2APIStatsRequest)(nil),            // 12: v1.GetSub2APIStatsRequest
 	(*GetSub2APIStatsResponse)(nil),           // 13: v1.GetSub2APIStatsResponse
-	(*Sub2APIStats)(nil),                      // 14: v1.Sub2APIStats
-	(*Sub2APIConfig)(nil),                     // 15: v1.Sub2APIConfig
-	(*Sub2APIHome)(nil),                       // 16: v1.Sub2APIHome
-	(*Sub2APIAnnouncement)(nil),               // 17: v1.Sub2APIAnnouncement
-	(*Sub2APITimelineItem)(nil),               // 18: v1.Sub2APITimelineItem
-	(*ListSub2APIAnnouncementsRequest)(nil),   // 19: v1.ListSub2APIAnnouncementsRequest
-	(*ListSub2APIAnnouncementsResponse)(nil),  // 20: v1.ListSub2APIAnnouncementsResponse
-	(*CreateSub2APIAnnouncementRequest)(nil),  // 21: v1.CreateSub2APIAnnouncementRequest
-	(*UpdateSub2APIAnnouncementRequest)(nil),  // 22: v1.UpdateSub2APIAnnouncementRequest
-	(*Sub2APIAnnouncementResponse)(nil),       // 23: v1.Sub2APIAnnouncementResponse
-	(*DeleteSub2APIAnnouncementRequest)(nil),  // 24: v1.DeleteSub2APIAnnouncementRequest
-	(*DeleteSub2APIAnnouncementResponse)(nil), // 25: v1.DeleteSub2APIAnnouncementResponse
-	(*ListSub2APITimelineRequest)(nil),        // 26: v1.ListSub2APITimelineRequest
-	(*ListSub2APITimelineResponse)(nil),       // 27: v1.ListSub2APITimelineResponse
-	(*CreateSub2APITimelineItemRequest)(nil),  // 28: v1.CreateSub2APITimelineItemRequest
-	(*UpdateSub2APITimelineItemRequest)(nil),  // 29: v1.UpdateSub2APITimelineItemRequest
-	(*Sub2APITimelineItemResponse)(nil),       // 30: v1.Sub2APITimelineItemResponse
-	(*DeleteSub2APITimelineItemRequest)(nil),  // 31: v1.DeleteSub2APITimelineItemRequest
-	(*DeleteSub2APITimelineItemResponse)(nil), // 32: v1.DeleteSub2APITimelineItemResponse
-	(*Sub2APIUsageSnapshot)(nil),              // 33: v1.Sub2APIUsageSnapshot
-	(*Sub2APITimePoint)(nil),                  // 34: v1.Sub2APITimePoint
-	(*Sub2APITrendPoint)(nil),                 // 35: v1.Sub2APITrendPoint
-	(*Sub2APITopItem)(nil),                    // 36: v1.Sub2APITopItem
-	(*Sub2APIRecentRequest)(nil),              // 37: v1.Sub2APIRecentRequest
-	(*timestamppb.Timestamp)(nil),             // 38: google.protobuf.Timestamp
+	(*GetSub2APIAdminStatsRequest)(nil),       // 14: v1.GetSub2APIAdminStatsRequest
+	(*GetSub2APIAdminStatsResponse)(nil),      // 15: v1.GetSub2APIAdminStatsResponse
+	(*GetSub2APIRecentRequestsRequest)(nil),   // 16: v1.GetSub2APIRecentRequestsRequest
+	(*GetSub2APIRecentRequestsResponse)(nil),  // 17: v1.GetSub2APIRecentRequestsResponse
+	(*Sub2APIStats)(nil),                      // 18: v1.Sub2APIStats
+	(*Sub2APIConfig)(nil),                     // 19: v1.Sub2APIConfig
+	(*Sub2APIHome)(nil),                       // 20: v1.Sub2APIHome
+	(*Sub2APIAnnouncement)(nil),               // 21: v1.Sub2APIAnnouncement
+	(*Sub2APITimelineItem)(nil),               // 22: v1.Sub2APITimelineItem
+	(*ListSub2APIAnnouncementsRequest)(nil),   // 23: v1.ListSub2APIAnnouncementsRequest
+	(*ListSub2APIAnnouncementsResponse)(nil),  // 24: v1.ListSub2APIAnnouncementsResponse
+	(*CreateSub2APIAnnouncementRequest)(nil),  // 25: v1.CreateSub2APIAnnouncementRequest
+	(*UpdateSub2APIAnnouncementRequest)(nil),  // 26: v1.UpdateSub2APIAnnouncementRequest
+	(*Sub2APIAnnouncementResponse)(nil),       // 27: v1.Sub2APIAnnouncementResponse
+	(*DeleteSub2APIAnnouncementRequest)(nil),  // 28: v1.DeleteSub2APIAnnouncementRequest
+	(*DeleteSub2APIAnnouncementResponse)(nil), // 29: v1.DeleteSub2APIAnnouncementResponse
+	(*ListSub2APITimelineRequest)(nil),        // 30: v1.ListSub2APITimelineRequest
+	(*ListSub2APITimelineResponse)(nil),       // 31: v1.ListSub2APITimelineResponse
+	(*CreateSub2APITimelineItemRequest)(nil),  // 32: v1.CreateSub2APITimelineItemRequest
+	(*UpdateSub2APITimelineItemRequest)(nil),  // 33: v1.UpdateSub2APITimelineItemRequest
+	(*Sub2APITimelineItemResponse)(nil),       // 34: v1.Sub2APITimelineItemResponse
+	(*DeleteSub2APITimelineItemRequest)(nil),  // 35: v1.DeleteSub2APITimelineItemRequest
+	(*DeleteSub2APITimelineItemResponse)(nil), // 36: v1.DeleteSub2APITimelineItemResponse
+	(*Sub2APIUsageSnapshot)(nil),              // 37: v1.Sub2APIUsageSnapshot
+	(*Sub2APITimePoint)(nil),                  // 38: v1.Sub2APITimePoint
+	(*Sub2APITrendPoint)(nil),                 // 39: v1.Sub2APITrendPoint
+	(*Sub2APITopItem)(nil),                    // 40: v1.Sub2APITopItem
+	(*Sub2APIRecentRequest)(nil),              // 41: v1.Sub2APIRecentRequest
+	(*timestamppb.Timestamp)(nil),             // 42: google.protobuf.Timestamp
 }
 var file_v1_sub2api_proto_depIdxs = []int32{
-	16, // 0: v1.PublicSub2APIHomeResponse.home:type_name -> v1.Sub2APIHome
-	15, // 1: v1.GetSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
-	15, // 2: v1.UpdateSub2APIConfigRequest.config:type_name -> v1.Sub2APIConfig
-	15, // 3: v1.UpdateSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
-	15, // 4: v1.TestSub2APIConnectionRequest.config:type_name -> v1.Sub2APIConfig
-	33, // 5: v1.SyncSub2APIUsageResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	33, // 6: v1.GetSub2APISnapshotResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	14, // 7: v1.GetSub2APIStatsResponse.stats:type_name -> v1.Sub2APIStats
-	35, // 8: v1.Sub2APIStats.trend:type_name -> v1.Sub2APITrendPoint
-	36, // 9: v1.Sub2APIStats.models:type_name -> v1.Sub2APITopItem
-	36, // 10: v1.Sub2APIStats.endpoints:type_name -> v1.Sub2APITopItem
-	33, // 11: v1.Sub2APIHome.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	17, // 12: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
-	18, // 13: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
-	38, // 14: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
-	38, // 15: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
-	17, // 16: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
-	38, // 17: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	38, // 18: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	17, // 19: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
-	18, // 20: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
-	38, // 21: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	38, // 22: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	18, // 23: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
-	38, // 24: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
-	38, // 25: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
-	38, // 26: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
-	38, // 27: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
-	35, // 28: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
-	36, // 29: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
-	36, // 30: v1.Sub2APIUsageSnapshot.endpoint_usage:type_name -> v1.Sub2APITopItem
-	37, // 31: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
-	34, // 32: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
-	38, // 33: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
-	38, // 34: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
-	0,  // 35: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
-	2,  // 36: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
-	4,  // 37: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
-	6,  // 38: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
-	8,  // 39: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
-	10, // 40: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
-	12, // 41: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
-	19, // 42: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
-	21, // 43: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
-	22, // 44: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
-	24, // 45: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
-	26, // 46: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
-	28, // 47: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
-	29, // 48: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
-	31, // 49: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
-	1,  // 50: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
-	3,  // 51: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
-	5,  // 52: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
-	7,  // 53: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
-	9,  // 54: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
-	11, // 55: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
-	13, // 56: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
-	20, // 57: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
-	23, // 58: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	23, // 59: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	25, // 60: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
-	27, // 61: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
-	30, // 62: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	30, // 63: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	32, // 64: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
-	50, // [50:65] is the sub-list for method output_type
-	35, // [35:50] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	20, // 0: v1.PublicSub2APIHomeResponse.home:type_name -> v1.Sub2APIHome
+	19, // 1: v1.GetSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
+	19, // 2: v1.UpdateSub2APIConfigRequest.config:type_name -> v1.Sub2APIConfig
+	19, // 3: v1.UpdateSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
+	19, // 4: v1.TestSub2APIConnectionRequest.config:type_name -> v1.Sub2APIConfig
+	37, // 5: v1.SyncSub2APIUsageResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	37, // 6: v1.GetSub2APISnapshotResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	18, // 7: v1.GetSub2APIStatsResponse.stats:type_name -> v1.Sub2APIStats
+	18, // 8: v1.GetSub2APIAdminStatsResponse.stats:type_name -> v1.Sub2APIStats
+	41, // 9: v1.GetSub2APIRecentRequestsResponse.recent_requests:type_name -> v1.Sub2APIRecentRequest
+	39, // 10: v1.Sub2APIStats.trend:type_name -> v1.Sub2APITrendPoint
+	40, // 11: v1.Sub2APIStats.models:type_name -> v1.Sub2APITopItem
+	40, // 12: v1.Sub2APIStats.endpoints:type_name -> v1.Sub2APITopItem
+	37, // 13: v1.Sub2APIHome.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	21, // 14: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
+	22, // 15: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
+	42, // 16: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
+	42, // 17: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
+	21, // 18: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
+	42, // 19: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	42, // 20: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	21, // 21: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
+	22, // 22: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
+	42, // 23: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	42, // 24: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	22, // 25: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
+	42, // 26: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
+	42, // 27: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
+	42, // 28: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
+	42, // 29: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
+	39, // 30: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
+	40, // 31: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
+	40, // 32: v1.Sub2APIUsageSnapshot.endpoint_usage:type_name -> v1.Sub2APITopItem
+	41, // 33: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
+	38, // 34: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
+	42, // 35: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
+	42, // 36: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
+	0,  // 37: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
+	2,  // 38: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
+	4,  // 39: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
+	6,  // 40: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
+	8,  // 41: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
+	10, // 42: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
+	12, // 43: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
+	14, // 44: v1.Sub2APIManager.GetSub2APIStats:input_type -> v1.GetSub2APIAdminStatsRequest
+	16, // 45: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
+	23, // 46: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
+	25, // 47: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
+	26, // 48: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
+	28, // 49: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
+	30, // 50: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
+	32, // 51: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
+	33, // 52: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
+	35, // 53: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
+	1,  // 54: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
+	3,  // 55: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
+	5,  // 56: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
+	7,  // 57: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
+	9,  // 58: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
+	11, // 59: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
+	13, // 60: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
+	15, // 61: v1.Sub2APIManager.GetSub2APIStats:output_type -> v1.GetSub2APIAdminStatsResponse
+	17, // 62: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
+	24, // 63: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
+	27, // 64: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	27, // 65: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	29, // 66: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
+	31, // 67: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
+	34, // 68: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	34, // 69: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	36, // 70: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
+	54, // [54:71] is the sub-list for method output_type
+	37, // [37:54] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_v1_sub2api_proto_init() }
@@ -2790,7 +3113,7 @@ func file_v1_sub2api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_sub2api_proto_rawDesc), len(file_v1_sub2api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

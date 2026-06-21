@@ -64,6 +64,35 @@ export interface GetSub2APIStatsResponse {
   stats: Sub2APIStats | undefined;
 }
 
+export interface GetSub2APIAdminStatsRequest {
+  /**
+   * 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
+   * start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+   */
+  startTime: number;
+  endTime: number;
+}
+
+export interface GetSub2APIAdminStatsResponse {
+  stats: Sub2APIStats | undefined;
+}
+
+export interface GetSub2APIRecentRequestsRequest {
+  /** 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。 */
+  startTime: number;
+  endTime: number;
+  /** 页码（从 1 起）与每页条数。 */
+  page: number;
+  pageSize: number;
+}
+
+export interface GetSub2APIRecentRequestsResponse {
+  recentRequests: Sub2APIRecentRequest[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface Sub2APIStats {
   rangeDays: number;
   rangeLabel: string;
@@ -257,5 +286,19 @@ export interface Sub2APIRecentRequest {
   success: boolean;
   latencyMs: number;
   tokenCount: number;
-  requestTime: Date | undefined;
+  requestTime:
+    | Date
+    | undefined;
+  /** 详情字段（成功请求） */
+  cost: number;
+  /** 首 token 延迟（毫秒） */
+  firstTokenMs: number;
+  /** 推理强度 */
+  reasoningEffort: string;
+  /** 账号名称 */
+  accountName: string;
+  /** 详情字段（失败/上游错误请求） */
+  errorMessage: string;
+  /** HTTP 状态码 */
+  httpStatus: number;
 }

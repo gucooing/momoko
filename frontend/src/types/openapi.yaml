@@ -3295,6 +3295,40 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TestSub2APIConnectionResponse'
+    /api/v1/sub2api/recent-requests:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取管理端最近请求（按时间区间分页，需鉴权）
+            operationId: Sub2APIManager_GetSub2APIRecentRequests
+            parameters:
+                - name: startTime
+                  in: query
+                  description: 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码（从 1 起）与每页条数。
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIRecentRequestsResponse'
     /api/v1/sub2api/snapshot:
         get:
             tags:
@@ -3308,6 +3342,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetSub2APISnapshotResponse'
+    /api/v1/sub2api/stats:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取管理端用量概览（按时间区间统计，需鉴权）
+            operationId: Sub2APIManager_GetSub2APIStats
+            parameters:
+                - name: startTime
+                  in: query
+                  description: |-
+                    统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
+                     start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIAdminStatsResponse'
     /api/v1/sub2api/sync:
         post:
             tags:
@@ -6301,11 +6360,31 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: 列表
+        v1.GetSub2APIAdminStatsResponse:
+            type: object
+            properties:
+                stats:
+                    $ref: '#/components/schemas/v1.Sub2APIStats'
         v1.GetSub2APIConfigResponse:
             type: object
             properties:
                 config:
                     $ref: '#/components/schemas/v1.Sub2APIConfig'
+        v1.GetSub2APIRecentRequestsResponse:
+            type: object
+            properties:
+                recentRequests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APIRecentRequest'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         v1.GetSub2APISnapshotResponse:
             type: object
             properties:
@@ -7741,6 +7820,22 @@ components:
                 requestTime:
                     type: string
                     format: date-time
+                cost:
+                    type: number
+                    description: 详情字段（成功请求）
+                    format: double
+                firstTokenMs:
+                    type: string
+                reasoningEffort:
+                    type: string
+                accountName:
+                    type: string
+                errorMessage:
+                    type: string
+                    description: 详情字段（失败/上游错误请求）
+                httpStatus:
+                    type: integer
+                    format: int32
         v1.Sub2APIStats:
             type: object
             properties:

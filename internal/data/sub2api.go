@@ -49,7 +49,13 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetLatencyMs(record.LatencyMS).
 				SetTokenCount(record.TokenCount).
 				SetOutputTokens(record.OutputTokens).
-				SetTps(record.TPS),
+				SetTps(record.TPS).
+				SetCost(record.Cost).
+				SetFirstTokenMs(record.FirstTokenMS).
+				SetReasoningEffort(record.ReasoningEffort).
+				SetAccountName(record.AccountName).
+				SetErrorMessage(record.ErrorMessage).
+				SetHTTPStatus(record.HTTPStatus),
 			)
 		}
 		if err := r.data.db.Sub2APIUsageRecord.CreateBulk(builders...).
@@ -113,19 +119,59 @@ func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time) ([]*su
 	return result, nil
 }
 
+// RecordsPage 按时间倒序（最新在前）分页读取 [start, end] 区间内的记录，并返回区间总数。
+func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int) ([]*sub2apipkg.UsageRecord, int, error) {
+	query := r.data.db.Sub2APIUsageRecord.Query()
+	if start != nil {
+		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
+	}
+	if end != nil {
+		query = query.Where(sub2apiusagerecord.RequestTimeLTE(*end))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	records, err := query.
+		Order(gen.Desc(sub2apiusagerecord.FieldRequestTime)).
+		Offset(offset).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	result := make([]*sub2apipkg.UsageRecord, 0, len(records))
+	for _, record := range records {
+		result = append(result, toUsageRecord(record))
+	}
+	return result, total, nil
+}
+
 func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 	return &sub2apipkg.UsageRecord{
-		ID:           record.ID,
-		RequestTime:  record.RequestTime,
-		RequestDate:  record.RequestDate,
-		Model:        record.Model,
-		Endpoint:     record.Endpoint,
-		Status:       record.Status,
-		Success:      record.Success,
-		LatencyMS:    record.LatencyMs,
-		TokenCount:   record.TokenCount,
-		OutputTokens: record.OutputTokens,
-		TPS:          record.Tps,
+		ID:              record.ID,
+		RequestTime:     record.RequestTime,
+		RequestDate:     record.RequestDate,
+		Model:           record.Model,
+		Endpoint:        record.Endpoint,
+		Status:          record.Status,
+		Success:         record.Success,
+		LatencyMS:       record.LatencyMs,
+		TokenCount:      record.TokenCount,
+		OutputTokens:    record.OutputTokens,
+		TPS:             record.Tps,
+		Cost:            record.Cost,
+		FirstTokenMS:    record.FirstTokenMs,
+		ReasoningEffort: record.ReasoningEffort,
+		AccountName:     record.AccountName,
+		ErrorMessage:    record.ErrorMessage,
+		HTTPStatus:      record.HTTPStatus,
 	}
 }
 

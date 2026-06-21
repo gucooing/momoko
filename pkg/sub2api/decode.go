@@ -113,6 +113,12 @@ func decodeUsageRecord(raw json.RawMessage) *UsageRecord {
 		TokenCount:   jsonTokenCount(data),
 		OutputTokens: output,
 		TPS:          perRequestTPS(output, latency),
+		// 详情字段
+		Cost:            jsonFloat(data, "total_cost", "actual_cost", "cost"),
+		FirstTokenMS:    jsonInt(data, "first_token_ms", "time_to_first_token_ms", "ttft_ms"),
+		ReasoningEffort: jsonString(data, "reasoning_effort"),
+		AccountName:     jsonString(data, "account.name", "account_name"),
+		HTTPStatus:      int(statusCode),
 	}
 }
 
@@ -164,7 +170,21 @@ func decodeUpstreamErrorRecord(raw json.RawMessage) *UsageRecord {
 		Success:     false,
 		LatencyMS:   jsonInt(data, "upstream_latency_ms", "response_latency_ms", "duration_ms", "latency_ms"),
 		TokenCount:  0,
+		// 详情字段：上游错误带有状态码与错误信息
+		AccountName:  jsonString(data, "account_name"),
+		ErrorMessage: truncateError(jsonString(data, "message", "error_message", "error", "upstream_error_message", "upstream_error_detail")),
+		HTTPStatus:   int(jsonInt(data, "status_code", "upstream_status_code", "http_status", "code")),
 	}
+}
+
+// maxErrorMessageLen 限制错误详情入库长度，避免存储超大响应体。
+const maxErrorMessageLen = 4000
+
+func truncateError(msg string) string {
+	if len(msg) <= maxErrorMessageLen {
+		return msg
+	}
+	return msg[:maxErrorMessageLen] + "…"
 }
 
 func decodeJSONMap(raw json.RawMessage) map[string]any {
@@ -255,6 +275,43 @@ func jsonInt(data map[string]any, keys ...string) int64 {
 		}
 	}
 	return 0
+}
+
+func jsonFloat(data map[string]any, keys ...string) float64 {
+	for _, key := range keys {
+		value, ok := lookupJSONValue(data, key)
+		if !ok || value == nil {
+			continue
+		}
+		if f, ok := anyFloat(value); ok {
+			return f
+		}
+	}
+	return 0
+}
+
+func anyFloat(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case json.Number:
+		f, err := v.Float64()
+		if err == nil {
+			return f, true
+		}
+	case string:
+		f, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
+		if err == nil {
+			return f, true
+		}
+	}
+	return 0, false
 }
 
 func jsonTokenCount(data map[string]any) int64 {

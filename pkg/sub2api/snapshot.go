@@ -13,6 +13,9 @@ import (
 
 const todayBucketMinutes = 15
 
+// minutesPerDay 用于统计窗口分钟数与自然日的换算。
+const minutesPerDay int32 = 24 * 60
+
 const (
 	topItemsLimit      = 8
 	recentRecordsLimit = 8
@@ -121,6 +124,94 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		Models:           buildTopItems(records, GroupByModel, 0),
 		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
 	}, nil
+}
+
+// normalizeRange 归一化管理端时间段：end 缺省/超前取“现在”，
+// start 缺省/越界取今日 0 点（必要时回退到 end 前 1 小时）。
+func normalizeRange(start, end time.Time) (time.Time, time.Time) {
+	now := time.Now()
+	if end.IsZero() || end.After(now) {
+		end = now
+	}
+	if start.IsZero() || !start.Before(end) {
+		start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		if !start.Before(end) {
+			start = end.Add(-time.Hour)
+		}
+	}
+	return start, end
+}
+
+// BuildRangeStats 聚合管理端用量概览：统计指定时间段 [start, end] 内的汇总指标、
+// 趋势、模型/接口排行。区间记录只读取一次，全部在内存中算出。
+// 时间段精度到分钟；区间 <=24h 按日内分桶，否则按自然日分桶。
+// 最近请求改由 RecentRequests 分页返回，不在此聚合。
+func BuildRangeStats(ctx context.Context, store UsageStore, start, end time.Time) (*v1.Sub2APIStats, error) {
+	start, end = normalizeRange(start, end)
+	now := time.Now()
+
+	records, err := store.RecordsSince(ctx, &start)
+	if err != nil {
+		return nil, err
+	}
+	records = recordsUntil(records, end)
+	totals := totalsFromRecords(records)
+
+	// 区间 <=24h 时按时间分桶展示日内趋势，否则按天展示，避免长区间点位过密。
+	var trend []*v1.Sub2APITrendPoint
+	if end.Sub(start) <= time.Duration(minutesPerDay)*time.Minute {
+		trend = buildIntradayTrend(records)
+	} else {
+		startDay := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
+		endDay := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, end.Location())
+		days := int32(endDay.Sub(startDay).Hours()/24) + 1
+		trend = buildTrend(records, startDay, days)
+	}
+
+	stats := &v1.Sub2APIStats{
+		RangeLabel:       rangeStatsLabel(start, end, now),
+		RequestCount:     totals.RequestCount,
+		SuccessCount:     totals.SuccessCount,
+		SuccessRate:      percent(totals.SuccessCount, totals.RequestCount),
+		TokenCount:       totals.TokenCount,
+		AverageLatencyMs: totals.AverageLatencyMS,
+		AverageTps:       totals.AverageTPS,
+		Trend:            trend,
+		Models:           buildTopItems(records, GroupByModel, 0),
+		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
+	}
+	return stats, nil
+}
+
+// recordsUntil 返回 records 中 RequestTime <= end 的头部切片（records 已按时间升序）。
+func recordsUntil(records []*UsageRecord, end time.Time) []*UsageRecord {
+	i := sort.Search(len(records), func(i int) bool {
+		return records[i].RequestTime.After(end)
+	})
+	return records[:i]
+}
+
+// rangeStatsLabel 为时间段生成简洁中文标签：区间截止到“现在”时用相对描述（今日/近 N 小时/近 N 天），
+// 否则展示具体的日期区间。
+func rangeStatsLabel(start, end, now time.Time) string {
+	if end.Before(now.Add(-2 * time.Minute)) {
+		return start.Format("01-02 15:04") + " ~ " + end.Format("01-02 15:04")
+	}
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	if start.Equal(todayStart) {
+		return "今日"
+	}
+	mins := int64(now.Sub(start).Minutes())
+	switch {
+	case mins <= int64(minutesPerDay) && mins%60 == 0:
+		return "近 " + strconv.FormatInt(mins/60, 10) + " 小时"
+	case mins%int64(minutesPerDay) == 0:
+		return "近 " + strconv.FormatInt(mins/int64(minutesPerDay), 10) + " 天"
+	case mins%60 == 0:
+		return "近 " + strconv.FormatInt(mins/60, 10) + " 小时"
+	default:
+		return "近 " + strconv.FormatInt(mins, 10) + " 分钟"
+	}
 }
 
 func normalizeRangeDays(rangeDays, historyDays int32) int32 {
@@ -307,17 +398,36 @@ func buildRecentRequests(records []*UsageRecord) []*v1.Sub2APIRecentRequest {
 	}
 	result := make([]*v1.Sub2APIRecentRequest, 0, count)
 	for i := 0; i < count; i++ {
-		record := records[len(records)-1-i]
-		result = append(result, &v1.Sub2APIRecentRequest{
-			RequestId:   record.ID,
-			Model:       record.Model,
-			Endpoint:    record.Endpoint,
-			Status:      record.Status,
-			Success:     record.Success,
-			LatencyMs:   record.LatencyMS,
-			TokenCount:  record.TokenCount,
-			RequestTime: timestamppb.New(record.RequestTime),
-		})
+		result = append(result, toRecentRequest(records[len(records)-1-i]))
+	}
+	return result
+}
+
+// toRecentRequest 将领域记录映射为最近请求 DTO（含详情字段）。
+func toRecentRequest(record *UsageRecord) *v1.Sub2APIRecentRequest {
+	return &v1.Sub2APIRecentRequest{
+		RequestId:       record.ID,
+		Model:           record.Model,
+		Endpoint:        record.Endpoint,
+		Status:          record.Status,
+		Success:         record.Success,
+		LatencyMs:       record.LatencyMS,
+		TokenCount:      record.TokenCount,
+		RequestTime:     timestamppb.New(record.RequestTime),
+		Cost:            record.Cost,
+		FirstTokenMs:    record.FirstTokenMS,
+		ReasoningEffort: record.ReasoningEffort,
+		AccountName:     record.AccountName,
+		ErrorMessage:    record.ErrorMessage,
+		HttpStatus:      int32(record.HTTPStatus),
+	}
+}
+
+// toRecentRequests 直接映射一页记录（已按时间倒序）。
+func toRecentRequests(records []*UsageRecord) []*v1.Sub2APIRecentRequest {
+	result := make([]*v1.Sub2APIRecentRequest, 0, len(records))
+	for _, record := range records {
+		result = append(result, toRecentRequest(record))
 	}
 	return result
 }

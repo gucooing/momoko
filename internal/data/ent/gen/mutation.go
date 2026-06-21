@@ -11303,29 +11303,38 @@ func (m *Sub2APITimelineItemMutation) ResetEdge(name string) error {
 // Sub2APIUsageRecordMutation represents an operation that mutates the Sub2APIUsageRecord nodes in the graph.
 type Sub2APIUsageRecordMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *string
-	create_time      *time.Time
-	update_time      *time.Time
-	request_time     *time.Time
-	request_date     *string
-	model            *string
-	endpoint         *string
-	status           *string
-	success          *bool
-	latency_ms       *int64
-	addlatency_ms    *int64
-	token_count      *int64
-	addtoken_count   *int64
-	output_tokens    *int64
-	addoutput_tokens *int64
-	tps              *float64
-	addtps           *float64
-	clearedFields    map[string]struct{}
-	done             bool
-	oldValue         func(context.Context) (*Sub2APIUsageRecord, error)
-	predicates       []predicate.Sub2APIUsageRecord
+	op                Op
+	typ               string
+	id                *string
+	create_time       *time.Time
+	update_time       *time.Time
+	request_time      *time.Time
+	request_date      *string
+	model             *string
+	endpoint          *string
+	status            *string
+	success           *bool
+	latency_ms        *int64
+	addlatency_ms     *int64
+	token_count       *int64
+	addtoken_count    *int64
+	output_tokens     *int64
+	addoutput_tokens  *int64
+	tps               *float64
+	addtps            *float64
+	cost              *float64
+	addcost           *float64
+	first_token_ms    *int64
+	addfirst_token_ms *int64
+	reasoning_effort  *string
+	account_name      *string
+	error_message     *string
+	http_status       *int
+	addhttp_status    *int
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*Sub2APIUsageRecord, error)
+	predicates        []predicate.Sub2APIUsageRecord
 }
 
 var _ ent.Mutation = (*Sub2APIUsageRecordMutation)(nil)
@@ -11983,6 +11992,321 @@ func (m *Sub2APIUsageRecordMutation) ResetTps() {
 	m.addtps = nil
 }
 
+// SetCost sets the "cost" field.
+func (m *Sub2APIUsageRecordMutation) SetCost(f float64) {
+	m.cost = &f
+	m.addcost = nil
+}
+
+// Cost returns the value of the "cost" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Cost() (r float64, exists bool) {
+	v := m.cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCost returns the old "cost" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCost: %w", err)
+	}
+	return oldValue.Cost, nil
+}
+
+// AddCost adds f to the "cost" field.
+func (m *Sub2APIUsageRecordMutation) AddCost(f float64) {
+	if m.addcost != nil {
+		*m.addcost += f
+	} else {
+		m.addcost = &f
+	}
+}
+
+// AddedCost returns the value that was added to the "cost" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedCost() (r float64, exists bool) {
+	v := m.addcost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCost resets all changes to the "cost" field.
+func (m *Sub2APIUsageRecordMutation) ResetCost() {
+	m.cost = nil
+	m.addcost = nil
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (m *Sub2APIUsageRecordMutation) SetFirstTokenMs(i int64) {
+	m.first_token_ms = &i
+	m.addfirst_token_ms = nil
+}
+
+// FirstTokenMs returns the value of the "first_token_ms" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) FirstTokenMs() (r int64, exists bool) {
+	v := m.first_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirstTokenMs returns the old "first_token_ms" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldFirstTokenMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFirstTokenMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFirstTokenMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirstTokenMs: %w", err)
+	}
+	return oldValue.FirstTokenMs, nil
+}
+
+// AddFirstTokenMs adds i to the "first_token_ms" field.
+func (m *Sub2APIUsageRecordMutation) AddFirstTokenMs(i int64) {
+	if m.addfirst_token_ms != nil {
+		*m.addfirst_token_ms += i
+	} else {
+		m.addfirst_token_ms = &i
+	}
+}
+
+// AddedFirstTokenMs returns the value that was added to the "first_token_ms" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedFirstTokenMs() (r int64, exists bool) {
+	v := m.addfirst_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFirstTokenMs resets all changes to the "first_token_ms" field.
+func (m *Sub2APIUsageRecordMutation) ResetFirstTokenMs() {
+	m.first_token_ms = nil
+	m.addfirst_token_ms = nil
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (m *Sub2APIUsageRecordMutation) SetReasoningEffort(s string) {
+	m.reasoning_effort = &s
+}
+
+// ReasoningEffort returns the value of the "reasoning_effort" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) ReasoningEffort() (r string, exists bool) {
+	v := m.reasoning_effort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReasoningEffort returns the old "reasoning_effort" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldReasoningEffort(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReasoningEffort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReasoningEffort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReasoningEffort: %w", err)
+	}
+	return oldValue.ReasoningEffort, nil
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (m *Sub2APIUsageRecordMutation) ClearReasoningEffort() {
+	m.reasoning_effort = nil
+	m.clearedFields[sub2apiusagerecord.FieldReasoningEffort] = struct{}{}
+}
+
+// ReasoningEffortCleared returns if the "reasoning_effort" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) ReasoningEffortCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldReasoningEffort]
+	return ok
+}
+
+// ResetReasoningEffort resets all changes to the "reasoning_effort" field.
+func (m *Sub2APIUsageRecordMutation) ResetReasoningEffort() {
+	m.reasoning_effort = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldReasoningEffort)
+}
+
+// SetAccountName sets the "account_name" field.
+func (m *Sub2APIUsageRecordMutation) SetAccountName(s string) {
+	m.account_name = &s
+}
+
+// AccountName returns the value of the "account_name" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) AccountName() (r string, exists bool) {
+	v := m.account_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountName returns the old "account_name" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldAccountName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountName: %w", err)
+	}
+	return oldValue.AccountName, nil
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (m *Sub2APIUsageRecordMutation) ClearAccountName() {
+	m.account_name = nil
+	m.clearedFields[sub2apiusagerecord.FieldAccountName] = struct{}{}
+}
+
+// AccountNameCleared returns if the "account_name" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) AccountNameCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldAccountName]
+	return ok
+}
+
+// ResetAccountName resets all changes to the "account_name" field.
+func (m *Sub2APIUsageRecordMutation) ResetAccountName() {
+	m.account_name = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldAccountName)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *Sub2APIUsageRecordMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *Sub2APIUsageRecordMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[sub2apiusagerecord.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *Sub2APIUsageRecordMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldErrorMessage)
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (m *Sub2APIUsageRecordMutation) SetHTTPStatus(i int) {
+	m.http_status = &i
+	m.addhttp_status = nil
+}
+
+// HTTPStatus returns the value of the "http_status" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) HTTPStatus() (r int, exists bool) {
+	v := m.http_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHTTPStatus returns the old "http_status" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldHTTPStatus(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHTTPStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHTTPStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHTTPStatus: %w", err)
+	}
+	return oldValue.HTTPStatus, nil
+}
+
+// AddHTTPStatus adds i to the "http_status" field.
+func (m *Sub2APIUsageRecordMutation) AddHTTPStatus(i int) {
+	if m.addhttp_status != nil {
+		*m.addhttp_status += i
+	} else {
+		m.addhttp_status = &i
+	}
+}
+
+// AddedHTTPStatus returns the value that was added to the "http_status" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedHTTPStatus() (r int, exists bool) {
+	v := m.addhttp_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHTTPStatus resets all changes to the "http_status" field.
+func (m *Sub2APIUsageRecordMutation) ResetHTTPStatus() {
+	m.http_status = nil
+	m.addhttp_status = nil
+}
+
 // Where appends a list predicates to the Sub2APIUsageRecordMutation builder.
 func (m *Sub2APIUsageRecordMutation) Where(ps ...predicate.Sub2APIUsageRecord) {
 	m.predicates = append(m.predicates, ps...)
@@ -12017,7 +12341,7 @@ func (m *Sub2APIUsageRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *Sub2APIUsageRecordMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 18)
 	if m.create_time != nil {
 		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
 	}
@@ -12054,6 +12378,24 @@ func (m *Sub2APIUsageRecordMutation) Fields() []string {
 	if m.tps != nil {
 		fields = append(fields, sub2apiusagerecord.FieldTps)
 	}
+	if m.cost != nil {
+		fields = append(fields, sub2apiusagerecord.FieldCost)
+	}
+	if m.first_token_ms != nil {
+		fields = append(fields, sub2apiusagerecord.FieldFirstTokenMs)
+	}
+	if m.reasoning_effort != nil {
+		fields = append(fields, sub2apiusagerecord.FieldReasoningEffort)
+	}
+	if m.account_name != nil {
+		fields = append(fields, sub2apiusagerecord.FieldAccountName)
+	}
+	if m.error_message != nil {
+		fields = append(fields, sub2apiusagerecord.FieldErrorMessage)
+	}
+	if m.http_status != nil {
+		fields = append(fields, sub2apiusagerecord.FieldHTTPStatus)
+	}
 	return fields
 }
 
@@ -12086,6 +12428,18 @@ func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.OutputTokens()
 	case sub2apiusagerecord.FieldTps:
 		return m.Tps()
+	case sub2apiusagerecord.FieldCost:
+		return m.Cost()
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		return m.FirstTokenMs()
+	case sub2apiusagerecord.FieldReasoningEffort:
+		return m.ReasoningEffort()
+	case sub2apiusagerecord.FieldAccountName:
+		return m.AccountName()
+	case sub2apiusagerecord.FieldErrorMessage:
+		return m.ErrorMessage()
+	case sub2apiusagerecord.FieldHTTPStatus:
+		return m.HTTPStatus()
 	}
 	return nil, false
 }
@@ -12119,6 +12473,18 @@ func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldOutputTokens(ctx)
 	case sub2apiusagerecord.FieldTps:
 		return m.OldTps(ctx)
+	case sub2apiusagerecord.FieldCost:
+		return m.OldCost(ctx)
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		return m.OldFirstTokenMs(ctx)
+	case sub2apiusagerecord.FieldReasoningEffort:
+		return m.OldReasoningEffort(ctx)
+	case sub2apiusagerecord.FieldAccountName:
+		return m.OldAccountName(ctx)
+	case sub2apiusagerecord.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case sub2apiusagerecord.FieldHTTPStatus:
+		return m.OldHTTPStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)
 }
@@ -12212,6 +12578,48 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetTps(v)
 		return nil
+	case sub2apiusagerecord.FieldCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCost(v)
+		return nil
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirstTokenMs(v)
+		return nil
+	case sub2apiusagerecord.FieldReasoningEffort:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReasoningEffort(v)
+		return nil
+	case sub2apiusagerecord.FieldAccountName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountName(v)
+		return nil
+	case sub2apiusagerecord.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case sub2apiusagerecord.FieldHTTPStatus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHTTPStatus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)
 }
@@ -12232,6 +12640,15 @@ func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
 	if m.addtps != nil {
 		fields = append(fields, sub2apiusagerecord.FieldTps)
 	}
+	if m.addcost != nil {
+		fields = append(fields, sub2apiusagerecord.FieldCost)
+	}
+	if m.addfirst_token_ms != nil {
+		fields = append(fields, sub2apiusagerecord.FieldFirstTokenMs)
+	}
+	if m.addhttp_status != nil {
+		fields = append(fields, sub2apiusagerecord.FieldHTTPStatus)
+	}
 	return fields
 }
 
@@ -12248,6 +12665,12 @@ func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedOutputTokens()
 	case sub2apiusagerecord.FieldTps:
 		return m.AddedTps()
+	case sub2apiusagerecord.FieldCost:
+		return m.AddedCost()
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		return m.AddedFirstTokenMs()
+	case sub2apiusagerecord.FieldHTTPStatus:
+		return m.AddedHTTPStatus()
 	}
 	return nil, false
 }
@@ -12285,6 +12708,27 @@ func (m *Sub2APIUsageRecordMutation) AddField(name string, value ent.Value) erro
 		}
 		m.AddTps(v)
 		return nil
+	case sub2apiusagerecord.FieldCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCost(v)
+		return nil
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFirstTokenMs(v)
+		return nil
+	case sub2apiusagerecord.FieldHTTPStatus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHTTPStatus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord numeric field %s", name)
 }
@@ -12301,6 +12745,15 @@ func (m *Sub2APIUsageRecordMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(sub2apiusagerecord.FieldStatus) {
 		fields = append(fields, sub2apiusagerecord.FieldStatus)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldReasoningEffort) {
+		fields = append(fields, sub2apiusagerecord.FieldReasoningEffort)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldAccountName) {
+		fields = append(fields, sub2apiusagerecord.FieldAccountName)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldErrorMessage) {
+		fields = append(fields, sub2apiusagerecord.FieldErrorMessage)
 	}
 	return fields
 }
@@ -12324,6 +12777,15 @@ func (m *Sub2APIUsageRecordMutation) ClearField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case sub2apiusagerecord.FieldReasoningEffort:
+		m.ClearReasoningEffort()
+		return nil
+	case sub2apiusagerecord.FieldAccountName:
+		m.ClearAccountName()
+		return nil
+	case sub2apiusagerecord.FieldErrorMessage:
+		m.ClearErrorMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord nullable field %s", name)
@@ -12368,6 +12830,24 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldTps:
 		m.ResetTps()
+		return nil
+	case sub2apiusagerecord.FieldCost:
+		m.ResetCost()
+		return nil
+	case sub2apiusagerecord.FieldFirstTokenMs:
+		m.ResetFirstTokenMs()
+		return nil
+	case sub2apiusagerecord.FieldReasoningEffort:
+		m.ResetReasoningEffort()
+		return nil
+	case sub2apiusagerecord.FieldAccountName:
+		m.ResetAccountName()
+		return nil
+	case sub2apiusagerecord.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case sub2apiusagerecord.FieldHTTPStatus:
+		m.ResetHTTPStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord field %s", name)

@@ -220,6 +220,129 @@ func (_u *Sub2APIUsageRecordUpdate) AddTps(v float64) *Sub2APIUsageRecordUpdate 
 	return _u
 }
 
+// SetCost sets the "cost" field.
+func (_u *Sub2APIUsageRecordUpdate) SetCost(v float64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.ResetCost()
+	_u.mutation.SetCost(v)
+	return _u
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableCost(v *float64) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetCost(*v)
+	}
+	return _u
+}
+
+// AddCost adds value to the "cost" field.
+func (_u *Sub2APIUsageRecordUpdate) AddCost(v float64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.AddCost(v)
+	return _u
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (_u *Sub2APIUsageRecordUpdate) SetFirstTokenMs(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.ResetFirstTokenMs()
+	_u.mutation.SetFirstTokenMs(v)
+	return _u
+}
+
+// SetNillableFirstTokenMs sets the "first_token_ms" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableFirstTokenMs(v *int64) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetFirstTokenMs(*v)
+	}
+	return _u
+}
+
+// AddFirstTokenMs adds value to the "first_token_ms" field.
+func (_u *Sub2APIUsageRecordUpdate) AddFirstTokenMs(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.AddFirstTokenMs(v)
+	return _u
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (_u *Sub2APIUsageRecordUpdate) SetReasoningEffort(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetReasoningEffort(v)
+	return _u
+}
+
+// SetNillableReasoningEffort sets the "reasoning_effort" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableReasoningEffort(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetReasoningEffort(*v)
+	}
+	return _u
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearReasoningEffort() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearReasoningEffort()
+	return _u
+}
+
+// SetAccountName sets the "account_name" field.
+func (_u *Sub2APIUsageRecordUpdate) SetAccountName(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetAccountName(v)
+	return _u
+}
+
+// SetNillableAccountName sets the "account_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableAccountName(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetAccountName(*v)
+	}
+	return _u
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearAccountName() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearAccountName()
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *Sub2APIUsageRecordUpdate) SetErrorMessage(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableErrorMessage(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearErrorMessage() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (_u *Sub2APIUsageRecordUpdate) SetHTTPStatus(v int) *Sub2APIUsageRecordUpdate {
+	_u.mutation.ResetHTTPStatus()
+	_u.mutation.SetHTTPStatus(v)
+	return _u
+}
+
+// SetNillableHTTPStatus sets the "http_status" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableHTTPStatus(v *int) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetHTTPStatus(*v)
+	}
+	return _u
+}
+
+// AddHTTPStatus adds value to the "http_status" field.
+func (_u *Sub2APIUsageRecordUpdate) AddHTTPStatus(v int) *Sub2APIUsageRecordUpdate {
+	_u.mutation.AddHTTPStatus(v)
+	return _u
+}
+
 // Mutation returns the Sub2APIUsageRecordMutation object of the builder.
 func (_u *Sub2APIUsageRecordUpdate) Mutation() *Sub2APIUsageRecordMutation {
 	return _u.mutation
@@ -323,6 +446,42 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.AddedTps(); ok {
 		_spec.AddField(sub2apiusagerecord.FieldTps, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Cost(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCost(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.FirstTokenMs(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldFirstTokenMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedFirstTokenMs(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldFirstTokenMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.ReasoningEffort(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldReasoningEffort, field.TypeString, value)
+	}
+	if _u.mutation.ReasoningEffortCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldReasoningEffort, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccountName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldAccountName, field.TypeString, value)
+	}
+	if _u.mutation.AccountNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldAccountName, field.TypeString)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.HTTPStatus(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHTTPStatus(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -536,6 +695,129 @@ func (_u *Sub2APIUsageRecordUpdateOne) AddTps(v float64) *Sub2APIUsageRecordUpda
 	return _u
 }
 
+// SetCost sets the "cost" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetCost(v float64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ResetCost()
+	_u.mutation.SetCost(v)
+	return _u
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableCost(v *float64) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetCost(*v)
+	}
+	return _u
+}
+
+// AddCost adds value to the "cost" field.
+func (_u *Sub2APIUsageRecordUpdateOne) AddCost(v float64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.AddCost(v)
+	return _u
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetFirstTokenMs(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ResetFirstTokenMs()
+	_u.mutation.SetFirstTokenMs(v)
+	return _u
+}
+
+// SetNillableFirstTokenMs sets the "first_token_ms" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableFirstTokenMs(v *int64) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetFirstTokenMs(*v)
+	}
+	return _u
+}
+
+// AddFirstTokenMs adds value to the "first_token_ms" field.
+func (_u *Sub2APIUsageRecordUpdateOne) AddFirstTokenMs(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.AddFirstTokenMs(v)
+	return _u
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetReasoningEffort(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetReasoningEffort(v)
+	return _u
+}
+
+// SetNillableReasoningEffort sets the "reasoning_effort" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableReasoningEffort(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetReasoningEffort(*v)
+	}
+	return _u
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearReasoningEffort() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearReasoningEffort()
+	return _u
+}
+
+// SetAccountName sets the "account_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetAccountName(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetAccountName(v)
+	return _u
+}
+
+// SetNillableAccountName sets the "account_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableAccountName(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetAccountName(*v)
+	}
+	return _u
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearAccountName() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearAccountName()
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetErrorMessage(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableErrorMessage(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearErrorMessage() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetHTTPStatus(v int) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ResetHTTPStatus()
+	_u.mutation.SetHTTPStatus(v)
+	return _u
+}
+
+// SetNillableHTTPStatus sets the "http_status" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableHTTPStatus(v *int) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetHTTPStatus(*v)
+	}
+	return _u
+}
+
+// AddHTTPStatus adds value to the "http_status" field.
+func (_u *Sub2APIUsageRecordUpdateOne) AddHTTPStatus(v int) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.AddHTTPStatus(v)
+	return _u
+}
+
 // Mutation returns the Sub2APIUsageRecordMutation object of the builder.
 func (_u *Sub2APIUsageRecordUpdateOne) Mutation() *Sub2APIUsageRecordMutation {
 	return _u.mutation
@@ -669,6 +951,42 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	}
 	if value, ok := _u.mutation.AddedTps(); ok {
 		_spec.AddField(sub2apiusagerecord.FieldTps, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Cost(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCost(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.FirstTokenMs(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldFirstTokenMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedFirstTokenMs(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldFirstTokenMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.ReasoningEffort(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldReasoningEffort, field.TypeString, value)
+	}
+	if _u.mutation.ReasoningEffortCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldReasoningEffort, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccountName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldAccountName, field.TypeString, value)
+	}
+	if _u.mutation.AccountNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldAccountName, field.TypeString)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.HTTPStatus(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHTTPStatus(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
 	}
 	_node = &Sub2APIUsageRecord{config: _u.config}
 	_spec.Assign = _node.assignValues

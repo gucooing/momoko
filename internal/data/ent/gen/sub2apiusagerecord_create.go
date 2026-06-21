@@ -175,6 +175,90 @@ func (_c *Sub2APIUsageRecordCreate) SetNillableTps(v *float64) *Sub2APIUsageReco
 	return _c
 }
 
+// SetCost sets the "cost" field.
+func (_c *Sub2APIUsageRecordCreate) SetCost(v float64) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetCost(v)
+	return _c
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableCost(v *float64) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetCost(*v)
+	}
+	return _c
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (_c *Sub2APIUsageRecordCreate) SetFirstTokenMs(v int64) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetFirstTokenMs(v)
+	return _c
+}
+
+// SetNillableFirstTokenMs sets the "first_token_ms" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableFirstTokenMs(v *int64) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetFirstTokenMs(*v)
+	}
+	return _c
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (_c *Sub2APIUsageRecordCreate) SetReasoningEffort(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetReasoningEffort(v)
+	return _c
+}
+
+// SetNillableReasoningEffort sets the "reasoning_effort" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableReasoningEffort(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetReasoningEffort(*v)
+	}
+	return _c
+}
+
+// SetAccountName sets the "account_name" field.
+func (_c *Sub2APIUsageRecordCreate) SetAccountName(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetAccountName(v)
+	return _c
+}
+
+// SetNillableAccountName sets the "account_name" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableAccountName(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetAccountName(*v)
+	}
+	return _c
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_c *Sub2APIUsageRecordCreate) SetErrorMessage(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetErrorMessage(v)
+	return _c
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableErrorMessage(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetErrorMessage(*v)
+	}
+	return _c
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (_c *Sub2APIUsageRecordCreate) SetHTTPStatus(v int) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetHTTPStatus(v)
+	return _c
+}
+
+// SetNillableHTTPStatus sets the "http_status" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableHTTPStatus(v *int) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetHTTPStatus(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *Sub2APIUsageRecordCreate) SetID(v string) *Sub2APIUsageRecordCreate {
 	_c.mutation.SetID(v)
@@ -244,6 +328,18 @@ func (_c *Sub2APIUsageRecordCreate) defaults() {
 		v := sub2apiusagerecord.DefaultTps
 		_c.mutation.SetTps(v)
 	}
+	if _, ok := _c.mutation.Cost(); !ok {
+		v := sub2apiusagerecord.DefaultCost
+		_c.mutation.SetCost(v)
+	}
+	if _, ok := _c.mutation.FirstTokenMs(); !ok {
+		v := sub2apiusagerecord.DefaultFirstTokenMs
+		_c.mutation.SetFirstTokenMs(v)
+	}
+	if _, ok := _c.mutation.HTTPStatus(); !ok {
+		v := sub2apiusagerecord.DefaultHTTPStatus
+		_c.mutation.SetHTTPStatus(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -274,6 +370,15 @@ func (_c *Sub2APIUsageRecordCreate) check() error {
 	}
 	if _, ok := _c.mutation.Tps(); !ok {
 		return &ValidationError{Name: "tps", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.tps"`)}
+	}
+	if _, ok := _c.mutation.Cost(); !ok {
+		return &ValidationError{Name: "cost", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.cost"`)}
+	}
+	if _, ok := _c.mutation.FirstTokenMs(); !ok {
+		return &ValidationError{Name: "first_token_ms", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.first_token_ms"`)}
+	}
+	if _, ok := _c.mutation.HTTPStatus(); !ok {
+		return &ValidationError{Name: "http_status", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.http_status"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := sub2apiusagerecord.IDValidator(v); err != nil {
@@ -363,6 +468,30 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 	if value, ok := _c.mutation.Tps(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldTps, field.TypeFloat64, value)
 		_node.Tps = value
+	}
+	if value, ok := _c.mutation.Cost(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldCost, field.TypeFloat64, value)
+		_node.Cost = value
+	}
+	if value, ok := _c.mutation.FirstTokenMs(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldFirstTokenMs, field.TypeInt64, value)
+		_node.FirstTokenMs = value
+	}
+	if value, ok := _c.mutation.ReasoningEffort(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldReasoningEffort, field.TypeString, value)
+		_node.ReasoningEffort = value
+	}
+	if value, ok := _c.mutation.AccountName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldAccountName, field.TypeString, value)
+		_node.AccountName = value
+	}
+	if value, ok := _c.mutation.ErrorMessage(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldErrorMessage, field.TypeString, value)
+		_node.ErrorMessage = value
+	}
+	if value, ok := _c.mutation.HTTPStatus(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
+		_node.HTTPStatus = value
 	}
 	return _node, _spec
 }
@@ -587,6 +716,114 @@ func (u *Sub2APIUsageRecordUpsert) UpdateTps() *Sub2APIUsageRecordUpsert {
 // AddTps adds v to the "tps" field.
 func (u *Sub2APIUsageRecordUpsert) AddTps(v float64) *Sub2APIUsageRecordUpsert {
 	u.Add(sub2apiusagerecord.FieldTps, v)
+	return u
+}
+
+// SetCost sets the "cost" field.
+func (u *Sub2APIUsageRecordUpsert) SetCost(v float64) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldCost, v)
+	return u
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateCost() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldCost)
+	return u
+}
+
+// AddCost adds v to the "cost" field.
+func (u *Sub2APIUsageRecordUpsert) AddCost(v float64) *Sub2APIUsageRecordUpsert {
+	u.Add(sub2apiusagerecord.FieldCost, v)
+	return u
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsert) SetFirstTokenMs(v int64) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldFirstTokenMs, v)
+	return u
+}
+
+// UpdateFirstTokenMs sets the "first_token_ms" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateFirstTokenMs() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldFirstTokenMs)
+	return u
+}
+
+// AddFirstTokenMs adds v to the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsert) AddFirstTokenMs(v int64) *Sub2APIUsageRecordUpsert {
+	u.Add(sub2apiusagerecord.FieldFirstTokenMs, v)
+	return u
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsert) SetReasoningEffort(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldReasoningEffort, v)
+	return u
+}
+
+// UpdateReasoningEffort sets the "reasoning_effort" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateReasoningEffort() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldReasoningEffort)
+	return u
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsert) ClearReasoningEffort() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldReasoningEffort)
+	return u
+}
+
+// SetAccountName sets the "account_name" field.
+func (u *Sub2APIUsageRecordUpsert) SetAccountName(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldAccountName, v)
+	return u
+}
+
+// UpdateAccountName sets the "account_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateAccountName() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldAccountName)
+	return u
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (u *Sub2APIUsageRecordUpsert) ClearAccountName() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldAccountName)
+	return u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *Sub2APIUsageRecordUpsert) SetErrorMessage(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldErrorMessage, v)
+	return u
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateErrorMessage() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldErrorMessage)
+	return u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *Sub2APIUsageRecordUpsert) ClearErrorMessage() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldErrorMessage)
+	return u
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (u *Sub2APIUsageRecordUpsert) SetHTTPStatus(v int) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldHTTPStatus, v)
+	return u
+}
+
+// UpdateHTTPStatus sets the "http_status" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateHTTPStatus() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldHTTPStatus)
+	return u
+}
+
+// AddHTTPStatus adds v to the "http_status" field.
+func (u *Sub2APIUsageRecordUpsert) AddHTTPStatus(v int) *Sub2APIUsageRecordUpsert {
+	u.Add(sub2apiusagerecord.FieldHTTPStatus, v)
 	return u
 }
 
@@ -841,6 +1078,132 @@ func (u *Sub2APIUsageRecordUpsertOne) AddTps(v float64) *Sub2APIUsageRecordUpser
 func (u *Sub2APIUsageRecordUpsertOne) UpdateTps() *Sub2APIUsageRecordUpsertOne {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.UpdateTps()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetCost(v float64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *Sub2APIUsageRecordUpsertOne) AddCost(v float64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateCost() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateCost()
+	})
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetFirstTokenMs(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetFirstTokenMs(v)
+	})
+}
+
+// AddFirstTokenMs adds v to the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsertOne) AddFirstTokenMs(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddFirstTokenMs(v)
+	})
+}
+
+// UpdateFirstTokenMs sets the "first_token_ms" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateFirstTokenMs() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateFirstTokenMs()
+	})
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetReasoningEffort(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetReasoningEffort(v)
+	})
+}
+
+// UpdateReasoningEffort sets the "reasoning_effort" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateReasoningEffort() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateReasoningEffort()
+	})
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearReasoningEffort() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearReasoningEffort()
+	})
+}
+
+// SetAccountName sets the "account_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetAccountName(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetAccountName(v)
+	})
+}
+
+// UpdateAccountName sets the "account_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateAccountName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateAccountName()
+	})
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearAccountName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearAccountName()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetErrorMessage(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateErrorMessage() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearErrorMessage() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetHTTPStatus(v int) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetHTTPStatus(v)
+	})
+}
+
+// AddHTTPStatus adds v to the "http_status" field.
+func (u *Sub2APIUsageRecordUpsertOne) AddHTTPStatus(v int) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddHTTPStatus(v)
+	})
+}
+
+// UpdateHTTPStatus sets the "http_status" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateHTTPStatus() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateHTTPStatus()
 	})
 }
 
@@ -1262,6 +1625,132 @@ func (u *Sub2APIUsageRecordUpsertBulk) AddTps(v float64) *Sub2APIUsageRecordUpse
 func (u *Sub2APIUsageRecordUpsertBulk) UpdateTps() *Sub2APIUsageRecordUpsertBulk {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.UpdateTps()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetCost(v float64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *Sub2APIUsageRecordUpsertBulk) AddCost(v float64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateCost() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateCost()
+	})
+}
+
+// SetFirstTokenMs sets the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetFirstTokenMs(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetFirstTokenMs(v)
+	})
+}
+
+// AddFirstTokenMs adds v to the "first_token_ms" field.
+func (u *Sub2APIUsageRecordUpsertBulk) AddFirstTokenMs(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddFirstTokenMs(v)
+	})
+}
+
+// UpdateFirstTokenMs sets the "first_token_ms" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateFirstTokenMs() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateFirstTokenMs()
+	})
+}
+
+// SetReasoningEffort sets the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetReasoningEffort(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetReasoningEffort(v)
+	})
+}
+
+// UpdateReasoningEffort sets the "reasoning_effort" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateReasoningEffort() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateReasoningEffort()
+	})
+}
+
+// ClearReasoningEffort clears the value of the "reasoning_effort" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearReasoningEffort() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearReasoningEffort()
+	})
+}
+
+// SetAccountName sets the "account_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetAccountName(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetAccountName(v)
+	})
+}
+
+// UpdateAccountName sets the "account_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateAccountName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateAccountName()
+	})
+}
+
+// ClearAccountName clears the value of the "account_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearAccountName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearAccountName()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetErrorMessage(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateErrorMessage() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearErrorMessage() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
+// SetHTTPStatus sets the "http_status" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetHTTPStatus(v int) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetHTTPStatus(v)
+	})
+}
+
+// AddHTTPStatus adds v to the "http_status" field.
+func (u *Sub2APIUsageRecordUpsertBulk) AddHTTPStatus(v int) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddHTTPStatus(v)
+	})
+}
+
+// UpdateHTTPStatus sets the "http_status" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateHTTPStatus() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateHTTPStatus()
 	})
 }
 

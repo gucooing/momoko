@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
@@ -67,6 +68,41 @@ func (s *Sub2APIService) GetPublicSub2APIStats(ctx context.Context, req *v1.GetS
 		return nil, err
 	}
 	return &v1.GetSub2APIStatsResponse{Stats: stats}, nil
+}
+
+func (s *Sub2APIService) GetSub2APIStats(ctx context.Context, req *v1.GetSub2APIAdminStatsRequest) (*v1.GetSub2APIAdminStatsResponse, error) {
+	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
+	stats, err := s.uc.AdminStats(ctx, start, end)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSub2APIAdminStatsResponse{Stats: stats}, nil
+}
+
+func (s *Sub2APIService) GetSub2APIRecentRequests(ctx context.Context, req *v1.GetSub2APIRecentRequestsRequest) (*v1.GetSub2APIRecentRequestsResponse, error) {
+	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
+	list, total, err := s.uc.RecentRequests(ctx, start, end, int(req.GetPage()), int(req.GetPageSize()))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSub2APIRecentRequestsResponse{
+		RecentRequests: list,
+		Total:          int64(total),
+		Page:           req.GetPage(),
+		PageSize:       req.GetPageSize(),
+	}, nil
+}
+
+// rangeFromMillis 将 Unix 毫秒（<=0 视为未指定）转为时间段端点，归一化交由 usecase/service 处理。
+func rangeFromMillis(startMs, endMs int64) (time.Time, time.Time) {
+	var start, end time.Time
+	if startMs > 0 {
+		start = time.UnixMilli(startMs)
+	}
+	if endMs > 0 {
+		end = time.UnixMilli(endMs)
+	}
+	return start, end
 }
 
 func (s *Sub2APIService) ListSub2APIAnnouncements(ctx context.Context, _ *v1.ListSub2APIAnnouncementsRequest) (*v1.ListSub2APIAnnouncementsResponse, error) {

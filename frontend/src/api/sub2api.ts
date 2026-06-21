@@ -14,6 +14,10 @@ import type {
   GetSub2APISnapshotResponse,
   GetSub2APIStatsRequest,
   GetSub2APIStatsResponse,
+  GetSub2APIAdminStatsRequest,
+  GetSub2APIAdminStatsResponse,
+  GetSub2APIRecentRequestsRequest,
+  GetSub2APIRecentRequestsResponse,
   ListSub2APIAnnouncementsResponse,
   CreateSub2APIAnnouncementRequest,
   UpdateSub2APIAnnouncementRequest,
@@ -55,6 +59,16 @@ export const getSub2APISnapshot = (params: GetSub2APISnapshotRequest = {}) => {
 
 export const getPublicSub2APIStats = (params: GetSub2APIStatsRequest) => {
   return request.get<GetSub2APIStatsResponse>('/public/sub2api/stats', { params })
+}
+
+// 管理端用量概览（按时间区间统计，需鉴权）
+export const getSub2APIStats = (params: GetSub2APIAdminStatsRequest) => {
+  return request.get<GetSub2APIAdminStatsResponse>('/sub2api/stats', { params })
+}
+
+// 管理端最近请求（按时间区间分页，需鉴权）
+export const getSub2APIRecentRequests = (params: GetSub2APIRecentRequestsRequest) => {
+  return request.get<GetSub2APIRecentRequestsResponse>('/sub2api/recent-requests', { params })
 }
 
 // 公告

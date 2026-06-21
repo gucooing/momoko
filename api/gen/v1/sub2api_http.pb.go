@@ -25,7 +25,9 @@ const OperationSub2APIManagerDeleteSub2APIAnnouncement = "/v1.Sub2APIManager/Del
 const OperationSub2APIManagerDeleteSub2APITimelineItem = "/v1.Sub2APIManager/DeleteSub2APITimelineItem"
 const OperationSub2APIManagerGetPublicSub2APIStats = "/v1.Sub2APIManager/GetPublicSub2APIStats"
 const OperationSub2APIManagerGetSub2APIConfig = "/v1.Sub2APIManager/GetSub2APIConfig"
+const OperationSub2APIManagerGetSub2APIRecentRequests = "/v1.Sub2APIManager/GetSub2APIRecentRequests"
 const OperationSub2APIManagerGetSub2APISnapshot = "/v1.Sub2APIManager/GetSub2APISnapshot"
+const OperationSub2APIManagerGetSub2APIStats = "/v1.Sub2APIManager/GetSub2APIStats"
 const OperationSub2APIManagerListSub2APIAnnouncements = "/v1.Sub2APIManager/ListSub2APIAnnouncements"
 const OperationSub2APIManagerListSub2APITimeline = "/v1.Sub2APIManager/ListSub2APITimeline"
 const OperationSub2APIManagerPublicSub2APIHome = "/v1.Sub2APIManager/PublicSub2APIHome"
@@ -44,8 +46,12 @@ type Sub2APIManagerHTTPServer interface {
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
 	// GetSub2APIConfig 获取 Sub2API 配置
 	GetSub2APIConfig(context.Context, *GetSub2APIConfigRequest) (*GetSub2APIConfigResponse, error)
+	// GetSub2APIRecentRequests 获取管理端最近请求（按时间区间分页，需鉴权）
+	GetSub2APIRecentRequests(context.Context, *GetSub2APIRecentRequestsRequest) (*GetSub2APIRecentRequestsResponse, error)
 	// GetSub2APISnapshot 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(context.Context, *GetSub2APISnapshotRequest) (*GetSub2APISnapshotResponse, error)
+	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
+	GetSub2APIStats(context.Context, *GetSub2APIAdminStatsRequest) (*GetSub2APIAdminStatsResponse, error)
 	// ListSub2APIAnnouncements 公告管理
 	ListSub2APIAnnouncements(context.Context, *ListSub2APIAnnouncementsRequest) (*ListSub2APIAnnouncementsResponse, error)
 	// ListSub2APITimeline 时间线管理
@@ -71,6 +77,8 @@ func RegisterSub2APIManagerHTTPServer(s *http.Server, srv Sub2APIManagerHTTPServ
 	r.POST("/api/v1/sub2api/sync", _Sub2APIManager_SyncSub2APIUsage0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/snapshot", _Sub2APIManager_GetSub2APISnapshot0_HTTP_Handler(srv))
 	r.GET("/api/v1/public/sub2api/stats", _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/stats", _Sub2APIManager_GetSub2APIStats0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/recent-requests", _Sub2APIManager_GetSub2APIRecentRequests0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/announcements", _Sub2APIManager_ListSub2APIAnnouncements0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/announcements", _Sub2APIManager_CreateSub2APIAnnouncement0_HTTP_Handler(srv))
 	r.PUT("/api/v1/sub2api/announcements/{id}", _Sub2APIManager_UpdateSub2APIAnnouncement0_HTTP_Handler(srv))
@@ -219,6 +227,44 @@ func _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv Sub2APIManagerHTTPS
 			return err
 		}
 		reply := out.(*GetSub2APIStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetSub2APIStats0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSub2APIAdminStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSub2APIStats(ctx, req.(*GetSub2APIAdminStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSub2APIAdminStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetSub2APIRecentRequests0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSub2APIRecentRequestsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIRecentRequests)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSub2APIRecentRequests(ctx, req.(*GetSub2APIRecentRequestsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSub2APIRecentRequestsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -408,8 +454,12 @@ type Sub2APIManagerHTTPClient interface {
 	GetPublicSub2APIStats(ctx context.Context, req *GetSub2APIStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIStatsResponse, err error)
 	// GetSub2APIConfig 获取 Sub2API 配置
 	GetSub2APIConfig(ctx context.Context, req *GetSub2APIConfigRequest, opts ...http.CallOption) (rsp *GetSub2APIConfigResponse, err error)
+	// GetSub2APIRecentRequests 获取管理端最近请求（按时间区间分页，需鉴权）
+	GetSub2APIRecentRequests(ctx context.Context, req *GetSub2APIRecentRequestsRequest, opts ...http.CallOption) (rsp *GetSub2APIRecentRequestsResponse, err error)
 	// GetSub2APISnapshot 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(ctx context.Context, req *GetSub2APISnapshotRequest, opts ...http.CallOption) (rsp *GetSub2APISnapshotResponse, err error)
+	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
+	GetSub2APIStats(ctx context.Context, req *GetSub2APIAdminStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminStatsResponse, err error)
 	// ListSub2APIAnnouncements 公告管理
 	ListSub2APIAnnouncements(ctx context.Context, req *ListSub2APIAnnouncementsRequest, opts ...http.CallOption) (rsp *ListSub2APIAnnouncementsResponse, err error)
 	// ListSub2APITimeline 时间线管理
@@ -514,12 +564,40 @@ func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIConfig(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetSub2APIRecentRequests 获取管理端最近请求（按时间区间分页，需鉴权）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIRecentRequests(ctx context.Context, in *GetSub2APIRecentRequestsRequest, opts ...http.CallOption) (*GetSub2APIRecentRequestsResponse, error) {
+	var out GetSub2APIRecentRequestsResponse
+	pattern := "/api/v1/sub2api/recent-requests"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIRecentRequests))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSub2APISnapshot 获取 Sub2API 当前聚合快照
 func (c *Sub2APIManagerHTTPClientImpl) GetSub2APISnapshot(ctx context.Context, in *GetSub2APISnapshotRequest, opts ...http.CallOption) (*GetSub2APISnapshotResponse, error) {
 	var out GetSub2APISnapshotResponse
 	pattern := "/api/v1/sub2api/snapshot"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APISnapshot))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIStats(ctx context.Context, in *GetSub2APIAdminStatsRequest, opts ...http.CallOption) (*GetSub2APIAdminStatsResponse, error) {
+	var out GetSub2APIAdminStatsResponse
+	pattern := "/api/v1/sub2api/stats"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIStats))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

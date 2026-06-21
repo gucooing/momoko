@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"time"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
@@ -137,6 +138,30 @@ func (s *Sub2APIUsecase) PublicStats(ctx context.Context, rangeDays int32) (*v1.
 		return nil, mapSub2APIError(err)
 	}
 	return stats, nil
+}
+
+// AdminStats 管理端用量概览（按时间段统计）。最近请求改由 RecentRequests 分页返回。
+func (s *Sub2APIUsecase) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub2APIStats, error) {
+	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
+		return nil, err
+	}
+	stats, err := s.service.AdminStats(ctx, start, end)
+	if err != nil {
+		return nil, mapSub2APIError(err)
+	}
+	return stats, nil
+}
+
+// RecentRequests 管理端最近请求分页（按时间段，倒序）。
+func (s *Sub2APIUsecase) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
+	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
+		return nil, 0, err
+	}
+	list, total, err := s.service.RecentRequests(ctx, start, end, page, pageSize)
+	if err != nil {
+		return nil, 0, mapSub2APIError(err)
+	}
+	return list, total, nil
 }
 
 // ---------- 公告 CRUD ----------

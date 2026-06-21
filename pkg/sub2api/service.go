@@ -21,6 +21,10 @@ const (
 	stateWriteTimeout     = 30 * time.Second
 	testConnectionTimeout = 30 * time.Second
 	autoSyncStartDelay    = 5 * time.Second
+
+	// 最近请求分页边界。
+	defaultRecentPageSize = 10
+	maxRecentPageSize     = 100
 )
 
 // Service 编排 Sub2API 的配置、同步与用量聚合。所有与 Sub2API 的交互及数据处理都在此完成。
@@ -158,6 +162,32 @@ func (s *Service) PublicStats(ctx context.Context, rangeDays int32) (*v1.Sub2API
 		return &v1.Sub2APIStats{RangeDays: normalizeRangeDays(rangeDays, cfg.HistoryDays)}, nil
 	}
 	return BuildStats(ctx, s.store, cfg, rangeDays)
+}
+
+// AdminStats 返回管理端指定时间段聚合的用量概览，不受公开首页开关影响。
+// 最近请求改由 RecentRequests 分页返回。
+func (s *Service) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub2APIStats, error) {
+	return BuildRangeStats(ctx, s.store, start, end)
+}
+
+// RecentRequests 返回管理端最近请求的分页结果（按时间倒序，最新在前），并附区间总数。
+// 时间段归一化口径与 AdminStats 一致，确保翻页与概览覆盖相同区间。
+func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
+	start, end = normalizeRange(start, end)
+	if page < 1 {
+		page = 1
+	}
+	switch {
+	case pageSize <= 0:
+		pageSize = defaultRecentPageSize
+	case pageSize > maxRecentPageSize:
+		pageSize = maxRecentPageSize
+	}
+	records, total, err := s.store.RecordsPage(ctx, &start, &end, (page-1)*pageSize, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+	return toRecentRequests(records), total, nil
 }
 
 // Sync 执行一次同步（手动或自动）。整个流程跑在独立的后台上下文中，

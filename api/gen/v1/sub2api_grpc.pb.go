@@ -26,6 +26,8 @@ const (
 	Sub2APIManager_SyncSub2APIUsage_FullMethodName          = "/v1.Sub2APIManager/SyncSub2APIUsage"
 	Sub2APIManager_GetSub2APISnapshot_FullMethodName        = "/v1.Sub2APIManager/GetSub2APISnapshot"
 	Sub2APIManager_GetPublicSub2APIStats_FullMethodName     = "/v1.Sub2APIManager/GetPublicSub2APIStats"
+	Sub2APIManager_GetSub2APIStats_FullMethodName           = "/v1.Sub2APIManager/GetSub2APIStats"
+	Sub2APIManager_GetSub2APIRecentRequests_FullMethodName  = "/v1.Sub2APIManager/GetSub2APIRecentRequests"
 	Sub2APIManager_ListSub2APIAnnouncements_FullMethodName  = "/v1.Sub2APIManager/ListSub2APIAnnouncements"
 	Sub2APIManager_CreateSub2APIAnnouncement_FullMethodName = "/v1.Sub2APIManager/CreateSub2APIAnnouncement"
 	Sub2APIManager_UpdateSub2APIAnnouncement_FullMethodName = "/v1.Sub2APIManager/UpdateSub2APIAnnouncement"
@@ -56,6 +58,10 @@ type Sub2APIManagerClient interface {
 	GetSub2APISnapshot(ctx context.Context, in *GetSub2APISnapshotRequest, opts ...grpc.CallOption) (*GetSub2APISnapshotResponse, error)
 	// 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(ctx context.Context, in *GetSub2APIStatsRequest, opts ...grpc.CallOption) (*GetSub2APIStatsResponse, error)
+	// 获取管理端用量概览（按时间区间统计，需鉴权）
+	GetSub2APIStats(ctx context.Context, in *GetSub2APIAdminStatsRequest, opts ...grpc.CallOption) (*GetSub2APIAdminStatsResponse, error)
+	// 获取管理端最近请求（按时间区间分页，需鉴权）
+	GetSub2APIRecentRequests(ctx context.Context, in *GetSub2APIRecentRequestsRequest, opts ...grpc.CallOption) (*GetSub2APIRecentRequestsResponse, error)
 	// 公告管理
 	ListSub2APIAnnouncements(ctx context.Context, in *ListSub2APIAnnouncementsRequest, opts ...grpc.CallOption) (*ListSub2APIAnnouncementsResponse, error)
 	CreateSub2APIAnnouncement(ctx context.Context, in *CreateSub2APIAnnouncementRequest, opts ...grpc.CallOption) (*Sub2APIAnnouncementResponse, error)
@@ -140,6 +146,26 @@ func (c *sub2APIManagerClient) GetPublicSub2APIStats(ctx context.Context, in *Ge
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSub2APIStatsResponse)
 	err := c.cc.Invoke(ctx, Sub2APIManager_GetPublicSub2APIStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sub2APIManagerClient) GetSub2APIStats(ctx context.Context, in *GetSub2APIAdminStatsRequest, opts ...grpc.CallOption) (*GetSub2APIAdminStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSub2APIAdminStatsResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_GetSub2APIStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sub2APIManagerClient) GetSub2APIRecentRequests(ctx context.Context, in *GetSub2APIRecentRequestsRequest, opts ...grpc.CallOption) (*GetSub2APIRecentRequestsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSub2APIRecentRequestsResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_GetSub2APIRecentRequests_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +272,10 @@ type Sub2APIManagerServer interface {
 	GetSub2APISnapshot(context.Context, *GetSub2APISnapshotRequest) (*GetSub2APISnapshotResponse, error)
 	// 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
+	// 获取管理端用量概览（按时间区间统计，需鉴权）
+	GetSub2APIStats(context.Context, *GetSub2APIAdminStatsRequest) (*GetSub2APIAdminStatsResponse, error)
+	// 获取管理端最近请求（按时间区间分页，需鉴权）
+	GetSub2APIRecentRequests(context.Context, *GetSub2APIRecentRequestsRequest) (*GetSub2APIRecentRequestsResponse, error)
 	// 公告管理
 	ListSub2APIAnnouncements(context.Context, *ListSub2APIAnnouncementsRequest) (*ListSub2APIAnnouncementsResponse, error)
 	CreateSub2APIAnnouncement(context.Context, *CreateSub2APIAnnouncementRequest) (*Sub2APIAnnouncementResponse, error)
@@ -286,6 +316,12 @@ func (UnimplementedSub2APIManagerServer) GetSub2APISnapshot(context.Context, *Ge
 }
 func (UnimplementedSub2APIManagerServer) GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPublicSub2APIStats not implemented")
+}
+func (UnimplementedSub2APIManagerServer) GetSub2APIStats(context.Context, *GetSub2APIAdminStatsRequest) (*GetSub2APIAdminStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSub2APIStats not implemented")
+}
+func (UnimplementedSub2APIManagerServer) GetSub2APIRecentRequests(context.Context, *GetSub2APIRecentRequestsRequest) (*GetSub2APIRecentRequestsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSub2APIRecentRequests not implemented")
 }
 func (UnimplementedSub2APIManagerServer) ListSub2APIAnnouncements(context.Context, *ListSub2APIAnnouncementsRequest) (*ListSub2APIAnnouncementsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSub2APIAnnouncements not implemented")
@@ -454,6 +490,42 @@ func _Sub2APIManager_GetPublicSub2APIStats_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Sub2APIManagerServer).GetPublicSub2APIStats(ctx, req.(*GetSub2APIStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sub2APIManager_GetSub2APIStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSub2APIAdminStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).GetSub2APIStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_GetSub2APIStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).GetSub2APIStats(ctx, req.(*GetSub2APIAdminStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sub2APIManager_GetSub2APIRecentRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSub2APIRecentRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).GetSub2APIRecentRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_GetSub2APIRecentRequests_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).GetSub2APIRecentRequests(ctx, req.(*GetSub2APIRecentRequestsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -636,6 +708,14 @@ var Sub2APIManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublicSub2APIStats",
 			Handler:    _Sub2APIManager_GetPublicSub2APIStats_Handler,
+		},
+		{
+			MethodName: "GetSub2APIStats",
+			Handler:    _Sub2APIManager_GetSub2APIStats_Handler,
+		},
+		{
+			MethodName: "GetSub2APIRecentRequests",
+			Handler:    _Sub2APIManager_GetSub2APIRecentRequests_Handler,
 		},
 		{
 			MethodName: "ListSub2APIAnnouncements",

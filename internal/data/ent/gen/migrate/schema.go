@@ -419,6 +419,12 @@ var (
 		{Name: "token_count", Type: field.TypeInt64, Default: 0},
 		{Name: "output_tokens", Type: field.TypeInt64, Default: 0},
 		{Name: "tps", Type: field.TypeFloat64, Default: 0},
+		{Name: "cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "first_token_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "reasoning_effort", Type: field.TypeString, Nullable: true},
+		{Name: "account_name", Type: field.TypeString, Nullable: true},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "http_status", Type: field.TypeInt, Default: 0},
 	}
 	// Sub2apiUsageRecordsTable holds the schema information for the "sub2api_usage_records" table.
 	Sub2apiUsageRecordsTable = &schema.Table{

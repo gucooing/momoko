@@ -37,6 +37,18 @@ const (
 	FieldOutputTokens = "output_tokens"
 	// FieldTps holds the string denoting the tps field in the database.
 	FieldTps = "tps"
+	// FieldCost holds the string denoting the cost field in the database.
+	FieldCost = "cost"
+	// FieldFirstTokenMs holds the string denoting the first_token_ms field in the database.
+	FieldFirstTokenMs = "first_token_ms"
+	// FieldReasoningEffort holds the string denoting the reasoning_effort field in the database.
+	FieldReasoningEffort = "reasoning_effort"
+	// FieldAccountName holds the string denoting the account_name field in the database.
+	FieldAccountName = "account_name"
+	// FieldErrorMessage holds the string denoting the error_message field in the database.
+	FieldErrorMessage = "error_message"
+	// FieldHTTPStatus holds the string denoting the http_status field in the database.
+	FieldHTTPStatus = "http_status"
 	// Table holds the table name of the sub2apiusagerecord in the database.
 	Table = "sub2api_usage_records"
 )
@@ -56,6 +68,12 @@ var Columns = []string{
 	FieldTokenCount,
 	FieldOutputTokens,
 	FieldTps,
+	FieldCost,
+	FieldFirstTokenMs,
+	FieldReasoningEffort,
+	FieldAccountName,
+	FieldErrorMessage,
+	FieldHTTPStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -85,6 +103,12 @@ var (
 	DefaultOutputTokens int64
 	// DefaultTps holds the default value on creation for the "tps" field.
 	DefaultTps float64
+	// DefaultCost holds the default value on creation for the "cost" field.
+	DefaultCost float64
+	// DefaultFirstTokenMs holds the default value on creation for the "first_token_ms" field.
+	DefaultFirstTokenMs int64
+	// DefaultHTTPStatus holds the default value on creation for the "http_status" field.
+	DefaultHTTPStatus int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -155,4 +179,34 @@ func ByOutputTokens(opts ...sql.OrderTermOption) OrderOption {
 // ByTps orders the results by the tps field.
 func ByTps(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTps, opts...).ToFunc()
+}
+
+// ByCost orders the results by the cost field.
+func ByCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCost, opts...).ToFunc()
+}
+
+// ByFirstTokenMs orders the results by the first_token_ms field.
+func ByFirstTokenMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstTokenMs, opts...).ToFunc()
+}
+
+// ByReasoningEffort orders the results by the reasoning_effort field.
+func ByReasoningEffort(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReasoningEffort, opts...).ToFunc()
+}
+
+// ByAccountName orders the results by the account_name field.
+func ByAccountName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountName, opts...).ToFunc()
+}
+
+// ByErrorMessage orders the results by the error_message field.
+func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
+}
+
+// ByHTTPStatus orders the results by the http_status field.
+func ByHTTPStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHTTPStatus, opts...).ToFunc()
 }

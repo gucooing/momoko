@@ -54,6 +54,18 @@ service Sub2APIManager {
       get: "/api/v1/public/sub2api/stats"
     };
   }
+  // 获取管理端用量概览（按时间区间统计，需鉴权）
+  rpc GetSub2APIStats(GetSub2APIAdminStatsRequest) returns (GetSub2APIAdminStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/stats"
+    };
+  }
+  // 获取管理端最近请求（按时间区间分页，需鉴权）
+  rpc GetSub2APIRecentRequests(GetSub2APIRecentRequestsRequest) returns (GetSub2APIRecentRequestsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/recent-requests"
+    };
+  }
 
   // 公告管理
   rpc ListSub2APIAnnouncements(ListSub2APIAnnouncementsRequest) returns (ListSub2APIAnnouncementsResponse) {
@@ -155,6 +167,33 @@ message GetSub2APIStatsRequest {
 
 message GetSub2APIStatsResponse {
   Sub2APIStats stats = 1;
+}
+
+message GetSub2APIAdminStatsRequest {
+  // 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
+  // start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+  int64 start_time = 1;
+  int64 end_time = 2;
+}
+
+message GetSub2APIAdminStatsResponse {
+  Sub2APIStats stats = 1;
+}
+
+message GetSub2APIRecentRequestsRequest {
+  // 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+  int64 start_time = 1;
+  int64 end_time = 2;
+  // 页码（从 1 起）与每页条数。
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetSub2APIRecentRequestsResponse {
+  repeated Sub2APIRecentRequest recent_requests = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
 }
 
 message Sub2APIStats {
@@ -347,4 +386,12 @@ message Sub2APIRecentRequest {
   int64 latency_ms = 6;
   int64 token_count = 7;
   google.protobuf.Timestamp request_time = 8;
+  // 详情字段（成功请求）
+  double cost = 9;              // 费用（USD）
+  int64 first_token_ms = 10;   // 首 token 延迟（毫秒）
+  string reasoning_effort = 11; // 推理强度
+  string account_name = 12;    // 账号名称
+  // 详情字段（失败/上游错误请求）
+  string error_message = 13;   // 错误详情
+  int32 http_status = 14;      // HTTP 状态码
 }

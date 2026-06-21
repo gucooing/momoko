@@ -124,6 +124,36 @@ func Tps(v float64) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldTps, v))
 }
 
+// Cost applies equality check predicate on the "cost" field. It's identical to CostEQ.
+func Cost(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldCost, v))
+}
+
+// FirstTokenMs applies equality check predicate on the "first_token_ms" field. It's identical to FirstTokenMsEQ.
+func FirstTokenMs(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldFirstTokenMs, v))
+}
+
+// ReasoningEffort applies equality check predicate on the "reasoning_effort" field. It's identical to ReasoningEffortEQ.
+func ReasoningEffort(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldReasoningEffort, v))
+}
+
+// AccountName applies equality check predicate on the "account_name" field. It's identical to AccountNameEQ.
+func AccountName(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldAccountName, v))
+}
+
+// ErrorMessage applies equality check predicate on the "error_message" field. It's identical to ErrorMessageEQ.
+func ErrorMessage(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldErrorMessage, v))
+}
+
+// HTTPStatus applies equality check predicate on the "http_status" field. It's identical to HTTPStatusEQ.
+func HTTPStatus(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldHTTPStatus, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldCreateTime, v))
@@ -702,6 +732,351 @@ func TpsLT(v float64) predicate.Sub2APIUsageRecord {
 // TpsLTE applies the LTE predicate on the "tps" field.
 func TpsLTE(v float64) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldTps, v))
+}
+
+// CostEQ applies the EQ predicate on the "cost" field.
+func CostEQ(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldCost, v))
+}
+
+// CostNEQ applies the NEQ predicate on the "cost" field.
+func CostNEQ(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldCost, v))
+}
+
+// CostIn applies the In predicate on the "cost" field.
+func CostIn(vs ...float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldCost, vs...))
+}
+
+// CostNotIn applies the NotIn predicate on the "cost" field.
+func CostNotIn(vs ...float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldCost, vs...))
+}
+
+// CostGT applies the GT predicate on the "cost" field.
+func CostGT(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldCost, v))
+}
+
+// CostGTE applies the GTE predicate on the "cost" field.
+func CostGTE(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldCost, v))
+}
+
+// CostLT applies the LT predicate on the "cost" field.
+func CostLT(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldCost, v))
+}
+
+// CostLTE applies the LTE predicate on the "cost" field.
+func CostLTE(v float64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldCost, v))
+}
+
+// FirstTokenMsEQ applies the EQ predicate on the "first_token_ms" field.
+func FirstTokenMsEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldFirstTokenMs, v))
+}
+
+// FirstTokenMsNEQ applies the NEQ predicate on the "first_token_ms" field.
+func FirstTokenMsNEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldFirstTokenMs, v))
+}
+
+// FirstTokenMsIn applies the In predicate on the "first_token_ms" field.
+func FirstTokenMsIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldFirstTokenMs, vs...))
+}
+
+// FirstTokenMsNotIn applies the NotIn predicate on the "first_token_ms" field.
+func FirstTokenMsNotIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldFirstTokenMs, vs...))
+}
+
+// FirstTokenMsGT applies the GT predicate on the "first_token_ms" field.
+func FirstTokenMsGT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldFirstTokenMs, v))
+}
+
+// FirstTokenMsGTE applies the GTE predicate on the "first_token_ms" field.
+func FirstTokenMsGTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldFirstTokenMs, v))
+}
+
+// FirstTokenMsLT applies the LT predicate on the "first_token_ms" field.
+func FirstTokenMsLT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldFirstTokenMs, v))
+}
+
+// FirstTokenMsLTE applies the LTE predicate on the "first_token_ms" field.
+func FirstTokenMsLTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldFirstTokenMs, v))
+}
+
+// ReasoningEffortEQ applies the EQ predicate on the "reasoning_effort" field.
+func ReasoningEffortEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortNEQ applies the NEQ predicate on the "reasoning_effort" field.
+func ReasoningEffortNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortIn applies the In predicate on the "reasoning_effort" field.
+func ReasoningEffortIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldReasoningEffort, vs...))
+}
+
+// ReasoningEffortNotIn applies the NotIn predicate on the "reasoning_effort" field.
+func ReasoningEffortNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldReasoningEffort, vs...))
+}
+
+// ReasoningEffortGT applies the GT predicate on the "reasoning_effort" field.
+func ReasoningEffortGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortGTE applies the GTE predicate on the "reasoning_effort" field.
+func ReasoningEffortGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortLT applies the LT predicate on the "reasoning_effort" field.
+func ReasoningEffortLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortLTE applies the LTE predicate on the "reasoning_effort" field.
+func ReasoningEffortLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortContains applies the Contains predicate on the "reasoning_effort" field.
+func ReasoningEffortContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortHasPrefix applies the HasPrefix predicate on the "reasoning_effort" field.
+func ReasoningEffortHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortHasSuffix applies the HasSuffix predicate on the "reasoning_effort" field.
+func ReasoningEffortHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortIsNil applies the IsNil predicate on the "reasoning_effort" field.
+func ReasoningEffortIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldReasoningEffort))
+}
+
+// ReasoningEffortNotNil applies the NotNil predicate on the "reasoning_effort" field.
+func ReasoningEffortNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldReasoningEffort))
+}
+
+// ReasoningEffortEqualFold applies the EqualFold predicate on the "reasoning_effort" field.
+func ReasoningEffortEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldReasoningEffort, v))
+}
+
+// ReasoningEffortContainsFold applies the ContainsFold predicate on the "reasoning_effort" field.
+func ReasoningEffortContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldReasoningEffort, v))
+}
+
+// AccountNameEQ applies the EQ predicate on the "account_name" field.
+func AccountNameEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldAccountName, v))
+}
+
+// AccountNameNEQ applies the NEQ predicate on the "account_name" field.
+func AccountNameNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldAccountName, v))
+}
+
+// AccountNameIn applies the In predicate on the "account_name" field.
+func AccountNameIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldAccountName, vs...))
+}
+
+// AccountNameNotIn applies the NotIn predicate on the "account_name" field.
+func AccountNameNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldAccountName, vs...))
+}
+
+// AccountNameGT applies the GT predicate on the "account_name" field.
+func AccountNameGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldAccountName, v))
+}
+
+// AccountNameGTE applies the GTE predicate on the "account_name" field.
+func AccountNameGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldAccountName, v))
+}
+
+// AccountNameLT applies the LT predicate on the "account_name" field.
+func AccountNameLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldAccountName, v))
+}
+
+// AccountNameLTE applies the LTE predicate on the "account_name" field.
+func AccountNameLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldAccountName, v))
+}
+
+// AccountNameContains applies the Contains predicate on the "account_name" field.
+func AccountNameContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldAccountName, v))
+}
+
+// AccountNameHasPrefix applies the HasPrefix predicate on the "account_name" field.
+func AccountNameHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldAccountName, v))
+}
+
+// AccountNameHasSuffix applies the HasSuffix predicate on the "account_name" field.
+func AccountNameHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldAccountName, v))
+}
+
+// AccountNameIsNil applies the IsNil predicate on the "account_name" field.
+func AccountNameIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldAccountName))
+}
+
+// AccountNameNotNil applies the NotNil predicate on the "account_name" field.
+func AccountNameNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldAccountName))
+}
+
+// AccountNameEqualFold applies the EqualFold predicate on the "account_name" field.
+func AccountNameEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldAccountName, v))
+}
+
+// AccountNameContainsFold applies the ContainsFold predicate on the "account_name" field.
+func AccountNameContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldAccountName, v))
+}
+
+// ErrorMessageEQ applies the EQ predicate on the "error_message" field.
+func ErrorMessageEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageNEQ applies the NEQ predicate on the "error_message" field.
+func ErrorMessageNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageIn applies the In predicate on the "error_message" field.
+func ErrorMessageIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageNotIn applies the NotIn predicate on the "error_message" field.
+func ErrorMessageNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageGT applies the GT predicate on the "error_message" field.
+func ErrorMessageGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldErrorMessage, v))
+}
+
+// ErrorMessageGTE applies the GTE predicate on the "error_message" field.
+func ErrorMessageGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageLT applies the LT predicate on the "error_message" field.
+func ErrorMessageLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldErrorMessage, v))
+}
+
+// ErrorMessageLTE applies the LTE predicate on the "error_message" field.
+func ErrorMessageLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageContains applies the Contains predicate on the "error_message" field.
+func ErrorMessageContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasPrefix applies the HasPrefix predicate on the "error_message" field.
+func ErrorMessageHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasSuffix applies the HasSuffix predicate on the "error_message" field.
+func ErrorMessageHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldErrorMessage, v))
+}
+
+// ErrorMessageIsNil applies the IsNil predicate on the "error_message" field.
+func ErrorMessageIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldErrorMessage))
+}
+
+// ErrorMessageNotNil applies the NotNil predicate on the "error_message" field.
+func ErrorMessageNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldErrorMessage))
+}
+
+// ErrorMessageEqualFold applies the EqualFold predicate on the "error_message" field.
+func ErrorMessageEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldErrorMessage, v))
+}
+
+// ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
+func ErrorMessageContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldErrorMessage, v))
+}
+
+// HTTPStatusEQ applies the EQ predicate on the "http_status" field.
+func HTTPStatusEQ(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldHTTPStatus, v))
+}
+
+// HTTPStatusNEQ applies the NEQ predicate on the "http_status" field.
+func HTTPStatusNEQ(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldHTTPStatus, v))
+}
+
+// HTTPStatusIn applies the In predicate on the "http_status" field.
+func HTTPStatusIn(vs ...int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldHTTPStatus, vs...))
+}
+
+// HTTPStatusNotIn applies the NotIn predicate on the "http_status" field.
+func HTTPStatusNotIn(vs ...int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldHTTPStatus, vs...))
+}
+
+// HTTPStatusGT applies the GT predicate on the "http_status" field.
+func HTTPStatusGT(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldHTTPStatus, v))
+}
+
+// HTTPStatusGTE applies the GTE predicate on the "http_status" field.
+func HTTPStatusGTE(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldHTTPStatus, v))
+}
+
+// HTTPStatusLT applies the LT predicate on the "http_status" field.
+func HTTPStatusLT(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldHTTPStatus, v))
+}
+
+// HTTPStatusLTE applies the LTE predicate on the "http_status" field.
+func HTTPStatusLTE(v int) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldHTTPStatus, v))
 }
 
 // And groups predicates with the AND operator between them.
