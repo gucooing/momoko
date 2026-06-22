@@ -16,4 +16,5 @@ var ProviderSet = wire.NewSet(
 	NewInitializeService,
 	NewDockerService,
 	NewSub2APIService,
+	NewImageGenService,
 )

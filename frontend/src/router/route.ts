@@ -28,6 +28,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true },
   },
   {
+    path: '/public/sub2api/imagine',
+    name: 'Sub2APIImageGen',
+    component: () => import('@/views/public/sub2api/imagine/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/index.vue'),

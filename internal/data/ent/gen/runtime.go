@@ -7,6 +7,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/imagegengeneration"
+	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
@@ -124,6 +126,100 @@ func init() {
 	fileuploadchunk.DefaultUpdateTime = fileuploadchunkDescUpdateTime.Default.(func() time.Time)
 	// fileuploadchunk.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	fileuploadchunk.UpdateDefaultUpdateTime = fileuploadchunkDescUpdateTime.UpdateDefault.(func() time.Time)
+	imagegengenerationMixin := schema.ImageGenGeneration{}.Mixin()
+	imagegengenerationMixinFields0 := imagegengenerationMixin[0].Fields()
+	_ = imagegengenerationMixinFields0
+	imagegengenerationFields := schema.ImageGenGeneration{}.Fields()
+	_ = imagegengenerationFields
+	// imagegengenerationDescCreateTime is the schema descriptor for create_time field.
+	imagegengenerationDescCreateTime := imagegengenerationMixinFields0[0].Descriptor()
+	// imagegengeneration.DefaultCreateTime holds the default value on creation for the create_time field.
+	imagegengeneration.DefaultCreateTime = imagegengenerationDescCreateTime.Default.(func() time.Time)
+	// imagegengenerationDescUpdateTime is the schema descriptor for update_time field.
+	imagegengenerationDescUpdateTime := imagegengenerationMixinFields0[1].Descriptor()
+	// imagegengeneration.DefaultUpdateTime holds the default value on creation for the update_time field.
+	imagegengeneration.DefaultUpdateTime = imagegengenerationDescUpdateTime.Default.(func() time.Time)
+	// imagegengeneration.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	imagegengeneration.UpdateDefaultUpdateTime = imagegengenerationDescUpdateTime.UpdateDefault.(func() time.Time)
+	// imagegengenerationDescUserID is the schema descriptor for user_id field.
+	imagegengenerationDescUserID := imagegengenerationFields[1].Descriptor()
+	// imagegengeneration.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	imagegengeneration.UserIDValidator = imagegengenerationDescUserID.Validators[0].(func(string) error)
+	// imagegengenerationDescSrcHost is the schema descriptor for src_host field.
+	imagegengenerationDescSrcHost := imagegengenerationFields[2].Descriptor()
+	// imagegengeneration.SrcHostValidator is a validator for the "src_host" field. It is called by the builders before save.
+	imagegengeneration.SrcHostValidator = imagegengenerationDescSrcHost.Validators[0].(func(string) error)
+	// imagegengenerationDescAPIKeyID is the schema descriptor for api_key_id field.
+	imagegengenerationDescAPIKeyID := imagegengenerationFields[4].Descriptor()
+	// imagegengeneration.APIKeyIDValidator is a validator for the "api_key_id" field. It is called by the builders before save.
+	imagegengeneration.APIKeyIDValidator = imagegengenerationDescAPIKeyID.Validators[0].(func(string) error)
+	// imagegengenerationDescN is the schema descriptor for n field.
+	imagegengenerationDescN := imagegengenerationFields[8].Descriptor()
+	// imagegengeneration.DefaultN holds the default value on creation for the n field.
+	imagegengeneration.DefaultN = imagegengenerationDescN.Default.(int)
+	// imagegengenerationDescStatus is the schema descriptor for status field.
+	imagegengenerationDescStatus := imagegengenerationFields[11].Descriptor()
+	// imagegengeneration.DefaultStatus holds the default value on creation for the status field.
+	imagegengeneration.DefaultStatus = imagegengenerationDescStatus.Default.(string)
+	// imagegengenerationDescLatencyMs is the schema descriptor for latency_ms field.
+	imagegengenerationDescLatencyMs := imagegengenerationFields[13].Descriptor()
+	// imagegengeneration.DefaultLatencyMs holds the default value on creation for the latency_ms field.
+	imagegengeneration.DefaultLatencyMs = imagegengenerationDescLatencyMs.Default.(int64)
+	// imagegengenerationDescResultCount is the schema descriptor for result_count field.
+	imagegengenerationDescResultCount := imagegengenerationFields[14].Descriptor()
+	// imagegengeneration.DefaultResultCount holds the default value on creation for the result_count field.
+	imagegengeneration.DefaultResultCount = imagegengenerationDescResultCount.Default.(int)
+	// imagegengenerationDescID is the schema descriptor for id field.
+	imagegengenerationDescID := imagegengenerationFields[0].Descriptor()
+	// imagegengeneration.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	imagegengeneration.IDValidator = imagegengenerationDescID.Validators[0].(func(string) error)
+	imagegenimageMixin := schema.ImageGenImage{}.Mixin()
+	imagegenimageMixinFields0 := imagegenimageMixin[0].Fields()
+	_ = imagegenimageMixinFields0
+	imagegenimageFields := schema.ImageGenImage{}.Fields()
+	_ = imagegenimageFields
+	// imagegenimageDescCreateTime is the schema descriptor for create_time field.
+	imagegenimageDescCreateTime := imagegenimageMixinFields0[0].Descriptor()
+	// imagegenimage.DefaultCreateTime holds the default value on creation for the create_time field.
+	imagegenimage.DefaultCreateTime = imagegenimageDescCreateTime.Default.(func() time.Time)
+	// imagegenimageDescUpdateTime is the schema descriptor for update_time field.
+	imagegenimageDescUpdateTime := imagegenimageMixinFields0[1].Descriptor()
+	// imagegenimage.DefaultUpdateTime holds the default value on creation for the update_time field.
+	imagegenimage.DefaultUpdateTime = imagegenimageDescUpdateTime.Default.(func() time.Time)
+	// imagegenimage.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	imagegenimage.UpdateDefaultUpdateTime = imagegenimageDescUpdateTime.UpdateDefault.(func() time.Time)
+	// imagegenimageDescGenerationID is the schema descriptor for generation_id field.
+	imagegenimageDescGenerationID := imagegenimageFields[1].Descriptor()
+	// imagegenimage.GenerationIDValidator is a validator for the "generation_id" field. It is called by the builders before save.
+	imagegenimage.GenerationIDValidator = imagegenimageDescGenerationID.Validators[0].(func(string) error)
+	// imagegenimageDescUserID is the schema descriptor for user_id field.
+	imagegenimageDescUserID := imagegenimageFields[2].Descriptor()
+	// imagegenimage.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	imagegenimage.UserIDValidator = imagegenimageDescUserID.Validators[0].(func(string) error)
+	// imagegenimageDescSizeBytes is the schema descriptor for size_bytes field.
+	imagegenimageDescSizeBytes := imagegenimageFields[5].Descriptor()
+	// imagegenimage.DefaultSizeBytes holds the default value on creation for the size_bytes field.
+	imagegenimage.DefaultSizeBytes = imagegenimageDescSizeBytes.Default.(int64)
+	// imagegenimageDescWidth is the schema descriptor for width field.
+	imagegenimageDescWidth := imagegenimageFields[6].Descriptor()
+	// imagegenimage.DefaultWidth holds the default value on creation for the width field.
+	imagegenimage.DefaultWidth = imagegenimageDescWidth.Default.(int)
+	// imagegenimageDescHeight is the schema descriptor for height field.
+	imagegenimageDescHeight := imagegenimageFields[7].Descriptor()
+	// imagegenimage.DefaultHeight holds the default value on creation for the height field.
+	imagegenimage.DefaultHeight = imagegenimageDescHeight.Default.(int)
+	// imagegenimageDescMimeType is the schema descriptor for mime_type field.
+	imagegenimageDescMimeType := imagegenimageFields[8].Descriptor()
+	// imagegenimage.DefaultMimeType holds the default value on creation for the mime_type field.
+	imagegenimage.DefaultMimeType = imagegenimageDescMimeType.Default.(string)
+	// imagegenimageDescIndex is the schema descriptor for index field.
+	imagegenimageDescIndex := imagegenimageFields[10].Descriptor()
+	// imagegenimage.DefaultIndex holds the default value on creation for the index field.
+	imagegenimage.DefaultIndex = imagegenimageDescIndex.Default.(int)
+	// imagegenimageDescID is the schema descriptor for id field.
+	imagegenimageDescID := imagegenimageFields[0].Descriptor()
+	// imagegenimage.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	imagegenimage.IDValidator = imagegenimageDescID.Validators[0].(func(string) error)
 	instanceMixin := schema.Instance{}.Mixin()
 	instanceMixinFields0 := instanceMixin[0].Fields()
 	_ = instanceMixinFields0

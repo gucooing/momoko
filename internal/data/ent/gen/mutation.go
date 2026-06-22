@@ -10,6 +10,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/imagegengeneration"
+	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
@@ -44,6 +46,8 @@ const (
 	TypeEmailTemplate       = "EmailTemplate"
 	TypeFileUpload          = "FileUpload"
 	TypeFileUploadChunk     = "FileUploadChunk"
+	TypeImageGenGeneration  = "ImageGenGeneration"
+	TypeImageGenImage       = "ImageGenImage"
 	TypeInstance            = "Instance"
 	TypeInstanceType        = "InstanceType"
 	TypeMenu                = "Menu"
@@ -3211,6 +3215,2539 @@ func (m *FileUploadChunkMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FileUploadChunk edge %s", name)
+}
+
+// ImageGenGenerationMutation represents an operation that mutates the ImageGenGeneration nodes in the graph.
+type ImageGenGenerationMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *string
+	create_time     *time.Time
+	update_time     *time.Time
+	user_id         *string
+	src_host        *string
+	mode            *string
+	api_key_id      *string
+	model           *string
+	prompt          *string
+	size            *string
+	n               *int
+	addn            *int
+	quality         *string
+	output_format   *string
+	status          *string
+	error_message   *string
+	latency_ms      *int64
+	addlatency_ms   *int64
+	result_count    *int
+	addresult_count *int
+	started_at      *time.Time
+	finished_at     *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*ImageGenGeneration, error)
+	predicates      []predicate.ImageGenGeneration
+}
+
+var _ ent.Mutation = (*ImageGenGenerationMutation)(nil)
+
+// imagegengenerationOption allows management of the mutation configuration using functional options.
+type imagegengenerationOption func(*ImageGenGenerationMutation)
+
+// newImageGenGenerationMutation creates new mutation for the ImageGenGeneration entity.
+func newImageGenGenerationMutation(c config, op Op, opts ...imagegengenerationOption) *ImageGenGenerationMutation {
+	m := &ImageGenGenerationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeImageGenGeneration,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withImageGenGenerationID sets the ID field of the mutation.
+func withImageGenGenerationID(id string) imagegengenerationOption {
+	return func(m *ImageGenGenerationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ImageGenGeneration
+		)
+		m.oldValue = func(ctx context.Context) (*ImageGenGeneration, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ImageGenGeneration.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withImageGenGeneration sets the old ImageGenGeneration of the mutation.
+func withImageGenGeneration(node *ImageGenGeneration) imagegengenerationOption {
+	return func(m *ImageGenGenerationMutation) {
+		m.oldValue = func(context.Context) (*ImageGenGeneration, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ImageGenGenerationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ImageGenGenerationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ImageGenGeneration entities.
+func (m *ImageGenGenerationMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ImageGenGenerationMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ImageGenGenerationMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ImageGenGeneration.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ImageGenGenerationMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ImageGenGenerationMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ImageGenGenerationMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *ImageGenGenerationMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *ImageGenGenerationMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *ImageGenGenerationMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ImageGenGenerationMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ImageGenGenerationMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ImageGenGenerationMutation) ResetUserID() {
+	m.user_id = nil
+}
+
+// SetSrcHost sets the "src_host" field.
+func (m *ImageGenGenerationMutation) SetSrcHost(s string) {
+	m.src_host = &s
+}
+
+// SrcHost returns the value of the "src_host" field in the mutation.
+func (m *ImageGenGenerationMutation) SrcHost() (r string, exists bool) {
+	v := m.src_host
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSrcHost returns the old "src_host" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldSrcHost(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSrcHost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSrcHost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSrcHost: %w", err)
+	}
+	return oldValue.SrcHost, nil
+}
+
+// ResetSrcHost resets all changes to the "src_host" field.
+func (m *ImageGenGenerationMutation) ResetSrcHost() {
+	m.src_host = nil
+}
+
+// SetMode sets the "mode" field.
+func (m *ImageGenGenerationMutation) SetMode(s string) {
+	m.mode = &s
+}
+
+// Mode returns the value of the "mode" field in the mutation.
+func (m *ImageGenGenerationMutation) Mode() (r string, exists bool) {
+	v := m.mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMode returns the old "mode" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMode: %w", err)
+	}
+	return oldValue.Mode, nil
+}
+
+// ResetMode resets all changes to the "mode" field.
+func (m *ImageGenGenerationMutation) ResetMode() {
+	m.mode = nil
+}
+
+// SetAPIKeyID sets the "api_key_id" field.
+func (m *ImageGenGenerationMutation) SetAPIKeyID(s string) {
+	m.api_key_id = &s
+}
+
+// APIKeyID returns the value of the "api_key_id" field in the mutation.
+func (m *ImageGenGenerationMutation) APIKeyID() (r string, exists bool) {
+	v := m.api_key_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPIKeyID returns the old "api_key_id" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldAPIKeyID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPIKeyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPIKeyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPIKeyID: %w", err)
+	}
+	return oldValue.APIKeyID, nil
+}
+
+// ResetAPIKeyID resets all changes to the "api_key_id" field.
+func (m *ImageGenGenerationMutation) ResetAPIKeyID() {
+	m.api_key_id = nil
+}
+
+// SetModel sets the "model" field.
+func (m *ImageGenGenerationMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *ImageGenGenerationMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *ImageGenGenerationMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *ImageGenGenerationMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *ImageGenGenerationMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *ImageGenGenerationMutation) ResetPrompt() {
+	m.prompt = nil
+}
+
+// SetSize sets the "size" field.
+func (m *ImageGenGenerationMutation) SetSize(s string) {
+	m.size = &s
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *ImageGenGenerationMutation) Size() (r string, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldSize(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *ImageGenGenerationMutation) ResetSize() {
+	m.size = nil
+}
+
+// SetN sets the "n" field.
+func (m *ImageGenGenerationMutation) SetN(i int) {
+	m.n = &i
+	m.addn = nil
+}
+
+// N returns the value of the "n" field in the mutation.
+func (m *ImageGenGenerationMutation) N() (r int, exists bool) {
+	v := m.n
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldN returns the old "n" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldN(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldN is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldN requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldN: %w", err)
+	}
+	return oldValue.N, nil
+}
+
+// AddN adds i to the "n" field.
+func (m *ImageGenGenerationMutation) AddN(i int) {
+	if m.addn != nil {
+		*m.addn += i
+	} else {
+		m.addn = &i
+	}
+}
+
+// AddedN returns the value that was added to the "n" field in this mutation.
+func (m *ImageGenGenerationMutation) AddedN() (r int, exists bool) {
+	v := m.addn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetN resets all changes to the "n" field.
+func (m *ImageGenGenerationMutation) ResetN() {
+	m.n = nil
+	m.addn = nil
+}
+
+// SetQuality sets the "quality" field.
+func (m *ImageGenGenerationMutation) SetQuality(s string) {
+	m.quality = &s
+}
+
+// Quality returns the value of the "quality" field in the mutation.
+func (m *ImageGenGenerationMutation) Quality() (r string, exists bool) {
+	v := m.quality
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuality returns the old "quality" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldQuality(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuality is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuality requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuality: %w", err)
+	}
+	return oldValue.Quality, nil
+}
+
+// ClearQuality clears the value of the "quality" field.
+func (m *ImageGenGenerationMutation) ClearQuality() {
+	m.quality = nil
+	m.clearedFields[imagegengeneration.FieldQuality] = struct{}{}
+}
+
+// QualityCleared returns if the "quality" field was cleared in this mutation.
+func (m *ImageGenGenerationMutation) QualityCleared() bool {
+	_, ok := m.clearedFields[imagegengeneration.FieldQuality]
+	return ok
+}
+
+// ResetQuality resets all changes to the "quality" field.
+func (m *ImageGenGenerationMutation) ResetQuality() {
+	m.quality = nil
+	delete(m.clearedFields, imagegengeneration.FieldQuality)
+}
+
+// SetOutputFormat sets the "output_format" field.
+func (m *ImageGenGenerationMutation) SetOutputFormat(s string) {
+	m.output_format = &s
+}
+
+// OutputFormat returns the value of the "output_format" field in the mutation.
+func (m *ImageGenGenerationMutation) OutputFormat() (r string, exists bool) {
+	v := m.output_format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputFormat returns the old "output_format" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldOutputFormat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputFormat: %w", err)
+	}
+	return oldValue.OutputFormat, nil
+}
+
+// ClearOutputFormat clears the value of the "output_format" field.
+func (m *ImageGenGenerationMutation) ClearOutputFormat() {
+	m.output_format = nil
+	m.clearedFields[imagegengeneration.FieldOutputFormat] = struct{}{}
+}
+
+// OutputFormatCleared returns if the "output_format" field was cleared in this mutation.
+func (m *ImageGenGenerationMutation) OutputFormatCleared() bool {
+	_, ok := m.clearedFields[imagegengeneration.FieldOutputFormat]
+	return ok
+}
+
+// ResetOutputFormat resets all changes to the "output_format" field.
+func (m *ImageGenGenerationMutation) ResetOutputFormat() {
+	m.output_format = nil
+	delete(m.clearedFields, imagegengeneration.FieldOutputFormat)
+}
+
+// SetStatus sets the "status" field.
+func (m *ImageGenGenerationMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ImageGenGenerationMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ImageGenGenerationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *ImageGenGenerationMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *ImageGenGenerationMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *ImageGenGenerationMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[imagegengeneration.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *ImageGenGenerationMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[imagegengeneration.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *ImageGenGenerationMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, imagegengeneration.FieldErrorMessage)
+}
+
+// SetLatencyMs sets the "latency_ms" field.
+func (m *ImageGenGenerationMutation) SetLatencyMs(i int64) {
+	m.latency_ms = &i
+	m.addlatency_ms = nil
+}
+
+// LatencyMs returns the value of the "latency_ms" field in the mutation.
+func (m *ImageGenGenerationMutation) LatencyMs() (r int64, exists bool) {
+	v := m.latency_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLatencyMs returns the old "latency_ms" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldLatencyMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLatencyMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLatencyMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLatencyMs: %w", err)
+	}
+	return oldValue.LatencyMs, nil
+}
+
+// AddLatencyMs adds i to the "latency_ms" field.
+func (m *ImageGenGenerationMutation) AddLatencyMs(i int64) {
+	if m.addlatency_ms != nil {
+		*m.addlatency_ms += i
+	} else {
+		m.addlatency_ms = &i
+	}
+}
+
+// AddedLatencyMs returns the value that was added to the "latency_ms" field in this mutation.
+func (m *ImageGenGenerationMutation) AddedLatencyMs() (r int64, exists bool) {
+	v := m.addlatency_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLatencyMs resets all changes to the "latency_ms" field.
+func (m *ImageGenGenerationMutation) ResetLatencyMs() {
+	m.latency_ms = nil
+	m.addlatency_ms = nil
+}
+
+// SetResultCount sets the "result_count" field.
+func (m *ImageGenGenerationMutation) SetResultCount(i int) {
+	m.result_count = &i
+	m.addresult_count = nil
+}
+
+// ResultCount returns the value of the "result_count" field in the mutation.
+func (m *ImageGenGenerationMutation) ResultCount() (r int, exists bool) {
+	v := m.result_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResultCount returns the old "result_count" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldResultCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResultCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResultCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResultCount: %w", err)
+	}
+	return oldValue.ResultCount, nil
+}
+
+// AddResultCount adds i to the "result_count" field.
+func (m *ImageGenGenerationMutation) AddResultCount(i int) {
+	if m.addresult_count != nil {
+		*m.addresult_count += i
+	} else {
+		m.addresult_count = &i
+	}
+}
+
+// AddedResultCount returns the value that was added to the "result_count" field in this mutation.
+func (m *ImageGenGenerationMutation) AddedResultCount() (r int, exists bool) {
+	v := m.addresult_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResultCount resets all changes to the "result_count" field.
+func (m *ImageGenGenerationMutation) ResetResultCount() {
+	m.result_count = nil
+	m.addresult_count = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *ImageGenGenerationMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *ImageGenGenerationMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (m *ImageGenGenerationMutation) ClearStartedAt() {
+	m.started_at = nil
+	m.clearedFields[imagegengeneration.FieldStartedAt] = struct{}{}
+}
+
+// StartedAtCleared returns if the "started_at" field was cleared in this mutation.
+func (m *ImageGenGenerationMutation) StartedAtCleared() bool {
+	_, ok := m.clearedFields[imagegengeneration.FieldStartedAt]
+	return ok
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *ImageGenGenerationMutation) ResetStartedAt() {
+	m.started_at = nil
+	delete(m.clearedFields, imagegengeneration.FieldStartedAt)
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (m *ImageGenGenerationMutation) SetFinishedAt(t time.Time) {
+	m.finished_at = &t
+}
+
+// FinishedAt returns the value of the "finished_at" field in the mutation.
+func (m *ImageGenGenerationMutation) FinishedAt() (r time.Time, exists bool) {
+	v := m.finished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishedAt returns the old "finished_at" field's value of the ImageGenGeneration entity.
+// If the ImageGenGeneration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenGenerationMutation) OldFinishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishedAt: %w", err)
+	}
+	return oldValue.FinishedAt, nil
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (m *ImageGenGenerationMutation) ClearFinishedAt() {
+	m.finished_at = nil
+	m.clearedFields[imagegengeneration.FieldFinishedAt] = struct{}{}
+}
+
+// FinishedAtCleared returns if the "finished_at" field was cleared in this mutation.
+func (m *ImageGenGenerationMutation) FinishedAtCleared() bool {
+	_, ok := m.clearedFields[imagegengeneration.FieldFinishedAt]
+	return ok
+}
+
+// ResetFinishedAt resets all changes to the "finished_at" field.
+func (m *ImageGenGenerationMutation) ResetFinishedAt() {
+	m.finished_at = nil
+	delete(m.clearedFields, imagegengeneration.FieldFinishedAt)
+}
+
+// Where appends a list predicates to the ImageGenGenerationMutation builder.
+func (m *ImageGenGenerationMutation) Where(ps ...predicate.ImageGenGeneration) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ImageGenGenerationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImageGenGenerationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ImageGenGeneration, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ImageGenGenerationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImageGenGenerationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ImageGenGeneration).
+func (m *ImageGenGenerationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ImageGenGenerationMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.create_time != nil {
+		fields = append(fields, imagegengeneration.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, imagegengeneration.FieldUpdateTime)
+	}
+	if m.user_id != nil {
+		fields = append(fields, imagegengeneration.FieldUserID)
+	}
+	if m.src_host != nil {
+		fields = append(fields, imagegengeneration.FieldSrcHost)
+	}
+	if m.mode != nil {
+		fields = append(fields, imagegengeneration.FieldMode)
+	}
+	if m.api_key_id != nil {
+		fields = append(fields, imagegengeneration.FieldAPIKeyID)
+	}
+	if m.model != nil {
+		fields = append(fields, imagegengeneration.FieldModel)
+	}
+	if m.prompt != nil {
+		fields = append(fields, imagegengeneration.FieldPrompt)
+	}
+	if m.size != nil {
+		fields = append(fields, imagegengeneration.FieldSize)
+	}
+	if m.n != nil {
+		fields = append(fields, imagegengeneration.FieldN)
+	}
+	if m.quality != nil {
+		fields = append(fields, imagegengeneration.FieldQuality)
+	}
+	if m.output_format != nil {
+		fields = append(fields, imagegengeneration.FieldOutputFormat)
+	}
+	if m.status != nil {
+		fields = append(fields, imagegengeneration.FieldStatus)
+	}
+	if m.error_message != nil {
+		fields = append(fields, imagegengeneration.FieldErrorMessage)
+	}
+	if m.latency_ms != nil {
+		fields = append(fields, imagegengeneration.FieldLatencyMs)
+	}
+	if m.result_count != nil {
+		fields = append(fields, imagegengeneration.FieldResultCount)
+	}
+	if m.started_at != nil {
+		fields = append(fields, imagegengeneration.FieldStartedAt)
+	}
+	if m.finished_at != nil {
+		fields = append(fields, imagegengeneration.FieldFinishedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ImageGenGenerationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case imagegengeneration.FieldCreateTime:
+		return m.CreateTime()
+	case imagegengeneration.FieldUpdateTime:
+		return m.UpdateTime()
+	case imagegengeneration.FieldUserID:
+		return m.UserID()
+	case imagegengeneration.FieldSrcHost:
+		return m.SrcHost()
+	case imagegengeneration.FieldMode:
+		return m.Mode()
+	case imagegengeneration.FieldAPIKeyID:
+		return m.APIKeyID()
+	case imagegengeneration.FieldModel:
+		return m.Model()
+	case imagegengeneration.FieldPrompt:
+		return m.Prompt()
+	case imagegengeneration.FieldSize:
+		return m.Size()
+	case imagegengeneration.FieldN:
+		return m.N()
+	case imagegengeneration.FieldQuality:
+		return m.Quality()
+	case imagegengeneration.FieldOutputFormat:
+		return m.OutputFormat()
+	case imagegengeneration.FieldStatus:
+		return m.Status()
+	case imagegengeneration.FieldErrorMessage:
+		return m.ErrorMessage()
+	case imagegengeneration.FieldLatencyMs:
+		return m.LatencyMs()
+	case imagegengeneration.FieldResultCount:
+		return m.ResultCount()
+	case imagegengeneration.FieldStartedAt:
+		return m.StartedAt()
+	case imagegengeneration.FieldFinishedAt:
+		return m.FinishedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ImageGenGenerationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case imagegengeneration.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case imagegengeneration.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case imagegengeneration.FieldUserID:
+		return m.OldUserID(ctx)
+	case imagegengeneration.FieldSrcHost:
+		return m.OldSrcHost(ctx)
+	case imagegengeneration.FieldMode:
+		return m.OldMode(ctx)
+	case imagegengeneration.FieldAPIKeyID:
+		return m.OldAPIKeyID(ctx)
+	case imagegengeneration.FieldModel:
+		return m.OldModel(ctx)
+	case imagegengeneration.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case imagegengeneration.FieldSize:
+		return m.OldSize(ctx)
+	case imagegengeneration.FieldN:
+		return m.OldN(ctx)
+	case imagegengeneration.FieldQuality:
+		return m.OldQuality(ctx)
+	case imagegengeneration.FieldOutputFormat:
+		return m.OldOutputFormat(ctx)
+	case imagegengeneration.FieldStatus:
+		return m.OldStatus(ctx)
+	case imagegengeneration.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case imagegengeneration.FieldLatencyMs:
+		return m.OldLatencyMs(ctx)
+	case imagegengeneration.FieldResultCount:
+		return m.OldResultCount(ctx)
+	case imagegengeneration.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case imagegengeneration.FieldFinishedAt:
+		return m.OldFinishedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ImageGenGeneration field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageGenGenerationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case imagegengeneration.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case imagegengeneration.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case imagegengeneration.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case imagegengeneration.FieldSrcHost:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSrcHost(v)
+		return nil
+	case imagegengeneration.FieldMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMode(v)
+		return nil
+	case imagegengeneration.FieldAPIKeyID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPIKeyID(v)
+		return nil
+	case imagegengeneration.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case imagegengeneration.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case imagegengeneration.FieldSize:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	case imagegengeneration.FieldN:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetN(v)
+		return nil
+	case imagegengeneration.FieldQuality:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuality(v)
+		return nil
+	case imagegengeneration.FieldOutputFormat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputFormat(v)
+		return nil
+	case imagegengeneration.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case imagegengeneration.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case imagegengeneration.FieldLatencyMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLatencyMs(v)
+		return nil
+	case imagegengeneration.FieldResultCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResultCount(v)
+		return nil
+	case imagegengeneration.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case imagegengeneration.FieldFinishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenGeneration field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ImageGenGenerationMutation) AddedFields() []string {
+	var fields []string
+	if m.addn != nil {
+		fields = append(fields, imagegengeneration.FieldN)
+	}
+	if m.addlatency_ms != nil {
+		fields = append(fields, imagegengeneration.FieldLatencyMs)
+	}
+	if m.addresult_count != nil {
+		fields = append(fields, imagegengeneration.FieldResultCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ImageGenGenerationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case imagegengeneration.FieldN:
+		return m.AddedN()
+	case imagegengeneration.FieldLatencyMs:
+		return m.AddedLatencyMs()
+	case imagegengeneration.FieldResultCount:
+		return m.AddedResultCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageGenGenerationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case imagegengeneration.FieldN:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddN(v)
+		return nil
+	case imagegengeneration.FieldLatencyMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLatencyMs(v)
+		return nil
+	case imagegengeneration.FieldResultCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResultCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenGeneration numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ImageGenGenerationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(imagegengeneration.FieldQuality) {
+		fields = append(fields, imagegengeneration.FieldQuality)
+	}
+	if m.FieldCleared(imagegengeneration.FieldOutputFormat) {
+		fields = append(fields, imagegengeneration.FieldOutputFormat)
+	}
+	if m.FieldCleared(imagegengeneration.FieldErrorMessage) {
+		fields = append(fields, imagegengeneration.FieldErrorMessage)
+	}
+	if m.FieldCleared(imagegengeneration.FieldStartedAt) {
+		fields = append(fields, imagegengeneration.FieldStartedAt)
+	}
+	if m.FieldCleared(imagegengeneration.FieldFinishedAt) {
+		fields = append(fields, imagegengeneration.FieldFinishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ImageGenGenerationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ImageGenGenerationMutation) ClearField(name string) error {
+	switch name {
+	case imagegengeneration.FieldQuality:
+		m.ClearQuality()
+		return nil
+	case imagegengeneration.FieldOutputFormat:
+		m.ClearOutputFormat()
+		return nil
+	case imagegengeneration.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	case imagegengeneration.FieldStartedAt:
+		m.ClearStartedAt()
+		return nil
+	case imagegengeneration.FieldFinishedAt:
+		m.ClearFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenGeneration nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ImageGenGenerationMutation) ResetField(name string) error {
+	switch name {
+	case imagegengeneration.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case imagegengeneration.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case imagegengeneration.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case imagegengeneration.FieldSrcHost:
+		m.ResetSrcHost()
+		return nil
+	case imagegengeneration.FieldMode:
+		m.ResetMode()
+		return nil
+	case imagegengeneration.FieldAPIKeyID:
+		m.ResetAPIKeyID()
+		return nil
+	case imagegengeneration.FieldModel:
+		m.ResetModel()
+		return nil
+	case imagegengeneration.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case imagegengeneration.FieldSize:
+		m.ResetSize()
+		return nil
+	case imagegengeneration.FieldN:
+		m.ResetN()
+		return nil
+	case imagegengeneration.FieldQuality:
+		m.ResetQuality()
+		return nil
+	case imagegengeneration.FieldOutputFormat:
+		m.ResetOutputFormat()
+		return nil
+	case imagegengeneration.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case imagegengeneration.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case imagegengeneration.FieldLatencyMs:
+		m.ResetLatencyMs()
+		return nil
+	case imagegengeneration.FieldResultCount:
+		m.ResetResultCount()
+		return nil
+	case imagegengeneration.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case imagegengeneration.FieldFinishedAt:
+		m.ResetFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenGeneration field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ImageGenGenerationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ImageGenGenerationMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ImageGenGenerationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ImageGenGenerationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ImageGenGenerationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ImageGenGenerationMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ImageGenGenerationMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ImageGenGeneration unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ImageGenGenerationMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ImageGenGeneration edge %s", name)
+}
+
+// ImageGenImageMutation represents an operation that mutates the ImageGenImage nodes in the graph.
+type ImageGenImageMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *string
+	create_time    *time.Time
+	update_time    *time.Time
+	generation_id  *string
+	user_id        *string
+	_path          *string
+	filename       *string
+	size_bytes     *int64
+	addsize_bytes  *int64
+	width          *int
+	addwidth       *int
+	height         *int
+	addheight      *int
+	mime_type      *string
+	revised_prompt *string
+	index          *int
+	addindex       *int
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*ImageGenImage, error)
+	predicates     []predicate.ImageGenImage
+}
+
+var _ ent.Mutation = (*ImageGenImageMutation)(nil)
+
+// imagegenimageOption allows management of the mutation configuration using functional options.
+type imagegenimageOption func(*ImageGenImageMutation)
+
+// newImageGenImageMutation creates new mutation for the ImageGenImage entity.
+func newImageGenImageMutation(c config, op Op, opts ...imagegenimageOption) *ImageGenImageMutation {
+	m := &ImageGenImageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeImageGenImage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withImageGenImageID sets the ID field of the mutation.
+func withImageGenImageID(id string) imagegenimageOption {
+	return func(m *ImageGenImageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ImageGenImage
+		)
+		m.oldValue = func(ctx context.Context) (*ImageGenImage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ImageGenImage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withImageGenImage sets the old ImageGenImage of the mutation.
+func withImageGenImage(node *ImageGenImage) imagegenimageOption {
+	return func(m *ImageGenImageMutation) {
+		m.oldValue = func(context.Context) (*ImageGenImage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ImageGenImageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ImageGenImageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ImageGenImage entities.
+func (m *ImageGenImageMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ImageGenImageMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ImageGenImageMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ImageGenImage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ImageGenImageMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ImageGenImageMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ImageGenImageMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *ImageGenImageMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *ImageGenImageMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *ImageGenImageMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetGenerationID sets the "generation_id" field.
+func (m *ImageGenImageMutation) SetGenerationID(s string) {
+	m.generation_id = &s
+}
+
+// GenerationID returns the value of the "generation_id" field in the mutation.
+func (m *ImageGenImageMutation) GenerationID() (r string, exists bool) {
+	v := m.generation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGenerationID returns the old "generation_id" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldGenerationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGenerationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGenerationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGenerationID: %w", err)
+	}
+	return oldValue.GenerationID, nil
+}
+
+// ResetGenerationID resets all changes to the "generation_id" field.
+func (m *ImageGenImageMutation) ResetGenerationID() {
+	m.generation_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ImageGenImageMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ImageGenImageMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ImageGenImageMutation) ResetUserID() {
+	m.user_id = nil
+}
+
+// SetPath sets the "path" field.
+func (m *ImageGenImageMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *ImageGenImageMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *ImageGenImageMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetFilename sets the "filename" field.
+func (m *ImageGenImageMutation) SetFilename(s string) {
+	m.filename = &s
+}
+
+// Filename returns the value of the "filename" field in the mutation.
+func (m *ImageGenImageMutation) Filename() (r string, exists bool) {
+	v := m.filename
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilename returns the old "filename" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldFilename(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilename is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilename requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilename: %w", err)
+	}
+	return oldValue.Filename, nil
+}
+
+// ResetFilename resets all changes to the "filename" field.
+func (m *ImageGenImageMutation) ResetFilename() {
+	m.filename = nil
+}
+
+// SetSizeBytes sets the "size_bytes" field.
+func (m *ImageGenImageMutation) SetSizeBytes(i int64) {
+	m.size_bytes = &i
+	m.addsize_bytes = nil
+}
+
+// SizeBytes returns the value of the "size_bytes" field in the mutation.
+func (m *ImageGenImageMutation) SizeBytes() (r int64, exists bool) {
+	v := m.size_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSizeBytes returns the old "size_bytes" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldSizeBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSizeBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSizeBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSizeBytes: %w", err)
+	}
+	return oldValue.SizeBytes, nil
+}
+
+// AddSizeBytes adds i to the "size_bytes" field.
+func (m *ImageGenImageMutation) AddSizeBytes(i int64) {
+	if m.addsize_bytes != nil {
+		*m.addsize_bytes += i
+	} else {
+		m.addsize_bytes = &i
+	}
+}
+
+// AddedSizeBytes returns the value that was added to the "size_bytes" field in this mutation.
+func (m *ImageGenImageMutation) AddedSizeBytes() (r int64, exists bool) {
+	v := m.addsize_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSizeBytes resets all changes to the "size_bytes" field.
+func (m *ImageGenImageMutation) ResetSizeBytes() {
+	m.size_bytes = nil
+	m.addsize_bytes = nil
+}
+
+// SetWidth sets the "width" field.
+func (m *ImageGenImageMutation) SetWidth(i int) {
+	m.width = &i
+	m.addwidth = nil
+}
+
+// Width returns the value of the "width" field in the mutation.
+func (m *ImageGenImageMutation) Width() (r int, exists bool) {
+	v := m.width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWidth returns the old "width" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldWidth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
+	}
+	return oldValue.Width, nil
+}
+
+// AddWidth adds i to the "width" field.
+func (m *ImageGenImageMutation) AddWidth(i int) {
+	if m.addwidth != nil {
+		*m.addwidth += i
+	} else {
+		m.addwidth = &i
+	}
+}
+
+// AddedWidth returns the value that was added to the "width" field in this mutation.
+func (m *ImageGenImageMutation) AddedWidth() (r int, exists bool) {
+	v := m.addwidth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWidth resets all changes to the "width" field.
+func (m *ImageGenImageMutation) ResetWidth() {
+	m.width = nil
+	m.addwidth = nil
+}
+
+// SetHeight sets the "height" field.
+func (m *ImageGenImageMutation) SetHeight(i int) {
+	m.height = &i
+	m.addheight = nil
+}
+
+// Height returns the value of the "height" field in the mutation.
+func (m *ImageGenImageMutation) Height() (r int, exists bool) {
+	v := m.height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeight returns the old "height" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldHeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
+	}
+	return oldValue.Height, nil
+}
+
+// AddHeight adds i to the "height" field.
+func (m *ImageGenImageMutation) AddHeight(i int) {
+	if m.addheight != nil {
+		*m.addheight += i
+	} else {
+		m.addheight = &i
+	}
+}
+
+// AddedHeight returns the value that was added to the "height" field in this mutation.
+func (m *ImageGenImageMutation) AddedHeight() (r int, exists bool) {
+	v := m.addheight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHeight resets all changes to the "height" field.
+func (m *ImageGenImageMutation) ResetHeight() {
+	m.height = nil
+	m.addheight = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *ImageGenImageMutation) SetMimeType(s string) {
+	m.mime_type = &s
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *ImageGenImageMutation) MimeType() (r string, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldMimeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *ImageGenImageMutation) ResetMimeType() {
+	m.mime_type = nil
+}
+
+// SetRevisedPrompt sets the "revised_prompt" field.
+func (m *ImageGenImageMutation) SetRevisedPrompt(s string) {
+	m.revised_prompt = &s
+}
+
+// RevisedPrompt returns the value of the "revised_prompt" field in the mutation.
+func (m *ImageGenImageMutation) RevisedPrompt() (r string, exists bool) {
+	v := m.revised_prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevisedPrompt returns the old "revised_prompt" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldRevisedPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevisedPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevisedPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevisedPrompt: %w", err)
+	}
+	return oldValue.RevisedPrompt, nil
+}
+
+// ClearRevisedPrompt clears the value of the "revised_prompt" field.
+func (m *ImageGenImageMutation) ClearRevisedPrompt() {
+	m.revised_prompt = nil
+	m.clearedFields[imagegenimage.FieldRevisedPrompt] = struct{}{}
+}
+
+// RevisedPromptCleared returns if the "revised_prompt" field was cleared in this mutation.
+func (m *ImageGenImageMutation) RevisedPromptCleared() bool {
+	_, ok := m.clearedFields[imagegenimage.FieldRevisedPrompt]
+	return ok
+}
+
+// ResetRevisedPrompt resets all changes to the "revised_prompt" field.
+func (m *ImageGenImageMutation) ResetRevisedPrompt() {
+	m.revised_prompt = nil
+	delete(m.clearedFields, imagegenimage.FieldRevisedPrompt)
+}
+
+// SetIndex sets the "index" field.
+func (m *ImageGenImageMutation) SetIndex(i int) {
+	m.index = &i
+	m.addindex = nil
+}
+
+// Index returns the value of the "index" field in the mutation.
+func (m *ImageGenImageMutation) Index() (r int, exists bool) {
+	v := m.index
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIndex returns the old "index" field's value of the ImageGenImage entity.
+// If the ImageGenImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImageGenImageMutation) OldIndex(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIndex is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIndex requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIndex: %w", err)
+	}
+	return oldValue.Index, nil
+}
+
+// AddIndex adds i to the "index" field.
+func (m *ImageGenImageMutation) AddIndex(i int) {
+	if m.addindex != nil {
+		*m.addindex += i
+	} else {
+		m.addindex = &i
+	}
+}
+
+// AddedIndex returns the value that was added to the "index" field in this mutation.
+func (m *ImageGenImageMutation) AddedIndex() (r int, exists bool) {
+	v := m.addindex
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIndex resets all changes to the "index" field.
+func (m *ImageGenImageMutation) ResetIndex() {
+	m.index = nil
+	m.addindex = nil
+}
+
+// Where appends a list predicates to the ImageGenImageMutation builder.
+func (m *ImageGenImageMutation) Where(ps ...predicate.ImageGenImage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ImageGenImageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImageGenImageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ImageGenImage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ImageGenImageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImageGenImageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ImageGenImage).
+func (m *ImageGenImageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ImageGenImageMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.create_time != nil {
+		fields = append(fields, imagegenimage.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, imagegenimage.FieldUpdateTime)
+	}
+	if m.generation_id != nil {
+		fields = append(fields, imagegenimage.FieldGenerationID)
+	}
+	if m.user_id != nil {
+		fields = append(fields, imagegenimage.FieldUserID)
+	}
+	if m._path != nil {
+		fields = append(fields, imagegenimage.FieldPath)
+	}
+	if m.filename != nil {
+		fields = append(fields, imagegenimage.FieldFilename)
+	}
+	if m.size_bytes != nil {
+		fields = append(fields, imagegenimage.FieldSizeBytes)
+	}
+	if m.width != nil {
+		fields = append(fields, imagegenimage.FieldWidth)
+	}
+	if m.height != nil {
+		fields = append(fields, imagegenimage.FieldHeight)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, imagegenimage.FieldMimeType)
+	}
+	if m.revised_prompt != nil {
+		fields = append(fields, imagegenimage.FieldRevisedPrompt)
+	}
+	if m.index != nil {
+		fields = append(fields, imagegenimage.FieldIndex)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ImageGenImageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case imagegenimage.FieldCreateTime:
+		return m.CreateTime()
+	case imagegenimage.FieldUpdateTime:
+		return m.UpdateTime()
+	case imagegenimage.FieldGenerationID:
+		return m.GenerationID()
+	case imagegenimage.FieldUserID:
+		return m.UserID()
+	case imagegenimage.FieldPath:
+		return m.Path()
+	case imagegenimage.FieldFilename:
+		return m.Filename()
+	case imagegenimage.FieldSizeBytes:
+		return m.SizeBytes()
+	case imagegenimage.FieldWidth:
+		return m.Width()
+	case imagegenimage.FieldHeight:
+		return m.Height()
+	case imagegenimage.FieldMimeType:
+		return m.MimeType()
+	case imagegenimage.FieldRevisedPrompt:
+		return m.RevisedPrompt()
+	case imagegenimage.FieldIndex:
+		return m.Index()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ImageGenImageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case imagegenimage.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case imagegenimage.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case imagegenimage.FieldGenerationID:
+		return m.OldGenerationID(ctx)
+	case imagegenimage.FieldUserID:
+		return m.OldUserID(ctx)
+	case imagegenimage.FieldPath:
+		return m.OldPath(ctx)
+	case imagegenimage.FieldFilename:
+		return m.OldFilename(ctx)
+	case imagegenimage.FieldSizeBytes:
+		return m.OldSizeBytes(ctx)
+	case imagegenimage.FieldWidth:
+		return m.OldWidth(ctx)
+	case imagegenimage.FieldHeight:
+		return m.OldHeight(ctx)
+	case imagegenimage.FieldMimeType:
+		return m.OldMimeType(ctx)
+	case imagegenimage.FieldRevisedPrompt:
+		return m.OldRevisedPrompt(ctx)
+	case imagegenimage.FieldIndex:
+		return m.OldIndex(ctx)
+	}
+	return nil, fmt.Errorf("unknown ImageGenImage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageGenImageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case imagegenimage.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case imagegenimage.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case imagegenimage.FieldGenerationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGenerationID(v)
+		return nil
+	case imagegenimage.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case imagegenimage.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case imagegenimage.FieldFilename:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilename(v)
+		return nil
+	case imagegenimage.FieldSizeBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSizeBytes(v)
+		return nil
+	case imagegenimage.FieldWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWidth(v)
+		return nil
+	case imagegenimage.FieldHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeight(v)
+		return nil
+	case imagegenimage.FieldMimeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
+		return nil
+	case imagegenimage.FieldRevisedPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevisedPrompt(v)
+		return nil
+	case imagegenimage.FieldIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIndex(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenImage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ImageGenImageMutation) AddedFields() []string {
+	var fields []string
+	if m.addsize_bytes != nil {
+		fields = append(fields, imagegenimage.FieldSizeBytes)
+	}
+	if m.addwidth != nil {
+		fields = append(fields, imagegenimage.FieldWidth)
+	}
+	if m.addheight != nil {
+		fields = append(fields, imagegenimage.FieldHeight)
+	}
+	if m.addindex != nil {
+		fields = append(fields, imagegenimage.FieldIndex)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ImageGenImageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case imagegenimage.FieldSizeBytes:
+		return m.AddedSizeBytes()
+	case imagegenimage.FieldWidth:
+		return m.AddedWidth()
+	case imagegenimage.FieldHeight:
+		return m.AddedHeight()
+	case imagegenimage.FieldIndex:
+		return m.AddedIndex()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImageGenImageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case imagegenimage.FieldSizeBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSizeBytes(v)
+		return nil
+	case imagegenimage.FieldWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWidth(v)
+		return nil
+	case imagegenimage.FieldHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHeight(v)
+		return nil
+	case imagegenimage.FieldIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIndex(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenImage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ImageGenImageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(imagegenimage.FieldRevisedPrompt) {
+		fields = append(fields, imagegenimage.FieldRevisedPrompt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ImageGenImageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ImageGenImageMutation) ClearField(name string) error {
+	switch name {
+	case imagegenimage.FieldRevisedPrompt:
+		m.ClearRevisedPrompt()
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenImage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ImageGenImageMutation) ResetField(name string) error {
+	switch name {
+	case imagegenimage.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case imagegenimage.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case imagegenimage.FieldGenerationID:
+		m.ResetGenerationID()
+		return nil
+	case imagegenimage.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case imagegenimage.FieldPath:
+		m.ResetPath()
+		return nil
+	case imagegenimage.FieldFilename:
+		m.ResetFilename()
+		return nil
+	case imagegenimage.FieldSizeBytes:
+		m.ResetSizeBytes()
+		return nil
+	case imagegenimage.FieldWidth:
+		m.ResetWidth()
+		return nil
+	case imagegenimage.FieldHeight:
+		m.ResetHeight()
+		return nil
+	case imagegenimage.FieldMimeType:
+		m.ResetMimeType()
+		return nil
+	case imagegenimage.FieldRevisedPrompt:
+		m.ResetRevisedPrompt()
+		return nil
+	case imagegenimage.FieldIndex:
+		m.ResetIndex()
+		return nil
+	}
+	return fmt.Errorf("unknown ImageGenImage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ImageGenImageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ImageGenImageMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ImageGenImageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ImageGenImageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ImageGenImageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ImageGenImageMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ImageGenImageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ImageGenImage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ImageGenImageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ImageGenImage edge %s", name)
 }
 
 // InstanceMutation represents an operation that mutates the Instance nodes in the graph.

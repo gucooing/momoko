@@ -94,9 +94,20 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, dockerService, sub2APIService)
+	imageGenRepo := data.NewImageGenRepo(dataData)
+	imageGenUsecase, cleanup5, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
+	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	imageGenService := service.NewImageGenService(imageGenUsecase)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, dockerService, sub2APIService, imageGenService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()

@@ -56,6 +56,30 @@ func (f FileUploadChunkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FileUploadChunkMutation", m)
 }
 
+// The ImageGenGenerationFunc type is an adapter to allow the use of ordinary
+// function as ImageGenGeneration mutator.
+type ImageGenGenerationFunc func(context.Context, *gen.ImageGenGenerationMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ImageGenGenerationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ImageGenGenerationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ImageGenGenerationMutation", m)
+}
+
+// The ImageGenImageFunc type is an adapter to allow the use of ordinary
+// function as ImageGenImage mutator.
+type ImageGenImageFunc func(context.Context, *gen.ImageGenImageMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ImageGenImageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ImageGenImageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ImageGenImageMutation", m)
+}
+
 // The InstanceFunc type is an adapter to allow the use of ordinary
 // function as Instance mutator.
 type InstanceFunc func(context.Context, *gen.InstanceMutation) (gen.Value, error)

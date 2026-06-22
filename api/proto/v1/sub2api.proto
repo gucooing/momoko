@@ -223,6 +223,12 @@ message Sub2APIConfig {
   int32 sync_interval_minutes = 9;
   int32 history_days = 10;
   int32 page_size = 11;
+  // 允许调用 momoko 生图的 sub2api 站点 origin 列表（留空表示不限制）
+  repeated string allowed_src_hosts = 12;
+  // 是否启用生图功能
+  bool image_enabled = 13;
+  // 是否开启站点白名单校验
+  bool src_host_whitelist_enabled = 14;
 }
 
 message Sub2APIHome {

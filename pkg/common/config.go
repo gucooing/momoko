@@ -46,6 +46,13 @@ const (
 	ConfigSub2APIPageSize            ConfigKey = "sub2api.page_size"
 	// ConfigSub2APISyncState 存储 Sub2API 最近一次同步状态（运行时状态，JSON）。
 	ConfigSub2APISyncState ConfigKey = "sub2api.sync_state"
+	// ConfigSub2APIAllowedSrcHosts 允许调用 momoko 生图的 sub2api 站点 origin 列表（JSON 数组）。
+	// 留空表示不限制（仅用于开发/调试）。
+	ConfigSub2APIAllowedSrcHosts ConfigKey = "sub2api.allowed_src_hosts"
+	// ConfigSub2APIImageEnabled 是否启用生图功能。
+	ConfigSub2APIImageEnabled ConfigKey = "sub2api.image_enabled"
+	// ConfigSub2APISrcHostWhitelistEnabled 是否开启站点白名单校验。
+	ConfigSub2APISrcHostWhitelistEnabled ConfigKey = "sub2api.src_host_whitelist_enabled"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -90,6 +97,9 @@ var configDefaults = map[ConfigKey]string{
 	ConfigSub2APIHistoryDays:         "30",
 	ConfigSub2APIPageSize:            "500",
 	ConfigSub2APISyncState:           "",
+	ConfigSub2APIAllowedSrcHosts:       "[]",
+	ConfigSub2APIImageEnabled:           "true",
+	ConfigSub2APISrcHostWhitelistEnabled: "false",
 }
 
 func (k ConfigKey) String() string {

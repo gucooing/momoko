@@ -60,6 +60,15 @@ func LoadConfig(ctx context.Context, store ConfigStore) (*v1.Sub2APIConfig, erro
 	if cfg.PageSize, err = getInt32(ctx, store, common.ConfigSub2APIPageSize); err != nil {
 		return nil, err
 	}
+	if cfg.AllowedSrcHosts, err = getStringList(ctx, store, common.ConfigSub2APIAllowedSrcHosts); err != nil {
+		return nil, err
+	}
+	if cfg.ImageEnabled, err = getBool(ctx, store, common.ConfigSub2APIImageEnabled); err != nil {
+		return nil, err
+	}
+	if cfg.SrcHostWhitelistEnabled, err = getBool(ctx, store, common.ConfigSub2APISrcHostWhitelistEnabled); err != nil {
+		return nil, err
+	}
 	NormalizeConfig(cfg)
 	return cfg, nil
 }
@@ -79,6 +88,9 @@ func SaveConfig(ctx context.Context, store ConfigStore, cfg *v1.Sub2APIConfig) e
 		common.ConfigSub2APISyncIntervalMinutes: strconv.Itoa(int(cfg.SyncIntervalMinutes)),
 		common.ConfigSub2APIHistoryDays:         strconv.Itoa(int(cfg.HistoryDays)),
 		common.ConfigSub2APIPageSize:            strconv.Itoa(int(cfg.PageSize)),
+		common.ConfigSub2APIAllowedSrcHosts:     mustJSONStringList(cfg.AllowedSrcHosts),
+		common.ConfigSub2APIImageEnabled:          strconv.FormatBool(cfg.ImageEnabled),
+		common.ConfigSub2APISrcHostWhitelistEnabled: strconv.FormatBool(cfg.SrcHostWhitelistEnabled),
 	})
 }
 
@@ -117,6 +129,86 @@ func NormalizeConfig(cfg *v1.Sub2APIConfig) {
 	cfg.SyncIntervalMinutes = clampInt32(cfg.SyncIntervalMinutes, MinSyncIntervalMinutes, MaxSyncIntervalMinutes, DefaultSyncIntervalMinutes)
 	cfg.HistoryDays = clampInt32(cfg.HistoryDays, MinHistoryDays, MaxHistoryDays, DefaultHistoryDays)
 	cfg.PageSize = clampInt32(cfg.PageSize, MinPageSize, MaxPageSize, DefaultPageSize)
+	// 站点白名单：trim 尾斜杠、去重、去空
+	seen := make(map[string]struct{}, len(cfg.AllowedSrcHosts))
+	hosts := cfg.AllowedSrcHosts[:0]
+	for _, h := range cfg.AllowedSrcHosts {
+		h = strings.TrimRight(strings.TrimSpace(h), "/")
+		if h == "" {
+			continue
+		}
+		if _, ok := seen[h]; ok {
+			continue
+		}
+		seen[h] = struct{}{}
+		hosts = append(hosts, h)
+	}
+	cfg.AllowedSrcHosts = hosts
+}
+
+// getStringList 从 KV 读取 JSON 字符串数组配置。
+func getStringList(ctx context.Context, store ConfigStore, key common.ConfigKey) ([]string, error) {
+	raw, err := store.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return []string{}, nil
+	}
+	var list []string
+	if err = json.Unmarshal([]byte(raw), &list); err != nil {
+		return []string{}, nil
+	}
+	return list, nil
+}
+
+// mustJSONStringList 将字符串数组序列化为 JSON（用于 KV 存储）。
+func mustJSONStringList(list []string) string {
+	data, err := json.Marshal(list)
+	if err != nil {
+		return "[]"
+	}
+	return string(data)
+}
+
+// ParseAllowedSrcHosts 解析站点白名单 JSON（trim 尾斜杠、去重、去空）。
+func ParseAllowedSrcHosts(raw string) ([]string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return []string{}, nil
+	}
+	var list []string
+	if err := json.Unmarshal([]byte(raw), &list); err != nil {
+		return nil, err
+	}
+	seen := make(map[string]struct{}, len(list))
+	out := make([]string, 0, len(list))
+	for _, h := range list {
+		h = strings.TrimRight(strings.TrimSpace(h), "/")
+		if h == "" {
+			continue
+		}
+		if _, ok := seen[h]; ok {
+			continue
+		}
+		seen[h] = struct{}{}
+		out = append(out, h)
+	}
+	return out, nil
+}
+
+// ParseAllowedSrcHostsSet 解析站点白名单 JSON 为哈希集合（map[string]struct{}），便于 O(1) 查询。
+func ParseAllowedSrcHostsSet(raw string) (map[string]struct{}, error) {
+	list, err := ParseAllowedSrcHosts(raw)
+	if err != nil {
+		return nil, err
+	}
+	set := make(map[string]struct{}, len(list))
+	for _, h := range list {
+		set[h] = struct{}{}
+	}
+	return set, nil
 }
 
 // ClientConfigFromConfig 提取调用 Sub2API 所需的连接信息。

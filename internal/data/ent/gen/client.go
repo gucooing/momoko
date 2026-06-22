@@ -15,6 +15,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/imagegengeneration"
+	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
@@ -50,6 +52,10 @@ type Client struct {
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
 	FileUploadChunk *FileUploadChunkClient
+	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
+	ImageGenGeneration *ImageGenGenerationClient
+	// ImageGenImage is the client for interacting with the ImageGenImage builders.
+	ImageGenImage *ImageGenImageClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -91,6 +97,8 @@ func (c *Client) init() {
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileUpload = NewFileUploadClient(c.config)
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
+	c.ImageGenGeneration = NewImageGenGenerationClient(c.config)
+	c.ImageGenImage = NewImageGenImageClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
@@ -200,6 +208,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
+		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
+		ImageGenImage:       NewImageGenImageClient(cfg),
 		Instance:            NewInstanceClient(cfg),
 		InstanceType:        NewInstanceTypeClient(cfg),
 		Menu:                NewMenuClient(cfg),
@@ -236,6 +246,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
+		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
+		ImageGenImage:       NewImageGenImageClient(cfg),
 		Instance:            NewInstanceClient(cfg),
 		InstanceType:        NewInstanceTypeClient(cfg),
 		Menu:                NewMenuClient(cfg),
@@ -278,10 +290,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
-		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
-		c.SystemConfig, c.User, c.UserAPIKey,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
+		c.PortForward, c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -291,10 +303,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.Instance,
-		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
-		c.SystemConfig, c.User, c.UserAPIKey,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
+		c.PortForward, c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -311,6 +323,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FileUpload.mutate(ctx, m)
 	case *FileUploadChunkMutation:
 		return c.FileUploadChunk.mutate(ctx, m)
+	case *ImageGenGenerationMutation:
+		return c.ImageGenGeneration.mutate(ctx, m)
+	case *ImageGenImageMutation:
+		return c.ImageGenImage.mutate(ctx, m)
 	case *InstanceMutation:
 		return c.Instance.mutate(ctx, m)
 	case *InstanceTypeMutation:
@@ -919,6 +935,272 @@ func (c *FileUploadChunkClient) mutate(ctx context.Context, m *FileUploadChunkMu
 		return (&FileUploadChunkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FileUploadChunk mutation op: %q", m.Op())
+	}
+}
+
+// ImageGenGenerationClient is a client for the ImageGenGeneration schema.
+type ImageGenGenerationClient struct {
+	config
+}
+
+// NewImageGenGenerationClient returns a client for the ImageGenGeneration from the given config.
+func NewImageGenGenerationClient(c config) *ImageGenGenerationClient {
+	return &ImageGenGenerationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `imagegengeneration.Hooks(f(g(h())))`.
+func (c *ImageGenGenerationClient) Use(hooks ...Hook) {
+	c.hooks.ImageGenGeneration = append(c.hooks.ImageGenGeneration, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `imagegengeneration.Intercept(f(g(h())))`.
+func (c *ImageGenGenerationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ImageGenGeneration = append(c.inters.ImageGenGeneration, interceptors...)
+}
+
+// Create returns a builder for creating a ImageGenGeneration entity.
+func (c *ImageGenGenerationClient) Create() *ImageGenGenerationCreate {
+	mutation := newImageGenGenerationMutation(c.config, OpCreate)
+	return &ImageGenGenerationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ImageGenGeneration entities.
+func (c *ImageGenGenerationClient) CreateBulk(builders ...*ImageGenGenerationCreate) *ImageGenGenerationCreateBulk {
+	return &ImageGenGenerationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ImageGenGenerationClient) MapCreateBulk(slice any, setFunc func(*ImageGenGenerationCreate, int)) *ImageGenGenerationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ImageGenGenerationCreateBulk{err: fmt.Errorf("calling to ImageGenGenerationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ImageGenGenerationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ImageGenGenerationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ImageGenGeneration.
+func (c *ImageGenGenerationClient) Update() *ImageGenGenerationUpdate {
+	mutation := newImageGenGenerationMutation(c.config, OpUpdate)
+	return &ImageGenGenerationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImageGenGenerationClient) UpdateOne(_m *ImageGenGeneration) *ImageGenGenerationUpdateOne {
+	mutation := newImageGenGenerationMutation(c.config, OpUpdateOne, withImageGenGeneration(_m))
+	return &ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImageGenGenerationClient) UpdateOneID(id string) *ImageGenGenerationUpdateOne {
+	mutation := newImageGenGenerationMutation(c.config, OpUpdateOne, withImageGenGenerationID(id))
+	return &ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ImageGenGeneration.
+func (c *ImageGenGenerationClient) Delete() *ImageGenGenerationDelete {
+	mutation := newImageGenGenerationMutation(c.config, OpDelete)
+	return &ImageGenGenerationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ImageGenGenerationClient) DeleteOne(_m *ImageGenGeneration) *ImageGenGenerationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ImageGenGenerationClient) DeleteOneID(id string) *ImageGenGenerationDeleteOne {
+	builder := c.Delete().Where(imagegengeneration.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImageGenGenerationDeleteOne{builder}
+}
+
+// Query returns a query builder for ImageGenGeneration.
+func (c *ImageGenGenerationClient) Query() *ImageGenGenerationQuery {
+	return &ImageGenGenerationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeImageGenGeneration},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ImageGenGeneration entity by its id.
+func (c *ImageGenGenerationClient) Get(ctx context.Context, id string) (*ImageGenGeneration, error) {
+	return c.Query().Where(imagegengeneration.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImageGenGenerationClient) GetX(ctx context.Context, id string) *ImageGenGeneration {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ImageGenGenerationClient) Hooks() []Hook {
+	return c.hooks.ImageGenGeneration
+}
+
+// Interceptors returns the client interceptors.
+func (c *ImageGenGenerationClient) Interceptors() []Interceptor {
+	return c.inters.ImageGenGeneration
+}
+
+func (c *ImageGenGenerationClient) mutate(ctx context.Context, m *ImageGenGenerationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImageGenGenerationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImageGenGenerationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImageGenGenerationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ImageGenGeneration mutation op: %q", m.Op())
+	}
+}
+
+// ImageGenImageClient is a client for the ImageGenImage schema.
+type ImageGenImageClient struct {
+	config
+}
+
+// NewImageGenImageClient returns a client for the ImageGenImage from the given config.
+func NewImageGenImageClient(c config) *ImageGenImageClient {
+	return &ImageGenImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `imagegenimage.Hooks(f(g(h())))`.
+func (c *ImageGenImageClient) Use(hooks ...Hook) {
+	c.hooks.ImageGenImage = append(c.hooks.ImageGenImage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `imagegenimage.Intercept(f(g(h())))`.
+func (c *ImageGenImageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ImageGenImage = append(c.inters.ImageGenImage, interceptors...)
+}
+
+// Create returns a builder for creating a ImageGenImage entity.
+func (c *ImageGenImageClient) Create() *ImageGenImageCreate {
+	mutation := newImageGenImageMutation(c.config, OpCreate)
+	return &ImageGenImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ImageGenImage entities.
+func (c *ImageGenImageClient) CreateBulk(builders ...*ImageGenImageCreate) *ImageGenImageCreateBulk {
+	return &ImageGenImageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ImageGenImageClient) MapCreateBulk(slice any, setFunc func(*ImageGenImageCreate, int)) *ImageGenImageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ImageGenImageCreateBulk{err: fmt.Errorf("calling to ImageGenImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ImageGenImageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ImageGenImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ImageGenImage.
+func (c *ImageGenImageClient) Update() *ImageGenImageUpdate {
+	mutation := newImageGenImageMutation(c.config, OpUpdate)
+	return &ImageGenImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImageGenImageClient) UpdateOne(_m *ImageGenImage) *ImageGenImageUpdateOne {
+	mutation := newImageGenImageMutation(c.config, OpUpdateOne, withImageGenImage(_m))
+	return &ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImageGenImageClient) UpdateOneID(id string) *ImageGenImageUpdateOne {
+	mutation := newImageGenImageMutation(c.config, OpUpdateOne, withImageGenImageID(id))
+	return &ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ImageGenImage.
+func (c *ImageGenImageClient) Delete() *ImageGenImageDelete {
+	mutation := newImageGenImageMutation(c.config, OpDelete)
+	return &ImageGenImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ImageGenImageClient) DeleteOne(_m *ImageGenImage) *ImageGenImageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ImageGenImageClient) DeleteOneID(id string) *ImageGenImageDeleteOne {
+	builder := c.Delete().Where(imagegenimage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImageGenImageDeleteOne{builder}
+}
+
+// Query returns a query builder for ImageGenImage.
+func (c *ImageGenImageClient) Query() *ImageGenImageQuery {
+	return &ImageGenImageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeImageGenImage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ImageGenImage entity by its id.
+func (c *ImageGenImageClient) Get(ctx context.Context, id string) (*ImageGenImage, error) {
+	return c.Query().Where(imagegenimage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImageGenImageClient) GetX(ctx context.Context, id string) *ImageGenImage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ImageGenImageClient) Hooks() []Hook {
+	return c.hooks.ImageGenImage
+}
+
+// Interceptors returns the client interceptors.
+func (c *ImageGenImageClient) Interceptors() []Interceptor {
+	return c.inters.ImageGenImage
+}
+
+func (c *ImageGenImageClient) mutate(ctx context.Context, m *ImageGenImageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImageGenImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImageGenImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImageGenImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ImageGenImage mutation op: %q", m.Op())
 	}
 }
 
@@ -2846,16 +3128,16 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, PortForward, Role, SSHHost, Sub2APIAnnouncement,
-		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
-		UserAPIKey []ent.Hook
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
+		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward, Role,
+		SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
+		SystemConfig, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
-		Auth, EmailTemplate, FileUpload, FileUploadChunk, Instance, InstanceType, Menu,
-		OperationLog, PortForward, Role, SSHHost, Sub2APIAnnouncement,
-		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
-		UserAPIKey []ent.Interceptor
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
+		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward, Role,
+		SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
+		SystemConfig, User, UserAPIKey []ent.Interceptor
 	}
 )
 

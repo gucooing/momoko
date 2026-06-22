@@ -10,6 +10,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/imagegengeneration"
+	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
@@ -93,6 +95,8 @@ func checkColumn(t, c string) error {
 			emailtemplate.Table:       emailtemplate.ValidColumn,
 			fileupload.Table:          fileupload.ValidColumn,
 			fileuploadchunk.Table:     fileuploadchunk.ValidColumn,
+			imagegengeneration.Table:  imagegengeneration.ValidColumn,
+			imagegenimage.Table:       imagegenimage.ValidColumn,
 			instance.Table:            instance.ValidColumn,
 			instancetype.Table:        instancetype.ValidColumn,
 			menu.Table:                menu.ValidColumn,

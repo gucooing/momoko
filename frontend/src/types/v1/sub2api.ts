@@ -120,6 +120,9 @@ export interface Sub2APIConfig {
   syncIntervalMinutes: number;
   historyDays: number;
   pageSize: number;
+  allowedSrcHosts: string[];
+  imageEnabled: boolean;
+  srcHostWhitelistEnabled: boolean;
 }
 
 export interface Sub2APIHome {

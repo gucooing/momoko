@@ -61,6 +61,9 @@ const createDefaultConfig = (): Sub2APIConfig => ({
   syncIntervalMinutes: 10,
   historyDays: 30,
   pageSize: 500,
+  allowedSrcHosts: [],
+  imageEnabled: true,
+  srcHostWhitelistEnabled: false,
 })
 
 const numberFormatter = new Intl.NumberFormat('zh-CN')

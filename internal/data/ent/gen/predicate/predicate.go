@@ -18,6 +18,12 @@ type FileUpload func(*sql.Selector)
 // FileUploadChunk is the predicate function for fileuploadchunk builders.
 type FileUploadChunk func(*sql.Selector)
 
+// ImageGenGeneration is the predicate function for imagegengeneration builders.
+type ImageGenGeneration func(*sql.Selector)
+
+// ImageGenImage is the predicate function for imagegenimage builders.
+type ImageGenImage func(*sql.Selector)
+
 // Instance is the predicate function for instance builders.
 type Instance func(*sql.Selector)
 

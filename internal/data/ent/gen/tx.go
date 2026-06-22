@@ -22,6 +22,10 @@ type Tx struct {
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
 	FileUploadChunk *FileUploadChunkClient
+	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
+	ImageGenGeneration *ImageGenGenerationClient
+	// ImageGenImage is the client for interacting with the ImageGenImage builders.
+	ImageGenImage *ImageGenImageClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -183,6 +187,8 @@ func (tx *Tx) init() {
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileUpload = NewFileUploadClient(tx.config)
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
+	tx.ImageGenGeneration = NewImageGenGenerationClient(tx.config)
+	tx.ImageGenImage = NewImageGenImageClient(tx.config)
 	tx.Instance = NewInstanceClient(tx.config)
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)

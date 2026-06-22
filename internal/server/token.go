@@ -75,6 +75,11 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				next.ServeHTTP(w, r)
 				return
 			}
+			// 公开路由前缀免 JWT：业务层（如 Imagine）自行用 X-Sub2API-Token 校验 sub2api token。
+			if strings.HasPrefix(r.URL.Path, "/api/v1/public/") {
+				next.ServeHTTP(w, r)
+				return
+			}
 			authorization := r.Header.Get("Authorization")
 			if authorization == "" && r.Method == http.MethodGet {
 				authorization = r.URL.Query().Get("accessToken")

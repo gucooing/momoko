@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// Sub2API Imagine 嵌入式生图。路由全部公开（无 momoko JWT），鉴权由业务层用
+// X-Sub2API-Token 调 sub2api /keys 完成；user_id 取自 /keys 响应（可信）。
+// 每次生图即一个独立 Generation 任务，直接挂 user_id，无会话概念。
+service Sub2APIImageGen {
+  // 列出当前 token 可用的 apikey（不返回原文 key）
+  rpc ListImageGenApiKeys(ListImageGenApiKeysRequest) returns (ListImageGenApiKeysResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/imagine/apikeys"
+    };
+  }
+  // 列出指定 apikey 可用模型，标记图片能力
+  rpc ListImageGenModels(ListImageGenModelsRequest) returns (ListImageGenModelsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/imagine/models"
+    };
+  }
+  // 列出当前用户的生图任务（轻量，不含图片字节）
+  rpc ListImageGenGenerations(ListImageGenGenerationsRequest) returns (ListImageGenGenerationsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/imagine/generations"
+    };
+  }
+  // 提交生成（异步），立即返回 pending generation
+  rpc CreateImageGenGeneration(CreateImageGenGenerationRequest) returns (ImageGenGenerationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/public/sub2api/imagine/generations"
+      body: "*"
+    };
+  }
+  // 获取单个任务详情（含图片）
+  rpc GetImageGenGeneration(GetImageGenGenerationRequest) returns (ImageGenGenerationResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/imagine/generations/{id}"
+    };
+  }
+  // 删除任务（含图片磁盘+DB）
+  rpc DeleteImageGenGeneration(DeleteImageGenGenerationRequest) returns (DeleteImageGenGenerationResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/public/sub2api/imagine/generations/{id}"
+    };
+  }
+}
+
+message ListImageGenApiKeysRequest {}
+
+message ImageGenApiKeySummary {
+  string id = 1;
+  string name = 2;
+  string group_id = 3;
+  string group_name = 4;
+  string platform = 5;
+}
+
+message ListImageGenApiKeysResponse {
+  repeated ImageGenApiKeySummary api_keys = 1;
+}
+
+message ListImageGenModelsRequest {
+  string api_key_id = 1;
+}
+
+message ImageGenModel {
+  string id = 1;
+  string display_name = 2;
+}
+
+message ListImageGenModelsResponse {
+  repeated ImageGenModel models = 1;
+}
+
+message ListImageGenGenerationsRequest {
+  // 最近多少条，<=0 时取默认 50
+  int32 limit = 1;
+}
+
+message ListImageGenGenerationsResponse {
+  repeated ImageGenGeneration generations = 1;
+}
+
+message CreateImageGenGenerationRequest {
+  reserved 1;                   // 原 mode：改由后端按是否带 source_image 可靠判定，不接受客户端指定
+  string model = 2;
+  string prompt = 3;
+  string size = 4;
+  int32 n = 5;
+  string quality = 6;
+  string output_format = 7;
+  // 源图：整张图片，base64 data URL（data:image/png;base64,...）。
+  // 带 source_image 即图生图（走 /v1/images/edits），否则文生图（走 /v1/images/generations）。
+  string source_image = 8;
+  string api_key_id = 9;
+}
+
+message GetImageGenGenerationRequest {
+  string id = 1;
+}
+
+message ImageGenGenerationResponse {
+  ImageGenGeneration generation = 1;
+}
+
+message DeleteImageGenGenerationRequest {
+  string id = 1;
+}
+
+message DeleteImageGenGenerationResponse {}
+
+message ImageGenGeneration {
+  string id = 1;
+  string user_id = 2;
+  string mode = 3;
+  string model = 4;
+  string prompt = 5;
+  string size = 6;
+  int32 n = 7;
+  string quality = 8;
+  string output_format = 9;
+  string status = 10;            // pending | completed | failed
+  string error_message = 11;
+  reserved 12;                   // 原 source_image_id：img2img 改为直传图片字节，不再持久化源图
+  int64 latency_ms = 13;
+  int32 result_count = 14;
+  string api_key_id = 15;
+  google.protobuf.Timestamp started_at = 16;
+  google.protobuf.Timestamp finished_at = 17;
+  google.protobuf.Timestamp created_at = 18;
+  repeated ImageGenImage images = 19;
+}
+
+message ImageGenImage {
+  string id = 1;
+  string generation_id = 2;
+  string filename = 3;
+  int32 index = 4;
+  int32 width = 5;
+  int32 height = 6;
+  string mime_type = 7;
+  int64 size_bytes = 8;
+  string revised_prompt = 9;
+  google.protobuf.Timestamp created_at = 10;
+}

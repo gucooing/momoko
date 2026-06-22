@@ -220,6 +220,35 @@
             <el-form-item label="分页大小">
               <el-input-number v-model="form.pageSize" :min="50" :max="1000" :step="50" />
             </el-form-item>
+            <el-divider content-position="left">生图</el-divider>
+            <el-form-item label="启用生图">
+              <el-switch v-model="form.imageEnabled" />
+              <span class="form-hint">关闭后，嵌入的生图页将拒绝所有生图请求</span>
+            </el-form-item>
+            <el-form-item label="站点白名单">
+              <el-switch v-model="form.srcHostWhitelistEnabled" />
+              <span class="form-hint">开启后，仅允许下方列表中的 sub2api 站点调用生图</span>
+            </el-form-item>
+            <el-form-item label="允许站点">
+              <div class="host-tags">
+                <el-tag
+                  v-for="(host, i) in form.allowedSrcHosts"
+                  :key="i"
+                  closable
+                  @close="form.allowedSrcHosts.splice(i, 1)"
+                >{{ host }}</el-tag>
+                <el-input
+                  v-if="hostInputVisible"
+                  ref="hostInputRef"
+                  v-model="hostInputValue"
+                  size="small"
+                  class="host-input"
+                  @keyup.enter="addHost"
+                  @blur="addHost"
+                />
+                <el-button v-else size="small" @click="showHostInput">+ 添加站点</el-button>
+              </div>
+            </el-form-item>
             <el-form-item>
               <el-button :loading="store.testing" @click="onTest">测试连接</el-button>
               <el-button type="primary" :loading="store.saving" @click="onSave">保存配置</el-button>
@@ -569,6 +598,21 @@ const onTest = async () => {
 const onSave = async () => {
   const ok = await store.saveConfig()
   if (ok) ElMessage.success('已保存')
+}
+
+// 允许站点动态 tag 输入
+const hostInputVisible = ref(false)
+const hostInputValue = ref('')
+const hostInputRef = ref<{ focus: () => void } | null>(null)
+const showHostInput = () => {
+  hostInputVisible.value = true
+  nextTick(() => hostInputRef.value?.focus())
+}
+const addHost = () => {
+  const v = hostInputValue.value.trim().replace(/\/+$/, '')
+  if (v && !form.value.allowedSrcHosts.includes(v)) form.value.allowedSrcHosts.push(v)
+  hostInputVisible.value = false
+  hostInputValue.value = ''
 }
 
 // 公告
@@ -1244,6 +1288,24 @@ onMounted(() => {
   .metric-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* 生图配置：允许站点动态 tag */
+.form-hint {
+  margin-left: 10px;
+  color: var(--el-text-color-placeholder);
+  font-size: 12px;
+}
+
+.host-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.host-input {
+  width: 220px;
 }
 </style>
 

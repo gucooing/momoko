@@ -140,6 +140,85 @@ var (
 			},
 		},
 	}
+	// ImageGenGenerationsColumns holds the columns for the "image_gen_generations" table.
+	ImageGenGenerationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "src_host", Type: field.TypeString},
+		{Name: "mode", Type: field.TypeString},
+		{Name: "api_key_id", Type: field.TypeString},
+		{Name: "model", Type: field.TypeString},
+		{Name: "prompt", Type: field.TypeString, Size: 2147483647},
+		{Name: "size", Type: field.TypeString},
+		{Name: "n", Type: field.TypeInt, Default: 1},
+		{Name: "quality", Type: field.TypeString, Nullable: true},
+		{Name: "output_format", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "latency_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "result_count", Type: field.TypeInt, Default: 0},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ImageGenGenerationsTable holds the schema information for the "image_gen_generations" table.
+	ImageGenGenerationsTable = &schema.Table{
+		Name:       "image_gen_generations",
+		Columns:    ImageGenGenerationsColumns,
+		PrimaryKey: []*schema.Column{ImageGenGenerationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imagegengeneration_user_id_src_host",
+				Unique:  false,
+				Columns: []*schema.Column{ImageGenGenerationsColumns[3], ImageGenGenerationsColumns[4]},
+			},
+			{
+				Name:    "imagegengeneration_status",
+				Unique:  false,
+				Columns: []*schema.Column{ImageGenGenerationsColumns[13]},
+			},
+			{
+				Name:    "imagegengeneration_started_at",
+				Unique:  false,
+				Columns: []*schema.Column{ImageGenGenerationsColumns[17]},
+			},
+		},
+	}
+	// ImageGenImagesColumns holds the columns for the "image_gen_images" table.
+	ImageGenImagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "generation_id", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
+		{Name: "filename", Type: field.TypeString},
+		{Name: "size_bytes", Type: field.TypeInt64, Default: 0},
+		{Name: "width", Type: field.TypeInt, Default: 0},
+		{Name: "height", Type: field.TypeInt, Default: 0},
+		{Name: "mime_type", Type: field.TypeString, Default: "image/png"},
+		{Name: "revised_prompt", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "index", Type: field.TypeInt, Default: 0},
+	}
+	// ImageGenImagesTable holds the schema information for the "image_gen_images" table.
+	ImageGenImagesTable = &schema.Table{
+		Name:       "image_gen_images",
+		Columns:    ImageGenImagesColumns,
+		PrimaryKey: []*schema.Column{ImageGenImagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imagegenimage_generation_id",
+				Unique:  false,
+				Columns: []*schema.Column{ImageGenImagesColumns[3]},
+			},
+			{
+				Name:    "imagegenimage_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{ImageGenImagesColumns[4]},
+			},
+		},
+	}
 	// InstancesColumns holds the columns for the "instances" table.
 	InstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -601,6 +680,8 @@ var (
 		EmailTemplatesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
+		ImageGenGenerationsTable,
+		ImageGenImagesTable,
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
