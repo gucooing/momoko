@@ -178,7 +178,7 @@ export const useImagineStore = defineStore('sub2api-imagine', () => {
     try {
       const res = await listImageGenGenerations({ limit: 50 })
       generations.value = res.generations || []
-    } catch (e) {
+    } catch {
       // 列表加载静默失败，不打扰
     }
   }
