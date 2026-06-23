@@ -9,40 +9,42 @@ import (
 
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
+
+	v1 "momoko/api/gen/v1"
 )
 
-func (m *Manager) ListImages(ctx context.Context, opts ImageListOptions) ([]ImageSummary, int64, error) {
+func (m *Manager) ListImages(ctx context.Context, req *v1.ListDockerImagesRequest) (*v1.ListDockerImagesResponse, error) {
 	cli, err := m.getClient()
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
 
-	filters := filtersFromLabels(opts.Labels)
-	if opts.Dangling != nil {
-		filters.Add("dangling", strconv.FormatBool(*opts.Dangling))
+	filters := filtersFromLabels(req.GetLabels())
+	if req != nil && req.Dangling != nil {
+		filters.Add("dangling", strconv.FormatBool(req.GetDangling()))
 	}
-	if opts.Keyword != "" {
-		filters.Add("reference", opts.Keyword)
+	if req.GetKeyword() != "" {
+		filters.Add("reference", req.GetKeyword())
 	}
 	items, err := cli.ImageList(ctx, imagetypes.ListOptions{
-		All:     opts.All,
+		All:     req.GetAll(),
 		Filters: filters,
 	})
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	total := int64(len(items))
-	items = pageSlice(items, opts.Page, opts.PageSize)
-	result := make([]ImageSummary, 0, len(items))
+	items = pageSlice(items, req.GetPage(), req.GetPageSize())
+	result := make([]*v1.DockerImageSummary, 0, len(items))
 	for _, item := range items {
 		result = append(result, toImageSummary(item))
 	}
-	return result, total, nil
+	return &v1.ListDockerImagesResponse{Items: result, Total: total}, nil
 }
 
-func (m *Manager) Image(ctx context.Context, id string) (*ImageInfo, error) {
+func (m *Manager) Image(ctx context.Context, id string) (*v1.DockerImageInfo, error) {
 	cli, err := m.getClient()
 	if err != nil {
 		return nil, err
@@ -53,23 +55,22 @@ func (m *Manager) Image(ctx context.Context, id string) (*ImageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := toImageInfo(data)
-	return &info, nil
+	return toImageInfo(data), nil
 }
 
-func (m *Manager) PullImage(ctx context.Context, opts PullImageOptions) *Task {
-	return m.tasks.Start(ctx, "image_pull", "拉取镜像 "+opts.Reference, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+func (m *Manager) PullImage(ctx context.Context, req *v1.PullDockerImageRequest) *v1.DockerTaskInfo {
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_IMAGE_PULL, "拉取镜像 "+req.GetReference(), m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err
 		}
-		authHeader, err := registryAuthHeader(opts.RegistryAuth)
+		authHeader, err := registryAuthHeader(req.GetRegistryAuth())
 		if err != nil {
 			return "", err
 		}
-		reader, err := cli.ImagePull(taskCtx, opts.Reference, imagetypes.PullOptions{
+		reader, err := cli.ImagePull(taskCtx, req.GetReference(), imagetypes.PullOptions{
 			RegistryAuth: authHeader,
-			Platform:     opts.Platform,
+			Platform:     req.GetPlatform(),
 		})
 		if err != nil {
 			return "", err
@@ -78,7 +79,7 @@ func (m *Manager) PullImage(ctx context.Context, opts PullImageOptions) *Task {
 		if err := streamTaskOutput(taskCtx, reader, emit); err != nil {
 			return "", err
 		}
-		return opts.Reference, nil
+		return req.GetReference(), nil
 	})
 }
 
@@ -93,23 +94,23 @@ func (m *Manager) TagImage(ctx context.Context, id, target string) error {
 	return cli.ImageTag(ctx, id, imageRef(repo, tag))
 }
 
-func (m *Manager) UpdateImageTags(ctx context.Context, opts UpdateImageTagsOptions) error {
-	if opts.ImageID == "" {
+func (m *Manager) UpdateImageTags(ctx context.Context, req *v1.UpdateDockerImageTagsRequest) error {
+	if req.GetImageId() == "" {
 		return errors.New("镜像 ID 不能为空")
 	}
-	for _, tag := range opts.AddTags {
+	for _, tag := range req.GetAddTags() {
 		if strings.TrimSpace(tag) == "" {
 			continue
 		}
-		if err := m.TagImage(ctx, opts.ImageID, tag); err != nil {
+		if err := m.TagImage(ctx, req.GetImageId(), tag); err != nil {
 			return err
 		}
 	}
-	for _, tag := range opts.DeleteTags {
+	for _, tag := range req.GetDeleteTags() {
 		if strings.TrimSpace(tag) == "" {
 			continue
 		}
-		if err := m.DeleteImage(ctx, tag, opts.ForceDelete, false); err != nil {
+		if err := m.DeleteImage(ctx, tag, req.GetForceDelete(), false); err != nil {
 			return err
 		}
 	}
@@ -130,7 +131,7 @@ func (m *Manager) DeleteImage(ctx context.Context, id string, force bool, pruneC
 	return err
 }
 
-func (m *Manager) ImageHistory(ctx context.Context, id string) ([]ImageHistoryItem, error) {
+func (m *Manager) ImageHistory(ctx context.Context, id string) ([]*v1.DockerImageHistoryItem, error) {
 	cli, err := m.getClient()
 	if err != nil {
 		return nil, err
@@ -141,20 +142,20 @@ func (m *Manager) ImageHistory(ctx context.Context, id string) ([]ImageHistoryIt
 	if err != nil {
 		return nil, err
 	}
-	result := make([]ImageHistoryItem, 0, len(items))
+	result := make([]*v1.DockerImageHistoryItem, 0, len(items))
 	for _, item := range items {
 		result = append(result, toImageHistory(item))
 	}
 	return result, nil
 }
 
-func streamTaskOutput(ctx context.Context, reader io.Reader, emit func(TaskEvent)) error {
+func streamTaskOutput(ctx context.Context, reader io.Reader, emit func(*v1.DockerTaskInfo)) error {
 	return jsonmessage.DisplayJSONMessagesStream(reader, taskEventWriter{ctx: ctx, emit: emit}, 0, true, nil)
 }
 
 type taskEventWriter struct {
 	ctx  context.Context
-	emit func(TaskEvent)
+	emit func(*v1.DockerTaskInfo)
 }
 
 func (w taskEventWriter) Write(p []byte) (int, error) {
@@ -162,7 +163,7 @@ func (w taskEventWriter) Write(p []byte) (int, error) {
 		return 0, err
 	}
 	if len(p) > 0 {
-		w.emit(TaskEvent{Message: string(p)})
+		w.emit(&v1.DockerTaskInfo{Message: string(p)})
 	}
 	return len(p), nil
 }

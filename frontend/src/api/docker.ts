@@ -14,6 +14,8 @@ import type {
   ListDockerContainersResponse,
   GetDockerContainerRequest,
   GetDockerContainerResponse,
+  GetDockerContainerStatsRequest,
+  GetDockerContainerStatsResponse,
   CreateDockerContainerRequest,
   CreateDockerContainerResponse,
   UpdateDockerContainerRequest,
@@ -36,12 +38,6 @@ import type {
   RenameDockerContainerResponse,
   DeleteDockerContainerRequest,
   DeleteDockerContainerResponse,
-  ContainerLogsRequest,
-  ContainerLogsResponse,
-  ContainerStatsRequest,
-  ContainerStatsResponse,
-  CreateContainerExecRequest,
-  CreateContainerExecResponse,
   ListDockerImagesRequest,
   ListDockerImagesResponse,
   GetDockerImageRequest,
@@ -128,6 +124,10 @@ export const getDockerContainer = (params: GetDockerContainerRequest) => {
   return request.get<GetDockerContainerResponse>(`/docker/containers/${params.id}`)
 }
 
+export const getDockerContainerStats = (params: GetDockerContainerStatsRequest) => {
+  return request.get<GetDockerContainerStatsResponse>(`/docker/containers/${params.id}/stats`)
+}
+
 export const createDockerContainer = (data: CreateDockerContainerRequest) => {
   return request.post<CreateDockerContainerResponse>('/docker/containers', data)
 }
@@ -172,18 +172,6 @@ export const deleteDockerContainer = (params: DeleteDockerContainerRequest) => {
   return request.delete<DeleteDockerContainerResponse>(`/docker/containers/${params.id}`, {
     params: { force: params.force, removeVolumes: params.removeVolumes },
   })
-}
-
-export const containerLogs = (params: ContainerLogsRequest) => {
-  return request.get<ContainerLogsResponse>(`/docker/containers/${params.id}/logs`, { params })
-}
-
-export const containerStats = (params: ContainerStatsRequest) => {
-  return request.get<ContainerStatsResponse>(`/docker/containers/${params.id}/stats`, { params })
-}
-
-export const createContainerExec = (data: CreateContainerExecRequest) => {
-  return request.post<CreateContainerExecResponse>(`/docker/containers/${data.containerId}/exec`, data)
 }
 
 // ==================== Images ====================

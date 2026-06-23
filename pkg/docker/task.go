@@ -7,42 +7,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	v1 "momoko/api/gen/v1"
 )
 
-type TaskStatus string
-
 const (
-	TaskStatusPending  TaskStatus = "pending"
-	TaskStatusRunning  TaskStatus = "running"
-	TaskStatusSuccess  TaskStatus = "success"
-	TaskStatusFailed   TaskStatus = "failed"
-	TaskStatusCanceled TaskStatus = "canceled"
+	TaskWSPath = "/api/v1/docker/task/ws"
 
 	taskSubscriberBuffer = 4096
 )
-
-type TaskEvent struct {
-	Time     time.Time
-	Status   string
-	Progress string
-	ID       string
-	Message  string
-	Error    string
-}
-
-type Task struct {
-	ID         string
-	Type       string
-	Title      string
-	Status     TaskStatus
-	Progress   string
-	Message    string
-	Error      string
-	ResultPath string
-	StartTime  time.Time
-	EndTime    *time.Time
-	Events     []TaskEvent
-}
 
 type taskRunner struct {
 	mu    sync.RWMutex
@@ -50,10 +25,11 @@ type taskRunner struct {
 }
 
 type taskState struct {
-	task   *Task
+	task   *v1.DockerTaskInfo
 	ctx    context.Context
 	cancel context.CancelFunc
-	subs   map[uint64]chan TaskEvent
+	events []*v1.DockerTaskInfo
+	subs   map[uint64]chan *v1.DockerTaskInfo
 	nextID uint64
 }
 
@@ -63,25 +39,32 @@ func newTaskRunner() *taskRunner {
 	}
 }
 
-func (r *taskRunner) Start(parent context.Context, typ, title string, timeout time.Duration, fn func(context.Context, func(TaskEvent)) (string, error)) *Task {
+func (r *taskRunner) Start(
+	parent context.Context,
+	taskType v1.DockerTaskType,
+	title string,
+	timeout time.Duration,
+	fn func(context.Context, func(*v1.DockerTaskInfo)) (string, error),
+) *v1.DockerTaskInfo {
 	if timeout <= 0 {
 		timeout = 30 * time.Minute
 	}
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), timeout)
 	id := uuid.NewString()
-	task := &Task{
-		ID:        id,
-		Type:      typ,
+	task := &v1.DockerTaskInfo{
+		Id:        id,
+		Type:      taskType,
 		Title:     title,
-		Status:    TaskStatusPending,
-		StartTime: time.Now(),
-		Events:    []TaskEvent{},
+		Status:    v1.DockerTaskStatus_DOCKER_TASK_STATUS_PENDING,
+		StartTime: timestamppb.Now(),
+		WsPath:    TaskWSPath,
 	}
 	state := &taskState{
-		task:   cloneTask(task),
+		task:   cloneTaskInfo(task),
 		ctx:    ctx,
 		cancel: cancel,
-		subs:   make(map[uint64]chan TaskEvent),
+		events: []*v1.DockerTaskInfo{},
+		subs:   make(map[uint64]chan *v1.DockerTaskInfo),
 	}
 
 	r.mu.Lock()
@@ -90,41 +73,41 @@ func (r *taskRunner) Start(parent context.Context, typ, title string, timeout ti
 
 	go func() {
 		defer cancel()
-		r.setStatus(id, TaskStatusRunning, "", "")
-		resultPath, err := fn(ctx, func(event TaskEvent) {
+		r.setStatus(id, v1.DockerTaskStatus_DOCKER_TASK_STATUS_RUNNING, "", "")
+		resultPath, err := fn(ctx, func(event *v1.DockerTaskInfo) {
 			r.addEvent(id, event)
 		})
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
-				r.setStatus(id, TaskStatusCanceled, "", err.Error())
+				r.setStatus(id, v1.DockerTaskStatus_DOCKER_TASK_STATUS_CANCELED, "", err.Error())
 				return
 			}
-			r.setStatus(id, TaskStatusFailed, "", err.Error())
+			r.setStatus(id, v1.DockerTaskStatus_DOCKER_TASK_STATUS_FAILED, "", err.Error())
 			return
 		}
 		r.setResult(id, resultPath)
-		r.setStatus(id, TaskStatusSuccess, "完成", "")
+		r.setStatus(id, v1.DockerTaskStatus_DOCKER_TASK_STATUS_SUCCESS, "完成", "")
 	}()
 
-	return task
+	return cloneTaskInfo(task)
 }
 
-func (r *taskRunner) Get(id string) (*Task, bool) {
+func (r *taskRunner) Get(id string) (*v1.DockerTaskInfo, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	state, ok := r.tasks[id]
 	if !ok {
 		return nil, false
 	}
-	return cloneTask(state.task), true
+	return cloneTaskInfo(state.task), true
 }
 
-func (r *taskRunner) List() []*Task {
+func (r *taskRunner) List() []*v1.DockerTaskInfo {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	tasks := make([]*Task, 0, len(r.tasks))
+	tasks := make([]*v1.DockerTaskInfo, 0, len(r.tasks))
 	for _, state := range r.tasks {
-		tasks = append(tasks, cloneTask(state.task))
+		tasks = append(tasks, cloneTaskInfo(state.task))
 	}
 	return tasks
 }
@@ -140,15 +123,15 @@ func (r *taskRunner) Cancel(id string) bool {
 	return true
 }
 
-func (r *taskRunner) Subscribe(id string) (<-chan TaskEvent, func(), bool) {
+func (r *taskRunner) Subscribe(id string) (<-chan *v1.DockerTaskInfo, func(), bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	state, ok := r.tasks[id]
 	if !ok {
 		return nil, nil, false
 	}
-	events := append([]TaskEvent(nil), state.task.Events...)
-	ch := make(chan TaskEvent, len(events)+taskSubscriberBuffer)
+	events := cloneTaskInfos(state.events)
+	ch := make(chan *v1.DockerTaskInfo, len(events)+taskSubscriberBuffer)
 	for _, event := range events {
 		ch <- event
 	}
@@ -176,9 +159,9 @@ func (r *taskRunner) setResult(id, resultPath string) {
 	state.task.ResultPath = resultPath
 }
 
-func (r *taskRunner) setStatus(id string, status TaskStatus, message, errText string) {
-	now := time.Now()
-	var closeSubs []chan TaskEvent
+func (r *taskRunner) setStatus(id string, status v1.DockerTaskStatus, message, errText string) {
+	now := timestamppb.Now()
+	var closeSubs []chan *v1.DockerTaskInfo
 
 	r.mu.Lock()
 	state, ok := r.tasks[id]
@@ -193,10 +176,10 @@ func (r *taskRunner) setStatus(id string, status TaskStatus, message, errText st
 	if errText != "" {
 		state.task.Error = errText
 	}
-	if status == TaskStatusSuccess || status == TaskStatusFailed || status == TaskStatusCanceled {
-		state.task.EndTime = &now
+	if isTerminalTaskStatus(status) {
+		state.task.EndTime = now
 	}
-	if status == TaskStatusSuccess || status == TaskStatusFailed || status == TaskStatusCanceled {
+	if isTerminalTaskStatus(status) {
 		for _, ch := range state.subs {
 			closeSubs = append(closeSubs, ch)
 		}
@@ -209,9 +192,9 @@ func (r *taskRunner) setStatus(id string, status TaskStatus, message, errText st
 	}
 }
 
-func (r *taskRunner) addEvent(id string, event TaskEvent) {
-	if event.Time.IsZero() {
-		event.Time = time.Now()
+func (r *taskRunner) addEvent(id string, event *v1.DockerTaskInfo) {
+	if event == nil {
+		return
 	}
 
 	r.mu.Lock()
@@ -229,24 +212,40 @@ func (r *taskRunner) addEvent(id string, event TaskEvent) {
 	if event.Error != "" {
 		state.task.Error = event.Error
 	}
-	state.task.Events = append(state.task.Events, event)
-	notifySubscribers(state, event)
+	if event.Status != v1.DockerTaskStatus_DOCKER_TASK_STATUS_UNKNOWN {
+		state.task.Status = event.Status
+	}
+	cloned := cloneTaskInfo(event)
+	state.events = append(state.events, cloned)
+	notifySubscribers(state, cloned)
 }
 
-func notifySubscribers(state *taskState, event TaskEvent) {
+func notifySubscribers(state *taskState, event *v1.DockerTaskInfo) {
 	for _, ch := range state.subs {
 		select {
-		case ch <- event:
+		case ch <- cloneTaskInfo(event):
 		default:
 		}
 	}
 }
 
-func cloneTask(task *Task) *Task {
+func isTerminalTaskStatus(status v1.DockerTaskStatus) bool {
+	return status == v1.DockerTaskStatus_DOCKER_TASK_STATUS_SUCCESS ||
+		status == v1.DockerTaskStatus_DOCKER_TASK_STATUS_FAILED ||
+		status == v1.DockerTaskStatus_DOCKER_TASK_STATUS_CANCELED
+}
+
+func cloneTaskInfo(task *v1.DockerTaskInfo) *v1.DockerTaskInfo {
 	if task == nil {
 		return nil
 	}
-	cloned := *task
-	cloned.Events = append([]TaskEvent(nil), task.Events...)
-	return &cloned
+	return proto.Clone(task).(*v1.DockerTaskInfo)
+}
+
+func cloneTaskInfos(tasks []*v1.DockerTaskInfo) []*v1.DockerTaskInfo {
+	result := make([]*v1.DockerTaskInfo, 0, len(tasks))
+	for _, task := range tasks {
+		result = append(result, cloneTaskInfo(task))
+	}
+	return result
 }

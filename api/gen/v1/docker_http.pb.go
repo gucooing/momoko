@@ -20,9 +20,6 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationDockerManagerConnectDockerNetwork = "/v1.DockerManager/ConnectDockerNetwork"
-const OperationDockerManagerContainerLogs = "/v1.DockerManager/ContainerLogs"
-const OperationDockerManagerContainerStats = "/v1.DockerManager/ContainerStats"
-const OperationDockerManagerCreateContainerExec = "/v1.DockerManager/CreateContainerExec"
 const OperationDockerManagerCreateDockerContainer = "/v1.DockerManager/CreateDockerContainer"
 const OperationDockerManagerCreateDockerNetwork = "/v1.DockerManager/CreateDockerNetwork"
 const OperationDockerManagerCreateDockerVolume = "/v1.DockerManager/CreateDockerVolume"
@@ -35,6 +32,7 @@ const OperationDockerManagerDockerStatus = "/v1.DockerManager/DockerStatus"
 const OperationDockerManagerExportDockerVolume = "/v1.DockerManager/ExportDockerVolume"
 const OperationDockerManagerGetDockerConfig = "/v1.DockerManager/GetDockerConfig"
 const OperationDockerManagerGetDockerContainer = "/v1.DockerManager/GetDockerContainer"
+const OperationDockerManagerGetDockerContainerStats = "/v1.DockerManager/GetDockerContainerStats"
 const OperationDockerManagerGetDockerImage = "/v1.DockerManager/GetDockerImage"
 const OperationDockerManagerGetDockerNetwork = "/v1.DockerManager/GetDockerNetwork"
 const OperationDockerManagerGetDockerVolume = "/v1.DockerManager/GetDockerVolume"
@@ -69,12 +67,6 @@ const OperationDockerManagerUpdateDockerVolume = "/v1.DockerManager/UpdateDocker
 type DockerManagerHTTPServer interface {
 	// ConnectDockerNetwork 连接容器到网络
 	ConnectDockerNetwork(context.Context, *ConnectDockerNetworkRequest) (*ConnectDockerNetworkResponse, error)
-	// ContainerLogs 获取容器日志
-	ContainerLogs(context.Context, *ContainerLogsRequest) (*ContainerLogsResponse, error)
-	// ContainerStats 获取容器资源状态
-	ContainerStats(context.Context, *ContainerStatsRequest) (*ContainerStatsResponse, error)
-	// CreateContainerExec 创建容器执行会话
-	CreateContainerExec(context.Context, *CreateContainerExecRequest) (*CreateContainerExecResponse, error)
 	// CreateDockerContainer 创建容器
 	CreateDockerContainer(context.Context, *CreateDockerContainerRequest) (*CreateDockerContainerResponse, error)
 	// CreateDockerNetwork 创建网络
@@ -99,6 +91,8 @@ type DockerManagerHTTPServer interface {
 	GetDockerConfig(context.Context, *GetDockerConfigRequest) (*GetDockerConfigResponse, error)
 	// GetDockerContainer 获取容器详情
 	GetDockerContainer(context.Context, *GetDockerContainerRequest) (*GetDockerContainerResponse, error)
+	// GetDockerContainerStats 获取容器统计
+	GetDockerContainerStats(context.Context, *GetDockerContainerStatsRequest) (*GetDockerContainerStatsResponse, error)
 	// GetDockerImage 获取镜像详情
 	GetDockerImage(context.Context, *GetDockerImageRequest) (*GetDockerImageResponse, error)
 	// GetDockerNetwork 获取网络详情
@@ -170,6 +164,7 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.GET("/api/v1/docker/tasks", _DockerManager_ListDockerTasks0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/containers", _DockerManager_ListDockerContainers0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/containers/{id}", _DockerManager_GetDockerContainer0_HTTP_Handler(srv))
+	r.GET("/api/v1/docker/containers/{id}/stats", _DockerManager_GetDockerContainerStats0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/containers", _DockerManager_CreateDockerContainer0_HTTP_Handler(srv))
 	r.PUT("/api/v1/docker/containers/{id}", _DockerManager_UpdateDockerContainer0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/containers/{id}/recreate", _DockerManager_RecreateDockerContainer0_HTTP_Handler(srv))
@@ -181,9 +176,6 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.POST("/api/v1/docker/containers/{id}/unpause", _DockerManager_UnpauseDockerContainer0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/containers/{id}/rename", _DockerManager_RenameDockerContainer0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/docker/containers/{id}", _DockerManager_DeleteDockerContainer0_HTTP_Handler(srv))
-	r.GET("/api/v1/docker/containers/{id}/logs", _DockerManager_ContainerLogs0_HTTP_Handler(srv))
-	r.GET("/api/v1/docker/containers/{id}/stats", _DockerManager_ContainerStats0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/containers/{container_id}/exec", _DockerManager_CreateContainerExec0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/images", _DockerManager_ListDockerImages0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/images/{id}", _DockerManager_GetDockerImage0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/images/pull", _DockerManager_PullDockerImage0_HTTP_Handler(srv))
@@ -349,6 +341,28 @@ func _DockerManager_GetDockerContainer0_HTTP_Handler(srv DockerManagerHTTPServer
 			return err
 		}
 		reply := out.(*GetDockerContainerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _DockerManager_GetDockerContainerStats0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDockerContainerStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDockerManagerGetDockerContainerStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDockerContainerStats(ctx, req.(*GetDockerContainerStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDockerContainerStatsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -618,75 +632,6 @@ func _DockerManager_DeleteDockerContainer0_HTTP_Handler(srv DockerManagerHTTPSer
 			return err
 		}
 		reply := out.(*DeleteDockerContainerResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_ContainerLogs0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ContainerLogsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerContainerLogs)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ContainerLogs(ctx, req.(*ContainerLogsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ContainerLogsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_ContainerStats0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ContainerStatsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerContainerStats)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ContainerStats(ctx, req.(*ContainerStatsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ContainerStatsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_CreateContainerExec0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in CreateContainerExecRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerCreateContainerExec)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateContainerExec(ctx, req.(*CreateContainerExecRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*CreateContainerExecResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1265,12 +1210,6 @@ func _DockerManager_RestoreDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServe
 type DockerManagerHTTPClient interface {
 	// ConnectDockerNetwork 连接容器到网络
 	ConnectDockerNetwork(ctx context.Context, req *ConnectDockerNetworkRequest, opts ...http.CallOption) (rsp *ConnectDockerNetworkResponse, err error)
-	// ContainerLogs 获取容器日志
-	ContainerLogs(ctx context.Context, req *ContainerLogsRequest, opts ...http.CallOption) (rsp *ContainerLogsResponse, err error)
-	// ContainerStats 获取容器资源状态
-	ContainerStats(ctx context.Context, req *ContainerStatsRequest, opts ...http.CallOption) (rsp *ContainerStatsResponse, err error)
-	// CreateContainerExec 创建容器执行会话
-	CreateContainerExec(ctx context.Context, req *CreateContainerExecRequest, opts ...http.CallOption) (rsp *CreateContainerExecResponse, err error)
 	// CreateDockerContainer 创建容器
 	CreateDockerContainer(ctx context.Context, req *CreateDockerContainerRequest, opts ...http.CallOption) (rsp *CreateDockerContainerResponse, err error)
 	// CreateDockerNetwork 创建网络
@@ -1295,6 +1234,8 @@ type DockerManagerHTTPClient interface {
 	GetDockerConfig(ctx context.Context, req *GetDockerConfigRequest, opts ...http.CallOption) (rsp *GetDockerConfigResponse, err error)
 	// GetDockerContainer 获取容器详情
 	GetDockerContainer(ctx context.Context, req *GetDockerContainerRequest, opts ...http.CallOption) (rsp *GetDockerContainerResponse, err error)
+	// GetDockerContainerStats 获取容器统计
+	GetDockerContainerStats(ctx context.Context, req *GetDockerContainerStatsRequest, opts ...http.CallOption) (rsp *GetDockerContainerStatsResponse, err error)
 	// GetDockerImage 获取镜像详情
 	GetDockerImage(ctx context.Context, req *GetDockerImageRequest, opts ...http.CallOption) (rsp *GetDockerImageResponse, err error)
 	// GetDockerNetwork 获取网络详情
@@ -1371,48 +1312,6 @@ func (c *DockerManagerHTTPClientImpl) ConnectDockerNetwork(ctx context.Context, 
 	pattern := "/api/v1/docker/networks/{network_id}/connect"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDockerManagerConnectDockerNetwork))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ContainerLogs 获取容器日志
-func (c *DockerManagerHTTPClientImpl) ContainerLogs(ctx context.Context, in *ContainerLogsRequest, opts ...http.CallOption) (*ContainerLogsResponse, error) {
-	var out ContainerLogsResponse
-	pattern := "/api/v1/docker/containers/{id}/logs"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDockerManagerContainerLogs))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ContainerStats 获取容器资源状态
-func (c *DockerManagerHTTPClientImpl) ContainerStats(ctx context.Context, in *ContainerStatsRequest, opts ...http.CallOption) (*ContainerStatsResponse, error) {
-	var out ContainerStatsResponse
-	pattern := "/api/v1/docker/containers/{id}/stats"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDockerManagerContainerStats))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// CreateContainerExec 创建容器执行会话
-func (c *DockerManagerHTTPClientImpl) CreateContainerExec(ctx context.Context, in *CreateContainerExecRequest, opts ...http.CallOption) (*CreateContainerExecResponse, error) {
-	var out CreateContainerExecResponse
-	pattern := "/api/v1/docker/containers/{container_id}/exec"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerCreateContainerExec))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1581,6 +1480,20 @@ func (c *DockerManagerHTTPClientImpl) GetDockerContainer(ctx context.Context, in
 	pattern := "/api/v1/docker/containers/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDockerManagerGetDockerContainer))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetDockerContainerStats 获取容器统计
+func (c *DockerManagerHTTPClientImpl) GetDockerContainerStats(ctx context.Context, in *GetDockerContainerStatsRequest, opts ...http.CallOption) (*GetDockerContainerStatsResponse, error) {
+	var out GetDockerContainerStatsResponse
+	pattern := "/api/v1/docker/containers/{id}/stats"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDockerManagerGetDockerContainerStats))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

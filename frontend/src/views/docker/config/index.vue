@@ -83,10 +83,6 @@
                 <el-input v-model="configForm.defaultPlatform" :disabled="!canEdit" placeholder="linux/amd64" style="width: 200px" />
               </div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">默认日志行数</span></div>
-                <el-input-number v-model="configForm.defaultLogTail" :disabled="!canEdit" :min="10" :max="10000" style="width: 160px" />
-              </div>
-              <div class="setting-item">
                 <div class="setting-item-info"><span class="setting-item-label">任务超时（秒）</span></div>
                 <el-input-number v-model="configForm.taskTimeoutSeconds" :disabled="!canEdit" :min="60" :max="86400" style="width: 160px" />
               </div>
@@ -145,7 +141,7 @@ const defaultConfig = (): DockerConfigInfo => ({
   enabled: false, host: 'unix:///var/run/docker.sock',
   tlsEnabled: false, tlsCaPath: '', tlsCertPath: '', tlsKeyPath: '',
   apiVersion: '', requestTimeoutSeconds: 30,
-  defaultPlatform: 'linux/amd64', defaultLogTail: 500, taskTimeoutSeconds: 3600,
+  defaultPlatform: 'linux/amd64', taskTimeoutSeconds: 3600,
   registryAuths: [],
 })
 

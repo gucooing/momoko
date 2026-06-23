@@ -46,28 +46,74 @@
           <template #column-names="{ row }: { row: DockerContainerSummary }">
             <span>{{ displayNames(row) }}</span>
           </template>
-          <template #column-ports="{ row }: { row: DockerContainerSummary }">
-            <template v-if="row.ports?.length">
-              <span v-for="p in row.ports.slice(0, 3)" :key="`${p.privatePort}-${p.publicPort}`" class="port-tag">
-                {{ p.publicPort ? `${p.publicPort}:${p.privatePort}` : p.privatePort }}/{{ p.type }}
+          <template #column-runtime="{ row }: { row: DockerContainerSummary }">
+            <span>{{ formatContainerRuntime(row) }}</span>
+          </template>
+          <template #column-network="{ row }: { row: DockerContainerSummary }">
+            <template v-if="containerNetworkItems(row).length">
+              <span
+                v-for="item in containerNetworkItems(row).slice(0, 2)"
+                :key="item"
+                class="network-tag"
+              >
+                {{ item }}
               </span>
-              <span v-if="row.ports.length > 3" class="text-muted">+{{ row.ports.length - 3 }}</span>
+              <span v-if="containerNetworkItems(row).length > 2" class="text-muted">
+                +{{ containerNetworkItems(row).length - 2 }}
+              </span>
             </template>
             <span v-else class="text-muted">-</span>
           </template>
           <template #column-operation="{ row }: { row: DockerContainerSummary }">
-            <template v-if="canManage">
-              <el-button v-if="row.state === 'running'" type="primary" link size="small" :loading="isActionLoading(row, 'pause')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'pause')">暂停</el-button>
-              <el-button v-if="row.state === 'running'" type="primary" link size="small" :loading="isActionLoading(row, 'stop')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'stop')">停止</el-button>
-              <el-button v-if="row.state === 'running'" type="primary" link size="small" :loading="isActionLoading(row, 'restart')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'restart')">重启</el-button>
-              <el-button v-if="row.state === 'paused'" type="primary" link size="small" :loading="isActionLoading(row, 'unpause')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'unpause')">恢复</el-button>
-              <el-button v-if="row.state === 'exited' || row.state === 'created'" type="primary" link size="small" :loading="isActionLoading(row, 'start')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'start')">启动</el-button>
-              <el-button v-if="row.state === 'running'" type="primary" link size="small" :disabled="isRowActionLoading(row)" @click="openLogs(row)">日志</el-button>
-              <el-button v-if="row.state === 'running'" type="primary" link size="small" :disabled="isRowActionLoading(row)" @click="openStats(row)">统计</el-button>
-              <el-button type="primary" link size="small" :disabled="isRowActionLoading(row)" @click="openEdit(row)">编辑</el-button>
-            </template>
-            <el-button type="primary" link size="small" :disabled="isRowActionLoading(row)" @click="openDetail(row)">详情</el-button>
-            <el-button v-if="canManage" type="danger" link size="small" :loading="isActionLoading(row, 'delete')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'delete')">删除</el-button>
+            <div
+              :ref="el => setActionCellRef(row.id, el)"
+              class="container-actions"
+              :data-row-id="row.id"
+            >
+              <el-button
+                v-for="item in desktopInlineActions(row)"
+                :key="item.key"
+                :type="item.danger ? 'danger' : 'primary'"
+                link
+                size="small"
+                :loading="item.loading"
+                :disabled="item.disabled"
+                @click="handleContainerActionCommand(row, item.key)"
+              >
+                {{ item.label }}
+              </el-button>
+              <el-dropdown
+                v-if="desktopMoreActions(row).length"
+                trigger="click"
+                :disabled="isRowActionLoading(row)"
+                @command="(command: string) => handleContainerActionCommand(row, command)"
+              >
+                <el-button
+                  class="container-actions__more"
+                  type="primary"
+                  link
+                  size="small"
+                  :disabled="isRowActionLoading(row)"
+                  title="更多"
+                >
+                  ...
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-for="item in desktopMoreActions(row)"
+                      :key="item.key"
+                      :command="item.key"
+                      :disabled="item.disabled"
+                      :divided="item.divided"
+                      :class="{ 'container-actions__danger': item.danger }"
+                    >
+                      {{ item.label }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </VxeGrid>
 
@@ -79,23 +125,36 @@
                 <BaseTag :text="stateLabel(row.state)" :type="stateTagType(row.state)" />
               </div>
               <div class="mobile-card-meta"><span>镜像：{{ row.image }}</span></div>
-              <div class="mobile-card-meta"><span>状态：{{ row.status }}</span></div>
+              <div class="mobile-card-meta"><span>运行时间：{{ formatContainerRuntime(row) }}</span></div>
+              <div class="mobile-card-meta"><span>网络：{{ formatNetworkText(row) }}</span></div>
             </div>
             <div class="mobile-card-actions">
-              <el-button v-if="canManage && row.state === 'running'" size="small" plain type="primary" :loading="isActionLoading(row, 'stop')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'stop')">停止</el-button>
-              <el-button v-if="canManage && (row.state === 'exited' || row.state === 'created')" size="small" plain type="primary" :loading="isActionLoading(row, 'start')" :disabled="isRowActionLoading(row)" @click="handleAction(row, 'start')">启动</el-button>
-              <el-button size="small" plain type="primary" :disabled="isRowActionLoading(row)" @click="openDetail(row)">详情</el-button>
-              <el-dropdown trigger="click" :disabled="isRowActionLoading(row)" @command="(command: string) => handleMobileCommand(row, command)">
+              <el-button
+                v-for="item in mobileInlineActions(row)"
+                :key="item.key"
+                size="small"
+                plain
+                :type="item.danger ? 'danger' : 'primary'"
+                :loading="item.loading"
+                :disabled="item.disabled"
+                @click="handleContainerActionCommand(row, item.key)"
+              >
+                {{ item.label }}
+              </el-button>
+              <el-dropdown v-if="mobileMoreActions(row).length" trigger="click" :disabled="isRowActionLoading(row)" @command="(command: string) => handleContainerActionCommand(row, command)">
                 <el-button size="small" plain :loading="isRowActionLoading(row)">更多</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="canManage && row.state === 'running'" command="restart" :disabled="isRowActionLoading(row)">重启</el-dropdown-item>
-                    <el-dropdown-item v-if="canManage && row.state === 'running'" command="pause" :disabled="isRowActionLoading(row)">暂停</el-dropdown-item>
-                    <el-dropdown-item v-if="canManage && row.state === 'paused'" command="unpause" :disabled="isRowActionLoading(row)">恢复</el-dropdown-item>
-                    <el-dropdown-item v-if="row.state === 'running'" command="logs" :disabled="isRowActionLoading(row)">日志</el-dropdown-item>
-                    <el-dropdown-item v-if="row.state === 'running'" command="stats" :disabled="isRowActionLoading(row)">统计</el-dropdown-item>
-                    <el-dropdown-item v-if="canManage" command="edit" :disabled="isRowActionLoading(row)">编辑</el-dropdown-item>
-                    <el-dropdown-item v-if="canManage" command="delete" divided :disabled="isRowActionLoading(row)">删除</el-dropdown-item>
+                    <el-dropdown-item
+                      v-for="item in mobileMoreActions(row)"
+                      :key="item.key"
+                      :command="item.key"
+                      :disabled="item.disabled"
+                      :divided="item.divided"
+                      :class="{ 'container-actions__danger': item.danger }"
+                    >
+                      {{ item.label }}
+                    </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -276,41 +335,13 @@
         <el-button :icon="menuStore.iconComponents['HOutline:DocumentTextIcon']" :disabled="!detail" @click="openDetailLogs">
           日志
         </el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ChartBarIcon']" :disabled="!detail" @click="openDetailStats">
+          统计
+        </el-button>
+        <el-button v-if="canManage" :icon="menuStore.iconComponents['HOutline:CommandLineIcon']" :disabled="!detail" @click="openDetailExec">
+          终端
+        </el-button>
         <el-button @click="detailVisible = false">关闭</el-button>
-      </template>
-    </BaseDialog>
-
-    <!-- Logs Dialog -->
-    <BaseDialog v-model="logsVisible" title="容器日志" width="900">
-      <div class="logs-options">
-        <el-input-number v-model="logsTail" :min="10" :max="10000" size="small" style="width: 120px" />
-        <el-checkbox v-model="logsTimestamps" size="small">时间戳</el-checkbox>
-        <el-button size="small" :loading="logsLoading" @click="loadLogs">刷新</el-button>
-      </div>
-      <pre class="logs-content">{{ logsText || '暂无日志' }}</pre>
-      <template #footer>
-        <el-button @click="logsVisible = false">关闭</el-button>
-      </template>
-    </BaseDialog>
-
-    <!-- Stats Dialog -->
-    <BaseDialog v-model="statsVisible" title="容器统计" width="760">
-      <div v-loading="statsLoading">
-        <el-descriptions v-if="statsInfo" :column="2" border size="small">
-          <el-descriptions-item label="CPU 使用率">{{ statsInfo.cpuPercent }}</el-descriptions-item>
-          <el-descriptions-item label="内存使用率">{{ statsInfo.memoryPercent }}</el-descriptions-item>
-          <el-descriptions-item label="内存使用">{{ statsInfo.memoryUsage }}</el-descriptions-item>
-          <el-descriptions-item label="内存限制">{{ statsInfo.memoryLimit }}</el-descriptions-item>
-          <el-descriptions-item label="网络接收">{{ statsInfo.networkRx }}</el-descriptions-item>
-          <el-descriptions-item label="网络发送">{{ statsInfo.networkTx }}</el-descriptions-item>
-          <el-descriptions-item label="块读取">{{ statsInfo.blockRead }}</el-descriptions-item>
-          <el-descriptions-item label="块写入">{{ statsInfo.blockWrite }}</el-descriptions-item>
-        </el-descriptions>
-        <pre class="stats-json">{{ statsText || '暂无统计数据' }}</pre>
-      </div>
-      <template #footer>
-        <el-button :loading="statsLoading" @click="loadStats">刷新</el-button>
-        <el-button @click="statsVisible = false">关闭</el-button>
       </template>
     </BaseDialog>
 
@@ -463,19 +494,39 @@
     </BaseDialog>
 
     <DockerTaskDialogs v-model="taskDialogsVisible" :active-task="activeTask" @finished="handleTaskFinished" />
+    <DockerContainerLogsDialog
+      v-model="logsVisible"
+      :container-id="logsContainerId"
+      :container-name="logsContainerName"
+      :ws-path="logsWsPath"
+    />
+    <DockerContainerStatsDialog
+      v-model="statsVisible"
+      :container-id="statsContainerId"
+      :container-name="statsContainerName"
+    />
+    <DockerContainerExecDialog
+      v-model="execVisible"
+      :container-id="execContainerId"
+      :container-name="execContainerName"
+      :ws-path="execWsPath"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import {
-  containerLogs, createDockerContainer, deleteDockerContainer,
-  getDockerContainer, killDockerContainer, listDockerContainers, containerStats,
+  createDockerContainer, deleteDockerContainer,
+  getDockerContainer, killDockerContainer, listDockerContainers,
   listDockerImages, listDockerNetworks,
   pauseDockerContainer, restartDockerContainer, startDockerContainer,
   stopDockerContainer, unpauseDockerContainer, updateDockerContainer,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
+import DockerContainerLogsDialog from '@/views/docker/components/DockerContainerLogsDialog.vue'
+import DockerContainerStatsDialog from '@/views/docker/components/DockerContainerStatsDialog.vue'
+import DockerContainerExecDialog from '@/views/docker/components/DockerContainerExecDialog.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -484,6 +535,7 @@ import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
 import type { DockerContainerInfo, DockerContainerSummary, DockerPortBinding, DockerMount, DockerTaskInfo } from '@/types/v1/docker'
+import type { ComponentPublicInstance } from 'vue'
 import type { VxeGridProps } from 'vxe-table'
 
 defineOptions({ name: 'DockerContainerView' })
@@ -498,23 +550,75 @@ const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
 const STATE_MAP: Record<string, string> = { running: '运行中', exited: '已停止', paused: '暂停', restarting: '重启中', created: '已创建', removing: '删除中', dead: '已死亡' }
 const STATE_TAG: Record<string, 'success' | 'info' | 'warning' | 'danger'> = { running: 'success', exited: 'info', paused: 'warning', restarting: 'warning', created: 'info', dead: 'danger' }
+const OPERATION_COLUMN_WIDTH = 210
+const OPERATION_COLUMN_READONLY_WIDTH = 96
 
 const stateLabel = (s: string) => STATE_MAP[s] || s || '-'
 const stateTagType = (s: string) => STATE_TAG[s] || 'info'
 const displayNames = (row: DockerContainerSummary) => (row.names || []).map(n => n.replace(/^\//, '')).join(', ') || '-'
+const DURATION_UNIT_MAP: Record<string, string> = {
+  second: '秒',
+  seconds: '秒',
+  minute: '分钟',
+  minutes: '分钟',
+  hour: '小时',
+  hours: '小时',
+  day: '天',
+  days: '天',
+  week: '周',
+  weeks: '周',
+  month: '个月',
+  months: '个月',
+  year: '年',
+  years: '年',
+}
+
+const formatDockerDuration = (value: string) => {
+  const text = value.trim()
+  const lower = text.toLowerCase()
+  if (lower === 'less than a second') return '<1 秒'
+  if (lower === 'about a minute') return '约 1 分钟'
+  if (lower === 'about an hour') return '约 1 小时'
+  const parts: string[] = []
+  for (const match of text.matchAll(/(\d+)\s+([a-z]+)/gi)) {
+    const amount = match[1]
+    const unit = match[2]
+    if (!amount || !unit) continue
+    parts.push(`${amount} ${DURATION_UNIT_MAP[unit.toLowerCase()] || unit}`)
+  }
+  return parts.length ? parts.join(' ') : text
+}
+
+const formatContainerRuntime = (row: DockerContainerSummary) => {
+  if (row.state !== 'running') return '-'
+  const match = (row.status || '').match(/^Up\s+(.+?)(?:\s+\(.+\))?$/i)
+  return match?.[1] ? formatDockerDuration(match[1]) : '-'
+}
+
+const containerNetworkItems = (row: DockerContainerSummary) => {
+  if (row.networkMode === 'host' || row.networks?.includes('host')) return ['host']
+  const endpoints = row.networkEndpoints || []
+  if (endpoints.length) {
+    return endpoints
+      .map(endpoint => endpoint.ipAddress ? `${endpoint.ipAddress} · ${endpoint.name}` : endpoint.name)
+      .filter(Boolean)
+  }
+  return (row.networks || []).filter(Boolean)
+}
+
+const formatNetworkText = (row: DockerContainerSummary) => containerNetworkItems(row).join('，') || '-'
 
 const gridConfig = computed<VxeGridProps>(() => ({
   border: true, showOverflow: true, rowConfig: { isHover: true },
   data: list.value,
   columns: [
     { type: 'seq', title: '#', width: 50, fixed: 'left' },
-    { field: 'id', title: 'ID', width: 140, showOverflow: true },
     { field: 'names', title: '名称', minWidth: 160, slots: { default: 'column-names' } },
     { field: 'image', title: '镜像', minWidth: 180, showOverflow: true },
     { field: 'state', title: '状态', width: 90, slots: { default: 'column-state' } },
-    { field: 'status', title: '描述', minWidth: 120, showOverflow: true },
-    { field: 'ports', title: '端口', width: 160, slots: { default: 'column-ports' } },
-    { title: '操作', width: canManage ? 420 : 140, fixed: 'right', slots: { default: 'column-operation' } },
+    { field: 'status', title: '运行时间', width: 120, slots: { default: 'column-runtime' } },
+    { field: 'networkEndpoints', title: '网络', minWidth: 220, slots: { default: 'column-network' } },
+    { title: '操作', width: canManage.value ? OPERATION_COLUMN_WIDTH : OPERATION_COLUMN_READONLY_WIDTH, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -628,7 +732,24 @@ const submitCreate = async () => {
 }
 
 // -- actions --
-const actionMap: Record<string, { label: string; fn: (id: string) => Promise<unknown>; confirm: boolean }> = {
+type ContainerLifecycleAction = 'start' | 'stop' | 'restart' | 'kill' | 'pause' | 'unpause' | 'delete'
+type ContainerCommand = ContainerLifecycleAction | 'logs' | 'stats' | 'exec' | 'edit' | 'detail'
+type ContainerActionItem = {
+  key: ContainerCommand
+  label: string
+  loading?: boolean
+  disabled?: boolean
+  danger?: boolean
+  divided?: boolean
+}
+
+const DESKTOP_INLINE_ACTION_KEYS = new Set<ContainerCommand>(['pause', 'stop', 'restart', 'unpause', 'start'])
+const MOBILE_INLINE_ACTION_KEYS = new Set<ContainerCommand>(['stop', 'start', 'detail'])
+const ACTION_BUTTON_WIDTH = 42
+const ACTION_MORE_WIDTH = 30
+const ACTION_MIN_INLINE_WIDTH = 92
+
+const actionMap: Record<ContainerLifecycleAction, { label: string; fn: (id: string) => Promise<unknown>; confirm: boolean }> = {
   start: { label: '启动', fn: (id: string) => startDockerContainer({ id }), confirm: false },
   stop: { label: '停止', fn: (id: string) => stopDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
   restart: { label: '重启', fn: (id: string) => restartDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
@@ -640,11 +761,98 @@ const actionMap: Record<string, { label: string; fn: (id: string) => Promise<unk
 
 const actionLoading = reactive<Record<string, string>>({})
 const isRowActionLoading = (row: DockerContainerSummary) => !!actionLoading[row.id]
-const isActionLoading = (row: DockerContainerSummary, action: string) => actionLoading[row.id] === action
+const isActionLoading = (row: DockerContainerSummary, action: ContainerLifecycleAction) => actionLoading[row.id] === action
 
-const handleAction = async (row: DockerContainerSummary, action: string) => {
+const actionCellWidths = reactive<Record<string, number>>({})
+const actionCellElements = new Map<string, HTMLElement>()
+let actionResizeObserver: ResizeObserver | null = null
+
+const ensureActionResizeObserver = () => {
+  if (actionResizeObserver || typeof ResizeObserver === 'undefined') return
+  actionResizeObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      const id = (entry.target as HTMLElement).dataset.rowId
+      if (id) actionCellWidths[id] = entry.contentRect.width
+    })
+  })
+}
+
+const setActionCellRef = (id: string, el: Element | ComponentPublicInstance | null) => {
+  ensureActionResizeObserver()
+  const element = el instanceof HTMLElement ? el : null
+  const oldElement = actionCellElements.get(id)
+  if (oldElement && oldElement !== element) actionResizeObserver?.unobserve(oldElement)
+  if (!element) {
+    actionCellElements.delete(id)
+    delete actionCellWidths[id]
+    return
+  }
+  actionCellElements.set(id, element)
+  actionCellWidths[id] = element.clientWidth
+  actionResizeObserver?.observe(element)
+}
+
+const containerActions = (row: DockerContainerSummary): ContainerActionItem[] => {
+  const disabled = isRowActionLoading(row)
+  if (!canManage.value) return [{ key: 'detail', label: '详情', disabled }]
+
+  const actions: ContainerActionItem[] = []
+  if (row.state === 'running') {
+    actions.push(
+      { key: 'pause', label: '暂停', loading: isActionLoading(row, 'pause'), disabled },
+      { key: 'stop', label: '停止', loading: isActionLoading(row, 'stop'), disabled },
+      { key: 'restart', label: '重启', loading: isActionLoading(row, 'restart'), disabled },
+      { key: 'logs', label: '日志', disabled },
+      { key: 'stats', label: '统计', disabled },
+      { key: 'exec', label: '终端', disabled },
+    )
+  } else if (row.state === 'paused') {
+    actions.push({ key: 'unpause', label: '恢复', loading: isActionLoading(row, 'unpause'), disabled })
+  } else if (row.state === 'exited' || row.state === 'created') {
+    actions.push({ key: 'start', label: '启动', loading: isActionLoading(row, 'start'), disabled })
+  }
+
+  actions.push(
+    { key: 'edit', label: '编辑', disabled },
+    { key: 'detail', label: '详情', disabled },
+    { key: 'delete', label: '删除', loading: isActionLoading(row, 'delete'), disabled, danger: true, divided: true },
+  )
+  return actions
+}
+
+const desktopInlineLimit = (row: DockerContainerSummary, preferredCount: number, hasMore: boolean) => {
+  if (!canManage.value) return preferredCount
+  const width = actionCellWidths[row.id] || OPERATION_COLUMN_WIDTH
+  if (width < ACTION_MIN_INLINE_WIDTH) return 0
+  const reservedWidth = hasMore ? ACTION_MORE_WIDTH : 0
+  const count = Math.floor((width - reservedWidth) / ACTION_BUTTON_WIDTH)
+  return Math.max(1, Math.min(preferredCount, count))
+}
+
+const desktopInlineActions = (row: DockerContainerSummary) => {
+  const actions = containerActions(row)
+  if (!canManage.value) return actions
+  const preferred = actions.filter(item => DESKTOP_INLINE_ACTION_KEYS.has(item.key))
+  const limit = desktopInlineLimit(row, preferred.length, actions.length > preferred.length)
+  return preferred.slice(0, limit)
+}
+
+const desktopMoreActions = (row: DockerContainerSummary) => {
+  const inlineKeys = new Set(desktopInlineActions(row).map(item => item.key))
+  return containerActions(row).filter(item => !inlineKeys.has(item.key))
+}
+
+const mobileInlineActions = (row: DockerContainerSummary) => {
+  return containerActions(row).filter(item => MOBILE_INLINE_ACTION_KEYS.has(item.key))
+}
+
+const mobileMoreActions = (row: DockerContainerSummary) => {
+  const inlineKeys = new Set(mobileInlineActions(row).map(item => item.key))
+  return containerActions(row).filter(item => !inlineKeys.has(item.key))
+}
+
+const handleAction = async (row: DockerContainerSummary, action: ContainerLifecycleAction) => {
   const def = actionMap[action]
-  if (!def) return
   if (isRowActionLoading(row)) return
   const name = displayNames(row)
   if (def.confirm) {
@@ -660,21 +868,29 @@ const handleAction = async (row: DockerContainerSummary, action: string) => {
   finally { delete actionLoading[row.id] }
 }
 
-const handleMobileCommand = (row: DockerContainerSummary, command: string) => {
-  if (['restart', 'pause', 'unpause', 'delete'].includes(command)) {
-    void handleAction(row, command)
+const handleContainerActionCommand = (row: DockerContainerSummary, command: string) => {
+  if (command in actionMap) {
+    void handleAction(row, command as ContainerLifecycleAction)
     return
   }
   if (command === 'logs') {
-    openLogs(row)
+    void openLogs(row)
     return
   }
   if (command === 'stats') {
-    openStats(row)
+    void openStats(row)
+    return
+  }
+  if (command === 'exec') {
+    void openExec(row)
     return
   }
   if (command === 'edit') {
     void openEdit(row)
+    return
+  }
+  if (command === 'detail') {
+    void openDetail(row)
   }
 }
 
@@ -682,19 +898,6 @@ const handleMobileCommand = (row: DockerContainerSummary, command: string) => {
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detail = ref<DockerContainerInfo | null>(null)
-
-const getDetailRecord = (field: 'hostConfig' | 'network' | 'config') => {
-  const value = detail.value?.[field]
-  return (value && typeof value === 'object' ? value : {}) as Record<string, unknown>
-}
-
-const getNumberField = (source: Record<string, unknown>, ...keys: string[]) => {
-  for (const key of keys) {
-    const value = Number(source[key] || 0)
-    if (value) return value
-  }
-  return 0
-}
 
 const shortId = (id: string) => id ? id.slice(0, 12) : '-'
 const formatDateTime = (value?: string) => {
@@ -705,32 +908,41 @@ const formatDateTime = (value?: string) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+const formatBytes = (bytes?: number | string) => {
+  const n = Number(bytes)
+  if (!n) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let i = 0; let v = n
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++ }
+  return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
+}
+
 const detailCommand = computed(() => {
   const item = detail.value
   if (!item) return '-'
   return [item.path, ...(item.args || [])].filter(Boolean).join(' ') || '-'
 })
 
-const detailHostConfig = computed(() => getDetailRecord('hostConfig'))
-const detailNetwork = computed(() => getDetailRecord('network'))
-const detailConfig = computed(() => getDetailRecord('config'))
+const detailHostConfig = computed(() => detail.value?.hostConfig)
+const detailNetwork = computed(() => detail.value?.network)
+const detailConfig = computed(() => detail.value?.config)
 const detailImageName = computed(() => {
-  const image = String(detailConfig.value.Image || detail.value?.image || '')
+  const image = detailConfig.value?.image || detail.value?.image || ''
   return image || '-'
 })
-const detailRestartPolicy = computed(() => String(detailHostConfig.value.RestartPolicy || '-'))
-const detailNetworkMode = computed(() => String(detailHostConfig.value.NetworkMode || '-'))
-const detailAutoRemove = computed(() => detailHostConfig.value.AutoRemove ? '是' : '否')
-const detailPrivileged = computed(() => detailHostConfig.value.Privileged ? '是' : '否')
+const detailRestartPolicy = computed(() => detailHostConfig.value?.restartPolicy || '-')
+const detailNetworkMode = computed(() => detailHostConfig.value?.networkMode || '-')
+const detailAutoRemove = computed(() => detailHostConfig.value?.autoRemove ? '是' : '否')
+const detailPrivileged = computed(() => detailHostConfig.value?.privileged ? '是' : '否')
 const detailMemoryLimit = computed(() => {
-  const memory = getNumberField(detailHostConfig.value, 'Memory')
+  const memory = detailHostConfig.value?.memory || 0
   return memory ? formatBytes(memory) : '未限制'
 })
 const detailCpuLimit = computed(() => {
-  const nanoCpus = getNumberField(detailHostConfig.value, 'NanoCPUs', 'NanoCpus')
+  const nanoCpus = detailHostConfig.value?.nanoCpus || 0
   if (nanoCpus) return `${(nanoCpus / 1e9).toFixed(2)} 核`
-  const cpuQuota = getNumberField(detailHostConfig.value, 'CPUQuota', 'CpuQuota')
-  const cpuPeriod = getNumberField(detailHostConfig.value, 'CPUPeriod', 'CpuPeriod')
+  const cpuQuota = detailHostConfig.value?.cpuQuota || 0
+  const cpuPeriod = detailHostConfig.value?.cpuPeriod || 0
   if (cpuQuota && cpuPeriod) return `${(cpuQuota / cpuPeriod).toFixed(2)} 核`
   return '未限制'
 })
@@ -743,24 +955,21 @@ type DetailEndpoint = {
 }
 
 const detailNetworks = computed<DetailEndpoint[]>(() => {
-  const networks = detailNetwork.value.Networks
-  if (!networks || typeof networks !== 'object') return []
-  return Object.entries(networks as Record<string, Record<string, unknown>>).map(([name, item]) => ({
+  const networks = detailNetwork.value?.networks || {}
+  return Object.entries(networks).map(([name, item]) => ({
     name,
-    ipAddress: String(item.IPAddress || item.ipAddress || ''),
-    gateway: String(item.Gateway || item.gateway || ''),
-    macAddress: String(item.MacAddress || item.macAddress || ''),
+    ipAddress: item?.ipAddress || '',
+    gateway: item?.gateway || '',
+    macAddress: item?.macAddress || '',
   }))
 })
 
 const detailPortTags = computed(() => {
-  const bindings = detailHostConfig.value.PortBindings
-  if (!Array.isArray(bindings)) return []
-  return bindings.map((item) => {
-    const binding = item as Record<string, unknown>
-    const containerPort = String(binding.ContainerPort || binding.containerPort || '')
-    const hostIp = String(binding.HostIP || binding.HostIp || binding.hostIp || '')
-    const hostPort = String(binding.HostPort || binding.hostPort || '')
+  const bindings = detailHostConfig.value?.portBindings || []
+  return bindings.map((binding) => {
+    const containerPort = binding.containerPort || ''
+    const hostIp = binding.hostIp || ''
+    const hostPort = binding.hostPort || ''
     return hostPort ? `${hostIp ? `${hostIp}:` : ''}${hostPort}->${containerPort}` : containerPort
   }).filter(Boolean)
 })
@@ -771,9 +980,33 @@ const detailPortText = computed(() => {
 
 const openDetailLogs = () => {
   if (!detail.value) return
+  if (!detail.value.logsWsPath) {
+    ElMessage.warning('缺少日志 WS 路径')
+    return
+  }
   logsContainerId.value = detail.value.id
+  logsContainerName.value = detail.value.name || detail.value.id
+  logsWsPath.value = detail.value.logsWsPath
   logsVisible.value = true
-  nextTick(() => loadLogs())
+}
+
+const openDetailStats = () => {
+  if (!detail.value) return
+  statsContainerId.value = detail.value.id
+  statsContainerName.value = detail.value.name || detail.value.id
+  statsVisible.value = true
+}
+
+const openDetailExec = () => {
+  if (!detail.value) return
+  if (!detail.value.execWsPath) {
+    ElMessage.warning('缺少 Exec WS 路径')
+    return
+  }
+  execContainerId.value = detail.value.id
+  execContainerName.value = detail.value.name || detail.value.id
+  execWsPath.value = detail.value.execWsPath
+  execVisible.value = true
 }
 
 const openDetail = async (row: DockerContainerSummary) => {
@@ -787,121 +1020,55 @@ const openDetail = async (row: DockerContainerSummary) => {
 
 // -- logs --
 const logsVisible = ref(false)
-const logsLoading = ref(false)
-const logsText = ref('')
-const logsTail = ref(200)
-const logsTimestamps = ref(true)
 const logsContainerId = ref('')
-const openLogs = (row: DockerContainerSummary) => {
-  logsContainerId.value = row.id; logsVisible.value = true
-  nextTick(() => loadLogs())
-}
-const loadLogs = async () => {
-  logsLoading.value = true
+const logsContainerName = ref('')
+const logsWsPath = ref('')
+const openLogs = async (row: DockerContainerSummary) => {
   try {
-    const { data } = await containerLogs({
-      id: logsContainerId.value, tail: String(logsTail.value),
-      timestamps: logsTimestamps.value, stdout: true, stderr: true,
-      since: '', until: '', details: false,
-    })
-    logsText.value = data?.logs || ''
-  } catch (e) { showRequestError(e, '获取日志失败'); logsText.value = '获取日志失败' }
-  finally { logsLoading.value = false }
-}
-
-// -- stats --
-type DockerStatsInfo = {
-  cpuPercent: string
-  memoryPercent: string
-  memoryUsage: string
-  memoryLimit: string
-  networkRx: string
-  networkTx: string
-  blockRead: string
-  blockWrite: string
-}
-
-const statsVisible = ref(false)
-const statsLoading = ref(false)
-const statsContainerId = ref('')
-const statsText = ref('')
-const statsInfo = ref<DockerStatsInfo | null>(null)
-
-const formatBytes = (bytes?: number | string) => {
-  const n = Number(bytes)
-  if (!n) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let i = 0; let v = n
-  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++ }
-  return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
-}
-
-const toPercent = (value: number) => `${Math.max(0, value).toFixed(2)}%`
-
-const sumNetwork = (networks: unknown, field: 'rx_bytes' | 'tx_bytes') => {
-  if (!networks || typeof networks !== 'object') return 0
-  return Object.values(networks as Record<string, Record<string, number>>)
-    .reduce((sum, item) => sum + Number(item?.[field] || 0), 0)
-}
-
-const sumBlockIo = (entries: unknown, operation: 'Read' | 'Write') => {
-  if (!Array.isArray(entries)) return 0
-  return entries.reduce((sum, item) => {
-    const entry = item as { op?: string; value?: number }
-    return entry.op === operation ? sum + Number(entry.value || 0) : sum
-  }, 0)
-}
-
-const parseStatsInfo = (json: string): DockerStatsInfo | null => {
-  try {
-    const data = JSON.parse(json) as Record<string, unknown>
-    const cpuStats = data.cpu_stats as Record<string, unknown> | undefined
-    const preCpuStats = data.precpu_stats as Record<string, unknown> | undefined
-    const cpuUsage = cpuStats?.cpu_usage as Record<string, unknown> | undefined
-    const preCpuUsage = preCpuStats?.cpu_usage as Record<string, unknown> | undefined
-    const cpuDelta = Number(cpuUsage?.total_usage || 0) - Number(preCpuUsage?.total_usage || 0)
-    const systemDelta = Number(cpuStats?.system_cpu_usage || 0) - Number(preCpuStats?.system_cpu_usage || 0)
-    const onlineCpus = Number(cpuStats?.online_cpus || 1)
-    const cpuPercent = systemDelta > 0 ? (cpuDelta / systemDelta) * onlineCpus * 100 : 0
-    const memoryStats = data.memory_stats as Record<string, number> | undefined
-    const usage = Number(memoryStats?.usage || 0)
-    const limit = Number(memoryStats?.limit || 0)
-    const networks = data.networks
-    const blkioStats = data.blkio_stats as Record<string, unknown> | undefined
-
-    return {
-      cpuPercent: toPercent(cpuPercent),
-      memoryPercent: limit > 0 ? toPercent((usage / limit) * 100) : '0.00%',
-      memoryUsage: formatBytes(usage),
-      memoryLimit: formatBytes(limit),
-      networkRx: formatBytes(sumNetwork(networks, 'rx_bytes')),
-      networkTx: formatBytes(sumNetwork(networks, 'tx_bytes')),
-      blockRead: formatBytes(sumBlockIo(blkioStats?.io_service_bytes_recursive, 'Read')),
-      blockWrite: formatBytes(sumBlockIo(blkioStats?.io_service_bytes_recursive, 'Write')),
+    const { data } = await getDockerContainer({ id: row.id })
+    const info = data?.info
+    if (!info?.logsWsPath) {
+      ElMessage.warning('缺少日志 WS 路径')
+      return
     }
-  } catch {
-    return null
+    logsContainerId.value = info.id || row.id
+    logsContainerName.value = info.name || displayNames(row)
+    logsWsPath.value = info.logsWsPath
+    logsVisible.value = true
+  } catch (e) {
+    showRequestError(e, '获取容器详情失败')
   }
 }
 
+// -- stats --
+const statsVisible = ref(false)
+const statsContainerId = ref('')
+const statsContainerName = ref('')
 const openStats = (row: DockerContainerSummary) => {
   statsContainerId.value = row.id
+  statsContainerName.value = displayNames(row)
   statsVisible.value = true
-  nextTick(() => loadStats())
 }
 
-const loadStats = async () => {
-  statsLoading.value = true
+// -- exec --
+const execVisible = ref(false)
+const execContainerId = ref('')
+const execContainerName = ref('')
+const execWsPath = ref('')
+const openExec = async (row: DockerContainerSummary) => {
   try {
-    const { data } = await containerStats({ id: statsContainerId.value })
-    statsText.value = data?.json ? JSON.stringify(JSON.parse(data.json), null, 2) : ''
-    statsInfo.value = data?.json ? parseStatsInfo(data.json) : null
+    const { data } = await getDockerContainer({ id: row.id })
+    const info = data?.info
+    if (!info?.execWsPath) {
+      ElMessage.warning('缺少 Exec WS 路径')
+      return
+    }
+    execContainerId.value = info.id || row.id
+    execContainerName.value = info.name || displayNames(row)
+    execWsPath.value = info.execWsPath
+    execVisible.value = true
   } catch (e) {
-    statsText.value = ''
-    statsInfo.value = null
-    showRequestError(e, '获取容器统计失败')
-  } finally {
-    statsLoading.value = false
+    showRequestError(e, '获取容器详情失败')
   }
 }
 
@@ -927,18 +1094,6 @@ const readString = (source: LooseRecord, ...keys: string[]) => {
     if (value !== undefined && value !== null && value !== '') return String(value)
   }
   return ''
-}
-const readNumber = (source: LooseRecord, ...keys: string[]) => {
-  for (const key of keys) {
-    const value = Number(source[key] || 0)
-    if (value) return value
-  }
-  return 0
-}
-const readRestartPolicy = (source: LooseRecord) => {
-  const value = source.RestartPolicy ?? source.restartPolicy
-  if (value && typeof value === 'object') return readString(value as LooseRecord, 'Name', 'name')
-  return value ? String(value) : ''
 }
 const resetEditForm = () => {
   Object.assign(editForm, { name: '', restartPolicy: '', memoryMB: 0, nanoCpuCores: 0, recreate: false, image: '', network: '', force: false })
@@ -1047,18 +1202,18 @@ const openEdit = async (row: DockerContainerSummary) => {
     const info = data?.info
     if (info) {
       editForm.name = info.name || editForm.name
-      const config = asRecord(info.config)
-      const hostConfig = asRecord(info.hostConfig)
-      editForm.image = readString(config, 'Image', 'image') || info.image || editForm.image
-      editForm.restartPolicy = readRestartPolicy(hostConfig)
-      editForm.network = readString(hostConfig, 'NetworkMode', 'networkMode')
-      const memory = readNumber(hostConfig, 'Memory', 'memory')
-      const nanoCpus = readNumber(hostConfig, 'NanoCPUs', 'NanoCpus', 'nanoCPUs', 'nanoCpus')
+      const config = info.config
+      const hostConfig = info.hostConfig
+      editForm.image = config?.image || info.image || editForm.image
+      editForm.restartPolicy = hostConfig?.restartPolicy || ''
+      editForm.network = hostConfig?.networkMode || ''
+      const memory = hostConfig?.memory || 0
+      const nanoCpus = hostConfig?.nanoCpus || 0
       if (memory) editForm.memoryMB = Math.round(memory / 1024 / 1024)
       if (nanoCpus) editForm.nanoCpuCores = Math.round((nanoCpus / 1e9) * 10) / 10
-      fillEditPorts(hostConfig.PortBindings ?? hostConfig.portBindings)
-      fillEditMounts(hostConfig.Mounts ?? hostConfig.mounts, info.mounts)
-      fillEditEnv(config.Env ?? config.env)
+      fillEditPorts(hostConfig?.portBindings)
+      fillEditMounts(hostConfig?.mounts, info.mounts)
+      fillEditEnv(config?.env)
     }
   } catch { /* use defaults */ }
 }
@@ -1112,14 +1267,52 @@ const submitEdit = async () => {
 }
 
 onMounted(() => { getList() })
+onBeforeUnmount(() => {
+  actionResizeObserver?.disconnect()
+  actionCellElements.clear()
+})
 </script>
 
 <style scoped lang="scss">
 .docker-page { .card-mt-16 { margin-top: 16px; } }
 .operation-container { margin-bottom: 12px; }
+.container-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.container-actions :deep(.el-button) {
+  margin-left: 0;
+  padding: 0 0.1rem;
+}
+.container-actions__more {
+  min-width: 1.4rem;
+  font-weight: 700;
+}
+.container-actions__danger {
+  color: var(--el-color-danger);
+}
 .port-tag {
   display: inline-block; font-size: 0.72rem; background: var(--el-fill-color-light);
   padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-bottom: 2px;
+}
+.network-tag {
+  display: inline-block;
+  max-width: 9.5rem;
+  padding: 1px 6px;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  font-size: 0.72rem;
+  vertical-align: middle;
 }
 .text-muted { color: var(--el-text-color-placeholder); font-size: 0.82rem; }
 .container-detail {
@@ -1257,25 +1450,6 @@ onMounted(() => { getList() })
   color: var(--el-text-color-regular);
   font-size: 0.78rem;
   line-height: 1.45;
-  word-break: break-all;
-}
-.logs-options { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.logs-content {
-  background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px;
-  max-height: 450px; overflow: auto; font-size: 0.82rem; white-space: pre-wrap; word-break: break-all;
-  line-height: 1.5; margin: 0;
-}
-.stats-json {
-  margin: 12px 0 0;
-  padding: 12px;
-  max-height: 320px;
-  overflow: auto;
-  border-radius: 6px;
-  background: var(--el-fill-color-light);
-  color: var(--el-text-color-regular);
-  font-size: 0.78rem;
-  line-height: 1.45;
-  white-space: pre-wrap;
   word-break: break-all;
 }
 h4 { margin: 0 0 8px; font-size: 0.9rem; }

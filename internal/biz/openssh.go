@@ -185,8 +185,8 @@ func (o *OpenSSHUsecase) testSSHHost(ctx context.Context, userID, hostID string)
 	}, nil
 }
 
-func (o *OpenSSHUsecase) StartSSHWebSocket(conn *websocket.Conn, userID, hostID string) error {
-	cfg, err := o.repo.GetSSHHostConfigByUserID(conn.Request().Context(), userID, hostID)
+func (o *OpenSSHUsecase) StartSSHWebSocket(ctx context.Context, conn *websocket.Conn, userID, hostID string) error {
+	cfg, err := o.repo.GetSSHHostConfigByUserID(ctx, userID, hostID)
 	if err != nil {
 		_ = websocket.Message.Send(conn, err.Error())
 		return o.wrapSSHRepoErr(err)

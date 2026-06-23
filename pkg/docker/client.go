@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	v1 "momoko/api/gen/v1"
 	"strings"
 	"sync"
 	"time"
@@ -19,12 +18,19 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+
+	v1 "momoko/api/gen/v1"
 )
 
 var (
 	ErrDisabled     = errors.New("docker 未启用")
 	ErrNotReady     = errors.New("docker 未连接")
 	ErrTaskNotFound = errors.New("docker 任务不存在")
+)
+
+const (
+	ContainerLogsWSPath = "/api/v1/docker/container/logs/ws"
+	ContainerExecWSPath = "/api/v1/docker/container/exec/ws"
 )
 
 type Manager struct {
@@ -75,9 +81,9 @@ func (m *Manager) Config() *v1.DockerConfigInfo {
 	return m.cfg
 }
 
-func (m *Manager) Status(ctx context.Context) Status {
+func (m *Manager) Status(ctx context.Context) *v1.DockerStatusResponse {
 	cfg := m.Config()
-	status := Status{Enabled: cfg.Enabled}
+	status := &v1.DockerStatusResponse{Enabled: cfg.Enabled}
 	if !cfg.Enabled {
 		status.Error = ErrDisabled.Error()
 		return status
@@ -87,6 +93,8 @@ func (m *Manager) Status(ctx context.Context) Status {
 		status.Error = err.Error()
 		return status
 	}
+	ctx, cancel := m.withTimeout(ctx)
+	defer cancel()
 	info, err := cli.Info(ctx)
 	if err != nil {
 		status.Error = err.Error()
@@ -103,21 +111,23 @@ func (m *Manager) Status(ctx context.Context) Status {
 	return status
 }
 
-func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (Status, error) {
+func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (*v1.DockerStatusResponse, error) {
 	cli, err := newClient(cfg)
 	if err != nil {
-		return Status{Enabled: cfg.Enabled, Error: err.Error()}, err
+		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
 	}
 	defer cli.Close()
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout(cfg))
+	defer cancel()
 	info, err := cli.Info(ctx)
 	if err != nil {
-		return Status{Enabled: cfg.Enabled, Error: err.Error()}, err
+		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
 	}
 	version, err := cli.ServerVersion(ctx)
 	if err != nil {
-		return Status{Enabled: cfg.Enabled, Error: err.Error()}, err
+		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
 	}
-	return Status{
+	return &v1.DockerStatusResponse{
 		Enabled:   cfg.Enabled,
 		Connected: true,
 		Info:      toEngineInfo(info),
@@ -125,7 +135,7 @@ func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (Status, e
 	}, nil
 }
 
-func (m *Manager) Task(id string) (*Task, error) {
+func (m *Manager) Task(id string) (*v1.DockerTaskInfo, error) {
 	task, ok := m.tasks.Get(id)
 	if !ok {
 		return nil, ErrTaskNotFound
@@ -133,11 +143,11 @@ func (m *Manager) Task(id string) (*Task, error) {
 	return task, nil
 }
 
-func (m *Manager) Tasks() []*Task {
+func (m *Manager) Tasks() []*v1.DockerTaskInfo {
 	return m.tasks.List()
 }
 
-func (m *Manager) SubscribeTask(id string) (<-chan TaskEvent, func(), error) {
+func (m *Manager) SubscribeTask(id string) (<-chan *v1.DockerTaskInfo, func(), error) {
 	ch, cancel, ok := m.tasks.Subscribe(id)
 	if !ok {
 		return nil, nil, ErrTaskNotFound
@@ -158,7 +168,10 @@ func (m *Manager) getClient() (*client.Client, error) {
 }
 
 func (m *Manager) timeout() time.Duration {
-	cfg := m.Config()
+	return requestTimeout(m.Config())
+}
+
+func requestTimeout(cfg *v1.DockerConfigInfo) time.Duration {
 	if cfg.RequestTimeoutSeconds <= 0 {
 		return 30 * time.Second
 	}
@@ -184,11 +197,6 @@ func newClient(cfg *v1.DockerConfigInfo) (*client.Client, error) {
 	if cfg.ApiVersion != "" {
 		opts = append(opts, client.WithVersion(cfg.ApiVersion))
 	}
-	timeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
-	if timeout <= 0 {
-		timeout = 30 * time.Second
-	}
-	opts = append(opts, client.WithTimeout(timeout))
 	if cfg.TlsEnabled {
 		if cfg.TlsCaPath == "" || cfg.TlsCertPath == "" || cfg.TlsKeyPath == "" {
 			return nil, errors.New("docker TLS 证书路径不能为空")
@@ -206,7 +214,7 @@ func (m *Manager) withTimeout(ctx context.Context) (context.Context, context.Can
 	return context.WithTimeout(ctx, m.timeout())
 }
 
-func registryAuthHeader(auth *RegistryAuth) (string, error) {
+func registryAuthHeader(auth *v1.DockerRegistryAuth) (string, error) {
 	if auth == nil {
 		return "", nil
 	}
@@ -240,31 +248,40 @@ func parsePlatform(platform string) (*ocispec.Platform, error) {
 	return p, nil
 }
 
-func toContainerResources(opts CreateContainerOptions) containertypes.Resources {
+func toContainerResources(opts *v1.DockerContainerCreateOptions) containertypes.Resources {
+	if opts == nil {
+		return containertypes.Resources{}
+	}
 	return containertypes.Resources{
 		Memory:     opts.Memory,
 		MemorySwap: opts.MemorySwap,
-		CPUShares:  opts.CPUShares,
-		CPUQuota:   opts.CPUQuota,
-		CPUPeriod:  opts.CPUPeriod,
-		NanoCPUs:   opts.NanoCPUs,
+		CPUShares:  opts.CpuShares,
+		CPUQuota:   opts.CpuQuota,
+		CPUPeriod:  opts.CpuPeriod,
+		NanoCPUs:   opts.NanoCpus,
 	}
 }
 
-func toUpdateResources(opts UpdateContainerOptions) containertypes.Resources {
+func toUpdateResources(opts *v1.UpdateDockerContainerRequest) containertypes.Resources {
+	if opts == nil {
+		return containertypes.Resources{}
+	}
 	return containertypes.Resources{
 		Memory:     opts.Memory,
 		MemorySwap: opts.MemorySwap,
-		CPUShares:  opts.CPUShares,
-		CPUQuota:   opts.CPUQuota,
-		CPUPeriod:  opts.CPUPeriod,
-		NanoCPUs:   opts.NanoCPUs,
+		CPUShares:  opts.CpuShares,
+		CPUQuota:   opts.CpuQuota,
+		CPUPeriod:  opts.CpuPeriod,
+		NanoCPUs:   opts.NanoCpus,
 	}
 }
 
-func toDockerMounts(mounts []Mount) []mounttypes.Mount {
+func toDockerMounts(mounts []*v1.DockerMount) []mounttypes.Mount {
 	result := make([]mounttypes.Mount, 0, len(mounts))
 	for _, item := range mounts {
+		if item == nil {
+			continue
+		}
 		mountType := mounttypes.Type(item.Type)
 		if mountType == "" {
 			mountType = mounttypes.TypeBind
@@ -279,10 +296,13 @@ func toDockerMounts(mounts []Mount) []mounttypes.Mount {
 	return result
 }
 
-func toPortBindings(bindings []PortBinding) (nat.PortSet, nat.PortMap, error) {
+func toPortBindings(bindings []*v1.DockerPortBinding) (nat.PortSet, nat.PortMap, error) {
 	exposed := nat.PortSet{}
 	portMap := nat.PortMap{}
 	for _, item := range bindings {
+		if item == nil {
+			continue
+		}
 		if strings.Contains(item.ContainerPort, ":") {
 			mappings, err := nat.ParsePortSpec(item.ContainerPort)
 			if err != nil {
@@ -301,7 +321,7 @@ func toPortBindings(bindings []PortBinding) (nat.PortSet, nat.PortMap, error) {
 		}
 		exposed[port] = struct{}{}
 		portMap[port] = append(portMap[port], nat.PortBinding{
-			HostIP:   item.HostIP,
+			HostIP:   item.HostIp,
 			HostPort: item.HostPort,
 		})
 	}
@@ -316,25 +336,31 @@ func toRestartPolicy(name string) containertypes.RestartPolicy {
 	return containertypes.RestartPolicy{Name: containertypes.RestartPolicyMode(name)}
 }
 
-func toNetworkEndpoint(opts ConnectNetworkOptions) *networktypes.EndpointSettings {
+func toNetworkEndpoint(opts *v1.ConnectDockerNetworkRequest) *networktypes.EndpointSettings {
+	if opts == nil {
+		return &networktypes.EndpointSettings{}
+	}
 	return &networktypes.EndpointSettings{
 		Aliases: opts.Aliases,
 		IPAMConfig: &networktypes.EndpointIPAMConfig{
-			IPv4Address: opts.IPv4Address,
-			IPv6Address: opts.IPv6Address,
+			IPv4Address: opts.Ipv4Address,
+			IPv6Address: opts.Ipv6Address,
 		},
 	}
 }
 
-func toDockerIPAM(data IPAM) *networktypes.IPAM {
-	if data.Driver == "" && len(data.Options) == 0 && len(data.Config) == 0 {
+func toDockerIPAM(data *v1.DockerIPAM) *networktypes.IPAM {
+	if data == nil || data.Driver == "" && len(data.Options) == 0 && len(data.Config) == 0 {
 		return nil
 	}
 	configs := make([]networktypes.IPAMConfig, 0, len(data.Config))
 	for _, item := range data.Config {
+		if item == nil {
+			continue
+		}
 		configs = append(configs, networktypes.IPAMConfig{
 			Subnet:     item.Subnet,
-			IPRange:    item.IPRange,
+			IPRange:    item.IpRange,
 			Gateway:    item.Gateway,
 			AuxAddress: item.AuxAddress,
 		})

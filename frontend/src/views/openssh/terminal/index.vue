@@ -53,7 +53,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { getSshHostInfo } from '@/api/openssh'
-import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { buildBackendWebSocketUrl } from '@/utils/websocket'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 
 defineOptions({ name: 'SshTerminalView' })
@@ -92,23 +92,11 @@ const statusClass = computed(() => ({
   'ssh-bar__dot--idle': socketStatus.value === 'disconnected',
 }))
 
-const getAccessToken = () => normalizeAuthToken(localStorage.getItem('accessToken') || '')
-
 const buildWsUrl = () => {
   if (!connId.value || !wsPath.value) return ''
-
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin
-  const base = new URL(apiBaseUrl, window.location.origin)
-  const wsProto = base.protocol === 'https:' ? 'wss:' : 'ws:'
-  const url = new URL(wsPath.value, `${wsProto}//${base.host}`)
-  url.searchParams.set('hostID', connId.value)
-
-  const token = getAccessToken()
-  if (token) {
-    url.searchParams.set('accessToken', toBearerAuthHeader(token))
-  }
-
-  return url.toString()
+  return buildBackendWebSocketUrl(wsPath.value, (url) => {
+    url.searchParams.set('hostID', connId.value)
+  })
 }
 
 const goBack = () => {
@@ -169,7 +157,6 @@ const connect = async () => {
 
   socketStatus.value = 'connecting'
 
-  // Fetch host info to get wsPath and update tab title
   try {
     const { data } = await getSshHostInfo({ id: connId.value })
     if (data?.info) {
@@ -185,8 +172,7 @@ const connect = async () => {
       if (tab) tab.title = info.name || `${info.username}@${info.host}`
     }
   } catch {
-    // fall back to hardcoded default
-    wsPath.value = '/api/v1/openssh/ws'
+    wsPath.value = ''
   }
 
   const url = buildWsUrl()

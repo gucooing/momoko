@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"io"
+	"strconv"
 	"sync"
 
+	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/net/websocket"
 
@@ -24,7 +26,6 @@ func NewDockerService(uc *biz.DockerUsecase) *DockerService {
 
 func (d *DockerService) RegisterWsServer(srv *http.Server) {
 	srv.Handle(biz.DockerContainerLogsWSPath, websocket.Handler(d.RunContainerLogsWsConn))
-	srv.Handle(biz.DockerContainerStatsWSPath, websocket.Handler(d.RunContainerStatsWsConn))
 	srv.Handle(biz.DockerContainerExecWSPath, websocket.Handler(d.RunContainerExecWsConn))
 	srv.Handle(biz.DockerTaskWSPath, websocket.Handler(d.RunTaskWsConn))
 }
@@ -75,6 +76,14 @@ func (d *DockerService) GetDockerContainer(ctx context.Context, req *v1.GetDocke
 		return nil, err
 	}
 	return &v1.GetDockerContainerResponse{Info: info}, nil
+}
+
+func (d *DockerService) GetDockerContainerStats(ctx context.Context, req *v1.GetDockerContainerStatsRequest) (*v1.GetDockerContainerStatsResponse, error) {
+	stats, err := d.uc.ContainerStats(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetDockerContainerStatsResponse{Stats: stats}, nil
 }
 
 func (d *DockerService) CreateDockerContainer(ctx context.Context, req *v1.CreateDockerContainerRequest) (*v1.CreateDockerContainerResponse, error) {
@@ -155,30 +164,6 @@ func (d *DockerService) DeleteDockerContainer(ctx context.Context, req *v1.Delet
 		return nil, err
 	}
 	return &v1.DeleteDockerContainerResponse{}, nil
-}
-
-func (d *DockerService) ContainerLogs(ctx context.Context, req *v1.ContainerLogsRequest) (*v1.ContainerLogsResponse, error) {
-	logs, err := d.uc.ContainerLogs(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ContainerLogsResponse{Logs: logs}, nil
-}
-
-func (d *DockerService) ContainerStats(ctx context.Context, req *v1.ContainerStatsRequest) (*v1.ContainerStatsResponse, error) {
-	stats, err := d.uc.ContainerStats(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ContainerStatsResponse{Json: stats}, nil
-}
-
-func (d *DockerService) CreateContainerExec(ctx context.Context, req *v1.CreateContainerExecRequest) (*v1.CreateContainerExecResponse, error) {
-	execID, err := d.uc.CreateExec(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.CreateContainerExecResponse{ExecId: execID}, nil
 }
 
 func (d *DockerService) ListDockerImages(ctx context.Context, req *v1.ListDockerImagesRequest) (*v1.ListDockerImagesResponse, error) {
@@ -367,27 +352,31 @@ func (d *DockerService) RunContainerLogsWsConn(conn *websocket.Conn) {
 	defer conn.Close()
 
 	req := conn.Request()
-	reader, err := d.uc.ContainerLogStream(req.Context(), &v1.ContainerLogsRequest{
-		Id:         req.URL.Query().Get("id"),
-		Stdout:     req.URL.Query().Get("stdout") != "false",
-		Stderr:     req.URL.Query().Get("stderr") != "false",
-		Timestamps: req.URL.Query().Get("timestamps") == "true",
-		Tail:       req.URL.Query().Get("tail"),
-		Details:    req.URL.Query().Get("details") == "true",
+	ctx, cancel := context.WithCancel(context.WithoutCancel(req.Context()))
+	defer cancel()
+	go func() {
+		for {
+			var discard []byte
+			if err := websocket.Message.Receive(conn, &discard); err != nil {
+				cancel()
+				return
+			}
+		}
+	}()
+
+	query := req.URL.Query()
+	timestamps, _ := strconv.ParseBool(query.Get("timestamps"))
+	details, _ := strconv.ParseBool(query.Get("details"))
+	reader, err := d.uc.ContainerLogs(ctx, query.Get("id"), containertypes.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Since:      query.Get("since"),
+		Until:      query.Get("until"),
+		Timestamps: timestamps,
+		Follow:     true,
+		Tail:       query.Get("tail"),
+		Details:    details,
 	})
-	if err != nil {
-		_ = websocket.Message.Send(conn, err.Error())
-		return
-	}
-	defer reader.Close()
-
-	sendDockerReader(conn, reader)
-}
-
-func (d *DockerService) RunContainerStatsWsConn(conn *websocket.Conn) {
-	defer conn.Close()
-
-	reader, err := d.uc.ContainerStatsStream(conn.Request().Context(), conn.Request().URL.Query().Get("id"))
 	if err != nil {
 		_ = websocket.Message.Send(conn, err.Error())
 		return
@@ -401,7 +390,36 @@ func (d *DockerService) RunContainerExecWsConn(conn *websocket.Conn) {
 	defer conn.Close()
 
 	req := conn.Request()
-	session, err := d.uc.AttachExec(req.Context(), req.URL.Query().Get("exec_id"), req.URL.Query().Get("tty") != "false")
+	ctx, cancel := context.WithCancel(context.WithoutCancel(req.Context()))
+	defer cancel()
+
+	query := req.URL.Query()
+	tty := true
+	if value := query.Get("tty"); value != "" {
+		parsed, err := strconv.ParseBool(value)
+		if err == nil {
+			tty = parsed
+		}
+	}
+	cmd := query["cmd"]
+	if len(cmd) == 0 {
+		cmd = []string{"/bin/sh"}
+	}
+	execID, err := d.uc.CreateExec(ctx, query.Get("id"), containertypes.ExecOptions{
+		Cmd:          cmd,
+		Env:          query["env"],
+		User:         query.Get("user"),
+		WorkingDir:   query.Get("working_dir"),
+		Tty:          tty,
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+	})
+	if err != nil {
+		_ = websocket.Message.Send(conn, err.Error())
+		return
+	}
+	session, err := d.uc.AttachExec(ctx, execID, containertypes.ExecAttachOptions{Tty: tty})
 	if err != nil {
 		_ = websocket.Message.Send(conn, err.Error())
 		return
@@ -414,6 +432,7 @@ func (d *DockerService) RunContainerExecWsConn(conn *websocket.Conn) {
 	var once sync.Once
 	closeDone := func() {
 		once.Do(func() {
+			cancel()
 			close(done)
 		})
 	}
@@ -439,13 +458,25 @@ func (d *DockerService) RunContainerExecWsConn(conn *websocket.Conn) {
 func (d *DockerService) RunTaskWsConn(conn *websocket.Conn) {
 	defer conn.Close()
 
-	ctx := conn.Request().Context()
-	ch, cancel, err := d.uc.SubscribeTask(ctx, conn.Request().URL.Query().Get("task_id"))
+	req := conn.Request()
+	ctx, cancel := context.WithCancel(context.WithoutCancel(req.Context()))
+	defer cancel()
+	go func() {
+		for {
+			var discard []byte
+			if err := websocket.Message.Receive(conn, &discard); err != nil {
+				cancel()
+				return
+			}
+		}
+	}()
+
+	ch, unsubscribe, err := d.uc.SubscribeTask(ctx, req.URL.Query().Get("task_id"))
 	if err != nil {
 		_ = websocket.Message.Send(conn, err.Error())
 		return
 	}
-	defer cancel()
+	defer unsubscribe()
 
 	for {
 		select {

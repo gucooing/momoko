@@ -308,32 +308,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateDockerContainerResponse'
-    /api/v1/docker/containers/{containerId}/exec:
-        post:
-            tags:
-                - DockerManager
-            description: 创建容器执行会话
-            operationId: DockerManager_CreateContainerExec
-            parameters:
-                - name: containerId
-                  in: path
-                  description: 容器ID或名称
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.CreateContainerExecRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.CreateContainerExecResponse'
     /api/v1/docker/containers/{id}:
         get:
             tags:
@@ -434,61 +408,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.KillDockerContainerResponse'
-    /api/v1/docker/containers/{id}/logs:
-        get:
-            tags:
-                - DockerManager
-            description: 获取容器日志
-            operationId: DockerManager_ContainerLogs
-            parameters:
-                - name: id
-                  in: path
-                  description: 容器ID或名称
-                  required: true
-                  schema:
-                    type: string
-                - name: stdout
-                  in: query
-                  description: 是否显示stdout
-                  schema:
-                    type: boolean
-                - name: stderr
-                  in: query
-                  description: 是否显示stderr
-                  schema:
-                    type: boolean
-                - name: since
-                  in: query
-                  description: 起始时间
-                  schema:
-                    type: string
-                - name: until
-                  in: query
-                  description: 结束时间
-                  schema:
-                    type: string
-                - name: timestamps
-                  in: query
-                  description: 是否显示时间戳
-                  schema:
-                    type: boolean
-                - name: tail
-                  in: query
-                  description: 尾部行数
-                  schema:
-                    type: string
-                - name: details
-                  in: query
-                  description: 是否显示详情
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ContainerLogsResponse'
     /api/v1/docker/containers/{id}/pause:
         post:
             tags:
@@ -623,8 +542,8 @@ paths:
         get:
             tags:
                 - DockerManager
-            description: 获取容器资源状态
-            operationId: DockerManager_ContainerStats
+            description: 获取容器统计
+            operationId: DockerManager_GetDockerContainerStats
             parameters:
                 - name: id
                   in: path
@@ -638,7 +557,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1.ContainerStatsResponse'
+                                $ref: '#/components/schemas/v1.GetDockerContainerStatsResponse'
     /api/v1/docker/containers/{id}/stop:
         post:
             tags:
@@ -4336,20 +4255,6 @@ components:
             type: object
             properties: {}
             description: 连接容器到网络响应
-        v1.ContainerLogsResponse:
-            type: object
-            properties:
-                logs:
-                    type: string
-                    description: 日志内容
-            description: 获取容器日志响应
-        v1.ContainerStatsResponse:
-            type: object
-            properties:
-                json:
-                    type: string
-                    description: 原始状态JSON
-            description: 获取容器资源状态响应
         v1.CopyAPIKeyRequest:
             type: object
             properties:
@@ -4471,39 +4376,6 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
-        v1.CreateContainerExecRequest:
-            type: object
-            properties:
-                containerId:
-                    type: string
-                    description: 容器ID或名称
-                cmd:
-                    type: array
-                    items:
-                        type: string
-                    description: 执行命令
-                env:
-                    type: array
-                    items:
-                        type: string
-                    description: 环境变量
-                user:
-                    type: string
-                    description: 用户
-                workingDir:
-                    type: string
-                    description: 工作目录
-                tty:
-                    type: boolean
-                    description: 是否开启TTY
-            description: 创建容器执行会话请求
-        v1.CreateContainerExecResponse:
-            type: object
-            properties:
-                execId:
-                    type: string
-                    description: 执行会话ID
-            description: 创建容器执行会话响应
         v1.CreateDockerContainerRequest:
             type: object
             properties:
@@ -5049,6 +4921,48 @@ components:
                     type: string
                     description: 磁盘IO统计错误信息
             description: 磁盘实时状态
+        v1.DockerBlkioEntry:
+            type: object
+            properties:
+                op:
+                    type: integer
+                    description: 操作
+                    format: enum
+                value:
+                    type: string
+                    description: 数值
+            description: 块IO统计项
+        v1.DockerBlkioStats:
+            type: object
+            properties:
+                ioServiceBytesRecursive:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerBlkioEntry'
+                    description: 递归IO服务字节数
+            description: 块IO统计
+        v1.DockerCPUStats:
+            type: object
+            properties:
+                cpuUsage:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerCPUUsage'
+                    description: CPU用量
+                systemCpuUsage:
+                    type: string
+                    description: 系统CPU用量
+                onlineCpus:
+                    type: integer
+                    description: 在线CPU数量
+                    format: uint32
+            description: CPU统计
+        v1.DockerCPUUsage:
+            type: object
+            properties:
+                totalUsage:
+                    type: string
+                    description: 总用量
+            description: CPU用量
         v1.DockerConfigInfo:
             type: object
             properties:
@@ -5080,10 +4994,6 @@ components:
                 defaultPlatform:
                     type: string
                     description: 默认平台
-                defaultLogTail:
-                    type: integer
-                    description: 默认日志行数
-                    format: int32
                 taskTimeoutSeconds:
                     type: integer
                     description: 任务超时秒数
@@ -5094,6 +5004,18 @@ components:
                         $ref: '#/components/schemas/v1.DockerRegistryAuth'
                     description: 仓库认证配置
             description: Docker配置
+        v1.DockerContainerConfig:
+            type: object
+            properties:
+                image:
+                    type: string
+                    description: 镜像
+                env:
+                    type: array
+                    items:
+                        type: string
+                    description: 环境变量
+            description: 容器配置
         v1.DockerContainerCreateOptions:
             type: object
             properties:
@@ -5182,6 +5104,44 @@ components:
                     type: string
                     description: 平台
             description: 容器创建参数
+        v1.DockerContainerHostConfig:
+            type: object
+            properties:
+                networkMode:
+                    type: string
+                    description: 网络模式
+                restartPolicy:
+                    type: string
+                    description: 重启策略
+                autoRemove:
+                    type: boolean
+                    description: 是否自动删除
+                privileged:
+                    type: boolean
+                    description: 是否特权模式
+                portBindings:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerPortBinding'
+                    description: 端口绑定
+                mounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerMount'
+                    description: 挂载
+                memory:
+                    type: string
+                    description: 内存限制
+                cpuQuota:
+                    type: string
+                    description: CPU配额
+                cpuPeriod:
+                    type: string
+                    description: CPU周期
+                nanoCpus:
+                    type: string
+                    description: Nano CPU数量
+            description: 容器主机配置
         v1.DockerContainerInfo:
             type: object
             properties:
@@ -5213,13 +5173,16 @@ components:
                         - $ref: '#/components/schemas/v1.DockerContainerState'
                     description: 状态
                 config:
-                    type: object
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerConfig'
                     description: 容器配置
                 hostConfig:
-                    type: object
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerHostConfig'
                     description: 主机配置
                 network:
-                    type: object
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerNetworkSettings'
                     description: 网络配置
                 mounts:
                     type: array
@@ -5239,7 +5202,32 @@ components:
                 logPath:
                     type: string
                     description: 日志路径
+                logsWsPath:
+                    type: string
+                    description: 日志WebSocket路径
+                execWsPath:
+                    type: string
+                    description: Exec WebSocket路径
             description: 容器详情
+        v1.DockerContainerNetworkEndpoint:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 网络名称
+                ipAddress:
+                    type: string
+                    description: IPv4地址
+            description: 容器网络端点摘要
+        v1.DockerContainerNetworkSettings:
+            type: object
+            properties:
+                networks:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/v1.DockerEndpointSettings'
+                    description: 网络端点
+            description: 容器网络配置
         v1.DockerContainerState:
             type: object
             properties:
@@ -5279,6 +5267,31 @@ components:
                     type: string
                     description: 结束时间
             description: 容器状态
+        v1.DockerContainerStats:
+            type: object
+            properties:
+                cpuStats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerCPUStats'
+                    description: CPU统计
+                precpuStats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerCPUStats'
+                    description: 上一次CPU统计
+                memoryStats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerMemoryStats'
+                    description: 内存统计
+                networks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerNetworkStats'
+                    description: 网络统计
+                blkioStats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerBlkioStats'
+                    description: 块IO统计
+            description: 容器统计
         v1.DockerContainerSummary:
             type: object
             properties:
@@ -5332,7 +5345,25 @@ components:
                     items:
                         type: string
                     description: 网络
+                networkEndpoints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerContainerNetworkEndpoint'
+                    description: 网络端点
             description: 容器摘要
+        v1.DockerEndpointSettings:
+            type: object
+            properties:
+                ipAddress:
+                    type: string
+                    description: IPv4地址
+                gateway:
+                    type: string
+                    description: 网关
+                macAddress:
+                    type: string
+                    description: MAC地址
+            description: 容器网络端点
         v1.DockerEngineInfo:
             type: object
             properties:
@@ -5576,6 +5607,16 @@ components:
                         type: string
                     description: 标签
             description: 镜像摘要
+        v1.DockerMemoryStats:
+            type: object
+            properties:
+                usage:
+                    type: string
+                    description: 当前用量
+                limit:
+                    type: string
+                    description: 限制
+            description: 内存统计
         v1.DockerMount:
             type: object
             properties:
@@ -5734,6 +5775,16 @@ components:
                         type: string
                     description: 标签
             description: 网络详情
+        v1.DockerNetworkStats:
+            type: object
+            properties:
+                rxBytes:
+                    type: string
+                    description: 接收字节
+                txBytes:
+                    type: string
+                    description: 发送字节
+            description: 网络统计
         v1.DockerPort:
             type: object
             properties:
@@ -5809,11 +5860,13 @@ components:
                     type: string
                     description: 任务ID
                 type:
-                    type: string
+                    type: integer
                     description: 任务类型
+                    format: enum
                 status:
-                    type: string
+                    type: integer
                     description: 任务状态
+                    format: enum
                 progress:
                     type: string
                     description: 进度信息
@@ -5837,6 +5890,9 @@ components:
                 title:
                     type: string
                     description: 标题
+                wsPath:
+                    type: string
+                    description: WebSocket路径
             description: Docker任务
         v1.DockerVolumeCreateOptions:
             type: object
@@ -6203,6 +6259,14 @@ components:
                         - $ref: '#/components/schemas/v1.DockerContainerInfo'
                     description: 容器详情
             description: 获取容器详情响应
+        v1.GetDockerContainerStatsResponse:
+            type: object
+            properties:
+                stats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerStats'
+                    description: 容器统计
+            description: 获取容器统计响应
         v1.GetDockerImageResponse:
             type: object
             properties:

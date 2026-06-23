@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"sort"
 	"strings"
 	"time"
 
@@ -12,15 +13,18 @@ import (
 	systemtypes "github.com/docker/docker/api/types/system"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/go-connections/nat"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	v1 "momoko/api/gen/v1"
 )
 
-func toEngineInfo(info systemtypes.Info) *EngineInfo {
-	return &EngineInfo{
-		ID:                info.ID,
+func toEngineInfo(info systemtypes.Info) *v1.DockerEngineInfo {
+	return &v1.DockerEngineInfo{
+		Id:                info.ID,
 		Name:              info.Name,
 		ServerVersion:     info.ServerVersion,
 		OperatingSystem:   info.OperatingSystem,
-		OSType:            info.OSType,
+		OsType:            info.OSType,
 		Architecture:      info.Architecture,
 		DockerRootDir:     info.DockerRootDir,
 		Containers:        int32(info.Containers),
@@ -32,61 +36,72 @@ func toEngineInfo(info systemtypes.Info) *EngineInfo {
 		CgroupDriver:      info.CgroupDriver,
 		CgroupVersion:     info.CgroupVersion,
 		MemoryTotal:       info.MemTotal,
-		CPUs:              int32(info.NCPU),
+		Cpus:              int32(info.NCPU),
 		Labels:            append([]string(nil), info.Labels...),
 	}
 }
 
-func toEngineVersion(version types.Version) *EngineVersion {
-	return &EngineVersion{
+func toEngineVersion(version types.Version) *v1.DockerEngineVersion {
+	return &v1.DockerEngineVersion{
 		Version:       version.Version,
-		APIVersion:    version.APIVersion,
-		MinAPIVersion: version.MinAPIVersion,
+		ApiVersion:    version.APIVersion,
+		MinApiVersion: version.MinAPIVersion,
 		GitCommit:     version.GitCommit,
 		GoVersion:     version.GoVersion,
-		OS:            version.Os,
+		Os:            version.Os,
 		Arch:          version.Arch,
 		KernelVersion: version.KernelVersion,
 		BuildTime:     version.BuildTime,
 	}
 }
 
-func toContainerSummary(data containertypes.Summary) ContainerSummary {
-	ports := make([]Port, 0, len(data.Ports))
+func toContainerSummary(data containertypes.Summary) *v1.DockerContainerSummary {
+	ports := make([]*v1.DockerPort, 0, len(data.Ports))
 	for _, item := range data.Ports {
-		ports = append(ports, Port{
-			IP:          item.IP,
+		ports = append(ports, &v1.DockerPort{
+			Ip:          item.IP,
 			PrivatePort: uint32(item.PrivatePort),
 			PublicPort:  uint32(item.PublicPort),
 			Type:        item.Type,
 		})
 	}
 	networks := []string{}
+	endpoints := []*v1.DockerContainerNetworkEndpoint{}
 	if data.NetworkSettings != nil {
-		for name := range data.NetworkSettings.Networks {
+		for name, settings := range data.NetworkSettings.Networks {
 			networks = append(networks, name)
+			endpoint := &v1.DockerContainerNetworkEndpoint{Name: name}
+			if settings != nil {
+				endpoint.IpAddress = settings.IPAddress
+			}
+			endpoints = append(endpoints, endpoint)
 		}
 	}
-	return ContainerSummary{
-		ID:          data.ID,
-		Names:       append([]string(nil), data.Names...),
-		Image:       data.Image,
-		ImageID:     data.ImageID,
-		Command:     data.Command,
-		Created:     time.Unix(data.Created, 0),
-		State:       string(data.State),
-		Status:      data.Status,
-		Labels:      cloneStringMap(data.Labels),
-		Ports:       ports,
-		Mounts:      toMountPoints(data.Mounts),
-		NetworkMode: data.HostConfig.NetworkMode,
-		Networks:    networks,
+	sort.Strings(networks)
+	sort.Slice(endpoints, func(i, j int) bool {
+		return endpoints[i].Name < endpoints[j].Name
+	})
+	return &v1.DockerContainerSummary{
+		Id:               data.ID,
+		Names:            append([]string(nil), data.Names...),
+		Image:            data.Image,
+		ImageId:          data.ImageID,
+		Command:          data.Command,
+		Created:          timestamppb.New(time.Unix(data.Created, 0)),
+		State:            string(data.State),
+		Status:           data.Status,
+		Labels:           cloneStringMap(data.Labels),
+		Ports:            ports,
+		Mounts:           toMountPoints(data.Mounts),
+		NetworkMode:      data.HostConfig.NetworkMode,
+		Networks:         networks,
+		NetworkEndpoints: endpoints,
 	}
 }
 
-func toContainerInfo(data containertypes.InspectResponse) ContainerInfo {
-	info := ContainerInfo{
-		ID:           data.ID,
+func toContainerInfo(data containertypes.InspectResponse) *v1.DockerContainerInfo {
+	info := &v1.DockerContainerInfo{
+		Id:           data.ID,
 		Name:         strings.TrimPrefix(data.Name, "/"),
 		Image:        data.Image,
 		Path:         data.Path,
@@ -97,30 +112,23 @@ func toContainerInfo(data containertypes.InspectResponse) ContainerInfo {
 		Platform:     data.Platform,
 		Driver:       data.Driver,
 		LogPath:      data.LogPath,
+		LogsWsPath:   ContainerLogsWSPath,
+		ExecWsPath:   ContainerExecWSPath,
 	}
 	if data.Config != nil {
-		info.ImageID = data.Config.Image
-		info.Config = ContainerConfig{
-			Hostname:     data.Config.Hostname,
-			User:         data.Config.User,
-			Env:          append([]string(nil), data.Config.Env...),
-			Cmd:          data.Config.Cmd,
-			Image:        data.Config.Image,
-			WorkingDir:   data.Config.WorkingDir,
-			Entrypoint:   data.Config.Entrypoint,
-			Labels:       cloneStringMap(data.Config.Labels),
-			ExposedPorts: portSetToStrings(data.Config.ExposedPorts),
-			Tty:          data.Config.Tty,
-			OpenStdin:    data.Config.OpenStdin,
+		info.ImageId = data.Config.Image
+		info.Config = &v1.DockerContainerConfig{
+			Image: data.Config.Image,
+			Env:   append([]string(nil), data.Config.Env...),
 		}
 	}
 	if data.State != nil {
-		info.State = ContainerState{
+		info.State = &v1.DockerContainerState{
 			Status:     data.State.Status,
 			Running:    data.State.Running,
 			Paused:     data.State.Paused,
 			Restarting: data.State.Restarting,
-			OOMKilled:  data.State.OOMKilled,
+			OomKilled:  data.State.OOMKilled,
 			Dead:       data.State.Dead,
 			Pid:        int32(data.State.Pid),
 			ExitCode:   int32(data.State.ExitCode),
@@ -130,8 +138,7 @@ func toContainerInfo(data containertypes.InspectResponse) ContainerInfo {
 		}
 	}
 	if data.HostConfig != nil {
-		info.HostConfig = HostConfig{
-			Binds:         append([]string(nil), data.HostConfig.Binds...),
+		info.HostConfig = &v1.DockerContainerHostConfig{
 			NetworkMode:   string(data.HostConfig.NetworkMode),
 			RestartPolicy: string(data.HostConfig.RestartPolicy.Name),
 			AutoRemove:    data.HostConfig.AutoRemove,
@@ -139,48 +146,36 @@ func toContainerInfo(data containertypes.InspectResponse) ContainerInfo {
 			PortBindings:  portMapToBindings(data.HostConfig.PortBindings),
 			Mounts:        fromDockerMounts(data.HostConfig.Mounts),
 			Memory:        data.HostConfig.Resources.Memory,
-			MemorySwap:    data.HostConfig.Resources.MemorySwap,
-			CPUShares:     data.HostConfig.Resources.CPUShares,
-			CPUQuota:      data.HostConfig.Resources.CPUQuota,
-			CPUPeriod:     data.HostConfig.Resources.CPUPeriod,
-			NanoCPUs:      data.HostConfig.Resources.NanoCPUs,
+			CpuQuota:      data.HostConfig.Resources.CPUQuota,
+			CpuPeriod:     data.HostConfig.Resources.CPUPeriod,
+			NanoCpus:      data.HostConfig.Resources.NanoCPUs,
 		}
 	}
 	if data.NetworkSettings != nil {
-		info.Network = NetworkSettings{
-			Networks:   make(map[string]EndpointSettings, len(data.NetworkSettings.Networks)),
-			IPAddress:  data.NetworkSettings.IPAddress,
-			Gateway:    data.NetworkSettings.Gateway,
-			MacAddress: data.NetworkSettings.MacAddress,
+		info.Network = &v1.DockerContainerNetworkSettings{
+			Networks: make(map[string]*v1.DockerEndpointSettings, len(data.NetworkSettings.Networks)),
 		}
 		for name, settings := range data.NetworkSettings.Networks {
 			if settings == nil {
 				continue
 			}
-			info.Network.Networks[name] = EndpointSettings{
-				NetworkID:           settings.NetworkID,
-				EndpointID:          settings.EndpointID,
-				Gateway:             settings.Gateway,
-				IPAddress:           settings.IPAddress,
-				IPPrefixLen:         int32(settings.IPPrefixLen),
-				IPv6Gateway:         settings.IPv6Gateway,
-				GlobalIPv6Address:   settings.GlobalIPv6Address,
-				GlobalIPv6PrefixLen: int32(settings.GlobalIPv6PrefixLen),
-				MacAddress:          settings.MacAddress,
-				Aliases:             append([]string(nil), settings.Aliases...),
+			info.Network.Networks[name] = &v1.DockerEndpointSettings{
+				IpAddress:  settings.IPAddress,
+				Gateway:    settings.Gateway,
+				MacAddress: settings.MacAddress,
 			}
 		}
 	}
 	return info
 }
 
-func toImageSummary(data imagetypes.Summary) ImageSummary {
-	return ImageSummary{
-		ID:          data.ID,
+func toImageSummary(data imagetypes.Summary) *v1.DockerImageSummary {
+	return &v1.DockerImageSummary{
+		Id:          data.ID,
 		RepoTags:    append([]string(nil), data.RepoTags...),
 		RepoDigests: append([]string(nil), data.RepoDigests...),
-		ParentID:    data.ParentID,
-		Created:     time.Unix(data.Created, 0),
+		ParentId:    data.ParentID,
+		Created:     timestamppb.New(time.Unix(data.Created, 0)),
 		Size:        data.Size,
 		SharedSize:  data.SharedSize,
 		Containers:  data.Containers,
@@ -188,20 +183,20 @@ func toImageSummary(data imagetypes.Summary) ImageSummary {
 	}
 }
 
-func toImageInfo(data imagetypes.InspectResponse) ImageInfo {
+func toImageInfo(data imagetypes.InspectResponse) *v1.DockerImageInfo {
 	labels := map[string]string(nil)
 	if data.Config != nil {
 		labels = cloneStringMap(data.Config.Labels)
 	}
-	return ImageInfo{
-		ID:           data.ID,
+	return &v1.DockerImageInfo{
+		Id:           data.ID,
 		RepoTags:     append([]string(nil), data.RepoTags...),
 		RepoDigests:  append([]string(nil), data.RepoDigests...),
 		Parent:       data.Parent,
 		Created:      data.Created,
 		Author:       data.Author,
 		Architecture: data.Architecture,
-		OS:           data.Os,
+		Os:           data.Os,
 		Size:         data.Size,
 		VirtualSize:  data.VirtualSize,
 		Labels:       labels,
@@ -209,10 +204,10 @@ func toImageInfo(data imagetypes.InspectResponse) ImageInfo {
 	}
 }
 
-func toImageHistory(data imagetypes.HistoryResponseItem) ImageHistoryItem {
-	return ImageHistoryItem{
-		ID:        data.ID,
-		Created:   time.Unix(data.Created, 0),
+func toImageHistory(data imagetypes.HistoryResponseItem) *v1.DockerImageHistoryItem {
+	return &v1.DockerImageHistoryItem{
+		Id:        data.ID,
+		Created:   timestamppb.New(time.Unix(data.Created, 0)),
 		CreatedBy: data.CreatedBy,
 		Tags:      append([]string(nil), data.Tags...),
 		Size:      data.Size,
@@ -220,40 +215,40 @@ func toImageHistory(data imagetypes.HistoryResponseItem) ImageHistoryItem {
 	}
 }
 
-func toNetworkInfo(data networktypes.Inspect) NetworkInfo {
-	containers := make(map[string]NetworkContainer, len(data.Containers))
+func toNetworkInfo(data networktypes.Inspect) *v1.DockerNetworkInfo {
+	containers := make(map[string]*v1.DockerNetworkContainer, len(data.Containers))
 	for id, item := range data.Containers {
-		containers[id] = NetworkContainer{
+		containers[id] = &v1.DockerNetworkContainer{
 			Name:        item.Name,
-			EndpointID:  item.EndpointID,
+			EndpointId:  item.EndpointID,
 			MacAddress:  item.MacAddress,
-			IPv4Address: item.IPv4Address,
-			IPv6Address: item.IPv6Address,
+			Ipv4Address: item.IPv4Address,
+			Ipv6Address: item.IPv6Address,
 		}
 	}
-	return NetworkInfo{
-		ID:         data.ID,
+	return &v1.DockerNetworkInfo{
+		Id:         data.ID,
 		Name:       data.Name,
 		Created:    data.Created.Format(time.RFC3339Nano),
 		Scope:      data.Scope,
 		Driver:     data.Driver,
-		EnableIPv4: data.EnableIPv4,
-		EnableIPv6: data.EnableIPv6,
+		EnableIpv4: data.EnableIPv4,
+		EnableIpv6: data.EnableIPv6,
 		Internal:   data.Internal,
 		Attachable: data.Attachable,
 		Ingress:    data.Ingress,
-		IPAM:       fromDockerIPAM(data.IPAM),
+		Ipam:       fromDockerIPAM(data.IPAM),
 		Containers: containers,
 		Options:    cloneStringMap(data.Options),
 		Labels:     cloneStringMap(data.Labels),
 	}
 }
 
-func toVolumeInfo(data *volumetypes.Volume) VolumeInfo {
+func toVolumeInfo(data *volumetypes.Volume) *v1.DockerVolumeInfo {
 	if data == nil {
-		return VolumeInfo{}
+		return nil
 	}
-	info := VolumeInfo{
+	info := &v1.DockerVolumeInfo{
 		Name:       data.Name,
 		Driver:     data.Driver,
 		Mountpoint: data.Mountpoint,
@@ -270,27 +265,27 @@ func toVolumeInfo(data *volumetypes.Volume) VolumeInfo {
 	return info
 }
 
-func toMountPoints(items []containertypes.MountPoint) []MountPoint {
-	result := make([]MountPoint, 0, len(items))
+func toMountPoints(items []containertypes.MountPoint) []*v1.DockerMountPoint {
+	result := make([]*v1.DockerMountPoint, 0, len(items))
 	for _, item := range items {
-		result = append(result, MountPoint{
+		result = append(result, &v1.DockerMountPoint{
 			Type:        string(item.Type),
 			Name:        item.Name,
 			Source:      item.Source,
 			Destination: item.Destination,
 			Driver:      item.Driver,
 			Mode:        item.Mode,
-			RW:          item.RW,
+			Rw:          item.RW,
 			Propagation: string(item.Propagation),
 		})
 	}
 	return result
 }
 
-func fromDockerMounts(items []mounttypes.Mount) []Mount {
-	result := make([]Mount, 0, len(items))
+func fromDockerMounts(items []mounttypes.Mount) []*v1.DockerMount {
+	result := make([]*v1.DockerMount, 0, len(items))
 	for _, item := range items {
-		result = append(result, Mount{
+		result = append(result, &v1.DockerMount{
 			Type:     string(item.Type),
 			Source:   item.Source,
 			Target:   item.Target,
@@ -300,13 +295,13 @@ func fromDockerMounts(items []mounttypes.Mount) []Mount {
 	return result
 }
 
-func portMapToBindings(portMap nat.PortMap) []PortBinding {
-	result := []PortBinding{}
+func portMapToBindings(portMap nat.PortMap) []*v1.DockerPortBinding {
+	result := []*v1.DockerPortBinding{}
 	for port, bindings := range portMap {
 		for _, binding := range bindings {
-			result = append(result, PortBinding{
+			result = append(result, &v1.DockerPortBinding{
 				ContainerPort: string(port),
-				HostIP:        binding.HostIP,
+				HostIp:        binding.HostIP,
 				HostPort:      binding.HostPort,
 			})
 		}
@@ -314,28 +309,41 @@ func portMapToBindings(portMap nat.PortMap) []PortBinding {
 	return result
 }
 
-func portSetToStrings(portSet nat.PortSet) []string {
-	result := make([]string, 0, len(portSet))
-	for port := range portSet {
-		result = append(result, string(port))
-	}
-	return result
-}
-
-func fromDockerIPAM(data networktypes.IPAM) IPAM {
-	configs := make([]IPAMConfig, 0, len(data.Config))
+func fromDockerIPAM(data networktypes.IPAM) *v1.DockerIPAM {
+	configs := make([]*v1.DockerIPAMConfig, 0, len(data.Config))
 	for _, item := range data.Config {
-		configs = append(configs, IPAMConfig{
+		configs = append(configs, &v1.DockerIPAMConfig{
 			Subnet:     item.Subnet,
-			IPRange:    item.IPRange,
+			IpRange:    item.IPRange,
 			Gateway:    item.Gateway,
 			AuxAddress: cloneStringMap(item.AuxAddress),
 		})
 	}
-	return IPAM{
+	return &v1.DockerIPAM{
 		Driver:  data.Driver,
 		Options: cloneStringMap(data.Options),
 		Config:  configs,
+	}
+}
+
+func networkCreateOptionsFromInfo(info *v1.DockerNetworkInfo) *v1.DockerNetworkCreateOptions {
+	if info == nil {
+		return nil
+	}
+	enableIPv4 := info.EnableIpv4
+	enableIPv6 := info.EnableIpv6
+	return &v1.DockerNetworkCreateOptions{
+		Name:       info.Name,
+		Driver:     info.Driver,
+		Scope:      info.Scope,
+		EnableIpv4: &enableIPv4,
+		EnableIpv6: &enableIPv6,
+		Internal:   info.Internal,
+		Attachable: info.Attachable,
+		Ingress:    info.Ingress,
+		Ipam:       info.Ipam,
+		Options:    cloneStringMap(info.Options),
+		Labels:     cloneStringMap(info.Labels),
 	}
 }
 

@@ -5,40 +5,42 @@ import (
 	"encoding/json"
 
 	networktypes "github.com/docker/docker/api/types/network"
+
+	v1 "momoko/api/gen/v1"
 )
 
-func (m *Manager) ListNetworks(ctx context.Context, opts NetworkListOptions) ([]NetworkInfo, int64, error) {
+func (m *Manager) ListNetworks(ctx context.Context, req *v1.ListDockerNetworksRequest) (*v1.ListDockerNetworksResponse, error) {
 	cli, err := m.getClient()
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
 
-	filters := filtersFromLabels(opts.Labels)
-	if opts.Name != "" {
-		filters.Add("name", opts.Name)
+	filters := filtersFromLabels(req.GetLabels())
+	if req.GetName() != "" {
+		filters.Add("name", req.GetName())
 	}
-	if opts.Driver != "" {
-		filters.Add("driver", opts.Driver)
+	if req.GetDriver() != "" {
+		filters.Add("driver", req.GetDriver())
 	}
-	if opts.Scope != "" {
-		filters.Add("scope", opts.Scope)
+	if req.GetScope() != "" {
+		filters.Add("scope", req.GetScope())
 	}
 	items, err := cli.NetworkList(ctx, networktypes.ListOptions{Filters: filters})
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	total := int64(len(items))
-	items = pageSlice(items, opts.Page, opts.PageSize)
-	result := make([]NetworkInfo, 0, len(items))
+	items = pageSlice(items, req.GetPage(), req.GetPageSize())
+	result := make([]*v1.DockerNetworkInfo, 0, len(items))
 	for _, item := range items {
 		result = append(result, toNetworkInfo(item))
 	}
-	return result, total, nil
+	return &v1.ListDockerNetworksResponse{Items: result, Total: total}, nil
 }
 
-func (m *Manager) Network(ctx context.Context, id string) (*NetworkInfo, error) {
+func (m *Manager) Network(ctx context.Context, id string) (*v1.DockerNetworkInfo, error) {
 	cli, err := m.getClient()
 	if err != nil {
 		return nil, err
@@ -49,28 +51,32 @@ func (m *Manager) Network(ctx context.Context, id string) (*NetworkInfo, error) 
 	if err != nil {
 		return nil, err
 	}
-	info := toNetworkInfo(data)
-	return &info, nil
+	return toNetworkInfo(data), nil
 }
 
-func (m *Manager) CreateNetwork(ctx context.Context, opts CreateNetworkOptions) (string, error) {
+func (m *Manager) CreateNetwork(ctx context.Context, opts *v1.DockerNetworkCreateOptions) (string, error) {
 	cli, err := m.getClient()
 	if err != nil {
 		return "", err
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
-	resp, err := cli.NetworkCreate(ctx, opts.Name, networktypes.CreateOptions{
-		Driver:     opts.Driver,
-		Scope:      opts.Scope,
-		EnableIPv4: opts.EnableIPv4,
-		EnableIPv6: opts.EnableIPv6,
-		IPAM:       toDockerIPAM(opts.IPAM),
-		Internal:   opts.Internal,
-		Attachable: opts.Attachable,
-		Ingress:    opts.Ingress,
-		Options:    opts.Options,
-		Labels:     opts.Labels,
+	var enableIPv4, enableIPv6 *bool
+	if opts != nil {
+		enableIPv4 = opts.EnableIpv4
+		enableIPv6 = opts.EnableIpv6
+	}
+	resp, err := cli.NetworkCreate(ctx, opts.GetName(), networktypes.CreateOptions{
+		Driver:     opts.GetDriver(),
+		Scope:      opts.GetScope(),
+		EnableIPv4: enableIPv4,
+		EnableIPv6: enableIPv6,
+		IPAM:       toDockerIPAM(opts.GetIpam()),
+		Internal:   opts.GetInternal(),
+		Attachable: opts.GetAttachable(),
+		Ingress:    opts.GetIngress(),
+		Options:    opts.GetOptions(),
+		Labels:     opts.GetLabels(),
 	})
 	if err != nil {
 		return "", err
@@ -78,33 +84,56 @@ func (m *Manager) CreateNetwork(ctx context.Context, opts CreateNetworkOptions) 
 	return resp.ID, nil
 }
 
-func (m *Manager) UpdateNetwork(ctx context.Context, opts UpdateNetworkOptions) *Task {
-	return m.RecreateNetwork(ctx, RecreateNetworkOptions{
-		ID:     opts.ID,
-		Create: opts.Create,
-		Force:  opts.Force,
-	})
-}
-
-func (m *Manager) RecreateNetwork(ctx context.Context, opts RecreateNetworkOptions) *Task {
-	titleTarget := opts.Create.Name
+func (m *Manager) UpdateNetwork(ctx context.Context, req *v1.UpdateDockerNetworkRequest) *v1.DockerTaskInfo {
+	titleTarget := req.GetOptions().GetName()
 	if titleTarget == "" {
-		titleTarget = opts.ID
+		titleTarget = req.GetId()
 	}
-	return m.tasks.Start(ctx, "network_recreate", "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
-		oldInfo, err := m.Network(taskCtx, opts.ID)
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+		oldInfo, err := m.Network(taskCtx, req.GetId())
 		if err != nil {
 			return "", err
 		}
-		if len(oldInfo.Containers) > 0 && !opts.Force {
+		if len(oldInfo.GetContainers()) > 0 && !req.GetForce() {
 			return "", ErrNetworkInUse
 		}
-		emit(TaskEvent{Message: "删除旧网络"})
-		if err := m.DeleteNetwork(taskCtx, opts.ID); err != nil {
+		create := req.GetOptions()
+		if create == nil {
+			create = networkCreateOptionsFromInfo(oldInfo)
+			create.Labels = cloneStringMap(req.GetLabels())
+		}
+		emit(&v1.DockerTaskInfo{Message: "删除旧网络"})
+		if err := m.DeleteNetwork(taskCtx, req.GetId()); err != nil {
 			return "", err
 		}
-		emit(TaskEvent{Message: "创建新网络"})
-		return m.CreateNetwork(taskCtx, opts.Create)
+		emit(&v1.DockerTaskInfo{Message: "创建新网络"})
+		return m.CreateNetwork(taskCtx, create)
+	})
+}
+
+func (m *Manager) RecreateNetwork(ctx context.Context, req *v1.RecreateDockerNetworkRequest) *v1.DockerTaskInfo {
+	titleTarget := req.GetOptions().GetName()
+	if titleTarget == "" {
+		titleTarget = req.GetId()
+	}
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+		oldInfo, err := m.Network(taskCtx, req.GetId())
+		if err != nil {
+			return "", err
+		}
+		if len(oldInfo.GetContainers()) > 0 && !req.GetForce() {
+			return "", ErrNetworkInUse
+		}
+		create := req.GetOptions()
+		if create == nil {
+			create = networkCreateOptionsFromInfo(oldInfo)
+		}
+		emit(&v1.DockerTaskInfo{Message: "删除旧网络"})
+		if err := m.DeleteNetwork(taskCtx, req.GetId()); err != nil {
+			return "", err
+		}
+		emit(&v1.DockerTaskInfo{Message: "创建新网络"})
+		return m.CreateNetwork(taskCtx, create)
 	})
 }
 
@@ -118,28 +147,28 @@ func (m *Manager) DeleteNetwork(ctx context.Context, id string) error {
 	return cli.NetworkRemove(ctx, id)
 }
 
-func (m *Manager) ConnectNetwork(ctx context.Context, opts ConnectNetworkOptions) error {
+func (m *Manager) ConnectNetwork(ctx context.Context, req *v1.ConnectDockerNetworkRequest) error {
 	cli, err := m.getClient()
 	if err != nil {
 		return err
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
-	return cli.NetworkConnect(ctx, opts.NetworkID, opts.ContainerID, toNetworkEndpoint(opts))
+	return cli.NetworkConnect(ctx, req.GetNetworkId(), req.GetContainerId(), toNetworkEndpoint(req))
 }
 
-func (m *Manager) DisconnectNetwork(ctx context.Context, networkID, containerID string, force bool) error {
+func (m *Manager) DisconnectNetwork(ctx context.Context, req *v1.DisconnectDockerNetworkRequest) error {
 	cli, err := m.getClient()
 	if err != nil {
 		return err
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
-	return cli.NetworkDisconnect(ctx, networkID, containerID, force)
+	return cli.NetworkDisconnect(ctx, req.GetNetworkId(), req.GetContainerId(), req.GetForce())
 }
 
-func (m *Manager) PruneNetworks(ctx context.Context) *Task {
-	return m.tasks.Start(ctx, "network_prune", "清理网络", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+func (m *Manager) PruneNetworks(ctx context.Context) *v1.DockerTaskInfo {
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_PRUNE, "清理网络", m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err
@@ -149,7 +178,7 @@ func (m *Manager) PruneNetworks(ctx context.Context) *Task {
 			return "", err
 		}
 		raw, _ := json.Marshal(report)
-		emit(TaskEvent{Message: string(raw)})
+		emit(&v1.DockerTaskInfo{Message: string(raw)})
 		return "", nil
 	})
 }

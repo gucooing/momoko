@@ -119,19 +119,20 @@ func (o *OpenSSHService) BatchTestSSHHosts(ctx context.Context, req *v1.BatchTes
 
 func (o *OpenSSHService) RunSSHWsConn(conn *websocket.Conn) {
 	defer conn.Close()
-	ctx := conn.Request().Context()
+	req := conn.Request()
+	ctx := context.WithoutCancel(req.Context())
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {
 		_ = websocket.Message.Send(conn, "缺少参数")
 		return
 	}
-	hostID := conn.Request().URL.Query().Get("hostID")
+	hostID := req.URL.Query().Get("hostID")
 	if hostID == "" {
-		hostID = conn.Request().URL.Query().Get("id")
+		hostID = req.URL.Query().Get("id")
 	}
 	if hostID == "" {
 		_ = websocket.Message.Send(conn, "缺少参数")
 		return
 	}
-	_ = o.uc.StartSSHWebSocket(conn, authCtx.UserID, hostID)
+	_ = o.uc.StartSSHWebSocket(ctx, conn, authCtx.UserID, hostID)
 }

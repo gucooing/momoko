@@ -5,7 +5,6 @@ package v1;
 option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
-import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 // Docker管理
@@ -52,6 +51,12 @@ service DockerManager {
   rpc GetDockerContainer(GetDockerContainerRequest) returns (GetDockerContainerResponse) {
     option (google.api.http) = {
       get: "/api/v1/docker/containers/{id}"
+    };
+  }
+  // 获取容器统计
+  rpc GetDockerContainerStats(GetDockerContainerStatsRequest) returns (GetDockerContainerStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/containers/{id}/stats"
     };
   }
   // 创建容器
@@ -130,26 +135,6 @@ service DockerManager {
       delete: "/api/v1/docker/containers/{id}"
     };
   }
-  // 获取容器日志
-  rpc ContainerLogs(ContainerLogsRequest) returns (ContainerLogsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/docker/containers/{id}/logs"
-    };
-  }
-  // 获取容器资源状态
-  rpc ContainerStats(ContainerStatsRequest) returns (ContainerStatsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/docker/containers/{id}/stats"
-    };
-  }
-  // 创建容器执行会话
-  rpc CreateContainerExec(CreateContainerExecRequest) returns (CreateContainerExecResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/docker/containers/{container_id}/exec"
-      body: "*"
-    };
-  }
-
   // 获取镜像列表
   rpc ListDockerImages(ListDockerImagesRequest) returns (ListDockerImagesResponse) {
     option (google.api.http) = {
@@ -451,8 +436,6 @@ message DockerConfigInfo {
   int32 request_timeout_seconds = 8;
   // 默认平台
   string default_platform = 9;
-  // 默认日志行数
-  int32 default_log_tail = 10;
   // 任务超时秒数
   int32 task_timeout_seconds = 11;
   // 仓库认证配置
@@ -485,9 +468,9 @@ message DockerTaskInfo {
   // 任务ID
   string id = 1;
   // 任务类型
-  string type = 2;
+  DockerTaskType type = 2;
   // 任务状态
-  string status = 3;
+  DockerTaskStatus status = 3;
   // 进度信息
   string progress = 4;
   // 消息
@@ -502,6 +485,8 @@ message DockerTaskInfo {
   google.protobuf.Timestamp end_time = 9;
   // 标题
   string title = 10;
+  // WebSocket路径
+  string ws_path = 11;
 }
 
 // 获取容器列表请求
@@ -542,6 +527,126 @@ message GetDockerContainerRequest {
 message GetDockerContainerResponse {
   // 容器详情
   DockerContainerInfo info = 1;
+}
+
+// 获取容器统计请求
+message GetDockerContainerStatsRequest {
+  // 容器ID或名称
+  string id = 1;
+}
+
+// 获取容器统计响应
+message GetDockerContainerStatsResponse {
+  // 容器统计
+  DockerContainerStats stats = 1;
+}
+
+// Docker任务类型
+enum DockerTaskType {
+  // 未知
+  DOCKER_TASK_TYPE_UNKNOWN = 0;
+  // 重建容器
+  DOCKER_TASK_TYPE_CONTAINER_RECREATE = 1;
+  // 拉取镜像
+  DOCKER_TASK_TYPE_IMAGE_PULL = 2;
+  // 重建网络
+  DOCKER_TASK_TYPE_NETWORK_RECREATE = 3;
+  // 清理网络
+  DOCKER_TASK_TYPE_NETWORK_PRUNE = 4;
+  // 重建储存卷
+  DOCKER_TASK_TYPE_VOLUME_RECREATE = 5;
+  // 清理储存卷
+  DOCKER_TASK_TYPE_VOLUME_PRUNE = 6;
+  // 导出储存卷
+  DOCKER_TASK_TYPE_VOLUME_EXPORT = 7;
+  // 恢复储存卷
+  DOCKER_TASK_TYPE_VOLUME_RESTORE = 8;
+}
+
+// Docker任务状态
+enum DockerTaskStatus {
+  // 未知
+  DOCKER_TASK_STATUS_UNKNOWN = 0;
+  // 等待中
+  DOCKER_TASK_STATUS_PENDING = 1;
+  // 运行中
+  DOCKER_TASK_STATUS_RUNNING = 2;
+  // 成功
+  DOCKER_TASK_STATUS_SUCCESS = 3;
+  // 失败
+  DOCKER_TASK_STATUS_FAILED = 4;
+  // 已取消
+  DOCKER_TASK_STATUS_CANCELED = 5;
+}
+
+// Docker块IO操作
+enum DockerBlkioOperation {
+  // 未知
+  DOCKER_BLKIO_OPERATION_UNKNOWN = 0;
+  // 读取
+  DOCKER_BLKIO_OPERATION_READ = 1;
+  // 写入
+  DOCKER_BLKIO_OPERATION_WRITE = 2;
+}
+
+// 容器统计
+message DockerContainerStats {
+  // CPU统计
+  DockerCPUStats cpu_stats = 1;
+  // 上一次CPU统计
+  DockerCPUStats precpu_stats = 2;
+  // 内存统计
+  DockerMemoryStats memory_stats = 3;
+  // 网络统计
+  repeated DockerNetworkStats networks = 4;
+  // 块IO统计
+  DockerBlkioStats blkio_stats = 5;
+}
+
+// CPU统计
+message DockerCPUStats {
+  // CPU用量
+  DockerCPUUsage cpu_usage = 1;
+  // 系统CPU用量
+  uint64 system_cpu_usage = 2;
+  // 在线CPU数量
+  uint32 online_cpus = 3;
+}
+
+// CPU用量
+message DockerCPUUsage {
+  // 总用量
+  uint64 total_usage = 1;
+}
+
+// 内存统计
+message DockerMemoryStats {
+  // 当前用量
+  uint64 usage = 1;
+  // 限制
+  uint64 limit = 2;
+}
+
+// 网络统计
+message DockerNetworkStats {
+  // 接收字节
+  uint64 rx_bytes = 1;
+  // 发送字节
+  uint64 tx_bytes = 2;
+}
+
+// 块IO统计
+message DockerBlkioStats {
+  // 递归IO服务字节数
+  repeated DockerBlkioEntry io_service_bytes_recursive = 1;
+}
+
+// 块IO统计项
+message DockerBlkioEntry {
+  // 操作
+  DockerBlkioOperation op = 1;
+  // 数值
+  uint64 value = 2;
 }
 
 // 创建容器请求
@@ -696,66 +801,6 @@ message DeleteDockerContainerRequest {
 // 删除容器响应
 message DeleteDockerContainerResponse {}
 
-// 获取容器日志请求
-message ContainerLogsRequest {
-  // 容器ID或名称
-  string id = 1;
-  // 是否显示stdout
-  bool stdout = 2;
-  // 是否显示stderr
-  bool stderr = 3;
-  // 起始时间
-  string since = 4;
-  // 结束时间
-  string until = 5;
-  // 是否显示时间戳
-  bool timestamps = 6;
-  // 尾部行数
-  string tail = 7;
-  // 是否显示详情
-  bool details = 8;
-}
-
-// 获取容器日志响应
-message ContainerLogsResponse {
-  // 日志内容
-  string logs = 1;
-}
-
-// 获取容器资源状态请求
-message ContainerStatsRequest {
-  // 容器ID或名称
-  string id = 1;
-}
-
-// 获取容器资源状态响应
-message ContainerStatsResponse {
-  // 原始状态JSON
-  string json = 1;
-}
-
-// 创建容器执行会话请求
-message CreateContainerExecRequest {
-  // 容器ID或名称
-  string container_id = 1;
-  // 执行命令
-  repeated string cmd = 2;
-  // 环境变量
-  repeated string env = 3;
-  // 用户
-  string user = 4;
-  // 工作目录
-  string working_dir = 5;
-  // 是否开启TTY
-  bool tty = 6;
-}
-
-// 创建容器执行会话响应
-message CreateContainerExecResponse {
-  // 执行会话ID
-  string exec_id = 1;
-}
-
 // 容器创建参数
 message DockerContainerCreateOptions {
   // 容器名称
@@ -836,6 +881,16 @@ message DockerContainerSummary {
   string network_mode = 12;
   // 网络
   repeated string networks = 13;
+  // 网络端点
+  repeated DockerContainerNetworkEndpoint network_endpoints = 14;
+}
+
+// 容器网络端点摘要
+message DockerContainerNetworkEndpoint {
+  // 网络名称
+  string name = 1;
+  // IPv4地址
+  string ip_address = 2;
 }
 
 // 容器详情
@@ -857,11 +912,11 @@ message DockerContainerInfo {
   // 状态
   DockerContainerState state = 8;
   // 容器配置
-  google.protobuf.Struct config = 9;
+  DockerContainerConfig config = 9;
   // 主机配置
-  google.protobuf.Struct host_config = 10;
+  DockerContainerHostConfig host_config = 10;
   // 网络配置
-  google.protobuf.Struct network = 11;
+  DockerContainerNetworkSettings network = 11;
   // 挂载点
   repeated DockerMountPoint mounts = 12;
   // 重启次数
@@ -872,6 +927,58 @@ message DockerContainerInfo {
   string driver = 15;
   // 日志路径
   string log_path = 16;
+  // 日志WebSocket路径
+  string logs_ws_path = 17;
+  // Exec WebSocket路径
+  string exec_ws_path = 18;
+}
+
+// 容器配置
+message DockerContainerConfig {
+  // 镜像
+  string image = 1;
+  // 环境变量
+  repeated string env = 2;
+}
+
+// 容器主机配置
+message DockerContainerHostConfig {
+  // 网络模式
+  string network_mode = 1;
+  // 重启策略
+  string restart_policy = 2;
+  // 是否自动删除
+  bool auto_remove = 3;
+  // 是否特权模式
+  bool privileged = 4;
+  // 端口绑定
+  repeated DockerPortBinding port_bindings = 5;
+  // 挂载
+  repeated DockerMount mounts = 6;
+  // 内存限制
+  int64 memory = 7;
+  // CPU配额
+  int64 cpu_quota = 8;
+  // CPU周期
+  int64 cpu_period = 9;
+  // Nano CPU数量
+  int64 nano_cpus = 10;
+}
+
+// 容器网络配置
+message DockerContainerNetworkSettings {
+  // 网络端点
+  map<string, DockerEndpointSettings> networks = 1;
+}
+
+// 容器网络端点
+message DockerEndpointSettings {
+  // IPv4地址
+  string ip_address = 1;
+  // 网关
+  string gateway = 2;
+  // MAC地址
+  string mac_address = 3;
 }
 
 // 容器状态

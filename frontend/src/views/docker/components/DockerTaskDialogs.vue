@@ -50,7 +50,9 @@ import '@xterm/xterm/css/xterm.css'
 import { listDockerTasks } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
-import { normalizeAuthToken, showRequestError, toBearerAuthHeader } from '@/utils/request'
+import { showRequestError } from '@/utils/request'
+import { buildBackendWebSocketUrl } from '@/utils/websocket'
+import { DockerTaskStatus, DockerTaskType } from '@/types/v1/docker'
 import type { DockerTaskInfo } from '@/types/v1/docker'
 
 const props = defineProps<{
@@ -82,37 +84,37 @@ let fitAddon: FitAddon | null = null
 let resizeObserver: ResizeObserver | null = null
 let manualSocketClose = false
 
-const STATUS_MAP: Record<string, string> = {
-  pending: '等待中',
-  running: '运行中',
-  success: '成功',
-  failed: '失败',
-  canceled: '已取消',
+const STATUS_MAP: Partial<Record<DockerTaskStatus, string>> = {
+  [DockerTaskStatus.DOCKER_TASK_STATUS_PENDING]: '等待中',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING]: '运行中',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_SUCCESS]: '成功',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_FAILED]: '失败',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: '已取消',
 }
 
-const STATUS_TAG_MAP: Record<string, 'success' | 'info' | 'warning' | 'danger'> = {
-  pending: 'info',
-  running: 'warning',
-  success: 'success',
-  failed: 'danger',
-  canceled: 'info',
+const STATUS_TAG_MAP: Partial<Record<DockerTaskStatus, 'success' | 'info' | 'warning' | 'danger'>> = {
+  [DockerTaskStatus.DOCKER_TASK_STATUS_PENDING]: 'info',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING]: 'warning',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_SUCCESS]: 'success',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_FAILED]: 'danger',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: 'info',
 }
 
-const TASK_TYPE_MAP: Record<string, string> = {
-  container_recreate: '重建容器',
-  image_pull: '拉取镜像',
-  network_recreate: '重建网络',
-  network_prune: '清理网络',
-  volume_recreate: '重建储存卷',
-  volume_prune: '清理储存卷',
-  volume_export: '导出储存卷',
-  volume_restore: '恢复储存卷',
+const TASK_TYPE_MAP: Partial<Record<DockerTaskType, string>> = {
+  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_RECREATE]: '重建容器',
+  [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: '拉取镜像',
+  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: '重建网络',
+  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: '清理网络',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RECREATE]: '重建储存卷',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_PRUNE]: '清理储存卷',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_EXPORT]: '导出储存卷',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RESTORE]: '恢复储存卷',
 }
 
 const logTitle = computed(() => selectedTask.value ? displayTaskTitle(selectedTask.value) : '任务日志')
-const statusLabel = (status: string) => STATUS_MAP[status] || status || '-'
-const statusTagType = (status: string) => STATUS_TAG_MAP[status] || 'info'
-const displayTaskTitle = (task: DockerTaskInfo) => task.title || TASK_TYPE_MAP[task.type] || task.type || task.id
+const statusLabel = (status: DockerTaskStatus) => STATUS_MAP[status] || '-'
+const statusTagType = (status: DockerTaskStatus) => STATUS_TAG_MAP[status] || 'info'
+const displayTaskTitle = (task: DockerTaskInfo) => task.title || TASK_TYPE_MAP[task.type] || task.id
 
 const toDateValue = (value: unknown): Date | undefined => {
   if (!value) return undefined
@@ -162,29 +164,15 @@ const loadTasks = async () => {
   }
 }
 
-const getAccessToken = () => normalizeAuthToken(localStorage.getItem('accessToken') || '')
-
-const buildTaskSocketUrl = (taskId: string) => {
-  const apiBaseUrl = new URL(
-    import.meta.env.VITE_API_BASE_URL || '/api/v1',
-    window.location.origin,
-  )
-  const wsOrigin = `${apiBaseUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${apiBaseUrl.host}`
-  const apiPath = apiBaseUrl.pathname.replace(/\/$/, '')
-  const url = new URL(`${apiPath}/docker/task/ws`, wsOrigin)
-  url.searchParams.set('task_id', taskId)
-
-  const token = getAccessToken()
-  if (token) {
-    url.searchParams.set('accessToken', toBearerAuthHeader(token))
-  }
-
-  return url.toString()
+const buildTaskSocketUrl = (task: DockerTaskInfo) => {
+  if (!task.id) return ''
+  return buildBackendWebSocketUrl(task.wsPath || '', (url) => {
+    url.searchParams.set('task_id', task.id)
+  })
 }
 
-const decodeSocketPayload = async (payload: Blob | ArrayBuffer | string) => {
+const decodeSocketPayload = (payload: ArrayBuffer | string) => {
   if (typeof payload === 'string') return payload
-  if (payload instanceof Blob) return payload.text()
   return new TextDecoder().decode(payload)
 }
 
@@ -231,16 +219,20 @@ const connectTaskSocket = (task: DockerTaskInfo) => {
   closeSocket()
   if (!task.id) return
 
+  const socketUrl = buildTaskSocketUrl(task)
+  if (!socketUrl) {
+    terminal?.writeln('\x1b[31m缺少任务 WS 路径\x1b[0m')
+    return
+  }
+
   manualSocketClose = false
-  const nextSocket = new WebSocket(buildTaskSocketUrl(task.id))
+  const nextSocket = new WebSocket(socketUrl)
   socket.value = nextSocket
 
   nextSocket.onmessage = (event) => {
     if (socket.value !== nextSocket) return
-    void decodeSocketPayload(event.data as Blob | ArrayBuffer | string).then((text) => {
-      if (socket.value !== nextSocket || !text) return
-      terminal?.write(text)
-    })
+    const text = decodeSocketPayload(event.data as ArrayBuffer | string)
+    if (text) terminal?.write(text)
   }
 
   nextSocket.onerror = () => {

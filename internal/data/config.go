@@ -220,10 +220,6 @@ func (c *ConfigRepo) DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, er
 	if err != nil {
 		return nil, err
 	}
-	logTail, err := c.getInt32Config(ctx, common.ConfigDockerDefaultLogTail)
-	if err != nil {
-		return nil, err
-	}
 	taskTimeout, err := c.getInt32Config(ctx, common.ConfigDockerTaskTimeoutSeconds)
 	if err != nil {
 		return nil, err
@@ -267,7 +263,6 @@ func (c *ConfigRepo) DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, er
 		ApiVersion:            apiVersion,
 		RequestTimeoutSeconds: requestTimeout,
 		DefaultPlatform:       defaultPlatform,
-		DefaultLogTail:        logTail,
 		TaskTimeoutSeconds:    taskTimeout,
 		RegistryAuths:         authsRaw,
 	}, nil
@@ -283,7 +278,6 @@ func (c *ConfigRepo) UpdateDockerConfig(ctx context.Context, req *v1.DockerConfi
 		common.ConfigDockerEnabled:               strconv.FormatBool(req.Enabled),
 		common.ConfigDockerTLSEnabled:            strconv.FormatBool(req.TlsEnabled),
 		common.ConfigDockerRequestTimeoutSeconds: strconv.FormatInt(int64(req.RequestTimeoutSeconds), 10),
-		common.ConfigDockerDefaultLogTail:        strconv.FormatInt(int64(req.DefaultLogTail), 10),
 		common.ConfigDockerTaskTimeoutSeconds:    strconv.FormatInt(int64(req.TaskTimeoutSeconds), 10),
 		common.ConfigDockerHost:                  req.Host,
 		common.ConfigDockerTLSCAPath:             req.TlsCaPath,

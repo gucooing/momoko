@@ -28,7 +28,6 @@ const (
 	ConfigDockerAPIVersion            ConfigKey = "docker.api_version"
 	ConfigDockerRequestTimeoutSeconds ConfigKey = "docker.request_timeout_seconds"
 	ConfigDockerDefaultPlatform       ConfigKey = "docker.default_platform"
-	ConfigDockerDefaultLogTail        ConfigKey = "docker.default_log_tail"
 	ConfigDockerTaskTimeoutSeconds    ConfigKey = "docker.task_timeout_seconds"
 	ConfigDockerRegistryAuths         ConfigKey = "docker.registry_auths"
 
@@ -81,7 +80,6 @@ var configDefaults = map[ConfigKey]string{
 	ConfigDockerAPIVersion:            "",
 	ConfigDockerRequestTimeoutSeconds: "30",
 	ConfigDockerDefaultPlatform:       "",
-	ConfigDockerDefaultLogTail:        "200",
 	ConfigDockerTaskTimeoutSeconds:    "1800",
 	ConfigDockerRegistryAuths:         "[]",
 

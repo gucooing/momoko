@@ -26,6 +26,7 @@ const (
 	DockerManager_ListDockerTasks_FullMethodName         = "/v1.DockerManager/ListDockerTasks"
 	DockerManager_ListDockerContainers_FullMethodName    = "/v1.DockerManager/ListDockerContainers"
 	DockerManager_GetDockerContainer_FullMethodName      = "/v1.DockerManager/GetDockerContainer"
+	DockerManager_GetDockerContainerStats_FullMethodName = "/v1.DockerManager/GetDockerContainerStats"
 	DockerManager_CreateDockerContainer_FullMethodName   = "/v1.DockerManager/CreateDockerContainer"
 	DockerManager_UpdateDockerContainer_FullMethodName   = "/v1.DockerManager/UpdateDockerContainer"
 	DockerManager_RecreateDockerContainer_FullMethodName = "/v1.DockerManager/RecreateDockerContainer"
@@ -37,9 +38,6 @@ const (
 	DockerManager_UnpauseDockerContainer_FullMethodName  = "/v1.DockerManager/UnpauseDockerContainer"
 	DockerManager_RenameDockerContainer_FullMethodName   = "/v1.DockerManager/RenameDockerContainer"
 	DockerManager_DeleteDockerContainer_FullMethodName   = "/v1.DockerManager/DeleteDockerContainer"
-	DockerManager_ContainerLogs_FullMethodName           = "/v1.DockerManager/ContainerLogs"
-	DockerManager_ContainerStats_FullMethodName          = "/v1.DockerManager/ContainerStats"
-	DockerManager_CreateContainerExec_FullMethodName     = "/v1.DockerManager/CreateContainerExec"
 	DockerManager_ListDockerImages_FullMethodName        = "/v1.DockerManager/ListDockerImages"
 	DockerManager_GetDockerImage_FullMethodName          = "/v1.DockerManager/GetDockerImage"
 	DockerManager_PullDockerImage_FullMethodName         = "/v1.DockerManager/PullDockerImage"
@@ -87,6 +85,8 @@ type DockerManagerClient interface {
 	ListDockerContainers(ctx context.Context, in *ListDockerContainersRequest, opts ...grpc.CallOption) (*ListDockerContainersResponse, error)
 	// 获取容器详情
 	GetDockerContainer(ctx context.Context, in *GetDockerContainerRequest, opts ...grpc.CallOption) (*GetDockerContainerResponse, error)
+	// 获取容器统计
+	GetDockerContainerStats(ctx context.Context, in *GetDockerContainerStatsRequest, opts ...grpc.CallOption) (*GetDockerContainerStatsResponse, error)
 	// 创建容器
 	CreateDockerContainer(ctx context.Context, in *CreateDockerContainerRequest, opts ...grpc.CallOption) (*CreateDockerContainerResponse, error)
 	// 更新容器可变配置
@@ -109,12 +109,6 @@ type DockerManagerClient interface {
 	RenameDockerContainer(ctx context.Context, in *RenameDockerContainerRequest, opts ...grpc.CallOption) (*RenameDockerContainerResponse, error)
 	// 删除容器
 	DeleteDockerContainer(ctx context.Context, in *DeleteDockerContainerRequest, opts ...grpc.CallOption) (*DeleteDockerContainerResponse, error)
-	// 获取容器日志
-	ContainerLogs(ctx context.Context, in *ContainerLogsRequest, opts ...grpc.CallOption) (*ContainerLogsResponse, error)
-	// 获取容器资源状态
-	ContainerStats(ctx context.Context, in *ContainerStatsRequest, opts ...grpc.CallOption) (*ContainerStatsResponse, error)
-	// 创建容器执行会话
-	CreateContainerExec(ctx context.Context, in *CreateContainerExecRequest, opts ...grpc.CallOption) (*CreateContainerExecResponse, error)
 	// 获取镜像列表
 	ListDockerImages(ctx context.Context, in *ListDockerImagesRequest, opts ...grpc.CallOption) (*ListDockerImagesResponse, error)
 	// 获取镜像详情
@@ -245,6 +239,16 @@ func (c *dockerManagerClient) GetDockerContainer(ctx context.Context, in *GetDoc
 	return out, nil
 }
 
+func (c *dockerManagerClient) GetDockerContainerStats(ctx context.Context, in *GetDockerContainerStatsRequest, opts ...grpc.CallOption) (*GetDockerContainerStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDockerContainerStatsResponse)
+	err := c.cc.Invoke(ctx, DockerManager_GetDockerContainerStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerManagerClient) CreateDockerContainer(ctx context.Context, in *CreateDockerContainerRequest, opts ...grpc.CallOption) (*CreateDockerContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateDockerContainerResponse)
@@ -349,36 +353,6 @@ func (c *dockerManagerClient) DeleteDockerContainer(ctx context.Context, in *Del
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteDockerContainerResponse)
 	err := c.cc.Invoke(ctx, DockerManager_DeleteDockerContainer_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) ContainerLogs(ctx context.Context, in *ContainerLogsRequest, opts ...grpc.CallOption) (*ContainerLogsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ContainerLogsResponse)
-	err := c.cc.Invoke(ctx, DockerManager_ContainerLogs_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) ContainerStats(ctx context.Context, in *ContainerStatsRequest, opts ...grpc.CallOption) (*ContainerStatsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ContainerStatsResponse)
-	err := c.cc.Invoke(ctx, DockerManager_ContainerStats_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) CreateContainerExec(ctx context.Context, in *CreateContainerExecRequest, opts ...grpc.CallOption) (*CreateContainerExecResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateContainerExecResponse)
-	err := c.cc.Invoke(ctx, DockerManager_CreateContainerExec_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -655,6 +629,8 @@ type DockerManagerServer interface {
 	ListDockerContainers(context.Context, *ListDockerContainersRequest) (*ListDockerContainersResponse, error)
 	// 获取容器详情
 	GetDockerContainer(context.Context, *GetDockerContainerRequest) (*GetDockerContainerResponse, error)
+	// 获取容器统计
+	GetDockerContainerStats(context.Context, *GetDockerContainerStatsRequest) (*GetDockerContainerStatsResponse, error)
 	// 创建容器
 	CreateDockerContainer(context.Context, *CreateDockerContainerRequest) (*CreateDockerContainerResponse, error)
 	// 更新容器可变配置
@@ -677,12 +653,6 @@ type DockerManagerServer interface {
 	RenameDockerContainer(context.Context, *RenameDockerContainerRequest) (*RenameDockerContainerResponse, error)
 	// 删除容器
 	DeleteDockerContainer(context.Context, *DeleteDockerContainerRequest) (*DeleteDockerContainerResponse, error)
-	// 获取容器日志
-	ContainerLogs(context.Context, *ContainerLogsRequest) (*ContainerLogsResponse, error)
-	// 获取容器资源状态
-	ContainerStats(context.Context, *ContainerStatsRequest) (*ContainerStatsResponse, error)
-	// 创建容器执行会话
-	CreateContainerExec(context.Context, *CreateContainerExecRequest) (*CreateContainerExecResponse, error)
 	// 获取镜像列表
 	ListDockerImages(context.Context, *ListDockerImagesRequest) (*ListDockerImagesResponse, error)
 	// 获取镜像详情
@@ -764,6 +734,9 @@ func (UnimplementedDockerManagerServer) ListDockerContainers(context.Context, *L
 func (UnimplementedDockerManagerServer) GetDockerContainer(context.Context, *GetDockerContainerRequest) (*GetDockerContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDockerContainer not implemented")
 }
+func (UnimplementedDockerManagerServer) GetDockerContainerStats(context.Context, *GetDockerContainerStatsRequest) (*GetDockerContainerStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDockerContainerStats not implemented")
+}
 func (UnimplementedDockerManagerServer) CreateDockerContainer(context.Context, *CreateDockerContainerRequest) (*CreateDockerContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateDockerContainer not implemented")
 }
@@ -796,15 +769,6 @@ func (UnimplementedDockerManagerServer) RenameDockerContainer(context.Context, *
 }
 func (UnimplementedDockerManagerServer) DeleteDockerContainer(context.Context, *DeleteDockerContainerRequest) (*DeleteDockerContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteDockerContainer not implemented")
-}
-func (UnimplementedDockerManagerServer) ContainerLogs(context.Context, *ContainerLogsRequest) (*ContainerLogsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ContainerLogs not implemented")
-}
-func (UnimplementedDockerManagerServer) ContainerStats(context.Context, *ContainerStatsRequest) (*ContainerStatsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ContainerStats not implemented")
-}
-func (UnimplementedDockerManagerServer) CreateContainerExec(context.Context, *CreateContainerExecRequest) (*CreateContainerExecResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateContainerExec not implemented")
 }
 func (UnimplementedDockerManagerServer) ListDockerImages(context.Context, *ListDockerImagesRequest) (*ListDockerImagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListDockerImages not implemented")
@@ -1028,6 +992,24 @@ func _DockerManager_GetDockerContainer_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerManager_GetDockerContainerStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDockerContainerStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerManagerServer).GetDockerContainerStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DockerManager_GetDockerContainerStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerManagerServer).GetDockerContainerStats(ctx, req.(*GetDockerContainerStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerManager_CreateDockerContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateDockerContainerRequest)
 	if err := dec(in); err != nil {
@@ -1222,60 +1204,6 @@ func _DockerManager_DeleteDockerContainer_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DockerManagerServer).DeleteDockerContainer(ctx, req.(*DeleteDockerContainerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_ContainerLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ContainerLogsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).ContainerLogs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_ContainerLogs_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).ContainerLogs(ctx, req.(*ContainerLogsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_ContainerStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ContainerStatsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).ContainerStats(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_ContainerStats_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).ContainerStats(ctx, req.(*ContainerStatsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_CreateContainerExec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateContainerExecRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).CreateContainerExec(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_CreateContainerExec_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).CreateContainerExec(ctx, req.(*CreateContainerExecRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1766,6 +1694,10 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DockerManager_GetDockerContainer_Handler,
 		},
 		{
+			MethodName: "GetDockerContainerStats",
+			Handler:    _DockerManager_GetDockerContainerStats_Handler,
+		},
+		{
 			MethodName: "CreateDockerContainer",
 			Handler:    _DockerManager_CreateDockerContainer_Handler,
 		},
@@ -1808,18 +1740,6 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteDockerContainer",
 			Handler:    _DockerManager_DeleteDockerContainer_Handler,
-		},
-		{
-			MethodName: "ContainerLogs",
-			Handler:    _DockerManager_ContainerLogs_Handler,
-		},
-		{
-			MethodName: "ContainerStats",
-			Handler:    _DockerManager_ContainerStats_Handler,
-		},
-		{
-			MethodName: "CreateContainerExec",
-			Handler:    _DockerManager_CreateContainerExec_Handler,
 		},
 		{
 			MethodName: "ListDockerImages",

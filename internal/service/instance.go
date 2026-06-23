@@ -311,7 +311,7 @@ func (i *InstanceService) InstanceFilePreSignUpload(ctx context.Context, req *v1
 // RunTerminalWsConn 启动终端连接
 func (i *InstanceService) RunTerminalWsConn(conn *websocket.Conn) {
 	defer conn.Close()
-	ctx := conn.Request().Context()
+	ctx := context.WithoutCancel(conn.Request().Context())
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {
 		websocket.Message.Send(conn, "缺少参数")
@@ -328,13 +328,14 @@ func (i *InstanceService) RunTerminalWsConn(conn *websocket.Conn) {
 // RunInstanceWsConn 启动应用连接
 func (i *InstanceService) RunInstanceWsConn(conn *websocket.Conn) {
 	defer conn.Close()
-	ctx := conn.Request().Context()
+	req := conn.Request()
+	ctx := context.WithoutCancel(req.Context())
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {
 		websocket.Message.Send(conn, "缺少参数")
 		return
 	}
-	instanceId := conn.Request().URL.Query().Get("instanceID")
+	instanceId := req.URL.Query().Get("instanceID")
 	core, err := i.uc.GetInstanceCore(ctx, authCtx.UserID, instanceId)
 	if err != nil {
 		websocket.Message.Send(conn, err.Error())

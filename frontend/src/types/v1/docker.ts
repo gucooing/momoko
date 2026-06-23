@@ -8,6 +8,57 @@
 
 export const protobufPackage = "v1";
 
+/** Docker任务类型 */
+export enum DockerTaskType {
+  /** DOCKER_TASK_TYPE_UNKNOWN - 未知 */
+  DOCKER_TASK_TYPE_UNKNOWN = "DOCKER_TASK_TYPE_UNKNOWN",
+  /** DOCKER_TASK_TYPE_CONTAINER_RECREATE - 重建容器 */
+  DOCKER_TASK_TYPE_CONTAINER_RECREATE = "DOCKER_TASK_TYPE_CONTAINER_RECREATE",
+  /** DOCKER_TASK_TYPE_IMAGE_PULL - 拉取镜像 */
+  DOCKER_TASK_TYPE_IMAGE_PULL = "DOCKER_TASK_TYPE_IMAGE_PULL",
+  /** DOCKER_TASK_TYPE_NETWORK_RECREATE - 重建网络 */
+  DOCKER_TASK_TYPE_NETWORK_RECREATE = "DOCKER_TASK_TYPE_NETWORK_RECREATE",
+  /** DOCKER_TASK_TYPE_NETWORK_PRUNE - 清理网络 */
+  DOCKER_TASK_TYPE_NETWORK_PRUNE = "DOCKER_TASK_TYPE_NETWORK_PRUNE",
+  /** DOCKER_TASK_TYPE_VOLUME_RECREATE - 重建储存卷 */
+  DOCKER_TASK_TYPE_VOLUME_RECREATE = "DOCKER_TASK_TYPE_VOLUME_RECREATE",
+  /** DOCKER_TASK_TYPE_VOLUME_PRUNE - 清理储存卷 */
+  DOCKER_TASK_TYPE_VOLUME_PRUNE = "DOCKER_TASK_TYPE_VOLUME_PRUNE",
+  /** DOCKER_TASK_TYPE_VOLUME_EXPORT - 导出储存卷 */
+  DOCKER_TASK_TYPE_VOLUME_EXPORT = "DOCKER_TASK_TYPE_VOLUME_EXPORT",
+  /** DOCKER_TASK_TYPE_VOLUME_RESTORE - 恢复储存卷 */
+  DOCKER_TASK_TYPE_VOLUME_RESTORE = "DOCKER_TASK_TYPE_VOLUME_RESTORE",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
+/** Docker任务状态 */
+export enum DockerTaskStatus {
+  /** DOCKER_TASK_STATUS_UNKNOWN - 未知 */
+  DOCKER_TASK_STATUS_UNKNOWN = "DOCKER_TASK_STATUS_UNKNOWN",
+  /** DOCKER_TASK_STATUS_PENDING - 等待中 */
+  DOCKER_TASK_STATUS_PENDING = "DOCKER_TASK_STATUS_PENDING",
+  /** DOCKER_TASK_STATUS_RUNNING - 运行中 */
+  DOCKER_TASK_STATUS_RUNNING = "DOCKER_TASK_STATUS_RUNNING",
+  /** DOCKER_TASK_STATUS_SUCCESS - 成功 */
+  DOCKER_TASK_STATUS_SUCCESS = "DOCKER_TASK_STATUS_SUCCESS",
+  /** DOCKER_TASK_STATUS_FAILED - 失败 */
+  DOCKER_TASK_STATUS_FAILED = "DOCKER_TASK_STATUS_FAILED",
+  /** DOCKER_TASK_STATUS_CANCELED - 已取消 */
+  DOCKER_TASK_STATUS_CANCELED = "DOCKER_TASK_STATUS_CANCELED",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
+/** Docker块IO操作 */
+export enum DockerBlkioOperation {
+  /** DOCKER_BLKIO_OPERATION_UNKNOWN - 未知 */
+  DOCKER_BLKIO_OPERATION_UNKNOWN = "DOCKER_BLKIO_OPERATION_UNKNOWN",
+  /** DOCKER_BLKIO_OPERATION_READ - 读取 */
+  DOCKER_BLKIO_OPERATION_READ = "DOCKER_BLKIO_OPERATION_READ",
+  /** DOCKER_BLKIO_OPERATION_WRITE - 写入 */
+  DOCKER_BLKIO_OPERATION_WRITE = "DOCKER_BLKIO_OPERATION_WRITE",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** Docker连接状态请求 */
 export interface DockerStatusRequest {
 }
@@ -144,8 +195,6 @@ export interface DockerConfigInfo {
   requestTimeoutSeconds: number;
   /** 默认平台 */
   defaultPlatform: string;
-  /** 默认日志行数 */
-  defaultLogTail: number;
   /** 任务超时秒数 */
   taskTimeoutSeconds: number;
   /** 仓库认证配置 */
@@ -179,9 +228,9 @@ export interface DockerTaskInfo {
   /** 任务ID */
   id: string;
   /** 任务类型 */
-  type: string;
+  type: DockerTaskType;
   /** 任务状态 */
-  status: string;
+  status: DockerTaskStatus;
   /** 进度信息 */
   progress: string;
   /** 消息 */
@@ -200,6 +249,8 @@ export interface DockerTaskInfo {
     | undefined;
   /** 标题 */
   title: string;
+  /** WebSocket路径 */
+  wsPath: string;
 }
 
 /** 获取容器列表请求 */
@@ -245,6 +296,86 @@ export interface GetDockerContainerRequest {
 export interface GetDockerContainerResponse {
   /** 容器详情 */
   info: DockerContainerInfo | undefined;
+}
+
+/** 获取容器统计请求 */
+export interface GetDockerContainerStatsRequest {
+  /** 容器ID或名称 */
+  id: string;
+}
+
+/** 获取容器统计响应 */
+export interface GetDockerContainerStatsResponse {
+  /** 容器统计 */
+  stats: DockerContainerStats | undefined;
+}
+
+/** 容器统计 */
+export interface DockerContainerStats {
+  /** CPU统计 */
+  cpuStats:
+    | DockerCPUStats
+    | undefined;
+  /** 上一次CPU统计 */
+  precpuStats:
+    | DockerCPUStats
+    | undefined;
+  /** 内存统计 */
+  memoryStats:
+    | DockerMemoryStats
+    | undefined;
+  /** 网络统计 */
+  networks: DockerNetworkStats[];
+  /** 块IO统计 */
+  blkioStats: DockerBlkioStats | undefined;
+}
+
+/** CPU统计 */
+export interface DockerCPUStats {
+  /** CPU用量 */
+  cpuUsage:
+    | DockerCPUUsage
+    | undefined;
+  /** 系统CPU用量 */
+  systemCpuUsage: number;
+  /** 在线CPU数量 */
+  onlineCpus: number;
+}
+
+/** CPU用量 */
+export interface DockerCPUUsage {
+  /** 总用量 */
+  totalUsage: number;
+}
+
+/** 内存统计 */
+export interface DockerMemoryStats {
+  /** 当前用量 */
+  usage: number;
+  /** 限制 */
+  limit: number;
+}
+
+/** 网络统计 */
+export interface DockerNetworkStats {
+  /** 接收字节 */
+  rxBytes: number;
+  /** 发送字节 */
+  txBytes: number;
+}
+
+/** 块IO统计 */
+export interface DockerBlkioStats {
+  /** 递归IO服务字节数 */
+  ioServiceBytesRecursive: DockerBlkioEntry[];
+}
+
+/** 块IO统计项 */
+export interface DockerBlkioEntry {
+  /** 操作 */
+  op: DockerBlkioOperation;
+  /** 数值 */
+  value: number;
 }
 
 /** 创建容器请求 */
@@ -413,66 +544,6 @@ export interface DeleteDockerContainerRequest {
 export interface DeleteDockerContainerResponse {
 }
 
-/** 获取容器日志请求 */
-export interface ContainerLogsRequest {
-  /** 容器ID或名称 */
-  id: string;
-  /** 是否显示stdout */
-  stdout: boolean;
-  /** 是否显示stderr */
-  stderr: boolean;
-  /** 起始时间 */
-  since: string;
-  /** 结束时间 */
-  until: string;
-  /** 是否显示时间戳 */
-  timestamps: boolean;
-  /** 尾部行数 */
-  tail: string;
-  /** 是否显示详情 */
-  details: boolean;
-}
-
-/** 获取容器日志响应 */
-export interface ContainerLogsResponse {
-  /** 日志内容 */
-  logs: string;
-}
-
-/** 获取容器资源状态请求 */
-export interface ContainerStatsRequest {
-  /** 容器ID或名称 */
-  id: string;
-}
-
-/** 获取容器资源状态响应 */
-export interface ContainerStatsResponse {
-  /** 原始状态JSON */
-  json: string;
-}
-
-/** 创建容器执行会话请求 */
-export interface CreateContainerExecRequest {
-  /** 容器ID或名称 */
-  containerId: string;
-  /** 执行命令 */
-  cmd: string[];
-  /** 环境变量 */
-  env: string[];
-  /** 用户 */
-  user: string;
-  /** 工作目录 */
-  workingDir: string;
-  /** 是否开启TTY */
-  tty: boolean;
-}
-
-/** 创建容器执行会话响应 */
-export interface CreateContainerExecResponse {
-  /** 执行会话ID */
-  execId: string;
-}
-
 /** 容器创建参数 */
 export interface DockerContainerCreateOptions {
   /** 容器名称 */
@@ -560,11 +631,21 @@ export interface DockerContainerSummary {
   networkMode: string;
   /** 网络 */
   networks: string[];
+  /** 网络端点 */
+  networkEndpoints: DockerContainerNetworkEndpoint[];
 }
 
 export interface DockerContainerSummary_LabelsEntry {
   key: string;
   value: string;
+}
+
+/** 容器网络端点摘要 */
+export interface DockerContainerNetworkEndpoint {
+  /** 网络名称 */
+  name: string;
+  /** IPv4地址 */
+  ipAddress: string;
 }
 
 /** 容器详情 */
@@ -589,15 +670,15 @@ export interface DockerContainerInfo {
     | undefined;
   /** 容器配置 */
   config:
-    | { [key: string]: any }
+    | DockerContainerConfig
     | undefined;
   /** 主机配置 */
   hostConfig:
-    | { [key: string]: any }
+    | DockerContainerHostConfig
     | undefined;
   /** 网络配置 */
   network:
-    | { [key: string]: any }
+    | DockerContainerNetworkSettings
     | undefined;
   /** 挂载点 */
   mounts: DockerMountPoint[];
@@ -609,6 +690,63 @@ export interface DockerContainerInfo {
   driver: string;
   /** 日志路径 */
   logPath: string;
+  /** 日志WebSocket路径 */
+  logsWsPath: string;
+  /** Exec WebSocket路径 */
+  execWsPath: string;
+}
+
+/** 容器配置 */
+export interface DockerContainerConfig {
+  /** 镜像 */
+  image: string;
+  /** 环境变量 */
+  env: string[];
+}
+
+/** 容器主机配置 */
+export interface DockerContainerHostConfig {
+  /** 网络模式 */
+  networkMode: string;
+  /** 重启策略 */
+  restartPolicy: string;
+  /** 是否自动删除 */
+  autoRemove: boolean;
+  /** 是否特权模式 */
+  privileged: boolean;
+  /** 端口绑定 */
+  portBindings: DockerPortBinding[];
+  /** 挂载 */
+  mounts: DockerMount[];
+  /** 内存限制 */
+  memory: number;
+  /** CPU配额 */
+  cpuQuota: number;
+  /** CPU周期 */
+  cpuPeriod: number;
+  /** Nano CPU数量 */
+  nanoCpus: number;
+}
+
+/** 容器网络配置 */
+export interface DockerContainerNetworkSettings {
+  /** 网络端点 */
+  networks: { [key: string]: DockerEndpointSettings };
+}
+
+export interface DockerContainerNetworkSettings_NetworksEntry {
+  key: string;
+  value: DockerEndpointSettings | undefined;
+}
+
+/** 容器网络端点 */
+export interface DockerEndpointSettings {
+  /** IPv4地址 */
+  ipAddress: string;
+  /** 网关 */
+  gateway: string;
+  /** MAC地址 */
+  macAddress: string;
 }
 
 /** 容器状态 */
