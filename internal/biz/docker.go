@@ -5,6 +5,7 @@ import (
 	"io"
 
 	containertypes "github.com/docker/docker/api/types/container"
+	"github.com/go-kratos/kratos/v2/log"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/pkg/constant"
@@ -31,7 +32,10 @@ func NewDockerUsecase(sys *SystemUsecase, config ConfigRepo) (*DockerUsecase, er
 	}
 	manager, err := dockerpkg.NewManager(cfg)
 	if err != nil {
-		return nil, err
+		// Docker 客户端初始化失败不应阻断服务启动，否则一份无法连接的持久化配置
+		// （如启用了 TLS 却缺少证书路径）会导致整个面板无法启动且无界面可修复。
+		// 此处以降级状态启动，运行时可通过 Docker 状态/配置页面查看并修正。
+		log.Errorf("初始化 Docker 管理器失败，已降级启动: %v", err)
 	}
 	return &DockerUsecase{sys: sys, config: config, docker: manager}, nil
 }

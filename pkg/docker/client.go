@@ -40,6 +40,9 @@ type Manager struct {
 	tasks  *taskRunner
 }
 
+// NewManager 创建 Docker 管理器。当 Docker 已启用但客户端初始化失败时（如 TLS 证书路径缺失、
+// Host 非法），返回的 *Manager 仍然可用，处于未连接的降级状态；同时返回错误供调用方决定是否降级启动，
+// 而不应据此中断整个服务。
 func NewManager(cfg *v1.DockerConfigInfo) (*Manager, error) {
 	m := &Manager{
 		cfg:   cfg,
