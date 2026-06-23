@@ -14,6 +14,7 @@ import type {
 import { buildLoginRoute } from '@/utils/authRedirect'
 import { resolveAvatarUrl } from '@/utils/assets'
 import type { UserInfo } from '@/types/v1/user'
+import { translate } from '@/locales'
 
 export const useUserStore = defineStore('user', () => {
   const defaultAvatarImg = ref(defaultAvatarSvg)
@@ -27,7 +28,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     userInfo.value = nextUser
-    userInfo.value.bio = userInfo.value.bio || '这个人很懒，什么都没留下~'
+    userInfo.value.bio = userInfo.value.bio || translate('user.defaultBio')
 
     if (!userInfo.value.avatar) {
       userInfo.value.avatar = defaultAvatarImg.value
@@ -40,7 +41,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const getUserRoleName = () => {
-    return userInfo.value?.roleName || '无权限'
+    return userInfo.value?.roleName || translate('user.noPermission')
   }
 
   const resolvedUserAvatar = computed(() => {
@@ -49,7 +50,7 @@ export const useUserStore = defineStore('user', () => {
 
   const updateCurrentUser = async (payload: UserProfileFormValue) => {
     if (!userInfo.value?.userId) {
-      throw new Error('当前用户信息缺失')
+      throw new Error(translate('user.currentUserMissing'))
     }
 
     const { data } = await updateMeRequest(payload)
@@ -97,7 +98,7 @@ export const useUserStore = defineStore('user', () => {
 
   const updateUserProfile = async (data: UserProfileFormValue) => {
     await updateCurrentUser(data)
-    ElMessage.success('修改个人资料成功')
+    ElMessage.success(translate('user.profileUpdateSuccess'))
   }
 
   const logoutLocal = (options?: { forceReload?: boolean; redirectPath?: string }) => {
@@ -117,7 +118,7 @@ export const useUserStore = defineStore('user', () => {
       oldPassword: data.oldPassword,
       newPassword: data.newPassword,
     })
-    ElMessage.success('修改密码成功,即将重新登录')
+    ElMessage.success(translate('user.passwordUpdateSuccessRelogin'))
     setTimeout(logoutLocal, 1000)
   }
 

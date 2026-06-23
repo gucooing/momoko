@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RefreshLeft, RefreshRight, ZoomIn, ZoomOut } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FileMediaDialogContent' })
 
@@ -9,6 +10,7 @@ const props = defineProps<{
   kind: FileMediaKind
   objectUrl: string
 }>()
+const { t } = useI18n()
 
 const isImage = computed(() => props.kind === 'image')
 const isAudio = computed(() => props.kind === 'audio')
@@ -90,20 +92,22 @@ watch(() => props.objectUrl, () => {
   <section class="file-media-content" :class="[`is-${props.kind}`]">
     <template v-if="isImage">
       <div class="image-toolbar">
-        <button class="image-toolbar-btn" title="放大" @click="zoomIn">
+        <button class="image-toolbar-btn" :title="t('fileManager.zoomIn')" @click="zoomIn">
           <el-icon size="18"><ZoomIn /></el-icon>
         </button>
-        <button class="image-toolbar-btn" title="缩小" @click="zoomOut">
+        <button class="image-toolbar-btn" :title="t('fileManager.zoomOut')" @click="zoomOut">
           <el-icon size="18"><ZoomOut /></el-icon>
         </button>
-        <button class="image-toolbar-btn" title="逆时针旋转" @click="rotateLeft">
+        <button class="image-toolbar-btn" :title="t('fileManager.rotateLeft')" @click="rotateLeft">
           <el-icon size="18"><RefreshLeft /></el-icon>
         </button>
-        <button class="image-toolbar-btn" title="顺时针旋转" @click="rotateRight">
+        <button class="image-toolbar-btn" :title="t('fileManager.rotateRight')" @click="rotateRight">
           <el-icon size="18"><RefreshRight /></el-icon>
         </button>
         <span class="image-toolbar-info">{{ Math.round(scale * 100) }}% | {{ rotation }}°</span>
-        <button class="image-toolbar-btn image-toolbar-reset" title="重置" @click="reset">重置</button>
+        <button class="image-toolbar-btn image-toolbar-reset" :title="t('common.reset')" @click="reset">
+          {{ t('common.reset') }}
+        </button>
       </div>
       <div
         class="image-viewer"

@@ -2,13 +2,13 @@
   <div class="instance-list-page">
     <OverviewStats :cards="summaryCards" />
 
-    <BaseCard title="实例列表" title-icon="HOutline:ServerStackIcon">
+    <BaseCard :title="t('instance.listTitle')" title-icon="HOutline:ServerStackIcon">
       <div v-loading="loading">
         <div class="list-toolbar">
           <div class="toolbar-filters">
             <el-input
               :model-value="queryForm.keyword"
-              placeholder="搜索实例名 / 标签"
+              :placeholder="t('instance.searchPlaceholder')"
               clearable
               style="width: 180px"
               @update:model-value="(v: string) => queryForm.keyword = v"
@@ -16,7 +16,7 @@
             />
             <el-select
               :model-value="queryForm.type"
-              placeholder="类型"
+              :placeholder="t('common.type')"
               clearable
               style="width: 130px"
               @update:model-value="(v: string) => queryForm.type = v"
@@ -25,39 +25,39 @@
             </el-select>
             <el-select
               :model-value="queryForm.status"
-              placeholder="状态"
+              :placeholder="t('common.status')"
               clearable
               style="width: 110px"
               @update:model-value="(v: any) => queryForm.status = v"
             >
               <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
-            <el-button type="primary" size="small" @click="applyFilters">搜索</el-button>
-            <el-button size="small" @click="resetFilters">重置</el-button>
+            <el-button type="primary" size="small" @click="applyFilters">{{ t('common.search') }}</el-button>
+            <el-button size="small" @click="resetFilters">{{ t('common.reset') }}</el-button>
           </div>
 
           <div class="toolbar-actions">
-            <span v-if="selectedIds.length" class="selection-text">已选 {{ selectedIds.length }} 项</span>
+            <span v-if="selectedIds.length" class="selection-text">{{ t('instance.selectedItems', { count: selectedIds.length }) }}</span>
             <el-button
               type="primary"
               :icon="menuStore.iconComponents['HOutline:PlusCircleIcon']"
               @click="handleOpenCreateEditor"
             >
-              新建
+              {{ t('common.create') }}
             </el-button>
             <el-button
               :icon="menuStore.iconComponents['HOutline:PlayIcon']"
               :disabled="!canBatchStart"
               @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
             >
-              批量启动
+              {{ t('instance.batchStart') }}
             </el-button>
             <el-button
               :icon="menuStore.iconComponents['HOutline:StopIcon']"
               :disabled="!canBatchStop"
               @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
             >
-              批量停止
+              {{ t('instance.batchStop') }}
             </el-button>
             <el-button
               type="danger"
@@ -65,13 +65,13 @@
               :disabled="!canBatchDelete"
               @click="handleBatchDelete"
             >
-              批量删除
+              {{ t('instance.batchDelete') }}
             </el-button>
             <el-button link @click="toggleCurrentPageSelection">
-              {{ isCurrentPageAllSelected ? '取消全选' : '全选当前页' }}
+              {{ isCurrentPageAllSelected ? t('instance.deselectAll') : t('instance.selectCurrentPage') }}
             </el-button>
             <el-button link :icon="menuStore.iconComponents['HOutline:ArrowPathRoundedSquareIcon']" @click="handleRefreshStatus">
-              刷新
+              {{ t('common.refresh') }}
             </el-button>
           </div>
         </div>
@@ -93,7 +93,7 @@
             />
           </div>
 
-          <el-empty v-else key="instance-empty" description="暂无匹配实例" />
+          <el-empty v-else key="instance-empty" :description="t('instance.noMatchedInstances')" />
         </Transition>
 
         <div class="instance-pagination">
@@ -138,6 +138,7 @@ import { showRequestError } from '@/utils/request'
 import InstanceCard from '@/views/instance/list/instanceCard.vue'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
 import OverviewStats from '@/views/instance/list/overviewStats.vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ListView' })
 
@@ -145,6 +146,7 @@ const menuStore = useMenuStore()
 const router = useRouter()
 const instanceListStore = useInstanceListStore()
 const userStore = useUserStore()
+const { t } = useI18n()
 const INSTANCE_PAGE_SIZES = [9, 18, 27]
 
 const currentUserId = computed(() => userStore.userInfo?.userId?.trim() || '')
@@ -205,7 +207,7 @@ const openInstanceFileManager = (
   router.push({
     path: `/instance/files/${item.id}`,
     query: {
-      tabTitle: `${item.name} 文件`,
+      tabTitle: t('instance.instanceFileTab', { name: item.name }),
       from: 'instance',
       status: item.status,
       workdir: item.instancePath,
@@ -221,7 +223,7 @@ const handleOpenEditEditor = async (instanceId: string) => {
   try {
     await openEditEditor(instanceId)
   } catch (error) {
-    showRequestError(error, '加载实例配置失败')
+    showRequestError(error, t('instance.loadConfigFailed'))
   }
 }
 
@@ -234,16 +236,18 @@ const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
   try {
     instanceEditorForm.value = { ...form }
     await submitInstanceEditor()
-    ElMessage.success(mode === 'create' ? '实例创建成功' : '实例配置保存成功')
+    ElMessage.success(mode === 'create' ? t('instance.createSuccess') : t('instance.configSaveSuccess'))
   } catch (error) {
-    showRequestError(error, mode === 'create' ? '实例创建失败' : '实例配置保存失败')
+    showRequestError(error, mode === 'create' ? t('instance.createFailed') : t('instance.configSaveFailed'))
   }
 }
 
 const handleRefreshStatus = async () => {
   await refreshStatus()
-  ElMessage.success('实例状态已刷新')
+  ElMessage.success(t('instance.statusRefreshed'))
 }
+
+const failedSuffix = (count: number) => count ? t('instance.failedCountSuffix', { count }) : ''
 
 const executeBatchChangeStatus = async (
   targetStatus:
@@ -255,8 +259,8 @@ const executeBatchChangeStatus = async (
   if (!successCount && failedCount) return
   ElMessage.success(
     targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING
-      ? `已批量启动 ${successCount} 个实例${failedCount ? `，失败 ${failedCount} 个` : ''}`
-      : `已批量停止 ${successCount} 个实例${failedCount ? `，失败 ${failedCount} 个` : ''}`,
+      ? t('instance.batchStartSuccess', { success: successCount, failed: failedSuffix(failedCount) })
+      : t('instance.batchStopSuccess', { success: successCount, failed: failedSuffix(failedCount) }),
   )
 }
 
@@ -268,10 +272,10 @@ const handleBatchChangeStatus = async (
   if (!selectedIds.value.length) return
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
-      title: '确认批量停止实例',
-      content: `确定要停止当前选中的 ${selectedIds.value.length} 个实例吗？`,
-      cancelText: '取消',
-      confirmText: '确认停止',
+      title: t('instance.confirmBatchStopTitle'),
+      content: t('instance.confirmBatchStopContent', { count: selectedIds.value.length }),
+      cancelText: t('common.cancel'),
+      confirmText: t('instance.confirmStop'),
       onConfirm: async () => { await executeBatchChangeStatus(targetStatus) },
     })
     return
@@ -288,7 +292,7 @@ const executeChangeInstanceStatus = async (
   const success = await changeInstanceStatus(id, targetStatus)
   if (!success) return
   ElMessage.success(
-    targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING ? '实例已启动' : '实例已停止',
+    targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING ? t('instance.instanceStarted') : t('instance.instanceStopped'),
   )
 }
 
@@ -302,10 +306,10 @@ const handleChangeInstanceStatus = async (
   if (!current) return
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
-      title: '确认停止实例',
-      content: `确定要停止实例「${current.name}」吗？`,
-      cancelText: '取消',
-      confirmText: '确认停止',
+      title: t('instance.confirmStopInstanceTitle'),
+      content: t('instance.confirmStopInstanceContent', { name: current.name }),
+      cancelText: t('common.cancel'),
+      confirmText: t('instance.confirmStop'),
       onConfirm: async () => { await executeChangeInstanceStatus(id, targetStatus) },
     })
     return
@@ -315,14 +319,14 @@ const handleChangeInstanceStatus = async (
 
 const handleBatchDelete = async () => {
   Dialog.confirm({
-    title: '确认批量删除实例',
-    content: '确定要删除当前选中的实例吗？删除后不可恢复。',
-    cancelText: '取消',
-    confirmText: '确认删除',
+    title: t('instance.confirmBatchDeleteTitle'),
+    content: t('instance.confirmBatchDeleteContent'),
+    cancelText: t('common.cancel'),
+    confirmText: t('common.delete'),
     onConfirm: async () => {
       const { successCount, failedCount } = await batchDeleteInstances()
       if (!successCount && failedCount) return
-      ElMessage.success(`已批量删除 ${successCount} 个实例${failedCount ? `，失败 ${failedCount} 个` : ''}`)
+      ElMessage.success(t('instance.batchDeleteSuccess', { success: successCount, failed: failedSuffix(failedCount) }))
     },
   })
 }
@@ -333,14 +337,14 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
 
   if (action === 'forceRestart') {
     Dialog.confirm({
-      title: '确认强制重启实例',
-      content: `确定要强制重启实例「${current.name}」吗？`,
-      cancelText: '取消',
-      confirmText: '确认重启',
+      title: t('instance.confirmForceRestartInstanceTitle'),
+      content: t('instance.confirmForceRestartInstanceContent', { name: current.name }),
+      cancelText: t('common.cancel'),
+      confirmText: t('instance.confirmRestart'),
       onConfirm: async () => {
         const success = await restartInstance(id)
         if (!success) return
-        ElMessage.success('实例强制重启中')
+        ElMessage.success(t('instance.forceRestarting'))
       },
     })
     return
@@ -349,14 +353,14 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
   if (action === 'delete') {
     if (current.userId !== currentUserId.value) return
     Dialog.confirm({
-      title: '确认删除实例',
-      content: `确定要删除实例「${current.name}」吗？删除后不可恢复。`,
-      cancelText: '取消',
-      confirmText: '确认删除',
+      title: t('instance.confirmDeleteInstanceTitle'),
+      content: t('instance.confirmDeleteInstanceContent', { name: current.name }),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.delete'),
       onConfirm: async () => {
         const { successCount, failedCount } = await deleteInstances([id])
         if (!successCount && failedCount) return
-        ElMessage.success(`${current.name} 已删除${failedCount ? `（失败 ${failedCount} 个）` : ''}`)
+        ElMessage.success(t('instance.instanceDeleted', { name: current.name, failed: failedSuffix(failedCount) }))
       },
     })
     return

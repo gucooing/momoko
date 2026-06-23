@@ -7,20 +7,20 @@
           :icon="menuStore.iconComponents.Plus"
           @click="instanceTypeCreateRef?.showDialog()"
         >
-          新增实例类型
+          {{ t('instance.addInstanceType') }}
         </el-button>
         <el-button :icon="menuStore.iconComponents.Refresh" @click="getInstanceTypeList">
-          刷新
+          {{ t('common.refresh') }}
         </el-button>
       </div>
 
       <!-- desktop: table -->
       <VxeGrid v-if="!menuStore.isMobile" v-bind="instanceTypeGridConfig" :loading="loading">
         <template #column-type="{ row }: { row: InstanceTypeInfo }">
-          <BaseTag :type="row.isSystem ? 'warning' : 'success'" :text="row.isSystem ? '内置' : '自定义'" />
+          <BaseTag :type="row.isSystem ? 'warning' : 'success'" :text="row.isSystem ? t('instance.builtIn') : t('instance.custom')" />
         </template>
         <template #column-status="{ row }: { row: InstanceTypeInfo }">
-          <BaseTag :type="row.isEnable ? 'success' : 'danger'" :text="row.isEnable ? '启用' : '禁用'" />
+          <BaseTag :type="row.isEnable ? 'success' : 'danger'" :text="row.isEnable ? t('common.enabled') : t('common.disabled')" />
         </template>
         <template #column-operation="{ row }: { row: InstanceTypeInfo }">
           <template v-if="!row.isSystem">
@@ -30,17 +30,17 @@
               link
               @click="instanceTypeCreateRef?.showDialog(row)"
             >
-              编辑
+              {{ t('common.edit') }}
             </el-button>
             <AdaptiveConfirm
-              title="确定要删除这个实例类型吗？"
+              :title="t('instance.deleteInstanceTypeConfirm')"
               :placement="POPCONFIRM_CONFIG.placement"
               :width="POPCONFIRM_CONFIG.width"
               @confirm="handleDelete(row.id)"
             >
               <template #reference>
                 <el-button type="danger" :icon="menuStore.iconComponents.Delete" link>
-                  删除
+                  {{ t('common.delete') }}
                 </el-button>
               </template>
             </AdaptiveConfirm>
@@ -52,29 +52,29 @@
       <!-- mobile: cards -->
       <div v-else v-loading="loading" class="mobile-card-list">
         <div v-if="!instanceTypeList.length" class="mobile-empty">
-          <el-empty description="暂无数据" />
+          <el-empty :description="t('instance.noInstanceTypeData')" />
         </div>
         <div v-for="row in instanceTypeList" :key="row.id" class="type-card">
           <div class="type-card-header">
             <span class="type-card-name">{{ row.name }}</span>
-            <BaseTag :type="row.isSystem ? 'warning' : 'success'" :text="row.isSystem ? '内置' : '自定义'" />
+            <BaseTag :type="row.isSystem ? 'warning' : 'success'" :text="row.isSystem ? t('instance.builtIn') : t('instance.custom')" />
           </div>
           <div class="type-card-body">
             <span class="type-card-id">{{ row.id }}</span>
-            <BaseTag :type="row.isEnable ? 'success' : 'danger'" :text="row.isEnable ? '启用' : '禁用'" />
+            <BaseTag :type="row.isEnable ? 'success' : 'danger'" :text="row.isEnable ? t('common.enabled') : t('common.disabled')" />
           </div>
           <div v-if="!row.isSystem" class="type-card-footer">
             <el-button type="primary" size="small" plain @click="instanceTypeCreateRef?.showDialog(row)">
-              编辑
+              {{ t('common.edit') }}
             </el-button>
             <AdaptiveConfirm
-              title="确定要删除这个实例类型吗？"
+              :title="t('instance.deleteInstanceTypeConfirm')"
               :placement="POPCONFIRM_CONFIG.placement"
               :width="POPCONFIRM_CONFIG.width"
               @confirm="handleDelete(row.id)"
             >
               <template #reference>
-                <el-button type="danger" size="small" plain>删除</el-button>
+                <el-button type="danger" size="small" plain>{{ t('common.delete') }}</el-button>
               </template>
             </AdaptiveConfirm>
           </div>
@@ -94,11 +94,13 @@ import { useInstanceTypeStore } from '@/stores/instance/type'
 import type { InstanceTypeInfo } from '@/types/v1/instance'
 import InstanceTypeCreate from '@/views/instance/type/create.vue'
 import type { VxeGridProps } from 'vxe-table'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'TypeView' })
 
 const menuStore = useMenuStore()
 const instanceTypeStore = useInstanceTypeStore()
+const { t } = useI18n()
 const instanceTypeCreateRef = useTemplateRef<InstanceType<typeof InstanceTypeCreate> | null>(
   'instanceTypeCreateRef',
 )
@@ -112,18 +114,18 @@ const instanceTypeGridConfig = computed<VxeGridProps>(() => ({
   rowConfig: { isHover: true },
   data: instanceTypeList.value,
   columns: [
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'name', title: '类型名称', minWidth: 220, fixed: 'left' },
-    { field: 'id', title: '类型 ID', minWidth: 260 },
-    { field: 'isSystem', title: '类型', width: 120, slots: { default: 'column-type' } },
-    { field: 'isEnable', title: '状态', width: 120, slots: { default: 'column-status' } },
-    { title: '操作', width: 160, fixed: 'right', slots: { default: 'column-operation' } },
+    { type: 'seq', title: t('instance.serialNumber'), width: 60, fixed: 'left' },
+    { field: 'name', title: t('instance.typeName'), minWidth: 220, fixed: 'left' },
+    { field: 'id', title: t('instance.typeId'), minWidth: 260 },
+    { field: 'isSystem', title: t('common.type'), width: 120, slots: { default: 'column-type' } },
+    { field: 'isEnable', title: t('common.status'), width: 120, slots: { default: 'column-status' } },
+    { title: t('common.operation'), width: 160, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
 const handleDelete = async (id: string) => {
   await deleteTypeById(id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('common.deleteSuccess'))
 }
 
 onMounted(() => {

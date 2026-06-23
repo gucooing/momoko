@@ -3,16 +3,18 @@
   <div class="redirect-container">
     <div class="redirect-loading">
       <img src="@/assets/logo.svg" alt="logo" class="loading-logo" />
-      <div class="loading-text">正在跳转redirect...</div>
+      <div class="loading-text">{{ t('utils.redirecting') }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 defineOptions({ name: 'RedirectComponent' })
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const { params, query, hash } = route
 const path = params.path as string

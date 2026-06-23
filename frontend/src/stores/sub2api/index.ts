@@ -20,6 +20,7 @@ import {
   updateSub2APIConfig,
   updateSub2APITimelineItem,
 } from '@/api/sub2api'
+import { getCurrentLocale, translate as t } from '@/locales'
 import { useThemeStore } from '@/stores/theme'
 import { showRequestError } from '@/utils/request'
 import type {
@@ -56,7 +57,7 @@ const createDefaultConfig = (): Sub2APIConfig => ({
   adminApiKey: '',
   consoleUrl: '',
   title: 'Sub2API',
-  subtitle: '统一订阅转换与模型调用看板',
+  subtitle: t('sub2api.store.defaultSubtitle'),
   introduction: '',
   syncIntervalMinutes: 10,
   historyDays: 30,
@@ -66,14 +67,12 @@ const createDefaultConfig = (): Sub2APIConfig => ({
   srcHostWhitelistEnabled: false,
 })
 
-const numberFormatter = new Intl.NumberFormat('zh-CN')
-
 const toNumber = (value: unknown) => {
   const num = Number(value)
   return Number.isFinite(num) ? num : 0
 }
 
-const emptyChartOption = (text = '暂无数据') => ({
+const emptyChartOption = (text = t('sub2api.store.noData')) => ({
   title: { text, left: 'center', top: 'middle', textStyle: { color: '#94a3b8', fontSize: 13 } },
   xAxis: { show: false },
   yAxis: { show: false },
@@ -124,7 +123,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       applyConfig(data?.config)
       return config.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 配置失败')
+      showRequestError(error, t('sub2api.store.loadConfigFailed'))
     } finally {
       configLoading.value = false
     }
@@ -137,7 +136,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       snapshot.value = data?.snapshot
       return snapshot.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 快照失败')
+      showRequestError(error, t('sub2api.store.loadSnapshotFailed'))
     } finally {
       snapshotLoading.value = false
     }
@@ -150,7 +149,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       home.value = data?.home
       return home.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 首页失败')
+      showRequestError(error, t('sub2api.store.loadHomeFailed'))
     } finally {
       publicLoading.value = false
     }
@@ -163,7 +162,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       stats.value = data?.stats
       return stats.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 统计失败')
+      showRequestError(error, t('sub2api.store.loadStatsFailed'))
     } finally {
       statsLoading.value = false
     }
@@ -177,7 +176,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       adminStats.value = data?.stats
       return adminStats.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 用量统计失败')
+      showRequestError(error, t('sub2api.store.loadAdminStatsFailed'))
     } finally {
       adminStatsLoading.value = false
     }
@@ -198,7 +197,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       recentPage.value = page
       return adminRecent.value
     } catch (error) {
-      showRequestError(error, '获取 Sub2API 最近请求失败')
+      showRequestError(error, t('sub2api.store.loadRecentFailed'))
     } finally {
       recentLoading.value = false
     }
@@ -215,7 +214,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       applyConfig(data?.config)
       return true
     } catch (error) {
-      showRequestError(error, '保存 Sub2API 配置失败')
+      showRequestError(error, t('sub2api.store.saveConfigFailed'))
       return false
     } finally {
       saving.value = false
@@ -228,7 +227,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       const { data } = await testSub2APIConnection({ config: { ...configForm } })
       return data
     } catch (error) {
-      showRequestError(error, '测试 Sub2API 连接失败')
+      showRequestError(error, t('sub2api.store.testConnectionFailed'))
     } finally {
       testing.value = false
     }
@@ -241,7 +240,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       snapshot.value = data?.snapshot
       return true
     } catch (error) {
-      showRequestError(error, '同步 Sub2API 使用记录失败')
+      showRequestError(error, t('sub2api.store.syncFailed'))
       return false
     } finally {
       syncing.value = false
@@ -254,7 +253,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       const { data } = await listSub2APIAnnouncements()
       announcements.value = data?.announcements || []
     } catch (error) {
-      showRequestError(error, '获取公告失败')
+      showRequestError(error, t('sub2api.store.loadAnnouncementsFailed'))
     }
   }
 
@@ -263,7 +262,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       const { data } = await listSub2APITimeline()
       timeline.value = data?.timeline || []
     } catch (error) {
-      showRequestError(error, '获取时间线失败')
+      showRequestError(error, t('sub2api.store.loadTimelineFailed'))
     }
   }
 
@@ -278,7 +277,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       await loadAnnouncements()
       return true
     } catch (error) {
-      showRequestError(error, '保存公告失败')
+      showRequestError(error, t('sub2api.store.saveAnnouncementFailed'))
       return false
     } finally {
       listLoading.value = false
@@ -291,7 +290,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       await loadAnnouncements()
       return true
     } catch (error) {
-      showRequestError(error, '删除公告失败')
+      showRequestError(error, t('sub2api.store.deleteAnnouncementFailed'))
       return false
     }
   }
@@ -307,7 +306,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       await loadTimeline()
       return true
     } catch (error) {
-      showRequestError(error, '保存时间线失败')
+      showRequestError(error, t('sub2api.store.saveTimelineFailed'))
       return false
     } finally {
       listLoading.value = false
@@ -320,13 +319,13 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       await loadTimeline()
       return true
     } catch (error) {
-      showRequestError(error, '删除时间线失败')
+      showRequestError(error, t('sub2api.store.deleteTimelineFailed'))
       return false
     }
   }
 
   // ---------- 格式化 ----------
-  const formatNumber = (value: unknown) => numberFormatter.format(toNumber(value))
+  const formatNumber = (value: unknown) => new Intl.NumberFormat(getCurrentLocale()).format(toNumber(value))
   const formatPercent = (value: unknown) => `${toNumber(value).toFixed(1)}%`
   const formatLatency = (value: unknown) => {
     const ms = toNumber(value)
@@ -343,7 +342,12 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   }
   const formatThroughput = (value: unknown) => {
     const tps = toNumber(value)
-    if (tps >= 10000) return `${(tps / 10000).toFixed(1)}万`
+    if (tps >= 10000) {
+      return new Intl.NumberFormat(getCurrentLocale(), {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }).format(tps)
+    }
     if (tps >= 100) return `${Math.round(tps)}`
     return tps.toFixed(1)
   }
@@ -357,20 +361,20 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   }
   const formatDateTime = (value: DateLike) => {
     if (!value) return '-'
-    const time = dayjs(value)
-    return time.isValid() ? time.format('YYYY-MM-DD HH:mm:ss') : '-'
+    const parsed = dayjs(value)
+    return parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : '-'
   }
 
   const statusText = (value?: string) => {
     switch (value) {
       case 'syncing':
-        return '同步中'
+        return t('sub2api.store.syncing')
       case 'success':
-        return '正常'
+        return t('sub2api.store.normal')
       case 'error':
-        return '异常'
+        return t('sub2api.store.error')
       default:
-        return '待同步'
+        return t('sub2api.store.pendingSync')
     }
   }
   const statusType = (value?: string) => {
@@ -389,23 +393,26 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const buildMetricCards = (data?: Sub2APIUsageSnapshot): Sub2APIMetricCard[] => {
     return [
       {
-        label: 'Token 生成速度',
+        label: t('sub2api.store.tokenSpeed'),
         value: `${formatThroughput(data?.recentTps)} token/s`,
-        detail: '按请求平均 · 不含缓存',
+        detail: t('sub2api.store.requestAverageNoCache'),
         icon: 'HOutline:BoltIcon',
         tone: 'blue',
       },
       {
-        label: '平均延迟',
+        label: t('sub2api.store.averageLatency'),
         value: formatLatency(data?.todayAverageLatencyMs),
-        detail: `全量 ${formatLatency(data?.averageLatencyMs)}`,
+        detail: t('sub2api.store.allLatency', { latency: formatLatency(data?.averageLatencyMs) }),
         icon: 'HOutline:ClockIcon',
         tone: 'amber',
       },
       {
-        label: '今日成功率',
+        label: t('sub2api.store.todaySuccessRate'),
         value: formatPercent(data?.todaySuccessRate),
-        detail: `${formatNumber(data?.todaySuccessCount)} / ${formatNumber(data?.todayRequestCount)} 次`,
+        detail: t('sub2api.store.successTotal', {
+          success: formatNumber(data?.todaySuccessCount),
+          total: formatNumber(data?.todayRequestCount),
+        }),
         icon: 'HOutline:CheckCircleIcon',
         tone: 'green',
       },
@@ -466,7 +473,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       ],
       series: [
         {
-          name: '请求量',
+          name: t('sub2api.common.requestCount'),
           type: 'line',
           yAxisIndex: 2,
           smooth: true,
@@ -482,7 +489,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           data: trend.map((item) => item.tokenCount),
         },
         {
-          name: '成功率',
+          name: t('sub2api.common.successRate'),
           type: 'line',
           yAxisIndex: 1,
           smooth: true,
@@ -493,7 +500,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const topOption = (items: Sub2APITopItem[] = [], title = '请求量') => {
+  const topOption = (items: Sub2APITopItem[] = [], title = t('sub2api.common.requestCount')) => {
     if (!items.length) return emptyChartOption()
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
@@ -510,7 +517,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       },
       yAxis: {
         type: 'category',
-        data: chartItems.map((item) => item.name || '未标记'),
+        data: chartItems.map((item) => item.name || t('sub2api.common.unlabeled')),
         axisLabel: { color: axisColor, fontSize: 11 },
       },
       series: [
@@ -526,15 +533,15 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   }
 
   const adminTrendOption = computed(() => trendOption(adminStats.value?.trend))
-  const adminModelOption = computed(() => topOption(adminStats.value?.models, '模型请求量'))
-  const adminEndpointOption = computed(() => topOption(adminStats.value?.endpoints, '接口请求量'))
+  const adminModelOption = computed(() => topOption(adminStats.value?.models, t('sub2api.common.modelRequestTop')))
+  const adminEndpointOption = computed(() => topOption(adminStats.value?.endpoints, t('sub2api.common.endpointRequestTop')))
   const publicTrendOption = computed(() => trendOption(home.value?.snapshot?.trend))
   const statsTrendOption = computed(() => trendOption(stats.value?.trend))
 
   // 当日“成功率 + 生成速度”随时间移动曲线（time 轴，短时段也能铺满）
   const todaySeriesOption = computed(() => {
     const series = home.value?.snapshot?.todaySeries || []
-    if (!series.length) return emptyChartOption('今日暂无数据')
+    if (!series.length) return emptyChartOption(t('sub2api.store.todayNoData'))
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
     const compact = isCompactChart.value
@@ -553,7 +560,6 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         textStyle: { color: axisColor },
       },
       grid: {
-        // 非紧凑模式额外显示坐标轴名（token/s、成功率、请求数），需为图例与轴名各留一行，避免与顶部图例重叠
         left: compact ? 36 : 48,
         right: compact ? 36 : 78,
         top: compact ? 50 : 58,
@@ -574,7 +580,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         },
         {
           type: 'value',
-          name: compact ? '' : '成功率',
+          name: compact ? '' : t('sub2api.common.successRate'),
           position: 'right',
           max: 100,
           axisLabel: { formatter: '{value}%', color: axisColor, fontSize: 11 },
@@ -582,7 +588,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         },
         {
           type: 'value',
-          name: '请求数',
+          name: t('sub2api.common.requestCount'),
           position: 'right',
           offset: 46,
           show: !compact,
@@ -592,7 +598,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       ],
       series: [
         {
-          name: '成功率',
+          name: t('sub2api.common.successRate'),
           type: 'line',
           yAxisIndex: 1,
           smooth: true,
@@ -601,7 +607,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           data: series.map((p) => [toMs(p.time), Number(toNumber(p.successRate).toFixed(2))]),
         },
         {
-          name: '生成速度',
+          name: t('sub2api.common.generationSpeed'),
           type: 'line',
           yAxisIndex: 0,
           smooth: true,
@@ -609,7 +615,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           data: series.map((p) => [toMs(p.time), Number(toNumber(p.avgTps).toFixed(1))]),
         },
         {
-          name: '请求数',
+          name: t('sub2api.common.requestCount'),
           type: 'line',
           yAxisIndex: 2,
           smooth: true,
@@ -622,7 +628,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
 
   const buildStatsCards = (s?: Sub2APIStats): Sub2APIMetricCard[] => [
     {
-      label: '请求数',
+      label: t('sub2api.common.requestCount'),
       value: formatNumber(s?.requestCount),
       detail: s?.rangeLabel || '',
       icon: 'HOutline:ArrowPathRoundedSquareIcon',
@@ -631,28 +637,28 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     {
       label: 'Token',
       value: formatToken(s?.tokenCount),
-      detail: '区间累计',
+      detail: t('sub2api.store.intervalTotal'),
       icon: 'HOutline:CircleStackIcon',
       tone: 'blue',
     },
     {
-      label: '成功率',
+      label: t('sub2api.common.successRate'),
       value: formatPercent(s?.successRate),
-      detail: `成功 ${formatNumber(s?.successCount)}`,
+      detail: t('sub2api.store.successCount', { count: formatNumber(s?.successCount) }),
       icon: 'HOutline:CheckCircleIcon',
       tone: 'green',
     },
     {
-      label: '平均延迟',
+      label: t('sub2api.store.averageLatency'),
       value: formatLatency(s?.averageLatencyMs),
-      detail: '成功请求均值',
+      detail: t('sub2api.store.successfulRequestAverage'),
       icon: 'HOutline:ClockIcon',
       tone: 'amber',
     },
     {
-      label: 'Token 生成速度',
+      label: t('sub2api.store.tokenSpeed'),
       value: `${formatThroughput(s?.averageTps)} token/s`,
-      detail: '按请求平均 · 不含缓存',
+      detail: t('sub2api.store.requestAverageNoCache'),
       icon: 'HOutline:BoltIcon',
       tone: 'red',
     },

@@ -4,38 +4,38 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getMenuList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="5">
-            <el-form-item label="菜单标题" prop="title">
-              <el-input v-model="queryForm.title" placeholder="请输入" />
+            <el-form-item :label="t('system.common.menuTitle')" prop="title">
+              <el-input v-model="queryForm.title" :placeholder="t('system.menu.inputPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="5">
-            <el-form-item label="菜单路径" prop="path">
-              <el-input v-model="queryForm.path" placeholder="请输入" />
+            <el-form-item :label="t('system.common.menuPath')" prop="path">
+              <el-input v-model="queryForm.path" :placeholder="t('system.menu.inputPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="5">
-            <el-form-item label="类型" prop="type">
-              <el-select v-model="queryForm.type" placeholder="请选择">
-                <el-option label="目录" :value="MenuType.MenuType_Directory" />
-                <el-option label="菜单" :value="MenuType.MenuType_Menu" />
-                <el-option label="按钮" :value="MenuType.MenuType_Button" />
+            <el-form-item :label="t('system.common.type')" prop="type">
+              <el-select v-model="queryForm.type" :placeholder="t('system.common.select')">
+                <el-option :label="t('system.common.directory')" :value="MenuType.MenuType_Directory" />
+                <el-option :label="t('system.common.menu')" :value="MenuType.MenuType_Menu" />
+                <el-option :label="t('system.common.button')" :value="MenuType.MenuType_Button" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="5">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="queryForm.status" placeholder="请选择">
-                <el-option label="启用" :value="MenuStatus.MenuStatus_Active" />
-                <el-option label="禁用" :value="MenuStatus.MenuStatus_InActive" />
+            <el-form-item :label="t('system.common.status')" prop="status">
+              <el-select v-model="queryForm.status" :placeholder="t('system.common.select')">
+                <el-option :label="t('system.common.enabled')" :value="MenuStatus.MenuStatus_Active" />
+                <el-option :label="t('system.common.disabled')" :value="MenuStatus.MenuStatus_InActive" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="4">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getMenuList"
-                >搜索</el-button
+                >{{ t('system.common.search') }}</el-button
               >
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('system.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -49,47 +49,47 @@
           :icon="menuStore.iconComponents.Plus"
           @click="menuCreateRef?.showDialog(undefined)"
           v-permission="[PERM.MENU_ADD]"
-          >新增菜单</el-button
+          >{{ t('system.menu.addMenu') }}</el-button
         >
       </div>
       <!-- desktop: tree table -->
       <el-table
         v-if="!menuStore.isMobile"
         v-loading="loading"
-        :data="filteredMenuList"
+        :data="translatedFilteredMenuList"
         :border="TABLE_CONFIG.border"
         row-key="id"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         default-expand-all
         show-overflow-tooltip
       >
-        <el-table-column prop="title" label="菜单标题" min-width="200" :align="TABLE_CONFIG.align" />
-        <el-table-column prop="path" label="菜单路径" min-width="250" :align="TABLE_CONFIG.align" />
-        <el-table-column prop="type" label="类型" min-width="100" :align="TABLE_CONFIG.align">
+        <el-table-column prop="title" :label="t('system.common.menuTitle')" min-width="200" :align="TABLE_CONFIG.align" />
+        <el-table-column prop="path" :label="t('system.common.menuPath')" min-width="250" :align="TABLE_CONFIG.align" />
+        <el-table-column prop="type" :label="t('system.common.type')" min-width="100" :align="TABLE_CONFIG.align">
           <template #default="{ row }">
-            <BaseTag v-if="row.type === MenuType.MenuType_Directory" type="info" text="目录" />
-            <BaseTag v-else-if="row.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-            <BaseTag v-else-if="row.type === MenuType.MenuType_Button" type="warning" text="按钮" />
+            <BaseTag v-if="row.type === MenuType.MenuType_Directory" type="info" :text="getMenuTypeText(row.type)" />
+            <BaseTag v-else-if="row.type === MenuType.MenuType_Menu" type="primary" :text="getMenuTypeText(row.type)" />
+            <BaseTag v-else-if="row.type === MenuType.MenuType_Button" type="warning" :text="getMenuTypeText(row.type)" />
           </template>
         </el-table-column>
-        <el-table-column prop="icon" label="图标" min-width="100" :align="TABLE_CONFIG.align">
+        <el-table-column prop="icon" :label="t('system.common.icon')" min-width="100" :align="TABLE_CONFIG.align">
           <template #default="{ row }">
             <el-icon v-if="row.icon"><component :is="menuStore.iconComponents[row.icon]" /></el-icon>
           </template>
         </el-table-column>
-        <el-table-column prop="order" label="排序" min-width="100" :align="TABLE_CONFIG.align" />
-        <el-table-column prop="status" label="状态" min-width="100" :align="TABLE_CONFIG.align">
+        <el-table-column prop="order" :label="t('system.common.sort')" min-width="100" :align="TABLE_CONFIG.align" />
+        <el-table-column prop="status" :label="t('system.common.status')" min-width="100" :align="TABLE_CONFIG.align">
           <template #default="{ row }">
-            <BaseTag :type="row.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="row.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+            <BaseTag :type="row.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(row.status)" />
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="180" :align="TABLE_CONFIG.align" />
-        <el-table-column label="操作" width="150" fixed="right" :align="TABLE_CONFIG.align">
+        <el-table-column prop="createTime" :label="t('system.common.createTime')" min-width="180" :align="TABLE_CONFIG.align" />
+        <el-table-column :label="t('system.common.operation')" width="150" fixed="right" :align="TABLE_CONFIG.align">
           <template #default="{ row }: { row: MenuInfo }">
-            <el-button type="primary" link :icon="menuStore.iconComponents.Edit" @click="menuCreateRef?.showDialog(row.id)" v-permission="[PERM.MENU_EDIT]">编辑</el-button>
-            <AdaptiveConfirm v-if="!isSystemMenu(row)" title="确定要删除选中的菜单吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(row.id)">
+            <el-button type="primary" link :icon="menuStore.iconComponents.Edit" @click="menuCreateRef?.showDialog(row.id)" v-permission="[PERM.MENU_EDIT]">{{ t('system.common.edit') }}</el-button>
+            <AdaptiveConfirm v-if="!isSystemMenu(row)" :title="t('system.menu.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(row.id)">
               <template #reference>
-                <el-button type="danger" link :icon="menuStore.iconComponents.Delete" v-permission="[PERM.MENU_DELETE]">删除</el-button>
+                <el-button type="danger" link :icon="menuStore.iconComponents.Delete" v-permission="[PERM.MENU_DELETE]">{{ t('system.common.delete') }}</el-button>
               </template>
             </AdaptiveConfirm>
           </template>
@@ -98,28 +98,28 @@
 
       <!-- mobile: cards with indent for tree -->
       <div v-else v-loading="loading" class="mobile-card-list">
-        <div v-if="!filteredMenuList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
-        <template v-for="item in filteredMenuList" :key="item.id">
+        <div v-if="!translatedFilteredMenuList.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
+        <template v-for="item in translatedFilteredMenuList" :key="item.id">
           <div class="mobile-card" :style="{ marginLeft: '0px' }">
             <div class="mobile-card-body">
               <div class="mobile-card-header">
                 <span class="mobile-card-title">{{ item.title }}</span>
-                <BaseTag v-if="item.type === MenuType.MenuType_Directory" type="info" text="目录" />
-                <BaseTag v-else-if="item.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-                <BaseTag v-else type="warning" text="按钮" />
+                <BaseTag v-if="item.type === MenuType.MenuType_Directory" type="info" :text="getMenuTypeText(item.type)" />
+                <BaseTag v-else-if="item.type === MenuType.MenuType_Menu" type="primary" :text="getMenuTypeText(item.type)" />
+                <BaseTag v-else type="warning" :text="getMenuTypeText(item.type)" />
               </div>
               <div class="mobile-card-meta">{{ item.path }}</div>
               <div class="mobile-card-meta">
                 <el-icon v-if="item.icon" size="14"><component :is="menuStore.iconComponents[item.icon]" /></el-icon>
-                <span>排序: {{ item.order }}</span>
-                <BaseTag :type="item.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="item.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+                <span>{{ t('system.menu.orderLabel', { order: item.order }) }}</span>
+                <BaseTag :type="item.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(item.status)" />
               </div>
             </div>
             <div class="mobile-card-actions">
-              <el-button size="small" plain type="primary" @click.stop="menuCreateRef?.showDialog(item.id)" v-permission="[PERM.MENU_EDIT]">编辑</el-button>
-              <AdaptiveConfirm v-if="!isSystemMenu(item)" title="确定要删除选中的菜单吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(item.id)">
+              <el-button size="small" plain type="primary" @click.stop="menuCreateRef?.showDialog(item.id)" v-permission="[PERM.MENU_EDIT]">{{ t('system.common.edit') }}</el-button>
+              <AdaptiveConfirm v-if="!isSystemMenu(item)" :title="t('system.menu.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(item.id)">
                 <template #reference>
-                  <el-button size="small" plain type="danger" v-permission="[PERM.MENU_DELETE]">删除</el-button>
+                  <el-button size="small" plain type="danger" v-permission="[PERM.MENU_DELETE]">{{ t('system.common.delete') }}</el-button>
                 </template>
               </AdaptiveConfirm>
             </div>
@@ -129,21 +129,21 @@
               <div class="mobile-card-body">
                 <div class="mobile-card-header">
                   <span class="mobile-card-title">{{ child.title }}</span>
-                  <BaseTag v-if="child.type === MenuType.MenuType_Directory" type="info" text="目录" />
-                  <BaseTag v-else-if="child.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-                  <BaseTag v-else type="warning" text="按钮" />
+                  <BaseTag v-if="child.type === MenuType.MenuType_Directory" type="info" :text="getMenuTypeText(child.type)" />
+                  <BaseTag v-else-if="child.type === MenuType.MenuType_Menu" type="primary" :text="getMenuTypeText(child.type)" />
+                  <BaseTag v-else type="warning" :text="getMenuTypeText(child.type)" />
                 </div>
                 <div class="mobile-card-meta">{{ child.path }}</div>
                 <div class="mobile-card-meta">
-                  <span>排序: {{ child.order }}</span>
-                  <BaseTag :type="child.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="child.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+                  <span>{{ t('system.menu.orderLabel', { order: child.order }) }}</span>
+                  <BaseTag :type="child.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(child.status)" />
                 </div>
               </div>
               <div class="mobile-card-actions">
-                <el-button size="small" plain type="primary" @click.stop="menuCreateRef?.showDialog(child.id)" v-permission="[PERM.MENU_EDIT]">编辑</el-button>
-                <AdaptiveConfirm v-if="!isSystemMenu(child)" title="确定要删除选中的菜单吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(child.id)">
+                <el-button size="small" plain type="primary" @click.stop="menuCreateRef?.showDialog(child.id)" v-permission="[PERM.MENU_EDIT]">{{ t('system.common.edit') }}</el-button>
+                <AdaptiveConfirm v-if="!isSystemMenu(child)" :title="t('system.menu.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteMenuHandle(child.id)">
                   <template #reference>
-                    <el-button size="small" plain type="danger" v-permission="[PERM.MENU_DELETE]">删除</el-button>
+                    <el-button size="small" plain type="danger" v-permission="[PERM.MENU_DELETE]">{{ t('system.common.delete') }}</el-button>
                   </template>
                 </AdaptiveConfirm>
               </div>
@@ -158,9 +158,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { adminPermissionsList, adminDeletePermissions } from '@/api/menu'
 import { TABLE_CONFIG, POPCONFIRM_CONFIG } from '@/config/elementConfig'
 import { PERM } from '@/config/permission'
+import { translateKnownText } from '@/locales'
 import MenuCreate from '@/views/system/menu/create.vue'
 import { MenuType, MenuStatus } from '@/types/v1/system'
 import type { MenuInfo } from '@/types/v1/system'
@@ -169,6 +171,7 @@ import type { FormInstance } from 'element-plus'
 defineOptions({ name: 'MenuView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const menuCreateRef = useTemplateRef<InstanceType<typeof MenuCreate> | null>('menuCreateRef')
 
@@ -219,6 +222,26 @@ const filteredMenuList = computed(() => {
   return filtered
 })
 
+const translateMenuTree = (menus: MenuInfo[]): MenuInfo[] =>
+  menus.map((menu) => ({
+    ...menu,
+    title: translateKnownText(menu.title),
+    children: menu.children?.length ? translateMenuTree(menu.children) : menu.children,
+  }))
+
+const translatedFilteredMenuList = computed(() => translateMenuTree(filteredMenuList.value))
+
+const getMenuTypeText = (type: MenuType) => {
+  if (type === MenuType.MenuType_Directory) return t('system.common.directory')
+  if (type === MenuType.MenuType_Menu) return t('system.common.menu')
+  return t('system.common.button')
+}
+
+const getMenuStatusText = (status: MenuStatus) => {
+  if (status === MenuStatus.MenuStatus_Active) return t('system.common.enabled')
+  return t('system.common.disabled')
+}
+
 const getMenuList = async () => {
   loading.value = true
   try {
@@ -240,7 +263,7 @@ const isSystemMenu = (menu: MenuInfo) => {
 
 const deleteMenuHandle = async (id: string) => {
   await adminDeletePermissions({ menuId: id })
-  ElMessage.success('删除成功')
+  ElMessage.success(t('system.common.deleteSuccess'))
   getMenuList()
 }
 

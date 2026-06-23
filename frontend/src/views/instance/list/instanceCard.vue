@@ -15,12 +15,12 @@
         <div class="card-type">{{ typeLabel }}</div>
       </div>
       <span class="card-status" :class="statusClassMap[item.status]">
-        {{ statusMeta[item.status].label }}
+        {{ t(statusMeta[item.status].labelKey) }}
       </span>
     </div>
 
     <div class="card-body">
-      <p class="card-remark">{{ item.remark || '暂无备注' }}</p>
+      <p class="card-remark">{{ item.remark || t('instance.noRemark') }}</p>
       <div class="card-metas">
         <div class="card-meta">
           <el-icon size="12"><component :is="menuStore.iconComponents['HOutline:CalendarDaysIcon']" /></el-icon>
@@ -36,22 +36,22 @@
     <div class="card-footer">
       <el-button size="small" text @click="emit('console')">
         <el-icon size="14"><component :is="menuStore.iconComponents['HOutline:CommandLineIcon']" /></el-icon>
-        控制台
+        {{ t('instance.console') }}
       </el-button>
       <el-button size="small" text @click="emit('config')">
         <el-icon size="14"><component :is="menuStore.iconComponents['HOutline:Cog6ToothIcon']" /></el-icon>
-        配置
+        {{ t('instance.config') }}
       </el-button>
       <el-dropdown trigger="click" @command="(action: string) => emit('moreAction', action as any)">
         <el-button size="small" text>
           <el-icon size="14"><component :is="menuStore.iconComponents['HOutline:EllipsisHorizontalIcon']" /></el-icon>
-          更多
+          {{ t('common.more') }}
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="forceRestart">强制重启</el-dropdown-item>
-            <el-dropdown-item command="fileManager">文件管理</el-dropdown-item>
-            <el-dropdown-item v-if="canDelete" command="delete" divided>删除</el-dropdown-item>
+            <el-dropdown-item command="forceRestart">{{ t('instance.forceRestart') }}</el-dropdown-item>
+            <el-dropdown-item command="fileManager">{{ t('instance.fileManagerTitle') }}</el-dropdown-item>
+            <el-dropdown-item v-if="canDelete" command="delete" divided>{{ t('common.delete') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -64,7 +64,7 @@
         <el-icon size="14">
           <component :is="menuStore.iconComponents[isRunningLike ? 'HOutline:StopIcon' : 'HOutline:PlayIcon']" />
         </el-icon>
-        {{ isRunningLike ? '停止' : '启动' }}
+        {{ isRunningLike ? t('instance.stop') : t('instance.start') }}
       </el-button>
     </div>
   </div>
@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { InstanceStatus, statusMeta, type InstanceRecord } from '@/stores/instance/types'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   item: InstanceRecord
@@ -94,6 +95,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const isRunningLike = computed(
   () => props.item.status === InstanceStatus.INSTANCE_STATUS_RUNNING,

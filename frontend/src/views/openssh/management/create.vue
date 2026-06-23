@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="editingId ? '编辑连接' : '新增连接'"
+    :title="editingId ? t('ssh.common.editConnection') : t('ssh.common.addConnection')"
     width="640"
     @close="close"
   >
@@ -12,78 +12,78 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item label="名称" prop="name">
-        <el-input v-model="form.name" placeholder="请输入连接名称" />
+      <el-form-item :label="t('ssh.common.name')" prop="name">
+        <el-input v-model="form.name" :placeholder="t('ssh.common.namePlaceholder')" />
       </el-form-item>
 
       <el-row :gutter="10">
         <el-col :span="16">
-          <el-form-item label="主机地址" prop="host" label-width="100px">
-            <el-input v-model="form.host" placeholder="请输入主机地址" />
+          <el-form-item :label="t('ssh.common.host')" prop="host" label-width="100px">
+            <el-input v-model="form.host" :placeholder="t('ssh.common.hostPlaceholder')" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
-          <el-form-item label="端口" prop="port" label-width="60px">
+          <el-form-item :label="t('ssh.common.port')" prop="port" label-width="60px">
             <el-input-number v-model="form.port" :min="1" :max="65535" style="width: 100%" />
           </el-form-item>
         </el-col>
       </el-row>
 
-      <el-form-item label="用户名" prop="username">
-        <el-input v-model="form.username" placeholder="请输入用户名" />
+      <el-form-item :label="t('ssh.common.username')" prop="username">
+        <el-input v-model="form.username" :placeholder="t('ssh.common.usernamePlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="认证方式" prop="authType">
+      <el-form-item :label="t('ssh.common.authType')" prop="authType">
         <el-radio-group v-model="form.authType">
-          <el-radio value="SSH_AUTH_TYPE_PASSWORD">密码登录</el-radio>
-          <el-radio value="SSH_AUTH_TYPE_KEY">密钥登录</el-radio>
+          <el-radio value="SSH_AUTH_TYPE_PASSWORD">{{ t('ssh.common.passwordLogin') }}</el-radio>
+          <el-radio value="SSH_AUTH_TYPE_KEY">{{ t('ssh.common.keyLogin') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item v-if="form.authType === 'SSH_AUTH_TYPE_PASSWORD'" label="密码" prop="password">
+      <el-form-item v-if="form.authType === 'SSH_AUTH_TYPE_PASSWORD'" :label="t('ssh.common.password')" prop="password">
         <el-input
           v-model="form.password"
           type="password"
-          placeholder="请输入密码"
+          :placeholder="t('ssh.common.passwordPlaceholder')"
           show-password
         />
       </el-form-item>
 
       <template v-else>
-        <el-form-item label="私钥" prop="privateKey">
+        <el-form-item :label="t('ssh.common.privateKey')" prop="privateKey">
           <el-input
             v-model="form.privateKey"
             type="textarea"
             :rows="4"
-            placeholder="请输入 SSH 私钥内容"
+            :placeholder="t('ssh.common.privateKeyPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="私钥口令" prop="passphrase">
+        <el-form-item :label="t('ssh.common.passphrase')" prop="passphrase">
           <el-input
             v-model="form.passphrase"
             type="password"
-            placeholder="私钥口令（如有）"
+            :placeholder="t('ssh.common.passphrasePlaceholder')"
             show-password
           />
         </el-form-item>
       </template>
 
-      <el-form-item label="主机指纹" prop="fingerprint">
-        <el-input v-model="form.fingerprint" placeholder="主机公钥指纹（可选，用于安全校验）" />
+      <el-form-item :label="t('ssh.common.fingerprint')" prop="fingerprint">
+        <el-input v-model="form.fingerprint" :placeholder="t('ssh.common.fingerprintPlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="标签" prop="tags">
-        <el-input v-model="form.tags" placeholder="多个标签用逗号分隔" />
+      <el-form-item :label="t('ssh.common.tags')" prop="tags">
+        <el-input v-model="form.tags" :placeholder="t('ssh.common.tagsPlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="分享用户" prop="sharedUserIds">
+      <el-form-item :label="t('ssh.common.sharedUsers')" prop="sharedUserIds">
         <el-select
           v-model="form.sharedUserIds"
           multiple
           filterable
           remote
           reserve-keyword
-          placeholder="搜索并选择要分享的用户"
+          :placeholder="t('ssh.common.shareUsersPlaceholder')"
           :remote-method="searchUsers"
           :loading="userSearchLoading"
           style="width: 100%"
@@ -97,24 +97,25 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="备注" prop="remark">
+      <el-form-item :label="t('ssh.common.remark')" prop="remark">
         <el-input
           v-model="form.remark"
           type="textarea"
           :rows="2"
-          placeholder="请输入备注信息"
+          :placeholder="t('ssh.common.remarkPlaceholder')"
         />
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('ssh.common.cancel') }}</el-button>
+      <el-button type="primary" :loading="loading" @click="confirm">{{ t('ssh.common.confirm') }}</el-button>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { createSshHost, updateSshHost } from '@/api/openssh'
 import { userPage } from '@/api/user'
@@ -125,6 +126,7 @@ defineOptions({ name: 'SshConnectionCreate' })
 
 const emits = defineEmits(['refresh'])
 const formRef = useTemplateRef<FormInstance>('formRef')
+const { t } = useI18n()
 
 const open = ref(false)
 const loading = ref(false)
@@ -205,7 +207,7 @@ const confirm = async () => {
       })
     }
 
-    ElMessage.success(editingId.value ? '编辑成功' : '新增成功')
+    ElMessage.success(editingId.value ? t('ssh.common.editSuccess') : t('ssh.common.addSuccess'))
     emits('refresh', editingId.value ? 'update' : 'create')
     close()
   } finally {
@@ -213,16 +215,16 @@ const confirm = async () => {
   }
 }
 
-const formRules: FormRules = {
-  name: [{ required: true, message: '请输入连接名称', trigger: 'blur' }],
-  host: [{ required: true, message: '请输入主机地址', trigger: 'blur' }],
-  port: [{ required: true, message: '请设置端口', trigger: 'blur' }],
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+const formRules = computed<FormRules>(() => ({
+  name: [{ required: true, message: t('ssh.common.namePlaceholder'), trigger: 'blur' }],
+  host: [{ required: true, message: t('ssh.common.hostPlaceholder'), trigger: 'blur' }],
+  port: [{ required: true, message: t('ssh.common.portRequired'), trigger: 'blur' }],
+  username: [{ required: true, message: t('ssh.common.usernamePlaceholder'), trigger: 'blur' }],
   password: [
     {
       validator: (_, value: string, callback) => {
         if (form.value.authType === 'SSH_AUTH_TYPE_PASSWORD' && !editingId.value && !value?.trim()) {
-          callback(new Error('请输入密码'))
+          callback(new Error(t('ssh.common.passwordPlaceholder')))
           return
         }
         callback()
@@ -234,7 +236,7 @@ const formRules: FormRules = {
     {
       validator: (_, value: string, callback) => {
         if (form.value.authType === 'SSH_AUTH_TYPE_KEY' && !editingId.value && !value?.trim()) {
-          callback(new Error('请输入私钥内容'))
+          callback(new Error(t('ssh.common.privateKeyRequired')))
           return
         }
         callback()
@@ -242,7 +244,7 @@ const formRules: FormRules = {
       trigger: 'blur',
     },
   ],
-}
+}))
 
 const searchUsers = async (query: string) => {
   if (!query) {

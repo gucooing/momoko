@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="submitForm.id ? '编辑 API Key' : '新增 API Key'"
+    :title="submitForm.id ? t('node.key.edit') : t('node.key.add')"
     width="600"
     @close="close"
   >
@@ -12,15 +12,15 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item label="名称" prop="name">
-        <el-input v-model="submitForm.name" placeholder="请输入 API Key 名称" />
+      <el-form-item :label="t('node.key.name')" prop="name">
+        <el-input v-model="submitForm.name" :placeholder="t('node.key.namePlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="过期时间" prop="expiresAt">
+      <el-form-item :label="t('node.key.expiresAt')" prop="expiresAt">
         <el-date-picker
           v-model="submitForm.expiresAt"
           type="datetime"
-          placeholder="请选择过期时间（不选表示永久有效）"
+          :placeholder="t('node.key.expiresPlaceholder')"
           format="YYYY-MM-DD HH:mm:ss"
           value-format="YYYY-MM-DD HH:mm:ss"
           style="width: 100%"
@@ -28,20 +28,21 @@
         />
       </el-form-item>
 
-      <el-form-item v-if="submitForm.id" label="永久有效" prop="neverExpires">
+      <el-form-item v-if="submitForm.id" :label="t('node.key.neverExpires')" prop="neverExpires">
         <el-checkbox v-model="submitForm.neverExpires" />
-        <span class="text-muted">勾选后将清除过期时间，API Key 永久有效</span>
+        <span class="text-muted">{{ t('node.key.neverExpiresTip') }}</span>
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('node.key.cancel') }}</el-button>
+      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('node.key.confirm') }}</el-button>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { createAPIKey, updateAPIKey } from '@/api/node'
 import type { APIKeyInfo } from '@/types/v1/node'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -50,6 +51,7 @@ defineOptions({ name: 'ApiKeyCreate' })
 
 const emits = defineEmits(['refresh'])
 const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
+const { t } = useI18n()
 
 const open = ref(false)
 const submitLoading = ref(false)
@@ -97,7 +99,7 @@ const confirm = async () => {
       })
     }
 
-    ElMessage.success(submitForm.value.id ? '编辑成功' : '新增成功')
+    ElMessage.success(submitForm.value.id ? t('node.key.editSuccess') : t('node.key.addSuccess'))
     emits('refresh', submitForm.value.id ? 'update' : 'create')
     close()
   } finally {
@@ -105,9 +107,9 @@ const confirm = async () => {
   }
 }
 
-const formRules: FormRules = {
-  name: [{ required: true, message: '请输入 API Key 名称', trigger: 'blur' }],
-}
+const formRules = computed<FormRules>(() => ({
+  name: [{ required: true, message: t('node.key.namePlaceholder'), trigger: 'blur' }],
+}))
 
 const showDialog = (record?: APIKeyInfo) => {
   open.value = true

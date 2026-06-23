@@ -15,7 +15,7 @@
                 ? 'HOutline:Bars3BottomRightIcon'
                 : 'HOutline:Bars3BottomLeftIcon'
           "
-          :tooltip="menuStore.isMobile ? '展开菜单' : '折叠菜单'"
+          :tooltip="menuStore.isMobile ? t('layout.expandMenu') : t('layout.collapseMenu')"
           @click="handleMenuToggle"
         />
       </HoverAnimateWrapper>
@@ -29,7 +29,7 @@
         <HoverAnimateWrapper name="rotate">
           <IconButton
             icon="HOutline:Cog6ToothIcon"
-            tooltip="主题配置"
+            :tooltip="t('layout.themeConfig')"
             @click="themeStore.themeConfigDrawerOpen = true"
           />
         </HoverAnimateWrapper>
@@ -37,7 +37,7 @@
         <!-- 全屏 -->
         <HoverAnimateWrapper name="pulse">
           <IconButton
-            :tooltip="isFullscreen ? '退出全屏' : '全屏'"
+            :tooltip="isFullscreen ? t('layout.exitFullscreen') : t('layout.fullscreen')"
             :icon="
               isFullscreen ? 'HOutline:ArrowsPointingInIcon' : 'HOutline:ArrowsPointingOutIcon'
             "
@@ -65,11 +65,13 @@ import BreadcrumbView from '@/layouts/breadcrumb.vue'
 import NotificationDropdown from '@/layouts/notificationDropdown.vue'
 import I18nDropdown from '@/layouts/i18nDropdown.vue'
 import { useFullscreen } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'HeaderView' })
 
 const menuStore = useMenuStore()
 const themeStore = useThemeStore()
+const { t } = useI18n()
 // 全屏功能
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 

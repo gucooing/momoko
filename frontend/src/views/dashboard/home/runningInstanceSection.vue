@@ -1,7 +1,10 @@
 <template>
-  <BaseCard title="正在运行中的实例" title-icon="HOutline:ServerStackIcon">
+  <BaseCard :title="t('dashboard.home.runningInstances')" title-icon="HOutline:ServerStackIcon">
     <div v-loading="runningInstancesLoading">
-      <el-empty v-if="!runningInstancesLoading && !runningInstances.length" description="暂无运行中的实例" />
+      <el-empty
+        v-if="!runningInstancesLoading && !runningInstances.length"
+        :description="t('dashboard.home.noRunningInstances')"
+      />
       <el-scrollbar v-else :height="520" class="running-scrollbar">
         <div class="running-grid">
           <RunningInstanceCard
@@ -21,9 +24,11 @@ import { storeToRefs } from 'pinia'
 import RunningInstanceCard from '@/components/card/RunningInstanceCard.vue'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import type { InstanceInfo } from '@/types/v1/instance'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const dashboardHomeStore = useDashboardHomeStore()
+const { t } = useI18n()
 const { runningInstancesLoading, runningInstances } = storeToRefs(dashboardHomeStore)
 const { getRunningInstances } = dashboardHomeStore
 

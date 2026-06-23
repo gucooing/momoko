@@ -14,7 +14,7 @@
             <HoverAnimateWrapper name="rotate">
               <IconButton
                 icon="HOutline:Cog6ToothIcon"
-                tooltip="主题配置"
+                :tooltip="t('layout.themeConfig')"
                 @click="themeStore.themeConfigDrawerOpen = true"
               />
             </HoverAnimateWrapper>
@@ -22,9 +22,9 @@
         </div>
 
         <el-steps :active="currentStep" align-center finish-status="success" class="init-steps">
-          <el-step title="数据库配置" />
-          <el-step title="管理员账号" />
-          <el-step title="确认初始化" />
+          <el-step :title="t('initialize.steps.database')" />
+          <el-step :title="t('initialize.steps.admin')" />
+          <el-step :title="t('initialize.steps.confirm')" />
         </el-steps>
 
         <div class="init-form-wrap">
@@ -38,7 +38,7 @@
                 label-position="top"
                 size="large"
               >
-                <el-form-item label="数据库类型" prop="type">
+                <el-form-item :label="t('initialize.databaseType')" prop="type">
                   <el-select v-model="dbForm.type" class="w-full" @change="onDbTypeChange">
                     <el-option
                       v-for="dt in supportedDatabaseTypes"
@@ -50,10 +50,10 @@
                 </el-form-item>
 
                 <template v-if="dbForm.type === DatabaseType.DatabaseType_SQLite">
-                  <el-form-item label="数据库文件路径" prop="sqlitePath">
-                    <el-input v-model="dbForm.sqlitePath" placeholder="留空使用默认路径 ./data/momoko.db">
+                  <el-form-item :label="t('initialize.sqlitePath')" prop="sqlitePath">
+                    <el-input v-model="dbForm.sqlitePath" :placeholder="t('initialize.sqlitePathPlaceholder')">
                       <template #suffix>
-                        <el-tooltip content="默认为 ./data/momoko.db">
+                        <el-tooltip :content="t('initialize.sqlitePathTip')">
                           <span class="text-gray-400 text-xs cursor-help">?</span>
                         </el-tooltip>
                       </template>
@@ -62,25 +62,25 @@
                 </template>
 
                 <template v-else>
-                  <el-form-item label="连接地址" prop="address">
+                  <el-form-item :label="t('initialize.address')" prop="address">
                     <el-input
                       v-model="dbForm.address"
                       :placeholder="addressPlaceholder"
                     />
                   </el-form-item>
-                  <el-form-item label="用户名" prop="username">
-                    <el-input v-model="dbForm.username" placeholder="请输入数据库用户名" />
+                  <el-form-item :label="t('initialize.databaseUsername')" prop="username">
+                    <el-input v-model="dbForm.username" :placeholder="t('initialize.databaseUsernamePlaceholder')" />
                   </el-form-item>
-                  <el-form-item label="密码" prop="password">
+                  <el-form-item :label="t('initialize.databasePassword')" prop="password">
                     <el-input
                       v-model="dbForm.password"
                       type="password"
                       show-password
-                      placeholder="请输入数据库密码"
+                      :placeholder="t('initialize.databasePasswordPlaceholder')"
                     />
                   </el-form-item>
-                  <el-form-item label="数据库名" prop="databaseName">
-                    <el-input v-model="dbForm.databaseName" placeholder="请输入数据库名" />
+                  <el-form-item :label="t('initialize.databaseName')" prop="databaseName">
+                    <el-input v-model="dbForm.databaseName" :placeholder="t('initialize.databaseNamePlaceholder')" />
                   </el-form-item>
                 </template>
               </el-form>
@@ -93,14 +93,14 @@
                   :disabled="!isDbTypeSelected"
                   @click="handleTestConnection"
                 >
-                  {{ testing ? '测试中...' : '测试连接' }}
+                  {{ testing ? t('initialize.testConnecting') : t('initialize.testConnection') }}
                 </el-button>
                 <el-button
                   size="large"
                   :disabled="!connectionTested"
                   @click="currentStep = 1"
                 >
-                  下一步
+                  {{ t('initialize.nextStep') }}
                 </el-button>
               </div>
             </div>
@@ -114,36 +114,36 @@
                 label-position="top"
                 size="large"
               >
-                <el-form-item label="用户名" prop="username">
-                  <el-input v-model="adminForm.username" placeholder="请输入管理员用户名" />
+                <el-form-item :label="t('initialize.adminUsername')" prop="username">
+                  <el-input v-model="adminForm.username" :placeholder="t('initialize.adminUsernamePlaceholder')" />
                 </el-form-item>
-                <el-form-item label="密码" prop="password">
+                <el-form-item :label="t('initialize.adminPassword')" prop="password">
                   <el-input
                     v-model="adminForm.password"
                     type="password"
                     show-password
-                    placeholder="请输入管理员密码"
+                    :placeholder="t('initialize.adminPasswordPlaceholder')"
                   />
                 </el-form-item>
-                <el-form-item label="确认密码" prop="confirmPassword">
+                <el-form-item :label="t('initialize.adminConfirmPassword')" prop="confirmPassword">
                   <el-input
                     v-model="adminForm.confirmPassword"
                     type="password"
                     show-password
-                    placeholder="请再次输入管理员密码"
+                    :placeholder="t('initialize.adminConfirmPasswordPlaceholder')"
                   />
                 </el-form-item>
-                <el-form-item label="邮箱" prop="email">
-                  <el-input v-model="adminForm.email" placeholder="请输入管理员邮箱" />
+                <el-form-item :label="t('initialize.adminEmail')" prop="email">
+                  <el-input v-model="adminForm.email" :placeholder="t('initialize.adminEmailPlaceholder')" />
                 </el-form-item>
-                <el-form-item label="昵称" prop="name">
-                  <el-input v-model="adminForm.name" placeholder="请输入管理员昵称" />
+                <el-form-item :label="t('initialize.adminName')" prop="name">
+                  <el-input v-model="adminForm.name" :placeholder="t('initialize.adminNamePlaceholder')" />
                 </el-form-item>
               </el-form>
 
               <div class="step-actions">
-                <el-button size="large" @click="currentStep = 0">上一步</el-button>
-                <el-button type="primary" size="large" @click="handleStep2Next">下一步</el-button>
+                <el-button size="large" @click="currentStep = 0">{{ t('initialize.previousStep') }}</el-button>
+                <el-button type="primary" size="large" @click="handleStep2Next">{{ t('initialize.nextStep') }}</el-button>
               </div>
             </div>
 
@@ -151,53 +151,53 @@
             <div v-else key="step3" class="step-content">
               <template v-if="!confirmed">
                 <div class="summary-section">
-                  <h4 class="summary-title">数据库配置</h4>
+                  <h4 class="summary-title">{{ t('initialize.steps.database') }}</h4>
                   <div class="summary-grid">
                     <div class="summary-item">
-                      <span class="summary-label">类型</span>
+                      <span class="summary-label">{{ t('initialize.type') }}</span>
                       <span class="summary-value">{{ databaseTypeLabel(dbForm.type) }}</span>
                     </div>
                     <div v-if="dbForm.type === DatabaseType.DatabaseType_SQLite" class="summary-item">
-                      <span class="summary-label">文件路径</span>
-                      <span class="summary-value">{{ dbForm.sqlitePath || './data/momoko.db（默认）' }}</span>
+                      <span class="summary-label">{{ t('initialize.filePath') }}</span>
+                      <span class="summary-value">{{ dbForm.sqlitePath || `./data/momoko.db${t('initialize.defaultMark')}` }}</span>
                     </div>
                     <template v-else>
                       <div class="summary-item">
-                        <span class="summary-label">连接地址</span>
+                        <span class="summary-label">{{ t('initialize.address') }}</span>
                         <span class="summary-value">{{ dbForm.address }}</span>
                       </div>
                       <div class="summary-item">
-                        <span class="summary-label">用户名</span>
+                        <span class="summary-label">{{ t('initialize.databaseUsername') }}</span>
                         <span class="summary-value">{{ dbForm.username }}</span>
                       </div>
                       <div class="summary-item">
-                        <span class="summary-label">数据库名</span>
+                        <span class="summary-label">{{ t('initialize.databaseName') }}</span>
                         <span class="summary-value">{{ dbForm.databaseName }}</span>
                       </div>
                     </template>
                   </div>
 
-                  <h4 class="summary-title">管理员账号</h4>
+                  <h4 class="summary-title">{{ t('initialize.steps.admin') }}</h4>
                   <div class="summary-grid">
                     <div class="summary-item">
-                      <span class="summary-label">用户名</span>
+                      <span class="summary-label">{{ t('initialize.adminUsername') }}</span>
                       <span class="summary-value">{{ adminForm.username }}</span>
                     </div>
                     <div class="summary-item">
-                      <span class="summary-label">邮箱</span>
+                      <span class="summary-label">{{ t('initialize.adminEmail') }}</span>
                       <span class="summary-value">{{ adminForm.email }}</span>
                     </div>
                     <div class="summary-item">
-                      <span class="summary-label">昵称</span>
+                      <span class="summary-label">{{ t('initialize.adminName') }}</span>
                       <span class="summary-value">{{ adminForm.name }}</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="step-actions">
-                  <el-button size="large" :disabled="confirming" @click="currentStep = 1">上一步</el-button>
+                  <el-button size="large" :disabled="confirming" @click="currentStep = 1">{{ t('initialize.previousStep') }}</el-button>
                   <el-button type="primary" size="large" :loading="confirming" @click="handleConfirm">
-                    {{ confirming ? '正在初始化...' : '确认初始化' }}
+                    {{ confirming ? t('initialize.initializing') : t('initialize.confirmInitialize') }}
                   </el-button>
                 </div>
               </template>
@@ -211,10 +211,10 @@
                   >
                     <template #extra>
                       <el-button v-if="!readyForLogin" type="primary" :loading="polling" @click="goToLogin">
-                        {{ polling ? '等待服务重启中...' : '前往登录' }}
+                        {{ polling ? t('initialize.waitingRestart') : t('initialize.goLogin') }}
                       </el-button>
-                      <el-button v-if="readyForLogin" type="primary" @click="goToLogin">前往登录</el-button>
-                      <el-button v-if="initError" type="primary" @click="resetInit">重新配置</el-button>
+                      <el-button v-if="readyForLogin" type="primary" @click="goToLogin">{{ t('initialize.goLogin') }}</el-button>
+                      <el-button v-if="initError" type="primary" @click="resetInit">{{ t('initialize.reconfigure') }}</el-button>
                     </template>
                   </el-result>
                 </div>
@@ -244,11 +244,13 @@ import type {
 } from '@/types/v1/initialize'
 import type { FormInstance, FormRules } from 'element-plus'
 import ThemeConfig from '@/components/ThemeConfig.vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InitializeView' })
 
 const themeStore = useThemeStore()
 const router = useRouter()
+const { t } = useI18n()
 
 const currentStep = ref(0)
 const testing = ref(false)
@@ -266,9 +268,9 @@ const adminFormRef = ref<FormInstance>()
 const isDbTypeSelected = computed(() => !!dbForm.type)
 
 const addressPlaceholder = computed(() => {
-  if (dbForm.type === DatabaseType.DatabaseType_MySQL) return 'host 或 host:port，如 127.0.0.1:3306'
-  if (dbForm.type === DatabaseType.DatabaseType_PostgreSQL) return 'host 或 host:port，如 127.0.0.1:5432'
-  return 'host 或 host:port'
+  if (dbForm.type === DatabaseType.DatabaseType_MySQL) return t('initialize.mysqlAddressPlaceholder')
+  if (dbForm.type === DatabaseType.DatabaseType_PostgreSQL) return t('initialize.postgresAddressPlaceholder')
+  return t('initialize.addressPlaceholder')
 })
 
 interface DbForm {
@@ -306,15 +308,15 @@ const adminForm = reactive<AdminForm>({
 })
 
 const resultTitle = computed(() => {
-  if (initError.value) return '初始化失败'
-  if (readyForLogin.value) return '初始化完成'
-  return '系统初始化中'
+  if (initError.value) return t('initialize.resultFailed')
+  if (readyForLogin.value) return t('initialize.resultDone')
+  return t('initialize.resultRunning')
 })
 
 const resultSubTitle = computed(() => {
-  if (initError.value) return '系统初始化过程中出现错误，请检查配置后重试'
-  if (readyForLogin.value) return '系统已完成初始化并重启，请使用刚才创建的管理员账号登录'
-  return '服务正在自动重启，请稍候...'
+  if (initError.value) return t('initialize.resultFailedSubtitle')
+  if (readyForLogin.value) return t('initialize.resultDoneSubtitle')
+  return t('initialize.resultRunningSubtitle')
 })
 
 function databaseTypeLabel(type: DatabaseType): string {
@@ -326,21 +328,21 @@ function databaseTypeLabel(type: DatabaseType): string {
     case DatabaseType.DatabaseType_PostgreSQL:
       return 'PostgreSQL'
     default:
-      return type || '请选择'
+      return type || t('initialize.pleaseSelect')
   }
 }
 
 function validateDbForm(): Record<string, FormRules[0]> {
   const rules: Record<string, FormRules[0]> = {
-    type: [{ required: true, message: '请选择数据库类型', trigger: 'change' }],
+    type: [{ required: true, message: t('initialize.databaseTypeRequired'), trigger: 'change' }],
   }
 
   if (dbForm.type === DatabaseType.DatabaseType_SQLite) {
     // sqlite path is optional
   } else {
-    rules.address = [{ required: true, message: '请输入连接地址', trigger: 'blur' }]
-    rules.username = [{ required: true, message: '请输入用户名', trigger: 'blur' }]
-    rules.databaseName = [{ required: true, message: '请输入数据库名', trigger: 'blur' }]
+    rules.address = [{ required: true, message: t('initialize.addressRequired'), trigger: 'blur' }]
+    rules.username = [{ required: true, message: t('initialize.databaseUsernameRequired'), trigger: 'blur' }]
+    rules.databaseName = [{ required: true, message: t('initialize.databaseNameRequired'), trigger: 'blur' }]
   }
 
   return rules
@@ -348,18 +350,18 @@ function validateDbForm(): Record<string, FormRules[0]> {
 
 const dbRules = computed(() => validateDbForm())
 
-const adminRules: FormRules = {
-  username: [{ required: true, message: '请输入管理员用户名', trigger: 'blur' }],
+const adminRules = computed<FormRules>(() => ({
+  username: [{ required: true, message: t('initialize.adminUsernameRequired'), trigger: 'blur' }],
   password: [
-    { required: true, message: '请输入管理员密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+    { required: true, message: t('initialize.adminPasswordRequired'), trigger: 'blur' },
+    { min: 6, message: t('initialize.passwordMin'), trigger: 'blur' },
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入管理员密码', trigger: 'blur' },
+    { required: true, message: t('initialize.adminConfirmPasswordRequired'), trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
         if (value !== adminForm.password) {
-          callback(new Error('两次输入的密码不一致'))
+          callback(new Error(t('initialize.passwordMismatch')))
         } else {
           callback()
         }
@@ -368,11 +370,11 @@ const adminRules: FormRules = {
     },
   ],
   email: [
-    { required: true, message: '请输入管理员邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' },
+    { required: true, message: t('initialize.adminEmailRequired'), trigger: 'blur' },
+    { type: 'email', message: t('initialize.adminEmailInvalid'), trigger: 'blur' },
   ],
-  name: [{ required: true, message: '请输入管理员昵称', trigger: 'blur' }],
-}
+  name: [{ required: true, message: t('initialize.adminNameRequired'), trigger: 'blur' }],
+}))
 
 function onDbTypeChange() {
   connectionTested.value = false
@@ -395,10 +397,10 @@ async function handleTestConnection() {
     const payload = buildTestPayload()
     const { data } = await testDatabaseConnection(payload)
     if (data?.success) {
-      ElMessage.success('数据库连接成功')
+      ElMessage.success(t('initialize.databaseConnected'))
       connectionTested.value = true
     } else {
-      ElMessage.error('数据库连接失败')
+      ElMessage.error(t('initialize.databaseConnectFailed'))
     }
   } catch {
     // error already shown by request interceptor
@@ -461,7 +463,7 @@ async function handleConfirm() {
       }
     } else {
       initError.value = true
-      ElMessage.error('初始化失败')
+      ElMessage.error(t('initialize.resultFailed'))
     }
   } catch {
     initError.value = true

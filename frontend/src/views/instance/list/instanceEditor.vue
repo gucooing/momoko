@@ -1,7 +1,7 @@
 ﻿<template>
   <BaseDialog
     :model-value="visible"
-    :title="mode === 'create' ? '新建实例' : '实例配置'"
+    :title="mode === 'create' ? t('instance.editorTitleCreate') : t('instance.editorTitleEdit')"
     width="820"
     @update:model-value="handleDialogVisibleChange"
     @close="handleDialogClose"
@@ -16,14 +16,14 @@
       >
         <el-row :gutter="12">
           <el-col :xs="24" :md="12">
-            <el-form-item label="实例名称" prop="name">
+            <el-form-item :label="t('instance.instanceName')" prop="name">
               <el-input v-model="localForm.name" maxlength="100" clearable />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="12">
-            <el-form-item label="实例类型" prop="type">
-              <el-select v-model="localForm.type" clearable filterable placeholder="请选择实例类型">
+            <el-form-item :label="t('instance.instanceType')" prop="type">
+              <el-select v-model="localForm.type" clearable filterable :placeholder="t('instance.selectInstanceType')">
                 <el-option
                   v-for="typeOption in typeOptions"
                   :key="typeOption.value"
@@ -35,48 +35,48 @@
           </el-col>
 
           <el-col :xs="24" :md="24">
-            <el-form-item label="实例路径" prop="instancePath">
+            <el-form-item :label="t('instance.instancePath')" prop="instancePath">
               <el-input v-model="localForm.instancePath" clearable />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="12">
-            <el-form-item label="启动命令" prop="startCommand">
+            <el-form-item :label="t('instance.startCommand')" prop="startCommand">
               <el-input v-model="localForm.startCommand" clearable />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="12">
-            <el-form-item label="停止命令" prop="stopCommand">
+            <el-form-item :label="t('instance.stopCommand')" prop="stopCommand">
               <el-input v-model="localForm.stopCommand" clearable />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="12">
-            <el-form-item label="标签" prop="tags">
-              <el-input v-model="localForm.tags" clearable placeholder="多个标签用逗号分隔" />
+            <el-form-item :label="t('instance.tags')" prop="tags">
+              <el-input v-model="localForm.tags" clearable :placeholder="t('instance.tagsPlaceholder')" />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="12">
-            <el-form-item label="自动启动" prop="autoStart">
+            <el-form-item :label="t('instance.autoStart')" prop="autoStart">
               <el-switch v-model="localForm.autoStart" />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="24">
-            <el-form-item label="备注" prop="remark">
+            <el-form-item :label="t('common.remark')" prop="remark">
               <el-input v-model="localForm.remark" type="textarea" :rows="2" maxlength="500" show-word-limit />
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :md="24">
-            <el-form-item label="环境变量" prop="envText">
+            <el-form-item :label="t('instance.environmentVariables')" prop="envText">
               <el-input
                 v-model="localForm.envText"
                 type="textarea"
                 :rows="4"
-                placeholder="一行一个变量，例如: KEY=value"
+                :placeholder="t('instance.envPlaceholder')"
               />
             </el-form-item>
           </el-col>
@@ -85,14 +85,14 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleDialogClose">取消</el-button>
+      <el-button @click="handleDialogClose">{{ t('common.cancel') }}</el-button>
       <el-button
         type="primary"
         :loading="submitting"
         :disabled="loading"
         @click="handleSubmit"
       >
-        保存
+        {{ t('common.save') }}
       </el-button>
     </template>
   </BaseDialog>
@@ -106,6 +106,7 @@ import {
   type InstanceEditorMode,
   type InstanceTypeOption,
 } from '@/stores/instance/types'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceEditor' })
 
@@ -124,6 +125,7 @@ const emit = defineEmits<{
 }>()
 
 const formRef = useTemplateRef<FormInstance>('formRef')
+const { t } = useI18n()
 const localForm = reactive<InstanceEditorFormValue>({
   id: '',
   name: '',
@@ -148,12 +150,12 @@ const requiredTrimmedValidator = (message: string) => {
   }
 }
 
-const formRules: FormRules<InstanceEditorFormValue> = {
-  name: [{ validator: requiredTrimmedValidator('请输入实例名称'), trigger: 'blur' }],
-  type: [{ validator: requiredTrimmedValidator('请选择实例类型'), trigger: 'change' }],
-  instancePath: [{ validator: requiredTrimmedValidator('请输入实例路径'), trigger: 'blur' }],
-  startCommand: [{ validator: requiredTrimmedValidator('请输入启动命令'), trigger: 'blur' }],
-}
+const formRules = computed<FormRules<InstanceEditorFormValue>>(() => ({
+  name: [{ validator: requiredTrimmedValidator(t('instance.instanceNameRequired')), trigger: 'blur' }],
+  type: [{ validator: requiredTrimmedValidator(t('instance.instanceTypeRequired')), trigger: 'change' }],
+  instancePath: [{ validator: requiredTrimmedValidator(t('instance.instancePathRequired')), trigger: 'blur' }],
+  startCommand: [{ validator: requiredTrimmedValidator(t('instance.startCommandRequired')), trigger: 'blur' }],
+}))
 
 const clearValidateState = () => {
   formRef.value?.clearValidate()

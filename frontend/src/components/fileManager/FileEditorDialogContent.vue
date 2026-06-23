@@ -8,6 +8,7 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FileEditorDialogContent' })
 
@@ -42,17 +43,18 @@ const draftContent = ref(props.content)
 const originalContent = ref(props.content)
 const saveLoading = ref(false)
 const themeMode = ref<EditorThemeMode>('auto')
+const { t } = useI18n()
 
 let dragSnapshot: PointerSnapshot | null = null
 let resizeSnapshot: PointerSnapshot | null = null
 let removeDragListeners: (() => void) | null = null
 let removeResizeListeners: (() => void) | null = null
 
-const themeModeOptions: Array<{ label: string; value: EditorThemeMode }> = [
-  { label: '自动', value: 'auto' },
-  { label: '亮', value: 'light' },
-  { label: '暗', value: 'dark' },
-]
+const themeModeOptions = computed<Array<{ label: string; value: EditorThemeMode }>>(() => [
+  { label: t('fileManager.editorThemeAuto'), value: 'auto' },
+  { label: t('fileManager.editorThemeLight'), value: 'light' },
+  { label: t('fileManager.editorThemeDark'), value: 'dark' },
+])
 
 const languageByExtension: Record<string, string> = {
   '.bat': 'bat',
@@ -345,9 +347,9 @@ const handleSave = async () => {
   try {
     await props.onSave(draftContent.value)
     originalContent.value = draftContent.value
-    ElMessage.success('文件保存成功')
+    ElMessage.success(t('fileManager.fileSaveSuccess'))
   } catch (error: unknown) {
-    ElMessage.error((error as Error)?.message || '文件保存失败')
+    ElMessage.error((error as Error)?.message || t('fileManager.fileSaveFailed'))
   } finally {
     saveLoading.value = false
   }
@@ -391,8 +393,10 @@ onBeforeUnmount(() => {
           />
         </el-select>
         <span class="file-editor-language">{{ detectedLanguage }}</span>
-        <span v-if="isDirty" class="file-editor-dirty">未保存</span>
-        <el-button type="primary" :loading="saveLoading" @click="handleSave">保存</el-button>
+        <span v-if="isDirty" class="file-editor-dirty">{{ t('fileManager.unsaved') }}</span>
+        <el-button type="primary" :loading="saveLoading" @click="handleSave">
+          {{ t('common.save') }}
+        </el-button>
         <el-button text class="file-editor-close" @click="props.onClose()">
           <el-icon size="18"><Close /></el-icon>
         </el-button>
@@ -403,7 +407,7 @@ onBeforeUnmount(() => {
     <button
       type="button"
       class="file-editor-resize-handle"
-      aria-label="调整窗口大小"
+      :aria-label="t('fileManager.resizeWindow')"
       @mousedown="handleResizeHandleMouseDown"
     />
   </section>

@@ -11,7 +11,8 @@ export type ProfileCurrentTab =
 
 export interface ProfileTabsMenuItem {
   key: string
-  label: string
+  label?: string
+  labelKey?: string
   badge?: number | string
   disabled?: boolean
   icon?: string | Component
@@ -21,8 +22,10 @@ export type MessageType = 'system' | 'user' | 'todo'
 
 export interface UserMessageItem {
   id: string
-  title: string
-  content: string
+  title?: string
+  titleKey?: string
+  content?: string
+  contentKey?: string
   type: MessageType
   read: boolean
   time: string

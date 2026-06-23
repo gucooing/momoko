@@ -1,27 +1,27 @@
 <template>
   <!-- 各渠道销售表现实时榜单 -->
-  <BaseCard title="各渠道销售表现实时榜单">
+  <BaseCard :title="t('dashboard.analysis.channelSalesTitle')">
     <el-scrollbar :height="260">
       <el-table :data="channelSales" style="width: 100%">
-        <el-table-column label="渠道名称" width="250">
+        <el-table-column :label="t('dashboard.analysis.channelName')" width="250">
           <template #default="{ row }">
             <div class="profile-cell">
               <div class="project-icon" :style="{ backgroundColor: row.color }">
-                {{ row.name.charAt(0) }}
+                {{ channelName(row.nameKey).charAt(0) }}
               </div>
               <div class="name-role">
-                <div class="name">{{ row.name }}</div>
-                <div class="role">负责人: {{ row.owner }}</div>
+                <div class="name">{{ channelName(row.nameKey) }}</div>
+                <div class="role">{{ t('dashboard.analysis.owner') }}: {{ row.owner }}</div>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="revenue" label="销售额" min-width="150">
+        <el-table-column prop="revenue" :label="t('dashboard.analysis.salesAmount')" min-width="150">
           <template #default="{ row }">
             <div class="font-bold">￥{{ row.revenue }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="达成率" min-width="180">
+        <el-table-column :label="t('dashboard.analysis.achievementRate')" min-width="180">
           <template #default="{ row }">
             <el-progress
               :percentage="row.achievement"
@@ -29,9 +29,9 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" min-width="100">
+        <el-table-column prop="statusKey" :label="t('dashboard.analysis.status')" min-width="100">
           <template #default="{ row }">
-            <BaseTag :type="row.statusType" effect="dark" round :text="row.status" />
+            <BaseTag :type="row.statusType" effect="dark" round :text="t(row.statusKey)" />
           </template>
         </el-table-column>
       </el-table>
@@ -42,9 +42,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { channelSales } = storeToRefs(dashboardAnalysisStore)
+const { t } = useI18n()
+const channelName = (key: string) => t(key)
 </script>
 
 <style scoped lang="scss">

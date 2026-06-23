@@ -1,7 +1,7 @@
 ﻿export type DashboardTagType = 'success' | 'primary' | 'warning' | 'info' | 'danger'
 
 export interface DashboardShortcutItem {
-  label: string
+  labelKey: string
   icon: string
   color: string
   routePath: string
@@ -30,7 +30,7 @@ export interface DashboardPendingApproval {
 }
 
 export interface DashboardBusinessStatItem {
-  label: string
+  labelKey: string
   value: string
   trend: string
   icon: string
@@ -38,23 +38,23 @@ export interface DashboardBusinessStatItem {
 }
 
 export interface DashboardChannelSalesItem {
-  name: string
+  nameKey: string
   owner: string
   revenue: string
   achievement: number
-  status: string
+  statusKey: string
   statusType: DashboardTagType
   color: string
 }
 
 export interface DashboardMarketShareItem {
   value: number
-  name: string
+  nameKey: string
   colorVar: string
 }
 
 export interface DashboardTopCategoryItem {
-  name: string
+  nameKey: string
   value: number
 }
 
@@ -62,8 +62,8 @@ export type DashboardEventTab = 'toBeOpened' | 'inProgress' | 'review'
 
 export interface DashboardEventItem {
   id: number
-  date: string
-  title: string
+  dateKey: string
+  titleKey: string
   range: string
   color: string
 }
@@ -71,7 +71,7 @@ export interface DashboardEventItem {
 export type DashboardAnalysisTimeRange = '1y' | '2y'
 
 export interface DashboardRevenueProfitDataItem {
-  months: string[]
+  months: number[]
   revenue: number[]
   profit: number[]
   lastYear: number[]
@@ -79,24 +79,25 @@ export interface DashboardRevenueProfitDataItem {
 }
 
 export interface DashboardGoalProgress {
-  title: string
+  titleKey: string
   percentage: number
   color: string
 }
 
 export interface DashboardStarManager {
-  title: string
+  titleKey: string
   name: string
-  role: string
+  roleKey: string
   avatar: string
 }
 
 export interface DashboardResourceStatItem {
-  label: string
+  labelKey: string
   value: number
   unit: string
   color: string
   trend: string
+  trendKey?: string
 }
 
 export type DashboardLogLevel = 'INFO' | 'WARN' | 'ERROR'
@@ -104,6 +105,5 @@ export type DashboardLogLevel = 'INFO' | 'WARN' | 'ERROR'
 export interface DashboardLogItem {
   time: string
   level: DashboardLogLevel
-  content: string
+  contentKey: string
 }
-

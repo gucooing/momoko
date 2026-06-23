@@ -1,7 +1,7 @@
 <template>
   <div class="form-content-inner">
-    <h2 class="title">创建账号</h2>
-    <p class="subtitle">加入 {{ APP_CONFIG.name }}，开始您的管理之旅</p>
+    <h2 class="title">{{ t('register.title') }}</h2>
+    <p class="subtitle">{{ t('register.subtitle', { name: APP_CONFIG.name }) }}</p>
 
     <el-form
       ref="registerFormRef"
@@ -12,18 +12,22 @@
       @keyup.enter="handleRegister"
     >
       <el-form-item prop="username">
-        <el-input v-model="registerForm.username" placeholder="设置用户名" />
+        <el-input v-model="registerForm.username" :placeholder="t('register.usernamePlaceholder')" />
       </el-form-item>
 
       <el-form-item prop="email">
-        <el-input v-model="registerForm.email" placeholder="输入电子邮箱" @input="handleEmailInput" />
+        <el-input
+          v-model="registerForm.email"
+          :placeholder="t('register.emailPlaceholder')"
+          @input="handleEmailInput"
+        />
       </el-form-item>
 
       <div v-if="props.registerEmailVerificationRequired" class="code-row">
         <el-form-item prop="code" class="code-input-item">
           <el-input
             v-model="registerForm.code"
-            placeholder="请输入验证码"
+            :placeholder="t('register.codePlaceholder')"
             maxlength="6"
           />
         </el-form-item>
@@ -43,7 +47,7 @@
           v-model="registerForm.password"
           type="password"
           show-password
-          placeholder="设置登录密码"
+          :placeholder="t('register.passwordPlaceholder')"
         />
       </el-form-item>
 
@@ -52,19 +56,19 @@
           v-model="registerForm.confirmPassword"
           type="password"
           show-password
-          placeholder="确认您的密码"
+          :placeholder="t('register.confirmPasswordPlaceholder')"
         />
       </el-form-item>
 
       <el-button type="primary" class="submit-btn" :loading="loading" @click="handleRegister">
-        立即注册
+        {{ t('register.submit') }}
       </el-button>
 
       <div class="back-link">
-        <span class="have-account">已有账号？</span>
+        <span class="have-account">{{ t('register.haveAccount') }}</span>
         <el-link :underline="false" @click="emits('goToMode', 'login')">
           <el-icon><component :is="menuStore.iconComponents['Element:ArrowLeft']" /></el-icon>
-          返回登录
+          {{ t('register.backLogin') }}
         </el-link>
       </div>
     </el-form>
@@ -76,6 +80,7 @@ import { APP_CONFIG } from '@/config/app.config'
 import { register, sendRegisterEmailCode } from '@/api/login'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'RegisterComponent' })
 
@@ -87,6 +92,7 @@ const emits = defineEmits<{
   (e: 'goToMode', mode: 'login' | 'forgot' | 'register'): void
 }>()
 
+const { t } = useI18n()
 const menuStore = useMenuStore()
 const registerFormRef = useTemplateRef<FormInstance>('registerFormRef')
 const loading = ref(false)
@@ -108,7 +114,9 @@ let sendCodeTimer: ReturnType<typeof setInterval> | null = null
 const isValidEmail = (email: string) => EMAIL_REGEXP.test(email)
 
 const sendCodeButtonText = computed(() => {
-  return sendCodeCountdown.value > 0 ? `${sendCodeCountdown.value}s 后重发` : '发送验证码'
+  return sendCodeCountdown.value > 0
+    ? t('login.resendIn', { seconds: sendCodeCountdown.value })
+    : t('login.sendCode')
 })
 
 const sendCodeDisabled = computed(() => {
@@ -143,23 +151,23 @@ const handleEmailInput = () => {
 const handleSendCode = async () => {
   const email = registerForm.value.email.trim()
   if (!isValidEmail(email)) {
-    ElMessage.warning('请先输入正确的邮箱地址')
+    ElMessage.warning(t('login.validEmailFirst'))
     return
   }
 
   try {
     await sendRegisterEmailCode({ email })
-    ElMessage.success('验证码已发送，请注意查收')
+    ElMessage.success(t('login.codeSent'))
     startSendCodeCountdown()
   } catch {
-    ElMessage.error('验证码发送失败，请稍后重试')
+    ElMessage.error(t('login.codeSendFailed'))
   }
 }
 
 const validateUsername: FormItemRule['validator'] = (_rule, value, callback) => {
   const val = String(value || '').trim()
   if (!val) {
-    callback(new Error('请输入用户名'))
+    callback(new Error(t('register.usernameRequired')))
     return
   }
   callback()
@@ -168,11 +176,11 @@ const validateUsername: FormItemRule['validator'] = (_rule, value, callback) => 
 const validateEmail: FormItemRule['validator'] = (_rule, value, callback) => {
   const val = String(value || '').trim()
   if (!val) {
-    callback(new Error('请输入邮箱'))
+    callback(new Error(t('register.emailRequired')))
     return
   }
   if (!EMAIL_REGEXP.test(val)) {
-    callback(new Error('邮箱格式不正确'))
+    callback(new Error(t('login.emailInvalid')))
     return
   }
   callback()
@@ -181,11 +189,11 @@ const validateEmail: FormItemRule['validator'] = (_rule, value, callback) => {
 const validatePassword: FormItemRule['validator'] = (_rule, value, callback) => {
   const val = String(value || '')
   if (!val) {
-    callback(new Error('请输入密码'))
+    callback(new Error(t('register.passwordRequired')))
     return
   }
   if (val.length < 6) {
-    callback(new Error('密码长度不能少于6位'))
+    callback(new Error(t('register.passwordMin')))
     return
   }
   callback()
@@ -194,11 +202,11 @@ const validatePassword: FormItemRule['validator'] = (_rule, value, callback) => 
 const validateConfirmPassword: FormItemRule['validator'] = (_rule, value, callback) => {
   const val = String(value || '')
   if (!val) {
-    callback(new Error('请确认密码'))
+    callback(new Error(t('register.confirmPasswordRequired')))
     return
   }
   if (val !== registerForm.value.password) {
-    callback(new Error('两次输入的密码不一致'))
+    callback(new Error(t('register.confirmPasswordMismatch')))
     return
   }
   callback()
@@ -211,7 +219,7 @@ const validateCode: FormItemRule['validator'] = (_rule, value, callback) => {
   }
   const val = String(value || '').trim()
   if (!val) {
-    callback(new Error('请输入邮箱验证码'))
+    callback(new Error(t('register.emailCodeRequired')))
     return
   }
   callback()
@@ -235,7 +243,7 @@ const handleRegister = async () => {
       password: registerForm.value.password,
       code: registerForm.value.code.trim(),
     })
-    ElMessage.success('注册成功，请登录')
+    ElMessage.success(t('register.success'))
     emits('goToMode', 'login')
   } finally {
     loading.value = false

@@ -5,16 +5,16 @@
       <div class="flex items-center justify-between gap-2">
         <div class="flex flex-1 items-center">
           <div class="text-[18px] font-bold">
-            <TextEllipsis text="年度营收与净利润增长深度分析" :clickable="false" />
+            <TextEllipsis :text="t('dashboard.analysis.revenueProfitTitle')" :clickable="false" />
           </div>
           <div class="ml-4 hidden sm:block">
-            <BaseTag text="数据已脱敏" />
+            <BaseTag :text="t('dashboard.analysis.desensitized')" />
           </div>
         </div>
         <div class="flex shrink-0 items-center sm:gap-2">
           <el-radio-group v-model="analysisTimeRange" size="small">
-            <el-radio-button label="1y">近1年</el-radio-button>
-            <el-radio-button label="2y">近2年</el-radio-button>
+            <el-radio-button label="1y">{{ t('dashboard.analysis.recentOneYear') }}</el-radio-button>
+            <el-radio-button label="2y">{{ t('dashboard.analysis.recentTwoYears') }}</el-radio-button>
           </el-radio-group>
           <el-divider direction="vertical" />
           <IconButton icon="HOutline:ArrowPathIcon" type="primary" @click="refreshData" />
@@ -31,12 +31,14 @@
 import { storeToRefs } from 'pinia'
 import VChart from '@/components/chart/VChart.vue'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 // 触发器变量（仅仅用来主题或者颜色变化时触发revenueProfitOption 更新的变量）
 const colorTrigger = ref(0)
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { analysisTimeRange, analysisData } = storeToRefs(dashboardAnalysisStore)
 const { refreshData } = dashboardAnalysisStore
+const { t } = useI18n()
 
 const revenueProfitOption = computed(() => {
   void colorTrigger.value
@@ -61,7 +63,12 @@ const revenueProfitOption = computed(() => {
       },
     },
     legend: {
-      data: ['年度营收', '净利润', '去年同期', '利润率'],
+      data: [
+        t('dashboard.analysis.annualRevenue'),
+        t('dashboard.analysis.netProfit'),
+        t('dashboard.analysis.lastYearSamePeriod'),
+        t('dashboard.analysis.profitRate'),
+      ],
       bottom: 0,
       itemGap: 20,
       textStyle: { color: style.getPropertyValue('--el-text-color-regular') },
@@ -70,7 +77,7 @@ const revenueProfitOption = computed(() => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: data?.months,
+      data: data?.months.map((month) => t('dashboard.analysis.monthLabel', { month })),
       axisLine: { lineStyle: { color: style.getPropertyValue('--el-text-color-regular') } },
       axisTick: { show: false },
       axisLabel: { color: style.getPropertyValue('--el-text-color-regular') },
@@ -98,7 +105,7 @@ const revenueProfitOption = computed(() => {
     yAxis: [
       {
         type: 'value',
-        name: '金额 (k)',
+        name: t('dashboard.analysis.amountK'),
         axisLine: { show: false },
         splitLine: {
           lineStyle: { type: 'dashed', color: style.getPropertyValue('--el-border-color') },
@@ -108,7 +115,7 @@ const revenueProfitOption = computed(() => {
       },
       {
         type: 'value',
-        name: '利润率 (%)',
+        name: t('dashboard.analysis.profitRatePercent'),
         min: 0,
         max: 100,
         axisLine: { show: false },
@@ -119,7 +126,7 @@ const revenueProfitOption = computed(() => {
     ],
     series: [
       {
-        name: '年度营收',
+        name: t('dashboard.analysis.annualRevenue'),
         type: 'line',
         smooth: true,
         lineStyle: { width: 0 },
@@ -141,7 +148,7 @@ const revenueProfitOption = computed(() => {
         data: data?.revenue,
       },
       {
-        name: '去年同期',
+        name: t('dashboard.analysis.lastYearSamePeriod'),
         type: 'line',
         symbol: 'none',
         lineStyle: {
@@ -152,7 +159,7 @@ const revenueProfitOption = computed(() => {
         data: data?.lastYear,
       },
       {
-        name: '净利润',
+        name: t('dashboard.analysis.netProfit'),
         type: 'line',
         smooth: true,
         lineStyle: { width: 4, color: style.getPropertyValue('--el-color-warning') },
@@ -166,7 +173,7 @@ const revenueProfitOption = computed(() => {
         data: data?.profit,
       },
       {
-        name: '利润率',
+        name: t('dashboard.analysis.profitRate'),
         type: 'line',
         yAxisIndex: 1,
         lineStyle: {

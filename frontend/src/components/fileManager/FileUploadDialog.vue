@@ -10,6 +10,7 @@ import {
   useFileUpload,
 } from '@/components/fileManager/useFileUpload'
 import { getRequestErrorMessage, showRequestError } from '@/utils/request'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FileUploadDialog' })
 
@@ -55,6 +56,7 @@ const isDragOver = ref(false)
 const submitting = ref(false)
 const queueItems = ref<UploadQueueItem[]>([])
 const uploadConcurrency = ref(DEFAULT_UPLOAD_CONCURRENCY)
+const { t } = useI18n()
 
 const { createUploadTask, cancelUploadSession } = useFileUpload()
 
@@ -77,9 +79,11 @@ const effectiveUploadConcurrency = computed(() =>
   normalizeUploadConcurrency(uploadConcurrency.value),
 )
 const submitText = computed(() => {
-  if (submitting.value) return '上传中'
-  if (errorCount.value > 0 && selectableCount.value === errorCount.value) return '重试失败项'
-  return '开始上传'
+  if (submitting.value) return t('fileManager.uploading')
+  if (errorCount.value > 0 && selectableCount.value === errorCount.value) {
+    return t('fileManager.retryFailedItems')
+  }
+  return t('fileManager.startUpload')
 })
 
 const formatBytes = (bytes: number) => {
@@ -136,7 +140,7 @@ const appendFiles = (fileList: File[]) => {
       file,
       progress: 0,
       status: 'pending' as const,
-      message: '等待上传',
+      message: t('fileManager.waitUpload'),
       uploadId: '',
       canceling: false,
       task: null,
@@ -144,7 +148,7 @@ const appendFiles = (fileList: File[]) => {
     .filter((item) => !existingIds.has(item.id))
 
   if (!nextItems.length) {
-    ElMessage.info('所选文件已在上传队列中')
+    ElMessage.info(t('fileManager.duplicateFile'))
     return
   }
 
@@ -184,14 +188,14 @@ const handleDragLeave = () => {
 }
 
 const resolveStatusText = (item: UploadQueueItem) => {
-  if (item.status === 'hashing') return '计算快速哈希中'
-  if (item.status === 'uploading') return item.message || '分片并发上传中'
-  if (item.status === 'verifying') return '校验分片状态中'
-  if (item.status === 'finishing') return '正在合并分片'
-  if (item.status === 'canceling') return '正在取消上传'
-  if (item.status === 'success') return item.message || '上传完成'
-  if (item.status === 'error') return item.message || '上传失败'
-  return item.message || '等待上传'
+  if (item.status === 'hashing') return t('fileManager.hashing')
+  if (item.status === 'uploading') return item.message || t('fileManager.chunkUploading')
+  if (item.status === 'verifying') return t('fileManager.verifying')
+  if (item.status === 'finishing') return t('fileManager.finishing')
+  if (item.status === 'canceling') return t('fileManager.canceling')
+  if (item.status === 'success') return item.message || t('fileManager.uploadDone')
+  if (item.status === 'error') return item.message || t('fileManager.uploadFailed')
+  return item.message || t('fileManager.waitUpload')
 }
 
 const canShowHeaderAction = (item: UploadQueueItem) => {
@@ -211,7 +215,7 @@ const cancelQueueItem = async (item: UploadQueueItem) => {
   updateQueueItem(item.id, {
     canceling: true,
     status: 'canceling',
-    message: '正在取消上传',
+    message: t('fileManager.canceling'),
   })
 
   try {
@@ -231,9 +235,9 @@ const cancelQueueItem = async (item: UploadQueueItem) => {
       canceling: false,
       task: null,
       status: 'error',
-      message: getRequestErrorMessage(error, '取消上传失败'),
+      message: getRequestErrorMessage(error, t('fileManager.cancelUploadFailed')),
     })
-    showRequestError(error, `文件 ${item.file.name} 取消上传失败`)
+    showRequestError(error, t('fileManager.fileCancelUploadFailed', { name: item.file.name }))
     return false
   }
 }
@@ -265,7 +269,7 @@ const submitUpload = async () => {
   if (submitting.value) return
 
   if (!props.onGetUploadPreSign) {
-    ElMessage.info('当前文件视图暂未实现上传')
+    ElMessage.info(t('fileManager.uploadNotImplemented'))
     return
   }
 
@@ -274,7 +278,7 @@ const submitUpload = async () => {
   )
 
   if (!targetItems.length) {
-    ElMessage.warning('请先选择要上传的文件')
+    ElMessage.warning(t('fileManager.selectUploadFile'))
     return
   }
 
@@ -288,7 +292,7 @@ const submitUpload = async () => {
     updateQueueItem(item.id, {
       progress: 0,
       status: 'hashing',
-      message: '计算快速哈希中',
+      message: t('fileManager.hashing'),
       uploadId: '',
       canceling: false,
       task: null,
@@ -303,7 +307,7 @@ const submitUpload = async () => {
         if (phase === 'hashing') {
           updateQueueItem(item.id, {
             status: 'hashing',
-            message: '计算快速哈希中',
+            message: t('fileManager.hashing'),
           })
           return
         }
@@ -311,7 +315,7 @@ const submitUpload = async () => {
         if (phase === 'uploading') {
           updateQueueItem(item.id, {
             status: 'uploading',
-            message: `分片并发上传中（${concurrency} 线程）`,
+            message: t('fileManager.chunkUploadingWithThreads', { count: concurrency }),
           })
           return
         }
@@ -319,14 +323,14 @@ const submitUpload = async () => {
         if (phase === 'verifying') {
           updateQueueItem(item.id, {
             status: 'verifying',
-            message: '校验分片状态中',
+            message: t('fileManager.verifying'),
           })
           return
         }
 
         updateQueueItem(item.id, {
           status: 'finishing',
-          message: '正在合并分片',
+          message: t('fileManager.finishing'),
         })
       },
       onSessionCreated: (session) => {
@@ -351,7 +355,9 @@ const submitUpload = async () => {
       updateQueueItem(item.id, {
         progress: 100,
         status: 'success',
-        message: result.completedBeforeUpload ? '文件已存在，已直接完成' : '上传完成',
+        message: result.completedBeforeUpload
+          ? t('fileManager.fileExistsDone')
+          : t('fileManager.uploadDone'),
         canceling: false,
         task: null,
       })
@@ -370,9 +376,9 @@ const submitUpload = async () => {
         canceling: false,
         task: null,
         status: 'error',
-        message: getRequestErrorMessage(error, '上传失败'),
+        message: getRequestErrorMessage(error, t('fileManager.uploadFailed')),
       })
-      showRequestError(error, `文件 ${item.file.name} 上传失败`)
+      showRequestError(error, t('fileManager.fileUploadFailed', { name: item.file.name }))
     }
   }
 
@@ -381,19 +387,25 @@ const submitUpload = async () => {
       await refreshDirectory()
     }
   } catch (error) {
-    showRequestError(error, '目录刷新失败')
+    showRequestError(error, t('fileManager.refreshFailed'))
   } finally {
     submitting.value = false
   }
 
   if (uploadedCount > 0 && failedCount === 0) {
-    ElMessage.success(uploadedCount === 1 ? '文件上传成功' : `已上传 ${uploadedCount} 个文件`)
+    ElMessage.success(
+      uploadedCount === 1
+        ? t('fileManager.fileUploadSuccess')
+        : t('fileManager.uploadedMany', { count: uploadedCount }),
+    )
     visible.value = false
     return
   }
 
   if (uploadedCount > 0 && failedCount > 0) {
-    ElMessage.warning(`已上传 ${uploadedCount} 个文件，另有 ${failedCount} 个失败`)
+    ElMessage.warning(
+      t('fileManager.uploadedWithFailures', { success: uploadedCount, failed: failedCount }),
+    )
   }
 }
 
@@ -416,7 +428,7 @@ watch(uploadConcurrency, (value) => {
 <template>
   <el-dialog
     v-model="visible"
-    title="上传文件"
+    :title="t('fileManager.uploadTitle')"
     width="min(720px, calc(100vw - 24px))"
     destroy-on-close
     :close-on-click-modal="!submitting"
@@ -426,14 +438,14 @@ watch(uploadConcurrency, (value) => {
     <div class="upload-dialog">
       <div class="upload-summary">
         <div class="upload-summary__item">
-          <span class="upload-summary__label">目标目录</span>
+          <span class="upload-summary__label">{{ t('fileManager.uploadTargetDirectory') }}</span>
           <span class="upload-summary__value">{{ props.path }}</span>
         </div>
         <div class="upload-summary__item">
-          <span class="upload-summary__label">队列状态</span>
+          <span class="upload-summary__label">{{ t('fileManager.uploadQueueStatus') }}</span>
           <span class="upload-summary__value">
-            {{ successCount }}/{{ queueItems.length }} 成功
-            <template v-if="errorCount > 0">，{{ errorCount }} 失败</template>
+            {{ t('fileManager.uploadSuccessCount', { success: successCount, total: queueItems.length }) }}
+            <template v-if="errorCount > 0">{{ t('fileManager.uploadFailedCount', { failed: errorCount }) }}</template>
           </span>
         </div>
       </div>
@@ -457,9 +469,9 @@ watch(uploadConcurrency, (value) => {
         <span class="upload-dropzone__icon">
           <el-icon size="22"><component :is="UploadFilled" /></el-icon>
         </span>
-        <span class="upload-dropzone__title">拖拽文件到此处，或点击选择文件</span>
+        <span class="upload-dropzone__title">{{ t('fileManager.uploadDropzoneTitle') }}</span>
         <span class="upload-dropzone__description">
-          公共上传流程已接入分片并发上传，当前 {{ effectiveUploadConcurrency }} 线程
+          {{ t('fileManager.uploadDropzoneDescription', { count: effectiveUploadConcurrency }) }}
         </span>
       </button>
 
@@ -476,7 +488,7 @@ watch(uploadConcurrency, (value) => {
               class="upload-item__remove"
               @click="handleRemoveOrCancel(item.id)"
             >
-              移除
+              {{ t('fileManager.remove') }}
             </button>
           </div>
 
@@ -511,7 +523,7 @@ watch(uploadConcurrency, (value) => {
         </div>
       </div>
 
-      <el-empty v-else class="upload-empty" :image-size="84" description="当前还没有待上传的文件">
+      <el-empty v-else class="upload-empty" :image-size="84" :description="t('fileManager.uploadEmpty')">
         <template #image>
           <el-icon size="56" class="upload-empty__icon">
             <component :is="FolderOpened" />
@@ -524,10 +536,10 @@ watch(uploadConcurrency, (value) => {
       <div class="upload-footer">
         <div class="upload-footer__start">
           <el-button :icon="DocumentAdd" :disabled="submitting" @click="triggerFileSelect">
-            选择文件
+            {{ t('fileManager.selectFile') }}
           </el-button>
           <div class="upload-footer__concurrency">
-            <span class="upload-footer__concurrency-label">线程数</span>
+            <span class="upload-footer__concurrency-label">{{ t('fileManager.threads') }}</span>
             <el-input-number
               v-model="uploadConcurrency"
               :min="1"
@@ -540,7 +552,7 @@ watch(uploadConcurrency, (value) => {
         </div>
         <div class="upload-footer__actions">
           <el-button :disabled="submitting" @click="closeDialog">
-            {{ submitting ? '上传中' : '关闭' }}
+            {{ submitting ? t('fileManager.uploading') : t('common.close') }}
           </el-button>
           <el-button
             type="primary"

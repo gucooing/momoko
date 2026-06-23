@@ -2,14 +2,14 @@
   <div>
     <el-card shadow="never" class="mb-4">
       <el-form ref="queryFormRef" :model="queryForm" :inline="true">
-        <el-form-item label="用户" prop="userId">
+        <el-form-item :label="t('system.operation.user')" prop="userId">
           <el-select
             v-model="queryForm.userId"
             filterable
             remote
             clearable
             reserve-keyword
-            placeholder="请输入用户名搜索"
+            :placeholder="t('system.operation.searchUserPlaceholder')"
             :remote-method="searchUser"
             :loading="userLoading"
             style="width: 200px"
@@ -22,10 +22,10 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="操作类型" prop="operationType">
+        <el-form-item :label="t('system.operation.operationType')" prop="operationType">
           <el-select
             v-model="queryForm.operationType"
-            placeholder="请选择操作类型"
+            :placeholder="t('system.operation.selectOperationType')"
             clearable
             style="width: 200px"
           >
@@ -37,21 +37,21 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="结果" prop="success">
+        <el-form-item :label="t('system.operation.result')" prop="success">
           <el-select
             v-model="queryForm.success"
-            placeholder="全部"
+            :placeholder="t('system.common.all')"
             clearable
             style="width: 120px"
           >
-            <el-option label="成功" :value="true" />
-            <el-option label="失败" :value="false" />
+            <el-option :label="t('system.common.success')" :value="true" />
+            <el-option :label="t('system.common.failed')" :value="false" />
           </el-select>
         </el-form-item>
-        <el-form-item label="路径" prop="path">
+        <el-form-item :label="t('system.operation.requestPath')" prop="path">
           <el-input
             v-model="queryForm.path"
-            placeholder="请输入请求路径"
+            :placeholder="t('system.operation.requestPathPlaceholder')"
             clearable
             style="width: 200px"
           />
@@ -61,9 +61,9 @@
             <template #icon>
               <component :is="menuStore.iconComponents.Search" />
             </template>
-            查询
+            {{ t('system.operation.query') }}
           </el-button>
-          <el-button @click="reset">重置</el-button>
+          <el-button @click="reset">{{ t('system.common.reset') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -72,10 +72,10 @@
       <!-- desktop: table -->
       <VxeGrid v-if="!menuStore.isMobile" v-bind="gridConfig">
         <template #column-operationType="{ row }">
-          <span class="op-type-tag">{{ operationTypeLabels[row.operationType] || row.operationType }}</span>
+          <span class="op-type-tag">{{ getOperationTypeLabel(row.operationType) }}</span>
         </template>
         <template #column-success="{ row }">
-          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
+          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('system.common.success') : t('system.common.failed')" />
         </template>
         <template #column-detail="{ row }">
           <span class="detail-preview" @click="showDetailDialog(row.detail)">{{ row.detail || '-' }}</span>
@@ -86,15 +86,15 @@
 
       <!-- mobile: cards -->
       <div v-else class="mobile-card-list">
-        <div v-if="!logs.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-if="!logs.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
         <div v-for="(row, idx) in logs" :key="idx" class="mobile-card" @click="row.detail && showDetailDialog(row.detail)">
           <div class="mobile-card-body">
             <div class="mobile-card-header">
-              <span class="mobile-card-title">{{ operationTypeLabels[row.operationType] || row.operationType }}</span>
-              <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
+              <span class="mobile-card-title">{{ getOperationTypeLabel(row.operationType) }}</span>
+              <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('system.common.success') : t('system.common.failed')" />
             </div>
             <div class="mobile-card-meta">
-              <span>用户: {{ row.userId }}</span>
+              <span>{{ t('system.operation.userMeta', { userId: row.userId }) }}</span>
               <span class="meta-sep">·</span>
               <span>IP: {{ row.ip || '-' }}</span>
               <span class="meta-sep">·</span>
@@ -115,7 +115,7 @@
       />
     </el-card>
 
-    <BaseDialog v-model="detailVisible" title="操作详情" width="560">
+    <BaseDialog v-model="detailVisible" :title="t('system.operation.detailTitle')" width="560">
       <el-scrollbar max-height="60vh">
         <pre v-if="isDetailJson" class="detail-json">{{ detailContent }}</pre>
         <div v-else class="detail-dialog-body">{{ detailContent }}</div>
@@ -125,15 +125,16 @@
           <template #icon>
             <component :is="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" />
           </template>
-          复制
+          {{ t('system.common.copy') }}
         </el-button>
-        <el-button type="primary" @click="detailVisible = false">关闭</el-button>
+        <el-button type="primary" @click="detailVisible = false">{{ t('system.common.close') }}</el-button>
       </template>
     </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { listOperationLogs } from '@/api/system'
 import { userPage } from '@/api/user'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
@@ -148,6 +149,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'OperationLogView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const logs = ref<OperationLogInfo[]>([])
@@ -165,77 +167,84 @@ const pagination = ref({
   total: 0,
 })
 
-const operationTypeLabels: Record<string, string> = {
-  [OperationType.OperationTypeUncategorized]: '未分类',
-  [OperationType.OperationTypeAuthLogin]: '登录',
-  [OperationType.OperationTypeAuthRegister]: '注册',
-  [OperationType.OperationTypeAuthLogout]: '退出登录',
-  [OperationType.OperationTypeAuthUpdatePassword]: '修改密码',
-  [OperationType.OperationTypeAuthDeviceDelete]: '登录设备删除',
-  [OperationType.OperationTypeAuthRegisterEmailCode]: '注册邮件验证码发送',
-  [OperationType.OperationTypeAuthLoginEmailCode]: '登录邮件验证码发送',
-  [OperationType.OperationTypeUserUpdateMe]: '个人信息更新',
-  [OperationType.OperationTypeUserCreate]: '用户新增',
-  [OperationType.OperationTypeUserUpdate]: '用户编辑',
-  [OperationType.OperationTypeUserDelete]: '用户删除',
-  [OperationType.OperationTypeSystemPermissionCreate]: '权限菜单新增',
-  [OperationType.OperationTypeSystemPermissionUpdate]: '权限菜单编辑',
-  [OperationType.OperationTypeSystemPermissionDelete]: '权限菜单删除',
-  [OperationType.OperationTypeSystemRoleCreate]: '角色新增',
-  [OperationType.OperationTypeSystemRoleUpdate]: '角色编辑',
-  [OperationType.OperationTypeSystemRoleDelete]: '角色删除',
-  [OperationType.OperationTypeSystemLoginConfigUpdate]: '登录配置更新',
-  [OperationType.OperationTypeFileCreate]: '文件创建',
-  [OperationType.OperationTypeFileRename]: '文件重命名',
-  [OperationType.OperationTypeFileCopy]: '文件复制',
-  [OperationType.OperationTypeFileMove]: '文件移动',
-  [OperationType.OperationTypeFileDelete]: '文件删除',
-  [OperationType.OperationTypeFileCompress]: '文件压缩',
-  [OperationType.OperationTypeFileDecompress]: '文件解压',
-  [OperationType.OperationTypeFileUploadComplete]: '文件上传完成',
-  [OperationType.OperationTypeFileUploadCancel]: '文件上传取消',
-  [OperationType.OperationTypeFileEdit]: '文件编辑',
-  [OperationType.OperationTypeInstanceTypeCreate]: '实例类型新增',
-  [OperationType.OperationTypeInstanceTypeUpdate]: '实例类型编辑',
-  [OperationType.OperationTypeInstanceTypeDelete]: '实例类型删除',
-  [OperationType.OperationTypeInstanceTerminalStart]: '终端启动',
-  [OperationType.OperationTypeInstanceTerminalStop]: '终端停止',
-  [OperationType.OperationTypeInstanceTerminalRestart]: '终端重启',
-  [OperationType.OperationTypeInstanceCreate]: '实例新增',
-  [OperationType.OperationTypeInstanceStart]: '实例启动',
-  [OperationType.OperationTypeInstanceStop]: '实例停止',
-  [OperationType.OperationTypeInstanceRestart]: '实例重启',
-  [OperationType.OperationTypeInstanceDelete]: '实例删除',
-  [OperationType.OperationTypeInstanceUpdate]: '实例编辑',
-  [OperationType.OperationTypeInstanceLogDelete]: '实例日志删除',
-  [OperationType.OperationTypeInstanceFileCreate]: '实例文件创建',
-  [OperationType.OperationTypeInstanceFileRename]: '实例文件重命名',
-  [OperationType.OperationTypeInstanceFileCopy]: '实例文件复制',
-  [OperationType.OperationTypeInstanceFileMove]: '实例文件移动',
-  [OperationType.OperationTypeInstanceFileDelete]: '实例文件删除',
-  [OperationType.OperationTypeInstanceFileCompress]: '实例文件压缩',
-  [OperationType.OperationTypeInstanceFileDecompress]: '实例文件解压',
-  [OperationType.OperationTypeInstanceFileUploadPreSign]: '实例文件上传签名',
-  [OperationType.OperationTypeInstanceFileEdit]: '实例文件编辑',
-  [OperationType.OperationTypeSSHHostCreate]: 'SSH连接新增',
-  [OperationType.OperationTypeSSHHostUpdate]: 'SSH连接编辑',
-  [OperationType.OperationTypeSSHHostDelete]: 'SSH连接删除',
-  [OperationType.OperationTypeSSHHostShare]: 'SSH连接分享',
-  [OperationType.OperationTypeSSHHostTest]: 'SSH连接测试',
-  [OperationType.OperationTypeSSHHostBatchTest]: 'SSH连接批量测试',
-  [OperationType.OperationTypeSystemEmailConfigUpdate]: '邮件配置更新',
-  [OperationType.OperationTypeSystemEmailConfigTest]: '邮件配置测试',
-  [OperationType.OperationTypeSystemEmailTemplateUpdate]: '邮件模板更新',
-  [OperationType.OperationTypeNodeAPIKeyCreate]: 'API Key 创建',
-  [OperationType.OperationTypeNodeAPIKeyCopy]: 'API Key 复制',
-  [OperationType.OperationTypeNodeAPIKeyUpdate]: 'API Key 更新',
-  [OperationType.OperationTypeNodeAPIKeyRefresh]: 'API Key 刷新',
+const operationTypeLabelKeys: Record<string, string> = {
+  [OperationType.OperationTypeUncategorized]: 'system.operation.types.uncategorized',
+  [OperationType.OperationTypeAuthLogin]: 'system.operation.types.authLogin',
+  [OperationType.OperationTypeAuthRegister]: 'system.operation.types.authRegister',
+  [OperationType.OperationTypeAuthLogout]: 'system.operation.types.authLogout',
+  [OperationType.OperationTypeAuthUpdatePassword]: 'system.operation.types.authUpdatePassword',
+  [OperationType.OperationTypeAuthDeviceDelete]: 'system.operation.types.authDeviceDelete',
+  [OperationType.OperationTypeAuthRegisterEmailCode]: 'system.operation.types.authRegisterEmailCode',
+  [OperationType.OperationTypeAuthLoginEmailCode]: 'system.operation.types.authLoginEmailCode',
+  [OperationType.OperationTypeUserUpdateMe]: 'system.operation.types.userUpdateMe',
+  [OperationType.OperationTypeUserCreate]: 'system.operation.types.userCreate',
+  [OperationType.OperationTypeUserUpdate]: 'system.operation.types.userUpdate',
+  [OperationType.OperationTypeUserDelete]: 'system.operation.types.userDelete',
+  [OperationType.OperationTypeSystemPermissionCreate]: 'system.operation.types.systemPermissionCreate',
+  [OperationType.OperationTypeSystemPermissionUpdate]: 'system.operation.types.systemPermissionUpdate',
+  [OperationType.OperationTypeSystemPermissionDelete]: 'system.operation.types.systemPermissionDelete',
+  [OperationType.OperationTypeSystemRoleCreate]: 'system.operation.types.systemRoleCreate',
+  [OperationType.OperationTypeSystemRoleUpdate]: 'system.operation.types.systemRoleUpdate',
+  [OperationType.OperationTypeSystemRoleDelete]: 'system.operation.types.systemRoleDelete',
+  [OperationType.OperationTypeSystemLoginConfigUpdate]: 'system.operation.types.systemLoginConfigUpdate',
+  [OperationType.OperationTypeFileCreate]: 'system.operation.types.fileCreate',
+  [OperationType.OperationTypeFileRename]: 'system.operation.types.fileRename',
+  [OperationType.OperationTypeFileCopy]: 'system.operation.types.fileCopy',
+  [OperationType.OperationTypeFileMove]: 'system.operation.types.fileMove',
+  [OperationType.OperationTypeFileDelete]: 'system.operation.types.fileDelete',
+  [OperationType.OperationTypeFileCompress]: 'system.operation.types.fileCompress',
+  [OperationType.OperationTypeFileDecompress]: 'system.operation.types.fileDecompress',
+  [OperationType.OperationTypeFileUploadComplete]: 'system.operation.types.fileUploadComplete',
+  [OperationType.OperationTypeFileUploadCancel]: 'system.operation.types.fileUploadCancel',
+  [OperationType.OperationTypeFileEdit]: 'system.operation.types.fileEdit',
+  [OperationType.OperationTypeInstanceTypeCreate]: 'system.operation.types.instanceTypeCreate',
+  [OperationType.OperationTypeInstanceTypeUpdate]: 'system.operation.types.instanceTypeUpdate',
+  [OperationType.OperationTypeInstanceTypeDelete]: 'system.operation.types.instanceTypeDelete',
+  [OperationType.OperationTypeInstanceTerminalStart]: 'system.operation.types.instanceTerminalStart',
+  [OperationType.OperationTypeInstanceTerminalStop]: 'system.operation.types.instanceTerminalStop',
+  [OperationType.OperationTypeInstanceTerminalRestart]: 'system.operation.types.instanceTerminalRestart',
+  [OperationType.OperationTypeInstanceCreate]: 'system.operation.types.instanceCreate',
+  [OperationType.OperationTypeInstanceStart]: 'system.operation.types.instanceStart',
+  [OperationType.OperationTypeInstanceStop]: 'system.operation.types.instanceStop',
+  [OperationType.OperationTypeInstanceRestart]: 'system.operation.types.instanceRestart',
+  [OperationType.OperationTypeInstanceDelete]: 'system.operation.types.instanceDelete',
+  [OperationType.OperationTypeInstanceUpdate]: 'system.operation.types.instanceUpdate',
+  [OperationType.OperationTypeInstanceLogDelete]: 'system.operation.types.instanceLogDelete',
+  [OperationType.OperationTypeInstanceFileCreate]: 'system.operation.types.instanceFileCreate',
+  [OperationType.OperationTypeInstanceFileRename]: 'system.operation.types.instanceFileRename',
+  [OperationType.OperationTypeInstanceFileCopy]: 'system.operation.types.instanceFileCopy',
+  [OperationType.OperationTypeInstanceFileMove]: 'system.operation.types.instanceFileMove',
+  [OperationType.OperationTypeInstanceFileDelete]: 'system.operation.types.instanceFileDelete',
+  [OperationType.OperationTypeInstanceFileCompress]: 'system.operation.types.instanceFileCompress',
+  [OperationType.OperationTypeInstanceFileDecompress]: 'system.operation.types.instanceFileDecompress',
+  [OperationType.OperationTypeInstanceFileUploadPreSign]: 'system.operation.types.instanceFileUploadPreSign',
+  [OperationType.OperationTypeInstanceFileEdit]: 'system.operation.types.instanceFileEdit',
+  [OperationType.OperationTypeSSHHostCreate]: 'system.operation.types.sshHostCreate',
+  [OperationType.OperationTypeSSHHostUpdate]: 'system.operation.types.sshHostUpdate',
+  [OperationType.OperationTypeSSHHostDelete]: 'system.operation.types.sshHostDelete',
+  [OperationType.OperationTypeSSHHostShare]: 'system.operation.types.sshHostShare',
+  [OperationType.OperationTypeSSHHostTest]: 'system.operation.types.sshHostTest',
+  [OperationType.OperationTypeSSHHostBatchTest]: 'system.operation.types.sshHostBatchTest',
+  [OperationType.OperationTypeSystemEmailConfigUpdate]: 'system.operation.types.systemEmailConfigUpdate',
+  [OperationType.OperationTypeSystemEmailConfigTest]: 'system.operation.types.systemEmailConfigTest',
+  [OperationType.OperationTypeSystemEmailTemplateUpdate]: 'system.operation.types.systemEmailTemplateUpdate',
+  [OperationType.OperationTypeNodeAPIKeyCreate]: 'system.operation.types.nodeAPIKeyCreate',
+  [OperationType.OperationTypeNodeAPIKeyCopy]: 'system.operation.types.nodeAPIKeyCopy',
+  [OperationType.OperationTypeNodeAPIKeyUpdate]: 'system.operation.types.nodeAPIKeyUpdate',
+  [OperationType.OperationTypeNodeAPIKeyRefresh]: 'system.operation.types.nodeAPIKeyRefresh',
 }
 
-const operationTypeOptions = Object.entries(operationTypeLabels).map(([value, label]) => ({
-  value,
-  label,
-}))
+const getOperationTypeLabel = (operationType: string) => {
+  const labelKey = operationTypeLabelKeys[operationType]
+  return labelKey ? t(labelKey) : operationType
+}
+
+const operationTypeOptions = computed(() =>
+  Object.entries(operationTypeLabelKeys).map(([value, labelKey]) => ({
+    value,
+    label: t(labelKey),
+  })),
+)
 
 const gridConfig = computed<VxeGridProps>(() => ({
   border: true,
@@ -243,14 +252,14 @@ const gridConfig = computed<VxeGridProps>(() => ({
   rowConfig: { isHover: true },
   data: logs.value,
   columns: [
-    { field: 'userId', title: '用户ID', minWidth: 140 },
-    { field: 'operationType', title: '操作类型', minWidth: 140, slots: { default: 'column-operationType' } },
-    { field: 'ip', title: 'IP 地址', minWidth: 140 },
-    { field: 'durationMs', title: '耗时', width: 100, slots: { default: 'column-duration' } },
-    { field: 'success', title: '结果', width: 80, slots: { default: 'column-success' } },
-    { field: 'operationTime', title: '操作时间', minWidth: 170, slots: { default: 'column-operationTime' } },
-    { field: 'detail', title: '操作详情', minWidth: 160, slots: { default: 'column-detail' } },
-    { field: 'userAgent', title: 'UA', minWidth: 200 },
+    { field: 'userId', title: t('system.operation.userId'), minWidth: 140 },
+    { field: 'operationType', title: t('system.operation.operationType'), minWidth: 140, slots: { default: 'column-operationType' } },
+    { field: 'ip', title: t('system.operation.ipAddress'), minWidth: 140 },
+    { field: 'durationMs', title: t('system.operation.duration'), width: 100, slots: { default: 'column-duration' } },
+    { field: 'success', title: t('system.operation.result'), width: 80, slots: { default: 'column-success' } },
+    { field: 'operationTime', title: t('system.operation.operationTime'), minWidth: 170, slots: { default: 'column-operationTime' } },
+    { field: 'detail', title: t('system.operation.detail'), minWidth: 160, slots: { default: 'column-detail' } },
+    { field: 'userAgent', title: t('system.operation.userAgent'), minWidth: 200 },
   ],
 }))
 
@@ -281,9 +290,9 @@ const showDetailDialog = (detail: string) => {
 const copyDetail = async () => {
   try {
     await copy(detailContent.value)
-    ElMessage.success('已复制')
+    ElMessage.success(t('system.operation.copied'))
   } catch {
-    ElMessage.error('复制失败')
+    ElMessage.error(t('system.operation.copyFailed'))
   }
 }
 

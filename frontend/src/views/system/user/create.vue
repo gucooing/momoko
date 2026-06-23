@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="submitForm.userId ? '编辑用户' : '新增用户'"
+    :title="submitForm.userId ? t('system.user.editUser') : t('system.user.addUser')"
     width="600"
     @close="close"
   >
@@ -12,33 +12,33 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item label="用户名" prop="username">
+      <el-form-item :label="t('system.common.username')" prop="username">
         <el-input
           v-model="submitForm.username"
-          placeholder="请输入用户名（不允许中文）"
+          :placeholder="t('system.user.usernameCreatePlaceholder')"
           :disabled="!!submitForm.userId"
         />
       </el-form-item>
 
-      <el-form-item v-if="!submitForm.userId" label="密码" prop="password" :required="true">
+      <el-form-item v-if="!submitForm.userId" :label="t('system.common.password')" prop="password" :required="true">
         <el-input
           v-model="submitForm.password"
           type="password"
-          placeholder="请输入密码"
+          :placeholder="t('system.user.passwordPlaceholder')"
           show-password
         />
       </el-form-item>
 
-      <el-form-item label="姓名" prop="name" :required="!submitForm.userId">
-        <el-input v-model="submitForm.name" placeholder="请输入姓名" />
+      <el-form-item :label="t('system.common.name')" prop="name" :required="!submitForm.userId">
+        <el-input v-model="submitForm.name" :placeholder="t('system.user.namePlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="邮箱" prop="email" :required="!submitForm.userId">
-        <el-input v-model="submitForm.email" placeholder="请输入邮箱" />
+      <el-form-item :label="t('system.common.email')" prop="email" :required="!submitForm.userId">
+        <el-input v-model="submitForm.email" :placeholder="t('system.user.emailPlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="用户角色" prop="roleId">
-        <el-select v-model="submitForm.roleId" placeholder="请选择用户角色" style="width: 100%">
+      <el-form-item :label="t('system.common.userRole')" prop="roleId">
+        <el-select v-model="submitForm.roleId" :placeholder="t('system.user.rolePlaceholder')" style="width: 100%">
           <el-option
             v-for="role in roleList"
             :key="role.roleId"
@@ -48,22 +48,23 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="状态" prop="status">
+      <el-form-item :label="t('system.common.status')" prop="status">
         <el-radio-group v-model="submitForm.status">
-          <el-radio :label="UserStatus.Active">启用</el-radio>
-          <el-radio :label="UserStatus.InActive">停用</el-radio>
+          <el-radio :label="UserStatus.Active">{{ t('system.common.enabled') }}</el-radio>
+          <el-radio :label="UserStatus.InActive">{{ t('system.common.inactive') }}</el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('system.common.cancel') }}</el-button>
+      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('system.common.confirm') }}</el-button>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { rolePage } from '@/api/role'
 import { createUser, updateUser, userInfo } from '@/api/user'
@@ -74,6 +75,7 @@ import { type FormInstance, type FormRules } from 'element-plus'
 defineOptions({ name: 'UserCreate' })
 
 const emits = defineEmits(['refresh'])
+const { t } = useI18n()
 const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
 
 const open = ref(false)
@@ -178,7 +180,9 @@ const confirm = async () => {
       })
     }
 
-    ElMessage.success(submitForm.value.userId ? '编辑成功' : '新增成功')
+    ElMessage.success(
+      submitForm.value.userId ? t('system.common.editSuccess') : t('system.common.addSuccess'),
+    )
     emits('refresh', submitForm.value.userId ? 'update' : 'create')
     close()
   } finally {
@@ -186,12 +190,12 @@ const confirm = async () => {
   }
 }
 
-const formRules: FormRules = {
+const formRules = computed<FormRules>(() => ({
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { required: true, message: t('system.user.usernameRequired'), trigger: 'blur' },
     {
       pattern: /^[^\u4e00-\u9fa5]+$/,
-      message: '用户名不允许输入中文',
+      message: t('system.user.usernameNoChinese'),
       trigger: 'blur',
     },
   ],
@@ -199,7 +203,7 @@ const formRules: FormRules = {
     {
       validator: (_, value: string, callback) => {
         if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error('请输入密码'))
+          callback(new Error(t('system.user.passwordRequired')))
           return
         }
         callback()
@@ -211,7 +215,7 @@ const formRules: FormRules = {
     {
       validator: (_, value: string, callback) => {
         if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error('请输入姓名'))
+          callback(new Error(t('system.user.nameRequired')))
           return
         }
         callback()
@@ -223,11 +227,11 @@ const formRules: FormRules = {
     {
       validator: (_, value: string, callback) => {
         if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error('请输入邮箱'))
+          callback(new Error(t('system.user.emailRequired')))
           return
         }
         if (value?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          callback(new Error('邮箱格式不正确'))
+          callback(new Error(t('system.user.emailInvalid')))
           return
         }
         callback()
@@ -235,9 +239,9 @@ const formRules: FormRules = {
       trigger: 'blur',
     },
   ],
-  roleId: [{ required: true, message: '请选择用户角色', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-}
+  roleId: [{ required: true, message: t('system.user.roleRequired'), trigger: 'change' }],
+  status: [{ required: true, message: t('system.user.statusRequired'), trigger: 'change' }],
+}))
 
 const showDialog = async (payload?: { userId: string; roleName?: string }) => {
   open.value = true

@@ -1,17 +1,19 @@
 <template>
   <div class="form-content-inner">
-    <h2 class="title">找回密码</h2>
-    <p class="subtitle">请输入您的邮箱地址来重置密码</p>
+    <h2 class="title">{{ t('forgot.title') }}</h2>
+    <p class="subtitle">{{ t('forgot.subtitle') }}</p>
 
     <el-form :model="forgotPasswordForm" label-position="top" class="forgot-password-form">
       <el-form-item>
-        <el-input v-model="forgotPasswordForm.email" placeholder="请输入注册时的邮箱地址" />
+        <el-input v-model="forgotPasswordForm.email" :placeholder="t('forgot.emailPlaceholder')" />
       </el-form-item>
-      <el-button type="primary" class="submit-btn" @click="handleAction"> 发送重置链接 </el-button>
+      <el-button type="primary" class="submit-btn" @click="handleAction">
+        {{ t('forgot.submit') }}
+      </el-button>
       <div class="back-link">
         <el-link :underline="false" @click="emits('goToMode', 'login')">
           <el-icon><component :is="menuStore.iconComponents['Element:ArrowLeft']" /></el-icon>
-          返回登录
+          {{ t('forgot.backLogin') }}
         </el-link>
       </div>
     </el-form>
@@ -20,18 +22,20 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 const emits = defineEmits<{
   (e: 'goToMode', mode: 'login' | 'forgot' | 'register'): void
 }>()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const forgotPasswordForm = ref({
   email: '',
 })
 
 const handleAction = () => {
-  ElMessage.success('敬请期待👀')
+  ElMessage.success(t('forgot.comingSoon'))
 }
 </script>
 

@@ -1,6 +1,6 @@
 <!-- API 实时吞吐量 -->
 <template>
-  <BaseCard title="API 实时吞吐量 (Req/s)" title-icon="HOutline:ArrowTrendingUpIcon">
+  <BaseCard :title="t('dashboard.monitor.throughput')" title-icon="HOutline:ArrowTrendingUpIcon">
     <div class="h-76">
       <VChart class="chart" :option="throughputOption" autoresize />
     </div>
@@ -11,6 +11,7 @@
 import { storeToRefs } from 'pinia'
 import VChart from '@/components/chart/VChart.vue'
 import { useDashboardMonitorStore } from '@/stores/dashboard/monitor'
+import { useI18n } from 'vue-i18n'
 
 // 触发器变量（仅仅用来主题或者颜色变化时触发revenueProfitOption 更新的变量）
 const colorTrigger = ref(0)
@@ -19,6 +20,7 @@ let timer: ReturnType<typeof setInterval> | null = null
 const dashboardMonitorStore = useDashboardMonitorStore()
 const { throughputData } = storeToRefs(dashboardMonitorStore)
 const { pushThroughput } = dashboardMonitorStore
+const { t } = useI18n()
 
 const throughputOption = computed(() => {
   void colorTrigger.value

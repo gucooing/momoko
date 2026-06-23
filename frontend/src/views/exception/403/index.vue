@@ -283,15 +283,19 @@
         </g>
       </svg>
       <div class="exception-text">
-        <h1 class="exception-code">404</h1>
-        <p class="exception-message">抱歉，您访问的页面不存在</p>
+        <h1 class="exception-code">403</h1>
+        <p class="exception-message">{{ t('exception.forbidden') }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineOptions({ name: '403Exception' })
+
+const { t } = useI18n()
 </script>
 
 <style scoped lang="scss">

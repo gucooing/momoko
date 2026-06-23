@@ -5,22 +5,22 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between">
         <div class="space-y-2">
           <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-semibold">我的权限</h1>
+            <h1 class="text-2xl font-semibold">{{ t('user.permissionTitle') }}</h1>
             <BaseTag :text="userStore.getUserRoleName()" />
           </div>
           <p class="text-sm text-(--el-text-color-secondary)">
-            查看您在系统中获准访问的菜单项与操作功能。如有权限变动，请联系系统管理员。
+            {{ t('user.permissionDescription') }}
           </p>
         </div>
 
         <div class="flex items-center justify-center gap-10 mt-6 md:mt-0 pr-4">
-          <el-statistic :value="menuCount" title="菜单权限" class="text-center" />
+          <el-statistic :value="menuCount" :title="t('user.menuPermission')" class="text-center" />
 
           <el-divider direction="vertical" />
 
           <el-statistic
             :value="menuStore.allButtonPermissions.length"
-            title="按钮权限"
+            :title="t('user.buttonPermission')"
             class="text-center"
           />
         </div>
@@ -37,23 +37,23 @@
       default-expand-all
       show-overflow-tooltip
     >
-      <el-table-column prop="title" label="菜单/功能名称" min-width="200" :align="TABLE_CONFIG.align" />
-      <el-table-column prop="type" label="类型" min-width="100" :align="TABLE_CONFIG.align">
+      <el-table-column prop="title" :label="t('user.menuFunctionName')" min-width="200" :align="TABLE_CONFIG.align">
+        <template #default="{ row }">{{ translateKnownText(row.title) }}</template>
+      </el-table-column>
+      <el-table-column prop="type" :label="t('common.type')" min-width="100" :align="TABLE_CONFIG.align">
         <template #default="{ row }">
-          <BaseTag v-if="row.type === MenuType.MenuType_Directory" type="info" text="目录" />
-          <BaseTag v-else-if="row.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-          <BaseTag v-else-if="row.type === MenuType.MenuType_Button" type="warning" text="按钮" />
+          <BaseTag :type="getMenuTypeTagType(row.type)" :text="getMenuTypeText(row.type)" />
         </template>
       </el-table-column>
-      <el-table-column prop="path" label="菜单路径" min-width="250" :align="TABLE_CONFIG.align" />
-      <el-table-column prop="icon" label="图标" min-width="100" :align="TABLE_CONFIG.align">
+      <el-table-column prop="path" :label="t('user.menuPath')" min-width="250" :align="TABLE_CONFIG.align" />
+      <el-table-column prop="icon" :label="t('user.icon')" min-width="100" :align="TABLE_CONFIG.align">
         <template #default="{ row }">
           <el-icon v-if="row.icon"><component :is="menuStore.iconComponents[row.icon]" /></el-icon>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="150" :align="TABLE_CONFIG.align">
+      <el-table-column :label="t('common.status')" width="150" :align="TABLE_CONFIG.align">
         <template #default="{ row }">
-          <BaseTag :type="row.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="row.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+          <BaseTag :type="row.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(row.status)" />
         </template>
       </el-table-column>
     </el-table>
@@ -63,29 +63,25 @@
       <template v-for="item in menuStore.allMenuList" :key="item.id">
         <div class="mobile-card">
           <div class="mobile-card-header">
-            <span class="mobile-card-title">{{ item.title }}</span>
-            <BaseTag v-if="item.type === MenuType.MenuType_Directory" type="info" text="目录" />
-            <BaseTag v-else-if="item.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-            <BaseTag v-else type="warning" text="按钮" />
+            <span class="mobile-card-title">{{ translateKnownText(item.title) }}</span>
+            <BaseTag :type="getMenuTypeTagType(item.type)" :text="getMenuTypeText(item.type)" />
           </div>
           <div class="mobile-card-meta">{{ item.path }}</div>
           <div class="mobile-card-meta">
             <el-icon v-if="item.icon" size="14"><component :is="menuStore.iconComponents[item.icon]" /></el-icon>
-            <BaseTag :type="item.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="item.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+              <BaseTag :type="item.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(item.status)" />
           </div>
         </div>
         <template v-if="item.children?.length">
           <div v-for="child in item.children" :key="child.id" class="mobile-card" style="marginLeft: 1.2rem">
             <div class="mobile-card-header">
-              <span class="mobile-card-title">{{ child.title }}</span>
-              <BaseTag v-if="child.type === MenuType.MenuType_Directory" type="info" text="目录" />
-              <BaseTag v-else-if="child.type === MenuType.MenuType_Menu" type="primary" text="菜单" />
-              <BaseTag v-else type="warning" text="按钮" />
+              <span class="mobile-card-title">{{ translateKnownText(child.title) }}</span>
+              <BaseTag :type="getMenuTypeTagType(child.type)" :text="getMenuTypeText(child.type)" />
             </div>
             <div class="mobile-card-meta">{{ child.path }}</div>
             <div class="mobile-card-meta">
               <el-icon v-if="child.icon" size="14"><component :is="menuStore.iconComponents[child.icon]" /></el-icon>
-              <BaseTag :type="child.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="child.status === MenuStatus.MenuStatus_Active ? '启用' : '禁用'" />
+              <BaseTag :type="child.status === MenuStatus.MenuStatus_Active ? 'success' : 'danger'" :text="getMenuStatusText(child.status)" />
             </div>
           </div>
         </template>
@@ -98,9 +94,28 @@
 import { TABLE_CONFIG } from '@/config/elementConfig'
 import { MenuStatus, MenuType } from '@/types/v1/system'
 import type { MenuInfo } from '@/types/v1/system'
+import { translateKnownText } from '@/locales'
+import { useI18n } from 'vue-i18n'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
+const { t } = useI18n()
+
+const getMenuTypeTagType = (type: MenuType) => {
+  if (type === MenuType.MenuType_Directory) return 'info'
+  if (type === MenuType.MenuType_Menu) return 'primary'
+  return 'warning'
+}
+
+const getMenuTypeText = (type: MenuType) => {
+  if (type === MenuType.MenuType_Directory) return t('user.directory')
+  if (type === MenuType.MenuType_Menu) return t('user.menu')
+  return t('user.button')
+}
+
+const getMenuStatusText = (status: MenuStatus) => {
+  return status === MenuStatus.MenuStatus_Active ? t('common.enabled') : t('common.disabled')
+}
 
 const menuCount = computed(() => {
   const count = (list: MenuInfo[]): number => {

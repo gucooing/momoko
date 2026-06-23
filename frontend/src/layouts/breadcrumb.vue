@@ -11,7 +11,7 @@
           <el-icon v-if="props.showIcon && item.icon" class="breadcrumb-icon">
             <component :is="menuStore.iconComponents[item.icon]" />
           </el-icon>
-          <span>{{ item.title }}</span>
+          <span>{{ translateKnownText(item.title) }}</span>
         </div>
       </el-breadcrumb-item>
     </el-breadcrumb>
@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import { ArrowRight } from '@element-plus/icons-vue'
 import { MenuType, type MenuInfo } from '@/types/v1/system'
+import { translateKnownText } from '@/locales'
 
 defineOptions({ name: 'BreadcrumbView' })
 

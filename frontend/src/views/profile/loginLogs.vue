@@ -1,7 +1,7 @@
 <!-- 登录日志 -->
 <template>
   <BaseCard>
-    <el-empty v-if="!loginLogs.length" description="暂无登录日志" />
+    <el-empty v-if="!loginLogs.length" :description="t('user.loginLogsEmpty')" />
 
     <!-- desktop: table -->
     <div v-else-if="!menuStore.isMobile">
@@ -11,15 +11,15 @@
         show-overflow-tooltip
         class="custom-modern-table"
       >
-        <el-table-column prop="ip" label="IP 地址" min-width="150" />
+        <el-table-column prop="ip" :label="t('user.extra.ipAddress')" min-width="150" />
         <el-table-column prop="userAgent" label="User Agent" min-width="280" />
-        <el-table-column prop="operationTime" label="操作时间" min-width="170" />
-        <el-table-column label="结果" width="80">
+        <el-table-column prop="operationTime" :label="t('user.operationTime')" min-width="170" />
+        <el-table-column :label="t('user.result')" width="80">
           <template #default="{ row }">
-            <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
+            <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('common.success') : t('common.failed')" />
           </template>
         </el-table-column>
-        <el-table-column label="详情" min-width="160" :show-overflow-tooltip="false">
+        <el-table-column :label="t('user.detail')" min-width="160" :show-overflow-tooltip="false">
           <template #default="{ row }">
             <span v-if="row.detail" class="detail-cell" @click.stop="openDetail(row)">{{ row.detail }}</span>
             <span v-else>-</span>
@@ -41,13 +41,13 @@
       <div v-for="(row, idx) in loginLogs" :key="idx" class="mobile-card" @click="openDetail(row)">
         <div class="mobile-card-header">
           <span class="mobile-card-title">{{ row.ip || '-' }}</span>
-          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? '成功' : '失败'" />
+          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('common.success') : t('common.failed')" />
         </div>
         <div class="mobile-card-meta">
           <span>{{ formatTime(row.operationTime) }}</span>
         </div>
         <div class="mobile-card-meta mobile-card-ua">{{ row.userAgent || '-' }}</div>
-        <div v-if="row.detail" class="mobile-card-detail-hint">点击查看详情</div>
+        <div v-if="row.detail" class="mobile-card-detail-hint">{{ t('user.detailHint') }}</div>
       </div>
 
       <TablePagination
@@ -59,13 +59,13 @@
       />
     </div>
 
-    <BaseDialog v-model="detailVisible" title="登录详情" width="560">
+    <BaseDialog v-model="detailVisible" :title="t('user.loginDetail')" width="560">
       <el-scrollbar max-height="60vh">
         <pre v-if="isDetailJson" class="detail-json">{{ detailContent }}</pre>
         <div v-else class="detail-text">{{ detailContent }}</div>
       </el-scrollbar>
       <template #footer>
-        <el-button type="primary" @click="detailVisible = false">关闭</el-button>
+        <el-button type="primary" @click="detailVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </BaseDialog>
   </BaseCard>
@@ -78,10 +78,12 @@ import { TABLE_CONFIG } from '@/config/elementConfig'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import type { LoginLogItem } from '@/stores/user/types'
+import { useI18n } from 'vue-i18n'
 
 const menuStore = useMenuStore()
 const userProfileStore = useUserProfileStore()
 const { loginLogs, loginLogsPagination } = storeToRefs(userProfileStore)
+const { t } = useI18n()
 
 const detailVisible = ref(false)
 const detailContent = ref('')

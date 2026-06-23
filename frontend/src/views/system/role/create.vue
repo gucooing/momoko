@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="submitForm.roleId ? '编辑角色' : '新增角色'"
+    :title="submitForm.roleId ? t('system.role.editRole') : t('system.role.addRole')"
     width="600"
     @close="close"
     style="height: 60vh"
@@ -14,24 +14,24 @@
         label-width="100px"
         label-position="right"
       >
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="submitForm.name" placeholder="请输入角色名称" />
+        <el-form-item :label="t('system.common.roleName')" prop="name">
+          <el-input v-model="submitForm.name" :placeholder="t('system.role.namePlaceholder')" />
         </el-form-item>
-        <el-form-item label="角色描述" prop="description">
+        <el-form-item :label="t('system.common.roleDescription')" prop="description">
           <el-input
             v-model="submitForm.description"
             type="textarea"
             :rows="3"
-            placeholder="请输入角色描述"
+            :placeholder="t('system.role.descriptionPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item :label="t('system.common.status')" prop="status">
           <el-radio-group v-model="submitForm.status">
-            <el-radio :label="RoleStatus.RoleStatus_Active">启用</el-radio>
-            <el-radio :label="RoleStatus.RoleStatus_InActive">停用</el-radio>
+            <el-radio :label="RoleStatus.RoleStatus_Active">{{ t('system.common.enabled') }}</el-radio>
+            <el-radio :label="RoleStatus.RoleStatus_InActive">{{ t('system.common.inactive') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="菜单权限" prop="menuIds">
+        <el-form-item :label="t('system.role.menuPermission')" prop="menuIds">
           <el-tree
             ref="menuTreeRef"
             :data="menuList"
@@ -47,29 +47,33 @@
     </el-scrollbar>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('system.common.cancel') }}</el-button>
+      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('system.common.confirm') }}</el-button>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { createRole, roleInfo, updateRole } from '@/api/role'
 import { adminPermissionsList } from '@/api/menu'
+import { translateKnownText } from '@/locales'
 import { RoleStatus, type MenuInfo } from '@/types/v1/system'
 import { type ElTree, type FormInstance, type FormRules } from 'element-plus'
 
 defineOptions({ name: 'RoleCreate' })
 
 const emits = defineEmits(['refresh'])
+const { t } = useI18n()
 
 const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
 const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree> | null>('menuTreeRef')
 
 const open = ref(false)
 const submitLoading = ref(false)
-const menuList = ref<MenuInfo[]>([])
+const rawMenuList = ref<MenuInfo[]>([])
+const menuList = computed(() => translateMenuTree(rawMenuList.value))
 
 const getDefaultForm = () => ({
   roleId: undefined as string | undefined,
@@ -123,7 +127,7 @@ const close = () => {
   submitLoading.value = false
   menuTreeRef.value?.setCheckedKeys([])
   submitFormRef.value?.resetFields()
-  menuList.value = []
+  rawMenuList.value = []
   submitForm.value = getDefaultForm()
 }
 
@@ -141,7 +145,7 @@ const confirm = async () => {
       await createRole({ name, description, status, menuIds })
     }
 
-    ElMessage.success(roleId ? '编辑成功' : '新增成功')
+    ElMessage.success(roleId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
     emits('refresh', roleId ? 'update' : 'create')
     close()
   } finally {
@@ -151,7 +155,7 @@ const confirm = async () => {
 
 const getMenuList = async () => {
   const { data: res } = await adminPermissionsList({})
-  menuList.value = res?.menus || []
+  rawMenuList.value = res?.menus || []
 }
 
 const getRoleInfo = async () => {
@@ -186,10 +190,17 @@ const handleMenuCheck = (
   ])
 }
 
-const formRules: FormRules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-}
+const translateMenuTree = (menus: MenuInfo[]): MenuInfo[] =>
+  menus.map((menu) => ({
+    ...menu,
+    title: translateKnownText(menu.title),
+    children: menu.children?.length ? translateMenuTree(menu.children) : menu.children,
+  }))
+
+const formRules = computed<FormRules>(() => ({
+  name: [{ required: true, message: t('system.role.nameRequired'), trigger: 'blur' }],
+  status: [{ required: true, message: t('system.role.statusRequired'), trigger: 'change' }],
+}))
 
 const showDialog = async (roleId: string | undefined) => {
   submitForm.value.roleId = roleId

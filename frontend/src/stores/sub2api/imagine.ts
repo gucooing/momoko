@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
 import { imagineContext } from '@/api/imagine-context'
+import { translate as t } from '@/locales'
 import {
   createImageGenGeneration,
   deleteImageGenGeneration,
@@ -261,7 +262,7 @@ export const useImagineStore = defineStore('sub2api-imagine', () => {
   const modifyImage = async (imageId: string): Promise<boolean> => {
     try {
       const blob = await fetch(imageGenImageUrl(imageId)).then((r) => {
-        if (!r.ok) throw new Error(`加载源图失败 (${r.status})`)
+        if (!r.ok) throw new Error(t('sub2api.imagine.loadSourceFailed', { status: r.status }))
         return r.blob()
       })
       sourceImage.value = await toDataURL(blob)

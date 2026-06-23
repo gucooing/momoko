@@ -38,7 +38,7 @@
     </div>
 
     <!-- 复制按钮 -->
-    <el-tooltip v-if="copyable" content="复制" placement="top">
+    <el-tooltip v-if="copyable" :content="t('common.copy')" placement="top">
       <div class="copy-button" @click.stop="handleCopy">
         <el-icon>
           <!-- 复制图标，可更换为自己项目的图标 -->
@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 
 interface IProps {
   // 要展示的文本内容
@@ -78,6 +79,7 @@ const props = withDefaults(defineProps<IProps>(), {
 
 const attrs = useAttrs()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 // 使用 VueUse 的复制功能
 const { copy } = useClipboard()
@@ -153,9 +155,9 @@ const handleClick = () => {
 const handleCopy = async () => {
   try {
     await copy(textStr.value)
-    ElMessage.success('复制成功')
+    ElMessage.success(t('common.copySuccess'))
   } catch {
-    ElMessage.error('复制失败')
+    ElMessage.error(t('common.copyFailed'))
   }
 }
 

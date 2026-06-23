@@ -1,12 +1,12 @@
 <!-- 资源面板 -->
 <template>
   <el-row :gutter="20">
-    <el-col :sm="12" :lg="6" v-for="item in resourceStatsWithOption" :key="item.label" class="mt-4">
+    <el-col :sm="12" :lg="6" v-for="item in resourceStatsWithOption" :key="item.labelKey" class="mt-4">
       <BaseCard>
         <div class="flex items-center justify-between">
           <div class="flex flex-col gap-3">
             <div class="text-sm font-medium text-(--el-text-color-regular)">
-              {{ item.label }}
+              {{ t(item.labelKey) }}
             </div>
             <div class="flex items-baseline gap-1">
               <span class="text-2xl font-extrabold">{{ item.value }}</span>
@@ -18,13 +18,15 @@
               <span
                 class="font-bold"
                 :class="
-                  item.trend.startsWith('+')
+                  item.trendKey
+                    ? 'text-(--el-text-color-secondary)'
+                    : item.trend.startsWith('+')
                     ? 'text-(--el-color-success)'
                     : 'text-(--el-color-danger)'
                 "
-                >{{ item.trend }}</span
+                >{{ item.trendKey ? t(item.trendKey) : item.trend }}</span
               >
-              <span class="text-(--el-text-color-secondary)">vs last hour</span>
+              <span class="text-(--el-text-color-secondary)">{{ t('dashboard.monitor.vsLastHour') }}</span>
             </div>
           </div>
           <div class="h-23 w-23">
@@ -40,6 +42,7 @@
 import { storeToRefs } from 'pinia'
 import VChart from '@/components/chart/VChart.vue'
 import { useDashboardMonitorStore } from '@/stores/dashboard/monitor'
+import { useI18n } from 'vue-i18n'
 
 // 触发器变量（仅仅用来主题或者颜色变化时触发revenueProfitOption 更新的变量）
 const colorTrigger = ref(0)
@@ -47,6 +50,7 @@ let timer: ReturnType<typeof setInterval> | null = null
 const dashboardMonitorStore = useDashboardMonitorStore()
 const { resourceStats } = storeToRefs(dashboardMonitorStore)
 const { refreshResourceStats } = dashboardMonitorStore
+const { t } = useI18n()
 
 /**
  * 创建迷你仪表盘图表配置

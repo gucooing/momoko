@@ -12,14 +12,14 @@
             <div class="welcome-greeting">
               <h2 class="welcome-title-row">
                 <TextEllipsis
-                  :text="`${userStore.userInfo?.name! || userStore.userInfo?.username!}，欢迎回来！`"
+                  :text="welcomeText"
                   :clickable="false"
                   class="welcome-title"
                 />
                 <span>👋</span>
               </h2>
               <TextEllipsis
-                :text="`“ ${userStore.userInfo?.bio} ”`"
+                :text="bioText"
                 class="welcome-bio"
               />
               <div class="welcome-tags">
@@ -43,7 +43,7 @@
           <div class="welcome-info-section">
             <div class="sys-info-grid">
               <div class="sys-info-line">
-                <span class="sys-info-label">设备名称</span>
+                <span class="sys-info-label">{{ t('dashboard.home.deviceName') }}</span>
                 <span>{{ overview?.version?.hostname || '--' }}</span>
               </div>
               <div class="sys-info-line">
@@ -55,23 +55,23 @@
                 <span>{{ overview?.version?.os || '--' }}</span>
               </div>
               <div class="sys-info-line">
-                <span class="sys-info-label">系统架构</span>
+                <span class="sys-info-label">{{ t('dashboard.home.systemArch') }}</span>
                 <span>{{ overview?.version?.kernelArch || '--' }}</span>
               </div>
               <div class="sys-info-line">
-                <span class="sys-info-label">操作系统</span>
+                <span class="sys-info-label">{{ t('dashboard.home.operatingSystem') }}</span>
                 <span>{{ overview?.version?.os || '--' }} {{ overview?.version?.platformVersion || '' }}</span>
               </div>
               <div class="sys-info-line">
-                <span class="sys-info-label">内核版本</span>
+                <span class="sys-info-label">{{ t('dashboard.home.kernelVersion') }}</span>
                 <span>{{ overview?.version?.kernelVersion || '--' }}</span>
               </div>
               <div class="sys-info-line">
-                <span class="sys-info-label">运行时间</span>
+                <span class="sys-info-label">{{ t('dashboard.home.uptime') }}</span>
                 <span>{{ formatUptime(overview?.uptimeSeconds) }}</span>
               </div>
               <div class="sys-info-line">
-                <span class="sys-info-label">启动时间</span>
+                <span class="sys-info-label">{{ t('dashboard.home.bootTime') }}</span>
                 <span>{{ formatBootTime(overview?.bootTime) }}</span>
               </div>
             </div>
@@ -86,7 +86,7 @@
               <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:BoltIcon']" /></el-icon>
             </div>
             <div>
-              <div class="sys-stat-label">CPU 使用率</div>
+              <div class="sys-stat-label">{{ t('dashboard.home.cpuUsage') }}</div>
               <div class="sys-stat-value">{{ (status?.cpu?.totalPercent ?? 0).toFixed(1) }}%</div>
               <div class="sys-stat-desc truncate">{{ overview?.cpu?.modelName || '--' }}</div>
             </div>
@@ -96,9 +96,9 @@
               <el-icon size="18"><component :is="menuStore.iconComponents['Element:Monitor']" /></el-icon>
             </div>
             <div>
-              <div class="sys-stat-label">内存信息</div>
+              <div class="sys-stat-label">{{ t('dashboard.home.memoryInfo') }}</div>
               <div class="sys-stat-value">{{ (status?.memory?.physicalMemory?.usedPercent ?? 0).toFixed(1) }}%</div>
-              <div class="sys-stat-desc">物理内存 {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}</div>
+              <div class="sys-stat-desc">{{ t('dashboard.home.physicalMemory') }} {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}</div>
               <div class="sys-stat-desc">Swap {{ (status?.memory?.virtualMemory?.usedPercent ?? 0).toFixed(1) }}% · {{ formatBytes(status?.memory?.virtualMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.virtualMemory?.totalBytes) }}</div>
             </div>
           </div>
@@ -107,12 +107,12 @@
               <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" /></el-icon>
             </div>
             <div>
-              <div class="sys-stat-label">网络信息</div>
+              <div class="sys-stat-label">{{ t('dashboard.home.networkInfo') }}</div>
               <div class="net-stat">
                 <span class="net-stat-down">↓ {{ formatBytes(status?.network?.total?.downloadRateBytesPerSecond) }}/s</span>
-                <span class="net-stat-detail">总接收 {{ formatBytes(status?.network?.total?.bytesRecv) }}</span>
+                <span class="net-stat-detail">{{ t('dashboard.home.totalReceived') }} {{ formatBytes(status?.network?.total?.bytesRecv) }}</span>
                 <span class="net-stat-up">↑ {{ formatBytes(status?.network?.total?.uploadRateBytesPerSecond) }}/s</span>
-                <span class="net-stat-detail">总发送 {{ formatBytes(status?.network?.total?.bytesSent) }}</span>
+                <span class="net-stat-detail">{{ t('dashboard.home.totalSent') }} {{ formatBytes(status?.network?.total?.bytesSent) }}</span>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@
               <el-icon size="18"><component :is="menuStore.iconComponents['HOutline:FolderIcon']" /></el-icon>
             </div>
             <div>
-              <div class="sys-stat-label">磁盘 使用率</div>
+              <div class="sys-stat-label">{{ t('dashboard.home.diskUsage') }}</div>
               <div class="sys-stat-value">{{ (status?.disk?.total?.usedPercent ?? 0).toFixed(1) }}%</div>
               <div class="sys-stat-desc">{{ formatBytes(status?.disk?.total?.usedBytes) }} / {{ formatBytes(status?.disk?.total?.totalBytes) }}</div>
             </div>
@@ -137,15 +137,21 @@ import { storeToRefs } from 'pinia'
 import dayjs from 'dayjs'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import { useUserProfileStore } from '@/stores/user/profile'
+import { useI18n } from 'vue-i18n'
 
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
+const { t } = useI18n()
 
 const { currentDate, weatherText, overview, status } =
   storeToRefs(dashboardHomeStore)
 const { startCurrentDateTicker, stopCurrentDateTicker } = dashboardHomeStore
+
+const displayName = computed(() => userStore.userInfo?.name || userStore.userInfo?.username || '')
+const welcomeText = computed(() => t('dashboard.home.welcomeBack', { name: displayName.value }))
+const bioText = computed(() => t('dashboard.home.bioQuote', { bio: userStore.userInfo?.bio || '' }))
 
 const formatBytes = (bytes?: number | string) => {
   const num = Number(bytes)
@@ -161,9 +167,9 @@ const formatUptime = (seconds?: number) => {
   const d = Math.floor(seconds / 86400)
   const h = Math.floor((seconds % 86400) / 3600)
   const m = Math.floor((seconds % 3600) / 60)
-  if (d > 0) return `${d}天 ${h}时 ${m}分`
-  if (h > 0) return `${h}时 ${m}分`
-  return `${m}分`
+  if (d > 0) return t('dashboard.home.dayHourMinute', { days: d, hours: h, minutes: m })
+  if (h > 0) return t('dashboard.home.hourMinute', { hours: h, minutes: m })
+  return t('dashboard.home.minute', { minutes: m })
 }
 
 const formatBootTime = (t?: Date) => {

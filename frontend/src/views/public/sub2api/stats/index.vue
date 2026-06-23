@@ -9,7 +9,7 @@
           <button class="icon-btn" type="button" @click="toggleTheme">
             <el-icon><component :is="isDark ? Sunny : Moon" /></el-icon>
           </button>
-          <el-button text @click="goHome">返回首页</el-button>
+          <el-button text @click="goHome">{{ t('sub2api.stats.backHome') }}</el-button>
         </div>
       </div>
     </header>
@@ -17,8 +17,8 @@
     <section class="wrap">
       <div class="head">
         <div>
-          <h1>用量统计</h1>
-          <p>按模型拆分的真实请求统计（Token 生成速度按请求平均，不含缓存）。</p>
+          <h1>{{ t('sub2api.stats.title') }}</h1>
+          <p>{{ t('sub2api.stats.desc') }}</p>
         </div>
         <el-segmented v-model="range" :options="rangeOptions" @change="onRange" />
       </div>
@@ -39,7 +39,7 @@
 
         <article class="panel">
           <div class="panel-head">
-            <h3>用量趋势</h3>
+            <h3>{{ t('sub2api.common.usageTrend') }}</h3>
             <span>{{ stats?.rangeLabel }}</span>
           </div>
           <VChart
@@ -52,14 +52,14 @@
 
         <article class="panel">
           <div class="panel-head">
-            <h3>模型明细</h3>
-            <span>{{ models.length }} 个模型</span>
+            <h3>{{ t('sub2api.stats.modelDetails') }}</h3>
+            <span>{{ t('sub2api.common.modelCount', { count: models.length }) }}</span>
           </div>
           <el-table class="desktop-table" :data="models" :max-height="288" stripe>
             <el-table-column type="index" label="#" width="56" />
-            <el-table-column prop="name" label="模型" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="name" :label="t('sub2api.common.model')" min-width="180" show-overflow-tooltip />
             <el-table-column
-              label="请求数"
+              :label="t('sub2api.common.requestCount')"
               width="120"
               sortable
               :sort-method="(a: any, b: any) => a.requestCount - b.requestCount"
@@ -69,22 +69,22 @@
             <el-table-column label="Token" width="120">
               <template #default="{ row }">{{ store.formatToken(row.tokenCount) }}</template>
             </el-table-column>
-            <el-table-column label="生成速度" width="130">
+            <el-table-column :label="t('sub2api.common.generationSpeed')" width="130">
               <template #default="{ row }"
                 >{{ store.formatThroughput(row.avgTps) }} token/s</template
               >
             </el-table-column>
-            <el-table-column label="成功率" width="110">
+            <el-table-column :label="t('sub2api.common.successRate')" width="110">
               <template #default="{ row }">{{ store.formatPercent(row.successRate) }}</template>
             </el-table-column>
-            <template #empty>暂无数据</template>
+            <template #empty>{{ t('sub2api.common.noData') }}</template>
           </el-table>
           <div class="mobile-detail-list">
             <article v-for="(row, i) in models" :key="row.name || i" class="detail-rank-row">
               <span class="detail-index">{{ i + 1 }}</span>
               <div class="detail-rank-body">
                 <div class="detail-rank-line">
-                  <strong>{{ row.name || '未标记模型' }}</strong>
+                  <strong>{{ row.name || t('sub2api.common.unknownModel') }}</strong>
                   <span
                     >{{ store.formatThroughput(row.avgTps) }} t/s ·
                     {{ store.formatToken(row.tokenCount) }}</span
@@ -95,25 +95,25 @@
                 </div>
               </div>
               <span class="detail-rate"
-                ><em>成功率</em>{{ store.formatPercent(row.successRate) }}</span
+                ><em>{{ t('sub2api.common.successRate') }}</em>{{ store.formatPercent(row.successRate) }}</span
               >
             </article>
-            <el-empty v-if="!models.length" description="暂无数据" />
+            <el-empty v-if="!models.length" :description="t('sub2api.common.noData')" />
           </div>
         </article>
 
         <article v-if="endpoints.length" class="panel">
-          <div class="panel-head"><h3>接口明细</h3></div>
+          <div class="panel-head"><h3>{{ t('sub2api.stats.endpointDetails') }}</h3></div>
           <el-table class="desktop-table" :data="endpoints" :max-height="288" stripe>
             <el-table-column type="index" label="#" width="56" />
-            <el-table-column prop="name" label="接口" min-width="220" show-overflow-tooltip />
-            <el-table-column label="请求数" width="120">
+            <el-table-column prop="name" :label="t('sub2api.common.endpoint')" min-width="220" show-overflow-tooltip />
+            <el-table-column :label="t('sub2api.common.requestCount')" width="120">
               <template #default="{ row }">{{ store.formatNumber(row.requestCount) }}</template>
             </el-table-column>
             <el-table-column label="Token" width="120">
               <template #default="{ row }">{{ store.formatToken(row.tokenCount) }}</template>
             </el-table-column>
-            <el-table-column label="成功率" width="110">
+            <el-table-column :label="t('sub2api.common.successRate')" width="110">
               <template #default="{ row }">{{ store.formatPercent(row.successRate) }}</template>
             </el-table-column>
           </el-table>
@@ -122,9 +122,9 @@
               <span class="detail-index">{{ i + 1 }}</span>
               <div class="detail-rank-body">
                 <div class="detail-rank-line">
-                  <strong>{{ row.name || '未标记接口' }}</strong>
+                  <strong>{{ row.name || t('sub2api.common.unknownEndpoint') }}</strong>
                   <span
-                    >{{ store.formatNumber(row.requestCount) }} 次 ·
+                    >{{ t('sub2api.common.countTimes', { count: store.formatNumber(row.requestCount) }) }} ·
                     {{ store.formatToken(row.tokenCount) }}</span
                   >
                 </div>
@@ -133,7 +133,7 @@
                 </div>
               </div>
               <span class="detail-rate"
-                ><em>成功率</em>{{ store.formatPercent(row.successRate) }}</span
+                ><em>{{ t('sub2api.common.successRate') }}</em>{{ store.formatPercent(row.successRate) }}</span
               >
             </article>
           </div>
@@ -144,6 +144,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import VChart from '@/components/chart/VChart.vue'
 import { useSub2APIStore } from '@/stores/sub2api'
@@ -155,17 +156,18 @@ const store = useSub2APIStore()
 const themeStore = useThemeStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const isDark = computed(() => themeStore.isDarkTheme)
 const toggleTheme = () => themeStore.toggleThemeMode(isDark.value ? 'light' : 'dark')
 
 const chartUpdate = { notMerge: true }
-const rangeOptions = [
-  { label: '今日', value: 1 },
-  { label: '近 7 天', value: 7 },
-  { label: '近 14 天', value: 14 },
-  { label: '近 30 天', value: 30 },
-]
+const rangeOptions = computed(() => [
+  { label: t('sub2api.common.today'), value: 1 },
+  { label: t('sub2api.common.last7Days'), value: 7 },
+  { label: t('sub2api.common.last14Days'), value: 14 },
+  { label: t('sub2api.common.last30Days'), value: 30 },
+])
 
 const parseRange = (value: unknown) => {
   const n = Number(value)

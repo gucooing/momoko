@@ -2,12 +2,19 @@ import { ElMessage } from 'element-plus'
 import type { ConsoleFeatureItem, ConsoleSocketStatus } from '@/stores/instance/types'
 import { InstanceStatus, type InstanceInfo } from '@/types/v1/instance'
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { translate } from '@/locales'
 
 const MAX_OUTPUT_LINES = 600
 const SOCKET_RETRY_DELAY = 5000
 const SOCKET_AUTH_QUERY_KEYS = ['accessToken', 'token', 'authorization', 'auth']
 
 type SessionAction = 'load' | 'start' | 'stop' | 'restart'
+
+const getActionLabel = (action: Exclude<SessionAction, 'load'>) => {
+  if (action === 'start') return translate('instance.actionStart')
+  if (action === 'stop') return translate('instance.actionStop')
+  return translate('instance.actionRestart')
+}
 
 interface ConsoleSessionOptions {
   defaultOutputLines: string[]
@@ -45,27 +52,31 @@ const buildConsoleLines = (
   }
 
   const lines = [
-    `[system] ${options.entityLabel}名称：${info.name || '未提供'}`,
-    `[system] ${options.entityLabel}状态：${info.status || '未提供'}`,
+    `[system] ${options.entityLabel}${translate('common.name')}：${info.name || translate('instance.notProvided')}`,
+    `[system] ${options.entityLabel}${translate('common.status')}：${info.status || translate('instance.notProvided')}`,
   ]
 
   if (info.status !== InstanceStatus.INSTANCE_STATUS_RUNNING) {
-    lines.push(`[system] 当前${options.entityLabel}未运行，命令输入已禁用`)
+    lines.push(
+      `[system] ${translate('instance.disabledBecauseStopped', { entity: options.entityLabel })}`,
+    )
   }
 
   if (!info.wsPath) {
-    lines.push(`[system] 当前${options.entityLabel}未提供 WS 地址`)
+    lines.push(`[system] ${translate('instance.noWsAddress', { entity: options.entityLabel })}`)
     return lines
   }
 
   if (socketState === 'connecting') {
-    lines.push('[system] WS 连接中...')
+    lines.push(`[system] ${translate('instance.wsConnecting')}`)
   } else if (socketState === 'connected') {
-    lines.push(`[system] WS 已连接，等待${options.outputLabel}输出...`)
+    lines.push(
+      `[system] ${translate('instance.wsConnectedWaiting', { output: options.outputLabel })}`,
+    )
   } else if (socketState === 'error') {
-    lines.push('[system] WS 连接异常，请检查网络或服务状态')
+    lines.push(`[system] ${translate('instance.wsConnectError')}`)
   } else {
-    lines.push('[system] WS 未连接')
+    lines.push(`[system] ${translate('instance.wsDisconnected')}`)
   }
 
   return lines
@@ -97,14 +108,14 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
   const sendPlaceholder = computed(() => {
     if (terminalInfo.value?.status !== InstanceStatus.INSTANCE_STATUS_RUNNING) {
-      return `${options.entityLabel}未运行，当前仅可查看日志`
+      return translate('instance.stoppedReadonly', { entity: options.entityLabel })
     }
 
     if (socketStatus.value !== 'connected') {
-      return 'WS 未连接，暂时无法发送命令'
+      return translate('instance.wsCannotSend')
     }
 
-    return '输入命令后回车发送，可用上下键选择历史命令'
+    return translate('instance.sendHistoryPlaceholder')
   })
 
   const nextRequestToken = () => {
@@ -149,7 +160,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       return
     }
 
-    appendOutput('[system] WS 已连接')
+    appendOutput(`[system] ${translate('instance.wsConnected')}`)
   }
 
   const syncConsolePlaceholder = (
@@ -264,9 +275,9 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     if (!socketUrl) {
       socketStatus.value = 'error'
       if (hasDefaultOutput()) {
-        replaceOutput('[system] WS 地址无效，无法建立连接')
+        replaceOutput(`[system] ${translate('instance.invalidWsAddress')}`)
       } else {
-        appendOutput('[system] WS 地址无效，无法建立连接')
+        appendOutput(`[system] ${translate('instance.invalidWsAddress')}`)
       }
       return
     }
@@ -307,7 +318,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       if (hasDefaultOutput()) {
         syncConsolePlaceholder(terminalInfo.value, 'error')
       } else {
-        appendOutput('[system] WS 连接异常')
+        appendOutput(`[system] ${translate('instance.wsConnectionError')}`)
       }
     }
 
@@ -329,19 +340,19 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
       if (isManualClose) {
         if (!hasDefaultOutput()) {
-          appendOutput('[system] WS 已断开')
+          appendOutput(`[system] ${translate('instance.wsDisconnectedLine')}`)
         }
         return
       }
 
       if (canRetrySocketConnection(terminalInfo.value)) {
-        appendOutput(`[system] WS 已断开，${SOCKET_RETRY_DELAY / 1000} 秒后重连`)
+        appendOutput(`[system] ${translate('instance.wsRetryAfter', { seconds: SOCKET_RETRY_DELAY / 1000 })}`)
         scheduleSocketRetry(token)
         return
       }
 
       if (!hasDefaultOutput()) {
-        appendOutput('[system] WS 已断开')
+        appendOutput(`[system] ${translate('instance.wsDisconnectedLine')}`)
       }
     }
   }
@@ -386,7 +397,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
       if (options.contextIdLabel) {
         outputLines.value = [
-          `[system] 缺少${options.contextIdLabel}，无法加载${options.loadTargetLabel}`,
+          `[system] ${translate('instance.missingContextLoad', { context: options.contextIdLabel, target: options.loadTargetLabel })}`,
         ]
       } else {
         outputLines.value = [...options.defaultOutputLines]
@@ -412,8 +423,8 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
         }
       } else {
         outputLines.value = [
-          `[system] ${options.loadTargetLabel}信息获取失败`,
-          '[system] 请检查后端状态后重试',
+          `[system] ${translate('instance.loadInfoFailed', { target: options.loadTargetLabel })}`,
+          `[system] ${translate('instance.checkBackendRetry')}`,
         ]
       }
     } finally {
@@ -437,7 +448,11 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
     if (!hasRequiredContext()) {
       if (options.contextIdLabel) {
-        ElMessage.warning(`缺少${options.contextIdLabel}，无法${action === 'start' ? '启动' : action === 'stop' ? '停止' : '重启'}${options.entityLabel}`)
+        ElMessage.warning(translate('instance.missingContextAction', {
+          context: options.contextIdLabel,
+          action: getActionLabel(action),
+          entity: options.entityLabel,
+        }))
       }
       return
     }
@@ -460,12 +475,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       )
 
       if (actionSucceeded && isActiveRequest(token)) {
-        const actionLabelMap: Record<Exclude<SessionAction, 'load'>, string> = {
-          start: '启动',
-          stop: '停止',
-          restart: '重启',
-        }
-        ElMessage.success(`${actionLabelMap[action]}成功`)
+        ElMessage.success(translate('instance.actionSuccess', { action: getActionLabel(action) }))
       }
     } finally {
       if (isActiveRequest(token)) {
@@ -504,7 +514,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     if (!command) return
 
     if (!terminalSocket || terminalSocket.readyState !== WebSocket.OPEN) {
-      ElMessage.warning('WS 未连接，无法发送命令')
+      ElMessage.warning(translate('instance.wsSendUnavailable'))
       return
     }
 

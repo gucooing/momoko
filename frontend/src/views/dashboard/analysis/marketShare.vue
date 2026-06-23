@@ -1,6 +1,6 @@
 ﻿<!-- 全球市场份额分布 -->
 <template>
-  <BaseCard title="全球市场份额分布">
+  <BaseCard :title="t('dashboard.analysis.marketShareTitle')">
     <div class="h-65 w-full">
       <VChart :option="marketShareOption" autoresize />
     </div>
@@ -11,18 +11,21 @@
 import { storeToRefs } from 'pinia'
 import VChart from '@/components/chart/VChart.vue'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 // 触发器变量（仅仅用来主题或者颜色变化时触发revenueProfitOption 更新的变量）
 const colorTrigger = ref(0)
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { marketShares } = storeToRefs(dashboardAnalysisStore)
+const { t } = useI18n()
 
 // 全球市场份额饼图
 const marketShareOption = computed(() => {
   void colorTrigger.value
   const style = getComputedStyle(document.documentElement)
   const shareData = marketShares.value.map((item) => ({
-    ...item,
+    value: item.value,
+    name: t(item.nameKey),
     itemStyle: {
       color: style.getPropertyValue(item.colorVar),
     },
@@ -49,7 +52,7 @@ const marketShareOption = computed(() => {
     },
     series: [
       {
-        name: '市场份额',
+        name: t('dashboard.analysis.marketShare'),
         type: 'pie',
         radius: ['45%', '70%'],
         center: ['50%', '45%'],
@@ -81,4 +84,3 @@ defineExpose({ updateColorTrigger })
 </script>
 
 <style scoped lang="scss"></style>
-

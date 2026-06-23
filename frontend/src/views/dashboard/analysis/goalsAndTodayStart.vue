@@ -8,7 +8,7 @@
         </el-icon>
       </div>
       <div class="flex items-center justify-between">
-        <div class="font-semibold text-sm">{{ goalProgress.title }}</div>
+        <div class="font-semibold text-sm">{{ t(goalProgress.titleKey) }}</div>
         <div class="font-bold text-[18px]">{{ goalProgress.percentage }}%</div>
       </div>
       <el-progress
@@ -24,10 +24,10 @@
   </base-card>
   <base-card class="mt-2">
     <div class="flex flex-col items-center justify-center gap-4">
-      <div class="text-[#f97316] text-xs font-semibold">{{ operationManager.title }}</div>
+      <div class="text-[#f97316] text-xs font-semibold">{{ t(operationManager.titleKey) }}</div>
       <el-avatar :size="64" :src="operationManager.avatar" />
       <div class="text-[18px] font-bold">{{ operationManager.name }}</div>
-      <div class="text-[13px] text-(--el-text-color-regular)">{{ operationManager.role }}</div>
+      <div class="text-[13px] text-(--el-text-color-regular)">{{ t(operationManager.roleKey) }}</div>
     </div>
   </base-card>
 </template>
@@ -35,9 +35,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 const menuStore = useMenuStore()
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { goalProgress, operationManager } = storeToRefs(dashboardAnalysisStore)
+const { t } = useI18n()
 </script>
 <style scoped lang="scss"></style>

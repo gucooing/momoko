@@ -7,17 +7,17 @@
             <component :is="menuStore.iconComponents['HOutline:ServerStackIcon']" :style="{ color: themeColor }" />
           </el-icon>
         </div>
-        <div class="title">{{ instance.name || '未命名实例' }}</div>
+        <div class="title">{{ instance.name || t('instance.unnamed') }}</div>
         <BaseTag :text="statusText" :type="statusTagType" />
       </div>
 
       <div class="instance-description">
         <div class="instance-meta-line">
-          <span class="instance-meta-label">类型</span>
+          <span class="instance-meta-label">{{ t('instance.type') }}</span>
           <TextEllipsis :text="instance.type || '-'" :line="1" />
         </div>
         <div class="instance-meta-line instance-meta-line--tags">
-          <span class="instance-meta-label">标签</span>
+          <span class="instance-meta-label">{{ t('instance.tags') }}</span>
           <div v-if="tagList.length" class="instance-tag-list">
             <BaseTag v-for="tag in tagList" :key="tag" :text="tag" />
           </div>
@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { InstanceStatus, type InstanceInfo } from '@/types/v1/instance'
+import { useI18n } from 'vue-i18n'
 
 interface RunningInstanceCardProps {
   instance: InstanceInfo
@@ -57,6 +58,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const INSTANCE_CARD_COLORS = ['#10b981', '#4f46e5', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6']
 
@@ -83,12 +85,12 @@ const tagList = computed(() =>
     .filter(Boolean),
 )
 
-const statusTextMap: Record<InstanceInfo['status'], string> = {
-  [InstanceStatus.INSTANCE_STATUS_RUNNING]: '运行中',
-  [InstanceStatus.INSTANCE_STATUS_STOPPED]: '已停止',
-  [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: '维护中',
-  [InstanceStatus.INSTANCE_STATUS_UNSPECIFIED]: '未指定',
-  [InstanceStatus.UNRECOGNIZED]: '未知状态',
+const statusTextKeyMap: Record<InstanceInfo['status'], string> = {
+  [InstanceStatus.INSTANCE_STATUS_RUNNING]: 'instance.running',
+  [InstanceStatus.INSTANCE_STATUS_STOPPED]: 'instance.stopped',
+  [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: 'instance.maintenance',
+  [InstanceStatus.INSTANCE_STATUS_UNSPECIFIED]: 'instance.unspecified',
+  [InstanceStatus.UNRECOGNIZED]: 'instance.unknownStatus',
 }
 
 const statusTagTypeMap: Record<InstanceInfo['status'], 'success' | 'info' | 'warning' | 'danger'> =
@@ -101,7 +103,7 @@ const statusTagTypeMap: Record<InstanceInfo['status'], 'success' | 'info' | 'war
   }
 
 const statusText = computed(
-  () => statusTextMap[props.instance.status] || statusTextMap[InstanceStatus.UNRECOGNIZED],
+  () => t(statusTextKeyMap[props.instance.status] || statusTextKeyMap[InstanceStatus.UNRECOGNIZED]),
 )
 
 const statusTagType = computed(

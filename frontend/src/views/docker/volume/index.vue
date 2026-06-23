@@ -4,21 +4,21 @@
       <el-form :model="queryForm" label-width="auto" @keyup.enter="search">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="名称">
-              <el-input v-model="queryForm.name" placeholder="卷名称" clearable />
+            <el-form-item :label="t('docker.common.name')">
+              <el-input v-model="queryForm.name" :placeholder="t('docker.volume.namePlaceholder')" clearable />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="驱动">
-              <el-select v-model="queryForm.driver" placeholder="全部" clearable style="width: 100%">
+            <el-form-item :label="t('docker.common.driver')">
+              <el-select v-model="queryForm.driver" :placeholder="t('docker.common.all')" clearable style="width: 100%">
                 <el-option label="local" value="local" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">搜索</el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">{{ t('docker.common.search') }}</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('docker.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -27,9 +27,9 @@
 
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
-        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">创建储存卷</el-button>
-        <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用卷</el-button>
-        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
+        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">{{ t('docker.volume.createVolume') }}</el-button>
+        <el-button type="warning" :disabled="!canManage" @click="handlePrune">{{ t('docker.volume.pruneUnused') }}</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">{{ t('docker.common.tasks') }}</el-button>
       </div>
 
       <div v-loading="loading">
@@ -44,11 +44,11 @@
             {{ formatBytes(row.usageSize) }}
           </template>
           <template #column-operation="{ row }: { row: DockerVolumeInfo }">
-            <el-button type="primary" link size="small" @click="openDetail(row)">详情</el-button>
-            <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
-            <el-button type="primary" link size="small" @click="openExport(row)">导出</el-button>
-            <el-button type="primary" link size="small" @click="openRestore()">恢复</el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            <el-button type="primary" link size="small" @click="openDetail(row)">{{ t('docker.common.detail') }}</el-button>
+            <el-button type="primary" link size="small" @click="openEdit(row)">{{ t('docker.common.edit') }}</el-button>
+            <el-button type="primary" link size="small" @click="openExport(row)">{{ t('docker.volume.export') }}</el-button>
+            <el-button type="primary" link size="small" @click="openRestore()">{{ t('docker.volume.restore') }}</el-button>
+            <el-button type="danger" link size="small" @click="handleDelete(row)">{{ t('docker.common.delete') }}</el-button>
           </template>
         </VxeGrid>
 
@@ -59,16 +59,16 @@
                 <span class="mobile-card-title">{{ row.name }}</span>
                 <BaseTag :text="row.driver" type="info" />
               </div>
-              <div class="mobile-card-meta"><span>挂载点：{{ row.mountpoint }}</span></div>
-              <div class="mobile-card-meta"><span>大小：{{ formatBytes(row.usageSize) }} / 引用：{{ row.refCount }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.volume.mountpointMeta', { mountpoint: row.mountpoint }) }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.volume.sizeMeta', { size: formatBytes(row.usageSize), count: row.refCount }) }}</span></div>
             </div>
             <div class="mobile-card-actions">
-              <el-button size="small" plain type="primary" @click="openDetail(row)">详情</el-button>
-              <el-button size="small" plain type="danger" @click="handleDelete(row)">删除</el-button>
+              <el-button size="small" plain type="primary" @click="openDetail(row)">{{ t('docker.common.detail') }}</el-button>
+              <el-button size="small" plain type="danger" @click="handleDelete(row)">{{ t('docker.common.delete') }}</el-button>
             </div>
           </div>
         </div>
-        <el-empty v-else-if="!loading" description="暂无储存卷" />
+        <el-empty v-else-if="!loading" :description="t('docker.volume.noVolumes')" />
       </div>
 
       <TablePagination
@@ -81,43 +81,43 @@
     </el-card>
 
     <!-- Create Dialog -->
-    <BaseDialog v-model="createVisible" title="创建储存卷" width="450">
+    <BaseDialog v-model="createVisible" :title="t('docker.volume.createVolume')" width="450">
       <el-form :model="createForm" label-position="top">
-        <el-form-item label="名称" required>
-          <el-input v-model="createForm.name" placeholder="卷名称" />
+        <el-form-item :label="t('docker.common.name')" required>
+          <el-input v-model="createForm.name" :placeholder="t('docker.volume.namePlaceholder')" />
         </el-form-item>
-        <el-form-item label="驱动">
+        <el-form-item :label="t('docker.common.driver')">
           <el-select v-model="createForm.driver" style="width: 100%">
             <el-option label="local" value="local" />
           </el-select>
         </el-form-item>
-        <el-form-item label="标签">
+        <el-form-item :label="t('docker.common.labels')">
           <el-input v-model="createForm.labelsText" placeholder="key=value" type="textarea" :rows="2" />
         </el-form-item>
-        <el-form-item label="驱动参数">
+        <el-form-item :label="t('docker.common.driverOptions')">
           <el-input v-model="createForm.driverOptsText" placeholder="key=value" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">创建</el-button>
+        <el-button @click="createVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">{{ t('docker.common.create') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Detail Dialog -->
-    <BaseDialog v-model="detailVisible" title="储存卷详情" width="650">
+    <BaseDialog v-model="detailVisible" :title="t('docker.volume.volumeDetail')" width="650">
       <div v-if="detail" class="detail-content" v-loading="detailLoading">
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="名称">{{ detail.name }}</el-descriptions-item>
-          <el-descriptions-item label="驱动">{{ detail.driver }}</el-descriptions-item>
-          <el-descriptions-item label="挂载点">{{ detail.mountpoint }}</el-descriptions-item>
-          <el-descriptions-item label="作用域">{{ detail.scope }}</el-descriptions-item>
-          <el-descriptions-item label="大小">{{ formatBytes(detail.usageSize) }}</el-descriptions-item>
-          <el-descriptions-item label="引用数">{{ detail.refCount }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ detail.createdAt }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.name')">{{ detail.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.driver')">{{ detail.driver }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.mountpoint')">{{ detail.mountpoint }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.scope')">{{ detail.scope }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.size')">{{ formatBytes(detail.usageSize) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.referenceCount')">{{ detail.refCount }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.createdAt')">{{ detail.createdAt }}</el-descriptions-item>
         </el-descriptions>
         <div v-if="detail.labels && Object.keys(detail.labels).length" style="margin-top: 12px">
-          <h4>标签</h4>
+          <h4>{{ t('docker.common.labels') }}</h4>
           <div class="kv-list">
             <template v-for="(v, k) in detail.labels" :key="k">
               <BaseTag :text="`${k}=${v}`" type="info" />
@@ -125,39 +125,39 @@
           </div>
         </div>
         <div v-if="detail.options && Object.keys(detail.options).length" style="margin-top: 12px">
-          <h4>驱动参数</h4>
+          <h4>{{ t('docker.common.driverOptions') }}</h4>
           <div class="kv-list">
             <span v-for="(v, k) in detail.options" :key="k" class="text-mono kv-item">{{ k }}={{ v }}</span>
           </div>
         </div>
       </div>
       <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button @click="detailVisible = false">{{ t('docker.common.close') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Edit Dialog -->
-    <BaseDialog v-model="editVisible" title="编辑储存卷" width="450">
+    <BaseDialog v-model="editVisible" :title="t('docker.volume.editVolume')" width="450">
       <el-form label-position="top">
-        <el-form-item label="标签">
-          <el-input v-model="editLabelsText" placeholder="key=value&#10;每行一个" type="textarea" :rows="2" />
+        <el-form-item :label="t('docker.common.labels')">
+          <el-input v-model="editLabelsText" :placeholder="t('docker.common.lineKvPlaceholder')" type="textarea" :rows="2" />
         </el-form-item>
-        <el-form-item label="驱动参数">
-          <el-input v-model="editDriverOptsText" placeholder="key=value&#10;每行一个" type="textarea" :rows="2" />
+        <el-form-item :label="t('docker.common.driverOptions')">
+          <el-input v-model="editDriverOptsText" :placeholder="t('docker.common.lineKvPlaceholder')" type="textarea" :rows="2" />
         </el-form-item>
         <el-divider />
-        <el-checkbox v-model="editRecreate" style="margin-bottom: 8px">重建储存卷（需要修改驱动等时勾选）</el-checkbox>
+        <el-checkbox v-model="editRecreate" style="margin-bottom: 8px">{{ t('docker.volume.recreateTip') }}</el-checkbox>
         <template v-if="editRecreate">
           <el-row :gutter="12">
             <el-col :span="12">
-              <el-form-item label="驱动">
+              <el-form-item :label="t('docker.common.driver')">
                 <el-select v-model="editDriver" style="width: 100%">
                   <el-option label="local" value="local" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="强制重建">
+              <el-form-item :label="t('docker.common.forceRecreate')">
                 <el-switch v-model="editForce" />
               </el-form-item>
             </el-col>
@@ -165,37 +165,37 @@
         </template>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">{{ t('docker.common.save') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Export Dialog -->
-    <BaseDialog v-model="exportVisible" title="导出储存卷" width="450">
+    <BaseDialog v-model="exportVisible" :title="t('docker.volume.exportVolume')" width="450">
       <el-form label-position="top">
-        <el-form-item label="导出路径" required>
-          <el-input v-model="exportPath" placeholder="服务端导出路径，如 /tmp/backup.tar.gz" />
+        <el-form-item :label="t('docker.volume.exportPath')" required>
+          <el-input v-model="exportPath" :placeholder="t('docker.volume.exportPathPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="exportVisible = false">取消</el-button>
-        <el-button type="primary" :loading="exportSubmitting" @click="submitExport">导出</el-button>
+        <el-button @click="exportVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="exportSubmitting" @click="submitExport">{{ t('docker.volume.export') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Restore Dialog -->
-    <BaseDialog v-model="restoreVisible" title="恢复储存卷" width="450">
+    <BaseDialog v-model="restoreVisible" :title="t('docker.volume.restoreVolume')" width="450">
       <el-form label-position="top">
-        <el-form-item label="卷名称" required>
-          <el-input v-model="restoreName" placeholder="目标卷名称" />
+        <el-form-item :label="t('docker.volume.volumeName')" required>
+          <el-input v-model="restoreName" :placeholder="t('docker.volume.targetVolumeName')" />
         </el-form-item>
-        <el-form-item label="归档路径" required>
-          <el-input v-model="restorePath" placeholder="服务端归档文件路径，如 /tmp/backup.tar.gz" />
+        <el-form-item :label="t('docker.volume.archivePath')" required>
+          <el-input v-model="restorePath" :placeholder="t('docker.volume.archivePathPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="restoreVisible = false">取消</el-button>
-        <el-button type="primary" :loading="restoreSubmitting" @click="submitRestore">恢复</el-button>
+        <el-button @click="restoreVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="restoreSubmitting" @click="submitRestore">{{ t('docker.volume.restore') }}</el-button>
       </template>
     </BaseDialog>
 
@@ -204,6 +204,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
   createDockerVolume, deleteDockerVolume, exportDockerVolume,
   getDockerVolume, listDockerVolumes, pruneDockerVolumes, restoreDockerVolume,
@@ -224,6 +225,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'DockerVolumeView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const canManage = useButtonPermission([PERM.DOCKER_VOLUME_MANAGE], [])
 
 const list = ref<DockerVolumeInfo[]>([])
@@ -245,12 +247,12 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: list.value,
   columns: [
     { type: 'seq', title: '#', width: 50, fixed: 'left' },
-    { field: 'name', title: '名称', minWidth: 160 },
-    { field: 'driver', title: '驱动', width: 100, slots: { default: 'column-driver' } },
-    { field: 'mountpoint', title: '挂载点', minWidth: 220, slots: { default: 'column-mountpoint' } },
-    { field: 'usageSize', title: '大小', width: 100, slots: { default: 'column-size' } },
-    { field: 'refCount', title: '引用', width: 60 },
-    { title: '操作', width: 260, fixed: 'right', slots: { default: 'column-operation' } },
+    { field: 'name', title: t('docker.common.name'), minWidth: 160 },
+    { field: 'driver', title: t('docker.common.driver'), width: 100, slots: { default: 'column-driver' } },
+    { field: 'mountpoint', title: t('docker.common.mountpoint'), minWidth: 220, slots: { default: 'column-mountpoint' } },
+    { field: 'usageSize', title: t('docker.common.size'), width: 100, slots: { default: 'column-size' } },
+    { field: 'refCount', title: t('docker.common.references'), width: 60 },
+    { title: t('docker.common.operation'), width: 260, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -305,7 +307,7 @@ const parseKvText = (text: string): Record<string, string> => {
 }
 const submitCreate = async () => {
   const name = createForm.name.trim()
-  if (!name) { ElMessage.error('请输入卷名称'); return }
+  if (!name) { ElMessage.error(t('docker.volume.enterName')); return }
   createSubmitting.value = true
   try {
     await createDockerVolume({
@@ -315,35 +317,35 @@ const submitCreate = async () => {
         driverOpts: parseKvText(createForm.driverOptsText),
       },
     })
-    ElMessage.success('储存卷创建成功')
+    ElMessage.success(t('docker.volume.createSuccess'))
     createVisible.value = false
     await getList()
-  } catch (e) { showRequestError(e, '创建储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.createFailed')) }
   finally { createSubmitting.value = false }
 }
 
 // -- delete --
 const handleDelete = async (row: DockerVolumeInfo) => {
   try {
-    await Dialog.confirm({ title: '确认删除储存卷', content: `确定要删除储存卷「${row.name}」吗？`, confirmText: '确认删除', cancelText: '取消' })
+    await Dialog.confirm({ title: t('docker.volume.confirmDeleteTitle'), content: t('docker.volume.confirmDeleteContent', { name: row.name }), confirmText: t('docker.volume.confirmDeleteText'), cancelText: t('docker.common.cancel') })
   } catch { return }
   try {
     await deleteDockerVolume({ name: row.name, force: false })
-    ElMessage.success(`${row.name} 已删除`)
+    ElMessage.success(t('docker.common.deletedName', { name: row.name }))
     await getList()
-  } catch (e) { showRequestError(e, '删除储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.deleteFailed')) }
 }
 
 // -- prune --
 const handlePrune = async () => {
   try {
-    await Dialog.confirm({ title: '清理未使用储存卷', content: '确定要清理所有未使用的储存卷吗？', confirmText: '确认清理', cancelText: '取消' })
+    await Dialog.confirm({ title: t('docker.volume.pruneTitle'), content: t('docker.volume.pruneContent'), confirmText: t('docker.volume.pruneConfirm'), cancelText: t('docker.common.cancel') })
   } catch { return }
   try {
     const { data } = await pruneDockerVolumes({})
-    ElMessage.success('清理任务已创建')
+    ElMessage.success(t('docker.common.taskCreated'))
     openTask(data?.task)
-  } catch (e) { showRequestError(e, '清理储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.pruneFailed')) }
 }
 
 // -- detail --
@@ -355,7 +357,7 @@ const openDetail = async (row: DockerVolumeInfo) => {
   try {
     const { data } = await getDockerVolume({ name: row.name })
     detail.value = data?.info || null
-  } catch (e) { showRequestError(e, '获取储存卷详情失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.getDetailFailed')) }
   finally { detailLoading.value = false }
 }
 
@@ -369,14 +371,14 @@ const openExport = (row: DockerVolumeInfo) => {
 }
 const submitExport = async () => {
   const archivePath = exportPath.value.trim()
-  if (!archivePath) { ElMessage.error('请输入导出路径'); return }
+  if (!archivePath) { ElMessage.error(t('docker.volume.enterExportPath')); return }
   exportSubmitting.value = true
   try {
     const { data } = await exportDockerVolume({ name: exportVolumeName.value, archivePath })
-    ElMessage.success('导出任务已创建')
+    ElMessage.success(t('docker.volume.exportTaskCreated'))
     openTask(data?.task)
     exportVisible.value = false
-  } catch (e) { showRequestError(e, '导出储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.exportFailed')) }
   finally { exportSubmitting.value = false }
 }
 
@@ -391,14 +393,14 @@ const openRestore = () => {
 const submitRestore = async () => {
   const name = restoreName.value.trim()
   const archivePath = restorePath.value.trim()
-  if (!name || !archivePath) { ElMessage.error('请填写完整信息'); return }
+  if (!name || !archivePath) { ElMessage.error(t('docker.volume.enterCompleteInfo')); return }
   restoreSubmitting.value = true
   try {
     const { data } = await restoreDockerVolume({ name, archivePath })
-    ElMessage.success('恢复任务已创建')
+    ElMessage.success(t('docker.volume.restoreTaskCreated'))
     openTask(data?.task)
     restoreVisible.value = false
-  } catch (e) { showRequestError(e, '恢复储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.restoreFailed')) }
   finally { restoreSubmitting.value = false }
 }
 
@@ -444,9 +446,9 @@ const submitEdit = async () => {
       const { data } = await updateDockerVolume({ name: editName.value, labels: parseKV(editLabelsText.value), driverOpts: parseKV(editDriverOptsText.value), force: false, options: undefined })
       openTask(data?.task)
     }
-    ElMessage.success(editRecreate.value ? '储存卷重建任务已创建' : '储存卷更新任务已创建')
+    ElMessage.success(editRecreate.value ? t('docker.volume.recreateTaskCreated') : t('docker.volume.updateTaskCreated'))
     editVisible.value = false
-  } catch (e) { showRequestError(e, '更新储存卷失败') }
+  } catch (e) { showRequestError(e, t('docker.volume.updateFailed')) }
   finally { editSubmitting.value = false }
 }
 

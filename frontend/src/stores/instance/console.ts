@@ -15,32 +15,33 @@ import type {
 } from '@/stores/instance/types'
 import { InstanceStatus } from '@/types/v1/instance'
 import { useTabsStore } from '@/stores/tabs'
+import { translate } from '@/locales'
 
-const DEFAULT_OUTPUT_LINES = ['[system] 正在获取实例控制台信息...']
+const DEFAULT_OUTPUT_LINES = [translate('instance.loadingInstanceConsole')]
 
 const DEFAULT_FEATURE_ITEMS: ConsoleFeatureItem[] = [
   {
     key: 'file-manager',
-    title: '文件管理',
-    description: '浏览与编辑实例文件',
+    titleKey: 'instance.fileManagerTitle',
+    descriptionKey: 'instance.fileManagerDescription',
     icon: 'HOutline:FolderIcon',
   },
   {
     key: 'event-task',
-    title: '事件任务',
-    description: '配置定时任务与事件脚本',
+    titleKey: 'instance.eventTaskTitle',
+    descriptionKey: 'instance.eventTaskDescription',
     icon: 'HOutline:ClockIcon',
   },
   {
     key: 'terminal-setting',
-    title: '控制台设置',
-    description: '管理控制台连接参数',
+    titleKey: 'instance.consoleSettingTitle',
+    descriptionKey: 'instance.consoleSettingDescription',
     icon: 'HOutline:AdjustmentsHorizontalIcon',
   },
   {
     key: 'instance-setting',
-    title: '实例设置',
-    description: '配置实例行为与权限',
+    titleKey: 'instance.instanceSettingTitle',
+    descriptionKey: 'instance.instanceSettingDescription',
     icon: 'HOutline:SquaresPlusIcon',
   },
 ]
@@ -63,11 +64,11 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     const getCurrentInstanceId = () => instanceId.value.trim()
     const session = createConsoleSession({
       defaultOutputLines: DEFAULT_OUTPUT_LINES,
-      entityLabel: '实例',
-      loadTargetLabel: '实例控制台',
-      outputLabel: '控制台',
+      entityLabel: translate('instance.instanceEntity'),
+      loadTargetLabel: translate('instance.instanceConsole'),
+      outputLabel: translate('instance.consoleOutput'),
       featureItems: DEFAULT_FEATURE_ITEMS,
-      contextIdLabel: '实例ID',
+      contextIdLabel: translate('instance.contextInstanceId'),
       getContextId: getCurrentInstanceId,
       extendSocketUrl: (url) => {
         const currentInstanceId = getCurrentInstanceId()
@@ -241,7 +242,7 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
 
     return deleteInstanceLogRequest({ id: currentInstanceId }).then(() => {
       session.clearScreen()
-      ElMessage.success('控制台已清屏')
+      ElMessage.success(translate('instance.consoleCleared'))
     })
   }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="form-content-inner">
-    <h2 class="title">欢迎回来</h2>
-    <p class="subtitle">请输入您的账号信息登录系统</p>
+    <h2 class="title">{{ t('login.welcomeBack') }}</h2>
+    <p class="subtitle">{{ t('login.subtitle') }}</p>
 
     <!-- 登录表单 -->
     <el-form
@@ -20,7 +20,7 @@
           :class="{ active: loginType === 'username' }"
           @click="setLoginType('username')"
         >
-          用户名登录
+          {{ t('login.usernameLogin') }}
         </button>
         <button
           type="button"
@@ -28,7 +28,7 @@
           :class="{ active: loginType === 'email' }"
           @click="setLoginType('email')"
         >
-          邮箱登录
+          {{ t('login.emailLogin') }}
         </button>
       </div>
 
@@ -47,7 +47,7 @@
             v-model="loginForm.password"
             type="password"
             show-password
-            placeholder="请输入密码"
+            :placeholder="t('login.passwordPlaceholder')"
           />
         </el-form-item>
 
@@ -56,7 +56,7 @@
             <el-input
               class="credential-input credential-input--code"
               v-model="loginForm.password"
-              placeholder="请输入验证码"
+              :placeholder="t('login.codePlaceholder')"
               maxlength="6"
             />
           </el-form-item>
@@ -74,23 +74,23 @@
       </Transition>
 
       <div class="form-options">
-        <el-checkbox v-model="loginForm.remember" @change="handleRememberChange"
-          >记住我</el-checkbox
-        >
+        <el-checkbox v-model="loginForm.remember" @change="handleRememberChange">
+          {{ t('login.rememberMe') }}
+        </el-checkbox>
         <el-link type="primary" :underline="false" @click="emits('goToMode', 'forgot')"
-          >忘记密码？</el-link
+          >{{ t('login.forgotPassword') }}</el-link
         >
       </div>
 
       <el-button type="primary" class="submit-btn" :loading="loading" @click="handleLogin">
-        登录
+        {{ t('login.submit') }}
       </el-button>
     </el-form>
 
     <p v-if="registerEnabled" class="register-link">
-      <span>还没有账号？</span>
+      <span>{{ t('login.noAccount') }}</span>
       <el-link type="primary" :underline="false" @click="emits('goToMode', 'register')"
-        >立即注册</el-link
+        >{{ t('login.registerNow') }}</el-link
       >
     </p>
   </div>
@@ -105,6 +105,7 @@ import type { LoginRequest } from '@/types/v1/auth'
 import { normalizeAuthRedirect } from '@/utils/authRedirect'
 import { normalizeAuthToken } from '@/utils/request'
 import { getDeviceId } from '@/utils/deviceId'
+import { useI18n } from 'vue-i18n'
 
 interface IEmits {
   (e: 'goToMode', mode: 'login' | 'forgot' | 'register'): void
@@ -134,6 +135,7 @@ const emits = defineEmits<IEmits>()
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 const loginFormRef = useTemplateRef<FormInstance>('loginFormRef')
 const loading = ref(false)
 
@@ -158,7 +160,7 @@ const loginType = ref<LoginType>(resolveDefaultLoginType())
 const isEmailMode = computed(() => loginType.value === 'email')
 const accountValue = computed(() => loginForm.value.username.trim())
 const loginInputPlaceholder = computed(() => {
-  return isEmailMode.value ? '请输入邮箱' : '请输入用户名'
+  return isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')
 })
 const sendCodeCountdown = ref(0)
 let sendCodeTimer: ReturnType<typeof setInterval> | null = null
@@ -216,7 +218,9 @@ const isValidEmail = (email: string) => {
 }
 
 const sendCodeButtonText = computed(() => {
-  return sendCodeCountdown.value > 0 ? `${sendCodeCountdown.value}s 后重发` : '发送验证码'
+  return sendCodeCountdown.value > 0
+    ? t('login.resendIn', { seconds: sendCodeCountdown.value })
+    : t('login.sendCode')
 })
 
 const sendCodeDisabled = computed(() => {
@@ -247,22 +251,23 @@ const startSendCodeCountdown = () => {
 const handleSendCode = async () => {
   const email = accountValue.value
   if (!isValidEmail(email)) {
-    ElMessage.warning('请先输入正确的邮箱地址')
+    ElMessage.warning(t('login.validEmailFirst'))
     return
   }
 
   try {
     await sendLoginEmailCode({ email })
-    ElMessage.success('验证码已发送，请注意查收')
+    ElMessage.success(t('login.codeSent'))
     startSendCodeCountdown()
   } catch {
-    ElMessage.error('验证码发送失败，请稍后重试')
+    ElMessage.error(t('login.codeSendFailed'))
   }
 }
 
 const buildLoginPayload = async (): Promise<LoginRequest> => {
   const account = accountValue.value
-  const device = `${platform.os?.toString() || '未知'} / ${platform.name || '未知'} ${platform.version || ''}`.trim()
+  const unknownDevice = t('login.unknownDevice')
+  const device = `${platform.os?.toString() || unknownDevice} / ${platform.name || unknownDevice} ${platform.version || ''}`.trim()
   const deviceId = getDeviceId()
   const useEmail = isEmailMode.value
 
@@ -280,7 +285,7 @@ const handleLogin = async () => {
     const { data: loginRes } = await login(payload)
 
     if (!loginRes?.accessToken) {
-      ElMessage.error('登录响应缺少 accessToken')
+      ElMessage.error(t('login.missingAccessToken'))
       return
     }
 
@@ -297,7 +302,7 @@ const handleLogin = async () => {
       localStorage.removeItem(REMEMBER_USERNAME_KEY)
     }
 
-    ElMessage.success('登录成功')
+    ElMessage.success(t('login.success'))
     const redirectQuery = Array.isArray(route.query.redirect)
       ? route.query.redirect[0]
       : route.query.redirect
@@ -312,13 +317,13 @@ const handleLogin = async () => {
 const validateAccount: FormItemRule['validator'] = (_rule, value, callback) => {
   const account = String(value || '').trim()
   if (!account) {
-    callback(new Error(isEmailMode.value ? '请输入邮箱' : '请输入用户名'))
+    callback(new Error(isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')))
     return
   }
 
   if (isEmailMode.value) {
     if (!EMAIL_REGEXP.test(account)) {
-      callback(new Error('邮箱格式不正确'))
+      callback(new Error(t('login.emailInvalid')))
       return
     }
   }
@@ -329,12 +334,12 @@ const validateAccount: FormItemRule['validator'] = (_rule, value, callback) => {
 const validateCredential: FormItemRule['validator'] = (_rule, value, callback) => {
   const credential = String(value || '').trim()
   if (!credential) {
-    callback(new Error(isEmailMode.value ? '请输入验证码' : '请输入密码'))
+    callback(new Error(isEmailMode.value ? t('login.codePlaceholder') : t('login.passwordPlaceholder')))
     return
   }
 
   if (isEmailMode.value && !VERIFY_CODE_REGEXP.test(credential)) {
-    callback(new Error('请输入4-6位数字验证码'))
+    callback(new Error(t('login.codeInvalid')))
     return
   }
 

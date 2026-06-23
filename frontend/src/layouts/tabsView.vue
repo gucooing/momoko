@@ -4,7 +4,7 @@
       <IconButton
         icon="HOutline:ChevronLeftIcon"
         size="1.75rem"
-        tooltip="向左滑动"
+        :tooltip="t('layout.slideLeft')"
         @click="slideLeft"
       />
     </HoverAnimateWrapper>
@@ -25,7 +25,7 @@
             <el-icon class="tabs-page-icon" size="18">
               <component :is="menuStore.iconComponents[tab.icon as string]" />
             </el-icon>
-            <div>{{ tab.title }}</div>
+            <div>{{ resolveTabTitle(tab.title) }}</div>
             <el-icon
               v-if="tab.closable"
               class="close-icon"
@@ -43,7 +43,7 @@
       <IconButton
         icon="HOutline:ChevronRightIcon"
         size="1.75rem"
-        tooltip="向右滑动"
+        :tooltip="t('layout.slideRight')"
         @click="slideRight"
       />
     </HoverAnimateWrapper>
@@ -53,7 +53,7 @@
         <IconButton
           icon="HOutline:ArrowPathIcon"
           size="1.75rem"
-          tooltip="刷新当前页面"
+          :tooltip="t('layout.refreshCurrentPage')"
           @click="handleRefreshCurrentPage"
         />
       </HoverAnimateWrapper>
@@ -77,25 +77,25 @@
               :icon="menuStore.iconComponents['HOutline:MinusCircleIcon']"
               @click="tabsStore.closeOtherTabs(tabsStore.activePath)"
             >
-              关闭其他标签页
+              {{ t('layout.closeOtherTabs') }}
             </el-dropdown-item>
             <el-dropdown-item
               :icon="menuStore.iconComponents['HOutline:TrashIcon']"
               @click="(tabsStore.closeAllTabs(), router.push(tabsStore.activePath))"
             >
-              关闭所有标签页
+              {{ t('layout.closeAllTabs') }}
             </el-dropdown-item>
             <el-dropdown-item
               :icon="menuStore.iconComponents['HOutline:ChevronDoubleRightIcon']"
               @click="tabsStore.closeRightTabs(tabsStore.activePath)"
             >
-              关闭右侧标签页
+              {{ t('layout.closeRightTabs') }}
             </el-dropdown-item>
             <el-dropdown-item
               :icon="menuStore.iconComponents['HOutline:ChevronDoubleLeftIcon']"
               @click="tabsStore.closeLeftTabs(tabsStore.activePath)"
             >
-              关闭左侧标签页
+              {{ t('layout.closeLeftTabs') }}
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -106,12 +106,15 @@
 
 <script setup lang="ts">
 import type { TabItem } from '@/stores/tabs'
+import { translateKnownText } from '@/locales'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'TabsView' })
 
 const router = useRouter()
 const menuStore = useMenuStore()
 const tabsStore = useTabsStore()
+const { t } = useI18n()
 const tabsPagesRef = useTemplateRef<HTMLDivElement>('tabsPagesRef')
 const DRAG_TRIGGER_DISTANCE = 6
 const EDGE_SCROLL_THRESHOLD = 72
@@ -127,6 +130,11 @@ const suppressClick = ref(false)
 
 let activePointerId: number | null = null
 let pointerStartX = 0
+
+const resolveTabTitle = (title: string) => {
+  if (title === '未命名') return t('layout.unnamed')
+  return translateKnownText(title)
+}
 
 const setTabRef = (el: Element | ComponentPublicInstance | null, fullPath: string) => {
   if (el && el instanceof HTMLElement) {

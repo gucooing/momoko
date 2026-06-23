@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { imagineContext } from '@/api/imagine-context'
+import { translate as t } from '@/locales'
 import type {
   ListImageGenApiKeysResponse,
   ListImageGenModelsRequest,
@@ -31,7 +32,7 @@ instance.interceptors.response.use((response: AxiosResponse) => {
   if (raw && typeof raw === 'object' && 'code' in raw) {
     const { code, message, data } = raw
     if (code !== 200) {
-      return Promise.reject(new Error(message || `请求失败 (${code})`))
+      return Promise.reject(new Error(message || t('sub2api.common.failedWithCode', { code })))
     }
     response.data = data
   }

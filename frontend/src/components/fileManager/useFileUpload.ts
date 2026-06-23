@@ -10,6 +10,7 @@ import type {
   FileManagerUploadSession,
 } from '@/components/fileManager/index.vue'
 import { resolveStaticResourceUrl } from '@/utils/assets'
+import { translate } from '@/locales'
 
 const QUICK_HASH_SAMPLE_SIZE = 512 * 1024
 const DEFAULT_UPLOAD_CONCURRENCY = 8
@@ -73,7 +74,7 @@ const normalizeConcurrency = (value: unknown, fallback = DEFAULT_UPLOAD_CONCURRE
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
 const createUploadCanceledError = () => {
-  const error = new Error('上传已取消')
+  const error = new Error(translate('fileManager.uploadCanceled'))
   error.name = 'UploadCanceledError'
   return error
 }
@@ -172,7 +173,7 @@ const normalizeUploadedParts = (value: unknown): UploadedPartHashMap => {
 
 const normalizeUploadSession = (value: FileManagerUploadSession | void) => {
   if (!value?.uploadId || !value.uploadPartUrlPathTemplate) {
-    throw new Error('未获取到有效的上传会话')
+    throw new Error(translate('fileManager.invalidUploadSession'))
   }
 
   const partSize = normalizeNumber(value.partSize, 0)
@@ -180,7 +181,7 @@ const normalizeUploadSession = (value: FileManagerUploadSession | void) => {
   const totalParts = normalizeNumber(value.totalParts, 0)
 
   if (partSize <= 0 || totalParts <= 0) {
-    throw new Error('服务端返回的上传分片信息无效')
+    throw new Error(translate('fileManager.invalidPartInfo'))
   }
 
   return {
@@ -288,17 +289,17 @@ const uploadPart = (
         return
       }
 
-      reject(new Error(`分片上传失败（HTTP ${xhr.status || 0}）`))
+      reject(new Error(translate('fileManager.partUploadFailedHttp', { status: xhr.status || 0 })))
     }
 
     xhr.onerror = () => {
       cleanup()
-      reject(new Error('分片上传失败，请检查网络后重试'))
+      reject(new Error(translate('fileManager.partUploadNetworkFailed')))
     }
 
     xhr.onabort = () => {
       cleanup()
-      reject(runtime.canceled ? createUploadCanceledError() : new Error('分片上传已中断'))
+      reject(runtime.canceled ? createUploadCanceledError() : new Error(translate('fileManager.partUploadAborted')))
     }
 
     xhr.send(blob)
@@ -491,7 +492,7 @@ export const useFileUpload = () => {
       const latestStatus = normalizeUploadSession(data.info)
 
       if (latestStatus.cancel) {
-        throw new Error('上传会话已取消，请重新上传')
+        throw new Error(translate('fileManager.sessionCanceled'))
       }
 
       const { matchedPartNumbers, mismatchedParts } = await resolveMatchedPartNumbers(
@@ -544,11 +545,11 @@ export const useFileUpload = () => {
         onSessionCreated?.(session)
 
         if (session.cancel) {
-          throw new Error('上传会话已取消，请重新上传')
+          throw new Error(translate('fileManager.sessionCanceled'))
         }
 
         if (session.fileSize > 0 && session.fileSize !== file.size) {
-          throw new Error('服务端返回的文件大小与当前文件不一致')
+          throw new Error(translate('fileManager.fileSizeMismatch'))
         }
 
         if (session.completed) {
@@ -589,7 +590,9 @@ export const useFileUpload = () => {
           retryCount += 1
           if (retryCount >= VERIFY_RETRY_LIMIT) {
             throw new Error(
-              `分片校验失败，仍有 ${verification.mismatchedParts.length} 个分片异常，请重试上传`,
+              translate('fileManager.partVerifyFailed', {
+                count: verification.mismatchedParts.length,
+              }),
             )
           }
 
@@ -603,7 +606,7 @@ export const useFileUpload = () => {
 
         const latestStatus = await pollUploadCompletion(session.uploadId)
         if (latestStatus?.cancel) {
-          throw new Error('上传会话已取消，请重新上传')
+          throw new Error(translate('fileManager.sessionCanceled'))
         }
 
         onProgress?.(100)

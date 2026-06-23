@@ -55,12 +55,14 @@ import { FileSortField, type FileEntryInfo } from '@/types/v1/file'
 import type { GetInstanceFileListRequest } from '@/types/v1/instance'
 import { showRequestError } from '@/utils/request'
 import { getInstanceInfoRequest } from '@/api/instance'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceFileManagerView' })
 
 const route = useRoute()
 const fileManagerStore = useInstanceFileManagerStore()
 const tabsStore = useTabsStore()
+const { t } = useI18n()
 
 const { directory, items, total, loading, query } = storeToRefs(fileManagerStore)
 const {
@@ -84,7 +86,7 @@ const {
 
 const workbenchHiddenActions: FileManagerAction[] = ['more']
 const workbenchSortableFields: FileManagerWorkbenchSortableField[] = ['name', 'updatedAt']
-const workbenchNote = '当前接口支持名称和修改时间排序，点击文件可直接查看内容。'
+const workbenchNote = computed(() => t('instance.fileWorkbenchNote'))
 
 const runSafely = (task: Promise<unknown>, fallback: string) => {
   void task.catch((error) => {
@@ -178,7 +180,7 @@ watch(
     const id = typeof instanceId === 'string' ? instanceId : ''
     if (!id) return
 
-    runSafely(initialize({ instanceId: id }), '实例文件列表加载失败')
+    runSafely(initialize({ instanceId: id }), t('instance.fileListLoadFailed'))
 
     getInstanceInfoRequest({ id }).then(({ data }) => {
       if (data.info?.name) {
@@ -210,12 +212,12 @@ const handleDeleteEntries = async (payload: {
     return {
       warningMessage:
         failedItems[0]?.message ||
-        `已删除 ${resultItems.length - failedItems.length} 项，部分条目删除失败`,
+        t('instance.deletePartialFailed', { success: resultItems.length - failedItems.length }),
     }
   }
 
   return {
-    successMessage: '删除成功',
+    successMessage: t('fileManager.deleteSuccess'),
   }
 }
 
@@ -279,7 +281,7 @@ const handleGetUploadPreSign = async (payload: FileManagerUploadPreSignPayload) 
 }
 
 const handleQueryChange = (nextQuery: GetInstanceFileListRequest) => {
-  runSafely(applyQuery(nextQuery), '目录加载失败')
+  runSafely(applyQuery(nextQuery), t('instance.directoryLoadFailed'))
 }
 
 const handleWorkbenchNavigate = (path: string) => {

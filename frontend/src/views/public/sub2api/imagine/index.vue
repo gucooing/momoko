@@ -14,7 +14,7 @@
           </span>
         </div>
         <div class="topbar-actions">
-          <el-select v-model="store.apiKeyId" class="sel-key" placeholder="选择 ApiKey" @change="store.selectApiKey">
+          <el-select v-model="store.apiKeyId" class="sel-key" :placeholder="t('sub2api.imagine.selectApiKey')" @change="store.selectApiKey">
             <el-option v-for="k in store.apiKeys" :key="k.id" :value="k.id" :label="k.name || k.id">
               <span class="opt-name">{{ k.name || k.id }}</span>
             </el-option>
@@ -22,14 +22,14 @@
           <el-select
             v-model="store.modelId"
             class="sel-model"
-            placeholder="选择模型"
+            :placeholder="t('sub2api.imagine.selectModel')"
             :disabled="!store.models.length"
           >
             <el-option v-for="m in store.models" :key="m.id" :value="m.id" :label="m.displayName || m.id">
               <span class="opt-name">{{ m.displayName || m.id }}</span>
             </el-option>
           </el-select>
-          <button class="icon-btn" type="button" :title="isDark ? '浅色' : '深色'" @click="toggleTheme">
+          <button class="icon-btn" type="button" :title="isDark ? t('sub2api.imagine.light') : t('sub2api.imagine.dark')" @click="toggleTheme">
             <el-icon><component :is="isDark ? Sunny : Moon" /></el-icon>
           </button>
         </div>
@@ -64,20 +64,20 @@
             <div class="task-meta">
               <span>{{ g.size }}</span>
               <span>·</span>
-              <span>{{ g.n }}张</span>
+              <span>{{ t('sub2api.imagine.imageCount', { count: g.n }) }}</span>
               <span
                 v-if="g.status === 'pending'"
                 class="status-chip sm tone-blue"
-              ><span class="dot" />生成中</span>
-              <span v-else-if="g.status === 'failed'" class="status-chip sm tone-red">失败</span>
-              <span v-else class="status-chip sm tone-green">{{ g.resultCount }}张</span>
+              ><span class="dot" />{{ t('sub2api.imagine.generating') }}</span>
+              <span v-else-if="g.status === 'failed'" class="status-chip sm tone-red">{{ t('sub2api.imagine.failed') }}</span>
+              <span v-else class="status-chip sm tone-green">{{ t('sub2api.imagine.imageCount', { count: g.resultCount }) }}</span>
             </div>
           </div>
         </article>
       </div>
       <div v-else class="empty-hero">
-        <h3><span class="grad">开始你的第一张作品</span></h3>
-        <p>在下方输入提示词，选择形状与清晰度后点“生成”。</p>
+        <h3><span class="grad">{{ t('sub2api.imagine.firstWorkTitle') }}</span></h3>
+        <p>{{ t('sub2api.imagine.firstWorkDesc') }}</p>
       </div>
     </section>
 
@@ -91,18 +91,18 @@
         @drop.prevent="onDrop"
       >
         <el-radio-group v-model="store.mode" size="small" class="mode-toggle">
-          <el-radio-button value="text2image">文生图</el-radio-button>
-          <el-radio-button value="image2image">图生图</el-radio-button>
+          <el-radio-button value="text2image">{{ t('sub2api.imagine.text2image') }}</el-radio-button>
+          <el-radio-button value="image2image">{{ t('sub2api.imagine.image2image') }}</el-radio-button>
         </el-radio-group>
         <!-- 图生图源图：紧挨模式切换，支持点击上传 / 拖入图片 -->
         <template v-if="store.mode === 'image2image'">
-          <div v-if="store.sourceImage" class="src-thumb" title="点击更换源图" @click="pickSource">
-            <img :src="store.sourceImage" alt="源图" />
-            <button class="src-clear" type="button" title="移除源图" @click.stop="store.clearSource">
+          <div v-if="store.sourceImage" class="src-thumb" :title="t('sub2api.imagine.changeSource')" @click="pickSource">
+            <img :src="store.sourceImage" :alt="t('sub2api.imagine.sourceImage')" />
+            <button class="src-clear" type="button" :title="t('sub2api.imagine.removeSource')" @click.stop="store.clearSource">
               <el-icon><Close /></el-icon>
             </button>
           </div>
-          <button v-else class="src-add" type="button" title="上传源图（可拖入）" @click="pickSource">
+          <button v-else class="src-add" type="button" :title="t('sub2api.imagine.uploadSource')" @click="pickSource">
             <el-icon><Upload /></el-icon>
           </button>
         </template>
@@ -110,13 +110,13 @@
           v-model="store.prompt"
           type="textarea"
           :autosize="{ minRows: 1, maxRows: 5 }"
-          :placeholder="store.mode === 'image2image' ? '描述如何修改源图，或拖入图片…' : '描述你想生成的图片…'"
+          :placeholder="store.mode === 'image2image' ? t('sub2api.imagine.promptImage2Image') : t('sub2api.imagine.promptText2Image')"
           resize="none"
           class="prompt-input"
           @keydown.ctrl.enter="store.submitGeneration"
         />
         <div class="bar-actions">
-          <button class="set-btn" type="button" title="参数设置" @click="settingsOpen = true">
+          <button class="set-btn" type="button" :title="t('sub2api.imagine.settings')" @click="settingsOpen = true">
             <el-icon><Setting /></el-icon>
             <span class="size-badge">{{ store.resolveSize() }}</span>
           </button>
@@ -124,13 +124,13 @@
             class="send-btn"
             type="button"
             :disabled="!canSubmit"
-            title="生成 (Ctrl+Enter)"
+            :title="t('sub2api.imagine.generate')"
             @click="store.submitGeneration"
           >
             <el-icon><Promotion /></el-icon>
           </button>
         </div>
-        <div v-if="dragging" class="drop-hint">松开以作为图生图源图</div>
+        <div v-if="dragging" class="drop-hint">{{ t('sub2api.imagine.dropHint') }}</div>
         <input
           ref="fileInput"
           type="file"
@@ -144,16 +144,16 @@
     <!-- 参数设置弹窗 -->
     <BaseDialog
       v-model="settingsOpen"
-      title="生图参数"
+      :title="t('sub2api.imagine.paramsTitle')"
       width="480px"
-      confirm-text="应用"
-      cancel-text="取消"
+      :confirm-text="t('sub2api.imagine.apply')"
+      :cancel-text="t('sub2api.common.cancel')"
       @close="onSettingsClose"
       @confirm="onSettingsConfirm"
     >
       <div class="settings">
         <div class="set-row">
-          <label>形状</label>
+          <label>{{ t('sub2api.imagine.shape') }}</label>
           <el-radio-group v-model="draftParams.shape" size="small">
             <el-radio-button value="1:1">1:1</el-radio-button>
             <el-radio-button value="4:3">4:3</el-radio-button>
@@ -162,12 +162,12 @@
             <el-radio-button value="9:16">9:16</el-radio-button>
             <el-radio-button value="3:2">3:2</el-radio-button>
             <el-radio-button value="2:3">2:3</el-radio-button>
-            <el-radio-button value="auto">自动</el-radio-button>
-            <el-radio-button value="custom">自定义</el-radio-button>
+            <el-radio-button value="auto">{{ t('sub2api.imagine.auto') }}</el-radio-button>
+            <el-radio-button value="custom">{{ t('sub2api.imagine.custom') }}</el-radio-button>
           </el-radio-group>
         </div>
         <div v-if="draftParams.shape !== 'auto' && draftParams.shape !== 'custom'" class="set-row">
-          <label>清晰度</label>
+          <label>{{ t('sub2api.imagine.scale') }}</label>
           <el-radio-group v-model="draftParams.scale" size="small">
             <el-radio-button value="1K">1K</el-radio-button>
             <el-radio-button value="2K">2K</el-radio-button>
@@ -175,7 +175,7 @@
           </el-radio-group>
         </div>
         <div v-if="draftParams.shape === 'custom'" class="set-row">
-          <label>尺寸</label>
+          <label>{{ t('sub2api.imagine.size') }}</label>
           <div class="custom-size">
             <el-input-number v-model="draftParams.customW" :min="256" :max="4096" :step="64" size="small" controls-position="right" />
             <span class="x">×</span>
@@ -183,11 +183,11 @@
           </div>
         </div>
         <div class="set-row">
-          <label>张数</label>
+          <label>{{ t('sub2api.imagine.count') }}</label>
           <el-input-number v-model="draftParams.n" :min="1" :max="4" size="small" controls-position="right" />
         </div>
         <div class="set-row">
-          <label>质量</label>
+          <label>{{ t('sub2api.imagine.quality') }}</label>
           <el-select v-model="draftParams.quality" size="small" class="sel-sm">
             <el-option value="auto" label="auto" />
             <el-option value="low" label="low" />
@@ -196,7 +196,7 @@
           </el-select>
         </div>
         <div class="set-row">
-          <label>格式</label>
+          <label>{{ t('sub2api.imagine.format') }}</label>
           <el-select v-model="draftParams.outputFormat" size="small" class="sel-sm">
             <el-option value="png" label="PNG" />
             <el-option value="jpeg" label="JPEG" />
@@ -204,7 +204,7 @@
           </el-select>
         </div>
         <div class="set-summary">
-          解析分辨率：<b>{{ draftResolvedSize }}</b>
+          {{ t('sub2api.imagine.resolvedSize') }}<b>{{ draftResolvedSize }}</b>
         </div>
       </div>
     </BaseDialog>
@@ -221,19 +221,19 @@
         <div class="detail-head">
           <span class="gen-mode" :class="store.current.mode">{{ modeLabel(store.current.mode) }}</span>
           <span class="detail-meta">{{ store.current.model }}</span>
-          <span class="detail-meta">{{ store.current.size }} · {{ store.current.n }}张</span>
+          <span class="detail-meta">{{ store.current.size }} · {{ t('sub2api.imagine.imageCount', { count: store.current.n }) }}</span>
           <span v-if="store.current.status === 'pending'" class="status-chip tone-blue"
-            ><span class="dot" />生成中</span
+            ><span class="dot" />{{ t('sub2api.imagine.generating') }}</span
           >
-          <span v-else-if="store.current.status === 'failed'" class="status-chip tone-red">失败</span>
-          <span v-else class="status-chip tone-green">完成</span>
+          <span v-else-if="store.current.status === 'failed'" class="status-chip tone-red">{{ t('sub2api.imagine.failed') }}</span>
+          <span v-else class="status-chip tone-green">{{ t('sub2api.imagine.completed') }}</span>
           <el-button
             class="detail-del"
             text
             type="danger"
             size="small"
             @click="deleteCurrent"
-          >删除</el-button>
+          >{{ t('sub2api.imagine.deleteTask') }}</el-button>
         </div>
         <p class="detail-prompt">{{ store.current.prompt }}</p>
         <p v-if="store.current.errorMessage" class="gen-error">{{ store.current.errorMessage }}</p>
@@ -250,12 +250,12 @@
               class="img-el"
             />
             <div class="img-overlay">
-              <span class="img-tip">点击放大</span>
+              <span class="img-tip">{{ t('sub2api.imagine.zoomImage') }}</span>
               <div class="img-acts">
-                <button class="img-act" title="修改（图生图）" @click="onModify(im.id)">
+                <button class="img-act" :title="t('sub2api.imagine.modifyImage')" @click="onModify(im.id)">
                   <el-icon><EditPen /></el-icon>
                 </button>
-                <a class="img-act" :href="imageUrl(im.id)" :download="im.filename" title="下载">
+                <a class="img-act" :href="imageUrl(im.id)" :download="im.filename" :title="t('sub2api.imagine.download')">
                   <el-icon><Download /></el-icon>
                 </a>
               </div>
@@ -265,13 +265,14 @@
         <div v-else-if="store.current.status === 'pending'" class="img-grid">
           <div v-for="i in store.current.n" :key="i" class="img-skeleton" />
         </div>
-        <div v-else class="empty">无图片</div>
+        <div v-else class="empty">{{ t('sub2api.imagine.noImage') }}</div>
       </div>
     </BaseDialog>
   </main>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Close, Download, EditPen, Moon, Picture, Promotion, Setting, Sunny, Upload } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
@@ -285,6 +286,7 @@ defineOptions({ name: 'Sub2APIImageGen' })
 const route = useRoute()
 const store = useImagineStore()
 const themeStore = useThemeStore()
+const { t } = useI18n()
 const isDark = computed(() => themeStore.isDarkTheme)
 const toggleTheme = () => themeStore.toggleThemeMode(isDark.value ? 'light' : 'dark')
 
@@ -346,13 +348,13 @@ const canSubmit = computed(
 )
 
 const status = computed(() => {
-  if (!store.apiKeyId) return { tone: 'amber', text: '未选 ApiKey' }
-  if (!store.modelId) return { tone: 'amber', text: '未选模型' }
-  if (store.hasPending) return { tone: 'blue', text: '生成中' }
-  return { tone: 'green', text: '就绪' }
+  if (!store.apiKeyId) return { tone: 'amber', text: t('sub2api.imagine.noApiKey') }
+  if (!store.modelId) return { tone: 'amber', text: t('sub2api.imagine.noModel') }
+  if (store.hasPending) return { tone: 'blue', text: t('sub2api.imagine.generating') }
+  return { tone: 'green', text: t('sub2api.imagine.ready') }
 })
 
-const modeLabel = (m: string) => (m === 'image2image' ? '图生图' : '文生图')
+const modeLabel = (m: string) => (m === 'image2image' ? t('sub2api.imagine.image2image') : t('sub2api.imagine.text2image'))
 
 // 草稿解析分辨率（实时预览），与 store 共用 computeSize 实现
 const draftResolvedSize = computed(() => computeSize(draftParams.value))
@@ -370,7 +372,7 @@ const onSettingsClose = () => {
 
 const detailTitle = computed(() => {
   const g = store.current
-  if (!g) return '任务详情'
+  if (!g) return t('sub2api.imagine.taskDetail')
   return `${modeLabel(g.mode)} · ${dayjs(g.createdAt).format('MM-DD HH:mm')}`
 })
 
@@ -382,10 +384,10 @@ const deleteCurrent = async () => {
   if (!store.currentId) return
   try {
     await Dialog.confirm({
-      title: '确认删除',
-      content: '删除该任务及其图片？此操作不可撤销。',
-      confirmText: '确认删除',
-      cancelText: '取消',
+      title: t('sub2api.imagine.confirmDeleteTitle'),
+      content: t('sub2api.imagine.confirmDeleteContent'),
+      confirmText: t('sub2api.imagine.confirmDeleteText'),
+      cancelText: t('sub2api.common.cancel'),
     })
   } catch {
     return

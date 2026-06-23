@@ -13,6 +13,7 @@ import type {
   SystemStatusRequest,
   SystemStatusResponse,
 } from '@/types/v1/system'
+import { translate } from '@/locales'
 
 const MAX_HISTORY = 30
 
@@ -47,20 +48,20 @@ export interface DiskPoint {
 }
 
 const createHomeShortcuts = (): DashboardShortcutItem[] => [
-  { label: '分析', icon: 'HOutline:ChartBarIcon', color: '#ef4444', routePath: '/dashboard/analysis' },
-  { label: '监控', icon: 'HOutline:EyeIcon', color: '#4f46e5', routePath: '/dashboard/monitor' },
-  { label: '用户', icon: 'HOutline:UserGroupIcon', color: '#f59e0b', routePath: '/system/user' },
-  { label: '角色', icon: 'HOutline:IdentificationIcon', color: '#10b981', routePath: '/system/role' },
-  { label: '应用列表', icon: 'HOutline:Squares2X2Icon', color: '#ec4899', routePath: '/instance/list' },
-  { label: '终端', icon: 'HOutline:CommandLineIcon', color: '#8b5cf6', routePath: '/instance/terminal' },
-  { label: '文件管理', icon: 'HOutline:FolderIcon', color: '#06b6d4', routePath: '/file/index' },
+  { labelKey: 'dashboard.home.shortcuts.analysis', icon: 'HOutline:ChartBarIcon', color: '#ef4444', routePath: '/dashboard/analysis' },
+  { labelKey: 'dashboard.home.shortcuts.monitor', icon: 'HOutline:EyeIcon', color: '#4f46e5', routePath: '/dashboard/monitor' },
+  { labelKey: 'dashboard.home.shortcuts.users', icon: 'HOutline:UserGroupIcon', color: '#f59e0b', routePath: '/system/user' },
+  { labelKey: 'dashboard.home.shortcuts.roles', icon: 'HOutline:IdentificationIcon', color: '#10b981', routePath: '/system/role' },
+  { labelKey: 'dashboard.home.shortcuts.apps', icon: 'HOutline:Squares2X2Icon', color: '#ec4899', routePath: '/instance/list' },
+  { labelKey: 'dashboard.home.shortcuts.terminal', icon: 'HOutline:CommandLineIcon', color: '#8b5cf6', routePath: '/instance/terminal' },
+  { labelKey: 'dashboard.home.shortcuts.fileManager', icon: 'HOutline:FolderIcon', color: '#06b6d4', routePath: '/file/index' },
 ]
 
 const RUNNING_INSTANCE_LIMIT = 6
 
 export const useDashboardHomeStore = defineStore('dashboard-home', () => {
   const currentDate = ref('')
-  const weatherText = ref('晴 22℃')
+  const weatherText = computed(() => translate('dashboard.home.weatherSunny22'))
   const todayTask = ref<DashboardTaskProgress>({
     done: 12,
     total: 16,

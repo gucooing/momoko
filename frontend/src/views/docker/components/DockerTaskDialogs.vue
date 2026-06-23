@@ -1,9 +1,9 @@
 <template>
-  <BaseDialog v-model="visible" title="Docker 任务" width="760" :show-footer="false" @open="loadTasks">
+  <BaseDialog v-model="visible" :title="t('docker.task.title')" width="760" :show-footer="false" @open="loadTasks">
     <div class="task-dialog">
       <div class="task-toolbar">
         <el-button size="small" :icon="menuStore.iconComponents.Refresh" :loading="listLoading" @click="loadTasks">
-          刷新
+          {{ t('docker.common.refresh') }}
         </el-button>
       </div>
 
@@ -24,7 +24,7 @@
             <span v-else-if="item.error" class="task-error">{{ item.error }}</span>
           </div>
         </div>
-        <el-empty v-if="!listLoading && !tasks.length" description="暂无任务" />
+        <el-empty v-if="!listLoading && !tasks.length" :description="t('docker.task.noTasks')" />
       </div>
     </div>
   </BaseDialog>
@@ -44,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
@@ -66,6 +67,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const visible = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
@@ -84,14 +86,6 @@ let fitAddon: FitAddon | null = null
 let resizeObserver: ResizeObserver | null = null
 let manualSocketClose = false
 
-const STATUS_MAP: Partial<Record<DockerTaskStatus, string>> = {
-  [DockerTaskStatus.DOCKER_TASK_STATUS_PENDING]: '等待中',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING]: '运行中',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_SUCCESS]: '成功',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_FAILED]: '失败',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: '已取消',
-}
-
 const STATUS_TAG_MAP: Partial<Record<DockerTaskStatus, 'success' | 'info' | 'warning' | 'danger'>> = {
   [DockerTaskStatus.DOCKER_TASK_STATUS_PENDING]: 'info',
   [DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING]: 'warning',
@@ -100,21 +94,28 @@ const STATUS_TAG_MAP: Partial<Record<DockerTaskStatus, 'success' | 'info' | 'war
   [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: 'info',
 }
 
-const TASK_TYPE_MAP: Partial<Record<DockerTaskType, string>> = {
-  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_RECREATE]: '重建容器',
-  [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: '拉取镜像',
-  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: '重建网络',
-  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: '清理网络',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RECREATE]: '重建储存卷',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_PRUNE]: '清理储存卷',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_EXPORT]: '导出储存卷',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RESTORE]: '恢复储存卷',
+const TASK_TYPE_KEY_MAP: Partial<Record<DockerTaskType, string>> = {
+  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_RECREATE]: 'docker.task.type.containerRecreate',
+  [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: 'docker.task.type.imagePull',
+  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: 'docker.task.type.networkRecreate',
+  [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: 'docker.task.type.networkPrune',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RECREATE]: 'docker.task.type.volumeRecreate',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_PRUNE]: 'docker.task.type.volumePrune',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_EXPORT]: 'docker.task.type.volumeExport',
+  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RESTORE]: 'docker.task.type.volumeRestore',
 }
 
-const logTitle = computed(() => selectedTask.value ? displayTaskTitle(selectedTask.value) : '任务日志')
-const statusLabel = (status: DockerTaskStatus) => STATUS_MAP[status] || '-'
+const logTitle = computed(() => selectedTask.value ? displayTaskTitle(selectedTask.value) : t('docker.task.logTitle'))
+const statusLabel = (status: DockerTaskStatus) => {
+  if (status === DockerTaskStatus.DOCKER_TASK_STATUS_PENDING) return t('docker.task.status.pending')
+  if (status === DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING) return t('docker.task.status.running')
+  if (status === DockerTaskStatus.DOCKER_TASK_STATUS_SUCCESS) return t('docker.task.status.success')
+  if (status === DockerTaskStatus.DOCKER_TASK_STATUS_FAILED) return t('docker.task.status.failed')
+  if (status === DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED) return t('docker.task.status.canceled')
+  return '-'
+}
 const statusTagType = (status: DockerTaskStatus) => STATUS_TAG_MAP[status] || 'info'
-const displayTaskTitle = (task: DockerTaskInfo) => task.title || TASK_TYPE_MAP[task.type] || task.id
+const displayTaskTitle = (task: DockerTaskInfo) => task.title || (TASK_TYPE_KEY_MAP[task.type] ? t(TASK_TYPE_KEY_MAP[task.type] as string) : task.id)
 
 const toDateValue = (value: unknown): Date | undefined => {
   if (!value) return undefined
@@ -158,7 +159,7 @@ const loadTasks = async () => {
     tasks.value = sortTasks(data?.tasks || [])
   } catch (error) {
     tasks.value = []
-    showRequestError(error, '获取任务列表失败')
+    showRequestError(error, t('docker.task.loadFailed'))
   } finally {
     listLoading.value = false
   }
@@ -221,7 +222,7 @@ const connectTaskSocket = (task: DockerTaskInfo) => {
 
   const socketUrl = buildTaskSocketUrl(task)
   if (!socketUrl) {
-    terminal?.writeln('\x1b[31m缺少任务 WS 路径\x1b[0m')
+    terminal?.writeln(`\x1b[31m${t('docker.task.missingWsPath')}\x1b[0m`)
     return
   }
 
@@ -237,7 +238,7 @@ const connectTaskSocket = (task: DockerTaskInfo) => {
 
   nextSocket.onerror = () => {
     if (socket.value !== nextSocket) return
-    terminal?.writeln('\x1b[31m任务日志连接异常\x1b[0m')
+    terminal?.writeln(`\x1b[31m${t('docker.task.logConnectError')}\x1b[0m`)
   }
 
   nextSocket.onclose = () => {

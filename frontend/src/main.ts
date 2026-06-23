@@ -9,6 +9,7 @@ import { createApp, nextTick } from 'vue'
 import { createPinia } from 'pinia'
 import App from '@/App.vue'
 import router from '@/router/index'
+import { i18n } from '@/locales'
 
 //  动态设置favicon和项目名称
 const initAppConfig = () => {
@@ -29,6 +30,7 @@ const startApp = async () => {
   const app = createApp(App)
 
   app.use(createPinia())
+  app.use(i18n)
   app.use(router)
 
   // 注册 Motion 动画插件

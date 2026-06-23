@@ -4,28 +4,28 @@
       <el-form :model="queryForm" label-width="auto" @keyup.enter="search">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="名称">
-              <el-input v-model="queryForm.name" placeholder="容器名称" clearable />
+            <el-form-item :label="t('docker.common.name')">
+              <el-input v-model="queryForm.name" :placeholder="t('docker.container.namePlaceholder')" clearable />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="状态">
-              <el-select v-model="queryForm.status" placeholder="全部" clearable style="width: 100%">
-                <el-option label="运行中" value="running" />
-                <el-option label="已停止" value="exited" />
-                <el-option label="暂停" value="paused" />
+            <el-form-item :label="t('docker.common.status')">
+              <el-select v-model="queryForm.status" :placeholder="t('docker.common.all')" clearable style="width: 100%">
+                <el-option :label="t('docker.states.running')" value="running" />
+                <el-option :label="t('docker.states.exited')" value="exited" />
+                <el-option :label="t('docker.states.paused')" value="paused" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="镜像">
-              <el-input v-model="queryForm.image" placeholder="镜像名" clearable />
+            <el-form-item :label="t('docker.common.image')">
+              <el-input v-model="queryForm.image" :placeholder="t('docker.container.imagePlaceholder')" clearable />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">搜索</el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">{{ t('docker.common.search') }}</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('docker.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -34,8 +34,8 @@
 
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
-        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">创建容器</el-button>
-        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
+        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">{{ t('docker.container.createContainer') }}</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">{{ t('docker.common.tasks') }}</el-button>
       </div>
 
       <div v-loading="loading">
@@ -94,7 +94,7 @@
                   link
                   size="small"
                   :disabled="isRowActionLoading(row)"
-                  title="更多"
+                  :title="t('docker.common.more')"
                 >
                   ...
                 </el-button>
@@ -124,9 +124,9 @@
                 <span class="mobile-card-title">{{ displayNames(row) }}</span>
                 <BaseTag :text="stateLabel(row.state)" :type="stateTagType(row.state)" />
               </div>
-              <div class="mobile-card-meta"><span>镜像：{{ row.image }}</span></div>
-              <div class="mobile-card-meta"><span>运行时间：{{ formatContainerRuntime(row) }}</span></div>
-              <div class="mobile-card-meta"><span>网络：{{ formatNetworkText(row) }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.container.imageMeta', { image: row.image }) }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.container.runtimeMeta', { runtime: formatContainerRuntime(row) }) }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.container.networkMeta', { network: formatNetworkText(row) }) }}</span></div>
             </div>
             <div class="mobile-card-actions">
               <el-button
@@ -142,7 +142,7 @@
                 {{ item.label }}
               </el-button>
               <el-dropdown v-if="mobileMoreActions(row).length" trigger="click" :disabled="isRowActionLoading(row)" @command="(command: string) => handleContainerActionCommand(row, command)">
-                <el-button size="small" plain :loading="isRowActionLoading(row)">更多</el-button>
+                <el-button size="small" plain :loading="isRowActionLoading(row)">{{ t('docker.common.more') }}</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item
@@ -161,7 +161,7 @@
             </div>
           </div>
         </div>
-        <el-empty v-else-if="!loading" description="暂无容器" />
+        <el-empty v-else-if="!loading" :description="t('docker.container.noContainers')" />
       </div>
 
       <TablePagination
@@ -174,17 +174,17 @@
     </el-card>
 
     <!-- Create Dialog -->
-    <BaseDialog v-model="createVisible" title="创建容器" width="700">
+    <BaseDialog v-model="createVisible" :title="t('docker.container.createContainer')" width="700">
       <el-form :model="createForm" label-position="top">
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="容器名称">
-              <el-input v-model="createForm.name" placeholder="可选" />
+            <el-form-item :label="t('docker.container.namePlaceholder')">
+              <el-input v-model="createForm.name" :placeholder="t('docker.common.optional')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="镜像" required>
-              <el-input v-model="createForm.image" placeholder="选择或输入镜像" class="image-combo-input">
+            <el-form-item :label="t('docker.common.image')" required>
+              <el-input v-model="createForm.image" :placeholder="t('docker.container.imageInputPlaceholder')" class="image-combo-input">
                 <template #suffix>
                   <span class="image-combo-actions">
                     <el-icon v-if="createForm.image" class="image-combo-clear" @click.stop="createForm.image = ''">
@@ -204,52 +204,52 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="启动命令">
-          <el-input v-model="createForm.cmdText" placeholder="如 /bin/bash -c 'echo hello'" />
+        <el-form-item :label="t('docker.container.startCommand')">
+          <el-input v-model="createForm.cmdText" :placeholder="t('docker.container.commandPlaceholder')" />
         </el-form-item>
-        <el-form-item label="环境变量">
+        <el-form-item :label="t('docker.container.env')">
           <el-input v-model="createForm.envText" type="textarea" :rows="2" placeholder="KEY=VALUE" />
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="端口映射">
+            <el-form-item :label="t('docker.container.ports')">
               <el-input v-model="createForm.portsText" type="textarea" :rows="2" placeholder="8080:80" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="卷挂载">
+            <el-form-item :label="t('docker.container.mounts')">
               <el-input v-model="createForm.mountsText" type="textarea" :rows="2" placeholder="vol_name:/data" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="网络">
-              <el-select v-model="createForm.network" clearable placeholder="默认 bridge" style="width: 100%" @focus="loadNetworkOptions">
+            <el-form-item :label="t('docker.common.network')">
+              <el-select v-model="createForm.network" clearable :placeholder="t('docker.container.defaultBridge')" style="width: 100%" @focus="loadNetworkOptions">
                 <el-option v-for="item in networkOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="重启策略">
+            <el-form-item :label="t('docker.container.restartPolicy')">
               <el-select v-model="createForm.restartPolicy" style="width: 100%">
-                <el-option label="不重启" value="" />
-                <el-option label="总是重启" value="always" />
-                <el-option label="失败时重启" value="on-failure" />
-                <el-option label="除非停止" value="unless-stopped" />
+                <el-option :label="t('docker.container.restartNo')" value="" />
+                <el-option :label="t('docker.container.restartAlways')" value="always" />
+                <el-option :label="t('docker.container.restartOnFailure')" value="on-failure" />
+                <el-option :label="t('docker.container.restartUnlessStopped')" value="unless-stopped" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">创建</el-button>
+        <el-button @click="createVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">{{ t('docker.common.create') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Detail Dialog -->
-    <BaseDialog v-model="detailVisible" title="容器详情" width="860">
+    <BaseDialog v-model="detailVisible" :title="t('docker.container.containerDetail')" width="860">
       <div v-if="detail" v-loading="detailLoading" class="container-detail">
         <div class="detail-hero">
           <div class="detail-hero__main">
@@ -275,32 +275,32 @@
 
         <div class="detail-section-grid">
           <div class="detail-section">
-            <div class="detail-section__title">运行</div>
+            <div class="detail-section__title">{{ t('docker.container.runtime') }}</div>
             <div class="detail-kv">
               <div><span>PID</span><strong>{{ detail.state?.pid || '-' }}</strong></div>
-              <div><span>重启</span><strong>{{ detail.restartCount }}</strong></div>
-              <div><span>退出码</span><strong>{{ detail.state?.exitCode ?? '-' }}</strong></div>
-              <div><span>平台</span><strong>{{ detail.platform || '-' }}</strong></div>
-              <div><span>创建</span><strong>{{ formatDateTime(detail.created) }}</strong></div>
-              <div><span>启动</span><strong>{{ formatDateTime(detail.state?.startedAt) }}</strong></div>
+              <div><span>{{ t('docker.container.restartCount') }}</span><strong>{{ detail.restartCount }}</strong></div>
+              <div><span>{{ t('docker.container.exitCode') }}</span><strong>{{ detail.state?.exitCode ?? '-' }}</strong></div>
+              <div><span>{{ t('docker.common.platform') }}</span><strong>{{ detail.platform || '-' }}</strong></div>
+              <div><span>{{ t('docker.container.created') }}</span><strong>{{ formatDateTime(detail.created) }}</strong></div>
+              <div><span>{{ t('docker.container.started') }}</span><strong>{{ formatDateTime(detail.state?.startedAt) }}</strong></div>
             </div>
           </div>
 
           <div class="detail-section">
-            <div class="detail-section__title">资源</div>
+            <div class="detail-section__title">{{ t('docker.container.resource') }}</div>
             <div class="detail-kv">
-              <div><span>重启策略</span><strong>{{ detailRestartPolicy }}</strong></div>
-              <div><span>网络模式</span><strong>{{ detailNetworkMode }}</strong></div>
-              <div><span>内存</span><strong>{{ detailMemoryLimit }}</strong></div>
+              <div><span>{{ t('docker.container.restartPolicy') }}</span><strong>{{ detailRestartPolicy }}</strong></div>
+              <div><span>{{ t('docker.container.networkMode') }}</span><strong>{{ detailNetworkMode }}</strong></div>
+              <div><span>{{ t('docker.common.memory') }}</span><strong>{{ detailMemoryLimit }}</strong></div>
               <div><span>CPU</span><strong>{{ detailCpuLimit }}</strong></div>
-              <div><span>自删</span><strong>{{ detailAutoRemove }}</strong></div>
-              <div><span>特权</span><strong>{{ detailPrivileged }}</strong></div>
+              <div><span>{{ t('docker.container.autoRemove') }}</span><strong>{{ detailAutoRemove }}</strong></div>
+              <div><span>{{ t('docker.container.privileged') }}</span><strong>{{ detailPrivileged }}</strong></div>
             </div>
           </div>
         </div>
 
         <div class="detail-section" v-if="detailNetworks.length">
-          <div class="detail-section__title">网络</div>
+          <div class="detail-section__title">{{ t('docker.common.network') }}</div>
           <div v-if="detailNetworks.length" class="network-list">
             <div v-for="item in detailNetworks" :key="item.name" class="network-item">
               <span class="network-name">{{ item.name }}</span>
@@ -312,18 +312,18 @@
         </div>
 
         <div class="detail-section">
-          <div class="detail-section__title">启动</div>
+          <div class="detail-section__title">{{ t('docker.container.startup') }}</div>
           <div class="detail-code">{{ detailCommand }}</div>
         </div>
 
         <div v-if="detail.mounts?.length" class="detail-section">
-          <div class="detail-section__title">挂载</div>
+          <div class="detail-section__title">{{ t('docker.container.mounts') }}</div>
           <el-table :data="detail.mounts" size="small" border>
-            <el-table-column prop="type" label="类型" width="80" />
-            <el-table-column prop="source" label="来源" min-width="220" show-overflow-tooltip />
-            <el-table-column prop="destination" label="目标" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="mode" label="模式" width="80" />
-            <el-table-column label="读写" width="64">
+            <el-table-column prop="type" :label="t('docker.common.type')" width="80" />
+            <el-table-column prop="source" :label="t('docker.common.source')" min-width="220" show-overflow-tooltip />
+            <el-table-column prop="destination" :label="t('docker.common.target')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="mode" :label="t('docker.common.mode')" width="80" />
+            <el-table-column :label="t('docker.common.readWrite')" width="64">
               <template #default="{ row: m }">
                 <BaseTag :text="m.rw ? 'RW' : 'RO'" :type="m.rw ? 'success' : 'warning'" />
               </template>
@@ -333,57 +333,57 @@
       </div>
       <template #footer>
         <el-button :icon="menuStore.iconComponents['HOutline:DocumentTextIcon']" :disabled="!detail" @click="openDetailLogs">
-          日志
+          {{ t('docker.common.logs') }}
         </el-button>
         <el-button :icon="menuStore.iconComponents['HOutline:ChartBarIcon']" :disabled="!detail" @click="openDetailStats">
-          统计
+          {{ t('docker.common.stats') }}
         </el-button>
         <el-button v-if="canManage" :icon="menuStore.iconComponents['HOutline:CommandLineIcon']" :disabled="!detail" @click="openDetailExec">
-          终端
+          {{ t('docker.common.terminal') }}
         </el-button>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button @click="detailVisible = false">{{ t('docker.common.close') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Edit Dialog -->
-    <BaseDialog v-model="editVisible" title="编辑容器" width="760">
+    <BaseDialog v-model="editVisible" :title="t('docker.container.editContainer')" width="760">
       <el-form :model="editForm" label-position="top" class="container-edit-form">
         <el-row :gutter="12">
           <el-col :xs="24" :sm="12">
-            <el-form-item label="容器名称">
-              <el-input v-model="editForm.name" placeholder="容器名称" />
+            <el-form-item :label="t('docker.container.namePlaceholder')">
+              <el-input v-model="editForm.name" :placeholder="t('docker.container.namePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12">
-            <el-form-item label="重启策略">
+            <el-form-item :label="t('docker.container.restartPolicy')">
               <el-select v-model="editForm.restartPolicy" style="width: 100%">
-                <el-option label="不重启" value="" />
-                <el-option label="总是重启" value="always" />
-                <el-option label="失败时重启" value="on-failure" />
-                <el-option label="除非停止" value="unless-stopped" />
+                <el-option :label="t('docker.container.restartNo')" value="" />
+                <el-option :label="t('docker.container.restartAlways')" value="always" />
+                <el-option :label="t('docker.container.restartOnFailure')" value="on-failure" />
+                <el-option :label="t('docker.container.restartUnlessStopped')" value="unless-stopped" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="12">
           <el-col :xs="24" :sm="12">
-            <el-form-item label="内存限制 (MB)">
+            <el-form-item :label="t('docker.container.memoryLimitMb')">
               <el-input-number v-model="editForm.memoryMB" :min="0" :step="64" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12">
-            <el-form-item label="CPU 限制 (核)">
+            <el-form-item :label="t('docker.container.cpuLimitCores')">
               <el-input-number v-model="editForm.nanoCpuCores" :min="0" :step="0.5" :precision="1" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-divider />
-        <el-checkbox v-model="editForm.recreate" style="margin-bottom: 8px">重建容器（需要修改镜像/端口/挂载等时勾选）</el-checkbox>
+        <el-checkbox v-model="editForm.recreate" style="margin-bottom: 8px">{{ t('docker.container.recreateTip') }}</el-checkbox>
         <template v-if="editForm.recreate">
           <el-row :gutter="12">
             <el-col :xs="24" :sm="16">
-              <el-form-item label="镜像" required>
-                <el-input v-model="editForm.image" placeholder="选择或输入镜像" class="image-combo-input">
+              <el-form-item :label="t('docker.common.image')" required>
+                <el-input v-model="editForm.image" :placeholder="t('docker.container.imageInputPlaceholder')" class="image-combo-input">
                   <template #suffix>
                     <span class="image-combo-actions">
                       <el-icon v-if="editForm.image" class="image-combo-clear" @click.stop="editForm.image = ''">
@@ -403,8 +403,8 @@
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="8">
-              <el-form-item label="网络">
-                <el-select v-model="editForm.network" clearable placeholder="默认 bridge" style="width: 100%" @focus="loadNetworkOptions">
+              <el-form-item :label="t('docker.common.network')">
+                <el-select v-model="editForm.network" clearable :placeholder="t('docker.container.defaultBridge')" style="width: 100%" @focus="loadNetworkOptions">
                   <el-option v-for="item in networkOptions" :key="item" :label="item" :value="item" />
                 </el-select>
               </el-form-item>
@@ -413,15 +413,15 @@
 
           <div class="edit-block">
             <div class="edit-block__head">
-              <span>端口映射</span>
-              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditPort()">新增</el-button>
+              <span>{{ t('docker.container.ports') }}</span>
+              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditPort()">{{ t('docker.common.add') }}</el-button>
             </div>
             <div v-if="editPorts.length" class="edit-row-labels edit-row-labels--ports">
-              <span>主机 IP</span>
-              <span>主机端口</span>
+              <span>{{ t('docker.common.hostIp') }}</span>
+              <span>{{ t('docker.common.hostPort') }}</span>
               <span></span>
-              <span>容器端口</span>
-              <span>协议</span>
+              <span>{{ t('docker.common.containerPort') }}</span>
+              <span>{{ t('docker.common.protocol') }}</span>
               <span></span>
             </div>
             <div v-for="(item, index) in editPorts" :key="`port-${index}`" class="edit-row edit-row--ports">
@@ -429,49 +429,49 @@
               <el-input v-model="item.hostPort" placeholder="8080" />
               <span class="edit-row__arrow">-></span>
               <el-input v-model="item.containerPort" placeholder="80" />
-              <el-select v-model="item.protocol" placeholder="协议">
+              <el-select v-model="item.protocol" :placeholder="t('docker.common.protocol')">
                 <el-option label="tcp" value="tcp" />
                 <el-option label="udp" value="udp" />
               </el-select>
               <el-button type="danger" link :icon="menuStore.iconComponents.Delete" @click="removeEditPort(index)" />
             </div>
-            <div v-if="!editPorts.length" class="edit-empty">暂无端口映射</div>
+            <div v-if="!editPorts.length" class="edit-empty">{{ t('docker.container.emptyPorts') }}</div>
           </div>
 
           <div class="edit-block">
             <div class="edit-block__head">
-              <span>卷挂载</span>
-              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditMount()">新增</el-button>
+              <span>{{ t('docker.container.mounts') }}</span>
+              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditMount()">{{ t('docker.common.add') }}</el-button>
             </div>
             <div v-if="editMounts.length" class="edit-row-labels edit-row-labels--mounts">
-              <span>类型</span>
-              <span>来源</span>
-              <span>目标</span>
-              <span>只读</span>
+              <span>{{ t('docker.common.type') }}</span>
+              <span>{{ t('docker.common.source') }}</span>
+              <span>{{ t('docker.common.target') }}</span>
+              <span>{{ t('docker.container.readOnly') }}</span>
               <span></span>
             </div>
             <div v-for="(item, index) in editMounts" :key="`mount-${index}`" class="edit-row edit-row--mounts">
-              <el-select v-model="item.type" placeholder="类型">
+              <el-select v-model="item.type" :placeholder="t('docker.common.type')">
                 <el-option label="bind" value="bind" />
                 <el-option label="volume" value="volume" />
                 <el-option label="tmpfs" value="tmpfs" />
               </el-select>
-              <el-input v-model="item.source" placeholder="来源" />
+              <el-input v-model="item.source" :placeholder="t('docker.common.source')" />
               <el-input v-model="item.target" placeholder="/data" />
               <el-switch v-model="item.readOnly" />
               <el-button type="danger" link :icon="menuStore.iconComponents.Delete" @click="removeEditMount(index)" />
             </div>
-            <div v-if="!editMounts.length" class="edit-empty">暂无卷挂载</div>
+            <div v-if="!editMounts.length" class="edit-empty">{{ t('docker.container.emptyMounts') }}</div>
           </div>
 
           <div class="edit-block">
             <div class="edit-block__head">
-              <span>环境变量</span>
-              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditEnv()">新增</el-button>
+              <span>{{ t('docker.container.env') }}</span>
+              <el-button type="primary" link size="small" :icon="menuStore.iconComponents.Plus" @click="addEditEnv()">{{ t('docker.common.add') }}</el-button>
             </div>
             <div v-if="editEnv.length" class="edit-row-labels edit-row-labels--env">
-              <span>键</span>
-              <span>值</span>
+              <span>{{ t('docker.common.key') }}</span>
+              <span>{{ t('docker.common.value') }}</span>
               <span></span>
             </div>
             <div v-for="(item, index) in editEnv" :key="`env-${index}`" class="edit-row edit-row--env">
@@ -479,17 +479,17 @@
               <el-input v-model="item.value" placeholder="VALUE" />
               <el-button type="danger" link :icon="menuStore.iconComponents.Delete" @click="removeEditEnv(index)" />
             </div>
-            <div v-if="!editEnv.length" class="edit-empty">暂无环境变量</div>
+            <div v-if="!editEnv.length" class="edit-empty">{{ t('docker.container.emptyEnv') }}</div>
           </div>
 
-          <el-form-item label="强制删除旧容器" class="edit-force-item">
+          <el-form-item :label="t('docker.container.forceDeleteOld')" class="edit-force-item">
             <el-switch v-model="editForm.force" />
           </el-form-item>
         </template>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">{{ t('docker.common.save') }}</el-button>
       </template>
     </BaseDialog>
 
@@ -515,6 +515,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
   createDockerContainer, deleteDockerContainer,
   getDockerContainer, killDockerContainer, listDockerContainers,
@@ -541,6 +542,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'DockerContainerView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const canManage = useButtonPermission([PERM.DOCKER_CONTAINER_MANAGE], [])
 
 const list = ref<DockerContainerSummary[]>([])
@@ -548,43 +550,52 @@ const loading = ref(false)
 const queryForm = reactive({ name: '', status: '', image: '' })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
-const STATE_MAP: Record<string, string> = { running: '运行中', exited: '已停止', paused: '暂停', restarting: '重启中', created: '已创建', removing: '删除中', dead: '已死亡' }
+const STATE_KEY_MAP: Record<string, string> = {
+  running: 'docker.states.running',
+  exited: 'docker.states.exited',
+  paused: 'docker.states.paused',
+  restarting: 'docker.states.restarting',
+  created: 'docker.states.created',
+  removing: 'docker.states.removing',
+  dead: 'docker.states.dead',
+}
 const STATE_TAG: Record<string, 'success' | 'info' | 'warning' | 'danger'> = { running: 'success', exited: 'info', paused: 'warning', restarting: 'warning', created: 'info', dead: 'danger' }
 const OPERATION_COLUMN_WIDTH = 210
 const OPERATION_COLUMN_READONLY_WIDTH = 96
 
-const stateLabel = (s: string) => STATE_MAP[s] || s || '-'
+const stateLabel = (s: string) => STATE_KEY_MAP[s] ? t(STATE_KEY_MAP[s]) : s || '-'
 const stateTagType = (s: string) => STATE_TAG[s] || 'info'
 const displayNames = (row: DockerContainerSummary) => (row.names || []).map(n => n.replace(/^\//, '')).join(', ') || '-'
-const DURATION_UNIT_MAP: Record<string, string> = {
-  second: '秒',
-  seconds: '秒',
-  minute: '分钟',
-  minutes: '分钟',
-  hour: '小时',
-  hours: '小时',
-  day: '天',
-  days: '天',
-  week: '周',
-  weeks: '周',
-  month: '个月',
-  months: '个月',
-  year: '年',
-  years: '年',
+const DURATION_UNIT_KEY_MAP: Record<string, string> = {
+  second: 'docker.container.duration.second',
+  seconds: 'docker.container.duration.second',
+  minute: 'docker.container.duration.minute',
+  minutes: 'docker.container.duration.minute',
+  hour: 'docker.container.duration.hour',
+  hours: 'docker.container.duration.hour',
+  day: 'docker.container.duration.day',
+  days: 'docker.container.duration.day',
+  week: 'docker.container.duration.week',
+  weeks: 'docker.container.duration.week',
+  month: 'docker.container.duration.month',
+  months: 'docker.container.duration.month',
+  year: 'docker.container.duration.year',
+  years: 'docker.container.duration.year',
 }
 
 const formatDockerDuration = (value: string) => {
   const text = value.trim()
   const lower = text.toLowerCase()
-  if (lower === 'less than a second') return '<1 秒'
-  if (lower === 'about a minute') return '约 1 分钟'
-  if (lower === 'about an hour') return '约 1 小时'
+  if (lower === 'less than a second') return t('docker.container.duration.lessThanSecond')
+  if (lower === 'about a minute') return t('docker.container.duration.aboutMinute')
+  if (lower === 'about an hour') return t('docker.container.duration.aboutHour')
   const parts: string[] = []
   for (const match of text.matchAll(/(\d+)\s+([a-z]+)/gi)) {
     const amount = match[1]
     const unit = match[2]
     if (!amount || !unit) continue
-    parts.push(`${amount} ${DURATION_UNIT_MAP[unit.toLowerCase()] || unit}`)
+    const unitKey = DURATION_UNIT_KEY_MAP[unit.toLowerCase()]
+    parts.push(`${amount} ${unitKey ? t(unitKey) : unit}`)
   }
   return parts.length ? parts.join(' ') : text
 }
@@ -613,12 +624,12 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: list.value,
   columns: [
     { type: 'seq', title: '#', width: 50, fixed: 'left' },
-    { field: 'names', title: '名称', minWidth: 160, slots: { default: 'column-names' } },
-    { field: 'image', title: '镜像', minWidth: 180, showOverflow: true },
-    { field: 'state', title: '状态', width: 90, slots: { default: 'column-state' } },
-    { field: 'status', title: '运行时间', width: 120, slots: { default: 'column-runtime' } },
-    { field: 'networkEndpoints', title: '网络', minWidth: 220, slots: { default: 'column-network' } },
-    { title: '操作', width: canManage.value ? OPERATION_COLUMN_WIDTH : OPERATION_COLUMN_READONLY_WIDTH, fixed: 'right', slots: { default: 'column-operation' } },
+    { field: 'names', title: t('docker.common.name'), minWidth: 160, slots: { default: 'column-names' } },
+    { field: 'image', title: t('docker.common.image'), minWidth: 180, showOverflow: true },
+    { field: 'state', title: t('docker.common.status'), width: 90, slots: { default: 'column-state' } },
+    { field: 'status', title: t('docker.container.runtime'), width: 120, slots: { default: 'column-runtime' } },
+    { field: 'networkEndpoints', title: t('docker.common.network'), minWidth: 220, slots: { default: 'column-network' } },
+    { title: t('docker.common.operation'), width: canManage.value ? OPERATION_COLUMN_WIDTH : OPERATION_COLUMN_READONLY_WIDTH, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -706,7 +717,7 @@ const parseMounts = (text: string): DockerMount[] =>
   })
 const submitCreate = async () => {
   const image = createForm.image.trim()
-  if (!image) { ElMessage.error('请输入镜像名'); return }
+  if (!image) { ElMessage.error(t('docker.container.enterImage')); return }
   createSubmitting.value = true
   try {
     await createDockerContainer({
@@ -724,10 +735,10 @@ const submitCreate = async () => {
         memory: 0, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0, nanoCpus: 0, platform: '',
       },
     })
-    ElMessage.success('容器创建成功')
+    ElMessage.success(t('docker.container.createSuccess'))
     createVisible.value = false
     await getList()
-  } catch (e) { showRequestError(e, '创建容器失败') }
+  } catch (e) { showRequestError(e, t('docker.container.createFailed')) }
   finally { createSubmitting.value = false }
 }
 
@@ -749,14 +760,14 @@ const ACTION_BUTTON_WIDTH = 42
 const ACTION_MORE_WIDTH = 30
 const ACTION_MIN_INLINE_WIDTH = 92
 
-const actionMap: Record<ContainerLifecycleAction, { label: string; fn: (id: string) => Promise<unknown>; confirm: boolean }> = {
-  start: { label: '启动', fn: (id: string) => startDockerContainer({ id }), confirm: false },
-  stop: { label: '停止', fn: (id: string) => stopDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
-  restart: { label: '重启', fn: (id: string) => restartDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
-  kill: { label: '强制停止', fn: (id: string) => killDockerContainer({ id, signal: 'SIGKILL' }), confirm: true },
-  pause: { label: '暂停', fn: (id: string) => pauseDockerContainer({ id }), confirm: false },
-  unpause: { label: '恢复', fn: (id: string) => unpauseDockerContainer({ id }), confirm: false },
-  delete: { label: '删除', fn: (id: string) => deleteDockerContainer({ id, force: false, removeVolumes: false }), confirm: true },
+const actionMap: Record<ContainerLifecycleAction, { labelKey: string; fn: (id: string) => Promise<unknown>; confirm: boolean }> = {
+  start: { labelKey: 'docker.lifecycle.start', fn: (id: string) => startDockerContainer({ id }), confirm: false },
+  stop: { labelKey: 'docker.lifecycle.stop', fn: (id: string) => stopDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
+  restart: { labelKey: 'docker.lifecycle.restart', fn: (id: string) => restartDockerContainer({ id, timeoutSeconds: 10 }), confirm: true },
+  kill: { labelKey: 'docker.lifecycle.kill', fn: (id: string) => killDockerContainer({ id, signal: 'SIGKILL' }), confirm: true },
+  pause: { labelKey: 'docker.lifecycle.pause', fn: (id: string) => pauseDockerContainer({ id }), confirm: false },
+  unpause: { labelKey: 'docker.lifecycle.unpause', fn: (id: string) => unpauseDockerContainer({ id }), confirm: false },
+  delete: { labelKey: 'docker.lifecycle.delete', fn: (id: string) => deleteDockerContainer({ id, force: false, removeVolumes: false }), confirm: true },
 }
 
 const actionLoading = reactive<Record<string, string>>({})
@@ -794,28 +805,28 @@ const setActionCellRef = (id: string, el: Element | ComponentPublicInstance | nu
 
 const containerActions = (row: DockerContainerSummary): ContainerActionItem[] => {
   const disabled = isRowActionLoading(row)
-  if (!canManage.value) return [{ key: 'detail', label: '详情', disabled }]
+  if (!canManage.value) return [{ key: 'detail', label: t('docker.common.detail'), disabled }]
 
   const actions: ContainerActionItem[] = []
   if (row.state === 'running') {
     actions.push(
-      { key: 'pause', label: '暂停', loading: isActionLoading(row, 'pause'), disabled },
-      { key: 'stop', label: '停止', loading: isActionLoading(row, 'stop'), disabled },
-      { key: 'restart', label: '重启', loading: isActionLoading(row, 'restart'), disabled },
-      { key: 'logs', label: '日志', disabled },
-      { key: 'stats', label: '统计', disabled },
-      { key: 'exec', label: '终端', disabled },
+      { key: 'pause', label: t('docker.lifecycle.pause'), loading: isActionLoading(row, 'pause'), disabled },
+      { key: 'stop', label: t('docker.lifecycle.stop'), loading: isActionLoading(row, 'stop'), disabled },
+      { key: 'restart', label: t('docker.lifecycle.restart'), loading: isActionLoading(row, 'restart'), disabled },
+      { key: 'logs', label: t('docker.common.logs'), disabled },
+      { key: 'stats', label: t('docker.common.stats'), disabled },
+      { key: 'exec', label: t('docker.common.terminal'), disabled },
     )
   } else if (row.state === 'paused') {
-    actions.push({ key: 'unpause', label: '恢复', loading: isActionLoading(row, 'unpause'), disabled })
+    actions.push({ key: 'unpause', label: t('docker.lifecycle.unpause'), loading: isActionLoading(row, 'unpause'), disabled })
   } else if (row.state === 'exited' || row.state === 'created') {
-    actions.push({ key: 'start', label: '启动', loading: isActionLoading(row, 'start'), disabled })
+    actions.push({ key: 'start', label: t('docker.lifecycle.start'), loading: isActionLoading(row, 'start'), disabled })
   }
 
   actions.push(
-    { key: 'edit', label: '编辑', disabled },
-    { key: 'detail', label: '详情', disabled },
-    { key: 'delete', label: '删除', loading: isActionLoading(row, 'delete'), disabled, danger: true, divided: true },
+    { key: 'edit', label: t('docker.common.edit'), disabled },
+    { key: 'detail', label: t('docker.common.detail'), disabled },
+    { key: 'delete', label: t('docker.common.delete'), loading: isActionLoading(row, 'delete'), disabled, danger: true, divided: true },
   )
   return actions
 }
@@ -855,16 +866,24 @@ const handleAction = async (row: DockerContainerSummary, action: ContainerLifecy
   const def = actionMap[action]
   if (isRowActionLoading(row)) return
   const name = displayNames(row)
+  const actionLabel = t(def.labelKey)
   if (def.confirm) {
-    try { await Dialog.confirm({ title: `确认${def.label}`, content: `确定要${def.label}容器「${name}」吗？`, confirmText: `确认${def.label}`, cancelText: '取消' }) }
+    try {
+      await Dialog.confirm({
+        title: t('docker.container.confirmActionTitle', { action: actionLabel }),
+        content: t('docker.container.confirmActionContent', { action: actionLabel, name }),
+        confirmText: t('docker.container.confirmActionText', { action: actionLabel }),
+        cancelText: t('docker.common.cancel'),
+      })
+    }
     catch { return }
   }
   actionLoading[row.id] = action
   try {
     await def.fn(row.id)
-    ElMessage.success(`${def.label}操作成功`)
+    ElMessage.success(t('docker.container.actionSuccess', { action: actionLabel }))
     await getList()
-  } catch (e) { showRequestError(e, `${def.label}操作失败`) }
+  } catch (e) { showRequestError(e, t('docker.container.actionFailed', { action: actionLabel })) }
   finally { delete actionLoading[row.id] }
 }
 
@@ -932,19 +951,19 @@ const detailImageName = computed(() => {
 })
 const detailRestartPolicy = computed(() => detailHostConfig.value?.restartPolicy || '-')
 const detailNetworkMode = computed(() => detailHostConfig.value?.networkMode || '-')
-const detailAutoRemove = computed(() => detailHostConfig.value?.autoRemove ? '是' : '否')
-const detailPrivileged = computed(() => detailHostConfig.value?.privileged ? '是' : '否')
+const detailAutoRemove = computed(() => detailHostConfig.value?.autoRemove ? t('docker.common.yes') : t('docker.common.no'))
+const detailPrivileged = computed(() => detailHostConfig.value?.privileged ? t('docker.common.yes') : t('docker.common.no'))
 const detailMemoryLimit = computed(() => {
   const memory = detailHostConfig.value?.memory || 0
-  return memory ? formatBytes(memory) : '未限制'
+  return memory ? formatBytes(memory) : t('docker.common.unlimited')
 })
 const detailCpuLimit = computed(() => {
   const nanoCpus = detailHostConfig.value?.nanoCpus || 0
-  if (nanoCpus) return `${(nanoCpus / 1e9).toFixed(2)} 核`
+  if (nanoCpus) return `${(nanoCpus / 1e9).toFixed(2)} ${t('docker.common.cpuUnit')}`
   const cpuQuota = detailHostConfig.value?.cpuQuota || 0
   const cpuPeriod = detailHostConfig.value?.cpuPeriod || 0
-  if (cpuQuota && cpuPeriod) return `${(cpuQuota / cpuPeriod).toFixed(2)} 核`
-  return '未限制'
+  if (cpuQuota && cpuPeriod) return `${(cpuQuota / cpuPeriod).toFixed(2)} ${t('docker.common.cpuUnit')}`
+  return t('docker.common.unlimited')
 })
 
 type DetailEndpoint = {
@@ -974,14 +993,14 @@ const detailPortTags = computed(() => {
   }).filter(Boolean)
 })
 const detailPortText = computed(() => {
-  if (detailNetworkMode.value === 'host') return 'host 网络'
-  return '无端口映射'
+  if (detailNetworkMode.value === 'host') return t('docker.container.hostNetwork')
+  return t('docker.container.noPortMapping')
 })
 
 const openDetailLogs = () => {
   if (!detail.value) return
   if (!detail.value.logsWsPath) {
-    ElMessage.warning('缺少日志 WS 路径')
+    ElMessage.warning(t('docker.container.missingLogsWsPath'))
     return
   }
   logsContainerId.value = detail.value.id
@@ -1000,7 +1019,7 @@ const openDetailStats = () => {
 const openDetailExec = () => {
   if (!detail.value) return
   if (!detail.value.execWsPath) {
-    ElMessage.warning('缺少 Exec WS 路径')
+    ElMessage.warning(t('docker.container.missingExecWsPath'))
     return
   }
   execContainerId.value = detail.value.id
@@ -1014,7 +1033,7 @@ const openDetail = async (row: DockerContainerSummary) => {
   try {
     const { data } = await getDockerContainer({ id: row.id })
     detail.value = data?.info || null
-  } catch (e) { showRequestError(e, '获取容器详情失败') }
+  } catch (e) { showRequestError(e, t('docker.container.getDetailFailed')) }
   finally { detailLoading.value = false }
 }
 
@@ -1028,7 +1047,7 @@ const openLogs = async (row: DockerContainerSummary) => {
     const { data } = await getDockerContainer({ id: row.id })
     const info = data?.info
     if (!info?.logsWsPath) {
-      ElMessage.warning('缺少日志 WS 路径')
+      ElMessage.warning(t('docker.container.missingLogsWsPath'))
       return
     }
     logsContainerId.value = info.id || row.id
@@ -1036,7 +1055,7 @@ const openLogs = async (row: DockerContainerSummary) => {
     logsWsPath.value = info.logsWsPath
     logsVisible.value = true
   } catch (e) {
-    showRequestError(e, '获取容器详情失败')
+    showRequestError(e, t('docker.container.getDetailFailed'))
   }
 }
 
@@ -1060,7 +1079,7 @@ const openExec = async (row: DockerContainerSummary) => {
     const { data } = await getDockerContainer({ id: row.id })
     const info = data?.info
     if (!info?.execWsPath) {
-      ElMessage.warning('缺少 Exec WS 路径')
+      ElMessage.warning(t('docker.container.missingExecWsPath'))
       return
     }
     execContainerId.value = info.id || row.id
@@ -1068,7 +1087,7 @@ const openExec = async (row: DockerContainerSummary) => {
     execWsPath.value = info.execWsPath
     execVisible.value = true
   } catch (e) {
-    showRequestError(e, '获取容器详情失败')
+    showRequestError(e, t('docker.container.getDetailFailed'))
   }
 }
 
@@ -1221,7 +1240,7 @@ const submitEdit = async () => {
   editSubmitting.value = true
   try {
     if (editForm.recreate) {
-      if (!editForm.image.trim()) { ElMessage.error('请输入镜像名'); editSubmitting.value = false; return }
+      if (!editForm.image.trim()) { ElMessage.error(t('docker.container.enterImage')); editSubmitting.value = false; return }
       const { data } = await updateDockerContainer({
         id: editId.value,
         name: editForm.name.trim(),
@@ -1259,10 +1278,10 @@ const submitEdit = async () => {
         recreate: false, force: false, removeVolumes: false, options: undefined,
       })
     }
-    ElMessage.success(editForm.recreate ? '容器重建任务已创建' : '容器更新成功')
+    ElMessage.success(editForm.recreate ? t('docker.container.recreateTaskCreated') : t('docker.container.updateSuccess'))
     editVisible.value = false
     if (!editForm.recreate) await getList()
-  } catch (e) { showRequestError(e, '更新容器失败') }
+  } catch (e) { showRequestError(e, t('docker.container.updateFailed')) }
   finally { editSubmitting.value = false }
 }
 

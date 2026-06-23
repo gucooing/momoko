@@ -18,17 +18,17 @@
           controls-position="right"
           class="docker-log-tail"
         />
-        <el-checkbox v-model="timestamps" size="small">时间戳</el-checkbox>
+        <el-checkbox v-model="timestamps" size="small">{{ t('docker.logsDialog.timestamps') }}</el-checkbox>
         <el-button
           size="small"
           :icon="menuStore.iconComponents.Refresh"
           :loading="socketStatus === 'connecting'"
           @click="reconnect"
         >
-          重连
+          {{ t('docker.common.reconnect') }}
         </el-button>
         <el-button size="small" :icon="menuStore.iconComponents.Delete" @click="clearTerminal">
-          清空
+          {{ t('docker.common.clear') }}
         </el-button>
         <span class="docker-log-status" :class="statusClass">
           <span class="docker-log-status__dot" />
@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
@@ -63,6 +64,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const visible = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
@@ -81,14 +83,14 @@ let manualSocketClose = false
 
 const dialogTitle = computed(() => {
   const name = props.containerName || props.containerId
-  return name ? `容器日志 - ${name}` : '容器日志'
+  return name ? t('docker.logsDialog.titleWithName', { name }) : t('docker.logsDialog.title')
 })
 
 const statusLabel = computed(() => {
-  if (socketStatus.value === 'connected') return '已连接'
-  if (socketStatus.value === 'connecting') return '连接中'
-  if (socketStatus.value === 'error') return '连接失败'
-  return '未连接'
+  if (socketStatus.value === 'connected') return t('docker.common.connected')
+  if (socketStatus.value === 'connecting') return t('docker.common.connecting')
+  if (socketStatus.value === 'error') return t('docker.common.connectionFailed')
+  return t('docker.common.notConnected')
 })
 
 const statusClass = computed(() => ({

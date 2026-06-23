@@ -6,7 +6,7 @@ export { InstanceStatus } from '@/types/v1/instance'
 export type InstanceRecord = InstanceInfo
 
 export interface StatusMetaItem {
-  label: string
+  labelKey: string
 }
 
 export interface OverviewCardItem {
@@ -44,11 +44,11 @@ export interface InstanceEditorFormValue {
 }
 
 export const statusMeta: Record<InstanceStatus, StatusMetaItem> = {
-  [InstanceStatus.INSTANCE_STATUS_RUNNING]: { label: '运行中' },
-  [InstanceStatus.INSTANCE_STATUS_STOPPED]: { label: '已停止' },
-  [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: { label: '维护中' },
-  [InstanceStatus.INSTANCE_STATUS_UNSPECIFIED]: { label: '未指定' },
-  [InstanceStatus.UNRECOGNIZED]: { label: '未知状态' },
+  [InstanceStatus.INSTANCE_STATUS_RUNNING]: { labelKey: 'instance.running' },
+  [InstanceStatus.INSTANCE_STATUS_STOPPED]: { labelKey: 'instance.stopped' },
+  [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: { labelKey: 'instance.maintenance' },
+  [InstanceStatus.INSTANCE_STATUS_UNSPECIFIED]: { labelKey: 'instance.unspecified' },
+  [InstanceStatus.UNRECOGNIZED]: { labelKey: 'instance.unknownStatus' },
 }
 
 export type FileManagerShell = 'cmd' | 'powershell' | 'bash' | 'sh'
@@ -86,28 +86,30 @@ export type FileManagerEntryMap = Record<string, FileManagerEntry[]>
 export type { FileManagerAction } from '@/components/fileManager/index.vue'
 
 export const fileManagerActionTextMap: Record<FileManagerAction, string> = {
-  refresh: '刷新目录',
-  createFolder: '新建文件夹',
-  createFile: '新建文件',
-  upload: '上传文件',
-  download: '下载选中文件',
-  copyTemporaryLink: '复制链接',
-  compress: '压缩',
-  unzip: '解压',
-  rename: '重命名',
-  open: '打开',
-  delete: '删除',
-  more: '更多操作',
-  copy: '复制',
-  cut: '剪切',
-  paste: '粘贴',
+  refresh: 'fileManager.refresh',
+  createFolder: 'fileManager.createFolder',
+  createFile: 'fileManager.createFile',
+  upload: 'fileManager.upload',
+  download: 'fileManager.download',
+  copyTemporaryLink: 'fileManager.copyLink',
+  compress: 'fileManager.compress',
+  unzip: 'fileManager.unzip',
+  rename: 'fileManager.rename',
+  open: 'fileManager.open',
+  delete: 'fileManager.delete',
+  more: 'fileManager.more',
+  copy: 'fileManager.copy',
+  cut: 'fileManager.cut',
+  paste: 'fileManager.paste',
 }
 
 export type ConsoleSocketStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 export interface ConsoleFeatureItem {
   key: string
-  title: string
-  description: string
+  title?: string
+  titleKey?: string
+  description?: string
+  descriptionKey?: string
   icon: string
 }

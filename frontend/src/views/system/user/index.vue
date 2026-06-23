@@ -4,15 +4,15 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getUserList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="queryForm.username" placeholder="请输入用户名" />
+            <el-form-item :label="t('system.common.username')" prop="username">
+              <el-input v-model="queryForm.username" :placeholder="t('system.user.usernamePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="queryForm.status" placeholder="请选择">
-                <el-option label="启用" :value="UserStatus.Active" />
-                <el-option label="停用" :value="UserStatus.InActive" />
+            <el-form-item :label="t('system.common.status')" prop="status">
+              <el-select v-model="queryForm.status" :placeholder="t('system.common.select')">
+                <el-option :label="t('system.common.enabled')" :value="UserStatus.Active" />
+                <el-option :label="t('system.common.inactive')" :value="UserStatus.InActive" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -23,9 +23,11 @@
                 :icon="menuStore.iconComponents.Search"
                 @click="getUserList"
               >
-                搜索
+                {{ t('system.common.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">
+                {{ t('system.common.reset') }}
+              </el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -40,10 +42,10 @@
           @click="userCreateRef?.showDialog()"
           v-permission="[PERM.USER_ADD]"
         >
-          新增用户
+          {{ t('system.user.addUser') }}
         </el-button>
         <AdaptiveConfirm
-          title="确定要删除选中的用户吗？"
+          :title="t('system.user.confirmDeleteSelected')"
           :placement="POPCONFIRM_CONFIG.placement"
           :width="POPCONFIRM_CONFIG.width"
           @confirm="deleteUserHandle(deleteUserIds)"
@@ -56,7 +58,7 @@
                 !useButtonPermission([PERM.USER_DELETE], [() => !!deleteUserIds.length]).value
               "
             >
-              批量删除
+              {{ t('system.user.batchDelete') }}
             </el-button>
           </template>
         </AdaptiveConfirm>
@@ -77,10 +79,10 @@
           <BaseTag :type="getStatusTagType(row.status)" :text="getStatusLabel(row.status)" />
         </template>
         <template #column-operation="{ row }: { row: UserInfo }">
-          <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">编辑</el-button>
-          <AdaptiveConfirm title="确定要删除选中的用户吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
+          <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">{{ t('system.common.edit') }}</el-button>
+          <AdaptiveConfirm :title="t('system.user.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
             <template #reference>
-              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.USER_DELETE]">删除</el-button>
+              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.USER_DELETE]">{{ t('system.common.delete') }}</el-button>
             </template>
           </AdaptiveConfirm>
         </template>
@@ -88,7 +90,7 @@
 
       <!-- mobile: cards -->
       <div v-else class="mobile-card-list">
-        <div v-if="!userList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-if="!userList.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
         <div v-for="row in userList" :key="row.userId" class="mobile-card" :class="{ 'is-selected': deleteUserIds.includes(row.userId) }">
           <div class="mobile-card-check" @click.stop>
             <el-checkbox :model-value="deleteUserIds.includes(row.userId)" size="small" @change="(v) => toggleMobileUserSelect(row.userId, v as boolean)" />
@@ -105,14 +107,14 @@
             </div>
             <div class="mobile-card-meta">
               <BaseTag v-if="row.roleName" :text="row.roleName" />
-              <span v-else class="text-muted">无角色</span>
+              <span v-else class="text-muted">{{ t('system.user.noRole') }}</span>
             </div>
           </div>
           <div class="mobile-card-actions">
-            <el-button size="small" plain type="primary" @click.stop="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">编辑</el-button>
-            <AdaptiveConfirm title="确定要删除选中的用户吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
+            <el-button size="small" plain type="primary" @click.stop="openUserEdit(row)" v-permission="[PERM.USER_EDIT]">{{ t('system.common.edit') }}</el-button>
+            <AdaptiveConfirm :title="t('system.user.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteUserHandle([row.userId])">
               <template #reference>
-                <el-button size="small" plain type="danger" v-permission="[PERM.USER_DELETE]">删除</el-button>
+                <el-button size="small" plain type="danger" v-permission="[PERM.USER_DELETE]">{{ t('system.common.delete') }}</el-button>
               </template>
             </AdaptiveConfirm>
           </div>
@@ -133,6 +135,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { deleteUser, userPage } from '@/api/user'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { useButtonPermission } from '@/composables/useButtonPermission'
@@ -147,6 +150,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'UserView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const userCreateRef = useTemplateRef<InstanceType<typeof UserCreate> | null>('userCreateRef')
 
@@ -165,8 +169,8 @@ const pagination = ref({
 })
 
 const getStatusLabel = (status: UserStatus): string => {
-  if (status === UserStatus.Active) return '启用'
-  if (status === UserStatus.InActive) return '停用'
+  if (status === UserStatus.Active) return t('system.common.enabled')
+  if (status === UserStatus.InActive) return t('system.common.inactive')
   return status
 }
 
@@ -183,15 +187,15 @@ const userGridConfig = computed<VxeGridProps>(() => ({
   data: userList.value,
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'username', title: '用户名', minWidth: 160, fixed: 'left' },
-    { field: 'name', title: '姓名', minWidth: 140 },
-    { field: 'email', title: '邮箱', minWidth: 180 },
-    { field: 'roleName', title: '角色', minWidth: 150, slots: { default: 'column-role' } },
-    { field: 'status', title: '状态', width: 110, slots: { default: 'column-status' } },
-    { field: 'createTime', title: '创建时间', minWidth: 180 },
-    { field: 'updateTime', title: '更新时间', minWidth: 180 },
-    { title: '操作', width: 150, fixed: 'right', slots: { default: 'column-operation' } },
+    { type: 'seq', title: t('system.common.serialNumber'), width: 55, fixed: 'left' },
+    { field: 'username', title: t('system.common.username'), minWidth: 160, fixed: 'left' },
+    { field: 'name', title: t('system.common.name'), minWidth: 140 },
+    { field: 'email', title: t('system.common.email'), minWidth: 180 },
+    { field: 'roleName', title: t('system.common.role'), minWidth: 150, slots: { default: 'column-role' } },
+    { field: 'status', title: t('system.common.status'), width: 110, slots: { default: 'column-status' } },
+    { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
+    { field: 'updateTime', title: t('system.common.updateTime'), minWidth: 180 },
+    { title: t('system.common.operation'), width: 150, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -238,7 +242,7 @@ const deleteUserHandle = async (ids: string[]) => {
   if (!ids.length) return
   await deleteUser({ userIds: ids })
   deleteUserIds.value = []
-  ElMessage.success('删除成功')
+  ElMessage.success(t('system.common.deleteSuccess'))
   getUserList()
 }
 

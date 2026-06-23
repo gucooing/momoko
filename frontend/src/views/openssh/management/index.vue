@@ -4,21 +4,21 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="名称" prop="keywords">
-              <el-input v-model="queryForm.keywords" placeholder="搜索名称/标签/主机地址" />
+            <el-form-item :label="t('ssh.common.name')" prop="keywords">
+              <el-input v-model="queryForm.keywords" :placeholder="t('ssh.common.keywordPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="主机地址" prop="host">
-              <el-input v-model="queryForm.host" placeholder="请输入主机地址" />
+            <el-form-item :label="t('ssh.common.host')" prop="host">
+              <el-input v-model="queryForm.host" :placeholder="t('ssh.common.hostPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
-                搜索
+                {{ t('ssh.common.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('ssh.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -28,7 +28,7 @@
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" @click="openCreateDialog()">
-          新增连接
+          {{ t('ssh.common.addConnection') }}
         </el-button>
         <el-button
           :icon="menuStore.iconComponents['HOutline:SignalIcon']"
@@ -36,10 +36,10 @@
           :loading="batchTesting"
           @click="batchTest"
         >
-          批量测试
+          {{ t('ssh.common.batchTest') }}
         </el-button>
         <AdaptiveConfirm
-          title="确定要删除选中的连接吗？"
+          :title="t('ssh.common.confirmDeleteSelected')"
           :placement="POPCONFIRM_CONFIG.placement"
           :width="POPCONFIRM_CONFIG.width"
           @confirm="batchDelete"
@@ -50,7 +50,7 @@
               :icon="menuStore.iconComponents.Delete"
               :disabled="!deleteIds.length"
             >
-              批量删除
+              {{ t('ssh.common.batchDelete') }}
             </el-button>
           </template>
         </AdaptiveConfirm>
@@ -65,7 +65,7 @@
       >
         <template #column-authType="{ row }">
           <el-tag :type="row.authType === 'SSH_AUTH_TYPE_KEY' ? 'warning' : 'info'" size="small">
-            {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? '密钥' : '密码' }}
+            {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? t('ssh.common.key') : t('ssh.common.passwordAuth') }}
           </el-tag>
         </template>
         <template #column-status="{ row }">
@@ -75,7 +75,7 @@
         </template>
         <template #column-accessRole="{ row }">
           <el-tag :type="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? 'primary' : 'info'" size="small">
-            {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? '创建者' : '被分享' }}
+            {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? t('ssh.common.owner') : t('ssh.common.shared') }}
           </el-tag>
         </template>
         <template #column-operation="{ row }">
@@ -86,36 +86,36 @@
               link
               @click="connectSsh(row)"
             >
-              连接
+              {{ t('ssh.common.connect') }}
             </el-button>
             <el-button
               :icon="menuStore.iconComponents['HOutline:SignalIcon']"
               link
               @click="testConnect(row)"
             >
-              测试
+              {{ t('ssh.common.test') }}
             </el-button>
             <el-dropdown
               v-if="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER'"
               trigger="click"
             >
               <el-button :icon="menuStore.iconComponents['HOutline:EllipsisHorizontalIcon']" link>
-                更多
+                {{ t('ssh.common.more') }}
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :icon="menuStore.iconComponents.Edit" @click="openEditDialog(row)">
-                    编辑
+                    {{ t('ssh.common.edit') }}
                   </el-dropdown-item>
                   <el-dropdown-item :icon="menuStore.iconComponents['HOutline:ShareIcon']" @click="openShareDialog(row)">
-                    分享
+                    {{ t('ssh.common.share') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     :icon="menuStore.iconComponents.Delete"
                     divided
                     @click="confirmDelete(row)"
                   >
-                    删除
+                    {{ t('ssh.common.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -127,7 +127,7 @@
       <!-- mobile: cards -->
       <div v-else v-loading="loading" class="mobile-card-list">
         <div v-if="!list.length" class="mobile-empty">
-          <el-empty description="暂无数据" />
+          <el-empty :description="t('ssh.common.noData')" />
         </div>
         <div v-for="row in list" :key="row.id" class="ssh-card" :class="{ 'is-selected': deleteIds.includes(row.id) }">
           <div class="ssh-card-check" @click.stop="toggleMobileSelect(row.id)">
@@ -152,10 +152,10 @@
             </div>
             <div class="ssh-card-tags">
               <el-tag :type="row.authType === 'SSH_AUTH_TYPE_KEY' ? 'warning' : 'info'" size="small">
-                {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? '密钥' : '密码' }}
+                {{ row.authType === 'SSH_AUTH_TYPE_KEY' ? t('ssh.common.key') : t('ssh.common.passwordAuth') }}
               </el-tag>
               <el-tag :type="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? 'primary' : 'info'" size="small">
-                {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? '创建者' : '被分享' }}
+                {{ row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER' ? t('ssh.common.owner') : t('ssh.common.shared') }}
               </el-tag>
             </div>
             <div v-if="row.remark" class="ssh-card-remark">{{ row.remark }}</div>
@@ -163,15 +163,15 @@
           </div>
 
           <div class="ssh-card-footer">
-            <el-button size="small" plain type="primary" @click="connectSsh(row)">连接</el-button>
-            <el-button size="small" plain @click="testConnect(row)">测试</el-button>
+            <el-button size="small" plain type="primary" @click="connectSsh(row)">{{ t('ssh.common.connect') }}</el-button>
+            <el-button size="small" plain @click="testConnect(row)">{{ t('ssh.common.test') }}</el-button>
             <el-dropdown v-if="row.accessRole === 'SSH_HOST_ACCESS_ROLE_OWNER'" trigger="click">
-              <el-button size="small" plain>更多</el-button>
+              <el-button size="small" plain>{{ t('ssh.common.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="openEditDialog(row)">编辑</el-dropdown-item>
-                  <el-dropdown-item @click="openShareDialog(row)">分享</el-dropdown-item>
-                  <el-dropdown-item divided @click="confirmDelete(row)">删除</el-dropdown-item>
+                  <el-dropdown-item @click="openEditDialog(row)">{{ t('ssh.common.edit') }}</el-dropdown-item>
+                  <el-dropdown-item @click="openShareDialog(row)">{{ t('ssh.common.share') }}</el-dropdown-item>
+                  <el-dropdown-item divided @click="confirmDelete(row)">{{ t('ssh.common.delete') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -181,9 +181,9 @@
 
       <!-- mobile: batch bar -->
       <div v-if="menuStore.isMobile && deleteIds.length" class="mobile-batch-bar">
-        <span>已选 {{ deleteIds.length }} 项</span>
-        <el-button size="small" :loading="batchTesting" @click="batchTest">批量测试</el-button>
-        <el-button size="small" type="danger" @click="batchDelete">批量删除</el-button>
+        <span>{{ t('ssh.common.selectedCount', { count: deleteIds.length }) }}</span>
+        <el-button size="small" :loading="batchTesting" @click="batchTest">{{ t('ssh.common.batchTest') }}</el-button>
+        <el-button size="small" type="danger" @click="batchDelete">{{ t('ssh.common.batchDelete') }}</el-button>
       </div>
 
       <TablePagination
@@ -197,9 +197,9 @@
 
     <SshConnectionCreate ref="createRef" @refresh="refresh" />
 
-    <BaseDialog v-model="shareDialogOpen" title="分享连接" width="520" @close="shareDialogOpen = false">
+    <BaseDialog v-model="shareDialogOpen" :title="t('ssh.common.shareConnection')" width="520" @close="shareDialogOpen = false">
       <el-form label-width="100px" label-position="right">
-        <el-form-item label="当前已分享">
+        <el-form-item :label="t('ssh.common.currentShared')">
           <div v-if="shareForm.sharedUsers.length" class="share-user-tags">
             <el-tag
               v-for="user in shareForm.sharedUsers"
@@ -211,16 +211,16 @@
               {{ user.name || user.userId }}
             </el-tag>
           </div>
-          <span v-else class="text-placeholder">暂无分享用户</span>
+          <span v-else class="text-placeholder">{{ t('ssh.common.noSharedUsers') }}</span>
         </el-form-item>
-        <el-form-item label="添加用户">
+        <el-form-item :label="t('ssh.common.addUser')">
           <el-select
             v-model="shareForm.newUserIds"
             multiple
             filterable
             remote
             reserve-keyword
-            placeholder="搜索用户"
+            :placeholder="t('ssh.common.searchUser')"
             :remote-method="searchUsers"
             :loading="userSearchLoading"
             style="width: 100%"
@@ -235,14 +235,15 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="shareDialogOpen = false">取消</el-button>
-        <el-button type="primary" :loading="shareLoading" @click="confirmShare">确定</el-button>
+        <el-button @click="shareDialogOpen = false">{{ t('ssh.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="shareLoading" @click="confirmShare">{{ t('ssh.common.confirm') }}</el-button>
       </template>
     </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
@@ -259,6 +260,7 @@ defineOptions({ name: 'SshManagementView' })
 
 const router = useRouter()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const createRef = useTemplateRef<InstanceType<typeof SshConnectionCreate> | null>('createRef')
 
@@ -284,9 +286,9 @@ const statusTagType = (status: SSHHostStatus) => {
 }
 
 const statusText = (status: SSHHostStatus) => {
-  return status === SSHHostStatus.SSH_HOST_STATUS_ONLINE ? '在线'
-    : status === SSHHostStatus.SSH_HOST_STATUS_OFFLINE ? '离线'
-    : '未检测'
+  return status === SSHHostStatus.SSH_HOST_STATUS_ONLINE ? t('ssh.common.online')
+    : status === SSHHostStatus.SSH_HOST_STATUS_OFFLINE ? t('ssh.common.offline')
+    : t('ssh.common.unchecked')
 }
 
 const gridConfig = computed<VxeGridProps>(() => ({
@@ -298,17 +300,17 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: list.value,
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'name', title: '名称', minWidth: 140, fixed: 'left' },
-    { field: 'host', title: '主机地址', minWidth: 140 },
-    { field: 'port', title: '端口', width: 90 },
-    { field: 'username', title: '用户名', minWidth: 120 },
-    { field: 'authType', title: '认证方式', width: 110, slots: { default: 'column-authType' } },
-    { field: 'status', title: '状态', width: 90, slots: { default: 'column-status' } },
-    { field: 'accessRole', title: '权限', width: 100, slots: { default: 'column-accessRole' } },
-    { field: 'remark', title: '备注', minWidth: 180 },
-    { field: 'createTime', title: '创建时间', minWidth: 180 },
-    { title: '操作', width: 220, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
+    { type: 'seq', title: t('ssh.common.serialNumber'), width: 55, fixed: 'left' },
+    { field: 'name', title: t('ssh.common.name'), minWidth: 140, fixed: 'left' },
+    { field: 'host', title: t('ssh.common.host'), minWidth: 140 },
+    { field: 'port', title: t('ssh.common.port'), width: 90 },
+    { field: 'username', title: t('ssh.common.username'), minWidth: 120 },
+    { field: 'authType', title: t('ssh.common.authType'), width: 110, slots: { default: 'column-authType' } },
+    { field: 'status', title: t('ssh.common.status'), width: 90, slots: { default: 'column-status' } },
+    { field: 'accessRole', title: t('ssh.common.permission'), width: 100, slots: { default: 'column-accessRole' } },
+    { field: 'remark', title: t('ssh.common.remark'), minWidth: 180 },
+    { field: 'createTime', title: t('ssh.common.createTime'), minWidth: 180 },
+    { title: t('ssh.common.operation'), width: 220, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -363,9 +365,9 @@ const testConnect = async (row: SSHHostInfo) => {
   try {
     const { data } = await testSshHost({ id: row.id })
     if (data?.status === SSHHostStatus.SSH_HOST_STATUS_ONLINE) {
-      ElMessage.success(`连接成功: ${data.message || '在线'}`)
+      ElMessage.success(t('ssh.common.connectionSuccess', { message: data.message || t('ssh.common.online') }))
     } else {
-      ElMessage.warning(`连接失败: ${data.message || '离线'}`)
+      ElMessage.warning(t('ssh.common.connectionFailedWithMessage', { message: data.message || t('ssh.common.offline') }))
     }
     getList()
   } catch {
@@ -374,14 +376,14 @@ const testConnect = async (row: SSHHostInfo) => {
 }
 
 const confirmDelete = (row: SSHHostInfo) => {
-  ElMessageBox.confirm('确定要删除该连接吗？', '确认删除', {
+  ElMessageBox.confirm(t('ssh.common.confirmDeleteContent'), t('ssh.common.confirmDeleteTitle'), {
     type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消',
+    confirmButtonText: t('ssh.common.delete'),
+    cancelButtonText: t('ssh.common.cancel'),
   })
     .then(async () => {
       await deleteSshHost({ id: row.id })
-      ElMessage.success('删除成功')
+      ElMessage.success(t('ssh.common.deleteSuccess'))
       deleteIds.value = deleteIds.value.filter((d) => d !== row.id)
       getList()
     })
@@ -403,7 +405,7 @@ const batchTest = async () => {
         }
       }
     }
-    ElMessage.success('批量测试完成')
+    ElMessage.success(t('ssh.common.batchTestDone'))
   } finally {
     batchTesting.value = false
   }
@@ -413,7 +415,7 @@ const batchDelete = async () => {
   if (!deleteIds.value.length) return
   try {
     await Promise.all(deleteIds.value.map((id) => deleteSshHost({ id })))
-    ElMessage.success('批量删除成功')
+    ElMessage.success(t('ssh.common.batchDeleteSuccess'))
     deleteIds.value = []
     getList()
   } catch {
@@ -476,7 +478,7 @@ const confirmShare = async () => {
   shareLoading.value = true
   try {
     await shareSshHost({ id: shareForm.value.hostId, userIds: finalUserIds })
-    ElMessage.success(finalUserIds.length ? '分享成功' : '已取消全部分享')
+    ElMessage.success(finalUserIds.length ? t('ssh.common.shareSuccess') : t('ssh.common.shareAllCancelled'))
     shareDialogOpen.value = false
     getList()
   } finally {

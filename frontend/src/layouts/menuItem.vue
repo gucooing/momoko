@@ -5,7 +5,7 @@
         <el-icon v-if="item.icon">
           <component :is="menuStore.iconComponents[item.icon]" />
         </el-icon>
-        <span>{{ item.title }}</span>
+        <span>{{ translateKnownText(item.title) }}</span>
       </template>
       <MenuItem v-for="child in visibleChildren" :key="child.id" :item="child" />
     </el-sub-menu>
@@ -14,13 +14,14 @@
       <el-icon v-if="item.icon">
         <component :is="menuStore.iconComponents[item.icon]" />
       </el-icon>
-      <span>{{ item.title }}</span>
+      <span>{{ translateKnownText(item.title) }}</span>
     </el-menu-item>
   </template>
 </template>
 
 <script setup lang="ts">
 import { MenuStatus, MenuType, type MenuInfo } from '@/types/v1/system'
+import { translateKnownText } from '@/locales'
 
 const props = defineProps<{ item: MenuInfo }>()
 

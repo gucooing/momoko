@@ -8,6 +8,7 @@ import axios, {
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
+import { translate as t } from '@/locales'
 import type { RefreshResponse } from '@/types/v1/auth'
 
 interface IAuthAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -68,7 +69,7 @@ export const isRequestErrorHandled = (error: unknown) => {
   return isRequestError(error) && error.handled
 }
 
-export const getRequestErrorMessage = (error: unknown, fallback = '请求失败') => {
+export const getRequestErrorMessage = (error: unknown, fallback = t('utils.request.failed')) => {
   if (isRequestError(error) && error.message) {
     return error.message
   }
@@ -76,12 +77,12 @@ export const getRequestErrorMessage = (error: unknown, fallback = '请求失败'
   return fallback
 }
 
-export const showRequestError = (error: unknown, fallback = '请求失败') => {
+export const showRequestError = (error: unknown, fallback = t('utils.request.failed')) => {
   if (isRequestErrorHandled(error)) return
   ElMessage.error(getRequestErrorMessage(error, fallback))
 }
 
-const handleAuthExpired = (message = '登录状态已过期，请重新登录') => {
+const handleAuthExpired = (message = t('utils.request.authExpired')) => {
   if (isHandlingAuthExpired) return
 
   isHandlingAuthExpired = true
@@ -196,7 +197,7 @@ service.interceptors.response.use(
     const { code, message } = raw
 
     if (code === 500) {
-      const errorMessage = message || '服务器内部错误'
+      const errorMessage = message || t('utils.request.serverError')
       ElMessage.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
@@ -205,11 +206,11 @@ service.interceptors.response.use(
       const originalRequest = response.config as IAuthAxiosRequestConfig
 
       if (originalRequest.skipAuthRefresh) {
-        return Promise.reject(createRequestError(message || '未授权', { code }))
+        return Promise.reject(createRequestError(message || t('utils.request.unauthorized'), { code }))
       }
 
       if (isPublicPath(originalRequest.url)) {
-        const errorMessage = message || '未授权'
+        const errorMessage = message || t('utils.request.unauthorized')
         ElMessage.error(errorMessage)
         return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
       }
@@ -218,18 +219,18 @@ service.interceptors.response.use(
         const retryResponse = await tryRefreshAndRetry(originalRequest)
         if (retryResponse) return retryResponse
       } catch {
-        const errorMessage = message || '登录状态已过期，请重新登录'
+        const errorMessage = message || t('utils.request.authExpired')
         handleAuthExpired(errorMessage)
         return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
       }
 
-      const errorMessage = message || '登录状态已过期，请重新登录'
+      const errorMessage = message || t('utils.request.authExpired')
       handleAuthExpired(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
 
     if (code !== undefined && code !== 200) {
-      const errorMessage = message || '请求失败'
+      const errorMessage = message || t('utils.request.failed')
       ElMessage.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
@@ -239,7 +240,7 @@ service.interceptors.response.use(
   },
 
   async (error: AxiosError) => {
-    let errorMessage = '请求失败'
+    let errorMessage = t('utils.request.failed')
 
     if (error.response) {
       const responseData = error.response.data as { message?: string } | undefined
@@ -249,7 +250,7 @@ service.interceptors.response.use(
 
           if (originalRequest?.skipAuthRefresh) {
             return Promise.reject(
-              createRequestError(responseData?.message || '未授权', { status: 401 }),
+              createRequestError(responseData?.message || t('utils.request.unauthorized'), { status: 401 }),
             )
           }
 
@@ -261,31 +262,31 @@ service.interceptors.response.use(
               // 刷新失败，走统一过期处理
             }
 
-            handleAuthExpired('未授权，请重新登录')
+            handleAuthExpired(t('utils.request.unauthorizedRelogin'))
             return Promise.reject(
-              createRequestError('未授权，请重新登录', { handled: true, status: 401 }),
+              createRequestError(t('utils.request.unauthorizedRelogin'), { handled: true, status: 401 }),
             )
           }
 
-          errorMessage = '未授权，请重新登录'
+          errorMessage = t('utils.request.unauthorizedRelogin')
           break
         }
         case 403:
-          errorMessage = '拒绝访问'
+          errorMessage = t('utils.request.forbidden')
           break
         case 404:
-          errorMessage = '请求地址不存在'
+          errorMessage = t('utils.request.notFound')
           break
         case 500:
-          errorMessage = responseData?.message || '服务器内部错误'
+          errorMessage = responseData?.message || t('utils.request.serverError')
           break
         default:
-          errorMessage = '服务器内部错误'
+          errorMessage = t('utils.request.serverError')
       }
     } else if (error.request) {
-      errorMessage = '网络连接失败，请检查网络'
+      errorMessage = t('utils.request.networkFailed')
     } else {
-      errorMessage = error.message || '请求失败'
+      errorMessage = error.message || t('utils.request.failed')
     }
 
     ElMessage.error(errorMessage)

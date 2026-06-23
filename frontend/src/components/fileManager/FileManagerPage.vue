@@ -66,7 +66,7 @@ export interface FileManagerDownloadResult {
     width="min(420px, calc(100vw - 24px))"
     :show-fullscreen-button="false"
     :resizable="false"
-    confirm-text="确认创建"
+    :confirm-text="t('fileManager.confirmCreate')"
     :show-confirm-loading="false"
     @close="resetCreateDialog"
     @confirm="submitCreateDialog"
@@ -85,7 +85,7 @@ export interface FileManagerDownloadResult {
 
   <BaseDialog
     v-model="deleteDialog.visible"
-    title="确认删除"
+    :title="t('fileManager.confirmDelete')"
     width="min(420px, calc(100vw - 24px))"
     :show-fullscreen-button="false"
     :resizable="false"
@@ -106,9 +106,9 @@ export interface FileManagerDownloadResult {
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="deleteDialog.visible = false">取消</el-button>
+        <el-button @click="deleteDialog.visible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="danger" :loading="deleteDialog.submitting" @click="submitDeleteDialog">
-          确认删除
+          {{ t('fileManager.confirmDelete') }}
         </el-button>
       </div>
     </template>
@@ -136,7 +136,7 @@ export interface FileManagerDownloadResult {
       @click.self="closeMediaDialog"
       @keydown.escape="closeMediaDialog"
     >
-      <button class="media-fullscreen-close" aria-label="关闭" @click="closeMediaDialog">
+      <button class="media-fullscreen-close" :aria-label="t('common.close')" @click="closeMediaDialog">
         <el-icon size="22"><Close /></el-icon>
       </button>
       <FileMediaDialogContent
@@ -166,11 +166,11 @@ export interface FileManagerDownloadResult {
 
   <BaseDialog
     v-model="compressDialog.visible"
-    title="压缩文件"
+    :title="t('fileManager.compressTitle')"
     width="min(480px, calc(100vw - 24px))"
     :show-fullscreen-button="false"
     :resizable="false"
-    confirm-text="确认压缩"
+    :confirm-text="t('fileManager.confirmCompress')"
     :show-confirm-loading="false"
     @close="resetCompressDialog"
     @confirm="submitCompressDialog"
@@ -190,7 +190,7 @@ export interface FileManagerDownloadResult {
         ref="compressNameInput"
         v-model="compressDialog.targetName"
         maxlength="255"
-        placeholder="请输入压缩文件名"
+        :placeholder="t('fileManager.compressPlaceholder')"
         @keydown.enter.prevent="submitCompressDialog"
       />
       <p v-if="compressDialog.errorText" class="dialog-error">{{ compressDialog.errorText }}</p>
@@ -199,24 +199,24 @@ export interface FileManagerDownloadResult {
 
   <BaseDialog
     v-model="unzipDialog.visible"
-    title="解压文件"
+    :title="t('fileManager.unzipTitle')"
     width="min(480px, calc(100vw - 24px))"
     :show-fullscreen-button="false"
     :resizable="false"
-    confirm-text="确认解压"
+    :confirm-text="t('fileManager.confirmUnzip')"
     :show-confirm-loading="false"
     @close="resetUnzipDialog"
     @confirm="submitUnzipDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">
-        解压 <strong>{{ unzipDialog.entry?.name }}</strong> 到：
+        {{ t('fileManager.unzip') }} <strong>{{ unzipDialog.entry?.name }}</strong> {{ t('fileManager.to') }}
       </p>
       <el-input
         ref="unzipNameInput"
         v-model="unzipDialog.targetName"
         maxlength="255"
-        placeholder="请输入解压目录名"
+        :placeholder="t('fileManager.unzipPlaceholder')"
         @keydown.enter.prevent="submitUnzipDialog"
       />
       <p v-if="unzipDialog.errorText" class="dialog-error">{{ unzipDialog.errorText }}</p>
@@ -225,24 +225,24 @@ export interface FileManagerDownloadResult {
 
   <BaseDialog
     v-model="renameDialog.visible"
-    title="重命名"
+    :title="t('fileManager.renameTitle')"
     width="min(480px, calc(100vw - 24px))"
     :show-fullscreen-button="false"
     :resizable="false"
-    confirm-text="确认重命名"
+    :confirm-text="t('fileManager.confirmRename')"
     :show-confirm-loading="false"
     @close="resetRenameDialog"
     @confirm="submitRenameDialog"
   >
     <div class="dialog-body">
       <p class="dialog-copy">
-        重命名 <strong>{{ renameDialog.entry?.name }}</strong>
+        {{ t('fileManager.rename') }} <strong>{{ renameDialog.entry?.name }}</strong>
       </p>
       <el-input
         ref="renameNameInput"
         v-model="renameDialog.newName"
         maxlength="255"
-        placeholder="请输入新名称"
+        :placeholder="t('fileManager.renamePlaceholder')"
         @keydown.enter.prevent="submitRenameDialog"
       />
       <p v-if="renameDialog.errorText" class="dialog-error">{{ renameDialog.errorText }}</p>
@@ -270,8 +270,8 @@ import FileManager, {
 import { Close } from '@element-plus/icons-vue'
 import FileMediaDialogContent from '@/components/fileManager/FileMediaDialogContent.vue'
 import FileUploadDialog from '@/components/fileManager/FileUploadDialog.vue'
-import { fileManagerActionTextMap } from '@/stores/instance/types'
 import { showRequestError } from '@/utils/request'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FileManagerPage' })
 
@@ -329,7 +329,7 @@ const props = withDefaults(
     hiddenActions: undefined,
     searchable: true,
     paginationMode: 'server',
-    unsupportedActionText: '暂未实现',
+    unsupportedActionText: '',
     onRefresh: undefined,
     onCreateEntry: undefined,
     onDeleteEntries: undefined,
@@ -353,6 +353,8 @@ const emit = defineEmits<{
   pageChange: [payload: FileManagerWorkbenchPageChangePayload]
   sortChange: [payload: FileManagerWorkbenchSortChangePayload]
 }>()
+
+const { t } = useI18n()
 
 type CreateDialogMode = 'createFolder' | 'createFile'
 
@@ -434,31 +436,33 @@ const hasClipboard = computed(() => clipboard.value !== null)
 const pasteLoading = ref(false)
 
 const createDialogTitle = computed(() =>
-  createDialog.mode === 'createFolder' ? '新建文件夹' : '新建文件',
+  createDialog.mode === 'createFolder' ? t('fileManager.createFolder') : t('fileManager.createFile'),
 )
 
 const createDialogPlaceholder = computed(() =>
-  createDialog.mode === 'createFolder' ? '请输入文件夹名称' : '请输入文件名称',
+  createDialog.mode === 'createFolder'
+    ? t('fileManager.createFolderPlaceholder')
+    : t('fileManager.createFilePlaceholder'),
 )
 
 const deleteDialogCopy = computed(() => {
   if (!deleteDialog.entries.length) {
-    return '请选择要删除的文件或目录。'
+    return t('fileManager.noDeleteSelection')
   }
 
   if (deleteDialog.entries.length === 1) {
-    return `确定删除「${deleteDialog.entries[0]!.name}」吗？删除后不可恢复。`
+    return t('fileManager.deleteOneConfirm', { name: deleteDialog.entries[0]!.name })
   }
 
-  return `确定删除当前选中的 ${deleteDialog.entries.length} 个条目吗？删除后不可恢复。`
+  return t('fileManager.deleteManyConfirm', { count: deleteDialog.entries.length })
 })
 
 const compressDialogCopy = computed(() => {
-  if (!compressDialog.entries.length) return '请选择要压缩的文件或目录。'
+  if (!compressDialog.entries.length) return t('fileManager.noCompressSelection')
   if (compressDialog.entries.length === 1) {
-    return `压缩「${compressDialog.entries[0]!.name}」`
+    return t('fileManager.compressOne', { name: compressDialog.entries[0]!.name })
   }
-  return `压缩选中的 ${compressDialog.entries.length} 个条目`
+  return t('fileManager.compressMany', { count: compressDialog.entries.length })
 })
 
 const defaultCompressName = (entries: FileManagerWorkbenchItem[]) => {
@@ -473,23 +477,54 @@ const defaultUnzipName = (entry: FileManagerWorkbenchItem) => {
   if (name.toLowerCase().endsWith('.zip')) {
     return name.slice(0, -4)
   }
-  return `${name}-unzipped`
+  return `${name}-${t('fileManager.unzippedSuffix')}`
 }
 
 const buildTargetText = (path: string, entries: FileManagerWorkbenchItem[]) => {
   if (entries.length > 0) {
-    return `当前目标：${entries.map((item) => item.name).join('、')}`
+    return t('fileManager.currentTarget', {
+      target: entries.map((item) => item.name).join(t('fileManager.listDelimiter')),
+    })
   }
 
-  return `当前目录：${path}`
+  return t('fileManager.currentDirectory', { path })
 }
+
+const actionTextKeyMap: Record<FileManagerAction, string> = {
+  refresh: 'fileManager.refresh',
+  createFolder: 'fileManager.createFolder',
+  createFile: 'fileManager.createFile',
+  upload: 'fileManager.upload',
+  download: 'fileManager.download',
+  copyTemporaryLink: 'fileManager.copyLink',
+  compress: 'fileManager.compress',
+  unzip: 'fileManager.unzip',
+  open: 'fileManager.open',
+  delete: 'fileManager.delete',
+  rename: 'fileManager.rename',
+  more: 'fileManager.more',
+  copy: 'fileManager.copy',
+  cut: 'fileManager.cut',
+  paste: 'fileManager.paste',
+}
+
+const getActionText = (action: FileManagerAction) => t(actionTextKeyMap[action])
+
+const formatOutputPath = (outputPath?: string | void) =>
+  outputPath ? t('fileManager.outputPath', { path: outputPath }) : ''
 
 const showUnsupportedAction = (
   action: FileManagerAction,
   path: string,
   entries: FileManagerWorkbenchItem[],
 ) => {
-  ElMessage.info(`${fileManagerActionTextMap[action]}${props.unsupportedActionText}，${buildTargetText(path, entries)}`)
+  ElMessage.info(
+    t('fileManager.unsupportedAction', {
+      action: getActionText(action),
+      unsupported: props.unsupportedActionText || t('fileManager.unsupported'),
+      target: buildTargetText(path, entries),
+    }),
+  )
 }
 
 const resetCreateDialog = () => {
@@ -548,7 +583,7 @@ const resetRenameDialog = () => {
 const openRenameDialog = (path: string, entries: FileManagerWorkbenchItem[]) => {
   const entry = entries[0]
   if (!entry) {
-    ElMessage.warning('请选择要重命名的文件或目录')
+    ElMessage.warning(t('fileManager.selectRenameTarget'))
     return
   }
 
@@ -583,9 +618,9 @@ const submitRenameDialog = async () => {
       entry,
       renameDialog.newName.trim(),
     )
-    ElMessage.success(`重命名完成${outputPath ? `：${outputPath}` : ''}`)
+    ElMessage.success(t('fileManager.renameDone', { path: formatOutputPath(outputPath) }))
   } catch (error) {
-    showRequestError(error, '重命名失败')
+    showRequestError(error, t('fileManager.renameFailed'))
   } finally {
     renameDialog.submitting = false
   }
@@ -606,8 +641,8 @@ const closeAllDialogs = () => {
 
 const validateCreateName = (value: string) => {
   const nextValue = value.trim()
-  if (!nextValue) return '名称不能为空'
-  if (nextValue.includes('/') || nextValue.includes('\\')) return '名称不能包含路径分隔符'
+  if (!nextValue) return t('fileManager.nameRequired')
+  if (nextValue.includes('/') || nextValue.includes('\\')) return t('fileManager.nameNoSeparator')
   return ''
 }
 
@@ -624,7 +659,7 @@ const openCreateDialog = (mode: CreateDialogMode, path: string) => {
 
 const openDeleteDialog = (path: string, entries: FileManagerWorkbenchItem[]) => {
   if (!entries.length) {
-    ElMessage.warning('请选择要删除的文件或目录')
+    ElMessage.warning(t('fileManager.selectDeleteTarget'))
     return
   }
 
@@ -659,7 +694,7 @@ const resetUnzipDialog = () => {
 
 const openCompressDialog = (path: string, entries: FileManagerWorkbenchItem[]) => {
   if (!entries.length) {
-    ElMessage.warning('请选择要压缩的文件或目录')
+    ElMessage.warning(t('fileManager.selectCompressTarget'))
     return
   }
 
@@ -677,7 +712,7 @@ const openCompressDialog = (path: string, entries: FileManagerWorkbenchItem[]) =
 const openUnzipDialog = (path: string, entries: FileManagerWorkbenchItem[]) => {
   const entry = entries[0]
   if (!entry) {
-    ElMessage.warning('请选择要解压的文件')
+    ElMessage.warning(t('fileManager.selectUnzipTarget'))
     return
   }
 
@@ -694,8 +729,8 @@ const openUnzipDialog = (path: string, entries: FileManagerWorkbenchItem[]) => {
 
 const validateTargetName = (value: string) => {
   const nextValue = value.trim()
-  if (!nextValue) return '名称不能为空'
-  if (nextValue.includes('/') || nextValue.includes('\\')) return '名称不能包含路径分隔符'
+  if (!nextValue) return t('fileManager.nameRequired')
+  if (nextValue.includes('/') || nextValue.includes('\\')) return t('fileManager.nameNoSeparator')
   return ''
 }
 
@@ -718,9 +753,9 @@ const submitCompressDialog = async () => {
       compressDialog.entries,
       compressDialog.targetName.trim(),
     )
-    ElMessage.success(`压缩完成${outputPath ? `：${outputPath}` : ''}`)
+    ElMessage.success(t('fileManager.compressDone', { path: formatOutputPath(outputPath) }))
   } catch (error) {
-    showRequestError(error, '压缩失败')
+    showRequestError(error, t('fileManager.compressFailed'))
   } finally {
     compressDialog.submitting = false
   }
@@ -748,9 +783,9 @@ const submitUnzipDialog = async () => {
       [entry],
       unzipDialog.targetName.trim(),
     )
-    ElMessage.success(`解压完成${outputPath ? `：${outputPath}` : ''}`)
+    ElMessage.success(t('fileManager.unzipDone', { path: formatOutputPath(outputPath) }))
   } catch (error) {
-    showRequestError(error, '解压失败')
+    showRequestError(error, t('fileManager.unzipFailed'))
   } finally {
     unzipDialog.submitting = false
   }
@@ -782,9 +817,16 @@ const submitCreateDialog = async () => {
       name: createDialog.name.trim(),
       isDirectory,
     })
-    ElMessage.success(isDirectory ? '文件夹创建成功' : '文件创建成功')
+    ElMessage.success(
+      isDirectory ? t('fileManager.folderCreateSuccess') : t('fileManager.fileCreateSuccess'),
+    )
   } catch (error) {
-    showRequestError(error, createDialog.mode === 'createFolder' ? '文件夹创建失败' : '文件创建失败')
+    showRequestError(
+      error,
+      createDialog.mode === 'createFolder'
+        ? t('fileManager.folderCreateFailed')
+        : t('fileManager.fileCreateFailed'),
+    )
   } finally {
     createDialog.submitting = false
   }
@@ -813,10 +855,10 @@ const submitDeleteDialog = async () => {
     if (result?.warningMessage) {
       ElMessage.warning(result.warningMessage)
     } else {
-      ElMessage.success(result?.successMessage || '删除成功')
+      ElMessage.success(result?.successMessage || t('fileManager.deleteSuccess'))
     }
   } catch (error) {
-    showRequestError(error, '删除失败')
+    showRequestError(error, t('fileManager.deleteFailed'))
   } finally {
     deleteDialog.submitting = false
   }
@@ -835,7 +877,7 @@ const handleDownloadAction = async (
 
   const downloadableEntries = entries.filter((entry) => !entry.isDirectory)
   if (!downloadableEntries.length) {
-    ElMessage.warning('请选择要下载的文件')
+    ElMessage.warning(t('fileManager.selectDownloadFile'))
     return
   }
 
@@ -848,13 +890,17 @@ const handleDownloadAction = async (
 
     const count = result?.count ?? downloadableEntries.length
     if (count === 1) {
-      ElMessage.success(`已开始下载 ${result?.firstEntryName || downloadableEntries[0]!.name}`)
+      ElMessage.success(
+        t('fileManager.downloadStarted', {
+          name: result?.firstEntryName || downloadableEntries[0]!.name,
+        }),
+      )
       return
     }
 
-    ElMessage.success(`已开始下载 ${count} 个文件`)
+    ElMessage.success(t('fileManager.downloadManyStarted', { count }))
   } catch (error) {
-    showRequestError(error, '下载失败')
+    showRequestError(error, t('fileManager.downloadFailed'))
   }
 }
 
@@ -869,15 +915,15 @@ const handleCopyTemporaryLinkAction = async (
 
   const targetEntry = entries.find((entry) => !entry.isDirectory)
   if (!targetEntry) {
-    ElMessage.warning('请选择要复制链接的文件')
+    ElMessage.warning(t('fileManager.selectCopyLinkFile'))
     return
   }
 
   try {
     await props.onCopyTemporaryLink(targetEntry)
-    ElMessage.success(`已复制 ${targetEntry.name} 的临时链接`)
+    ElMessage.success(t('fileManager.copiedTemporaryLink', { name: targetEntry.name }))
   } catch (error) {
-    showRequestError(error, '复制链接失败')
+    showRequestError(error, t('fileManager.copyLinkFailed'))
   }
 }
 
@@ -920,7 +966,7 @@ const handleOpenAction = async (
     editorDialog.content = result.content
     currentEditorEntry.value = targetEntry
   } catch (error) {
-    showRequestError(error, '文件打开失败')
+    showRequestError(error, t('fileManager.openFailed'))
   }
 }
 
@@ -958,7 +1004,7 @@ const handleWorkbenchAction = (
     }
 
     Promise.resolve(props.onRefresh(path)).catch((error) => {
-      showRequestError(error, '目录刷新失败')
+      showRequestError(error, t('fileManager.refreshFailed'))
     })
     return
   }
@@ -1019,27 +1065,27 @@ const handleWorkbenchAction = (
 
   if (action === 'copy') {
     if (!entries.length) {
-      ElMessage.warning('请选择要复制的文件或目录')
+      ElMessage.warning(t('fileManager.selectCopyTarget'))
       return
     }
     clipboard.value = { entries: [...entries], operation: 'copy' }
-    ElMessage.success(`已复制 ${entries.length} 个项目`)
+    ElMessage.success(t('fileManager.copiedItems', { count: entries.length }))
     return
   }
 
   if (action === 'cut') {
     if (!entries.length) {
-      ElMessage.warning('请选择要剪切文件或目录')
+      ElMessage.warning(t('fileManager.selectCutTarget'))
       return
     }
     clipboard.value = { entries: [...entries], operation: 'cut' }
-    ElMessage.success(`已剪切 ${entries.length} 个项目`)
+    ElMessage.success(t('fileManager.cutItems', { count: entries.length }))
     return
   }
 
   if (action === 'paste') {
     if (!clipboard.value) {
-      ElMessage.warning('请先复制或剪切文件或目录')
+      ElMessage.warning(t('fileManager.copyOrCutFirst'))
       return
     }
     const { entries: clipEntries, operation } = clipboard.value
@@ -1052,10 +1098,10 @@ const handleWorkbenchAction = (
       }
       Promise.resolve(props.onCopyEntries(path, clipEntries))
         .then(() => {
-          ElMessage.success('粘贴完成')
+          ElMessage.success(t('fileManager.pasteDone'))
         })
         .catch((error: unknown) => {
-          showRequestError(error, '粘贴失败')
+          showRequestError(error, t('fileManager.pasteFailed'))
         })
         .finally(() => {
           pasteLoading.value = false
@@ -1069,10 +1115,10 @@ const handleWorkbenchAction = (
       Promise.resolve(props.onCutEntries(path, clipEntries))
         .then(() => {
           clipboard.value = null
-          ElMessage.success('粘贴完成')
+          ElMessage.success(t('fileManager.pasteDone'))
         })
         .catch((error: unknown) => {
-          showRequestError(error, '粘贴失败')
+          showRequestError(error, t('fileManager.pasteFailed'))
         })
         .finally(() => {
           pasteLoading.value = false

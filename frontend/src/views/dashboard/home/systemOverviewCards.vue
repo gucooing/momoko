@@ -19,7 +19,7 @@
           {{ overview?.cpu?.modelName || '--' }}
         </div>
         <div class="text-xs text-(--el-text-color-placeholder) mt-1">
-          {{ overview?.cpu?.logicalCount ?? '--' }} 逻辑核心
+          {{ t('dashboard.home.logicalCores', { count: overview?.cpu?.logicalCount ?? '--' }) }}
         </div>
       </el-card>
     </el-col>
@@ -32,7 +32,7 @@
               <component :is="menuStore.iconComponents['Element:Monitor']" />
             </el-icon>
           </div>
-          <span class="text-sm font-semibold text-(--el-text-color-secondary)">内存</span>
+          <span class="text-sm font-semibold text-(--el-text-color-secondary)">{{ t('dashboard.monitor.memory') }}</span>
         </div>
         <div class="flex items-baseline gap-2 mb-1">
           <span class="text-3xl font-extrabold text-(--el-text-color-primary)">
@@ -43,7 +43,7 @@
           {{ formatBytes(status?.memory?.physicalMemory?.usedBytes) }} / {{ formatBytes(status?.memory?.physicalMemory?.totalBytes) }}
         </div>
         <div class="text-xs text-(--el-text-color-placeholder) mt-1">
-          可用 {{ formatBytes(status?.memory?.physicalMemory?.availableBytes) }}
+          {{ t('dashboard.home.available', { size: formatBytes(status?.memory?.physicalMemory?.availableBytes) }) }}
         </div>
       </el-card>
     </el-col>
@@ -56,7 +56,7 @@
               <component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" />
             </el-icon>
           </div>
-          <span class="text-sm font-semibold text-(--el-text-color-secondary)">网络</span>
+          <span class="text-sm font-semibold text-(--el-text-color-secondary)">{{ t('dashboard.monitor.network') }}</span>
         </div>
         <div class="flex flex-col gap-1 mb-1">
           <div class="flex items-center gap-2">
@@ -73,7 +73,7 @@
           </div>
         </div>
         <div class="text-xs text-(--el-text-color-placeholder) mt-1">
-          {{ overview?.networkInterfaces?.length ?? 0 }} 个网卡
+          {{ t('dashboard.home.networkCards', { count: overview?.networkInterfaces?.length ?? 0 }) }}
         </div>
       </el-card>
     </el-col>
@@ -86,7 +86,7 @@
               <component :is="menuStore.iconComponents['HOutline:FolderIcon']" />
             </el-icon>
           </div>
-          <span class="text-sm font-semibold text-(--el-text-color-secondary)">磁盘</span>
+          <span class="text-sm font-semibold text-(--el-text-color-secondary)">{{ t('dashboard.home.diskUsage') }}</span>
         </div>
         <div class="flex items-baseline gap-2 mb-1">
           <span class="text-3xl font-extrabold text-(--el-text-color-primary)">
@@ -97,7 +97,7 @@
           {{ formatBytes(status?.disk?.total?.usedBytes) }} / {{ formatBytes(status?.disk?.total?.totalBytes) }}
         </div>
         <div class="text-xs text-(--el-text-color-placeholder) mt-1">
-          {{ overview?.diskPartitions?.length ?? 0 }} 个分区
+          {{ t('dashboard.home.partitions', { count: overview?.diskPartitions?.length ?? 0 }) }}
         </div>
       </el-card>
     </el-col>
@@ -106,6 +106,7 @@
 
 <script setup lang="ts">
 import type { SystemOverviewResponse, SystemStatusResponse } from '@/types/v1/system'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   overview: SystemOverviewResponse | null
@@ -113,6 +114,7 @@ defineProps<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const formatBytes = (bytes?: number | string) => {
   const num = Number(bytes)

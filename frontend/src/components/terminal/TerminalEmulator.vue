@@ -3,7 +3,7 @@
     <!-- Title Bar -->
     <div class="terminal__titlebar">
       <div class="terminal__traffic-lights">
-        <button class="terminal__dot terminal__dot--green" :title="isMaximized ? '还原' : '最大化'" @click="isMaximized = !isMaximized" />
+        <button class="terminal__dot terminal__dot--green" :title="isMaximized ? t('instance.restore') : t('instance.maximize')" @click="isMaximized = !isMaximized" />
       </div>
       <div class="terminal__title">
         <el-icon class="terminal__title-icon"><component :is="titleIcon" /></el-icon>
@@ -35,12 +35,12 @@
         </p>
         <p v-if="isConnecting" class="terminal__line terminal__line--dim">
           <span class="terminal__cursor terminal__cursor--blink">&#9608;</span>
-          正在连接...
+          {{ t('instance.connectingLine') }}
         </p>
         <p v-if="isError" class="terminal__line terminal__line--error">
-          连接异常，点击
-          <span class="terminal__inline-action" @click="emit('reconnect')">这里</span>
-          重试
+          {{ t('instance.errorPrefix') }}
+          <span class="terminal__inline-action" @click="emit('reconnect')">{{ t('instance.errorAction') }}</span>
+          {{ t('instance.errorSuffix') }}
         </p>
       </div>
     </div>
@@ -63,7 +63,7 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
-        :placeholder="sendPlaceholder"
+        :placeholder="resolvedSendPlaceholder"
         @keydown="handleKeydown"
         @input="autoResizeInput"
       />
@@ -81,11 +81,11 @@
             @click="emit('togglePower')"
           >
             <el-icon size="14"><component :is="isRunning ? powerOffIcon : powerOnIcon" /></el-icon>
-            <span>{{ isRunning ? '停止' : '启动' }}</span>
+            <span>{{ isRunning ? t('instance.stop') : t('instance.start') }}</span>
           </button>
           <button class="terminal__action" :disabled="isBusy" @click="emit('restart')">
             <el-icon size="14"><component :is="restartIcon" /></el-icon>
-            <span>重启</span>
+            <span>{{ t('instance.restart') }}</span>
           </button>
         </template>
 
@@ -98,19 +98,19 @@
             @click="emit('togglePower')"
           >
             <el-icon size="14"><component :is="isRunning ? powerOffIcon : powerOnIcon" /></el-icon>
-            <span>{{ isRunning ? '停止' : '启动' }}</span>
+            <span>{{ isRunning ? t('instance.stop') : t('instance.start') }}</span>
           </button>
           <button class="terminal__action" :disabled="isBusy" @click="emit('restart')">
             <el-icon size="14"><component :is="restartIcon" /></el-icon>
-            <span>重启</span>
+            <span>{{ t('instance.restart') }}</span>
           </button>
           <button class="terminal__action terminal__action--force" :disabled="isBusy" @click="emit('forceStop')">
             <el-icon size="14"><component :is="noSymbolIcon" /></el-icon>
-            <span>强制停止</span>
+            <span>{{ t('instance.forceStop') }}</span>
           </button>
           <button class="terminal__action terminal__action--force" :disabled="isBusy" @click="emit('forceRestart')">
             <el-icon size="14"><component :is="boltIcon" /></el-icon>
-            <span>强制重启</span>
+            <span>{{ t('instance.forceRestart') }}</span>
           </button>
         </template>
 
@@ -118,14 +118,14 @@
         <span v-if="mode !== 'ssh'" class="terminal__action-sep" />
         <button class="terminal__action" :disabled="!outputLines.length" @click="emit('clear')">
           <el-icon size="14"><component :is="sparklesIcon" /></el-icon>
-          <span>清屏</span>
+          <span>{{ t('instance.clearScreen') }}</span>
         </button>
 
         <!-- Mode: ssh -->
         <template v-if="mode === 'ssh'">
           <button class="terminal__action" @click="emit('reconnect')">
             <el-icon size="14"><component :is="restartIcon" /></el-icon>
-            <span>重连</span>
+            <span>{{ t('instance.reconnect') }}</span>
           </button>
         </template>
       </div>
@@ -135,7 +135,7 @@
           v-for="feat in featureItems"
           :key="feat.key"
           class="terminal__feature-btn"
-          :title="feat.description"
+          :title="resolveFeatureDescription(feat)"
           @click="emit('feature', feat.key)"
         >
           <el-icon size="14"><component :is="menuStore.iconComponents[feat.icon]" /></el-icon>
@@ -150,6 +150,7 @@
 import type { ConsoleFeatureItem, ConsoleSocketStatus } from '@/stores/instance/types'
 import { InstanceStatus } from '@/stores/instance/types'
 import { parseAnsiOutputLines } from '@/utils/ansi'
+import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -181,7 +182,7 @@ const props = withDefaults(
     isBusy: false,
     canSendCommand: true,
     featureItems: () => [],
-    sendPlaceholder: '输入命令并按 Enter 执行',
+    sendPlaceholder: '',
     cols: 120,
     rows: 32,
   },
@@ -199,6 +200,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 // Icons
 const titleIcon = computed(() => {
@@ -235,7 +237,7 @@ const isError = computed(() => props.socketStatus === 'error')
 
 const titleText = computed(() => {
   if (props.mode === 'ssh') return props.username || 'root'
-  return props.terminalName || '终端'
+  return props.terminalName || t('instance.terminal')
 })
 
 const titleSub = computed(() => {
@@ -245,10 +247,10 @@ const titleSub = computed(() => {
 
 const statusLabel = computed(() => {
   switch (props.socketStatus) {
-    case 'connected': return '已连接'
-    case 'connecting': return '连接中'
-    case 'error': return '连接失败'
-    default: return '未连接'
+    case 'connected': return t('instance.connected')
+    case 'connecting': return t('instance.connecting')
+    case 'error': return t('instance.connectFailed')
+    default: return t('instance.disconnected')
   }
 })
 
@@ -262,9 +264,9 @@ const statusDotClass = computed(() => ({
 const instanceStatusTag = computed(() => {
   if (props.mode === 'ssh' || !props.instanceStatus) return ''
   const map: Record<string, string> = {
-    [InstanceStatus.INSTANCE_STATUS_RUNNING]: '运行中',
-    [InstanceStatus.INSTANCE_STATUS_STOPPED]: '已停止',
-    [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: '维护中',
+    [InstanceStatus.INSTANCE_STATUS_RUNNING]: t('instance.running'),
+    [InstanceStatus.INSTANCE_STATUS_STOPPED]: t('instance.stopped'),
+    [InstanceStatus.INSTANCE_STATUS_MAINTENANCE]: t('instance.maintenance'),
   }
   return map[props.instanceStatus] || ''
 })
@@ -276,6 +278,10 @@ const instanceStatusTagClass = computed(() => ({
 }))
 
 const renderedLines = computed(() => parseAnsiOutputLines(props.outputLines))
+const resolvedSendPlaceholder = computed(() => props.sendPlaceholder || t('instance.sendPlaceholder'))
+
+const resolveFeatureDescription = (item: ConsoleFeatureItem) =>
+  item.descriptionKey ? t(item.descriptionKey) : item.description || ''
 
 // Input
 const focusInput = () => {

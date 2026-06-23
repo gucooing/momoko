@@ -15,10 +15,10 @@
           :loading="loading"
           @click="refresh"
         >
-          刷新
+          {{ t('docker.common.refresh') }}
         </el-button>
         <div class="docker-stats-interval">
-          <span>轮询间隔</span>
+          <span>{{ t('docker.statsDialog.interval') }}</span>
           <el-input-number
             v-model="pollIntervalSeconds"
             size="small"
@@ -28,7 +28,7 @@
             controls-position="right"
             @change="restartPolling"
           />
-          <span>秒</span>
+          <span>{{ t('docker.common.seconds') }}</span>
         </div>
         <span class="docker-stats-status" :class="statusClass">
           <span class="docker-stats-status__dot" />
@@ -44,12 +44,13 @@
       </div>
 
       <div ref="chartEl" class="docker-stats-chart" />
-      <el-empty v-if="!history.length && !loading" description="暂无统计数据" />
+      <el-empty v-if="!history.length && !loading" :description="t('docker.statsDialog.noData')" />
     </div>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 
 import { getDockerContainerStats } from '@/api/docker'
@@ -100,6 +101,7 @@ const emit = defineEmits<{
 }>()
 
 const menuStore = useMenuStore()
+const { t, locale } = useI18n()
 const visible = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
@@ -116,13 +118,13 @@ let pollTimer: ReturnType<typeof setTimeout> | null = null
 
 const dialogTitle = computed(() => {
   const name = props.containerName || props.containerId
-  return name ? `容器统计 - ${name}` : '容器统计'
+  return name ? t('docker.statsDialog.titleWithName', { name }) : t('docker.statsDialog.title')
 })
 
 const statusLabel = computed(() => {
-  if (status.value === 'polling') return '轮询中'
-  if (status.value === 'error') return '请求失败'
-  return '已停止'
+  if (status.value === 'polling') return t('docker.common.polling')
+  if (status.value === 'error') return t('docker.common.requestFailed')
+  return t('docker.common.stopped')
 })
 
 const statusClass = computed(() => ({
@@ -135,16 +137,25 @@ const currentSample = computed(() => history.value[history.value.length - 1])
 const summaryItems = computed(() => {
   const sample = currentSample.value
   return [
-    { label: 'CPU 使用率', value: sample ? toPercent(sample.cpuPercent) : '-' },
-    { label: '内存使用率', value: sample ? toPercent(sample.memoryPercent) : '-' },
-    { label: '内存使用', value: sample ? formatBytes(sample.memoryUsage) : '-' },
-    { label: '内存限制', value: sample ? formatBytes(sample.memoryLimit) : '-' },
-    { label: '网络接收', value: sample ? formatRate(sample.networkRxRate) : '-' },
-    { label: '网络发送', value: sample ? formatRate(sample.networkTxRate) : '-' },
-    { label: '块读取', value: sample ? formatRate(sample.blockReadRate) : '-' },
-    { label: '块写入', value: sample ? formatRate(sample.blockWriteRate) : '-' },
+    { label: t('docker.statsDialog.cpuUsage'), value: sample ? toPercent(sample.cpuPercent) : '-' },
+    { label: t('docker.statsDialog.memoryUsagePercent'), value: sample ? toPercent(sample.memoryPercent) : '-' },
+    { label: t('docker.statsDialog.memoryUsage'), value: sample ? formatBytes(sample.memoryUsage) : '-' },
+    { label: t('docker.statsDialog.memoryLimit'), value: sample ? formatBytes(sample.memoryLimit) : '-' },
+    { label: t('docker.statsDialog.networkRx'), value: sample ? formatRate(sample.networkRxRate) : '-' },
+    { label: t('docker.statsDialog.networkTx'), value: sample ? formatRate(sample.networkTxRate) : '-' },
+    { label: t('docker.statsDialog.blockRead'), value: sample ? formatRate(sample.blockReadRate) : '-' },
+    { label: t('docker.statsDialog.blockWrite'), value: sample ? formatRate(sample.blockWriteRate) : '-' },
   ]
 })
+
+const chartLabels = computed(() => ({
+  cpu: t('docker.common.cpu'),
+  memory: t('docker.statsDialog.memorySeries'),
+  networkRx: t('docker.statsDialog.networkRx'),
+  networkTx: t('docker.statsDialog.networkTx'),
+  blockRead: t('docker.statsDialog.blockRead'),
+  blockWrite: t('docker.statsDialog.blockWrite'),
+}))
 
 const toNumber = (value?: number | string) => Number(value || 0)
 
@@ -171,7 +182,7 @@ const formatRate = (bytesPerSecond?: number | string) => `${formatBytes(bytesPer
 const toPercent = (value: number) => `${Math.max(0, value).toFixed(2)}%`
 
 const formatSeriesValue = (seriesName: string, value: number) => {
-  if (seriesName === 'CPU' || seriesName === '内存') return toPercent(value)
+  if (seriesName === chartLabels.value.cpu || seriesName === chartLabels.value.memory) return toPercent(value)
   return formatRate(value)
 }
 
@@ -248,6 +259,7 @@ const ensureChart = () => {
 const updateChart = () => {
   ensureChart()
   if (!chart) return
+  const labels = chartLabels.value
 
   const option: echarts.EChartsOption = {
     animation: false,
@@ -265,7 +277,7 @@ const updateChart = () => {
       itemWidth: 10,
       itemHeight: 10,
       itemGap: 12,
-      data: ['CPU', '内存', '网络接收', '网络发送', '块读取', '块写入'],
+      data: [labels.cpu, labels.memory, labels.networkRx, labels.networkTx, labels.blockRead, labels.blockWrite],
     },
     grid: { top: 58, left: 52, right: 64, bottom: 34 },
     xAxis: {
@@ -291,12 +303,12 @@ const updateChart = () => {
       },
     ],
     series: [
-      lineSeries('CPU', history.value.map(item => item.cpuPercent), 0),
-      lineSeries('内存', history.value.map(item => item.memoryPercent), 0),
-      lineSeries('网络接收', history.value.map(item => item.networkRxRate), 1),
-      lineSeries('网络发送', history.value.map(item => item.networkTxRate), 1),
-      lineSeries('块读取', history.value.map(item => item.blockReadRate), 1),
-      lineSeries('块写入', history.value.map(item => item.blockWriteRate), 1),
+      lineSeries(labels.cpu, history.value.map(item => item.cpuPercent), 0),
+      lineSeries(labels.memory, history.value.map(item => item.memoryPercent), 0),
+      lineSeries(labels.networkRx, history.value.map(item => item.networkRxRate), 1),
+      lineSeries(labels.networkTx, history.value.map(item => item.networkTxRate), 1),
+      lineSeries(labels.blockRead, history.value.map(item => item.blockReadRate), 1),
+      lineSeries(labels.blockWrite, history.value.map(item => item.blockWriteRate), 1),
     ],
   }
   chart.setOption(option, true)
@@ -342,7 +354,7 @@ const loadStats = async () => {
     }
   } catch (error) {
     status.value = 'error'
-    showRequestError(error, '获取容器统计失败')
+    showRequestError(error, t('docker.statsDialog.loadFailed'))
   } finally {
     loading.value = false
     schedulePolling()
@@ -383,6 +395,11 @@ watch([() => props.containerId], () => {
   if (!visible.value) return
   reset()
   refresh()
+})
+
+watch(locale, () => {
+  if (!visible.value) return
+  updateChart()
 })
 
 onMounted(() => {

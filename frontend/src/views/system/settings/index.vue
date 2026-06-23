@@ -2,60 +2,60 @@
   <div>
     <el-card shadow="never">
       <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
-        <el-tab-pane label="安全与认证" name="security">
+        <el-tab-pane :label="t('system.settings.securityTab')" name="security">
           <div class="setting-module">
             <div class="setting-group">
-              <div class="setting-group-header">登录设置</div>
+              <div class="setting-group-header">{{ t('system.settings.loginSettings') }}</div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">注册功能</span>
-                  <span class="setting-item-desc">开启后用户可通过注册页面创建新账号</span>
+                  <span class="setting-item-label">{{ t('system.settings.registerFeature') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.registerFeatureDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="loginForm.registerEnabled"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">用户名登录</span>
-                  <span class="setting-item-desc">使用用户名和密码登录系统</span>
+                  <span class="setting-item-label">{{ t('system.settings.usernameLogin') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.usernameLoginDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="loginForm.usernameLoginEnabled"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">邮箱登录</span>
-                  <span class="setting-item-desc">使用邮箱和验证码登录系统</span>
+                  <span class="setting-item-label">{{ t('system.settings.emailLogin') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.emailLoginDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="loginForm.emailLoginEnabled"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">注册邮箱验证</span>
-                  <span class="setting-item-desc">开启后注册时需通过邮箱验证码完成验证</span>
+                  <span class="setting-item-label">{{ t('system.settings.registerEmailVerification') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.registerEmailVerificationDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="loginForm.registerEmailVerificationRequired"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
             </div>
@@ -67,33 +67,33 @@
                 :disabled="!canEdit"
                 @click="handleLoginSave"
               >
-                保存配置
+                {{ t('system.settings.saveConfig') }}
               </el-button>
             </div>
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="邮件配置" name="email">
+        <el-tab-pane :label="t('system.settings.emailTab')" name="email">
           <div class="setting-module">
             <div class="setting-group">
-              <div class="setting-group-header">邮件服务</div>
+              <div class="setting-group-header">{{ t('system.settings.emailService') }}</div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">启用邮件服务</span>
-                  <span class="setting-item-desc">开启后系统将使用下方配置发送邮件</span>
+                  <span class="setting-item-label">{{ t('system.settings.enableEmailService') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.enableEmailServiceDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="emailForm.enabled"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">SMTP 服务地址</span>
-                  <span class="setting-item-desc">邮件服务器的地址，如 smtp.example.com</span>
+                  <span class="setting-item-label">{{ t('system.settings.smtpHost') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.smtpHostDesc') }}</span>
                 </div>
                 <el-input
                   v-model="emailForm.host"
@@ -104,8 +104,8 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">SMTP 端口</span>
-                  <span class="setting-item-desc">TLS 默认 465，非 TLS 默认 25</span>
+                  <span class="setting-item-label">{{ t('system.settings.smtpPort') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.smtpPortDesc') }}</span>
                 </div>
                 <el-input-number
                   v-model="emailForm.port"
@@ -117,8 +117,8 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">SMTP 用户名</span>
-                  <span class="setting-item-desc">邮箱账号，通常为邮箱地址</span>
+                  <span class="setting-item-label">{{ t('system.settings.smtpUsername') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.smtpUsernameDesc') }}</span>
                 </div>
                 <el-input
                   v-model="emailForm.username"
@@ -129,22 +129,22 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">SMTP 密码</span>
-                  <span class="setting-item-desc">邮箱授权码或登录密码</span>
+                  <span class="setting-item-label">{{ t('system.settings.smtpPassword') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.smtpPasswordDesc') }}</span>
                 </div>
                 <el-input
                   v-model="emailForm.password"
                   :disabled="!canEdit"
                   type="password"
                   show-password
-                  placeholder="授权码或密码"
+                  :placeholder="t('system.settings.smtpPasswordPlaceholder')"
                   style="width: 260px"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">发件邮箱</span>
-                  <span class="setting-item-desc">显示在邮件发件人栏的邮箱地址</span>
+                  <span class="setting-item-label">{{ t('system.settings.fromEmail') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.fromEmailDesc') }}</span>
                 </div>
                 <el-input
                   v-model="emailForm.from"
@@ -155,8 +155,8 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">发件人名称</span>
-                  <span class="setting-item-desc">显示在邮件发件人栏的名称</span>
+                  <span class="setting-item-label">{{ t('system.settings.fromName') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.fromNameDesc') }}</span>
                 </div>
                 <el-input
                   v-model="emailForm.fromName"
@@ -167,21 +167,21 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">使用 TLS</span>
-                  <span class="setting-item-desc">开启后将使用 TLS 加密连接 SMTP 服务器</span>
+                  <span class="setting-item-label">{{ t('system.settings.useTls') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.useTlsDesc') }}</span>
                 </div>
                 <el-switch
                   v-model="emailForm.useTls"
                   :disabled="!canEdit"
                   inline-prompt
-                  active-text="开启"
-                  inactive-text="关闭"
+                  :active-text="t('system.settings.switchOn')"
+                  :inactive-text="t('system.settings.switchOff')"
                 />
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">连接超时（秒）</span>
-                  <span class="setting-item-desc">连接 SMTP 服务器的超时时间，默认 10 秒</span>
+                  <span class="setting-item-label">{{ t('system.settings.timeoutSeconds') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.timeoutSecondsDesc') }}</span>
                 </div>
                 <el-input-number
                   v-model="emailForm.timeoutSeconds"
@@ -193,8 +193,8 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">并发发送数</span>
-                  <span class="setting-item-desc">同时发送邮件的协程数量，默认 5</span>
+                  <span class="setting-item-label">{{ t('system.settings.concurrency') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.concurrencyDesc') }}</span>
                 </div>
                 <el-input-number
                   v-model="emailForm.ccsN"
@@ -213,25 +213,25 @@
                 :disabled="!canEdit"
                 @click="handleEmailSave"
               >
-                保存配置
+                {{ t('system.settings.saveConfig') }}
               </el-button>
               <el-button
                 :loading="emailTesting"
                 :disabled="!canEdit"
                 @click="testDialogVisible = true"
               >
-                测试邮件
+                {{ t('system.settings.testEmail') }}
               </el-button>
             </div>
           </div>
 
           <div class="setting-module">
             <div class="setting-group">
-              <div class="setting-group-header">模板配置</div>
+              <div class="setting-group-header">{{ t('system.settings.templateConfig') }}</div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">模板类型</span>
-                  <span class="setting-item-desc">选择要编辑的邮件模板</span>
+                  <span class="setting-item-label">{{ t('system.settings.templateType') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.templateTypeDesc') }}</span>
                 </div>
                 <el-select
                   v-model="templateType"
@@ -249,21 +249,21 @@
               </div>
               <div class="setting-item">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">邮件主题</span>
-                  <span class="setting-item-desc"><span v-pre>支持 Go text/template 语法，如 {{.name}}</span></span>
+                  <span class="setting-item-label">{{ t('system.settings.emailSubject') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.subjectDesc', subjectDescParams) }}</span>
                 </div>
                 <el-input
                   v-model="templateForm.subject"
                   :disabled="!canEdit"
-                  placeholder="邮件主题模板"
+                  :placeholder="t('system.settings.subjectPlaceholder')"
                   style="width: 400px"
                   @focus="onInputFocus"
                 />
               </div>
               <div class="setting-item setting-item-vertical">
                 <div class="setting-item-info">
-                  <span class="setting-item-label">邮件内容</span>
-                  <span class="setting-item-desc"><span v-pre>支持 Go html/template 语法，如 {{.email}}、{{.code}}</span></span>
+                  <span class="setting-item-label">{{ t('system.settings.emailContent') }}</span>
+                  <span class="setting-item-desc">{{ t('system.settings.contentDesc', contentDescParams) }}</span>
                 </div>
                 <el-input
                   v-model="templateForm.template"
@@ -275,7 +275,7 @@
                 />
               </div>
               <div class="placeholder-strip">
-                <span class="placeholder-strip-label">快捷插入：</span>
+                <span class="placeholder-strip-label">{{ t('system.settings.quickInsert') }}</span>
                 <el-tag
                   v-for="p in placeholders"
                   :key="p"
@@ -296,65 +296,65 @@
                 :disabled="!canEdit"
                 @click="handleTemplateSave"
               >
-                保存模板
+                {{ t('system.settings.saveTemplate') }}
               </el-button>
               <el-button
                 :loading="templateTesting"
                 :disabled="!canEdit"
                 @click="openTemplateTestDialog"
               >
-                测试发送
+                {{ t('system.settings.testSend') }}
               </el-button>
               <el-button
                 :disabled="!canEdit"
                 @click="openPreviewDialog"
               >
-                预览
+                {{ t('system.settings.preview') }}
               </el-button>
             </div>
           </div>
 
           <!-- 邮件服务测试对话框 -->
-          <BaseDialog v-model="testDialogVisible" title="测试邮件发送" width="420">
+          <BaseDialog v-model="testDialogVisible" :title="t('system.settings.testEmailTitle')" width="420">
             <el-form label-position="top">
-              <el-form-item label="收件邮箱">
-                <el-input v-model="testRecipient" placeholder="输入收件邮箱地址" />
+              <el-form-item :label="t('system.settings.recipientEmail')">
+                <el-input v-model="testRecipient" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
               </el-form-item>
             </el-form>
             <template #footer>
-              <el-button @click="testDialogVisible = false">取消</el-button>
-              <el-button type="primary" :loading="emailTesting" :disabled="!testRecipient" @click="handleEmailTest">发送</el-button>
+              <el-button @click="testDialogVisible = false">{{ t('system.common.cancel') }}</el-button>
+              <el-button type="primary" :loading="emailTesting" :disabled="!testRecipient" @click="handleEmailTest">{{ t('system.settings.send') }}</el-button>
             </template>
           </BaseDialog>
 
           <!-- 模板测试发送对话框 -->
-          <BaseDialog v-model="templateTestDialogVisible" title="测试模板邮件发送" width="420">
+          <BaseDialog v-model="templateTestDialogVisible" :title="t('system.settings.testTemplateEmailTitle')" width="420">
             <el-form label-position="top">
-              <el-form-item label="收件邮箱">
-                <el-input v-model="templateTestRecipient" placeholder="输入收件邮箱地址" />
+              <el-form-item :label="t('system.settings.recipientEmail')">
+                <el-input v-model="templateTestRecipient" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
               </el-form-item>
               <el-form-item v-for="field in templateTestFields" :key="field.name" :label="'{{.' + field.name + '}}'">
-                <el-input v-model="field.value" :placeholder="`输入 {{.${field.name}}} 的值`" />
+                <el-input v-model="field.value" :placeholder="t('system.settings.templateFieldPlaceholder', { placeholder: `{{.${field.name}}}` })" />
               </el-form-item>
             </el-form>
             <template #footer>
-              <el-button @click="templateTestDialogVisible = false">取消</el-button>
-              <el-button type="primary" :loading="templateTesting" :disabled="!templateTestRecipient" @click="handleTemplateTest">发送</el-button>
+              <el-button @click="templateTestDialogVisible = false">{{ t('system.common.cancel') }}</el-button>
+              <el-button type="primary" :loading="templateTesting" :disabled="!templateTestRecipient" @click="handleTemplateTest">{{ t('system.settings.send') }}</el-button>
             </template>
           </BaseDialog>
 
           <!-- 模板预览对话框 -->
-          <BaseDialog v-model="previewDialogVisible" title="邮件模板预览" width="750" resizable>
+          <BaseDialog v-model="previewDialogVisible" :title="t('system.settings.templatePreviewTitle')" width="750" resizable>
             <el-scrollbar max-height="60vh">
               <div class="preview-subject">
-                <span class="preview-label">主题：</span>
+                <span class="preview-label">{{ t('system.settings.subjectLabel') }}</span>
                 <span>{{ renderedPreviewSubject }}</span>
               </div>
               <div class="preview-divider" />
               <iframe :srcdoc="renderedPreviewBody" class="preview-iframe" sandbox="allow-same-origin" />
             </el-scrollbar>
             <template #footer>
-              <el-button @click="previewDialogVisible = false">关闭</el-button>
+              <el-button @click="previewDialogVisible = false">{{ t('system.common.close') }}</el-button>
             </template>
           </BaseDialog>
         </el-tab-pane>
@@ -364,6 +364,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { getLoginConfig, updateLoginConfig } from '@/api/login'
 import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate, getEmailTemplate } from '@/api/system'
 import { EmailTemplateType } from '@/types/v1/system'
@@ -373,6 +374,7 @@ import BaseDialog from '@/components/dialog/BaseDialog.vue'
 
 defineOptions({ name: 'SystemSettingsView' })
 
+const { t } = useI18n()
 const activeTab = ref('security')
 const loginSaving = ref(false)
 const emailSaving = ref(false)
@@ -389,6 +391,8 @@ const previewDialogVisible = ref(false)
 const canEdit = useButtonPermission([PERM.SYSTEM_CONFIG_EDIT], [])
 
 const placeholders = ['{{.name}}', '{{.email}}', '{{.code}}']
+const subjectDescParams = { placeholder: placeholders[0] }
+const contentDescParams = { email: placeholders[1], code: placeholders[2] }
 
 const lastFocusedEl = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
 
@@ -408,15 +412,17 @@ const insertPlaceholder = (text: string) => {
   el.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
-const TEMPLATE_TYPE_LABELS: Record<string, string> = {
-  [EmailTemplateType.EmailTemplateType_Register]: '注册邮件模板',
-  [EmailTemplateType.EmailTemplateType_Login]: '登录邮件模板',
+const TEMPLATE_TYPE_LABEL_KEYS: Record<string, string> = {
+  [EmailTemplateType.EmailTemplateType_Register]: 'system.settings.registerEmailTemplate',
+  [EmailTemplateType.EmailTemplateType_Login]: 'system.settings.loginEmailTemplate',
 }
 
-const templateTypeOptions = Object.entries(TEMPLATE_TYPE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}))
+const templateTypeOptions = computed(() =>
+  Object.entries(TEMPLATE_TYPE_LABEL_KEYS).map(([value, labelKey]) => ({
+    value,
+    label: t(labelKey),
+  })),
+)
 
 const loginForm = reactive({
   registerEnabled: false,
@@ -499,8 +505,8 @@ const handleTemplateSave = async () => {
       subject: templateForm.subject,
       template: templateForm.template,
     })
-    ElMessage.success('保存成功')
-  }finally {
+    ElMessage.success(t('system.common.saveSuccess'))
+  } finally {
     templateSaving.value = false
   }
 }
@@ -534,10 +540,10 @@ const handleTemplateTest = async () => {
       },
       Data: data,
     })
-    ElMessage.success('测试邮件发送成功')
+    ElMessage.success(t('system.settings.emailTestSuccess'))
     templateTestDialogVisible.value = false
   } catch {
-    ElMessage.error('测试邮件发送失败')
+    ElMessage.error(t('system.settings.emailTestFailed'))
   } finally {
     templateTesting.value = false
   }
@@ -570,7 +576,7 @@ const loadLoginConfig = async () => {
       loginForm.registerEmailVerificationRequired = data.config.registerEmailVerificationRequired
     }
   } catch {
-    ElMessage.error('获取登录配置失败')
+    ElMessage.error(t('system.settings.getLoginConfigFailed'))
   }
 }
 
@@ -590,7 +596,7 @@ const loadEmailConfig = async () => {
       emailForm.ccsN = data.config.ccsN
     }
   } catch {
-    ElMessage.error('获取邮件配置失败')
+    ElMessage.error(t('system.settings.getEmailConfigFailed'))
   }
 }
 
@@ -603,8 +609,8 @@ const handleLoginSave = async () => {
       emailLoginEnabled: loginForm.emailLoginEnabled,
       registerEmailVerificationRequired: loginForm.registerEmailVerificationRequired,
     })
-    ElMessage.success('保存成功')
-  }finally {
+    ElMessage.success(t('system.common.saveSuccess'))
+  } finally {
     loginSaving.value = false
   }
 }
@@ -624,8 +630,8 @@ const handleEmailSave = async () => {
       timeoutSeconds: emailForm.timeoutSeconds,
       ccsN: emailForm.ccsN,
     })
-    ElMessage.success('保存成功')
-  }finally {
+    ElMessage.success(t('system.common.saveSuccess'))
+  } finally {
     emailSaving.value = false
   }
 }
@@ -649,11 +655,11 @@ const handleEmailTest = async () => {
       },
       Data: {}, // 使用全局邮件模板测试发送
     })
-    ElMessage.success('测试邮件发送成功')
+    ElMessage.success(t('system.settings.emailTestSuccess'))
     testDialogVisible.value = false
     testRecipient.value = ''
   } catch {
-    ElMessage.error('测试邮件发送失败')
+    ElMessage.error(t('system.settings.emailTestFailed'))
   } finally {
     emailTesting.value = false
   }

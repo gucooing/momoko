@@ -14,13 +14,13 @@
             <button class="icon-btn" type="button" @click="toggleTheme">
               <el-icon><component :is="isDark ? Sunny : Moon" /></el-icon>
             </button>
-            <button class="icon-btn" type="button" title="公告" @click="openAnnouncements">
+            <button class="icon-btn" type="button" :title="t('sub2api.common.announcements')" @click="openAnnouncements">
               <span v-if="announcements.length" class="badge-dot" />
               <el-icon><Bell /></el-icon>
             </button>
-            <el-button round @click="goStats()">用量详情</el-button>
+            <el-button round @click="goStats()">{{ t('sub2api.home.usageDetails') }}</el-button>
             <el-button v-if="dashboardUrl" type="primary" round @click="openConsole"
-              >前往控制台</el-button
+              >{{ t('sub2api.home.goConsole') }}</el-button
             >
           </div>
         </div>
@@ -38,9 +38,9 @@
         <p class="hero-sub">{{ heroSubtitle }}</p>
         <div class="hero-cta">
           <el-button v-if="dashboardUrl" type="primary" size="large" round @click="openConsole">
-            前往控制台<el-icon class="ml"><ArrowRight /></el-icon>
+            {{ t('sub2api.home.goConsole') }}<el-icon class="ml"><ArrowRight /></el-icon>
           </el-button>
-          <el-button size="large" round @click="scrollTo('usage')">查看用量</el-button>
+          <el-button size="large" round @click="scrollTo('usage')">{{ t('sub2api.home.viewUsage') }}</el-button>
         </div>
 
         <div class="stat-strip">
@@ -55,15 +55,15 @@
       <section id="usage" class="usage">
         <div class="section-head">
           <div>
-            <h2>今日概览</h2>
-            <span>当日实时用量，切换上方区间可查看更长周期的详细统计。</span>
+            <h2>{{ t('sub2api.home.todayOverview') }}</h2>
+            <span>{{ t('sub2api.home.todayOverviewDesc') }}</span>
           </div>
         </div>
         <div class="usage-grid">
           <article class="panel chart-panel">
             <div class="panel-head">
-              <h3>成功率 &amp; 生成速度</h3>
-              <span>当日 · 随时间</span>
+              <h3>{{ t('sub2api.home.successAndSpeed') }}</h3>
+              <span>{{ t('sub2api.home.todayByTime') }}</span>
             </div>
             <VChart
               class="chart"
@@ -74,15 +74,15 @@
           </article>
           <article class="panel rank-panel">
             <div class="panel-head">
-              <h3>今日热门模型</h3>
-              <el-button text type="primary" @click="goStats(7)">详细 →</el-button>
+              <h3>{{ t('sub2api.home.todayHotModels') }}</h3>
+              <el-button text type="primary" @click="goStats(7)">{{ t('sub2api.home.detailArrow') }}</el-button>
             </div>
             <div v-if="models.length" class="rank-list">
               <div v-for="(item, i) in models" :key="item.name || i" class="rank-row">
                 <span class="rank-no" :class="{ top: i < 3 }">{{ i + 1 }}</span>
                 <div class="rank-body">
                   <div class="rank-line">
-                    <b>{{ item.name || '未标记模型' }}</b>
+                    <b>{{ item.name || t('sub2api.common.unknownModel') }}</b>
                     <span
                       >{{ store.formatThroughput(item.avgTps) }} t/s ·
                       {{ store.formatToken(item.tokenCount) }}</span
@@ -91,11 +91,11 @@
                   <div class="rank-bar"><i :style="{ width: barWidth(item.tokenCount) }" /></div>
                 </div>
                 <span class="rank-rate"
-                  ><em>成功率</em>{{ store.formatPercent(item.successRate) }}</span
+                  ><em>{{ t('sub2api.common.successRate') }}</em>{{ store.formatPercent(item.successRate) }}</span
                 >
               </div>
             </div>
-            <div v-else class="empty">今日暂无模型数据</div>
+            <div v-else class="empty">{{ t('sub2api.home.noModelsToday') }}</div>
           </article>
         </div>
       </section>
@@ -104,7 +104,7 @@
       <section v-if="announcements.length || timeline.length" id="updates" class="updates">
         <div class="updates-grid">
           <article v-if="announcements.length" class="panel">
-            <div class="panel-head"><h3>平台公告</h3></div>
+            <div class="panel-head"><h3>{{ t('sub2api.home.platformAnnouncements') }}</h3></div>
             <div class="notice-list">
               <div
                 v-for="item in announcements"
@@ -113,9 +113,9 @@
                 :class="`lv-${item.level || 'info'}`"
               >
                 <div class="notice-head">
-                  <b>{{ item.title || '公告' }}</b>
+                  <b>{{ item.title || t('sub2api.common.announcements') }}</b>
                   <el-tag v-if="item.pinned" size="small" type="warning" effect="light"
-                    >置顶</el-tag
+                    >{{ t('sub2api.common.pinned') }}</el-tag
                   >
                 </div>
                 <p>{{ item.content }}</p>
@@ -125,14 +125,14 @@
           </article>
 
           <article v-if="timeline.length" class="panel">
-            <div class="panel-head"><h3>更新时间线</h3></div>
+            <div class="panel-head"><h3>{{ t('sub2api.home.updateTimeline') }}</h3></div>
             <div class="timeline">
               <div v-for="item in timeline" :key="item.id" class="tl-item">
                 <span class="tl-dot" />
                 <div class="tl-body">
                   <div class="tl-head">
-                    <b>{{ item.title || '更新' }}</b>
-                    <em>{{ item.category || '更新' }}</em>
+                    <b>{{ item.title || t('sub2api.common.update') }}</b>
+                    <em>{{ item.category || t('sub2api.common.update') }}</em>
                   </div>
                   <p>{{ item.content }}</p>
                   <time v-if="item.publishedAt">{{ store.formatDateTime(item.publishedAt) }}</time>
@@ -145,11 +145,11 @@
 
       <footer class="footer">
         <span>© {{ year }} {{ home.title || 'Sub2API' }}</span>
-        <a v-if="dashboardUrl" :href="dashboardUrl" target="_top">前往控制台</a>
+        <a v-if="dashboardUrl" :href="dashboardUrl" target="_top">{{ t('sub2api.home.goConsole') }}</a>
       </footer>
 
       <!-- 公告入口弹窗 -->
-      <BaseDialog v-model="announcementVisible" title="平台公告" width="520px" :show-footer="false">
+      <BaseDialog v-model="announcementVisible" :title="t('sub2api.home.platformAnnouncements')" width="520px" :show-footer="false">
         <div v-if="announcements.length" class="notice-list">
           <div
             v-for="item in announcements"
@@ -158,25 +158,26 @@
             :class="`lv-${item.level || 'info'}`"
           >
             <div class="notice-head">
-              <b>{{ item.title || '公告' }}</b>
-              <el-tag v-if="item.pinned" size="small" type="warning" effect="light">置顶</el-tag>
+              <b>{{ item.title || t('sub2api.common.announcements') }}</b>
+              <el-tag v-if="item.pinned" size="small" type="warning" effect="light">{{ t('sub2api.common.pinned') }}</el-tag>
             </div>
             <p>{{ item.content }}</p>
             <time v-if="item.publishedAt">{{ store.formatDateTime(item.publishedAt) }}</time>
           </div>
         </div>
-        <el-empty v-else description="暂无公告" />
+        <el-empty v-else :description="t('sub2api.home.noAnnouncements')" />
       </BaseDialog>
     </template>
 
     <section v-else class="disabled">
-      <h1>Sub2API 首页未开启</h1>
-      <p>管理员开启公开首页并完成 Sub2API 地址与管理员 API Key 配置后，这里会展示运行概览。</p>
+      <h1>{{ t('sub2api.home.disabledTitle') }}</h1>
+      <p>{{ t('sub2api.home.disabledDesc') }}</p>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ArrowRight, Bell, Moon, Sunny } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
@@ -190,6 +191,7 @@ const store = useSub2APIStore()
 const themeStore = useThemeStore()
 const router = useRouter()
 const { home } = storeToRefs(store)
+const { t } = useI18n()
 
 const isDark = computed(() => themeStore.isDarkTheme)
 const toggleTheme = () => themeStore.toggleThemeMode(isDark.value ? 'light' : 'dark')
@@ -254,39 +256,39 @@ const openConsole = () => {
   if (dashboardUrl.value) (window.top ?? window).location.href = dashboardUrl.value
 }
 
-const heroLead = '统一接入，洞察用量'
+const heroLead = computed(() => t('sub2api.home.heroLead'))
 const heroHighlight = computed(() => {
   const title = home.value?.title?.trim()
-  return title && title !== 'Sub2API' ? title : '海量 AI 模型网关'
+  return title && title !== 'Sub2API' ? title : t('sub2api.home.heroHighlight')
 })
 const heroSubtitle = computed(
   () =>
     home.value?.introduction?.trim() ||
     home.value?.subtitle?.trim() ||
-    '通过统一标准接口接入多家模型，实时掌握调用量、成功率与吞吐表现。',
+    t('sub2api.home.heroSubtitle'),
 )
 
 const status = computed(() => {
   switch (snapshot.value?.status) {
     case 'syncing':
-      return { tone: 'amber', text: '数据同步中' }
+      return { tone: 'amber', text: t('sub2api.home.statusSyncing') }
     case 'error':
-      return { tone: 'red', text: '连接异常' }
+      return { tone: 'red', text: t('sub2api.home.statusError') }
     case 'success':
     case 'idle':
-      return { tone: 'green', text: '服务运行中' }
+      return { tone: 'green', text: t('sub2api.home.statusRunning') }
     default:
-      return { tone: 'blue', text: '用量看板' }
+      return { tone: 'blue', text: t('sub2api.home.statusDashboard') }
   }
 })
 
 const heroStats = computed(() => {
   const s = snapshot.value
   return [
-    { label: '今日请求', value: store.formatNumber(s?.todayRequestCount) },
-    { label: '今日 Token', value: store.formatToken(s?.todayTokenCount) },
-    { label: '今日成功率', value: store.formatPercent(s?.todaySuccessRate) },
-    { label: 'Token 生成速度', value: `${store.formatThroughput(s?.recentTps)} t/s` },
+    { label: t('sub2api.home.todayRequests'), value: store.formatNumber(s?.todayRequestCount) },
+    { label: t('sub2api.home.todayToken'), value: store.formatToken(s?.todayTokenCount) },
+    { label: t('sub2api.home.todaySuccessRate'), value: store.formatPercent(s?.todaySuccessRate) },
+    { label: t('sub2api.home.tokenSpeed'), value: `${store.formatThroughput(s?.recentTps)} t/s` },
   ]
 })
 

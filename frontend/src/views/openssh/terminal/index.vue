@@ -9,7 +9,7 @@
           size="small"
           @click="goBack"
         >
-          <span class="ssh-bar__btn-label">返回</span>
+          <span class="ssh-bar__btn-label">{{ t('ssh.common.back') }}</span>
         </el-button>
       </div>
       <div class="ssh-bar__center">
@@ -28,7 +28,7 @@
           :loading="socketStatus === 'connecting'"
           @click="reconnect"
         >
-          <span class="ssh-bar__btn-label">重连</span>
+          <span class="ssh-bar__btn-label">{{ t('ssh.common.reconnect') }}</span>
         </el-button>
       </div>
     </header>
@@ -40,15 +40,16 @@
     <footer class="ssh-foot">
       <span>{{ cols }}x{{ rows }}</span>
       <span v-if="socketStatus !== 'connected'" class="ssh-foot__hint">
-        — 点击
-        <span class="ssh-foot__link" @click="reconnect">这里</span>
-        重新连接
+        - {{ t('ssh.common.click') }}
+        <span class="ssh-foot__link" @click="reconnect">{{ t('ssh.common.here') }}</span>
+        {{ t('ssh.common.reconnectSuffix') }}
       </span>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
@@ -62,6 +63,7 @@ const route = useRoute()
 const router = useRouter()
 const menuStore = useMenuStore()
 const tabsStore = useTabsStore()
+const { t } = useI18n()
 
 const containerRef = ref<HTMLElement>()
 const socketStatus = ref<ConsoleSocketStatus>('disconnected')
@@ -78,10 +80,10 @@ const wsPath = ref('')
 
 const statusLabel = computed(() => {
   switch (socketStatus.value) {
-    case 'connected': return '已连接'
-    case 'connecting': return '连接中'
-    case 'error': return '连接失败'
-    default: return '未连接'
+    case 'connected': return t('ssh.common.connected')
+    case 'connecting': return t('ssh.common.connecting')
+    case 'error': return t('ssh.common.connectionFailed')
+    default: return t('ssh.common.disconnected')
   }
 })
 
@@ -151,7 +153,7 @@ const mountTerminal = () => {
 
 const connect = async () => {
   if (!connId.value) {
-    ElMessage.warning('缺少连接参数')
+    ElMessage.warning(t('ssh.common.missingParams'))
     return
   }
 
@@ -178,7 +180,7 @@ const connect = async () => {
   const url = buildWsUrl()
   if (!url) {
     socketStatus.value = 'disconnected'
-    ElMessage.warning('缺少连接参数')
+    ElMessage.warning(t('ssh.common.missingParams'))
     return
   }
 
@@ -210,7 +212,7 @@ const connect = async () => {
     if (socketStatus.value !== 'disconnected') {
       socketStatus.value = 'disconnected'
       terminal?.writeln('')
-      terminal?.writeln('\x1b[31m[连接已断开]\x1b[0m')
+      terminal?.writeln(`\x1b[31m${t('ssh.common.disconnectedNotice')}\x1b[0m`)
     }
   }
 }

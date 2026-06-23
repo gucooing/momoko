@@ -1,7 +1,7 @@
 <template>
   <TerminalEmulator
     mode="system-terminal"
-    :terminal-name="terminalInfo?.name || '系统终端'"
+    :terminal-name="terminalInfo?.name || t('instance.systemTerminal')"
     :terminal-type="terminalInfo?.type || 'system'"
     :terminal-id="terminalInfo?.id || ''"
     :instance-status="terminalInfo?.status || ''"
@@ -25,11 +25,13 @@ import TerminalEmulator from '@/components/terminal/TerminalEmulator.vue'
 import { useInstanceTerminalStore } from '@/stores/instance/terminal'
 import { InstanceStatus } from '@/types/v1/instance'
 import { Dialog } from '@/utils/dialog'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'SystemTerminalView' })
 
 const route = useRoute()
 const terminalStore = useInstanceTerminalStore()
+const { t } = useI18n()
 
 const {
   commandValue,
@@ -57,7 +59,7 @@ watch(
   { immediate: true },
 )
 
-const terminalName = computed(() => terminalInfo.value?.name || '系统终端')
+const terminalName = computed(() => terminalInfo.value?.name || t('instance.systemTerminal'))
 
 const onInput = (text: string) => {
   commandValue.value = text
@@ -71,10 +73,10 @@ const handleTogglePower = () => {
   }
 
   Dialog.confirm({
-    title: '确认停止终端',
-    content: `确定要停止"${terminalName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认停止',
+    title: t('instance.confirmStopTerminalTitle'),
+    content: t('instance.confirmStopTerminalContent', { name: terminalName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmStop'),
     onConfirm: async () => {
       await togglePower()
     },
@@ -83,10 +85,10 @@ const handleTogglePower = () => {
 
 const handleRestart = () => {
   Dialog.confirm({
-    title: '确认重启终端',
-    content: `确定要重启"${terminalName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认重启',
+    title: t('instance.confirmRestartTerminalTitle'),
+    content: t('instance.confirmRestartTerminalContent', { name: terminalName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmRestart'),
     onConfirm: async () => {
       await restartTerminal()
     },
@@ -94,6 +96,6 @@ const handleRestart = () => {
 }
 
 const handleFeature = () => {
-  ElMessage.info('功能暂未实现')
+  ElMessage.info(t('instance.featureNotImplemented'))
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="submitForm.id ? '编辑实例类型' : '新增实例类型'"
+    :title="submitForm.id ? t('instance.editInstanceType') : t('instance.addInstanceType')"
     width="520"
     @close="close"
   >
@@ -12,26 +12,26 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item label="类型名称" prop="name">
+      <el-form-item :label="t('instance.typeName')" prop="name">
         <el-input
           v-model="submitForm.name"
-          placeholder="请输入实例类型名称"
+          :placeholder="t('instance.typeNamePlaceholder')"
           maxlength="50"
           clearable
         />
       </el-form-item>
 
-      <el-form-item label="是否启用" prop="isEnable">
+      <el-form-item :label="t('instance.isEnabled')" prop="isEnable">
         <el-radio-group v-model="submitForm.isEnable">
-          <el-radio :label="true">启用</el-radio>
-          <el-radio :label="false">禁用</el-radio>
+          <el-radio :label="true">{{ t('common.enabled') }}</el-radio>
+          <el-radio :label="false">{{ t('common.disabled') }}</el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('common.cancel') }}</el-button>
+      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('common.confirm') }}</el-button>
     </template>
   </BaseDialog>
 </template>
@@ -41,11 +41,13 @@ import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { createInstanceType, updateInstanceType } from '@/api/instance'
 import type { InstanceTypeInfo } from '@/types/v1/instance'
 import { type FormInstance, type FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceTypeCreate' })
 
 const emits = defineEmits(['refresh'])
 const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
+const { t } = useI18n()
 
 const open = ref(false)
 const submitLoading = ref(false)
@@ -81,7 +83,7 @@ const confirm = async () => {
       await createInstanceType(payload)
     }
 
-    ElMessage.success(submitForm.value.id ? '编辑成功' : '新增成功')
+    ElMessage.success(submitForm.value.id ? t('instance.editSuccess') : t('instance.addSuccess'))
     emits('refresh')
     close()
   } finally {
@@ -101,12 +103,12 @@ const showDialog = (instanceType?: InstanceTypeInfo) => {
   }
 }
 
-const formRules: FormRules = {
+const formRules = computed<FormRules>(() => ({
   name: [
     {
       validator: (_rule, value: string, callback) => {
         if (!value?.trim()) {
-          callback(new Error('请输入实例类型名称'))
+          callback(new Error(t('instance.instanceTypeNameRequired')))
           return
         }
         callback()
@@ -114,8 +116,8 @@ const formRules: FormRules = {
       trigger: 'blur',
     },
   ],
-  isEnable: [{ required: true, message: '请选择是否启用', trigger: 'change' }],
-}
+  isEnable: [{ required: true, message: t('instance.isEnabledRequired'), trigger: 'change' }],
+}))
 
 defineExpose({
   showDialog,

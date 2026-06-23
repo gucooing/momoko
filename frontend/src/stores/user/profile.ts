@@ -12,24 +12,25 @@ import type {
 } from '@/stores/user/types'
 import type { OperationLogInfo } from '@/types/v1/system'
 import type { UserInfo } from '@/types/v1/user'
+import { translate } from '@/locales'
 
 const COLUMN_WIDTH_MIN = 150
 const COLUMN_WIDTH_MAX = 420
 const fixedColumns = new Set(['device', 'ip', 'loginTime', 'updateTime', 'sessionId', 'deviceId'])
 
 const createMenuTabs = (): ProfileTabsMenuItem[] => [
-  { key: 'personalInfo', label: '我的资料', icon: 'HOutline:UserIcon' },
-  { key: 'permissions', label: '我的权限', icon: 'HOutline:ShieldCheckIcon' },
-  { key: 'messages', label: '我的消息', icon: 'HOutline:BellAlertIcon' },
-  { key: 'logs', label: '登录日志', icon: 'HOutline:ClockIcon' },
-  { key: 'devices', label: '登录设备', icon: 'HOutline:DevicePhoneMobileIcon' },
+  { key: 'personalInfo', labelKey: 'user.tabs.personalInfo', icon: 'HOutline:UserIcon' },
+  { key: 'permissions', labelKey: 'user.tabs.permissions', icon: 'HOutline:ShieldCheckIcon' },
+  { key: 'messages', labelKey: 'user.tabs.messages', icon: 'HOutline:BellAlertIcon' },
+  { key: 'logs', labelKey: 'user.tabs.logs', icon: 'HOutline:ClockIcon' },
+  { key: 'devices', labelKey: 'user.tabs.devices', icon: 'HOutline:DevicePhoneMobileIcon' },
 ]
 
 const createDefaultMessages = (): UserMessageItem[] => [
   {
     id: '1',
-    title: '系统维护通知',
-    content: '系统将于今晚 22:00-24:00 进行维护升级，期间可能无法访问，请提前做好准备。',
+    titleKey: 'user.messages.maintenanceTitle',
+    contentKey: 'user.messages.maintenanceContent',
     type: 'system',
     read: false,
     time: '2026-01-22 08:30:00',
@@ -37,8 +38,8 @@ const createDefaultMessages = (): UserMessageItem[] => [
   },
   {
     id: '2',
-    title: '运维同事',
-    content: '今天的任务清单已经更新，记得先确认实例巡检结果。',
+    titleKey: 'user.messages.opsTitle',
+    contentKey: 'user.messages.opsContent',
     type: 'user',
     read: false,
     time: '2026-01-22 08:45:00',
@@ -46,8 +47,8 @@ const createDefaultMessages = (): UserMessageItem[] => [
   },
   {
     id: '3',
-    title: '新功能上线',
-    content: '个人中心功能已上线，您可以管理个人信息和查看消息通知。',
+    titleKey: 'user.messages.newFeatureTitle',
+    contentKey: 'user.messages.newFeatureContent',
     type: 'system',
     read: false,
     time: '2026-01-21 17:20:00',
@@ -56,7 +57,7 @@ const createDefaultMessages = (): UserMessageItem[] => [
   {
     id: '4',
     title: 'Alice L.',
-    content: '你的排行榜进度更新了，你现在是第 2 名，继续保持！',
+    contentKey: 'user.messages.rankingContent',
     type: 'user',
     read: true,
     time: '2026-01-21 16:10:00',
@@ -64,8 +65,8 @@ const createDefaultMessages = (): UserMessageItem[] => [
   },
   {
     id: '5',
-    title: '安全提醒',
-    content: '请定期修改密码，并启用双重验证，保护账户安全。',
+    titleKey: 'user.messages.securityTitle',
+    contentKey: 'user.messages.securityContent',
     type: 'system',
     read: true,
     time: '2026-01-21 09:30:00',
@@ -102,7 +103,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const addressLoaded = ref(false)
 
   const currentTab = ref<ProfileCurrentTab>('personalInfo')
-  const menuTabs = ref<ProfileTabsMenuItem[]>(createMenuTabs())
+  const menuTabs = computed<ProfileTabsMenuItem[]>(createMenuTabs)
 
   const userMessages = ref<UserMessageItem[]>(createDefaultMessages())
   const messageDraft = ref('')
@@ -111,8 +112,8 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const unreadCount = computed(() => userMessages.value.filter((msg) => !msg.read).length)
 
   const messageTabs = computed(() => [
-    { key: 'all', label: '全部消息', badge: 0 },
-    { key: 'unread', label: '未读消息', badge: unreadCount.value },
+    { key: 'all', labelKey: 'user.messages.all', badge: 0 },
+    { key: 'unread', labelKey: 'user.messages.unread', badge: unreadCount.value },
   ])
 
   const messageList = computed(() => {
@@ -136,12 +137,12 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   })
 
   const extraLabelMap: Record<string, string> = {
-    browser: '浏览器',
-    os: '系统',
-    platform: '平台',
-    location: '位置',
+    browser: 'user.extra.browser',
+    os: 'user.extra.os',
+    platform: 'user.extra.platform',
+    location: 'user.extra.location',
     userAgent: 'User Agent',
-    status: '状态',
+    status: 'user.extra.status',
   }
 
   const extraColumns = computed(() => {
@@ -210,13 +211,14 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   }
 
   const getExtraColumnLabel = (key: string) => {
-    return extraLabelMap[key] || key
+    const labelKey = extraLabelMap[key]
+    return labelKey ? translate(labelKey) : key
   }
 
   const deviceColumnWidth = computed(() => {
     return calcColumnWidth(
       loginDevices.value.map((item) => item.device),
-      '登录设备',
+      translate('user.extra.loginDevice'),
       220,
     )
   })
@@ -224,7 +226,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const ipColumnWidth = computed(() => {
     return calcColumnWidth(
       loginDevices.value.map((item) => item.ip),
-      'IP 地址',
+      translate('user.extra.ipAddress'),
       150,
       260,
     )
@@ -233,7 +235,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const sessionIdColumnWidth = computed(() => {
     return calcColumnWidth(
       loginDevices.value.map((item) => item.sessionId),
-      '会话 ID',
+      translate('user.extra.sessionId'),
       220,
     )
   })
@@ -301,7 +303,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
 
     userMessages.value.unshift({
       id: String(Date.now()),
-      title: senderName || '未知用户',
+      title: senderName || translate('user.messages.unknownUser'),
       content,
       type: 'user',
       read: false,

@@ -2,7 +2,7 @@
   <BaseCard>
     <template #header-right>
       <div class="chart-header-right">
-        <span class="chart-interval-label">刷新间隔:</span>
+        <span class="chart-interval-label">{{ t('dashboard.home.refreshInterval') }}</span>
         <el-radio-group
           :model-value="refreshInterval"
           size="small"
@@ -18,23 +18,23 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <div class="chart-panel">
-        <div class="chart-title">CPU 使用率 (%)</div>
+        <div class="chart-title">{{ t('dashboard.home.cpuUsageChart') }}</div>
         <div class="chart-box"><VChart :option="cpuChartOption" autoresize /></div>
       </div>
       <div class="chart-panel">
-        <div class="chart-title">内存 / Swap 使用率 (%)</div>
+        <div class="chart-title">{{ t('dashboard.home.memorySwapUsageChart') }}</div>
         <div class="chart-box"><VChart :option="memoryChartOption" autoresize /></div>
       </div>
       <div class="chart-panel">
         <div class="flex items-center justify-between gap-2 mb-2">
-          <div class="chart-title" style="margin-bottom:0">网络 速率</div>
+          <div class="chart-title" style="margin-bottom:0">{{ t('dashboard.home.networkRate') }}</div>
           <el-select
             :model-value="selectedInterface"
             size="small"
             class="selector"
             @change="onInterfaceChange"
           >
-            <el-option label="全部（汇总）" value="" />
+            <el-option :label="t('dashboard.home.allSummary')" value="" />
             <el-option
               v-for="iface in networkOptions"
               :key="iface.value"
@@ -47,14 +47,14 @@
       </div>
       <div class="chart-panel">
         <div class="flex items-center justify-between gap-2 mb-2">
-          <div class="chart-title" style="margin-bottom:0">磁盘 IO 速率</div>
+          <div class="chart-title" style="margin-bottom:0">{{ t('dashboard.home.diskIoRate') }}</div>
           <el-select
             :model-value="selectedDisk"
             size="small"
             class="selector"
             @change="onDiskChange"
           >
-            <el-option label="全部（汇总）" value="" />
+            <el-option :label="t('dashboard.home.allSummary')" value="" />
             <el-option
               v-for="d in diskOptions"
               :key="d.value"
@@ -73,8 +73,10 @@
 import type { RefreshInterval, CpuPoint, MemoryPoint, NetworkPoint, DiskPoint } from '@/stores/dashboard/home'
 import type { NetworkInterfaceOverview, DiskPartitionOverview } from '@/types/v1/system'
 import { useThemeStore } from '@/stores/theme'
+import { useI18n } from 'vue-i18n'
 
 const themeStore = useThemeStore()
+const { t } = useI18n()
 
 const tooltipTheme = computed(() => ({
   backgroundColor: themeStore.isDarkTheme ? '#1d1e1f' : '#fff',
@@ -115,7 +117,7 @@ const onDiskChange = (value: string) => emit('diskChange', value)
 
 const networkOptions = computed(() =>
   (props.overview?.networkInterfaces || []).map((iface) => ({
-    label: `${iface.name}${iface.isUp ? '' : ' (down)'}`,
+    label: `${iface.name}${iface.isUp ? '' : t('dashboard.home.interfaceDown')}`,
     value: iface.name,
   })),
 )
@@ -170,7 +172,7 @@ const cpuChartOption = computed(() => {
 
   const rebuiltSeries: Record<string, unknown>[] = [
     {
-      name: '总计',
+      name: t('dashboard.home.total'),
       type: 'line',
       smooth: true,
       symbol: 'none',
@@ -192,7 +194,7 @@ const cpuChartOption = computed(() => {
   for (let i = 0; i < coreCount; i++) {
     const color = coreColors[i % coreColors.length]
     rebuiltSeries.push({
-      name: `核心 ${i}`,
+      name: t('dashboard.home.core', { index: i }),
       type: 'line',
       smooth: true,
       symbol: 'none',
@@ -219,15 +221,15 @@ const cpuChartOption = computed(() => {
         const right = cores.slice(mid)
 
         let html = `<div style="font-weight:600;margin-bottom:4px">${total.axisValue}</div>`
-        html += `<div style="margin-bottom:4px">${total.marker} 总计: ${total.value.toFixed(1)}%</div>`
+        html += `<div style="margin-bottom:4px">${total.marker} ${t('dashboard.home.total')}: ${total.value.toFixed(1)}%</div>`
         html += '<table style="width:100%"><tbody>'
 
         for (const [i, l] of left.entries()) {
           const r = right[i]
           html += '<tr>'
-          html += `<td style="white-space:nowrap;padding-right:12px">${l.marker} 核心 ${l.seriesName.replace('核心 ', '')}: ${l.value.toFixed(1)}%</td>`
+          html += `<td style="white-space:nowrap;padding-right:12px">${l.marker} ${l.seriesName}: ${l.value.toFixed(1)}%</td>`
           if (r) {
-            html += `<td style="white-space:nowrap">${r.marker} 核心 ${r.seriesName.replace('核心 ', '')}: ${r.value.toFixed(1)}%</td>`
+            html += `<td style="white-space:nowrap">${r.marker} ${r.seriesName}: ${r.value.toFixed(1)}%</td>`
           }
           html += '</tr>'
         }
@@ -266,8 +268,8 @@ const memoryChartOption = computed(() => ({
         const idx = p.dataIndex
         const point = props.memoryHistory[idx]
         if (!point) continue
-        if (p.seriesName === '物理内存') {
-          result += `${p.marker} 物理内存: ${p.value.toFixed(1)}% (${formatMemoryBytes(point.physicalUsed)} / ${formatMemoryBytes(point.physicalTotal)})<br/>`
+        if (p.seriesName === t('dashboard.home.physicalMemorySeries')) {
+          result += `${p.marker} ${t('dashboard.home.physicalMemorySeries')}: ${p.value.toFixed(1)}% (${formatMemoryBytes(point.physicalUsed)} / ${formatMemoryBytes(point.physicalTotal)})<br/>`
         } else {
           result += `${p.marker} Swap: ${p.value.toFixed(1)}% (${formatMemoryBytes(point.swapUsed)} / ${formatMemoryBytes(point.swapTotal)})<br/>`
         }
@@ -276,7 +278,7 @@ const memoryChartOption = computed(() => ({
     },
   },
   series: [
-    { ...makeLineSeries('物理内存', '#10b981'), data: props.memoryHistory.map((p) => p.physical) },
+    { ...makeLineSeries(t('dashboard.home.physicalMemorySeries'), '#10b981'), data: props.memoryHistory.map((p) => p.physical) },
     { ...makeLineSeries('Swap', '#f59e0b'), data: props.memoryHistory.map((p) => p.swap) },
   ],
 }))
@@ -287,8 +289,8 @@ const networkChartOption = computed(() => ({
   yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatBytes(v), fontSize: 10 } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
   series: [
-    { ...makeLineSeries('下载', '#10b981'), data: props.networkHistory.map((p) => p.download) },
-    { ...makeLineSeries('上传', '#f59e0b'), data: props.networkHistory.map((p) => p.upload) },
+    { ...makeLineSeries(t('dashboard.home.download'), '#10b981'), data: props.networkHistory.map((p) => p.download) },
+    { ...makeLineSeries(t('dashboard.home.upload'), '#f59e0b'), data: props.networkHistory.map((p) => p.upload) },
   ],
 }))
 
@@ -298,8 +300,8 @@ const diskChartOption = computed(() => ({
   yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatBytes(v), fontSize: 10 } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
   series: [
-    { ...makeLineSeries('读取', '#6366f1'), data: props.diskHistory.map((p) => p.read) },
-    { ...makeLineSeries('写入', '#ef4444'), data: props.diskHistory.map((p) => p.write) },
+    { ...makeLineSeries(t('dashboard.home.read'), '#6366f1'), data: props.diskHistory.map((p) => p.read) },
+    { ...makeLineSeries(t('dashboard.home.write'), '#ef4444'), data: props.diskHistory.map((p) => p.write) },
   ],
 }))
 </script>

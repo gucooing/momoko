@@ -28,6 +28,7 @@ import type {
   InstanceTypeInfo,
   UpdateInstanceRequest,
 } from '@/types/v1/instance'
+import { translate } from '@/locales'
 
 type SwitchableInstanceStatus =
   | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
@@ -154,7 +155,7 @@ export const useInstanceListStore = defineStore('instance-list', () => {
   const statusOptions = computed(() =>
     (Object.keys(statusMeta) as InstanceStatus[]).map((key) => ({
       value: key,
-      label: statusMeta[key].label,
+      label: translate(statusMeta[key].labelKey),
     })),
   )
 
@@ -209,23 +210,23 @@ export const useInstanceListStore = defineStore('instance-list', () => {
 
     return [
       {
-        label: '总实例',
+        label: translate('instance.totalInstances'),
         value: pagination.value.total,
-        note: '当前筛选结果',
+        note: translate('instance.currentFilterResult'),
         icon: 'HOutline:ServerStackIcon',
         skin: 'tone-a',
       },
       {
-        label: '当前运行',
+        label: translate('instance.currentRunning'),
         value: runningCount,
-        note: '当前页统计',
+        note: translate('instance.currentPageStats'),
         icon: 'HSolid:PlayCircleIcon',
         skin: 'tone-b',
       },
       {
-        label: '停止',
+        label: translate('instance.stoppedSummary'),
         value: stoppedCount,
-        note: '当前页统计',
+        note: translate('instance.currentPageStats'),
         icon: 'HSolid:StopCircleIcon',
         skin: 'tone-c',
       },

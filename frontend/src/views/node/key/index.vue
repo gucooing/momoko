@@ -4,16 +4,16 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="名称" prop="keywords">
-              <el-input v-model="queryForm.keywords" placeholder="请输入 API Key 名称" />
+            <el-form-item :label="t('node.key.name')" prop="keywords">
+              <el-input v-model="queryForm.keywords" :placeholder="t('node.key.namePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
-                搜索
+                {{ t('node.key.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('node.key.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -23,7 +23,7 @@
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" @click="apiKeyCreateRef?.showDialog()">
-          新增 API Key
+          {{ t('node.key.add') }}
         </el-button>
       </div>
 
@@ -34,7 +34,7 @@
       >
         <template #column-expiresAt="{ row }: { row: APIKeyInfo }">
           <span v-if="row.expiresAt">{{ formatTime(row.expiresAt) }}</span>
-          <BaseTag v-else text="永久有效" type="success" />
+          <BaseTag v-else :text="t('node.key.permanent')" type="success" />
         </template>
         <template #column-createTime="{ row }: { row: APIKeyInfo }">
           {{ formatTime(row.createTime) }}
@@ -43,37 +43,37 @@
           {{ formatTime(row.updateTime) }}
         </template>
         <template #column-operation="{ row }: { row: APIKeyInfo }">
-          <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openEdit(row)">编辑</el-button>
+          <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openEdit(row)">{{ t('node.key.edit') }}</el-button>
           <el-button type="primary" :icon="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" link @click="openCopy(row)">
-            复制
+            {{ t('node.key.copy') }}
           </el-button>
-          <el-button type="primary" :icon="menuStore.iconComponents.Refresh" link @click="openRefresh(row)">刷新</el-button>
+          <el-button type="primary" :icon="menuStore.iconComponents.Refresh" link @click="openRefresh(row)">{{ t('node.key.refresh') }}</el-button>
         </template>
       </VxeGrid>
 
       <!-- mobile: cards -->
       <div v-else class="mobile-card-list">
-        <div v-if="!list.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-if="!list.length" class="mobile-empty"><el-empty :description="t('node.key.noData')" /></div>
         <div v-for="row in list" :key="row.id" class="mobile-card">
           <div class="mobile-card-body">
             <div class="mobile-card-header">
               <span class="mobile-card-title">{{ row.name }}</span>
-              <BaseTag v-if="!row.expiresAt" text="永久有效" type="success" />
+              <BaseTag v-if="!row.expiresAt" :text="t('node.key.permanent')" type="success" />
             </div>
             <div class="mobile-card-meta">
               <span class="text-muted">{{ row.apiKey }}</span>
             </div>
             <div class="mobile-card-meta" v-if="row.expiresAt">
-              <span>过期时间：{{ formatTime(row.expiresAt) }}</span>
+              <span>{{ t('node.key.expiresAt') }}: {{ formatTime(row.expiresAt) }}</span>
             </div>
             <div class="mobile-card-meta">
-              <span>创建时间：{{ formatTime(row.createTime) }}</span>
+              <span>{{ t('node.key.createTime') }}: {{ formatTime(row.createTime) }}</span>
             </div>
           </div>
           <div class="mobile-card-actions">
-            <el-button size="small" plain type="primary" @click.stop="openEdit(row)">编辑</el-button>
-            <el-button size="small" plain type="primary" @click.stop="openCopy(row)">复制</el-button>
-            <el-button size="small" plain type="primary" @click.stop="openRefresh(row)">刷新</el-button>
+            <el-button size="small" plain type="primary" @click.stop="openEdit(row)">{{ t('node.key.edit') }}</el-button>
+            <el-button size="small" plain type="primary" @click.stop="openCopy(row)">{{ t('node.key.copy') }}</el-button>
+            <el-button size="small" plain type="primary" @click.stop="openRefresh(row)">{{ t('node.key.refresh') }}</el-button>
           </div>
         </div>
       </div>
@@ -92,16 +92,16 @@
     <!-- Copy key dialog -->
     <BaseDialog
       v-model="copyDialogOpen"
-      title="复制 API Key"
+      :title="t('node.key.copyTitle')"
       width="550"
       show-footer
       :show-confirm-button="false"
-      cancel-text="关闭"
+      :cancel-text="t('node.key.close')"
       @close="copyDialogOpen = false"
     >
       <div class="copy-dialog-content">
         <el-alert
-          title="请立即复制并妥善保存此 API Key，关闭后无法再次查看完整值。"
+          :title="t('node.key.copyWarning')"
           type="warning"
           show-icon
           :closable="false"
@@ -114,7 +114,7 @@
         >
           <template #append>
             <el-button :icon="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" @click="doCopy">
-              复制
+              {{ t('node.key.copy') }}
             </el-button>
           </template>
         </el-input>
@@ -124,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { copyAPIKey, listAPIKeys, refreshAPIKey } from '@/api/node'
 import { VxeGrid } from '@/plugins/vxeGrid'
 import type { APIKeyInfo } from '@/types/v1/node'
@@ -135,6 +136,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'ApiKeyView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const apiKeyCreateRef = useTemplateRef<InstanceType<typeof ApiKeyCreate> | null>('apiKeyCreateRef')
 
@@ -165,13 +167,13 @@ const gridConfig = computed<VxeGridProps>(() => ({
   rowConfig: { isHover: true },
   data: list.value,
   columns: [
-    { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'name', title: '名称', minWidth: 160, fixed: 'left' },
+    { type: 'seq', title: t('node.key.serialNumber'), width: 55, fixed: 'left' },
+    { field: 'name', title: t('node.key.name'), minWidth: 160, fixed: 'left' },
     { field: 'apiKey', title: 'API Key', minWidth: 260 },
-    { field: 'expiresAt', title: '过期时间', minWidth: 180, slots: { default: 'column-expiresAt' } },
-    { field: 'createTime', title: '创建时间', minWidth: 180, slots: { default: 'column-createTime' } },
-    { field: 'updateTime', title: '更新时间', minWidth: 180, slots: { default: 'column-updateTime' } },
-    { title: '操作', width: 220, fixed: 'right', slots: { default: 'column-operation' } },
+    { field: 'expiresAt', title: t('node.key.expiresAt'), minWidth: 180, slots: { default: 'column-expiresAt' } },
+    { field: 'createTime', title: t('node.key.createTime'), minWidth: 180, slots: { default: 'column-createTime' } },
+    { field: 'updateTime', title: t('node.key.updateTime'), minWidth: 180, slots: { default: 'column-updateTime' } },
+    { title: t('node.key.operation'), width: 220, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -207,22 +209,22 @@ const openCopy = async (row: APIKeyInfo) => {
 const openRefresh = async (row: APIKeyInfo) => {
   try {
     await Dialog.confirm({
-      title: '刷新 API Key',
-      content: '刷新后将生成新的 API Key，原 Key 将失效，确定刷新？',
-      confirmText: '确定',
-      cancelText: '取消',
+      title: t('node.key.refreshTitle'),
+      content: t('node.key.refreshContent'),
+      confirmText: t('node.key.confirm'),
+      cancelText: t('node.key.cancel'),
     })
   } catch {
     return
   }
   await refreshAPIKey({ id: row.id })
-  ElMessage.success('刷新成功，API Key 已更新')
+  ElMessage.success(t('node.key.refreshSuccess'))
   getList()
 }
 
 const doCopy = async () => {
   await navigator.clipboard.writeText(copyKeyValue.value)
-  ElMessage.success('已复制到剪贴板')
+  ElMessage.success(t('node.key.copied'))
 }
 
 const refresh = (type: 'create' | 'update') => {

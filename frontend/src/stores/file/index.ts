@@ -35,6 +35,7 @@ import {
   resolvePreSignedFileUrl,
 } from '@/utils/filePreview'
 import { waitFileTask } from '@/utils/fileTask'
+import { translate as t } from '@/locales'
 
 const SYSTEM_FILE_DEFAULT_PATH = './servers'
 const SYSTEM_FILE_DEFAULT_PAGE_SIZE = 10
@@ -53,7 +54,7 @@ const getPreSignedFileUrl = async (path: string) => {
   const resolvedUrl = resolvePreSignedFileUrl(data.downloadUrlPath)
 
   if (!resolvedUrl) {
-    throw new Error('未获取到有效的临时链接')
+    throw new Error(t('utils.fileTask.missingTemporaryLink'))
   }
 
   return resolvedUrl
@@ -192,7 +193,7 @@ export const useFileIndexStore = defineStore('file-index', () => {
     })
 
     const taskId = data.task?.taskId
-    if (!taskId) throw new Error('未获取到文件任务')
+    if (!taskId) throw new Error(t('utils.fileTask.missingTask'))
     const task = await waitFileTask(taskId)
     await reloadDirectory(path)
     return { items: task.items }
@@ -205,7 +206,7 @@ export const useFileIndexStore = defineStore('file-index', () => {
     })
 
     const taskId = data.task?.taskId
-    if (!taskId) throw new Error('未获取到文件任务')
+    if (!taskId) throw new Error(t('utils.fileTask.missingTask'))
     const task = await waitFileTask(taskId)
     await reloadDirectory(path)
     return { items: task.items }

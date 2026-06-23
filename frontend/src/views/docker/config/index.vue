@@ -2,113 +2,113 @@
   <div>
     <el-card shadow="never">
       <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
-        <el-tab-pane label="连接状态" name="status">
+        <el-tab-pane :label="t('docker.config.statusTab')" name="status">
           <div class="setting-module" v-loading="statusLoading">
             <div class="setting-group">
-              <div class="setting-group-header">Docker Engine 状态</div>
+              <div class="setting-group-header">{{ t('docker.config.engineStatus') }}</div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">连接状态</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.connectionStatus') }}</span></div>
                 <div class="status-value">
-                  <BaseTag v-if="statusInfo?.connected" text="已连接" type="success" />
-                  <BaseTag v-else-if="statusInfo?.enabled" text="未连接" type="danger" />
-                  <BaseTag v-else text="未启用" type="info" />
+                  <BaseTag v-if="statusInfo?.connected" :text="t('docker.common.connected')" type="success" />
+                  <BaseTag v-else-if="statusInfo?.enabled" :text="t('docker.common.notConnected')" type="danger" />
+                  <BaseTag v-else :text="t('docker.common.notEnabled')" type="info" />
                 </div>
               </div>
               <template v-if="statusInfo?.connected && statusInfo.info">
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">名称</span></div><span class="setting-item-value">{{ statusInfo.info.name }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">版本</span></div><span class="setting-item-value">{{ statusInfo.info.serverVersion }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">操作系统</span></div><span class="setting-item-value">{{ statusInfo.info.operatingSystem }} ({{ statusInfo.info.osType }})</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">架构</span></div><span class="setting-item-value">{{ statusInfo.info.architecture }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">容器</span></div><span class="setting-item-value">总计 {{ statusInfo.info.containers }} / 运行 {{ statusInfo.info.containersRunning }} / 暂停 {{ statusInfo.info.containersPaused }} / 停止 {{ statusInfo.info.containersStopped }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">镜像数</span></div><span class="setting-item-value">{{ statusInfo.info.images }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">存储驱动</span></div><span class="setting-item-value">{{ statusInfo.info.driver }}</span></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">CPU / 内存</span></div><span class="setting-item-value">{{ statusInfo.info.cpus }} 核 / {{ formatBytes(statusInfo.info.memoryTotal) }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.name') }}</span></div><span class="setting-item-value">{{ statusInfo.info.name }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.version') }}</span></div><span class="setting-item-value">{{ statusInfo.info.serverVersion }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.os') }}</span></div><span class="setting-item-value">{{ statusInfo.info.operatingSystem }} ({{ statusInfo.info.osType }})</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.architecture') }}</span></div><span class="setting-item-value">{{ statusInfo.info.architecture }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.containers') }}</span></div><span class="setting-item-value">{{ t('docker.config.containerSummary', { total: statusInfo.info.containers, running: statusInfo.info.containersRunning, paused: statusInfo.info.containersPaused, stopped: statusInfo.info.containersStopped }) }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.images') }}</span></div><span class="setting-item-value">{{ statusInfo.info.images }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.driver') }}</span></div><span class="setting-item-value">{{ statusInfo.info.driver }}</span></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.common.cpu') }} / {{ t('docker.common.memory') }}</span></div><span class="setting-item-value">{{ t('docker.config.cpuMemory', { cpus: statusInfo.info.cpus, memory: formatBytes(statusInfo.info.memoryTotal) }) }}</span></div>
               </template>
-              <div v-if="statusInfo?.error" class="setting-item"><div class="setting-item-info"><span class="setting-item-label">错误</span></div><span class="status-error">{{ statusInfo.error }}</span></div>
+              <div v-if="statusInfo?.error" class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.error') }}</span></div><span class="status-error">{{ statusInfo.error }}</span></div>
               <div class="setting-footer">
-                <el-button :loading="statusLoading" @click="loadStatus">刷新状态</el-button>
+                <el-button :loading="statusLoading" @click="loadStatus">{{ t('docker.common.refresh') }}</el-button>
               </div>
             </div>
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="连接配置" name="connection">
+        <el-tab-pane :label="t('docker.config.connectionTab')" name="connection">
           <div class="setting-module" v-loading="configLoading">
             <div class="setting-group">
-              <div class="setting-group-header">连接参数</div>
+              <div class="setting-group-header">{{ t('docker.config.connectionParams') }}</div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">启用 Docker</span><span class="setting-item-desc">开启后系统将连接到 Docker Engine</span></div>
-                <el-switch v-model="configForm.enabled" :disabled="!canEdit" inline-prompt active-text="开启" inactive-text="关闭" />
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.enableDocker') }}</span><span class="setting-item-desc">{{ t('docker.config.enableDockerDesc') }}</span></div>
+                <el-switch v-model="configForm.enabled" :disabled="!canEdit" inline-prompt :active-text="t('docker.config.switchOn')" :inactive-text="t('docker.config.switchOff')" />
               </div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">Docker Host</span><span class="setting-item-desc">如 unix:///var/run/docker.sock 或 tcp://localhost:2375</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.dockerHost') }}</span><span class="setting-item-desc">{{ t('docker.config.dockerHostDesc') }}</span></div>
                 <el-input v-model="configForm.host" :disabled="!canEdit" placeholder="unix:///var/run/docker.sock" style="width: 320px" />
               </div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">API 版本</span><span class="setting-item-desc">留空则自动协商</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.apiVersion') }}</span><span class="setting-item-desc">{{ t('docker.config.apiVersionDesc') }}</span></div>
                 <el-input v-model="configForm.apiVersion" :disabled="!canEdit" placeholder="auto" style="width: 160px" />
               </div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">请求超时（秒）</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.requestTimeoutSeconds') }}</span></div>
                 <el-input-number v-model="configForm.requestTimeoutSeconds" :disabled="!canEdit" :min="1" :max="300" style="width: 160px" />
               </div>
             </div>
 
             <div class="setting-group" style="margin-top: 1rem">
-              <div class="setting-group-header">TLS</div>
+              <div class="setting-group-header">{{ t('docker.config.tls') }}</div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">启用 TLS</span></div>
-                <el-switch v-model="configForm.tlsEnabled" :disabled="!canEdit" inline-prompt active-text="开启" inactive-text="关闭" />
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.enableTls') }}</span></div>
+                <el-switch v-model="configForm.tlsEnabled" :disabled="!canEdit" inline-prompt :active-text="t('docker.config.switchOn')" :inactive-text="t('docker.config.switchOff')" />
               </div>
               <template v-if="configForm.tlsEnabled">
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">CA 证书路径</span></div><el-input v-model="configForm.tlsCaPath" :disabled="!canEdit" style="width: 320px" /></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">客户端证书路径</span></div><el-input v-model="configForm.tlsCertPath" :disabled="!canEdit" style="width: 320px" /></div>
-                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">客户端私钥路径</span></div><el-input v-model="configForm.tlsKeyPath" :disabled="!canEdit" style="width: 320px" /></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.tlsCaPath') }}</span></div><el-input v-model="configForm.tlsCaPath" :disabled="!canEdit" style="width: 320px" /></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.tlsCertPath') }}</span></div><el-input v-model="configForm.tlsCertPath" :disabled="!canEdit" style="width: 320px" /></div>
+                <div class="setting-item"><div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.tlsKeyPath') }}</span></div><el-input v-model="configForm.tlsKeyPath" :disabled="!canEdit" style="width: 320px" /></div>
               </template>
             </div>
 
             <div class="setting-footer">
-              <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">保存配置</el-button>
-              <el-button :loading="configTesting" :disabled="!canEdit" @click="handleTestConfig">测试连接</el-button>
+              <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">{{ t('docker.config.saveConfig') }}</el-button>
+              <el-button :loading="configTesting" :disabled="!canEdit" @click="handleTestConfig">{{ t('docker.config.testConnection') }}</el-button>
             </div>
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="默认设置" name="defaults">
+        <el-tab-pane :label="t('docker.config.defaultsTab')" name="defaults">
           <div class="setting-module" v-loading="configLoading">
             <div class="setting-group">
-              <div class="setting-group-header">默认参数</div>
+              <div class="setting-group-header">{{ t('docker.config.defaultParams') }}</div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">默认拉取平台</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.defaultPlatform') }}</span></div>
                 <el-input v-model="configForm.defaultPlatform" :disabled="!canEdit" placeholder="linux/amd64" style="width: 200px" />
               </div>
               <div class="setting-item">
-                <div class="setting-item-info"><span class="setting-item-label">任务超时（秒）</span></div>
+                <div class="setting-item-info"><span class="setting-item-label">{{ t('docker.config.taskTimeoutSeconds') }}</span></div>
                 <el-input-number v-model="configForm.taskTimeoutSeconds" :disabled="!canEdit" :min="60" :max="86400" style="width: 160px" />
               </div>
             </div>
             <div class="setting-footer">
-              <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">保存设置</el-button>
+              <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">{{ t('docker.config.saveSettings') }}</el-button>
             </div>
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="仓库认证" name="registries">
+        <el-tab-pane :label="t('docker.config.registriesTab')" name="registries">
           <div class="setting-module">
             <div class="setting-group">
-              <div class="setting-group-header">认证列表</div>
-              <div v-if="!configForm.registryAuths.length" class="setting-item"><span class="text-muted">暂无仓库认证配置</span></div>
+              <div class="setting-group-header">{{ t('docker.config.authList') }}</div>
+              <div v-if="!configForm.registryAuths.length" class="setting-item"><span class="text-muted">{{ t('docker.config.emptyRegistryAuths') }}</span></div>
               <div v-for="(auth, idx) in configForm.registryAuths" :key="idx" class="setting-item">
                 <div class="registry-fields">
-                  <el-input v-model="auth.serverAddress" :disabled="!canEdit" placeholder="仓库地址" style="width: 180px" size="small" />
-                  <el-input v-model="auth.username" :disabled="!canEdit" placeholder="用户名" style="width: 130px" size="small" />
-                  <el-input v-model="auth.password" :disabled="!canEdit" placeholder="密码/Token" type="password" show-password style="width: 180px" size="small" />
-                  <el-button type="danger" :disabled="!canEdit" size="small" @click="removeRegistryAuth(idx)">删除</el-button>
+                  <el-input v-model="auth.serverAddress" :disabled="!canEdit" :placeholder="t('docker.config.registryAddress')" style="width: 180px" size="small" />
+                  <el-input v-model="auth.username" :disabled="!canEdit" :placeholder="t('docker.config.username')" style="width: 130px" size="small" />
+                  <el-input v-model="auth.password" :disabled="!canEdit" :placeholder="t('docker.config.passwordToken')" type="password" show-password style="width: 180px" size="small" />
+                  <el-button type="danger" :disabled="!canEdit" size="small" @click="removeRegistryAuth(idx)">{{ t('docker.common.delete') }}</el-button>
                 </div>
               </div>
               <div class="setting-footer">
-                <el-button :disabled="!canEdit" @click="addRegistryAuth">添加认证</el-button>
-                <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">保存</el-button>
+                <el-button :disabled="!canEdit" @click="addRegistryAuth">{{ t('docker.config.addAuth') }}</el-button>
+                <el-button type="primary" :loading="configSaving" :disabled="!canEdit" @click="handleSaveConfig">{{ t('docker.common.save') }}</el-button>
               </div>
             </div>
           </div>
@@ -119,6 +119,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { getDockerConfig, getDockerStatus, testDockerConfig, updateDockerConfig } from '@/api/docker'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import { PERM } from '@/config/permission'
@@ -128,6 +129,7 @@ import type { DockerConfigInfo, DockerStatusResponse } from '@/types/v1/docker'
 
 defineOptions({ name: 'DockerConfigView' })
 
+const { t } = useI18n()
 const canEdit = useButtonPermission([PERM.DOCKER_CONFIG_EDIT], [])
 
 const activeTab = ref('status')
@@ -159,21 +161,21 @@ const formatBytes = (bytes: number | string) => {
 const loadStatus = async () => {
   statusLoading.value = true
   try { const { data } = await getDockerStatus(); statusInfo.value = data || null }
-  catch (e) { showRequestError(e, '获取状态失败') }
+  catch (e) { showRequestError(e, t('docker.config.loadStatusFailed')) }
   finally { statusLoading.value = false }
 }
 
 const loadConfig = async () => {
   configLoading.value = true
   try { const { data } = await getDockerConfig(); if (data?.config) Object.assign(configForm, data.config) }
-  catch (e) { showRequestError(e, '获取配置失败') }
+  catch (e) { showRequestError(e, t('docker.config.loadConfigFailed')) }
   finally { configLoading.value = false }
 }
 
 const handleSaveConfig = async () => {
   configSaving.value = true
-  try { await updateDockerConfig({ config: { ...configForm } }); ElMessage.success('Docker 配置保存成功') }
-  catch (e) { showRequestError(e, '保存配置失败') }
+  try { await updateDockerConfig({ config: { ...configForm } }); ElMessage.success(t('docker.config.saveSuccess')) }
+  catch (e) { showRequestError(e, t('docker.config.saveFailed')) }
   finally { configSaving.value = false }
 }
 
@@ -181,9 +183,9 @@ const handleTestConfig = async () => {
   configTesting.value = true
   try {
     const { data } = await testDockerConfig({ config: { ...configForm } })
-    if (data?.status?.connected) ElMessage.success('Docker 连接测试成功')
-    else ElMessage.error(data?.status?.error || '连接失败')
-  } catch (e) { showRequestError(e, '测试连接失败') }
+    if (data?.status?.connected) ElMessage.success(t('docker.config.testSuccess'))
+    else ElMessage.error(data?.status?.error || t('docker.common.connectionFailed'))
+  } catch (e) { showRequestError(e, t('docker.config.testFailed')) }
   finally { configTesting.value = false }
 }
 

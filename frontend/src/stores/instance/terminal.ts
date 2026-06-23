@@ -9,14 +9,15 @@ import { createConsoleSession } from '@/stores/instance/consoleSession'
 import type { ConsoleFeatureItem } from '@/stores/instance/types'
 import { useTabsStore } from '@/stores/tabs'
 import { InstanceStatus } from '@/types/v1/instance'
+import { translate } from '@/locales'
 
-const DEFAULT_OUTPUT_LINES = ['[system] 正在获取终端信息...']
+const DEFAULT_OUTPUT_LINES = [translate('instance.loadingTerminal')]
 
 const DEFAULT_FEATURE_ITEMS: ConsoleFeatureItem[] = [
   {
     key: 'terminal-setting',
-    title: '终端设置',
-    description: '管理终端连接参数',
+    titleKey: 'instance.terminalSettingTitle',
+    descriptionKey: 'instance.terminalSettingDescription',
     icon: 'HOutline:AdjustmentsHorizontalIcon',
   },
 ]
@@ -28,9 +29,9 @@ export const useInstanceTerminalStore = defineStore('instance-terminal', () => {
 
   const session = createConsoleSession({
     defaultOutputLines: DEFAULT_OUTPUT_LINES,
-    entityLabel: '终端',
-    loadTargetLabel: '终端',
-    outputLabel: '终端',
+    entityLabel: translate('instance.terminalEntity'),
+    loadTargetLabel: translate('instance.terminalEntity'),
+    outputLabel: translate('instance.terminalEntity'),
     featureItems: DEFAULT_FEATURE_ITEMS,
     getInfo: async () => {
       const { data } = await getTerminalInfoRequest({})

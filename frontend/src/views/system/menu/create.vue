@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="isEdit ? '编辑菜单' : '新增菜单'"
+    :title="isEdit ? t('system.menu.editMenu') : t('system.menu.addMenu')"
     width="600"
     @close="close"
   >
@@ -12,56 +12,56 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item label="菜单类型" prop="type">
+      <el-form-item :label="t('system.menu.menuType')" prop="type">
         <el-radio-group
           v-model="submitForm.type"
           :disabled="isEdit"
           @change="handleMenuTypeChange"
         >
-          <el-radio :label="MenuType.MenuType_Directory">目录</el-radio>
-          <el-radio :label="MenuType.MenuType_Menu">菜单</el-radio>
-          <el-radio :label="MenuType.MenuType_Button">按钮</el-radio>
+          <el-radio :label="MenuType.MenuType_Directory">{{ t('system.common.directory') }}</el-radio>
+          <el-radio :label="MenuType.MenuType_Menu">{{ t('system.common.menu') }}</el-radio>
+          <el-radio :label="MenuType.MenuType_Button">{{ t('system.common.button') }}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="父级菜单" prop="parentId">
+      <el-form-item :label="t('system.menu.parentMenu')" prop="parentId">
         <el-tree-select
           v-model="submitForm.parentId"
           :data="parentMenuList"
           :props="{ label: 'title', value: 'id', children: 'children' }"
-          placeholder="请选择父菜单（不选则为顶级菜单）"
+          :placeholder="t('system.menu.parentPlaceholder')"
           clearable
           check-strictly
           :disabled="isEdit"
         />
       </el-form-item>
       <el-form-item :label="titleLabel" prop="title">
-        <el-input v-model="submitForm.title" :placeholder="`请输入${titleLabel}`" />
+        <el-input v-model="submitForm.title" :placeholder="t('system.menu.titlePlaceholder', { label: titleLabel })" />
       </el-form-item>
       <el-form-item
-        label="菜单路径"
+        :label="t('system.common.menuPath')"
         prop="path"
         v-if="submitForm.type === MenuType.MenuType_Menu"
       >
-        <el-input v-model="submitForm.path" placeholder="请输入菜单路径" />
+        <el-input v-model="submitForm.path" :placeholder="t('system.menu.menuPathPlaceholder')" />
       </el-form-item>
       <el-form-item
-        label="权限标识"
+        :label="t('system.menu.permissions')"
         prop="permissions"
         v-if="submitForm.type === MenuType.MenuType_Button"
       >
         <el-input
           v-model="submitForm.permissions"
-          placeholder="请输入权限标识，例如 user:add"
+          :placeholder="t('system.menu.permissionsPlaceholder')"
           clearable
         />
       </el-form-item>
       <el-form-item
-        label="图标"
+        :label="t('system.common.icon')"
         prop="icon"
         v-if="submitForm.type !== MenuType.MenuType_Button"
       >
         <div class="icon-selector-wrapper">
-          <el-input v-model="submitForm.icon" placeholder="请选择图标或输入图标名称" clearable>
+          <el-input v-model="submitForm.icon" :placeholder="t('system.menu.iconPlaceholder')" clearable>
             <template #prefix>
               <el-icon v-if="submitForm.icon && menuStore.iconComponents[submitForm.icon]">
                 <component :is="menuStore.iconComponents[submitForm.icon]" />
@@ -72,24 +72,24 @@
             :icon="menuStore.iconComponents['Element:Search']"
             @click="iconSelectorDialogRef?.showDialog(submitForm.icon)"
           >
-            <template #default v-if="!menuStore.isMobile">选择图标</template>
+            <template #default v-if="!menuStore.isMobile">{{ t('system.menu.selectIcon') }}</template>
           </el-button>
         </div>
       </el-form-item>
-      <el-form-item label="排序" prop="order">
+      <el-form-item :label="t('system.common.sort')" prop="order">
         <el-input-number v-model="submitForm.order" :min="0" :max="999" style="width: 100%" />
       </el-form-item>
-      <el-form-item label="状态" prop="status">
+      <el-form-item :label="t('system.common.status')" prop="status">
         <el-radio-group v-model="submitForm.status">
-          <el-radio :label="MenuStatus.MenuStatus_Active">启用</el-radio>
-          <el-radio :label="MenuStatus.MenuStatus_InActive">禁用</el-radio>
+          <el-radio :label="MenuStatus.MenuStatus_Active">{{ t('system.common.enabled') }}</el-radio>
+          <el-radio :label="MenuStatus.MenuStatus_InActive">{{ t('system.common.disabled') }}</el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">确定</el-button>
+      <el-button @click="close">{{ t('system.common.cancel') }}</el-button>
+      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('system.common.confirm') }}</el-button>
     </template>
   </BaseDialog>
 
@@ -97,6 +97,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import {
   adminPermissionsList,
@@ -105,6 +106,7 @@ import {
   adminEditPermissions,
 } from '@/api/menu'
 import IconSelectorDialog from '@/components/dialog/IconSelectorDialog.vue'
+import { translateKnownText } from '@/locales'
 import { MenuType, MenuStatus } from '@/types/v1/system'
 import type { MenuInfo, AdminAddPermissionsRequest, AdminEditPermissionsRequest } from '@/types/v1/system'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -113,6 +115,7 @@ defineOptions({ name: 'MenuCreate' })
 
 const menuStore = useMenuStore()
 const emits = defineEmits(['refresh'])
+const { t } = useI18n()
 const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
 const iconSelectorDialogRef = useTemplateRef<InstanceType<typeof IconSelectorDialog> | null>(
   'iconSelectorDialogRef',
@@ -121,15 +124,16 @@ const iconSelectorDialogRef = useTemplateRef<InstanceType<typeof IconSelectorDia
 const open = ref(false)
 const submitLoading = ref(false)
 const editingMenuId = ref<string | undefined>(undefined)
-const parentMenuList = ref<MenuInfo[]>([])
+const rawParentMenuList = ref<MenuInfo[]>([])
+const parentMenuList = computed(() => translateMenuTree(rawParentMenuList.value))
 
 const isEdit = computed(() => !!editingMenuId.value)
 
 const titleLabel = computed(() => {
-  if (submitForm.value.type === MenuType.MenuType_Directory) return '目录标题'
-  if (submitForm.value.type === MenuType.MenuType_Menu) return '菜单标题'
-  if (submitForm.value.type === MenuType.MenuType_Button) return '按钮标题'
-  return '菜单标题'
+  if (submitForm.value.type === MenuType.MenuType_Directory) return t('system.menu.directoryTitle')
+  if (submitForm.value.type === MenuType.MenuType_Menu) return t('system.menu.menuTitle')
+  if (submitForm.value.type === MenuType.MenuType_Button) return t('system.menu.buttonTitle')
+  return t('system.menu.menuTitle')
 })
 
 const getDefaultForm = () => ({
@@ -150,7 +154,7 @@ const close = () => {
   submitFormRef.value?.resetFields()
   submitLoading.value = false
   editingMenuId.value = undefined
-  parentMenuList.value = []
+  rawParentMenuList.value = []
   submitForm.value = getDefaultForm()
 }
 
@@ -193,7 +197,7 @@ const confirm = async () => {
       await adminAddPermissions(payload)
     }
 
-    ElMessage.success(isEdit.value ? '编辑成功' : '新增成功')
+    ElMessage.success(isEdit.value ? t('system.common.editSuccess') : t('system.common.addSuccess'))
     emits('refresh')
     close()
   } finally {
@@ -203,8 +207,15 @@ const confirm = async () => {
 
 const loadParentMenuList = async () => {
   const { data: res } = await adminPermissionsList({})
-  parentMenuList.value = res?.menus || []
+  rawParentMenuList.value = res?.menus || []
 }
+
+const translateMenuTree = (menus: MenuInfo[]): MenuInfo[] =>
+  menus.map((menu) => ({
+    ...menu,
+    title: translateKnownText(menu.title),
+    children: menu.children?.length ? translateMenuTree(menu.children) : menu.children,
+  }))
 
 const getSelectIcon = (iconName: string) => {
   submitForm.value.icon = iconName
@@ -230,7 +241,7 @@ const titleValidator = (
   callback: (error?: string | Error | undefined) => void,
 ) => {
   if (value === '') {
-    callback(new Error(`请输入${titleLabel.value}`))
+    callback(new Error(t('system.menu.titleRequired', { label: titleLabel.value })))
   } else {
     callback()
   }
@@ -242,19 +253,19 @@ const permissionsValidator = (
   callback: (error?: string | Error | undefined) => void,
 ) => {
   if (isButtonType.value && !String(value || '').trim()) {
-    callback(new Error('请输入权限标识'))
+    callback(new Error(t('system.menu.permissionsRequired')))
   } else {
     callback()
   }
 }
 
-const rules: FormRules = {
-  type: [{ required: true, message: '请选择菜单类型', trigger: 'blur' }],
+const rules = computed<FormRules>(() => ({
+  type: [{ required: true, message: t('system.menu.typeRequired'), trigger: 'blur' }],
   title: [{ required: true, validator: titleValidator, trigger: 'blur' }],
-  path: [{ required: true, message: '请输入菜单路径', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
+  path: [{ required: true, message: t('system.menu.pathRequired'), trigger: 'blur' }],
+  status: [{ required: true, message: t('system.menu.statusRequired'), trigger: 'blur' }],
   permissions: [{ validator: permissionsValidator, trigger: 'blur' }],
-}
+}))
 
 defineExpose({
   showDialog,

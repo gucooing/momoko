@@ -67,16 +67,16 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   const primaryColorOptions = [
-    { value: '#8B5CF6', name: '紫色' },
-    { value: '#F7CEE0', name: '樱花粉' },
-    { value: '#10B981', name: '绿色' },
-    { value: '#F59E0B', name: '橙色' },
-    { value: '#EF4444', name: '红色' },
-    { value: '#6366F1', name: '靛蓝' },
-    { value: '#1677FF', name: '蓝色' },
-    { value: '#0EA5E9', name: '天蓝' },
-    { value: '#00BCD4', name: '青色' },
-    { value: '#909399', name: '灰色' },
+    { value: '#8B5CF6', labelKey: 'theme.colors.purple' },
+    { value: '#F7CEE0', labelKey: 'theme.colors.sakura' },
+    { value: '#10B981', labelKey: 'theme.colors.green' },
+    { value: '#F59E0B', labelKey: 'theme.colors.orange' },
+    { value: '#EF4444', labelKey: 'theme.colors.red' },
+    { value: '#6366F1', labelKey: 'theme.colors.indigo' },
+    { value: '#1677FF', labelKey: 'theme.colors.blue' },
+    { value: '#0EA5E9', labelKey: 'theme.colors.skyBlue' },
+    { value: '#00BCD4', labelKey: 'theme.colors.cyan' },
+    { value: '#909399', labelKey: 'theme.colors.gray' },
   ]
 
   const primaryColor = ref(localStorage.getItem('theme-color-primary') || '#8B5CF6')

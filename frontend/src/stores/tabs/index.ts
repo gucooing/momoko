@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import { MenuType, type MenuInfo } from '@/types/v1/system'
+import { translate as t } from '@/locales'
 
 export interface TabItem {
   path: string
@@ -97,7 +98,7 @@ export const useTabsStore = defineStore('tabs', () => {
     tabs.value.push({
       path: route.path,
       fullPath: route.fullPath,
-      title: queryTitle || (route.meta?.title as string) || route.name?.toString() || '未命名',
+      title: queryTitle || (route.meta?.title as string) || route.name?.toString() || t('utils.tabs.unnamed'),
       icon: route.meta?.icon as string | undefined,
       closable: route.path !== '/home' && route.path !== '/',
       name: route.name,

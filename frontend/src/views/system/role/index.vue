@@ -4,24 +4,24 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getRoleList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="角色名称" prop="name">
-              <el-input v-model="queryForm.name" placeholder="请输入角色名称" />
+            <el-form-item :label="t('system.common.roleName')" prop="name">
+              <el-input v-model="queryForm.name" :placeholder="t('system.role.namePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="queryForm.status" placeholder="请选择">
-                <el-option label="启用" :value="RoleStatus.RoleStatus_Active" />
-                <el-option label="停用" :value="RoleStatus.RoleStatus_InActive" />
+            <el-form-item :label="t('system.common.status')" prop="status">
+              <el-select v-model="queryForm.status" :placeholder="t('system.common.select')">
+                <el-option :label="t('system.common.enabled')" :value="RoleStatus.RoleStatus_Active" />
+                <el-option :label="t('system.common.inactive')" :value="RoleStatus.RoleStatus_InActive" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getRoleList">
-                搜索
+                {{ t('system.common.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('system.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -36,10 +36,10 @@
           @click="roleCreateRef?.showDialog(undefined)"
           v-permission="[PERM.ROLE_ADD]"
         >
-          新增角色
+          {{ t('system.role.addRole') }}
         </el-button>
         <AdaptiveConfirm
-          title="确定要删除选中的角色吗？"
+          :title="t('system.role.confirmDeleteSelected')"
           :placement="POPCONFIRM_CONFIG.placement"
           :width="POPCONFIRM_CONFIG.width"
           @confirm="deleteRoleHandle(deleteRoleIds)"
@@ -52,7 +52,7 @@
                 !useButtonPermission([PERM.ROLE_DELETE], [() => !!deleteRoleIds.length]).value
               "
             >
-              批量删除
+              {{ t('system.role.batchDelete') }}
             </el-button>
           </template>
         </AdaptiveConfirm>
@@ -66,16 +66,16 @@
         @checkbox-all="tableSelectionChange"
       >
         <template #column-type="{ row }: { row: RoleInfo }">
-          <BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? '内置' : '自定义'" />
+          <BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')" />
         </template>
         <template #column-status="{ row }: { row: RoleInfo }">
-          <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? '启用' : '停用'" />
+          <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? t('system.common.enabled') : t('system.common.inactive')" />
         </template>
         <template #column-operation="{ row }: { row: RoleInfo }">
-          <el-button v-if="!row.isBuiltin" type="primary" :icon="menuStore.iconComponents.Edit" link @click="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">编辑</el-button>
-          <AdaptiveConfirm v-if="!row.isBuiltin" title="确定要删除选中的角色吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
+          <el-button v-if="!row.isBuiltin" type="primary" :icon="menuStore.iconComponents.Edit" link @click="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">{{ t('system.common.edit') }}</el-button>
+          <AdaptiveConfirm v-if="!row.isBuiltin" :title="t('system.role.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
             <template #reference>
-              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.ROLE_DELETE]">删除</el-button>
+              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.ROLE_DELETE]">{{ t('system.common.delete') }}</el-button>
             </template>
           </AdaptiveConfirm>
         </template>
@@ -83,7 +83,7 @@
 
       <!-- mobile: cards -->
       <div v-else class="mobile-card-list">
-        <div v-if="!roleList.length" class="mobile-empty"><el-empty description="暂无数据" /></div>
+        <div v-if="!roleList.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
         <div v-for="row in roleList" :key="row.roleId" class="mobile-card" :class="{ 'is-selected': deleteRoleIds.includes(row.roleId) && !row.isBuiltin }">
           <div class="mobile-card-check" @click.stop>
             <el-checkbox v-if="!row.isBuiltin" :model-value="deleteRoleIds.includes(row.roleId)" size="small" @change="(v) => toggleMobileRoleSelect(row.roleId, v as boolean)" />
@@ -91,16 +91,16 @@
           <div class="mobile-card-body">
             <div class="mobile-card-header">
               <span class="mobile-card-title">{{ row.name }}</span>
-              <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? '启用' : '停用'" />
+              <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? t('system.common.enabled') : t('system.common.inactive')" />
             </div>
             <div class="mobile-card-meta">{{ row.description || '-' }}</div>
-            <div class="mobile-card-meta"><BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? '内置' : '自定义'" /></div>
+            <div class="mobile-card-meta"><BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')" /></div>
           </div>
           <div v-if="!row.isBuiltin" class="mobile-card-actions">
-            <el-button size="small" plain type="primary" @click.stop="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">编辑</el-button>
-            <AdaptiveConfirm title="确定要删除选中的角色吗？" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
+            <el-button size="small" plain type="primary" @click.stop="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">{{ t('system.common.edit') }}</el-button>
+            <AdaptiveConfirm :title="t('system.role.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
               <template #reference>
-                <el-button size="small" plain type="danger" v-permission="[PERM.ROLE_DELETE]">删除</el-button>
+                <el-button size="small" plain type="danger" v-permission="[PERM.ROLE_DELETE]">{{ t('system.common.delete') }}</el-button>
               </template>
             </AdaptiveConfirm>
           </div>
@@ -121,6 +121,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { deleteRole, rolePage } from '@/api/role'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { useButtonPermission } from '@/composables/useButtonPermission'
@@ -135,6 +136,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'RoleView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const roleCreateRef = useTemplateRef<InstanceType<typeof RoleCreate> | null>('roleCreateRef')
 
@@ -163,14 +165,14 @@ const roleGridConfig = computed<VxeGridProps>(() => ({
   data: roleList.value,
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'name', title: '角色名称', minWidth: 160, fixed: 'left' },
-    { field: 'description', title: '角色描述', minWidth: 200 },
-    { field: 'isBuiltin', title: '类型', width: 110, slots: { default: 'column-type' } },
-    { field: 'status', title: '状态', width: 110, slots: { default: 'column-status' } },
-    { field: 'createTime', title: '创建时间', minWidth: 180 },
-    { field: 'updateTime', title: '更新时间', minWidth: 180 },
-    { title: '操作', width: 150, fixed: 'right', slots: { default: 'column-operation' } },
+    { type: 'seq', title: t('system.common.serialNumber'), width: 55, fixed: 'left' },
+    { field: 'name', title: t('system.common.roleName'), minWidth: 160, fixed: 'left' },
+    { field: 'description', title: t('system.common.roleDescription'), minWidth: 200 },
+    { field: 'isBuiltin', title: t('system.common.type'), width: 110, slots: { default: 'column-type' } },
+    { field: 'status', title: t('system.common.status'), width: 110, slots: { default: 'column-status' } },
+    { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
+    { field: 'updateTime', title: t('system.common.updateTime'), minWidth: 180 },
+    { title: t('system.common.operation'), width: 150, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -220,7 +222,7 @@ const deleteRoleHandle = async (ids: string[]) => {
   await deleteRole({ roleIds: canDeleteIds })
 
   deleteRoleIds.value = []
-  ElMessage.success('删除成功')
+  ElMessage.success(t('system.common.deleteSuccess'))
   getRoleList()
 }
 

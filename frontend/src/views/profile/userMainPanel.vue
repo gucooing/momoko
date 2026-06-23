@@ -20,11 +20,11 @@
               class="text-2xl font-extrabold"
             />
             <data>
-              <IconButton icon="HOutline:CheckBadgeIcon" type="primary" tooltip="实名认证用户" />
+              <IconButton icon="HOutline:CheckBadgeIcon" type="primary" :tooltip="t('user.verifiedUser')" />
             </data>
           </div>
           <TextEllipsis
-            :text="`“ ${userStore.userInfo?.bio} ”`"
+            :text="bioText"
             class="italic text-sm text-(--el-text-color-regular)"
           />
           <div
@@ -58,9 +58,13 @@
 
 <script setup lang="ts">
 import { useUserProfileStore } from '@/stores/user/profile'
+import { useI18n } from 'vue-i18n'
 const userStore = useUserStore()
 const menuStore = useMenuStore()
 const userProfileStore = useUserProfileStore()
+const { t } = useI18n()
+
+const bioText = computed(() => t('dashboard.home.bioQuote', { bio: userStore.userInfo?.bio || '' }))
 
 onMounted(() => {
   void userProfileStore.ensureAddress()

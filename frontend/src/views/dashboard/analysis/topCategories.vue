@@ -1,6 +1,6 @@
 <!-- 热销商品类目 TOP 5 -->
 <template>
-  <BaseCard title="热销商品类目 TOP 5">
+  <BaseCard :title="t('dashboard.analysis.topCategoriesTitle')">
     <div class="h-65 w-full">
       <VChart :option="topCategoriesOption" autoresize />
     </div>
@@ -11,17 +11,22 @@
 import { storeToRefs } from 'pinia'
 import VChart from '@/components/chart/VChart.vue'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 // 触发器变量（仅仅用来主题或者颜色变化时触发revenueProfitOption 更新的变量）
 const colorTrigger = ref(0)
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { topCategories } = storeToRefs(dashboardAnalysisStore)
+const { t } = useI18n()
 
 // 4. 热销品类柱状图
 const topCategoriesOption = computed(() => {
   void colorTrigger.value
   const style = getComputedStyle(document.documentElement)
-  const categoryData = topCategories.value
+  const categoryData = topCategories.value.map((item) => ({
+    ...item,
+    name: t(item.nameKey),
+  }))
 
   return {
     tooltip: {
@@ -58,7 +63,7 @@ const topCategoriesOption = computed(() => {
     },
     series: [
       {
-        name: '销量 (k)',
+        name: t('dashboard.analysis.salesK'),
         type: 'bar',
         barWidth: '40%',
         itemStyle: {

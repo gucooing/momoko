@@ -1,10 +1,10 @@
 <!-- 快捷方式 -->
 <template>
-  <BaseCard title="便捷工具" title-icon="HOutline:WrenchScrewdriverIcon">
+  <BaseCard :title="t('dashboard.home.convenientTools')" title-icon="HOutline:WrenchScrewdriverIcon">
     <div class="shortcuts-grid">
       <div
         v-for="item in shortcuts"
-        :key="item.label"
+        :key="item.labelKey"
         @click="router.push(item.routePath)"
       >
         <HoverAnimateWrapper name="jelly" intensity="normal">
@@ -19,7 +19,7 @@
               </el-icon>
             </div>
             <div class="text-[13px] font-bold">
-              {{ item.label }}
+              {{ t(item.labelKey) }}
             </div>
           </div>
         </HoverAnimateWrapper>
@@ -31,10 +31,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
+const { t } = useI18n()
 const { shortcuts } = storeToRefs(dashboardHomeStore)
 </script>
 

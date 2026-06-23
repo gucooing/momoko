@@ -1,6 +1,6 @@
 <!-- 系统实时流水日志 -->
 <template>
-  <BaseCard title="系统实时流水日志" title-icon="HOutline:DocumentTextIcon">
+  <BaseCard :title="t('dashboard.monitor.realtimeLogs')" title-icon="HOutline:DocumentTextIcon">
     <div
       class="bg-(--el-bg-color-page) p-3 rounded-2xl border border-(--el-border-color-extra-light)"
     >
@@ -16,7 +16,7 @@
             :class="tags(log.level)"
             >{{ log.level }}</span
           >
-          <span class="text-(--el-text-color-regular)">{{ log.content }}</span>
+          <span class="text-(--el-text-color-regular)">{{ t(log.contentKey) }}</span>
         </div>
       </el-scrollbar>
     </div>
@@ -26,10 +26,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useDashboardMonitorStore } from '@/stores/dashboard/monitor'
+import { useI18n } from 'vue-i18n'
 
 const dashboardMonitorStore = useDashboardMonitorStore()
 const { logs } = storeToRefs(dashboardMonitorStore)
 const { appendLog } = dashboardMonitorStore
+const { t } = useI18n()
 
 // 定时器
 let timer: ReturnType<typeof setInterval> | null = null

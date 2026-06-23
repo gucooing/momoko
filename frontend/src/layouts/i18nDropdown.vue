@@ -12,25 +12,13 @@
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item
-          :class="{ 'is-active': currentLanguage === 'CN' }"
-          @click="currentLanguage = 'CN'"
+          v-for="item in languageOptions"
+          :key="item.code"
+          :class="{ 'is-active': locale === item.code }"
+          @click="setAppLocale(item.code)"
         >
-          <span class="language-code">CN</span>
-          <span class="language-name">简体中文</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          :class="{ 'is-active': currentLanguage === 'HK' }"
-          @click="currentLanguage = 'HK'"
-        >
-          <span class="language-code">HK</span>
-          <span class="language-name">繁体中文</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          :class="{ 'is-active': currentLanguage === 'EN' }"
-          @click="currentLanguage = 'EN'"
-        >
-          <span class="language-code">EN</span>
-          <span class="language-name">English</span>
+          <span class="language-code">{{ item.shortLabel }}</span>
+          <span class="language-name">{{ t(item.labelKey) }}</span>
         </el-dropdown-item>
       </el-dropdown-menu>
     </template>
@@ -38,7 +26,10 @@
 </template>
 
 <script setup lang="ts">
-const currentLanguage = ref<string>('CN')
+import { languageOptions, setAppLocale } from '@/locales'
+import { useI18n } from 'vue-i18n'
+
+const { locale, t } = useI18n()
 </script>
 
 <style scoped lang="scss">

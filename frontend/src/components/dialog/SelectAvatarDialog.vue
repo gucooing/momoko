@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    title="修改头像"
+    :title="t('avatar.title')"
     :width="menuStore.isMobile ? '94%' : '800px'"
     :close-on-click-modal="false"
     @close="close"
@@ -17,7 +17,7 @@
           <el-icon size="20"
             ><component :is="menuStore.iconComponents['HSolid:CameraIcon']"
           /></el-icon>
-          <span>上传头像</span>
+          <span>{{ t('avatar.uploadAvatar') }}</span>
         </div>
         <div
           class="avatar-menu-item"
@@ -27,7 +27,7 @@
           <el-icon size="20"
             ><component :is="menuStore.iconComponents['HSolid:SparklesIcon']"
           /></el-icon>
-          <span>系统头像</span>
+          <span>{{ t('avatar.systemAvatar') }}</span>
         </div>
         <div
           class="avatar-menu-item"
@@ -37,7 +37,7 @@
           <el-icon size="20"
             ><component :is="menuStore.iconComponents['HOutline:LinkIcon']"
           /></el-icon>
-          <span>URL 头像</span>
+          <span>{{ t('avatar.urlAvatar') }}</span>
         </div>
       </div>
       <div class="avatar-content">
@@ -57,20 +57,20 @@
                     <component :is="menuStore.iconComponents['HSolid:PhotoIcon']" />
                   </el-icon>
                   <div class="upload-text">
-                    <div class="upload-text-main">拖拽图片到此处或点击上传</div>
+                    <div class="upload-text-main">{{ t('avatar.dragUpload') }}</div>
                     <div class="upload-text-tip">
-                      支持 JPG、PNG、GIF 等格式，建议大小不超过 2MB 。
+                      {{ t('avatar.uploadTip') }}
                     </div>
                   </div>
                 </div>
                 <div v-else class="upload-preview-content">
                   <el-avatar :size="previewAvatarSize" :src="selectedAvatar" />
-                  <div class="preview-hint">点击重新上传或拖拽替换图片</div>
+                  <div class="preview-hint">{{ t('avatar.reuploadHint') }}</div>
                 </div>
               </el-upload>
             </div>
             <div v-else-if="activeMenu === 'cat'" class="cat-container">
-              <el-input v-model="avatarSearchText" placeholder="搜索头像名称" clearable>
+              <el-input v-model="avatarSearchText" :placeholder="t('avatar.searchPlaceholder')" clearable>
                 <template #prefix>
                   <el-icon><component :is="menuStore.iconComponents['Search']" /></el-icon>
                 </template>
@@ -95,11 +95,11 @@
             </div>
             <div v-else-if="activeMenu === 'url'" class="url-container">
               <div class="url-input-block">
-                <div class="url-title">输入头像 URL</div>
-                <div class="url-tip">直接填写头像图片的 URL 地址，确认后会保存为当前头像。</div>
+                <div class="url-title">{{ t('avatar.urlTitle') }}</div>
+                <div class="url-tip">{{ t('avatar.urlTip') }}</div>
                 <el-input
                   v-model.trim="avatarUrlInput"
-                  placeholder="请输入头像 URL"
+                  :placeholder="t('avatar.urlPlaceholder')"
                   clearable
                   @input="syncUrlAvatar"
                 >
@@ -110,11 +110,11 @@
               </div>
 
               <div class="url-preview-card">
-                <div class="url-preview-label">预览</div>
+                <div class="url-preview-label">{{ t('avatar.preview') }}</div>
                 <div class="url-preview-body">
                   <el-avatar v-if="selectedAvatar" :size="previewAvatarSize" :src="selectedAvatar" />
                   <div v-else class="url-preview-empty">
-                    输入有效的头像 URL 后将在这里显示预览
+                    {{ t('avatar.urlPreviewEmpty') }}
                   </div>
                 </div>
               </div>
@@ -125,8 +125,10 @@
     </div>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" :disabled="!selectedAvatar" @click="updateAvatar">确定</el-button>
+      <el-button @click="close">{{ t('common.cancel') }}</el-button>
+      <el-button type="primary" :disabled="!selectedAvatar" @click="updateAvatar">
+        {{ t('common.confirm') }}
+      </el-button>
     </template>
   </BaseDialog>
 </template>
@@ -135,6 +137,7 @@
 import { ElMessage } from 'element-plus'
 import type { UploadFile } from 'element-plus'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'SelectAvatarDialog' })
 
@@ -145,6 +148,7 @@ interface IEmits {
 const emits = defineEmits<IEmits>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 
 const open = ref(false)
 const previewAvatarSize = computed(() => (menuStore.isMobile ? 132 : 180))
@@ -211,7 +215,7 @@ const uploadFile = (uploadFile: UploadFile) => {
   // 验证文件大小（2MB）
   const maxSize = 2 * 1024 * 1024
   if (file.size > maxSize) {
-    ElMessage.warning('图片大小不能超过 2MB')
+    ElMessage.warning(t('avatar.imageSizeLimit'))
     return
   }
 

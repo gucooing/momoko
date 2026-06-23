@@ -43,13 +43,13 @@
     <template #footer>
       <slot name="footer">
         <template v-if="showFooter">
-          <el-button @click="close" v-if="showCancelButton">{{ cancelText }}</el-button>
+          <el-button @click="close" v-if="showCancelButton">{{ resolvedCancelText }}</el-button>
           <el-button
             type="primary"
             :loading="showConfirmLoading ? confirmLoading : false"
             @click="confirm"
             v-if="showConfirmButton"
-            >{{ confirmText }}</el-button
+            >{{ resolvedConfirmText }}</el-button
           >
         </template>
       </slot>
@@ -61,6 +61,7 @@
 import { useAttrs } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 import IconButton from '@/components/button/IconButton.vue'
+import { useI18n } from 'vue-i18n'
 
 // 禁用自动属性继承，手动控制属性透传
 defineOptions({
@@ -132,8 +133,6 @@ const props = withDefaults(defineProps<IProps>(), {
   showFullscreenButton: true,
   showClose: true,
   showFooter: true,
-  cancelText: '取消',
-  confirmText: '确定',
   resizable: true,
   closeIcon: 'HOutline:XMarkIcon',
   closeIconSize: '1.5rem',
@@ -151,6 +150,7 @@ const props = withDefaults(defineProps<IProps>(), {
 })
 
 const emits = defineEmits<IEmits>()
+const { t } = useI18n()
 
 // 组件属性（未被props和emits定义的属性）
 const attrs = useAttrs()
@@ -158,6 +158,8 @@ const attrs = useAttrs()
 const confirmLoading = ref(false)
 // 内部维护全屏状态
 const fullscreenValue = ref(false)
+const resolvedCancelText = computed(() => props.cancelText || t('common.cancel'))
+const resolvedConfirmText = computed(() => props.confirmText || t('common.confirm'))
 
 watchEffect(() => {
   fullscreenValue.value = props.fullscreen ?? false

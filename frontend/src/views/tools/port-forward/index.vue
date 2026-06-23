@@ -4,32 +4,32 @@
       <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getList">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="关键词" prop="keywords">
-              <el-input v-model="queryForm.keywords" placeholder="搜索名称/地址/标签" />
+            <el-form-item :label="t('tools.portForward.keyword')" prop="keywords">
+              <el-input v-model="queryForm.keywords" :placeholder="t('tools.portForward.keywordPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="转发类型" prop="type">
-              <el-select v-model="queryForm.type" placeholder="全部" clearable style="width: 100%">
+            <el-form-item :label="t('tools.portForward.forwardType')" prop="type">
+              <el-select v-model="queryForm.type" :placeholder="t('system.common.all')" clearable style="width: 100%">
                 <el-option label="TCP" value="PORT_FORWARD_TYPE_TCP" />
                 <el-option label="UDP" value="PORT_FORWARD_TYPE_UDP" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item label="启用状态" prop="isEnable">
-              <el-select v-model="queryForm.isEnable" placeholder="全部" clearable style="width: 100%">
-                <el-option label="已启用" :value="true" />
-                <el-option label="已禁用" :value="false" />
+            <el-form-item :label="t('tools.portForward.enableStatus')" prop="isEnable">
+              <el-select v-model="queryForm.isEnable" :placeholder="t('system.common.all')" clearable style="width: 100%">
+                <el-option :label="t('tools.portForward.enabled')" :value="true" />
+                <el-option :label="t('tools.portForward.disabled')" :value="false" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
-                搜索
+                {{ t('system.common.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('system.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -39,10 +39,10 @@
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" @click="openCreateDialog()">
-          新增规则
+          {{ t('tools.portForward.addRule') }}
         </el-button>
         <AdaptiveConfirm
-          title="确定要删除选中的规则吗？"
+          :title="t('tools.portForward.confirmDeleteSelected')"
           :placement="POPCONFIRM_CONFIG.placement"
           :width="POPCONFIRM_CONFIG.width"
           @confirm="batchDelete"
@@ -53,7 +53,7 @@
               :icon="menuStore.iconComponents.Delete"
               :disabled="!deleteIds.length"
             >
-              批量删除
+              {{ t('tools.portForward.batchDelete') }}
             </el-button>
           </template>
         </AdaptiveConfirm>
@@ -109,10 +109,10 @@
               link
               @click="openEditDialog(row)"
             >
-              编辑
+              {{ t('system.common.edit') }}
             </el-button>
             <el-popconfirm
-              title="确定要删除该规则吗？"
+              :title="t('tools.portForward.confirmDeleteRule')"
               :width="POPCONFIRM_CONFIG.width"
               @confirm="confirmDelete(row)"
             >
@@ -122,7 +122,7 @@
                   :icon="menuStore.iconComponents.Delete"
                   link
                 >
-                  删除
+                  {{ t('system.common.delete') }}
                 </el-button>
               </template>
             </el-popconfirm>
@@ -133,7 +133,7 @@
       <!-- mobile: cards -->
       <div v-else v-loading="loading" class="mobile-card-list">
         <div v-if="!list.length" class="mobile-empty">
-          <el-empty description="暂无数据" />
+          <el-empty :description="t('system.common.noData')" />
         </div>
         <div
           v-for="row in list"
@@ -186,14 +186,14 @@
           </div>
 
           <div class="pf-card-footer">
-            <el-button size="small" plain type="primary" @click="openEditDialog(row)">编辑</el-button>
+            <el-button size="small" plain type="primary" @click="openEditDialog(row)">{{ t('system.common.edit') }}</el-button>
             <el-popconfirm
-              title="确定要删除该规则吗？"
+              :title="t('tools.portForward.confirmDeleteRule')"
               :width="POPCONFIRM_CONFIG.width"
               @confirm="confirmDelete(row)"
             >
               <template #reference>
-                <el-button size="small" plain type="danger">删除</el-button>
+                <el-button size="small" plain type="danger">{{ t('system.common.delete') }}</el-button>
               </template>
             </el-popconfirm>
           </div>
@@ -202,8 +202,8 @@
 
       <!-- mobile: batch bar -->
       <div v-if="menuStore.isMobile && deleteIds.length" class="mobile-batch-bar">
-        <span>已选 {{ deleteIds.length }} 项</span>
-        <el-button size="small" type="danger" @click="batchDelete">批量删除</el-button>
+        <span>{{ t('tools.portForward.selectedCount', { count: deleteIds.length }) }}</span>
+        <el-button size="small" type="danger" @click="batchDelete">{{ t('tools.portForward.batchDelete') }}</el-button>
       </div>
 
       <TablePagination
@@ -220,6 +220,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -232,6 +233,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'PortForwardView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const createRef = useTemplateRef<InstanceType<typeof PortForwardCreate> | null>('createRef')
 
@@ -265,16 +267,16 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: list.value,
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: '序号', width: 55, fixed: 'left' },
-    { field: 'name', title: '名称', minWidth: 80, fixed: 'left', slots: { default: 'column-name' } },
-    { field: 'type', title: '类型', width: 80, slots: { default: 'column-type' } },
-    { title: '监听地址', minWidth: 180, slots: { default: 'column-listen' } },
-    { title: '目标地址', minWidth: 180, slots: { default: 'column-target' } },
-    { field: 'isEnable', title: '启用', width: 80, slots: { default: 'column-isEnable' } },
-    { field: 'tags', title: '标签', minWidth: 80, slots: { default: 'column-tags' } },
-    { field: 'remark', title: '备注', minWidth: 120 },
-    { field: 'createTime', title: '创建时间', minWidth: 180 },
-    { title: '操作', width: 160, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
+    { type: 'seq', title: t('system.common.serialNumber'), width: 55, fixed: 'left' },
+    { field: 'name', title: t('system.common.name'), minWidth: 80, fixed: 'left', slots: { default: 'column-name' } },
+    { field: 'type', title: t('system.common.type'), width: 80, slots: { default: 'column-type' } },
+    { title: t('tools.portForward.listenAddress'), minWidth: 180, slots: { default: 'column-listen' } },
+    { title: t('tools.portForward.targetAddress'), minWidth: 180, slots: { default: 'column-target' } },
+    { field: 'isEnable', title: t('system.common.enabled'), width: 80, slots: { default: 'column-isEnable' } },
+    { field: 'tags', title: t('user.personalTags'), minWidth: 80, slots: { default: 'column-tags' } },
+    { field: 'remark', title: t('common.remark'), minWidth: 120 },
+    { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
+    { title: t('system.common.operation'), width: 160, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -331,7 +333,7 @@ const toggleEnable = async (row: PortForwardInfo, val: boolean) => {
       if (data.info.error) {
         ElMessage.error(data.info.error)
       } else {
-        ElMessage.success(data.info.isEnable ? '已启用' : '已禁用')
+        ElMessage.success(data.info.isEnable ? t('tools.portForward.enabled') : t('tools.portForward.disabled'))
       }
     }
   } catch {
@@ -340,14 +342,14 @@ const toggleEnable = async (row: PortForwardInfo, val: boolean) => {
 }
 
 const confirmDelete = (row: PortForwardInfo) => {
-  ElMessageBox.confirm('确定要删除该规则吗？', '确认删除', {
+  ElMessageBox.confirm(t('tools.portForward.confirmDeleteRule'), t('tools.portForward.confirmDeleteTitle'), {
     type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消',
+    confirmButtonText: t('tools.portForward.confirmDeleteText'),
+    cancelButtonText: t('system.common.cancel'),
   })
     .then(async () => {
       await deletePortForward({ id: row.id })
-      ElMessage.success('删除成功')
+      ElMessage.success(t('system.common.deleteSuccess'))
       deleteIds.value = deleteIds.value.filter((d) => d !== row.id)
       getList()
     })
@@ -358,7 +360,7 @@ const batchDelete = async () => {
   if (!deleteIds.value.length) return
   try {
     await Promise.all(deleteIds.value.map((id) => deletePortForward({ id })))
-    ElMessage.success('批量删除成功')
+    ElMessage.success(t('tools.portForward.batchDeleteSuccess'))
     deleteIds.value = []
     getList()
   } catch {

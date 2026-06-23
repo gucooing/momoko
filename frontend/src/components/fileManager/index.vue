@@ -126,14 +126,14 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             class="toolbar-checkbox"
             :disabled="!hasSearchKeyword"
           >
-            子目录
+            {{ t('fileManager.subdirectories') }}
           </el-checkbox>
         </div>
         <el-input
           v-model="searchKeyword"
           class="toolbar-search"
           clearable
-          placeholder="在当前目录下查找"
+          :placeholder="t('fileManager.searchPlaceholder')"
           @clear="handleSearchClear"
           @keyup.enter="triggerSearch"
         >
@@ -156,26 +156,26 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
         <el-button class="toolbar-button" :disabled="!canGoBack || props.pasteLoading" @click="goBack">
           <span class="toolbar-button__content"
             ><el-icon class="toolbar-button__icon" size="15"><component :is="ArrowLeft" /></el-icon
-            ><span>返回</span></span
+            ><span>{{ t('fileManager.back') }}</span></span
           >
         </el-button>
         <el-button class="toolbar-button" :disabled="!canGoForward || props.pasteLoading" @click="goForward">
           <span class="toolbar-button__content"
             ><el-icon class="toolbar-button__icon" size="15"><component :is="ArrowRight" /></el-icon
-            ><span>前进</span></span
+            ><span>{{ t('fileManager.forward') }}</span></span
           >
         </el-button>
         <el-button class="toolbar-button" :disabled="!canGoUp || props.pasteLoading" @click="goUp">
           <span class="toolbar-button__content"
             ><el-icon class="toolbar-button__icon" size="15"><component :is="Top" /></el-icon
-            ><span>上级</span></span
+            ><span>{{ t('fileManager.up') }}</span></span
           >
         </el-button>
         <el-button v-if="supportsAction('refresh')" class="toolbar-button" :disabled="props.pasteLoading" @click="handleRefresh">
           <el-icon class="toolbar-button__icon toolbar-button__icon--standalone" size="15"
             ><component :is="RefreshRight"
           /></el-icon>
-          <span class="toolbar-button__content"><span>刷新</span></span>
+          <span class="toolbar-button__content"><span>{{ t('fileManager.refresh') }}</span></span>
         </el-button>
 
         <span v-if="toolbarHasActions" class="toolbar-divider" aria-hidden="true" />
@@ -186,7 +186,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
               <el-icon class="toolbar-button__icon" size="15"
                 ><component :is="CirclePlus"
               /></el-icon>
-              <span>新建</span>
+              <span>{{ t('fileManager.new') }}</span>
               <el-icon class="toolbar-chevron" size="13"><component :is="ArrowDown" /></el-icon>
             </span>
           </el-button>
@@ -210,7 +210,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
         >
           <span class="toolbar-button__content"
             ><el-icon class="toolbar-button__icon" size="15"><component :is="Upload" /></el-icon
-            ><span>上传</span></span
+            ><span>{{ t('fileManager.upload') }}</span></span
           >
         </el-button>
         <template v-if="hasSelectedBatchActions && selectedEntries.length > 0">
@@ -223,7 +223,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
           >
             <span class="toolbar-button__content"
               ><el-icon class="toolbar-button__icon" size="15"><component :is="DocumentDuplicateIcon" /></el-icon
-              ><span>复制</span></span
+              ><span>{{ t('fileManager.copy') }}</span></span
             >
           </el-button>
           <el-button
@@ -234,7 +234,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
           >
             <span class="toolbar-button__content"
               ><el-icon class="toolbar-button__icon" size="15"><component :is="ScissorsIcon" /></el-icon
-              ><span>剪切</span></span
+              ><span>{{ t('fileManager.cut') }}</span></span
             >
           </el-button>
           <el-button
@@ -245,13 +245,13 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
           >
             <span class="toolbar-button__content"
               ><el-icon class="toolbar-button__icon" size="15"><component :is="ArchiveBoxIcon" /></el-icon
-              ><span>压缩</span></span
+              ><span>{{ t('fileManager.compress') }}</span></span
             >
           </el-button>
           <el-button v-if="supportsAction('delete')" class="toolbar-button" :disabled="props.pasteLoading" @click="handleRowMore('delete')">
             <span class="toolbar-button__content"
               ><el-icon class="toolbar-button__icon" size="15"><component :is="Delete" /></el-icon
-              ><span>删除</span></span
+              ><span>{{ t('fileManager.delete') }}</span></span
             >
           </el-button>
         </template>
@@ -267,12 +267,12 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             <span class="paste-icon-stack" v-if="!props.pasteLoading">
               <el-icon class="toolbar-button__icon" size="15"><component :is="ClipboardDocumentIcon" /></el-icon>
             </span>
-            <span>{{ props.pasteLoading ? '粘贴中...' : '粘贴' }}</span>
+            <span>{{ props.pasteLoading ? t('fileManager.pasting') : t('fileManager.paste') }}</span>
           </span>
         </el-button>
       </div>
 
-      <div class="panel-note">{{ note }}</div>
+      <div class="panel-note">{{ resolvedNote }}</div>
 
       <!-- desktop: table -->
       <Transition v-if="!isMobile" name="directory-switch" mode="out-in">
@@ -288,13 +288,13 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             :data="visibleItems"
             row-key="id"
             class="file-table"
-            :empty-text="loading ? '目录加载中...' : '当前目录暂无文件'"
+            :empty-text="loading ? t('fileManager.directoryLoading') : t('fileManager.directoryEmpty')"
             @selection-change="handleSelectionChange"
             @row-click="handleRowClick"
             @sort-change="handleSortChange"
           >
             <el-table-column type="selection" width="48" />
-            <el-table-column prop="name" label="名称" min-width="340" :sortable="getSortMode('name')">
+            <el-table-column prop="name" :label="t('fileManager.tableName')" min-width="340" :sortable="getSortMode('name')">
               <template #default="{ row }">
                 <div class="file-name-cell">
                   <span class="file-kind-icon" :class="row.isDirectory ? 'is-folder' : 'is-file'">
@@ -307,27 +307,27 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="extension" label="拓展名" width="85">
+            <el-table-column prop="extension" :label="t('fileManager.extension')" width="85">
               <template #default="{ row }">
                 <span v-if="row.extension" class="file-extension">{{ row.extension }}</span>
                 <span v-else class="file-extension file-extension--muted">--</span>
               </template>
             </el-table-column>
-            <el-table-column prop="permission" label="权限" width="110" />
-            <el-table-column prop="ownerGroup" label="用户 / 用户组" min-width="190" />
-            <el-table-column prop="size" label="大小" width="120" :sortable="getSortMode('size')">
+            <el-table-column prop="permission" :label="t('fileManager.permission')" width="110" />
+            <el-table-column prop="ownerGroup" :label="t('fileManager.ownerGroup')" min-width="190" />
+            <el-table-column prop="size" :label="t('fileManager.size')" width="120" :sortable="getSortMode('size')">
               <template #default="{ row }">{{ row.sizeLabel }}</template>
             </el-table-column>
-            <el-table-column prop="updatedAt" label="修改时间" min-width="180" :sortable="getSortMode('updatedAt')">
+            <el-table-column prop="updatedAt" :label="t('fileManager.updatedAt')" min-width="180" :sortable="getSortMode('updatedAt')">
               <template #default="{ row }">{{ row.updatedAtLabel }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column :label="t('fileManager.operation')" width="180" fixed="right">
               <template #default="{ row }">
                 <div class="row-actions">
-                  <button v-if="canOpenEntry(row)" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="handleOpen(row)">打开</button>
-                  <button v-if="supportsAction('download') && !row.isDirectory" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="emit('action', 'download', activePath, [row])">下载</button>
+                  <button v-if="canOpenEntry(row)" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="handleOpen(row)">{{ t('fileManager.open') }}</button>
+                  <button v-if="supportsAction('download') && !row.isDirectory" type="button" class="row-action" :disabled="props.pasteLoading" @click.stop="emit('action', 'download', activePath, [row])">{{ t('fileManager.download') }}</button>
                   <el-dropdown v-if="getRowMoreActions(row).length" :disabled="props.pasteLoading" @command="(command) => handleRowMore(command, row)">
-                    <button type="button" class="row-action" :disabled="props.pasteLoading" @click.stop>更多 <el-icon size="12"><component :is="ArrowDown" /></el-icon></button>
+                    <button type="button" class="row-action" :disabled="props.pasteLoading" @click.stop>{{ t('fileManager.more') }} <el-icon size="12"><component :is="ArrowDown" /></el-icon></button>
                     <template #dropdown>
                       <el-dropdown-menu>
                         <el-dropdown-item v-for="item in getRowMoreActions(row)" :key="item.command" :command="item.command">{{ item.label }}</el-dropdown-item>
@@ -342,7 +342,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             <div v-if="props.pasteLoading" class="paste-processing-overlay">
               <div class="paste-processing-card">
                 <span class="paste-processing-spinner" />
-                <span class="paste-processing-text">正在粘贴，请稍候...</span>
+                <span class="paste-processing-text">{{ t('fileManager.pasteProcessing') }}</span>
               </div>
             </div>
           </Transition>
@@ -352,7 +352,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
       <!-- mobile: cards -->
       <div v-else v-loading="loading" class="fm-mobile-list">
         <div v-if="!visibleItems.length" class="fm-mobile-empty">
-          <el-empty :description="loading ? '目录加载中...' : '当前目录暂无文件'" />
+          <el-empty :description="loading ? t('fileManager.directoryLoading') : t('fileManager.directoryEmpty')" />
         </div>
         <div
           v-for="row in visibleItems"
@@ -381,9 +381,9 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
             </div>
           </div>
           <div class="fm-mobile-card-actions">
-            <el-button v-if="supportsAction('download') && !row.isDirectory" size="small" plain @click.stop="emit('action', 'download', activePath, [row])">下载</el-button>
+            <el-button v-if="supportsAction('download') && !row.isDirectory" size="small" plain @click.stop="emit('action', 'download', activePath, [row])">{{ t('fileManager.download') }}</el-button>
             <el-dropdown v-if="getRowMoreActions(row).length" @command="(cmd: any) => handleRowMore(cmd, row)">
-              <el-button size="small" plain @click.stop>更多</el-button>
+              <el-button size="small" plain @click.stop>{{ t('fileManager.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item v-for="item in getRowMoreActions(row)" :key="item.command" :command="item.command">{{ item.label }}</el-dropdown-item>
@@ -396,7 +396,7 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
 
       <div class="panel-footer">
         <div class="footer-summary">
-          共 {{ visibleStats.folders }} 个目录，{{ visibleStats.files }} 个文件
+          {{ t('fileManager.footerSummary', { folders: visibleStats.folders, files: visibleStats.files }) }}
         </div>
         <TablePagination
           v-model:current-page="pagination.page"
@@ -434,6 +434,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useWindowSize } from '@vueuse/core'
 import TablePagination from '@/components/pagination/TablePagination.vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FileManagerWorkbench' })
 
@@ -456,7 +457,7 @@ const props = withDefaults(
   }>(),
   {
     loading: false,
-    note: '支持搜索、排序和操作。',
+    note: '',
     pageSizes: () => [5, 10, 20, 50, 100, 200, 500],
     sortableFields: () => ['name', 'size', 'updatedAt'],
     hiddenActions: () => [],
@@ -476,6 +477,7 @@ const emit = defineEmits<{
 }>()
 
 const { width } = useWindowSize()
+const { t } = useI18n()
 const isMobile = computed(() => width.value <= 768)
 const activePath = ref(props.path)
 const selectedEntries = ref<FileManagerWorkbenchItem[]>([])
@@ -497,6 +499,7 @@ const historyCursor = ref(0)
 const addressInputRef = useTemplateRef<HTMLInputElement>('addressInput')
 
 const pageSizes = computed(() => props.pageSizes)
+const resolvedNote = computed(() => props.note || t('fileManager.note'))
 const hiddenActionSet = computed(() => new Set(props.hiddenActions))
 const isClientPagination = computed(() => props.paginationMode === 'client')
 const supportsAction = (action: FileManagerAction) => !hiddenActionSet.value.has(action)
@@ -509,9 +512,9 @@ const canOpenEntry = (entry: FileManagerWorkbenchItem) =>
 const createActionItems = computed(() =>
   [
     supportsAction('createFolder')
-      ? { command: 'createFolder' as const, label: '新建文件夹' }
+      ? { command: 'createFolder' as const, label: t('fileManager.createFolder') }
       : null,
-    supportsAction('createFile') ? { command: 'createFile' as const, label: '新建文件' } : null,
+    supportsAction('createFile') ? { command: 'createFile' as const, label: t('fileManager.createFile') } : null,
   ].filter((item): item is { command: 'createFolder' | 'createFile'; label: string } =>
     Boolean(item),
   ),
@@ -522,22 +525,22 @@ const isZipFile = (row: FileManagerWorkbenchItem) =>
 const getRowMoreActions = (row: FileManagerWorkbenchItem) =>
   [
     supportsAction('rename')
-      ? { command: 'rename' as const, label: '重命名' }
+      ? { command: 'rename' as const, label: t('fileManager.rename') }
       : null,
     supportsAction('copy')
-      ? { command: 'copy' as const, label: '复制' }
+      ? { command: 'copy' as const, label: t('fileManager.copy') }
       : null,
     supportsAction('cut')
-      ? { command: 'cut' as const, label: '剪切' }
+      ? { command: 'cut' as const, label: t('fileManager.cut') }
       : null,
     !row.isDirectory && supportsAction('copyTemporaryLink')
-      ? { command: 'copyTemporaryLink' as const, label: '复制链接' }
+      ? { command: 'copyTemporaryLink' as const, label: t('fileManager.copyLink') }
       : null,
     isZipFile(row) && supportsAction('unzip')
-      ? { command: 'unzip' as const, label: '解压' }
+      ? { command: 'unzip' as const, label: t('fileManager.unzip') }
       : null,
-    supportsAction('delete') ? { command: 'delete' as const, label: '删除' } : null,
-    supportsAction('more') ? { command: 'more' as const, label: '属性' } : null,
+    supportsAction('delete') ? { command: 'delete' as const, label: t('fileManager.delete') } : null,
+    supportsAction('more') ? { command: 'more' as const, label: t('fileManager.properties') } : null,
   ].filter((item): item is { command: 'rename' | 'copy' | 'cut' | 'copyTemporaryLink' | 'unzip' | 'delete' | 'more'; label: string } =>
     Boolean(item),
   )

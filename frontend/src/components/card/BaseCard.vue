@@ -23,7 +23,6 @@
       <slot></slot>
     </div>
     <template #footer v-if="slots.footer">
-      footer 页脚插槽
       <slot name="footer"></slot>
     </template>
   </el-card>

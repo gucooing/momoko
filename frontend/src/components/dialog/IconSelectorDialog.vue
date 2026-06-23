@@ -1,7 +1,7 @@
 <template>
   <BaseDialog
     v-model="open"
-    :title="title"
+    :title="resolvedTitle"
     :width="width"
     :show-footer="false"
     style="height: 60vh"
@@ -31,7 +31,7 @@
       <div class="icon-content">
         <transition name="fade-slide" mode="out-in">
           <div :key="activeMenu" style="height: 100%">
-            <el-input v-model="searchValue" placeholder="搜索图标名称" clearable>
+            <el-input v-model="searchValue" :placeholder="t('iconSelector.searchPlaceholder')" clearable>
               <template #prefix>
                 <el-icon><component :is="menuStore.iconComponents['Element:Search']" /></el-icon>
               </template>
@@ -85,6 +85,7 @@
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { loadIconCatalog, type IconPrefix } from '@/config/iconRegistry'
 import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
+import { useI18n } from 'vue-i18n'
 defineOptions({ name: 'IconSelectorDialog', inheritAttrs: false })
 
 interface IProps {
@@ -109,7 +110,6 @@ interface IIconMenuItem {
 }
 
 const props = withDefaults(defineProps<IProps>(), {
-  title: '图标选择',
   width: '900px',
   density: 'compact',
 })
@@ -118,6 +118,8 @@ const emits = defineEmits<IEmits>()
 
 const open = ref(false)
 const menuStore = useMenuStore()
+const { t } = useI18n()
+const resolvedTitle = computed(() => props.title || t('iconSelector.title'))
 
 // 当前选中的图标
 const currentIcon = ref('')

@@ -20,7 +20,7 @@
     <template #dropdown>
       <div class="notification-dropdown">
         <div class="notification-header">
-          <span class="title">消息通知</span>
+          <span class="title">{{ t('layout.notificationTitle') }}</span>
           <el-button
             v-if="unreadCount > 0"
             type="primary"
@@ -31,14 +31,14 @@
             <el-icon class="button-icon"
               ><component :is="menuStore.iconComponents['Check']"
             /></el-icon>
-            全部已读
+            {{ t('layout.markAllRead') }}
           </el-button>
         </div>
         <div class="notification-list">
           <el-scrollbar max-height="400px">
             <Transition name="zoom" :style="{ '--animation-duration': '0.5s' }" mode="out-in">
               <div v-if="unreadMessageList.length === 0" class="empty-message">
-                <el-empty description="暂无消息" :image-size="80" />
+                <el-empty :description="t('layout.noMessages')" :image-size="80" />
               </div>
               <TransitionGroup name="group-slide-right" tag="div" v-else>
                 <div
@@ -59,7 +59,9 @@
           </el-scrollbar>
         </div>
         <div class="notification-footer">
-          <el-button type="primary" link @click="goToProfile">查看全部消息</el-button>
+          <el-button type="primary" link @click="goToProfile">
+            {{ t('layout.viewAllMessages') }}
+          </el-button>
         </div>
       </div>
     </template>
@@ -69,12 +71,14 @@
 <script setup lang="ts">
 import type { ElDropdown } from 'element-plus'
 import { useUserProfileStore } from '@/stores/user/profile'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userProfileStore = useUserProfileStore()
 const menuStore = useMenuStore()
 const notificationDropdownRef = ref<InstanceType<typeof ElDropdown>>()
 const { unreadCount, userMessages } = storeToRefs(userProfileStore)
+const { t } = useI18n()
 
 const unreadMessageList = computed(() => userMessages.value.filter((msg) => !msg.read))
 

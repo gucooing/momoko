@@ -6,8 +6,8 @@
     :placement="placement"
     :width="width"
     :disabled="disabled"
-    :confirm-button-text="confirmButtonText"
-    :cancel-button-text="cancelButtonText"
+    :confirm-button-text="resolvedConfirmButtonText"
+    :cancel-button-text="resolvedCancelButtonText"
     :show-after="showAfter"
     @confirm="handleConfirm"
   >
@@ -33,6 +33,7 @@
 import { getCurrentInstance, useAttrs } from 'vue'
 import { useMenuStore } from '@/stores/menu'
 import { Dialog } from '@/utils/dialog'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({
   inheritAttrs: false,
@@ -55,18 +56,19 @@ defineEmits<{
 
 const props = withDefaults(defineProps<Props>(), {
   title: '',
-  dialogTitle: '确认',
   width: 220,
   placement: 'top',
   disabled: false,
-  confirmButtonText: '确定',
-  cancelButtonText: '取消',
   showAfter: 0,
 })
 
 const attrs = useAttrs()
 const instance = getCurrentInstance()
 const menuStore = useMenuStore()
+const { t } = useI18n()
+const resolvedDialogTitle = computed(() => props.dialogTitle || t('dialog.title.confirm'))
+const resolvedConfirmButtonText = computed(() => props.confirmButtonText || t('common.confirm'))
+const resolvedCancelButtonText = computed(() => props.cancelButtonText || t('common.cancel'))
 
 type ConfirmListener = () => void | Promise<void>
 
@@ -89,10 +91,10 @@ const handleMobileTriggerClick = () => {
   if (props.disabled) return
 
   Dialog.confirm({
-    title: props.dialogTitle,
+    title: resolvedDialogTitle.value,
     content: props.title,
-    confirmText: props.confirmButtonText,
-    cancelText: props.cancelButtonText,
+    confirmText: resolvedConfirmButtonText.value,
+    cancelText: resolvedCancelButtonText.value,
     onConfirm: handleConfirm,
   })
 }

@@ -1,19 +1,19 @@
 <template>
   <!-- 个人资料中心 -->
-  <BaseCard title="个人资料中心" title-icon="HOutline:UserIcon">
+  <BaseCard :title="t('user.profileCenter')" title-icon="HOutline:UserIcon">
     <template #header-right>
-      <el-button type="primary" @click="saveUser">保存全部更改</el-button>
+      <el-button type="primary" @click="saveUser">{{ t('user.saveAllChanges') }}</el-button>
     </template>
     <div>
       <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <el-avatar :size="110" :src="previewAvatar" class="shrink-0" />
         <div class="flex w-full flex-col items-start gap-2">
-          <h4>您的头像</h4>
+          <h4>{{ t('user.avatarTitle') }}</h4>
           <p class="text-sm text-(--el-text-color-secondary)">
-            内置多种头像。支持 JPG、PNG、GIF 等格式头像上传，建议大小不超过 2MB 。
+            {{ t('user.avatarDescription') }}
           </p>
           <el-button size="small" type="primary" @click="selectAvatarDialogRef?.showDialog()"
-            >修改头像</el-button
+            >{{ t('user.changeAvatar') }}</el-button
           >
         </div>
       </div>
@@ -23,39 +23,39 @@
       <el-form :model="profileForm" label-position="top" class="custom-form">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="用户名">
-              <el-input v-model="profileForm.username" placeholder="请输入登录用户名" />
+            <el-form-item :label="t('user.username')">
+              <el-input v-model="profileForm.username" :placeholder="t('user.loginUsernamePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="姓名">
-              <el-input v-model="profileForm.name" placeholder="请输入姓名" />
+            <el-form-item :label="t('user.name')">
+              <el-input v-model="profileForm.name" :placeholder="t('user.namePlaceholder')" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="邮箱">
-              <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
+            <el-form-item :label="t('user.email')">
+              <el-input v-model="profileForm.email" :placeholder="t('user.emailPlaceholder')" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="个人简介/座右铭">
+        <el-form-item :label="t('user.bioLabel')">
           <el-input
             v-model="profileForm.bio"
             type="textarea"
             :rows="4"
-            placeholder="写点什么来展示你自己..."
+            :placeholder="t('user.bioPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="个人标签（用几个关键词介绍一下自己）">
+        <el-form-item :label="t('user.tagsLabel')">
           <el-input
             v-model="profileForm.tags"
             type="textarea"
             :rows="4"
-            placeholder="多个标签请用英文逗号分隔, 例如：写代码的, 爱咖啡, 偶尔健身, 长期学习中"
+            :placeholder="t('user.tagsPlaceholder')"
           />
         </el-form-item>
       </el-form>
@@ -77,15 +77,15 @@
               </div>
 
               <div>
-                <div class="mb-1 text-sm font-bold text-(--el-text-color-primary)">修改密码</div>
+                <div class="mb-1 text-sm font-bold text-(--el-text-color-primary)">{{ t('user.passwordCardTitle') }}</div>
                 <div class="text-xs text-(--el-text-color-secondary)">
-                  定期更换强密码能显著提升账户安全性，建议包含字母与数字。
+                  {{ t('user.passwordCardDescription') }}
                 </div>
               </div>
             </div>
 
             <el-button type="primary" plain @click="updatePasswordRef?.showDialog()">
-              立即修改
+              {{ t('user.changeNow') }}
             </el-button>
           </div>
         </div>
@@ -96,15 +96,15 @@
         <div
           class="p-4 bg-(--el-color-danger-light-9) border border-dashed border-(--el-color-danger-light-5) rounded-xl cursor-pointer transition-all duration-300 hover:bg-(--el-color-danger-light-7) hover:border-(--el-color-danger)"
         >
-          <h4 class="mb-2 text-(--el-color-danger) font-bold">危险区域</h4>
+          <h4 class="mb-2 text-(--el-color-danger) font-bold">{{ t('user.dangerZone') }}</h4>
           <div class="flex items-center justify-between gap-4">
             <div>
-              <div class="mb-1 text-sm font-bold">注销账户</div>
+              <div class="mb-1 text-sm font-bold">{{ t('user.deleteAccount') }}</div>
               <div class="text-sm text-(--el-text-color-secondary)">
-                一旦注销，所有数据将无法恢复，请谨慎操作。
+                {{ t('user.deleteAccountDescription') }}
               </div>
             </div>
-            <el-button type="danger" plain @click="deleteUser">立即注销</el-button>
+            <el-button type="danger" plain @click="deleteUser">{{ t('user.deleteNow') }}</el-button>
           </div>
         </div>
       </HoverAnimateWrapper>
@@ -122,10 +122,12 @@ import { useUserProfileStore } from '@/stores/user/profile'
 import { resolveAvatarUrl } from '@/utils/assets'
 import { showRequestError } from '@/utils/request'
 import { Dialog } from '@/utils/dialog'
+import { useI18n } from 'vue-i18n'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
+const { t } = useI18n()
 const { profileForm } = storeToRefs(userProfileStore)
 const previewAvatar = computed(() => resolveAvatarUrl(profileForm.value.avatar) || '')
 
@@ -135,15 +137,15 @@ const updatePasswordRef = useTemplateRef('updatePasswordRef')
 // 保存修改
 const saveUser = () => {
   Dialog.confirm({
-    title: '确认保存个人资料',
-    content: '小改动，大影响～确认保存当前修改吗？保存后将立即生效。',
-    cancelText: '我再看看',
-    confirmText: '确认保存',
+    title: t('user.saveProfileTitle'),
+    content: t('user.saveProfileContent'),
+    cancelText: t('user.saveProfileCancel'),
+    confirmText: t('user.saveProfileConfirm'),
     onConfirm: async () => {
       try {
         await userStore.updateUserProfile(profileForm.value)
       } catch (error) {
-        showRequestError(error, '修改个人资料失败')
+        showRequestError(error, t('user.profileUpdateFailed'))
         throw error
       }
     },
@@ -152,7 +154,7 @@ const saveUser = () => {
 
 // 注销用户
 const deleteUser = () => {
-  ElMessage.info('注销账户功能暂未实现')
+  ElMessage.info(t('user.deleteAccountNotImplemented'))
 }
 
 // 监听用户信息 赋值

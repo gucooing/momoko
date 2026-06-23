@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="open" title="修改密码" width="500" @confirm="updatePassword">
+  <BaseDialog v-model="open" :title="t('password.title')" width="500" @confirm="updatePassword">
     <el-form
       ref="passwordFormRef"
       :model="passwordForm"
@@ -7,29 +7,29 @@
       label-width="80px"
       class="password-form"
     >
-      <el-form-item label="旧密码" prop="oldPassword">
+      <el-form-item :label="t('password.oldPassword')" prop="oldPassword">
         <el-input
           v-model.trim="passwordForm.oldPassword"
           type="password"
-          placeholder="请输入旧密码"
+          :placeholder="t('password.oldPasswordPlaceholder')"
           show-password
           clearable
         />
       </el-form-item>
-      <el-form-item label="新密码" prop="newPassword">
+      <el-form-item :label="t('password.newPassword')" prop="newPassword">
         <el-input
           v-model.trim="passwordForm.newPassword"
           type="password"
-          placeholder="请输入新密码（至少6位）"
+          :placeholder="t('password.newPasswordPlaceholder')"
           show-password
           clearable
         />
       </el-form-item>
-      <el-form-item label="确认密码" prop="confirmPassword">
+      <el-form-item :label="t('password.confirmPassword')" prop="confirmPassword">
         <el-input
           v-model.trim="passwordForm.confirmPassword"
           type="password"
-          placeholder="请再次输入新密码"
+          :placeholder="t('password.confirmPasswordPlaceholder')"
           show-password
           clearable
         />
@@ -43,9 +43,11 @@ import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import type { FormInstance } from 'element-plus'
 import type { UserPasswordFormValue } from '@/stores/user/types'
 import { showRequestError } from '@/utils/request'
+import { useI18n } from 'vue-i18n'
 
 const userStore = useUserStore()
 const passwordFormRef = useTemplateRef<FormInstance>('passwordFormRef')
+const { t } = useI18n()
 
 const open = ref(false)
 
@@ -66,32 +68,32 @@ const updatePassword = async () => {
     passwordForm.value = createDefaultPasswordForm()
     open.value = false
   } catch (error) {
-    showRequestError(error, '修改密码失败')
+    showRequestError(error, t('password.updateFailed'))
   }
 }
 
 // 新密码验证
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const validateNewPassword = (rule: any, value: string, callback: any) => {
-  if (value.trim() === '') return callback(new Error('请输入新密码'))
-  if (value.length < 6) return callback(new Error('新密码长度至少6位'))
+  if (value.trim() === '') return callback(new Error(t('password.newPasswordRequired')))
+  if (value.length < 6) return callback(new Error(t('password.newPasswordMin')))
   callback()
 }
 
 // 确认密码验证
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const validateConfirmPassword = (rule: any, value: string, callback: any) => {
-  if (value.trim() === '') return callback(new Error('请输入确认密码'))
-  if (value !== passwordForm.value.newPassword) return callback(new Error('确认密码与新密码不一致'))
+  if (value.trim() === '') return callback(new Error(t('password.confirmPasswordRequired')))
+  if (value !== passwordForm.value.newPassword) return callback(new Error(t('password.confirmPasswordMismatch')))
   callback()
 }
 
 // rules
-const passwordRules = ref({
-  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
+const passwordRules = computed(() => ({
+  oldPassword: [{ required: true, message: t('password.oldPasswordPlaceholder'), trigger: 'blur' }],
   newPassword: [{ required: true, validator: validateNewPassword, trigger: 'blur' }],
   confirmPassword: [{ required: true, validator: validateConfirmPassword, trigger: 'blur' }],
-})
+}))
 
 const showDialog = () => {
   passwordForm.value = createDefaultPasswordForm()

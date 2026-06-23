@@ -25,7 +25,7 @@
             <el-icon size="18" v-if="tab.icon">
               <component :is="titleIconComponent(tab.icon)" />
             </el-icon>
-            <div v-if="!iconOnly">{{ tab.label }}</div>
+            <div v-if="!iconOnly">{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</div>
           </div>
         </el-badge>
       </template>
@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import type { ProfileTabsMenuItem } from '@/stores/user/types'
+import { useI18n } from 'vue-i18n'
 
 // 禁用自动属性继承，手动控制属性透传
 defineOptions({ inheritAttrs: false })
@@ -82,6 +83,7 @@ const emits = defineEmits<IEmits>()
 
 const menuStore = useMenuStore()
 const attrs = useAttrs()
+const { t } = useI18n()
 
 // 计算title icon 组件 (如果自己使用 可替换为自己的图标库 或者直接传递图标组件)
 const titleIconComponent = (icon: string | Component) => {

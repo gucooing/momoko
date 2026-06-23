@@ -19,7 +19,7 @@
             <HoverAnimateWrapper name="rotate">
               <IconButton
                 icon="HOutline:Cog6ToothIcon"
-                tooltip="主题配置"
+                :tooltip="t('layout.themeConfig')"
                 @click="themeStore.themeConfigDrawerOpen = true"
               />
             </HoverAnimateWrapper>
@@ -61,10 +61,12 @@ import Register from '@/views/login/register.vue'
 import ThemeConfig from '@/components/ThemeConfig.vue'
 import I18nDropdown from '@/layouts/i18nDropdown.vue'
 import type { LoginConfig } from '@/types/v1/system'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'LoginView' })
 
 const themeStore = useThemeStore()
+const { t } = useI18n()
 
 type LoginMode = 'login' | 'forgot' | 'register'
 

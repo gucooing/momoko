@@ -1,7 +1,7 @@
 <template>
   <TerminalEmulator
     mode="instance-console"
-    :terminal-name="terminalInfo?.name || '当前实例'"
+    :terminal-name="terminalInfo?.name || t('instance.currentInstance')"
     :terminal-type="terminalInfo?.type || ''"
     :terminal-id="terminalInfo?.id || ''"
     :instance-status="terminalInfo?.status || ''"
@@ -42,11 +42,13 @@ import { InstanceStatus, type InstanceEditorFormValue } from '@/stores/instance/
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceConsoleView' })
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const instanceConsoleStore = useInstanceConsoleStore()
 const instanceListStore = useInstanceListStore()
@@ -104,7 +106,7 @@ watch(
   { immediate: true },
 )
 
-const instanceName = computed(() => terminalInfo.value?.name || '当前实例')
+const instanceName = computed(() => terminalInfo.value?.name || t('instance.currentInstance'))
 
 const onInput = (text: string) => {
   commandValue.value = text
@@ -114,13 +116,13 @@ const onInput = (text: string) => {
 const openFileManager = () => {
   const instanceId = getRouteInstanceId()
   if (!instanceId) {
-    ElMessage.warning('缺少实例ID，无法打开文件管理')
+    ElMessage.warning(t('instance.missingInstanceIdFile'))
     return
   }
   router.push({
     path: `/instance/files/${instanceId}`,
     query: {
-      tabTitle: `${terminalInfo.value?.name || '实例'} 文件`,
+      tabTitle: t('instance.instanceFileTab', { name: terminalInfo.value?.name || t('instance.instanceEntity') }),
       from: 'instance',
       status: terminalInfo.value?.status,
       workdir: terminalInfo.value?.instancePath,
@@ -131,14 +133,14 @@ const openFileManager = () => {
 const openInstanceEditor = async () => {
   const instanceId = getRouteInstanceId()
   if (!instanceId) {
-    ElMessage.warning('缺少实例ID，无法打开实例设置')
+    ElMessage.warning(t('instance.missingInstanceIdSetting'))
     return
   }
   try {
     await getInstanceTypeList()
     await openEditEditor(instanceId)
   } catch (error) {
-    showRequestError(error, '加载实例配置失败')
+    showRequestError(error, t('instance.loadConfigFailed'))
   }
 }
 
@@ -149,10 +151,10 @@ const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
   try {
     instanceEditorForm.value = { ...form }
     await submitInstanceEditor()
-    ElMessage.success('实例配置保存成功')
+    ElMessage.success(t('instance.configSaveSuccess'))
     if (instanceId) await refreshCurrentInfo()
   } catch (error) {
-    showRequestError(error, '实例配置保存失败')
+    showRequestError(error, t('instance.configSaveFailed'))
   }
 }
 
@@ -162,40 +164,40 @@ const handleTogglePower = () => {
     return
   }
   Dialog.confirm({
-    title: '确认停止实例',
-    content: `确定要停止实例"${instanceName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认停止',
+    title: t('instance.confirmStopInstanceTitle'),
+    content: t('instance.confirmStopInstanceContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmStop'),
     onConfirm: async () => { await togglePower() },
   })
 }
 
 const handleRestart = () => {
   Dialog.confirm({
-    title: '确认重启实例',
-    content: `确定要重启实例"${instanceName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认重启',
+    title: t('instance.confirmRestartInstanceTitle'),
+    content: t('instance.confirmRestartInstanceContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmRestart'),
     onConfirm: async () => { await restartTerminal() },
   })
 }
 
 const handleForceStop = () => {
   Dialog.confirm({
-    title: '确认强制停止实例',
-    content: `确定要强制停止实例"${instanceName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认强制停止',
+    title: t('instance.confirmForceStopInstanceTitle'),
+    content: t('instance.confirmForceStopInstanceContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmForceStop'),
     onConfirm: async () => { await forceStopConsole() },
   })
 }
 
 const handleForceRestart = () => {
   Dialog.confirm({
-    title: '确认强制重启实例',
-    content: `确定要强制重启实例"${instanceName.value}"吗？`,
-    cancelText: '取消',
-    confirmText: '确认强制重启',
+    title: t('instance.confirmForceRestartInstanceTitle'),
+    content: t('instance.confirmForceRestartInstanceContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmForceRestart'),
     onConfirm: async () => { await forceRestartTerminal() },
   })
 }
@@ -203,7 +205,7 @@ const handleForceRestart = () => {
 const handleFeature = (key: string) => {
   if (key === 'file-manager') { openFileManager(); return }
   if (key === 'instance-setting') { void openInstanceEditor(); return }
-  ElMessage.info('功能暂未实现')
+  ElMessage.info(t('instance.featureNotImplemented'))
 }
 
 onBeforeUnmount(() => closeInstanceEditor())

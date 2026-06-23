@@ -4,13 +4,13 @@
       <el-form :model="queryForm" label-width="auto" @keyup.enter="search">
         <el-row :gutter="10">
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="名称">
-              <el-input v-model="queryForm.name" placeholder="网络名称" clearable />
+            <el-form-item :label="t('docker.common.name')">
+              <el-input v-model="queryForm.name" :placeholder="t('docker.network.namePlaceholder')" clearable />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item label="驱动">
-              <el-select v-model="queryForm.driver" placeholder="全部" clearable style="width: 100%">
+            <el-form-item :label="t('docker.common.driver')">
+              <el-select v-model="queryForm.driver" :placeholder="t('docker.common.all')" clearable style="width: 100%">
                 <el-option label="bridge" value="bridge" />
                 <el-option label="host" value="host" />
                 <el-option label="overlay" value="overlay" />
@@ -19,8 +19,8 @@
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
             <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">搜索</el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">重置</el-button>
+              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="search">{{ t('docker.common.search') }}</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('docker.common.reset') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -29,9 +29,9 @@
 
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
-        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">创建网络</el-button>
-        <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用网络</el-button>
-        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
+        <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openCreate">{{ t('docker.network.createNetwork') }}</el-button>
+        <el-button type="warning" :disabled="!canManage" @click="handlePrune">{{ t('docker.network.pruneUnused') }}</el-button>
+        <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">{{ t('docker.common.tasks') }}</el-button>
       </div>
 
       <div v-loading="loading">
@@ -46,11 +46,11 @@
             {{ row.containers ? Object.keys(row.containers).length : 0 }}
           </template>
           <template #column-operation="{ row }: { row: DockerNetworkInfo }">
-            <el-button type="primary" link size="small" @click="openDetail(row)">详情</el-button>
+            <el-button type="primary" link size="small" @click="openDetail(row)">{{ t('docker.common.detail') }}</el-button>
             <template v-if="canManage">
-              <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
-              <el-button type="primary" link size="small" @click="openConnect(row)">连接容器</el-button>
-              <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+              <el-button type="primary" link size="small" @click="openEdit(row)">{{ t('docker.common.edit') }}</el-button>
+              <el-button type="primary" link size="small" @click="openConnect(row)">{{ t('docker.network.connectContainer') }}</el-button>
+              <el-button type="danger" link size="small" @click="handleDelete(row)">{{ t('docker.common.delete') }}</el-button>
             </template>
           </template>
         </VxeGrid>
@@ -62,16 +62,16 @@
                 <span class="mobile-card-title">{{ row.name }}</span>
                 <BaseTag :text="row.driver" type="info" />
               </div>
-              <div class="mobile-card-meta"><span>ID：{{ row.id?.slice(0, 12) }}</span></div>
-              <div class="mobile-card-meta"><span>容器：{{ row.containers ? Object.keys(row.containers).length : 0 }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.image.idMeta', { id: row.id?.slice(0, 12) || '-' }) }}</span></div>
+              <div class="mobile-card-meta"><span>{{ t('docker.network.containerMeta', { count: row.containers ? Object.keys(row.containers).length : 0 }) }}</span></div>
             </div>
             <div class="mobile-card-actions">
-              <el-button size="small" plain type="primary" @click="openDetail(row)">详情</el-button>
-              <el-button v-if="canManage" size="small" plain type="danger" @click="handleDelete(row)">删除</el-button>
+              <el-button size="small" plain type="primary" @click="openDetail(row)">{{ t('docker.common.detail') }}</el-button>
+              <el-button v-if="canManage" size="small" plain type="danger" @click="handleDelete(row)">{{ t('docker.common.delete') }}</el-button>
             </div>
           </div>
         </div>
-        <el-empty v-else-if="!loading" description="暂无网络" />
+        <el-empty v-else-if="!loading" :description="t('docker.network.noNetworks')" />
       </div>
 
       <TablePagination
@@ -84,16 +84,16 @@
     </el-card>
 
     <!-- Create Dialog -->
-    <BaseDialog v-model="createVisible" title="创建网络" width="550">
+    <BaseDialog v-model="createVisible" :title="t('docker.network.createNetwork')" width="550">
       <el-form :model="createForm" label-position="top">
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="名称" required>
-              <el-input v-model="createForm.name" placeholder="网络名称" />
+            <el-form-item :label="t('docker.common.name')" required>
+              <el-input v-model="createForm.name" :placeholder="t('docker.network.namePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="驱动">
+            <el-form-item :label="t('docker.common.driver')">
               <el-select v-model="createForm.driver" style="width: 100%">
                 <el-option label="bridge" value="bridge" />
                 <el-option label="host" value="host" />
@@ -104,87 +104,87 @@
         </el-row>
         <el-row :gutter="12">
           <el-col :span="8">
-            <el-form-item label="内部网络"><el-switch v-model="createForm.internal" /></el-form-item>
+            <el-form-item :label="t('docker.network.internal')"><el-switch v-model="createForm.internal" /></el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="IPv6"><el-switch v-model="createForm.enableIpv6" /></el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="可附加"><el-switch v-model="createForm.attachable" /></el-form-item>
+            <el-form-item :label="t('docker.network.attachable')"><el-switch v-model="createForm.attachable" /></el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="子网">
-              <el-input v-model="createForm.subnet" placeholder="如 172.20.0.0/16" />
+            <el-form-item :label="t('docker.network.subnet')">
+              <el-input v-model="createForm.subnet" :placeholder="t('docker.network.subnetPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="网关">
-              <el-input v-model="createForm.gateway" placeholder="如 172.20.0.1" />
+            <el-form-item :label="t('docker.network.gateway')">
+              <el-input v-model="createForm.gateway" :placeholder="t('docker.network.gatewayPlaceholder')" />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">创建</el-button>
+        <el-button @click="createVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="createSubmitting" @click="submitCreate">{{ t('docker.common.create') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Detail Dialog -->
-    <BaseDialog v-model="detailVisible" title="网络详情" width="800">
+    <BaseDialog v-model="detailVisible" :title="t('docker.network.networkDetail')" width="800">
       <div v-if="detail" v-loading="detailLoading">
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
-          <el-descriptions-item label="名称">{{ detail.name }}</el-descriptions-item>
-          <el-descriptions-item label="驱动">{{ detail.driver }}</el-descriptions-item>
-          <el-descriptions-item label="作用域">{{ detail.scope }}</el-descriptions-item>
-          <el-descriptions-item label="内部网络">{{ detail.internal ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="可附加">{{ detail.attachable ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="IPv6">{{ detail.enableIpv6 ? '启用' : '未启用' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ detail.created }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.id')">{{ detail.id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.name')">{{ detail.name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.driver')">{{ detail.driver }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.scope')">{{ detail.scope }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.network.internal')">{{ detail.internal ? t('docker.common.yes') : t('docker.common.no') }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.network.attachable')">{{ detail.attachable ? t('docker.common.yes') : t('docker.common.no') }}</el-descriptions-item>
+          <el-descriptions-item label="IPv6">{{ detail.enableIpv6 ? t('docker.common.enabled') : t('docker.common.notEnabled') }}</el-descriptions-item>
+          <el-descriptions-item :label="t('docker.common.createdAt')">{{ detail.created }}</el-descriptions-item>
         </el-descriptions>
         <div v-if="detail.ipam?.config?.length" style="margin-top: 12px">
-          <h4>IPAM 配置</h4>
+          <h4>{{ t('docker.network.ipamConfig') }}</h4>
           <el-table :data="detail.ipam.config" size="small" border>
-            <el-table-column prop="subnet" label="子网" />
-            <el-table-column prop="gateway" label="网关" />
-            <el-table-column prop="ipRange" label="IP范围" />
+            <el-table-column prop="subnet" :label="t('docker.network.subnet')" />
+            <el-table-column prop="gateway" :label="t('docker.network.gateway')" />
+            <el-table-column prop="ipRange" :label="t('docker.network.ipRange')" />
           </el-table>
         </div>
         <div v-if="detail.containers && Object.keys(detail.containers).length" style="margin-top: 12px">
-          <h4>已连接容器</h4>
+          <h4>{{ t('docker.network.connectedContainers') }}</h4>
           <el-table :data="Object.entries(detail.containers).map(([k, v]) => ({ ...v, containerId: k }))" size="small" border>
-            <el-table-column prop="containerId" label="容器ID" width="150" show-overflow-tooltip />
-            <el-table-column prop="name" label="名称" />
+            <el-table-column prop="containerId" :label="t('docker.network.containerId')" width="150" show-overflow-tooltip />
+            <el-table-column prop="name" :label="t('docker.common.name')" />
             <el-table-column prop="ipv4Address" label="IPv4" width="160" />
             <el-table-column prop="macAddress" label="MAC" width="150" />
-            <el-table-column v-if="canManage" label="操作" width="80">
+            <el-table-column v-if="canManage" :label="t('docker.common.operation')" width="80">
               <template #default="{ row: c }">
-                <el-button type="danger" link size="small" @click="handleDisconnect(detail, c.containerId)">断开</el-button>
+                <el-button type="danger" link size="small" @click="handleDisconnect(detail, c.containerId)">{{ t('docker.network.disconnect') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
         </div>
       </div>
       <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button @click="detailVisible = false">{{ t('docker.common.close') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Edit Dialog -->
-    <BaseDialog v-model="editVisible" title="编辑网络" width="550">
+    <BaseDialog v-model="editVisible" :title="t('docker.network.editNetwork')" width="550">
       <el-form label-position="top">
-        <el-form-item label="标签">
-          <el-input v-model="editLabelsText" placeholder="key=value&#10;每行一个" type="textarea" :rows="2" />
+        <el-form-item :label="t('docker.common.labels')">
+          <el-input v-model="editLabelsText" :placeholder="t('docker.common.lineKvPlaceholder')" type="textarea" :rows="2" />
         </el-form-item>
         <el-divider />
-        <el-checkbox v-model="editRecreate" style="margin-bottom: 8px">重建网络（需要修改驱动/子网等时勾选）</el-checkbox>
+        <el-checkbox v-model="editRecreate" style="margin-bottom: 8px">{{ t('docker.network.recreateTip') }}</el-checkbox>
         <template v-if="editRecreate">
           <el-row :gutter="12">
             <el-col :span="12">
-              <el-form-item label="驱动">
+              <el-form-item :label="t('docker.common.driver')">
                 <el-select v-model="editDriver" style="width: 100%">
                   <el-option label="bridge" value="bridge" />
                   <el-option label="host" value="host" />
@@ -193,44 +193,44 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="强制重建">
+              <el-form-item :label="t('docker.common.forceRecreate')">
                 <el-switch v-model="editForce" />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="12">
             <el-col :span="12">
-              <el-form-item label="子网">
-                <el-input v-model="editSubnet" placeholder="如 172.20.0.0/16" />
+              <el-form-item :label="t('docker.network.subnet')">
+                <el-input v-model="editSubnet" :placeholder="t('docker.network.subnetPlaceholder')" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="网关">
-                <el-input v-model="editGateway" placeholder="如 172.20.0.1" />
+              <el-form-item :label="t('docker.network.gateway')">
+                <el-input v-model="editGateway" :placeholder="t('docker.network.gatewayPlaceholder')" />
               </el-form-item>
             </el-col>
           </el-row>
         </template>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="editSubmitting" @click="submitEdit">{{ t('docker.common.save') }}</el-button>
       </template>
     </BaseDialog>
 
     <!-- Connect Dialog -->
-    <BaseDialog v-model="connectVisible" title="连接容器到网络" width="450">
+    <BaseDialog v-model="connectVisible" :title="t('docker.network.connectContainerDialog')" width="450">
       <el-form label-position="top">
-        <el-form-item label="容器 ID 或名称" required>
-          <el-input v-model="connectForm.containerId" placeholder="容器ID 或名称" />
+        <el-form-item :label="t('docker.network.containerIdOrName')" required>
+          <el-input v-model="connectForm.containerId" :placeholder="t('docker.network.containerIdOrNamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="IPv4 地址">
-          <el-input v-model="connectForm.ipv4Address" placeholder="如 172.20.0.10" />
+        <el-form-item :label="t('docker.network.ipv4Address')">
+          <el-input v-model="connectForm.ipv4Address" :placeholder="t('docker.network.ipv4Placeholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="connectVisible = false">取消</el-button>
-        <el-button type="primary" :loading="connectSubmitting" @click="submitConnect">连接</el-button>
+        <el-button @click="connectVisible = false">{{ t('docker.common.cancel') }}</el-button>
+        <el-button type="primary" :loading="connectSubmitting" @click="submitConnect">{{ t('docker.common.connect') }}</el-button>
       </template>
     </BaseDialog>
 
@@ -239,6 +239,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
   connectDockerNetwork, createDockerNetwork, deleteDockerNetwork,
   disconnectDockerNetwork, getDockerNetwork, listDockerNetworks, pruneDockerNetworks,
@@ -259,6 +260,7 @@ import type { VxeGridProps } from 'vxe-table'
 defineOptions({ name: 'DockerNetworkView' })
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const canManage = useButtonPermission([PERM.DOCKER_NETWORK_MANAGE], [])
 
 const list = ref<DockerNetworkInfo[]>([])
@@ -272,11 +274,11 @@ const gridConfig = computed<VxeGridProps>(() => ({
   columns: [
     { type: 'seq', title: '#', width: 50, fixed: 'left' },
     { field: 'id', title: 'ID', width: 150, showOverflow: true },
-    { field: 'name', title: '名称', minWidth: 160 },
-    { field: 'driver', title: '驱动', width: 100, slots: { default: 'column-driver' } },
-    { field: 'scope', title: '作用域', width: 90, slots: { default: 'column-scope' } },
-    { field: 'containers', title: '容器数', width: 80, slots: { default: 'column-containers' } },
-    { title: '操作', width: canManage ? 230 : 90, fixed: 'right', slots: { default: 'column-operation' } },
+    { field: 'name', title: t('docker.common.name'), minWidth: 160 },
+    { field: 'driver', title: t('docker.common.driver'), width: 100, slots: { default: 'column-driver' } },
+    { field: 'scope', title: t('docker.common.scope'), width: 90, slots: { default: 'column-scope' } },
+    { field: 'containers', title: t('docker.image.containerCount'), width: 80, slots: { default: 'column-containers' } },
+    { title: t('docker.common.operation'), width: canManage.value ? 230 : 90, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -321,7 +323,7 @@ const openCreate = () => {
 }
 const submitCreate = async () => {
   const name = createForm.name.trim()
-  if (!name) { ElMessage.error('请输入网络名称'); return }
+  if (!name) { ElMessage.error(t('docker.network.enterName')); return }
   createSubmitting.value = true
   try {
     const ipamConfig = createForm.subnet.trim() ? [{ subnet: createForm.subnet.trim(), gateway: createForm.gateway.trim(), ipRange: '', auxAddress: {} }] : []
@@ -334,31 +336,31 @@ const submitCreate = async () => {
         options: {}, labels: {},
       },
     })
-    ElMessage.success('网络创建成功')
+    ElMessage.success(t('docker.network.createSuccess'))
     createVisible.value = false
     await getList()
-  } catch (e) { showRequestError(e, '创建网络失败') }
+  } catch (e) { showRequestError(e, t('docker.network.createFailed')) }
   finally { createSubmitting.value = false }
 }
 
 // -- delete --
 const handleDelete = async (row: DockerNetworkInfo) => {
-  try { await Dialog.confirm({ title: '确认删除网络', content: `确定要删除网络「${row.name}」吗？`, confirmText: '确认删除', cancelText: '取消' }) }
+  try { await Dialog.confirm({ title: t('docker.network.confirmDeleteTitle'), content: t('docker.network.confirmDeleteContent', { name: row.name }), confirmText: t('docker.network.confirmDeleteText'), cancelText: t('docker.common.cancel') }) }
   catch { return }
-  try { await deleteDockerNetwork({ id: row.id }); ElMessage.success(`${row.name} 已删除`); await getList() }
-  catch (e) { showRequestError(e, '删除网络失败') }
+  try { await deleteDockerNetwork({ id: row.id }); ElMessage.success(t('docker.common.deletedName', { name: row.name })); await getList() }
+  catch (e) { showRequestError(e, t('docker.network.deleteFailed')) }
 }
 
 // -- prune --
 const handlePrune = async () => {
-  try { await Dialog.confirm({ title: '清理未使用网络', content: '确定要清理所有未使用的网络吗？', confirmText: '确认清理', cancelText: '取消' }) }
+  try { await Dialog.confirm({ title: t('docker.network.pruneTitle'), content: t('docker.network.pruneContent'), confirmText: t('docker.network.pruneConfirm'), cancelText: t('docker.common.cancel') }) }
   catch { return }
   try {
     const { data } = await pruneDockerNetworks({})
-    ElMessage.success('清理任务已创建')
+    ElMessage.success(t('docker.common.taskCreated'))
     openTask(data?.task)
   }
-  catch (e) { showRequestError(e, '清理网络失败') }
+  catch (e) { showRequestError(e, t('docker.network.pruneFailed')) }
 }
 
 // -- detail --
@@ -368,7 +370,7 @@ const detail = ref<DockerNetworkInfo | null>(null)
 const openDetail = async (row: DockerNetworkInfo) => {
   detailVisible.value = true; detail.value = null; detailLoading.value = true
   try { const { data } = await getDockerNetwork({ id: row.id }); detail.value = data?.info || null }
-  catch (e) { showRequestError(e, '获取网络详情失败') }
+  catch (e) { showRequestError(e, t('docker.network.getDetailFailed')) }
   finally { detailLoading.value = false }
 }
 
@@ -384,31 +386,31 @@ const openConnect = (row: DockerNetworkInfo) => {
 }
 const submitConnect = async () => {
   const containerId = connectForm.containerId.trim()
-  if (!containerId) { ElMessage.error('请输入容器ID'); return }
+  if (!containerId) { ElMessage.error(t('docker.network.enterContainerId')); return }
   connectSubmitting.value = true
   try {
     await connectDockerNetwork({
       networkId: connectNetworkId.value, containerId,
       aliases: [], ipv4Address: connectForm.ipv4Address.trim(), ipv6Address: '',
     })
-    ElMessage.success('容器已连接到网络')
+    ElMessage.success(t('docker.network.connectSuccess'))
     connectVisible.value = false
     await getList()
-  } catch (e) { showRequestError(e, '连接容器失败') }
+  } catch (e) { showRequestError(e, t('docker.network.connectFailed')) }
   finally { connectSubmitting.value = false }
 }
 
 const handleDisconnect = async (network: DockerNetworkInfo, containerId: string) => {
   try {
-    await Dialog.confirm({ title: '断开网络连接', content: `确定要断开容器「${containerId.slice(0, 12)}」吗？`, confirmText: '确认断开', cancelText: '取消' })
+    await Dialog.confirm({ title: t('docker.network.disconnectTitle'), content: t('docker.network.disconnectContent', { id: containerId.slice(0, 12) }), confirmText: t('docker.network.disconnectConfirm'), cancelText: t('docker.common.cancel') })
   } catch { return }
   try {
     await disconnectDockerNetwork({ networkId: network.id, containerId, force: false })
-    ElMessage.success('网络连接已断开')
+    ElMessage.success(t('docker.network.disconnectSuccess'))
     const { data } = await getDockerNetwork({ id: network.id })
     detail.value = data?.info || null
     await getList()
-  } catch (e) { showRequestError(e, '断开网络连接失败') }
+  } catch (e) { showRequestError(e, t('docker.network.disconnectFailed')) }
 }
 
 // -- edit --
@@ -458,10 +460,10 @@ const submitEdit = async () => {
     } else {
       await updateDockerNetwork({ id: editId.value, labels: parseLabels(editLabelsText.value), force: false, options: undefined })
     }
-    ElMessage.success(editRecreate.value ? '网络重建任务已创建' : '网络更新成功')
+    ElMessage.success(editRecreate.value ? t('docker.network.recreateTaskCreated') : t('docker.network.updateSuccess'))
     editVisible.value = false
     if (!editRecreate.value) await getList()
-  } catch (e) { showRequestError(e, '更新网络失败') }
+  } catch (e) { showRequestError(e, t('docker.network.updateFailed')) }
   finally { editSubmitting.value = false }
 }
 

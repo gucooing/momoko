@@ -2,8 +2,7 @@ import { h, render, isVNode, type Component } from 'vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { ElIcon } from 'element-plus'
 import { useMenuStore } from '@/stores/menu'
-
-const menuStore = useMenuStore()
+import { translate } from '@/locales'
 
 // 对话框类型
 type IDialogType = 'info' | 'success' | 'warning' | 'error' | 'confirm'
@@ -84,6 +83,7 @@ const typeIconMap: Record<IDialogType, { icon: string; color: string }> = {
 // 创建对话框
 const createDialog = (options: IDialogCallOptions): Promise<void> => {
   return new Promise<void>((resolve, reject) => {
+  const menuStore = useMenuStore()
   // 1. 创建挂载容器
   const container = document.createElement('div')
 
@@ -183,8 +183,8 @@ const createDialog = (options: IDialogCallOptions): Promise<void> => {
 export const Dialog = {
   info: (options: IDialogCallOptions) => {
     return createDialog({
-      title: '系统提示',
-      confirmText: '知道了',
+      title: translate('dialog.title.info'),
+      confirmText: translate('common.gotIt'),
       width: '400px',
       showFullscreenButton: false,
       showClose: false,
@@ -197,8 +197,8 @@ export const Dialog = {
   },
   success: (options: IDialogCallOptions) => {
     return createDialog({
-      title: '成功',
-      confirmText: '知道了',
+      title: translate('dialog.title.success'),
+      confirmText: translate('common.gotIt'),
       width: '400px',
       showFullscreenButton: false,
       showClose: false,
@@ -211,8 +211,8 @@ export const Dialog = {
   },
   warning: (options: IDialogCallOptions) => {
     return createDialog({
-      title: '警告',
-      confirmText: '知道了',
+      title: translate('dialog.title.warning'),
+      confirmText: translate('common.gotIt'),
       width: '400px',
       showFullscreenButton: false,
       showClose: false,
@@ -225,8 +225,8 @@ export const Dialog = {
   },
   error: (options: IDialogCallOptions) => {
     return createDialog({
-      title: '错误',
-      confirmText: '知道了',
+      title: translate('dialog.title.error'),
+      confirmText: translate('common.gotIt'),
       width: '400px',
       showFullscreenButton: false,
       showClose: false,
@@ -239,7 +239,7 @@ export const Dialog = {
   },
   confirm: (options: IDialogCallOptions) => {
     return createDialog({
-      title: '确认',
+      title: translate('dialog.title.confirm'),
       width: '400px',
       showFullscreenButton: false,
       showClose: false,

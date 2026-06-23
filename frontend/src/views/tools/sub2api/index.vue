@@ -2,26 +2,26 @@
   <div class="sub2api-admin" v-loading="store.configLoading">
     <header class="page-head">
       <div>
-        <h1>Sub2API 管理</h1>
-        <p>配置统一网关连接、查看用量看板，并维护公开首页的公告与时间线。</p>
+        <h1>{{ t('sub2api.admin.title') }}</h1>
+        <p>{{ t('sub2api.admin.subtitle') }}</p>
       </div>
       <div class="head-actions">
         <el-tag :type="store.statusType(snapshot?.status)" effect="light" round>
           {{ store.statusText(snapshot?.status) }}
         </el-tag>
         <el-button @click="openPublicHome">
-          <el-icon class="btn-icon"><Link /></el-icon>公开首页
+          <el-icon class="btn-icon"><Link /></el-icon>{{ t('sub2api.common.publicHome') }}
         </el-button>
-        <el-button :loading="store.syncing" @click="onSync(false)">增量同步</el-button>
+        <el-button :loading="store.syncing" @click="onSync(false)">{{ t('sub2api.common.incrementalSync') }}</el-button>
         <el-button type="primary" :loading="store.syncing" @click="onSync(true)"
-          >全量同步</el-button
+          >{{ t('sub2api.common.fullSync') }}</el-button
         >
       </div>
     </header>
 
     <el-tabs v-model="activeTab" class="admin-tabs">
       <!-- 概览 -->
-      <el-tab-pane label="用量概览" name="overview">
+      <el-tab-pane :label="t('sub2api.common.usageOverview')" name="overview">
         <div class="range-bar">
           <el-segmented v-model="rangeKey" :options="rangeOptions" @change="onRangeChange" />
           <!-- 自定义：开始/结束各用单个 datetime 选择器，仅弹单月日历，移动端不溢出 -->
@@ -30,7 +30,7 @@
               v-model="customStart"
               type="datetime"
               format="YYYY-MM-DD HH:mm"
-              placeholder="开始时间"
+              :placeholder="t('sub2api.common.startTime')"
               size="small"
               :clearable="false"
               class="custom-dt"
@@ -41,7 +41,7 @@
               v-model="customEnd"
               type="datetime"
               format="YYYY-MM-DD HH:mm"
-              placeholder="结束时间"
+              :placeholder="t('sub2api.common.endTime')"
               size="small"
               :clearable="false"
               class="custom-dt"
@@ -52,10 +52,10 @@
         </div>
 
         <div class="sync-meta">
-          <span>最近同步：{{ store.formatDateTime(snapshot?.lastSyncTime) }}</span>
-          <span>下次同步：{{ store.formatDateTime(snapshot?.nextSyncTime) }}</span>
-          <span>最新记录：{{ store.formatDateTime(snapshot?.latestRecordTime) }}</span>
-          <span>数据范围：{{ snapshot?.dataRange || '-' }}</span>
+          <span>{{ t('sub2api.common.lastSync', { time: store.formatDateTime(snapshot?.lastSyncTime) }) }}</span>
+          <span>{{ t('sub2api.common.nextSync', { time: store.formatDateTime(snapshot?.nextSyncTime) }) }}</span>
+          <span>{{ t('sub2api.common.latestRecord', { time: store.formatDateTime(snapshot?.latestRecordTime) }) }}</span>
+          <span>{{ t('sub2api.common.dataRange', { range: snapshot?.dataRange || '-' }) }}</span>
         </div>
 
         <div v-loading="store.adminStatsLoading" class="overview-body">
@@ -73,7 +73,7 @@
           </div>
 
           <el-card shadow="never" class="chart-card">
-            <template #header><span class="card-title">用量趋势</span></template>
+            <template #header><span class="card-title">{{ t('sub2api.common.usageTrend') }}</span></template>
             <VChart
               class="chart"
               :option="store.adminTrendOption"
@@ -84,7 +84,7 @@
 
           <div class="chart-grid">
             <el-card shadow="never" class="chart-card">
-              <template #header><span class="card-title">模型请求量 Top</span></template>
+              <template #header><span class="card-title">{{ t('sub2api.common.modelRequestTop') }}</span></template>
               <VChart
                 class="chart sm"
                 :option="store.adminModelOption"
@@ -93,7 +93,7 @@
               />
             </el-card>
             <el-card shadow="never" class="chart-card">
-              <template #header><span class="card-title">接口请求量 Top</span></template>
+              <template #header><span class="card-title">{{ t('sub2api.common.endpointRequestTop') }}</span></template>
               <VChart
                 class="chart sm"
                 :option="store.adminEndpointOption"
@@ -104,35 +104,35 @@
           </div>
 
           <el-card shadow="never" class="chart-card" v-loading="store.recentLoading">
-            <template #header><span class="card-title">最近请求</span></template>
+            <template #header><span class="card-title">{{ t('sub2api.common.recentRequests') }}</span></template>
             <el-table class="desktop-table" :data="store.adminRecent" size="small" stripe>
-              <el-table-column prop="model" label="模型" min-width="140" show-overflow-tooltip />
-              <el-table-column prop="endpoint" label="接口" min-width="130" show-overflow-tooltip />
-              <el-table-column label="账号" min-width="110" show-overflow-tooltip>
+              <el-table-column prop="model" :label="t('sub2api.common.model')" min-width="140" show-overflow-tooltip />
+              <el-table-column prop="endpoint" :label="t('sub2api.common.endpoint')" min-width="130" show-overflow-tooltip />
+              <el-table-column :label="t('sub2api.common.account')" min-width="110" show-overflow-tooltip>
                 <template #default="{ row }">{{ row.accountName || '-' }}</template>
               </el-table-column>
-              <el-table-column label="状态" width="100">
+              <el-table-column :label="t('sub2api.common.status')" width="100">
                 <template #default="{ row }">
                   <el-tag size="small" :type="row.success ? 'success' : 'danger'" effect="light">
                     {{ statusLabel(row) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="延迟" width="92">
+              <el-table-column :label="t('sub2api.common.latency')" width="92">
                 <template #default="{ row }">{{ store.formatLatency(row.latencyMs) }}</template>
               </el-table-column>
               <el-table-column label="Token" width="92">
                 <template #default="{ row }">{{ store.formatToken(row.tokenCount) }}</template>
               </el-table-column>
-              <el-table-column label="时间" min-width="160">
+              <el-table-column :label="t('sub2api.common.time')" min-width="160">
                 <template #default="{ row }">{{ store.formatDateTime(row.requestTime) }}</template>
               </el-table-column>
-              <el-table-column label="操作" width="76" fixed="right">
+              <el-table-column :label="t('sub2api.common.operation')" width="76" fixed="right">
                 <template #default="{ row }">
-                  <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                  <el-button link type="primary" @click="openDetail(row)">{{ t('sub2api.common.detail') }}</el-button>
                 </template>
               </el-table-column>
-              <template #empty>暂无请求记录</template>
+              <template #empty>{{ t('sub2api.common.noRequestRecords') }}</template>
             </el-table>
             <div class="mobile-list request-list">
               <article
@@ -142,7 +142,7 @@
                 @click="openDetail(row)"
               >
                 <div class="row-main">
-                  <strong class="row-title">{{ row.model || '未标记模型' }}</strong>
+                  <strong class="row-title">{{ row.model || t('sub2api.common.unknownModel') }}</strong>
                   <small>{{ row.accountName ? `${row.accountName} · ` : '' }}{{ row.endpoint || '-' }}</small>
                   <small
                     >{{ store.formatLatency(row.latencyMs) }} ·
@@ -157,7 +157,7 @@
                   <el-icon class="row-chevron"><ArrowRight /></el-icon>
                 </span>
               </article>
-              <el-empty v-if="!store.adminRecent.length" description="暂无请求记录" />
+              <el-empty v-if="!store.adminRecent.length" :description="t('sub2api.common.noRequestRecords')" />
             </div>
             <div class="recent-pager">
               <el-pagination
@@ -177,20 +177,20 @@
       </el-tab-pane>
 
       <!-- 配置 -->
-      <el-tab-pane label="连接配置" name="config">
+      <el-tab-pane :label="t('sub2api.common.connectionConfig')" name="config">
         <el-card shadow="never" class="form-card">
           <el-form :model="form" label-width="130px" label-position="right">
-            <el-form-item label="开启公开首页">
+            <el-form-item :label="t('sub2api.admin.enablePublicHome')">
               <el-switch v-model="form.homeEnabled" />
-              <span class="form-hint">开启后访客可访问 /sub2api 公共首页</span>
+              <span class="form-hint">{{ t('sub2api.admin.publicHomeHint') }}</span>
             </el-form-item>
-            <el-form-item label="自动同步">
+            <el-form-item :label="t('sub2api.admin.autoSync')">
               <el-switch v-model="form.syncEnabled" />
             </el-form-item>
-            <el-form-item label="Sub2API 地址">
+            <el-form-item :label="t('sub2api.admin.baseUrl')">
               <el-input v-model="form.baseUrl" placeholder="https://your-sub2api.example.com" />
             </el-form-item>
-            <el-form-item label="管理员 API Key">
+            <el-form-item :label="t('sub2api.admin.adminApiKey')">
               <el-input
                 v-model="form.adminApiKey"
                 type="password"
@@ -198,38 +198,38 @@
                 placeholder="sk-..."
               />
             </el-form-item>
-            <el-form-item label="控制台地址">
+            <el-form-item :label="t('sub2api.admin.consoleUrl')">
               <el-input v-model="form.consoleUrl" placeholder="https://your-sub2api.example.com" />
-              <span class="form-hint">首页“前往控制台”将跳转到该地址下的 /dashboard</span>
+              <span class="form-hint">{{ t('sub2api.admin.consoleUrlHint') }}</span>
             </el-form-item>
-            <el-form-item label="站点标题">
+            <el-form-item :label="t('sub2api.admin.siteTitle')">
               <el-input v-model="form.title" />
             </el-form-item>
-            <el-form-item label="副标题">
+            <el-form-item :label="t('sub2api.admin.subtitleLabel')">
               <el-input v-model="form.subtitle" />
             </el-form-item>
-            <el-form-item label="介绍">
+            <el-form-item :label="t('sub2api.admin.introduction')">
               <el-input v-model="form.introduction" type="textarea" :rows="3" />
             </el-form-item>
-            <el-form-item label="同步间隔(分钟)">
+            <el-form-item :label="t('sub2api.admin.syncInterval')">
               <el-input-number v-model="form.syncIntervalMinutes" :min="1" :max="1440" />
             </el-form-item>
-            <el-form-item label="历史天数">
+            <el-form-item :label="t('sub2api.admin.historyDays')">
               <el-input-number v-model="form.historyDays" :min="1" :max="365" />
             </el-form-item>
-            <el-form-item label="分页大小">
+            <el-form-item :label="t('sub2api.admin.pageSize')">
               <el-input-number v-model="form.pageSize" :min="50" :max="1000" :step="50" />
             </el-form-item>
-            <el-divider content-position="left">生图</el-divider>
-            <el-form-item label="启用生图">
+            <el-divider content-position="left">{{ t('sub2api.admin.imageGen') }}</el-divider>
+            <el-form-item :label="t('sub2api.admin.enableImageGen')">
               <el-switch v-model="form.imageEnabled" />
-              <span class="form-hint">关闭后，嵌入的生图页将拒绝所有生图请求</span>
+              <span class="form-hint">{{ t('sub2api.admin.imageGenHint') }}</span>
             </el-form-item>
-            <el-form-item label="站点白名单">
+            <el-form-item :label="t('sub2api.admin.hostWhitelist')">
               <el-switch v-model="form.srcHostWhitelistEnabled" />
-              <span class="form-hint">开启后，仅允许下方列表中的 sub2api 站点调用生图</span>
+              <span class="form-hint">{{ t('sub2api.admin.hostWhitelistHint') }}</span>
             </el-form-item>
-            <el-form-item label="允许站点">
+            <el-form-item :label="t('sub2api.admin.allowedHosts')">
               <div class="host-tags">
                 <el-tag
                   v-for="(host, i) in form.allowedSrcHosts"
@@ -246,22 +246,22 @@
                   @keyup.enter="addHost"
                   @blur="addHost"
                 />
-                <el-button v-else size="small" @click="showHostInput">+ 添加站点</el-button>
+                <el-button v-else size="small" @click="showHostInput">{{ t('sub2api.admin.addHost') }}</el-button>
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button :loading="store.testing" @click="onTest">测试连接</el-button>
-              <el-button type="primary" :loading="store.saving" @click="onSave">保存配置</el-button>
+              <el-button :loading="store.testing" @click="onTest">{{ t('sub2api.common.testConnection') }}</el-button>
+              <el-button type="primary" :loading="store.saving" @click="onSave">{{ t('sub2api.common.saveConfig') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
 
       <!-- 公告 -->
-      <el-tab-pane label="公告" name="announcements">
+      <el-tab-pane :label="t('sub2api.common.announcements')" name="announcements">
         <div class="list-toolbar">
-          <span>共 {{ store.announcements.length }} 条</span>
-          <el-button type="primary" @click="openAnnouncement()">新增公告</el-button>
+          <span>{{ t('sub2api.common.totalItems', { count: store.announcements.length }) }}</span>
+          <el-button type="primary" @click="openAnnouncement()">{{ t('sub2api.admin.addAnnouncement') }}</el-button>
         </div>
         <el-table
           class="desktop-table"
@@ -269,92 +269,92 @@
           v-loading="store.listLoading"
           stripe
         >
-          <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
-          <el-table-column prop="content" label="内容" min-width="220" show-overflow-tooltip />
-          <el-table-column label="级别" width="100">
+          <el-table-column prop="title" :label="t('sub2api.common.title')" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="content" :label="t('sub2api.common.content')" min-width="220" show-overflow-tooltip />
+          <el-table-column :label="t('sub2api.common.level')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
                 levelText(row.level)
               }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="置顶" width="80">
+          <el-table-column :label="t('sub2api.common.pinned')" width="80">
             <template #default="{ row }"
-              ><el-tag v-if="row.pinned" size="small" type="warning">置顶</el-tag></template
+              ><el-tag v-if="row.pinned" size="small" type="warning">{{ t('sub2api.common.pinned') }}</el-tag></template
             >
           </el-table-column>
-          <el-table-column label="发布时间" min-width="170">
+          <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
             <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="140" fixed="right">
+          <el-table-column :label="t('sub2api.common.operation')" width="140" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openAnnouncement(row)">编辑</el-button>
-              <el-button link type="danger" @click="onDeleteAnnouncement(row)">删除</el-button>
+              <el-button link type="primary" @click="openAnnouncement(row)">{{ t('sub2api.common.edit') }}</el-button>
+              <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{ t('sub2api.common.delete') }}</el-button>
             </template>
           </el-table-column>
-          <template #empty>暂无公告</template>
+          <template #empty>{{ t('sub2api.home.noAnnouncements') }}</template>
         </el-table>
         <div class="mobile-list edit-list" v-loading="store.listLoading">
           <article v-for="row in store.announcements" :key="row.id" class="edit-card">
             <div class="edit-card-head">
-              <strong>{{ row.title || '公告' }}</strong>
+              <strong>{{ row.title || t('sub2api.common.announcements') }}</strong>
               <span>
                 <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
                   levelText(row.level)
                 }}</el-tag>
-                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">置顶</el-tag>
+                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">{{ t('sub2api.common.pinned') }}</el-tag>
               </span>
             </div>
             <p>{{ row.content || '-' }}</p>
             <div class="edit-card-foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
               <span>
-                <el-button link type="primary" @click="openAnnouncement(row)">编辑</el-button>
-                <el-button link type="danger" @click="onDeleteAnnouncement(row)">删除</el-button>
+                <el-button link type="primary" @click="openAnnouncement(row)">{{ t('sub2api.common.edit') }}</el-button>
+                <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{ t('sub2api.common.delete') }}</el-button>
               </span>
             </div>
           </article>
-          <el-empty v-if="!store.announcements.length" description="暂无公告" />
+          <el-empty v-if="!store.announcements.length" :description="t('sub2api.home.noAnnouncements')" />
         </div>
       </el-tab-pane>
 
       <!-- 时间线 -->
-      <el-tab-pane label="时间线" name="timeline">
+      <el-tab-pane :label="t('sub2api.common.timeline')" name="timeline">
         <div class="list-toolbar">
-          <span>共 {{ store.timeline.length }} 条</span>
-          <el-button type="primary" @click="openTimeline()">新增时间线</el-button>
+          <span>{{ t('sub2api.common.totalItems', { count: store.timeline.length }) }}</span>
+          <el-button type="primary" @click="openTimeline()">{{ t('sub2api.admin.addTimeline') }}</el-button>
         </div>
         <el-table class="desktop-table" :data="store.timeline" v-loading="store.listLoading" stripe>
-          <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
-          <el-table-column prop="content" label="内容" min-width="220" show-overflow-tooltip />
-          <el-table-column prop="category" label="分类" width="120" />
-          <el-table-column label="发布时间" min-width="170">
+          <el-table-column prop="title" :label="t('sub2api.common.title')" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="content" :label="t('sub2api.common.content')" min-width="220" show-overflow-tooltip />
+          <el-table-column prop="category" :label="t('sub2api.common.category')" width="120" />
+          <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
             <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="140" fixed="right">
+          <el-table-column :label="t('sub2api.common.operation')" width="140" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openTimeline(row)">编辑</el-button>
-              <el-button link type="danger" @click="onDeleteTimeline(row)">删除</el-button>
+              <el-button link type="primary" @click="openTimeline(row)">{{ t('sub2api.common.edit') }}</el-button>
+              <el-button link type="danger" @click="onDeleteTimeline(row)">{{ t('sub2api.common.delete') }}</el-button>
             </template>
           </el-table-column>
-          <template #empty>暂无时间线</template>
+          <template #empty>{{ t('sub2api.common.noData') }}</template>
         </el-table>
         <div class="mobile-list edit-list" v-loading="store.listLoading">
           <article v-for="row in store.timeline" :key="row.id" class="edit-card">
             <div class="edit-card-head">
-              <strong>{{ row.title || '更新' }}</strong>
-              <el-tag size="small" effect="light">{{ row.category || '更新' }}</el-tag>
+              <strong>{{ row.title || t('sub2api.common.update') }}</strong>
+              <el-tag size="small" effect="light">{{ row.category || t('sub2api.common.update') }}</el-tag>
             </div>
             <p>{{ row.content || '-' }}</p>
             <div class="edit-card-foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
               <span>
-                <el-button link type="primary" @click="openTimeline(row)">编辑</el-button>
-                <el-button link type="danger" @click="onDeleteTimeline(row)">删除</el-button>
+                <el-button link type="primary" @click="openTimeline(row)">{{ t('sub2api.common.edit') }}</el-button>
+                <el-button link type="danger" @click="onDeleteTimeline(row)">{{ t('sub2api.common.delete') }}</el-button>
               </span>
             </div>
           </article>
-          <el-empty v-if="!store.timeline.length" description="暂无时间线" />
+          <el-empty v-if="!store.timeline.length" :description="t('sub2api.common.noData')" />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -362,35 +362,35 @@
     <!-- 公告弹窗 -->
     <BaseDialog
       v-model="announcementDialog"
-      :title="annForm.id ? '编辑公告' : '新增公告'"
+      :title="annForm.id ? t('sub2api.admin.editAnnouncement') : t('sub2api.admin.addAnnouncement')"
       width="520px"
     >
       <el-form :model="annForm" label-width="90px">
-        <el-form-item label="标题"><el-input v-model="annForm.title" /></el-form-item>
-        <el-form-item label="内容"
+        <el-form-item :label="t('sub2api.common.title')"><el-input v-model="annForm.title" /></el-form-item>
+        <el-form-item :label="t('sub2api.common.content')"
           ><el-input v-model="annForm.content" type="textarea" :rows="4"
         /></el-form-item>
-        <el-form-item label="级别">
+        <el-form-item :label="t('sub2api.common.level')">
           <el-select v-model="annForm.level">
-            <el-option label="信息" value="info" />
-            <el-option label="成功" value="success" />
-            <el-option label="警告" value="warning" />
-            <el-option label="危险" value="danger" />
+            <el-option :label="t('sub2api.common.info')" value="info" />
+            <el-option :label="t('sub2api.common.success')" value="success" />
+            <el-option :label="t('sub2api.common.warning')" value="warning" />
+            <el-option :label="t('sub2api.common.danger')" value="danger" />
           </el-select>
         </el-form-item>
-        <el-form-item label="置顶"><el-switch v-model="annForm.pinned" /></el-form-item>
-        <el-form-item label="发布时间">
+        <el-form-item :label="t('sub2api.common.pinned')"><el-switch v-model="annForm.pinned" /></el-form-item>
+        <el-form-item :label="t('sub2api.common.publishTime')">
           <el-date-picker
             v-model="annForm.publishedAt"
             type="datetime"
-            placeholder="默认当前时间"
+            :placeholder="t('sub2api.common.defaultNow')"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="announcementDialog = false">取消</el-button>
+        <el-button @click="announcementDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
         <el-button type="primary" :loading="store.listLoading" @click="submitAnnouncement"
-          >保存</el-button
+          >{{ t('sub2api.common.save') }}</el-button
         >
       </template>
     </BaseDialog>
@@ -398,34 +398,34 @@
     <!-- 时间线弹窗 -->
     <BaseDialog
       v-model="timelineDialog"
-      :title="tlForm.id ? '编辑时间线' : '新增时间线'"
+      :title="tlForm.id ? t('sub2api.admin.editTimeline') : t('sub2api.admin.addTimeline')"
       width="520px"
     >
       <el-form :model="tlForm" label-width="90px">
-        <el-form-item label="标题"><el-input v-model="tlForm.title" /></el-form-item>
-        <el-form-item label="内容"
+        <el-form-item :label="t('sub2api.common.title')"><el-input v-model="tlForm.title" /></el-form-item>
+        <el-form-item :label="t('sub2api.common.content')"
           ><el-input v-model="tlForm.content" type="textarea" :rows="4"
         /></el-form-item>
-        <el-form-item label="分类"
-          ><el-input v-model="tlForm.category" placeholder="更新"
+        <el-form-item :label="t('sub2api.common.category')"
+          ><el-input v-model="tlForm.category" :placeholder="t('sub2api.common.update')"
         /></el-form-item>
-        <el-form-item label="发布时间">
-          <el-date-picker v-model="tlForm.publishedAt" type="datetime" placeholder="默认当前时间" />
+        <el-form-item :label="t('sub2api.common.publishTime')">
+          <el-date-picker v-model="tlForm.publishedAt" type="datetime" :placeholder="t('sub2api.common.defaultNow')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="timelineDialog = false">取消</el-button>
+        <el-button @click="timelineDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
         <el-button type="primary" :loading="store.listLoading" @click="submitTimeline"
-          >保存</el-button
+          >{{ t('sub2api.common.save') }}</el-button
         >
       </template>
     </BaseDialog>
 
     <!-- 最近请求详情 -->
-    <BaseDialog v-model="detailDialog" title="请求详情" width="520px">
+    <BaseDialog v-model="detailDialog" :title="t('sub2api.common.requestDetail')" width="520px">
       <div v-if="detailRow" class="req-detail">
         <div class="detail-row">
-          <span class="k">状态</span>
+          <span class="k">{{ t('sub2api.common.status') }}</span>
           <span class="v">
             <el-tag
               size="small"
@@ -435,34 +435,35 @@
             >
           </span>
         </div>
-        <div class="detail-row"><span class="k">模型</span><span class="v">{{ detailRow.model || '-' }}</span></div>
-        <div class="detail-row"><span class="k">接口</span><span class="v">{{ detailRow.endpoint || '-' }}</span></div>
-        <div class="detail-row"><span class="k">账号名称</span><span class="v">{{ detailRow.accountName || '-' }}</span></div>
-        <div class="detail-row"><span class="k">费用</span><span class="v">{{ store.formatCost(detailRow.cost) }}</span></div>
-        <div class="detail-row"><span class="k">Token</span><span class="v">{{ store.formatToken(detailRow.tokenCount) }}</span></div>
-        <div class="detail-row"><span class="k">耗时</span><span class="v">{{ store.formatLatency(detailRow.latencyMs) }}</span></div>
-        <div class="detail-row"><span class="k">首 Token</span><span class="v">{{ firstTokenText(detailRow.firstTokenMs) }}</span></div>
-        <div class="detail-row"><span class="k">推理强度</span><span class="v">{{ detailRow.reasoningEffort || '-' }}</span></div>
-        <div class="detail-row"><span class="k">时间</span><span class="v">{{ store.formatDateTime(detailRow.requestTime) }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.model') }}</span><span class="v">{{ detailRow.model || '-' }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.endpoint') }}</span><span class="v">{{ detailRow.endpoint || '-' }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.accountName') }}</span><span class="v">{{ detailRow.accountName || '-' }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.cost') }}</span><span class="v">{{ store.formatCost(detailRow.cost) }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.token') }}</span><span class="v">{{ store.formatToken(detailRow.tokenCount) }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.duration') }}</span><span class="v">{{ store.formatLatency(detailRow.latencyMs) }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.firstToken') }}</span><span class="v">{{ firstTokenText(detailRow.firstTokenMs) }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.reasoningEffort') }}</span><span class="v">{{ detailRow.reasoningEffort || '-' }}</span></div>
+        <div class="detail-row"><span class="k">{{ t('sub2api.common.time') }}</span><span class="v">{{ store.formatDateTime(detailRow.requestTime) }}</span></div>
         <template v-if="!detailRow.success">
-          <div class="detail-row"><span class="k">HTTP 码</span><span class="v">{{ detailRow.httpStatus || '-' }}</span></div>
+          <div class="detail-row"><span class="k">{{ t('sub2api.common.httpCode') }}</span><span class="v">{{ detailRow.httpStatus || '-' }}</span></div>
           <div class="detail-row detail-row--block">
-            <span class="k">错误详情</span>
+            <span class="k">{{ t('sub2api.common.errorDetail') }}</span>
             <span class="v err">{{ detailRow.errorMessage || '-' }}</span>
           </div>
         </template>
         <div class="detail-row detail-row--block">
-          <span class="k">请求 ID</span><span class="v mono">{{ detailRow.requestId || '-' }}</span>
+          <span class="k">{{ t('sub2api.common.requestId') }}</span><span class="v mono">{{ detailRow.requestId || '-' }}</span>
         </div>
       </div>
       <template #footer>
-        <el-button type="primary" @click="detailDialog = false">关闭</el-button>
+        <el-button type="primary" @click="detailDialog = false">{{ t('sub2api.common.close') }}</el-button>
       </template>
     </BaseDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ArrowRight, Link } from '@element-plus/icons-vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
@@ -480,19 +481,20 @@ defineOptions({ name: 'Sub2APIAdmin' })
 const store = useSub2APIStore()
 const router = useRouter()
 const { snapshot, configForm: form } = storeToRefs(store)
+const { t } = useI18n()
 
 const chartUpdate = { notMerge: true }
 
 const activeTab = ref('overview')
 
 // 用量概览时间区间：默认近 24h，整页数据随之切换
-const rangeOptions = [
-  { label: '今日', value: 'today' },
-  { label: '24h', value: '24h' },
-  { label: '7天', value: '7d' },
-  { label: '30天', value: '30d' },
-  { label: '自定义', value: 'custom' },
-]
+const rangeOptions = computed(() => [
+  { label: t('sub2api.common.today'), value: 'today' },
+  { label: t('sub2api.common.last24h'), value: '24h' },
+  { label: t('sub2api.common.sevenDays'), value: '7d' },
+  { label: t('sub2api.common.thirtyDays'), value: '30d' },
+  { label: t('sub2api.common.custom'), value: 'custom' },
+])
 const rangeKey = ref<'today' | '24h' | '7d' | '30d' | 'custom'>('24h')
 // 自定义时间段：开始/结束两个单独的 datetime 选择器（精度到分钟）
 const customStart = ref<Date | null>(null)
@@ -549,8 +551,10 @@ const onRecentPageChange = (page: number) => {
 
 // 最近请求：状态标签（失败时附带 HTTP 码）与首 token 文案
 const statusLabel = (row: Sub2APIRecentRequest) => {
-  if (row.success) return '成功'
-  return row.httpStatus ? `失败 ${row.httpStatus}` : '失败'
+  if (row.success) return t('sub2api.common.success')
+  return row.httpStatus
+    ? t('sub2api.common.failedWithCode', { code: row.httpStatus })
+    : t('sub2api.common.failed')
 }
 const firstTokenText = (ms?: number) => (ms && ms > 0 ? store.formatLatency(ms) : '-')
 
@@ -583,7 +587,7 @@ const openPublicHome = () => {
 const onSync = async (full: boolean) => {
   const ok = await store.syncUsage(full)
   if (ok) {
-    ElMessage.success('同步完成')
+    ElMessage.success(t('sub2api.common.synced'))
     reloadStats()
   }
 }
@@ -591,13 +595,13 @@ const onSync = async (full: boolean) => {
 const onTest = async () => {
   const result = await store.testConfig()
   if (!result) return
-  if (result.connected) ElMessage.success(result.message || '连接成功')
-  else ElMessage.error(result.message || '连接失败')
+  if (result.connected) ElMessage.success(result.message || t('sub2api.common.connected'))
+  else ElMessage.error(result.message || t('sub2api.common.disconnected'))
 }
 
 const onSave = async () => {
   const ok = await store.saveConfig()
-  if (ok) ElMessage.success('已保存')
+  if (ok) ElMessage.success(t('sub2api.common.saved'))
 }
 
 // 允许站点动态 tag 输入
@@ -646,15 +650,15 @@ const submitAnnouncement = async () => {
   const ok = await store.saveAnnouncement({ ...annForm })
   if (ok) {
     announcementDialog.value = false
-    ElMessage.success('已保存')
+    ElMessage.success(t('sub2api.common.saved'))
   }
 }
 const onDeleteAnnouncement = (row: Sub2APIAnnouncement) => {
   Dialog.confirm({
-    title: '提示',
-    content: '确定删除该公告？',
+    title: t('sub2api.common.tip'),
+    content: t('sub2api.admin.confirmDeleteAnnouncement'),
     onConfirm: async () => {
-      if (await store.removeAnnouncement(row.id)) ElMessage.success('已删除')
+      if (await store.removeAnnouncement(row.id)) ElMessage.success(t('sub2api.common.deleted'))
     },
   }).catch(() => undefined)
 }
@@ -670,7 +674,7 @@ const tlForm = reactive<{
 }>({
   title: '',
   content: '',
-  category: '更新',
+  category: t('sub2api.common.update'),
   publishedAt: undefined,
 })
 const openTimeline = (row?: Sub2APITimelineItem) => {
@@ -679,7 +683,7 @@ const openTimeline = (row?: Sub2APITimelineItem) => {
     id: row?.id,
     title: row?.title || '',
     content: row?.content || '',
-    category: row?.category || '更新',
+    category: row?.category || t('sub2api.common.update'),
     publishedAt: row?.publishedAt ? new Date(row.publishedAt) : undefined,
   })
 }
@@ -687,21 +691,26 @@ const submitTimeline = async () => {
   const ok = await store.saveTimelineItem({ ...tlForm })
   if (ok) {
     timelineDialog.value = false
-    ElMessage.success('已保存')
+    ElMessage.success(t('sub2api.common.saved'))
   }
 }
 const onDeleteTimeline = (row: Sub2APITimelineItem) => {
   Dialog.confirm({
-    title: '提示',
-    content: '确定删除该时间线？',
+    title: t('sub2api.common.tip'),
+    content: t('sub2api.admin.confirmDeleteTimeline'),
     onConfirm: async () => {
-      if (await store.removeTimelineItem(row.id)) ElMessage.success('已删除')
+      if (await store.removeTimelineItem(row.id)) ElMessage.success(t('sub2api.common.deleted'))
     },
   }).catch(() => undefined)
 }
 
 const levelText = (level: string) =>
-  ({ info: '信息', success: '成功', warning: '警告', danger: '危险' })[level] || '信息'
+  ({
+    info: t('sub2api.common.info'),
+    success: t('sub2api.common.success'),
+    warning: t('sub2api.common.warning'),
+    danger: t('sub2api.common.danger'),
+  })[level] || t('sub2api.common.info')
 const levelTagType = (level: string): 'info' | 'success' | 'warning' | 'danger' =>
   (({ info: 'info', success: 'success', warning: 'warning', danger: 'danger' }) as const)[
     level as 'info' | 'success' | 'warning' | 'danger'
@@ -1308,4 +1317,3 @@ onMounted(() => {
   width: 220px;
 }
 </style>
-

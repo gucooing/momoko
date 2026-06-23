@@ -6,18 +6,14 @@
         <BaseCard>
           <div class="flex items-center justify-between gap-4 px-3">
             <div class="flex flex-col gap-4 py-2.5">
-              <div class="text-sm font-semibold text-(--el-color-primary)">Business Overview</div>
-              <h2 class="text-2xl font-bold">全球业务运营中心</h2>
+              <div class="text-sm font-semibold text-(--el-color-primary)">{{ t('dashboard.analysis.businessOverview') }}</div>
+              <h2 class="text-2xl font-bold">{{ t('dashboard.analysis.operationsCenter') }}</h2>
               <p class="text-sm text-(--el-text-color-regular) md:max-w-80">
-                <span>本月业绩增长势头强劲，已完成季度目标的</span>
-                <span class="font-semibold leading-1.5 text-(--el-color-primary)">
-                  {{ goalProgress.percentage }}%
-                </span>
-                <span>，建议加大对移动端大促活动的资源投入</span>
+                {{ t('dashboard.analysis.overviewText', { percentage: goalProgress.percentage }) }}
               </p>
               <div class="flex gap-4 items-center">
-                <el-button type="primary" round>生成月报</el-button>
-                <el-button link>业绩预测</el-button>
+                <el-button type="primary" round>{{ t('dashboard.analysis.generateMonthlyReport') }}</el-button>
+                <el-button link>{{ t('dashboard.analysis.performanceForecast') }}</el-button>
               </div>
             </div>
             <div
@@ -33,7 +29,7 @@
         :sm="8"
         :lg="5"
         v-for="item in businessStats"
-        :key="item.label"
+        :key="item.labelKey"
         class="mt-4 min-[1200px]:mt-0"
       >
         <BaseCard :class="item.type" style="height: 100%">
@@ -47,7 +43,7 @@
               <span class="text-xl font-bold">{{ item.value }}</span>
               <span class="text-xs opacity-80 ml-2">{{ item.trend }}</span>
             </div>
-            <div class="text-sm opacity-80 text-white">{{ item.label }}</div>
+            <div class="text-sm opacity-80 text-white">{{ t(item.labelKey) }}</div>
           </div>
         </BaseCard>
       </el-col>
@@ -59,10 +55,12 @@
 import { storeToRefs } from 'pinia'
 import analysisLottieUrl from '@/assets/lotties/colheita.json?url'
 import { useDashboardAnalysisStore } from '@/stores/dashboard/analysis'
+import { useI18n } from 'vue-i18n'
 
 const menuStore = useMenuStore()
 const dashboardAnalysisStore = useDashboardAnalysisStore()
 const { businessStats, goalProgress } = storeToRefs(dashboardAnalysisStore)
+const { t } = useI18n()
 </script>
 
 <style scoped lang="scss">

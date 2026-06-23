@@ -4,21 +4,21 @@
     <BaseCard>
       <div class="flex items-center gap-4">
         <el-avatar :size="32" :src="userStore.resolvedUserAvatar" />
-        <span class="text-sm font-medium text-(--el-text-color-secondary)"
-          >Hi, {{ userStore.userInfo?.name }}，可以在这里发送新通知哦。</span
-        >
+        <span class="text-sm font-medium text-(--el-text-color-secondary)">
+          {{ t('user.greetingMessage', { name: displayName }) }}
+        </span>
       </div>
       <el-input
         v-model="messageDraft"
         :rows="3"
         type="textarea"
-        placeholder="输入消息内容..."
+        :placeholder="t('user.messagePlaceholder')"
         class="mt-4"
       />
       <div class="flex items-center justify-between mt-4">
-        <div class="text-xs text-(--el-text-color-secondary)">将推送给所有相关人员</div>
+        <div class="text-xs text-(--el-text-color-secondary)">{{ t('user.messagePushHint') }}</div>
         <el-button type="primary" :disabled="!messageDraft.trim()" @click="sendMessage"
-          >发布消息</el-button
+          >{{ t('user.publishMessage') }}</el-button
         >
       </div>
     </BaseCard>
@@ -37,7 +37,7 @@
             <IconButton
               icon="Element:Check"
               type="primary"
-              tooltip="一键已读"
+              :tooltip="t('user.markAllRead')"
               size="1.5rem"
               iconSize="1rem"
               v-if="menuStore.isMobile"
@@ -51,13 +51,13 @@
               @click="userProfileStore.markAllAsRead()"
               v-else
             >
-              一键已读
+              {{ t('user.markAllRead') }}
             </el-button>
             <el-divider direction="vertical" />
             <IconButton
               icon="Element:Delete"
               type="danger"
-              tooltip="清空全部"
+              :tooltip="t('user.clearAll')"
               size="1.5rem"
               iconSize="1rem"
               :disabled="!userMessages.length"
@@ -71,7 +71,7 @@
               @click="clearAllMessages"
               v-else
             >
-              清空全部
+              {{ t('user.clearAll') }}
             </el-button>
           </div>
         </div>
@@ -80,7 +80,7 @@
         <Transition name="zoom" mode="out-in">
           <el-empty
             v-if="messageList.length === 0"
-            :description="activeMessageTab === 'unread' ? '暂无未读消息' : '暂无消息'"
+            :description="activeMessageTab === 'unread' ? t('user.noUnreadMessages') : t('layout.noMessages')"
           />
           <TransitionGroup name="group-slide-right" tag="div" v-else>
             <div v-for="message in messageList" :key="message.id">
@@ -98,14 +98,14 @@
 
                   <div class="flex-1">
                     <div class="flex justify-between">
-                      <TextEllipsis :text="message.title" :clickable="false" tooltipType="none" />
+                      <TextEllipsis :text="resolveMessageTitle(message)" :clickable="false" tooltipType="none" />
                       <div
                         class="flex items-center opacity-100 lg:opacity-0 group-hover:opacity-100"
                       >
                         <IconButton
                           icon="Element:Check"
                           type="primary"
-                          tooltip="设为已读"
+                          :tooltip="t('user.setRead')"
                           size="1.5rem"
                           iconSize="1rem"
                           @click="userProfileStore.markAsRead(message.id)"
@@ -113,8 +113,8 @@
                         />
                         <el-divider direction="vertical" v-if="!message.read" />
                         <AdaptiveConfirm
-                          title="确定删除这条消息吗？"
-                          @confirm="(userProfileStore.deleteMessage(message.id), ElMessage.success('删除成功'))"
+                          :title="t('user.deleteMessageConfirm')"
+                          @confirm="(userProfileStore.deleteMessage(message.id), ElMessage.success(t('user.messageDeleted')))"
                         >
                           <template #reference>
                             <div>
@@ -123,7 +123,7 @@
                                 type="danger"
                                 size="1.5rem"
                                 iconSize="1rem"
-                                tooltip="删除"
+                                :tooltip="t('common.delete')"
                               />
                             </div>
                           </template>
@@ -133,7 +133,7 @@
                     <div
                       class="mt-2 text-sm text-(--el-text-color-regular) leading-relaxed wrap-break-word"
                     >
-                      {{ message.content }}
+                      {{ resolveMessageContent(message) }}
                     </div>
                     <div class="text-xs text-(--el-text-color-secondary) mt-2">
                       {{ message.time }}
@@ -155,30 +155,43 @@ import { Dialog } from '@/utils/dialog'
 import { delay } from '@/utils/utils'
 import BadgeTabsMenu from '@/components/tabs/BadgeTabsMenu.vue'
 import { ElMessage } from 'element-plus'
+import type { UserMessageItem } from '@/stores/user/types'
+import { useI18n } from 'vue-i18n'
 
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const { messageDraft, activeMessageTab, messageTabs, messageList, unreadCount, userMessages } =
   storeToRefs(userProfileStore)
 
+const displayName = computed(() => userStore.userInfo?.name || userStore.userInfo?.username || t('user.messages.unknownUser'))
+
+const resolveMessageTitle = (message: UserMessageItem) => {
+  return message.titleKey ? t(message.titleKey) : message.title || ''
+}
+
+const resolveMessageContent = (message: UserMessageItem) => {
+  return message.contentKey ? t(message.contentKey) : message.content || ''
+}
+
 // 发送消息
 const sendMessage = () => {
-  const senderName = userStore.userInfo?.name || userStore.userInfo?.username || '未知用户'
+  const senderName = userStore.userInfo?.name || userStore.userInfo?.username || t('user.messages.unknownUser')
   const success = userProfileStore.sendMessage(senderName, userStore.resolvedUserAvatar)
   if (!success) return
-  ElMessage.success('发送成功')
+  ElMessage.success(t('user.messageSendSuccess'))
 }
 
 // 清空全部消息
 const clearAllMessages = () => {
   Dialog.confirm({
-    title: '确认清空？',
-    content: '这一操作会删除所有消息，手滑之后可就找不回来了哦～',
+    title: t('user.clearMessagesTitle'),
+    content: t('user.clearMessagesContent'),
     onConfirm: async () => {
       await delay(1000)
       userProfileStore.deleteAllMessages()
-      ElMessage.success('消息清空完成')
+      ElMessage.success(t('user.clearMessagesDone'))
     },
   })
 }

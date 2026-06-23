@@ -1,31 +1,31 @@
 <!-- 详细档案 -->
 <template>
-  <BaseCard title="详细档案" title-icon="HOutline:IdentificationIcon">
+  <BaseCard :title="t('user.detailArchive')" title-icon="HOutline:IdentificationIcon">
     <div>
       <div class="info-cell">
-        <label>用户名</label>
+        <label>{{ t('user.username') }}</label>
         <span>{{ userStore.userInfo?.username }}</span>
       </div>
       <div class="info-cell">
-        <label>邮箱</label>
-        <span>{{ userStore.userInfo?.email || '暂无邮箱~' }}</span>
+        <label>{{ t('user.email') }}</label>
+        <span>{{ userStore.userInfo?.email || t('user.noEmail') }}</span>
       </div>
       <div class="info-cell">
-        <label>账号昵称</label>
+        <label>{{ t('user.nickname') }}</label>
         <span>{{ userStore.userInfo?.name }}</span>
       </div>
       <div class="info-cell">
-        <label>账号状态</label>
-        <span>{{ userStore.userInfo?.status === UserStatus.Active ? '启用' : '禁用' }}</span>
+        <label>{{ t('user.accountStatus') }}</label>
+        <span>{{ userStore.userInfo?.status === UserStatus.Active ? t('common.enabled') : t('common.disabled') }}</span>
       </div>
       <div class="info-cell">
-        <label>加入时间</label>
+        <label>{{ t('user.joinTime') }}</label>
         <span>{{ createTimeText }}</span>
       </div>
       <el-divider />
 
       <div>
-        <div class="text-sm font-bold text-(--el-text-color-secondary) mb-2">个人标签</div>
+        <div class="text-sm font-bold text-(--el-text-color-secondary) mb-2">{{ t('user.personalTags') }}</div>
         <div class="flex flex-wrap gap-2" v-if="skills.length">
           <BaseTag
             v-for="skill in skills"
@@ -34,7 +34,7 @@
             :text="skill.name"
           />
         </div>
-        <div class="text-sm" v-else>暂无标签~</div>
+        <div class="text-sm" v-else>{{ t('user.noTags') }}</div>
       </div>
     </div>
   </BaseCard>
@@ -44,9 +44,11 @@
 import dayjs from 'dayjs'
 import { UserStatus } from '@/types/v1/user'
 import { useUserProfileStore } from '@/stores/user/profile'
+import { useI18n } from 'vue-i18n'
 
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
+const { t } = useI18n()
 
 const createTimeText = computed(() => {
   if (!userStore.userInfo?.createTime) return ''

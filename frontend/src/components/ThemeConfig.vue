@@ -1,10 +1,10 @@
 <template>
-  <el-drawer v-model="themeStore.themeConfigDrawerOpen" :size="360" title="主题配置">
+  <el-drawer v-model="themeStore.themeConfigDrawerOpen" :size="360" :title="t('theme.title')">
     <!-- 主题模式 -->
     <div class="config-section">
       <div class="section-title">
         <el-icon><Sunny /></el-icon>
-        <span>主题模式</span>
+        <span>{{ t('theme.mode') }}</span>
       </div>
       <div class="section-content">
         <div class="mode-chip-group">
@@ -14,7 +14,7 @@
             @click="themeStore.toggleThemeMode('light')"
           >
             <el-icon><Sunny /></el-icon>
-            <span>浅色模式</span>
+            <span>{{ t('theme.light') }}</span>
           </div>
           <div
             class="mode-chip"
@@ -22,7 +22,7 @@
             @click="themeStore.toggleThemeMode('dark')"
           >
             <el-icon><Moon /></el-icon>
-            <span>深色模式</span>
+            <span>{{ t('theme.dark') }}</span>
           </div>
           <div
             class="mode-chip"
@@ -30,7 +30,7 @@
             @click="themeStore.toggleThemeMode('auto')"
           >
             <el-icon><Monitor /></el-icon>
-            <span>自动模式</span>
+            <span>{{ t('theme.auto') }}</span>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@
     <div class="config-section">
       <div class="section-title">
         <el-icon><Grid /></el-icon>
-        <span>布局模式</span>
+        <span>{{ t('theme.layout') }}</span>
       </div>
       <div class="section-content">
         <div class="layout-preview-group">
@@ -56,7 +56,7 @@
                 <div class="preview-main"></div>
               </div>
             </div>
-            <div class="layout-label">左侧布局</div>
+            <div class="layout-label">{{ t('theme.leftLayout') }}</div>
           </div>
           <div
             class="layout-preview-item"
@@ -67,7 +67,7 @@
               <div class="preview-header"></div>
               <div class="preview-main"></div>
             </div>
-            <div class="layout-label">顶部布局</div>
+            <div class="layout-label">{{ t('theme.topLayout') }}</div>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@
     <div class="config-section">
       <div class="section-title">
         <el-icon><Brush /></el-icon>
-        <span>主题颜色</span>
+        <span>{{ t('theme.color') }}</span>
       </div>
       <div class="section-content theme-color-content">
         <div class="color-chip-group">
@@ -89,11 +89,11 @@
             @click="themeStore.togglePrimaryColor(color.value)"
           >
             <span class="chip-dot" :style="{ backgroundColor: color.value }"></span>
-            <span class="chip-name">{{ color.name }}</span>
+            <span class="chip-name">{{ t(color.labelKey) }}</span>
           </div>
         </div>
         <div class="custom-color">
-          <span>自定义</span>
+          <span>{{ t('theme.custom') }}</span>
           <el-color-picker
             v-model="themeStore.primaryColor"
             show-alpha
@@ -107,15 +107,15 @@
     <div class="config-section">
       <div class="section-title">
         <el-icon><View /></el-icon>
-        <span>界面元素</span>
+        <span>{{ t('theme.interfaceElements') }}</span>
       </div>
       <div class="section-content toggles-row">
         <div class="toggle-item">
-          <span>显示 Logo</span>
+          <span>{{ t('theme.showLogo') }}</span>
           <el-switch v-model="themeStore.showLogo" @change="themeStore.toggleShowLogo as any" />
         </div>
         <div class="toggle-item">
-          <span>显示标签页</span>
+          <span>{{ t('theme.showTabs') }}</span>
           <el-switch v-model="themeStore.showTabs" @change="themeStore.toggleShowTabs as any" />
         </div>
       </div>
@@ -125,11 +125,13 @@
 
 <script setup lang="ts">
 import { Sunny, Moon, Monitor, Grid, Brush, View } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ThemeConfig' })
 
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 </script>
 
 <style scoped lang="scss">
