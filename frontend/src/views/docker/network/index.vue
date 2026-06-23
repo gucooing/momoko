@@ -234,7 +234,7 @@
       </template>
     </BaseDialog>
 
-    <DockerTaskDrawer v-model="taskDrawerVisible" :active-task="activeTask" @finished="handleTaskFinished" />
+    <DockerTaskDialogs v-model="taskDialogsVisible" :active-task="activeTask" @finished="handleTaskFinished" />
   </div>
 </template>
 
@@ -245,7 +245,7 @@ import {
   updateDockerNetwork,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import DockerTaskDrawer from '@/views/docker/components/DockerTaskDrawer.vue'
+import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -299,13 +299,13 @@ const getList = async () => {
 const search = () => { pagination.value.page = 1; getList() }
 const reset = () => { queryForm.name = ''; queryForm.driver = ''; search() }
 
-const taskDrawerVisible = ref(false)
+const taskDialogsVisible = ref(false)
 const activeTask = ref<DockerTaskInfo | null>(null)
-const openTasks = () => { taskDrawerVisible.value = true }
+const openTasks = () => { taskDialogsVisible.value = true }
 const openTask = (task: DockerTaskInfo | undefined) => {
   if (!task?.id) return
   activeTask.value = task
-  taskDrawerVisible.value = true
+  taskDialogsVisible.value = true
 }
 const handleTaskFinished = async () => {
   await getList()

@@ -17,6 +17,8 @@ const (
 	TaskStatusSuccess  TaskStatus = "success"
 	TaskStatusFailed   TaskStatus = "failed"
 	TaskStatusCanceled TaskStatus = "canceled"
+
+	taskSubscriberBuffer = 4096
 )
 
 type TaskEvent struct {
@@ -31,6 +33,7 @@ type TaskEvent struct {
 type Task struct {
 	ID         string
 	Type       string
+	Title      string
 	Status     TaskStatus
 	Progress   string
 	Message    string
@@ -55,10 +58,12 @@ type taskState struct {
 }
 
 func newTaskRunner() *taskRunner {
-	return &taskRunner{tasks: make(map[string]*taskState)}
+	return &taskRunner{
+		tasks: make(map[string]*taskState),
+	}
 }
 
-func (r *taskRunner) Start(parent context.Context, typ string, timeout time.Duration, fn func(context.Context, func(TaskEvent)) (string, error)) *Task {
+func (r *taskRunner) Start(parent context.Context, typ, title string, timeout time.Duration, fn func(context.Context, func(TaskEvent)) (string, error)) *Task {
 	if timeout <= 0 {
 		timeout = 30 * time.Minute
 	}
@@ -67,6 +72,7 @@ func (r *taskRunner) Start(parent context.Context, typ string, timeout time.Dura
 	task := &Task{
 		ID:        id,
 		Type:      typ,
+		Title:     title,
 		Status:    TaskStatusPending,
 		StartTime: time.Now(),
 		Events:    []TaskEvent{},
@@ -86,7 +92,7 @@ func (r *taskRunner) Start(parent context.Context, typ string, timeout time.Dura
 		defer cancel()
 		r.setStatus(id, TaskStatusRunning, "", "")
 		resultPath, err := fn(ctx, func(event TaskEvent) {
-			r.addEvent(id, normalizeTaskEvent(event))
+			r.addEvent(id, event)
 		})
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
@@ -141,13 +147,14 @@ func (r *taskRunner) Subscribe(id string) (<-chan TaskEvent, func(), bool) {
 	if !ok {
 		return nil, nil, false
 	}
-	ch := make(chan TaskEvent, 64)
+	events := append([]TaskEvent(nil), state.task.Events...)
+	ch := make(chan TaskEvent, len(events)+taskSubscriberBuffer)
+	for _, event := range events {
+		ch <- event
+	}
 	state.nextID++
 	subID := state.nextID
 	state.subs[subID] = ch
-	for _, event := range state.task.Events {
-		ch <- event
-	}
 	cancel := func() {
 		r.mu.Lock()
 		defer r.mu.Unlock()
@@ -171,17 +178,12 @@ func (r *taskRunner) setResult(id, resultPath string) {
 
 func (r *taskRunner) setStatus(id string, status TaskStatus, message, errText string) {
 	now := time.Now()
-	event := TaskEvent{
-		Time:    now,
-		Status:  string(status),
-		Message: message,
-		Error:   errText,
-	}
+	var closeSubs []chan TaskEvent
 
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	state, ok := r.tasks[id]
 	if !ok {
+		r.mu.Unlock()
 		return
 	}
 	state.task.Status = status
@@ -194,11 +196,24 @@ func (r *taskRunner) setStatus(id string, status TaskStatus, message, errText st
 	if status == TaskStatusSuccess || status == TaskStatusFailed || status == TaskStatusCanceled {
 		state.task.EndTime = &now
 	}
-	state.task.Events = append(state.task.Events, event)
-	notifySubscribers(state, event)
+	if status == TaskStatusSuccess || status == TaskStatusFailed || status == TaskStatusCanceled {
+		for _, ch := range state.subs {
+			closeSubs = append(closeSubs, ch)
+		}
+		delete(r.tasks, id)
+	}
+	r.mu.Unlock()
+
+	for _, ch := range closeSubs {
+		close(ch)
+	}
 }
 
 func (r *taskRunner) addEvent(id string, event TaskEvent) {
+	if event.Time.IsZero() {
+		event.Time = time.Now()
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	state, ok := r.tasks[id]
@@ -216,13 +231,6 @@ func (r *taskRunner) addEvent(id string, event TaskEvent) {
 	}
 	state.task.Events = append(state.task.Events, event)
 	notifySubscribers(state, event)
-}
-
-func normalizeTaskEvent(event TaskEvent) TaskEvent {
-	if event.Time.IsZero() {
-		event.Time = time.Now()
-	}
-	return event
 }
 
 func notifySubscribers(state *taskState, event TaskEvent) {

@@ -94,7 +94,7 @@ func (m *Manager) UpdateVolume(ctx context.Context, opts UpdateVolumeOptions) *T
 }
 
 func (m *Manager) RecreateVolume(ctx context.Context, opts RecreateVolumeOptions) *Task {
-	return m.tasks.Start(ctx, "volume_recreate", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "volume_recreate", "重建储存卷 "+opts.Name, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		if _, err := m.Volume(taskCtx, opts.Name); err != nil {
 			return "", err
 		}
@@ -122,7 +122,7 @@ func (m *Manager) DeleteVolume(ctx context.Context, name string, force bool) err
 }
 
 func (m *Manager) PruneVolumes(ctx context.Context) *Task {
-	return m.tasks.Start(ctx, "volume_prune", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "volume_prune", "清理储存卷", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err
@@ -138,7 +138,7 @@ func (m *Manager) PruneVolumes(ctx context.Context) *Task {
 }
 
 func (m *Manager) ExportVolume(ctx context.Context, opts VolumeArchiveOptions) *Task {
-	return m.tasks.Start(ctx, "volume_export", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "volume_export", "导出储存卷 "+opts.VolumeName, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		if strings.TrimSpace(opts.ArchivePath) == "" {
 			return "", errors.New("导出路径不能为空")
 		}
@@ -180,7 +180,7 @@ func (m *Manager) ExportVolume(ctx context.Context, opts VolumeArchiveOptions) *
 }
 
 func (m *Manager) RestoreVolume(ctx context.Context, opts VolumeArchiveOptions) *Task {
-	return m.tasks.Start(ctx, "volume_restore", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "volume_restore", "恢复储存卷 "+opts.VolumeName, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err

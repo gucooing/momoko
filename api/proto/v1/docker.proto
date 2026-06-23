@@ -42,13 +42,6 @@ service DockerManager {
       get: "/api/v1/docker/tasks"
     };
   }
-  // 获取Docker任务详情
-  rpc GetDockerTask(GetDockerTaskRequest) returns (GetDockerTaskResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/docker/tasks/{task_id}"
-    };
-  }
-
   // 获取容器列表
   rpc ListDockerContainers(ListDockerContainersRequest) returns (ListDockerContainersResponse) {
     option (google.api.http) = {
@@ -176,13 +169,6 @@ service DockerManager {
       body: "*"
     };
   }
-  // 构建镜像
-  rpc BuildDockerImage(BuildDockerImageRequest) returns (BuildDockerImageResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/docker/images/build"
-      body: "*"
-    };
-  }
   // 更新镜像标签
   rpc UpdateDockerImageTags(UpdateDockerImageTagsRequest) returns (UpdateDockerImageTagsResponse) {
     option (google.api.http) = {
@@ -201,13 +187,6 @@ service DockerManager {
   rpc DeleteDockerImage(DeleteDockerImageRequest) returns (DeleteDockerImageResponse) {
     option (google.api.http) = {
       delete: "/api/v1/docker/images/{id}"
-    };
-  }
-  // 清理镜像
-  rpc PruneDockerImages(PruneDockerImagesRequest) returns (PruneDockerImagesResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/docker/images/prune"
-      body: "*"
     };
   }
   // 获取镜像历史
@@ -501,18 +480,6 @@ message ListDockerTasksResponse {
   repeated DockerTaskInfo tasks = 1;
 }
 
-// 获取Docker任务详情请求
-message GetDockerTaskRequest {
-  // 任务ID
-  string task_id = 1;
-}
-
-// 获取Docker任务详情响应
-message GetDockerTaskResponse {
-  // 任务详情
-  DockerTaskInfo task = 1;
-}
-
 // Docker任务
 message DockerTaskInfo {
   // 任务ID
@@ -533,24 +500,8 @@ message DockerTaskInfo {
   google.protobuf.Timestamp start_time = 8;
   // 结束时间
   google.protobuf.Timestamp end_time = 9;
-  // 任务事件
-  repeated DockerTaskEvent events = 10;
-}
-
-// Docker任务事件
-message DockerTaskEvent {
-  // 事件时间
-  google.protobuf.Timestamp time = 1;
-  // 状态
-  string status = 2;
-  // 进度
-  string progress = 3;
-  // 事件ID
-  string id = 4;
-  // 消息
-  string message = 5;
-  // 错误信息
-  string error = 6;
+  // 标题
+  string title = 10;
 }
 
 // 获取容器列表请求
@@ -1055,36 +1006,6 @@ message PullDockerImageResponse {
   DockerTaskInfo task = 1;
 }
 
-// 构建镜像请求
-message BuildDockerImageRequest {
-  // 上下文路径
-  string context_path = 1;
-  // Dockerfile路径
-  string dockerfile = 2;
-  // 镜像标签
-  repeated string tags = 3;
-  // 构建参数
-  map<string, string> build_args = 4;
-  // 标签
-  map<string, string> labels = 5;
-  // 平台
-  string platform = 6;
-  // 是否禁用缓存
-  bool no_cache = 7;
-  // 是否拉取父镜像
-  bool pull_parent = 8;
-  // 是否删除中间容器
-  bool remove = 9;
-  // 是否强制删除中间容器
-  bool force_remove = 10;
-}
-
-// 构建镜像响应
-message BuildDockerImageResponse {
-  // 任务
-  DockerTaskInfo task = 1;
-}
-
 // 更新镜像标签请求
 message UpdateDockerImageTagsRequest {
   // 镜像ID
@@ -1126,18 +1047,6 @@ message DeleteDockerImageRequest {
 
 // 删除镜像响应
 message DeleteDockerImageResponse {}
-
-// 清理镜像请求
-message PruneDockerImagesRequest {
-  // 是否只清理悬空镜像
-  bool dangling_only = 1;
-}
-
-// 清理镜像响应
-message PruneDockerImagesResponse {
-  // 任务
-  DockerTaskInfo task = 1;
-}
 
 // 获取镜像历史请求
 message ImageHistoryRequest {

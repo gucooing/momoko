@@ -1,22 +1,16 @@
 package docker
 
 import (
-	"archive/tar"
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	v1 "momoko/api/gen/v1"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	buildtypes "github.com/docker/docker/api/types/build"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -246,69 +240,6 @@ func parsePlatform(platform string) (*ocispec.Platform, error) {
 	return p, nil
 }
 
-func makeBuildContext(root string) (io.ReadCloser, error) {
-	root = strings.TrimSpace(root)
-	if root == "" {
-		return nil, errors.New("构建上下文不能为空")
-	}
-	rootAbs, err := filepath.Abs(root)
-	if err != nil {
-		return nil, err
-	}
-	var buf bytes.Buffer
-	tw := tar.NewWriter(&buf)
-	err = filepath.WalkDir(rootAbs, func(path string, d os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		if d.IsDir() {
-			return nil
-		}
-		info, err := d.Info()
-		if err != nil {
-			return err
-		}
-		rel, err := filepath.Rel(rootAbs, path)
-		if err != nil {
-			return err
-		}
-		header, err := tar.FileInfoHeader(info, "")
-		if err != nil {
-			return err
-		}
-		header.Name = filepath.ToSlash(rel)
-		if err := tw.WriteHeader(header); err != nil {
-			return err
-		}
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		_, err = io.Copy(tw, f)
-		return err
-	})
-	if err != nil {
-		_ = tw.Close()
-		return nil, err
-	}
-	if err := tw.Close(); err != nil {
-		return nil, err
-	}
-	return io.NopCloser(bytes.NewReader(buf.Bytes())), nil
-}
-
-func buildArgs(args map[string]string) map[string]*string {
-	if len(args) == 0 {
-		return nil
-	}
-	result := make(map[string]*string, len(args))
-	for k, v := range args {
-		result[k] = new(v)
-	}
-	return result
-}
-
 func toContainerResources(opts CreateContainerOptions) containertypes.Resources {
 	return containertypes.Resources{
 		Memory:     opts.Memory,
@@ -412,20 +343,6 @@ func toDockerIPAM(data IPAM) *networktypes.IPAM {
 		Driver:  data.Driver,
 		Options: data.Options,
 		Config:  configs,
-	}
-}
-
-func toImageBuildOptions(opts BuildImageOptions) buildtypes.ImageBuildOptions {
-	return buildtypes.ImageBuildOptions{
-		Tags:        opts.Tags,
-		NoCache:     opts.NoCache,
-		Remove:      opts.Remove,
-		ForceRemove: opts.ForceRemove,
-		PullParent:  opts.PullParent,
-		Dockerfile:  opts.Dockerfile,
-		BuildArgs:   buildArgs(opts.BuildArgs),
-		Labels:      opts.Labels,
-		Platform:    opts.Platform,
 	}
 }
 

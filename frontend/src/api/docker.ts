@@ -10,8 +10,6 @@ import type {
   TestDockerConfigResponse,
   ListDockerTasksRequest,
   ListDockerTasksResponse,
-  GetDockerTaskRequest,
-  GetDockerTaskResponse,
   ListDockerContainersRequest,
   ListDockerContainersResponse,
   GetDockerContainerRequest,
@@ -50,16 +48,12 @@ import type {
   GetDockerImageResponse,
   PullDockerImageRequest,
   PullDockerImageResponse,
-  BuildDockerImageRequest,
-  BuildDockerImageResponse,
   UpdateDockerImageTagsRequest,
   UpdateDockerImageTagsResponse,
   TagDockerImageRequest,
   TagDockerImageResponse,
   DeleteDockerImageRequest,
   DeleteDockerImageResponse,
-  PruneDockerImagesRequest,
-  PruneDockerImagesResponse,
   ImageHistoryRequest,
   ImageHistoryResponse,
   ListDockerNetworksRequest,
@@ -122,10 +116,6 @@ export const testDockerConfig = (data: TestDockerConfigRequest) => {
 
 export const listDockerTasks = (params?: ListDockerTasksRequest) => {
   return request.get<ListDockerTasksResponse>('/docker/tasks', { params })
-}
-
-export const getDockerTask = (params: GetDockerTaskRequest) => {
-  return request.get<GetDockerTaskResponse>(`/docker/tasks/${params.taskId}`)
 }
 
 // ==================== Containers ====================
@@ -210,10 +200,6 @@ export const pullDockerImage = (data: PullDockerImageRequest) => {
   return request.post<PullDockerImageResponse>('/docker/images/pull', data)
 }
 
-export const buildDockerImage = (data: BuildDockerImageRequest) => {
-  return request.post<BuildDockerImageResponse>('/docker/images/build', data)
-}
-
 export const updateDockerImageTags = (data: UpdateDockerImageTagsRequest) => {
   return request.put<UpdateDockerImageTagsResponse>(`/docker/images/${data.imageId}/tags`, data)
 }
@@ -226,10 +212,6 @@ export const deleteDockerImage = (params: DeleteDockerImageRequest) => {
   return request.delete<DeleteDockerImageResponse>(`/docker/images/${params.id}`, {
     params: { force: params.force, pruneChildren: params.pruneChildren },
   })
-}
-
-export const pruneDockerImages = (data: PruneDockerImagesRequest) => {
-  return request.post<PruneDockerImagesResponse>('/docker/images/prune', data)
 }
 
 export const imageHistory = (params: ImageHistoryRequest) => {

@@ -1047,16 +1047,12 @@ enum OperationType {
   OperationTypeDockerContainerRecreate = 75;
   // Docker 镜像拉取
   OperationTypeDockerImagePull = 76;
-  // Docker 镜像构建
-  OperationTypeDockerImageBuild = 77;
   // Docker 镜像标签更新
   OperationTypeDockerImageTagsUpdate = 78;
   // Docker 镜像打标签
   OperationTypeDockerImageTag = 79;
   // Docker 镜像删除
   OperationTypeDockerImageDelete = 80;
-  // Docker 镜像清理
-  OperationTypeDockerImagePrune = 81;
   // Docker 网络创建
   OperationTypeDockerNetworkCreate = 82;
   // Docker 网络更新

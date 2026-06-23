@@ -311,19 +311,6 @@ type PullImageOptions struct {
 	RegistryAuth *RegistryAuth
 }
 
-type BuildImageOptions struct {
-	ContextPath string
-	Dockerfile  string
-	Tags        []string
-	BuildArgs   map[string]string
-	Labels      map[string]string
-	Platform    string
-	NoCache     bool
-	PullParent  bool
-	Remove      bool
-	ForceRemove bool
-}
-
 type UpdateImageTagsOptions struct {
 	ImageID     string
 	AddTags     []string

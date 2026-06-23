@@ -2,13 +2,13 @@ package docker
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"strconv"
 	"strings"
 
 	imagetypes "github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/pkg/jsonmessage"
 )
 
 func (m *Manager) ListImages(ctx context.Context, opts ImageListOptions) ([]ImageSummary, int64, error) {
@@ -58,7 +58,7 @@ func (m *Manager) Image(ctx context.Context, id string) (*ImageInfo, error) {
 }
 
 func (m *Manager) PullImage(ctx context.Context, opts PullImageOptions) *Task {
-	return m.tasks.Start(ctx, "image_pull", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "image_pull", "拉取镜像 "+opts.Reference, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err
@@ -75,36 +75,10 @@ func (m *Manager) PullImage(ctx context.Context, opts PullImageOptions) *Task {
 			return "", err
 		}
 		defer reader.Close()
-		if err := streamJSONEvents(taskCtx, reader, emit); err != nil {
+		if err := streamTaskOutput(taskCtx, reader, emit); err != nil {
 			return "", err
 		}
 		return opts.Reference, nil
-	})
-}
-
-func (m *Manager) BuildImage(ctx context.Context, opts BuildImageOptions) *Task {
-	return m.tasks.Start(ctx, "image_build", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
-		cli, err := m.getClient()
-		if err != nil {
-			return "", err
-		}
-		buildCtx, err := makeBuildContext(opts.ContextPath)
-		if err != nil {
-			return "", err
-		}
-		defer buildCtx.Close()
-		resp, err := cli.ImageBuild(taskCtx, buildCtx, toImageBuildOptions(opts))
-		if err != nil {
-			return "", err
-		}
-		defer resp.Body.Close()
-		if err := streamJSONEvents(taskCtx, resp.Body, emit); err != nil {
-			return "", err
-		}
-		if len(opts.Tags) > 0 {
-			return opts.Tags[0], nil
-		}
-		return "", nil
 	})
 }
 
@@ -156,26 +130,6 @@ func (m *Manager) DeleteImage(ctx context.Context, id string, force bool, pruneC
 	return err
 }
 
-func (m *Manager) PruneImages(ctx context.Context, danglingOnly bool) *Task {
-	return m.tasks.Start(ctx, "image_prune", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
-		cli, err := m.getClient()
-		if err != nil {
-			return "", err
-		}
-		filters := filtersFromLabels(nil)
-		if danglingOnly {
-			filters.Add("dangling", "true")
-		}
-		report, err := cli.ImagesPrune(taskCtx, filters)
-		if err != nil {
-			return "", err
-		}
-		raw, _ := json.Marshal(report)
-		emit(TaskEvent{Message: string(raw)})
-		return "", nil
-	})
-}
-
 func (m *Manager) ImageHistory(ctx context.Context, id string) ([]ImageHistoryItem, error) {
 	cli, err := m.getClient()
 	if err != nil {
@@ -194,46 +148,21 @@ func (m *Manager) ImageHistory(ctx context.Context, id string) ([]ImageHistoryIt
 	return result, nil
 }
 
-func streamJSONEvents(ctx context.Context, reader io.Reader, emit func(TaskEvent)) error {
-	decoder := json.NewDecoder(reader)
-	for {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		var event struct {
-			Status      string `json:"status"`
-			Progress    string `json:"progress"`
-			ID          string `json:"id"`
-			Stream      string `json:"stream"`
-			Error       string `json:"error"`
-			ErrorDetail struct {
-				Message string `json:"message"`
-			} `json:"errorDetail"`
-			Aux any `json:"aux"`
-		}
-		if err := decoder.Decode(&event); err != nil {
-			if errors.Is(err, io.EOF) {
-				return nil
-			}
-			return err
-		}
-		msg := strings.TrimSpace(event.Stream)
-		if msg == "" {
-			msg = event.Status
-		}
-		errText := event.Error
-		if errText == "" {
-			errText = event.ErrorDetail.Message
-		}
-		emit(TaskEvent{
-			Status:   event.Status,
-			Progress: event.Progress,
-			ID:       event.ID,
-			Message:  msg,
-			Error:    errText,
-		})
-		if errText != "" {
-			return errors.New(errText)
-		}
+func streamTaskOutput(ctx context.Context, reader io.Reader, emit func(TaskEvent)) error {
+	return jsonmessage.DisplayJSONMessagesStream(reader, taskEventWriter{ctx: ctx, emit: emit}, 0, true, nil)
+}
+
+type taskEventWriter struct {
+	ctx  context.Context
+	emit func(TaskEvent)
+}
+
+func (w taskEventWriter) Write(p []byte) (int, error) {
+	if err := w.ctx.Err(); err != nil {
+		return 0, err
 	}
+	if len(p) > 0 {
+		w.emit(TaskEvent{Message: string(p)})
+	}
+	return len(p), nil
 }

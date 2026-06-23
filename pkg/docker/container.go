@@ -143,7 +143,11 @@ func (m *Manager) UpdateContainer(ctx context.Context, id string, opts UpdateCon
 }
 
 func (m *Manager) RecreateContainer(ctx context.Context, opts RecreateContainerOptions) *Task {
-	return m.tasks.Start(ctx, "container_recreate", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	titleTarget := opts.Create.Name
+	if titleTarget == "" {
+		titleTarget = opts.ID
+	}
+	return m.tasks.Start(ctx, "container_recreate", "重建容器 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		emit(TaskEvent{Message: "检查旧容器"})
 		oldInfo, err := m.Container(taskCtx, opts.ID)
 		if err != nil {

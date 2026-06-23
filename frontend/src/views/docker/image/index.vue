@@ -29,8 +29,6 @@
     <el-card shadow="never" class="card-mt-16">
       <div class="operation-container">
         <el-button type="primary" :icon="menuStore.iconComponents.Plus" :disabled="!canManage" @click="openPull">拉取镜像</el-button>
-        <el-button type="success" :disabled="!canManage" @click="openBuild">构建镜像</el-button>
-        <el-button type="warning" :disabled="!canManage" @click="handlePrune">清理未使用镜像</el-button>
         <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">任务</el-button>
       </div>
 
@@ -55,7 +53,7 @@
               <el-button type="primary" link size="small" @click="openEdit(row)">编辑标签</el-button>
               <el-button type="primary" link size="small" @click="openTag(row)">打标签</el-button>
               <el-button type="primary" link size="small" @click="openHistory(row)">历史</el-button>
-              <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+              <el-button v-if="canDeleteImage(row)" type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
             </template>
           </template>
         </VxeGrid>
@@ -71,7 +69,7 @@
             </div>
             <div class="mobile-card-actions">
               <el-button size="small" plain type="primary" @click="openDetail(row)">详情</el-button>
-              <el-button v-if="canManage" size="small" plain type="danger" @click="handleDelete(row)">删除</el-button>
+              <el-button v-if="canManage && canDeleteImage(row)" size="small" plain type="danger" @click="handleDelete(row)">删除</el-button>
             </div>
           </div>
         </div>
@@ -100,25 +98,6 @@
       <template #footer>
         <el-button @click="pullVisible = false">取消</el-button>
         <el-button type="primary" :loading="pullSubmitting" @click="submitPull">拉取</el-button>
-      </template>
-    </BaseDialog>
-
-    <!-- Build Dialog -->
-    <BaseDialog v-model="buildVisible" title="构建镜像" width="500">
-      <el-form label-position="top">
-        <el-form-item label="上下文路径" required>
-          <el-input v-model="buildForm.contextPath" placeholder="/path/to/context" />
-        </el-form-item>
-        <el-form-item label="Dockerfile 路径">
-          <el-input v-model="buildForm.dockerfile" placeholder="相对上下文路径，默认 Dockerfile" />
-        </el-form-item>
-        <el-form-item label="镜像标签">
-          <el-input v-model="buildForm.tagsText" placeholder="myimage:latest（每行一个标签）" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="buildVisible = false">取消</el-button>
-        <el-button type="primary" :loading="buildSubmitting" @click="submitBuild">构建</el-button>
       </template>
     </BaseDialog>
 
@@ -201,18 +180,18 @@
       </template>
     </BaseDialog>
 
-    <DockerTaskDrawer v-model="taskDrawerVisible" :active-task="activeTask" @finished="handleTaskFinished" />
+    <DockerTaskDialogs v-model="taskDialogsVisible" :active-task="activeTask" @finished="handleTaskFinished" />
   </div>
 </template>
 
 <script setup lang="ts">
 import {
-  buildDockerImage, deleteDockerImage, getDockerImage, imageHistory,
-  listDockerImages, pruneDockerImages, pullDockerImage, tagDockerImage,
+  deleteDockerImage, getDockerImage, imageHistory,
+  listDockerImages, pullDockerImage, tagDockerImage,
   updateDockerImageTags,
 } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import DockerTaskDrawer from '@/views/docker/components/DockerTaskDrawer.vue'
+import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
 import BaseTag from '@/components/tag/BaseTag.vue'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import { VxeGrid } from '@/plugins/vxeGrid'
@@ -279,14 +258,15 @@ const getList = async () => {
 
 const search = () => { pagination.value.page = 1; getList() }
 const reset = () => { queryForm.keyword = ''; queryForm.dangling = undefined; search() }
+const canDeleteImage = (row: DockerImageSummary) => row.containers <= 0
 
-const taskDrawerVisible = ref(false)
+const taskDialogsVisible = ref(false)
 const activeTask = ref<DockerTaskInfo | null>(null)
-const openTasks = () => { taskDrawerVisible.value = true }
+const openTasks = () => { taskDialogsVisible.value = true }
 const openTask = (task: DockerTaskInfo | undefined) => {
   if (!task?.id) return
   activeTask.value = task
-  taskDrawerVisible.value = true
+  taskDialogsVisible.value = true
 }
 const handleTaskFinished = async () => {
   await getList()
@@ -308,29 +288,6 @@ const submitPull = async () => {
     pullVisible.value = false
   } catch (e) { showRequestError(e, '拉取镜像失败') }
   finally { pullSubmitting.value = false }
-}
-
-// -- build --
-const buildVisible = ref(false)
-const buildSubmitting = ref(false)
-const buildForm = reactive({ contextPath: '', dockerfile: '', tagsText: '' })
-const openBuild = () => { Object.assign(buildForm, { contextPath: '', dockerfile: '', tagsText: '' }); buildVisible.value = true }
-const submitBuild = async () => {
-  const contextPath = buildForm.contextPath.trim()
-  if (!contextPath) { ElMessage.error('请输入上下文路径'); return }
-  buildSubmitting.value = true
-  try {
-    const tags = buildForm.tagsText.trim() ? buildForm.tagsText.trim().split('\n').filter(Boolean) : []
-    const { data } = await buildDockerImage({
-      contextPath, dockerfile: buildForm.dockerfile.trim() || 'Dockerfile',
-      tags, buildArgs: {}, labels: {}, platform: '', noCache: false,
-      pullParent: false, remove: true, forceRemove: false,
-    })
-    ElMessage.success('构建任务已创建')
-    openTask(data?.task)
-    buildVisible.value = false
-  } catch (e) { showRequestError(e, '构建镜像失败') }
-  finally { buildSubmitting.value = false }
 }
 
 // -- tag --
@@ -355,18 +312,6 @@ const handleDelete = async (row: DockerImageSummary) => {
   catch { return }
   try { await deleteDockerImage({ id: row.id, force: false, pruneChildren: false }); ElMessage.success(`${name} 已删除`); await getList() }
   catch (e) { showRequestError(e, '删除镜像失败') }
-}
-
-// -- prune --
-const handlePrune = async () => {
-  try { await Dialog.confirm({ title: '清理未使用镜像', content: '确定要清理所有未使用的镜像吗？', confirmText: '确认清理', cancelText: '取消' }) }
-  catch { return }
-  try {
-    const { data } = await pruneDockerImages({ danglingOnly: false })
-    ElMessage.success('清理任务已创建')
-    openTask(data?.task)
-  }
-  catch (e) { showRequestError(e, '清理镜像失败') }
 }
 
 // -- detail --

@@ -730,44 +730,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListDockerImagesResponse'
-    /api/v1/docker/images/build:
-        post:
-            tags:
-                - DockerManager
-            description: 构建镜像
-            operationId: DockerManager_BuildDockerImage
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.BuildDockerImageRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.BuildDockerImageResponse'
-    /api/v1/docker/images/prune:
-        post:
-            tags:
-                - DockerManager
-            description: 清理镜像
-            operationId: DockerManager_PruneDockerImages
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.PruneDockerImagesRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PruneDockerImagesResponse'
     /api/v1/docker/images/pull:
         post:
             tags:
@@ -1152,26 +1114,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListDockerTasksResponse'
-    /api/v1/docker/tasks/{taskId}:
-        get:
-            tags:
-                - DockerManager
-            description: 获取Docker任务详情
-            operationId: DockerManager_GetDockerTask
-            parameters:
-                - name: taskId
-                  in: path
-                  description: 任务ID
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetDockerTaskResponse'
     /api/v1/docker/volumes:
         get:
             tags:
@@ -3034,6 +2976,112 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PublicSub2APIHomeResponse'
+    /api/v1/public/sub2api/imagine/apikeys:
+        get:
+            tags:
+                - Sub2APIImageGen
+            description: 列出当前 token 可用的 apikey（不返回原文 key）
+            operationId: Sub2APIImageGen_ListImageGenApiKeys
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListImageGenApiKeysResponse'
+    /api/v1/public/sub2api/imagine/generations:
+        get:
+            tags:
+                - Sub2APIImageGen
+            description: 列出当前用户的生图任务（轻量，不含图片字节）
+            operationId: Sub2APIImageGen_ListImageGenGenerations
+            parameters:
+                - name: limit
+                  in: query
+                  description: 最近多少条，<=0 时取默认 50
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListImageGenGenerationsResponse'
+        post:
+            tags:
+                - Sub2APIImageGen
+            description: 提交生成（异步），立即返回 pending generation
+            operationId: Sub2APIImageGen_CreateImageGenGeneration
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateImageGenGenerationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ImageGenGenerationResponse'
+    /api/v1/public/sub2api/imagine/generations/{id}:
+        get:
+            tags:
+                - Sub2APIImageGen
+            description: 获取单个任务详情（含图片）
+            operationId: Sub2APIImageGen_GetImageGenGeneration
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ImageGenGenerationResponse'
+        delete:
+            tags:
+                - Sub2APIImageGen
+            description: 删除任务（含图片磁盘+DB）
+            operationId: Sub2APIImageGen_DeleteImageGenGeneration
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteImageGenGenerationResponse'
+    /api/v1/public/sub2api/imagine/models:
+        get:
+            tags:
+                - Sub2APIImageGen
+            description: 列出指定 apikey 可用模型，标记图片能力
+            operationId: Sub2APIImageGen_ListImageGenModels
+            parameters:
+                - name: apiKeyId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListImageGenModelsResponse'
     /api/v1/public/sub2api/stats:
         get:
             tags:
@@ -4219,54 +4267,6 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.SSHHostTestResult'
                     description: 检测结果
-        v1.BuildDockerImageRequest:
-            type: object
-            properties:
-                contextPath:
-                    type: string
-                    description: 上下文路径
-                dockerfile:
-                    type: string
-                    description: Dockerfile路径
-                tags:
-                    type: array
-                    items:
-                        type: string
-                    description: 镜像标签
-                buildArgs:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 构建参数
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 标签
-                platform:
-                    type: string
-                    description: 平台
-                noCache:
-                    type: boolean
-                    description: 是否禁用缓存
-                pullParent:
-                    type: boolean
-                    description: 是否拉取父镜像
-                remove:
-                    type: boolean
-                    description: 是否删除中间容器
-                forceRemove:
-                    type: boolean
-                    description: 是否强制删除中间容器
-            description: 构建镜像请求
-        v1.BuildDockerImageResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 构建镜像响应
         v1.CancelFileUploadRequest:
             type: object
             properties:
@@ -4562,6 +4562,29 @@ components:
             type: object
             properties: {}
             description: 批量创建系统文件响应
+        v1.CreateImageGenGenerationRequest:
+            type: object
+            properties:
+                model:
+                    type: string
+                prompt:
+                    type: string
+                size:
+                    type: string
+                n:
+                    type: integer
+                    format: int32
+                quality:
+                    type: string
+                outputFormat:
+                    type: string
+                sourceImage:
+                    type: string
+                    description: |-
+                        源图：整张图片，base64 data URL（data:image/png;base64,...）。
+                         带 source_image 即图生图（走 /v1/images/edits），否则文生图（走 /v1/images/generations）。
+                apiKeyId:
+                    type: string
         v1.CreateInstanceFileRequest:
             type: object
             properties:
@@ -4827,6 +4850,9 @@ components:
             type: object
             properties: {}
             description: 删除储存卷响应
+        v1.DeleteImageGenGenerationResponse:
+            type: object
+            properties: {}
         v1.DeletePortForwardResponse:
             type: object
             properties: {}
@@ -5776,29 +5802,6 @@ components:
                         - $ref: '#/components/schemas/v1.DockerEngineVersion'
                     description: 版本信息
             description: Docker连接状态响应
-        v1.DockerTaskEvent:
-            type: object
-            properties:
-                time:
-                    type: string
-                    description: 事件时间
-                    format: date-time
-                status:
-                    type: string
-                    description: 状态
-                progress:
-                    type: string
-                    description: 进度
-                id:
-                    type: string
-                    description: 事件ID
-                message:
-                    type: string
-                    description: 消息
-                error:
-                    type: string
-                    description: 错误信息
-            description: Docker任务事件
         v1.DockerTaskInfo:
             type: object
             properties:
@@ -5831,11 +5834,9 @@ components:
                     type: string
                     description: 结束时间
                     format: date-time
-                events:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.DockerTaskEvent'
-                    description: 任务事件
+                title:
+                    type: string
+                    description: 标题
             description: Docker任务
         v1.DockerVolumeCreateOptions:
             type: object
@@ -6218,14 +6219,6 @@ components:
                         - $ref: '#/components/schemas/v1.DockerNetworkInfo'
                     description: 网络详情
             description: 获取网络详情响应
-        v1.GetDockerTaskResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务详情
-            description: 获取Docker任务详情响应
         v1.GetDockerVolumeResponse:
             type: object
             properties:
@@ -6403,6 +6396,104 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 信息
             description: 获取终端详情响应
+        v1.ImageGenApiKeySummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                groupId:
+                    type: string
+                groupName:
+                    type: string
+                platform:
+                    type: string
+        v1.ImageGenGeneration:
+            type: object
+            properties:
+                id:
+                    type: string
+                userId:
+                    type: string
+                mode:
+                    type: string
+                model:
+                    type: string
+                prompt:
+                    type: string
+                size:
+                    type: string
+                n:
+                    type: integer
+                    format: int32
+                quality:
+                    type: string
+                outputFormat:
+                    type: string
+                status:
+                    type: string
+                errorMessage:
+                    type: string
+                latencyMs:
+                    type: string
+                resultCount:
+                    type: integer
+                    format: int32
+                apiKeyId:
+                    type: string
+                startedAt:
+                    type: string
+                    format: date-time
+                finishedAt:
+                    type: string
+                    format: date-time
+                createdAt:
+                    type: string
+                    format: date-time
+                images:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ImageGenImage'
+        v1.ImageGenGenerationResponse:
+            type: object
+            properties:
+                generation:
+                    $ref: '#/components/schemas/v1.ImageGenGeneration'
+        v1.ImageGenImage:
+            type: object
+            properties:
+                id:
+                    type: string
+                generationId:
+                    type: string
+                filename:
+                    type: string
+                index:
+                    type: integer
+                    format: int32
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                mimeType:
+                    type: string
+                sizeBytes:
+                    type: string
+                revisedPrompt:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+        v1.ImageGenModel:
+            type: object
+            properties:
+                id:
+                    type: string
+                displayName:
+                    type: string
         v1.ImageHistoryResponse:
             type: object
             properties:
@@ -6637,6 +6728,27 @@ components:
                     type: string
                     description: 总数
             description: 获取储存卷列表响应
+        v1.ListImageGenApiKeysResponse:
+            type: object
+            properties:
+                apiKeys:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ImageGenApiKeySummary'
+        v1.ListImageGenGenerationsResponse:
+            type: object
+            properties:
+                generations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ImageGenGeneration'
+        v1.ListImageGenModelsResponse:
+            type: object
+            properties:
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ImageGenModel'
         v1.ListOperationLogsResponse:
             type: object
             properties:
@@ -7201,21 +7313,6 @@ components:
                 error:
                     type: string
                     description: 运行错误
-        v1.PruneDockerImagesRequest:
-            type: object
-            properties:
-                danglingOnly:
-                    type: boolean
-                    description: 是否只清理悬空镜像
-            description: 清理镜像请求
-        v1.PruneDockerImagesResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 清理镜像响应
         v1.PruneDockerNetworksRequest:
             type: object
             properties: {}
@@ -7776,6 +7873,17 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+                allowedSrcHosts:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许调用 momoko 生图的 sub2api 站点 origin 列表（留空表示不限制）
+                imageEnabled:
+                    type: boolean
+                    description: 是否启用生图功能
+                srcHostWhitelistEnabled:
+                    type: boolean
+                    description: 是否开启站点白名单校验
             description: 仅包含连接与展示配置，公告/时间线为独立资源。
         v1.Sub2APIHome:
             type: object
@@ -8932,6 +9040,11 @@ tags:
       description: 节点服务
     - name: OpenSSHManager
       description: OpenSSH 管理
+    - name: Sub2APIImageGen
+      description: |-
+        Sub2API Imagine 嵌入式生图。路由全部公开（无 momoko JWT），鉴权由业务层用
+         X-Sub2API-Token 调 sub2api /keys 完成；user_id 取自 /keys 响应（可信）。
+         每次生图即一个独立 Generation 任务，直接挂 user_id，无会话概念。
     - name: Sub2APIManager
       description: Sub2API 公共首页与管理
     - name: System

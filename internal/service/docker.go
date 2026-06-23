@@ -65,14 +65,6 @@ func (d *DockerService) ListDockerTasks(ctx context.Context, _ *v1.ListDockerTas
 	return &v1.ListDockerTasksResponse{Tasks: tasks}, nil
 }
 
-func (d *DockerService) GetDockerTask(ctx context.Context, req *v1.GetDockerTaskRequest) (*v1.GetDockerTaskResponse, error) {
-	task, err := d.uc.Task(ctx, req.TaskId)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GetDockerTaskResponse{Task: task}, nil
-}
-
 func (d *DockerService) ListDockerContainers(ctx context.Context, req *v1.ListDockerContainersRequest) (*v1.ListDockerContainersResponse, error) {
 	return d.uc.ListContainers(ctx, req)
 }
@@ -209,14 +201,6 @@ func (d *DockerService) PullDockerImage(ctx context.Context, req *v1.PullDockerI
 	return &v1.PullDockerImageResponse{Task: task}, nil
 }
 
-func (d *DockerService) BuildDockerImage(ctx context.Context, req *v1.BuildDockerImageRequest) (*v1.BuildDockerImageResponse, error) {
-	task, err := d.uc.BuildImage(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.BuildDockerImageResponse{Task: task}, nil
-}
-
 func (d *DockerService) UpdateDockerImageTags(ctx context.Context, req *v1.UpdateDockerImageTagsRequest) (*v1.UpdateDockerImageTagsResponse, error) {
 	info, err := d.uc.UpdateImageTags(ctx, req)
 	if err != nil {
@@ -237,14 +221,6 @@ func (d *DockerService) DeleteDockerImage(ctx context.Context, req *v1.DeleteDoc
 		return nil, err
 	}
 	return &v1.DeleteDockerImageResponse{}, nil
-}
-
-func (d *DockerService) PruneDockerImages(ctx context.Context, req *v1.PruneDockerImagesRequest) (*v1.PruneDockerImagesResponse, error) {
-	task, err := d.uc.PruneImages(ctx, req.DanglingOnly)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.PruneDockerImagesResponse{Task: task}, nil
 }
 
 func (d *DockerService) ImageHistory(ctx context.Context, req *v1.ImageHistoryRequest) (*v1.ImageHistoryResponse, error) {
@@ -479,8 +455,15 @@ func (d *DockerService) RunTaskWsConn(conn *websocket.Conn) {
 			if !ok {
 				return
 			}
-			if err := websocket.JSON.Send(conn, event); err != nil {
-				return
+			if event.Message != "" {
+				if err := websocket.Message.Send(conn, event.Message); err != nil {
+					return
+				}
+			}
+			if event.Error != "" {
+				if err := websocket.Message.Send(conn, event.Error); err != nil {
+					return
+				}
 			}
 		}
 	}

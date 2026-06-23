@@ -87,7 +87,11 @@ func (m *Manager) UpdateNetwork(ctx context.Context, opts UpdateNetworkOptions) 
 }
 
 func (m *Manager) RecreateNetwork(ctx context.Context, opts RecreateNetworkOptions) *Task {
-	return m.tasks.Start(ctx, "network_recreate", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	titleTarget := opts.Create.Name
+	if titleTarget == "" {
+		titleTarget = opts.ID
+	}
+	return m.tasks.Start(ctx, "network_recreate", "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		oldInfo, err := m.Network(taskCtx, opts.ID)
 		if err != nil {
 			return "", err
@@ -135,7 +139,7 @@ func (m *Manager) DisconnectNetwork(ctx context.Context, networkID, containerID 
 }
 
 func (m *Manager) PruneNetworks(ctx context.Context) *Task {
-	return m.tasks.Start(ctx, "network_prune", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
+	return m.tasks.Start(ctx, "network_prune", "清理网络", m.taskTimeout(), func(taskCtx context.Context, emit func(TaskEvent)) (string, error) {
 		cli, err := m.getClient()
 		if err != nil {
 			return "", err

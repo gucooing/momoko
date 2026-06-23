@@ -86,17 +86,6 @@ func (d *DockerUsecase) Tasks(ctx context.Context) ([]*v1.DockerTaskInfo, error)
 	return result, nil
 }
 
-func (d *DockerUsecase) Task(ctx context.Context, id string) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
-	task, err := d.docker.Task(id)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return toDockerTask(task), nil
-}
-
 func (d *DockerUsecase) SubscribeTask(ctx context.Context, id string) (<-chan dockerpkg.TaskEvent, func(), error) {
 	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
 		return nil, nil, err
@@ -320,17 +309,6 @@ func (d *DockerUsecase) PullImage(ctx context.Context, req *v1.PullDockerImageRe
 	})), nil
 }
 
-func (d *DockerUsecase) BuildImage(ctx context.Context, req *v1.BuildDockerImageRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return nil, err
-	}
-	return toDockerTask(d.docker.BuildImage(ctx, dockerpkg.BuildImageOptions{
-		ContextPath: req.ContextPath, Dockerfile: req.Dockerfile, Tags: req.Tags,
-		BuildArgs: req.BuildArgs, Labels: req.Labels, Platform: req.Platform,
-		NoCache: req.NoCache, PullParent: req.PullParent, Remove: req.Remove, ForceRemove: req.ForceRemove,
-	})), nil
-}
-
 func (d *DockerUsecase) UpdateImageTags(ctx context.Context, req *v1.UpdateDockerImageTagsRequest) (*v1.DockerImageInfo, error) {
 	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
 		return nil, err
@@ -365,13 +343,6 @@ func (d *DockerUsecase) DeleteImage(ctx context.Context, id string, force, prune
 		return ErrSystem(err)
 	}
 	return nil
-}
-
-func (d *DockerUsecase) PruneImages(ctx context.Context, danglingOnly bool) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return nil, err
-	}
-	return toDockerTask(d.docker.PruneImages(ctx, danglingOnly)), nil
 }
 
 func (d *DockerUsecase) ImageHistory(ctx context.Context, id string) ([]*v1.DockerImageHistoryItem, error) {
@@ -670,17 +641,10 @@ func toDockerTask(task *dockerpkg.Task) *v1.DockerTaskInfo {
 	if task == nil {
 		return nil
 	}
-	events := make([]*v1.DockerTaskEvent, 0, len(task.Events))
-	for _, item := range task.Events {
-		events = append(events, &v1.DockerTaskEvent{
-			Time: timestamppb.New(item.Time), Status: item.Status, Progress: item.Progress,
-			Id: item.ID, Message: item.Message, Error: item.Error,
-		})
-	}
 	info := &v1.DockerTaskInfo{
-		Id: task.ID, Type: task.Type, Status: string(task.Status), Progress: task.Progress,
+		Id: task.ID, Type: task.Type, Title: task.Title, Status: string(task.Status), Progress: task.Progress,
 		Message: task.Message, Error: task.Error, ResultPath: task.ResultPath,
-		StartTime: timestamppb.New(task.StartTime), Events: events,
+		StartTime: timestamppb.New(task.StartTime),
 	}
 	if task.EndTime != nil {
 		info.EndTime = timestamppb.New(*task.EndTime)
