@@ -77,19 +77,19 @@ func LoadConfig(ctx context.Context, store ConfigStore) (*v1.Sub2APIConfig, erro
 func SaveConfig(ctx context.Context, store ConfigStore, cfg *v1.Sub2APIConfig) error {
 	NormalizeConfig(cfg)
 	return store.BatchUpdate(ctx, map[common.ConfigKey]string{
-		common.ConfigSub2APIHomeEnabled:         strconv.FormatBool(cfg.HomeEnabled),
-		common.ConfigSub2APISyncEnabled:         strconv.FormatBool(cfg.SyncEnabled),
-		common.ConfigSub2APIBaseURL:             cfg.BaseUrl,
-		common.ConfigSub2APIAdminAPIKey:         cfg.AdminApiKey,
-		common.ConfigSub2APIConsoleURL:          cfg.ConsoleUrl,
-		common.ConfigSub2APITitle:               cfg.Title,
-		common.ConfigSub2APISubtitle:            cfg.Subtitle,
-		common.ConfigSub2APIIntroduction:        cfg.Introduction,
-		common.ConfigSub2APISyncIntervalMinutes: strconv.Itoa(int(cfg.SyncIntervalMinutes)),
-		common.ConfigSub2APIHistoryDays:         strconv.Itoa(int(cfg.HistoryDays)),
-		common.ConfigSub2APIPageSize:            strconv.Itoa(int(cfg.PageSize)),
-		common.ConfigSub2APIAllowedSrcHosts:     mustJSONStringList(cfg.AllowedSrcHosts),
-		common.ConfigSub2APIImageEnabled:          strconv.FormatBool(cfg.ImageEnabled),
+		common.ConfigSub2APIHomeEnabled:             strconv.FormatBool(cfg.HomeEnabled),
+		common.ConfigSub2APISyncEnabled:             strconv.FormatBool(cfg.SyncEnabled),
+		common.ConfigSub2APIBaseURL:                 cfg.BaseUrl,
+		common.ConfigSub2APIAdminAPIKey:             cfg.AdminApiKey,
+		common.ConfigSub2APIConsoleURL:              cfg.ConsoleUrl,
+		common.ConfigSub2APITitle:                   cfg.Title,
+		common.ConfigSub2APISubtitle:                cfg.Subtitle,
+		common.ConfigSub2APIIntroduction:            cfg.Introduction,
+		common.ConfigSub2APISyncIntervalMinutes:     strconv.Itoa(int(cfg.SyncIntervalMinutes)),
+		common.ConfigSub2APIHistoryDays:             strconv.Itoa(int(cfg.HistoryDays)),
+		common.ConfigSub2APIPageSize:                strconv.Itoa(int(cfg.PageSize)),
+		common.ConfigSub2APIAllowedSrcHosts:         mustJSONStringList(cfg.AllowedSrcHosts),
+		common.ConfigSub2APIImageEnabled:            strconv.FormatBool(cfg.ImageEnabled),
 		common.ConfigSub2APISrcHostWhitelistEnabled: strconv.FormatBool(cfg.SrcHostWhitelistEnabled),
 	})
 }
