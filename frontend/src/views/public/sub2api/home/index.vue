@@ -362,21 +362,27 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
   gap: 9px;
   border: 0;
   background: transparent;
   color: var(--el-text-color-primary);
   font-size: 16px;
   font-weight: 800;
+  line-height: 1.25;
+  text-align: left;
   cursor: pointer;
 }
 
 .brand-dot {
+  flex: none;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -386,7 +392,14 @@ onMounted(async () => {
 .topbar-actions {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
   gap: 8px;
+
+  :deep(.el-button) {
+    flex: none;
+    margin-left: 0;
+  }
 }
 
 .icon-btn {
@@ -872,6 +885,29 @@ onMounted(async () => {
   .updates,
   .footer {
     width: min(1180px, calc(100% - 24px));
+  }
+
+  .topbar-inner {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 8px;
+    padding: 8px 0;
+  }
+
+  .brand {
+    flex: 1 1 72px;
+  }
+
+  .topbar-actions {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    :deep(.el-button) {
+      padding: 0 12px;
+    }
   }
 
   .usage,
