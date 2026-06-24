@@ -7,7 +7,6 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
-	"momoko/pkg/constant"
 	sub2apipkg "momoko/pkg/sub2api"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -29,24 +28,20 @@ type Sub2APIRepo interface {
 }
 
 type Sub2APIUsecase struct {
-	sys     *SystemUsecase
 	repo    Sub2APIRepo
 	service *sub2apipkg.Service
 }
 
-func NewSub2APIUsecase(sys *SystemUsecase, config ConfigRepo, repo Sub2APIRepo) (*Sub2APIUsecase, func(), error) {
+func NewSub2APIUsecase(config ConfigRepo, repo Sub2APIRepo) (*Sub2APIUsecase, func(), error) {
 	service := sub2apipkg.NewService(repo, config)
 	service.Start()
-	uc := &Sub2APIUsecase{sys: sys, repo: repo, service: service}
+	uc := &Sub2APIUsecase{repo: repo, service: service}
 	return uc, service.Stop, nil
 }
 
 // ---------- 配置与用量 ----------
 
 func (s *Sub2APIUsecase) Config(ctx context.Context) (*v1.Sub2APIConfig, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, err
-	}
 	cfg, err := s.service.Config(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -55,9 +50,6 @@ func (s *Sub2APIUsecase) Config(ctx context.Context) (*v1.Sub2APIConfig, error) 
 }
 
 func (s *Sub2APIUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateSub2APIConfigRequest) (*v1.Sub2APIConfig, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	cfg, err := s.service.UpdateConfig(ctx, req.GetConfig())
 	if err != nil {
 		return nil, mapSub2APIError(err)
@@ -66,17 +58,11 @@ func (s *Sub2APIUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateSub2API
 }
 
 func (s *Sub2APIUsecase) TestConnection(ctx context.Context, req *v1.TestSub2APIConnectionRequest) (*v1.TestSub2APIConnectionResponse, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	connected, message := s.service.TestConnection(ctx, req.GetConfig())
 	return &v1.TestSub2APIConnectionResponse{Connected: connected, Message: message}, nil
 }
 
 func (s *Sub2APIUsecase) Snapshot(ctx context.Context) (*v1.Sub2APIUsageSnapshot, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, err
-	}
 	snapshot, err := s.service.Snapshot(ctx)
 	if err != nil {
 		return nil, mapSub2APIError(err)
@@ -85,9 +71,6 @@ func (s *Sub2APIUsecase) Snapshot(ctx context.Context) (*v1.Sub2APIUsageSnapshot
 }
 
 func (s *Sub2APIUsecase) SyncUsage(ctx context.Context, full bool) (*v1.Sub2APIUsageSnapshot, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	snapshot, err := s.service.Sync(ctx, full)
 	if err != nil {
 		return nil, mapSub2APIError(err)
@@ -142,9 +125,6 @@ func (s *Sub2APIUsecase) PublicStats(ctx context.Context, rangeDays int32) (*v1.
 
 // AdminStats 管理端用量概览（按时间段统计）。最近请求改由 RecentRequests 分页返回。
 func (s *Sub2APIUsecase) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub2APIStats, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, err
-	}
 	stats, err := s.service.AdminStats(ctx, start, end)
 	if err != nil {
 		return nil, mapSub2APIError(err)
@@ -154,9 +134,6 @@ func (s *Sub2APIUsecase) AdminStats(ctx context.Context, start, end time.Time) (
 
 // RecentRequests 管理端最近请求分页（按时间段，倒序）。
 func (s *Sub2APIUsecase) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, 0, err
-	}
 	list, total, err := s.service.RecentRequests(ctx, start, end, page, pageSize)
 	if err != nil {
 		return nil, 0, mapSub2APIError(err)
@@ -167,9 +144,6 @@ func (s *Sub2APIUsecase) RecentRequests(ctx context.Context, start, end time.Tim
 // ---------- 公告 CRUD ----------
 
 func (s *Sub2APIUsecase) ListAnnouncements(ctx context.Context) ([]*v1.Sub2APIAnnouncement, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, err
-	}
 	list, err := s.repo.ListAnnouncements(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -178,9 +152,6 @@ func (s *Sub2APIUsecase) ListAnnouncements(ctx context.Context) ([]*v1.Sub2APIAn
 }
 
 func (s *Sub2APIUsecase) CreateAnnouncement(ctx context.Context, req *v1.CreateSub2APIAnnouncementRequest) (*v1.Sub2APIAnnouncement, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	created, err := s.repo.CreateAnnouncement(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -189,9 +160,6 @@ func (s *Sub2APIUsecase) CreateAnnouncement(ctx context.Context, req *v1.CreateS
 }
 
 func (s *Sub2APIUsecase) UpdateAnnouncement(ctx context.Context, req *v1.UpdateSub2APIAnnouncementRequest) (*v1.Sub2APIAnnouncement, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	if req.GetId() == "" {
 		return nil, ErrSub2APIRecordID
 	}
@@ -203,9 +171,6 @@ func (s *Sub2APIUsecase) UpdateAnnouncement(ctx context.Context, req *v1.UpdateS
 }
 
 func (s *Sub2APIUsecase) DeleteAnnouncement(ctx context.Context, id string) error {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return err
-	}
 	if id == "" {
 		return ErrSub2APIRecordID
 	}
@@ -218,9 +183,6 @@ func (s *Sub2APIUsecase) DeleteAnnouncement(ctx context.Context, id string) erro
 // ---------- 时间线 CRUD ----------
 
 func (s *Sub2APIUsecase) ListTimeline(ctx context.Context) ([]*v1.Sub2APITimelineItem, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIView); err != nil {
-		return nil, err
-	}
 	list, err := s.repo.ListTimeline(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -229,9 +191,6 @@ func (s *Sub2APIUsecase) ListTimeline(ctx context.Context) ([]*v1.Sub2APITimelin
 }
 
 func (s *Sub2APIUsecase) CreateTimelineItem(ctx context.Context, req *v1.CreateSub2APITimelineItemRequest) (*v1.Sub2APITimelineItem, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	created, err := s.repo.CreateTimelineItem(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -240,9 +199,6 @@ func (s *Sub2APIUsecase) CreateTimelineItem(ctx context.Context, req *v1.CreateS
 }
 
 func (s *Sub2APIUsecase) UpdateTimelineItem(ctx context.Context, req *v1.UpdateSub2APITimelineItemRequest) (*v1.Sub2APITimelineItem, error) {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return nil, err
-	}
 	if req.GetId() == "" {
 		return nil, ErrSub2APIRecordID
 	}
@@ -254,9 +210,6 @@ func (s *Sub2APIUsecase) UpdateTimelineItem(ctx context.Context, req *v1.UpdateS
 }
 
 func (s *Sub2APIUsecase) DeleteTimelineItem(ctx context.Context, id string) error {
-	if err := s.sys.Check(ctx, constant.Sub2APIEdit); err != nil {
-		return err
-	}
 	if id == "" {
 		return ErrSub2APIRecordID
 	}

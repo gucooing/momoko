@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { iconComponents } from '@/config/iconRegistry'
 import { useWindowSize } from '@vueuse/core'
 import { mePermissionsRequest } from '@/api/login'
-import { MenuStatus, MenuType, type MenuInfo } from '@/types/v1/system'
+import { MenuStatus, type MenuInfo } from '@/types/v1/system'
 
 export const useMenuStore = defineStore('menu', () => {
   const isCollapse = ref(false)
@@ -37,18 +37,6 @@ export const useMenuStore = defineStore('menu', () => {
       }))
   }
 
-  const collectButtonPermissions = (menus: MenuInfo[], acc: Set<string> = new Set()) => {
-    menus.forEach((menu) => {
-      if (menu.type === MenuType.MenuType_Button && menu.permissions) {
-        acc.add(menu.permissions)
-      }
-      if (menu.children?.length) {
-        collectButtonPermissions(menu.children, acc)
-      }
-    })
-    return acc
-  }
-
   const hasButtonPermission = (permission: string | string[]): boolean => {
     if (typeof permission === 'string') {
       return buttonPermissions.value.includes(permission)
@@ -63,15 +51,12 @@ export const useMenuStore = defineStore('menu', () => {
 
     const allMenus = res.menus || []
     const activeMenus = filterActiveMenus(allMenus)
-    const activeButtonPermissionSet = collectButtonPermissions(activeMenus)
+    const permissions = [...(res.permissions || [])]
 
     allMenuList.value = allMenus
-    allButtonPermissions.value = res.permissions
+    allButtonPermissions.value = permissions
     menuList.value = activeMenus
-    buttonPermissions.value =
-      activeButtonPermissionSet.size > 0
-        ? res.permissions.filter((permission) => activeButtonPermissionSet.has(permission))
-        : res.permissions
+    buttonPermissions.value = permissions
     hasLoadedPermissions.value = true
   }
 

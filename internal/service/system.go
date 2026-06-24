@@ -6,7 +6,6 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
-	"momoko/pkg/constant"
 )
 
 type SystemService struct {
@@ -42,9 +41,6 @@ func (s *SystemService) MePermissions(ctx context.Context, req *v1.MePermissions
 }
 
 func (s *SystemService) AdminPermissions(ctx context.Context, req *v1.AdminPermissionsRequest) (*v1.AdminPermissionsResponse, error) {
-	if err := s.uc.Check(ctx, constant.MenuView); err != nil {
-		return nil, err
-	}
 	menus, _, err := s.uc.GetAllMenus(ctx)
 	if err != nil {
 		return nil, err
@@ -53,9 +49,6 @@ func (s *SystemService) AdminPermissions(ctx context.Context, req *v1.AdminPermi
 }
 
 func (s *SystemService) AdminPermissionsInfo(ctx context.Context, req *v1.AdminPermissionsInfoRequest) (*v1.AdminPermissionsInfoResponse, error) {
-	if err := s.uc.Check(ctx, constant.MenuView); err != nil {
-		return nil, err
-	}
 	menu, err := s.uc.GetMenu(ctx, req.MenuId)
 	if err != nil {
 		return nil, err
@@ -64,9 +57,6 @@ func (s *SystemService) AdminPermissionsInfo(ctx context.Context, req *v1.AdminP
 }
 
 func (s *SystemService) AdminAddPermissions(ctx context.Context, req *v1.AdminAddPermissionsRequest) (*v1.AdminAddPermissionsResponse, error) {
-	if err := s.uc.Check(ctx, constant.MenuAdd); err != nil {
-		return nil, err
-	}
 	err := s.uc.AddMenu(ctx, req)
 	if err != nil {
 		return nil, err
@@ -75,9 +65,6 @@ func (s *SystemService) AdminAddPermissions(ctx context.Context, req *v1.AdminAd
 }
 
 func (s *SystemService) AdminEditPermissions(ctx context.Context, req *v1.AdminEditPermissionsRequest) (*v1.AdminEditPermissionsResponse, error) {
-	if err := s.uc.Check(ctx, constant.MenuEdit); err != nil {
-		return nil, err
-	}
 	err := s.uc.UpdateMenu(ctx, req)
 	if err != nil {
 		return nil, err
@@ -86,9 +73,6 @@ func (s *SystemService) AdminEditPermissions(ctx context.Context, req *v1.AdminE
 }
 
 func (s *SystemService) AdminDeletePermissions(ctx context.Context, req *v1.AdminDeletePermissionsRequest) (*v1.AdminDeletePermissionsResponse, error) {
-	if err := s.uc.Check(ctx, constant.MenuDelete); err != nil {
-		return nil, err
-	}
 	err := s.uc.DeleteMenu(ctx, req.MenuId)
 	if err != nil {
 		return nil, err
@@ -97,9 +81,6 @@ func (s *SystemService) AdminDeletePermissions(ctx context.Context, req *v1.Admi
 }
 
 func (s *SystemService) AdminRoles(ctx context.Context, req *v1.AdminRolesRequest) (*v1.AdminRolesResponse, error) {
-	if err := s.uc.Check(ctx, constant.RoleView); err != nil {
-		return nil, err
-	}
 	roles, total, err := s.uc.GetAllRoles(ctx, req)
 	if err != nil {
 		return nil, err
@@ -113,9 +94,6 @@ func (s *SystemService) AdminRoles(ctx context.Context, req *v1.AdminRolesReques
 }
 
 func (s *SystemService) AdminRole(ctx context.Context, req *v1.AdminRoleRequest) (*v1.AdminRoleResponse, error) {
-	if err := s.uc.Check(ctx, constant.RoleView); err != nil {
-		return nil, err
-	}
 	roleInfo, err := s.uc.GetRole(ctx, req.RoleId)
 	if err != nil {
 		return nil, err
@@ -124,9 +102,6 @@ func (s *SystemService) AdminRole(ctx context.Context, req *v1.AdminRoleRequest)
 }
 
 func (s *SystemService) AdminAddRole(ctx context.Context, req *v1.AdminAddRoleRequest) (*v1.AdminAddRoleResponse, error) {
-	if err := s.uc.Check(ctx, constant.RoleAdd); err != nil {
-		return nil, err
-	}
 	roleInfo, err := s.uc.AddRole(ctx, req)
 	if err != nil {
 		return nil, err
@@ -135,9 +110,6 @@ func (s *SystemService) AdminAddRole(ctx context.Context, req *v1.AdminAddRoleRe
 }
 
 func (s *SystemService) AdminEditRole(ctx context.Context, req *v1.AdminEditRoleRequest) (*v1.AdminEditRoleResponse, error) {
-	if err := s.uc.Check(ctx, constant.RoleEdit); err != nil {
-		return nil, err
-	}
 	roleInfo, err := s.uc.UpdateRole(ctx, req)
 	if err != nil {
 		return nil, err
@@ -146,9 +118,6 @@ func (s *SystemService) AdminEditRole(ctx context.Context, req *v1.AdminEditRole
 }
 
 func (s *SystemService) AdminDeleteRole(ctx context.Context, req *v1.AdminDeleteRoleRequest) (*v1.AdminDeleteRoleResponse, error) {
-	if err := s.uc.Check(ctx, constant.RoleDelete); err != nil {
-		return nil, err
-	}
 	err := s.uc.DeleteRole(ctx, req.RoleIds)
 	if err != nil {
 		return nil, err
@@ -165,9 +134,6 @@ func (s *SystemService) LoginConfig(ctx context.Context, req *v1.LoginConfigRequ
 }
 
 func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.UpdateLoginConfigResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
-		return nil, err
-	}
 	config, err := s.config.UpdateLoginConfig(ctx, req)
 	if err != nil {
 		return nil, err
@@ -176,9 +142,6 @@ func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLog
 }
 
 func (s *SystemService) EmailConfig(ctx context.Context, req *v1.EmailConfigRequest) (*v1.EmailConfigResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
-		return nil, err
-	}
 	config, err := s.config.EmailConfig(ctx)
 	if err != nil {
 		return nil, err
@@ -187,9 +150,6 @@ func (s *SystemService) EmailConfig(ctx context.Context, req *v1.EmailConfigRequ
 }
 
 func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailConfigRequest) (*v1.UpdateEmailConfigResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
-		return nil, err
-	}
 	config, err := s.config.UpdateEmailConfig(ctx, req)
 	if err != nil {
 		return nil, err
@@ -199,9 +159,6 @@ func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEma
 }
 
 func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*v1.UpdateEmailTemplateResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
-		return nil, err
-	}
 	template, err := s.config.UpdateEmailTemplate(ctx, req)
 	if err != nil {
 		return nil, err
@@ -210,9 +167,6 @@ func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateE
 }
 
 func (s *SystemService) EmailTemplate(ctx context.Context, req *v1.EmailTemplateRequest) (*v1.EmailTemplateResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
-		return nil, err
-	}
 	template, err := s.config.EmailTemplate(ctx, req.Type)
 	if err != nil {
 		return nil, err
@@ -221,9 +175,6 @@ func (s *SystemService) EmailTemplate(ctx context.Context, req *v1.EmailTemplate
 }
 
 func (s *SystemService) TestEmailConfig(ctx context.Context, req *v1.TestEmailConfigRequest) (*v1.TestEmailConfigResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigEdit); err != nil {
-		return nil, err
-	}
 	if err := s.uc.TestEmailConfig(ctx, req); err != nil {
 		return nil, err
 	}
@@ -239,8 +190,5 @@ func (s *SystemService) SystemStatus(ctx context.Context, req *v1.SystemStatusRe
 }
 
 func (s *SystemService) ListOperationLogs(ctx context.Context, req *v1.ListOperationLogsRequest) (*v1.ListOperationLogsResponse, error) {
-	if err := s.uc.Check(ctx, constant.SystemConfigView); err != nil {
-		return nil, err
-	}
 	return s.operationLog.ListOperationLogs(ctx, req)
 }

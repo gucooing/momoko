@@ -68,11 +68,18 @@ func (a *AuthUsecase) LoginByUsername(ctx context.Context, username, password st
 		}
 		return nil, ErrSystem(err)
 	}
-	if userInfo.Password != auth2.EncodePassword(password) {
+	ok, needsUpgrade := auth2.VerifyPassword(password, userInfo.Password)
+	if !ok {
 		return nil, ErrInvalidPassword
 	}
 	if userInfo.Status != user.StatusActive {
 		return nil, ErrUserInactive
+	}
+	// 历史无盐 MD5 口令在校验通过后透明升级为 bcrypt。
+	if needsUpgrade {
+		if newHash, err := auth2.HashPassword(password); err == nil {
+			_, _ = a.user.UpdatePassword(ctx, userInfo.ID, newHash)
+		}
 	}
 	return userInfo, nil
 }
@@ -124,10 +131,14 @@ func (a *AuthUsecase) Register(ctx context.Context, req *v1.RegisterRequest, reg
 		}
 	}
 
+	passwordHash, err := auth2.HashPassword(req.Password)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
 	userInfo, err := a.user.CreateUser(ctx, &gen.User{
 		ID:       fmt.Sprintf("user_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
 		Username: req.Username,
-		Password: auth2.EncodePassword(req.Password),
+		Password: passwordHash,
 		Email:    req.Email,
 		Status:   user.StatusActive,
 		Name:     req.Username,

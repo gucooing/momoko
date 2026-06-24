@@ -64,4 +64,9 @@ const (
 	Sub2APIView Permissions = "sub2api:view"
 	// Sub2APIEdit 允许编辑 Sub2API 配置、公告与时间线。
 	Sub2APIEdit Permissions = "sub2api:edit"
+
+	// Instance 允许管理应用（实例），含实例增删改、终端与实例文件操作。
+	Instance Permissions = "instance:manage"
+	// Network 允许管理网络（端口转发等）。
+	Network Permissions = "network:manage"
 )

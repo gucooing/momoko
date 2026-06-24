@@ -63,7 +63,7 @@ func ApplyDatabaseConfig(configPath string, database *conf.Data_Database) error 
 	if authNode == nil {
 		authNode = addMapping(rootMap, "auth")
 	}
-	setScalar(authNode, "secret", utils.GenerateRandomString(12))
+	setScalar(authNode, "secret", utils.GenerateRandomString(32))
 
 	next, err := yaml.Marshal(&root)
 	if err != nil {

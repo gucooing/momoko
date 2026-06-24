@@ -43,6 +43,7 @@ func NewHTTPServer(c *conf.Server,
 		http.Middleware(
 			operationLog.Middleware(),
 			recovery.Recovery(),
+			authorization.PermissionMiddleware(), // 功能级越权防护（按操作所需权限）
 			Middleware(),
 		),
 		http.NotFoundHandler(nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {

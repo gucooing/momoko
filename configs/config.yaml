@@ -10,4 +10,6 @@ data:
     driver: sqlite3
     source: file:./data/momoko.db?_pragma=foreign_keys(1)
 auth:
-  secret: gucooing.auth
+  # JWT 签名与敏感数据加密的主密钥，必须为高强度随机字符串（建议 ≥32 字符）。
+  # 留空或使用弱/默认密钥将导致服务拒绝启动；全新部署时初始化向导会自动生成。
+  secret: "momoko:jwt:hs256:v1"

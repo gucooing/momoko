@@ -30,7 +30,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	authRepo := data.NewAuthRepo(dataData)
-	authorization := server.NewAuthorization(authRepo)
+	systemRepo := data.NewSystemRepo(dataData)
+	userRepo := data.NewUserRepo(dataData)
+	configRepo := data.NewConfigRepo(dataData)
+	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo, configRepo)
+	authorization := server.NewAuthorization(authRepo, systemUsecase)
 	grpcServer := server.NewGRPCServer(confServer, authorization)
 	manager, err := avatar.NewManager()
 	if err != nil {
@@ -40,18 +44,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	operationLogRepo := data.NewOperationLogRepo(dataData)
 	operationLogUsecase := biz.NewOperationLogUsecase(operationLogRepo)
 	operationLogMiddleware := service.NewOperationLogMiddleware(operationLogUsecase, logger)
-	userRepo := data.NewUserRepo(dataData)
 	authUsecase := biz.NewAuthUsecase(authRepo, userRepo)
 	userUsecase := biz.NewUserUsecase(userRepo, authRepo, manager)
-	configRepo := data.NewConfigRepo(dataData)
 	configUsecase := biz.NewConfigUsecase(configRepo)
-	systemRepo := data.NewSystemRepo(dataData)
-	systemUsecase := biz.NewSystemUsecase(systemRepo, userRepo, configRepo)
 	authService := service.NewAuthService(authUsecase, userUsecase, configUsecase, systemUsecase)
 	fileRepo := data.NewFileRepo(dataData)
 	fileUsecase := biz.NewFileUsecase(fileRepo)
 	fileService := service.NewFileService(fileUsecase)
-	userService := service.NewUserService(userUsecase, systemUsecase, operationLogUsecase)
+	userService := service.NewUserService(userUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
 	initializeRepo := data.NewInitializeRepo(string2)
 	initializeUsecase := biz.NewInitializeUsecase(initializeRepo)
@@ -77,7 +77,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	networkService := service.NewNetworkService(networkUsecase)
-	dockerUsecase, err := biz.NewDockerUsecase(systemUsecase, configRepo)
+	dockerUsecase, err := biz.NewDockerUsecase(configRepo)
 	if err != nil {
 		cleanup3()
 		cleanup2()
@@ -86,7 +86,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	}
 	dockerService := service.NewDockerService(dockerUsecase)
 	sub2APIRepo := data.NewSub2APIRepo(dataData)
-	sub2APIUsecase, cleanup4, err := biz.NewSub2APIUsecase(systemUsecase, configRepo, sub2APIRepo)
+	sub2APIUsecase, cleanup4, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
 	if err != nil {
 		cleanup3()
 		cleanup2()

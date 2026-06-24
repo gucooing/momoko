@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
@@ -104,6 +105,12 @@ func main() {
 			panic(err)
 		}
 		main()
+	}
+
+	// 启动完整服务前强校验主密钥强度：弱/默认/公开密钥直接拒绝启动（fail-closed）。
+	// 全新部署经初始化向导会自动写入高强度随机密钥，不会触发此处。
+	if err := auth.ValidateSecret(auth.AuthSecretKey); err != nil {
+		panic(fmt.Sprintf("不安全的 auth.secret 配置: %v（请在 configs/config.yaml 设置高强度随机密钥后重启）", err))
 	}
 
 	app, cleanup, err := wireApp(bc.Server, bc.Data, flagconf, logger)

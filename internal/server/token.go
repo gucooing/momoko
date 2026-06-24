@@ -39,13 +39,21 @@ type publicRoute struct {
 }
 
 type Authorization struct {
-	ar biz.AuthRepo
+	ar     biz.AuthRepo
+	system *biz.SystemUsecase
 }
 
-func NewAuthorization(ar biz.AuthRepo) *Authorization {
+func NewAuthorization(ar biz.AuthRepo, system *biz.SystemUsecase) *Authorization {
 	return &Authorization{
-		ar: ar,
+		ar:     ar,
+		system: system,
 	}
+}
+
+// isWebSocketUpgrade 判断请求是否为 WebSocket 握手（Upgrade: websocket）。
+// 仅此类请求允许用 query 参数携带 token（浏览器 WS API 无法设置请求头）。
+func isWebSocketUpgrade(r *http.Request) bool {
+	return strings.EqualFold(r.Header.Get("Upgrade"), "websocket")
 }
 
 var (
@@ -81,7 +89,9 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				return
 			}
 			authorization := r.Header.Get("Authorization")
-			if authorization == "" && r.Method == http.MethodGet {
+			// 仅 WebSocket 握手允许用 query 参数携带 token，避免普通请求把 token 暴露到
+			// 访问日志 / 浏览器历史 / Referer。
+			if authorization == "" && isWebSocketUpgrade(r) {
 				authorization = r.URL.Query().Get("accessToken")
 			}
 			tokens := strings.Split(authorization, " ")
@@ -109,6 +119,11 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				return
 			}
 			ctx := auth.NewContext(r.Context(), authInfo)
+			// 原始 WS 路由（终端/容器 exec 等）不经 operation 鉴权中间件，这里按路径补做权限校验。
+			if err := a.checkWSPermission(ctx, r.URL.Path); err != nil {
+				response.WriteError(w, r, err)
+				return
+			}
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

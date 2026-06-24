@@ -114,10 +114,14 @@ func (u *UserUsecase) ListUsers(ctx context.Context, req *v1.ListUserRequest) ([
 }
 
 func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.UserInfo, error) {
+	passwordHash, err := auth.HashPassword(req.Password)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
 	userInfo, err := u.user.CreateUser(ctx, &gen.User{
 		ID:       fmt.Sprintf("user_z:%06d_%s", time.Now().Unix()%1000000, uuid.NewString()[:8]),
 		Username: req.Username,
-		Password: auth.EncodePassword(req.Password),
+		Password: passwordHash,
 		Email:    req.Email,
 		Status:   u.toEntUserStatus(req.Status),
 		Avatar:   req.Avatar,
@@ -167,13 +171,17 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 		}
 		return nil, ErrSystem(err)
 	}
-	if auth.EncodePassword(oldPassword) != userDb.Password {
+	if ok, _ := auth.VerifyPassword(oldPassword, userDb.Password); !ok {
 		return nil, ErrInvalidPassword
 	}
 	if err = u.auth.DeleteAuth(ctx, userId, nil); err != nil {
 		return nil, ErrSystem(err)
 	}
-	info, err := u.user.UpdatePassword(ctx, userId, auth.EncodePassword(newPassword))
+	newHash, err := auth.HashPassword(newPassword)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	info, err := u.user.UpdatePassword(ctx, userId, newHash)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}

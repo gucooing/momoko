@@ -8,7 +8,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 
 	v1 "momoko/api/gen/v1"
-	"momoko/pkg/constant"
 	dockerpkg "momoko/pkg/docker"
 )
 
@@ -19,12 +18,11 @@ const (
 )
 
 type DockerUsecase struct {
-	sys    *SystemUsecase
 	config ConfigRepo
 	docker *dockerpkg.Manager
 }
 
-func NewDockerUsecase(sys *SystemUsecase, config ConfigRepo) (*DockerUsecase, error) {
+func NewDockerUsecase(config ConfigRepo) (*DockerUsecase, error) {
 	ctx := context.Background()
 	cfg, err := config.DockerConfig(ctx)
 	if err != nil {
@@ -37,20 +35,14 @@ func NewDockerUsecase(sys *SystemUsecase, config ConfigRepo) (*DockerUsecase, er
 		// 此处以降级状态启动，运行时可通过 Docker 状态/配置页面查看并修正。
 		log.Errorf("初始化 Docker 管理器失败，已降级启动: %v", err)
 	}
-	return &DockerUsecase{sys: sys, config: config, docker: manager}, nil
+	return &DockerUsecase{config: config, docker: manager}, nil
 }
 
 func (d *DockerUsecase) Config(ctx context.Context) (*v1.DockerConfigInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	return d.config.DockerConfig(ctx)
 }
 
 func (d *DockerUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateDockerConfigRequest) (*v1.DockerConfigInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerConfigEdit); err != nil {
-		return nil, err
-	}
 	cfg, err := d.config.UpdateDockerConfig(ctx, req.Config)
 	if err != nil {
 		return nil, err
@@ -62,38 +54,23 @@ func (d *DockerUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateDockerCo
 }
 
 func (d *DockerUsecase) TestConfig(ctx context.Context, req *v1.TestDockerConfigRequest) (*v1.DockerStatusResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerConfigEdit); err != nil {
-		return nil, err
-	}
 	status, _ := d.docker.Test(ctx, req.GetConfig())
 	return status, nil
 }
 
 func (d *DockerUsecase) Status(ctx context.Context) (*v1.DockerStatusResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	return d.docker.Status(ctx), nil
 }
 
 func (d *DockerUsecase) Tasks(ctx context.Context) ([]*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	return d.docker.Tasks(), nil
 }
 
 func (d *DockerUsecase) SubscribeTask(ctx context.Context, id string) (<-chan *v1.DockerTaskInfo, func(), error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, nil, err
-	}
 	return d.docker.SubscribeTask(id)
 }
 
 func (d *DockerUsecase) ListContainers(ctx context.Context, req *v1.ListDockerContainersRequest) (*v1.ListDockerContainersResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	result, err := d.docker.ListContainers(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -102,9 +79,6 @@ func (d *DockerUsecase) ListContainers(ctx context.Context, req *v1.ListDockerCo
 }
 
 func (d *DockerUsecase) Container(ctx context.Context, id string) (*v1.DockerContainerInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	info, err := d.docker.Container(ctx, id)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -113,9 +87,6 @@ func (d *DockerUsecase) Container(ctx context.Context, id string) (*v1.DockerCon
 }
 
 func (d *DockerUsecase) CreateContainer(ctx context.Context, req *v1.CreateDockerContainerRequest) (string, error) {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return "", err
-	}
 	id, err := d.docker.CreateContainer(ctx, req.GetOptions())
 	if err != nil {
 		return "", ErrSystem(err)
@@ -124,9 +95,6 @@ func (d *DockerUsecase) CreateContainer(ctx context.Context, req *v1.CreateDocke
 }
 
 func (d *DockerUsecase) UpdateContainer(ctx context.Context, req *v1.UpdateDockerContainerRequest) (*v1.DockerContainerInfo, *v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return nil, nil, err
-	}
 	if req.Recreate {
 		task := d.docker.RecreateContainer(ctx, &v1.RecreateDockerContainerRequest{
 			Id:            req.GetId(),
@@ -148,9 +116,6 @@ func (d *DockerUsecase) UpdateContainer(ctx context.Context, req *v1.UpdateDocke
 }
 
 func (d *DockerUsecase) RecreateContainer(ctx context.Context, req *v1.RecreateDockerContainerRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return nil, err
-	}
 	return d.docker.RecreateContainer(ctx, req), nil
 }
 
@@ -187,9 +152,6 @@ func (d *DockerUsecase) DeleteContainer(ctx context.Context, id string, force, r
 }
 
 func (d *DockerUsecase) ContainerLogs(ctx context.Context, id string, opts containertypes.LogsOptions) (io.ReadCloser, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	reader, err := d.docker.ContainerLogs(ctx, id, opts)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -198,9 +160,6 @@ func (d *DockerUsecase) ContainerLogs(ctx context.Context, id string, opts conta
 }
 
 func (d *DockerUsecase) ContainerStats(ctx context.Context, id string) (*v1.DockerContainerStats, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	stats, err := d.docker.ContainerStats(ctx, id)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -209,9 +168,6 @@ func (d *DockerUsecase) ContainerStats(ctx context.Context, id string) (*v1.Dock
 }
 
 func (d *DockerUsecase) CreateExec(ctx context.Context, containerID string, opts containertypes.ExecOptions) (string, error) {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return "", err
-	}
 	id, err := d.docker.CreateExec(ctx, containerID, opts)
 	if err != nil {
 		return "", ErrSystem(err)
@@ -220,9 +176,6 @@ func (d *DockerUsecase) CreateExec(ctx context.Context, containerID string, opts
 }
 
 func (d *DockerUsecase) AttachExec(ctx context.Context, execID string, opts containertypes.ExecAttachOptions) (*dockerpkg.ExecSession, error) {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return nil, err
-	}
 	session, err := d.docker.AttachExec(ctx, execID, opts)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -231,9 +184,6 @@ func (d *DockerUsecase) AttachExec(ctx context.Context, execID string, opts cont
 }
 
 func (d *DockerUsecase) ListImages(ctx context.Context, req *v1.ListDockerImagesRequest) (*v1.ListDockerImagesResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	result, err := d.docker.ListImages(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -242,9 +192,6 @@ func (d *DockerUsecase) ListImages(ctx context.Context, req *v1.ListDockerImages
 }
 
 func (d *DockerUsecase) Image(ctx context.Context, id string) (*v1.DockerImageInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	info, err := d.docker.Image(ctx, id)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -253,16 +200,10 @@ func (d *DockerUsecase) Image(ctx context.Context, id string) (*v1.DockerImageIn
 }
 
 func (d *DockerUsecase) PullImage(ctx context.Context, req *v1.PullDockerImageRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return nil, err
-	}
 	return d.docker.PullImage(ctx, req), nil
 }
 
 func (d *DockerUsecase) UpdateImageTags(ctx context.Context, req *v1.UpdateDockerImageTagsRequest) (*v1.DockerImageInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return nil, err
-	}
 	if err := d.docker.UpdateImageTags(ctx, req); err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -274,9 +215,6 @@ func (d *DockerUsecase) UpdateImageTags(ctx context.Context, req *v1.UpdateDocke
 }
 
 func (d *DockerUsecase) TagImage(ctx context.Context, id, target string) error {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return err
-	}
 	if err := d.docker.TagImage(ctx, id, target); err != nil {
 		return ErrSystem(err)
 	}
@@ -284,9 +222,6 @@ func (d *DockerUsecase) TagImage(ctx context.Context, id, target string) error {
 }
 
 func (d *DockerUsecase) DeleteImage(ctx context.Context, id string, force, pruneChildren bool) error {
-	if err := d.sys.Check(ctx, constant.DockerImageManage); err != nil {
-		return err
-	}
 	if err := d.docker.DeleteImage(ctx, id, force, pruneChildren); err != nil {
 		return ErrSystem(err)
 	}
@@ -294,9 +229,6 @@ func (d *DockerUsecase) DeleteImage(ctx context.Context, id string, force, prune
 }
 
 func (d *DockerUsecase) ImageHistory(ctx context.Context, id string) ([]*v1.DockerImageHistoryItem, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	items, err := d.docker.ImageHistory(ctx, id)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -305,9 +237,6 @@ func (d *DockerUsecase) ImageHistory(ctx context.Context, id string) ([]*v1.Dock
 }
 
 func (d *DockerUsecase) ListNetworks(ctx context.Context, req *v1.ListDockerNetworksRequest) (*v1.ListDockerNetworksResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	result, err := d.docker.ListNetworks(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -316,9 +245,6 @@ func (d *DockerUsecase) ListNetworks(ctx context.Context, req *v1.ListDockerNetw
 }
 
 func (d *DockerUsecase) Network(ctx context.Context, id string) (*v1.DockerNetworkInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	info, err := d.docker.Network(ctx, id)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -327,9 +253,6 @@ func (d *DockerUsecase) Network(ctx context.Context, id string) (*v1.DockerNetwo
 }
 
 func (d *DockerUsecase) CreateNetwork(ctx context.Context, req *v1.CreateDockerNetworkRequest) (string, error) {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return "", err
-	}
 	id, err := d.docker.CreateNetwork(ctx, req.GetOptions())
 	if err != nil {
 		return "", ErrSystem(err)
@@ -338,23 +261,14 @@ func (d *DockerUsecase) CreateNetwork(ctx context.Context, req *v1.CreateDockerN
 }
 
 func (d *DockerUsecase) UpdateNetwork(ctx context.Context, req *v1.UpdateDockerNetworkRequest) (*v1.DockerNetworkInfo, *v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return nil, nil, err
-	}
 	return nil, d.docker.UpdateNetwork(ctx, req), nil
 }
 
 func (d *DockerUsecase) RecreateNetwork(ctx context.Context, req *v1.RecreateDockerNetworkRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return nil, err
-	}
 	return d.docker.RecreateNetwork(ctx, req), nil
 }
 
 func (d *DockerUsecase) DeleteNetwork(ctx context.Context, id string) error {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return err
-	}
 	if err := d.docker.DeleteNetwork(ctx, id); err != nil {
 		return ErrSystem(err)
 	}
@@ -362,9 +276,6 @@ func (d *DockerUsecase) DeleteNetwork(ctx context.Context, id string) error {
 }
 
 func (d *DockerUsecase) ConnectNetwork(ctx context.Context, req *v1.ConnectDockerNetworkRequest) error {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return err
-	}
 	if err := d.docker.ConnectNetwork(ctx, req); err != nil {
 		return ErrSystem(err)
 	}
@@ -372,9 +283,6 @@ func (d *DockerUsecase) ConnectNetwork(ctx context.Context, req *v1.ConnectDocke
 }
 
 func (d *DockerUsecase) DisconnectNetwork(ctx context.Context, req *v1.DisconnectDockerNetworkRequest) error {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return err
-	}
 	if err := d.docker.DisconnectNetwork(ctx, req); err != nil {
 		return ErrSystem(err)
 	}
@@ -382,16 +290,10 @@ func (d *DockerUsecase) DisconnectNetwork(ctx context.Context, req *v1.Disconnec
 }
 
 func (d *DockerUsecase) PruneNetworks(ctx context.Context) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerNetworkManage); err != nil {
-		return nil, err
-	}
 	return d.docker.PruneNetworks(ctx), nil
 }
 
 func (d *DockerUsecase) ListVolumes(ctx context.Context, req *v1.ListDockerVolumesRequest) (*v1.ListDockerVolumesResponse, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	result, err := d.docker.ListVolumes(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -400,9 +302,6 @@ func (d *DockerUsecase) ListVolumes(ctx context.Context, req *v1.ListDockerVolum
 }
 
 func (d *DockerUsecase) Volume(ctx context.Context, name string) (*v1.DockerVolumeInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerView); err != nil {
-		return nil, err
-	}
 	info, err := d.docker.Volume(ctx, name)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -411,9 +310,6 @@ func (d *DockerUsecase) Volume(ctx context.Context, name string) (*v1.DockerVolu
 }
 
 func (d *DockerUsecase) CreateVolume(ctx context.Context, req *v1.CreateDockerVolumeRequest) (*v1.DockerVolumeInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, err
-	}
 	info, err := d.docker.CreateVolume(ctx, req.GetOptions())
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -422,23 +318,14 @@ func (d *DockerUsecase) CreateVolume(ctx context.Context, req *v1.CreateDockerVo
 }
 
 func (d *DockerUsecase) UpdateVolume(ctx context.Context, req *v1.UpdateDockerVolumeRequest) (*v1.DockerVolumeInfo, *v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, nil, err
-	}
 	return nil, d.docker.UpdateVolume(ctx, req), nil
 }
 
 func (d *DockerUsecase) RecreateVolume(ctx context.Context, req *v1.RecreateDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, err
-	}
 	return d.docker.RecreateVolume(ctx, req), nil
 }
 
 func (d *DockerUsecase) DeleteVolume(ctx context.Context, name string, force bool) error {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return err
-	}
 	if err := d.docker.DeleteVolume(ctx, name, force); err != nil {
 		return ErrSystem(err)
 	}
@@ -446,30 +333,18 @@ func (d *DockerUsecase) DeleteVolume(ctx context.Context, name string, force boo
 }
 
 func (d *DockerUsecase) PruneVolumes(ctx context.Context) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, err
-	}
 	return d.docker.PruneVolumes(ctx), nil
 }
 
 func (d *DockerUsecase) ExportVolume(ctx context.Context, req *v1.ExportDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, err
-	}
 	return d.docker.ExportVolume(ctx, req), nil
 }
 
 func (d *DockerUsecase) RestoreVolume(ctx context.Context, req *v1.RestoreDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	if err := d.sys.Check(ctx, constant.DockerVolumeManage); err != nil {
-		return nil, err
-	}
 	return d.docker.RestoreVolume(ctx, req), nil
 }
 
 func (d *DockerUsecase) containerAction(ctx context.Context, fn func() error) error {
-	if err := d.sys.Check(ctx, constant.DockerContainerManage); err != nil {
-		return err
-	}
 	if err := fn(); err != nil {
 		return ErrSystem(err)
 	}

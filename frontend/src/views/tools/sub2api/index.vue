@@ -12,10 +12,12 @@
         <el-button @click="openPublicHome">
           <el-icon class="btn-icon"><Link /></el-icon>{{ t('sub2api.common.publicHome') }}
         </el-button>
-        <el-button :loading="store.syncing" @click="onSync(false)">{{ t('sub2api.common.incrementalSync') }}</el-button>
-        <el-button type="primary" :loading="store.syncing" @click="onSync(true)"
-          >{{ t('sub2api.common.fullSync') }}</el-button
-        >
+        <el-button v-if="canEdit" :loading="store.syncing" @click="onSync(false)">{{
+          t('sub2api.common.incrementalSync')
+        }}</el-button>
+        <el-button v-if="canEdit" type="primary" :loading="store.syncing" @click="onSync(true)">{{
+          t('sub2api.common.fullSync')
+        }}</el-button>
       </div>
     </header>
 
@@ -52,9 +54,17 @@
         </div>
 
         <div class="sync-meta">
-          <span>{{ t('sub2api.common.lastSync', { time: store.formatDateTime(snapshot?.lastSyncTime) }) }}</span>
-          <span>{{ t('sub2api.common.nextSync', { time: store.formatDateTime(snapshot?.nextSyncTime) }) }}</span>
-          <span>{{ t('sub2api.common.latestRecord', { time: store.formatDateTime(snapshot?.latestRecordTime) }) }}</span>
+          <span>{{
+            t('sub2api.common.lastSync', { time: store.formatDateTime(snapshot?.lastSyncTime) })
+          }}</span>
+          <span>{{
+            t('sub2api.common.nextSync', { time: store.formatDateTime(snapshot?.nextSyncTime) })
+          }}</span>
+          <span>{{
+            t('sub2api.common.latestRecord', {
+              time: store.formatDateTime(snapshot?.latestRecordTime),
+            })
+          }}</span>
           <span>{{ t('sub2api.common.dataRange', { range: snapshot?.dataRange || '-' }) }}</span>
         </div>
 
@@ -73,7 +83,9 @@
           </div>
 
           <el-card shadow="never" class="chart-card">
-            <template #header><span class="card-title">{{ t('sub2api.common.usageTrend') }}</span></template>
+            <template #header
+              ><span class="card-title">{{ t('sub2api.common.usageTrend') }}</span></template
+            >
             <VChart
               class="chart"
               :option="store.adminTrendOption"
@@ -84,7 +96,9 @@
 
           <div class="chart-grid">
             <el-card shadow="never" class="chart-card">
-              <template #header><span class="card-title">{{ t('sub2api.common.modelRequestTop') }}</span></template>
+              <template #header
+                ><span class="card-title">{{ t('sub2api.common.modelRequestTop') }}</span></template
+              >
               <VChart
                 class="chart sm"
                 :option="store.adminModelOption"
@@ -93,7 +107,11 @@
               />
             </el-card>
             <el-card shadow="never" class="chart-card">
-              <template #header><span class="card-title">{{ t('sub2api.common.endpointRequestTop') }}</span></template>
+              <template #header
+                ><span class="card-title">{{
+                  t('sub2api.common.endpointRequestTop')
+                }}</span></template
+              >
               <VChart
                 class="chart sm"
                 :option="store.adminEndpointOption"
@@ -104,11 +122,27 @@
           </div>
 
           <el-card shadow="never" class="chart-card" v-loading="store.recentLoading">
-            <template #header><span class="card-title">{{ t('sub2api.common.recentRequests') }}</span></template>
+            <template #header
+              ><span class="card-title">{{ t('sub2api.common.recentRequests') }}</span></template
+            >
             <el-table class="desktop-table" :data="store.adminRecent" size="small" stripe>
-              <el-table-column prop="model" :label="t('sub2api.common.model')" min-width="140" show-overflow-tooltip />
-              <el-table-column prop="endpoint" :label="t('sub2api.common.endpoint')" min-width="130" show-overflow-tooltip />
-              <el-table-column :label="t('sub2api.common.account')" min-width="110" show-overflow-tooltip>
+              <el-table-column
+                prop="model"
+                :label="t('sub2api.common.model')"
+                min-width="140"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                prop="endpoint"
+                :label="t('sub2api.common.endpoint')"
+                min-width="130"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                :label="t('sub2api.common.account')"
+                min-width="110"
+                show-overflow-tooltip
+              >
                 <template #default="{ row }">{{ row.accountName || '-' }}</template>
               </el-table-column>
               <el-table-column :label="t('sub2api.common.status')" width="100">
@@ -129,7 +163,9 @@
               </el-table-column>
               <el-table-column :label="t('sub2api.common.operation')" width="76" fixed="right">
                 <template #default="{ row }">
-                  <el-button link type="primary" @click="openDetail(row)">{{ t('sub2api.common.detail') }}</el-button>
+                  <el-button link type="primary" @click="openDetail(row)">{{
+                    t('sub2api.common.detail')
+                  }}</el-button>
                 </template>
               </el-table-column>
               <template #empty>{{ t('sub2api.common.noRequestRecords') }}</template>
@@ -142,8 +178,13 @@
                 @click="openDetail(row)"
               >
                 <div class="row-main">
-                  <strong class="row-title">{{ row.model || t('sub2api.common.unknownModel') }}</strong>
-                  <small>{{ row.accountName ? `${row.accountName} · ` : '' }}{{ row.endpoint || '-' }}</small>
+                  <strong class="row-title">{{
+                    row.model || t('sub2api.common.unknownModel')
+                  }}</strong>
+                  <small
+                    >{{ row.accountName ? `${row.accountName} · ` : ''
+                    }}{{ row.endpoint || '-' }}</small
+                  >
                   <small
                     >{{ store.formatLatency(row.latencyMs) }} ·
                     {{ store.formatToken(row.tokenCount) }} ·
@@ -157,7 +198,10 @@
                   <el-icon class="row-chevron"><ArrowRight /></el-icon>
                 </span>
               </article>
-              <el-empty v-if="!store.adminRecent.length" :description="t('sub2api.common.noRequestRecords')" />
+              <el-empty
+                v-if="!store.adminRecent.length"
+                :description="t('sub2api.common.noRequestRecords')"
+              />
             </div>
             <div class="recent-pager">
               <el-pagination
@@ -179,7 +223,7 @@
       <!-- 配置 -->
       <el-tab-pane :label="t('sub2api.common.connectionConfig')" name="config">
         <el-card shadow="never" class="form-card">
-          <el-form :model="form" label-width="130px" label-position="right">
+          <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
             <el-form-item :label="t('sub2api.admin.enablePublicHome')">
               <el-switch v-model="form.homeEnabled" />
               <span class="form-hint">{{ t('sub2api.admin.publicHomeHint') }}</span>
@@ -234,9 +278,10 @@
                 <el-tag
                   v-for="(host, i) in form.allowedSrcHosts"
                   :key="i"
-                  closable
-                  @close="form.allowedSrcHosts.splice(i, 1)"
-                >{{ host }}</el-tag>
+                  :closable="canEdit"
+                  @close="canEdit && form.allowedSrcHosts.splice(i, 1)"
+                  >{{ host }}</el-tag
+                >
                 <el-input
                   v-if="hostInputVisible"
                   ref="hostInputRef"
@@ -246,12 +291,20 @@
                   @keyup.enter="addHost"
                   @blur="addHost"
                 />
-                <el-button v-else size="small" @click="showHostInput">{{ t('sub2api.admin.addHost') }}</el-button>
+                <el-button v-else-if="canEdit" size="small" @click="showHostInput">{{
+                  t('sub2api.admin.addHost')
+                }}</el-button>
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button :loading="store.testing" @click="onTest">{{ t('sub2api.common.testConnection') }}</el-button>
-              <el-button type="primary" :loading="store.saving" @click="onSave">{{ t('sub2api.common.saveConfig') }}</el-button>
+              <template v-if="canEdit">
+                <el-button :loading="store.testing" @click="onTest">{{
+                  t('sub2api.common.testConnection')
+                }}</el-button>
+                <el-button type="primary" :loading="store.saving" @click="onSave">{{
+                  t('sub2api.common.saveConfig')
+                }}</el-button>
+              </template>
             </el-form-item>
           </el-form>
         </el-card>
@@ -261,7 +314,9 @@
       <el-tab-pane :label="t('sub2api.common.announcements')" name="announcements">
         <div class="list-toolbar">
           <span>{{ t('sub2api.common.totalItems', { count: store.announcements.length }) }}</span>
-          <el-button type="primary" @click="openAnnouncement()">{{ t('sub2api.admin.addAnnouncement') }}</el-button>
+          <el-button v-if="canEdit" type="primary" @click="openAnnouncement()">{{
+            t('sub2api.admin.addAnnouncement')
+          }}</el-button>
         </div>
         <el-table
           class="desktop-table"
@@ -269,8 +324,18 @@
           v-loading="store.listLoading"
           stripe
         >
-          <el-table-column prop="title" :label="t('sub2api.common.title')" min-width="160" show-overflow-tooltip />
-          <el-table-column prop="content" :label="t('sub2api.common.content')" min-width="220" show-overflow-tooltip />
+          <el-table-column
+            prop="title"
+            :label="t('sub2api.common.title')"
+            min-width="160"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="content"
+            :label="t('sub2api.common.content')"
+            min-width="220"
+            show-overflow-tooltip
+          />
           <el-table-column :label="t('sub2api.common.level')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
@@ -280,16 +345,27 @@
           </el-table-column>
           <el-table-column :label="t('sub2api.common.pinned')" width="80">
             <template #default="{ row }"
-              ><el-tag v-if="row.pinned" size="small" type="warning">{{ t('sub2api.common.pinned') }}</el-tag></template
+              ><el-tag v-if="row.pinned" size="small" type="warning">{{
+                t('sub2api.common.pinned')
+              }}</el-tag></template
             >
           </el-table-column>
           <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
             <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
           </el-table-column>
-          <el-table-column :label="t('sub2api.common.operation')" width="140" fixed="right">
+          <el-table-column
+            v-if="canEdit"
+            :label="t('sub2api.common.operation')"
+            width="140"
+            fixed="right"
+          >
             <template #default="{ row }">
-              <el-button link type="primary" @click="openAnnouncement(row)">{{ t('sub2api.common.edit') }}</el-button>
-              <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{ t('sub2api.common.delete') }}</el-button>
+              <el-button link type="primary" @click="openAnnouncement(row)">{{
+                t('sub2api.common.edit')
+              }}</el-button>
+              <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{
+                t('sub2api.common.delete')
+              }}</el-button>
             </template>
           </el-table-column>
           <template #empty>{{ t('sub2api.home.noAnnouncements') }}</template>
@@ -302,19 +378,28 @@
                 <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
                   levelText(row.level)
                 }}</el-tag>
-                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">{{ t('sub2api.common.pinned') }}</el-tag>
+                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">{{
+                  t('sub2api.common.pinned')
+                }}</el-tag>
               </span>
             </div>
             <p>{{ row.content || '-' }}</p>
             <div class="edit-card-foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
-              <span>
-                <el-button link type="primary" @click="openAnnouncement(row)">{{ t('sub2api.common.edit') }}</el-button>
-                <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{ t('sub2api.common.delete') }}</el-button>
+              <span v-if="canEdit">
+                <el-button link type="primary" @click="openAnnouncement(row)">{{
+                  t('sub2api.common.edit')
+                }}</el-button>
+                <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{
+                  t('sub2api.common.delete')
+                }}</el-button>
               </span>
             </div>
           </article>
-          <el-empty v-if="!store.announcements.length" :description="t('sub2api.home.noAnnouncements')" />
+          <el-empty
+            v-if="!store.announcements.length"
+            :description="t('sub2api.home.noAnnouncements')"
+          />
         </div>
       </el-tab-pane>
 
@@ -322,19 +407,40 @@
       <el-tab-pane :label="t('sub2api.common.timeline')" name="timeline">
         <div class="list-toolbar">
           <span>{{ t('sub2api.common.totalItems', { count: store.timeline.length }) }}</span>
-          <el-button type="primary" @click="openTimeline()">{{ t('sub2api.admin.addTimeline') }}</el-button>
+          <el-button v-if="canEdit" type="primary" @click="openTimeline()">{{
+            t('sub2api.admin.addTimeline')
+          }}</el-button>
         </div>
         <el-table class="desktop-table" :data="store.timeline" v-loading="store.listLoading" stripe>
-          <el-table-column prop="title" :label="t('sub2api.common.title')" min-width="160" show-overflow-tooltip />
-          <el-table-column prop="content" :label="t('sub2api.common.content')" min-width="220" show-overflow-tooltip />
+          <el-table-column
+            prop="title"
+            :label="t('sub2api.common.title')"
+            min-width="160"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="content"
+            :label="t('sub2api.common.content')"
+            min-width="220"
+            show-overflow-tooltip
+          />
           <el-table-column prop="category" :label="t('sub2api.common.category')" width="120" />
           <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
             <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
           </el-table-column>
-          <el-table-column :label="t('sub2api.common.operation')" width="140" fixed="right">
+          <el-table-column
+            v-if="canEdit"
+            :label="t('sub2api.common.operation')"
+            width="140"
+            fixed="right"
+          >
             <template #default="{ row }">
-              <el-button link type="primary" @click="openTimeline(row)">{{ t('sub2api.common.edit') }}</el-button>
-              <el-button link type="danger" @click="onDeleteTimeline(row)">{{ t('sub2api.common.delete') }}</el-button>
+              <el-button link type="primary" @click="openTimeline(row)">{{
+                t('sub2api.common.edit')
+              }}</el-button>
+              <el-button link type="danger" @click="onDeleteTimeline(row)">{{
+                t('sub2api.common.delete')
+              }}</el-button>
             </template>
           </el-table-column>
           <template #empty>{{ t('sub2api.common.noData') }}</template>
@@ -343,14 +449,20 @@
           <article v-for="row in store.timeline" :key="row.id" class="edit-card">
             <div class="edit-card-head">
               <strong>{{ row.title || t('sub2api.common.update') }}</strong>
-              <el-tag size="small" effect="light">{{ row.category || t('sub2api.common.update') }}</el-tag>
+              <el-tag size="small" effect="light">{{
+                row.category || t('sub2api.common.update')
+              }}</el-tag>
             </div>
             <p>{{ row.content || '-' }}</p>
             <div class="edit-card-foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
-              <span>
-                <el-button link type="primary" @click="openTimeline(row)">{{ t('sub2api.common.edit') }}</el-button>
-                <el-button link type="danger" @click="onDeleteTimeline(row)">{{ t('sub2api.common.delete') }}</el-button>
+              <span v-if="canEdit">
+                <el-button link type="primary" @click="openTimeline(row)">{{
+                  t('sub2api.common.edit')
+                }}</el-button>
+                <el-button link type="danger" @click="onDeleteTimeline(row)">{{
+                  t('sub2api.common.delete')
+                }}</el-button>
               </span>
             </div>
           </article>
@@ -365,8 +477,10 @@
       :title="annForm.id ? t('sub2api.admin.editAnnouncement') : t('sub2api.admin.addAnnouncement')"
       width="520px"
     >
-      <el-form :model="annForm" label-width="90px">
-        <el-form-item :label="t('sub2api.common.title')"><el-input v-model="annForm.title" /></el-form-item>
+      <el-form :model="annForm" label-width="90px" :disabled="!canEdit">
+        <el-form-item :label="t('sub2api.common.title')"
+          ><el-input v-model="annForm.title"
+        /></el-form-item>
         <el-form-item :label="t('sub2api.common.content')"
           ><el-input v-model="annForm.content" type="textarea" :rows="4"
         /></el-form-item>
@@ -378,7 +492,9 @@
             <el-option :label="t('sub2api.common.danger')" value="danger" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="t('sub2api.common.pinned')"><el-switch v-model="annForm.pinned" /></el-form-item>
+        <el-form-item :label="t('sub2api.common.pinned')"
+          ><el-switch v-model="annForm.pinned"
+        /></el-form-item>
         <el-form-item :label="t('sub2api.common.publishTime')">
           <el-date-picker
             v-model="annForm.publishedAt"
@@ -389,7 +505,11 @@
       </el-form>
       <template #footer>
         <el-button @click="announcementDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
-        <el-button type="primary" :loading="store.listLoading" @click="submitAnnouncement"
+        <el-button
+          v-if="canEdit"
+          type="primary"
+          :loading="store.listLoading"
+          @click="submitAnnouncement"
           >{{ t('sub2api.common.save') }}</el-button
         >
       </template>
@@ -401,8 +521,10 @@
       :title="tlForm.id ? t('sub2api.admin.editTimeline') : t('sub2api.admin.addTimeline')"
       width="520px"
     >
-      <el-form :model="tlForm" label-width="90px">
-        <el-form-item :label="t('sub2api.common.title')"><el-input v-model="tlForm.title" /></el-form-item>
+      <el-form :model="tlForm" label-width="90px" :disabled="!canEdit">
+        <el-form-item :label="t('sub2api.common.title')"
+          ><el-input v-model="tlForm.title"
+        /></el-form-item>
         <el-form-item :label="t('sub2api.common.content')"
           ><el-input v-model="tlForm.content" type="textarea" :rows="4"
         /></el-form-item>
@@ -410,12 +532,20 @@
           ><el-input v-model="tlForm.category" :placeholder="t('sub2api.common.update')"
         /></el-form-item>
         <el-form-item :label="t('sub2api.common.publishTime')">
-          <el-date-picker v-model="tlForm.publishedAt" type="datetime" :placeholder="t('sub2api.common.defaultNow')" />
+          <el-date-picker
+            v-model="tlForm.publishedAt"
+            type="datetime"
+            :placeholder="t('sub2api.common.defaultNow')"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="timelineDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
-        <el-button type="primary" :loading="store.listLoading" @click="submitTimeline"
+        <el-button
+          v-if="canEdit"
+          type="primary"
+          :loading="store.listLoading"
+          @click="submitTimeline"
           >{{ t('sub2api.common.save') }}</el-button
         >
       </template>
@@ -427,36 +557,66 @@
         <div class="detail-row">
           <span class="k">{{ t('sub2api.common.status') }}</span>
           <span class="v">
-            <el-tag
-              size="small"
-              :type="detailRow.success ? 'success' : 'danger'"
-              effect="light"
-              >{{ statusLabel(detailRow) }}</el-tag
-            >
+            <el-tag size="small" :type="detailRow.success ? 'success' : 'danger'" effect="light">{{
+              statusLabel(detailRow)
+            }}</el-tag>
           </span>
         </div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.model') }}</span><span class="v">{{ detailRow.model || '-' }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.endpoint') }}</span><span class="v">{{ detailRow.endpoint || '-' }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.accountName') }}</span><span class="v">{{ detailRow.accountName || '-' }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.cost') }}</span><span class="v">{{ store.formatCost(detailRow.cost) }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.token') }}</span><span class="v">{{ store.formatToken(detailRow.tokenCount) }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.duration') }}</span><span class="v">{{ store.formatLatency(detailRow.latencyMs) }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.firstToken') }}</span><span class="v">{{ firstTokenText(detailRow.firstTokenMs) }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.reasoningEffort') }}</span><span class="v">{{ detailRow.reasoningEffort || '-' }}</span></div>
-        <div class="detail-row"><span class="k">{{ t('sub2api.common.time') }}</span><span class="v">{{ store.formatDateTime(detailRow.requestTime) }}</span></div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.model') }}</span
+          ><span class="v">{{ detailRow.model || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.endpoint') }}</span
+          ><span class="v">{{ detailRow.endpoint || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.accountName') }}</span
+          ><span class="v">{{ detailRow.accountName || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.cost') }}</span
+          ><span class="v">{{ store.formatCost(detailRow.cost) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.token') }}</span
+          ><span class="v">{{ store.formatToken(detailRow.tokenCount) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.duration') }}</span
+          ><span class="v">{{ store.formatLatency(detailRow.latencyMs) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.firstToken') }}</span
+          ><span class="v">{{ firstTokenText(detailRow.firstTokenMs) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.reasoningEffort') }}</span
+          ><span class="v">{{ detailRow.reasoningEffort || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.time') }}</span
+          ><span class="v">{{ store.formatDateTime(detailRow.requestTime) }}</span>
+        </div>
         <template v-if="!detailRow.success">
-          <div class="detail-row"><span class="k">{{ t('sub2api.common.httpCode') }}</span><span class="v">{{ detailRow.httpStatus || '-' }}</span></div>
+          <div class="detail-row">
+            <span class="k">{{ t('sub2api.common.httpCode') }}</span
+            ><span class="v">{{ detailRow.httpStatus || '-' }}</span>
+          </div>
           <div class="detail-row detail-row--block">
             <span class="k">{{ t('sub2api.common.errorDetail') }}</span>
             <span class="v err">{{ detailRow.errorMessage || '-' }}</span>
           </div>
         </template>
         <div class="detail-row detail-row--block">
-          <span class="k">{{ t('sub2api.common.requestId') }}</span><span class="v mono">{{ detailRow.requestId || '-' }}</span>
+          <span class="k">{{ t('sub2api.common.requestId') }}</span
+          ><span class="v mono">{{ detailRow.requestId || '-' }}</span>
         </div>
       </div>
       <template #footer>
-        <el-button type="primary" @click="detailDialog = false">{{ t('sub2api.common.close') }}</el-button>
+        <el-button type="primary" @click="detailDialog = false">{{
+          t('sub2api.common.close')
+        }}</el-button>
       </template>
     </BaseDialog>
   </div>
@@ -468,6 +628,8 @@ import { ElMessage } from 'element-plus'
 import { ArrowRight, Link } from '@element-plus/icons-vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import VChart from '@/components/chart/VChart.vue'
+import { PERM } from '@/config/permission'
+import { useButtonPermission } from '@/composables/useButtonPermission'
 import { useSub2APIStore } from '@/stores/sub2api'
 import { Dialog } from '@/utils/dialog'
 import type {
@@ -482,6 +644,7 @@ const store = useSub2APIStore()
 const router = useRouter()
 const { snapshot, configForm: form } = storeToRefs(store)
 const { t } = useI18n()
+const canEdit = useButtonPermission([PERM.SUB2API_EDIT], [])
 
 const chartUpdate = { notMerge: true }
 
@@ -585,6 +748,7 @@ const openPublicHome = () => {
 }
 
 const onSync = async (full: boolean) => {
+  if (!canEdit.value) return
   const ok = await store.syncUsage(full)
   if (ok) {
     ElMessage.success(t('sub2api.common.synced'))
@@ -593,6 +757,7 @@ const onSync = async (full: boolean) => {
 }
 
 const onTest = async () => {
+  if (!canEdit.value) return
   const result = await store.testConfig()
   if (!result) return
   if (result.connected) ElMessage.success(result.message || t('sub2api.common.connected'))
@@ -600,6 +765,7 @@ const onTest = async () => {
 }
 
 const onSave = async () => {
+  if (!canEdit.value) return
   const ok = await store.saveConfig()
   if (ok) ElMessage.success(t('sub2api.common.saved'))
 }
@@ -609,10 +775,12 @@ const hostInputVisible = ref(false)
 const hostInputValue = ref('')
 const hostInputRef = ref<{ focus: () => void } | null>(null)
 const showHostInput = () => {
+  if (!canEdit.value) return
   hostInputVisible.value = true
   nextTick(() => hostInputRef.value?.focus())
 }
 const addHost = () => {
+  if (!canEdit.value) return
   const v = hostInputValue.value.trim().replace(/\/+$/, '')
   if (v && !form.value.allowedSrcHosts.includes(v)) form.value.allowedSrcHosts.push(v)
   hostInputVisible.value = false
@@ -636,6 +804,7 @@ const annForm = reactive<{
   publishedAt: undefined,
 })
 const openAnnouncement = (row?: Sub2APIAnnouncement) => {
+  if (!canEdit.value) return
   announcementDialog.value = true
   Object.assign(annForm, {
     id: row?.id,
@@ -647,6 +816,7 @@ const openAnnouncement = (row?: Sub2APIAnnouncement) => {
   })
 }
 const submitAnnouncement = async () => {
+  if (!canEdit.value) return
   const ok = await store.saveAnnouncement({ ...annForm })
   if (ok) {
     announcementDialog.value = false
@@ -654,6 +824,7 @@ const submitAnnouncement = async () => {
   }
 }
 const onDeleteAnnouncement = (row: Sub2APIAnnouncement) => {
+  if (!canEdit.value) return
   Dialog.confirm({
     title: t('sub2api.common.tip'),
     content: t('sub2api.admin.confirmDeleteAnnouncement'),
@@ -678,6 +849,7 @@ const tlForm = reactive<{
   publishedAt: undefined,
 })
 const openTimeline = (row?: Sub2APITimelineItem) => {
+  if (!canEdit.value) return
   timelineDialog.value = true
   Object.assign(tlForm, {
     id: row?.id,
@@ -688,6 +860,7 @@ const openTimeline = (row?: Sub2APITimelineItem) => {
   })
 }
 const submitTimeline = async () => {
+  if (!canEdit.value) return
   const ok = await store.saveTimelineItem({ ...tlForm })
   if (ok) {
     timelineDialog.value = false
@@ -695,6 +868,7 @@ const submitTimeline = async () => {
   }
 }
 const onDeleteTimeline = (row: Sub2APITimelineItem) => {
+  if (!canEdit.value) return
   Dialog.confirm({
     title: t('sub2api.common.tip'),
     content: t('sub2api.admin.confirmDeleteTimeline'),

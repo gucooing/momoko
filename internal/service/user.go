@@ -6,21 +6,18 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
-	"momoko/pkg/constant"
 )
 
 type UserService struct {
 	v1.UnimplementedUserServiceServer
 
 	uc  *biz.UserUsecase
-	sys *biz.SystemUsecase
 	log *biz.OperationLogUsecase
 }
 
-func NewUserService(uc *biz.UserUsecase, sys *biz.SystemUsecase, operationLog *biz.OperationLogUsecase) *UserService {
+func NewUserService(uc *biz.UserUsecase, operationLog *biz.OperationLogUsecase) *UserService {
 	return &UserService{
 		uc:  uc,
-		sys: sys,
 		log: operationLog,
 	}
 }
@@ -66,9 +63,6 @@ func (u *UserService) MyLoginLogs(ctx context.Context, req *v1.MyLoginLogsReques
 }
 
 func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v1.ListUserResponse, error) {
-	if err := u.sys.Check(ctx, constant.UserView); err != nil {
-		return nil, err
-	}
 	users, total, err := u.uc.ListUsers(ctx, req)
 	if err != nil {
 		return nil, err
@@ -82,9 +76,6 @@ func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v
 }
 
 func (u *UserService) UserInfo(ctx context.Context, req *v1.UserInfoRequest) (*v1.UserInfoResponse, error) {
-	if err := u.sys.Check(ctx, constant.UserView); err != nil {
-		return nil, err
-	}
 	userInfo, err := u.uc.UserInfo(ctx, req.UserId)
 	if err != nil {
 		return nil, err
@@ -93,9 +84,6 @@ func (u *UserService) UserInfo(ctx context.Context, req *v1.UserInfoRequest) (*v
 }
 
 func (u *UserService) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.AddUserResponse, error) {
-	if err := u.sys.Check(ctx, constant.UserAdd); err != nil {
-		return nil, err
-	}
 	userInfo, err := u.uc.AddUser(ctx, req)
 	if err != nil {
 		return nil, err
@@ -104,9 +92,6 @@ func (u *UserService) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.
 }
 
 func (u *UserService) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v1.EditUserResponse, error) {
-	if err := u.sys.Check(ctx, constant.UserEdit); err != nil {
-		return nil, err
-	}
 	userInfo, err := u.uc.EditUser(ctx, req)
 	if err != nil {
 		return nil, err
@@ -115,9 +100,6 @@ func (u *UserService) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v
 }
 
 func (u *UserService) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
-	if err := u.sys.Check(ctx, constant.UserDelete); err != nil {
-		return nil, err
-	}
 	err := u.uc.DeleteUser(ctx, req.UserIds)
 	if err != nil {
 		return nil, err
