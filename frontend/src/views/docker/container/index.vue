@@ -38,8 +38,8 @@
         <el-button :icon="menuStore.iconComponents['HOutline:ClockIcon']" @click="openTasks">{{ t('docker.common.tasks') }}</el-button>
       </div>
 
-      <div v-loading="loading">
-        <VxeGrid v-if="!menuStore.isMobile" v-bind="gridConfig">
+      <div ref="tableWrapRef" v-loading="loading">
+        <VxeGrid v-if="!menuStore.isMobile" ref="containerGridRef" v-bind="gridConfig" @data-rendered="applyContainerRowHeights">
           <template #column-state="{ row }: { row: DockerContainerSummary }">
             <BaseTag :text="stateLabel(row.state)" :type="stateTagType(row.state)" />
           </template>
@@ -50,17 +50,27 @@
             <span>{{ formatContainerRuntime(row) }}</span>
           </template>
           <template #column-network="{ row }: { row: DockerContainerSummary }">
-            <template v-if="containerNetworkItems(row).length">
-              <span
-                v-for="item in containerNetworkItems(row).slice(0, 2)"
-                :key="item"
-                class="network-tag"
-              >
-                {{ item }}
-              </span>
-              <span v-if="containerNetworkItems(row).length > 2" class="text-muted">
-                +{{ containerNetworkItems(row).length - 2 }}
-              </span>
+            <template v-if="containerNetworkDisplay(row).ips.length || containerNetworkDisplay(row).ports.length">
+              <div :ref="el => setNetworkCellRef(row.id, el)" class="network-cell">
+                <div v-if="containerNetworkDisplay(row).ips.length" class="network-cell__line">
+                  <span
+                    v-for="ip in containerNetworkDisplay(row).ips"
+                    :key="ip"
+                    class="network-tag"
+                  >
+                    {{ ip }}
+                  </span>
+                </div>
+                <div v-if="containerNetworkDisplay(row).ports.length" class="network-cell__ports">
+                  <span
+                    v-for="port in containerNetworkDisplay(row).ports"
+                    :key="port"
+                    class="port-tag network-cell__port"
+                  >
+                    {{ port }}
+                  </span>
+                </div>
+              </div>
             </template>
             <span v-else class="text-muted">-</span>
           </template>
@@ -535,6 +545,7 @@ import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
+import { useResizeObserver, useDebounceFn } from '@vueuse/core'
 import type { DockerContainerInfo, DockerContainerSummary, DockerPortBinding, DockerMount, DockerTaskInfo } from '@/types/v1/docker'
 import type { ComponentPublicInstance } from 'vue'
 import type { VxeGridProps } from 'vxe-table'
@@ -545,7 +556,14 @@ const menuStore = useMenuStore()
 const { t } = useI18n()
 const canManage = useButtonPermission([PERM.DOCKER_CONTAINER_MANAGE], [])
 
+type DockerContainerGrid = {
+  setRowHeight: (rowOrId: unknown, height: number) => Promise<unknown>
+  recalculate: (full?: boolean) => Promise<unknown>
+}
+
 const list = ref<DockerContainerSummary[]>([])
+const containerGridRef = ref<DockerContainerGrid>()
+const tableWrapRef = ref<HTMLElement>()
 const loading = ref(false)
 const queryForm = reactive({ name: '', status: '', image: '' })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
@@ -606,18 +624,71 @@ const formatContainerRuntime = (row: DockerContainerSummary) => {
   return match?.[1] ? formatDockerDuration(match[1]) : '-'
 }
 
-const containerNetworkItems = (row: DockerContainerSummary) => {
-  if (row.networkMode === 'host' || row.networks?.includes('host')) return ['host']
-  const endpoints = row.networkEndpoints || []
-  if (endpoints.length) {
-    return endpoints
-      .map(endpoint => endpoint.ipAddress ? `${endpoint.ipAddress} · ${endpoint.name}` : endpoint.name)
-      .filter(Boolean)
-  }
-  return (row.networks || []).filter(Boolean)
+const uniqueItems = (items: string[]) => Array.from(new Set(items))
+
+const containerNetworkIps = (row: DockerContainerSummary) => uniqueItems(
+  (row.networkEndpoints || []).map(endpoint => endpoint.ipAddress).filter(Boolean),
+)
+
+const formatContainerPortItem = (port: DockerContainerSummary['ports'][number]) => {
+  const protocol = (port.type || 'tcp').toLowerCase()
+  const privatePort = port.privatePort || 0
+  const publicPort = port.publicPort || 0
+  if (!privatePort && !publicPort) return ''
+  if (publicPort && privatePort) return `${port.ip ? `${port.ip}:` : ''}${publicPort}->${privatePort}/${protocol}`
+  return `${privatePort || publicPort}/${protocol}`
 }
 
-const formatNetworkText = (row: DockerContainerSummary) => containerNetworkItems(row).join('，') || '-'
+const containerNetworkDisplay = (row: DockerContainerSummary) => {
+  if (row.networkMode === 'host' || row.networks?.includes('host')) return { ips: ['host'], ports: [] }
+  const networkIps = containerNetworkIps(row)
+  const ports = uniqueItems((row.ports || []).map(port => formatContainerPortItem(port)).filter(Boolean))
+  return { ips: networkIps, ports }
+}
+
+// 网络列：端口横向换行展示。直接实测单元格内容高度来决定行高（内容封顶 NETWORK_MAX_CONTENT，超出在单元格内滚动），
+// 避免按端口数估算行数，导致换行后行高过大、留下大片空白
+const NETWORK_MAX_CONTENT = 70
+const NETWORK_CELL_CHROME = 16
+
+const networkCellElements = new Map<string, HTMLElement>()
+const setNetworkCellRef = (id: string, el: Element | ComponentPublicInstance | null) => {
+  const element = el instanceof HTMLElement ? el : null
+  if (!element) { networkCellElements.delete(id); return }
+  networkCellElements.set(id, element)
+}
+
+const containerRowHeight = (row: DockerContainerSummary) => {
+  const el = networkCellElements.get(row.id)
+  if (!el) return 40
+  return Math.max(40, Math.min(el.scrollHeight, NETWORK_MAX_CONTENT) + NETWORK_CELL_CHROME)
+}
+
+const applyContainerRowHeights = async () => {
+  if (menuStore.isMobile) return
+  await nextTick()
+  const grid = containerGridRef.value
+  if (!grid) return
+  for (const row of list.value) {
+    await grid.setRowHeight(row, containerRowHeight(row))
+  }
+  await grid.recalculate(true)
+}
+
+// 容器宽度变化（窗口缩放、侧边栏折叠等）会改变端口换行，需要按内容重新计算行高；仅在宽度真正变化时触发，避免高度变化引发循环
+const reapplyRowHeights = useDebounceFn(() => applyContainerRowHeights(), 120)
+let lastWrapWidth = 0
+useResizeObserver(tableWrapRef, (entries) => {
+  const width = entries[0]?.contentRect.width ?? 0
+  if (!width || width === lastWrapWidth) return
+  lastWrapWidth = width
+  void reapplyRowHeights()
+})
+
+const formatNetworkText = (row: DockerContainerSummary) => {
+  const network = containerNetworkDisplay(row)
+  return [...network.ips, ...network.ports].join(' ') || '-'
+}
 
 const gridConfig = computed<VxeGridProps>(() => ({
   border: true, showOverflow: true, rowConfig: { isHover: true },
@@ -628,7 +699,7 @@ const gridConfig = computed<VxeGridProps>(() => ({
     { field: 'image', title: t('docker.common.image'), minWidth: 180, showOverflow: true },
     { field: 'state', title: t('docker.common.status'), width: 90, slots: { default: 'column-state' } },
     { field: 'status', title: t('docker.container.runtime'), width: 120, slots: { default: 'column-runtime' } },
-    { field: 'networkEndpoints', title: t('docker.common.network'), minWidth: 220, slots: { default: 'column-network' } },
+    { field: 'ports', title: t('docker.common.network'), minWidth: 320, showOverflow: false, slots: { default: 'column-network' } },
     { title: t('docker.common.operation'), width: canManage.value ? OPERATION_COLUMN_WIDTH : OPERATION_COLUMN_READONLY_WIDTH, fixed: 'right', slots: { default: 'column-operation' } },
   ],
 }))
@@ -643,6 +714,7 @@ const getList = async () => {
     })
     list.value = data?.items || []
     pagination.value.total = Number(data?.total || 0)
+    await applyContainerRowHeights()
   } catch {
     list.value = []
     pagination.value.total = 0
@@ -1289,6 +1361,7 @@ onMounted(() => { getList() })
 onBeforeUnmount(() => {
   actionResizeObserver?.disconnect()
   actionCellElements.clear()
+  networkCellElements.clear()
 })
 </script>
 
@@ -1314,13 +1387,55 @@ onBeforeUnmount(() => {
 .container-actions__danger {
   color: var(--el-color-danger);
 }
+.network-cell {
+  display: flex;
+  min-width: 0;
+  max-height: 70px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1;
+  padding: 2px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.network-cell::-webkit-scrollbar {
+  width: 4px;
+}
+.network-cell::-webkit-scrollbar-thumb {
+  background: var(--el-border-color);
+  border-radius: 2px;
+}
+.network-cell__line {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.network-cell__ports {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  gap: 4px;
+}
+.network-cell .network-tag,
+.network-cell__ports .port-tag {
+  margin-right: 0;
+  margin-bottom: 0;
+}
+.network-cell__port {
+  max-width: 100%;
+}
 .port-tag {
   display: inline-block; font-size: 0.72rem; background: var(--el-fill-color-light);
   padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-bottom: 2px;
 }
 .network-tag {
   display: inline-block;
-  max-width: 9.5rem;
+  max-width: 100%;
   padding: 1px 6px;
   margin-right: 4px;
   margin-bottom: 2px;

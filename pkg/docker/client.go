@@ -390,17 +390,6 @@ func splitImageRef(ref string) (string, string) {
 	return ref[:idx], ref[idx+1:]
 }
 
-func stringMapStatus(data map[string]interface{}) map[string]string {
-	if len(data) == 0 {
-		return nil
-	}
-	result := make(map[string]string, len(data))
-	for k, v := range data {
-		result[k] = fmt.Sprint(v)
-	}
-	return result
-}
-
 func filtersFromLabels(labels map[string]string) filters.Args {
 	args := filters.NewArgs()
 	for k, v := range labels {

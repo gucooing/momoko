@@ -68,26 +68,6 @@ import type {
   ConnectDockerNetworkResponse,
   DisconnectDockerNetworkRequest,
   DisconnectDockerNetworkResponse,
-  PruneDockerNetworksRequest,
-  PruneDockerNetworksResponse,
-  ListDockerVolumesRequest,
-  ListDockerVolumesResponse,
-  GetDockerVolumeRequest,
-  GetDockerVolumeResponse,
-  CreateDockerVolumeRequest,
-  CreateDockerVolumeResponse,
-  UpdateDockerVolumeRequest,
-  UpdateDockerVolumeResponse,
-  RecreateDockerVolumeRequest,
-  RecreateDockerVolumeResponse,
-  DeleteDockerVolumeRequest,
-  DeleteDockerVolumeResponse,
-  PruneDockerVolumesRequest,
-  PruneDockerVolumesResponse,
-  ExportDockerVolumeRequest,
-  ExportDockerVolumeResponse,
-  RestoreDockerVolumeRequest,
-  RestoreDockerVolumeResponse,
 } from '@/types/v1/docker'
 
 // ==================== Status & Config ====================
@@ -238,48 +218,4 @@ export const connectDockerNetwork = (data: ConnectDockerNetworkRequest) => {
 
 export const disconnectDockerNetwork = (data: DisconnectDockerNetworkRequest) => {
   return request.post<DisconnectDockerNetworkResponse>(`/docker/networks/${data.networkId}/disconnect`, data)
-}
-
-export const pruneDockerNetworks = (data: PruneDockerNetworksRequest) => {
-  return request.post<PruneDockerNetworksResponse>('/docker/networks/prune', data)
-}
-
-// ==================== Volumes ====================
-
-export const listDockerVolumes = (params: ListDockerVolumesRequest) => {
-  return request.get<ListDockerVolumesResponse>('/docker/volumes', { params })
-}
-
-export const getDockerVolume = (params: GetDockerVolumeRequest) => {
-  return request.get<GetDockerVolumeResponse>(`/docker/volumes/${params.name}`)
-}
-
-export const createDockerVolume = (data: CreateDockerVolumeRequest) => {
-  return request.post<CreateDockerVolumeResponse>('/docker/volumes', data)
-}
-
-export const updateDockerVolume = (data: UpdateDockerVolumeRequest) => {
-  return request.put<UpdateDockerVolumeResponse>(`/docker/volumes/${data.name}`, data)
-}
-
-export const recreateDockerVolume = (data: RecreateDockerVolumeRequest) => {
-  return request.post<RecreateDockerVolumeResponse>(`/docker/volumes/${data.name}/recreate`, data)
-}
-
-export const deleteDockerVolume = (params: DeleteDockerVolumeRequest) => {
-  return request.delete<DeleteDockerVolumeResponse>(`/docker/volumes/${params.name}`, {
-    params: { force: params.force },
-  })
-}
-
-export const pruneDockerVolumes = (data: PruneDockerVolumesRequest) => {
-  return request.post<PruneDockerVolumesResponse>('/docker/volumes/prune', data)
-}
-
-export const exportDockerVolume = (data: ExportDockerVolumeRequest) => {
-  return request.post<ExportDockerVolumeResponse>(`/docker/volumes/${data.name}/export`, data)
-}
-
-export const restoreDockerVolume = (data: RestoreDockerVolumeRequest) => {
-  return request.post<RestoreDockerVolumeResponse>(`/docker/volumes/${data.name}/restore`, data)
 }

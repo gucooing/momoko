@@ -77,8 +77,6 @@ var (
 		newDefaultMenu("menu_5_2_button_0", entmenu.TypeButton, "", "管理镜像", "", new("menu_5_2"), 0, constant.DockerImageManage, entmenu.StatusActive),
 		newDefaultMenu("menu_5_3", entmenu.TypeMenu, "/docker/network", "网络", "HOutline:GlobeAltIcon", new("menu_5"), 2, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_3_button_0", entmenu.TypeButton, "", "管理网络", "", new("menu_5_3"), 0, constant.DockerNetworkManage, entmenu.StatusActive),
-		newDefaultMenu("menu_5_4", entmenu.TypeMenu, "/docker/volume", "储存卷", "HOutline:ArchiveBoxIcon", new("menu_5"), 3, constant.DockerView, entmenu.StatusActive),
-		newDefaultMenu("menu_5_4_button_0", entmenu.TypeButton, "", "管理储存卷", "", new("menu_5_4"), 0, constant.DockerVolumeManage, entmenu.StatusActive),
 		newDefaultMenu("menu_5_5", entmenu.TypeMenu, "/docker/config", "配置", "HOutline:Cog6ToothIcon", new("menu_5"), 4, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_5_button_0", entmenu.TypeButton, "", "编辑Docker配置", "", new("menu_5_5"), 0, constant.DockerConfigEdit, entmenu.StatusActive),
 

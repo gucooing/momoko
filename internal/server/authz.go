@@ -41,15 +41,6 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationDockerManagerDeleteDockerNetwork:     constant.DockerNetworkManage,
 	v1.OperationDockerManagerConnectDockerNetwork:    constant.DockerNetworkManage,
 	v1.OperationDockerManagerDisconnectDockerNetwork: constant.DockerNetworkManage,
-	v1.OperationDockerManagerPruneDockerNetworks:     constant.DockerNetworkManage,
-	// —— Docker 储存卷（管理）——
-	v1.OperationDockerManagerCreateDockerVolume:   constant.DockerVolumeManage,
-	v1.OperationDockerManagerUpdateDockerVolume:   constant.DockerVolumeManage,
-	v1.OperationDockerManagerRecreateDockerVolume: constant.DockerVolumeManage,
-	v1.OperationDockerManagerDeleteDockerVolume:   constant.DockerVolumeManage,
-	v1.OperationDockerManagerPruneDockerVolumes:   constant.DockerVolumeManage,
-	v1.OperationDockerManagerExportDockerVolume:   constant.DockerVolumeManage,
-	v1.OperationDockerManagerRestoreDockerVolume:  constant.DockerVolumeManage,
 	// —— Docker 配置（编辑）——
 	v1.OperationDockerManagerUpdateDockerConfig: constant.DockerConfigEdit,
 	v1.OperationDockerManagerTestDockerConfig:   constant.DockerConfigEdit,

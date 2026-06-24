@@ -22,37 +22,28 @@ const _ = http.SupportPackageIsVersion1
 const OperationDockerManagerConnectDockerNetwork = "/v1.DockerManager/ConnectDockerNetwork"
 const OperationDockerManagerCreateDockerContainer = "/v1.DockerManager/CreateDockerContainer"
 const OperationDockerManagerCreateDockerNetwork = "/v1.DockerManager/CreateDockerNetwork"
-const OperationDockerManagerCreateDockerVolume = "/v1.DockerManager/CreateDockerVolume"
 const OperationDockerManagerDeleteDockerContainer = "/v1.DockerManager/DeleteDockerContainer"
 const OperationDockerManagerDeleteDockerImage = "/v1.DockerManager/DeleteDockerImage"
 const OperationDockerManagerDeleteDockerNetwork = "/v1.DockerManager/DeleteDockerNetwork"
-const OperationDockerManagerDeleteDockerVolume = "/v1.DockerManager/DeleteDockerVolume"
 const OperationDockerManagerDisconnectDockerNetwork = "/v1.DockerManager/DisconnectDockerNetwork"
 const OperationDockerManagerDockerStatus = "/v1.DockerManager/DockerStatus"
-const OperationDockerManagerExportDockerVolume = "/v1.DockerManager/ExportDockerVolume"
 const OperationDockerManagerGetDockerConfig = "/v1.DockerManager/GetDockerConfig"
 const OperationDockerManagerGetDockerContainer = "/v1.DockerManager/GetDockerContainer"
 const OperationDockerManagerGetDockerContainerStats = "/v1.DockerManager/GetDockerContainerStats"
 const OperationDockerManagerGetDockerImage = "/v1.DockerManager/GetDockerImage"
 const OperationDockerManagerGetDockerNetwork = "/v1.DockerManager/GetDockerNetwork"
-const OperationDockerManagerGetDockerVolume = "/v1.DockerManager/GetDockerVolume"
 const OperationDockerManagerImageHistory = "/v1.DockerManager/ImageHistory"
 const OperationDockerManagerKillDockerContainer = "/v1.DockerManager/KillDockerContainer"
 const OperationDockerManagerListDockerContainers = "/v1.DockerManager/ListDockerContainers"
 const OperationDockerManagerListDockerImages = "/v1.DockerManager/ListDockerImages"
 const OperationDockerManagerListDockerNetworks = "/v1.DockerManager/ListDockerNetworks"
 const OperationDockerManagerListDockerTasks = "/v1.DockerManager/ListDockerTasks"
-const OperationDockerManagerListDockerVolumes = "/v1.DockerManager/ListDockerVolumes"
 const OperationDockerManagerPauseDockerContainer = "/v1.DockerManager/PauseDockerContainer"
-const OperationDockerManagerPruneDockerNetworks = "/v1.DockerManager/PruneDockerNetworks"
-const OperationDockerManagerPruneDockerVolumes = "/v1.DockerManager/PruneDockerVolumes"
 const OperationDockerManagerPullDockerImage = "/v1.DockerManager/PullDockerImage"
 const OperationDockerManagerRecreateDockerContainer = "/v1.DockerManager/RecreateDockerContainer"
 const OperationDockerManagerRecreateDockerNetwork = "/v1.DockerManager/RecreateDockerNetwork"
-const OperationDockerManagerRecreateDockerVolume = "/v1.DockerManager/RecreateDockerVolume"
 const OperationDockerManagerRenameDockerContainer = "/v1.DockerManager/RenameDockerContainer"
 const OperationDockerManagerRestartDockerContainer = "/v1.DockerManager/RestartDockerContainer"
-const OperationDockerManagerRestoreDockerVolume = "/v1.DockerManager/RestoreDockerVolume"
 const OperationDockerManagerStartDockerContainer = "/v1.DockerManager/StartDockerContainer"
 const OperationDockerManagerStopDockerContainer = "/v1.DockerManager/StopDockerContainer"
 const OperationDockerManagerTagDockerImage = "/v1.DockerManager/TagDockerImage"
@@ -62,7 +53,6 @@ const OperationDockerManagerUpdateDockerConfig = "/v1.DockerManager/UpdateDocker
 const OperationDockerManagerUpdateDockerContainer = "/v1.DockerManager/UpdateDockerContainer"
 const OperationDockerManagerUpdateDockerImageTags = "/v1.DockerManager/UpdateDockerImageTags"
 const OperationDockerManagerUpdateDockerNetwork = "/v1.DockerManager/UpdateDockerNetwork"
-const OperationDockerManagerUpdateDockerVolume = "/v1.DockerManager/UpdateDockerVolume"
 
 type DockerManagerHTTPServer interface {
 	// ConnectDockerNetwork 连接容器到网络
@@ -71,22 +61,16 @@ type DockerManagerHTTPServer interface {
 	CreateDockerContainer(context.Context, *CreateDockerContainerRequest) (*CreateDockerContainerResponse, error)
 	// CreateDockerNetwork 创建网络
 	CreateDockerNetwork(context.Context, *CreateDockerNetworkRequest) (*CreateDockerNetworkResponse, error)
-	// CreateDockerVolume 创建储存卷
-	CreateDockerVolume(context.Context, *CreateDockerVolumeRequest) (*CreateDockerVolumeResponse, error)
 	// DeleteDockerContainer 删除容器
 	DeleteDockerContainer(context.Context, *DeleteDockerContainerRequest) (*DeleteDockerContainerResponse, error)
 	// DeleteDockerImage 删除镜像
 	DeleteDockerImage(context.Context, *DeleteDockerImageRequest) (*DeleteDockerImageResponse, error)
 	// DeleteDockerNetwork 删除网络
 	DeleteDockerNetwork(context.Context, *DeleteDockerNetworkRequest) (*DeleteDockerNetworkResponse, error)
-	// DeleteDockerVolume 删除储存卷
-	DeleteDockerVolume(context.Context, *DeleteDockerVolumeRequest) (*DeleteDockerVolumeResponse, error)
 	// DisconnectDockerNetwork 断开容器网络
 	DisconnectDockerNetwork(context.Context, *DisconnectDockerNetworkRequest) (*DisconnectDockerNetworkResponse, error)
 	// DockerStatus 获取Docker连接状态
 	DockerStatus(context.Context, *DockerStatusRequest) (*DockerStatusResponse, error)
-	// ExportDockerVolume 导出储存卷
-	ExportDockerVolume(context.Context, *ExportDockerVolumeRequest) (*ExportDockerVolumeResponse, error)
 	// GetDockerConfig 获取Docker配置
 	GetDockerConfig(context.Context, *GetDockerConfigRequest) (*GetDockerConfigResponse, error)
 	// GetDockerContainer 获取容器详情
@@ -97,8 +81,6 @@ type DockerManagerHTTPServer interface {
 	GetDockerImage(context.Context, *GetDockerImageRequest) (*GetDockerImageResponse, error)
 	// GetDockerNetwork 获取网络详情
 	GetDockerNetwork(context.Context, *GetDockerNetworkRequest) (*GetDockerNetworkResponse, error)
-	// GetDockerVolume 获取储存卷详情
-	GetDockerVolume(context.Context, *GetDockerVolumeRequest) (*GetDockerVolumeResponse, error)
 	// ImageHistory 获取镜像历史
 	ImageHistory(context.Context, *ImageHistoryRequest) (*ImageHistoryResponse, error)
 	// KillDockerContainer 强制停止容器
@@ -111,28 +93,18 @@ type DockerManagerHTTPServer interface {
 	ListDockerNetworks(context.Context, *ListDockerNetworksRequest) (*ListDockerNetworksResponse, error)
 	// ListDockerTasks 获取Docker任务列表
 	ListDockerTasks(context.Context, *ListDockerTasksRequest) (*ListDockerTasksResponse, error)
-	// ListDockerVolumes 获取储存卷列表
-	ListDockerVolumes(context.Context, *ListDockerVolumesRequest) (*ListDockerVolumesResponse, error)
 	// PauseDockerContainer 暂停容器
 	PauseDockerContainer(context.Context, *PauseDockerContainerRequest) (*PauseDockerContainerResponse, error)
-	// PruneDockerNetworks 清理网络
-	PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error)
-	// PruneDockerVolumes 清理储存卷
-	PruneDockerVolumes(context.Context, *PruneDockerVolumesRequest) (*PruneDockerVolumesResponse, error)
 	// PullDockerImage 拉取镜像
 	PullDockerImage(context.Context, *PullDockerImageRequest) (*PullDockerImageResponse, error)
 	// RecreateDockerContainer 重建容器
 	RecreateDockerContainer(context.Context, *RecreateDockerContainerRequest) (*RecreateDockerContainerResponse, error)
 	// RecreateDockerNetwork 重建网络
 	RecreateDockerNetwork(context.Context, *RecreateDockerNetworkRequest) (*RecreateDockerNetworkResponse, error)
-	// RecreateDockerVolume 重建储存卷
-	RecreateDockerVolume(context.Context, *RecreateDockerVolumeRequest) (*RecreateDockerVolumeResponse, error)
 	// RenameDockerContainer 重命名容器
 	RenameDockerContainer(context.Context, *RenameDockerContainerRequest) (*RenameDockerContainerResponse, error)
 	// RestartDockerContainer 重启容器
 	RestartDockerContainer(context.Context, *RestartDockerContainerRequest) (*RestartDockerContainerResponse, error)
-	// RestoreDockerVolume 恢复储存卷
-	RestoreDockerVolume(context.Context, *RestoreDockerVolumeRequest) (*RestoreDockerVolumeResponse, error)
 	// StartDockerContainer 启动容器
 	StartDockerContainer(context.Context, *StartDockerContainerRequest) (*StartDockerContainerResponse, error)
 	// StopDockerContainer 停止容器
@@ -151,8 +123,6 @@ type DockerManagerHTTPServer interface {
 	UpdateDockerImageTags(context.Context, *UpdateDockerImageTagsRequest) (*UpdateDockerImageTagsResponse, error)
 	// UpdateDockerNetwork 更新网络
 	UpdateDockerNetwork(context.Context, *UpdateDockerNetworkRequest) (*UpdateDockerNetworkResponse, error)
-	// UpdateDockerVolume 更新储存卷
-	UpdateDockerVolume(context.Context, *UpdateDockerVolumeRequest) (*UpdateDockerVolumeResponse, error)
 }
 
 func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer) {
@@ -191,16 +161,6 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.DELETE("/api/v1/docker/networks/{id}", _DockerManager_DeleteDockerNetwork0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/networks/{network_id}/connect", _DockerManager_ConnectDockerNetwork0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/networks/{network_id}/disconnect", _DockerManager_DisconnectDockerNetwork0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/networks/prune", _DockerManager_PruneDockerNetworks0_HTTP_Handler(srv))
-	r.GET("/api/v1/docker/volumes", _DockerManager_ListDockerVolumes0_HTTP_Handler(srv))
-	r.GET("/api/v1/docker/volumes/{name}", _DockerManager_GetDockerVolume0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/volumes", _DockerManager_CreateDockerVolume0_HTTP_Handler(srv))
-	r.PUT("/api/v1/docker/volumes/{name}", _DockerManager_UpdateDockerVolume0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/volumes/{name}/recreate", _DockerManager_RecreateDockerVolume0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/docker/volumes/{name}", _DockerManager_DeleteDockerVolume0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/volumes/prune", _DockerManager_PruneDockerVolumes0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/volumes/{name}/export", _DockerManager_ExportDockerVolume0_HTTP_Handler(srv))
-	r.POST("/api/v1/docker/volumes/{name}/restore", _DockerManager_RestoreDockerVolume0_HTTP_Handler(srv))
 }
 
 func _DockerManager_DockerStatus0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
@@ -978,235 +938,6 @@ func _DockerManager_DisconnectDockerNetwork0_HTTP_Handler(srv DockerManagerHTTPS
 	}
 }
 
-func _DockerManager_PruneDockerNetworks0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PruneDockerNetworksRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerPruneDockerNetworks)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PruneDockerNetworks(ctx, req.(*PruneDockerNetworksRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PruneDockerNetworksResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_ListDockerVolumes0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListDockerVolumesRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerListDockerVolumes)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListDockerVolumes(ctx, req.(*ListDockerVolumesRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListDockerVolumesResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_GetDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetDockerVolumeRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerGetDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDockerVolume(ctx, req.(*GetDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_CreateDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in CreateDockerVolumeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerCreateDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateDockerVolume(ctx, req.(*CreateDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*CreateDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_UpdateDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in UpdateDockerVolumeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerUpdateDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateDockerVolume(ctx, req.(*UpdateDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*UpdateDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_RecreateDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RecreateDockerVolumeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerRecreateDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RecreateDockerVolume(ctx, req.(*RecreateDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RecreateDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_DeleteDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DeleteDockerVolumeRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerDeleteDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DeleteDockerVolume(ctx, req.(*DeleteDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*DeleteDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_PruneDockerVolumes0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PruneDockerVolumesRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerPruneDockerVolumes)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PruneDockerVolumes(ctx, req.(*PruneDockerVolumesRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PruneDockerVolumesResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_ExportDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ExportDockerVolumeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerExportDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ExportDockerVolume(ctx, req.(*ExportDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ExportDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _DockerManager_RestoreDockerVolume0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RestoreDockerVolumeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationDockerManagerRestoreDockerVolume)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RestoreDockerVolume(ctx, req.(*RestoreDockerVolumeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RestoreDockerVolumeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 type DockerManagerHTTPClient interface {
 	// ConnectDockerNetwork 连接容器到网络
 	ConnectDockerNetwork(ctx context.Context, req *ConnectDockerNetworkRequest, opts ...http.CallOption) (rsp *ConnectDockerNetworkResponse, err error)
@@ -1214,22 +945,16 @@ type DockerManagerHTTPClient interface {
 	CreateDockerContainer(ctx context.Context, req *CreateDockerContainerRequest, opts ...http.CallOption) (rsp *CreateDockerContainerResponse, err error)
 	// CreateDockerNetwork 创建网络
 	CreateDockerNetwork(ctx context.Context, req *CreateDockerNetworkRequest, opts ...http.CallOption) (rsp *CreateDockerNetworkResponse, err error)
-	// CreateDockerVolume 创建储存卷
-	CreateDockerVolume(ctx context.Context, req *CreateDockerVolumeRequest, opts ...http.CallOption) (rsp *CreateDockerVolumeResponse, err error)
 	// DeleteDockerContainer 删除容器
 	DeleteDockerContainer(ctx context.Context, req *DeleteDockerContainerRequest, opts ...http.CallOption) (rsp *DeleteDockerContainerResponse, err error)
 	// DeleteDockerImage 删除镜像
 	DeleteDockerImage(ctx context.Context, req *DeleteDockerImageRequest, opts ...http.CallOption) (rsp *DeleteDockerImageResponse, err error)
 	// DeleteDockerNetwork 删除网络
 	DeleteDockerNetwork(ctx context.Context, req *DeleteDockerNetworkRequest, opts ...http.CallOption) (rsp *DeleteDockerNetworkResponse, err error)
-	// DeleteDockerVolume 删除储存卷
-	DeleteDockerVolume(ctx context.Context, req *DeleteDockerVolumeRequest, opts ...http.CallOption) (rsp *DeleteDockerVolumeResponse, err error)
 	// DisconnectDockerNetwork 断开容器网络
 	DisconnectDockerNetwork(ctx context.Context, req *DisconnectDockerNetworkRequest, opts ...http.CallOption) (rsp *DisconnectDockerNetworkResponse, err error)
 	// DockerStatus 获取Docker连接状态
 	DockerStatus(ctx context.Context, req *DockerStatusRequest, opts ...http.CallOption) (rsp *DockerStatusResponse, err error)
-	// ExportDockerVolume 导出储存卷
-	ExportDockerVolume(ctx context.Context, req *ExportDockerVolumeRequest, opts ...http.CallOption) (rsp *ExportDockerVolumeResponse, err error)
 	// GetDockerConfig 获取Docker配置
 	GetDockerConfig(ctx context.Context, req *GetDockerConfigRequest, opts ...http.CallOption) (rsp *GetDockerConfigResponse, err error)
 	// GetDockerContainer 获取容器详情
@@ -1240,8 +965,6 @@ type DockerManagerHTTPClient interface {
 	GetDockerImage(ctx context.Context, req *GetDockerImageRequest, opts ...http.CallOption) (rsp *GetDockerImageResponse, err error)
 	// GetDockerNetwork 获取网络详情
 	GetDockerNetwork(ctx context.Context, req *GetDockerNetworkRequest, opts ...http.CallOption) (rsp *GetDockerNetworkResponse, err error)
-	// GetDockerVolume 获取储存卷详情
-	GetDockerVolume(ctx context.Context, req *GetDockerVolumeRequest, opts ...http.CallOption) (rsp *GetDockerVolumeResponse, err error)
 	// ImageHistory 获取镜像历史
 	ImageHistory(ctx context.Context, req *ImageHistoryRequest, opts ...http.CallOption) (rsp *ImageHistoryResponse, err error)
 	// KillDockerContainer 强制停止容器
@@ -1254,28 +977,18 @@ type DockerManagerHTTPClient interface {
 	ListDockerNetworks(ctx context.Context, req *ListDockerNetworksRequest, opts ...http.CallOption) (rsp *ListDockerNetworksResponse, err error)
 	// ListDockerTasks 获取Docker任务列表
 	ListDockerTasks(ctx context.Context, req *ListDockerTasksRequest, opts ...http.CallOption) (rsp *ListDockerTasksResponse, err error)
-	// ListDockerVolumes 获取储存卷列表
-	ListDockerVolumes(ctx context.Context, req *ListDockerVolumesRequest, opts ...http.CallOption) (rsp *ListDockerVolumesResponse, err error)
 	// PauseDockerContainer 暂停容器
 	PauseDockerContainer(ctx context.Context, req *PauseDockerContainerRequest, opts ...http.CallOption) (rsp *PauseDockerContainerResponse, err error)
-	// PruneDockerNetworks 清理网络
-	PruneDockerNetworks(ctx context.Context, req *PruneDockerNetworksRequest, opts ...http.CallOption) (rsp *PruneDockerNetworksResponse, err error)
-	// PruneDockerVolumes 清理储存卷
-	PruneDockerVolumes(ctx context.Context, req *PruneDockerVolumesRequest, opts ...http.CallOption) (rsp *PruneDockerVolumesResponse, err error)
 	// PullDockerImage 拉取镜像
 	PullDockerImage(ctx context.Context, req *PullDockerImageRequest, opts ...http.CallOption) (rsp *PullDockerImageResponse, err error)
 	// RecreateDockerContainer 重建容器
 	RecreateDockerContainer(ctx context.Context, req *RecreateDockerContainerRequest, opts ...http.CallOption) (rsp *RecreateDockerContainerResponse, err error)
 	// RecreateDockerNetwork 重建网络
 	RecreateDockerNetwork(ctx context.Context, req *RecreateDockerNetworkRequest, opts ...http.CallOption) (rsp *RecreateDockerNetworkResponse, err error)
-	// RecreateDockerVolume 重建储存卷
-	RecreateDockerVolume(ctx context.Context, req *RecreateDockerVolumeRequest, opts ...http.CallOption) (rsp *RecreateDockerVolumeResponse, err error)
 	// RenameDockerContainer 重命名容器
 	RenameDockerContainer(ctx context.Context, req *RenameDockerContainerRequest, opts ...http.CallOption) (rsp *RenameDockerContainerResponse, err error)
 	// RestartDockerContainer 重启容器
 	RestartDockerContainer(ctx context.Context, req *RestartDockerContainerRequest, opts ...http.CallOption) (rsp *RestartDockerContainerResponse, err error)
-	// RestoreDockerVolume 恢复储存卷
-	RestoreDockerVolume(ctx context.Context, req *RestoreDockerVolumeRequest, opts ...http.CallOption) (rsp *RestoreDockerVolumeResponse, err error)
 	// StartDockerContainer 启动容器
 	StartDockerContainer(ctx context.Context, req *StartDockerContainerRequest, opts ...http.CallOption) (rsp *StartDockerContainerResponse, err error)
 	// StopDockerContainer 停止容器
@@ -1294,8 +1007,6 @@ type DockerManagerHTTPClient interface {
 	UpdateDockerImageTags(ctx context.Context, req *UpdateDockerImageTagsRequest, opts ...http.CallOption) (rsp *UpdateDockerImageTagsResponse, err error)
 	// UpdateDockerNetwork 更新网络
 	UpdateDockerNetwork(ctx context.Context, req *UpdateDockerNetworkRequest, opts ...http.CallOption) (rsp *UpdateDockerNetworkResponse, err error)
-	// UpdateDockerVolume 更新储存卷
-	UpdateDockerVolume(ctx context.Context, req *UpdateDockerVolumeRequest, opts ...http.CallOption) (rsp *UpdateDockerVolumeResponse, err error)
 }
 
 type DockerManagerHTTPClientImpl struct {
@@ -1348,20 +1059,6 @@ func (c *DockerManagerHTTPClientImpl) CreateDockerNetwork(ctx context.Context, i
 	return &out, nil
 }
 
-// CreateDockerVolume 创建储存卷
-func (c *DockerManagerHTTPClientImpl) CreateDockerVolume(ctx context.Context, in *CreateDockerVolumeRequest, opts ...http.CallOption) (*CreateDockerVolumeResponse, error) {
-	var out CreateDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerCreateDockerVolume))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // DeleteDockerContainer 删除容器
 func (c *DockerManagerHTTPClientImpl) DeleteDockerContainer(ctx context.Context, in *DeleteDockerContainerRequest, opts ...http.CallOption) (*DeleteDockerContainerResponse, error) {
 	var out DeleteDockerContainerResponse
@@ -1404,20 +1101,6 @@ func (c *DockerManagerHTTPClientImpl) DeleteDockerNetwork(ctx context.Context, i
 	return &out, nil
 }
 
-// DeleteDockerVolume 删除储存卷
-func (c *DockerManagerHTTPClientImpl) DeleteDockerVolume(ctx context.Context, in *DeleteDockerVolumeRequest, opts ...http.CallOption) (*DeleteDockerVolumeResponse, error) {
-	var out DeleteDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDockerManagerDeleteDockerVolume))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // DisconnectDockerNetwork 断开容器网络
 func (c *DockerManagerHTTPClientImpl) DisconnectDockerNetwork(ctx context.Context, in *DisconnectDockerNetworkRequest, opts ...http.CallOption) (*DisconnectDockerNetworkResponse, error) {
 	var out DisconnectDockerNetworkResponse
@@ -1440,20 +1123,6 @@ func (c *DockerManagerHTTPClientImpl) DockerStatus(ctx context.Context, in *Dock
 	opts = append(opts, http.Operation(OperationDockerManagerDockerStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ExportDockerVolume 导出储存卷
-func (c *DockerManagerHTTPClientImpl) ExportDockerVolume(ctx context.Context, in *ExportDockerVolumeRequest, opts ...http.CallOption) (*ExportDockerVolumeResponse, error) {
-	var out ExportDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}/export"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerExportDockerVolume))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1522,20 +1191,6 @@ func (c *DockerManagerHTTPClientImpl) GetDockerNetwork(ctx context.Context, in *
 	pattern := "/api/v1/docker/networks/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDockerManagerGetDockerNetwork))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetDockerVolume 获取储存卷详情
-func (c *DockerManagerHTTPClientImpl) GetDockerVolume(ctx context.Context, in *GetDockerVolumeRequest, opts ...http.CallOption) (*GetDockerVolumeResponse, error) {
-	var out GetDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDockerManagerGetDockerVolume))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1628,54 +1283,12 @@ func (c *DockerManagerHTTPClientImpl) ListDockerTasks(ctx context.Context, in *L
 	return &out, nil
 }
 
-// ListDockerVolumes 获取储存卷列表
-func (c *DockerManagerHTTPClientImpl) ListDockerVolumes(ctx context.Context, in *ListDockerVolumesRequest, opts ...http.CallOption) (*ListDockerVolumesResponse, error) {
-	var out ListDockerVolumesResponse
-	pattern := "/api/v1/docker/volumes"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDockerManagerListDockerVolumes))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // PauseDockerContainer 暂停容器
 func (c *DockerManagerHTTPClientImpl) PauseDockerContainer(ctx context.Context, in *PauseDockerContainerRequest, opts ...http.CallOption) (*PauseDockerContainerResponse, error) {
 	var out PauseDockerContainerResponse
 	pattern := "/api/v1/docker/containers/{id}/pause"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDockerManagerPauseDockerContainer))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// PruneDockerNetworks 清理网络
-func (c *DockerManagerHTTPClientImpl) PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...http.CallOption) (*PruneDockerNetworksResponse, error) {
-	var out PruneDockerNetworksResponse
-	pattern := "/api/v1/docker/networks/prune"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerPruneDockerNetworks))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// PruneDockerVolumes 清理储存卷
-func (c *DockerManagerHTTPClientImpl) PruneDockerVolumes(ctx context.Context, in *PruneDockerVolumesRequest, opts ...http.CallOption) (*PruneDockerVolumesResponse, error) {
-	var out PruneDockerVolumesResponse
-	pattern := "/api/v1/docker/volumes/prune"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerPruneDockerVolumes))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1726,20 +1339,6 @@ func (c *DockerManagerHTTPClientImpl) RecreateDockerNetwork(ctx context.Context,
 	return &out, nil
 }
 
-// RecreateDockerVolume 重建储存卷
-func (c *DockerManagerHTTPClientImpl) RecreateDockerVolume(ctx context.Context, in *RecreateDockerVolumeRequest, opts ...http.CallOption) (*RecreateDockerVolumeResponse, error) {
-	var out RecreateDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}/recreate"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerRecreateDockerVolume))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // RenameDockerContainer 重命名容器
 func (c *DockerManagerHTTPClientImpl) RenameDockerContainer(ctx context.Context, in *RenameDockerContainerRequest, opts ...http.CallOption) (*RenameDockerContainerResponse, error) {
 	var out RenameDockerContainerResponse
@@ -1760,20 +1359,6 @@ func (c *DockerManagerHTTPClientImpl) RestartDockerContainer(ctx context.Context
 	pattern := "/api/v1/docker/containers/{id}/restart"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDockerManagerRestartDockerContainer))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// RestoreDockerVolume 恢复储存卷
-func (c *DockerManagerHTTPClientImpl) RestoreDockerVolume(ctx context.Context, in *RestoreDockerVolumeRequest, opts ...http.CallOption) (*RestoreDockerVolumeResponse, error) {
-	var out RestoreDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}/restore"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerRestoreDockerVolume))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1900,20 +1485,6 @@ func (c *DockerManagerHTTPClientImpl) UpdateDockerNetwork(ctx context.Context, i
 	pattern := "/api/v1/docker/networks/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDockerManagerUpdateDockerNetwork))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// UpdateDockerVolume 更新储存卷
-func (c *DockerManagerHTTPClientImpl) UpdateDockerVolume(ctx context.Context, in *UpdateDockerVolumeRequest, opts ...http.CallOption) (*UpdateDockerVolumeResponse, error) {
-	var out UpdateDockerVolumeResponse
-	pattern := "/api/v1/docker/volumes/{name}"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDockerManagerUpdateDockerVolume))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

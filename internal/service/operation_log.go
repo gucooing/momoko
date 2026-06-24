@@ -199,14 +199,6 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationDockerManagerDeleteDockerNetwork:         v1.OperationType_OperationTypeDockerNetworkDelete,
 	v1.OperationDockerManagerConnectDockerNetwork:        v1.OperationType_OperationTypeDockerNetworkConnect,
 	v1.OperationDockerManagerDisconnectDockerNetwork:     v1.OperationType_OperationTypeDockerNetworkDisconnect,
-	v1.OperationDockerManagerPruneDockerNetworks:         v1.OperationType_OperationTypeDockerNetworkPrune,
-	v1.OperationDockerManagerCreateDockerVolume:          v1.OperationType_OperationTypeDockerVolumeCreate,
-	v1.OperationDockerManagerUpdateDockerVolume:          v1.OperationType_OperationTypeDockerVolumeUpdate,
-	v1.OperationDockerManagerRecreateDockerVolume:        v1.OperationType_OperationTypeDockerVolumeRecreate,
-	v1.OperationDockerManagerDeleteDockerVolume:          v1.OperationType_OperationTypeDockerVolumeDelete,
-	v1.OperationDockerManagerPruneDockerVolumes:          v1.OperationType_OperationTypeDockerVolumePrune,
-	v1.OperationDockerManagerExportDockerVolume:          v1.OperationType_OperationTypeDockerVolumeExport,
-	v1.OperationDockerManagerRestoreDockerVolume:         v1.OperationType_OperationTypeDockerVolumeRestore,
 }
 
 func toOperationType(operation string) (v1.OperationType, bool) {

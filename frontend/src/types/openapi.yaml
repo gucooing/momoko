@@ -846,25 +846,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateDockerNetworkResponse'
-    /api/v1/docker/networks/prune:
-        post:
-            tags:
-                - DockerManager
-            description: 清理网络
-            operationId: DockerManager_PruneDockerNetworks
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.PruneDockerNetworksRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PruneDockerNetworksResponse'
     /api/v1/docker/networks/{id}:
         get:
             tags:
@@ -1033,224 +1014,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListDockerTasksResponse'
-    /api/v1/docker/volumes:
-        get:
-            tags:
-                - DockerManager
-            description: 获取储存卷列表
-            operationId: DockerManager_ListDockerVolumes
-            parameters:
-                - name: name
-                  in: query
-                  description: 名称筛选
-                  schema:
-                    type: string
-                - name: driver
-                  in: query
-                  description: 驱动筛选
-                  schema:
-                    type: string
-                - name: page
-                  in: query
-                  description: 页码
-                  schema:
-                    type: string
-                - name: pageSize
-                  in: query
-                  description: 每页数量
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ListDockerVolumesResponse'
-        post:
-            tags:
-                - DockerManager
-            description: 创建储存卷
-            operationId: DockerManager_CreateDockerVolume
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.CreateDockerVolumeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.CreateDockerVolumeResponse'
-    /api/v1/docker/volumes/prune:
-        post:
-            tags:
-                - DockerManager
-            description: 清理储存卷
-            operationId: DockerManager_PruneDockerVolumes
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.PruneDockerVolumesRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PruneDockerVolumesResponse'
-    /api/v1/docker/volumes/{name}:
-        get:
-            tags:
-                - DockerManager
-            description: 获取储存卷详情
-            operationId: DockerManager_GetDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetDockerVolumeResponse'
-        put:
-            tags:
-                - DockerManager
-            description: 更新储存卷
-            operationId: DockerManager_UpdateDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.UpdateDockerVolumeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.UpdateDockerVolumeResponse'
-        delete:
-            tags:
-                - DockerManager
-            description: 删除储存卷
-            operationId: DockerManager_DeleteDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-                - name: force
-                  in: query
-                  description: 是否强制删除
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DeleteDockerVolumeResponse'
-    /api/v1/docker/volumes/{name}/export:
-        post:
-            tags:
-                - DockerManager
-            description: 导出储存卷
-            operationId: DockerManager_ExportDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.ExportDockerVolumeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ExportDockerVolumeResponse'
-    /api/v1/docker/volumes/{name}/recreate:
-        post:
-            tags:
-                - DockerManager
-            description: 重建储存卷
-            operationId: DockerManager_RecreateDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.RecreateDockerVolumeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.RecreateDockerVolumeResponse'
-    /api/v1/docker/volumes/{name}/restore:
-        post:
-            tags:
-                - DockerManager
-            description: 恢复储存卷
-            operationId: DockerManager_RestoreDockerVolume
-            parameters:
-                - name: name
-                  in: path
-                  description: 储存卷名称
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.RestoreDockerVolumeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.RestoreDockerVolumeResponse'
     /api/v1/file/system:
         get:
             tags:
@@ -4406,22 +4169,6 @@ components:
                     type: string
                     description: 网络ID
             description: 创建网络响应
-        v1.CreateDockerVolumeRequest:
-            type: object
-            properties:
-                options:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
-                    description: 创建参数
-            description: 创建储存卷请求
-        v1.CreateDockerVolumeResponse:
-            type: object
-            properties:
-                info:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
-                    description: 储存卷详情
-            description: 创建储存卷响应
         v1.CreateFileSystemRequest:
             type: object
             properties:
@@ -4718,10 +4465,6 @@ components:
             type: object
             properties: {}
             description: 删除网络响应
-        v1.DeleteDockerVolumeResponse:
-            type: object
-            properties: {}
-            description: 删除储存卷响应
         v1.DeleteImageGenGenerationResponse:
             type: object
             properties: {}
@@ -5894,66 +5637,6 @@ components:
                     type: string
                     description: WebSocket路径
             description: Docker任务
-        v1.DockerVolumeCreateOptions:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                driver:
-                    type: string
-                    description: 驱动
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 标签
-                driverOpts:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 驱动参数
-            description: 储存卷创建参数
-        v1.DockerVolumeInfo:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                driver:
-                    type: string
-                    description: 驱动
-                mountpoint:
-                    type: string
-                    description: 挂载点
-                createdAt:
-                    type: string
-                    description: 创建时间
-                status:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 状态
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 标签
-                scope:
-                    type: string
-                    description: 作用域
-                options:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 驱动参数
-                usageSize:
-                    type: string
-                    description: 占用大小
-                refCount:
-                    type: string
-                    description: 引用数量
-            description: 储存卷详情
         v1.EditFileSystemFileRequest:
             type: object
             properties:
@@ -6088,24 +5771,6 @@ components:
                         - $ref: '#/components/schemas/v1.EmailTemplate'
                     description: 邮件模板
             description: 获取指定邮件模板响应
-        v1.ExportDockerVolumeRequest:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                archivePath:
-                    type: string
-                    description: 导出路径
-            description: 导出储存卷请求
-        v1.ExportDockerVolumeResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 导出储存卷响应
         v1.FileCreateItem:
             type: object
             properties:
@@ -6283,14 +5948,6 @@ components:
                         - $ref: '#/components/schemas/v1.DockerNetworkInfo'
                     description: 网络详情
             description: 获取网络详情响应
-        v1.GetDockerVolumeResponse:
-            type: object
-            properties:
-                info:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
-                    description: 储存卷详情
-            description: 获取储存卷详情响应
         v1.GetFileSystemListResponse:
             type: object
             properties:
@@ -6780,18 +6437,6 @@ components:
                         $ref: '#/components/schemas/v1.DockerTaskInfo'
                     description: 任务列表
             description: 获取Docker任务列表响应
-        v1.ListDockerVolumesResponse:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.DockerVolumeInfo'
-                    description: 储存卷列表
-                total:
-                    type: string
-                    description: 总数
-            description: 获取储存卷列表响应
         v1.ListImageGenApiKeysResponse:
             type: object
             properties:
@@ -7377,30 +7022,6 @@ components:
                 error:
                     type: string
                     description: 运行错误
-        v1.PruneDockerNetworksRequest:
-            type: object
-            properties: {}
-            description: 清理网络请求
-        v1.PruneDockerNetworksResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 清理网络响应
-        v1.PruneDockerVolumesRequest:
-            type: object
-            properties: {}
-            description: 清理储存卷请求
-        v1.PruneDockerVolumesResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 清理储存卷响应
         v1.PublicSub2APIHomeResponse:
             type: object
             properties:
@@ -7475,28 +7096,6 @@ components:
                         - $ref: '#/components/schemas/v1.DockerTaskInfo'
                     description: 任务
             description: 重建网络响应
-        v1.RecreateDockerVolumeRequest:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                options:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
-                    description: 创建参数
-                force:
-                    type: boolean
-                    description: 是否强制删除
-            description: 重建储存卷请求
-        v1.RecreateDockerVolumeResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 重建储存卷响应
         v1.RefreshAPIKeyRequest:
             type: object
             properties:
@@ -7642,24 +7241,6 @@ components:
             type: object
             properties: {}
             description: 重启终端响应
-        v1.RestoreDockerVolumeRequest:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                archivePath:
-                    type: string
-                    description: 归档路径
-            description: 恢复储存卷请求
-        v1.RestoreDockerVolumeResponse:
-            type: object
-            properties:
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 任务
-            description: 恢复储存卷响应
         v1.RoleInfo:
             type: object
             properties:
@@ -8595,42 +8176,6 @@ components:
                         - $ref: '#/components/schemas/v1.DockerTaskInfo'
                     description: 重建任务
             description: 更新网络响应
-        v1.UpdateDockerVolumeRequest:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: 储存卷名称
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 标签
-                driverOpts:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: 驱动参数
-                options:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeCreateOptions'
-                    description: 储存卷创建参数
-                force:
-                    type: boolean
-                    description: 是否强制重建
-            description: 更新储存卷请求
-        v1.UpdateDockerVolumeResponse:
-            type: object
-            properties:
-                info:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerVolumeInfo'
-                    description: 储存卷详情
-                task:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
-                    description: 重建任务
-            description: 更新储存卷响应
         v1.UpdateEmailConfigRequest:
             type: object
             properties:

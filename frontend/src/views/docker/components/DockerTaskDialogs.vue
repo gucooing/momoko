@@ -99,10 +99,6 @@ const TASK_TYPE_KEY_MAP: Partial<Record<DockerTaskType, string>> = {
   [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: 'docker.task.type.imagePull',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: 'docker.task.type.networkRecreate',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: 'docker.task.type.networkPrune',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RECREATE]: 'docker.task.type.volumeRecreate',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_PRUNE]: 'docker.task.type.volumePrune',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_EXPORT]: 'docker.task.type.volumeExport',
-  [DockerTaskType.DOCKER_TASK_TYPE_VOLUME_RESTORE]: 'docker.task.type.volumeRestore',
 }
 
 const logTitle = computed(() => selectedTask.value ? displayTaskTitle(selectedTask.value) : t('docker.task.logTitle'))

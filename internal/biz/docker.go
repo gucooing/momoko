@@ -289,61 +289,6 @@ func (d *DockerUsecase) DisconnectNetwork(ctx context.Context, req *v1.Disconnec
 	return nil
 }
 
-func (d *DockerUsecase) PruneNetworks(ctx context.Context) (*v1.DockerTaskInfo, error) {
-	return d.docker.PruneNetworks(ctx), nil
-}
-
-func (d *DockerUsecase) ListVolumes(ctx context.Context, req *v1.ListDockerVolumesRequest) (*v1.ListDockerVolumesResponse, error) {
-	result, err := d.docker.ListVolumes(ctx, req)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return result, nil
-}
-
-func (d *DockerUsecase) Volume(ctx context.Context, name string) (*v1.DockerVolumeInfo, error) {
-	info, err := d.docker.Volume(ctx, name)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return info, nil
-}
-
-func (d *DockerUsecase) CreateVolume(ctx context.Context, req *v1.CreateDockerVolumeRequest) (*v1.DockerVolumeInfo, error) {
-	info, err := d.docker.CreateVolume(ctx, req.GetOptions())
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return info, nil
-}
-
-func (d *DockerUsecase) UpdateVolume(ctx context.Context, req *v1.UpdateDockerVolumeRequest) (*v1.DockerVolumeInfo, *v1.DockerTaskInfo, error) {
-	return nil, d.docker.UpdateVolume(ctx, req), nil
-}
-
-func (d *DockerUsecase) RecreateVolume(ctx context.Context, req *v1.RecreateDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	return d.docker.RecreateVolume(ctx, req), nil
-}
-
-func (d *DockerUsecase) DeleteVolume(ctx context.Context, name string, force bool) error {
-	if err := d.docker.DeleteVolume(ctx, name, force); err != nil {
-		return ErrSystem(err)
-	}
-	return nil
-}
-
-func (d *DockerUsecase) PruneVolumes(ctx context.Context) (*v1.DockerTaskInfo, error) {
-	return d.docker.PruneVolumes(ctx), nil
-}
-
-func (d *DockerUsecase) ExportVolume(ctx context.Context, req *v1.ExportDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	return d.docker.ExportVolume(ctx, req), nil
-}
-
-func (d *DockerUsecase) RestoreVolume(ctx context.Context, req *v1.RestoreDockerVolumeRequest) (*v1.DockerTaskInfo, error) {
-	return d.docker.RestoreVolume(ctx, req), nil
-}
-
 func (d *DockerUsecase) containerAction(ctx context.Context, fn func() error) error {
 	if err := fn(); err != nil {
 		return ErrSystem(err)

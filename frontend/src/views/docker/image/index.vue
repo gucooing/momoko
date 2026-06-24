@@ -115,26 +115,48 @@
     </BaseDialog>
 
     <!-- Detail Dialog -->
-    <BaseDialog v-model="detailVisible" :title="t('docker.image.imageDetail')" width="700">
-      <div v-if="detail" v-loading="detailLoading">
-        <el-descriptions :column="2" border size="small">
-          <el-descriptions-item :label="t('docker.common.id')">{{ detail.id }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.size')">{{ formatBytes(detail.size) }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.architecture')">{{ detail.architecture }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.os')">{{ detail.os }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.author')">{{ detail.author || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.createdAt')">{{ detail.created }}</el-descriptions-item>
-          <el-descriptions-item :label="t('docker.image.repoTags')" :span="2">
-            <template v-if="detail.repoTags?.length">
-              <BaseTag v-for="tag in detail.repoTags" :key="tag" :text="tag" type="info" />
-            </template>
-            <span v-else>-</span>
-          </el-descriptions-item>
-          <el-descriptions-item :label="t('docker.common.summary')" :span="2">
-            <span v-if="detail.repoDigests?.length">{{ detail.repoDigests.join(', ') }}</span>
-            <span v-else>-</span>
-          </el-descriptions-item>
-        </el-descriptions>
+    <BaseDialog v-model="detailVisible" :title="t('docker.image.imageDetail')" width="720">
+      <div v-if="detail" v-loading="detailLoading" class="image-detail">
+        <div class="detail-hero">
+          <div class="detail-hero__main">
+            <div class="detail-hero__title">
+              <span>{{ (detail.repoTags || [])[0] || '<none>' }}</span>
+              <BaseTag :text="formatBytes(detail.size)" type="info" />
+            </div>
+            <div class="detail-hero__sub">
+              <span>{{ shortId(detail.id) }}</span>
+              <span>{{ detail.architecture || '-' }} / {{ detail.os || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section__title">{{ t('docker.common.basicInfo') }}</div>
+          <div class="detail-kv">
+            <div><span>ID</span><strong>{{ shortId(detail.id) }}</strong></div>
+            <div><span>{{ t('docker.common.size') }}</span><strong>{{ formatBytes(detail.size) }}</strong></div>
+            <div><span>{{ t('docker.common.architecture') }}</span><strong>{{ detail.architecture || '-' }}</strong></div>
+            <div><span>{{ t('docker.common.os') }}</span><strong>{{ detail.os || '-' }}</strong></div>
+            <div><span>{{ t('docker.common.author') }}</span><strong>{{ detail.author || '-' }}</strong></div>
+            <div><span>{{ t('docker.common.createdAt') }}</span><strong>{{ formatTime(detail.created) }}</strong></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section__title">{{ t('docker.image.repoTags') }}</div>
+          <div v-if="detail.repoTags?.length" class="label-chips">
+            <span v-for="tag in detail.repoTags" :key="tag" class="label-chip">{{ tag }}</span>
+          </div>
+          <div v-else class="detail-empty">-</div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section__title">{{ t('docker.common.summary') }}</div>
+          <div v-if="detail.repoDigests?.length" class="detail-code">
+            <div v-for="digest in detail.repoDigests" :key="digest">{{ digest }}</div>
+          </div>
+          <div v-else class="detail-empty">-</div>
+        </div>
       </div>
       <template #footer>
         <el-button @click="detailVisible = false">{{ t('docker.common.close') }}</el-button>
@@ -228,6 +250,7 @@ const formatTime = (t: Date | string | undefined): string => {
   const d = new Date(t)
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
+const shortId = (id?: string) => (id || '').replace(/^sha256:/, '').slice(0, 12) || '-'
 
 const gridConfig = computed<VxeGridProps>(() => ({
   border: true, showOverflow: true, rowConfig: { isHover: true },
@@ -369,6 +392,113 @@ onMounted(() => { getList() })
 .operation-container { margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
 .text-muted { color: var(--el-text-color-placeholder); font-size: 0.82rem; }
 h4 { margin: 0 0 8px; font-size: 0.9rem; }
+
+/* -- detail -- */
+.image-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.detail-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 6px;
+  background: var(--el-fill-color-lighter);
+}
+.detail-hero__main { min-width: 0; flex: 1; }
+.detail-hero__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.detail-hero__title > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail-hero__sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--el-text-color-secondary);
+  word-break: break-all;
+}
+.detail-section { min-width: 0; }
+.detail-section__title {
+  margin-bottom: 0.4rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.detail-kv {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.detail-kv > div {
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border-right: 1px solid var(--el-border-color-extra-light);
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+.detail-kv > div:nth-child(3n) { border-right: 0; }
+.detail-kv > div:nth-last-child(-n + 3) { border-bottom: 0; }
+.detail-kv span {
+  display: block;
+  color: var(--el-text-color-secondary);
+  font-size: 0.72rem;
+}
+.detail-kv strong {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--el-text-color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+.label-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.label-chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 1px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  font-size: 0.74rem;
+}
+.detail-code {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 6px;
+  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-regular);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.detail-empty {
+  padding: 0.6rem;
+  border: 1px dashed var(--el-border-color-extra-light);
+  border-radius: 6px;
+  color: var(--el-text-color-placeholder);
+  font-size: 0.78rem;
+  text-align: center;
+}
 
 .mobile-card-list { display: flex; flex-direction: column; gap: 0.55rem; }
 .mobile-card {

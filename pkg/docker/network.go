@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"encoding/json"
 
 	networktypes "github.com/docker/docker/api/types/network"
 
@@ -35,6 +34,11 @@ func (m *Manager) ListNetworks(ctx context.Context, req *v1.ListDockerNetworksRe
 	items = pageSlice(items, req.GetPage(), req.GetPageSize())
 	result := make([]*v1.DockerNetworkInfo, 0, len(items))
 	for _, item := range items {
+		// NetworkList 不返回已连接容器，逐个 inspect 以获得准确的容器数量
+		if detail, derr := cli.NetworkInspect(ctx, item.ID, networktypes.InspectOptions{}); derr == nil {
+			result = append(result, toNetworkInfo(detail))
+			continue
+		}
 		result = append(result, toNetworkInfo(item))
 	}
 	return &v1.ListDockerNetworksResponse{Items: result, Total: total}, nil
@@ -165,22 +169,6 @@ func (m *Manager) DisconnectNetwork(ctx context.Context, req *v1.DisconnectDocke
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
 	return cli.NetworkDisconnect(ctx, req.GetNetworkId(), req.GetContainerId(), req.GetForce())
-}
-
-func (m *Manager) PruneNetworks(ctx context.Context) *v1.DockerTaskInfo {
-	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_PRUNE, "清理网络", m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
-		cli, err := m.getClient()
-		if err != nil {
-			return "", err
-		}
-		report, err := cli.NetworksPrune(taskCtx, filtersFromLabels(nil))
-		if err != nil {
-			return "", err
-		}
-		raw, _ := json.Marshal(report)
-		emit(&v1.DockerTaskInfo{Message: string(raw)})
-		return "", nil
-	})
 }
 
 var ErrNetworkInUse = &resourceInUseError{message: "网络仍有容器连接"}

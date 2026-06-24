@@ -57,8 +57,6 @@ const (
 	DockerImageManage Permissions = "docker_image:manage"
 	// DockerNetworkManage 允许管理 Docker 网络。
 	DockerNetworkManage Permissions = "docker_network:manage"
-	// DockerVolumeManage 允许管理 Docker 储存卷。
-	DockerVolumeManage Permissions = "docker_volume:manage"
 
 	// Sub2APIView 允许查看 Sub2API 用量与配置。
 	Sub2APIView Permissions = "sub2api:view"

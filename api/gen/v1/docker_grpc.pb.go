@@ -53,16 +53,6 @@ const (
 	DockerManager_DeleteDockerNetwork_FullMethodName     = "/v1.DockerManager/DeleteDockerNetwork"
 	DockerManager_ConnectDockerNetwork_FullMethodName    = "/v1.DockerManager/ConnectDockerNetwork"
 	DockerManager_DisconnectDockerNetwork_FullMethodName = "/v1.DockerManager/DisconnectDockerNetwork"
-	DockerManager_PruneDockerNetworks_FullMethodName     = "/v1.DockerManager/PruneDockerNetworks"
-	DockerManager_ListDockerVolumes_FullMethodName       = "/v1.DockerManager/ListDockerVolumes"
-	DockerManager_GetDockerVolume_FullMethodName         = "/v1.DockerManager/GetDockerVolume"
-	DockerManager_CreateDockerVolume_FullMethodName      = "/v1.DockerManager/CreateDockerVolume"
-	DockerManager_UpdateDockerVolume_FullMethodName      = "/v1.DockerManager/UpdateDockerVolume"
-	DockerManager_RecreateDockerVolume_FullMethodName    = "/v1.DockerManager/RecreateDockerVolume"
-	DockerManager_DeleteDockerVolume_FullMethodName      = "/v1.DockerManager/DeleteDockerVolume"
-	DockerManager_PruneDockerVolumes_FullMethodName      = "/v1.DockerManager/PruneDockerVolumes"
-	DockerManager_ExportDockerVolume_FullMethodName      = "/v1.DockerManager/ExportDockerVolume"
-	DockerManager_RestoreDockerVolume_FullMethodName     = "/v1.DockerManager/RestoreDockerVolume"
 )
 
 // DockerManagerClient is the client API for DockerManager service.
@@ -139,26 +129,6 @@ type DockerManagerClient interface {
 	ConnectDockerNetwork(ctx context.Context, in *ConnectDockerNetworkRequest, opts ...grpc.CallOption) (*ConnectDockerNetworkResponse, error)
 	// 断开容器网络
 	DisconnectDockerNetwork(ctx context.Context, in *DisconnectDockerNetworkRequest, opts ...grpc.CallOption) (*DisconnectDockerNetworkResponse, error)
-	// 清理网络
-	PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...grpc.CallOption) (*PruneDockerNetworksResponse, error)
-	// 获取储存卷列表
-	ListDockerVolumes(ctx context.Context, in *ListDockerVolumesRequest, opts ...grpc.CallOption) (*ListDockerVolumesResponse, error)
-	// 获取储存卷详情
-	GetDockerVolume(ctx context.Context, in *GetDockerVolumeRequest, opts ...grpc.CallOption) (*GetDockerVolumeResponse, error)
-	// 创建储存卷
-	CreateDockerVolume(ctx context.Context, in *CreateDockerVolumeRequest, opts ...grpc.CallOption) (*CreateDockerVolumeResponse, error)
-	// 更新储存卷
-	UpdateDockerVolume(ctx context.Context, in *UpdateDockerVolumeRequest, opts ...grpc.CallOption) (*UpdateDockerVolumeResponse, error)
-	// 重建储存卷
-	RecreateDockerVolume(ctx context.Context, in *RecreateDockerVolumeRequest, opts ...grpc.CallOption) (*RecreateDockerVolumeResponse, error)
-	// 删除储存卷
-	DeleteDockerVolume(ctx context.Context, in *DeleteDockerVolumeRequest, opts ...grpc.CallOption) (*DeleteDockerVolumeResponse, error)
-	// 清理储存卷
-	PruneDockerVolumes(ctx context.Context, in *PruneDockerVolumesRequest, opts ...grpc.CallOption) (*PruneDockerVolumesResponse, error)
-	// 导出储存卷
-	ExportDockerVolume(ctx context.Context, in *ExportDockerVolumeRequest, opts ...grpc.CallOption) (*ExportDockerVolumeResponse, error)
-	// 恢复储存卷
-	RestoreDockerVolume(ctx context.Context, in *RestoreDockerVolumeRequest, opts ...grpc.CallOption) (*RestoreDockerVolumeResponse, error)
 }
 
 type dockerManagerClient struct {
@@ -509,106 +479,6 @@ func (c *dockerManagerClient) DisconnectDockerNetwork(ctx context.Context, in *D
 	return out, nil
 }
 
-func (c *dockerManagerClient) PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...grpc.CallOption) (*PruneDockerNetworksResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PruneDockerNetworksResponse)
-	err := c.cc.Invoke(ctx, DockerManager_PruneDockerNetworks_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) ListDockerVolumes(ctx context.Context, in *ListDockerVolumesRequest, opts ...grpc.CallOption) (*ListDockerVolumesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListDockerVolumesResponse)
-	err := c.cc.Invoke(ctx, DockerManager_ListDockerVolumes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) GetDockerVolume(ctx context.Context, in *GetDockerVolumeRequest, opts ...grpc.CallOption) (*GetDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_GetDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) CreateDockerVolume(ctx context.Context, in *CreateDockerVolumeRequest, opts ...grpc.CallOption) (*CreateDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_CreateDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) UpdateDockerVolume(ctx context.Context, in *UpdateDockerVolumeRequest, opts ...grpc.CallOption) (*UpdateDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_UpdateDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) RecreateDockerVolume(ctx context.Context, in *RecreateDockerVolumeRequest, opts ...grpc.CallOption) (*RecreateDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RecreateDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_RecreateDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) DeleteDockerVolume(ctx context.Context, in *DeleteDockerVolumeRequest, opts ...grpc.CallOption) (*DeleteDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_DeleteDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) PruneDockerVolumes(ctx context.Context, in *PruneDockerVolumesRequest, opts ...grpc.CallOption) (*PruneDockerVolumesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PruneDockerVolumesResponse)
-	err := c.cc.Invoke(ctx, DockerManager_PruneDockerVolumes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) ExportDockerVolume(ctx context.Context, in *ExportDockerVolumeRequest, opts ...grpc.CallOption) (*ExportDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ExportDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_ExportDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dockerManagerClient) RestoreDockerVolume(ctx context.Context, in *RestoreDockerVolumeRequest, opts ...grpc.CallOption) (*RestoreDockerVolumeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RestoreDockerVolumeResponse)
-	err := c.cc.Invoke(ctx, DockerManager_RestoreDockerVolume_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // DockerManagerServer is the server API for DockerManager service.
 // All implementations must embed UnimplementedDockerManagerServer
 // for forward compatibility.
@@ -683,26 +553,6 @@ type DockerManagerServer interface {
 	ConnectDockerNetwork(context.Context, *ConnectDockerNetworkRequest) (*ConnectDockerNetworkResponse, error)
 	// 断开容器网络
 	DisconnectDockerNetwork(context.Context, *DisconnectDockerNetworkRequest) (*DisconnectDockerNetworkResponse, error)
-	// 清理网络
-	PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error)
-	// 获取储存卷列表
-	ListDockerVolumes(context.Context, *ListDockerVolumesRequest) (*ListDockerVolumesResponse, error)
-	// 获取储存卷详情
-	GetDockerVolume(context.Context, *GetDockerVolumeRequest) (*GetDockerVolumeResponse, error)
-	// 创建储存卷
-	CreateDockerVolume(context.Context, *CreateDockerVolumeRequest) (*CreateDockerVolumeResponse, error)
-	// 更新储存卷
-	UpdateDockerVolume(context.Context, *UpdateDockerVolumeRequest) (*UpdateDockerVolumeResponse, error)
-	// 重建储存卷
-	RecreateDockerVolume(context.Context, *RecreateDockerVolumeRequest) (*RecreateDockerVolumeResponse, error)
-	// 删除储存卷
-	DeleteDockerVolume(context.Context, *DeleteDockerVolumeRequest) (*DeleteDockerVolumeResponse, error)
-	// 清理储存卷
-	PruneDockerVolumes(context.Context, *PruneDockerVolumesRequest) (*PruneDockerVolumesResponse, error)
-	// 导出储存卷
-	ExportDockerVolume(context.Context, *ExportDockerVolumeRequest) (*ExportDockerVolumeResponse, error)
-	// 恢复储存卷
-	RestoreDockerVolume(context.Context, *RestoreDockerVolumeRequest) (*RestoreDockerVolumeResponse, error)
 	mustEmbedUnimplementedDockerManagerServer()
 }
 
@@ -814,36 +664,6 @@ func (UnimplementedDockerManagerServer) ConnectDockerNetwork(context.Context, *C
 }
 func (UnimplementedDockerManagerServer) DisconnectDockerNetwork(context.Context, *DisconnectDockerNetworkRequest) (*DisconnectDockerNetworkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DisconnectDockerNetwork not implemented")
-}
-func (UnimplementedDockerManagerServer) PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PruneDockerNetworks not implemented")
-}
-func (UnimplementedDockerManagerServer) ListDockerVolumes(context.Context, *ListDockerVolumesRequest) (*ListDockerVolumesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListDockerVolumes not implemented")
-}
-func (UnimplementedDockerManagerServer) GetDockerVolume(context.Context, *GetDockerVolumeRequest) (*GetDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) CreateDockerVolume(context.Context, *CreateDockerVolumeRequest) (*CreateDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) UpdateDockerVolume(context.Context, *UpdateDockerVolumeRequest) (*UpdateDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) RecreateDockerVolume(context.Context, *RecreateDockerVolumeRequest) (*RecreateDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RecreateDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) DeleteDockerVolume(context.Context, *DeleteDockerVolumeRequest) (*DeleteDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) PruneDockerVolumes(context.Context, *PruneDockerVolumesRequest) (*PruneDockerVolumesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PruneDockerVolumes not implemented")
-}
-func (UnimplementedDockerManagerServer) ExportDockerVolume(context.Context, *ExportDockerVolumeRequest) (*ExportDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ExportDockerVolume not implemented")
-}
-func (UnimplementedDockerManagerServer) RestoreDockerVolume(context.Context, *RestoreDockerVolumeRequest) (*RestoreDockerVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RestoreDockerVolume not implemented")
 }
 func (UnimplementedDockerManagerServer) mustEmbedUnimplementedDockerManagerServer() {}
 func (UnimplementedDockerManagerServer) testEmbeddedByValue()                       {}
@@ -1478,186 +1298,6 @@ func _DockerManager_DisconnectDockerNetwork_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DockerManager_PruneDockerNetworks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PruneDockerNetworksRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).PruneDockerNetworks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_PruneDockerNetworks_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).PruneDockerNetworks(ctx, req.(*PruneDockerNetworksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_ListDockerVolumes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListDockerVolumesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).ListDockerVolumes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_ListDockerVolumes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).ListDockerVolumes(ctx, req.(*ListDockerVolumesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_GetDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).GetDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_GetDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).GetDockerVolume(ctx, req.(*GetDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_CreateDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).CreateDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_CreateDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).CreateDockerVolume(ctx, req.(*CreateDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_UpdateDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).UpdateDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_UpdateDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).UpdateDockerVolume(ctx, req.(*UpdateDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_RecreateDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecreateDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).RecreateDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_RecreateDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).RecreateDockerVolume(ctx, req.(*RecreateDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_DeleteDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).DeleteDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_DeleteDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).DeleteDockerVolume(ctx, req.(*DeleteDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_PruneDockerVolumes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PruneDockerVolumesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).PruneDockerVolumes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_PruneDockerVolumes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).PruneDockerVolumes(ctx, req.(*PruneDockerVolumesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_ExportDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExportDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).ExportDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_ExportDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).ExportDockerVolume(ctx, req.(*ExportDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DockerManager_RestoreDockerVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RestoreDockerVolumeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DockerManagerServer).RestoreDockerVolume(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DockerManager_RestoreDockerVolume_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DockerManagerServer).RestoreDockerVolume(ctx, req.(*RestoreDockerVolumeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // DockerManager_ServiceDesc is the grpc.ServiceDesc for DockerManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1800,46 +1440,6 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisconnectDockerNetwork",
 			Handler:    _DockerManager_DisconnectDockerNetwork_Handler,
-		},
-		{
-			MethodName: "PruneDockerNetworks",
-			Handler:    _DockerManager_PruneDockerNetworks_Handler,
-		},
-		{
-			MethodName: "ListDockerVolumes",
-			Handler:    _DockerManager_ListDockerVolumes_Handler,
-		},
-		{
-			MethodName: "GetDockerVolume",
-			Handler:    _DockerManager_GetDockerVolume_Handler,
-		},
-		{
-			MethodName: "CreateDockerVolume",
-			Handler:    _DockerManager_CreateDockerVolume_Handler,
-		},
-		{
-			MethodName: "UpdateDockerVolume",
-			Handler:    _DockerManager_UpdateDockerVolume_Handler,
-		},
-		{
-			MethodName: "RecreateDockerVolume",
-			Handler:    _DockerManager_RecreateDockerVolume_Handler,
-		},
-		{
-			MethodName: "DeleteDockerVolume",
-			Handler:    _DockerManager_DeleteDockerVolume_Handler,
-		},
-		{
-			MethodName: "PruneDockerVolumes",
-			Handler:    _DockerManager_PruneDockerVolumes_Handler,
-		},
-		{
-			MethodName: "ExportDockerVolume",
-			Handler:    _DockerManager_ExportDockerVolume_Handler,
-		},
-		{
-			MethodName: "RestoreDockerVolume",
-			Handler:    _DockerManager_RestoreDockerVolume_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

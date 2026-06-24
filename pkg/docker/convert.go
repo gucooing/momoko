@@ -11,7 +11,6 @@ import (
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	systemtypes "github.com/docker/docker/api/types/system"
-	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/go-connections/nat"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -242,27 +241,6 @@ func toNetworkInfo(data networktypes.Inspect) *v1.DockerNetworkInfo {
 		Options:    cloneStringMap(data.Options),
 		Labels:     cloneStringMap(data.Labels),
 	}
-}
-
-func toVolumeInfo(data *volumetypes.Volume) *v1.DockerVolumeInfo {
-	if data == nil {
-		return nil
-	}
-	info := &v1.DockerVolumeInfo{
-		Name:       data.Name,
-		Driver:     data.Driver,
-		Mountpoint: data.Mountpoint,
-		CreatedAt:  data.CreatedAt,
-		Status:     stringMapStatus(data.Status),
-		Labels:     cloneStringMap(data.Labels),
-		Scope:      data.Scope,
-		Options:    cloneStringMap(data.Options),
-	}
-	if data.UsageData != nil {
-		info.UsageSize = data.UsageData.Size
-		info.RefCount = data.UsageData.RefCount
-	}
-	return info
 }
 
 func toMountPoints(items []containertypes.MountPoint) []*v1.DockerMountPoint {

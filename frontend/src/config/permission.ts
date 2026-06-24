@@ -30,7 +30,6 @@ export const PERM = {
   DOCKER_CONTAINER_MANAGE: 'docker_container:manage',
   DOCKER_IMAGE_MANAGE: 'docker_image:manage',
   DOCKER_NETWORK_MANAGE: 'docker_network:manage',
-  DOCKER_VOLUME_MANAGE: 'docker_volume:manage',
 
   // ---- 工具 ----
   NETWORK_MANAGE: 'network:manage',
