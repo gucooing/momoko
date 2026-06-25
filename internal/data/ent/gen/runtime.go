@@ -7,6 +7,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/frptunnel"
+	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/imagegengeneration"
 	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
@@ -127,6 +129,83 @@ func init() {
 	fileuploadchunk.DefaultUpdateTime = fileuploadchunkDescUpdateTime.Default.(func() time.Time)
 	// fileuploadchunk.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	fileuploadchunk.UpdateDefaultUpdateTime = fileuploadchunkDescUpdateTime.UpdateDefault.(func() time.Time)
+	frptunnelMixin := schema.FrpTunnel{}.Mixin()
+	frptunnelMixinFields0 := frptunnelMixin[0].Fields()
+	_ = frptunnelMixinFields0
+	frptunnelFields := schema.FrpTunnel{}.Fields()
+	_ = frptunnelFields
+	// frptunnelDescCreateTime is the schema descriptor for create_time field.
+	frptunnelDescCreateTime := frptunnelMixinFields0[0].Descriptor()
+	// frptunnel.DefaultCreateTime holds the default value on creation for the create_time field.
+	frptunnel.DefaultCreateTime = frptunnelDescCreateTime.Default.(func() time.Time)
+	// frptunnelDescUpdateTime is the schema descriptor for update_time field.
+	frptunnelDescUpdateTime := frptunnelMixinFields0[1].Descriptor()
+	// frptunnel.DefaultUpdateTime holds the default value on creation for the update_time field.
+	frptunnel.DefaultUpdateTime = frptunnelDescUpdateTime.Default.(func() time.Time)
+	// frptunnel.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	frptunnel.UpdateDefaultUpdateTime = frptunnelDescUpdateTime.UpdateDefault.(func() time.Time)
+	// frptunnelDescName is the schema descriptor for name field.
+	frptunnelDescName := frptunnelFields[1].Descriptor()
+	// frptunnel.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	frptunnel.NameValidator = frptunnelDescName.Validators[0].(func(string) error)
+	// frptunnelDescUserID is the schema descriptor for user_id field.
+	frptunnelDescUserID := frptunnelFields[2].Descriptor()
+	// frptunnel.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	frptunnel.UserIDValidator = frptunnelDescUserID.Validators[0].(func(string) error)
+	// frptunnelDescRemotePort is the schema descriptor for remote_port field.
+	frptunnelDescRemotePort := frptunnelFields[4].Descriptor()
+	// frptunnel.DefaultRemotePort holds the default value on creation for the remote_port field.
+	frptunnel.DefaultRemotePort = frptunnelDescRemotePort.Default.(int)
+	// frptunnelDescCustomDomains is the schema descriptor for custom_domains field.
+	frptunnelDescCustomDomains := frptunnelFields[5].Descriptor()
+	// frptunnel.DefaultCustomDomains holds the default value on creation for the custom_domains field.
+	frptunnel.DefaultCustomDomains = frptunnelDescCustomDomains.Default.(string)
+	// frptunnelDescSubdomain is the schema descriptor for subdomain field.
+	frptunnelDescSubdomain := frptunnelFields[6].Descriptor()
+	// frptunnel.DefaultSubdomain holds the default value on creation for the subdomain field.
+	frptunnel.DefaultSubdomain = frptunnelDescSubdomain.Default.(string)
+	// frptunnelDescLocalIP is the schema descriptor for local_ip field.
+	frptunnelDescLocalIP := frptunnelFields[7].Descriptor()
+	// frptunnel.DefaultLocalIP holds the default value on creation for the local_ip field.
+	frptunnel.DefaultLocalIP = frptunnelDescLocalIP.Default.(string)
+	// frptunnelDescLocalPort is the schema descriptor for local_port field.
+	frptunnelDescLocalPort := frptunnelFields[8].Descriptor()
+	// frptunnel.DefaultLocalPort holds the default value on creation for the local_port field.
+	frptunnel.DefaultLocalPort = frptunnelDescLocalPort.Default.(int)
+	// frptunnelDescCredential is the schema descriptor for credential field.
+	frptunnelDescCredential := frptunnelFields[9].Descriptor()
+	// frptunnel.CredentialValidator is a validator for the "credential" field. It is called by the builders before save.
+	frptunnel.CredentialValidator = frptunnelDescCredential.Validators[0].(func(string) error)
+	// frptunnelDescAllowUsers is the schema descriptor for allow_users field.
+	frptunnelDescAllowUsers := frptunnelFields[10].Descriptor()
+	// frptunnel.DefaultAllowUsers holds the default value on creation for the allow_users field.
+	frptunnel.DefaultAllowUsers = frptunnelDescAllowUsers.Default.(string)
+	// frptunnelDescIsEnable is the schema descriptor for is_enable field.
+	frptunnelDescIsEnable := frptunnelFields[11].Descriptor()
+	// frptunnel.DefaultIsEnable holds the default value on creation for the is_enable field.
+	frptunnel.DefaultIsEnable = frptunnelDescIsEnable.Default.(bool)
+	// frptunnelDescID is the schema descriptor for id field.
+	frptunnelDescID := frptunnelFields[0].Descriptor()
+	// frptunnel.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	frptunnel.IDValidator = frptunnelDescID.Validators[0].(func(string) error)
+	frptunnelstatFields := schema.FrpTunnelStat{}.Fields()
+	_ = frptunnelstatFields
+	// frptunnelstatDescFrpTunnelID is the schema descriptor for frp_tunnel_id field.
+	frptunnelstatDescFrpTunnelID := frptunnelstatFields[0].Descriptor()
+	// frptunnelstat.FrpTunnelIDValidator is a validator for the "frp_tunnel_id" field. It is called by the builders before save.
+	frptunnelstat.FrpTunnelIDValidator = frptunnelstatDescFrpTunnelID.Validators[0].(func(string) error)
+	// frptunnelstatDescActiveConnections is the schema descriptor for active_connections field.
+	frptunnelstatDescActiveConnections := frptunnelstatFields[2].Descriptor()
+	// frptunnelstat.DefaultActiveConnections holds the default value on creation for the active_connections field.
+	frptunnelstat.DefaultActiveConnections = frptunnelstatDescActiveConnections.Default.(int64)
+	// frptunnelstatDescBytesIn is the schema descriptor for bytes_in field.
+	frptunnelstatDescBytesIn := frptunnelstatFields[3].Descriptor()
+	// frptunnelstat.DefaultBytesIn holds the default value on creation for the bytes_in field.
+	frptunnelstat.DefaultBytesIn = frptunnelstatDescBytesIn.Default.(int64)
+	// frptunnelstatDescBytesOut is the schema descriptor for bytes_out field.
+	frptunnelstatDescBytesOut := frptunnelstatFields[4].Descriptor()
+	// frptunnelstat.DefaultBytesOut holds the default value on creation for the bytes_out field.
+	frptunnelstat.DefaultBytesOut = frptunnelstatDescBytesOut.Default.(int64)
 	imagegengenerationMixin := schema.ImageGenGeneration{}.Mixin()
 	imagegengenerationMixinFields0 := imagegengenerationMixin[0].Fields()
 	_ = imagegengenerationMixinFields0

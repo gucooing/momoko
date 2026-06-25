@@ -92,6 +92,7 @@ var servicePrefixPermissions = []struct {
 	{"/v1.FileManager/", constant.Terminal},
 	{"/v1.InstanceManager/", constant.Instance},
 	{"/v1.NetworkManager/", constant.Network},
+	{"/v1.TunnelManager/", constant.Tunnel},
 	{"/v1.Sub2APIManager/", constant.Sub2APIView},
 }
 

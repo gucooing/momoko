@@ -22,6 +22,10 @@ type Tx struct {
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
 	FileUploadChunk *FileUploadChunkClient
+	// FrpTunnel is the client for interacting with the FrpTunnel builders.
+	FrpTunnel *FrpTunnelClient
+	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
+	FrpTunnelStat *FrpTunnelStatClient
 	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
 	ImageGenGeneration *ImageGenGenerationClient
 	// ImageGenImage is the client for interacting with the ImageGenImage builders.
@@ -189,6 +193,8 @@ func (tx *Tx) init() {
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileUpload = NewFileUploadClient(tx.config)
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
+	tx.FrpTunnel = NewFrpTunnelClient(tx.config)
+	tx.FrpTunnelStat = NewFrpTunnelStatClient(tx.config)
 	tx.ImageGenGeneration = NewImageGenGenerationClient(tx.config)
 	tx.ImageGenImage = NewImageGenImageClient(tx.config)
 	tx.Instance = NewInstanceClient(tx.config)

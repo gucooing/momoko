@@ -293,6 +293,81 @@ func (c *ConfigRepo) UpdateDockerConfig(ctx context.Context, req *v1.DockerConfi
 	return c.DockerConfig(ctx)
 }
 
+func (c *ConfigRepo) FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error) {
+	enabled, err := c.getBoolConfig(ctx, common.ConfigFrpsEnabled)
+	if err != nil {
+		return nil, err
+	}
+	bindAddr, err := c.getStringConfig(ctx, common.ConfigFrpsBindAddr)
+	if err != nil {
+		return nil, err
+	}
+	bindPort, err := c.getInt32Config(ctx, common.ConfigFrpsBindPort)
+	if err != nil {
+		return nil, err
+	}
+	vhostHTTPPort, err := c.getInt32Config(ctx, common.ConfigFrpsVhostHTTPPort)
+	if err != nil {
+		return nil, err
+	}
+	vhostHTTPSPort, err := c.getInt32Config(ctx, common.ConfigFrpsVhostHTTPSPort)
+	if err != nil {
+		return nil, err
+	}
+	kcpBindPort, err := c.getInt32Config(ctx, common.ConfigFrpsKCPBindPort)
+	if err != nil {
+		return nil, err
+	}
+	quicBindPort, err := c.getInt32Config(ctx, common.ConfigFrpsQUICBindPort)
+	if err != nil {
+		return nil, err
+	}
+	subdomainHost, err := c.getStringConfig(ctx, common.ConfigFrpsSubdomainHost)
+	if err != nil {
+		return nil, err
+	}
+	statSampleInterval, err := c.getInt32Config(ctx, common.ConfigFrpsStatSampleInterval)
+	if err != nil {
+		return nil, err
+	}
+	serverAddr, err := c.getStringConfig(ctx, common.ConfigFrpsServerAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.FrpsConfig{
+		IsEnable:           enabled,
+		BindAddr:           bindAddr,
+		BindPort:           bindPort,
+		VhostHttpPort:      vhostHTTPPort,
+		VhostHttpsPort:     vhostHTTPSPort,
+		KcpBindPort:        kcpBindPort,
+		QuicBindPort:       quicBindPort,
+		SubdomainHost:      subdomainHost,
+		StatSampleInterval: statSampleInterval,
+		ServerAddr:         serverAddr,
+	}, nil
+}
+
+func (c *ConfigRepo) UpdateFrpsConfig(ctx context.Context, req *v1.FrpsConfig) (*v1.FrpsConfig, error) {
+	configs := map[common.ConfigKey]string{
+		common.ConfigFrpsEnabled:            strconv.FormatBool(req.IsEnable),
+		common.ConfigFrpsBindAddr:           req.BindAddr,
+		common.ConfigFrpsBindPort:           strconv.FormatInt(int64(req.BindPort), 10),
+		common.ConfigFrpsVhostHTTPPort:      strconv.FormatInt(int64(req.VhostHttpPort), 10),
+		common.ConfigFrpsVhostHTTPSPort:     strconv.FormatInt(int64(req.VhostHttpsPort), 10),
+		common.ConfigFrpsKCPBindPort:        strconv.FormatInt(int64(req.KcpBindPort), 10),
+		common.ConfigFrpsQUICBindPort:       strconv.FormatInt(int64(req.QuicBindPort), 10),
+		common.ConfigFrpsSubdomainHost:      req.SubdomainHost,
+		common.ConfigFrpsStatSampleInterval: strconv.FormatInt(int64(req.StatSampleInterval), 10),
+		common.ConfigFrpsServerAddr:         req.ServerAddr,
+	}
+	if err := c.BatchUpdate(ctx, configs); err != nil {
+		return nil, err
+	}
+	return c.FrpsConfig(ctx)
+}
+
 func (c *ConfigRepo) getBoolConfig(ctx context.Context, key common.ConfigKey) (bool, error) {
 	value, err := c.Get(ctx, key)
 	if err != nil {

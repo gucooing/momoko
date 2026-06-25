@@ -37,18 +37,18 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		user *gen.User
 		err  error
 	)
-	loginConfig, err := s.conf.LoginConfig(ctx)
+	cfg, err := s.conf.LoginConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 	switch req.Identity.(type) {
 	case *v1.LoginRequest_Username:
-		if !loginConfig.UsernameLoginEnabled {
+		if !cfg.UsernameLoginEnabled {
 			return nil, biz.ErrUsernameLoginDisabled
 		}
 		user, err = s.uc.LoginByUsername(ctx, req.GetUsername(), req.GetPassword())
 	case *v1.LoginRequest_Email:
-		if !loginConfig.EmailLoginEnabled {
+		if !cfg.EmailLoginEnabled {
 			return nil, biz.ErrEmailLoginDisabled
 		}
 		user, err = s.uc.LoginByEmail(ctx, req.GetEmail(), req.GetCode())

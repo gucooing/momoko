@@ -77,25 +77,16 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	networkService := service.NewNetworkService(networkUsecase)
+	tunnelRepo := data.NewTunnelRepo(dataData)
+	tunnelUsecase, cleanup4, err := biz.NewTunnelUsecase(tunnelRepo, configRepo)
+	if err != nil {
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	tunnelService := service.NewTunnelService(tunnelUsecase)
 	dockerUsecase, err := biz.NewDockerUsecase(configRepo)
-	if err != nil {
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	dockerService := service.NewDockerService(dockerUsecase)
-	sub2APIRepo := data.NewSub2APIRepo(dataData)
-	sub2APIUsecase, cleanup4, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
-	if err != nil {
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
-	imageGenRepo := data.NewImageGenRepo(dataData)
-	imageGenUsecase, cleanup5, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
 	if err != nil {
 		cleanup4()
 		cleanup3()
@@ -103,10 +94,32 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		cleanup()
 		return nil, nil, err
 	}
+	dockerService := service.NewDockerService(dockerUsecase)
+	sub2APIRepo := data.NewSub2APIRepo(dataData)
+	sub2APIUsecase, cleanup5, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
+	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
+	imageGenRepo := data.NewImageGenRepo(dataData)
+	imageGenUsecase, cleanup6, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
+	if err != nil {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	imageGenService := service.NewImageGenService(imageGenUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, dockerService, sub2APIService, imageGenService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, sub2APIService, imageGenService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup6()
 		cleanup5()
 		cleanup4()
 		cleanup3()

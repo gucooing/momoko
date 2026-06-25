@@ -1,0 +1,314 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 内网穿透（frp）管理
+service TunnelManager {
+  // 获取隧道列表
+  rpc ListTunnels(ListTunnelsRequest) returns (ListTunnelsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tunnel/tunnels"
+    };
+  }
+  // 创建隧道
+  rpc CreateTunnel(CreateTunnelRequest) returns (CreateTunnelResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/tunnel/tunnels"
+      body: "*"
+    };
+  }
+  // 获取隧道详情
+  rpc GetTunnel(GetTunnelRequest) returns (GetTunnelResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tunnel/tunnels/{id}"
+    };
+  }
+  // 更新隧道
+  rpc UpdateTunnel(UpdateTunnelRequest) returns (UpdateTunnelResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/tunnel/tunnels/{id}"
+      body: "*"
+    };
+  }
+  // 删除隧道
+  rpc DeleteTunnel(DeleteTunnelRequest) returns (DeleteTunnelResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/tunnel/tunnels/{id}"
+    };
+  }
+  // 获取隧道统计信息（实时快照 + 指定时间范围内的时间序列）
+  rpc GetTunnelStats(GetTunnelStatsRequest) returns (GetTunnelStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tunnel/tunnels/{id}/stats"
+    };
+  }
+  // 获取 frps 实例配置
+  rpc GetFrpsConfig(GetFrpsConfigRequest) returns (GetFrpsConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tunnel/frps-config"
+    };
+  }
+  // 更新 frps 实例配置
+  rpc UpdateFrpsConfig(UpdateFrpsConfigRequest) returns (UpdateFrpsConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/tunnel/frps-config"
+      body: "*"
+    };
+  }
+}
+
+message ListTunnelsRequest {
+  // page
+  int64 page = 1;
+  // page size
+  int64 page_size = 2;
+  // 名称/域名关键词
+  optional string keywords = 3;
+  // 代理类型
+  optional TunnelType type = 4;
+  // 是否启用
+  optional bool is_enable = 5;
+}
+
+message ListTunnelsResponse {
+  // actual page
+  int64 page = 1;
+  // actual page size
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 列表
+  repeated TunnelInfo infos = 4;
+}
+
+message CreateTunnelRequest {
+  // 名称（frp proxy 名称，全局唯一）
+  string name = 1;
+  // 代理类型
+  TunnelType type = 2;
+  // 公共端口（tcp/udp/tcpmux）
+  int32 remote_port = 3;
+  // 自定义域名（http/https，逗号分隔）
+  string custom_domains = 4;
+  // 子域名（http/https）
+  string subdomain = 5;
+  // frpc 端本地地址
+  string local_ip = 6;
+  // frpc 端本地端口
+  int32 local_port = 7;
+  // 允许的 frpc user，逗号分隔；空=不限制
+  string allow_users = 8;
+  // 是否启用
+  bool is_enable = 9;
+}
+
+message CreateTunnelResponse {
+  // 隧道详情
+  TunnelInfo info = 1;
+}
+
+message GetTunnelRequest {
+  // 隧道 id
+  string id = 1;
+}
+
+message GetTunnelResponse {
+  // 隧道详情
+  TunnelInfo info = 1;
+}
+
+message UpdateTunnelRequest {
+  // 隧道 id
+  string id = 1;
+  // 名称
+  optional string name = 2;
+  // 代理类型
+  optional TunnelType type = 3;
+  // 公共端口
+  optional int32 remote_port = 4;
+  // 自定义域名
+  optional string custom_domains = 5;
+  // 子域名
+  optional string subdomain = 6;
+  // 本地地址
+  optional string local_ip = 7;
+  // 本地端口
+  optional int32 local_port = 8;
+  // 允许的 frpc user
+  optional string allow_users = 9;
+  // 是否启用
+  optional bool is_enable = 10;
+}
+
+message UpdateTunnelResponse {
+  // 隧道详情
+  TunnelInfo info = 1;
+}
+
+message DeleteTunnelRequest {
+  // 隧道 id
+  string id = 1;
+}
+
+message DeleteTunnelResponse {}
+
+message GetTunnelStatsRequest {
+  // 隧道 id
+  string id = 1;
+  // 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时
+  int64 start_time_ms = 2;
+  // 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间
+  int64 end_time_ms = 3;
+}
+
+message GetTunnelStatsResponse {
+  // 当前快照
+  TunnelStat snapshot = 1;
+  // 时间序列样本（按时间升序，流量为累计值）
+  repeated TunnelStatPoint points = 2;
+  // 采样间隔(秒)
+  int64 sample_interval_seconds = 3;
+}
+
+message GetFrpsConfigRequest {}
+
+message GetFrpsConfigResponse {
+  // frps 实例配置
+  FrpsConfig config = 1;
+}
+
+message UpdateFrpsConfigRequest {
+  // frps 实例配置
+  FrpsConfig config = 1;
+}
+
+message UpdateFrpsConfigResponse {
+  // frps 实例配置
+  FrpsConfig config = 1;
+}
+
+// 隧道实时快照
+message TunnelStat {
+  // 是否在线（frpc 已连接且 proxy 在线）
+  bool online = 1;
+  // 当前活跃连接数
+  int64 active_connections = 2;
+  // 当日累计入站流量(字节)
+  int64 bytes_in = 3;
+  // 当日累计出站流量(字节)
+  int64 bytes_out = 4;
+  // 最近一次上线时间
+  google.protobuf.Timestamp last_start_time = 5;
+}
+
+// 隧道时间序列采样点
+message TunnelStatPoint {
+  // 采样时间
+  google.protobuf.Timestamp time = 1;
+  // 活跃连接数
+  int64 active_connections = 2;
+  // 累计入站流量(字节)
+  int64 bytes_in = 3;
+  // 累计出站流量(字节)
+  int64 bytes_out = 4;
+}
+
+message TunnelInfo {
+  // 隧道 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 所属用户 id
+  string user_id = 3;
+  // 代理类型
+  TunnelType type = 4;
+  // 公共端口（tcp/udp/tcpmux）
+  int32 remote_port = 5;
+  // 自定义域名（http/https）
+  string custom_domains = 6;
+  // 子域名（http/https）
+  string subdomain = 7;
+  // frpc 端本地地址
+  string local_ip = 8;
+  // frpc 端本地端口
+  int32 local_port = 9;
+  // 每隧道认证凭证（仅 owner 可见）
+  string credential = 10;
+  // 允许的 frpc user
+  string allow_users = 11;
+  // 是否启用
+  bool is_enable = 12;
+  // 运行状态
+  TunnelStatus status = 13;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 14;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 15;
+  // 当前活跃连接数（在线才有效）
+  int64 active_connections = 16;
+  // 当日累计入站流量(字节)
+  int64 bytes_in = 17;
+  // 当日累计出站流量(字节)
+  int64 bytes_out = 18;
+}
+
+// frps 实例配置（实例级，非逐条隧道规则）。
+// 注：无 auth_token。frps 自身 Auth 中性化（空 token），不作为统一认证；
+// 每隧道独立凭证存于隧道规则，由插件 Login/NewProxy 校验。
+message FrpsConfig {
+  // 是否启用 frps（false 时不启动）
+  bool is_enable = 1;
+  // 监听地址，默认 0.0.0.0
+  string bind_addr = 2;
+  // frpc 连接端口（frps 主端口），默认 7000
+  int32 bind_port = 3;
+  // http 代理 vhost 端口，0=不监听
+  int32 vhost_http_port = 4;
+  // https 代理 vhost 端口，0=不监听
+  int32 vhost_https_port = 5;
+  // kcp 传输端口，0=不监听
+  int32 kcp_bind_port = 6;
+  // quic 传输端口，0=不监听
+  int32 quic_bind_port = 7;
+  // 子域名根域（http/https subdomain 用）
+  string subdomain_host = 8;
+  // 统计采样间隔(秒)
+  int32 stat_sample_interval = 9;
+  // 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
+  string server_addr = 11;
+}
+
+enum TunnelType {
+  // 未指定
+  TUNNEL_TYPE_UNSPECIFIED = 0;
+  // TCP
+  TUNNEL_TYPE_TCP = 1;
+  // UDP
+  TUNNEL_TYPE_UDP = 2;
+  // HTTP
+  TUNNEL_TYPE_HTTP = 3;
+  // HTTPS
+  TUNNEL_TYPE_HTTPS = 4;
+  // STCP
+  TUNNEL_TYPE_STCP = 5;
+  // XTCP
+  TUNNEL_TYPE_XTCP = 6;
+  // TCPMUX
+  TUNNEL_TYPE_TCPMUX = 7;
+}
+
+enum TunnelStatus {
+  // 未指定
+  TUNNEL_STATUS_UNSPECIFIED = 0;
+  // 待连接（已启用但 frpc 尚未连入）
+  TUNNEL_STATUS_PENDING = 1;
+  // 在线（frpc 已连接且 proxy 在线）
+  TUNNEL_STATUS_ONLINE = 2;
+  // 离线（未启用或已下线）
+  TUNNEL_STATUS_OFFLINE = 3;
+}

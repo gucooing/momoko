@@ -29,6 +29,7 @@ func NewHTTPServer(c *conf.Server,
 	openSSHApi *service.OpenSSHService,
 	nodeApi *service.NodeService,
 	networkApi *service.NetworkService,
+	tunnelApi *service.TunnelService,
 	dockerApi *service.DockerService,
 	sub2apiApi *service.Sub2APIService,
 	imageGenApi *service.ImageGenService,
@@ -74,6 +75,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterOpenSSHManagerHTTPServer(srv, openSSHApi)
 	v1.RegisterNodeServiceHTTPServer(srv, nodeApi)
 	v1.RegisterNetworkManagerHTTPServer(srv, networkApi)
+	v1.RegisterTunnelManagerHTTPServer(srv, tunnelApi)
 	v1.RegisterDockerManagerHTTPServer(srv, dockerApi)
 	v1.RegisterSub2APIManagerHTTPServer(srv, sub2apiApi)
 	v1.RegisterSub2APIImageGenHTTPServer(srv, imageGenApi)

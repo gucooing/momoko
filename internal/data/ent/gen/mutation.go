@@ -10,6 +10,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/frptunnel"
+	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/imagegengeneration"
 	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
@@ -47,6 +49,8 @@ const (
 	TypeEmailTemplate       = "EmailTemplate"
 	TypeFileUpload          = "FileUpload"
 	TypeFileUploadChunk     = "FileUploadChunk"
+	TypeFrpTunnel           = "FrpTunnel"
+	TypeFrpTunnelStat       = "FrpTunnelStat"
 	TypeImageGenGeneration  = "ImageGenGeneration"
 	TypeImageGenImage       = "ImageGenImage"
 	TypeInstance            = "Instance"
@@ -3217,6 +3221,1753 @@ func (m *FileUploadChunkMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FileUploadChunk edge %s", name)
+}
+
+// FrpTunnelMutation represents an operation that mutates the FrpTunnel nodes in the graph.
+type FrpTunnelMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *string
+	create_time    *time.Time
+	update_time    *time.Time
+	name           *string
+	proxy_type     *frptunnel.ProxyType
+	remote_port    *int
+	addremote_port *int
+	custom_domains *string
+	subdomain      *string
+	local_ip       *string
+	local_port     *int
+	addlocal_port  *int
+	credential     *string
+	allow_users    *string
+	is_enable      *bool
+	clearedFields  map[string]struct{}
+	user           *string
+	cleareduser    bool
+	done           bool
+	oldValue       func(context.Context) (*FrpTunnel, error)
+	predicates     []predicate.FrpTunnel
+}
+
+var _ ent.Mutation = (*FrpTunnelMutation)(nil)
+
+// frptunnelOption allows management of the mutation configuration using functional options.
+type frptunnelOption func(*FrpTunnelMutation)
+
+// newFrpTunnelMutation creates new mutation for the FrpTunnel entity.
+func newFrpTunnelMutation(c config, op Op, opts ...frptunnelOption) *FrpTunnelMutation {
+	m := &FrpTunnelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFrpTunnel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFrpTunnelID sets the ID field of the mutation.
+func withFrpTunnelID(id string) frptunnelOption {
+	return func(m *FrpTunnelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FrpTunnel
+		)
+		m.oldValue = func(ctx context.Context) (*FrpTunnel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FrpTunnel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFrpTunnel sets the old FrpTunnel of the mutation.
+func withFrpTunnel(node *FrpTunnel) frptunnelOption {
+	return func(m *FrpTunnelMutation) {
+		m.oldValue = func(context.Context) (*FrpTunnel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FrpTunnelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FrpTunnelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FrpTunnel entities.
+func (m *FrpTunnelMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FrpTunnelMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FrpTunnelMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FrpTunnel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *FrpTunnelMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *FrpTunnelMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *FrpTunnelMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *FrpTunnelMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *FrpTunnelMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *FrpTunnelMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the "name" field.
+func (m *FrpTunnelMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *FrpTunnelMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *FrpTunnelMutation) ResetName() {
+	m.name = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *FrpTunnelMutation) SetUserID(s string) {
+	m.user = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *FrpTunnelMutation) UserID() (r string, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *FrpTunnelMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetProxyType sets the "proxy_type" field.
+func (m *FrpTunnelMutation) SetProxyType(ft frptunnel.ProxyType) {
+	m.proxy_type = &ft
+}
+
+// ProxyType returns the value of the "proxy_type" field in the mutation.
+func (m *FrpTunnelMutation) ProxyType() (r frptunnel.ProxyType, exists bool) {
+	v := m.proxy_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProxyType returns the old "proxy_type" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldProxyType(ctx context.Context) (v frptunnel.ProxyType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProxyType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProxyType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProxyType: %w", err)
+	}
+	return oldValue.ProxyType, nil
+}
+
+// ResetProxyType resets all changes to the "proxy_type" field.
+func (m *FrpTunnelMutation) ResetProxyType() {
+	m.proxy_type = nil
+}
+
+// SetRemotePort sets the "remote_port" field.
+func (m *FrpTunnelMutation) SetRemotePort(i int) {
+	m.remote_port = &i
+	m.addremote_port = nil
+}
+
+// RemotePort returns the value of the "remote_port" field in the mutation.
+func (m *FrpTunnelMutation) RemotePort() (r int, exists bool) {
+	v := m.remote_port
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemotePort returns the old "remote_port" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldRemotePort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemotePort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemotePort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemotePort: %w", err)
+	}
+	return oldValue.RemotePort, nil
+}
+
+// AddRemotePort adds i to the "remote_port" field.
+func (m *FrpTunnelMutation) AddRemotePort(i int) {
+	if m.addremote_port != nil {
+		*m.addremote_port += i
+	} else {
+		m.addremote_port = &i
+	}
+}
+
+// AddedRemotePort returns the value that was added to the "remote_port" field in this mutation.
+func (m *FrpTunnelMutation) AddedRemotePort() (r int, exists bool) {
+	v := m.addremote_port
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRemotePort resets all changes to the "remote_port" field.
+func (m *FrpTunnelMutation) ResetRemotePort() {
+	m.remote_port = nil
+	m.addremote_port = nil
+}
+
+// SetCustomDomains sets the "custom_domains" field.
+func (m *FrpTunnelMutation) SetCustomDomains(s string) {
+	m.custom_domains = &s
+}
+
+// CustomDomains returns the value of the "custom_domains" field in the mutation.
+func (m *FrpTunnelMutation) CustomDomains() (r string, exists bool) {
+	v := m.custom_domains
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomDomains returns the old "custom_domains" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldCustomDomains(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomDomains is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomDomains requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomDomains: %w", err)
+	}
+	return oldValue.CustomDomains, nil
+}
+
+// ResetCustomDomains resets all changes to the "custom_domains" field.
+func (m *FrpTunnelMutation) ResetCustomDomains() {
+	m.custom_domains = nil
+}
+
+// SetSubdomain sets the "subdomain" field.
+func (m *FrpTunnelMutation) SetSubdomain(s string) {
+	m.subdomain = &s
+}
+
+// Subdomain returns the value of the "subdomain" field in the mutation.
+func (m *FrpTunnelMutation) Subdomain() (r string, exists bool) {
+	v := m.subdomain
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubdomain returns the old "subdomain" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldSubdomain(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubdomain is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubdomain requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubdomain: %w", err)
+	}
+	return oldValue.Subdomain, nil
+}
+
+// ResetSubdomain resets all changes to the "subdomain" field.
+func (m *FrpTunnelMutation) ResetSubdomain() {
+	m.subdomain = nil
+}
+
+// SetLocalIP sets the "local_ip" field.
+func (m *FrpTunnelMutation) SetLocalIP(s string) {
+	m.local_ip = &s
+}
+
+// LocalIP returns the value of the "local_ip" field in the mutation.
+func (m *FrpTunnelMutation) LocalIP() (r string, exists bool) {
+	v := m.local_ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocalIP returns the old "local_ip" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldLocalIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocalIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocalIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocalIP: %w", err)
+	}
+	return oldValue.LocalIP, nil
+}
+
+// ResetLocalIP resets all changes to the "local_ip" field.
+func (m *FrpTunnelMutation) ResetLocalIP() {
+	m.local_ip = nil
+}
+
+// SetLocalPort sets the "local_port" field.
+func (m *FrpTunnelMutation) SetLocalPort(i int) {
+	m.local_port = &i
+	m.addlocal_port = nil
+}
+
+// LocalPort returns the value of the "local_port" field in the mutation.
+func (m *FrpTunnelMutation) LocalPort() (r int, exists bool) {
+	v := m.local_port
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocalPort returns the old "local_port" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldLocalPort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocalPort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocalPort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocalPort: %w", err)
+	}
+	return oldValue.LocalPort, nil
+}
+
+// AddLocalPort adds i to the "local_port" field.
+func (m *FrpTunnelMutation) AddLocalPort(i int) {
+	if m.addlocal_port != nil {
+		*m.addlocal_port += i
+	} else {
+		m.addlocal_port = &i
+	}
+}
+
+// AddedLocalPort returns the value that was added to the "local_port" field in this mutation.
+func (m *FrpTunnelMutation) AddedLocalPort() (r int, exists bool) {
+	v := m.addlocal_port
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLocalPort resets all changes to the "local_port" field.
+func (m *FrpTunnelMutation) ResetLocalPort() {
+	m.local_port = nil
+	m.addlocal_port = nil
+}
+
+// SetCredential sets the "credential" field.
+func (m *FrpTunnelMutation) SetCredential(s string) {
+	m.credential = &s
+}
+
+// Credential returns the value of the "credential" field in the mutation.
+func (m *FrpTunnelMutation) Credential() (r string, exists bool) {
+	v := m.credential
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCredential returns the old "credential" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldCredential(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCredential is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCredential requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCredential: %w", err)
+	}
+	return oldValue.Credential, nil
+}
+
+// ResetCredential resets all changes to the "credential" field.
+func (m *FrpTunnelMutation) ResetCredential() {
+	m.credential = nil
+}
+
+// SetAllowUsers sets the "allow_users" field.
+func (m *FrpTunnelMutation) SetAllowUsers(s string) {
+	m.allow_users = &s
+}
+
+// AllowUsers returns the value of the "allow_users" field in the mutation.
+func (m *FrpTunnelMutation) AllowUsers() (r string, exists bool) {
+	v := m.allow_users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAllowUsers returns the old "allow_users" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldAllowUsers(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAllowUsers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAllowUsers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAllowUsers: %w", err)
+	}
+	return oldValue.AllowUsers, nil
+}
+
+// ResetAllowUsers resets all changes to the "allow_users" field.
+func (m *FrpTunnelMutation) ResetAllowUsers() {
+	m.allow_users = nil
+}
+
+// SetIsEnable sets the "is_enable" field.
+func (m *FrpTunnelMutation) SetIsEnable(b bool) {
+	m.is_enable = &b
+}
+
+// IsEnable returns the value of the "is_enable" field in the mutation.
+func (m *FrpTunnelMutation) IsEnable() (r bool, exists bool) {
+	v := m.is_enable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsEnable returns the old "is_enable" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldIsEnable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsEnable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsEnable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsEnable: %w", err)
+	}
+	return oldValue.IsEnable, nil
+}
+
+// ResetIsEnable resets all changes to the "is_enable" field.
+func (m *FrpTunnelMutation) ResetIsEnable() {
+	m.is_enable = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *FrpTunnelMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[frptunnel.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *FrpTunnelMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *FrpTunnelMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *FrpTunnelMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the FrpTunnelMutation builder.
+func (m *FrpTunnelMutation) Where(ps ...predicate.FrpTunnel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FrpTunnelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FrpTunnelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FrpTunnel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FrpTunnelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FrpTunnelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FrpTunnel).
+func (m *FrpTunnelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FrpTunnelMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.create_time != nil {
+		fields = append(fields, frptunnel.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, frptunnel.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, frptunnel.FieldName)
+	}
+	if m.user != nil {
+		fields = append(fields, frptunnel.FieldUserID)
+	}
+	if m.proxy_type != nil {
+		fields = append(fields, frptunnel.FieldProxyType)
+	}
+	if m.remote_port != nil {
+		fields = append(fields, frptunnel.FieldRemotePort)
+	}
+	if m.custom_domains != nil {
+		fields = append(fields, frptunnel.FieldCustomDomains)
+	}
+	if m.subdomain != nil {
+		fields = append(fields, frptunnel.FieldSubdomain)
+	}
+	if m.local_ip != nil {
+		fields = append(fields, frptunnel.FieldLocalIP)
+	}
+	if m.local_port != nil {
+		fields = append(fields, frptunnel.FieldLocalPort)
+	}
+	if m.credential != nil {
+		fields = append(fields, frptunnel.FieldCredential)
+	}
+	if m.allow_users != nil {
+		fields = append(fields, frptunnel.FieldAllowUsers)
+	}
+	if m.is_enable != nil {
+		fields = append(fields, frptunnel.FieldIsEnable)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FrpTunnelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case frptunnel.FieldCreateTime:
+		return m.CreateTime()
+	case frptunnel.FieldUpdateTime:
+		return m.UpdateTime()
+	case frptunnel.FieldName:
+		return m.Name()
+	case frptunnel.FieldUserID:
+		return m.UserID()
+	case frptunnel.FieldProxyType:
+		return m.ProxyType()
+	case frptunnel.FieldRemotePort:
+		return m.RemotePort()
+	case frptunnel.FieldCustomDomains:
+		return m.CustomDomains()
+	case frptunnel.FieldSubdomain:
+		return m.Subdomain()
+	case frptunnel.FieldLocalIP:
+		return m.LocalIP()
+	case frptunnel.FieldLocalPort:
+		return m.LocalPort()
+	case frptunnel.FieldCredential:
+		return m.Credential()
+	case frptunnel.FieldAllowUsers:
+		return m.AllowUsers()
+	case frptunnel.FieldIsEnable:
+		return m.IsEnable()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FrpTunnelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case frptunnel.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case frptunnel.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case frptunnel.FieldName:
+		return m.OldName(ctx)
+	case frptunnel.FieldUserID:
+		return m.OldUserID(ctx)
+	case frptunnel.FieldProxyType:
+		return m.OldProxyType(ctx)
+	case frptunnel.FieldRemotePort:
+		return m.OldRemotePort(ctx)
+	case frptunnel.FieldCustomDomains:
+		return m.OldCustomDomains(ctx)
+	case frptunnel.FieldSubdomain:
+		return m.OldSubdomain(ctx)
+	case frptunnel.FieldLocalIP:
+		return m.OldLocalIP(ctx)
+	case frptunnel.FieldLocalPort:
+		return m.OldLocalPort(ctx)
+	case frptunnel.FieldCredential:
+		return m.OldCredential(ctx)
+	case frptunnel.FieldAllowUsers:
+		return m.OldAllowUsers(ctx)
+	case frptunnel.FieldIsEnable:
+		return m.OldIsEnable(ctx)
+	}
+	return nil, fmt.Errorf("unknown FrpTunnel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FrpTunnelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case frptunnel.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case frptunnel.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case frptunnel.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case frptunnel.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case frptunnel.FieldProxyType:
+		v, ok := value.(frptunnel.ProxyType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProxyType(v)
+		return nil
+	case frptunnel.FieldRemotePort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemotePort(v)
+		return nil
+	case frptunnel.FieldCustomDomains:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomDomains(v)
+		return nil
+	case frptunnel.FieldSubdomain:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubdomain(v)
+		return nil
+	case frptunnel.FieldLocalIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocalIP(v)
+		return nil
+	case frptunnel.FieldLocalPort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocalPort(v)
+		return nil
+	case frptunnel.FieldCredential:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCredential(v)
+		return nil
+	case frptunnel.FieldAllowUsers:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAllowUsers(v)
+		return nil
+	case frptunnel.FieldIsEnable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsEnable(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FrpTunnelMutation) AddedFields() []string {
+	var fields []string
+	if m.addremote_port != nil {
+		fields = append(fields, frptunnel.FieldRemotePort)
+	}
+	if m.addlocal_port != nil {
+		fields = append(fields, frptunnel.FieldLocalPort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FrpTunnelMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case frptunnel.FieldRemotePort:
+		return m.AddedRemotePort()
+	case frptunnel.FieldLocalPort:
+		return m.AddedLocalPort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FrpTunnelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case frptunnel.FieldRemotePort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRemotePort(v)
+		return nil
+	case frptunnel.FieldLocalPort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLocalPort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FrpTunnelMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FrpTunnelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FrpTunnelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FrpTunnel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FrpTunnelMutation) ResetField(name string) error {
+	switch name {
+	case frptunnel.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case frptunnel.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case frptunnel.FieldName:
+		m.ResetName()
+		return nil
+	case frptunnel.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case frptunnel.FieldProxyType:
+		m.ResetProxyType()
+		return nil
+	case frptunnel.FieldRemotePort:
+		m.ResetRemotePort()
+		return nil
+	case frptunnel.FieldCustomDomains:
+		m.ResetCustomDomains()
+		return nil
+	case frptunnel.FieldSubdomain:
+		m.ResetSubdomain()
+		return nil
+	case frptunnel.FieldLocalIP:
+		m.ResetLocalIP()
+		return nil
+	case frptunnel.FieldLocalPort:
+		m.ResetLocalPort()
+		return nil
+	case frptunnel.FieldCredential:
+		m.ResetCredential()
+		return nil
+	case frptunnel.FieldAllowUsers:
+		m.ResetAllowUsers()
+		return nil
+	case frptunnel.FieldIsEnable:
+		m.ResetIsEnable()
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FrpTunnelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, frptunnel.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FrpTunnelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case frptunnel.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FrpTunnelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FrpTunnelMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FrpTunnelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, frptunnel.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FrpTunnelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case frptunnel.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FrpTunnelMutation) ClearEdge(name string) error {
+	switch name {
+	case frptunnel.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FrpTunnelMutation) ResetEdge(name string) error {
+	switch name {
+	case frptunnel.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnel edge %s", name)
+}
+
+// FrpTunnelStatMutation represents an operation that mutates the FrpTunnelStat nodes in the graph.
+type FrpTunnelStatMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	frp_tunnel_id         *string
+	sample_time           *time.Time
+	active_connections    *int64
+	addactive_connections *int64
+	bytes_in              *int64
+	addbytes_in           *int64
+	bytes_out             *int64
+	addbytes_out          *int64
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*FrpTunnelStat, error)
+	predicates            []predicate.FrpTunnelStat
+}
+
+var _ ent.Mutation = (*FrpTunnelStatMutation)(nil)
+
+// frptunnelstatOption allows management of the mutation configuration using functional options.
+type frptunnelstatOption func(*FrpTunnelStatMutation)
+
+// newFrpTunnelStatMutation creates new mutation for the FrpTunnelStat entity.
+func newFrpTunnelStatMutation(c config, op Op, opts ...frptunnelstatOption) *FrpTunnelStatMutation {
+	m := &FrpTunnelStatMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFrpTunnelStat,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFrpTunnelStatID sets the ID field of the mutation.
+func withFrpTunnelStatID(id int) frptunnelstatOption {
+	return func(m *FrpTunnelStatMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FrpTunnelStat
+		)
+		m.oldValue = func(ctx context.Context) (*FrpTunnelStat, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FrpTunnelStat.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFrpTunnelStat sets the old FrpTunnelStat of the mutation.
+func withFrpTunnelStat(node *FrpTunnelStat) frptunnelstatOption {
+	return func(m *FrpTunnelStatMutation) {
+		m.oldValue = func(context.Context) (*FrpTunnelStat, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FrpTunnelStatMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FrpTunnelStatMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FrpTunnelStatMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FrpTunnelStatMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FrpTunnelStat.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFrpTunnelID sets the "frp_tunnel_id" field.
+func (m *FrpTunnelStatMutation) SetFrpTunnelID(s string) {
+	m.frp_tunnel_id = &s
+}
+
+// FrpTunnelID returns the value of the "frp_tunnel_id" field in the mutation.
+func (m *FrpTunnelStatMutation) FrpTunnelID() (r string, exists bool) {
+	v := m.frp_tunnel_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFrpTunnelID returns the old "frp_tunnel_id" field's value of the FrpTunnelStat entity.
+// If the FrpTunnelStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelStatMutation) OldFrpTunnelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFrpTunnelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFrpTunnelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFrpTunnelID: %w", err)
+	}
+	return oldValue.FrpTunnelID, nil
+}
+
+// ResetFrpTunnelID resets all changes to the "frp_tunnel_id" field.
+func (m *FrpTunnelStatMutation) ResetFrpTunnelID() {
+	m.frp_tunnel_id = nil
+}
+
+// SetSampleTime sets the "sample_time" field.
+func (m *FrpTunnelStatMutation) SetSampleTime(t time.Time) {
+	m.sample_time = &t
+}
+
+// SampleTime returns the value of the "sample_time" field in the mutation.
+func (m *FrpTunnelStatMutation) SampleTime() (r time.Time, exists bool) {
+	v := m.sample_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSampleTime returns the old "sample_time" field's value of the FrpTunnelStat entity.
+// If the FrpTunnelStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelStatMutation) OldSampleTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSampleTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSampleTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSampleTime: %w", err)
+	}
+	return oldValue.SampleTime, nil
+}
+
+// ResetSampleTime resets all changes to the "sample_time" field.
+func (m *FrpTunnelStatMutation) ResetSampleTime() {
+	m.sample_time = nil
+}
+
+// SetActiveConnections sets the "active_connections" field.
+func (m *FrpTunnelStatMutation) SetActiveConnections(i int64) {
+	m.active_connections = &i
+	m.addactive_connections = nil
+}
+
+// ActiveConnections returns the value of the "active_connections" field in the mutation.
+func (m *FrpTunnelStatMutation) ActiveConnections() (r int64, exists bool) {
+	v := m.active_connections
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActiveConnections returns the old "active_connections" field's value of the FrpTunnelStat entity.
+// If the FrpTunnelStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelStatMutation) OldActiveConnections(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActiveConnections is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActiveConnections requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActiveConnections: %w", err)
+	}
+	return oldValue.ActiveConnections, nil
+}
+
+// AddActiveConnections adds i to the "active_connections" field.
+func (m *FrpTunnelStatMutation) AddActiveConnections(i int64) {
+	if m.addactive_connections != nil {
+		*m.addactive_connections += i
+	} else {
+		m.addactive_connections = &i
+	}
+}
+
+// AddedActiveConnections returns the value that was added to the "active_connections" field in this mutation.
+func (m *FrpTunnelStatMutation) AddedActiveConnections() (r int64, exists bool) {
+	v := m.addactive_connections
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetActiveConnections resets all changes to the "active_connections" field.
+func (m *FrpTunnelStatMutation) ResetActiveConnections() {
+	m.active_connections = nil
+	m.addactive_connections = nil
+}
+
+// SetBytesIn sets the "bytes_in" field.
+func (m *FrpTunnelStatMutation) SetBytesIn(i int64) {
+	m.bytes_in = &i
+	m.addbytes_in = nil
+}
+
+// BytesIn returns the value of the "bytes_in" field in the mutation.
+func (m *FrpTunnelStatMutation) BytesIn() (r int64, exists bool) {
+	v := m.bytes_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBytesIn returns the old "bytes_in" field's value of the FrpTunnelStat entity.
+// If the FrpTunnelStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelStatMutation) OldBytesIn(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBytesIn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBytesIn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBytesIn: %w", err)
+	}
+	return oldValue.BytesIn, nil
+}
+
+// AddBytesIn adds i to the "bytes_in" field.
+func (m *FrpTunnelStatMutation) AddBytesIn(i int64) {
+	if m.addbytes_in != nil {
+		*m.addbytes_in += i
+	} else {
+		m.addbytes_in = &i
+	}
+}
+
+// AddedBytesIn returns the value that was added to the "bytes_in" field in this mutation.
+func (m *FrpTunnelStatMutation) AddedBytesIn() (r int64, exists bool) {
+	v := m.addbytes_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBytesIn resets all changes to the "bytes_in" field.
+func (m *FrpTunnelStatMutation) ResetBytesIn() {
+	m.bytes_in = nil
+	m.addbytes_in = nil
+}
+
+// SetBytesOut sets the "bytes_out" field.
+func (m *FrpTunnelStatMutation) SetBytesOut(i int64) {
+	m.bytes_out = &i
+	m.addbytes_out = nil
+}
+
+// BytesOut returns the value of the "bytes_out" field in the mutation.
+func (m *FrpTunnelStatMutation) BytesOut() (r int64, exists bool) {
+	v := m.bytes_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBytesOut returns the old "bytes_out" field's value of the FrpTunnelStat entity.
+// If the FrpTunnelStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelStatMutation) OldBytesOut(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBytesOut is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBytesOut requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBytesOut: %w", err)
+	}
+	return oldValue.BytesOut, nil
+}
+
+// AddBytesOut adds i to the "bytes_out" field.
+func (m *FrpTunnelStatMutation) AddBytesOut(i int64) {
+	if m.addbytes_out != nil {
+		*m.addbytes_out += i
+	} else {
+		m.addbytes_out = &i
+	}
+}
+
+// AddedBytesOut returns the value that was added to the "bytes_out" field in this mutation.
+func (m *FrpTunnelStatMutation) AddedBytesOut() (r int64, exists bool) {
+	v := m.addbytes_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBytesOut resets all changes to the "bytes_out" field.
+func (m *FrpTunnelStatMutation) ResetBytesOut() {
+	m.bytes_out = nil
+	m.addbytes_out = nil
+}
+
+// Where appends a list predicates to the FrpTunnelStatMutation builder.
+func (m *FrpTunnelStatMutation) Where(ps ...predicate.FrpTunnelStat) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FrpTunnelStatMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FrpTunnelStatMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FrpTunnelStat, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FrpTunnelStatMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FrpTunnelStatMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FrpTunnelStat).
+func (m *FrpTunnelStatMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FrpTunnelStatMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.frp_tunnel_id != nil {
+		fields = append(fields, frptunnelstat.FieldFrpTunnelID)
+	}
+	if m.sample_time != nil {
+		fields = append(fields, frptunnelstat.FieldSampleTime)
+	}
+	if m.active_connections != nil {
+		fields = append(fields, frptunnelstat.FieldActiveConnections)
+	}
+	if m.bytes_in != nil {
+		fields = append(fields, frptunnelstat.FieldBytesIn)
+	}
+	if m.bytes_out != nil {
+		fields = append(fields, frptunnelstat.FieldBytesOut)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FrpTunnelStatMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case frptunnelstat.FieldFrpTunnelID:
+		return m.FrpTunnelID()
+	case frptunnelstat.FieldSampleTime:
+		return m.SampleTime()
+	case frptunnelstat.FieldActiveConnections:
+		return m.ActiveConnections()
+	case frptunnelstat.FieldBytesIn:
+		return m.BytesIn()
+	case frptunnelstat.FieldBytesOut:
+		return m.BytesOut()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FrpTunnelStatMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case frptunnelstat.FieldFrpTunnelID:
+		return m.OldFrpTunnelID(ctx)
+	case frptunnelstat.FieldSampleTime:
+		return m.OldSampleTime(ctx)
+	case frptunnelstat.FieldActiveConnections:
+		return m.OldActiveConnections(ctx)
+	case frptunnelstat.FieldBytesIn:
+		return m.OldBytesIn(ctx)
+	case frptunnelstat.FieldBytesOut:
+		return m.OldBytesOut(ctx)
+	}
+	return nil, fmt.Errorf("unknown FrpTunnelStat field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FrpTunnelStatMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case frptunnelstat.FieldFrpTunnelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFrpTunnelID(v)
+		return nil
+	case frptunnelstat.FieldSampleTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSampleTime(v)
+		return nil
+	case frptunnelstat.FieldActiveConnections:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActiveConnections(v)
+		return nil
+	case frptunnelstat.FieldBytesIn:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBytesIn(v)
+		return nil
+	case frptunnelstat.FieldBytesOut:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBytesOut(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnelStat field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FrpTunnelStatMutation) AddedFields() []string {
+	var fields []string
+	if m.addactive_connections != nil {
+		fields = append(fields, frptunnelstat.FieldActiveConnections)
+	}
+	if m.addbytes_in != nil {
+		fields = append(fields, frptunnelstat.FieldBytesIn)
+	}
+	if m.addbytes_out != nil {
+		fields = append(fields, frptunnelstat.FieldBytesOut)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FrpTunnelStatMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case frptunnelstat.FieldActiveConnections:
+		return m.AddedActiveConnections()
+	case frptunnelstat.FieldBytesIn:
+		return m.AddedBytesIn()
+	case frptunnelstat.FieldBytesOut:
+		return m.AddedBytesOut()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FrpTunnelStatMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case frptunnelstat.FieldActiveConnections:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddActiveConnections(v)
+		return nil
+	case frptunnelstat.FieldBytesIn:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBytesIn(v)
+		return nil
+	case frptunnelstat.FieldBytesOut:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBytesOut(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnelStat numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FrpTunnelStatMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FrpTunnelStatMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FrpTunnelStatMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FrpTunnelStat nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FrpTunnelStatMutation) ResetField(name string) error {
+	switch name {
+	case frptunnelstat.FieldFrpTunnelID:
+		m.ResetFrpTunnelID()
+		return nil
+	case frptunnelstat.FieldSampleTime:
+		m.ResetSampleTime()
+		return nil
+	case frptunnelstat.FieldActiveConnections:
+		m.ResetActiveConnections()
+		return nil
+	case frptunnelstat.FieldBytesIn:
+		m.ResetBytesIn()
+		return nil
+	case frptunnelstat.FieldBytesOut:
+		m.ResetBytesOut()
+		return nil
+	}
+	return fmt.Errorf("unknown FrpTunnelStat field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FrpTunnelStatMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FrpTunnelStatMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FrpTunnelStatMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FrpTunnelStatMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FrpTunnelStatMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FrpTunnelStatMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FrpTunnelStatMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown FrpTunnelStat unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FrpTunnelStatMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown FrpTunnelStat edge %s", name)
 }
 
 // ImageGenGenerationMutation represents an operation that mutates the ImageGenGeneration nodes in the graph.

@@ -122,6 +122,56 @@ export interface DeletePortForwardRequest {
 export interface DeletePortForwardResponse {
 }
 
+export interface GetPortForwardStatsRequest {
+  /** 端口转发 id */
+  id: string;
+  /** 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时 */
+  startTimeMs: number;
+  /** 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间 */
+  endTimeMs: number;
+}
+
+export interface GetPortForwardStatsResponse {
+  /** 当前快照 */
+  snapshot:
+    | PortForwardStat
+    | undefined;
+  /** 时间序列样本（按时间升序，流量为累计值） */
+  points: PortForwardStatPoint[];
+  /** 采样间隔(秒) */
+  sampleIntervalSeconds: number;
+}
+
+/** 端口转发实时快照 */
+export interface PortForwardStat {
+  /** 是否运行中 */
+  running: boolean;
+  /** 当前活跃连接数 */
+  activeConnections: number;
+  /** 累计连接数 */
+  totalConnections: number;
+  /** 累计入站流量(字节) */
+  bytesIn: number;
+  /** 累计出站流量(字节) */
+  bytesOut: number;
+  /** 本次启动时间 */
+  startTime: Date | undefined;
+}
+
+/** 端口转发时间序列采样点 */
+export interface PortForwardStatPoint {
+  /** 采样时间 */
+  time:
+    | Date
+    | undefined;
+  /** 活跃连接数 */
+  activeConnections: number;
+  /** 累计入站流量(字节) */
+  bytesIn: number;
+  /** 累计出站流量(字节) */
+  bytesOut: number;
+}
+
 export interface PortForwardInfo {
   /** 端口转发 id */
   id: string;
@@ -158,57 +208,5 @@ export interface PortForwardInfo {
   /** 累计入站流量(字节，客户端→目标) */
   bytesIn: number;
   /** 累计出站流量(字节，目标→客户端) */
-  bytesOut: number;
-}
-
-export interface GetPortForwardStatsRequest {
-  /** 端口转发 id */
-  id: string;
-  /** 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时 */
-  startTimeMs: number;
-  /** 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间 */
-  endTimeMs: number;
-}
-
-export interface GetPortForwardStatsResponse {
-  /** 当前快照 */
-  snapshot:
-    | PortForwardStat
-    | undefined;
-  /** 时间序列样本（按时间升序，流量为累计值） */
-  points: PortForwardStatPoint[];
-  /** 采样间隔(秒) */
-  sampleIntervalSeconds: number;
-}
-
-/** 端口转发实时快照 */
-export interface PortForwardStat {
-  /** 是否运行中 */
-  running: boolean;
-  /** 当前活跃连接数 */
-  activeConnections: number;
-  /** 累计连接数 */
-  totalConnections: number;
-  /** 累计入站流量(字节) */
-  bytesIn: number;
-  /** 累计出站流量(字节) */
-  bytesOut: number;
-  /** 本次启动时间 */
-  startTime:
-    | Date
-    | undefined;
-}
-
-/** 端口转发时间序列采样点 */
-export interface PortForwardStatPoint {
-  /** 采样时间 */
-  time:
-    | Date
-    | undefined;
-  /** 活跃连接数 */
-  activeConnections: number;
-  /** 累计入站流量(字节) */
-  bytesIn: number;
-  /** 累计出站流量(字节) */
   bytesOut: number;
 }

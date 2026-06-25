@@ -3414,6 +3414,189 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SystemStatusResponse'
+    /api/v1/tunnel/frps-config:
+        get:
+            tags:
+                - TunnelManager
+            description: 获取 frps 实例配置
+            operationId: TunnelManager_GetFrpsConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetFrpsConfigResponse'
+        put:
+            tags:
+                - TunnelManager
+            description: 更新 frps 实例配置
+            operationId: TunnelManager_UpdateFrpsConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateFrpsConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateFrpsConfigResponse'
+    /api/v1/tunnel/tunnels:
+        get:
+            tags:
+                - TunnelManager
+            description: 获取隧道列表
+            operationId: TunnelManager_ListTunnels
+            parameters:
+                - name: page
+                  in: query
+                  description: page
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: page size
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 名称/域名关键词
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: 代理类型
+                  schema:
+                    type: integer
+                    format: enum
+                - name: isEnable
+                  in: query
+                  description: 是否启用
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListTunnelsResponse'
+        post:
+            tags:
+                - TunnelManager
+            description: 创建隧道
+            operationId: TunnelManager_CreateTunnel
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateTunnelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateTunnelResponse'
+    /api/v1/tunnel/tunnels/{id}:
+        get:
+            tags:
+                - TunnelManager
+            description: 获取隧道详情
+            operationId: TunnelManager_GetTunnel
+            parameters:
+                - name: id
+                  in: path
+                  description: 隧道 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetTunnelResponse'
+        put:
+            tags:
+                - TunnelManager
+            description: 更新隧道
+            operationId: TunnelManager_UpdateTunnel
+            parameters:
+                - name: id
+                  in: path
+                  description: 隧道 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateTunnelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateTunnelResponse'
+        delete:
+            tags:
+                - TunnelManager
+            description: 删除隧道
+            operationId: TunnelManager_DeleteTunnel
+            parameters:
+                - name: id
+                  in: path
+                  description: 隧道 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteTunnelResponse'
+    /api/v1/tunnel/tunnels/{id}/stats:
+        get:
+            tags:
+                - TunnelManager
+            description: 获取隧道统计信息（实时快照 + 指定时间范围内的时间序列）
+            operationId: TunnelManager_GetTunnelStats
+            parameters:
+                - name: id
+                  in: path
+                  description: 隧道 id
+                  required: true
+                  schema:
+                    type: string
+                - name: startTimeMs
+                  in: query
+                  description: 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时
+                  schema:
+                    type: string
+                - name: endTimeMs
+                  in: query
+                  description: 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetTunnelStatsResponse'
     /api/v1/user/add:
         post:
             tags:
@@ -4346,6 +4529,46 @@ components:
                 publishedAt:
                     type: string
                     format: date-time
+        v1.CreateTunnelRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称（frp proxy 名称，全局唯一）
+                type:
+                    type: integer
+                    description: 代理类型
+                    format: enum
+                remotePort:
+                    type: integer
+                    description: 公共端口（tcp/udp/tcpmux）
+                    format: int32
+                customDomains:
+                    type: string
+                    description: 自定义域名（http/https，逗号分隔）
+                subdomain:
+                    type: string
+                    description: 子域名（http/https）
+                localIp:
+                    type: string
+                    description: frpc 端本地地址
+                localPort:
+                    type: integer
+                    description: frpc 端本地端口
+                    format: int32
+                allowUsers:
+                    type: string
+                    description: 允许的 frpc user，逗号分隔；空=不限制
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+        v1.CreateTunnelResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.TunnelInfo'
+                    description: 隧道详情
         v1.CutFileSystemRequest:
             type: object
             properties:
@@ -4430,6 +4653,9 @@ components:
             type: object
             properties: {}
         v1.DeleteSub2APITimelineItemResponse:
+            type: object
+            properties: {}
+        v1.DeleteTunnelResponse:
             type: object
             properties: {}
         v1.DeleteUserResponse:
@@ -5860,6 +6086,49 @@ components:
                     description: 更新时间
                     format: date-time
             description: 文件异步任务信息
+        v1.FrpsConfig:
+            type: object
+            properties:
+                isEnable:
+                    type: boolean
+                    description: 是否启用 frps（false 时不启动）
+                bindAddr:
+                    type: string
+                    description: 监听地址，默认 0.0.0.0
+                bindPort:
+                    type: integer
+                    description: frpc 连接端口（frps 主端口），默认 7000
+                    format: int32
+                vhostHttpPort:
+                    type: integer
+                    description: http 代理 vhost 端口，0=不监听
+                    format: int32
+                vhostHttpsPort:
+                    type: integer
+                    description: https 代理 vhost 端口，0=不监听
+                    format: int32
+                kcpBindPort:
+                    type: integer
+                    description: kcp 传输端口，0=不监听
+                    format: int32
+                quicBindPort:
+                    type: integer
+                    description: quic 传输端口，0=不监听
+                    format: int32
+                subdomainHost:
+                    type: string
+                    description: 子域名根域（http/https subdomain 用）
+                statSampleInterval:
+                    type: integer
+                    description: 统计采样间隔(秒)
+                    format: int32
+                serverAddr:
+                    type: string
+                    description: 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
+            description: |-
+                frps 实例配置（实例级，非逐条隧道规则）。
+                 注：无 auth_token。frps 自身 Auth 中性化（空 token），不作为统一认证；
+                 每隧道独立凭证存于隧道规则，由插件 Login/NewProxy 校验。
         v1.GetDockerConfigResponse:
             type: object
             properties:
@@ -5938,6 +6207,13 @@ components:
                         - $ref: '#/components/schemas/v1.UploadInfo'
                     description: 信息
             description: 获取上传状态响应
+        v1.GetFrpsConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FrpsConfig'
+                    description: frps 实例配置
         v1.GetInstanceFileListResponse:
             type: object
             properties:
@@ -6076,6 +6352,28 @@ components:
             properties:
                 stats:
                     $ref: '#/components/schemas/v1.Sub2APIStats'
+        v1.GetTunnelResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.TunnelInfo'
+                    description: 隧道详情
+        v1.GetTunnelStatsResponse:
+            type: object
+            properties:
+                snapshot:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.TunnelStat'
+                    description: 当前快照
+                points:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TunnelStatPoint'
+                    description: 时间序列样本（按时间升序，流量为累计值）
+                sampleIntervalSeconds:
+                    type: string
+                    description: 采样间隔(秒)
         v1.ImageGenApiKeySummary:
             type: object
             properties:
@@ -6466,6 +6764,23 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITimelineItem'
+        v1.ListTunnelsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: actual page
+                pageSize:
+                    type: string
+                    description: actual page size
+                total:
+                    type: string
+                    description: 总数
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TunnelInfo'
+                    description: 列表
         v1.ListUserResponse:
             type: object
             properties:
@@ -7960,6 +8275,106 @@ components:
                     type: boolean
                 message:
                     type: string
+        v1.TunnelInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 隧道 id
+                name:
+                    type: string
+                    description: 名称
+                userId:
+                    type: string
+                    description: 所属用户 id
+                type:
+                    type: integer
+                    description: 代理类型
+                    format: enum
+                remotePort:
+                    type: integer
+                    description: 公共端口（tcp/udp/tcpmux）
+                    format: int32
+                customDomains:
+                    type: string
+                    description: 自定义域名（http/https）
+                subdomain:
+                    type: string
+                    description: 子域名（http/https）
+                localIp:
+                    type: string
+                    description: frpc 端本地地址
+                localPort:
+                    type: integer
+                    description: frpc 端本地端口
+                    format: int32
+                credential:
+                    type: string
+                    description: 每隧道认证凭证（仅 owner 可见）
+                allowUsers:
+                    type: string
+                    description: 允许的 frpc user
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+                status:
+                    type: integer
+                    description: 运行状态
+                    format: enum
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                activeConnections:
+                    type: string
+                    description: 当前活跃连接数（在线才有效）
+                bytesIn:
+                    type: string
+                    description: 当日累计入站流量(字节)
+                bytesOut:
+                    type: string
+                    description: 当日累计出站流量(字节)
+        v1.TunnelStat:
+            type: object
+            properties:
+                online:
+                    type: boolean
+                    description: 是否在线（frpc 已连接且 proxy 在线）
+                activeConnections:
+                    type: string
+                    description: 当前活跃连接数
+                bytesIn:
+                    type: string
+                    description: 当日累计入站流量(字节)
+                bytesOut:
+                    type: string
+                    description: 当日累计出站流量(字节)
+                lastStartTime:
+                    type: string
+                    description: 最近一次上线时间
+                    format: date-time
+            description: 隧道实时快照
+        v1.TunnelStatPoint:
+            type: object
+            properties:
+                time:
+                    type: string
+                    description: 采样时间
+                    format: date-time
+                activeConnections:
+                    type: string
+                    description: 活跃连接数
+                bytesIn:
+                    type: string
+                    description: 累计入站流量(字节)
+                bytesOut:
+                    type: string
+                    description: 累计出站流量(字节)
+            description: 隧道时间序列采样点
         v1.UnpauseDockerContainerRequest:
             type: object
             properties:
@@ -8229,6 +8644,20 @@ components:
                         - $ref: '#/components/schemas/v1.EmailTemplate'
                     description: 邮件模板
             description: 更新邮件模板响应
+        v1.UpdateFrpsConfigRequest:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FrpsConfig'
+                    description: frps 实例配置
+        v1.UpdateFrpsConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FrpsConfig'
+                    description: frps 实例配置
         v1.UpdateInstanceRequest:
             type: object
             properties:
@@ -8485,6 +8914,49 @@ components:
                 publishedAt:
                     type: string
                     format: date-time
+        v1.UpdateTunnelRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 隧道 id
+                name:
+                    type: string
+                    description: 名称
+                type:
+                    type: integer
+                    description: 代理类型
+                    format: enum
+                remotePort:
+                    type: integer
+                    description: 公共端口
+                    format: int32
+                customDomains:
+                    type: string
+                    description: 自定义域名
+                subdomain:
+                    type: string
+                    description: 子域名
+                localIp:
+                    type: string
+                    description: 本地地址
+                localPort:
+                    type: integer
+                    description: 本地端口
+                    format: int32
+                allowUsers:
+                    type: string
+                    description: 允许的 frpc user
+                isEnable:
+                    type: boolean
+                    description: 是否启用
+        v1.UpdateTunnelResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.TunnelInfo'
+                    description: 隧道详情
         v1.UploadInfo:
             type: object
             properties:
@@ -8638,5 +9110,7 @@ tags:
       description: Sub2API 公共首页与管理
     - name: System
       description: 系统管理
+    - name: TunnelManager
+      description: 内网穿透（frp）管理
     - name: UserService
       description: 用户服务

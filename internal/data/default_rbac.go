@@ -80,7 +80,8 @@ var (
 
 		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "Element:Box", nil, 5, "", entmenu.StatusActive),
 		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 1, constant.Network, entmenu.StatusActive),
-		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_6"), 2, "", entmenu.StatusActive),
+		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 2, constant.Tunnel, entmenu.StatusActive),
+		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_6"), 3, "", entmenu.StatusActive),
 
 		// Sub2API
 		newDefaultMenu("menu_7", entmenu.TypeDirectory, "", "Sub2API", "HOutline:CloudIcon", nil, 6, constant.Sub2APIView, entmenu.StatusActive),

@@ -18,6 +18,12 @@ type FileUpload func(*sql.Selector)
 // FileUploadChunk is the predicate function for fileuploadchunk builders.
 type FileUploadChunk func(*sql.Selector)
 
+// FrpTunnel is the predicate function for frptunnel builders.
+type FrpTunnel func(*sql.Selector)
+
+// FrpTunnelStat is the predicate function for frptunnelstat builders.
+type FrpTunnelStat func(*sql.Selector)
+
 // ImageGenGeneration is the predicate function for imagegengeneration builders.
 type ImageGenGeneration func(*sql.Selector)
 

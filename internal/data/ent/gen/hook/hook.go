@@ -56,6 +56,30 @@ func (f FileUploadChunkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FileUploadChunkMutation", m)
 }
 
+// The FrpTunnelFunc type is an adapter to allow the use of ordinary
+// function as FrpTunnel mutator.
+type FrpTunnelFunc func(context.Context, *gen.FrpTunnelMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FrpTunnelFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FrpTunnelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FrpTunnelMutation", m)
+}
+
+// The FrpTunnelStatFunc type is an adapter to allow the use of ordinary
+// function as FrpTunnelStat mutator.
+type FrpTunnelStatFunc func(context.Context, *gen.FrpTunnelStatMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FrpTunnelStatFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FrpTunnelStatMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FrpTunnelStatMutation", m)
+}
+
 // The ImageGenGenerationFunc type is an adapter to allow the use of ordinary
 // function as ImageGenGeneration mutator.
 type ImageGenGenerationFunc func(context.Context, *gen.ImageGenGenerationMutation) (gen.Value, error)

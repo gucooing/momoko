@@ -15,6 +15,8 @@ import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/frptunnel"
+	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/imagegengeneration"
 	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
@@ -53,6 +55,10 @@ type Client struct {
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
 	FileUploadChunk *FileUploadChunkClient
+	// FrpTunnel is the client for interacting with the FrpTunnel builders.
+	FrpTunnel *FrpTunnelClient
+	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
+	FrpTunnelStat *FrpTunnelStatClient
 	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
 	ImageGenGeneration *ImageGenGenerationClient
 	// ImageGenImage is the client for interacting with the ImageGenImage builders.
@@ -100,6 +106,8 @@ func (c *Client) init() {
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileUpload = NewFileUploadClient(c.config)
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
+	c.FrpTunnel = NewFrpTunnelClient(c.config)
+	c.FrpTunnelStat = NewFrpTunnelStatClient(c.config)
 	c.ImageGenGeneration = NewImageGenGenerationClient(c.config)
 	c.ImageGenImage = NewImageGenImageClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
@@ -212,6 +220,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
+		FrpTunnel:           NewFrpTunnelClient(cfg),
+		FrpTunnelStat:       NewFrpTunnelStatClient(cfg),
 		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
 		ImageGenImage:       NewImageGenImageClient(cfg),
 		Instance:            NewInstanceClient(cfg),
@@ -251,6 +261,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
+		FrpTunnel:           NewFrpTunnelClient(cfg),
+		FrpTunnelStat:       NewFrpTunnelStatClient(cfg),
 		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
 		ImageGenImage:       NewImageGenImageClient(cfg),
 		Instance:            NewInstanceClient(cfg),
@@ -296,11 +308,11 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
-		c.UserAPIKey,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.FrpTunnel,
+		c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage, c.Instance,
+		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.PortForwardStat,
+		c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -310,11 +322,11 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
-		c.UserAPIKey,
+		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.FrpTunnel,
+		c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage, c.Instance,
+		c.InstanceType, c.Menu, c.OperationLog, c.PortForward, c.PortForwardStat,
+		c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -331,6 +343,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FileUpload.mutate(ctx, m)
 	case *FileUploadChunkMutation:
 		return c.FileUploadChunk.mutate(ctx, m)
+	case *FrpTunnelMutation:
+		return c.FrpTunnel.mutate(ctx, m)
+	case *FrpTunnelStatMutation:
+		return c.FrpTunnelStat.mutate(ctx, m)
 	case *ImageGenGenerationMutation:
 		return c.ImageGenGeneration.mutate(ctx, m)
 	case *ImageGenImageMutation:
@@ -945,6 +961,288 @@ func (c *FileUploadChunkClient) mutate(ctx context.Context, m *FileUploadChunkMu
 		return (&FileUploadChunkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FileUploadChunk mutation op: %q", m.Op())
+	}
+}
+
+// FrpTunnelClient is a client for the FrpTunnel schema.
+type FrpTunnelClient struct {
+	config
+}
+
+// NewFrpTunnelClient returns a client for the FrpTunnel from the given config.
+func NewFrpTunnelClient(c config) *FrpTunnelClient {
+	return &FrpTunnelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `frptunnel.Hooks(f(g(h())))`.
+func (c *FrpTunnelClient) Use(hooks ...Hook) {
+	c.hooks.FrpTunnel = append(c.hooks.FrpTunnel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `frptunnel.Intercept(f(g(h())))`.
+func (c *FrpTunnelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FrpTunnel = append(c.inters.FrpTunnel, interceptors...)
+}
+
+// Create returns a builder for creating a FrpTunnel entity.
+func (c *FrpTunnelClient) Create() *FrpTunnelCreate {
+	mutation := newFrpTunnelMutation(c.config, OpCreate)
+	return &FrpTunnelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FrpTunnel entities.
+func (c *FrpTunnelClient) CreateBulk(builders ...*FrpTunnelCreate) *FrpTunnelCreateBulk {
+	return &FrpTunnelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FrpTunnelClient) MapCreateBulk(slice any, setFunc func(*FrpTunnelCreate, int)) *FrpTunnelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FrpTunnelCreateBulk{err: fmt.Errorf("calling to FrpTunnelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FrpTunnelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FrpTunnelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FrpTunnel.
+func (c *FrpTunnelClient) Update() *FrpTunnelUpdate {
+	mutation := newFrpTunnelMutation(c.config, OpUpdate)
+	return &FrpTunnelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FrpTunnelClient) UpdateOne(_m *FrpTunnel) *FrpTunnelUpdateOne {
+	mutation := newFrpTunnelMutation(c.config, OpUpdateOne, withFrpTunnel(_m))
+	return &FrpTunnelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FrpTunnelClient) UpdateOneID(id string) *FrpTunnelUpdateOne {
+	mutation := newFrpTunnelMutation(c.config, OpUpdateOne, withFrpTunnelID(id))
+	return &FrpTunnelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FrpTunnel.
+func (c *FrpTunnelClient) Delete() *FrpTunnelDelete {
+	mutation := newFrpTunnelMutation(c.config, OpDelete)
+	return &FrpTunnelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FrpTunnelClient) DeleteOne(_m *FrpTunnel) *FrpTunnelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FrpTunnelClient) DeleteOneID(id string) *FrpTunnelDeleteOne {
+	builder := c.Delete().Where(frptunnel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FrpTunnelDeleteOne{builder}
+}
+
+// Query returns a query builder for FrpTunnel.
+func (c *FrpTunnelClient) Query() *FrpTunnelQuery {
+	return &FrpTunnelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFrpTunnel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FrpTunnel entity by its id.
+func (c *FrpTunnelClient) Get(ctx context.Context, id string) (*FrpTunnel, error) {
+	return c.Query().Where(frptunnel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FrpTunnelClient) GetX(ctx context.Context, id string) *FrpTunnel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a FrpTunnel.
+func (c *FrpTunnelClient) QueryUser(_m *FrpTunnel) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(frptunnel.Table, frptunnel.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, frptunnel.UserTable, frptunnel.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FrpTunnelClient) Hooks() []Hook {
+	return c.hooks.FrpTunnel
+}
+
+// Interceptors returns the client interceptors.
+func (c *FrpTunnelClient) Interceptors() []Interceptor {
+	return c.inters.FrpTunnel
+}
+
+func (c *FrpTunnelClient) mutate(ctx context.Context, m *FrpTunnelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FrpTunnelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FrpTunnelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FrpTunnelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FrpTunnelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FrpTunnel mutation op: %q", m.Op())
+	}
+}
+
+// FrpTunnelStatClient is a client for the FrpTunnelStat schema.
+type FrpTunnelStatClient struct {
+	config
+}
+
+// NewFrpTunnelStatClient returns a client for the FrpTunnelStat from the given config.
+func NewFrpTunnelStatClient(c config) *FrpTunnelStatClient {
+	return &FrpTunnelStatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `frptunnelstat.Hooks(f(g(h())))`.
+func (c *FrpTunnelStatClient) Use(hooks ...Hook) {
+	c.hooks.FrpTunnelStat = append(c.hooks.FrpTunnelStat, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `frptunnelstat.Intercept(f(g(h())))`.
+func (c *FrpTunnelStatClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FrpTunnelStat = append(c.inters.FrpTunnelStat, interceptors...)
+}
+
+// Create returns a builder for creating a FrpTunnelStat entity.
+func (c *FrpTunnelStatClient) Create() *FrpTunnelStatCreate {
+	mutation := newFrpTunnelStatMutation(c.config, OpCreate)
+	return &FrpTunnelStatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FrpTunnelStat entities.
+func (c *FrpTunnelStatClient) CreateBulk(builders ...*FrpTunnelStatCreate) *FrpTunnelStatCreateBulk {
+	return &FrpTunnelStatCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FrpTunnelStatClient) MapCreateBulk(slice any, setFunc func(*FrpTunnelStatCreate, int)) *FrpTunnelStatCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FrpTunnelStatCreateBulk{err: fmt.Errorf("calling to FrpTunnelStatClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FrpTunnelStatCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FrpTunnelStatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FrpTunnelStat.
+func (c *FrpTunnelStatClient) Update() *FrpTunnelStatUpdate {
+	mutation := newFrpTunnelStatMutation(c.config, OpUpdate)
+	return &FrpTunnelStatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FrpTunnelStatClient) UpdateOne(_m *FrpTunnelStat) *FrpTunnelStatUpdateOne {
+	mutation := newFrpTunnelStatMutation(c.config, OpUpdateOne, withFrpTunnelStat(_m))
+	return &FrpTunnelStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FrpTunnelStatClient) UpdateOneID(id int) *FrpTunnelStatUpdateOne {
+	mutation := newFrpTunnelStatMutation(c.config, OpUpdateOne, withFrpTunnelStatID(id))
+	return &FrpTunnelStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FrpTunnelStat.
+func (c *FrpTunnelStatClient) Delete() *FrpTunnelStatDelete {
+	mutation := newFrpTunnelStatMutation(c.config, OpDelete)
+	return &FrpTunnelStatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FrpTunnelStatClient) DeleteOne(_m *FrpTunnelStat) *FrpTunnelStatDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FrpTunnelStatClient) DeleteOneID(id int) *FrpTunnelStatDeleteOne {
+	builder := c.Delete().Where(frptunnelstat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FrpTunnelStatDeleteOne{builder}
+}
+
+// Query returns a query builder for FrpTunnelStat.
+func (c *FrpTunnelStatClient) Query() *FrpTunnelStatQuery {
+	return &FrpTunnelStatQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFrpTunnelStat},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FrpTunnelStat entity by its id.
+func (c *FrpTunnelStatClient) Get(ctx context.Context, id int) (*FrpTunnelStat, error) {
+	return c.Query().Where(frptunnelstat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FrpTunnelStatClient) GetX(ctx context.Context, id int) *FrpTunnelStat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FrpTunnelStatClient) Hooks() []Hook {
+	return c.hooks.FrpTunnelStat
+}
+
+// Interceptors returns the client interceptors.
+func (c *FrpTunnelStatClient) Interceptors() []Interceptor {
+	return c.inters.FrpTunnelStat
+}
+
+func (c *FrpTunnelStatClient) mutate(ctx context.Context, m *FrpTunnelStatMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FrpTunnelStatCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FrpTunnelStatUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FrpTunnelStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FrpTunnelStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FrpTunnelStat mutation op: %q", m.Op())
 	}
 }
 
@@ -3271,16 +3569,18 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
-		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward,
-		PortForwardStat, Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem,
-		Sub2APIUsageRecord, SystemConfig, User, UserAPIKey []ent.Hook
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, FrpTunnel, FrpTunnelStat,
+		ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu, OperationLog,
+		PortForward, PortForwardStat, Role, SSHHost, Sub2APIAnnouncement,
+		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
+		UserAPIKey []ent.Hook
 	}
 	inters struct {
-		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
-		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward,
-		PortForwardStat, Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem,
-		Sub2APIUsageRecord, SystemConfig, User, UserAPIKey []ent.Interceptor
+		Auth, EmailTemplate, FileUpload, FileUploadChunk, FrpTunnel, FrpTunnelStat,
+		ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu, OperationLog,
+		PortForward, PortForwardStat, Role, SSHHost, Sub2APIAnnouncement,
+		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
+		UserAPIKey []ent.Interceptor
 	}
 )
 

@@ -140,6 +140,76 @@ var (
 			},
 		},
 	}
+	// FrpTunnelsColumns holds the columns for the "frp_tunnels" table.
+	FrpTunnelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "proxy_type", Type: field.TypeEnum, Enums: []string{"tcp", "udp", "http", "https", "stcp", "xtcp", "tcpmux"}, Default: "tcp"},
+		{Name: "remote_port", Type: field.TypeInt, Default: 0},
+		{Name: "custom_domains", Type: field.TypeString, Default: ""},
+		{Name: "subdomain", Type: field.TypeString, Default: ""},
+		{Name: "local_ip", Type: field.TypeString, Default: "127.0.0.1"},
+		{Name: "local_port", Type: field.TypeInt, Default: 0},
+		{Name: "credential", Type: field.TypeString},
+		{Name: "allow_users", Type: field.TypeString, Default: ""},
+		{Name: "is_enable", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// FrpTunnelsTable holds the schema information for the "frp_tunnels" table.
+	FrpTunnelsTable = &schema.Table{
+		Name:       "frp_tunnels",
+		Columns:    FrpTunnelsColumns,
+		PrimaryKey: []*schema.Column{FrpTunnelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "frp_tunnels_users_user",
+				Columns:    []*schema.Column{FrpTunnelsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "frptunnel_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{FrpTunnelsColumns[13]},
+			},
+			{
+				Name:    "frptunnel_is_enable",
+				Unique:  false,
+				Columns: []*schema.Column{FrpTunnelsColumns[12]},
+			},
+		},
+	}
+	// FrpTunnelStatsColumns holds the columns for the "frp_tunnel_stats" table.
+	FrpTunnelStatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "frp_tunnel_id", Type: field.TypeString},
+		{Name: "sample_time", Type: field.TypeTime},
+		{Name: "active_connections", Type: field.TypeInt64, Default: 0},
+		{Name: "bytes_in", Type: field.TypeInt64, Default: 0},
+		{Name: "bytes_out", Type: field.TypeInt64, Default: 0},
+	}
+	// FrpTunnelStatsTable holds the schema information for the "frp_tunnel_stats" table.
+	FrpTunnelStatsTable = &schema.Table{
+		Name:       "frp_tunnel_stats",
+		Columns:    FrpTunnelStatsColumns,
+		PrimaryKey: []*schema.Column{FrpTunnelStatsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "frptunnelstat_frp_tunnel_id_sample_time",
+				Unique:  false,
+				Columns: []*schema.Column{FrpTunnelStatsColumns[1], FrpTunnelStatsColumns[2]},
+			},
+			{
+				Name:    "frptunnelstat_sample_time",
+				Unique:  false,
+				Columns: []*schema.Column{FrpTunnelStatsColumns[2]},
+			},
+		},
+	}
 	// ImageGenGenerationsColumns holds the columns for the "image_gen_generations" table.
 	ImageGenGenerationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -706,6 +776,8 @@ var (
 		EmailTemplatesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
+		FrpTunnelsTable,
+		FrpTunnelStatsTable,
 		ImageGenGenerationsTable,
 		ImageGenImagesTable,
 		InstancesTable,
@@ -733,6 +805,7 @@ func init() {
 	}
 	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
+	FrpTunnelsTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable

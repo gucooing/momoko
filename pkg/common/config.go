@@ -52,6 +52,18 @@ const (
 	ConfigSub2APIImageEnabled ConfigKey = "sub2api.image_enabled"
 	// ConfigSub2APISrcHostWhitelistEnabled 是否开启站点白名单校验。
 	ConfigSub2APISrcHostWhitelistEnabled ConfigKey = "sub2api.src_host_whitelist_enabled"
+
+	// frps（内网穿透）实例级配置（无统一 auth_token，见隧道逐条 credential）。
+	ConfigFrpsEnabled            ConfigKey = "frps.enabled"
+	ConfigFrpsBindAddr           ConfigKey = "frps.bind_addr"
+	ConfigFrpsBindPort           ConfigKey = "frps.bind_port"
+	ConfigFrpsVhostHTTPPort      ConfigKey = "frps.vhost_http_port"
+	ConfigFrpsVhostHTTPSPort     ConfigKey = "frps.vhost_https_port"
+	ConfigFrpsKCPBindPort        ConfigKey = "frps.kcp_bind_port"
+	ConfigFrpsQUICBindPort       ConfigKey = "frps.quic_bind_port"
+	ConfigFrpsSubdomainHost      ConfigKey = "frps.subdomain_host"
+	ConfigFrpsStatSampleInterval ConfigKey = "frps.stat_sample_interval"
+	ConfigFrpsServerAddr         ConfigKey = "frps.server_addr"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -98,6 +110,17 @@ var configDefaults = map[ConfigKey]string{
 	ConfigSub2APIAllowedSrcHosts:         "[]",
 	ConfigSub2APIImageEnabled:            "true",
 	ConfigSub2APISrcHostWhitelistEnabled: "false",
+
+	ConfigFrpsEnabled:            "false",
+	ConfigFrpsBindAddr:           "0.0.0.0",
+	ConfigFrpsBindPort:           "7000",
+	ConfigFrpsVhostHTTPPort:      "0",
+	ConfigFrpsVhostHTTPSPort:     "0",
+	ConfigFrpsKCPBindPort:        "0",
+	ConfigFrpsQUICBindPort:       "0",
+	ConfigFrpsSubdomainHost:      "",
+	ConfigFrpsStatSampleInterval: "30",
+	ConfigFrpsServerAddr:         "",
 }
 
 func (k ConfigKey) String() string {

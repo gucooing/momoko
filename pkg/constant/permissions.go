@@ -67,4 +67,6 @@ const (
 	Instance Permissions = "instance:manage"
 	// Network 允许管理网络（端口转发等）。
 	Network Permissions = "network:manage"
+	// Tunnel 允许管理内网穿透（frp 隧道）。
+	Tunnel Permissions = "tunnel:manage"
 )
