@@ -60,24 +60,6 @@ type ServerConfig struct {
 	RestartInterval    time.Duration // 自动重启前的等待间隔。
 	LogLimit           int
 	SubscriberBuffer   int
-	Terminal           bool
-}
-
-// NewTerminalConfig 返回本机终端实例的默认配置。
-func NewTerminalConfig(id, dir string) ServerConfig {
-	cfg := ServerConfig{
-		ID:       id,
-		Dir:      dir,
-		Terminal: true,
-	}
-
-	if runtime.GOOS == "windows" {
-		cfg.Command = "cmd.exe"
-		return cfg
-	}
-
-	cfg.Command = "sh"
-	return cfg
 }
 
 // Server 表示一个只管理单个子进程的服务端实例。
@@ -93,14 +75,12 @@ type Server struct {
 	waitFn          func() error
 	stopFn          func(force bool) error
 	closeFn         func()
-	stdinLineEnd    string
-	rawOutput       bool
-	runID           uint64
-	manualStop      bool
-	logs            []LogEntry
-	nextSubID       uint64
-	subscribers     map[uint64]*logSubscriber
-	outputSanitizer *terminalOutputSanitizer
+	stdinLineEnd string
+	runID        uint64
+	manualStop   bool
+	logs         []LogEntry
+	nextSubID    uint64
+	subscribers  map[uint64]*logSubscriber
 }
 
 type logSubscriber struct {
@@ -117,7 +97,6 @@ type startResult struct {
 	stopFn       func(force bool) error
 	closeFn      func()
 	stdinLineEnd string
-	rawOutput    bool
 }
 
 // normalizeServerConfig 清洗配置内容并补齐默认值。
@@ -354,7 +333,6 @@ func (s *Server) Send(input string) error {
 	stdin := s.stdin
 	running := s.running
 	lineEnd := s.stdinLineEnd
-	terminal := s.cfg.Terminal
 	s.mu.RUnlock()
 
 	if !running || stdin == nil {
@@ -366,13 +344,11 @@ func (s *Server) Send(input string) error {
 		return fmt.Errorf("写入 stdin 失败: %w", err)
 	}
 
-	if !terminal {
-		s.publish(LogEntry{
-			Time:   time.Now(),
-			Source: LogSourceStdin,
-			Text:   strings.TrimRight(payload, "\r\n"),
-		})
-	}
+	s.publish(LogEntry{
+		Time:   time.Now(),
+		Source: LogSourceStdin,
+		Text:   strings.TrimRight(payload, "\r\n"),
+	})
 	return nil
 }
 
@@ -443,33 +419,6 @@ func (s *Server) readPipe(r io.Reader, source LogSource) {
 
 	if err := scanner.Err(); err != nil {
 		s.publish(LogEntry{Time: time.Now(), Source: LogSourceStderr, Text: "读取输出失败: " + err.Error()})
-	}
-}
-
-// readRaw 读取原始字节流输出，必要时先经过终端控制序列过滤。
-func (s *Server) readRaw(r io.Reader, source LogSource) {
-	if r == nil {
-		return
-	}
-
-	buf := make([]byte, 4096)
-	for {
-		n, err := r.Read(buf)
-		if n > 0 {
-			text := string(buf[:n])
-			if s.outputSanitizer != nil {
-				text = s.outputSanitizer.Filter(text)
-			}
-			if text != "" {
-				s.publish(LogEntry{Time: time.Now(), Source: source, Text: text})
-			}
-		}
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				s.publish(LogEntry{Time: time.Now(), Source: LogSourceStderr, Text: "读取输出失败: " + err.Error()})
-			}
-			return
-		}
 	}
 }
 
@@ -583,12 +532,6 @@ func (s *Server) applyStartResultLocked(result *startResult) {
 	s.stopFn = result.stopFn
 	s.closeFn = result.closeFn
 	s.stdinLineEnd = result.stdinLineEnd
-	s.rawOutput = result.rawOutput
-	if s.rawOutput {
-		s.outputSanitizer = newTerminalOutputSanitizer()
-		return
-	}
-	s.outputSanitizer = nil
 }
 
 // resetProcessStateLocked 清空当前进程相关的运行时状态。
@@ -598,16 +541,10 @@ func (s *Server) resetProcessStateLocked() {
 	s.stopFn = nil
 	s.closeFn = nil
 	s.stdinLineEnd = ""
-	s.rawOutput = false
-	s.outputSanitizer = nil
 }
 
-// startReaders 根据输出模式启动对应的日志读取协程。
+// startReaders 启动标准输出和标准错误的日志读取协程。
 func (s *Server) startReaders(result *startResult) {
-	if result.rawOutput {
-		go s.readRaw(result.stdout, LogSourceStdout)
-		return
-	}
 	go s.readPipe(result.stdout, LogSourceStdout)
 	if result.stderr != nil {
 		go s.readPipe(result.stderr, LogSourceStderr)
@@ -616,14 +553,6 @@ func (s *Server) startReaders(result *startResult) {
 
 // startProcessLocked 按当前配置启动子进程，并返回本次启动需要的运行时句柄。
 func (s *Server) startProcessLocked() (*startResult, error) {
-	if s.cfg.Terminal {
-		if result, err := startTerminalProcess(s); err == nil {
-			return result, nil
-		} else if runtime.GOOS == "windows" {
-			return nil, err
-		}
-	}
-
 	cmd := buildExecCommand(s.cfg.CommandLine, s.cfg.Command, s.cfg.Args, s.cfg.Dir)
 	cmd.Dir = s.cfg.Dir
 	if len(s.cfg.Env) > 0 {

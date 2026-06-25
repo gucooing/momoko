@@ -951,12 +951,6 @@ enum OperationType {
   OperationTypeInstanceTypeUpdate = 26;
   // 实例类型删除
   OperationTypeInstanceTypeDelete = 27;
-  // 终端启动
-  OperationTypeInstanceTerminalStart = 28;
-  // 终端停止
-  OperationTypeInstanceTerminalStop = 29;
-  // 终端重启
-  OperationTypeInstanceTerminalRestart = 30;
   // 实例新增
   OperationTypeInstanceCreate = 31;
   // 实例启动

@@ -53,7 +53,6 @@ const createHomeShortcuts = (): DashboardShortcutItem[] => [
   { labelKey: 'dashboard.home.shortcuts.users', icon: 'HOutline:UserGroupIcon', color: '#f59e0b', routePath: '/system/user' },
   { labelKey: 'dashboard.home.shortcuts.roles', icon: 'HOutline:IdentificationIcon', color: '#10b981', routePath: '/system/role' },
   { labelKey: 'dashboard.home.shortcuts.apps', icon: 'HOutline:Squares2X2Icon', color: '#ec4899', routePath: '/instance/list' },
-  { labelKey: 'dashboard.home.shortcuts.terminal', icon: 'HOutline:CommandLineIcon', color: '#8b5cf6', routePath: '/instance/terminal' },
   { labelKey: 'dashboard.home.shortcuts.fileManager', icon: 'HOutline:FolderIcon', color: '#06b6d4', routePath: '/file/index' },
 ]
 

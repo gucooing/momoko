@@ -61,8 +61,7 @@ var (
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用", "HOutline:ServerStackIcon", nil, 1, "", entmenu.StatusActive),
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "Element:MessageBox", new("menu_2"), 1, "", entmenu.StatusActive),
-		newDefaultMenu("menu_2_3", entmenu.TypeMenu, "/instance/terminal", "终端", "HOutline:CommandLineIcon", new("menu_2"), 2, constant.Instance, entmenu.StatusActive),
-		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_2"), 3, "", entmenu.StatusActive),
+		newDefaultMenu("menu_2_4", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_2"), 2, "", entmenu.StatusActive),
 
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "Element:Folder", new("menu_3"), 0, constant.Terminal, entmenu.StatusActive),

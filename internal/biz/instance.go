@@ -21,9 +21,6 @@ import (
 )
 
 const (
-	terminalType                = "terminal"
-	terminalName                = "终端"
-	TerminalWSPath              = "/api/v1/instance/terminal/ws"
 	InstanceWsPath              = "/api/v1/instance/cmd/ws"
 	defaultInstanceRestartTimes = 3
 	defaultShutdownTimeout      = 3 * time.Second
@@ -33,7 +30,6 @@ const (
 type InstanceUsecase struct {
 	repo     InstanceRepo
 	fileRepo FileRepo
-	terminal *servercore.ServerManager
 	instance *servercore.ServerManager
 }
 
@@ -53,7 +49,6 @@ type InstanceRepo interface {
 func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo) (*InstanceUsecase, func(), error) {
 	usecase := &InstanceUsecase{
 		repo:     repo,
-		terminal: servercore.NewServerManager(),
 		instance: servercore.NewServerManager(),
 		fileRepo: fileRepo,
 	}
@@ -75,26 +70,13 @@ func (i *InstanceUsecase) start() {
 	}
 }
 
-// Close 并发关闭终端和实例管理器，超时后自动强制停止剩余进程。
+// Close 关闭实例管理器，超时后自动强制停止剩余进程。
 func (i *InstanceUsecase) Close() {
 	if i == nil {
 		return
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		_ = i.terminal.Shutdown(defaultShutdownTimeout)
-	}()
-
-	go func() {
-		defer wg.Done()
-		_ = i.instance.Shutdown(defaultShutdownTimeout)
-	}()
-
-	wg.Wait()
+	_ = i.instance.Shutdown(defaultShutdownTimeout)
 }
 
 func (i *InstanceUsecase) GetTypes(ctx context.Context) ([]*v1.InstanceTypeInfo, error) {
@@ -139,54 +121,6 @@ func (i *InstanceUsecase) DeleteType(ctx context.Context, id string) error {
 		return ErrSystem(err)
 	}
 	return nil
-}
-
-func (i *InstanceUsecase) GetTerminalInfo(ctx context.Context, userID string) (*v1.InstanceInfo, error) {
-	terminal, err := i.ensureTerminal(userID)
-	if err != nil {
-		return nil, err
-	}
-	return i.terminalToInstanceInfo(terminal), nil
-}
-
-func (i *InstanceUsecase) GetTerminalServer(ctx context.Context, userID string) (*servercore.Server, error) {
-	terminal, err := i.ensureTerminal(userID)
-	if err != nil {
-		return nil, err
-	}
-	return terminal, nil
-}
-
-func (i *InstanceUsecase) StartTerminal(ctx context.Context, userID string) error {
-	terminal, err := i.ensureTerminal(userID)
-	if err != nil {
-		return err
-	}
-	return terminal.Start()
-}
-
-func (i *InstanceUsecase) StopTerminal(ctx context.Context, userID string) error {
-	terminal, err := i.ensureTerminal(userID)
-	if err != nil {
-		return err
-	}
-	return terminal.Stop()
-}
-
-func (i *InstanceUsecase) RestartTerminal(ctx context.Context, userID string) error {
-	terminal, err := i.ensureTerminal(userID)
-	if err != nil {
-		return err
-	}
-	return terminal.Restart()
-}
-
-func defaultTerminalDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		return ""
-	}
-	return dir
 }
 
 func (i *InstanceUsecase) GetInstances(ctx context.Context, req *v1.GetInstancesRequest, userID string) ([]*v1.InstanceInfo, int64, error) {
@@ -335,22 +269,6 @@ func (i *InstanceUsecase) DelInstanceLog(ctx context.Context, userID, instanceID
 	return nil
 }
 
-func (i *InstanceUsecase) ensureTerminal(userID string) (*servercore.Server, error) {
-	if terminal, ok := i.terminal.Get(userID); ok {
-		return terminal, nil
-	}
-
-	cfg := servercore.NewTerminalConfig(userID, defaultTerminalDir())
-	terminal, err := i.terminal.Create(cfg)
-	if err == nil {
-		return terminal, nil
-	}
-	if terminal, ok := i.terminal.Get(userID); ok {
-		return terminal, nil
-	}
-	return nil, ErrInstanceNotFound
-}
-
 func (i *InstanceUsecase) ensureInstance(item *gen.Instance) (*servercore.Server, error) {
 	cfg := toServerConfig(item)
 
@@ -484,29 +402,6 @@ func toInstanceTypeInfo(data *gen.InstanceType) *v1.InstanceTypeInfo {
 		IsSystem: data.IsSystem,
 		IsEnable: data.IsEnable,
 	}
-}
-
-func (i *InstanceUsecase) terminalToInstanceInfo(terminal *servercore.Server) *v1.InstanceInfo {
-	info := &v1.InstanceInfo{
-		Id:           terminal.ID(),
-		Name:         terminalName,
-		Status:       v1.InstanceStatus_INSTANCE_STATUS_STOPPED,
-		CreateTime:   timestamppb.New(terminal.CreateTime()),
-		Type:         terminalType,
-		UserId:       terminal.ID(),
-		StartCommand: terminal.CommandLine(),
-		InstancePath: terminal.Dir(),
-		StopCommand:  "",
-		AutoStart:    false,
-		WsPath:       TerminalWSPath,
-	}
-	if terminal.Running() {
-		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
-		if startTime, ok := terminal.StartTime(); ok {
-			info.StartTime = timestamppb.New(startTime)
-		}
-	}
-	return info
 }
 
 func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *gen.Instance) *v1.InstanceInfo {

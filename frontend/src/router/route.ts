@@ -45,12 +45,6 @@ export const staticRoutes = [
         meta: { title: '个人中心', icon: 'HOutline:UserCircleIcon', keepAlive: true },
       },
       {
-        path: '/instance/terminal',
-        name: 'SystemTerminalView',
-        component: () => import('@/views/instance/terminal/index.vue'),
-        meta: { title: '终端', icon: 'HOutline:CommandLineIcon', keepAlive: true },
-      },
-      {
         path: '/openssh/management',
         name: 'OpensshManagementView',
         component: () => import('@/views/openssh/management/index.vue'),

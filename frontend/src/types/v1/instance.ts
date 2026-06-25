@@ -92,40 +92,6 @@ export interface InstanceTypeInfo {
   isEnable: boolean;
 }
 
-/** 获取终端详情请求 */
-export interface GetTerminalInfoRequest {
-}
-
-/** 获取终端详情响应 */
-export interface GetTerminalInfoResponse {
-  /** 信息 */
-  info: InstanceInfo | undefined;
-}
-
-/** 启动终端请求 */
-export interface StartTerminalRequest {
-}
-
-/** 启动终端响应 */
-export interface StartTerminalResponse {
-}
-
-/** 停止终端请求 */
-export interface StopTerminalRequest {
-}
-
-/** 停止终端响应 */
-export interface StopTerminalResponse {
-}
-
-/** 重启终端请求 */
-export interface RestartTerminalRequest {
-}
-
-/** 重启终端响应 */
-export interface RestartTerminalResponse {
-}
-
 /** 获取实例列表请求 */
 export interface GetInstancesRequest {
   /** page */

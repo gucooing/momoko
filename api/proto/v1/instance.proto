@@ -38,36 +38,6 @@ service InstanceManager {
     };
   }
 
-  // 终端管理
-  // 获取终端详情
-  rpc GetTerminalInfo(GetTerminalInfoRequest) returns (GetTerminalInfoResponse){
-    option (google.api.http) = {
-      get: "/api/v1/instance/terminal"
-    };
-  }
-  // 启动终端
-  rpc StartTerminal(StartTerminalRequest) returns (StartTerminalResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/instance/terminal/start"
-      body: "*"
-    };
-  }
-  // 停止终端
-  rpc StopTerminal(StopTerminalRequest) returns (StopTerminalResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/instance/terminal/stop"
-      body: "*"
-    };
-  }
-  // 重启终端
-  rpc RestartTerminal(RestartTerminalRequest) returns (RestartTerminalResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/instance/terminal/restart"
-      body: "*"
-    };
-  }
-
-
   // 实例管理
   // 获取实例列表
   rpc GetInstances(GetInstancesRequest) returns (GetInstancesResponse) {
@@ -269,33 +239,6 @@ message InstanceTypeInfo {
   // 是否启用
   bool is_enable = 4;
 }
-
-// 获取终端详情请求
-message GetTerminalInfoRequest {}
-
-// 获取终端详情响应
-message GetTerminalInfoResponse {
-  // 信息
-  InstanceInfo info = 1;
-}
-
-// 启动终端请求
-message StartTerminalRequest {}
-
-// 启动终端响应
-message StartTerminalResponse {}
-
-// 停止终端请求
-message StopTerminalRequest {}
-
-// 停止终端响应
-message StopTerminalResponse {}
-
-// 重启终端请求
-message RestartTerminalRequest{}
-
-// 重启终端响应
-message RestartTerminalResponse{}
 
 // 获取实例列表请求
 message GetInstancesRequest{

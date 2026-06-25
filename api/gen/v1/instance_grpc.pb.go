@@ -23,10 +23,6 @@ const (
 	InstanceManager_CreateInstanceType_FullMethodName        = "/v1.InstanceManager/CreateInstanceType"
 	InstanceManager_UpdateInstanceType_FullMethodName        = "/v1.InstanceManager/UpdateInstanceType"
 	InstanceManager_DelInstanceType_FullMethodName           = "/v1.InstanceManager/DelInstanceType"
-	InstanceManager_GetTerminalInfo_FullMethodName           = "/v1.InstanceManager/GetTerminalInfo"
-	InstanceManager_StartTerminal_FullMethodName             = "/v1.InstanceManager/StartTerminal"
-	InstanceManager_StopTerminal_FullMethodName              = "/v1.InstanceManager/StopTerminal"
-	InstanceManager_RestartTerminal_FullMethodName           = "/v1.InstanceManager/RestartTerminal"
 	InstanceManager_GetInstances_FullMethodName              = "/v1.InstanceManager/GetInstances"
 	InstanceManager_CreateInstance_FullMethodName            = "/v1.InstanceManager/CreateInstance"
 	InstanceManager_GetInstanceInfo_FullMethodName           = "/v1.InstanceManager/GetInstanceInfo"
@@ -65,15 +61,6 @@ type InstanceManagerClient interface {
 	UpdateInstanceType(ctx context.Context, in *UpdateInstanceTypeRequest, opts ...grpc.CallOption) (*UpdateInstanceTypeResponse, error)
 	// 删除实例类型
 	DelInstanceType(ctx context.Context, in *DelInstanceTypeRequest, opts ...grpc.CallOption) (*DelInstanceTypeResponse, error)
-	// 终端管理
-	// 获取终端详情
-	GetTerminalInfo(ctx context.Context, in *GetTerminalInfoRequest, opts ...grpc.CallOption) (*GetTerminalInfoResponse, error)
-	// 启动终端
-	StartTerminal(ctx context.Context, in *StartTerminalRequest, opts ...grpc.CallOption) (*StartTerminalResponse, error)
-	// 停止终端
-	StopTerminal(ctx context.Context, in *StopTerminalRequest, opts ...grpc.CallOption) (*StopTerminalResponse, error)
-	// 重启终端
-	RestartTerminal(ctx context.Context, in *RestartTerminalRequest, opts ...grpc.CallOption) (*RestartTerminalResponse, error)
 	// 实例管理
 	// 获取实例列表
 	GetInstances(ctx context.Context, in *GetInstancesRequest, opts ...grpc.CallOption) (*GetInstancesResponse, error)
@@ -161,46 +148,6 @@ func (c *instanceManagerClient) DelInstanceType(ctx context.Context, in *DelInst
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DelInstanceTypeResponse)
 	err := c.cc.Invoke(ctx, InstanceManager_DelInstanceType_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *instanceManagerClient) GetTerminalInfo(ctx context.Context, in *GetTerminalInfoRequest, opts ...grpc.CallOption) (*GetTerminalInfoResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetTerminalInfoResponse)
-	err := c.cc.Invoke(ctx, InstanceManager_GetTerminalInfo_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *instanceManagerClient) StartTerminal(ctx context.Context, in *StartTerminalRequest, opts ...grpc.CallOption) (*StartTerminalResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StartTerminalResponse)
-	err := c.cc.Invoke(ctx, InstanceManager_StartTerminal_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *instanceManagerClient) StopTerminal(ctx context.Context, in *StopTerminalRequest, opts ...grpc.CallOption) (*StopTerminalResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StopTerminalResponse)
-	err := c.cc.Invoke(ctx, InstanceManager_StopTerminal_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *instanceManagerClient) RestartTerminal(ctx context.Context, in *RestartTerminalRequest, opts ...grpc.CallOption) (*RestartTerminalResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RestartTerminalResponse)
-	err := c.cc.Invoke(ctx, InstanceManager_RestartTerminal_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -432,15 +379,6 @@ type InstanceManagerServer interface {
 	UpdateInstanceType(context.Context, *UpdateInstanceTypeRequest) (*UpdateInstanceTypeResponse, error)
 	// 删除实例类型
 	DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error)
-	// 终端管理
-	// 获取终端详情
-	GetTerminalInfo(context.Context, *GetTerminalInfoRequest) (*GetTerminalInfoResponse, error)
-	// 启动终端
-	StartTerminal(context.Context, *StartTerminalRequest) (*StartTerminalResponse, error)
-	// 停止终端
-	StopTerminal(context.Context, *StopTerminalRequest) (*StopTerminalResponse, error)
-	// 重启终端
-	RestartTerminal(context.Context, *RestartTerminalRequest) (*RestartTerminalResponse, error)
 	// 实例管理
 	// 获取实例列表
 	GetInstances(context.Context, *GetInstancesRequest) (*GetInstancesResponse, error)
@@ -505,18 +443,6 @@ func (UnimplementedInstanceManagerServer) UpdateInstanceType(context.Context, *U
 }
 func (UnimplementedInstanceManagerServer) DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelInstanceType not implemented")
-}
-func (UnimplementedInstanceManagerServer) GetTerminalInfo(context.Context, *GetTerminalInfoRequest) (*GetTerminalInfoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetTerminalInfo not implemented")
-}
-func (UnimplementedInstanceManagerServer) StartTerminal(context.Context, *StartTerminalRequest) (*StartTerminalResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method StartTerminal not implemented")
-}
-func (UnimplementedInstanceManagerServer) StopTerminal(context.Context, *StopTerminalRequest) (*StopTerminalResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method StopTerminal not implemented")
-}
-func (UnimplementedInstanceManagerServer) RestartTerminal(context.Context, *RestartTerminalRequest) (*RestartTerminalResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RestartTerminal not implemented")
 }
 func (UnimplementedInstanceManagerServer) GetInstances(context.Context, *GetInstancesRequest) (*GetInstancesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInstances not implemented")
@@ -670,78 +596,6 @@ func _InstanceManager_DelInstanceType_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(InstanceManagerServer).DelInstanceType(ctx, req.(*DelInstanceTypeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _InstanceManager_GetTerminalInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTerminalInfoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(InstanceManagerServer).GetTerminalInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: InstanceManager_GetTerminalInfo_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InstanceManagerServer).GetTerminalInfo(ctx, req.(*GetTerminalInfoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _InstanceManager_StartTerminal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartTerminalRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(InstanceManagerServer).StartTerminal(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: InstanceManager_StartTerminal_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InstanceManagerServer).StartTerminal(ctx, req.(*StartTerminalRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _InstanceManager_StopTerminal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StopTerminalRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(InstanceManagerServer).StopTerminal(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: InstanceManager_StopTerminal_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InstanceManagerServer).StopTerminal(ctx, req.(*StopTerminalRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _InstanceManager_RestartTerminal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RestartTerminalRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(InstanceManagerServer).RestartTerminal(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: InstanceManager_RestartTerminal_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InstanceManagerServer).RestartTerminal(ctx, req.(*RestartTerminalRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1146,22 +1000,6 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelInstanceType",
 			Handler:    _InstanceManager_DelInstanceType_Handler,
-		},
-		{
-			MethodName: "GetTerminalInfo",
-			Handler:    _InstanceManager_GetTerminalInfo_Handler,
-		},
-		{
-			MethodName: "StartTerminal",
-			Handler:    _InstanceManager_StartTerminal_Handler,
-		},
-		{
-			MethodName: "StopTerminal",
-			Handler:    _InstanceManager_StopTerminal_Handler,
-		},
-		{
-			MethodName: "RestartTerminal",
-			Handler:    _InstanceManager_RestartTerminal_Handler,
 		},
 		{
 			MethodName: "GetInstances",

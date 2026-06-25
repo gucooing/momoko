@@ -24,7 +24,6 @@ func NewInstanceService(uc *biz.InstanceUsecase) *InstanceService {
 }
 
 func (i *InstanceService) RegisterWsServer(srv *http.Server) {
-	srv.Handle(biz.TerminalWSPath, websocket.Handler(i.RunTerminalWsConn))
 	srv.Handle(biz.InstanceWsPath, websocket.Handler(i.RunInstanceWsConn))
 }
 
@@ -57,51 +56,6 @@ func (i *InstanceService) DelInstanceType(ctx context.Context, req *v1.DelInstan
 		return nil, err
 	}
 	return &v1.DelInstanceTypeResponse{}, nil
-}
-
-func (i *InstanceService) GetTerminalInfo(ctx context.Context, req *v1.GetTerminalInfoRequest) (*v1.GetTerminalInfoResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	info, err := i.uc.GetTerminalInfo(ctx, authCtx.UserID)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GetTerminalInfoResponse{Info: info}, nil
-}
-
-func (i *InstanceService) StartTerminal(ctx context.Context, req *v1.StartTerminalRequest) (*v1.StartTerminalResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	if err := i.uc.StartTerminal(ctx, authCtx.UserID); err != nil {
-		return nil, err
-	}
-	return &v1.StartTerminalResponse{}, nil
-}
-
-func (i *InstanceService) StopTerminal(ctx context.Context, req *v1.StopTerminalRequest) (*v1.StopTerminalResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	if err := i.uc.StopTerminal(ctx, authCtx.UserID); err != nil {
-		return nil, err
-	}
-	return &v1.StopTerminalResponse{}, nil
-}
-
-func (i *InstanceService) RestartTerminal(ctx context.Context, req *v1.RestartTerminalRequest) (*v1.RestartTerminalResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	if err := i.uc.RestartTerminal(ctx, authCtx.UserID); err != nil {
-		return nil, err
-	}
-	return &v1.RestartTerminalResponse{}, nil
 }
 
 func (i *InstanceService) GetInstances(ctx context.Context, req *v1.GetInstancesRequest) (*v1.GetInstancesResponse, error) {
@@ -306,23 +260,6 @@ func (i *InstanceService) InstanceFilePreSignUpload(ctx context.Context, req *v1
 		return nil, err
 	}
 	return &v1.InstanceFilePreSignUploadResponse{Info: item}, nil
-}
-
-// RunTerminalWsConn 启动终端连接
-func (i *InstanceService) RunTerminalWsConn(conn *websocket.Conn) {
-	defer conn.Close()
-	ctx := context.WithoutCancel(conn.Request().Context())
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		websocket.Message.Send(conn, "缺少参数")
-		return
-	}
-	terminal, err := i.uc.GetTerminalServer(ctx, authCtx.UserID)
-	if err != nil {
-		websocket.Message.Send(conn, err.Error())
-		return
-	}
-	i.uc.StartInstanceWsConn(conn, terminal)
 }
 
 // RunInstanceWsConn 启动应用连接

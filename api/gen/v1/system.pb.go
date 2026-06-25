@@ -284,12 +284,6 @@ const (
 	OperationType_OperationTypeInstanceTypeUpdate OperationType = 26
 	// 实例类型删除
 	OperationType_OperationTypeInstanceTypeDelete OperationType = 27
-	// 终端启动
-	OperationType_OperationTypeInstanceTerminalStart OperationType = 28
-	// 终端停止
-	OperationType_OperationTypeInstanceTerminalStop OperationType = 29
-	// 终端重启
-	OperationType_OperationTypeInstanceTerminalRestart OperationType = 30
 	// 实例新增
 	OperationType_OperationTypeInstanceCreate OperationType = 31
 	// 实例启动
@@ -450,9 +444,6 @@ var (
 		25: "OperationTypeInstanceTypeCreate",
 		26: "OperationTypeInstanceTypeUpdate",
 		27: "OperationTypeInstanceTypeDelete",
-		28: "OperationTypeInstanceTerminalStart",
-		29: "OperationTypeInstanceTerminalStop",
-		30: "OperationTypeInstanceTerminalRestart",
 		31: "OperationTypeInstanceCreate",
 		32: "OperationTypeInstanceStart",
 		33: "OperationTypeInstanceStop",
@@ -547,9 +538,6 @@ var (
 		"OperationTypeInstanceTypeCreate":        25,
 		"OperationTypeInstanceTypeUpdate":        26,
 		"OperationTypeInstanceTypeDelete":        27,
-		"OperationTypeInstanceTerminalStart":     28,
-		"OperationTypeInstanceTerminalStop":      29,
-		"OperationTypeInstanceTerminalRestart":   30,
 		"OperationTypeInstanceCreate":            31,
 		"OperationTypeInstanceStart":             32,
 		"OperationTypeInstanceStop":              33,
@@ -5846,7 +5834,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x11RoleStatus_Active\x10\x01*P\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xdf\x1a\n" +
+	"\x17EmailTemplateType_Login\x10\x01*\xe6\x19\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
@@ -5877,10 +5865,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x15OperationTypeFileEdit\x10>\x12#\n" +
 	"\x1fOperationTypeInstanceTypeCreate\x10\x19\x12#\n" +
 	"\x1fOperationTypeInstanceTypeUpdate\x10\x1a\x12#\n" +
-	"\x1fOperationTypeInstanceTypeDelete\x10\x1b\x12&\n" +
-	"\"OperationTypeInstanceTerminalStart\x10\x1c\x12%\n" +
-	"!OperationTypeInstanceTerminalStop\x10\x1d\x12(\n" +
-	"$OperationTypeInstanceTerminalRestart\x10\x1e\x12\x1f\n" +
+	"\x1fOperationTypeInstanceTypeDelete\x10\x1b\x12\x1f\n" +
 	"\x1bOperationTypeInstanceCreate\x10\x1f\x12\x1e\n" +
 	"\x1aOperationTypeInstanceStart\x10 \x12\x1d\n" +
 	"\x19OperationTypeInstanceStop\x10!\x12 \n" +

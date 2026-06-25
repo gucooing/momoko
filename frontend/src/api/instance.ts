@@ -15,21 +15,13 @@ import type {
   GetInstancesRequest,
   GetInstancesResponse,
   GetInstanceTypesRequest,
-  GetTerminalInfoRequest,
-  GetTerminalInfoResponse,
   GetInstanceTypesResponse,
   RestartInstanceRequest,
   RestartInstanceResponse,
-  RestartTerminalRequest,
-  RestartTerminalResponse,
   StartInstanceRequest,
   StartInstanceResponse,
-  StartTerminalRequest,
-  StartTerminalResponse,
   StopInstanceRequest,
   StopInstanceResponse,
-  StopTerminalRequest,
-  StopTerminalResponse,
   UpdateInstanceRequest,
   UpdateInstanceResponse,
   UpdateInstanceTypeRequest,
@@ -113,22 +105,6 @@ export const updateInstanceType = (data: UpdateInstanceTypeRequest) => {
 
 export const deleteInstanceType = (params: DelInstanceTypeRequest) => {
   return request.delete<DelInstanceTypeResponse>(`/instance/type/${params.id}`)
-}
-
-export const getTerminalInfoRequest = (params: GetTerminalInfoRequest = {}) => {
-  return request.get<GetTerminalInfoResponse>('/instance/terminal', { params })
-}
-
-export const startTerminalRequest = (data: StartTerminalRequest = {}) => {
-  return request.post<StartTerminalResponse>('/instance/terminal/start', data)
-}
-
-export const stopTerminalRequest = (data: StopTerminalRequest = {}) => {
-  return request.post<StopTerminalResponse>('/instance/terminal/stop', data)
-}
-
-export const restartTerminalRequest = (data: RestartTerminalRequest = {}) => {
-  return request.post<RestartTerminalResponse>('/instance/terminal/restart', data)
 }
 
 export const getInstanceFileListRequest = (params: GetInstanceFileListRequest) => {

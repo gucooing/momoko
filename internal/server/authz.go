@@ -114,7 +114,6 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.DockerContainerExecWSPath: constant.DockerContainerManage,
 	biz.DockerContainerLogsWSPath: constant.DockerView,
 	biz.DockerTaskWSPath:          constant.DockerView,
-	biz.TerminalWSPath:            constant.Instance,
 	biz.InstanceWsPath:            constant.Instance,
 }
 

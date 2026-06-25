@@ -105,12 +105,6 @@ export enum OperationType {
   OperationTypeInstanceTypeUpdate = "OperationTypeInstanceTypeUpdate",
   /** OperationTypeInstanceTypeDelete - 实例类型删除 */
   OperationTypeInstanceTypeDelete = "OperationTypeInstanceTypeDelete",
-  /** OperationTypeInstanceTerminalStart - 终端启动 */
-  OperationTypeInstanceTerminalStart = "OperationTypeInstanceTerminalStart",
-  /** OperationTypeInstanceTerminalStop - 终端停止 */
-  OperationTypeInstanceTerminalStop = "OperationTypeInstanceTerminalStop",
-  /** OperationTypeInstanceTerminalRestart - 终端重启 */
-  OperationTypeInstanceTerminalRestart = "OperationTypeInstanceTerminalRestart",
   /** OperationTypeInstanceCreate - 实例新增 */
   OperationTypeInstanceCreate = "OperationTypeInstanceCreate",
   /** OperationTypeInstanceStart - 实例启动 */

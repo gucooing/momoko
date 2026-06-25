@@ -34,17 +34,13 @@ const OperationInstanceManagerGetInstanceFileList = "/v1.InstanceManager/GetInst
 const OperationInstanceManagerGetInstanceInfo = "/v1.InstanceManager/GetInstanceInfo"
 const OperationInstanceManagerGetInstanceTypes = "/v1.InstanceManager/GetInstanceTypes"
 const OperationInstanceManagerGetInstances = "/v1.InstanceManager/GetInstances"
-const OperationInstanceManagerGetTerminalInfo = "/v1.InstanceManager/GetTerminalInfo"
 const OperationInstanceManagerInstanceFilePreSign = "/v1.InstanceManager/InstanceFilePreSign"
 const OperationInstanceManagerInstanceFilePreSignUpload = "/v1.InstanceManager/InstanceFilePreSignUpload"
 const OperationInstanceManagerOpenInstanceFile = "/v1.InstanceManager/OpenInstanceFile"
 const OperationInstanceManagerRenameInstanceFile = "/v1.InstanceManager/RenameInstanceFile"
 const OperationInstanceManagerRestartInstance = "/v1.InstanceManager/RestartInstance"
-const OperationInstanceManagerRestartTerminal = "/v1.InstanceManager/RestartTerminal"
 const OperationInstanceManagerStartInstance = "/v1.InstanceManager/StartInstance"
-const OperationInstanceManagerStartTerminal = "/v1.InstanceManager/StartTerminal"
 const OperationInstanceManagerStopInstance = "/v1.InstanceManager/StopInstance"
-const OperationInstanceManagerStopTerminal = "/v1.InstanceManager/StopTerminal"
 const OperationInstanceManagerUnzipInstanceFile = "/v1.InstanceManager/UnzipInstanceFile"
 const OperationInstanceManagerUpdateInstance = "/v1.InstanceManager/UpdateInstance"
 const OperationInstanceManagerUpdateInstanceType = "/v1.InstanceManager/UpdateInstanceType"
@@ -82,9 +78,6 @@ type InstanceManagerHTTPServer interface {
 	// GetInstances 实例管理
 	// 获取实例列表
 	GetInstances(context.Context, *GetInstancesRequest) (*GetInstancesResponse, error)
-	// GetTerminalInfo 终端管理
-	// 获取终端详情
-	GetTerminalInfo(context.Context, *GetTerminalInfoRequest) (*GetTerminalInfoResponse, error)
 	// InstanceFilePreSign 实例目录内文件下载预签名
 	InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error)
 	// InstanceFilePreSignUpload 实例目录内文件上传预签名
@@ -95,16 +88,10 @@ type InstanceManagerHTTPServer interface {
 	RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error)
 	// RestartInstance 重启实例
 	RestartInstance(context.Context, *RestartInstanceRequest) (*RestartInstanceResponse, error)
-	// RestartTerminal 重启终端
-	RestartTerminal(context.Context, *RestartTerminalRequest) (*RestartTerminalResponse, error)
 	// StartInstance 启动实例
 	StartInstance(context.Context, *StartInstanceRequest) (*StartInstanceResponse, error)
-	// StartTerminal 启动终端
-	StartTerminal(context.Context, *StartTerminalRequest) (*StartTerminalResponse, error)
 	// StopInstance 停止实例
 	StopInstance(context.Context, *StopInstanceRequest) (*StopInstanceResponse, error)
-	// StopTerminal 停止终端
-	StopTerminal(context.Context, *StopTerminalRequest) (*StopTerminalResponse, error)
 	// UnzipInstanceFile 解压实例目录内压缩包
 	UnzipInstanceFile(context.Context, *UnzipInstanceFileRequest) (*UnzipInstanceFileResponse, error)
 	// UpdateInstance 更新实例
@@ -119,10 +106,6 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.POST("/api/v1/instance/type", _InstanceManager_CreateInstanceType0_HTTP_Handler(srv))
 	r.PUT("/api/v1/instance/type/{id}", _InstanceManager_UpdateInstanceType0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/instance/type/{id}", _InstanceManager_DelInstanceType0_HTTP_Handler(srv))
-	r.GET("/api/v1/instance/terminal", _InstanceManager_GetTerminalInfo0_HTTP_Handler(srv))
-	r.POST("/api/v1/instance/terminal/start", _InstanceManager_StartTerminal0_HTTP_Handler(srv))
-	r.POST("/api/v1/instance/terminal/stop", _InstanceManager_StopTerminal0_HTTP_Handler(srv))
-	r.POST("/api/v1/instance/terminal/restart", _InstanceManager_RestartTerminal0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance", _InstanceManager_GetInstances0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance", _InstanceManager_CreateInstance0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/{id}", _InstanceManager_GetInstanceInfo0_HTTP_Handler(srv))
@@ -230,91 +213,6 @@ func _InstanceManager_DelInstanceType0_HTTP_Handler(srv InstanceManagerHTTPServe
 			return err
 		}
 		reply := out.(*DelInstanceTypeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _InstanceManager_GetTerminalInfo0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetTerminalInfoRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationInstanceManagerGetTerminalInfo)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetTerminalInfo(ctx, req.(*GetTerminalInfoRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetTerminalInfoResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _InstanceManager_StartTerminal0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in StartTerminalRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationInstanceManagerStartTerminal)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.StartTerminal(ctx, req.(*StartTerminalRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*StartTerminalResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _InstanceManager_StopTerminal0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in StopTerminalRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationInstanceManagerStopTerminal)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.StopTerminal(ctx, req.(*StopTerminalRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*StopTerminalResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _InstanceManager_RestartTerminal0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RestartTerminalRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationInstanceManagerRestartTerminal)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RestartTerminal(ctx, req.(*RestartTerminalRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RestartTerminalResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -850,9 +748,6 @@ type InstanceManagerHTTPClient interface {
 	// GetInstances 实例管理
 	// 获取实例列表
 	GetInstances(ctx context.Context, req *GetInstancesRequest, opts ...http.CallOption) (rsp *GetInstancesResponse, err error)
-	// GetTerminalInfo 终端管理
-	// 获取终端详情
-	GetTerminalInfo(ctx context.Context, req *GetTerminalInfoRequest, opts ...http.CallOption) (rsp *GetTerminalInfoResponse, err error)
 	// InstanceFilePreSign 实例目录内文件下载预签名
 	InstanceFilePreSign(ctx context.Context, req *InstanceFilePreSignRequest, opts ...http.CallOption) (rsp *InstanceFilePreSignResponse, err error)
 	// InstanceFilePreSignUpload 实例目录内文件上传预签名
@@ -863,16 +758,10 @@ type InstanceManagerHTTPClient interface {
 	RenameInstanceFile(ctx context.Context, req *RenameInstanceFileRequest, opts ...http.CallOption) (rsp *RenameInstanceFileResponse, err error)
 	// RestartInstance 重启实例
 	RestartInstance(ctx context.Context, req *RestartInstanceRequest, opts ...http.CallOption) (rsp *RestartInstanceResponse, err error)
-	// RestartTerminal 重启终端
-	RestartTerminal(ctx context.Context, req *RestartTerminalRequest, opts ...http.CallOption) (rsp *RestartTerminalResponse, err error)
 	// StartInstance 启动实例
 	StartInstance(ctx context.Context, req *StartInstanceRequest, opts ...http.CallOption) (rsp *StartInstanceResponse, err error)
-	// StartTerminal 启动终端
-	StartTerminal(ctx context.Context, req *StartTerminalRequest, opts ...http.CallOption) (rsp *StartTerminalResponse, err error)
 	// StopInstance 停止实例
 	StopInstance(ctx context.Context, req *StopInstanceRequest, opts ...http.CallOption) (rsp *StopInstanceResponse, err error)
-	// StopTerminal 停止终端
-	StopTerminal(ctx context.Context, req *StopTerminalRequest, opts ...http.CallOption) (rsp *StopTerminalResponse, err error)
 	// UnzipInstanceFile 解压实例目录内压缩包
 	UnzipInstanceFile(ctx context.Context, req *UnzipInstanceFileRequest, opts ...http.CallOption) (rsp *UnzipInstanceFileResponse, err error)
 	// UpdateInstance 更新实例
@@ -1101,21 +990,6 @@ func (c *InstanceManagerHTTPClientImpl) GetInstances(ctx context.Context, in *Ge
 	return &out, nil
 }
 
-// GetTerminalInfo 终端管理
-// 获取终端详情
-func (c *InstanceManagerHTTPClientImpl) GetTerminalInfo(ctx context.Context, in *GetTerminalInfoRequest, opts ...http.CallOption) (*GetTerminalInfoResponse, error) {
-	var out GetTerminalInfoResponse
-	pattern := "/api/v1/instance/terminal"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationInstanceManagerGetTerminalInfo))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // InstanceFilePreSign 实例目录内文件下载预签名
 func (c *InstanceManagerHTTPClientImpl) InstanceFilePreSign(ctx context.Context, in *InstanceFilePreSignRequest, opts ...http.CallOption) (*InstanceFilePreSignResponse, error) {
 	var out InstanceFilePreSignResponse
@@ -1186,20 +1060,6 @@ func (c *InstanceManagerHTTPClientImpl) RestartInstance(ctx context.Context, in 
 	return &out, nil
 }
 
-// RestartTerminal 重启终端
-func (c *InstanceManagerHTTPClientImpl) RestartTerminal(ctx context.Context, in *RestartTerminalRequest, opts ...http.CallOption) (*RestartTerminalResponse, error) {
-	var out RestartTerminalResponse
-	pattern := "/api/v1/instance/terminal/restart"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationInstanceManagerRestartTerminal))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // StartInstance 启动实例
 func (c *InstanceManagerHTTPClientImpl) StartInstance(ctx context.Context, in *StartInstanceRequest, opts ...http.CallOption) (*StartInstanceResponse, error) {
 	var out StartInstanceResponse
@@ -1214,40 +1074,12 @@ func (c *InstanceManagerHTTPClientImpl) StartInstance(ctx context.Context, in *S
 	return &out, nil
 }
 
-// StartTerminal 启动终端
-func (c *InstanceManagerHTTPClientImpl) StartTerminal(ctx context.Context, in *StartTerminalRequest, opts ...http.CallOption) (*StartTerminalResponse, error) {
-	var out StartTerminalResponse
-	pattern := "/api/v1/instance/terminal/start"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationInstanceManagerStartTerminal))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // StopInstance 停止实例
 func (c *InstanceManagerHTTPClientImpl) StopInstance(ctx context.Context, in *StopInstanceRequest, opts ...http.CallOption) (*StopInstanceResponse, error) {
 	var out StopInstanceResponse
 	pattern := "/api/v1/instance/instance/stop/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationInstanceManagerStopInstance))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// StopTerminal 停止终端
-func (c *InstanceManagerHTTPClientImpl) StopTerminal(ctx context.Context, in *StopTerminalRequest, opts ...http.CallOption) (*StopTerminalResponse, error) {
-	var out StopTerminalResponse
-	pattern := "/api/v1/instance/terminal/stop"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationInstanceManagerStopTerminal))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

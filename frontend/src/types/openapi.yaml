@@ -1934,78 +1934,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateInstanceResponse'
-    /api/v1/instance/terminal:
-        get:
-            tags:
-                - InstanceManager
-            description: |-
-                终端管理
-                 获取终端详情
-            operationId: InstanceManager_GetTerminalInfo
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetTerminalInfoResponse'
-    /api/v1/instance/terminal/restart:
-        post:
-            tags:
-                - InstanceManager
-            description: 重启终端
-            operationId: InstanceManager_RestartTerminal
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.RestartTerminalRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.RestartTerminalResponse'
-    /api/v1/instance/terminal/start:
-        post:
-            tags:
-                - InstanceManager
-            description: 启动终端
-            operationId: InstanceManager_StartTerminal
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.StartTerminalRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.StartTerminalResponse'
-    /api/v1/instance/terminal/stop:
-        post:
-            tags:
-                - InstanceManager
-            description: 停止终端
-            operationId: InstanceManager_StopTerminal
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.StopTerminalRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.StopTerminalResponse'
     /api/v1/instance/type:
         get:
             tags:
@@ -6109,14 +6037,6 @@ components:
             properties:
                 stats:
                     $ref: '#/components/schemas/v1.Sub2APIStats'
-        v1.GetTerminalInfoResponse:
-            type: object
-            properties:
-                info:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.InstanceInfo'
-                    description: 信息
-            description: 获取终端详情响应
         v1.ImageGenApiKeySummary:
             type: object
             properties:
@@ -7233,14 +7153,6 @@ components:
             type: object
             properties: {}
             description: 重启实例响应
-        v1.RestartTerminalRequest:
-            type: object
-            properties: {}
-            description: 重启终端请求
-        v1.RestartTerminalResponse:
-            type: object
-            properties: {}
-            description: 重启终端响应
         v1.RoleInfo:
             type: object
             properties:
@@ -7424,14 +7336,6 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 实例详情
             description: 启动实例响应
-        v1.StartTerminalRequest:
-            type: object
-            properties: {}
-            description: 启动终端请求
-        v1.StartTerminalResponse:
-            type: object
-            properties: {}
-            description: 启动终端响应
         v1.StopDockerContainerRequest:
             type: object
             properties:
@@ -7461,14 +7365,6 @@ components:
             type: object
             properties: {}
             description: 停止实例响应
-        v1.StopTerminalRequest:
-            type: object
-            properties: {}
-            description: 停止终端请求
-        v1.StopTerminalResponse:
-            type: object
-            properties: {}
-            description: 停止终端响应
         v1.Sub2APIAnnouncement:
             type: object
             properties:
