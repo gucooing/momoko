@@ -138,6 +138,46 @@
             </article>
           </div>
         </article>
+
+        <article v-if="userAgents.length" class="panel">
+          <div class="panel-head">
+            <h3>{{ t('sub2api.stats.uaDetails') }}</h3>
+            <span>{{ t('sub2api.common.countTimes', { count: store.formatNumber(totalUaRequests) }) }}</span>
+          </div>
+          <el-table class="desktop-table" :data="userAgents" :max-height="288" stripe>
+            <el-table-column type="index" label="#" width="56" />
+            <el-table-column prop="name" :label="t('sub2api.common.ua')" min-width="260" show-overflow-tooltip />
+            <el-table-column :label="t('sub2api.common.requestCount')" width="120">
+              <template #default="{ row }">{{ store.formatNumber(row.requestCount) }}</template>
+            </el-table-column>
+            <el-table-column label="Token" width="120">
+              <template #default="{ row }">{{ store.formatToken(row.tokenCount) }}</template>
+            </el-table-column>
+            <el-table-column :label="t('sub2api.common.successRate')" width="110">
+              <template #default="{ row }">{{ store.formatPercent(row.successRate) }}</template>
+            </el-table-column>
+          </el-table>
+          <div class="mobile-detail-list">
+            <article v-for="(row, i) in userAgents" :key="row.name || i" class="detail-rank-row">
+              <span class="detail-index">{{ i + 1 }}</span>
+              <div class="detail-rank-body">
+                <div class="detail-rank-line">
+                  <strong>{{ row.name || t('sub2api.common.unknownUa') }}</strong>
+                  <span
+                    >{{ t('sub2api.common.countTimes', { count: store.formatNumber(row.requestCount) }) }} ·
+                    {{ store.formatToken(row.tokenCount) }}</span
+                  >
+                </div>
+                <div class="detail-bar">
+                  <i :style="{ width: uaBarWidth(row.requestCount) }" />
+                </div>
+              </div>
+              <span class="detail-rate"
+                ><em>{{ t('sub2api.common.successRate') }}</em>{{ store.formatPercent(row.successRate) }}</span
+              >
+            </article>
+          </div>
+        </article>
       </div>
     </section>
   </main>
@@ -186,6 +226,15 @@ const endpoints = computed(() =>
     (a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0),
   ),
 )
+// UA 明细按使用数量（请求数）降序
+const userAgents = computed(() =>
+  [...(stats.value?.userAgents || [])].sort(
+    (a, b) => (Number(b.requestCount) || 0) - (Number(a.requestCount) || 0),
+  ),
+)
+const totalUaRequests = computed(() =>
+  userAgents.value.reduce((sum, item) => sum + (Number(item.requestCount) || 0), 0),
+)
 const title = computed(() => store.home?.title || 'Sub2API')
 const maxModelToken = computed(() =>
   Math.max(...models.value.map((item) => Number(item.tokenCount) || 0), 1),
@@ -193,10 +242,15 @@ const maxModelToken = computed(() =>
 const maxEndpointToken = computed(() =>
   Math.max(...endpoints.value.map((item) => Number(item.tokenCount) || 0), 1),
 )
+const maxUaCount = computed(() =>
+  Math.max(...userAgents.value.map((item) => Number(item.requestCount) || 0), 1),
+)
 const modelBarWidth = (token: unknown) =>
   `${Math.max(((Number(token) || 0) / maxModelToken.value) * 100, 4)}%`
 const endpointBarWidth = (token: unknown) =>
   `${Math.max(((Number(token) || 0) / maxEndpointToken.value) * 100, 4)}%`
+const uaBarWidth = (count: unknown) =>
+  `${Math.max(((Number(count) || 0) / maxUaCount.value) * 100, 4)}%`
 
 const onRange = (value: number | string | boolean) => {
   const days = parseRange(value)

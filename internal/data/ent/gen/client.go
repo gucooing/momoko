@@ -22,6 +22,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
+	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
@@ -66,6 +67,8 @@ type Client struct {
 	OperationLog *OperationLogClient
 	// PortForward is the client for interacting with the PortForward builders.
 	PortForward *PortForwardClient
+	// PortForwardStat is the client for interacting with the PortForwardStat builders.
+	PortForwardStat *PortForwardStatClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
@@ -104,6 +107,7 @@ func (c *Client) init() {
 	c.Menu = NewMenuClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
 	c.PortForward = NewPortForwardClient(c.config)
+	c.PortForwardStat = NewPortForwardStatClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(c.config)
@@ -215,6 +219,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Menu:                NewMenuClient(cfg),
 		OperationLog:        NewOperationLogClient(cfg),
 		PortForward:         NewPortForwardClient(cfg),
+		PortForwardStat:     NewPortForwardStatClient(cfg),
 		Role:                NewRoleClient(cfg),
 		SSHHost:             NewSSHHostClient(cfg),
 		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
@@ -253,6 +258,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Menu:                NewMenuClient(cfg),
 		OperationLog:        NewOperationLogClient(cfg),
 		PortForward:         NewPortForwardClient(cfg),
+		PortForwardStat:     NewPortForwardStatClient(cfg),
 		Role:                NewRoleClient(cfg),
 		SSHHost:             NewSSHHostClient(cfg),
 		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
@@ -292,8 +298,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
-		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
+		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
+		c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -305,8 +312,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Auth, c.EmailTemplate, c.FileUpload, c.FileUploadChunk, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.Role, c.SSHHost, c.Sub2APIAnnouncement, c.Sub2APITimelineItem,
-		c.Sub2APIUsageRecord, c.SystemConfig, c.User, c.UserAPIKey,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
+		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
+		c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -337,6 +345,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OperationLog.mutate(ctx, m)
 	case *PortForwardMutation:
 		return c.PortForward.mutate(ctx, m)
+	case *PortForwardStatMutation:
+		return c.PortForwardStat.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *SSHHostMutation:
@@ -1965,6 +1975,139 @@ func (c *PortForwardClient) mutate(ctx context.Context, m *PortForwardMutation) 
 	}
 }
 
+// PortForwardStatClient is a client for the PortForwardStat schema.
+type PortForwardStatClient struct {
+	config
+}
+
+// NewPortForwardStatClient returns a client for the PortForwardStat from the given config.
+func NewPortForwardStatClient(c config) *PortForwardStatClient {
+	return &PortForwardStatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `portforwardstat.Hooks(f(g(h())))`.
+func (c *PortForwardStatClient) Use(hooks ...Hook) {
+	c.hooks.PortForwardStat = append(c.hooks.PortForwardStat, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `portforwardstat.Intercept(f(g(h())))`.
+func (c *PortForwardStatClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PortForwardStat = append(c.inters.PortForwardStat, interceptors...)
+}
+
+// Create returns a builder for creating a PortForwardStat entity.
+func (c *PortForwardStatClient) Create() *PortForwardStatCreate {
+	mutation := newPortForwardStatMutation(c.config, OpCreate)
+	return &PortForwardStatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PortForwardStat entities.
+func (c *PortForwardStatClient) CreateBulk(builders ...*PortForwardStatCreate) *PortForwardStatCreateBulk {
+	return &PortForwardStatCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PortForwardStatClient) MapCreateBulk(slice any, setFunc func(*PortForwardStatCreate, int)) *PortForwardStatCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PortForwardStatCreateBulk{err: fmt.Errorf("calling to PortForwardStatClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PortForwardStatCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PortForwardStatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PortForwardStat.
+func (c *PortForwardStatClient) Update() *PortForwardStatUpdate {
+	mutation := newPortForwardStatMutation(c.config, OpUpdate)
+	return &PortForwardStatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PortForwardStatClient) UpdateOne(_m *PortForwardStat) *PortForwardStatUpdateOne {
+	mutation := newPortForwardStatMutation(c.config, OpUpdateOne, withPortForwardStat(_m))
+	return &PortForwardStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PortForwardStatClient) UpdateOneID(id int) *PortForwardStatUpdateOne {
+	mutation := newPortForwardStatMutation(c.config, OpUpdateOne, withPortForwardStatID(id))
+	return &PortForwardStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PortForwardStat.
+func (c *PortForwardStatClient) Delete() *PortForwardStatDelete {
+	mutation := newPortForwardStatMutation(c.config, OpDelete)
+	return &PortForwardStatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PortForwardStatClient) DeleteOne(_m *PortForwardStat) *PortForwardStatDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PortForwardStatClient) DeleteOneID(id int) *PortForwardStatDeleteOne {
+	builder := c.Delete().Where(portforwardstat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PortForwardStatDeleteOne{builder}
+}
+
+// Query returns a query builder for PortForwardStat.
+func (c *PortForwardStatClient) Query() *PortForwardStatQuery {
+	return &PortForwardStatQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePortForwardStat},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PortForwardStat entity by its id.
+func (c *PortForwardStatClient) Get(ctx context.Context, id int) (*PortForwardStat, error) {
+	return c.Query().Where(portforwardstat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PortForwardStatClient) GetX(ctx context.Context, id int) *PortForwardStat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PortForwardStatClient) Hooks() []Hook {
+	return c.hooks.PortForwardStat
+}
+
+// Interceptors returns the client interceptors.
+func (c *PortForwardStatClient) Interceptors() []Interceptor {
+	return c.inters.PortForwardStat
+}
+
+func (c *PortForwardStatClient) mutate(ctx context.Context, m *PortForwardStatMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PortForwardStatCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PortForwardStatUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PortForwardStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PortForwardStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PortForwardStat mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -3129,15 +3272,15 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 type (
 	hooks struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
-		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward, Role,
-		SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
-		SystemConfig, User, UserAPIKey []ent.Hook
+		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward,
+		PortForwardStat, Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem,
+		Sub2APIUsageRecord, SystemConfig, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileUpload, FileUploadChunk, ImageGenGeneration,
-		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward, Role,
-		SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
-		SystemConfig, User, UserAPIKey []ent.Interceptor
+		ImageGenImage, Instance, InstanceType, Menu, OperationLog, PortForward,
+		PortForwardStat, Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem,
+		Sub2APIUsageRecord, SystemConfig, User, UserAPIKey []ent.Interceptor
 	}
 )
 

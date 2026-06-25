@@ -17,6 +17,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
+	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
@@ -53,6 +54,7 @@ const (
 	TypeMenu                = "Menu"
 	TypeOperationLog        = "OperationLog"
 	TypePortForward         = "PortForward"
+	TypePortForwardStat     = "PortForwardStat"
 	TypeRole                = "Role"
 	TypeSSHHost             = "SSHHost"
 	TypeSub2APIAnnouncement = "Sub2APIAnnouncement"
@@ -9444,8 +9446,6 @@ type PortForwardMutation struct {
 	target_port    *int
 	addtarget_port *int
 	is_enable      *bool
-	remark         *string
-	tags           *string
 	clearedFields  map[string]struct{}
 	user           *string
 	cleareduser    bool
@@ -9958,104 +9958,6 @@ func (m *PortForwardMutation) ResetIsEnable() {
 	m.is_enable = nil
 }
 
-// SetRemark sets the "remark" field.
-func (m *PortForwardMutation) SetRemark(s string) {
-	m.remark = &s
-}
-
-// Remark returns the value of the "remark" field in the mutation.
-func (m *PortForwardMutation) Remark() (r string, exists bool) {
-	v := m.remark
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRemark returns the old "remark" field's value of the PortForward entity.
-// If the PortForward object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PortForwardMutation) OldRemark(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRemark requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
-	}
-	return oldValue.Remark, nil
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (m *PortForwardMutation) ClearRemark() {
-	m.remark = nil
-	m.clearedFields[portforward.FieldRemark] = struct{}{}
-}
-
-// RemarkCleared returns if the "remark" field was cleared in this mutation.
-func (m *PortForwardMutation) RemarkCleared() bool {
-	_, ok := m.clearedFields[portforward.FieldRemark]
-	return ok
-}
-
-// ResetRemark resets all changes to the "remark" field.
-func (m *PortForwardMutation) ResetRemark() {
-	m.remark = nil
-	delete(m.clearedFields, portforward.FieldRemark)
-}
-
-// SetTags sets the "tags" field.
-func (m *PortForwardMutation) SetTags(s string) {
-	m.tags = &s
-}
-
-// Tags returns the value of the "tags" field in the mutation.
-func (m *PortForwardMutation) Tags() (r string, exists bool) {
-	v := m.tags
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTags returns the old "tags" field's value of the PortForward entity.
-// If the PortForward object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PortForwardMutation) OldTags(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTags is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTags requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTags: %w", err)
-	}
-	return oldValue.Tags, nil
-}
-
-// ClearTags clears the value of the "tags" field.
-func (m *PortForwardMutation) ClearTags() {
-	m.tags = nil
-	m.clearedFields[portforward.FieldTags] = struct{}{}
-}
-
-// TagsCleared returns if the "tags" field was cleared in this mutation.
-func (m *PortForwardMutation) TagsCleared() bool {
-	_, ok := m.clearedFields[portforward.FieldTags]
-	return ok
-}
-
-// ResetTags resets all changes to the "tags" field.
-func (m *PortForwardMutation) ResetTags() {
-	m.tags = nil
-	delete(m.clearedFields, portforward.FieldTags)
-}
-
 // ClearUser clears the "user" edge to the User entity.
 func (m *PortForwardMutation) ClearUser() {
 	m.cleareduser = true
@@ -10117,7 +10019,7 @@ func (m *PortForwardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PortForwardMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 10)
 	if m.create_time != nil {
 		fields = append(fields, portforward.FieldCreateTime)
 	}
@@ -10148,12 +10050,6 @@ func (m *PortForwardMutation) Fields() []string {
 	if m.is_enable != nil {
 		fields = append(fields, portforward.FieldIsEnable)
 	}
-	if m.remark != nil {
-		fields = append(fields, portforward.FieldRemark)
-	}
-	if m.tags != nil {
-		fields = append(fields, portforward.FieldTags)
-	}
 	return fields
 }
 
@@ -10182,10 +10078,6 @@ func (m *PortForwardMutation) Field(name string) (ent.Value, bool) {
 		return m.TargetPort()
 	case portforward.FieldIsEnable:
 		return m.IsEnable()
-	case portforward.FieldRemark:
-		return m.Remark()
-	case portforward.FieldTags:
-		return m.Tags()
 	}
 	return nil, false
 }
@@ -10215,10 +10107,6 @@ func (m *PortForwardMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldTargetPort(ctx)
 	case portforward.FieldIsEnable:
 		return m.OldIsEnable(ctx)
-	case portforward.FieldRemark:
-		return m.OldRemark(ctx)
-	case portforward.FieldTags:
-		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown PortForward field %s", name)
 }
@@ -10298,20 +10186,6 @@ func (m *PortForwardMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsEnable(v)
 		return nil
-	case portforward.FieldRemark:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRemark(v)
-		return nil
-	case portforward.FieldTags:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTags(v)
-		return nil
 	}
 	return fmt.Errorf("unknown PortForward field %s", name)
 }
@@ -10368,14 +10242,7 @@ func (m *PortForwardMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PortForwardMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(portforward.FieldRemark) {
-		fields = append(fields, portforward.FieldRemark)
-	}
-	if m.FieldCleared(portforward.FieldTags) {
-		fields = append(fields, portforward.FieldTags)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -10388,14 +10255,6 @@ func (m *PortForwardMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PortForwardMutation) ClearField(name string) error {
-	switch name {
-	case portforward.FieldRemark:
-		m.ClearRemark()
-		return nil
-	case portforward.FieldTags:
-		m.ClearTags()
-		return nil
-	}
 	return fmt.Errorf("unknown PortForward nullable field %s", name)
 }
 
@@ -10432,12 +10291,6 @@ func (m *PortForwardMutation) ResetField(name string) error {
 		return nil
 	case portforward.FieldIsEnable:
 		m.ResetIsEnable()
-		return nil
-	case portforward.FieldRemark:
-		m.ResetRemark()
-		return nil
-	case portforward.FieldTags:
-		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown PortForward field %s", name)
@@ -10515,6 +10368,650 @@ func (m *PortForwardMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown PortForward edge %s", name)
+}
+
+// PortForwardStatMutation represents an operation that mutates the PortForwardStat nodes in the graph.
+type PortForwardStatMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	port_forward_id       *string
+	sample_time           *time.Time
+	active_connections    *int64
+	addactive_connections *int64
+	bytes_in              *int64
+	addbytes_in           *int64
+	bytes_out             *int64
+	addbytes_out          *int64
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*PortForwardStat, error)
+	predicates            []predicate.PortForwardStat
+}
+
+var _ ent.Mutation = (*PortForwardStatMutation)(nil)
+
+// portforwardstatOption allows management of the mutation configuration using functional options.
+type portforwardstatOption func(*PortForwardStatMutation)
+
+// newPortForwardStatMutation creates new mutation for the PortForwardStat entity.
+func newPortForwardStatMutation(c config, op Op, opts ...portforwardstatOption) *PortForwardStatMutation {
+	m := &PortForwardStatMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePortForwardStat,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPortForwardStatID sets the ID field of the mutation.
+func withPortForwardStatID(id int) portforwardstatOption {
+	return func(m *PortForwardStatMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PortForwardStat
+		)
+		m.oldValue = func(ctx context.Context) (*PortForwardStat, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PortForwardStat.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPortForwardStat sets the old PortForwardStat of the mutation.
+func withPortForwardStat(node *PortForwardStat) portforwardstatOption {
+	return func(m *PortForwardStatMutation) {
+		m.oldValue = func(context.Context) (*PortForwardStat, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PortForwardStatMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PortForwardStatMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PortForwardStatMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PortForwardStatMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PortForwardStat.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPortForwardID sets the "port_forward_id" field.
+func (m *PortForwardStatMutation) SetPortForwardID(s string) {
+	m.port_forward_id = &s
+}
+
+// PortForwardID returns the value of the "port_forward_id" field in the mutation.
+func (m *PortForwardStatMutation) PortForwardID() (r string, exists bool) {
+	v := m.port_forward_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPortForwardID returns the old "port_forward_id" field's value of the PortForwardStat entity.
+// If the PortForwardStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortForwardStatMutation) OldPortForwardID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPortForwardID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPortForwardID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPortForwardID: %w", err)
+	}
+	return oldValue.PortForwardID, nil
+}
+
+// ResetPortForwardID resets all changes to the "port_forward_id" field.
+func (m *PortForwardStatMutation) ResetPortForwardID() {
+	m.port_forward_id = nil
+}
+
+// SetSampleTime sets the "sample_time" field.
+func (m *PortForwardStatMutation) SetSampleTime(t time.Time) {
+	m.sample_time = &t
+}
+
+// SampleTime returns the value of the "sample_time" field in the mutation.
+func (m *PortForwardStatMutation) SampleTime() (r time.Time, exists bool) {
+	v := m.sample_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSampleTime returns the old "sample_time" field's value of the PortForwardStat entity.
+// If the PortForwardStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortForwardStatMutation) OldSampleTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSampleTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSampleTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSampleTime: %w", err)
+	}
+	return oldValue.SampleTime, nil
+}
+
+// ResetSampleTime resets all changes to the "sample_time" field.
+func (m *PortForwardStatMutation) ResetSampleTime() {
+	m.sample_time = nil
+}
+
+// SetActiveConnections sets the "active_connections" field.
+func (m *PortForwardStatMutation) SetActiveConnections(i int64) {
+	m.active_connections = &i
+	m.addactive_connections = nil
+}
+
+// ActiveConnections returns the value of the "active_connections" field in the mutation.
+func (m *PortForwardStatMutation) ActiveConnections() (r int64, exists bool) {
+	v := m.active_connections
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActiveConnections returns the old "active_connections" field's value of the PortForwardStat entity.
+// If the PortForwardStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortForwardStatMutation) OldActiveConnections(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActiveConnections is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActiveConnections requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActiveConnections: %w", err)
+	}
+	return oldValue.ActiveConnections, nil
+}
+
+// AddActiveConnections adds i to the "active_connections" field.
+func (m *PortForwardStatMutation) AddActiveConnections(i int64) {
+	if m.addactive_connections != nil {
+		*m.addactive_connections += i
+	} else {
+		m.addactive_connections = &i
+	}
+}
+
+// AddedActiveConnections returns the value that was added to the "active_connections" field in this mutation.
+func (m *PortForwardStatMutation) AddedActiveConnections() (r int64, exists bool) {
+	v := m.addactive_connections
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetActiveConnections resets all changes to the "active_connections" field.
+func (m *PortForwardStatMutation) ResetActiveConnections() {
+	m.active_connections = nil
+	m.addactive_connections = nil
+}
+
+// SetBytesIn sets the "bytes_in" field.
+func (m *PortForwardStatMutation) SetBytesIn(i int64) {
+	m.bytes_in = &i
+	m.addbytes_in = nil
+}
+
+// BytesIn returns the value of the "bytes_in" field in the mutation.
+func (m *PortForwardStatMutation) BytesIn() (r int64, exists bool) {
+	v := m.bytes_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBytesIn returns the old "bytes_in" field's value of the PortForwardStat entity.
+// If the PortForwardStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortForwardStatMutation) OldBytesIn(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBytesIn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBytesIn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBytesIn: %w", err)
+	}
+	return oldValue.BytesIn, nil
+}
+
+// AddBytesIn adds i to the "bytes_in" field.
+func (m *PortForwardStatMutation) AddBytesIn(i int64) {
+	if m.addbytes_in != nil {
+		*m.addbytes_in += i
+	} else {
+		m.addbytes_in = &i
+	}
+}
+
+// AddedBytesIn returns the value that was added to the "bytes_in" field in this mutation.
+func (m *PortForwardStatMutation) AddedBytesIn() (r int64, exists bool) {
+	v := m.addbytes_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBytesIn resets all changes to the "bytes_in" field.
+func (m *PortForwardStatMutation) ResetBytesIn() {
+	m.bytes_in = nil
+	m.addbytes_in = nil
+}
+
+// SetBytesOut sets the "bytes_out" field.
+func (m *PortForwardStatMutation) SetBytesOut(i int64) {
+	m.bytes_out = &i
+	m.addbytes_out = nil
+}
+
+// BytesOut returns the value of the "bytes_out" field in the mutation.
+func (m *PortForwardStatMutation) BytesOut() (r int64, exists bool) {
+	v := m.bytes_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBytesOut returns the old "bytes_out" field's value of the PortForwardStat entity.
+// If the PortForwardStat object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortForwardStatMutation) OldBytesOut(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBytesOut is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBytesOut requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBytesOut: %w", err)
+	}
+	return oldValue.BytesOut, nil
+}
+
+// AddBytesOut adds i to the "bytes_out" field.
+func (m *PortForwardStatMutation) AddBytesOut(i int64) {
+	if m.addbytes_out != nil {
+		*m.addbytes_out += i
+	} else {
+		m.addbytes_out = &i
+	}
+}
+
+// AddedBytesOut returns the value that was added to the "bytes_out" field in this mutation.
+func (m *PortForwardStatMutation) AddedBytesOut() (r int64, exists bool) {
+	v := m.addbytes_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBytesOut resets all changes to the "bytes_out" field.
+func (m *PortForwardStatMutation) ResetBytesOut() {
+	m.bytes_out = nil
+	m.addbytes_out = nil
+}
+
+// Where appends a list predicates to the PortForwardStatMutation builder.
+func (m *PortForwardStatMutation) Where(ps ...predicate.PortForwardStat) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PortForwardStatMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PortForwardStatMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PortForwardStat, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PortForwardStatMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PortForwardStatMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PortForwardStat).
+func (m *PortForwardStatMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PortForwardStatMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.port_forward_id != nil {
+		fields = append(fields, portforwardstat.FieldPortForwardID)
+	}
+	if m.sample_time != nil {
+		fields = append(fields, portforwardstat.FieldSampleTime)
+	}
+	if m.active_connections != nil {
+		fields = append(fields, portforwardstat.FieldActiveConnections)
+	}
+	if m.bytes_in != nil {
+		fields = append(fields, portforwardstat.FieldBytesIn)
+	}
+	if m.bytes_out != nil {
+		fields = append(fields, portforwardstat.FieldBytesOut)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PortForwardStatMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case portforwardstat.FieldPortForwardID:
+		return m.PortForwardID()
+	case portforwardstat.FieldSampleTime:
+		return m.SampleTime()
+	case portforwardstat.FieldActiveConnections:
+		return m.ActiveConnections()
+	case portforwardstat.FieldBytesIn:
+		return m.BytesIn()
+	case portforwardstat.FieldBytesOut:
+		return m.BytesOut()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PortForwardStatMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case portforwardstat.FieldPortForwardID:
+		return m.OldPortForwardID(ctx)
+	case portforwardstat.FieldSampleTime:
+		return m.OldSampleTime(ctx)
+	case portforwardstat.FieldActiveConnections:
+		return m.OldActiveConnections(ctx)
+	case portforwardstat.FieldBytesIn:
+		return m.OldBytesIn(ctx)
+	case portforwardstat.FieldBytesOut:
+		return m.OldBytesOut(ctx)
+	}
+	return nil, fmt.Errorf("unknown PortForwardStat field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PortForwardStatMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case portforwardstat.FieldPortForwardID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPortForwardID(v)
+		return nil
+	case portforwardstat.FieldSampleTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSampleTime(v)
+		return nil
+	case portforwardstat.FieldActiveConnections:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActiveConnections(v)
+		return nil
+	case portforwardstat.FieldBytesIn:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBytesIn(v)
+		return nil
+	case portforwardstat.FieldBytesOut:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBytesOut(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PortForwardStat field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PortForwardStatMutation) AddedFields() []string {
+	var fields []string
+	if m.addactive_connections != nil {
+		fields = append(fields, portforwardstat.FieldActiveConnections)
+	}
+	if m.addbytes_in != nil {
+		fields = append(fields, portforwardstat.FieldBytesIn)
+	}
+	if m.addbytes_out != nil {
+		fields = append(fields, portforwardstat.FieldBytesOut)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PortForwardStatMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case portforwardstat.FieldActiveConnections:
+		return m.AddedActiveConnections()
+	case portforwardstat.FieldBytesIn:
+		return m.AddedBytesIn()
+	case portforwardstat.FieldBytesOut:
+		return m.AddedBytesOut()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PortForwardStatMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case portforwardstat.FieldActiveConnections:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddActiveConnections(v)
+		return nil
+	case portforwardstat.FieldBytesIn:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBytesIn(v)
+		return nil
+	case portforwardstat.FieldBytesOut:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBytesOut(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PortForwardStat numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PortForwardStatMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PortForwardStatMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PortForwardStatMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PortForwardStat nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PortForwardStatMutation) ResetField(name string) error {
+	switch name {
+	case portforwardstat.FieldPortForwardID:
+		m.ResetPortForwardID()
+		return nil
+	case portforwardstat.FieldSampleTime:
+		m.ResetSampleTime()
+		return nil
+	case portforwardstat.FieldActiveConnections:
+		m.ResetActiveConnections()
+		return nil
+	case portforwardstat.FieldBytesIn:
+		m.ResetBytesIn()
+		return nil
+	case portforwardstat.FieldBytesOut:
+		m.ResetBytesOut()
+		return nil
+	}
+	return fmt.Errorf("unknown PortForwardStat field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PortForwardStatMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PortForwardStatMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PortForwardStatMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PortForwardStatMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PortForwardStatMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PortForwardStatMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PortForwardStatMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PortForwardStat unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PortForwardStatMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PortForwardStat edge %s", name)
 }
 
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
@@ -13849,6 +14346,7 @@ type Sub2APIUsageRecordMutation struct {
 	request_date      *string
 	model             *string
 	endpoint          *string
+	user_agent        *string
 	status            *string
 	success           *bool
 	latency_ms        *int64
@@ -14218,6 +14716,55 @@ func (m *Sub2APIUsageRecordMutation) EndpointCleared() bool {
 func (m *Sub2APIUsageRecordMutation) ResetEndpoint() {
 	m.endpoint = nil
 	delete(m.clearedFields, sub2apiusagerecord.FieldEndpoint)
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (m *Sub2APIUsageRecordMutation) SetUserAgent(s string) {
+	m.user_agent = &s
+}
+
+// UserAgent returns the value of the "user_agent" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) UserAgent() (r string, exists bool) {
+	v := m.user_agent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserAgent returns the old "user_agent" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldUserAgent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
+	}
+	return oldValue.UserAgent, nil
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (m *Sub2APIUsageRecordMutation) ClearUserAgent() {
+	m.user_agent = nil
+	m.clearedFields[sub2apiusagerecord.FieldUserAgent] = struct{}{}
+}
+
+// UserAgentCleared returns if the "user_agent" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) UserAgentCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldUserAgent]
+	return ok
+}
+
+// ResetUserAgent resets all changes to the "user_agent" field.
+func (m *Sub2APIUsageRecordMutation) ResetUserAgent() {
+	m.user_agent = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldUserAgent)
 }
 
 // SetStatus sets the "status" field.
@@ -14878,7 +15425,7 @@ func (m *Sub2APIUsageRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *Sub2APIUsageRecordMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
 	}
@@ -14896,6 +15443,9 @@ func (m *Sub2APIUsageRecordMutation) Fields() []string {
 	}
 	if m.endpoint != nil {
 		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
+	}
+	if m.user_agent != nil {
+		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
 	}
 	if m.status != nil {
 		fields = append(fields, sub2apiusagerecord.FieldStatus)
@@ -14953,6 +15503,8 @@ func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.Model()
 	case sub2apiusagerecord.FieldEndpoint:
 		return m.Endpoint()
+	case sub2apiusagerecord.FieldUserAgent:
+		return m.UserAgent()
 	case sub2apiusagerecord.FieldStatus:
 		return m.Status()
 	case sub2apiusagerecord.FieldSuccess:
@@ -14998,6 +15550,8 @@ func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldModel(ctx)
 	case sub2apiusagerecord.FieldEndpoint:
 		return m.OldEndpoint(ctx)
+	case sub2apiusagerecord.FieldUserAgent:
+		return m.OldUserAgent(ctx)
 	case sub2apiusagerecord.FieldStatus:
 		return m.OldStatus(ctx)
 	case sub2apiusagerecord.FieldSuccess:
@@ -15072,6 +15626,13 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndpoint(v)
+		return nil
+	case sub2apiusagerecord.FieldUserAgent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserAgent(v)
 		return nil
 	case sub2apiusagerecord.FieldStatus:
 		v, ok := value.(string)
@@ -15280,6 +15841,9 @@ func (m *Sub2APIUsageRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(sub2apiusagerecord.FieldEndpoint) {
 		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
 	}
+	if m.FieldCleared(sub2apiusagerecord.FieldUserAgent) {
+		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
+	}
 	if m.FieldCleared(sub2apiusagerecord.FieldStatus) {
 		fields = append(fields, sub2apiusagerecord.FieldStatus)
 	}
@@ -15311,6 +15875,9 @@ func (m *Sub2APIUsageRecordMutation) ClearField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldEndpoint:
 		m.ClearEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldUserAgent:
+		m.ClearUserAgent()
 		return nil
 	case sub2apiusagerecord.FieldStatus:
 		m.ClearStatus()
@@ -15349,6 +15916,9 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldEndpoint:
 		m.ResetEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldUserAgent:
+		m.ResetUserAgent()
 		return nil
 	case sub2apiusagerecord.FieldStatus:
 		m.ResetStatus()

@@ -161,46 +161,6 @@ func (_u *PortForwardUpdate) SetNillableIsEnable(v *bool) *PortForwardUpdate {
 	return _u
 }
 
-// SetRemark sets the "remark" field.
-func (_u *PortForwardUpdate) SetRemark(v string) *PortForwardUpdate {
-	_u.mutation.SetRemark(v)
-	return _u
-}
-
-// SetNillableRemark sets the "remark" field if the given value is not nil.
-func (_u *PortForwardUpdate) SetNillableRemark(v *string) *PortForwardUpdate {
-	if v != nil {
-		_u.SetRemark(*v)
-	}
-	return _u
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (_u *PortForwardUpdate) ClearRemark() *PortForwardUpdate {
-	_u.mutation.ClearRemark()
-	return _u
-}
-
-// SetTags sets the "tags" field.
-func (_u *PortForwardUpdate) SetTags(v string) *PortForwardUpdate {
-	_u.mutation.SetTags(v)
-	return _u
-}
-
-// SetNillableTags sets the "tags" field if the given value is not nil.
-func (_u *PortForwardUpdate) SetNillableTags(v *string) *PortForwardUpdate {
-	if v != nil {
-		_u.SetTags(*v)
-	}
-	return _u
-}
-
-// ClearTags clears the value of the "tags" field.
-func (_u *PortForwardUpdate) ClearTags() *PortForwardUpdate {
-	_u.mutation.ClearTags()
-	return _u
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (_u *PortForwardUpdate) SetUser(v *User) *PortForwardUpdate {
 	return _u.SetUserID(v.ID)
@@ -317,18 +277,6 @@ func (_u *PortForwardUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Remark(); ok {
-		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
-	}
-	if _u.mutation.RemarkCleared() {
-		_spec.ClearField(portforward.FieldRemark, field.TypeString)
-	}
-	if value, ok := _u.mutation.Tags(); ok {
-		_spec.SetField(portforward.FieldTags, field.TypeString, value)
-	}
-	if _u.mutation.TagsCleared() {
-		_spec.ClearField(portforward.FieldTags, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -511,46 +459,6 @@ func (_u *PortForwardUpdateOne) SetNillableIsEnable(v *bool) *PortForwardUpdateO
 	return _u
 }
 
-// SetRemark sets the "remark" field.
-func (_u *PortForwardUpdateOne) SetRemark(v string) *PortForwardUpdateOne {
-	_u.mutation.SetRemark(v)
-	return _u
-}
-
-// SetNillableRemark sets the "remark" field if the given value is not nil.
-func (_u *PortForwardUpdateOne) SetNillableRemark(v *string) *PortForwardUpdateOne {
-	if v != nil {
-		_u.SetRemark(*v)
-	}
-	return _u
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (_u *PortForwardUpdateOne) ClearRemark() *PortForwardUpdateOne {
-	_u.mutation.ClearRemark()
-	return _u
-}
-
-// SetTags sets the "tags" field.
-func (_u *PortForwardUpdateOne) SetTags(v string) *PortForwardUpdateOne {
-	_u.mutation.SetTags(v)
-	return _u
-}
-
-// SetNillableTags sets the "tags" field if the given value is not nil.
-func (_u *PortForwardUpdateOne) SetNillableTags(v *string) *PortForwardUpdateOne {
-	if v != nil {
-		_u.SetTags(*v)
-	}
-	return _u
-}
-
-// ClearTags clears the value of the "tags" field.
-func (_u *PortForwardUpdateOne) ClearTags() *PortForwardUpdateOne {
-	_u.mutation.ClearTags()
-	return _u
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (_u *PortForwardUpdateOne) SetUser(v *User) *PortForwardUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -697,18 +605,6 @@ func (_u *PortForwardUpdateOne) sqlSave(ctx context.Context) (_node *PortForward
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Remark(); ok {
-		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
-	}
-	if _u.mutation.RemarkCleared() {
-		_spec.ClearField(portforward.FieldRemark, field.TypeString)
-	}
-	if value, ok := _u.mutation.Tags(); ok {
-		_spec.SetField(portforward.FieldTags, field.TypeString, value)
-	}
-	if _u.mutation.TagsCleared() {
-		_spec.ClearField(portforward.FieldTags, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

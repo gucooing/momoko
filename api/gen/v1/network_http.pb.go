@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationNetworkManagerCreatePortForward = "/v1.NetworkManager/CreatePortForward"
 const OperationNetworkManagerDeletePortForward = "/v1.NetworkManager/DeletePortForward"
 const OperationNetworkManagerGetPortForward = "/v1.NetworkManager/GetPortForward"
+const OperationNetworkManagerGetPortForwardStats = "/v1.NetworkManager/GetPortForwardStats"
 const OperationNetworkManagerListPortForwards = "/v1.NetworkManager/ListPortForwards"
 const OperationNetworkManagerUpdatePortForward = "/v1.NetworkManager/UpdatePortForward"
 
@@ -32,6 +33,8 @@ type NetworkManagerHTTPServer interface {
 	DeletePortForward(context.Context, *DeletePortForwardRequest) (*DeletePortForwardResponse, error)
 	// GetPortForward 获取端口转发详情
 	GetPortForward(context.Context, *GetPortForwardRequest) (*GetPortForwardResponse, error)
+	// GetPortForwardStats 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
+	GetPortForwardStats(context.Context, *GetPortForwardStatsRequest) (*GetPortForwardStatsResponse, error)
 	// ListPortForwards 获取端口转发列表
 	ListPortForwards(context.Context, *ListPortForwardsRequest) (*ListPortForwardsResponse, error)
 	// UpdatePortForward 更新端口转发
@@ -45,6 +48,7 @@ func RegisterNetworkManagerHTTPServer(s *http.Server, srv NetworkManagerHTTPServ
 	r.GET("/api/v1/network/port-forwards/{id}", _NetworkManager_GetPortForward0_HTTP_Handler(srv))
 	r.PUT("/api/v1/network/port-forwards/{id}", _NetworkManager_UpdatePortForward0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/network/port-forwards/{id}", _NetworkManager_DeletePortForward0_HTTP_Handler(srv))
+	r.GET("/api/v1/network/port-forwards/{id}/stats", _NetworkManager_GetPortForwardStats0_HTTP_Handler(srv))
 }
 
 func _NetworkManager_ListPortForwards0_HTTP_Handler(srv NetworkManagerHTTPServer) func(ctx http.Context) error {
@@ -157,6 +161,28 @@ func _NetworkManager_DeletePortForward0_HTTP_Handler(srv NetworkManagerHTTPServe
 	}
 }
 
+func _NetworkManager_GetPortForwardStats0_HTTP_Handler(srv NetworkManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPortForwardStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNetworkManagerGetPortForwardStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPortForwardStats(ctx, req.(*GetPortForwardStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetPortForwardStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NetworkManagerHTTPClient interface {
 	// CreatePortForward 创建端口转发
 	CreatePortForward(ctx context.Context, req *CreatePortForwardRequest, opts ...http.CallOption) (rsp *CreatePortForwardResponse, err error)
@@ -164,6 +190,8 @@ type NetworkManagerHTTPClient interface {
 	DeletePortForward(ctx context.Context, req *DeletePortForwardRequest, opts ...http.CallOption) (rsp *DeletePortForwardResponse, err error)
 	// GetPortForward 获取端口转发详情
 	GetPortForward(ctx context.Context, req *GetPortForwardRequest, opts ...http.CallOption) (rsp *GetPortForwardResponse, err error)
+	// GetPortForwardStats 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
+	GetPortForwardStats(ctx context.Context, req *GetPortForwardStatsRequest, opts ...http.CallOption) (rsp *GetPortForwardStatsResponse, err error)
 	// ListPortForwards 获取端口转发列表
 	ListPortForwards(ctx context.Context, req *ListPortForwardsRequest, opts ...http.CallOption) (rsp *ListPortForwardsResponse, err error)
 	// UpdatePortForward 更新端口转发
@@ -212,6 +240,20 @@ func (c *NetworkManagerHTTPClientImpl) GetPortForward(ctx context.Context, in *G
 	pattern := "/api/v1/network/port-forwards/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationNetworkManagerGetPortForward))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPortForwardStats 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
+func (c *NetworkManagerHTTPClientImpl) GetPortForwardStats(ctx context.Context, in *GetPortForwardStatsRequest, opts ...http.CallOption) (*GetPortForwardStatsResponse, error) {
+	var out GetPortForwardStatsResponse
+	pattern := "/api/v1/network/port-forwards/{id}/stats"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationNetworkManagerGetPortForwardStats))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

@@ -30,6 +30,8 @@ type Sub2APIUsageRecord struct {
 	Model string `json:"model,omitempty"`
 	// 接口/通道
 	Endpoint string `json:"endpoint,omitempty"`
+	// 客户端 User-Agent（用于 UA 维度统计）
+	UserAgent string `json:"user_agent,omitempty"`
 	// 状态
 	Status string `json:"status,omitempty"`
 	// 是否成功
@@ -68,7 +70,7 @@ func (*Sub2APIUsageRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
 			values[i] = new(sql.NullInt64)
-		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
+		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case sub2apiusagerecord.FieldCreateTime, sub2apiusagerecord.FieldUpdateTime, sub2apiusagerecord.FieldRequestTime:
 			values[i] = new(sql.NullTime)
@@ -128,6 +130,12 @@ func (_m *Sub2APIUsageRecord) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field endpoint", values[i])
 			} else if value.Valid {
 				_m.Endpoint = value.String
+			}
+		case sub2apiusagerecord.FieldUserAgent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_agent", values[i])
+			} else if value.Valid {
+				_m.UserAgent = value.String
 			}
 		case sub2apiusagerecord.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -254,6 +262,9 @@ func (_m *Sub2APIUsageRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("endpoint=")
 	builder.WriteString(_m.Endpoint)
+	builder.WriteString(", ")
+	builder.WriteString("user_agent=")
+	builder.WriteString(_m.UserAgent)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(_m.Status)

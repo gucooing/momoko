@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -9,6 +10,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/portforward"
+	"momoko/internal/data/ent/gen/portforwardstat"
 )
 
 type networkRepo struct {
@@ -31,8 +33,6 @@ func (r *networkRepo) CreatePortForward(ctx context.Context, userID string, req 
 		SetTargetAddress(req.TargetAddress).
 		SetTargetPort(int(req.TargetPort)).
 		SetIsEnable(req.IsEnable).
-		SetRemark(req.Remark).
-		SetTags(req.Tags).
 		Save(ctx)
 }
 
@@ -69,9 +69,7 @@ func (r *networkRepo) UpdatePortForward(ctx context.Context, userID *string, req
 		SetNillableName(req.Name).
 		SetNillableListenAddress(req.ListenAddress).
 		SetNillableTargetAddress(req.TargetAddress).
-		SetNillableIsEnable(req.IsEnable).
-		SetNillableRemark(req.Remark).
-		SetNillableTags(req.Tags)
+		SetNillableIsEnable(req.IsEnable)
 
 	if userID != nil {
 		builder = builder.Where(portforward.UserIDEQ(*userID))
@@ -110,6 +108,50 @@ func (r *networkRepo) DeletePortForward(ctx context.Context, userID *string, id 
 	}
 
 	err := query.Exec(ctx)
+	return err
+}
+
+// SavePortForwardStats 批量写入端口转发统计采样。
+func (r *networkRepo) SavePortForwardStats(ctx context.Context, samples []biz.PortForwardStatSample) error {
+	if len(samples) == 0 {
+		return nil
+	}
+	builders := make([]*gen.PortForwardStatCreate, 0, len(samples))
+	for _, sample := range samples {
+		builders = append(builders, r.data.db.PortForwardStat.Create().
+			SetPortForwardID(sample.PortForwardID).
+			SetSampleTime(sample.Time).
+			SetActiveConnections(sample.ActiveConns).
+			SetBytesIn(sample.BytesIn).
+			SetBytesOut(sample.BytesOut))
+	}
+	return r.data.db.PortForwardStat.CreateBulk(builders...).Exec(ctx)
+}
+
+// ListPortForwardStats 按时间升序返回某转发在 [start, end] 区间内的统计采样。
+func (r *networkRepo) ListPortForwardStats(ctx context.Context, portForwardID string, start, end time.Time) ([]*gen.PortForwardStat, error) {
+	return r.data.db.PortForwardStat.Query().
+		Where(
+			portforwardstat.PortForwardIDEQ(portForwardID),
+			portforwardstat.SampleTimeGTE(start),
+			portforwardstat.SampleTimeLTE(end),
+		).
+		Order(gen.Asc(portforwardstat.FieldSampleTime)).
+		All(ctx)
+}
+
+// DeletePortForwardStatsBefore 删除采样时间早于 cutoff 的统计采样，返回删除条数。
+func (r *networkRepo) DeletePortForwardStatsBefore(ctx context.Context, cutoff time.Time) (int, error) {
+	return r.data.db.PortForwardStat.Delete().
+		Where(portforwardstat.SampleTimeLT(cutoff)).
+		Exec(ctx)
+}
+
+// DeletePortForwardStatsByForward 删除某转发的全部统计采样。
+func (r *networkRepo) DeletePortForwardStatsByForward(ctx context.Context, portForwardID string) error {
+	_, err := r.data.db.PortForwardStat.Delete().
+		Where(portforwardstat.PortForwardIDEQ(portForwardID)).
+		Exec(ctx)
 	return err
 }
 

@@ -25,6 +25,8 @@ const (
 	FieldModel = "model"
 	// FieldEndpoint holds the string denoting the endpoint field in the database.
 	FieldEndpoint = "endpoint"
+	// FieldUserAgent holds the string denoting the user_agent field in the database.
+	FieldUserAgent = "user_agent"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldSuccess holds the string denoting the success field in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldRequestDate,
 	FieldModel,
 	FieldEndpoint,
+	FieldUserAgent,
 	FieldStatus,
 	FieldSuccess,
 	FieldLatencyMs,
@@ -149,6 +152,11 @@ func ByModel(opts ...sql.OrderTermOption) OrderOption {
 // ByEndpoint orders the results by the endpoint field.
 func ByEndpoint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndpoint, opts...).ToFunc()
+}
+
+// ByUserAgent orders the results by the user_agent field.
+func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

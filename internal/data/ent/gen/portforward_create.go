@@ -140,34 +140,6 @@ func (_c *PortForwardCreate) SetNillableIsEnable(v *bool) *PortForwardCreate {
 	return _c
 }
 
-// SetRemark sets the "remark" field.
-func (_c *PortForwardCreate) SetRemark(v string) *PortForwardCreate {
-	_c.mutation.SetRemark(v)
-	return _c
-}
-
-// SetNillableRemark sets the "remark" field if the given value is not nil.
-func (_c *PortForwardCreate) SetNillableRemark(v *string) *PortForwardCreate {
-	if v != nil {
-		_c.SetRemark(*v)
-	}
-	return _c
-}
-
-// SetTags sets the "tags" field.
-func (_c *PortForwardCreate) SetTags(v string) *PortForwardCreate {
-	_c.mutation.SetTags(v)
-	return _c
-}
-
-// SetNillableTags sets the "tags" field if the given value is not nil.
-func (_c *PortForwardCreate) SetNillableTags(v *string) *PortForwardCreate {
-	if v != nil {
-		_c.SetTags(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *PortForwardCreate) SetID(v string) *PortForwardCreate {
 	_c.mutation.SetID(v)
@@ -371,14 +343,6 @@ func (_c *PortForwardCreate) createSpec() (*PortForward, *sqlgraph.CreateSpec) {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
 		_node.IsEnable = value
 	}
-	if value, ok := _c.mutation.Remark(); ok {
-		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
-		_node.Remark = value
-	}
-	if value, ok := _c.mutation.Tags(); ok {
-		_spec.SetField(portforward.FieldTags, field.TypeString, value)
-		_node.Tags = value
-	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -565,42 +529,6 @@ func (u *PortForwardUpsert) SetIsEnable(v bool) *PortForwardUpsert {
 // UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
 func (u *PortForwardUpsert) UpdateIsEnable() *PortForwardUpsert {
 	u.SetExcluded(portforward.FieldIsEnable)
-	return u
-}
-
-// SetRemark sets the "remark" field.
-func (u *PortForwardUpsert) SetRemark(v string) *PortForwardUpsert {
-	u.Set(portforward.FieldRemark, v)
-	return u
-}
-
-// UpdateRemark sets the "remark" field to the value that was provided on create.
-func (u *PortForwardUpsert) UpdateRemark() *PortForwardUpsert {
-	u.SetExcluded(portforward.FieldRemark)
-	return u
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (u *PortForwardUpsert) ClearRemark() *PortForwardUpsert {
-	u.SetNull(portforward.FieldRemark)
-	return u
-}
-
-// SetTags sets the "tags" field.
-func (u *PortForwardUpsert) SetTags(v string) *PortForwardUpsert {
-	u.Set(portforward.FieldTags, v)
-	return u
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *PortForwardUpsert) UpdateTags() *PortForwardUpsert {
-	u.SetExcluded(portforward.FieldTags)
-	return u
-}
-
-// ClearTags clears the value of the "tags" field.
-func (u *PortForwardUpsert) ClearTags() *PortForwardUpsert {
-	u.SetNull(portforward.FieldTags)
 	return u
 }
 
@@ -792,48 +720,6 @@ func (u *PortForwardUpsertOne) SetIsEnable(v bool) *PortForwardUpsertOne {
 func (u *PortForwardUpsertOne) UpdateIsEnable() *PortForwardUpsertOne {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
-	})
-}
-
-// SetRemark sets the "remark" field.
-func (u *PortForwardUpsertOne) SetRemark(v string) *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.SetRemark(v)
-	})
-}
-
-// UpdateRemark sets the "remark" field to the value that was provided on create.
-func (u *PortForwardUpsertOne) UpdateRemark() *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.UpdateRemark()
-	})
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (u *PortForwardUpsertOne) ClearRemark() *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.ClearRemark()
-	})
-}
-
-// SetTags sets the "tags" field.
-func (u *PortForwardUpsertOne) SetTags(v string) *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.SetTags(v)
-	})
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *PortForwardUpsertOne) UpdateTags() *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.UpdateTags()
-	})
-}
-
-// ClearTags clears the value of the "tags" field.
-func (u *PortForwardUpsertOne) ClearTags() *PortForwardUpsertOne {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.ClearTags()
 	})
 }
 
@@ -1192,48 +1078,6 @@ func (u *PortForwardUpsertBulk) SetIsEnable(v bool) *PortForwardUpsertBulk {
 func (u *PortForwardUpsertBulk) UpdateIsEnable() *PortForwardUpsertBulk {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
-	})
-}
-
-// SetRemark sets the "remark" field.
-func (u *PortForwardUpsertBulk) SetRemark(v string) *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.SetRemark(v)
-	})
-}
-
-// UpdateRemark sets the "remark" field to the value that was provided on create.
-func (u *PortForwardUpsertBulk) UpdateRemark() *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.UpdateRemark()
-	})
-}
-
-// ClearRemark clears the value of the "remark" field.
-func (u *PortForwardUpsertBulk) ClearRemark() *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.ClearRemark()
-	})
-}
-
-// SetTags sets the "tags" field.
-func (u *PortForwardUpsertBulk) SetTags(v string) *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.SetTags(v)
-	})
-}
-
-// UpdateTags sets the "tags" field to the value that was provided on create.
-func (u *PortForwardUpsertBulk) UpdateTags() *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.UpdateTags()
-	})
-}
-
-// ClearTags clears the value of the "tags" field.
-func (u *PortForwardUpsertBulk) ClearTags() *PortForwardUpsertBulk {
-	return u.Update(func(s *PortForwardUpsert) {
-		s.ClearTags()
 	})
 }
 

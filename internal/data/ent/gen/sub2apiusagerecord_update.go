@@ -102,6 +102,26 @@ func (_u *Sub2APIUsageRecordUpdate) ClearEndpoint() *Sub2APIUsageRecordUpdate {
 	return _u
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (_u *Sub2APIUsageRecordUpdate) SetUserAgent(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetUserAgent(v)
+	return _u
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableUserAgent(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetUserAgent(*v)
+	}
+	return _u
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearUserAgent() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearUserAgent()
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *Sub2APIUsageRecordUpdate) SetStatus(v string) *Sub2APIUsageRecordUpdate {
 	_u.mutation.SetStatus(v)
@@ -414,6 +434,12 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	if _u.mutation.EndpointCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldEndpoint, field.TypeString)
 	}
+	if value, ok := _u.mutation.UserAgent(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
+	}
+	if _u.mutation.UserAgentCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserAgent, field.TypeString)
+	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldStatus, field.TypeString, value)
 	}
@@ -574,6 +600,26 @@ func (_u *Sub2APIUsageRecordUpdateOne) SetNillableEndpoint(v *string) *Sub2APIUs
 // ClearEndpoint clears the value of the "endpoint" field.
 func (_u *Sub2APIUsageRecordUpdateOne) ClearEndpoint() *Sub2APIUsageRecordUpdateOne {
 	_u.mutation.ClearEndpoint()
+	return _u
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetUserAgent(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetUserAgent(v)
+	return _u
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableUserAgent(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetUserAgent(*v)
+	}
+	return _u
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearUserAgent() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearUserAgent()
 	return _u
 }
 
@@ -918,6 +964,12 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	}
 	if _u.mutation.EndpointCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldEndpoint, field.TypeString)
+	}
+	if value, ok := _u.mutation.UserAgent(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
+	}
+	if _u.mutation.UserAgentCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserAgent, field.TypeString)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldStatus, field.TypeString, value)

@@ -17,6 +17,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
+	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
@@ -102,6 +103,7 @@ func checkColumn(t, c string) error {
 			menu.Table:                menu.ValidColumn,
 			operationlog.Table:        operationlog.ValidColumn,
 			portforward.Table:         portforward.ValidColumn,
+			portforwardstat.Table:     portforwardstat.ValidColumn,
 			role.Table:                role.ValidColumn,
 			sshhost.Table:             sshhost.ValidColumn,
 			sub2apiannouncement.Table: sub2apiannouncement.ValidColumn,

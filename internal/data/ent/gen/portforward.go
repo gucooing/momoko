@@ -39,10 +39,6 @@ type PortForward struct {
 	TargetPort int `json:"target_port,omitempty"`
 	// 是否启用
 	IsEnable bool `json:"is_enable,omitempty"`
-	// 备注
-	Remark string `json:"remark,omitempty"`
-	// 标签
-	Tags string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PortForwardQuery when eager-loading is set.
 	Edges        PortForwardEdges `json:"edges"`
@@ -78,7 +74,7 @@ func (*PortForward) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case portforward.FieldListenPort, portforward.FieldTargetPort:
 			values[i] = new(sql.NullInt64)
-		case portforward.FieldID, portforward.FieldName, portforward.FieldUserID, portforward.FieldProtocol, portforward.FieldListenAddress, portforward.FieldTargetAddress, portforward.FieldRemark, portforward.FieldTags:
+		case portforward.FieldID, portforward.FieldName, portforward.FieldUserID, portforward.FieldProtocol, portforward.FieldListenAddress, portforward.FieldTargetAddress:
 			values[i] = new(sql.NullString)
 		case portforward.FieldCreateTime, portforward.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -163,18 +159,6 @@ func (_m *PortForward) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsEnable = value.Bool
 			}
-		case portforward.FieldRemark:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field remark", values[i])
-			} else if value.Valid {
-				_m.Remark = value.String
-			}
-		case portforward.FieldTags:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field tags", values[i])
-			} else if value.Valid {
-				_m.Tags = value.String
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -245,12 +229,6 @@ func (_m *PortForward) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_enable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
-	builder.WriteString(", ")
-	builder.WriteString("remark=")
-	builder.WriteString(_m.Remark)
-	builder.WriteString(", ")
-	builder.WriteString("tags=")
-	builder.WriteString(_m.Tags)
 	builder.WriteByte(')')
 	return builder.String()
 }

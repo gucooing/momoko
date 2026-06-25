@@ -14,6 +14,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
+	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
@@ -400,6 +401,24 @@ func init() {
 	portforwardDescID := portforwardFields[0].Descriptor()
 	// portforward.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	portforward.IDValidator = portforwardDescID.Validators[0].(func(string) error)
+	portforwardstatFields := schema.PortForwardStat{}.Fields()
+	_ = portforwardstatFields
+	// portforwardstatDescPortForwardID is the schema descriptor for port_forward_id field.
+	portforwardstatDescPortForwardID := portforwardstatFields[0].Descriptor()
+	// portforwardstat.PortForwardIDValidator is a validator for the "port_forward_id" field. It is called by the builders before save.
+	portforwardstat.PortForwardIDValidator = portforwardstatDescPortForwardID.Validators[0].(func(string) error)
+	// portforwardstatDescActiveConnections is the schema descriptor for active_connections field.
+	portforwardstatDescActiveConnections := portforwardstatFields[2].Descriptor()
+	// portforwardstat.DefaultActiveConnections holds the default value on creation for the active_connections field.
+	portforwardstat.DefaultActiveConnections = portforwardstatDescActiveConnections.Default.(int64)
+	// portforwardstatDescBytesIn is the schema descriptor for bytes_in field.
+	portforwardstatDescBytesIn := portforwardstatFields[3].Descriptor()
+	// portforwardstat.DefaultBytesIn holds the default value on creation for the bytes_in field.
+	portforwardstat.DefaultBytesIn = portforwardstatDescBytesIn.Default.(int64)
+	// portforwardstatDescBytesOut is the schema descriptor for bytes_out field.
+	portforwardstatDescBytesOut := portforwardstatFields[4].Descriptor()
+	// portforwardstat.DefaultBytesOut holds the default value on creation for the bytes_out field.
+	portforwardstat.DefaultBytesOut = portforwardstatDescBytesOut.Default.(int64)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0
@@ -534,35 +553,35 @@ func init() {
 	// sub2apiusagerecord.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	sub2apiusagerecord.UpdateDefaultUpdateTime = sub2apiusagerecordDescUpdateTime.UpdateDefault.(func() time.Time)
 	// sub2apiusagerecordDescSuccess is the schema descriptor for success field.
-	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[6].Descriptor()
+	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[7].Descriptor()
 	// sub2apiusagerecord.DefaultSuccess holds the default value on creation for the success field.
 	sub2apiusagerecord.DefaultSuccess = sub2apiusagerecordDescSuccess.Default.(bool)
 	// sub2apiusagerecordDescLatencyMs is the schema descriptor for latency_ms field.
-	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[7].Descriptor()
+	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[8].Descriptor()
 	// sub2apiusagerecord.DefaultLatencyMs holds the default value on creation for the latency_ms field.
 	sub2apiusagerecord.DefaultLatencyMs = sub2apiusagerecordDescLatencyMs.Default.(int64)
 	// sub2apiusagerecordDescTokenCount is the schema descriptor for token_count field.
-	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[8].Descriptor()
+	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[9].Descriptor()
 	// sub2apiusagerecord.DefaultTokenCount holds the default value on creation for the token_count field.
 	sub2apiusagerecord.DefaultTokenCount = sub2apiusagerecordDescTokenCount.Default.(int64)
 	// sub2apiusagerecordDescOutputTokens is the schema descriptor for output_tokens field.
-	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[9].Descriptor()
+	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[10].Descriptor()
 	// sub2apiusagerecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
 	sub2apiusagerecord.DefaultOutputTokens = sub2apiusagerecordDescOutputTokens.Default.(int64)
 	// sub2apiusagerecordDescTps is the schema descriptor for tps field.
-	sub2apiusagerecordDescTps := sub2apiusagerecordFields[10].Descriptor()
+	sub2apiusagerecordDescTps := sub2apiusagerecordFields[11].Descriptor()
 	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
 	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
 	// sub2apiusagerecordDescCost is the schema descriptor for cost field.
-	sub2apiusagerecordDescCost := sub2apiusagerecordFields[11].Descriptor()
+	sub2apiusagerecordDescCost := sub2apiusagerecordFields[12].Descriptor()
 	// sub2apiusagerecord.DefaultCost holds the default value on creation for the cost field.
 	sub2apiusagerecord.DefaultCost = sub2apiusagerecordDescCost.Default.(float64)
 	// sub2apiusagerecordDescFirstTokenMs is the schema descriptor for first_token_ms field.
-	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[12].Descriptor()
+	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[13].Descriptor()
 	// sub2apiusagerecord.DefaultFirstTokenMs holds the default value on creation for the first_token_ms field.
 	sub2apiusagerecord.DefaultFirstTokenMs = sub2apiusagerecordDescFirstTokenMs.Default.(int64)
 	// sub2apiusagerecordDescHTTPStatus is the schema descriptor for http_status field.
-	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[16].Descriptor()
+	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[17].Descriptor()
 	// sub2apiusagerecord.DefaultHTTPStatus holds the default value on creation for the http_status field.
 	sub2apiusagerecord.DefaultHTTPStatus = sub2apiusagerecordDescHTTPStatus.Default.(int)
 	// sub2apiusagerecordDescID is the schema descriptor for id field.

@@ -13,7 +13,7 @@
       label-width="100px"
       label-position="right"
     >
-      <el-form-item :label="t('system.common.name')" prop="name">
+      <el-form-item :label="t('common.name')" prop="name">
         <el-input v-model="form.name" :placeholder="t('tools.portForward.ruleNamePlaceholder')" />
       </el-form-item>
 
@@ -65,19 +65,6 @@
       <el-form-item :label="t('system.common.enabled')" prop="isEnable">
         <el-switch v-model="form.isEnable" />
       </el-form-item>
-
-      <el-form-item :label="t('user.personalTags')" prop="tags">
-        <el-input v-model="form.tags" :placeholder="t('tools.portForward.tagsPlaceholder')" />
-      </el-form-item>
-
-      <el-form-item :label="t('common.remark')" prop="remark">
-        <el-input
-          v-model="form.remark"
-          type="textarea"
-          :rows="2"
-          :placeholder="t('tools.portForward.remarkPlaceholder')"
-        />
-      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -112,8 +99,6 @@ const defaultForm = () => ({
   targetAddress: '',
   targetPort: undefined as number | undefined,
   isEnable: true,
-  tags: '',
-  remark: '',
 })
 
 const form = ref(defaultForm())
@@ -140,8 +125,6 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress || undefined,
         targetPort: form.value.targetPort,
         isEnable: form.value.isEnable,
-        tags: form.value.tags || undefined,
-        remark: form.value.remark || undefined,
       })
       info = data?.info
     } else {
@@ -153,8 +136,6 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress,
         targetPort: form.value.targetPort!,
         isEnable: form.value.isEnable,
-        tags: form.value.tags,
-        remark: form.value.remark,
       })
       info = data?.info
     }
@@ -193,8 +174,6 @@ const showDialog = (payload?: PortForwardInfo) => {
     targetAddress: payload.targetAddress || '',
     targetPort: payload.targetPort || undefined,
     isEnable: payload.isEnable ?? true,
-    tags: payload.tags || '',
-    remark: payload.remark || '',
   }
 }
 

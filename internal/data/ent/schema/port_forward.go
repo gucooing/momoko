@@ -23,8 +23,6 @@ func (PortForward) Fields() []ent.Field {
 		field.String("target_address").Default("0.0.0.0").Comment("目标地址"),
 		field.Int("target_port").Default(0).Comment("目标端口"),
 		field.Bool("is_enable").Default(false).Comment("是否启用"),
-		field.String("remark").Optional().Comment("备注"),
-		field.String("tags").Optional().Comment("标签"),
 	}
 }
 

@@ -18,6 +18,7 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 		field.String("request_date").Comment("请求日期（本地时区 YYYY-MM-DD，用于按日聚合）"),
 		field.String("model").Optional().Comment("模型名称"),
 		field.String("endpoint").Optional().Comment("接口/通道"),
+		field.String("user_agent").Optional().Comment("客户端 User-Agent（用于 UA 维度统计）"),
 		field.String("status").Optional().Comment("状态"),
 		field.Bool("success").Default(false).Comment("是否成功"),
 		field.Int64("latency_ms").Default(0).Comment("延迟（毫秒）"),

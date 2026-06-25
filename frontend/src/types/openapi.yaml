@@ -2051,7 +2051,7 @@ paths:
                     type: string
                 - name: keywords
                   in: query
-                  description: 名称/地址/标签
+                  description: 名称/地址
                   schema:
                     type: string
                 - name: type
@@ -2154,6 +2154,36 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DeletePortForwardResponse'
+    /api/v1/network/port-forwards/{id}/stats:
+        get:
+            tags:
+                - NetworkManager
+            description: 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
+            operationId: NetworkManager_GetPortForwardStats
+            parameters:
+                - name: id
+                  in: path
+                  description: 端口转发 id
+                  required: true
+                  schema:
+                    type: string
+                - name: startTimeMs
+                  in: query
+                  description: 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时
+                  schema:
+                    type: string
+                - name: endTimeMs
+                  in: query
+                  description: 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetPortForwardStatsResponse'
     /api/v1/node/api-key:
         get:
             tags:
@@ -4233,12 +4263,6 @@ components:
                 isEnable:
                     type: boolean
                     description: 是否启用
-                remark:
-                    type: string
-                    description: 备注
-                tags:
-                    type: string
-                    description: 标签
         v1.CreatePortForwardResponse:
             type: object
             properties:
@@ -5978,6 +6002,21 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.PortForwardInfo'
                     description: 端口转发详情
+        v1.GetPortForwardStatsResponse:
+            type: object
+            properties:
+                snapshot:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PortForwardStat'
+                    description: 当前快照
+                points:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.PortForwardStatPoint'
+                    description: 时间序列样本（按时间升序，流量为累计值）
+                sampleIntervalSeconds:
+                    type: string
+                    description: 采样间隔(秒)
         v1.GetSSHHostInfoResponse:
             type: object
             properties:
@@ -6925,12 +6964,6 @@ components:
                 isEnable:
                     type: boolean
                     description: 是否启用
-                remark:
-                    type: string
-                    description: 备注
-                tags:
-                    type: string
-                    description: 标签
                 createTime:
                     type: string
                     description: 创建时间
@@ -6942,6 +6975,58 @@ components:
                 error:
                     type: string
                     description: 运行错误
+                activeConnections:
+                    type: string
+                    description: 当前活跃连接数（运行中才有效）
+                totalConnections:
+                    type: string
+                    description: 累计连接数（自本次启动起）
+                bytesIn:
+                    type: string
+                    description: 累计入站流量(字节，客户端→目标)
+                bytesOut:
+                    type: string
+                    description: 累计出站流量(字节，目标→客户端)
+        v1.PortForwardStat:
+            type: object
+            properties:
+                running:
+                    type: boolean
+                    description: 是否运行中
+                activeConnections:
+                    type: string
+                    description: 当前活跃连接数
+                totalConnections:
+                    type: string
+                    description: 累计连接数
+                bytesIn:
+                    type: string
+                    description: 累计入站流量(字节)
+                bytesOut:
+                    type: string
+                    description: 累计出站流量(字节)
+                startTime:
+                    type: string
+                    description: 本次启动时间
+                    format: date-time
+            description: 端口转发实时快照
+        v1.PortForwardStatPoint:
+            type: object
+            properties:
+                time:
+                    type: string
+                    description: 采样时间
+                    format: date-time
+                activeConnections:
+                    type: string
+                    description: 活跃连接数
+                bytesIn:
+                    type: string
+                    description: 累计入站流量(字节)
+                bytesOut:
+                    type: string
+                    description: 累计出站流量(字节)
+            description: 端口转发时间序列采样点
         v1.PublicSub2APIHomeResponse:
             type: object
             properties:
@@ -7520,6 +7605,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITopItem'
+                userAgents:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                    description: UA（User-Agent）维度用量明细，按使用数量降序
         v1.Sub2APITimePoint:
             type: object
             properties:
@@ -8300,12 +8390,6 @@ components:
                 isEnable:
                     type: boolean
                     description: 是否启用
-                remark:
-                    type: string
-                    description: 备注
-                tags:
-                    type: string
-                    description: 标签
         v1.UpdatePortForwardResponse:
             type: object
             properties:

@@ -123,6 +123,7 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		Trend:            trend,
 		Models:           buildTopItems(records, GroupByModel, 0),
 		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
+		UserAgents:       buildTopItems(records, GroupByUserAgent, 0),
 	}, nil
 }
 
@@ -179,6 +180,7 @@ func BuildRangeStats(ctx context.Context, store UsageStore, start, end time.Time
 		Trend:            trend,
 		Models:           buildTopItems(records, GroupByModel, 0),
 		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
+		UserAgents:       buildTopItems(records, GroupByUserAgent, 0),
 	}
 	return stats, nil
 }
@@ -335,8 +337,11 @@ func buildTopItems(records []*UsageRecord, field GroupField, limit int) []*v1.Su
 	groups := make(map[string]*itemAgg)
 	for _, rec := range records {
 		name := rec.Model
-		if field == GroupByEndpoint {
+		switch field {
+		case GroupByEndpoint:
 			name = rec.Endpoint
+		case GroupByUserAgent:
+			name = rec.UserAgent
 		}
 		if name == "" {
 			continue // 排除分组维度为空的记录，避免上游错误等无模型记录污染统计

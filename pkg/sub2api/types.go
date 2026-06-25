@@ -41,8 +41,9 @@ const (
 type GroupField string
 
 const (
-	GroupByModel    GroupField = "model"
-	GroupByEndpoint GroupField = "endpoint"
+	GroupByModel     GroupField = "model"
+	GroupByEndpoint  GroupField = "endpoint"
+	GroupByUserAgent GroupField = "user_agent"
 )
 
 // ClientConfig 调用 Sub2API 管理端所需的连接信息。
@@ -69,6 +70,7 @@ type UsageRecord struct {
 	RequestDate  string
 	Model        string
 	Endpoint     string
+	UserAgent    string
 	Status       string
 	Success      bool
 	LatencyMS    int64

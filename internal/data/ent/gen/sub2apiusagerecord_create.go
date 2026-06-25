@@ -91,6 +91,20 @@ func (_c *Sub2APIUsageRecordCreate) SetNillableEndpoint(v *string) *Sub2APIUsage
 	return _c
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (_c *Sub2APIUsageRecordCreate) SetUserAgent(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetUserAgent(v)
+	return _c
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableUserAgent(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetUserAgent(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *Sub2APIUsageRecordCreate) SetStatus(v string) *Sub2APIUsageRecordCreate {
 	_c.mutation.SetStatus(v)
@@ -445,6 +459,10 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 		_spec.SetField(sub2apiusagerecord.FieldEndpoint, field.TypeString, value)
 		_node.Endpoint = value
 	}
+	if value, ok := _c.mutation.UserAgent(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
+		_node.UserAgent = value
+	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldStatus, field.TypeString, value)
 		_node.Status = value
@@ -614,6 +632,24 @@ func (u *Sub2APIUsageRecordUpsert) UpdateEndpoint() *Sub2APIUsageRecordUpsert {
 // ClearEndpoint clears the value of the "endpoint" field.
 func (u *Sub2APIUsageRecordUpsert) ClearEndpoint() *Sub2APIUsageRecordUpsert {
 	u.SetNull(sub2apiusagerecord.FieldEndpoint)
+	return u
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsert) SetUserAgent(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldUserAgent, v)
+	return u
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateUserAgent() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldUserAgent)
+	return u
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsert) ClearUserAgent() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldUserAgent)
 	return u
 }
 
@@ -959,6 +995,27 @@ func (u *Sub2APIUsageRecordUpsertOne) UpdateEndpoint() *Sub2APIUsageRecordUpsert
 func (u *Sub2APIUsageRecordUpsertOne) ClearEndpoint() *Sub2APIUsageRecordUpsertOne {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearEndpoint()
+	})
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetUserAgent(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserAgent(v)
+	})
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateUserAgent() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserAgent()
+	})
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearUserAgent() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserAgent()
 	})
 }
 
@@ -1506,6 +1563,27 @@ func (u *Sub2APIUsageRecordUpsertBulk) UpdateEndpoint() *Sub2APIUsageRecordUpser
 func (u *Sub2APIUsageRecordUpsertBulk) ClearEndpoint() *Sub2APIUsageRecordUpsertBulk {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearEndpoint()
+	})
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetUserAgent(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserAgent(v)
+	})
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateUserAgent() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserAgent()
+	})
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearUserAgent() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserAgent()
 	})
 }
 

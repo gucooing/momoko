@@ -208,6 +208,8 @@ message Sub2APIStats {
   repeated Sub2APITrendPoint trend = 9;
   repeated Sub2APITopItem models = 10;
   repeated Sub2APITopItem endpoints = 11;
+  // UA（User-Agent）维度用量明细，按使用数量降序
+  repeated Sub2APITopItem user_agents = 12;
 }
 
 // 仅包含连接与展示配置，公告/时间线为独立资源。

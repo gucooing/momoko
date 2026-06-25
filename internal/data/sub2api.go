@@ -44,6 +44,7 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetRequestDate(requestDate).
 				SetModel(record.Model).
 				SetEndpoint(record.Endpoint).
+				SetUserAgent(record.UserAgent).
 				SetStatus(record.Status).
 				SetSuccess(record.Success).
 				SetLatencyMs(record.LatencyMS).
@@ -160,6 +161,7 @@ func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 		RequestDate:     record.RequestDate,
 		Model:           record.Model,
 		Endpoint:        record.Endpoint,
+		UserAgent:       record.UserAgent,
 		Status:          record.Status,
 		Success:         record.Success,
 		LatencyMS:       record.LatencyMs,

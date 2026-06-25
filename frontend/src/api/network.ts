@@ -10,6 +10,8 @@ import type {
   UpdatePortForwardResponse,
   DeletePortForwardRequest,
   DeletePortForwardResponse,
+  GetPortForwardStatsRequest,
+  GetPortForwardStatsResponse,
 } from '@/types/v1/network'
 
 export const listPortForwards = (params: ListPortForwardsRequest) => {
@@ -30,4 +32,10 @@ export const updatePortForward = (data: UpdatePortForwardRequest) => {
 
 export const deletePortForward = (params: DeletePortForwardRequest) => {
   return request.delete<DeletePortForwardResponse>(`/network/port-forwards/${params.id}`)
+}
+
+export const getPortForwardStats = (params: GetPortForwardStatsRequest) => {
+  return request.get<GetPortForwardStatsResponse>(`/network/port-forwards/${params.id}/stats`, {
+    params: { startTimeMs: params.startTimeMs, endTimeMs: params.endTimeMs },
+  })
 }

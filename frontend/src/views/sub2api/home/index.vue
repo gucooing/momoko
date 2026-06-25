@@ -220,31 +220,13 @@
         </div>
       </el-tab-pane>
 
-      <!-- 配置 -->
-      <el-tab-pane :label="t('sub2api.common.connectionConfig')" name="config">
+      <!-- 首页设置 -->
+      <el-tab-pane :label="t('sub2api.common.homeSettings')" name="settings">
         <el-card shadow="never" class="form-card">
           <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
             <el-form-item :label="t('sub2api.admin.enablePublicHome')">
               <el-switch v-model="form.homeEnabled" />
               <span class="form-hint">{{ t('sub2api.admin.publicHomeHint') }}</span>
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.autoSync')">
-              <el-switch v-model="form.syncEnabled" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.baseUrl')">
-              <el-input v-model="form.baseUrl" placeholder="https://your-sub2api.example.com" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.adminApiKey')">
-              <el-input
-                v-model="form.adminApiKey"
-                type="password"
-                show-password
-                placeholder="sk-..."
-              />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.consoleUrl')">
-              <el-input v-model="form.consoleUrl" placeholder="https://your-sub2api.example.com" />
-              <span class="form-hint">{{ t('sub2api.admin.consoleUrlHint') }}</span>
             </el-form-item>
             <el-form-item :label="t('sub2api.admin.siteTitle')">
               <el-input v-model="form.title" />
@@ -254,15 +236,6 @@
             </el-form-item>
             <el-form-item :label="t('sub2api.admin.introduction')">
               <el-input v-model="form.introduction" type="textarea" :rows="3" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.syncInterval')">
-              <el-input-number v-model="form.syncIntervalMinutes" :min="1" :max="1440" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.historyDays')">
-              <el-input-number v-model="form.historyDays" :min="1" :max="365" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.pageSize')">
-              <el-input-number v-model="form.pageSize" :min="50" :max="1000" :step="50" />
             </el-form-item>
             <el-divider content-position="left">{{ t('sub2api.admin.imageGen') }}</el-divider>
             <el-form-item :label="t('sub2api.admin.enableImageGen')">
@@ -298,9 +271,6 @@
             </el-form-item>
             <el-form-item>
               <template v-if="canEdit">
-                <el-button :loading="store.testing" @click="onTest">{{
-                  t('sub2api.common.testConnection')
-                }}</el-button>
                 <el-button type="primary" :loading="store.saving" @click="onSave">{{
                   t('sub2api.common.saveConfig')
                 }}</el-button>
@@ -638,7 +608,7 @@ import type {
   Sub2APITimelineItem,
 } from '@/types/v1/sub2api'
 
-defineOptions({ name: 'Sub2APIAdmin' })
+defineOptions({ name: 'Sub2APIHome' })
 
 const store = useSub2APIStore()
 const router = useRouter()
@@ -754,14 +724,6 @@ const onSync = async (full: boolean) => {
     ElMessage.success(t('sub2api.common.synced'))
     reloadStats()
   }
-}
-
-const onTest = async () => {
-  if (!canEdit.value) return
-  const result = await store.testConfig()
-  if (!result) return
-  if (result.connected) ElMessage.success(result.message || t('sub2api.common.connected'))
-  else ElMessage.error(result.message || t('sub2api.common.disconnected'))
 }
 
 const onSave = async () => {

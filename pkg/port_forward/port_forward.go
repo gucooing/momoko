@@ -33,6 +33,7 @@ type PortForward interface {
 	Option() *Option
 	Start() error
 	Stop()
+	Stats() *Stats
 }
 
 // 实例管理
@@ -68,7 +69,7 @@ func (m *Manager) RegisterExample(opt *Option) error {
 	case TCP:
 		example, err = NewTCPPortForward(opt, m.ctx)
 	case UDP:
-		return NOTProtocol
+		example, err = NewUDPPortForward(opt, m.ctx)
 	default:
 		return NOTProtocol
 	}
@@ -95,7 +96,6 @@ func (m *Manager) UnRegisterExample(id string) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 	delete(m.examples, id)
-	return
 }
 
 // 重载端口转发
@@ -134,4 +134,28 @@ func (m *Manager) Running(id string) bool {
 
 func (m *Manager) Stop() {
 	m.cancel()
+}
+
+// Stats 返回指定实例的实时统计快照；实例未运行时 ok 为 false。
+func (m *Manager) Stats(id string) (Snapshot, bool) {
+	m.sync.RLock()
+	example, ok := m.examples[id]
+	m.sync.RUnlock()
+	if !ok {
+		return Snapshot{}, false
+	}
+	return example.Stats().Snapshot(), true
+}
+
+// SnapshotAll 返回当前所有运行中实例的实时统计快照，按实例 id 索引。
+// 供上层周期性采样并持久化。
+func (m *Manager) SnapshotAll() map[string]Snapshot {
+	m.sync.RLock()
+	defer m.sync.RUnlock()
+
+	out := make(map[string]Snapshot, len(m.examples))
+	for id, example := range m.examples {
+		out[id] = example.Stats().Snapshot()
+	}
+	return out
 }

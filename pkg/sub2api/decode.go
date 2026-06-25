@@ -107,6 +107,7 @@ func decodeUsageRecord(raw json.RawMessage) *UsageRecord {
 		RequestDate:  requestTime.In(time.Local).Format("2006-01-02"),
 		Model:        jsonString(data, "model", "requested_model", "upstream_model", "model_name"),
 		Endpoint:     jsonString(data, "inbound_endpoint", "upstream_endpoint", "endpoint", "path", "route", "api_path", "request_path", "channel", "provider"),
+		UserAgent:    jsonString(data, "user_agent", "userAgent", "ua", "client"),
 		Status:       status,
 		Success:      success,
 		LatencyMS:    latency,

@@ -353,8 +353,6 @@ var (
 		{Name: "target_address", Type: field.TypeString, Default: "0.0.0.0"},
 		{Name: "target_port", Type: field.TypeInt, Default: 0},
 		{Name: "is_enable", Type: field.TypeBool, Default: false},
-		{Name: "remark", Type: field.TypeString, Nullable: true},
-		{Name: "tags", Type: field.TypeString, Nullable: true},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// PortForwardsTable holds the schema information for the "port_forwards" table.
@@ -365,7 +363,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "port_forwards_users_user",
-				Columns:    []*schema.Column{PortForwardsColumns[12]},
+				Columns:    []*schema.Column{PortForwardsColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -374,12 +372,39 @@ var (
 			{
 				Name:    "portforward_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{PortForwardsColumns[12]},
+				Columns: []*schema.Column{PortForwardsColumns[10]},
 			},
 			{
 				Name:    "portforward_is_enable",
 				Unique:  false,
 				Columns: []*schema.Column{PortForwardsColumns[9]},
+			},
+		},
+	}
+	// PortForwardStatsColumns holds the columns for the "port_forward_stats" table.
+	PortForwardStatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "port_forward_id", Type: field.TypeString},
+		{Name: "sample_time", Type: field.TypeTime},
+		{Name: "active_connections", Type: field.TypeInt64, Default: 0},
+		{Name: "bytes_in", Type: field.TypeInt64, Default: 0},
+		{Name: "bytes_out", Type: field.TypeInt64, Default: 0},
+	}
+	// PortForwardStatsTable holds the schema information for the "port_forward_stats" table.
+	PortForwardStatsTable = &schema.Table{
+		Name:       "port_forward_stats",
+		Columns:    PortForwardStatsColumns,
+		PrimaryKey: []*schema.Column{PortForwardStatsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "portforwardstat_port_forward_id_sample_time",
+				Unique:  false,
+				Columns: []*schema.Column{PortForwardStatsColumns[1], PortForwardStatsColumns[2]},
+			},
+			{
+				Name:    "portforwardstat_sample_time",
+				Unique:  false,
+				Columns: []*schema.Column{PortForwardStatsColumns[2]},
 			},
 		},
 	}
@@ -492,6 +517,7 @@ var (
 		{Name: "request_date", Type: field.TypeString},
 		{Name: "model", Type: field.TypeString, Nullable: true},
 		{Name: "endpoint", Type: field.TypeString, Nullable: true},
+		{Name: "user_agent", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "success", Type: field.TypeBool, Default: false},
 		{Name: "latency_ms", Type: field.TypeInt64, Default: 0},
@@ -524,12 +550,12 @@ var (
 			{
 				Name:    "sub2apiusagerecord_success",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9]},
 			},
 			{
 				Name:    "sub2apiusagerecord_status",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[7]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
 			},
 			{
 				Name:    "sub2apiusagerecord_model",
@@ -687,6 +713,7 @@ var (
 		MenusTable,
 		OperationLogsTable,
 		PortForwardsTable,
+		PortForwardStatsTable,
 		RolesTable,
 		SSHHostsTable,
 		Sub2apiAnnouncementsTable,

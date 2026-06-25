@@ -105,6 +105,8 @@ export interface Sub2APIStats {
   trend: Sub2APITrendPoint[];
   models: Sub2APITopItem[];
   endpoints: Sub2APITopItem[];
+  /** UA（User-Agent）维度用量明细，按使用数量降序 */
+  userAgents: Sub2APITopItem[];
 }
 
 /** 仅包含连接与展示配置，公告/时间线为独立资源。 */

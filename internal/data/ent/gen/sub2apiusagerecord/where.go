@@ -94,6 +94,11 @@ func Endpoint(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldEndpoint, v))
 }
 
+// UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
+func UserAgent(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserAgent, v))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldStatus, v))
@@ -487,6 +492,81 @@ func EndpointEqualFold(v string) predicate.Sub2APIUsageRecord {
 // EndpointContainsFold applies the ContainsFold predicate on the "endpoint" field.
 func EndpointContainsFold(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldEndpoint, v))
+}
+
+// UserAgentEQ applies the EQ predicate on the "user_agent" field.
+func UserAgentEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserAgent, v))
+}
+
+// UserAgentNEQ applies the NEQ predicate on the "user_agent" field.
+func UserAgentNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldUserAgent, v))
+}
+
+// UserAgentIn applies the In predicate on the "user_agent" field.
+func UserAgentIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldUserAgent, vs...))
+}
+
+// UserAgentNotIn applies the NotIn predicate on the "user_agent" field.
+func UserAgentNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldUserAgent, vs...))
+}
+
+// UserAgentGT applies the GT predicate on the "user_agent" field.
+func UserAgentGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldUserAgent, v))
+}
+
+// UserAgentGTE applies the GTE predicate on the "user_agent" field.
+func UserAgentGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldUserAgent, v))
+}
+
+// UserAgentLT applies the LT predicate on the "user_agent" field.
+func UserAgentLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldUserAgent, v))
+}
+
+// UserAgentLTE applies the LTE predicate on the "user_agent" field.
+func UserAgentLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldUserAgent, v))
+}
+
+// UserAgentContains applies the Contains predicate on the "user_agent" field.
+func UserAgentContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldUserAgent, v))
+}
+
+// UserAgentHasPrefix applies the HasPrefix predicate on the "user_agent" field.
+func UserAgentHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldUserAgent, v))
+}
+
+// UserAgentHasSuffix applies the HasSuffix predicate on the "user_agent" field.
+func UserAgentHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldUserAgent, v))
+}
+
+// UserAgentIsNil applies the IsNil predicate on the "user_agent" field.
+func UserAgentIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldUserAgent))
+}
+
+// UserAgentNotNil applies the NotNil predicate on the "user_agent" field.
+func UserAgentNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldUserAgent))
+}
+
+// UserAgentEqualFold applies the EqualFold predicate on the "user_agent" field.
+func UserAgentEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldUserAgent, v))
+}
+
+// UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
+func UserAgentContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldUserAgent, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

@@ -35,10 +35,6 @@ const (
 	FieldTargetPort = "target_port"
 	// FieldIsEnable holds the string denoting the is_enable field in the database.
 	FieldIsEnable = "is_enable"
-	// FieldRemark holds the string denoting the remark field in the database.
-	FieldRemark = "remark"
-	// FieldTags holds the string denoting the tags field in the database.
-	FieldTags = "tags"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the portforward in the database.
@@ -65,8 +61,6 @@ var Columns = []string{
 	FieldTargetAddress,
 	FieldTargetPort,
 	FieldIsEnable,
-	FieldRemark,
-	FieldTags,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -183,16 +177,6 @@ func ByTargetPort(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEnable orders the results by the is_enable field.
 func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
-}
-
-// ByRemark orders the results by the remark field.
-func ByRemark(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRemark, opts...).ToFunc()
-}
-
-// ByTags orders the results by the tags field.
-func ByTags(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTags, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

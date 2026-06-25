@@ -36,6 +36,8 @@ type Tx struct {
 	OperationLog *OperationLogClient
 	// PortForward is the client for interacting with the PortForward builders.
 	PortForward *PortForwardClient
+	// PortForwardStat is the client for interacting with the PortForwardStat builders.
+	PortForwardStat *PortForwardStatClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
@@ -194,6 +196,7 @@ func (tx *Tx) init() {
 	tx.Menu = NewMenuClient(tx.config)
 	tx.OperationLog = NewOperationLogClient(tx.config)
 	tx.PortForward = NewPortForwardClient(tx.config)
+	tx.PortForwardStat = NewPortForwardStatClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(tx.config)

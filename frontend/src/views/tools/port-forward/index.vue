@@ -1,35 +1,50 @@
 <template>
   <div>
     <el-card shadow="never" class="card-clear-mb">
-      <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getList">
-        <el-row :gutter="10">
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+      <el-form ref="queryFormRef" :model="queryForm" label-width="auto" @keyup.enter="getList">
+        <el-row :gutter="12">
+          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
             <el-form-item :label="t('tools.portForward.keyword')" prop="keywords">
-              <el-input v-model="queryForm.keywords" :placeholder="t('tools.portForward.keywordPlaceholder')" />
+              <el-input
+                v-model="queryForm.keywords"
+                :placeholder="t('tools.portForward.keywordPlaceholder')"
+                :prefix-icon="menuStore.iconComponents.Search"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
             <el-form-item :label="t('tools.portForward.forwardType')" prop="type">
-              <el-select v-model="queryForm.type" :placeholder="t('system.common.all')" clearable style="width: 100%">
+              <el-select
+                v-model="queryForm.type"
+                :placeholder="t('system.common.select')"
+                clearable
+              >
                 <el-option label="TCP" value="PORT_FORWARD_TYPE_TCP" />
                 <el-option label="UDP" value="PORT_FORWARD_TYPE_UDP" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
             <el-form-item :label="t('tools.portForward.enableStatus')" prop="isEnable">
-              <el-select v-model="queryForm.isEnable" :placeholder="t('system.common.all')" clearable style="width: 100%">
+              <el-select
+                v-model="queryForm.isEnable"
+                :placeholder="t('system.common.select')"
+                clearable
+              >
                 <el-option :label="t('tools.portForward.enabled')" :value="true" />
                 <el-option :label="t('tools.portForward.disabled')" :value="false" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
             <el-form-item>
               <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
                 {{ t('system.common.search') }}
               </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('system.common.reset') }}</el-button>
+              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">
+                {{ t('system.common.reset') }}
+              </el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -84,16 +99,14 @@
             @change="(val: string | number | boolean) => toggleEnable(row, !!val)"
           />
         </template>
-        <template #column-tags="{ row }">
-          <el-tag
-            v-for="(tag, idx) in splitTags(row.tags)"
-            :key="idx"
-            size="small"
-            type="info"
-            class="tag-item"
-          >
-            {{ tag }}
-          </el-tag>
+        <template #column-connections="{ row }">
+          <span>{{ Number(row.activeConnections || 0) }}</span>
+        </template>
+        <template #column-traffic="{ row }">
+          <span class="pf-traffic">
+            <span class="pf-traffic-item">↓ {{ formatBytes(row.bytesIn) }}</span>
+            <span class="pf-traffic-item">↑ {{ formatBytes(row.bytesOut) }}</span>
+          </span>
         </template>
         <template #column-name="{ row }">
           <span>{{ row.name }}</span>
@@ -103,6 +116,14 @@
         </template>
         <template #column-operation="{ row }">
           <div class="pf-actions">
+            <el-button
+              type="primary"
+              :icon="menuStore.iconComponents['HOutline:ChartBarIcon']"
+              link
+              @click="openStatsDialog(row)"
+            >
+              {{ t('tools.portForward.stats.details') }}
+            </el-button>
             <el-button
               type="primary"
               :icon="menuStore.iconComponents.Edit"
@@ -171,21 +192,15 @@
               <el-icon size="12"><component :is="menuStore.iconComponents['HOutline:ArrowUpTrayIcon']" /></el-icon>
               <span class="mono-text">{{ row.targetAddress }}:{{ row.targetPort }}</span>
             </div>
-            <div v-if="row.tags" class="pf-card-tags">
-              <el-tag
-                v-for="(tag, idx) in splitTags(row.tags)"
-                :key="idx"
-                size="small"
-                type="info"
-              >
-                {{ tag }}
-              </el-tag>
+            <div class="pf-card-meta">
+              <span>{{ t('tools.portForward.stats.connections') }}: {{ Number(row.activeConnections || 0) }}</span>
+              <span class="mono-text">↓ {{ formatBytes(row.bytesIn) }} ↑ {{ formatBytes(row.bytesOut) }}</span>
             </div>
-            <div v-if="row.remark" class="pf-card-remark">{{ row.remark }}</div>
             <div class="pf-card-time">{{ row.createTime }}</div>
           </div>
 
           <div class="pf-card-footer">
+            <el-button size="small" plain @click="openStatsDialog(row)">{{ t('tools.portForward.stats.details') }}</el-button>
             <el-button size="small" plain type="primary" @click="openEditDialog(row)">{{ t('system.common.edit') }}</el-button>
             <el-popconfirm
               :title="t('tools.portForward.confirmDeleteRule')"
@@ -216,6 +231,7 @@
     </el-card>
 
     <PortForwardCreate ref="createRef" @refresh="refresh" />
+    <PortForwardStatsDialog v-model="statsVisible" :row="statsRow" />
   </div>
 </template>
 
@@ -225,6 +241,7 @@ import TablePagination from '@/components/pagination/TablePagination.vue'
 import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
 import { VxeGrid } from '@/plugins/vxeGrid'
 import PortForwardCreate from '@/views/tools/port-forward/create.vue'
+import PortForwardStatsDialog from '@/views/tools/port-forward/PortForwardStatsDialog.vue'
 import { listPortForwards, deletePortForward, updatePortForward } from '@/api/network'
 import { PortForwardType, type PortForwardInfo } from '@/types/v1/network'
 import type { FormInstance } from 'element-plus'
@@ -240,6 +257,8 @@ const createRef = useTemplateRef<InstanceType<typeof PortForwardCreate> | null>(
 const deleteIds = ref<string[]>([])
 const list = ref<PortForwardInfo[]>([])
 const loading = ref(false)
+const statsVisible = ref(false)
+const statsRow = ref<PortForwardInfo | null>(null)
 
 const queryForm = ref({
   keywords: '',
@@ -253,9 +272,17 @@ const pagination = ref({
   total: 0,
 })
 
-const splitTags = (tags: string): string[] => {
-  if (!tags) return []
-  return tags.split(',').map((t) => t.trim()).filter(Boolean)
+const formatBytes = (bytes?: number | string): string => {
+  const n = Number(bytes)
+  if (!n) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let i = 0
+  let v = n
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024
+    i++
+  }
+  return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
 }
 
 const gridConfig = computed<VxeGridProps>(() => ({
@@ -267,16 +294,15 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: list.value,
   columns: [
     { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: t('system.common.serialNumber'), width: 55, fixed: 'left' },
-    { field: 'name', title: t('system.common.name'), minWidth: 80, fixed: 'left', slots: { default: 'column-name' } },
+    { field: 'name', title: t('common.name'), minWidth: 80, fixed: 'left', slots: { default: 'column-name' } },
     { field: 'type', title: t('system.common.type'), width: 80, slots: { default: 'column-type' } },
     { title: t('tools.portForward.listenAddress'), minWidth: 180, slots: { default: 'column-listen' } },
     { title: t('tools.portForward.targetAddress'), minWidth: 180, slots: { default: 'column-target' } },
     { field: 'isEnable', title: t('system.common.enabled'), width: 80, slots: { default: 'column-isEnable' } },
-    { field: 'tags', title: t('user.personalTags'), minWidth: 80, slots: { default: 'column-tags' } },
-    { field: 'remark', title: t('common.remark'), minWidth: 120 },
+    { title: t('tools.portForward.stats.connections'), width: 90, slots: { default: 'column-connections' } },
+    { title: t('tools.portForward.stats.traffic'), minWidth: 170, slots: { default: 'column-traffic' } },
     { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
-    { title: t('system.common.operation'), width: 160, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
+    { title: t('system.common.operation'), width: 220, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
   ],
 }))
 
@@ -322,6 +348,11 @@ const openCreateDialog = () => {
 
 const openEditDialog = (row: PortForwardInfo) => {
   createRef.value?.showDialog(row)
+}
+
+const openStatsDialog = (row: PortForwardInfo) => {
+  statsRow.value = row
+  statsVisible.value = true
 }
 
 const toggleEnable = async (row: PortForwardInfo, val: boolean) => {
@@ -397,9 +428,16 @@ onMounted(() => {
   font-size: 0.88rem;
 }
 
-.tag-item {
-  margin-right: 4px;
-  margin-bottom: 2px;
+.pf-traffic {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.3;
+  font-size: 0.8rem;
+}
+
+.pf-traffic-item {
+  white-space: nowrap;
+  color: var(--el-text-color-regular);
 }
 
 .error-hint {
@@ -486,21 +524,6 @@ onMounted(() => {
   gap: 0.3rem;
   font-size: 0.76rem;
   color: var(--el-text-color-secondary);
-}
-
-.pf-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.15rem;
-}
-
-.pf-card-remark {
-  font-size: 0.74rem;
-  color: var(--el-text-color-placeholder);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pf-card-time {

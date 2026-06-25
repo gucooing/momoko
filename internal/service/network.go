@@ -72,3 +72,11 @@ func (n *NetworkService) DeletePortForward(ctx context.Context, req *v1.DeletePo
 	}
 	return &v1.DeletePortForwardResponse{}, nil
 }
+
+func (n *NetworkService) GetPortForwardStats(ctx context.Context, req *v1.GetPortForwardStatsRequest) (*v1.GetPortForwardStatsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return n.uc.GetPortForwardStats(ctx, authCtx.UserID, req.Id, req.StartTimeMs, req.EndTimeMs)
+}

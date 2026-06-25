@@ -874,8 +874,10 @@ type Sub2APIStats struct {
 	Trend            []*Sub2APITrendPoint   `protobuf:"bytes,9,rep,name=trend,proto3" json:"trend,omitempty"`
 	Models           []*Sub2APITopItem      `protobuf:"bytes,10,rep,name=models,proto3" json:"models,omitempty"`
 	Endpoints        []*Sub2APITopItem      `protobuf:"bytes,11,rep,name=endpoints,proto3" json:"endpoints,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// UA（User-Agent）维度用量明细，按使用数量降序
+	UserAgents    []*Sub2APITopItem `protobuf:"bytes,12,rep,name=user_agents,json=userAgents,proto3" json:"user_agents,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Sub2APIStats) Reset() {
@@ -981,6 +983,13 @@ func (x *Sub2APIStats) GetModels() []*Sub2APITopItem {
 func (x *Sub2APIStats) GetEndpoints() []*Sub2APITopItem {
 	if x != nil {
 		return x.Endpoints
+	}
+	return nil
+}
+
+func (x *Sub2APIStats) GetUserAgents() []*Sub2APITopItem {
+	if x != nil {
+		return x.UserAgents
 	}
 	return nil
 }
@@ -2800,7 +2809,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x0frecent_requests\x18\x01 \x03(\v2\x18.v1.Sub2APIRecentRequestR\x0erecentRequests\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xb6\x03\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xeb\x03\n" +
 	"\fSub2APIStats\x12\x1d\n" +
 	"\n" +
 	"range_days\x18\x01 \x01(\x05R\trangeDays\x12\x1f\n" +
@@ -2817,7 +2826,9 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x05trend\x18\t \x03(\v2\x15.v1.Sub2APITrendPointR\x05trend\x12*\n" +
 	"\x06models\x18\n" +
 	" \x03(\v2\x12.v1.Sub2APITopItemR\x06models\x120\n" +
-	"\tendpoints\x18\v \x03(\v2\x12.v1.Sub2APITopItemR\tendpoints\"\x8d\x04\n" +
+	"\tendpoints\x18\v \x03(\v2\x12.v1.Sub2APITopItemR\tendpoints\x123\n" +
+	"\vuser_agents\x18\f \x03(\v2\x12.v1.Sub2APITopItemR\n" +
+	"userAgents\"\x8d\x04\n" +
 	"\rSub2APIConfig\x12!\n" +
 	"\fhome_enabled\x18\x01 \x01(\bR\vhomeEnabled\x12!\n" +
 	"\fsync_enabled\x18\x02 \x01(\bR\vsyncEnabled\x12\x19\n" +
@@ -3067,69 +3078,70 @@ var file_v1_sub2api_proto_depIdxs = []int32{
 	39, // 10: v1.Sub2APIStats.trend:type_name -> v1.Sub2APITrendPoint
 	40, // 11: v1.Sub2APIStats.models:type_name -> v1.Sub2APITopItem
 	40, // 12: v1.Sub2APIStats.endpoints:type_name -> v1.Sub2APITopItem
-	37, // 13: v1.Sub2APIHome.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	21, // 14: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
-	22, // 15: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
-	42, // 16: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
-	42, // 17: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
-	21, // 18: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
-	42, // 19: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	42, // 20: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	21, // 21: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
-	22, // 22: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
-	42, // 23: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	42, // 24: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	22, // 25: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
-	42, // 26: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
-	42, // 27: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
-	42, // 28: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
-	42, // 29: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
-	39, // 30: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
-	40, // 31: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
-	40, // 32: v1.Sub2APIUsageSnapshot.endpoint_usage:type_name -> v1.Sub2APITopItem
-	41, // 33: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
-	38, // 34: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
-	42, // 35: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
-	42, // 36: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
-	0,  // 37: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
-	2,  // 38: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
-	4,  // 39: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
-	6,  // 40: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
-	8,  // 41: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
-	10, // 42: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
-	12, // 43: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
-	14, // 44: v1.Sub2APIManager.GetSub2APIStats:input_type -> v1.GetSub2APIAdminStatsRequest
-	16, // 45: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
-	23, // 46: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
-	25, // 47: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
-	26, // 48: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
-	28, // 49: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
-	30, // 50: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
-	32, // 51: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
-	33, // 52: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
-	35, // 53: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
-	1,  // 54: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
-	3,  // 55: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
-	5,  // 56: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
-	7,  // 57: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
-	9,  // 58: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
-	11, // 59: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
-	13, // 60: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
-	15, // 61: v1.Sub2APIManager.GetSub2APIStats:output_type -> v1.GetSub2APIAdminStatsResponse
-	17, // 62: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
-	24, // 63: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
-	27, // 64: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	27, // 65: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	29, // 66: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
-	31, // 67: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
-	34, // 68: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	34, // 69: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	36, // 70: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
-	54, // [54:71] is the sub-list for method output_type
-	37, // [37:54] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	40, // 13: v1.Sub2APIStats.user_agents:type_name -> v1.Sub2APITopItem
+	37, // 14: v1.Sub2APIHome.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	21, // 15: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
+	22, // 16: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
+	42, // 17: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
+	42, // 18: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
+	21, // 19: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
+	42, // 20: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	42, // 21: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	21, // 22: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
+	22, // 23: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
+	42, // 24: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	42, // 25: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	22, // 26: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
+	42, // 27: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
+	42, // 28: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
+	42, // 29: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
+	42, // 30: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
+	39, // 31: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
+	40, // 32: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
+	40, // 33: v1.Sub2APIUsageSnapshot.endpoint_usage:type_name -> v1.Sub2APITopItem
+	41, // 34: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
+	38, // 35: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
+	42, // 36: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
+	42, // 37: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
+	0,  // 38: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
+	2,  // 39: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
+	4,  // 40: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
+	6,  // 41: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
+	8,  // 42: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
+	10, // 43: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
+	12, // 44: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
+	14, // 45: v1.Sub2APIManager.GetSub2APIStats:input_type -> v1.GetSub2APIAdminStatsRequest
+	16, // 46: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
+	23, // 47: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
+	25, // 48: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
+	26, // 49: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
+	28, // 50: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
+	30, // 51: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
+	32, // 52: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
+	33, // 53: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
+	35, // 54: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
+	1,  // 55: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
+	3,  // 56: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
+	5,  // 57: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
+	7,  // 58: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
+	9,  // 59: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
+	11, // 60: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
+	13, // 61: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
+	15, // 62: v1.Sub2APIManager.GetSub2APIStats:output_type -> v1.GetSub2APIAdminStatsResponse
+	17, // 63: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
+	24, // 64: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
+	27, // 65: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	27, // 66: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	29, // 67: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
+	31, // 68: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
+	34, // 69: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	34, // 70: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	36, // 71: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
+	55, // [55:72] is the sub-list for method output_type
+	38, // [38:55] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_v1_sub2api_proto_init() }

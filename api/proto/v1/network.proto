@@ -41,6 +41,12 @@ service NetworkManager {
       delete: "/api/v1/network/port-forwards/{id}"
     };
   }
+  // 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
+  rpc GetPortForwardStats(GetPortForwardStatsRequest) returns (GetPortForwardStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/network/port-forwards/{id}/stats"
+    };
+  }
 }
 
 message ListPortForwardsRequest {
@@ -48,7 +54,7 @@ message ListPortForwardsRequest {
   int64 page = 1;
   // page size
   int64 page_size = 2;
-  // 名称/地址/标签
+  // 名称/地址
   optional string keywords = 3;
   // 转发类型
   optional PortForwardType type = 4;
@@ -82,10 +88,6 @@ message CreatePortForwardRequest {
   int32 target_port = 6;
   // 是否启用
   bool is_enable = 7;
-  // 备注
-  string remark = 8;
-  // 标签
-  string tags = 9;
 }
 
 message CreatePortForwardResponse {
@@ -120,10 +122,6 @@ message UpdatePortForwardRequest {
   optional int32 target_port = 7;
   // 是否启用
   optional bool is_enable = 8;
-  // 备注
-  optional string remark = 9;
-  // 标签
-  optional string tags = 10;
 }
 
 message UpdatePortForwardResponse {
@@ -137,6 +135,52 @@ message DeletePortForwardRequest {
 }
 
 message DeletePortForwardResponse {}
+
+message GetPortForwardStatsRequest {
+  // 端口转发 id
+  string id = 1;
+  // 起始时间(Unix 毫秒)，不传或<=0 时默认结束时间往前 1 小时
+  int64 start_time_ms = 2;
+  // 结束时间(Unix 毫秒)，不传或<=0 时默认当前时间
+  int64 end_time_ms = 3;
+}
+
+message GetPortForwardStatsResponse {
+  // 当前快照
+  PortForwardStat snapshot = 1;
+  // 时间序列样本（按时间升序，流量为累计值）
+  repeated PortForwardStatPoint points = 2;
+  // 采样间隔(秒)
+  int64 sample_interval_seconds = 3;
+}
+
+// 端口转发实时快照
+message PortForwardStat {
+  // 是否运行中
+  bool running = 1;
+  // 当前活跃连接数
+  int64 active_connections = 2;
+  // 累计连接数
+  int64 total_connections = 3;
+  // 累计入站流量(字节)
+  int64 bytes_in = 4;
+  // 累计出站流量(字节)
+  int64 bytes_out = 5;
+  // 本次启动时间
+  google.protobuf.Timestamp start_time = 6;
+}
+
+// 端口转发时间序列采样点
+message PortForwardStatPoint {
+  // 采样时间
+  google.protobuf.Timestamp time = 1;
+  // 活跃连接数
+  int64 active_connections = 2;
+  // 累计入站流量(字节)
+  int64 bytes_in = 3;
+  // 累计出站流量(字节)
+  int64 bytes_out = 4;
+}
 
 message PortForwardInfo {
   // 端口转发 id
@@ -157,16 +201,20 @@ message PortForwardInfo {
   int32 target_port = 8;
   // 是否启用
   bool is_enable = 9;
-  // 备注
-  string remark = 10;
-  // 标签
-  string tags = 11;
   // 创建时间
   google.protobuf.Timestamp create_time = 12;
   // 更新时间
   google.protobuf.Timestamp update_time = 13;
   // 运行错误
   string error = 14;
+  // 当前活跃连接数（运行中才有效）
+  int64 active_connections = 15;
+  // 累计连接数（自本次启动起）
+  int64 total_connections = 16;
+  // 累计入站流量(字节，客户端→目标)
+  int64 bytes_in = 17;
+  // 累计出站流量(字节，目标→客户端)
+  int64 bytes_out = 18;
 }
 
 enum PortForwardType {
