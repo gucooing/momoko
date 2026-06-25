@@ -67,14 +67,14 @@ type Server struct {
 	cfg        ServerConfig
 	createTime time.Time
 
-	mu              sync.RWMutex
-	stdin           io.WriteCloser
-	running         bool
-	startTime       time.Time
-	waitDone        chan struct{}
-	waitFn          func() error
-	stopFn          func(force bool) error
-	closeFn         func()
+	mu           sync.RWMutex
+	stdin        io.WriteCloser
+	running      bool
+	startTime    time.Time
+	waitDone     chan struct{}
+	waitFn       func() error
+	stopFn       func(force bool) error
+	closeFn      func()
 	stdinLineEnd string
 	runID        uint64
 	manualStop   bool

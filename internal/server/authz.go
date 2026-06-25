@@ -73,13 +73,13 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemAdminEditRole:   constant.RoleEdit,
 	v1.OperationSystemAdminDeleteRole: constant.RoleDelete,
 	// —— 系统：配置 / 邮件 / 操作日志 ——
-	v1.OperationSystemUpdateLoginConfig:  constant.SystemConfigEdit,
-	v1.OperationSystemEmailConfig:        constant.SystemConfigView,
-	v1.OperationSystemUpdateEmailConfig:  constant.SystemConfigEdit,
-	v1.OperationSystemEmailTemplate:      constant.SystemConfigView,
+	v1.OperationSystemUpdateLoginConfig:   constant.SystemConfigEdit,
+	v1.OperationSystemEmailConfig:         constant.SystemConfigView,
+	v1.OperationSystemUpdateEmailConfig:   constant.SystemConfigEdit,
+	v1.OperationSystemEmailTemplate:       constant.SystemConfigView,
 	v1.OperationSystemUpdateEmailTemplate: constant.SystemConfigEdit,
-	v1.OperationSystemTestEmailConfig:    constant.SystemConfigEdit,
-	v1.OperationSystemListOperationLogs:  constant.SystemConfigView,
+	v1.OperationSystemTestEmailConfig:     constant.SystemConfigEdit,
+	v1.OperationSystemListOperationLogs:   constant.SystemConfigView,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。
