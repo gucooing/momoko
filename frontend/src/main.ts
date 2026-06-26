@@ -10,6 +10,7 @@ import { createPinia } from 'pinia'
 import App from '@/App.vue'
 import router from '@/router/index'
 import { i18n } from '@/locales'
+import { setAppContext } from '@/utils/appContext'
 
 //  动态设置favicon和项目名称
 const initAppConfig = () => {
@@ -38,6 +39,9 @@ const startApp = async () => {
 
   // 注册自定义指令
   app.directive('permission', permissionDirective)
+
+  // 保存应用上下文，供命令式渲染（如 utils/dialog.ts）复用插件（i18n 等）
+  setAppContext(app._context)
 
   app.mount('#app')
   // 动态设置favicon和项目名称

@@ -3,6 +3,7 @@ import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { ElIcon } from 'element-plus'
 import { useMenuStore } from '@/stores/menu'
 import { translate } from '@/locales'
+import { getAppContext } from '@/utils/appContext'
 
 // 对话框类型
 type IDialogType = 'info' | 'success' | 'warning' | 'error' | 'confirm'
@@ -84,6 +85,8 @@ const typeIconMap: Record<IDialogType, { icon: string; color: string }> = {
 const createDialog = (options: IDialogCallOptions): Promise<void> => {
   return new Promise<void>((resolve, reject) => {
   const menuStore = useMenuStore()
+  // 主应用上下文，使命令式渲染的对话框能访问 i18n 等插件（否则 BaseDialog 内 useI18n 会报错）
+  const appContext = getAppContext()
   // 1. 创建挂载容器
   const container = document.createElement('div')
 
@@ -99,7 +102,9 @@ const createDialog = (options: IDialogCallOptions): Promise<void> => {
 
   // 3. 更新虚拟节点(数据变化时更新)
   const updateVNode = (value: boolean) => {
-    render(h(BaseDialog, { ...props, modelValue: value }), container)
+    const vNode = h(BaseDialog, { ...props, modelValue: value })
+    vNode.appContext = appContext
+    render(vNode, container)
   }
 
   // 4. 构造组件属性
@@ -170,6 +175,8 @@ const createDialog = (options: IDialogCallOptions): Promise<void> => {
 
   // 6. 创建虚拟节点
   const vNode = h(BaseDialog, props, slots)
+  // 注入主应用上下文（i18n、pinia 等插件），否则 BaseDialog 内 useI18n 取不到实例会报错
+  vNode.appContext = appContext
 
   // 7. 渲染虚拟节点
   render(vNode, container)
