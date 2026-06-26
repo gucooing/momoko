@@ -89,15 +89,14 @@ func (t *TunnelUsecase) LookupTunnel(ctx context.Context, name string) (*frp_tun
 		return nil, false
 	}
 	return &frp_tunnel.Tunnel{
-		Name:               tn.Name,
-		Credential:         tn.Credential,
-		ProxyType:          string(tn.ProxyType),
-		RemotePort:         tn.RemotePort,
-		AllowUsers:         splitCSV(tn.AllowUsers),
-		Enabled:            tn.IsEnable,
-		RequireEncryption:  tn.RequireEncryption,
-		RequireCompression: tn.RequireCompression,
-		MaxBandwidth:       tn.MaxBandwidth,
+		Name:           tn.Name,
+		Credential:     tn.Credential,
+		ProxyType:      string(tn.ProxyType),
+		RemotePort:     tn.RemotePort,
+		AllowUsers:     splitCSV(tn.AllowUsers),
+		Enabled:        tn.IsEnable,
+		MaxBandwidth:   tn.MaxBandwidth,
+		MaxActiveConns: tn.MaxActiveConns,
 	}, true
 }
 
@@ -279,23 +278,22 @@ func (t *TunnelUsecase) UpdateFrpsConfig(ctx context.Context, req *v1.FrpsConfig
 
 func (t *TunnelUsecase) toV1TunnelInfo(tunnel *gen.FrpTunnel) *v1.TunnelInfo {
 	info := &v1.TunnelInfo{
-		Id:                 tunnel.ID,
-		Name:               tunnel.Name,
-		UserId:             tunnel.UserID,
-		Type:               entProxyTypeToV1(tunnel.ProxyType),
-		RemotePort:         int32(tunnel.RemotePort),
-		CustomDomains:      tunnel.CustomDomains,
-		Subdomain:          tunnel.Subdomain,
-		LocalIp:            tunnel.LocalIP,
-		LocalPort:          int32(tunnel.LocalPort),
-		Credential:         tunnel.Credential,
-		AllowUsers:         tunnel.AllowUsers,
-		IsEnable:           tunnel.IsEnable,
-		RequireEncryption:  tunnel.RequireEncryption,
-		RequireCompression: tunnel.RequireCompression,
-		MaxBandwidth:       tunnel.MaxBandwidth,
-		CreateTime:         timestamppb.New(tunnel.CreateTime),
-		UpdateTime:         timestamppb.New(tunnel.UpdateTime),
+		Id:             tunnel.ID,
+		Name:           tunnel.Name,
+		UserId:         tunnel.UserID,
+		Type:           entProxyTypeToV1(tunnel.ProxyType),
+		RemotePort:     int32(tunnel.RemotePort),
+		CustomDomains:  tunnel.CustomDomains,
+		Subdomain:      tunnel.Subdomain,
+		LocalIp:        tunnel.LocalIP,
+		LocalPort:      int32(tunnel.LocalPort),
+		Credential:     tunnel.Credential,
+		AllowUsers:     tunnel.AllowUsers,
+		IsEnable:       tunnel.IsEnable,
+		MaxBandwidth:   tunnel.MaxBandwidth,
+		MaxActiveConns: int32(tunnel.MaxActiveConns),
+		CreateTime:     timestamppb.New(tunnel.CreateTime),
+		UpdateTime:     timestamppb.New(tunnel.UpdateTime),
 	}
 
 	stat, ok := t.manager.Stat(tunnel.Name)
@@ -325,13 +323,6 @@ func toFrpsOptions(cfg *v1.FrpsConfig) frp_tunnel.Options {
 		KCPBindPort:    int(cfg.KcpBindPort),
 		QUICBindPort:   int(cfg.QuicBindPort),
 		SubdomainHost:  cfg.SubdomainHost,
-
-		TLSForce:          cfg.TlsForce,
-		MaxPoolCount:      int(cfg.MaxPoolCount),
-		MaxPortsPerClient: int(cfg.MaxPortsPerClient),
-		HeartbeatTimeout:  int(cfg.HeartbeatTimeout),
-		TCPMux:            cfg.TcpMux,
-		UDPPacketSize:     int(cfg.UdpPacketSize),
 	}
 }
 

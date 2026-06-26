@@ -360,7 +360,6 @@ func (f *FileOper) Rename(path, newName string) (string, error) {
 
 type ChunkedUpload struct {
 	*gen.FileUpload
-	Sing     string
 	fileSync sync.RWMutex
 }
 
@@ -371,6 +370,12 @@ const (
 
 	tempName = "%s-momoko-upload-%v.part"
 )
+
+// TempPartPath 返回某个上传会话在目标目录下的临时分片文件路径。
+// 导出以便业务层（如后台 GC）按上传记录重建该路径来清理残留 .part 文件。
+func TempPartPath(dir, fileName, id string) string {
+	return filepath.Join(dir, fmt.Sprintf(tempName, fileName, id))
+}
 
 func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 	chunkSize := calcChunkSize(fileSize)
@@ -430,7 +435,7 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 	}
 
 	tempFile, err := os.OpenFile(
-		filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)),
+		TempPartPath(u.Path, u.FileName, u.ID),
 		os.O_CREATE|os.O_WRONLY,
 		0o644,
 	)
@@ -465,7 +470,9 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 	return partSize, partHash, nil
 }
 
-// 合并文件
+// Complete 校验分片完整性后将临时文件原子地落为最终文件。
+// 校验项：分片齐全且编号无重复、每片大小正确、合计与临时文件实际大小均等于声明大小，
+// 以避免 offset 空洞 / 短写 / 漏片导致合并出损坏文件。
 func (u *ChunkedUpload) Complete() error {
 	u.fileSync.Lock()
 	defer u.fileSync.Unlock()
@@ -475,12 +482,29 @@ func (u *ChunkedUpload) Complete() error {
 	if u.Cancel {
 		return errors.New("上传已取消")
 	}
-	if uint64(len(u.Edges.Chunks)) != u.TotalChunks {
-		return errors.New("分片未上传完成")
+
+	partPath := TempPartPath(u.Path, u.FileName, u.ID)
+	finalPath := filepath.Join(u.Path, u.FileName)
+
+	// 空文件没有分片，直接落一个空文件。
+	if u.TotalChunks == 0 {
+		f, err := os.OpenFile(finalPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+		if err != nil {
+			return fmt.Errorf("创建文件失败: %w", err)
+		}
+		return f.Close()
 	}
 
-	partPath := filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID))
-	finalPath := filepath.Join(u.Path, u.FileName)
+	if err := u.verifyChunks(); err != nil {
+		return err
+	}
+	fi, err := os.Stat(partPath)
+	if err != nil {
+		return fmt.Errorf("临时文件缺失: %w", err)
+	}
+	if uint64(fi.Size()) != u.FileSize {
+		return fmt.Errorf("文件大小不一致：实际 %d，声明 %d", fi.Size(), u.FileSize)
+	}
 
 	if err := os.Rename(partPath, finalPath); err != nil {
 		return fmt.Errorf("重命名文件失败: %w", err)
@@ -488,7 +512,35 @@ func (u *ChunkedUpload) Complete() error {
 	return nil
 }
 
-// 取消上传
+// verifyChunks 校验已记录的分片：齐全、编号合法、每片大小符合预期、合计等于文件大小。
+// 不校验「重复」——分片表对 (upload_id, chunk) 有唯一约束、写入用 upsert，重复上传是
+// 幂等的（覆盖同偏移同内容），不应在此（或上传分片时）报错而打断客户端续传/重试。
+func (u *ChunkedUpload) verifyChunks() error {
+	chunks := u.Edges.Chunks
+	if uint64(len(chunks)) != u.TotalChunks {
+		return fmt.Errorf("分片未上传完成：%d/%d", len(chunks), u.TotalChunks)
+	}
+	var total uint64
+	for _, c := range chunks {
+		if c.Chunk < 1 || c.Chunk > u.TotalChunks {
+			return errors.New("存在异常分片编号")
+		}
+		expected := u.ChunkSize
+		if c.Chunk == u.TotalChunks {
+			expected = u.FileSize - (u.TotalChunks-1)*u.ChunkSize
+		}
+		if c.Size != expected {
+			return fmt.Errorf("分片 %d 大小异常：%d，应为 %d", c.Chunk, c.Size, expected)
+		}
+		total += c.Size
+	}
+	if total != u.FileSize {
+		return fmt.Errorf("分片合计 %d 与文件大小 %d 不一致", total, u.FileSize)
+	}
+	return nil
+}
+
+// Canceld 取消上传并删除临时分片文件。
 func (u *ChunkedUpload) Canceld() error {
 	u.fileSync.Lock()
 	defer u.fileSync.Unlock()
@@ -498,5 +550,8 @@ func (u *ChunkedUpload) Canceld() error {
 	if u.Cancel {
 		return nil
 	}
-	return os.Remove(filepath.Join(u.Path, fmt.Sprintf(tempName, u.FileName, u.ID)))
+	if err := os.Remove(TempPartPath(u.Path, u.FileName, u.ID)); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }

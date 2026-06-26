@@ -19,14 +19,6 @@ type Options struct {
 	KCPBindPort    int
 	QUICBindPort   int
 	SubdomainHost  string
-
-	// 优化/调优项（透传至 frps，零值沿用 frps 默认）。
-	TLSForce          bool
-	MaxPoolCount      int
-	MaxPortsPerClient int
-	HeartbeatTimeout  int
-	TCPMux            bool
-	UDPPacketSize     int
 }
 
 // ManagerConfig 装配 Manager 所需信息。
@@ -86,16 +78,8 @@ func (m *Manager) Apply(opts Options) error {
 		KCPBindPort:    opts.KCPBindPort,
 		QUICBindPort:   opts.QUICBindPort,
 		SubdomainHost:  opts.SubdomainHost,
-
-		TLSForce:          opts.TLSForce,
-		MaxPoolCount:      opts.MaxPoolCount,
-		MaxPortsPerClient: opts.MaxPortsPerClient,
-		HeartbeatTimeout:  opts.HeartbeatTimeout,
-		TCPMux:            opts.TCPMux,
-		UDPPacketSize:     opts.UDPPacketSize,
-
-		PluginAddr: "http://" + ln.Addr().String(),
-		PluginPath: m.pluginPath,
+		PluginAddr:     "http://" + ln.Addr().String(),
+		PluginPath:     m.pluginPath,
 	})
 	if err != nil {
 		_ = pluginSrv.Close()
@@ -123,6 +107,14 @@ func (m *Manager) pluginHooks() PluginHooks {
 		},
 		OnNewProxy: func(ctx context.Context, info NewProxyInfo) error {
 			return authNewProxy(ctx, m.lookup, info)
+		},
+		OnNewUserConn: func(ctx context.Context, info NewUserConnInfo) error {
+			// 当前活跃连接数取自实时统计；新连接此刻尚未计入，故用 >= 判定。
+			var active int64
+			if stat, ok := Stat(info.ProxyName); ok {
+				active = stat.ActiveConns
+			}
+			return authNewUserConn(ctx, m.lookup, active, info)
 		},
 	}
 }

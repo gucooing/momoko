@@ -22,6 +22,8 @@ type FileService struct {
 func (f *FileService) RegisterDownloadServer(srv *khttp.Server) {
 	srv.HandleFunc(biz.PreFileDownload, f.preFileDownload)
 	srv.HandleFunc(biz.PreFileUpload, f.preFileUpload)
+	// 公开分享下载：/api/v1/public/ 前缀免 JWT（见 internal/server/token.go），由业务层自校验令牌/提取码。
+	srv.HandleFunc(biz.ShareDownloadPath, f.shareDownload)
 }
 
 func NewFileService(uc *biz.FileUsecase) *FileService {
@@ -151,6 +153,63 @@ func (f *FileService) CancelFileUpload(ctx context.Context, req *v1.CancelFileUp
 		return nil, err
 	}
 	return &v1.CancelFileUploadResponse{}, nil
+}
+
+func (f *FileService) CreateShare(ctx context.Context, req *v1.CreateShareRequest) (*v1.CreateShareResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := f.uc.CreateShare(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateShareResponse{Info: info}, nil
+}
+
+func (f *FileService) ListShares(ctx context.Context, req *v1.ListSharesRequest) (*v1.ListSharesResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return f.uc.ListShares(ctx, authCtx.UserID, req)
+}
+
+func (f *FileService) UpdateShare(ctx context.Context, req *v1.UpdateShareRequest) (*v1.UpdateShareResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := f.uc.UpdateShare(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateShareResponse{Info: info}, nil
+}
+
+func (f *FileService) DeleteShare(ctx context.Context, req *v1.DeleteShareRequest) (*v1.DeleteShareResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	if err := f.uc.DeleteShare(ctx, authCtx.UserID, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteShareResponse{}, nil
+}
+
+// GetShareMeta 公开接口：无需登录（/api/v1/public/ 前缀免鉴权）。
+func (f *FileService) GetShareMeta(ctx context.Context, req *v1.GetShareMetaRequest) (*v1.GetShareMetaResponse, error) {
+	return f.uc.GetShareMeta(ctx, req.Token)
+}
+
+// ListShareDir 公开接口：无需登录，提取码由业务层校验。
+func (f *FileService) ListShareDir(ctx context.Context, req *v1.ListShareDirRequest) (*v1.ListShareDirResponse, error) {
+	return f.uc.ListShareDir(ctx, req)
+}
+
+func (f *FileService) shareDownload(w khttp.ResponseWriter, r *khttp.Request) {
+	f.uc.ShareDownload(w, r)
 }
 
 func (f *FileService) preFileDownload(w khttp.ResponseWriter, r *khttp.Request) {

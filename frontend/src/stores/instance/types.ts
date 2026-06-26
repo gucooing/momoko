@@ -92,6 +92,7 @@ export const fileManagerActionTextMap: Record<FileManagerAction, string> = {
   upload: 'fileManager.upload',
   download: 'fileManager.download',
   copyTemporaryLink: 'fileManager.copyLink',
+  share: 'fileManager.share',
   compress: 'fileManager.compress',
   unzip: 'fileManager.unzip',
   rename: 'fileManager.rename',

@@ -28,16 +28,23 @@ type NewProxyInfo struct {
 	CustomDomains []string
 	SubDomain     string
 
-	UseEncryption  bool   // frpc 该 proxy 是否声明 useEncryption
-	UseCompression bool   // frpc 该 proxy 是否声明 useCompression
 	BandwidthLimit string // frpc 该 proxy 声明的带宽限制（如 "1MB"，空=未限制）
+}
+
+// NewUserConnInfo 是一条用户连接建立时传给插件的信息。
+type NewUserConnInfo struct {
+	User       string
+	ProxyName  string
+	ProxyType  string
+	RemoteAddr string
 }
 
 // PluginHooks 由业务层提供具体校验逻辑。
 // OnLogin/OnNewProxy 返回非 nil error 表示拒绝，error 文本作为拒绝原因回给 frpc。
 type PluginHooks struct {
-	OnLogin    func(ctx context.Context, info LoginInfo) error
-	OnNewProxy func(ctx context.Context, info NewProxyInfo) error
+	OnLogin       func(ctx context.Context, info LoginInfo) error
+	OnNewProxy    func(ctx context.Context, info NewProxyInfo) error
+	OnNewUserConn func(ctx context.Context, info NewUserConnInfo) error
 }
 
 // PluginHandler 返回实现 frp 服务端插件协议的 HTTP handler。
@@ -72,6 +79,8 @@ func PluginHandler(hooks PluginHooks) http.HandlerFunc {
 			writeResponse(w, handleLogin(r.Context(), hooks, req.Content))
 		case pserver.OpNewProxy:
 			writeResponse(w, handleNewProxy(r.Context(), hooks, req.Content))
+		case pserver.OpNewUserConn:
+			writeResponse(w, handleNewUserConn(r.Context(), hooks, req.Content))
 		default:
 			// 未关注的操作一律放行（不改动内容）。
 			writeResponse(w, pserver.Response{Unchange: true})
@@ -112,9 +121,25 @@ func handleNewProxy(ctx context.Context, hooks PluginHooks, content json.RawMess
 			RemotePort:     c.RemotePort,
 			CustomDomains:  c.CustomDomains,
 			SubDomain:      c.SubDomain,
-			UseEncryption:  c.UseEncryption,
-			UseCompression: c.UseCompression,
 			BandwidthLimit: c.BandwidthLimit,
+		}); err != nil {
+			return reject(err.Error())
+		}
+	}
+	return pserver.Response{Unchange: true}
+}
+
+func handleNewUserConn(ctx context.Context, hooks PluginHooks, content json.RawMessage) pserver.Response {
+	var c pserver.NewUserConnContent
+	if err := json.Unmarshal(content, &c); err != nil {
+		return reject("decode newuserconn content: " + err.Error())
+	}
+	if hooks.OnNewUserConn != nil {
+		if err := hooks.OnNewUserConn(ctx, NewUserConnInfo{
+			User:       c.User.User,
+			ProxyName:  c.ProxyName,
+			ProxyType:  c.ProxyType,
+			RemoteAddr: c.RemoteAddr,
 		}); err != nil {
 			return reject(err.Error())
 		}

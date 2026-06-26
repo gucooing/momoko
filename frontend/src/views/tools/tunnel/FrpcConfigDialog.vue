@@ -83,6 +83,13 @@ const content = computed(() => {
     lines.push(`secretKey = "${row.credential}"`)
   }
 
+  // 隧道限速：momoko 对该隧道设了带宽上限时，必须体现在 frpc 配置里，
+  // 否则 frpc 声明 proxy 时会被服务端鉴权插件拒绝（见 authNewProxy 的 enforceClientPolicy）。
+  if (row.maxBandwidth) {
+    lines.push('', '# 服务端限速策略（不满足将被拒绝连接）')
+    lines.push(`transport.bandwidthLimit = "${row.maxBandwidth}"`)
+  }
+
   return lines.join('\n') + '\n'
 })
 

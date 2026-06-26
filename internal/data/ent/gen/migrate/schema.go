@@ -70,6 +70,43 @@ var (
 		Columns:    EmailTemplatesColumns,
 		PrimaryKey: []*schema.Column{EmailTemplatesColumns[0]},
 	}
+	// FileSharesColumns holds the columns for the "file_shares" table.
+	FileSharesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "target_path", Type: field.TypeString},
+		{Name: "is_dir", Type: field.TypeBool, Default: false},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "code", Type: field.TypeString, Default: ""},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "max_downloads", Type: field.TypeInt64, Default: 0},
+		{Name: "download_count", Type: field.TypeInt64, Default: 0},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// FileSharesTable holds the schema information for the "file_shares" table.
+	FileSharesTable = &schema.Table{
+		Name:       "file_shares",
+		Columns:    FileSharesColumns,
+		PrimaryKey: []*schema.Column{FileSharesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "file_shares_users_user",
+				Columns:    []*schema.Column{FileSharesColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "fileshare_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{FileSharesColumns[12]},
+			},
+		},
+	}
 	// FileUploadsColumns holds the columns for the "file_uploads" table.
 	FileUploadsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -155,9 +192,8 @@ var (
 		{Name: "credential", Type: field.TypeString},
 		{Name: "allow_users", Type: field.TypeString, Default: ""},
 		{Name: "is_enable", Type: field.TypeBool, Default: false},
-		{Name: "require_encryption", Type: field.TypeBool, Default: false},
-		{Name: "require_compression", Type: field.TypeBool, Default: false},
 		{Name: "max_bandwidth", Type: field.TypeString, Default: ""},
+		{Name: "max_active_conns", Type: field.TypeInt, Default: 0},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FrpTunnelsTable holds the schema information for the "frp_tunnels" table.
@@ -168,7 +204,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "frp_tunnels_users_user",
-				Columns:    []*schema.Column{FrpTunnelsColumns[16]},
+				Columns:    []*schema.Column{FrpTunnelsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -177,7 +213,7 @@ var (
 			{
 				Name:    "frptunnel_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{FrpTunnelsColumns[16]},
+				Columns: []*schema.Column{FrpTunnelsColumns[15]},
 			},
 			{
 				Name:    "frptunnel_is_enable",
@@ -777,6 +813,7 @@ var (
 	Tables = []*schema.Table{
 		AuthsTable,
 		EmailTemplatesTable,
+		FileSharesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
 		FrpTunnelsTable,
@@ -806,6 +843,7 @@ func init() {
 	EmailTemplatesTable.Annotation = &entsql.Annotation{
 		Table: "email_templates",
 	}
+	FileSharesTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	FrpTunnelsTable.ForeignKeys[0].RefTable = UsersTable

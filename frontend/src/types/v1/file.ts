@@ -34,6 +34,180 @@ export enum FileTaskStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 分享信息（仅创建者可见的管理视图，含提取码） */
+export interface ShareInfo {
+  /** 分享 id */
+  id: string;
+  /** 展示名称 */
+  name: string;
+  /** 被分享的真实路径 */
+  targetPath: string;
+  /** 是否文件夹 */
+  isDir: boolean;
+  /** 公开访问令牌 */
+  token: string;
+  /** 提取码，空=无需 */
+  code: string;
+  /** 过期时间，空=永久 */
+  expiresAt:
+    | Date
+    | undefined;
+  /** 下载次数上限，0=不限 */
+  maxDownloads: number;
+  /** 已下载次数 */
+  downloadCount: number;
+  /** 是否启用 */
+  enabled: boolean;
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 更新时间 */
+  updateTime: Date | undefined;
+}
+
+/** 创建分享请求 */
+export interface CreateShareRequest {
+  /** 要分享的文件/文件夹路径 */
+  path: string;
+  /** 展示名称，空=路径名 */
+  name: string;
+  /** 提取码，空=公开 */
+  code: string;
+  /** 过期时间，空=永久 */
+  expiresAt:
+    | Date
+    | undefined;
+  /** 下载次数上限，0=不限 */
+  maxDownloads: number;
+  /** 是否启用 */
+  enabled: boolean;
+}
+
+/** 创建分享响应 */
+export interface CreateShareResponse {
+  /** 分享信息 */
+  info: ShareInfo | undefined;
+}
+
+/** 分享列表请求 */
+export interface ListSharesRequest {
+  /** 页码 */
+  page: number;
+  /** 每页数量 */
+  pageSize: number;
+  /** 搜索关键字（名称/路径） */
+  keywords?: string | undefined;
+}
+
+/** 分享列表响应 */
+export interface ListSharesResponse {
+  /** 列表 */
+  items: ShareInfo[];
+  /** 当前页码 */
+  page: number;
+  /** 每页数量 */
+  pageSize: number;
+  /** 总数 */
+  total: number;
+}
+
+/** 更新分享请求（全量覆盖可编辑字段） */
+export interface UpdateShareRequest {
+  /** 分享 id */
+  id: string;
+  /** 展示名称 */
+  name: string;
+  /** 提取码，空=公开 */
+  code: string;
+  /** 过期时间，空=永久 */
+  expiresAt:
+    | Date
+    | undefined;
+  /** 下载次数上限，0=不限 */
+  maxDownloads: number;
+  /** 是否启用 */
+  enabled: boolean;
+}
+
+/** 更新分享响应 */
+export interface UpdateShareResponse {
+  /** 分享信息 */
+  info: ShareInfo | undefined;
+}
+
+/** 删除分享请求 */
+export interface DeleteShareRequest {
+  /** 分享 id */
+  id: string;
+}
+
+/** 删除分享响应 */
+export interface DeleteShareResponse {
+}
+
+/** 获取分享元信息请求（公开） */
+export interface GetShareMetaRequest {
+  /** 公开访问令牌 */
+  token: string;
+}
+
+/** 获取分享元信息响应（公开，不含提取码本身） */
+export interface GetShareMetaResponse {
+  /** 展示名称 */
+  name: string;
+  /** 是否文件夹 */
+  isDir: boolean;
+  /** 文件大小（文件夹为 0） */
+  size: number;
+  /** 是否需要提取码 */
+  needCode: boolean;
+  /** 过期时间，空=永久 */
+  expiresAt:
+    | Date
+    | undefined;
+  /** 下载次数上限，0=不限 */
+  maxDownloads: number;
+  /** 已下载次数 */
+  downloadCount: number;
+  /** 当前是否可用（启用/未过期/未超次数） */
+  available: boolean;
+}
+
+/** 浏览分享目录请求（公开） */
+export interface ListShareDirRequest {
+  /** 公开访问令牌 */
+  token: string;
+  /** 提取码（如分享设置了） */
+  code: string;
+  /** 分享根下的相对子路径，空=根 */
+  subPath: string;
+}
+
+/** 分享目录条目 */
+export interface ShareEntry {
+  /** 名称 */
+  name: string;
+  /** 是否目录 */
+  isDir: boolean;
+  /** 大小 */
+  size: number;
+  /** 修改时间 */
+  updateTime:
+    | Date
+    | undefined;
+  /** 相对分享根的路径（用于继续浏览/下载） */
+  relPath: string;
+}
+
+/** 浏览分享目录响应 */
+export interface ListShareDirResponse {
+  /** 条目列表 */
+  items: ShareEntry[];
+  /** 当前子路径 */
+  subPath: string;
+}
+
 /** 获取系统文件列表请求 */
 export interface GetFileSystemListRequest {
   /** 目录路径 */

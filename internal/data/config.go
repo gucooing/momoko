@@ -334,31 +334,6 @@ func (c *ConfigRepo) FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	tlsForce, err := c.getBoolConfig(ctx, common.ConfigFrpsTLSForce)
-	if err != nil {
-		return nil, err
-	}
-	maxPoolCount, err := c.getInt32Config(ctx, common.ConfigFrpsMaxPoolCount)
-	if err != nil {
-		return nil, err
-	}
-	maxPortsPerClient, err := c.getInt32Config(ctx, common.ConfigFrpsMaxPortsPerClient)
-	if err != nil {
-		return nil, err
-	}
-	heartbeatTimeout, err := c.getInt32Config(ctx, common.ConfigFrpsHeartbeatTimeout)
-	if err != nil {
-		return nil, err
-	}
-	tcpMux, err := c.getBoolConfig(ctx, common.ConfigFrpsTCPMux)
-	if err != nil {
-		return nil, err
-	}
-	udpPacketSize, err := c.getInt32Config(ctx, common.ConfigFrpsUDPPacketSize)
-	if err != nil {
-		return nil, err
-	}
-
 	return &v1.FrpsConfig{
 		IsEnable:           enabled,
 		BindAddr:           bindAddr,
@@ -370,12 +345,6 @@ func (c *ConfigRepo) FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error) {
 		SubdomainHost:      subdomainHost,
 		StatSampleInterval: statSampleInterval,
 		ServerAddr:         serverAddr,
-		TlsForce:           tlsForce,
-		MaxPoolCount:       maxPoolCount,
-		MaxPortsPerClient:  maxPortsPerClient,
-		HeartbeatTimeout:   heartbeatTimeout,
-		TcpMux:             tcpMux,
-		UdpPacketSize:      udpPacketSize,
 	}, nil
 }
 
@@ -391,12 +360,6 @@ func (c *ConfigRepo) UpdateFrpsConfig(ctx context.Context, req *v1.FrpsConfig) (
 		common.ConfigFrpsSubdomainHost:      req.SubdomainHost,
 		common.ConfigFrpsStatSampleInterval: strconv.FormatInt(int64(req.StatSampleInterval), 10),
 		common.ConfigFrpsServerAddr:         req.ServerAddr,
-		common.ConfigFrpsTLSForce:           strconv.FormatBool(req.TlsForce),
-		common.ConfigFrpsMaxPoolCount:       strconv.FormatInt(int64(req.MaxPoolCount), 10),
-		common.ConfigFrpsMaxPortsPerClient:  strconv.FormatInt(int64(req.MaxPortsPerClient), 10),
-		common.ConfigFrpsHeartbeatTimeout:   strconv.FormatInt(int64(req.HeartbeatTimeout), 10),
-		common.ConfigFrpsTCPMux:             strconv.FormatBool(req.TcpMux),
-		common.ConfigFrpsUDPPacketSize:      strconv.FormatInt(int64(req.UdpPacketSize), 10),
 	}
 	if err := c.BatchUpdate(ctx, configs); err != nil {
 		return nil, err

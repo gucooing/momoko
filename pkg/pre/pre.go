@@ -10,16 +10,31 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-jose/go-jose/v4/json"
+
+	"momoko/pkg/auth"
 )
 
-var secretKey = func() []byte {
-	key := make([]byte, 32)
-	rand.Read(key)
-	return key
-}()
+// signingKey 从全局 auth.AuthSecretKey 派生一个稳定的 32 字节密钥（带域分隔），
+// 取代旧的「进程启动时随机生成」——旧实现会让所有预签名 URL 在服务重启后立即失效，
+// 导致正在进行的上传/下载（以及未来的长效分享）全部中断。延迟到首次使用时派生，
+// 以保证此时 main 已从配置写入 auth.AuthSecretKey。
+var (
+	keyOnce    sync.Once
+	derivedKey []byte
+)
+
+func signingKey() []byte {
+	keyOnce.Do(func() {
+		mac := hmac.New(sha256.New, []byte(auth.AuthSecretKey))
+		mac.Write([]byte("momoko:presign:aesgcm:v1"))
+		derivedKey = mac.Sum(nil)
+	})
+	return derivedKey
+}
 
 // 下载预签名
 type FileSignInfo struct {
@@ -51,11 +66,12 @@ func (f *FileSignInfo) Sign() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ciphertext, err := aesGcmEncrypt(fs, secretKey)
+	key := signingKey()
+	ciphertext, err := aesGcmEncrypt(fs, key)
 	if err != nil {
 		return "", err
 	}
-	mac := hmac.New(sha256.New, secretKey)
+	mac := hmac.New(sha256.New, key)
 	mac.Write(ciphertext)
 	signature := mac.Sum(nil)
 	token := base64.RawURLEncoding.EncodeToString(ciphertext) + "." +
@@ -77,13 +93,14 @@ func Verify(sign string) (*FileSignInfo, error) {
 	if err != nil {
 		return nil, errors.New("签名解码失败")
 	}
-	mac := hmac.New(sha256.New, secretKey)
+	key := signingKey()
+	mac := hmac.New(sha256.New, key)
 	mac.Write(ciphertext)
 	expectedSig := mac.Sum(nil)
 	if !hmac.Equal(receivedSig, expectedSig) {
 		return nil, errors.New("签名验证失败，Sign 可能被篡改")
 	}
-	plaintext, err := aesGcmDecrypt(ciphertext, secretKey)
+	plaintext, err := aesGcmDecrypt(ciphertext, key)
 	if err != nil {
 		return nil, errors.New("解密失败")
 	}

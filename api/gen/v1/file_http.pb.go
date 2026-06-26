@@ -25,16 +25,22 @@ const OperationFileManagerCancelFileUpload = "/v1.FileManager/CancelFileUpload"
 const OperationFileManagerCompleteFileUpload = "/v1.FileManager/CompleteFileUpload"
 const OperationFileManagerCopyFileSystem = "/v1.FileManager/CopyFileSystem"
 const OperationFileManagerCreateFileSystem = "/v1.FileManager/CreateFileSystem"
+const OperationFileManagerCreateShare = "/v1.FileManager/CreateShare"
 const OperationFileManagerCutFileSystem = "/v1.FileManager/CutFileSystem"
+const OperationFileManagerDeleteShare = "/v1.FileManager/DeleteShare"
 const OperationFileManagerEditFileSystemFile = "/v1.FileManager/EditFileSystemFile"
 const OperationFileManagerFileSystemPreSign = "/v1.FileManager/FileSystemPreSign"
 const OperationFileManagerFileSystemPreSignUpload = "/v1.FileManager/FileSystemPreSignUpload"
 const OperationFileManagerGetFileSystemList = "/v1.FileManager/GetFileSystemList"
 const OperationFileManagerGetFileTask = "/v1.FileManager/GetFileTask"
 const OperationFileManagerGetFileUploadStatus = "/v1.FileManager/GetFileUploadStatus"
+const OperationFileManagerGetShareMeta = "/v1.FileManager/GetShareMeta"
+const OperationFileManagerListShareDir = "/v1.FileManager/ListShareDir"
+const OperationFileManagerListShares = "/v1.FileManager/ListShares"
 const OperationFileManagerOpenFileSystemFile = "/v1.FileManager/OpenFileSystemFile"
 const OperationFileManagerRenameFileSystem = "/v1.FileManager/RenameFileSystem"
 const OperationFileManagerUnzipFileSystem = "/v1.FileManager/UnzipFileSystem"
+const OperationFileManagerUpdateShare = "/v1.FileManager/UpdateShare"
 
 type FileManagerHTTPServer interface {
 	// BatchCompressFileSystem 压缩指定文件/文件夹(系统级)
@@ -49,8 +55,12 @@ type FileManagerHTTPServer interface {
 	CopyFileSystem(context.Context, *CopyFileSystemRequest) (*CopyFileSystemResponse, error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
+	// CreateShare 创建分享(系统级)
+	CreateShare(context.Context, *CreateShareRequest) (*CreateShareResponse, error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(context.Context, *CutFileSystemRequest) (*CutFileSystemResponse, error)
+	// DeleteShare 删除分享(系统级)
+	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
 	// EditFileSystemFile 编辑指定文件(系统级)
 	EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error)
 	// FileSystemPreSign 文件下载预签名(系统级)
@@ -63,12 +73,20 @@ type FileManagerHTTPServer interface {
 	GetFileTask(context.Context, *GetFileTaskRequest) (*GetFileTaskResponse, error)
 	// GetFileUploadStatus 获取上传状态
 	GetFileUploadStatus(context.Context, *GetFileUploadStatusRequest) (*GetFileUploadStatusResponse, error)
+	// GetShareMeta 公开：获取分享元信息（无需提取码）
+	GetShareMeta(context.Context, *GetShareMetaRequest) (*GetShareMetaResponse, error)
+	// ListShareDir 公开：浏览分享目录（按需提取码）
+	ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error)
+	// ListShares 分享列表(系统级)
+	ListShares(context.Context, *ListSharesRequest) (*ListSharesResponse, error)
 	// OpenFileSystemFile 打开指定文件(系统级)
 	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
+	// UpdateShare 更新分享(系统级)
+	UpdateShare(context.Context, *UpdateShareRequest) (*UpdateShareResponse, error)
 }
 
 func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
@@ -89,6 +107,12 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.GET("/api/v1/file/upload/status", _FileManager_GetFileUploadStatus0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/upload/complete", _FileManager_CompleteFileUpload0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/upload/cancel", _FileManager_CancelFileUpload0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/share/create", _FileManager_CreateShare0_HTTP_Handler(srv))
+	r.GET("/api/v1/file/share/list", _FileManager_ListShares0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/share/update", _FileManager_UpdateShare0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/share/delete", _FileManager_DeleteShare0_HTTP_Handler(srv))
+	r.GET("/api/v1/public/share/meta", _FileManager_GetShareMeta0_HTTP_Handler(srv))
+	r.POST("/api/v1/public/share/list", _FileManager_ListShareDir0_HTTP_Handler(srv))
 }
 
 func _FileManager_GetFileSystemList0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
@@ -431,6 +455,132 @@ func _FileManager_CancelFileUpload0_HTTP_Handler(srv FileManagerHTTPServer) func
 	}
 }
 
+func _FileManager_CreateShare0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateShareRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerCreateShare)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateShare(ctx, req.(*CreateShareRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateShareResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_ListShares0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSharesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerListShares)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListShares(ctx, req.(*ListSharesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSharesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_UpdateShare0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateShareRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerUpdateShare)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateShare(ctx, req.(*UpdateShareRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateShareResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_DeleteShare0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteShareRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerDeleteShare)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteShare(ctx, req.(*DeleteShareRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteShareResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_GetShareMeta0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetShareMetaRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerGetShareMeta)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetShareMeta(ctx, req.(*GetShareMetaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetShareMetaResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_ListShareDir0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListShareDirRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerListShareDir)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListShareDir(ctx, req.(*ListShareDirRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListShareDirResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type FileManagerHTTPClient interface {
 	// BatchCompressFileSystem 压缩指定文件/文件夹(系统级)
 	BatchCompressFileSystem(ctx context.Context, req *BatchCompressFileSystemRequest, opts ...http.CallOption) (rsp *BatchCompressFileSystemResponse, err error)
@@ -444,8 +594,12 @@ type FileManagerHTTPClient interface {
 	CopyFileSystem(ctx context.Context, req *CopyFileSystemRequest, opts ...http.CallOption) (rsp *CopyFileSystemResponse, err error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(ctx context.Context, req *CreateFileSystemRequest, opts ...http.CallOption) (rsp *CreateFileSystemResponse, err error)
+	// CreateShare 创建分享(系统级)
+	CreateShare(ctx context.Context, req *CreateShareRequest, opts ...http.CallOption) (rsp *CreateShareResponse, err error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(ctx context.Context, req *CutFileSystemRequest, opts ...http.CallOption) (rsp *CutFileSystemResponse, err error)
+	// DeleteShare 删除分享(系统级)
+	DeleteShare(ctx context.Context, req *DeleteShareRequest, opts ...http.CallOption) (rsp *DeleteShareResponse, err error)
 	// EditFileSystemFile 编辑指定文件(系统级)
 	EditFileSystemFile(ctx context.Context, req *EditFileSystemFileRequest, opts ...http.CallOption) (rsp *EditFileSystemFileResponse, err error)
 	// FileSystemPreSign 文件下载预签名(系统级)
@@ -458,12 +612,20 @@ type FileManagerHTTPClient interface {
 	GetFileTask(ctx context.Context, req *GetFileTaskRequest, opts ...http.CallOption) (rsp *GetFileTaskResponse, err error)
 	// GetFileUploadStatus 获取上传状态
 	GetFileUploadStatus(ctx context.Context, req *GetFileUploadStatusRequest, opts ...http.CallOption) (rsp *GetFileUploadStatusResponse, err error)
+	// GetShareMeta 公开：获取分享元信息（无需提取码）
+	GetShareMeta(ctx context.Context, req *GetShareMetaRequest, opts ...http.CallOption) (rsp *GetShareMetaResponse, err error)
+	// ListShareDir 公开：浏览分享目录（按需提取码）
+	ListShareDir(ctx context.Context, req *ListShareDirRequest, opts ...http.CallOption) (rsp *ListShareDirResponse, err error)
+	// ListShares 分享列表(系统级)
+	ListShares(ctx context.Context, req *ListSharesRequest, opts ...http.CallOption) (rsp *ListSharesResponse, err error)
 	// OpenFileSystemFile 打开指定文件(系统级)
 	OpenFileSystemFile(ctx context.Context, req *OpenFileSystemFileRequest, opts ...http.CallOption) (rsp *OpenFileSystemFileResponse, err error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(ctx context.Context, req *RenameFileSystemRequest, opts ...http.CallOption) (rsp *RenameFileSystemResponse, err error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(ctx context.Context, req *UnzipFileSystemRequest, opts ...http.CallOption) (rsp *UnzipFileSystemResponse, err error)
+	// UpdateShare 更新分享(系统级)
+	UpdateShare(ctx context.Context, req *UpdateShareRequest, opts ...http.CallOption) (rsp *UpdateShareResponse, err error)
 }
 
 type FileManagerHTTPClientImpl struct {
@@ -558,12 +720,40 @@ func (c *FileManagerHTTPClientImpl) CreateFileSystem(ctx context.Context, in *Cr
 	return &out, nil
 }
 
+// CreateShare 创建分享(系统级)
+func (c *FileManagerHTTPClientImpl) CreateShare(ctx context.Context, in *CreateShareRequest, opts ...http.CallOption) (*CreateShareResponse, error) {
+	var out CreateShareResponse
+	pattern := "/api/v1/file/share/create"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerCreateShare))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CutFileSystem 剪贴指定文件/文件夹(系统级)
 func (c *FileManagerHTTPClientImpl) CutFileSystem(ctx context.Context, in *CutFileSystemRequest, opts ...http.CallOption) (*CutFileSystemResponse, error) {
 	var out CutFileSystemResponse
 	pattern := "/api/v1/file/system/cut"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerCutFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteShare 删除分享(系统级)
+func (c *FileManagerHTTPClientImpl) DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...http.CallOption) (*DeleteShareResponse, error) {
+	var out DeleteShareResponse
+	pattern := "/api/v1/file/share/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerDeleteShare))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -656,6 +846,48 @@ func (c *FileManagerHTTPClientImpl) GetFileUploadStatus(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetShareMeta 公开：获取分享元信息（无需提取码）
+func (c *FileManagerHTTPClientImpl) GetShareMeta(ctx context.Context, in *GetShareMetaRequest, opts ...http.CallOption) (*GetShareMetaResponse, error) {
+	var out GetShareMetaResponse
+	pattern := "/api/v1/public/share/meta"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationFileManagerGetShareMeta))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListShareDir 公开：浏览分享目录（按需提取码）
+func (c *FileManagerHTTPClientImpl) ListShareDir(ctx context.Context, in *ListShareDirRequest, opts ...http.CallOption) (*ListShareDirResponse, error) {
+	var out ListShareDirResponse
+	pattern := "/api/v1/public/share/list"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerListShareDir))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListShares 分享列表(系统级)
+func (c *FileManagerHTTPClientImpl) ListShares(ctx context.Context, in *ListSharesRequest, opts ...http.CallOption) (*ListSharesResponse, error) {
+	var out ListSharesResponse
+	pattern := "/api/v1/file/share/list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationFileManagerListShares))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // OpenFileSystemFile 打开指定文件(系统级)
 func (c *FileManagerHTTPClientImpl) OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...http.CallOption) (*OpenFileSystemFileResponse, error) {
 	var out OpenFileSystemFileResponse
@@ -690,6 +922,20 @@ func (c *FileManagerHTTPClientImpl) UnzipFileSystem(ctx context.Context, in *Unz
 	pattern := "/api/v1/file/system/unzip"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerUnzipFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateShare 更新分享(系统级)
+func (c *FileManagerHTTPClientImpl) UpdateShare(ctx context.Context, in *UpdateShareRequest, opts ...http.CallOption) (*UpdateShareResponse, error) {
+	var out UpdateShareResponse
+	pattern := "/api/v1/file/share/update"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerUpdateShare))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

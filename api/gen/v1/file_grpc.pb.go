@@ -35,6 +35,12 @@ const (
 	FileManager_GetFileUploadStatus_FullMethodName     = "/v1.FileManager/GetFileUploadStatus"
 	FileManager_CompleteFileUpload_FullMethodName      = "/v1.FileManager/CompleteFileUpload"
 	FileManager_CancelFileUpload_FullMethodName        = "/v1.FileManager/CancelFileUpload"
+	FileManager_CreateShare_FullMethodName             = "/v1.FileManager/CreateShare"
+	FileManager_ListShares_FullMethodName              = "/v1.FileManager/ListShares"
+	FileManager_UpdateShare_FullMethodName             = "/v1.FileManager/UpdateShare"
+	FileManager_DeleteShare_FullMethodName             = "/v1.FileManager/DeleteShare"
+	FileManager_GetShareMeta_FullMethodName            = "/v1.FileManager/GetShareMeta"
+	FileManager_ListShareDir_FullMethodName            = "/v1.FileManager/ListShareDir"
 )
 
 // FileManagerClient is the client API for FileManager service.
@@ -75,6 +81,18 @@ type FileManagerClient interface {
 	CompleteFileUpload(ctx context.Context, in *CompleteFileUploadRequest, opts ...grpc.CallOption) (*CompleteFileUploadResponse, error)
 	// 取消文件上传
 	CancelFileUpload(ctx context.Context, in *CancelFileUploadRequest, opts ...grpc.CallOption) (*CancelFileUploadResponse, error)
+	// 创建分享(系统级)
+	CreateShare(ctx context.Context, in *CreateShareRequest, opts ...grpc.CallOption) (*CreateShareResponse, error)
+	// 分享列表(系统级)
+	ListShares(ctx context.Context, in *ListSharesRequest, opts ...grpc.CallOption) (*ListSharesResponse, error)
+	// 更新分享(系统级)
+	UpdateShare(ctx context.Context, in *UpdateShareRequest, opts ...grpc.CallOption) (*UpdateShareResponse, error)
+	// 删除分享(系统级)
+	DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error)
+	// 公开：获取分享元信息（无需提取码）
+	GetShareMeta(ctx context.Context, in *GetShareMetaRequest, opts ...grpc.CallOption) (*GetShareMetaResponse, error)
+	// 公开：浏览分享目录（按需提取码）
+	ListShareDir(ctx context.Context, in *ListShareDirRequest, opts ...grpc.CallOption) (*ListShareDirResponse, error)
 }
 
 type fileManagerClient struct {
@@ -245,6 +263,66 @@ func (c *fileManagerClient) CancelFileUpload(ctx context.Context, in *CancelFile
 	return out, nil
 }
 
+func (c *fileManagerClient) CreateShare(ctx context.Context, in *CreateShareRequest, opts ...grpc.CallOption) (*CreateShareResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateShareResponse)
+	err := c.cc.Invoke(ctx, FileManager_CreateShare_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) ListShares(ctx context.Context, in *ListSharesRequest, opts ...grpc.CallOption) (*ListSharesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSharesResponse)
+	err := c.cc.Invoke(ctx, FileManager_ListShares_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) UpdateShare(ctx context.Context, in *UpdateShareRequest, opts ...grpc.CallOption) (*UpdateShareResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateShareResponse)
+	err := c.cc.Invoke(ctx, FileManager_UpdateShare_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteShareResponse)
+	err := c.cc.Invoke(ctx, FileManager_DeleteShare_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) GetShareMeta(ctx context.Context, in *GetShareMetaRequest, opts ...grpc.CallOption) (*GetShareMetaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetShareMetaResponse)
+	err := c.cc.Invoke(ctx, FileManager_GetShareMeta_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) ListShareDir(ctx context.Context, in *ListShareDirRequest, opts ...grpc.CallOption) (*ListShareDirResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListShareDirResponse)
+	err := c.cc.Invoke(ctx, FileManager_ListShareDir_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FileManagerServer is the server API for FileManager service.
 // All implementations must embed UnimplementedFileManagerServer
 // for forward compatibility.
@@ -283,6 +361,18 @@ type FileManagerServer interface {
 	CompleteFileUpload(context.Context, *CompleteFileUploadRequest) (*CompleteFileUploadResponse, error)
 	// 取消文件上传
 	CancelFileUpload(context.Context, *CancelFileUploadRequest) (*CancelFileUploadResponse, error)
+	// 创建分享(系统级)
+	CreateShare(context.Context, *CreateShareRequest) (*CreateShareResponse, error)
+	// 分享列表(系统级)
+	ListShares(context.Context, *ListSharesRequest) (*ListSharesResponse, error)
+	// 更新分享(系统级)
+	UpdateShare(context.Context, *UpdateShareRequest) (*UpdateShareResponse, error)
+	// 删除分享(系统级)
+	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
+	// 公开：获取分享元信息（无需提取码）
+	GetShareMeta(context.Context, *GetShareMetaRequest) (*GetShareMetaResponse, error)
+	// 公开：浏览分享目录（按需提取码）
+	ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error)
 	mustEmbedUnimplementedFileManagerServer()
 }
 
@@ -340,6 +430,24 @@ func (UnimplementedFileManagerServer) CompleteFileUpload(context.Context, *Compl
 }
 func (UnimplementedFileManagerServer) CancelFileUpload(context.Context, *CancelFileUploadRequest) (*CancelFileUploadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelFileUpload not implemented")
+}
+func (UnimplementedFileManagerServer) CreateShare(context.Context, *CreateShareRequest) (*CreateShareResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateShare not implemented")
+}
+func (UnimplementedFileManagerServer) ListShares(context.Context, *ListSharesRequest) (*ListSharesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListShares not implemented")
+}
+func (UnimplementedFileManagerServer) UpdateShare(context.Context, *UpdateShareRequest) (*UpdateShareResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateShare not implemented")
+}
+func (UnimplementedFileManagerServer) DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteShare not implemented")
+}
+func (UnimplementedFileManagerServer) GetShareMeta(context.Context, *GetShareMetaRequest) (*GetShareMetaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetShareMeta not implemented")
+}
+func (UnimplementedFileManagerServer) ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListShareDir not implemented")
 }
 func (UnimplementedFileManagerServer) mustEmbedUnimplementedFileManagerServer() {}
 func (UnimplementedFileManagerServer) testEmbeddedByValue()                     {}
@@ -650,6 +758,114 @@ func _FileManager_CancelFileUpload_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileManager_CreateShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateShareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).CreateShare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_CreateShare_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).CreateShare(ctx, req.(*CreateShareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_ListShares_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSharesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).ListShares(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_ListShares_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).ListShares(ctx, req.(*ListSharesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_UpdateShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateShareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).UpdateShare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_UpdateShare_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).UpdateShare(ctx, req.(*UpdateShareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_DeleteShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteShareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).DeleteShare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_DeleteShare_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).DeleteShare(ctx, req.(*DeleteShareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_GetShareMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetShareMetaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).GetShareMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_GetShareMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).GetShareMeta(ctx, req.(*GetShareMetaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_ListShareDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListShareDirRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).ListShareDir(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_ListShareDir_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).ListShareDir(ctx, req.(*ListShareDirRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FileManager_ServiceDesc is the grpc.ServiceDesc for FileManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -720,6 +936,30 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelFileUpload",
 			Handler:    _FileManager_CancelFileUpload_Handler,
+		},
+		{
+			MethodName: "CreateShare",
+			Handler:    _FileManager_CreateShare_Handler,
+		},
+		{
+			MethodName: "ListShares",
+			Handler:    _FileManager_ListShares_Handler,
+		},
+		{
+			MethodName: "UpdateShare",
+			Handler:    _FileManager_UpdateShare_Handler,
+		},
+		{
+			MethodName: "DeleteShare",
+			Handler:    _FileManager_DeleteShare_Handler,
+		},
+		{
+			MethodName: "GetShareMeta",
+			Handler:    _FileManager_GetShareMeta_Handler,
+		},
+		{
+			MethodName: "ListShareDir",
+			Handler:    _FileManager_ListShareDir_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

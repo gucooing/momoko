@@ -17,7 +17,7 @@ import (
 )
 
 // PluginOps 是 momoko 插件关注的 frp 服务端操作集合。
-var PluginOps = []string{pserver.OpLogin, pserver.OpNewProxy}
+var PluginOps = []string{pserver.OpLogin, pserver.OpNewProxy, pserver.OpNewUserConn}
 
 // Config 是 momoko 装配一个 frps 实例所需的配置。
 type Config struct {
@@ -28,14 +28,6 @@ type Config struct {
 	KCPBindPort    int    // kcp 传输端口，0=不监听
 	QUICBindPort   int    // quic 传输端口，0=不监听
 	SubdomainHost  string // http/https subdomain 根域
-
-	// 优化/调优项（对应 frps transport 及实例级设置；零值表示沿用 frps 默认）。
-	TLSForce          bool // 只接受 TLS 加密连接（transport.tls.force）
-	MaxPoolCount      int  // 每代理连接池上限（transport.maxPoolCount），<=0 用 frps 默认
-	MaxPortsPerClient int  // 每客户端最大端口数（maxPortsPerClient），0=不限
-	HeartbeatTimeout  int  // 心跳超时(秒)（transport.heartbeatTimeout），<0 关闭，0 用默认
-	TCPMux            bool // 是否启用 TCP 多路复用（transport.tcpMux）
-	UDPPacketSize     int  // UDP 包大小(字节)（udpPacketSize），<=0 用 frps 默认
 
 	// PluginAddr 是 momoko 自身 HTTP 服务的基址（如 http://127.0.0.1:22633），
 	// frps 在 Login/NewProxy 时回调该地址下的插件端点。
@@ -97,23 +89,6 @@ func buildServerConfig(cfg Config) *v1.ServerConfig {
 		KCPBindPort:    cfg.KCPBindPort,
 		QUICBindPort:   cfg.QUICBindPort,
 		SubDomainHost:  cfg.SubdomainHost,
-	}
-
-	// 优化/调优项：frps 的 Complete() 对 0 值会填默认，因此 <=0 直接留空交由 frps 兜底，
-	// 仅在显式取值时写入（HeartbeatTimeout 允许负值表示关闭，需透传）。
-	serverCfg.Transport.TLS.Force = cfg.TLSForce
-	serverCfg.Transport.TCPMux = &cfg.TCPMux
-	if cfg.MaxPoolCount > 0 {
-		serverCfg.Transport.MaxPoolCount = int64(cfg.MaxPoolCount)
-	}
-	if cfg.HeartbeatTimeout != 0 {
-		serverCfg.Transport.HeartbeatTimeout = int64(cfg.HeartbeatTimeout)
-	}
-	if cfg.MaxPortsPerClient > 0 {
-		serverCfg.MaxPortsPerClient = int64(cfg.MaxPortsPerClient)
-	}
-	if cfg.UDPPacketSize > 0 {
-		serverCfg.UDPPacketSize = int64(cfg.UDPPacketSize)
 	}
 
 	// Auth 中性化：method=token + 空 token，frps 协议握手通过但不做统一认证，

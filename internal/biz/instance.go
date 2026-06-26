@@ -648,7 +648,6 @@ func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 		return nil, ErrSign
 	}
 	upload.FileUpload = info
-	upload.Sing = sign
 	uploadCache.Set(info.ID, upload)
 
 	return toUploadInfo(info, sign), nil

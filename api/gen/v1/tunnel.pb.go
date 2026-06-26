@@ -324,14 +324,12 @@ type CreateTunnelRequest struct {
 	AllowUsers string `protobuf:"bytes,8,opt,name=allow_users,json=allowUsers,proto3" json:"allow_users,omitempty"`
 	// 是否启用
 	IsEnable bool `protobuf:"varint,9,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
-	// 要求客户端开启加密（useEncryption）：未开启则拒绝该 proxy
-	RequireEncryption bool `protobuf:"varint,10,opt,name=require_encryption,json=requireEncryption,proto3" json:"require_encryption,omitempty"`
-	// 要求客户端开启压缩（useCompression）：未开启则拒绝该 proxy
-	RequireCompression bool `protobuf:"varint,11,opt,name=require_compression,json=requireCompression,proto3" json:"require_compression,omitempty"`
-	// 带宽上限（如 "1MB"/"100KB"）；客户端声明的带宽限制不得超过该值，空=不限
-	MaxBandwidth  string `protobuf:"bytes,12,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// 带宽上限（限速，如 "1MB"/"100KB"）；客户端声明带宽不得超过该值，空=不限
+	MaxBandwidth string `protobuf:"bytes,10,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
+	// 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限
+	MaxActiveConns int32 `protobuf:"varint,11,opt,name=max_active_conns,json=maxActiveConns,proto3" json:"max_active_conns,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateTunnelRequest) Reset() {
@@ -427,25 +425,18 @@ func (x *CreateTunnelRequest) GetIsEnable() bool {
 	return false
 }
 
-func (x *CreateTunnelRequest) GetRequireEncryption() bool {
-	if x != nil {
-		return x.RequireEncryption
-	}
-	return false
-}
-
-func (x *CreateTunnelRequest) GetRequireCompression() bool {
-	if x != nil {
-		return x.RequireCompression
-	}
-	return false
-}
-
 func (x *CreateTunnelRequest) GetMaxBandwidth() string {
 	if x != nil {
 		return x.MaxBandwidth
 	}
 	return ""
+}
+
+func (x *CreateTunnelRequest) GetMaxActiveConns() int32 {
+	if x != nil {
+		return x.MaxActiveConns
+	}
+	return 0
 }
 
 type CreateTunnelResponse struct {
@@ -605,14 +596,12 @@ type UpdateTunnelRequest struct {
 	AllowUsers *string `protobuf:"bytes,9,opt,name=allow_users,json=allowUsers,proto3,oneof" json:"allow_users,omitempty"`
 	// 是否启用
 	IsEnable *bool `protobuf:"varint,10,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
-	// 要求客户端开启加密
-	RequireEncryption *bool `protobuf:"varint,11,opt,name=require_encryption,json=requireEncryption,proto3,oneof" json:"require_encryption,omitempty"`
-	// 要求客户端开启压缩
-	RequireCompression *bool `protobuf:"varint,12,opt,name=require_compression,json=requireCompression,proto3,oneof" json:"require_compression,omitempty"`
-	// 带宽上限（如 "1MB"；空=不限）
-	MaxBandwidth  *string `protobuf:"bytes,13,opt,name=max_bandwidth,json=maxBandwidth,proto3,oneof" json:"max_bandwidth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// 带宽上限（限速，如 "1MB"；空=不限）
+	MaxBandwidth *string `protobuf:"bytes,11,opt,name=max_bandwidth,json=maxBandwidth,proto3,oneof" json:"max_bandwidth,omitempty"`
+	// 活跃连接数上限，0=不限
+	MaxActiveConns *int32 `protobuf:"varint,12,opt,name=max_active_conns,json=maxActiveConns,proto3,oneof" json:"max_active_conns,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UpdateTunnelRequest) Reset() {
@@ -715,25 +704,18 @@ func (x *UpdateTunnelRequest) GetIsEnable() bool {
 	return false
 }
 
-func (x *UpdateTunnelRequest) GetRequireEncryption() bool {
-	if x != nil && x.RequireEncryption != nil {
-		return *x.RequireEncryption
-	}
-	return false
-}
-
-func (x *UpdateTunnelRequest) GetRequireCompression() bool {
-	if x != nil && x.RequireCompression != nil {
-		return *x.RequireCompression
-	}
-	return false
-}
-
 func (x *UpdateTunnelRequest) GetMaxBandwidth() string {
 	if x != nil && x.MaxBandwidth != nil {
 		return *x.MaxBandwidth
 	}
 	return ""
+}
+
+func (x *UpdateTunnelRequest) GetMaxActiveConns() int32 {
+	if x != nil && x.MaxActiveConns != nil {
+		return *x.MaxActiveConns
+	}
+	return 0
 }
 
 type UpdateTunnelResponse struct {
@@ -1352,14 +1334,12 @@ type TunnelInfo struct {
 	BytesIn int64 `protobuf:"varint,17,opt,name=bytes_in,json=bytesIn,proto3" json:"bytes_in,omitempty"`
 	// 当日累计出站流量(字节)
 	BytesOut int64 `protobuf:"varint,18,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
-	// 要求客户端开启加密
-	RequireEncryption bool `protobuf:"varint,19,opt,name=require_encryption,json=requireEncryption,proto3" json:"require_encryption,omitempty"`
-	// 要求客户端开启压缩
-	RequireCompression bool `protobuf:"varint,20,opt,name=require_compression,json=requireCompression,proto3" json:"require_compression,omitempty"`
-	// 带宽上限（如 "1MB"；空=不限）
-	MaxBandwidth  string `protobuf:"bytes,21,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// 带宽上限（限速，如 "1MB"；空=不限）
+	MaxBandwidth string `protobuf:"bytes,19,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
+	// 活跃连接数上限，0=不限
+	MaxActiveConns int32 `protobuf:"varint,20,opt,name=max_active_conns,json=maxActiveConns,proto3" json:"max_active_conns,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *TunnelInfo) Reset() {
@@ -1518,25 +1498,18 @@ func (x *TunnelInfo) GetBytesOut() int64 {
 	return 0
 }
 
-func (x *TunnelInfo) GetRequireEncryption() bool {
-	if x != nil {
-		return x.RequireEncryption
-	}
-	return false
-}
-
-func (x *TunnelInfo) GetRequireCompression() bool {
-	if x != nil {
-		return x.RequireCompression
-	}
-	return false
-}
-
 func (x *TunnelInfo) GetMaxBandwidth() string {
 	if x != nil {
 		return x.MaxBandwidth
 	}
 	return ""
+}
+
+func (x *TunnelInfo) GetMaxActiveConns() int32 {
+	if x != nil {
+		return x.MaxActiveConns
+	}
+	return 0
 }
 
 // frps 实例配置（实例级，非逐条隧道规则）。
@@ -1563,19 +1536,7 @@ type FrpsConfig struct {
 	// 统计采样间隔(秒)
 	StatSampleInterval int32 `protobuf:"varint,9,opt,name=stat_sample_interval,json=statSampleInterval,proto3" json:"stat_sample_interval,omitempty"`
 	// 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
-	ServerAddr string `protobuf:"bytes,11,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
-	// 强制 TLS：只接受 TLS 加密的 frpc 连接（transport.tls.force）
-	TlsForce bool `protobuf:"varint,12,opt,name=tls_force,json=tlsForce,proto3" json:"tls_force,omitempty"`
-	// 每代理连接池上限（transport.maxPoolCount，<=0 用 frps 默认 5）
-	MaxPoolCount int32 `protobuf:"varint,13,opt,name=max_pool_count,json=maxPoolCount,proto3" json:"max_pool_count,omitempty"`
-	// 每客户端可代理的最大端口数（maxPortsPerClient，0=不限）
-	MaxPortsPerClient int32 `protobuf:"varint,14,opt,name=max_ports_per_client,json=maxPortsPerClient,proto3" json:"max_ports_per_client,omitempty"`
-	// 心跳超时(秒)（transport.heartbeatTimeout，<0 关闭；0 用 frps 默认）
-	HeartbeatTimeout int32 `protobuf:"varint,15,opt,name=heartbeat_timeout,json=heartbeatTimeout,proto3" json:"heartbeat_timeout,omitempty"`
-	// 是否启用 TCP 多路复用（transport.tcpMux，默认 true）
-	TcpMux bool `protobuf:"varint,16,opt,name=tcp_mux,json=tcpMux,proto3" json:"tcp_mux,omitempty"`
-	// UDP 包大小(字节)（udpPacketSize，<=0 用 frps 默认 1500）
-	UdpPacketSize int32 `protobuf:"varint,17,opt,name=udp_packet_size,json=udpPacketSize,proto3" json:"udp_packet_size,omitempty"`
+	ServerAddr    string `protobuf:"bytes,11,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1680,48 +1641,6 @@ func (x *FrpsConfig) GetServerAddr() string {
 	return ""
 }
 
-func (x *FrpsConfig) GetTlsForce() bool {
-	if x != nil {
-		return x.TlsForce
-	}
-	return false
-}
-
-func (x *FrpsConfig) GetMaxPoolCount() int32 {
-	if x != nil {
-		return x.MaxPoolCount
-	}
-	return 0
-}
-
-func (x *FrpsConfig) GetMaxPortsPerClient() int32 {
-	if x != nil {
-		return x.MaxPortsPerClient
-	}
-	return 0
-}
-
-func (x *FrpsConfig) GetHeartbeatTimeout() int32 {
-	if x != nil {
-		return x.HeartbeatTimeout
-	}
-	return 0
-}
-
-func (x *FrpsConfig) GetTcpMux() bool {
-	if x != nil {
-		return x.TcpMux
-	}
-	return false
-}
-
-func (x *FrpsConfig) GetUdpPacketSize() int32 {
-	if x != nil {
-		return x.UdpPacketSize
-	}
-	return 0
-}
-
 var File_v1_tunnel_proto protoreflect.FileDescriptor
 
 const file_v1_tunnel_proto_rawDesc = "" +
@@ -1741,7 +1660,7 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12$\n" +
-	"\x05infos\x18\x04 \x03(\v2\x0e.v1.TunnelInfoR\x05infos\"\xb0\x03\n" +
+	"\x05infos\x18\x04 \x03(\v2\x0e.v1.TunnelInfoR\x05infos\"\xfa\x02\n" +
 	"\x13CreateTunnelRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\"\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0e.v1.TunnelTypeR\x04type\x12\x1f\n" +
@@ -1754,17 +1673,16 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"local_port\x18\a \x01(\x05R\tlocalPort\x12\x1f\n" +
 	"\vallow_users\x18\b \x01(\tR\n" +
 	"allowUsers\x12\x1b\n" +
-	"\tis_enable\x18\t \x01(\bR\bisEnable\x12-\n" +
-	"\x12require_encryption\x18\n" +
-	" \x01(\bR\x11requireEncryption\x12/\n" +
-	"\x13require_compression\x18\v \x01(\bR\x12requireCompression\x12#\n" +
-	"\rmax_bandwidth\x18\f \x01(\tR\fmaxBandwidth\":\n" +
+	"\tis_enable\x18\t \x01(\bR\bisEnable\x12#\n" +
+	"\rmax_bandwidth\x18\n" +
+	" \x01(\tR\fmaxBandwidth\x12(\n" +
+	"\x10max_active_conns\x18\v \x01(\x05R\x0emaxActiveConns\":\n" +
 	"\x14CreateTunnelResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\"\n" +
 	"\x10GetTunnelRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"7\n" +
 	"\x11GetTunnelResponse\x12\"\n" +
-	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\xba\x05\n" +
+	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\xe5\x04\n" +
 	"\x13UpdateTunnelRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12'\n" +
@@ -1779,11 +1697,10 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\vallow_users\x18\t \x01(\tH\aR\n" +
 	"allowUsers\x88\x01\x01\x12 \n" +
 	"\tis_enable\x18\n" +
-	" \x01(\bH\bR\bisEnable\x88\x01\x01\x122\n" +
-	"\x12require_encryption\x18\v \x01(\bH\tR\x11requireEncryption\x88\x01\x01\x124\n" +
-	"\x13require_compression\x18\f \x01(\bH\n" +
-	"R\x12requireCompression\x88\x01\x01\x12(\n" +
-	"\rmax_bandwidth\x18\r \x01(\tH\vR\fmaxBandwidth\x88\x01\x01B\a\n" +
+	" \x01(\bH\bR\bisEnable\x88\x01\x01\x12(\n" +
+	"\rmax_bandwidth\x18\v \x01(\tH\tR\fmaxBandwidth\x88\x01\x01\x12-\n" +
+	"\x10max_active_conns\x18\f \x01(\x05H\n" +
+	"R\x0emaxActiveConns\x88\x01\x01B\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_typeB\x0e\n" +
 	"\f_remote_portB\x11\n" +
@@ -1794,10 +1711,9 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\v_local_portB\x0e\n" +
 	"\f_allow_usersB\f\n" +
 	"\n" +
-	"_is_enableB\x15\n" +
-	"\x13_require_encryptionB\x16\n" +
-	"\x14_require_compressionB\x10\n" +
-	"\x0e_max_bandwidth\":\n" +
+	"_is_enableB\x10\n" +
+	"\x0e_max_bandwidthB\x13\n" +
+	"\x11_max_active_conns\":\n" +
 	"\x14UpdateTunnelResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"%\n" +
 	"\x13DeleteTunnelRequest\x12\x0e\n" +
@@ -1829,7 +1745,7 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12-\n" +
 	"\x12active_connections\x18\x02 \x01(\x03R\x11activeConnections\x12\x19\n" +
 	"\bbytes_in\x18\x03 \x01(\x03R\abytesIn\x12\x1b\n" +
-	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\xfb\x05\n" +
+	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\xc5\x05\n" +
 	"\n" +
 	"TunnelInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -1857,10 +1773,9 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"updateTime\x12-\n" +
 	"\x12active_connections\x18\x10 \x01(\x03R\x11activeConnections\x12\x19\n" +
 	"\bbytes_in\x18\x11 \x01(\x03R\abytesIn\x12\x1b\n" +
-	"\tbytes_out\x18\x12 \x01(\x03R\bbytesOut\x12-\n" +
-	"\x12require_encryption\x18\x13 \x01(\bR\x11requireEncryption\x12/\n" +
-	"\x13require_compression\x18\x14 \x01(\bR\x12requireCompression\x12#\n" +
-	"\rmax_bandwidth\x18\x15 \x01(\tR\fmaxBandwidth\"\xdb\x04\n" +
+	"\tbytes_out\x18\x12 \x01(\x03R\bbytesOut\x12#\n" +
+	"\rmax_bandwidth\x18\x13 \x01(\tR\fmaxBandwidth\x12(\n" +
+	"\x10max_active_conns\x18\x14 \x01(\x05R\x0emaxActiveConns\"\xf9\x02\n" +
 	"\n" +
 	"FrpsConfig\x12\x1b\n" +
 	"\tis_enable\x18\x01 \x01(\bR\bisEnable\x12\x1b\n" +
@@ -1873,13 +1788,7 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\x0esubdomain_host\x18\b \x01(\tR\rsubdomainHost\x120\n" +
 	"\x14stat_sample_interval\x18\t \x01(\x05R\x12statSampleInterval\x12\x1f\n" +
 	"\vserver_addr\x18\v \x01(\tR\n" +
-	"serverAddr\x12\x1b\n" +
-	"\ttls_force\x18\f \x01(\bR\btlsForce\x12$\n" +
-	"\x0emax_pool_count\x18\r \x01(\x05R\fmaxPoolCount\x12/\n" +
-	"\x14max_ports_per_client\x18\x0e \x01(\x05R\x11maxPortsPerClient\x12+\n" +
-	"\x11heartbeat_timeout\x18\x0f \x01(\x05R\x10heartbeatTimeout\x12\x17\n" +
-	"\atcp_mux\x18\x10 \x01(\bR\x06tcpMux\x12&\n" +
-	"\x0fudp_packet_size\x18\x11 \x01(\x05R\rudpPacketSize*\xc4\x01\n" +
+	"serverAddr*\xc4\x01\n" +
 	"\n" +
 	"TunnelType\x12\x1b\n" +
 	"\x17TUNNEL_TYPE_UNSPECIFIED\x10\x00\x12\x13\n" +

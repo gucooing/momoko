@@ -116,6 +116,207 @@ service FileManager {
       body: "*"
     };
   }
+  // 创建分享(系统级)
+  rpc CreateShare(CreateShareRequest) returns (CreateShareResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/share/create"
+      body: "*"
+    };
+  }
+  // 分享列表(系统级)
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/share/list"
+    };
+  }
+  // 更新分享(系统级)
+  rpc UpdateShare(UpdateShareRequest) returns (UpdateShareResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/share/update"
+      body: "*"
+    };
+  }
+  // 删除分享(系统级)
+  rpc DeleteShare(DeleteShareRequest) returns (DeleteShareResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/share/delete"
+      body: "*"
+    };
+  }
+  // 公开：获取分享元信息（无需提取码）
+  rpc GetShareMeta(GetShareMetaRequest) returns (GetShareMetaResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/share/meta"
+    };
+  }
+  // 公开：浏览分享目录（按需提取码）
+  rpc ListShareDir(ListShareDirRequest) returns (ListShareDirResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/public/share/list"
+      body: "*"
+    };
+  }
+}
+
+// 分享信息（仅创建者可见的管理视图，含提取码）
+message ShareInfo {
+  // 分享 id
+  string id = 1;
+  // 展示名称
+  string name = 2;
+  // 被分享的真实路径
+  string target_path = 3;
+  // 是否文件夹
+  bool is_dir = 4;
+  // 公开访问令牌
+  string token = 5;
+  // 提取码，空=无需
+  string code = 6;
+  // 过期时间，空=永久
+  google.protobuf.Timestamp expires_at = 7;
+  // 下载次数上限，0=不限
+  int64 max_downloads = 8;
+  // 已下载次数
+  int64 download_count = 9;
+  // 是否启用
+  bool enabled = 10;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 11;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 12;
+}
+
+// 创建分享请求
+message CreateShareRequest {
+  // 要分享的文件/文件夹路径
+  string path = 1;
+  // 展示名称，空=路径名
+  string name = 2;
+  // 提取码，空=公开
+  string code = 3;
+  // 过期时间，空=永久
+  google.protobuf.Timestamp expires_at = 4;
+  // 下载次数上限，0=不限
+  int64 max_downloads = 5;
+  // 是否启用
+  bool enabled = 6;
+}
+
+// 创建分享响应
+message CreateShareResponse {
+  // 分享信息
+  ShareInfo info = 1;
+}
+
+// 分享列表请求
+message ListSharesRequest {
+  // 页码
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 搜索关键字（名称/路径）
+  optional string keywords = 3;
+}
+
+// 分享列表响应
+message ListSharesResponse {
+  // 列表
+  repeated ShareInfo items = 1;
+  // 当前页码
+  int64 page = 2;
+  // 每页数量
+  int64 page_size = 3;
+  // 总数
+  int64 total = 4;
+}
+
+// 更新分享请求（全量覆盖可编辑字段）
+message UpdateShareRequest {
+  // 分享 id
+  string id = 1;
+  // 展示名称
+  string name = 2;
+  // 提取码，空=公开
+  string code = 3;
+  // 过期时间，空=永久
+  google.protobuf.Timestamp expires_at = 4;
+  // 下载次数上限，0=不限
+  int64 max_downloads = 5;
+  // 是否启用
+  bool enabled = 6;
+}
+
+// 更新分享响应
+message UpdateShareResponse {
+  // 分享信息
+  ShareInfo info = 1;
+}
+
+// 删除分享请求
+message DeleteShareRequest {
+  // 分享 id
+  string id = 1;
+}
+
+// 删除分享响应
+message DeleteShareResponse {}
+
+// 获取分享元信息请求（公开）
+message GetShareMetaRequest {
+  // 公开访问令牌
+  string token = 1;
+}
+
+// 获取分享元信息响应（公开，不含提取码本身）
+message GetShareMetaResponse {
+  // 展示名称
+  string name = 1;
+  // 是否文件夹
+  bool is_dir = 2;
+  // 文件大小（文件夹为 0）
+  uint64 size = 3;
+  // 是否需要提取码
+  bool need_code = 4;
+  // 过期时间，空=永久
+  google.protobuf.Timestamp expires_at = 5;
+  // 下载次数上限，0=不限
+  int64 max_downloads = 6;
+  // 已下载次数
+  int64 download_count = 7;
+  // 当前是否可用（启用/未过期/未超次数）
+  bool available = 8;
+}
+
+// 浏览分享目录请求（公开）
+message ListShareDirRequest {
+  // 公开访问令牌
+  string token = 1;
+  // 提取码（如分享设置了）
+  string code = 2;
+  // 分享根下的相对子路径，空=根
+  string sub_path = 3;
+}
+
+// 分享目录条目
+message ShareEntry {
+  // 名称
+  string name = 1;
+  // 是否目录
+  bool is_dir = 2;
+  // 大小
+  uint64 size = 3;
+  // 修改时间
+  google.protobuf.Timestamp update_time = 4;
+  // 相对分享根的路径（用于继续浏览/下载）
+  string rel_path = 5;
+}
+
+// 浏览分享目录响应
+message ListShareDirResponse {
+  // 条目列表
+  repeated ShareEntry items = 1;
+  // 当前子路径
+  string sub_path = 2;
 }
 
 // 文件排序字段

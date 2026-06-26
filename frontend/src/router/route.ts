@@ -34,6 +34,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true },
   },
   {
+    path: '/public/share/:token',
+    name: 'PublicShare',
+    component: () => import('@/views/public/share/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/index.vue'),

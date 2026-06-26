@@ -30,9 +30,8 @@ func (FrpTunnel) Fields() []ent.Field {
 		field.String("credential").NotEmpty().Comment("每隧道独立认证凭证，置于 frpc metadatas.credential"),
 		field.String("allow_users").Default("").Comment("允许的 frpc user，逗号分隔；空=不限制"),
 		field.Bool("is_enable").Default(false).Comment("是否启用"),
-		field.Bool("require_encryption").Default(false).Comment("要求客户端开启加密(useEncryption)，否则拒绝 NewProxy"),
-		field.Bool("require_compression").Default(false).Comment("要求客户端开启压缩(useCompression)，否则拒绝 NewProxy"),
-		field.String("max_bandwidth").Default("").Comment("带宽上限(如 1MB)；客户端声明带宽不得超过；空=不限"),
+		field.String("max_bandwidth").Default("").Comment("带宽上限/限速(如 1MB)；客户端声明带宽不得超过；空=不限"),
+		field.Int("max_active_conns").Default(0).Comment("活跃连接数上限，0=不限；momoko 在每条用户连接时校验"),
 	}
 }
 

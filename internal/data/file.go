@@ -2,11 +2,14 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
+	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/pkg/file"
@@ -82,6 +85,110 @@ func (f *fileRepo) SaveChunkRecord(ctx context.Context, uploadID string, chunk u
 		Exec(ctx)
 
 	return err
+}
+
+// ListStaleUploads 返回创建时间早于 before、且仍未完成、未取消的上传会话（供后台 GC 清理）。
+func (f *fileRepo) ListStaleUploads(ctx context.Context, before time.Time) ([]*gen.FileUpload, error) {
+	return f.data.db.FileUpload.Query().
+		Where(
+			fileupload.CompletedEQ(false),
+			fileupload.CancelEQ(false),
+			fileupload.CreateTimeLT(before),
+		).All(ctx)
+}
+
+// DeleteUploadCascade 删除一个上传会话及其全部分片记录。
+func (f *fileRepo) DeleteUploadCascade(ctx context.Context, id string) error {
+	return utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
+		if _, err := tx.FileUploadChunk.Delete().
+			Where(fileuploadchunk.UploadIDEQ(id)).
+			Exec(ctx); err != nil {
+			return err
+		}
+		return tx.FileUpload.DeleteOneID(id).Exec(ctx)
+	})
+}
+
+// CreateShare 新建一条分享记录。id 由仓储生成，token/name/路径与是否目录由业务层算好传入。
+func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error) {
+	builder := f.data.db.FileShare.Create().
+		SetID(uuid.NewString()).
+		SetUserID(userID).
+		SetName(name).
+		SetTargetPath(targetPath).
+		SetIsDir(isDir).
+		SetToken(token).
+		SetCode(req.Code).
+		SetMaxDownloads(req.MaxDownloads).
+		SetEnabled(req.Enabled)
+	if req.ExpiresAt != nil {
+		builder.SetExpiresAt(req.ExpiresAt.AsTime())
+	}
+	return builder.Save(ctx)
+}
+
+// ListShares 分页返回某用户的分享（按创建时间倒序），支持名称/路径关键字。
+func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error) {
+	query := f.data.db.FileShare.Query().Where(fileshare.UserIDEQ(userID))
+	if keywords != "" {
+		query = query.Where(fileshare.Or(
+			fileshare.NameContainsFold(keywords),
+			fileshare.TargetPathContainsFold(keywords),
+		))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 20
+	}
+	items, err := query.
+		Order(gen.Desc(fileshare.FieldCreateTime)).
+		Offset(int((page - 1) * pageSize)).
+		Limit(int(pageSize)).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	return items, int64(total), nil
+}
+
+// GetShareByToken 按公开令牌获取分享（不限用户）。供公开访问使用。
+func (f *fileRepo) GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error) {
+	return f.data.db.FileShare.Query().Where(fileshare.TokenEQ(token)).Only(ctx)
+}
+
+// UpdateShare 全量覆盖可编辑字段（仅限本人）。expires_at 为空表示清除（永久）。
+func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error) {
+	builder := f.data.db.FileShare.UpdateOneID(req.Id).
+		Where(fileshare.UserIDEQ(userID)).
+		SetName(req.Name).
+		SetCode(req.Code).
+		SetMaxDownloads(req.MaxDownloads).
+		SetEnabled(req.Enabled)
+	if req.ExpiresAt != nil {
+		builder.SetExpiresAt(req.ExpiresAt.AsTime())
+	} else {
+		builder.ClearExpiresAt()
+	}
+	return builder.Save(ctx)
+}
+
+// DeleteShare 删除一条分享（仅限本人）。
+func (f *fileRepo) DeleteShare(ctx context.Context, userID, id string) error {
+	_, err := f.data.db.FileShare.Delete().
+		Where(fileshare.IDEQ(id), fileshare.UserIDEQ(userID)).
+		Exec(ctx)
+	return err
+}
+
+// IncrShareDownload 原子地将下载次数 +1。
+func (f *fileRepo) IncrShareDownload(ctx context.Context, id string) error {
+	return f.data.db.FileShare.UpdateOneID(id).AddDownloadCount(1).Exec(ctx)
 }
 
 func (f *fileRepo) WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error {

@@ -84,7 +84,7 @@ const {
   releaseObjectUrl,
 } = fileManagerStore
 
-const workbenchHiddenActions: FileManagerAction[] = ['more']
+const workbenchHiddenActions: FileManagerAction[] = ['more', 'share']
 const workbenchSortableFields: FileManagerWorkbenchSortableField[] = ['name', 'updatedAt']
 const workbenchNote = computed(() => t('instance.fileWorkbenchNote'))
 

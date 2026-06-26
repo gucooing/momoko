@@ -44,6 +44,12 @@ var operationWritePermissions = map[string]constant.Permissions{
 	// —— Docker 配置（编辑）——
 	v1.OperationDockerManagerUpdateDockerConfig: constant.DockerConfigEdit,
 	v1.OperationDockerManagerTestDockerConfig:   constant.DockerConfigEdit,
+	// —— 文件分享（管理）——
+	v1.OperationFileManagerCreateShare: constant.FileShare,
+	v1.OperationFileManagerListShares:  constant.FileShare,
+	v1.OperationFileManagerUpdateShare: constant.FileShare,
+	v1.OperationFileManagerDeleteShare: constant.FileShare,
+
 	// —— Sub2API（编辑）——
 	v1.OperationSub2APIManagerUpdateSub2APIConfig:       constant.Sub2APIEdit,
 	v1.OperationSub2APIManagerCreateSub2APIAnnouncement: constant.Sub2APIEdit,

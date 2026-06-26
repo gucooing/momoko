@@ -182,34 +182,6 @@ func (_c *FrpTunnelCreate) SetNillableIsEnable(v *bool) *FrpTunnelCreate {
 	return _c
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (_c *FrpTunnelCreate) SetRequireEncryption(v bool) *FrpTunnelCreate {
-	_c.mutation.SetRequireEncryption(v)
-	return _c
-}
-
-// SetNillableRequireEncryption sets the "require_encryption" field if the given value is not nil.
-func (_c *FrpTunnelCreate) SetNillableRequireEncryption(v *bool) *FrpTunnelCreate {
-	if v != nil {
-		_c.SetRequireEncryption(*v)
-	}
-	return _c
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (_c *FrpTunnelCreate) SetRequireCompression(v bool) *FrpTunnelCreate {
-	_c.mutation.SetRequireCompression(v)
-	return _c
-}
-
-// SetNillableRequireCompression sets the "require_compression" field if the given value is not nil.
-func (_c *FrpTunnelCreate) SetNillableRequireCompression(v *bool) *FrpTunnelCreate {
-	if v != nil {
-		_c.SetRequireCompression(*v)
-	}
-	return _c
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (_c *FrpTunnelCreate) SetMaxBandwidth(v string) *FrpTunnelCreate {
 	_c.mutation.SetMaxBandwidth(v)
@@ -220,6 +192,20 @@ func (_c *FrpTunnelCreate) SetMaxBandwidth(v string) *FrpTunnelCreate {
 func (_c *FrpTunnelCreate) SetNillableMaxBandwidth(v *string) *FrpTunnelCreate {
 	if v != nil {
 		_c.SetMaxBandwidth(*v)
+	}
+	return _c
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (_c *FrpTunnelCreate) SetMaxActiveConns(v int) *FrpTunnelCreate {
+	_c.mutation.SetMaxActiveConns(v)
+	return _c
+}
+
+// SetNillableMaxActiveConns sets the "max_active_conns" field if the given value is not nil.
+func (_c *FrpTunnelCreate) SetNillableMaxActiveConns(v *int) *FrpTunnelCreate {
+	if v != nil {
+		_c.SetMaxActiveConns(*v)
 	}
 	return _c
 }
@@ -310,17 +296,13 @@ func (_c *FrpTunnelCreate) defaults() {
 		v := frptunnel.DefaultIsEnable
 		_c.mutation.SetIsEnable(v)
 	}
-	if _, ok := _c.mutation.RequireEncryption(); !ok {
-		v := frptunnel.DefaultRequireEncryption
-		_c.mutation.SetRequireEncryption(v)
-	}
-	if _, ok := _c.mutation.RequireCompression(); !ok {
-		v := frptunnel.DefaultRequireCompression
-		_c.mutation.SetRequireCompression(v)
-	}
 	if _, ok := _c.mutation.MaxBandwidth(); !ok {
 		v := frptunnel.DefaultMaxBandwidth
 		_c.mutation.SetMaxBandwidth(v)
+	}
+	if _, ok := _c.mutation.MaxActiveConns(); !ok {
+		v := frptunnel.DefaultMaxActiveConns
+		_c.mutation.SetMaxActiveConns(v)
 	}
 }
 
@@ -385,14 +367,11 @@ func (_c *FrpTunnelCreate) check() error {
 	if _, ok := _c.mutation.IsEnable(); !ok {
 		return &ValidationError{Name: "is_enable", err: errors.New(`gen: missing required field "FrpTunnel.is_enable"`)}
 	}
-	if _, ok := _c.mutation.RequireEncryption(); !ok {
-		return &ValidationError{Name: "require_encryption", err: errors.New(`gen: missing required field "FrpTunnel.require_encryption"`)}
-	}
-	if _, ok := _c.mutation.RequireCompression(); !ok {
-		return &ValidationError{Name: "require_compression", err: errors.New(`gen: missing required field "FrpTunnel.require_compression"`)}
-	}
 	if _, ok := _c.mutation.MaxBandwidth(); !ok {
 		return &ValidationError{Name: "max_bandwidth", err: errors.New(`gen: missing required field "FrpTunnel.max_bandwidth"`)}
+	}
+	if _, ok := _c.mutation.MaxActiveConns(); !ok {
+		return &ValidationError{Name: "max_active_conns", err: errors.New(`gen: missing required field "FrpTunnel.max_active_conns"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := frptunnel.IDValidator(v); err != nil {
@@ -486,17 +465,13 @@ func (_c *FrpTunnelCreate) createSpec() (*FrpTunnel, *sqlgraph.CreateSpec) {
 		_spec.SetField(frptunnel.FieldIsEnable, field.TypeBool, value)
 		_node.IsEnable = value
 	}
-	if value, ok := _c.mutation.RequireEncryption(); ok {
-		_spec.SetField(frptunnel.FieldRequireEncryption, field.TypeBool, value)
-		_node.RequireEncryption = value
-	}
-	if value, ok := _c.mutation.RequireCompression(); ok {
-		_spec.SetField(frptunnel.FieldRequireCompression, field.TypeBool, value)
-		_node.RequireCompression = value
-	}
 	if value, ok := _c.mutation.MaxBandwidth(); ok {
 		_spec.SetField(frptunnel.FieldMaxBandwidth, field.TypeString, value)
 		_node.MaxBandwidth = value
+	}
+	if value, ok := _c.mutation.MaxActiveConns(); ok {
+		_spec.SetField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
+		_node.MaxActiveConns = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -723,30 +698,6 @@ func (u *FrpTunnelUpsert) UpdateIsEnable() *FrpTunnelUpsert {
 	return u
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (u *FrpTunnelUpsert) SetRequireEncryption(v bool) *FrpTunnelUpsert {
-	u.Set(frptunnel.FieldRequireEncryption, v)
-	return u
-}
-
-// UpdateRequireEncryption sets the "require_encryption" field to the value that was provided on create.
-func (u *FrpTunnelUpsert) UpdateRequireEncryption() *FrpTunnelUpsert {
-	u.SetExcluded(frptunnel.FieldRequireEncryption)
-	return u
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (u *FrpTunnelUpsert) SetRequireCompression(v bool) *FrpTunnelUpsert {
-	u.Set(frptunnel.FieldRequireCompression, v)
-	return u
-}
-
-// UpdateRequireCompression sets the "require_compression" field to the value that was provided on create.
-func (u *FrpTunnelUpsert) UpdateRequireCompression() *FrpTunnelUpsert {
-	u.SetExcluded(frptunnel.FieldRequireCompression)
-	return u
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (u *FrpTunnelUpsert) SetMaxBandwidth(v string) *FrpTunnelUpsert {
 	u.Set(frptunnel.FieldMaxBandwidth, v)
@@ -756,6 +707,24 @@ func (u *FrpTunnelUpsert) SetMaxBandwidth(v string) *FrpTunnelUpsert {
 // UpdateMaxBandwidth sets the "max_bandwidth" field to the value that was provided on create.
 func (u *FrpTunnelUpsert) UpdateMaxBandwidth() *FrpTunnelUpsert {
 	u.SetExcluded(frptunnel.FieldMaxBandwidth)
+	return u
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (u *FrpTunnelUpsert) SetMaxActiveConns(v int) *FrpTunnelUpsert {
+	u.Set(frptunnel.FieldMaxActiveConns, v)
+	return u
+}
+
+// UpdateMaxActiveConns sets the "max_active_conns" field to the value that was provided on create.
+func (u *FrpTunnelUpsert) UpdateMaxActiveConns() *FrpTunnelUpsert {
+	u.SetExcluded(frptunnel.FieldMaxActiveConns)
+	return u
+}
+
+// AddMaxActiveConns adds v to the "max_active_conns" field.
+func (u *FrpTunnelUpsert) AddMaxActiveConns(v int) *FrpTunnelUpsert {
+	u.Add(frptunnel.FieldMaxActiveConns, v)
 	return u
 }
 
@@ -992,34 +961,6 @@ func (u *FrpTunnelUpsertOne) UpdateIsEnable() *FrpTunnelUpsertOne {
 	})
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (u *FrpTunnelUpsertOne) SetRequireEncryption(v bool) *FrpTunnelUpsertOne {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.SetRequireEncryption(v)
-	})
-}
-
-// UpdateRequireEncryption sets the "require_encryption" field to the value that was provided on create.
-func (u *FrpTunnelUpsertOne) UpdateRequireEncryption() *FrpTunnelUpsertOne {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.UpdateRequireEncryption()
-	})
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (u *FrpTunnelUpsertOne) SetRequireCompression(v bool) *FrpTunnelUpsertOne {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.SetRequireCompression(v)
-	})
-}
-
-// UpdateRequireCompression sets the "require_compression" field to the value that was provided on create.
-func (u *FrpTunnelUpsertOne) UpdateRequireCompression() *FrpTunnelUpsertOne {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.UpdateRequireCompression()
-	})
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (u *FrpTunnelUpsertOne) SetMaxBandwidth(v string) *FrpTunnelUpsertOne {
 	return u.Update(func(s *FrpTunnelUpsert) {
@@ -1031,6 +972,27 @@ func (u *FrpTunnelUpsertOne) SetMaxBandwidth(v string) *FrpTunnelUpsertOne {
 func (u *FrpTunnelUpsertOne) UpdateMaxBandwidth() *FrpTunnelUpsertOne {
 	return u.Update(func(s *FrpTunnelUpsert) {
 		s.UpdateMaxBandwidth()
+	})
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (u *FrpTunnelUpsertOne) SetMaxActiveConns(v int) *FrpTunnelUpsertOne {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.SetMaxActiveConns(v)
+	})
+}
+
+// AddMaxActiveConns adds v to the "max_active_conns" field.
+func (u *FrpTunnelUpsertOne) AddMaxActiveConns(v int) *FrpTunnelUpsertOne {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.AddMaxActiveConns(v)
+	})
+}
+
+// UpdateMaxActiveConns sets the "max_active_conns" field to the value that was provided on create.
+func (u *FrpTunnelUpsertOne) UpdateMaxActiveConns() *FrpTunnelUpsertOne {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.UpdateMaxActiveConns()
 	})
 }
 
@@ -1434,34 +1396,6 @@ func (u *FrpTunnelUpsertBulk) UpdateIsEnable() *FrpTunnelUpsertBulk {
 	})
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (u *FrpTunnelUpsertBulk) SetRequireEncryption(v bool) *FrpTunnelUpsertBulk {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.SetRequireEncryption(v)
-	})
-}
-
-// UpdateRequireEncryption sets the "require_encryption" field to the value that was provided on create.
-func (u *FrpTunnelUpsertBulk) UpdateRequireEncryption() *FrpTunnelUpsertBulk {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.UpdateRequireEncryption()
-	})
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (u *FrpTunnelUpsertBulk) SetRequireCompression(v bool) *FrpTunnelUpsertBulk {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.SetRequireCompression(v)
-	})
-}
-
-// UpdateRequireCompression sets the "require_compression" field to the value that was provided on create.
-func (u *FrpTunnelUpsertBulk) UpdateRequireCompression() *FrpTunnelUpsertBulk {
-	return u.Update(func(s *FrpTunnelUpsert) {
-		s.UpdateRequireCompression()
-	})
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (u *FrpTunnelUpsertBulk) SetMaxBandwidth(v string) *FrpTunnelUpsertBulk {
 	return u.Update(func(s *FrpTunnelUpsert) {
@@ -1473,6 +1407,27 @@ func (u *FrpTunnelUpsertBulk) SetMaxBandwidth(v string) *FrpTunnelUpsertBulk {
 func (u *FrpTunnelUpsertBulk) UpdateMaxBandwidth() *FrpTunnelUpsertBulk {
 	return u.Update(func(s *FrpTunnelUpsert) {
 		s.UpdateMaxBandwidth()
+	})
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (u *FrpTunnelUpsertBulk) SetMaxActiveConns(v int) *FrpTunnelUpsertBulk {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.SetMaxActiveConns(v)
+	})
+}
+
+// AddMaxActiveConns adds v to the "max_active_conns" field.
+func (u *FrpTunnelUpsertBulk) AddMaxActiveConns(v int) *FrpTunnelUpsertBulk {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.AddMaxActiveConns(v)
+	})
+}
+
+// UpdateMaxActiveConns sets the "max_active_conns" field to the value that was provided on create.
+func (u *FrpTunnelUpsertBulk) UpdateMaxActiveConns() *FrpTunnelUpsertBulk {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.UpdateMaxActiveConns()
 	})
 }
 

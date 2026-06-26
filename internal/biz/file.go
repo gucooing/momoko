@@ -18,12 +18,16 @@ import (
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
+	"momoko/pkg/share"
 	"momoko/pkg/utils"
 )
 
 const (
 	PreFileDownload = "/api/v1/download/pre" // 下载路径
 	PreFileUpload   = "/api/v1/upload/pre"   // 上传路径
+
+	// ShareDownloadPath 公开分享下载入口；/api/v1/public/ 前缀免 JWT，业务层自校验令牌/提取码。
+	ShareDownloadPath = "/api/v1/public/share/download"
 
 	UploadPeriod = 2 * time.Hour
 )
@@ -36,6 +40,15 @@ type FileRepo interface {
 	Query(ctx context.Context, uid string) (*gen.FileUpload, error)
 	QueryByUserID(ctx context.Context, userID, id string) (*gen.FileUpload, error)
 	SaveChunkRecord(ctx context.Context, uploadID string, chunk uint64, hash string, size uint64) error
+	ListStaleUploads(ctx context.Context, before time.Time) ([]*gen.FileUpload, error)
+	DeleteUploadCascade(ctx context.Context, id string) error
+
+	CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error)
+	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
+	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
+	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error)
+	DeleteShare(ctx context.Context, userID, id string) error
+	IncrShareDownload(ctx context.Context, id string) error
 }
 
 type FileUsecase struct {
@@ -47,10 +60,16 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
 		os.MkdirAll(file.ServersPath, 0755)
 	}
-	return &FileUsecase{
+	uc := &FileUsecase{
 		repo: repo,
 	}
+	// 上传会话 GC 的清理逻辑位于 pkg/file，biz 仅负责装配并注入数据访问能力。
+	file.StartUploadJanitor(context.Background(), repo, uploadGCInterval, 2*UploadPeriod)
+	return uc
 }
+
+// uploadGCInterval 是清理废弃上传会话的周期。
+const uploadGCInterval = 30 * time.Minute
 
 func (f *FileUsecase) newSystemInstance() (*file.FileOper, error) {
 	return file.NewFileOper(file.SystemPath)
@@ -298,29 +317,23 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 		return nil, ErrSign
 	}
 	upload.FileUpload = info
-	upload.Sing = sign
 	uploadCache.Set(info.ID, upload)
 
 	return toUploadInfo(info, sign), nil
 }
 
-// 获取指定上传会话
+// getChunkedUpload 获取指定上传会话。缓存未命中（典型如服务重启后内存丢失）时
+// 从数据库重建会话，使断点续传不再依赖进程内缓存——这是旧实现 nil 解引用崩溃的根因。
 func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID string) (*file.ChunkedUpload, error) {
-	upload, ok := uploadCache.Get(uploadID)
-	if !ok {
-		info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		preInfo := pre.NewFileSignInfo(info.ID, info.Path, userID, UploadPeriod)
-		sign, err := preInfo.Sign()
-		if err != nil {
-			return nil, ErrSign
-		}
-		upload.FileUpload = info
-		upload.Sing = sign
-		uploadCache.Set(info.ID, upload)
+	if upload, ok := uploadCache.Get(uploadID); ok {
+		return upload, nil
 	}
+	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	upload := &file.ChunkedUpload{FileUpload: info}
+	uploadCache.Set(uploadID, upload)
 	return upload, nil
 }
 
@@ -410,6 +423,126 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 		return err
 	}
 	return nil
+}
+
+// ---- 分享 ----
+// biz 仅做鉴权 + 仓储编排；令牌生成、提取码/有效期校验、目录浏览与打包下载等逻辑在 pkg/share。
+
+// CreateShare 为指定路径创建一条分享。
+func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	realPath, err := fileOper.ResolveRealPath(req.Path)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	isDir, baseName, err := share.Prepare(realPath)
+	if err != nil {
+		return nil, ErrFileNotExist
+	}
+	name := req.Name
+	if name == "" {
+		name = baseName
+	}
+	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, realPath, isDir, req)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return share.ToInfo(rec), nil
+}
+
+// ListShares 返回某用户的分享列表。
+func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.ListSharesRequest) (*v1.ListSharesResponse, error) {
+	items, total, err := f.repo.ListShares(ctx, userID, req.Page, req.PageSize, req.GetKeywords())
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	resp := &v1.ListSharesResponse{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Total:    total,
+		Items:    make([]*v1.ShareInfo, 0, len(items)),
+	}
+	for _, it := range items {
+		resp.Items = append(resp.Items, share.ToInfo(it))
+	}
+	return resp, nil
+}
+
+// UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
+func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*v1.ShareInfo, error) {
+	rec, err := f.repo.UpdateShare(ctx, userID, req)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, ErrShareNotFound
+		}
+		return nil, ErrSystem(err)
+	}
+	return share.ToInfo(rec), nil
+}
+
+// DeleteShare 删除分享。
+func (f *FileUsecase) DeleteShare(ctx context.Context, userID, id string) error {
+	if err := f.repo.DeleteShare(ctx, userID, id); err != nil {
+		return ErrSystem(err)
+	}
+	return nil
+}
+
+// GetShareMeta 公开：返回分享元信息（不含提取码与真实路径）。
+func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetShareMetaResponse, error) {
+	rec, err := f.repo.GetShareByToken(ctx, token)
+	if err != nil {
+		return nil, ErrShareNotFound
+	}
+	return share.ToMeta(rec, time.Now()), nil
+}
+
+// ListShareDir 公开：浏览文件夹分享的子目录（校验提取码与可用性）。
+func (f *FileUsecase) ListShareDir(ctx context.Context, req *v1.ListShareDirRequest) (*v1.ListShareDirResponse, error) {
+	rec, err := f.repo.GetShareByToken(ctx, req.Token)
+	if err != nil {
+		return nil, ErrShareNotFound
+	}
+	if err := share.Verify(rec, req.Code, time.Now()); err != nil {
+		return nil, ErrShareForbidden
+	}
+	items, sub, err := share.ListDir(rec, req.SubPath)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.ListShareDirResponse{Items: items, SubPath: sub}, nil
+}
+
+// ShareDownload 公开：校验后将分享目标写入响应（文件直传 / 文件夹打包 zip），成功计一次下载。
+// Range 续传请求不重复计数。
+func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	q := r.URL.Query()
+	rec, err := f.repo.GetShareByToken(ctx, q.Get("token"))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err := share.Verify(rec, q.Get("code"), time.Now()); err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	countable := r.Header.Get("Range") == ""
+	inline := q.Get("inline") == "1"
+	// 预览（inline）不计入下载次数，仅真正下载（attachment 且非续传分段）计数。
+	if inline {
+		countable = false
+	}
+	if err := share.ServeDownload(rec, q.Get("path"), inline, w, r); err != nil {
+		return
+	}
+	if countable {
+		_ = f.repo.IncrShareDownload(ctx, rec.ID)
+	}
 }
 
 func toUploadInfo(d *gen.FileUpload, sign string) *v1.UploadInfo {

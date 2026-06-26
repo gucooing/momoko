@@ -45,12 +45,10 @@ type FrpTunnel struct {
 	AllowUsers string `json:"allow_users,omitempty"`
 	// 是否启用
 	IsEnable bool `json:"is_enable,omitempty"`
-	// 要求客户端开启加密(useEncryption)，否则拒绝 NewProxy
-	RequireEncryption bool `json:"require_encryption,omitempty"`
-	// 要求客户端开启压缩(useCompression)，否则拒绝 NewProxy
-	RequireCompression bool `json:"require_compression,omitempty"`
-	// 带宽上限(如 1MB)；客户端声明带宽不得超过；空=不限
+	// 带宽上限/限速(如 1MB)；客户端声明带宽不得超过；空=不限
 	MaxBandwidth string `json:"max_bandwidth,omitempty"`
+	// 活跃连接数上限，0=不限；momoko 在每条用户连接时校验
+	MaxActiveConns int `json:"max_active_conns,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FrpTunnelQuery when eager-loading is set.
 	Edges        FrpTunnelEdges `json:"edges"`
@@ -82,9 +80,9 @@ func (*FrpTunnel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case frptunnel.FieldIsEnable, frptunnel.FieldRequireEncryption, frptunnel.FieldRequireCompression:
+		case frptunnel.FieldIsEnable:
 			values[i] = new(sql.NullBool)
-		case frptunnel.FieldRemotePort, frptunnel.FieldLocalPort:
+		case frptunnel.FieldRemotePort, frptunnel.FieldLocalPort, frptunnel.FieldMaxActiveConns:
 			values[i] = new(sql.NullInt64)
 		case frptunnel.FieldID, frptunnel.FieldName, frptunnel.FieldUserID, frptunnel.FieldProxyType, frptunnel.FieldCustomDomains, frptunnel.FieldSubdomain, frptunnel.FieldLocalIP, frptunnel.FieldCredential, frptunnel.FieldAllowUsers, frptunnel.FieldMaxBandwidth:
 			values[i] = new(sql.NullString)
@@ -189,23 +187,17 @@ func (_m *FrpTunnel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsEnable = value.Bool
 			}
-		case frptunnel.FieldRequireEncryption:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field require_encryption", values[i])
-			} else if value.Valid {
-				_m.RequireEncryption = value.Bool
-			}
-		case frptunnel.FieldRequireCompression:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field require_compression", values[i])
-			} else if value.Valid {
-				_m.RequireCompression = value.Bool
-			}
 		case frptunnel.FieldMaxBandwidth:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field max_bandwidth", values[i])
 			} else if value.Valid {
 				_m.MaxBandwidth = value.String
+			}
+		case frptunnel.FieldMaxActiveConns:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_active_conns", values[i])
+			} else if value.Valid {
+				_m.MaxActiveConns = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -287,14 +279,11 @@ func (_m *FrpTunnel) String() string {
 	builder.WriteString("is_enable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
 	builder.WriteString(", ")
-	builder.WriteString("require_encryption=")
-	builder.WriteString(fmt.Sprintf("%v", _m.RequireEncryption))
-	builder.WriteString(", ")
-	builder.WriteString("require_compression=")
-	builder.WriteString(fmt.Sprintf("%v", _m.RequireCompression))
-	builder.WriteString(", ")
 	builder.WriteString("max_bandwidth=")
 	builder.WriteString(_m.MaxBandwidth)
+	builder.WriteString(", ")
+	builder.WriteString("max_active_conns=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxActiveConns))
 	builder.WriteByte(')')
 	return builder.String()
 }

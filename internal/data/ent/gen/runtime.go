@@ -5,6 +5,7 @@ package gen
 import (
 	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
+	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
@@ -91,6 +92,41 @@ func init() {
 	emailtemplateDescTemplate := emailtemplateFields[2].Descriptor()
 	// emailtemplate.DefaultTemplate holds the default value on creation for the template field.
 	emailtemplate.DefaultTemplate = emailtemplateDescTemplate.Default.(string)
+	fileshareMixin := schema.FileShare{}.Mixin()
+	fileshareMixinFields0 := fileshareMixin[0].Fields()
+	_ = fileshareMixinFields0
+	fileshareFields := schema.FileShare{}.Fields()
+	_ = fileshareFields
+	// fileshareDescCreateTime is the schema descriptor for create_time field.
+	fileshareDescCreateTime := fileshareMixinFields0[0].Descriptor()
+	// fileshare.DefaultCreateTime holds the default value on creation for the create_time field.
+	fileshare.DefaultCreateTime = fileshareDescCreateTime.Default.(func() time.Time)
+	// fileshareDescUpdateTime is the schema descriptor for update_time field.
+	fileshareDescUpdateTime := fileshareMixinFields0[1].Descriptor()
+	// fileshare.DefaultUpdateTime holds the default value on creation for the update_time field.
+	fileshare.DefaultUpdateTime = fileshareDescUpdateTime.Default.(func() time.Time)
+	// fileshare.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	fileshare.UpdateDefaultUpdateTime = fileshareDescUpdateTime.UpdateDefault.(func() time.Time)
+	// fileshareDescIsDir is the schema descriptor for is_dir field.
+	fileshareDescIsDir := fileshareFields[4].Descriptor()
+	// fileshare.DefaultIsDir holds the default value on creation for the is_dir field.
+	fileshare.DefaultIsDir = fileshareDescIsDir.Default.(bool)
+	// fileshareDescCode is the schema descriptor for code field.
+	fileshareDescCode := fileshareFields[6].Descriptor()
+	// fileshare.DefaultCode holds the default value on creation for the code field.
+	fileshare.DefaultCode = fileshareDescCode.Default.(string)
+	// fileshareDescMaxDownloads is the schema descriptor for max_downloads field.
+	fileshareDescMaxDownloads := fileshareFields[8].Descriptor()
+	// fileshare.DefaultMaxDownloads holds the default value on creation for the max_downloads field.
+	fileshare.DefaultMaxDownloads = fileshareDescMaxDownloads.Default.(int64)
+	// fileshareDescDownloadCount is the schema descriptor for download_count field.
+	fileshareDescDownloadCount := fileshareFields[9].Descriptor()
+	// fileshare.DefaultDownloadCount holds the default value on creation for the download_count field.
+	fileshare.DefaultDownloadCount = fileshareDescDownloadCount.Default.(int64)
+	// fileshareDescEnabled is the schema descriptor for enabled field.
+	fileshareDescEnabled := fileshareFields[10].Descriptor()
+	// fileshare.DefaultEnabled holds the default value on creation for the enabled field.
+	fileshare.DefaultEnabled = fileshareDescEnabled.Default.(bool)
 	fileuploadMixin := schema.FileUpload{}.Mixin()
 	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
 	_ = fileuploadMixinFields0
@@ -184,18 +220,14 @@ func init() {
 	frptunnelDescIsEnable := frptunnelFields[11].Descriptor()
 	// frptunnel.DefaultIsEnable holds the default value on creation for the is_enable field.
 	frptunnel.DefaultIsEnable = frptunnelDescIsEnable.Default.(bool)
-	// frptunnelDescRequireEncryption is the schema descriptor for require_encryption field.
-	frptunnelDescRequireEncryption := frptunnelFields[12].Descriptor()
-	// frptunnel.DefaultRequireEncryption holds the default value on creation for the require_encryption field.
-	frptunnel.DefaultRequireEncryption = frptunnelDescRequireEncryption.Default.(bool)
-	// frptunnelDescRequireCompression is the schema descriptor for require_compression field.
-	frptunnelDescRequireCompression := frptunnelFields[13].Descriptor()
-	// frptunnel.DefaultRequireCompression holds the default value on creation for the require_compression field.
-	frptunnel.DefaultRequireCompression = frptunnelDescRequireCompression.Default.(bool)
 	// frptunnelDescMaxBandwidth is the schema descriptor for max_bandwidth field.
-	frptunnelDescMaxBandwidth := frptunnelFields[14].Descriptor()
+	frptunnelDescMaxBandwidth := frptunnelFields[12].Descriptor()
 	// frptunnel.DefaultMaxBandwidth holds the default value on creation for the max_bandwidth field.
 	frptunnel.DefaultMaxBandwidth = frptunnelDescMaxBandwidth.Default.(string)
+	// frptunnelDescMaxActiveConns is the schema descriptor for max_active_conns field.
+	frptunnelDescMaxActiveConns := frptunnelFields[13].Descriptor()
+	// frptunnel.DefaultMaxActiveConns holds the default value on creation for the max_active_conns field.
+	frptunnel.DefaultMaxActiveConns = frptunnelDescMaxActiveConns.Default.(int)
 	// frptunnelDescID is the schema descriptor for id field.
 	frptunnelDescID := frptunnelFields[0].Descriptor()
 	// frptunnel.IDValidator is a validator for the "id" field. It is called by the builders before save.

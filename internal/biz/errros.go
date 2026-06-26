@@ -48,6 +48,8 @@ var (
 	ErrFileTaskNotFound           = response.BadRequest(500, "文件任务不存在")
 	ErrSign                       = response.BadRequest(500, "签名失败")
 	ErrUploadRequestInvalid       = response.BadRequest(500, "上传请求参数无效")
+	ErrShareNotFound              = response.BadRequest(404, "分享不存在或已失效")
+	ErrShareForbidden             = response.BadRequest(403, "提取码错误或分享不可用")
 	ErrUploadSessionNotFound      = response.BadRequest(500, "上传会话不存在")
 	ErrUploadSessionConflict      = response.BadRequest(500, "上传会话与当前文件不匹配")
 	ErrUploadPartInvalid          = response.BadRequest(500, "上传分片参数无效")

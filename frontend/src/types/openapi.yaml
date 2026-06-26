@@ -1014,6 +1014,92 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListDockerTasksResponse'
+    /api/v1/file/share/create:
+        post:
+            tags:
+                - FileManager
+            description: 创建分享(系统级)
+            operationId: FileManager_CreateShare
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateShareRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateShareResponse'
+    /api/v1/file/share/delete:
+        post:
+            tags:
+                - FileManager
+            description: 删除分享(系统级)
+            operationId: FileManager_DeleteShare
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DeleteShareRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteShareResponse'
+    /api/v1/file/share/list:
+        get:
+            tags:
+                - FileManager
+            description: 分享列表(系统级)
+            operationId: FileManager_ListShares
+            parameters:
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 搜索关键字（名称/路径）
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListSharesResponse'
+    /api/v1/file/share/update:
+        post:
+            tags:
+                - FileManager
+            description: 更新分享(系统级)
+            operationId: FileManager_UpdateShare
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateShareRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateShareResponse'
     /api/v1/file/system:
         get:
             tags:
@@ -2603,6 +2689,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MePermissionsResponse'
+    /api/v1/public/share/list:
+        post:
+            tags:
+                - FileManager
+            description: 公开：浏览分享目录（按需提取码）
+            operationId: FileManager_ListShareDir
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ListShareDirRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListShareDirResponse'
+    /api/v1/public/share/meta:
+        get:
+            tags:
+                - FileManager
+            description: 公开：获取分享元信息（无需提取码）
+            operationId: FileManager_GetShareMeta
+            parameters:
+                - name: token
+                  in: query
+                  description: 公开访问令牌
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetShareMetaResponse'
     /api/v1/public/sub2api/home:
         get:
             tags:
@@ -4503,6 +4627,37 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.CreateShareRequest:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: 要分享的文件/文件夹路径
+                name:
+                    type: string
+                    description: 展示名称，空=路径名
+                code:
+                    type: string
+                    description: 提取码，空=公开
+                expiresAt:
+                    type: string
+                    description: 过期时间，空=永久
+                    format: date-time
+                maxDownloads:
+                    type: string
+                    description: 下载次数上限，0=不限
+                enabled:
+                    type: boolean
+                    description: 是否启用
+            description: 创建分享请求
+        v1.CreateShareResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.ShareInfo'
+                    description: 分享信息
+            description: 创建分享响应
         v1.CreateSub2APIAnnouncementRequest:
             type: object
             properties:
@@ -4562,15 +4717,13 @@ components:
                 isEnable:
                     type: boolean
                     description: 是否启用
-                requireEncryption:
-                    type: boolean
-                    description: 要求客户端开启加密（useEncryption）：未开启则拒绝该 proxy
-                requireCompression:
-                    type: boolean
-                    description: 要求客户端开启压缩（useCompression）：未开启则拒绝该 proxy
                 maxBandwidth:
                     type: string
-                    description: 带宽上限（如 "1MB"/"100KB"）；客户端声明的带宽限制不得超过该值，空=不限
+                    description: 带宽上限（限速，如 "1MB"/"100KB"）；客户端声明带宽不得超过该值，空=不限
+                maxActiveConns:
+                    type: integer
+                    description: 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限
+                    format: int32
         v1.CreateTunnelResponse:
             type: object
             properties:
@@ -4658,6 +4811,17 @@ components:
         v1.DeleteSSHHostResponse:
             type: object
             properties: {}
+        v1.DeleteShareRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 分享 id
+            description: 删除分享请求
+        v1.DeleteShareResponse:
+            type: object
+            properties: {}
+            description: 删除分享响应
         v1.DeleteSub2APIAnnouncementResponse:
             type: object
             properties: {}
@@ -6134,28 +6298,6 @@ components:
                 serverAddr:
                     type: string
                     description: 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
-                tlsForce:
-                    type: boolean
-                    description: 强制 TLS：只接受 TLS 加密的 frpc 连接（transport.tls.force）
-                maxPoolCount:
-                    type: integer
-                    description: 每代理连接池上限（transport.maxPoolCount，<=0 用 frps 默认 5）
-                    format: int32
-                maxPortsPerClient:
-                    type: integer
-                    description: 每客户端可代理的最大端口数（maxPortsPerClient，0=不限）
-                    format: int32
-                heartbeatTimeout:
-                    type: integer
-                    description: 心跳超时(秒)（transport.heartbeatTimeout，<0 关闭；0 用 frps 默认）
-                    format: int32
-                tcpMux:
-                    type: boolean
-                    description: 是否启用 TCP 多路复用（transport.tcpMux，默认 true）
-                udpPacketSize:
-                    type: integer
-                    description: UDP 包大小(字节)（udpPacketSize，<=0 用 frps 默认 1500）
-                    format: int32
             description: |-
                 frps 实例配置（实例级，非逐条隧道规则）。
                  注：无 auth_token。frps 自身 Auth 中性化（空 token），不作为统一认证；
@@ -6348,6 +6490,35 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: 列表
+        v1.GetShareMetaResponse:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 展示名称
+                isDir:
+                    type: boolean
+                    description: 是否文件夹
+                size:
+                    type: string
+                    description: 文件大小（文件夹为 0）
+                needCode:
+                    type: boolean
+                    description: 是否需要提取码
+                expiresAt:
+                    type: string
+                    description: 过期时间，空=永久
+                    format: date-time
+                maxDownloads:
+                    type: string
+                    description: 下载次数上限，0=不限
+                downloadCount:
+                    type: string
+                    description: 已下载次数
+                available:
+                    type: boolean
+                    description: 当前是否可用（启用/未过期/未超次数）
+            description: 获取分享元信息响应（公开，不含提取码本身）
         v1.GetSub2APIAdminStatsResponse:
             type: object
             properties:
@@ -6781,6 +6952,49 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.PortForwardInfo'
                     description: 列表
+        v1.ListShareDirRequest:
+            type: object
+            properties:
+                token:
+                    type: string
+                    description: 公开访问令牌
+                code:
+                    type: string
+                    description: 提取码（如分享设置了）
+                subPath:
+                    type: string
+                    description: 分享根下的相对子路径，空=根
+            description: 浏览分享目录请求（公开）
+        v1.ListShareDirResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ShareEntry'
+                    description: 条目列表
+                subPath:
+                    type: string
+                    description: 当前子路径
+            description: 浏览分享目录响应
+        v1.ListSharesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.ShareInfo'
+                    description: 列表
+                page:
+                    type: string
+                    description: 当前页码
+                pageSize:
+                    type: string
+                    description: 每页数量
+                total:
+                    type: string
+                    description: 总数
+            description: 分享列表响应
         v1.ListSub2APIAnnouncementsResponse:
             type: object
             properties:
@@ -7723,6 +7937,69 @@ components:
             type: object
             properties: {}
             description: 发送注册邮件验证码响应
+        v1.ShareEntry:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                isDir:
+                    type: boolean
+                    description: 是否目录
+                size:
+                    type: string
+                    description: 大小
+                updateTime:
+                    type: string
+                    description: 修改时间
+                    format: date-time
+                relPath:
+                    type: string
+                    description: 相对分享根的路径（用于继续浏览/下载）
+            description: 分享目录条目
+        v1.ShareInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 分享 id
+                name:
+                    type: string
+                    description: 展示名称
+                targetPath:
+                    type: string
+                    description: 被分享的真实路径
+                isDir:
+                    type: boolean
+                    description: 是否文件夹
+                token:
+                    type: string
+                    description: 公开访问令牌
+                code:
+                    type: string
+                    description: 提取码，空=无需
+                expiresAt:
+                    type: string
+                    description: 过期时间，空=永久
+                    format: date-time
+                maxDownloads:
+                    type: string
+                    description: 下载次数上限，0=不限
+                downloadCount:
+                    type: string
+                    description: 已下载次数
+                enabled:
+                    type: boolean
+                    description: 是否启用
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+            description: 分享信息（仅创建者可见的管理视图，含提取码）
         v1.ShareSSHHostRequest:
             type: object
             properties:
@@ -8369,15 +8646,13 @@ components:
                 bytesOut:
                     type: string
                     description: 当日累计出站流量(字节)
-                requireEncryption:
-                    type: boolean
-                    description: 要求客户端开启加密
-                requireCompression:
-                    type: boolean
-                    description: 要求客户端开启压缩
                 maxBandwidth:
                     type: string
-                    description: 带宽上限（如 "1MB"；空=不限）
+                    description: 带宽上限（限速，如 "1MB"；空=不限）
+                maxActiveConns:
+                    type: integer
+                    description: 活跃连接数上限，0=不限
+                    format: int32
         v1.TunnelStat:
             type: object
             properties:
@@ -8914,6 +9189,37 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SSHHostInfo'
                     description: SSH 服务端详情
+        v1.UpdateShareRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 分享 id
+                name:
+                    type: string
+                    description: 展示名称
+                code:
+                    type: string
+                    description: 提取码，空=公开
+                expiresAt:
+                    type: string
+                    description: 过期时间，空=永久
+                    format: date-time
+                maxDownloads:
+                    type: string
+                    description: 下载次数上限，0=不限
+                enabled:
+                    type: boolean
+                    description: 是否启用
+            description: 更新分享请求（全量覆盖可编辑字段）
+        v1.UpdateShareResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.ShareInfo'
+                    description: 分享信息
+            description: 更新分享响应
         v1.UpdateSub2APIAnnouncementRequest:
             type: object
             properties:
@@ -8990,15 +9296,13 @@ components:
                 isEnable:
                     type: boolean
                     description: 是否启用
-                requireEncryption:
-                    type: boolean
-                    description: 要求客户端开启加密
-                requireCompression:
-                    type: boolean
-                    description: 要求客户端开启压缩
                 maxBandwidth:
                     type: string
-                    description: 带宽上限（如 "1MB"；空=不限）
+                    description: 带宽上限（限速，如 "1MB"；空=不限）
+                maxActiveConns:
+                    type: integer
+                    description: 活跃连接数上限，0=不限
+                    format: int32
         v1.UpdateTunnelResponse:
             type: object
             properties:

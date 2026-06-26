@@ -12,6 +12,9 @@ type Auth func(*sql.Selector)
 // EmailTemplate is the predicate function for emailtemplate builders.
 type EmailTemplate func(*sql.Selector)
 
+// FileShare is the predicate function for fileshare builders.
+type FileShare func(*sql.Selector)
+
 // FileUpload is the predicate function for fileupload builders.
 type FileUpload func(*sql.Selector)
 

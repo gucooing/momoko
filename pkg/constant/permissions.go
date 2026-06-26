@@ -69,4 +69,6 @@ const (
 	Network Permissions = "network:manage"
 	// Tunnel 允许管理内网穿透（frp 隧道）。
 	Tunnel Permissions = "tunnel:manage"
+	// FileShare 允许管理文件分享。
+	FileShare Permissions = "file:share"
 )

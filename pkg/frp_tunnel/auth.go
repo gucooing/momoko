@@ -17,10 +17,9 @@ type Tunnel struct {
 	AllowUsers []string // 允许的 frpc user；空=不限制
 	Enabled    bool
 
-	// 客户端配置策略（以 momoko 为准，客户端不满足/超出即拒绝）。
-	RequireEncryption  bool   // 要求 frpc 该 proxy 开启 useEncryption
-	RequireCompression bool   // 要求 frpc 该 proxy 开启 useCompression
-	MaxBandwidth       string // 带宽上限（如 "1MB"，空=不限）
+	// 资源类限制（以 momoko 为准，客户端超出即拒绝）。加密/压缩属客户端自选优化，不在此约束。
+	MaxBandwidth   string // 带宽上限/限速（如 "1MB"，空=不限）
+	MaxActiveConns int    // 活跃连接数上限，0=不限
 }
 
 // TunnelLookup 由业务层实现：按 frp proxy 名称返回隧道规则；未找到返回 ok=false。
@@ -79,14 +78,9 @@ func authNewProxy(ctx context.Context, lookup TunnelLookup, info NewProxyInfo) e
 }
 
 // enforceClientPolicy 以 momoko 隧道规则为准校验 frpc 声明的 proxy 配置：
-// 要求加密/压缩未满足、或带宽超过上限时拒绝（均在 frps 插件机制内完成，不改 frps 源码）。
+// 带宽（限速）超过上限时拒绝（在 frps 插件机制内完成，不改 frps 源码）。
+// 加密/压缩属客户端自选优化，不做约束。
 func enforceClientPolicy(tn *Tunnel, info NewProxyInfo) error {
-	if tn.RequireEncryption && !info.UseEncryption {
-		return fmt.Errorf("该隧道要求开启加密(useEncryption)，请在 frpc 配置中启用")
-	}
-	if tn.RequireCompression && !info.UseCompression {
-		return fmt.Errorf("该隧道要求开启压缩(useCompression)，请在 frpc 配置中启用")
-	}
 	if tn.MaxBandwidth != "" {
 		limit, err := types.NewBandwidthQuantity(tn.MaxBandwidth)
 		if err != nil {
@@ -103,6 +97,21 @@ func enforceClientPolicy(tn *Tunnel, info NewProxyInfo) error {
 		if got.Bytes() > limit.Bytes() {
 			return fmt.Errorf("客户端带宽 %s 超过隧道上限 %s", info.BandwidthLimit, tn.MaxBandwidth)
 		}
+	}
+	return nil
+}
+
+// authNewUserConn 在每条用户连接建立时校验隧道的活跃连接数上限。
+// activeConns 为该隧道当前活跃连接数（由 Manager 通过实时统计提供）。
+// 注：frp 服务端配置无此项，只能在 momoko 的 NewUserConn 插件钩子里逐隧道限制。
+func authNewUserConn(ctx context.Context, lookup TunnelLookup, activeConns int64, info NewUserConnInfo) error {
+	tn, ok := lookup.LookupTunnel(ctx, info.ProxyName)
+	if !ok {
+		// NewProxy 阶段已校验隧道存在；此处查不到则放行，避免误伤。
+		return nil
+	}
+	if tn.MaxActiveConns > 0 && activeConns >= int64(tn.MaxActiveConns) {
+		return fmt.Errorf("隧道活跃连接数已达上限 %d", tn.MaxActiveConns)
 	}
 	return nil
 }

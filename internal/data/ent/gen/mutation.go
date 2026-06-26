@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
+	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
@@ -47,6 +48,7 @@ const (
 	// Node types.
 	TypeAuth                = "Auth"
 	TypeEmailTemplate       = "EmailTemplate"
+	TypeFileShare           = "FileShare"
 	TypeFileUpload          = "FileUpload"
 	TypeFileUploadChunk     = "FileUploadChunk"
 	TypeFrpTunnel           = "FrpTunnel"
@@ -1389,6 +1391,1077 @@ func (m *EmailTemplateMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *EmailTemplateMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown EmailTemplate edge %s", name)
+}
+
+// FileShareMutation represents an operation that mutates the FileShare nodes in the graph.
+type FileShareMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *string
+	create_time       *time.Time
+	update_time       *time.Time
+	name              *string
+	target_path       *string
+	is_dir            *bool
+	token             *string
+	code              *string
+	expires_at        *time.Time
+	max_downloads     *int64
+	addmax_downloads  *int64
+	download_count    *int64
+	adddownload_count *int64
+	enabled           *bool
+	clearedFields     map[string]struct{}
+	user              *string
+	cleareduser       bool
+	done              bool
+	oldValue          func(context.Context) (*FileShare, error)
+	predicates        []predicate.FileShare
+}
+
+var _ ent.Mutation = (*FileShareMutation)(nil)
+
+// fileshareOption allows management of the mutation configuration using functional options.
+type fileshareOption func(*FileShareMutation)
+
+// newFileShareMutation creates new mutation for the FileShare entity.
+func newFileShareMutation(c config, op Op, opts ...fileshareOption) *FileShareMutation {
+	m := &FileShareMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFileShare,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFileShareID sets the ID field of the mutation.
+func withFileShareID(id string) fileshareOption {
+	return func(m *FileShareMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FileShare
+		)
+		m.oldValue = func(ctx context.Context) (*FileShare, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FileShare.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFileShare sets the old FileShare of the mutation.
+func withFileShare(node *FileShare) fileshareOption {
+	return func(m *FileShareMutation) {
+		m.oldValue = func(context.Context) (*FileShare, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FileShareMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FileShareMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FileShare entities.
+func (m *FileShareMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FileShareMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FileShareMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FileShare.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *FileShareMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *FileShareMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *FileShareMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *FileShareMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *FileShareMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *FileShareMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *FileShareMutation) SetUserID(s string) {
+	m.user = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *FileShareMutation) UserID() (r string, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *FileShareMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetName sets the "name" field.
+func (m *FileShareMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *FileShareMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *FileShareMutation) ResetName() {
+	m.name = nil
+}
+
+// SetTargetPath sets the "target_path" field.
+func (m *FileShareMutation) SetTargetPath(s string) {
+	m.target_path = &s
+}
+
+// TargetPath returns the value of the "target_path" field in the mutation.
+func (m *FileShareMutation) TargetPath() (r string, exists bool) {
+	v := m.target_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetPath returns the old "target_path" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldTargetPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetPath: %w", err)
+	}
+	return oldValue.TargetPath, nil
+}
+
+// ResetTargetPath resets all changes to the "target_path" field.
+func (m *FileShareMutation) ResetTargetPath() {
+	m.target_path = nil
+}
+
+// SetIsDir sets the "is_dir" field.
+func (m *FileShareMutation) SetIsDir(b bool) {
+	m.is_dir = &b
+}
+
+// IsDir returns the value of the "is_dir" field in the mutation.
+func (m *FileShareMutation) IsDir() (r bool, exists bool) {
+	v := m.is_dir
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDir returns the old "is_dir" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldIsDir(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDir is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDir requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDir: %w", err)
+	}
+	return oldValue.IsDir, nil
+}
+
+// ResetIsDir resets all changes to the "is_dir" field.
+func (m *FileShareMutation) ResetIsDir() {
+	m.is_dir = nil
+}
+
+// SetToken sets the "token" field.
+func (m *FileShareMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *FileShareMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *FileShareMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetCode sets the "code" field.
+func (m *FileShareMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *FileShareMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *FileShareMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *FileShareMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *FileShareMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *FileShareMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[fileshare.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *FileShareMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[fileshare.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *FileShareMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, fileshare.FieldExpiresAt)
+}
+
+// SetMaxDownloads sets the "max_downloads" field.
+func (m *FileShareMutation) SetMaxDownloads(i int64) {
+	m.max_downloads = &i
+	m.addmax_downloads = nil
+}
+
+// MaxDownloads returns the value of the "max_downloads" field in the mutation.
+func (m *FileShareMutation) MaxDownloads() (r int64, exists bool) {
+	v := m.max_downloads
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDownloads returns the old "max_downloads" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldMaxDownloads(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxDownloads is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxDownloads requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDownloads: %w", err)
+	}
+	return oldValue.MaxDownloads, nil
+}
+
+// AddMaxDownloads adds i to the "max_downloads" field.
+func (m *FileShareMutation) AddMaxDownloads(i int64) {
+	if m.addmax_downloads != nil {
+		*m.addmax_downloads += i
+	} else {
+		m.addmax_downloads = &i
+	}
+}
+
+// AddedMaxDownloads returns the value that was added to the "max_downloads" field in this mutation.
+func (m *FileShareMutation) AddedMaxDownloads() (r int64, exists bool) {
+	v := m.addmax_downloads
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDownloads resets all changes to the "max_downloads" field.
+func (m *FileShareMutation) ResetMaxDownloads() {
+	m.max_downloads = nil
+	m.addmax_downloads = nil
+}
+
+// SetDownloadCount sets the "download_count" field.
+func (m *FileShareMutation) SetDownloadCount(i int64) {
+	m.download_count = &i
+	m.adddownload_count = nil
+}
+
+// DownloadCount returns the value of the "download_count" field in the mutation.
+func (m *FileShareMutation) DownloadCount() (r int64, exists bool) {
+	v := m.download_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDownloadCount returns the old "download_count" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldDownloadCount(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDownloadCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDownloadCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDownloadCount: %w", err)
+	}
+	return oldValue.DownloadCount, nil
+}
+
+// AddDownloadCount adds i to the "download_count" field.
+func (m *FileShareMutation) AddDownloadCount(i int64) {
+	if m.adddownload_count != nil {
+		*m.adddownload_count += i
+	} else {
+		m.adddownload_count = &i
+	}
+}
+
+// AddedDownloadCount returns the value that was added to the "download_count" field in this mutation.
+func (m *FileShareMutation) AddedDownloadCount() (r int64, exists bool) {
+	v := m.adddownload_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDownloadCount resets all changes to the "download_count" field.
+func (m *FileShareMutation) ResetDownloadCount() {
+	m.download_count = nil
+	m.adddownload_count = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *FileShareMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *FileShareMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *FileShareMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *FileShareMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[fileshare.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *FileShareMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *FileShareMutation) UserIDs() (ids []string) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *FileShareMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the FileShareMutation builder.
+func (m *FileShareMutation) Where(ps ...predicate.FileShare) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FileShareMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FileShareMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FileShare, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FileShareMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FileShareMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FileShare).
+func (m *FileShareMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FileShareMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.create_time != nil {
+		fields = append(fields, fileshare.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, fileshare.FieldUpdateTime)
+	}
+	if m.user != nil {
+		fields = append(fields, fileshare.FieldUserID)
+	}
+	if m.name != nil {
+		fields = append(fields, fileshare.FieldName)
+	}
+	if m.target_path != nil {
+		fields = append(fields, fileshare.FieldTargetPath)
+	}
+	if m.is_dir != nil {
+		fields = append(fields, fileshare.FieldIsDir)
+	}
+	if m.token != nil {
+		fields = append(fields, fileshare.FieldToken)
+	}
+	if m.code != nil {
+		fields = append(fields, fileshare.FieldCode)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, fileshare.FieldExpiresAt)
+	}
+	if m.max_downloads != nil {
+		fields = append(fields, fileshare.FieldMaxDownloads)
+	}
+	if m.download_count != nil {
+		fields = append(fields, fileshare.FieldDownloadCount)
+	}
+	if m.enabled != nil {
+		fields = append(fields, fileshare.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FileShareMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case fileshare.FieldCreateTime:
+		return m.CreateTime()
+	case fileshare.FieldUpdateTime:
+		return m.UpdateTime()
+	case fileshare.FieldUserID:
+		return m.UserID()
+	case fileshare.FieldName:
+		return m.Name()
+	case fileshare.FieldTargetPath:
+		return m.TargetPath()
+	case fileshare.FieldIsDir:
+		return m.IsDir()
+	case fileshare.FieldToken:
+		return m.Token()
+	case fileshare.FieldCode:
+		return m.Code()
+	case fileshare.FieldExpiresAt:
+		return m.ExpiresAt()
+	case fileshare.FieldMaxDownloads:
+		return m.MaxDownloads()
+	case fileshare.FieldDownloadCount:
+		return m.DownloadCount()
+	case fileshare.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FileShareMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case fileshare.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case fileshare.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case fileshare.FieldUserID:
+		return m.OldUserID(ctx)
+	case fileshare.FieldName:
+		return m.OldName(ctx)
+	case fileshare.FieldTargetPath:
+		return m.OldTargetPath(ctx)
+	case fileshare.FieldIsDir:
+		return m.OldIsDir(ctx)
+	case fileshare.FieldToken:
+		return m.OldToken(ctx)
+	case fileshare.FieldCode:
+		return m.OldCode(ctx)
+	case fileshare.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case fileshare.FieldMaxDownloads:
+		return m.OldMaxDownloads(ctx)
+	case fileshare.FieldDownloadCount:
+		return m.OldDownloadCount(ctx)
+	case fileshare.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown FileShare field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileShareMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case fileshare.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case fileshare.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case fileshare.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case fileshare.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case fileshare.FieldTargetPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetPath(v)
+		return nil
+	case fileshare.FieldIsDir:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDir(v)
+		return nil
+	case fileshare.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case fileshare.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case fileshare.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case fileshare.FieldMaxDownloads:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDownloads(v)
+		return nil
+	case fileshare.FieldDownloadCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDownloadCount(v)
+		return nil
+	case fileshare.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FileShareMutation) AddedFields() []string {
+	var fields []string
+	if m.addmax_downloads != nil {
+		fields = append(fields, fileshare.FieldMaxDownloads)
+	}
+	if m.adddownload_count != nil {
+		fields = append(fields, fileshare.FieldDownloadCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FileShareMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case fileshare.FieldMaxDownloads:
+		return m.AddedMaxDownloads()
+	case fileshare.FieldDownloadCount:
+		return m.AddedDownloadCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileShareMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case fileshare.FieldMaxDownloads:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDownloads(v)
+		return nil
+	case fileshare.FieldDownloadCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDownloadCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FileShareMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(fileshare.FieldExpiresAt) {
+		fields = append(fields, fileshare.FieldExpiresAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FileShareMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FileShareMutation) ClearField(name string) error {
+	switch name {
+	case fileshare.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FileShareMutation) ResetField(name string) error {
+	switch name {
+	case fileshare.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case fileshare.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case fileshare.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case fileshare.FieldName:
+		m.ResetName()
+		return nil
+	case fileshare.FieldTargetPath:
+		m.ResetTargetPath()
+		return nil
+	case fileshare.FieldIsDir:
+		m.ResetIsDir()
+		return nil
+	case fileshare.FieldToken:
+		m.ResetToken()
+		return nil
+	case fileshare.FieldCode:
+		m.ResetCode()
+		return nil
+	case fileshare.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case fileshare.FieldMaxDownloads:
+		m.ResetMaxDownloads()
+		return nil
+	case fileshare.FieldDownloadCount:
+		m.ResetDownloadCount()
+		return nil
+	case fileshare.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FileShareMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, fileshare.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FileShareMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case fileshare.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FileShareMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FileShareMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FileShareMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, fileshare.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FileShareMutation) EdgeCleared(name string) bool {
+	switch name {
+	case fileshare.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FileShareMutation) ClearEdge(name string) error {
+	switch name {
+	case fileshare.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FileShareMutation) ResetEdge(name string) error {
+	switch name {
+	case fileshare.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FileShare edge %s", name)
 }
 
 // FileUploadMutation represents an operation that mutates the FileUpload nodes in the graph.
@@ -3243,9 +4316,9 @@ type FrpTunnelMutation struct {
 	credential          *string
 	allow_users         *string
 	is_enable           *bool
-	require_encryption  *bool
-	require_compression *bool
 	max_bandwidth       *string
+	max_active_conns    *int
+	addmax_active_conns *int
 	clearedFields       map[string]struct{}
 	user                *string
 	cleareduser         bool
@@ -3866,78 +4939,6 @@ func (m *FrpTunnelMutation) ResetIsEnable() {
 	m.is_enable = nil
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (m *FrpTunnelMutation) SetRequireEncryption(b bool) {
-	m.require_encryption = &b
-}
-
-// RequireEncryption returns the value of the "require_encryption" field in the mutation.
-func (m *FrpTunnelMutation) RequireEncryption() (r bool, exists bool) {
-	v := m.require_encryption
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRequireEncryption returns the old "require_encryption" field's value of the FrpTunnel entity.
-// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FrpTunnelMutation) OldRequireEncryption(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRequireEncryption is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRequireEncryption requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRequireEncryption: %w", err)
-	}
-	return oldValue.RequireEncryption, nil
-}
-
-// ResetRequireEncryption resets all changes to the "require_encryption" field.
-func (m *FrpTunnelMutation) ResetRequireEncryption() {
-	m.require_encryption = nil
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (m *FrpTunnelMutation) SetRequireCompression(b bool) {
-	m.require_compression = &b
-}
-
-// RequireCompression returns the value of the "require_compression" field in the mutation.
-func (m *FrpTunnelMutation) RequireCompression() (r bool, exists bool) {
-	v := m.require_compression
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRequireCompression returns the old "require_compression" field's value of the FrpTunnel entity.
-// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FrpTunnelMutation) OldRequireCompression(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRequireCompression is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRequireCompression requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRequireCompression: %w", err)
-	}
-	return oldValue.RequireCompression, nil
-}
-
-// ResetRequireCompression resets all changes to the "require_compression" field.
-func (m *FrpTunnelMutation) ResetRequireCompression() {
-	m.require_compression = nil
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (m *FrpTunnelMutation) SetMaxBandwidth(s string) {
 	m.max_bandwidth = &s
@@ -3972,6 +4973,62 @@ func (m *FrpTunnelMutation) OldMaxBandwidth(ctx context.Context) (v string, err 
 // ResetMaxBandwidth resets all changes to the "max_bandwidth" field.
 func (m *FrpTunnelMutation) ResetMaxBandwidth() {
 	m.max_bandwidth = nil
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (m *FrpTunnelMutation) SetMaxActiveConns(i int) {
+	m.max_active_conns = &i
+	m.addmax_active_conns = nil
+}
+
+// MaxActiveConns returns the value of the "max_active_conns" field in the mutation.
+func (m *FrpTunnelMutation) MaxActiveConns() (r int, exists bool) {
+	v := m.max_active_conns
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxActiveConns returns the old "max_active_conns" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldMaxActiveConns(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxActiveConns is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxActiveConns requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxActiveConns: %w", err)
+	}
+	return oldValue.MaxActiveConns, nil
+}
+
+// AddMaxActiveConns adds i to the "max_active_conns" field.
+func (m *FrpTunnelMutation) AddMaxActiveConns(i int) {
+	if m.addmax_active_conns != nil {
+		*m.addmax_active_conns += i
+	} else {
+		m.addmax_active_conns = &i
+	}
+}
+
+// AddedMaxActiveConns returns the value that was added to the "max_active_conns" field in this mutation.
+func (m *FrpTunnelMutation) AddedMaxActiveConns() (r int, exists bool) {
+	v := m.addmax_active_conns
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxActiveConns resets all changes to the "max_active_conns" field.
+func (m *FrpTunnelMutation) ResetMaxActiveConns() {
+	m.max_active_conns = nil
+	m.addmax_active_conns = nil
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -4035,7 +5092,7 @@ func (m *FrpTunnelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FrpTunnelMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 15)
 	if m.create_time != nil {
 		fields = append(fields, frptunnel.FieldCreateTime)
 	}
@@ -4075,14 +5132,11 @@ func (m *FrpTunnelMutation) Fields() []string {
 	if m.is_enable != nil {
 		fields = append(fields, frptunnel.FieldIsEnable)
 	}
-	if m.require_encryption != nil {
-		fields = append(fields, frptunnel.FieldRequireEncryption)
-	}
-	if m.require_compression != nil {
-		fields = append(fields, frptunnel.FieldRequireCompression)
-	}
 	if m.max_bandwidth != nil {
 		fields = append(fields, frptunnel.FieldMaxBandwidth)
+	}
+	if m.max_active_conns != nil {
+		fields = append(fields, frptunnel.FieldMaxActiveConns)
 	}
 	return fields
 }
@@ -4118,12 +5172,10 @@ func (m *FrpTunnelMutation) Field(name string) (ent.Value, bool) {
 		return m.AllowUsers()
 	case frptunnel.FieldIsEnable:
 		return m.IsEnable()
-	case frptunnel.FieldRequireEncryption:
-		return m.RequireEncryption()
-	case frptunnel.FieldRequireCompression:
-		return m.RequireCompression()
 	case frptunnel.FieldMaxBandwidth:
 		return m.MaxBandwidth()
+	case frptunnel.FieldMaxActiveConns:
+		return m.MaxActiveConns()
 	}
 	return nil, false
 }
@@ -4159,12 +5211,10 @@ func (m *FrpTunnelMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldAllowUsers(ctx)
 	case frptunnel.FieldIsEnable:
 		return m.OldIsEnable(ctx)
-	case frptunnel.FieldRequireEncryption:
-		return m.OldRequireEncryption(ctx)
-	case frptunnel.FieldRequireCompression:
-		return m.OldRequireCompression(ctx)
 	case frptunnel.FieldMaxBandwidth:
 		return m.OldMaxBandwidth(ctx)
+	case frptunnel.FieldMaxActiveConns:
+		return m.OldMaxActiveConns(ctx)
 	}
 	return nil, fmt.Errorf("unknown FrpTunnel field %s", name)
 }
@@ -4265,26 +5315,19 @@ func (m *FrpTunnelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsEnable(v)
 		return nil
-	case frptunnel.FieldRequireEncryption:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRequireEncryption(v)
-		return nil
-	case frptunnel.FieldRequireCompression:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRequireCompression(v)
-		return nil
 	case frptunnel.FieldMaxBandwidth:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMaxBandwidth(v)
+		return nil
+	case frptunnel.FieldMaxActiveConns:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxActiveConns(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FrpTunnel field %s", name)
@@ -4300,6 +5343,9 @@ func (m *FrpTunnelMutation) AddedFields() []string {
 	if m.addlocal_port != nil {
 		fields = append(fields, frptunnel.FieldLocalPort)
 	}
+	if m.addmax_active_conns != nil {
+		fields = append(fields, frptunnel.FieldMaxActiveConns)
+	}
 	return fields
 }
 
@@ -4312,6 +5358,8 @@ func (m *FrpTunnelMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedRemotePort()
 	case frptunnel.FieldLocalPort:
 		return m.AddedLocalPort()
+	case frptunnel.FieldMaxActiveConns:
+		return m.AddedMaxActiveConns()
 	}
 	return nil, false
 }
@@ -4334,6 +5382,13 @@ func (m *FrpTunnelMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddLocalPort(v)
+		return nil
+	case frptunnel.FieldMaxActiveConns:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxActiveConns(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FrpTunnel numeric field %s", name)
@@ -4401,14 +5456,11 @@ func (m *FrpTunnelMutation) ResetField(name string) error {
 	case frptunnel.FieldIsEnable:
 		m.ResetIsEnable()
 		return nil
-	case frptunnel.FieldRequireEncryption:
-		m.ResetRequireEncryption()
-		return nil
-	case frptunnel.FieldRequireCompression:
-		m.ResetRequireCompression()
-		return nil
 	case frptunnel.FieldMaxBandwidth:
 		m.ResetMaxBandwidth()
+		return nil
+	case frptunnel.FieldMaxActiveConns:
+		m.ResetMaxActiveConns()
 		return nil
 	}
 	return fmt.Errorf("unknown FrpTunnel field %s", name)

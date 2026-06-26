@@ -203,34 +203,6 @@ func (_u *FrpTunnelUpdate) SetNillableIsEnable(v *bool) *FrpTunnelUpdate {
 	return _u
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (_u *FrpTunnelUpdate) SetRequireEncryption(v bool) *FrpTunnelUpdate {
-	_u.mutation.SetRequireEncryption(v)
-	return _u
-}
-
-// SetNillableRequireEncryption sets the "require_encryption" field if the given value is not nil.
-func (_u *FrpTunnelUpdate) SetNillableRequireEncryption(v *bool) *FrpTunnelUpdate {
-	if v != nil {
-		_u.SetRequireEncryption(*v)
-	}
-	return _u
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (_u *FrpTunnelUpdate) SetRequireCompression(v bool) *FrpTunnelUpdate {
-	_u.mutation.SetRequireCompression(v)
-	return _u
-}
-
-// SetNillableRequireCompression sets the "require_compression" field if the given value is not nil.
-func (_u *FrpTunnelUpdate) SetNillableRequireCompression(v *bool) *FrpTunnelUpdate {
-	if v != nil {
-		_u.SetRequireCompression(*v)
-	}
-	return _u
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (_u *FrpTunnelUpdate) SetMaxBandwidth(v string) *FrpTunnelUpdate {
 	_u.mutation.SetMaxBandwidth(v)
@@ -242,6 +214,27 @@ func (_u *FrpTunnelUpdate) SetNillableMaxBandwidth(v *string) *FrpTunnelUpdate {
 	if v != nil {
 		_u.SetMaxBandwidth(*v)
 	}
+	return _u
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (_u *FrpTunnelUpdate) SetMaxActiveConns(v int) *FrpTunnelUpdate {
+	_u.mutation.ResetMaxActiveConns()
+	_u.mutation.SetMaxActiveConns(v)
+	return _u
+}
+
+// SetNillableMaxActiveConns sets the "max_active_conns" field if the given value is not nil.
+func (_u *FrpTunnelUpdate) SetNillableMaxActiveConns(v *int) *FrpTunnelUpdate {
+	if v != nil {
+		_u.SetMaxActiveConns(*v)
+	}
+	return _u
+}
+
+// AddMaxActiveConns adds value to the "max_active_conns" field.
+func (_u *FrpTunnelUpdate) AddMaxActiveConns(v int) *FrpTunnelUpdate {
+	_u.mutation.AddMaxActiveConns(v)
 	return _u
 }
 
@@ -376,14 +369,14 @@ func (_u *FrpTunnelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(frptunnel.FieldIsEnable, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.RequireEncryption(); ok {
-		_spec.SetField(frptunnel.FieldRequireEncryption, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.RequireCompression(); ok {
-		_spec.SetField(frptunnel.FieldRequireCompression, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.MaxBandwidth(); ok {
 		_spec.SetField(frptunnel.FieldMaxBandwidth, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MaxActiveConns(); ok {
+		_spec.SetField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxActiveConns(); ok {
+		_spec.AddField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -608,34 +601,6 @@ func (_u *FrpTunnelUpdateOne) SetNillableIsEnable(v *bool) *FrpTunnelUpdateOne {
 	return _u
 }
 
-// SetRequireEncryption sets the "require_encryption" field.
-func (_u *FrpTunnelUpdateOne) SetRequireEncryption(v bool) *FrpTunnelUpdateOne {
-	_u.mutation.SetRequireEncryption(v)
-	return _u
-}
-
-// SetNillableRequireEncryption sets the "require_encryption" field if the given value is not nil.
-func (_u *FrpTunnelUpdateOne) SetNillableRequireEncryption(v *bool) *FrpTunnelUpdateOne {
-	if v != nil {
-		_u.SetRequireEncryption(*v)
-	}
-	return _u
-}
-
-// SetRequireCompression sets the "require_compression" field.
-func (_u *FrpTunnelUpdateOne) SetRequireCompression(v bool) *FrpTunnelUpdateOne {
-	_u.mutation.SetRequireCompression(v)
-	return _u
-}
-
-// SetNillableRequireCompression sets the "require_compression" field if the given value is not nil.
-func (_u *FrpTunnelUpdateOne) SetNillableRequireCompression(v *bool) *FrpTunnelUpdateOne {
-	if v != nil {
-		_u.SetRequireCompression(*v)
-	}
-	return _u
-}
-
 // SetMaxBandwidth sets the "max_bandwidth" field.
 func (_u *FrpTunnelUpdateOne) SetMaxBandwidth(v string) *FrpTunnelUpdateOne {
 	_u.mutation.SetMaxBandwidth(v)
@@ -647,6 +612,27 @@ func (_u *FrpTunnelUpdateOne) SetNillableMaxBandwidth(v *string) *FrpTunnelUpdat
 	if v != nil {
 		_u.SetMaxBandwidth(*v)
 	}
+	return _u
+}
+
+// SetMaxActiveConns sets the "max_active_conns" field.
+func (_u *FrpTunnelUpdateOne) SetMaxActiveConns(v int) *FrpTunnelUpdateOne {
+	_u.mutation.ResetMaxActiveConns()
+	_u.mutation.SetMaxActiveConns(v)
+	return _u
+}
+
+// SetNillableMaxActiveConns sets the "max_active_conns" field if the given value is not nil.
+func (_u *FrpTunnelUpdateOne) SetNillableMaxActiveConns(v *int) *FrpTunnelUpdateOne {
+	if v != nil {
+		_u.SetMaxActiveConns(*v)
+	}
+	return _u
+}
+
+// AddMaxActiveConns adds value to the "max_active_conns" field.
+func (_u *FrpTunnelUpdateOne) AddMaxActiveConns(v int) *FrpTunnelUpdateOne {
+	_u.mutation.AddMaxActiveConns(v)
 	return _u
 }
 
@@ -811,14 +797,14 @@ func (_u *FrpTunnelUpdateOne) sqlSave(ctx context.Context) (_node *FrpTunnel, er
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(frptunnel.FieldIsEnable, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.RequireEncryption(); ok {
-		_spec.SetField(frptunnel.FieldRequireEncryption, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.RequireCompression(); ok {
-		_spec.SetField(frptunnel.FieldRequireCompression, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.MaxBandwidth(); ok {
 		_spec.SetField(frptunnel.FieldMaxBandwidth, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MaxActiveConns(); ok {
+		_spec.SetField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxActiveConns(); ok {
+		_spec.AddField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

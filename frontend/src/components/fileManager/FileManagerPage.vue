@@ -309,6 +309,7 @@ const props = withDefaults(
       payload: FileManagerUploadPreSignPayload,
     ) => Promise<FileManagerUploadSession | void> | void
     onCopyTemporaryLink?: (entry: FileManagerWorkbenchItem) => Promise<void> | void
+    onShareEntry?: (entry: FileManagerWorkbenchItem) => Promise<void> | void
     onCompressEntries?: (path: string, entries: FileManagerWorkbenchItem[], targetPath: string) => Promise<string | void> | void
     onUnzipEntry?: (path: string, entry: FileManagerWorkbenchItem[], targetPath: string) => Promise<string | void> | void
     onRenameEntry?: (path: string, entry: FileManagerWorkbenchItem, newName: string) => Promise<string | void> | void
@@ -336,6 +337,7 @@ const props = withDefaults(
     onDownloadEntries: undefined,
     onGetUploadPreSign: undefined,
     onCopyTemporaryLink: undefined,
+    onShareEntry: undefined,
     onCompressEntries: undefined,
     onUnzipEntry: undefined,
     onRenameEntry: undefined,
@@ -497,6 +499,7 @@ const actionTextKeyMap: Record<FileManagerAction, string> = {
   upload: 'fileManager.upload',
   download: 'fileManager.download',
   copyTemporaryLink: 'fileManager.copyLink',
+  share: 'fileManager.share',
   compress: 'fileManager.compress',
   unzip: 'fileManager.unzip',
   open: 'fileManager.open',
@@ -904,6 +907,19 @@ const handleDownloadAction = async (
   }
 }
 
+const handleShareAction = async (path: string, entries: FileManagerWorkbenchItem[]) => {
+  if (!props.onShareEntry) {
+    showUnsupportedAction('share', path, entries)
+    return
+  }
+  const targetEntry = entries[0]
+  if (!targetEntry) {
+    ElMessage.warning(t('fileManager.selectShareEntry'))
+    return
+  }
+  await props.onShareEntry(targetEntry)
+}
+
 const handleCopyTemporaryLinkAction = async (
   path: string,
   entries: FileManagerWorkbenchItem[],
@@ -1036,6 +1052,11 @@ const handleWorkbenchAction = (
 
   if (action === 'copyTemporaryLink') {
     void handleCopyTemporaryLinkAction(path, entries)
+    return
+  }
+
+  if (action === 'share') {
+    void handleShareAction(path, entries)
     return
   }
 

@@ -125,19 +125,14 @@ func IsEnable(v bool) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldEQ(FieldIsEnable, v))
 }
 
-// RequireEncryption applies equality check predicate on the "require_encryption" field. It's identical to RequireEncryptionEQ.
-func RequireEncryption(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldEQ(FieldRequireEncryption, v))
-}
-
-// RequireCompression applies equality check predicate on the "require_compression" field. It's identical to RequireCompressionEQ.
-func RequireCompression(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldEQ(FieldRequireCompression, v))
-}
-
 // MaxBandwidth applies equality check predicate on the "max_bandwidth" field. It's identical to MaxBandwidthEQ.
 func MaxBandwidth(v string) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldEQ(FieldMaxBandwidth, v))
+}
+
+// MaxActiveConns applies equality check predicate on the "max_active_conns" field. It's identical to MaxActiveConnsEQ.
+func MaxActiveConns(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldEQ(FieldMaxActiveConns, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -785,26 +780,6 @@ func IsEnableNEQ(v bool) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldNEQ(FieldIsEnable, v))
 }
 
-// RequireEncryptionEQ applies the EQ predicate on the "require_encryption" field.
-func RequireEncryptionEQ(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldEQ(FieldRequireEncryption, v))
-}
-
-// RequireEncryptionNEQ applies the NEQ predicate on the "require_encryption" field.
-func RequireEncryptionNEQ(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldNEQ(FieldRequireEncryption, v))
-}
-
-// RequireCompressionEQ applies the EQ predicate on the "require_compression" field.
-func RequireCompressionEQ(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldEQ(FieldRequireCompression, v))
-}
-
-// RequireCompressionNEQ applies the NEQ predicate on the "require_compression" field.
-func RequireCompressionNEQ(v bool) predicate.FrpTunnel {
-	return predicate.FrpTunnel(sql.FieldNEQ(FieldRequireCompression, v))
-}
-
 // MaxBandwidthEQ applies the EQ predicate on the "max_bandwidth" field.
 func MaxBandwidthEQ(v string) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldEQ(FieldMaxBandwidth, v))
@@ -868,6 +843,46 @@ func MaxBandwidthEqualFold(v string) predicate.FrpTunnel {
 // MaxBandwidthContainsFold applies the ContainsFold predicate on the "max_bandwidth" field.
 func MaxBandwidthContainsFold(v string) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldContainsFold(FieldMaxBandwidth, v))
+}
+
+// MaxActiveConnsEQ applies the EQ predicate on the "max_active_conns" field.
+func MaxActiveConnsEQ(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldEQ(FieldMaxActiveConns, v))
+}
+
+// MaxActiveConnsNEQ applies the NEQ predicate on the "max_active_conns" field.
+func MaxActiveConnsNEQ(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldNEQ(FieldMaxActiveConns, v))
+}
+
+// MaxActiveConnsIn applies the In predicate on the "max_active_conns" field.
+func MaxActiveConnsIn(vs ...int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldIn(FieldMaxActiveConns, vs...))
+}
+
+// MaxActiveConnsNotIn applies the NotIn predicate on the "max_active_conns" field.
+func MaxActiveConnsNotIn(vs ...int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldNotIn(FieldMaxActiveConns, vs...))
+}
+
+// MaxActiveConnsGT applies the GT predicate on the "max_active_conns" field.
+func MaxActiveConnsGT(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldGT(FieldMaxActiveConns, v))
+}
+
+// MaxActiveConnsGTE applies the GTE predicate on the "max_active_conns" field.
+func MaxActiveConnsGTE(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldGTE(FieldMaxActiveConns, v))
+}
+
+// MaxActiveConnsLT applies the LT predicate on the "max_active_conns" field.
+func MaxActiveConnsLT(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldLT(FieldMaxActiveConns, v))
+}
+
+// MaxActiveConnsLTE applies the LTE predicate on the "max_active_conns" field.
+func MaxActiveConnsLTE(v int) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldLTE(FieldMaxActiveConns, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -36,9 +36,8 @@ func (r *tunnelRepo) CreateTunnel(ctx context.Context, userID string, req *v1.Cr
 		SetCredential(credential).
 		SetAllowUsers(req.AllowUsers).
 		SetIsEnable(req.IsEnable).
-		SetRequireEncryption(req.RequireEncryption).
-		SetRequireCompression(req.RequireCompression).
 		SetMaxBandwidth(req.MaxBandwidth).
+		SetMaxActiveConns(int(req.MaxActiveConns)).
 		Save(ctx)
 }
 
@@ -84,8 +83,6 @@ func (r *tunnelRepo) UpdateTunnel(ctx context.Context, userID *string, req *v1.U
 		SetNillableLocalIP(req.LocalIp).
 		SetNillableAllowUsers(req.AllowUsers).
 		SetNillableIsEnable(req.IsEnable).
-		SetNillableRequireEncryption(req.RequireEncryption).
-		SetNillableRequireCompression(req.RequireCompression).
 		SetNillableMaxBandwidth(req.MaxBandwidth)
 
 	if userID != nil {
@@ -100,6 +97,9 @@ func (r *tunnelRepo) UpdateTunnel(ctx context.Context, userID *string, req *v1.U
 	}
 	if req.LocalPort != nil {
 		builder.SetLocalPort(int(*req.LocalPort))
+	}
+	if req.MaxActiveConns != nil {
+		builder.SetMaxActiveConns(int(*req.MaxActiveConns))
 	}
 
 	return builder.Save(ctx)

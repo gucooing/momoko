@@ -16,6 +16,7 @@
     :on-download-entries="handleDownloadEntries"
     :on-get-upload-pre-sign="handleGetUploadPreSign"
     :on-copy-temporary-link="handleCopyTemporaryLink"
+    :on-share-entry="handleShareEntry"
     :on-compress-entries="handleCompressEntries"
     :on-unzip-entry="handleUnzipEntry"
     :on-rename-entry="handleRenameEntry"
@@ -29,6 +30,7 @@
     @page-change="handleWorkbenchPageChange"
     @sort-change="handleWorkbenchSortChange"
   />
+  <ShareFormDialog v-model="shareDialogVisible" :path="sharePath" />
 </template>
 
 <script setup lang="ts">
@@ -39,6 +41,7 @@ import FileManagerPage, {
   type FileManagerDeleteResult,
   type FileManagerDownloadResult,
 } from '@/components/fileManager/FileManagerPage.vue'
+import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
 import type {
   FileManagerUploadPreSignPayload,
   FileManagerWorkbenchItem,
@@ -254,6 +257,13 @@ const handleDownloadEntries = async (
 
 const handleCopyTemporaryLink = async (entry: FileManagerWorkbenchItem) => {
   await copyTemporaryLink(entry)
+}
+
+const shareDialogVisible = ref(false)
+const sharePath = ref('')
+const handleShareEntry = (entry: FileManagerWorkbenchItem) => {
+  sharePath.value = entry.path
+  shareDialogVisible.value = true
 }
 
 const handleGetUploadPreSign = async (payload: FileManagerUploadPreSignPayload) => {

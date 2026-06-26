@@ -105,12 +105,10 @@ message CreateTunnelRequest {
   string allow_users = 8;
   // 是否启用
   bool is_enable = 9;
-  // 要求客户端开启加密（useEncryption）：未开启则拒绝该 proxy
-  bool require_encryption = 10;
-  // 要求客户端开启压缩（useCompression）：未开启则拒绝该 proxy
-  bool require_compression = 11;
-  // 带宽上限（如 "1MB"/"100KB"）；客户端声明的带宽限制不得超过该值，空=不限
-  string max_bandwidth = 12;
+  // 带宽上限（限速，如 "1MB"/"100KB"）；客户端声明带宽不得超过该值，空=不限
+  string max_bandwidth = 10;
+  // 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限
+  int32 max_active_conns = 11;
 }
 
 message CreateTunnelResponse {
@@ -149,12 +147,10 @@ message UpdateTunnelRequest {
   optional string allow_users = 9;
   // 是否启用
   optional bool is_enable = 10;
-  // 要求客户端开启加密
-  optional bool require_encryption = 11;
-  // 要求客户端开启压缩
-  optional bool require_compression = 12;
-  // 带宽上限（如 "1MB"；空=不限）
-  optional string max_bandwidth = 13;
+  // 带宽上限（限速，如 "1MB"；空=不限）
+  optional string max_bandwidth = 11;
+  // 活跃连接数上限，0=不限
+  optional int32 max_active_conns = 12;
 }
 
 message UpdateTunnelResponse {
@@ -267,12 +263,10 @@ message TunnelInfo {
   int64 bytes_in = 17;
   // 当日累计出站流量(字节)
   int64 bytes_out = 18;
-  // 要求客户端开启加密
-  bool require_encryption = 19;
-  // 要求客户端开启压缩
-  bool require_compression = 20;
-  // 带宽上限（如 "1MB"；空=不限）
-  string max_bandwidth = 21;
+  // 带宽上限（限速，如 "1MB"；空=不限）
+  string max_bandwidth = 19;
+  // 活跃连接数上限，0=不限
+  int32 max_active_conns = 20;
 }
 
 // frps 实例配置（实例级，非逐条隧道规则）。
@@ -299,18 +293,6 @@ message FrpsConfig {
   int32 stat_sample_interval = 9;
   // 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
   string server_addr = 11;
-  // 强制 TLS：只接受 TLS 加密的 frpc 连接（transport.tls.force）
-  bool tls_force = 12;
-  // 每代理连接池上限（transport.maxPoolCount，<=0 用 frps 默认 5）
-  int32 max_pool_count = 13;
-  // 每客户端可代理的最大端口数（maxPortsPerClient，0=不限）
-  int32 max_ports_per_client = 14;
-  // 心跳超时(秒)（transport.heartbeatTimeout，<0 关闭；0 用 frps 默认）
-  int32 heartbeat_timeout = 15;
-  // 是否启用 TCP 多路复用（transport.tcpMux，默认 true）
-  bool tcp_mux = 16;
-  // UDP 包大小(字节)（udpPacketSize，<=0 用 frps 默认 1500）
-  int32 udp_packet_size = 17;
 }
 
 enum TunnelType {

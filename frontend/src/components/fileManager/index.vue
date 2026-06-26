@@ -69,6 +69,7 @@ export const FILE_MANAGER_ACTIONS = [
   'upload',
   'download',
   'copyTemporaryLink',
+  'share',
   'compress',
   'unzip',
   'open',
@@ -271,8 +272,6 @@ export type FileManagerAction = (typeof FILE_MANAGER_ACTIONS)[number]
           </span>
         </el-button>
       </div>
-
-      <div class="panel-note">{{ resolvedNote }}</div>
 
       <!-- desktop: table -->
       <Transition v-if="!isMobile" name="directory-switch" mode="out-in">
@@ -499,7 +498,6 @@ const historyCursor = ref(0)
 const addressInputRef = useTemplateRef<HTMLInputElement>('addressInput')
 
 const pageSizes = computed(() => props.pageSizes)
-const resolvedNote = computed(() => props.note || t('fileManager.note'))
 const hiddenActionSet = computed(() => new Set(props.hiddenActions))
 const isClientPagination = computed(() => props.paginationMode === 'client')
 const supportsAction = (action: FileManagerAction) => !hiddenActionSet.value.has(action)
@@ -536,12 +534,15 @@ const getRowMoreActions = (row: FileManagerWorkbenchItem) =>
     !row.isDirectory && supportsAction('copyTemporaryLink')
       ? { command: 'copyTemporaryLink' as const, label: t('fileManager.copyLink') }
       : null,
+    supportsAction('share')
+      ? { command: 'share' as const, label: t('fileManager.share') }
+      : null,
     isZipFile(row) && supportsAction('unzip')
       ? { command: 'unzip' as const, label: t('fileManager.unzip') }
       : null,
     supportsAction('delete') ? { command: 'delete' as const, label: t('fileManager.delete') } : null,
     supportsAction('more') ? { command: 'more' as const, label: t('fileManager.properties') } : null,
-  ].filter((item): item is { command: 'rename' | 'copy' | 'cut' | 'copyTemporaryLink' | 'unzip' | 'delete' | 'more'; label: string } =>
+  ].filter((item): item is { command: 'rename' | 'copy' | 'cut' | 'copyTemporaryLink' | 'share' | 'unzip' | 'delete' | 'more'; label: string } =>
     Boolean(item),
   )
 const hasSelectedBatchActions = computed(
@@ -843,7 +844,7 @@ const handleTransferCommand = (command: 'upload' | 'download') => {
   emit('action', command, activePath.value, selectedEntries.value)
 }
 const handleRowMore = (
-  command: 'copyTemporaryLink' | 'unzip' | 'delete' | 'rename' | 'more' | 'copy' | 'cut',
+  command: 'copyTemporaryLink' | 'share' | 'unzip' | 'delete' | 'rename' | 'more' | 'copy' | 'cut',
   row?: FileManagerWorkbenchItem,
 ) => {
   if (!supportsAction(command)) return
@@ -1175,15 +1176,6 @@ const handleSortChange = (payload: {
   background: transparent;
   color: color-mix(in srgb, var(--el-text-color-placeholder) 88%, transparent);
   cursor: not-allowed;
-}
-
-.panel-note {
-  margin-top: 0.62rem;
-  border-radius: 0.72rem;
-  background: color-mix(in srgb, var(--el-color-primary) 4%, var(--el-bg-color-page));
-  padding: 0.62rem 0.75rem;
-  color: var(--el-text-color-secondary);
-  font-size: 0.74rem;
 }
 
 .file-table-shell {
