@@ -155,6 +155,9 @@ var (
 		{Name: "credential", Type: field.TypeString},
 		{Name: "allow_users", Type: field.TypeString, Default: ""},
 		{Name: "is_enable", Type: field.TypeBool, Default: false},
+		{Name: "require_encryption", Type: field.TypeBool, Default: false},
+		{Name: "require_compression", Type: field.TypeBool, Default: false},
+		{Name: "max_bandwidth", Type: field.TypeString, Default: ""},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FrpTunnelsTable holds the schema information for the "frp_tunnels" table.
@@ -165,7 +168,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "frp_tunnels_users_user",
-				Columns:    []*schema.Column{FrpTunnelsColumns[13]},
+				Columns:    []*schema.Column{FrpTunnelsColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -174,7 +177,7 @@ var (
 			{
 				Name:    "frptunnel_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{FrpTunnelsColumns[13]},
+				Columns: []*schema.Column{FrpTunnelsColumns[16]},
 			},
 			{
 				Name:    "frptunnel_is_enable",

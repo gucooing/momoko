@@ -27,6 +27,10 @@ type NewProxyInfo struct {
 	RemotePort    int
 	CustomDomains []string
 	SubDomain     string
+
+	UseEncryption  bool   // frpc 该 proxy 是否声明 useEncryption
+	UseCompression bool   // frpc 该 proxy 是否声明 useCompression
+	BandwidthLimit string // frpc 该 proxy 声明的带宽限制（如 "1MB"，空=未限制）
 }
 
 // PluginHooks 由业务层提供具体校验逻辑。
@@ -100,14 +104,17 @@ func handleNewProxy(ctx context.Context, hooks PluginHooks, content json.RawMess
 	}
 	if hooks.OnNewProxy != nil {
 		if err := hooks.OnNewProxy(ctx, NewProxyInfo{
-			User:          c.User.User,
-			LoginMetas:    c.User.Metas,
-			ProxyMetas:    c.Metas,
-			ProxyName:     c.ProxyName,
-			ProxyType:     c.ProxyType,
-			RemotePort:    c.RemotePort,
-			CustomDomains: c.CustomDomains,
-			SubDomain:     c.SubDomain,
+			User:           c.User.User,
+			LoginMetas:     c.User.Metas,
+			ProxyMetas:     c.Metas,
+			ProxyName:      c.ProxyName,
+			ProxyType:      c.ProxyType,
+			RemotePort:     c.RemotePort,
+			CustomDomains:  c.CustomDomains,
+			SubDomain:      c.SubDomain,
+			UseEncryption:  c.UseEncryption,
+			UseCompression: c.UseCompression,
+			BandwidthLimit: c.BandwidthLimit,
 		}); err != nil {
 			return reject(err.Error())
 		}

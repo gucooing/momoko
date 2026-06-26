@@ -87,6 +87,12 @@ export interface CreateTunnelRequest {
   allowUsers: string;
   /** 是否启用 */
   isEnable: boolean;
+  /** 要求客户端开启加密（useEncryption）：未开启则拒绝该 proxy */
+  requireEncryption: boolean;
+  /** 要求客户端开启压缩（useCompression）：未开启则拒绝该 proxy */
+  requireCompression: boolean;
+  /** 带宽上限（如 "1MB"/"100KB"）；客户端声明的带宽限制不得超过该值，空=不限 */
+  maxBandwidth: string;
 }
 
 export interface CreateTunnelResponse {
@@ -140,7 +146,19 @@ export interface UpdateTunnelRequest {
     | string
     | undefined;
   /** 是否启用 */
-  isEnable?: boolean | undefined;
+  isEnable?:
+    | boolean
+    | undefined;
+  /** 要求客户端开启加密 */
+  requireEncryption?:
+    | boolean
+    | undefined;
+  /** 要求客户端开启压缩 */
+  requireCompression?:
+    | boolean
+    | undefined;
+  /** 带宽上限（如 "1MB"；空=不限） */
+  maxBandwidth?: string | undefined;
 }
 
 export interface UpdateTunnelResponse {
@@ -263,6 +281,12 @@ export interface TunnelInfo {
   bytesIn: number;
   /** 当日累计出站流量(字节) */
   bytesOut: number;
+  /** 要求客户端开启加密 */
+  requireEncryption: boolean;
+  /** 要求客户端开启压缩 */
+  requireCompression: boolean;
+  /** 带宽上限（如 "1MB"；空=不限） */
+  maxBandwidth: string;
 }
 
 /**
@@ -291,4 +315,16 @@ export interface FrpsConfig {
   statSampleInterval: number;
   /** 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr） */
   serverAddr: string;
+  /** 强制 TLS：只接受 TLS 加密的 frpc 连接（transport.tls.force） */
+  tlsForce: boolean;
+  /** 每代理连接池上限（transport.maxPoolCount，<=0 用 frps 默认 5） */
+  maxPoolCount: number;
+  /** 每客户端可代理的最大端口数（maxPortsPerClient，0=不限） */
+  maxPortsPerClient: number;
+  /** 心跳超时(秒)（transport.heartbeatTimeout，<0 关闭；0 用 frps 默认） */
+  heartbeatTimeout: number;
+  /** 是否启用 TCP 多路复用（transport.tcpMux，默认 true） */
+  tcpMux: boolean;
+  /** UDP 包大小(字节)（udpPacketSize，<=0 用 frps 默认 1500） */
+  udpPacketSize: number;
 }

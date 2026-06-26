@@ -184,6 +184,18 @@ func init() {
 	frptunnelDescIsEnable := frptunnelFields[11].Descriptor()
 	// frptunnel.DefaultIsEnable holds the default value on creation for the is_enable field.
 	frptunnel.DefaultIsEnable = frptunnelDescIsEnable.Default.(bool)
+	// frptunnelDescRequireEncryption is the schema descriptor for require_encryption field.
+	frptunnelDescRequireEncryption := frptunnelFields[12].Descriptor()
+	// frptunnel.DefaultRequireEncryption holds the default value on creation for the require_encryption field.
+	frptunnel.DefaultRequireEncryption = frptunnelDescRequireEncryption.Default.(bool)
+	// frptunnelDescRequireCompression is the schema descriptor for require_compression field.
+	frptunnelDescRequireCompression := frptunnelFields[13].Descriptor()
+	// frptunnel.DefaultRequireCompression holds the default value on creation for the require_compression field.
+	frptunnel.DefaultRequireCompression = frptunnelDescRequireCompression.Default.(bool)
+	// frptunnelDescMaxBandwidth is the schema descriptor for max_bandwidth field.
+	frptunnelDescMaxBandwidth := frptunnelFields[14].Descriptor()
+	// frptunnel.DefaultMaxBandwidth holds the default value on creation for the max_bandwidth field.
+	frptunnel.DefaultMaxBandwidth = frptunnelDescMaxBandwidth.Default.(string)
 	// frptunnelDescID is the schema descriptor for id field.
 	frptunnelDescID := frptunnelFields[0].Descriptor()
 	// frptunnel.IDValidator is a validator for the "id" field. It is called by the builders before save.

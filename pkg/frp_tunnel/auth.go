@@ -3,6 +3,8 @@ package frp_tunnel
 import (
 	"context"
 	"fmt"
+
+	"github.com/fatedier/frp/pkg/config/types"
 )
 
 // Tunnel 是鉴权所需的隧道规则视图，由业务层通过 TunnelLookup 按需提供。
@@ -14,6 +16,11 @@ type Tunnel struct {
 	RemotePort int      // tcp/udp/tcpmux 公共端口；0 表示不校验
 	AllowUsers []string // 允许的 frpc user；空=不限制
 	Enabled    bool
+
+	// 客户端配置策略（以 momoko 为准，客户端不满足/超出即拒绝）。
+	RequireEncryption  bool   // 要求 frpc 该 proxy 开启 useEncryption
+	RequireCompression bool   // 要求 frpc 该 proxy 开启 useCompression
+	MaxBandwidth       string // 带宽上限（如 "1MB"，空=不限）
 }
 
 // TunnelLookup 由业务层实现：按 frp proxy 名称返回隧道规则；未找到返回 ok=false。
@@ -63,6 +70,38 @@ func authNewProxy(ctx context.Context, lookup TunnelLookup, info NewProxyInfo) e
 	case "tcp", "udp", "tcpmux":
 		if tn.RemotePort != 0 && info.RemotePort != tn.RemotePort {
 			return fmt.Errorf("公共端口不匹配：声明 %d，规则 %d", info.RemotePort, tn.RemotePort)
+		}
+	}
+	if err := enforceClientPolicy(tn, info); err != nil {
+		return err
+	}
+	return nil
+}
+
+// enforceClientPolicy 以 momoko 隧道规则为准校验 frpc 声明的 proxy 配置：
+// 要求加密/压缩未满足、或带宽超过上限时拒绝（均在 frps 插件机制内完成，不改 frps 源码）。
+func enforceClientPolicy(tn *Tunnel, info NewProxyInfo) error {
+	if tn.RequireEncryption && !info.UseEncryption {
+		return fmt.Errorf("该隧道要求开启加密(useEncryption)，请在 frpc 配置中启用")
+	}
+	if tn.RequireCompression && !info.UseCompression {
+		return fmt.Errorf("该隧道要求开启压缩(useCompression)，请在 frpc 配置中启用")
+	}
+	if tn.MaxBandwidth != "" {
+		limit, err := types.NewBandwidthQuantity(tn.MaxBandwidth)
+		if err != nil {
+			// 规则侧带宽上限配置非法时不放行，避免上限形同虚设。
+			return fmt.Errorf("隧道带宽上限配置非法：%q", tn.MaxBandwidth)
+		}
+		if info.BandwidthLimit == "" {
+			return fmt.Errorf("该隧道限制带宽不超过 %s，请在 frpc 配置中声明 transport.bandwidthLimit", tn.MaxBandwidth)
+		}
+		got, err := types.NewBandwidthQuantity(info.BandwidthLimit)
+		if err != nil {
+			return fmt.Errorf("客户端带宽限制声明非法：%q", info.BandwidthLimit)
+		}
+		if got.Bytes() > limit.Bytes() {
+			return fmt.Errorf("客户端带宽 %s 超过隧道上限 %s", info.BandwidthLimit, tn.MaxBandwidth)
 		}
 	}
 	return nil

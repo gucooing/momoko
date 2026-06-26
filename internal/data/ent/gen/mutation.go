@@ -3226,29 +3226,32 @@ func (m *FileUploadChunkMutation) ResetEdge(name string) error {
 // FrpTunnelMutation represents an operation that mutates the FrpTunnel nodes in the graph.
 type FrpTunnelMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *string
-	create_time    *time.Time
-	update_time    *time.Time
-	name           *string
-	proxy_type     *frptunnel.ProxyType
-	remote_port    *int
-	addremote_port *int
-	custom_domains *string
-	subdomain      *string
-	local_ip       *string
-	local_port     *int
-	addlocal_port  *int
-	credential     *string
-	allow_users    *string
-	is_enable      *bool
-	clearedFields  map[string]struct{}
-	user           *string
-	cleareduser    bool
-	done           bool
-	oldValue       func(context.Context) (*FrpTunnel, error)
-	predicates     []predicate.FrpTunnel
+	op                  Op
+	typ                 string
+	id                  *string
+	create_time         *time.Time
+	update_time         *time.Time
+	name                *string
+	proxy_type          *frptunnel.ProxyType
+	remote_port         *int
+	addremote_port      *int
+	custom_domains      *string
+	subdomain           *string
+	local_ip            *string
+	local_port          *int
+	addlocal_port       *int
+	credential          *string
+	allow_users         *string
+	is_enable           *bool
+	require_encryption  *bool
+	require_compression *bool
+	max_bandwidth       *string
+	clearedFields       map[string]struct{}
+	user                *string
+	cleareduser         bool
+	done                bool
+	oldValue            func(context.Context) (*FrpTunnel, error)
+	predicates          []predicate.FrpTunnel
 }
 
 var _ ent.Mutation = (*FrpTunnelMutation)(nil)
@@ -3863,6 +3866,114 @@ func (m *FrpTunnelMutation) ResetIsEnable() {
 	m.is_enable = nil
 }
 
+// SetRequireEncryption sets the "require_encryption" field.
+func (m *FrpTunnelMutation) SetRequireEncryption(b bool) {
+	m.require_encryption = &b
+}
+
+// RequireEncryption returns the value of the "require_encryption" field in the mutation.
+func (m *FrpTunnelMutation) RequireEncryption() (r bool, exists bool) {
+	v := m.require_encryption
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequireEncryption returns the old "require_encryption" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldRequireEncryption(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequireEncryption is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequireEncryption requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequireEncryption: %w", err)
+	}
+	return oldValue.RequireEncryption, nil
+}
+
+// ResetRequireEncryption resets all changes to the "require_encryption" field.
+func (m *FrpTunnelMutation) ResetRequireEncryption() {
+	m.require_encryption = nil
+}
+
+// SetRequireCompression sets the "require_compression" field.
+func (m *FrpTunnelMutation) SetRequireCompression(b bool) {
+	m.require_compression = &b
+}
+
+// RequireCompression returns the value of the "require_compression" field in the mutation.
+func (m *FrpTunnelMutation) RequireCompression() (r bool, exists bool) {
+	v := m.require_compression
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequireCompression returns the old "require_compression" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldRequireCompression(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequireCompression is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequireCompression requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequireCompression: %w", err)
+	}
+	return oldValue.RequireCompression, nil
+}
+
+// ResetRequireCompression resets all changes to the "require_compression" field.
+func (m *FrpTunnelMutation) ResetRequireCompression() {
+	m.require_compression = nil
+}
+
+// SetMaxBandwidth sets the "max_bandwidth" field.
+func (m *FrpTunnelMutation) SetMaxBandwidth(s string) {
+	m.max_bandwidth = &s
+}
+
+// MaxBandwidth returns the value of the "max_bandwidth" field in the mutation.
+func (m *FrpTunnelMutation) MaxBandwidth() (r string, exists bool) {
+	v := m.max_bandwidth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxBandwidth returns the old "max_bandwidth" field's value of the FrpTunnel entity.
+// If the FrpTunnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FrpTunnelMutation) OldMaxBandwidth(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxBandwidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxBandwidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxBandwidth: %w", err)
+	}
+	return oldValue.MaxBandwidth, nil
+}
+
+// ResetMaxBandwidth resets all changes to the "max_bandwidth" field.
+func (m *FrpTunnelMutation) ResetMaxBandwidth() {
+	m.max_bandwidth = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *FrpTunnelMutation) ClearUser() {
 	m.cleareduser = true
@@ -3924,7 +4035,7 @@ func (m *FrpTunnelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FrpTunnelMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 16)
 	if m.create_time != nil {
 		fields = append(fields, frptunnel.FieldCreateTime)
 	}
@@ -3964,6 +4075,15 @@ func (m *FrpTunnelMutation) Fields() []string {
 	if m.is_enable != nil {
 		fields = append(fields, frptunnel.FieldIsEnable)
 	}
+	if m.require_encryption != nil {
+		fields = append(fields, frptunnel.FieldRequireEncryption)
+	}
+	if m.require_compression != nil {
+		fields = append(fields, frptunnel.FieldRequireCompression)
+	}
+	if m.max_bandwidth != nil {
+		fields = append(fields, frptunnel.FieldMaxBandwidth)
+	}
 	return fields
 }
 
@@ -3998,6 +4118,12 @@ func (m *FrpTunnelMutation) Field(name string) (ent.Value, bool) {
 		return m.AllowUsers()
 	case frptunnel.FieldIsEnable:
 		return m.IsEnable()
+	case frptunnel.FieldRequireEncryption:
+		return m.RequireEncryption()
+	case frptunnel.FieldRequireCompression:
+		return m.RequireCompression()
+	case frptunnel.FieldMaxBandwidth:
+		return m.MaxBandwidth()
 	}
 	return nil, false
 }
@@ -4033,6 +4159,12 @@ func (m *FrpTunnelMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldAllowUsers(ctx)
 	case frptunnel.FieldIsEnable:
 		return m.OldIsEnable(ctx)
+	case frptunnel.FieldRequireEncryption:
+		return m.OldRequireEncryption(ctx)
+	case frptunnel.FieldRequireCompression:
+		return m.OldRequireCompression(ctx)
+	case frptunnel.FieldMaxBandwidth:
+		return m.OldMaxBandwidth(ctx)
 	}
 	return nil, fmt.Errorf("unknown FrpTunnel field %s", name)
 }
@@ -4132,6 +4264,27 @@ func (m *FrpTunnelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsEnable(v)
+		return nil
+	case frptunnel.FieldRequireEncryption:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequireEncryption(v)
+		return nil
+	case frptunnel.FieldRequireCompression:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequireCompression(v)
+		return nil
+	case frptunnel.FieldMaxBandwidth:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxBandwidth(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FrpTunnel field %s", name)
@@ -4247,6 +4400,15 @@ func (m *FrpTunnelMutation) ResetField(name string) error {
 		return nil
 	case frptunnel.FieldIsEnable:
 		m.ResetIsEnable()
+		return nil
+	case frptunnel.FieldRequireEncryption:
+		m.ResetRequireEncryption()
+		return nil
+	case frptunnel.FieldRequireCompression:
+		m.ResetRequireCompression()
+		return nil
+	case frptunnel.FieldMaxBandwidth:
+		m.ResetMaxBandwidth()
 		return nil
 	}
 	return fmt.Errorf("unknown FrpTunnel field %s", name)

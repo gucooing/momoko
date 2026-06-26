@@ -51,6 +51,45 @@
         <el-input-number v-model="form.statSampleInterval" :min="5" :max="3600" controls-position="right" />
         <span class="frps-hint">{{ t('tools.tunnel.frps.portHint') }}</span>
       </el-form-item>
+
+      <el-divider content-position="left">{{ t('tools.tunnel.frps.optimizeTitle') }}</el-divider>
+      <p class="frps-intro">{{ t('tools.tunnel.frps.optimizeHint') }}</p>
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.tlsForce')" label-width="120px">
+            <el-switch v-model="form.tlsForce" />
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.tcpMux')" label-width="120px">
+            <el-switch v-model="form.tcpMux" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.maxPoolCount')" label-width="120px">
+            <el-input-number v-model="form.maxPoolCount" :min="0" :max="1000" controls-position="right" class="full-input" />
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.maxPortsPerClient')" label-width="120px">
+            <el-input-number v-model="form.maxPortsPerClient" :min="0" :max="65535" controls-position="right" class="full-input" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.heartbeatTimeout')" label-width="120px">
+            <el-input-number v-model="form.heartbeatTimeout" :min="-1" :max="86400" controls-position="right" class="full-input" />
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.frps.udpPacketSize')" label-width="120px">
+            <el-input-number v-model="form.udpPacketSize" :min="0" :max="65507" controls-position="right" class="full-input" />
+          </el-form-item>
+        </el-col>
+      </el-row>
     </el-form>
 
     <template #footer>
@@ -90,6 +129,12 @@ const defaultForm = (): FrpsConfig => ({
   subdomainHost: '',
   statSampleInterval: 30,
   serverAddr: '',
+  tlsForce: false,
+  maxPoolCount: 5,
+  maxPortsPerClient: 0,
+  heartbeatTimeout: -1,
+  tcpMux: true,
+  udpPacketSize: 1500,
 })
 
 const form = ref<FrpsConfig>(defaultForm())

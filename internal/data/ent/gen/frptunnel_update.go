@@ -203,6 +203,48 @@ func (_u *FrpTunnelUpdate) SetNillableIsEnable(v *bool) *FrpTunnelUpdate {
 	return _u
 }
 
+// SetRequireEncryption sets the "require_encryption" field.
+func (_u *FrpTunnelUpdate) SetRequireEncryption(v bool) *FrpTunnelUpdate {
+	_u.mutation.SetRequireEncryption(v)
+	return _u
+}
+
+// SetNillableRequireEncryption sets the "require_encryption" field if the given value is not nil.
+func (_u *FrpTunnelUpdate) SetNillableRequireEncryption(v *bool) *FrpTunnelUpdate {
+	if v != nil {
+		_u.SetRequireEncryption(*v)
+	}
+	return _u
+}
+
+// SetRequireCompression sets the "require_compression" field.
+func (_u *FrpTunnelUpdate) SetRequireCompression(v bool) *FrpTunnelUpdate {
+	_u.mutation.SetRequireCompression(v)
+	return _u
+}
+
+// SetNillableRequireCompression sets the "require_compression" field if the given value is not nil.
+func (_u *FrpTunnelUpdate) SetNillableRequireCompression(v *bool) *FrpTunnelUpdate {
+	if v != nil {
+		_u.SetRequireCompression(*v)
+	}
+	return _u
+}
+
+// SetMaxBandwidth sets the "max_bandwidth" field.
+func (_u *FrpTunnelUpdate) SetMaxBandwidth(v string) *FrpTunnelUpdate {
+	_u.mutation.SetMaxBandwidth(v)
+	return _u
+}
+
+// SetNillableMaxBandwidth sets the "max_bandwidth" field if the given value is not nil.
+func (_u *FrpTunnelUpdate) SetNillableMaxBandwidth(v *string) *FrpTunnelUpdate {
+	if v != nil {
+		_u.SetMaxBandwidth(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FrpTunnelUpdate) SetUser(v *User) *FrpTunnelUpdate {
 	return _u.SetUserID(v.ID)
@@ -333,6 +375,15 @@ func (_u *FrpTunnelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(frptunnel.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RequireEncryption(); ok {
+		_spec.SetField(frptunnel.FieldRequireEncryption, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RequireCompression(); ok {
+		_spec.SetField(frptunnel.FieldRequireCompression, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MaxBandwidth(); ok {
+		_spec.SetField(frptunnel.FieldMaxBandwidth, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -557,6 +608,48 @@ func (_u *FrpTunnelUpdateOne) SetNillableIsEnable(v *bool) *FrpTunnelUpdateOne {
 	return _u
 }
 
+// SetRequireEncryption sets the "require_encryption" field.
+func (_u *FrpTunnelUpdateOne) SetRequireEncryption(v bool) *FrpTunnelUpdateOne {
+	_u.mutation.SetRequireEncryption(v)
+	return _u
+}
+
+// SetNillableRequireEncryption sets the "require_encryption" field if the given value is not nil.
+func (_u *FrpTunnelUpdateOne) SetNillableRequireEncryption(v *bool) *FrpTunnelUpdateOne {
+	if v != nil {
+		_u.SetRequireEncryption(*v)
+	}
+	return _u
+}
+
+// SetRequireCompression sets the "require_compression" field.
+func (_u *FrpTunnelUpdateOne) SetRequireCompression(v bool) *FrpTunnelUpdateOne {
+	_u.mutation.SetRequireCompression(v)
+	return _u
+}
+
+// SetNillableRequireCompression sets the "require_compression" field if the given value is not nil.
+func (_u *FrpTunnelUpdateOne) SetNillableRequireCompression(v *bool) *FrpTunnelUpdateOne {
+	if v != nil {
+		_u.SetRequireCompression(*v)
+	}
+	return _u
+}
+
+// SetMaxBandwidth sets the "max_bandwidth" field.
+func (_u *FrpTunnelUpdateOne) SetMaxBandwidth(v string) *FrpTunnelUpdateOne {
+	_u.mutation.SetMaxBandwidth(v)
+	return _u
+}
+
+// SetNillableMaxBandwidth sets the "max_bandwidth" field if the given value is not nil.
+func (_u *FrpTunnelUpdateOne) SetNillableMaxBandwidth(v *string) *FrpTunnelUpdateOne {
+	if v != nil {
+		_u.SetMaxBandwidth(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FrpTunnelUpdateOne) SetUser(v *User) *FrpTunnelUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -717,6 +810,15 @@ func (_u *FrpTunnelUpdateOne) sqlSave(ctx context.Context) (_node *FrpTunnel, er
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(frptunnel.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RequireEncryption(); ok {
+		_spec.SetField(frptunnel.FieldRequireEncryption, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RequireCompression(); ok {
+		_spec.SetField(frptunnel.FieldRequireCompression, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MaxBandwidth(); ok {
+		_spec.SetField(frptunnel.FieldMaxBandwidth, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

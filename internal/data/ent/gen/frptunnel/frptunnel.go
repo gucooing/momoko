@@ -41,6 +41,12 @@ const (
 	FieldAllowUsers = "allow_users"
 	// FieldIsEnable holds the string denoting the is_enable field in the database.
 	FieldIsEnable = "is_enable"
+	// FieldRequireEncryption holds the string denoting the require_encryption field in the database.
+	FieldRequireEncryption = "require_encryption"
+	// FieldRequireCompression holds the string denoting the require_compression field in the database.
+	FieldRequireCompression = "require_compression"
+	// FieldMaxBandwidth holds the string denoting the max_bandwidth field in the database.
+	FieldMaxBandwidth = "max_bandwidth"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the frptunnel in the database.
@@ -70,6 +76,9 @@ var Columns = []string{
 	FieldCredential,
 	FieldAllowUsers,
 	FieldIsEnable,
+	FieldRequireEncryption,
+	FieldRequireCompression,
+	FieldMaxBandwidth,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -109,6 +118,12 @@ var (
 	DefaultAllowUsers string
 	// DefaultIsEnable holds the default value on creation for the "is_enable" field.
 	DefaultIsEnable bool
+	// DefaultRequireEncryption holds the default value on creation for the "require_encryption" field.
+	DefaultRequireEncryption bool
+	// DefaultRequireCompression holds the default value on creation for the "require_compression" field.
+	DefaultRequireCompression bool
+	// DefaultMaxBandwidth holds the default value on creation for the "max_bandwidth" field.
+	DefaultMaxBandwidth string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -215,6 +230,21 @@ func ByAllowUsers(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEnable orders the results by the is_enable field.
 func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
+}
+
+// ByRequireEncryption orders the results by the require_encryption field.
+func ByRequireEncryption(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequireEncryption, opts...).ToFunc()
+}
+
+// ByRequireCompression orders the results by the require_compression field.
+func ByRequireCompression(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequireCompression, opts...).ToFunc()
+}
+
+// ByMaxBandwidth orders the results by the max_bandwidth field.
+func ByMaxBandwidth(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxBandwidth, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

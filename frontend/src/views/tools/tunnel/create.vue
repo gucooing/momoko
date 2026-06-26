@@ -65,6 +65,23 @@
         <el-input v-model="form.allowUsers" :placeholder="t('tools.tunnel.allowUsersPlaceholder')" />
       </el-form-item>
 
+      <el-divider content-position="left">{{ t('tools.tunnel.policyTitle') }}</el-divider>
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.requireEncryption')" prop="requireEncryption">
+            <el-switch v-model="form.requireEncryption" />
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item :label="t('tools.tunnel.requireCompression')" prop="requireCompression">
+            <el-switch v-model="form.requireCompression" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item :label="t('tools.tunnel.maxBandwidth')" prop="maxBandwidth">
+        <el-input v-model="form.maxBandwidth" :placeholder="t('tools.tunnel.maxBandwidthPlaceholder')" />
+      </el-form-item>
+
       <el-form-item :label="t('system.common.enabled')" prop="isEnable">
         <el-switch v-model="form.isEnable" />
       </el-form-item>
@@ -115,6 +132,9 @@ const defaultForm = () => ({
   localIp: '127.0.0.1',
   localPort: undefined as number | undefined,
   allowUsers: '',
+  requireEncryption: false,
+  requireCompression: false,
+  maxBandwidth: '',
   isEnable: true,
 })
 
@@ -170,6 +190,9 @@ const confirm = async () => {
         localIp: form.value.localIp || undefined,
         localPort: form.value.localPort,
         allowUsers: form.value.allowUsers,
+        requireEncryption: form.value.requireEncryption,
+        requireCompression: form.value.requireCompression,
+        maxBandwidth: form.value.maxBandwidth,
         isEnable: form.value.isEnable,
       })
       ElMessage.success(t('system.common.editSuccess'))
@@ -183,6 +206,9 @@ const confirm = async () => {
         localIp: form.value.localIp,
         localPort: form.value.localPort ?? 0,
         allowUsers: form.value.allowUsers,
+        requireEncryption: form.value.requireEncryption,
+        requireCompression: form.value.requireCompression,
+        maxBandwidth: form.value.maxBandwidth,
         isEnable: form.value.isEnable,
       })
       ElMessage.success(t('system.common.addSuccess'))
@@ -208,6 +234,9 @@ const showDialog = (payload?: TunnelInfo) => {
     localIp: payload.localIp || '127.0.0.1',
     localPort: payload.localPort || undefined,
     allowUsers: payload.allowUsers || '',
+    requireEncryption: payload.requireEncryption ?? false,
+    requireCompression: payload.requireCompression ?? false,
+    maxBandwidth: payload.maxBandwidth || '',
     isEnable: payload.isEnable ?? true,
   }
 }

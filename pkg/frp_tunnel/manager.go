@@ -19,6 +19,14 @@ type Options struct {
 	KCPBindPort    int
 	QUICBindPort   int
 	SubdomainHost  string
+
+	// 优化/调优项（透传至 frps，零值沿用 frps 默认）。
+	TLSForce          bool
+	MaxPoolCount      int
+	MaxPortsPerClient int
+	HeartbeatTimeout  int
+	TCPMux            bool
+	UDPPacketSize     int
 }
 
 // ManagerConfig 装配 Manager 所需信息。
@@ -78,8 +86,16 @@ func (m *Manager) Apply(opts Options) error {
 		KCPBindPort:    opts.KCPBindPort,
 		QUICBindPort:   opts.QUICBindPort,
 		SubdomainHost:  opts.SubdomainHost,
-		PluginAddr:     "http://" + ln.Addr().String(),
-		PluginPath:     m.pluginPath,
+
+		TLSForce:          opts.TLSForce,
+		MaxPoolCount:      opts.MaxPoolCount,
+		MaxPortsPerClient: opts.MaxPortsPerClient,
+		HeartbeatTimeout:  opts.HeartbeatTimeout,
+		TCPMux:            opts.TCPMux,
+		UDPPacketSize:     opts.UDPPacketSize,
+
+		PluginAddr: "http://" + ln.Addr().String(),
+		PluginPath: m.pluginPath,
 	})
 	if err != nil {
 		_ = pluginSrv.Close()

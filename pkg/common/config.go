@@ -64,6 +64,12 @@ const (
 	ConfigFrpsSubdomainHost      ConfigKey = "frps.subdomain_host"
 	ConfigFrpsStatSampleInterval ConfigKey = "frps.stat_sample_interval"
 	ConfigFrpsServerAddr         ConfigKey = "frps.server_addr"
+	ConfigFrpsTLSForce           ConfigKey = "frps.tls_force"
+	ConfigFrpsMaxPoolCount       ConfigKey = "frps.max_pool_count"
+	ConfigFrpsMaxPortsPerClient  ConfigKey = "frps.max_ports_per_client"
+	ConfigFrpsHeartbeatTimeout   ConfigKey = "frps.heartbeat_timeout"
+	ConfigFrpsTCPMux             ConfigKey = "frps.tcp_mux"
+	ConfigFrpsUDPPacketSize      ConfigKey = "frps.udp_packet_size"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -121,6 +127,12 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsSubdomainHost:      "",
 	ConfigFrpsStatSampleInterval: "30",
 	ConfigFrpsServerAddr:         "",
+	ConfigFrpsTLSForce:           "false",
+	ConfigFrpsMaxPoolCount:       "5",
+	ConfigFrpsMaxPortsPerClient:  "0",
+	ConfigFrpsHeartbeatTimeout:   "-1",
+	ConfigFrpsTCPMux:             "true",
+	ConfigFrpsUDPPacketSize:      "1500",
 }
 
 func (k ConfigKey) String() string {

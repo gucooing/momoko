@@ -36,6 +36,9 @@ func (r *tunnelRepo) CreateTunnel(ctx context.Context, userID string, req *v1.Cr
 		SetCredential(credential).
 		SetAllowUsers(req.AllowUsers).
 		SetIsEnable(req.IsEnable).
+		SetRequireEncryption(req.RequireEncryption).
+		SetRequireCompression(req.RequireCompression).
+		SetMaxBandwidth(req.MaxBandwidth).
 		Save(ctx)
 }
 
@@ -80,7 +83,10 @@ func (r *tunnelRepo) UpdateTunnel(ctx context.Context, userID *string, req *v1.U
 		SetNillableSubdomain(req.Subdomain).
 		SetNillableLocalIP(req.LocalIp).
 		SetNillableAllowUsers(req.AllowUsers).
-		SetNillableIsEnable(req.IsEnable)
+		SetNillableIsEnable(req.IsEnable).
+		SetNillableRequireEncryption(req.RequireEncryption).
+		SetNillableRequireCompression(req.RequireCompression).
+		SetNillableMaxBandwidth(req.MaxBandwidth)
 
 	if userID != nil {
 		builder = builder.Where(frptunnel.UserIDEQ(*userID))
