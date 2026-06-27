@@ -284,8 +284,3 @@ func (f *ftpReadCloser) Close() error {
 	_ = f.c.Quit()
 	return err
 }
-
-var (
-	_ Store = (*ftpStore)(nil)
-	_ Mover = (*ftpStore)(nil)
-)

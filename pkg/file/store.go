@@ -231,10 +231,3 @@ func (s *LocalStore) Compress(_ context.Context, paths []string, targetPath stri
 func (s *LocalStore) Unzip(_ context.Context, path, targetPath string) (string, error) {
 	return s.oper.Unzip(path, targetPath)
 }
-
-var (
-	_ Store    = (*LocalStore)(nil)
-	_ Copier   = (*LocalStore)(nil)
-	_ Mover    = (*LocalStore)(nil)
-	_ Archiver = (*LocalStore)(nil)
-)

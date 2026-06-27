@@ -206,9 +206,3 @@ func webdavEntry(info os.FileInfo, logical string) *v1.FileEntryInfo {
 		UpdateTime: timestamppb.New(info.ModTime()),
 	}
 }
-
-var (
-	_ Store  = (*webdavStore)(nil)
-	_ Copier = (*webdavStore)(nil)
-	_ Mover  = (*webdavStore)(nil)
-)

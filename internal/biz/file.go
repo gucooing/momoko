@@ -70,6 +70,7 @@ type FileRepo interface {
 
 type FileUsecase struct {
 	repo FileRepo
+	box  *secretbox.Box
 }
 
 // NewFileUsecase 创建文件操作用例。
@@ -81,6 +82,7 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 	os.MkdirAll(file.UploadBufferDir, 0755)
 	uc := &FileUsecase{
 		repo: repo,
+		box:  secretbox.New(auth.AuthSecretKey),
 	}
 	// 上传会话 GC 的清理逻辑位于 pkg/file，biz 仅负责装配并注入数据访问能力。
 	file.StartUploadJanitor(context.Background(), repo, uploadGCInterval, 2*UploadPeriod)
@@ -550,8 +552,6 @@ func validSourceType(typ string) bool {
 	return typ == "oss" || typ == "ftp" || typ == "webdav"
 }
 
-func (f *FileUsecase) box() *secretbox.Box { return secretbox.New(auth.AuthSecretKey) }
-
 // parseStoredConfig 解析数据库中存储的配置 JSON（密钥字段仍为加密态）。
 func (f *FileUsecase) parseStoredConfig(rec *gen.FileSource) (file.Config, error) {
 	var cfg file.Config
@@ -570,14 +570,13 @@ func (f *FileUsecase) decryptedConfig(rec *gen.FileSource) (file.Config, error) 
 	if err != nil {
 		return cfg, err
 	}
-	box := f.box()
 	if cfg.SecretKey != "" {
-		if v, err := box.Decrypt(cfg.SecretKey); err == nil {
+		if v, err := f.box.Decrypt(cfg.SecretKey); err == nil {
 			cfg.SecretKey = v
 		}
 	}
 	if cfg.Password != "" {
-		if v, err := box.Decrypt(cfg.Password); err == nil {
+		if v, err := f.box.Decrypt(cfg.Password); err == nil {
 			cfg.Password = v
 		}
 	}
@@ -589,7 +588,6 @@ func (f *FileUsecase) buildStoredConfig(typ string, c *v1.FileSourceConfig, exis
 	if c == nil {
 		c = &v1.FileSourceConfig{}
 	}
-	box := f.box()
 	cfg := file.Config{
 		Type:      typ,
 		Endpoint:  c.GetEndpoint(),
@@ -607,7 +605,7 @@ func (f *FileUsecase) buildStoredConfig(typ string, c *v1.FileSourceConfig, exis
 		URL:       c.GetUrl(),
 	}
 	if c.GetSecretKey() != "" {
-		enc, err := box.Encrypt(c.GetSecretKey())
+		enc, err := f.box.Encrypt(c.GetSecretKey())
 		if err != nil {
 			return "", err
 		}
@@ -616,7 +614,7 @@ func (f *FileUsecase) buildStoredConfig(typ string, c *v1.FileSourceConfig, exis
 		cfg.SecretKey = existing.SecretKey // 已是加密态
 	}
 	if c.GetPassword() != "" {
-		enc, err := box.Encrypt(c.GetPassword())
+		enc, err := f.box.Encrypt(c.GetPassword())
 		if err != nil {
 			return "", err
 		}

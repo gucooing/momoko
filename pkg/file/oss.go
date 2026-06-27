@@ -330,10 +330,3 @@ func (s *ossStore) Presign(ctx context.Context, p string, inline bool, ttl time.
 func (s *ossStore) Caps() Caps {
 	return Caps{Presign: true, Copy: true, Move: true, Compress: false, ResumableUpload: true}
 }
-
-var (
-	_ Store     = (*ossStore)(nil)
-	_ Presigner = (*ossStore)(nil)
-	_ Copier    = (*ossStore)(nil)
-	_ Mover     = (*ossStore)(nil)
-)
