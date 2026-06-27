@@ -24,9 +24,12 @@ const OperationFileManagerBatchDeleteFileSystem = "/v1.FileManager/BatchDeleteFi
 const OperationFileManagerCancelFileUpload = "/v1.FileManager/CancelFileUpload"
 const OperationFileManagerCompleteFileUpload = "/v1.FileManager/CompleteFileUpload"
 const OperationFileManagerCopyFileSystem = "/v1.FileManager/CopyFileSystem"
+const OperationFileManagerCreateFileSource = "/v1.FileManager/CreateFileSource"
 const OperationFileManagerCreateFileSystem = "/v1.FileManager/CreateFileSystem"
 const OperationFileManagerCreateShare = "/v1.FileManager/CreateShare"
+const OperationFileManagerCreateShareSession = "/v1.FileManager/CreateShareSession"
 const OperationFileManagerCutFileSystem = "/v1.FileManager/CutFileSystem"
+const OperationFileManagerDeleteFileSource = "/v1.FileManager/DeleteFileSource"
 const OperationFileManagerDeleteShare = "/v1.FileManager/DeleteShare"
 const OperationFileManagerEditFileSystemFile = "/v1.FileManager/EditFileSystemFile"
 const OperationFileManagerFileSystemPreSign = "/v1.FileManager/FileSystemPreSign"
@@ -36,11 +39,14 @@ const OperationFileManagerGetFileSystemTree = "/v1.FileManager/GetFileSystemTree
 const OperationFileManagerGetFileTask = "/v1.FileManager/GetFileTask"
 const OperationFileManagerGetFileUploadStatus = "/v1.FileManager/GetFileUploadStatus"
 const OperationFileManagerGetShareMeta = "/v1.FileManager/GetShareMeta"
+const OperationFileManagerListFileSources = "/v1.FileManager/ListFileSources"
 const OperationFileManagerListShareDir = "/v1.FileManager/ListShareDir"
 const OperationFileManagerListShares = "/v1.FileManager/ListShares"
 const OperationFileManagerOpenFileSystemFile = "/v1.FileManager/OpenFileSystemFile"
 const OperationFileManagerRenameFileSystem = "/v1.FileManager/RenameFileSystem"
+const OperationFileManagerTestFileSource = "/v1.FileManager/TestFileSource"
 const OperationFileManagerUnzipFileSystem = "/v1.FileManager/UnzipFileSystem"
+const OperationFileManagerUpdateFileSource = "/v1.FileManager/UpdateFileSource"
 const OperationFileManagerUpdateShare = "/v1.FileManager/UpdateShare"
 
 type FileManagerHTTPServer interface {
@@ -54,12 +60,18 @@ type FileManagerHTTPServer interface {
 	CompleteFileUpload(context.Context, *CompleteFileUploadRequest) (*CompleteFileUploadResponse, error)
 	// CopyFileSystem 复制指定文件/文件夹(系统级)
 	CopyFileSystem(context.Context, *CopyFileSystemRequest) (*CopyFileSystemResponse, error)
+	// CreateFileSource 新增文件来源(系统级)
+	CreateFileSource(context.Context, *CreateFileSourceRequest) (*CreateFileSourceResponse, error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(context.Context, *CreateFileSystemRequest) (*CreateFileSystemResponse, error)
 	// CreateShare 创建分享(系统级)
 	CreateShare(context.Context, *CreateShareRequest) (*CreateShareResponse, error)
+	// CreateShareSession 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+	CreateShareSession(context.Context, *CreateShareSessionRequest) (*CreateShareSessionResponse, error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(context.Context, *CutFileSystemRequest) (*CutFileSystemResponse, error)
+	// DeleteFileSource 删除文件来源(系统级)
+	DeleteFileSource(context.Context, *DeleteFileSourceRequest) (*DeleteFileSourceResponse, error)
 	// DeleteShare 删除分享(系统级)
 	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
 	// EditFileSystemFile 编辑指定文件(系统级)
@@ -78,7 +90,9 @@ type FileManagerHTTPServer interface {
 	GetFileUploadStatus(context.Context, *GetFileUploadStatusRequest) (*GetFileUploadStatusResponse, error)
 	// GetShareMeta 公开：获取分享元信息（无需提取码）
 	GetShareMeta(context.Context, *GetShareMetaRequest) (*GetShareMetaResponse, error)
-	// ListShareDir 公开：浏览分享目录（按需提取码）
+	// ListFileSources 文件来源列表(系统级)
+	ListFileSources(context.Context, *ListFileSourcesRequest) (*ListFileSourcesResponse, error)
+	// ListShareDir 公开：浏览分享目录（需会话签名）
 	ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error)
 	// ListShares 分享列表(系统级)
 	ListShares(context.Context, *ListSharesRequest) (*ListSharesResponse, error)
@@ -86,8 +100,12 @@ type FileManagerHTTPServer interface {
 	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error)
+	// TestFileSource 测试文件来源连通性(系统级)
+	TestFileSource(context.Context, *TestFileSourceRequest) (*TestFileSourceResponse, error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
+	// UpdateFileSource 更新文件来源(系统级)
+	UpdateFileSource(context.Context, *UpdateFileSourceRequest) (*UpdateFileSourceResponse, error)
 	// UpdateShare 更新分享(系统级)
 	UpdateShare(context.Context, *UpdateShareRequest) (*UpdateShareResponse, error)
 }
@@ -117,6 +135,12 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.POST("/api/v1/file/share/delete", _FileManager_DeleteShare0_HTTP_Handler(srv))
 	r.GET("/api/v1/public/share/meta", _FileManager_GetShareMeta0_HTTP_Handler(srv))
 	r.POST("/api/v1/public/share/list", _FileManager_ListShareDir0_HTTP_Handler(srv))
+	r.POST("/api/v1/public/share/session", _FileManager_CreateShareSession0_HTTP_Handler(srv))
+	r.GET("/api/v1/file/source", _FileManager_ListFileSources0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/source/create", _FileManager_CreateFileSource0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/source/update", _FileManager_UpdateFileSource0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/source/delete", _FileManager_DeleteFileSource0_HTTP_Handler(srv))
+	r.POST("/api/v1/file/source/test", _FileManager_TestFileSource0_HTTP_Handler(srv))
 }
 
 func _FileManager_GetFileSystemList0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
@@ -604,6 +628,135 @@ func _FileManager_ListShareDir0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx
 	}
 }
 
+func _FileManager_CreateShareSession0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateShareSessionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerCreateShareSession)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateShareSession(ctx, req.(*CreateShareSessionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateShareSessionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_ListFileSources0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFileSourcesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerListFileSources)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFileSources(ctx, req.(*ListFileSourcesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFileSourcesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_CreateFileSource0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateFileSourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerCreateFileSource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateFileSource(ctx, req.(*CreateFileSourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateFileSourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_UpdateFileSource0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateFileSourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerUpdateFileSource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateFileSource(ctx, req.(*UpdateFileSourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateFileSourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_DeleteFileSource0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteFileSourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerDeleteFileSource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteFileSource(ctx, req.(*DeleteFileSourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteFileSourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FileManager_TestFileSource0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestFileSourceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFileManagerTestFileSource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestFileSource(ctx, req.(*TestFileSourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestFileSourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type FileManagerHTTPClient interface {
 	// BatchCompressFileSystem 压缩指定文件/文件夹(系统级)
 	BatchCompressFileSystem(ctx context.Context, req *BatchCompressFileSystemRequest, opts ...http.CallOption) (rsp *BatchCompressFileSystemResponse, err error)
@@ -615,12 +768,18 @@ type FileManagerHTTPClient interface {
 	CompleteFileUpload(ctx context.Context, req *CompleteFileUploadRequest, opts ...http.CallOption) (rsp *CompleteFileUploadResponse, err error)
 	// CopyFileSystem 复制指定文件/文件夹(系统级)
 	CopyFileSystem(ctx context.Context, req *CopyFileSystemRequest, opts ...http.CallOption) (rsp *CopyFileSystemResponse, err error)
+	// CreateFileSource 新增文件来源(系统级)
+	CreateFileSource(ctx context.Context, req *CreateFileSourceRequest, opts ...http.CallOption) (rsp *CreateFileSourceResponse, err error)
 	// CreateFileSystem 创建指定文件/文件夹(系统级)
 	CreateFileSystem(ctx context.Context, req *CreateFileSystemRequest, opts ...http.CallOption) (rsp *CreateFileSystemResponse, err error)
 	// CreateShare 创建分享(系统级)
 	CreateShare(ctx context.Context, req *CreateShareRequest, opts ...http.CallOption) (rsp *CreateShareResponse, err error)
+	// CreateShareSession 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+	CreateShareSession(ctx context.Context, req *CreateShareSessionRequest, opts ...http.CallOption) (rsp *CreateShareSessionResponse, err error)
 	// CutFileSystem 剪贴指定文件/文件夹(系统级)
 	CutFileSystem(ctx context.Context, req *CutFileSystemRequest, opts ...http.CallOption) (rsp *CutFileSystemResponse, err error)
+	// DeleteFileSource 删除文件来源(系统级)
+	DeleteFileSource(ctx context.Context, req *DeleteFileSourceRequest, opts ...http.CallOption) (rsp *DeleteFileSourceResponse, err error)
 	// DeleteShare 删除分享(系统级)
 	DeleteShare(ctx context.Context, req *DeleteShareRequest, opts ...http.CallOption) (rsp *DeleteShareResponse, err error)
 	// EditFileSystemFile 编辑指定文件(系统级)
@@ -639,7 +798,9 @@ type FileManagerHTTPClient interface {
 	GetFileUploadStatus(ctx context.Context, req *GetFileUploadStatusRequest, opts ...http.CallOption) (rsp *GetFileUploadStatusResponse, err error)
 	// GetShareMeta 公开：获取分享元信息（无需提取码）
 	GetShareMeta(ctx context.Context, req *GetShareMetaRequest, opts ...http.CallOption) (rsp *GetShareMetaResponse, err error)
-	// ListShareDir 公开：浏览分享目录（按需提取码）
+	// ListFileSources 文件来源列表(系统级)
+	ListFileSources(ctx context.Context, req *ListFileSourcesRequest, opts ...http.CallOption) (rsp *ListFileSourcesResponse, err error)
+	// ListShareDir 公开：浏览分享目录（需会话签名）
 	ListShareDir(ctx context.Context, req *ListShareDirRequest, opts ...http.CallOption) (rsp *ListShareDirResponse, err error)
 	// ListShares 分享列表(系统级)
 	ListShares(ctx context.Context, req *ListSharesRequest, opts ...http.CallOption) (rsp *ListSharesResponse, err error)
@@ -647,8 +808,12 @@ type FileManagerHTTPClient interface {
 	OpenFileSystemFile(ctx context.Context, req *OpenFileSystemFileRequest, opts ...http.CallOption) (rsp *OpenFileSystemFileResponse, err error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(ctx context.Context, req *RenameFileSystemRequest, opts ...http.CallOption) (rsp *RenameFileSystemResponse, err error)
+	// TestFileSource 测试文件来源连通性(系统级)
+	TestFileSource(ctx context.Context, req *TestFileSourceRequest, opts ...http.CallOption) (rsp *TestFileSourceResponse, err error)
 	// UnzipFileSystem 解压指定压缩包(系统级)
 	UnzipFileSystem(ctx context.Context, req *UnzipFileSystemRequest, opts ...http.CallOption) (rsp *UnzipFileSystemResponse, err error)
+	// UpdateFileSource 更新文件来源(系统级)
+	UpdateFileSource(ctx context.Context, req *UpdateFileSourceRequest, opts ...http.CallOption) (rsp *UpdateFileSourceResponse, err error)
 	// UpdateShare 更新分享(系统级)
 	UpdateShare(ctx context.Context, req *UpdateShareRequest, opts ...http.CallOption) (rsp *UpdateShareResponse, err error)
 }
@@ -731,6 +896,20 @@ func (c *FileManagerHTTPClientImpl) CopyFileSystem(ctx context.Context, in *Copy
 	return &out, nil
 }
 
+// CreateFileSource 新增文件来源(系统级)
+func (c *FileManagerHTTPClientImpl) CreateFileSource(ctx context.Context, in *CreateFileSourceRequest, opts ...http.CallOption) (*CreateFileSourceResponse, error) {
+	var out CreateFileSourceResponse
+	pattern := "/api/v1/file/source/create"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerCreateFileSource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CreateFileSystem 创建指定文件/文件夹(系统级)
 func (c *FileManagerHTTPClientImpl) CreateFileSystem(ctx context.Context, in *CreateFileSystemRequest, opts ...http.CallOption) (*CreateFileSystemResponse, error) {
 	var out CreateFileSystemResponse
@@ -759,12 +938,40 @@ func (c *FileManagerHTTPClientImpl) CreateShare(ctx context.Context, in *CreateS
 	return &out, nil
 }
 
+// CreateShareSession 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+func (c *FileManagerHTTPClientImpl) CreateShareSession(ctx context.Context, in *CreateShareSessionRequest, opts ...http.CallOption) (*CreateShareSessionResponse, error) {
+	var out CreateShareSessionResponse
+	pattern := "/api/v1/public/share/session"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerCreateShareSession))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CutFileSystem 剪贴指定文件/文件夹(系统级)
 func (c *FileManagerHTTPClientImpl) CutFileSystem(ctx context.Context, in *CutFileSystemRequest, opts ...http.CallOption) (*CutFileSystemResponse, error) {
 	var out CutFileSystemResponse
 	pattern := "/api/v1/file/system/cut"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerCutFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteFileSource 删除文件来源(系统级)
+func (c *FileManagerHTTPClientImpl) DeleteFileSource(ctx context.Context, in *DeleteFileSourceRequest, opts ...http.CallOption) (*DeleteFileSourceResponse, error) {
+	var out DeleteFileSourceResponse
+	pattern := "/api/v1/file/source/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerDeleteFileSource))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -899,7 +1106,21 @@ func (c *FileManagerHTTPClientImpl) GetShareMeta(ctx context.Context, in *GetSha
 	return &out, nil
 }
 
-// ListShareDir 公开：浏览分享目录（按需提取码）
+// ListFileSources 文件来源列表(系统级)
+func (c *FileManagerHTTPClientImpl) ListFileSources(ctx context.Context, in *ListFileSourcesRequest, opts ...http.CallOption) (*ListFileSourcesResponse, error) {
+	var out ListFileSourcesResponse
+	pattern := "/api/v1/file/source"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationFileManagerListFileSources))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListShareDir 公开：浏览分享目录（需会话签名）
 func (c *FileManagerHTTPClientImpl) ListShareDir(ctx context.Context, in *ListShareDirRequest, opts ...http.CallOption) (*ListShareDirResponse, error) {
 	var out ListShareDirResponse
 	pattern := "/api/v1/public/share/list"
@@ -955,12 +1176,40 @@ func (c *FileManagerHTTPClientImpl) RenameFileSystem(ctx context.Context, in *Re
 	return &out, nil
 }
 
+// TestFileSource 测试文件来源连通性(系统级)
+func (c *FileManagerHTTPClientImpl) TestFileSource(ctx context.Context, in *TestFileSourceRequest, opts ...http.CallOption) (*TestFileSourceResponse, error) {
+	var out TestFileSourceResponse
+	pattern := "/api/v1/file/source/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerTestFileSource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // UnzipFileSystem 解压指定压缩包(系统级)
 func (c *FileManagerHTTPClientImpl) UnzipFileSystem(ctx context.Context, in *UnzipFileSystemRequest, opts ...http.CallOption) (*UnzipFileSystemResponse, error) {
 	var out UnzipFileSystemResponse
 	pattern := "/api/v1/file/system/unzip"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationFileManagerUnzipFileSystem))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateFileSource 更新文件来源(系统级)
+func (c *FileManagerHTTPClientImpl) UpdateFileSource(ctx context.Context, in *UpdateFileSourceRequest, opts ...http.CallOption) (*UpdateFileSourceResponse, error) {
+	var out UpdateFileSourceResponse
+	pattern := "/api/v1/file/source/update"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationFileManagerUpdateFileSource))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

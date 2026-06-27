@@ -42,6 +42,12 @@ const (
 	FileManager_DeleteShare_FullMethodName             = "/v1.FileManager/DeleteShare"
 	FileManager_GetShareMeta_FullMethodName            = "/v1.FileManager/GetShareMeta"
 	FileManager_ListShareDir_FullMethodName            = "/v1.FileManager/ListShareDir"
+	FileManager_CreateShareSession_FullMethodName      = "/v1.FileManager/CreateShareSession"
+	FileManager_ListFileSources_FullMethodName         = "/v1.FileManager/ListFileSources"
+	FileManager_CreateFileSource_FullMethodName        = "/v1.FileManager/CreateFileSource"
+	FileManager_UpdateFileSource_FullMethodName        = "/v1.FileManager/UpdateFileSource"
+	FileManager_DeleteFileSource_FullMethodName        = "/v1.FileManager/DeleteFileSource"
+	FileManager_TestFileSource_FullMethodName          = "/v1.FileManager/TestFileSource"
 )
 
 // FileManagerClient is the client API for FileManager service.
@@ -94,8 +100,20 @@ type FileManagerClient interface {
 	DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error)
 	// 公开：获取分享元信息（无需提取码）
 	GetShareMeta(ctx context.Context, in *GetShareMetaRequest, opts ...grpc.CallOption) (*GetShareMetaResponse, error)
-	// 公开：浏览分享目录（按需提取码）
+	// 公开：浏览分享目录（需会话签名）
 	ListShareDir(ctx context.Context, in *ListShareDirRequest, opts ...grpc.CallOption) (*ListShareDirResponse, error)
+	// 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+	CreateShareSession(ctx context.Context, in *CreateShareSessionRequest, opts ...grpc.CallOption) (*CreateShareSessionResponse, error)
+	// 文件来源列表(系统级)
+	ListFileSources(ctx context.Context, in *ListFileSourcesRequest, opts ...grpc.CallOption) (*ListFileSourcesResponse, error)
+	// 新增文件来源(系统级)
+	CreateFileSource(ctx context.Context, in *CreateFileSourceRequest, opts ...grpc.CallOption) (*CreateFileSourceResponse, error)
+	// 更新文件来源(系统级)
+	UpdateFileSource(ctx context.Context, in *UpdateFileSourceRequest, opts ...grpc.CallOption) (*UpdateFileSourceResponse, error)
+	// 删除文件来源(系统级)
+	DeleteFileSource(ctx context.Context, in *DeleteFileSourceRequest, opts ...grpc.CallOption) (*DeleteFileSourceResponse, error)
+	// 测试文件来源连通性(系统级)
+	TestFileSource(ctx context.Context, in *TestFileSourceRequest, opts ...grpc.CallOption) (*TestFileSourceResponse, error)
 }
 
 type fileManagerClient struct {
@@ -336,6 +354,66 @@ func (c *fileManagerClient) ListShareDir(ctx context.Context, in *ListShareDirRe
 	return out, nil
 }
 
+func (c *fileManagerClient) CreateShareSession(ctx context.Context, in *CreateShareSessionRequest, opts ...grpc.CallOption) (*CreateShareSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateShareSessionResponse)
+	err := c.cc.Invoke(ctx, FileManager_CreateShareSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) ListFileSources(ctx context.Context, in *ListFileSourcesRequest, opts ...grpc.CallOption) (*ListFileSourcesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFileSourcesResponse)
+	err := c.cc.Invoke(ctx, FileManager_ListFileSources_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) CreateFileSource(ctx context.Context, in *CreateFileSourceRequest, opts ...grpc.CallOption) (*CreateFileSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateFileSourceResponse)
+	err := c.cc.Invoke(ctx, FileManager_CreateFileSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) UpdateFileSource(ctx context.Context, in *UpdateFileSourceRequest, opts ...grpc.CallOption) (*UpdateFileSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateFileSourceResponse)
+	err := c.cc.Invoke(ctx, FileManager_UpdateFileSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) DeleteFileSource(ctx context.Context, in *DeleteFileSourceRequest, opts ...grpc.CallOption) (*DeleteFileSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteFileSourceResponse)
+	err := c.cc.Invoke(ctx, FileManager_DeleteFileSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileManagerClient) TestFileSource(ctx context.Context, in *TestFileSourceRequest, opts ...grpc.CallOption) (*TestFileSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TestFileSourceResponse)
+	err := c.cc.Invoke(ctx, FileManager_TestFileSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FileManagerServer is the server API for FileManager service.
 // All implementations must embed UnimplementedFileManagerServer
 // for forward compatibility.
@@ -386,8 +464,20 @@ type FileManagerServer interface {
 	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
 	// 公开：获取分享元信息（无需提取码）
 	GetShareMeta(context.Context, *GetShareMetaRequest) (*GetShareMetaResponse, error)
-	// 公开：浏览分享目录（按需提取码）
+	// 公开：浏览分享目录（需会话签名）
 	ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error)
+	// 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+	CreateShareSession(context.Context, *CreateShareSessionRequest) (*CreateShareSessionResponse, error)
+	// 文件来源列表(系统级)
+	ListFileSources(context.Context, *ListFileSourcesRequest) (*ListFileSourcesResponse, error)
+	// 新增文件来源(系统级)
+	CreateFileSource(context.Context, *CreateFileSourceRequest) (*CreateFileSourceResponse, error)
+	// 更新文件来源(系统级)
+	UpdateFileSource(context.Context, *UpdateFileSourceRequest) (*UpdateFileSourceResponse, error)
+	// 删除文件来源(系统级)
+	DeleteFileSource(context.Context, *DeleteFileSourceRequest) (*DeleteFileSourceResponse, error)
+	// 测试文件来源连通性(系统级)
+	TestFileSource(context.Context, *TestFileSourceRequest) (*TestFileSourceResponse, error)
 	mustEmbedUnimplementedFileManagerServer()
 }
 
@@ -466,6 +556,24 @@ func (UnimplementedFileManagerServer) GetShareMeta(context.Context, *GetShareMet
 }
 func (UnimplementedFileManagerServer) ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListShareDir not implemented")
+}
+func (UnimplementedFileManagerServer) CreateShareSession(context.Context, *CreateShareSessionRequest) (*CreateShareSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateShareSession not implemented")
+}
+func (UnimplementedFileManagerServer) ListFileSources(context.Context, *ListFileSourcesRequest) (*ListFileSourcesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFileSources not implemented")
+}
+func (UnimplementedFileManagerServer) CreateFileSource(context.Context, *CreateFileSourceRequest) (*CreateFileSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateFileSource not implemented")
+}
+func (UnimplementedFileManagerServer) UpdateFileSource(context.Context, *UpdateFileSourceRequest) (*UpdateFileSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateFileSource not implemented")
+}
+func (UnimplementedFileManagerServer) DeleteFileSource(context.Context, *DeleteFileSourceRequest) (*DeleteFileSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFileSource not implemented")
+}
+func (UnimplementedFileManagerServer) TestFileSource(context.Context, *TestFileSourceRequest) (*TestFileSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestFileSource not implemented")
 }
 func (UnimplementedFileManagerServer) mustEmbedUnimplementedFileManagerServer() {}
 func (UnimplementedFileManagerServer) testEmbeddedByValue()                     {}
@@ -902,6 +1010,114 @@ func _FileManager_ListShareDir_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileManager_CreateShareSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateShareSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).CreateShareSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_CreateShareSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).CreateShareSession(ctx, req.(*CreateShareSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_ListFileSources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFileSourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).ListFileSources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_ListFileSources_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).ListFileSources(ctx, req.(*ListFileSourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_CreateFileSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateFileSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).CreateFileSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_CreateFileSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).CreateFileSource(ctx, req.(*CreateFileSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_UpdateFileSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFileSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).UpdateFileSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_UpdateFileSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).UpdateFileSource(ctx, req.(*UpdateFileSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_DeleteFileSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFileSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).DeleteFileSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_DeleteFileSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).DeleteFileSource(ctx, req.(*DeleteFileSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileManager_TestFileSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestFileSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileManagerServer).TestFileSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileManager_TestFileSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileManagerServer).TestFileSource(ctx, req.(*TestFileSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FileManager_ServiceDesc is the grpc.ServiceDesc for FileManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1000,6 +1216,30 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListShareDir",
 			Handler:    _FileManager_ListShareDir_Handler,
+		},
+		{
+			MethodName: "CreateShareSession",
+			Handler:    _FileManager_CreateShareSession_Handler,
+		},
+		{
+			MethodName: "ListFileSources",
+			Handler:    _FileManager_ListFileSources_Handler,
+		},
+		{
+			MethodName: "CreateFileSource",
+			Handler:    _FileManager_CreateFileSource_Handler,
+		},
+		{
+			MethodName: "UpdateFileSource",
+			Handler:    _FileManager_UpdateFileSource_Handler,
+		},
+		{
+			MethodName: "DeleteFileSource",
+			Handler:    _FileManager_DeleteFileSource_Handler,
+		},
+		{
+			MethodName: "TestFileSource",
+			Handler:    _FileManager_TestFileSource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -44,6 +44,18 @@ func (f FileShareFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FileShareMutation", m)
 }
 
+// The FileSourceFunc type is an adapter to allow the use of ordinary
+// function as FileSource mutator.
+type FileSourceFunc func(context.Context, *gen.FileSourceMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FileSourceFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.FileSourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FileSourceMutation", m)
+}
+
 // The FileUploadFunc type is an adapter to allow the use of ordinary
 // function as FileUpload mutator.
 type FileUploadFunc func(context.Context, *gen.FileUploadMutation) (gen.Value, error)

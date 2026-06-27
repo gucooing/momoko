@@ -14,6 +14,7 @@ import (
 	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
@@ -54,6 +55,8 @@ type Client struct {
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
 	FileShare *FileShareClient
+	// FileSource is the client for interacting with the FileSource builders.
+	FileSource *FileSourceClient
 	// FileUpload is the client for interacting with the FileUpload builders.
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
@@ -108,6 +111,7 @@ func (c *Client) init() {
 	c.Auth = NewAuthClient(c.config)
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileShare = NewFileShareClient(c.config)
+	c.FileSource = NewFileSourceClient(c.config)
 	c.FileUpload = NewFileUploadClient(c.config)
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.FrpTunnel = NewFrpTunnelClient(c.config)
@@ -223,6 +227,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Auth:                NewAuthClient(cfg),
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileShare:           NewFileShareClient(cfg),
+		FileSource:          NewFileSourceClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
 		FrpTunnel:           NewFrpTunnelClient(cfg),
@@ -265,6 +270,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Auth:                NewAuthClient(cfg),
 		EmailTemplate:       NewEmailTemplateClient(cfg),
 		FileShare:           NewFileShareClient(cfg),
+		FileSource:          NewFileSourceClient(cfg),
 		FileUpload:          NewFileUploadClient(cfg),
 		FileUploadChunk:     NewFileUploadChunkClient(cfg),
 		FrpTunnel:           NewFrpTunnelClient(cfg),
@@ -314,10 +320,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.EmailTemplate, c.FileShare, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
-		c.Instance, c.InstanceType, c.Menu, c.OperationLog, c.PortForward,
-		c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
+		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
 		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
 		c.UserAPIKey,
 	} {
@@ -329,10 +335,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.EmailTemplate, c.FileShare, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
-		c.Instance, c.InstanceType, c.Menu, c.OperationLog, c.PortForward,
-		c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
+		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
 		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
 		c.UserAPIKey,
 	} {
@@ -349,6 +355,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EmailTemplate.mutate(ctx, m)
 	case *FileShareMutation:
 		return c.FileShare.mutate(ctx, m)
+	case *FileSourceMutation:
+		return c.FileSource.mutate(ctx, m)
 	case *FileUploadMutation:
 		return c.FileUpload.mutate(ctx, m)
 	case *FileUploadChunkMutation:
@@ -806,6 +814,155 @@ func (c *FileShareClient) mutate(ctx context.Context, m *FileShareMutation) (Val
 		return (&FileShareDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FileShare mutation op: %q", m.Op())
+	}
+}
+
+// FileSourceClient is a client for the FileSource schema.
+type FileSourceClient struct {
+	config
+}
+
+// NewFileSourceClient returns a client for the FileSource from the given config.
+func NewFileSourceClient(c config) *FileSourceClient {
+	return &FileSourceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `filesource.Hooks(f(g(h())))`.
+func (c *FileSourceClient) Use(hooks ...Hook) {
+	c.hooks.FileSource = append(c.hooks.FileSource, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `filesource.Intercept(f(g(h())))`.
+func (c *FileSourceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FileSource = append(c.inters.FileSource, interceptors...)
+}
+
+// Create returns a builder for creating a FileSource entity.
+func (c *FileSourceClient) Create() *FileSourceCreate {
+	mutation := newFileSourceMutation(c.config, OpCreate)
+	return &FileSourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FileSource entities.
+func (c *FileSourceClient) CreateBulk(builders ...*FileSourceCreate) *FileSourceCreateBulk {
+	return &FileSourceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FileSourceClient) MapCreateBulk(slice any, setFunc func(*FileSourceCreate, int)) *FileSourceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FileSourceCreateBulk{err: fmt.Errorf("calling to FileSourceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FileSourceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FileSourceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FileSource.
+func (c *FileSourceClient) Update() *FileSourceUpdate {
+	mutation := newFileSourceMutation(c.config, OpUpdate)
+	return &FileSourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FileSourceClient) UpdateOne(_m *FileSource) *FileSourceUpdateOne {
+	mutation := newFileSourceMutation(c.config, OpUpdateOne, withFileSource(_m))
+	return &FileSourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FileSourceClient) UpdateOneID(id string) *FileSourceUpdateOne {
+	mutation := newFileSourceMutation(c.config, OpUpdateOne, withFileSourceID(id))
+	return &FileSourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FileSource.
+func (c *FileSourceClient) Delete() *FileSourceDelete {
+	mutation := newFileSourceMutation(c.config, OpDelete)
+	return &FileSourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FileSourceClient) DeleteOne(_m *FileSource) *FileSourceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FileSourceClient) DeleteOneID(id string) *FileSourceDeleteOne {
+	builder := c.Delete().Where(filesource.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FileSourceDeleteOne{builder}
+}
+
+// Query returns a query builder for FileSource.
+func (c *FileSourceClient) Query() *FileSourceQuery {
+	return &FileSourceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFileSource},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FileSource entity by its id.
+func (c *FileSourceClient) Get(ctx context.Context, id string) (*FileSource, error) {
+	return c.Query().Where(filesource.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FileSourceClient) GetX(ctx context.Context, id string) *FileSource {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a FileSource.
+func (c *FileSourceClient) QueryUser(_m *FileSource) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(filesource.Table, filesource.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, filesource.UserTable, filesource.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FileSourceClient) Hooks() []Hook {
+	return c.hooks.FileSource
+}
+
+// Interceptors returns the client interceptors.
+func (c *FileSourceClient) Interceptors() []Interceptor {
+	return c.inters.FileSource
+}
+
+func (c *FileSourceClient) mutate(ctx context.Context, m *FileSourceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FileSourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FileSourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FileSourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FileSourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FileSource mutation op: %q", m.Op())
 	}
 }
 
@@ -3728,18 +3885,18 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, EmailTemplate, FileShare, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
-		OperationLog, PortForward, PortForwardStat, Role, SSHHost, Sub2APIAnnouncement,
-		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
-		UserAPIKey []ent.Hook
+		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
+		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
+		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
+		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
+		User, UserAPIKey []ent.Hook
 	}
 	inters struct {
-		Auth, EmailTemplate, FileShare, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
-		OperationLog, PortForward, PortForwardStat, Role, SSHHost, Sub2APIAnnouncement,
-		Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig, User,
-		UserAPIKey []ent.Interceptor
+		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
+		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
+		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
+		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
+		User, UserAPIKey []ent.Interceptor
 	}
 )
 

@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -426,6 +427,7 @@ func (f *FileOper) Rename(path, newName string) (string, error) {
 type ChunkedUpload struct {
 	*gen.FileUpload
 	fileSync sync.RWMutex
+	dst      Store // 远端落地目标；nil=本地磁盘（直接 rename）
 }
 
 const (
@@ -434,6 +436,9 @@ const (
 	targetChunks = 100
 
 	tempName = "%s-momoko-upload-%v.part"
+
+	// UploadBufferDir 远端来源上传时分片缓冲所在的本地临时目录（本地来源仍缓冲在目标目录旁）。
+	UploadBufferDir = "./servers/.uploadbuf"
 )
 
 // TempPartPath 返回某个上传会话在目标目录下的临时分片文件路径。
@@ -441,6 +446,18 @@ const (
 func TempPartPath(dir, fileName, id string) string {
 	return filepath.Join(dir, fmt.Sprintf(tempName, fileName, id))
 }
+
+// uploadBufferPath 返回某上传会话分片缓冲文件的本地路径：
+// 本地来源（source_id 为空）缓冲在目标目录旁；远端来源缓冲在统一的本地临时目录。
+func uploadBufferPath(u *gen.FileUpload) string {
+	if u.SourceID == "" {
+		return TempPartPath(u.Path, u.FileName, u.ID)
+	}
+	return TempPartPath(UploadBufferDir, u.FileName, u.ID)
+}
+
+// SetRemote 指定远端落地目标（远端来源上传时由业务层注入）。
+func (u *ChunkedUpload) SetRemote(dst Store) { u.dst = dst }
 
 func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 	chunkSize := calcChunkSize(fileSize)
@@ -499,8 +516,12 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 		return 0, "", errors.New("文件过大")
 	}
 
+	bufPath := uploadBufferPath(u.FileUpload)
+	if err := os.MkdirAll(filepath.Dir(bufPath), 0o755); err != nil {
+		return 0, "", errors.New("创建临时目录失败")
+	}
 	tempFile, err := os.OpenFile(
-		TempPartPath(u.Path, u.FileName, u.ID),
+		bufPath,
 		os.O_CREATE|os.O_WRONLY,
 		0o644,
 	)
@@ -538,7 +559,7 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 // Complete 校验分片完整性后将临时文件原子地落为最终文件。
 // 校验项：分片齐全且编号无重复、每片大小正确、合计与临时文件实际大小均等于声明大小，
 // 以避免 offset 空洞 / 短写 / 漏片导致合并出损坏文件。
-func (u *ChunkedUpload) Complete() error {
+func (u *ChunkedUpload) Complete(ctx context.Context) error {
 	u.fileSync.Lock()
 	defer u.fileSync.Unlock()
 	if u.Completed {
@@ -548,11 +569,15 @@ func (u *ChunkedUpload) Complete() error {
 		return errors.New("上传已取消")
 	}
 
-	partPath := TempPartPath(u.Path, u.FileName, u.ID)
+	partPath := uploadBufferPath(u.FileUpload)
+	// 远端来源：落地到目标来源的逻辑路径；本地来源：目标真实路径。
 	finalPath := filepath.Join(u.Path, u.FileName)
 
 	// 空文件没有分片，直接落一个空文件。
 	if u.TotalChunks == 0 {
+		if u.dst != nil {
+			return u.dst.Write(ctx, finalPath, strings.NewReader(""))
+		}
 		f, err := os.OpenFile(finalPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 		if err != nil {
 			return fmt.Errorf("创建文件失败: %w", err)
@@ -569,6 +594,21 @@ func (u *ChunkedUpload) Complete() error {
 	}
 	if uint64(fi.Size()) != u.FileSize {
 		return fmt.Errorf("文件大小不一致：实际 %d，声明 %d", fi.Size(), u.FileSize)
+	}
+
+	// 远端来源：把拼好的缓冲文件流式推送到来源，再删除本地缓冲。
+	if u.dst != nil {
+		f, err := os.Open(partPath)
+		if err != nil {
+			return fmt.Errorf("打开临时文件失败: %w", err)
+		}
+		if err := u.dst.Write(ctx, finalPath, f); err != nil {
+			_ = f.Close()
+			return fmt.Errorf("上传到来源失败: %w", err)
+		}
+		_ = f.Close()
+		_ = os.Remove(partPath)
+		return nil
 	}
 
 	if err := os.Rename(partPath, finalPath); err != nil {
@@ -615,7 +655,7 @@ func (u *ChunkedUpload) Canceld() error {
 	if u.Cancel {
 		return nil
 	}
-	if err := os.Remove(TempPartPath(u.Path, u.FileName, u.ID)); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(uploadBufferPath(u.FileUpload)); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	return nil

@@ -9,6 +9,7 @@ import (
 	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
@@ -98,6 +99,7 @@ func checkColumn(t, c string) error {
 			auth.Table:                auth.ValidColumn,
 			emailtemplate.Table:       emailtemplate.ValidColumn,
 			fileshare.Table:           fileshare.ValidColumn,
+			filesource.Table:          filesource.ValidColumn,
 			fileupload.Table:          fileupload.ValidColumn,
 			fileuploadchunk.Table:     fileuploadchunk.ValidColumn,
 			frptunnel.Table:           frptunnel.ValidColumn,

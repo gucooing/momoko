@@ -1,7 +1,20 @@
 <template>
   <div class="file-module file-browser" :class="{ 'is-dark': isDark }">
-    <!-- 顶部导航：返回/前进/上级 + 面包屑地址 -->
+    <!-- 顶部导航：来源切换 + 返回/前进/上级 + 面包屑地址 -->
     <div class="fb-navbar">
+      <div v-if="isSystemScope" class="fb-source">
+        <select
+          v-model="currentSourceId"
+          class="fm-input fb-source-select"
+          :title="t('fileSource.switchSource')"
+          @change="onSourceChange"
+        >
+          <option value="">{{ t('fileSource.localDisk') }}</option>
+          <option v-for="s in sources" :key="s.id" :value="s.id">
+            {{ s.name }}（{{ s.type.toUpperCase() }}）
+          </option>
+        </select>
+      </div>
       <div class="fb-nav-actions">
         <button
           type="button"
@@ -292,7 +305,14 @@ import { onClickOutside, useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { showRequestError } from '@/utils/request'
 import { useThemeStore } from '@/stores/theme'
-import { FileSortField, type FileEntryInfo, type FileDirectoryInfo } from '@/types/v1/file'
+import {
+  FileSortField,
+  type FileEntryInfo,
+  type FileDirectoryInfo,
+  type FileSourceInfo,
+  type FileSourceCaps,
+} from '@/types/v1/file'
+import { listFileSourcesRequest } from '@/api/fileSource'
 import {
   formatDateTime,
   formatFileSize,
@@ -359,8 +379,46 @@ const { t } = useI18n()
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.isDarkTheme)
 
-// scope 在组件生命周期内稳定，client 一次创建。
-const client: FileClient = createFileClient(props.scope)
+// ---- 文件来源（仅系统级显示切换）----
+const isSystemScope = props.scope.kind === 'system'
+const currentSourceId = ref('')
+const sources = ref<FileSourceInfo[]>([])
+const localCaps: FileSourceCaps = {
+  presign: false,
+  copy: true,
+  move: true,
+  compress: true,
+  resumableUpload: true,
+}
+const currentCaps = computed<FileSourceCaps>(() => {
+  if (!currentSourceId.value) return localCaps
+  return sources.value.find((s) => s.id === currentSourceId.value)?.caps ?? localCaps
+})
+
+// scope 在组件生命周期内稳定；source_id 动态读取，切换来源无需重建 client。
+const client: FileClient = createFileClient(props.scope, () => currentSourceId.value)
+
+const loadSources = async () => {
+  if (!isSystemScope) return
+  try {
+    const { data } = await listFileSourcesRequest({ enabledOnly: true })
+    sources.value = data.items ?? []
+  } catch {
+    sources.value = []
+  }
+}
+
+const onSourceChange = () => {
+  // 切换来源：清空历史/选择，回到该来源根目录。
+  history.value = []
+  historyIndex.value = -1
+  selectedPaths.value = new Set()
+  clipboard.value = null
+  keywords.value = ''
+  page.value = 1
+  currentPath.value = ''
+  loadList()
+}
 
 // ---- 列表状态 ----
 const currentPath = ref(props.initialPath || '')
@@ -597,7 +655,7 @@ const onRowOpen = (row: FileEntryInfo) => {
 // ---- 媒体预览 ----
 const openMedia = async (row: FileEntryInfo) => {
   try {
-    const downloadPath = await client.preSignDownload(row.path)
+    const downloadPath = await client.preSignDownload(row.path, true)
     media.url = resolvePreSignedFileUrl(downloadPath)
     media.name = row.name
     media.kind = (resolveFilePreviewKind(row.name) || 'image') as FilePreviewKind
@@ -826,15 +884,30 @@ const openShare = (row: FileEntryInfo) => {
 }
 
 // ---- 工具栏“更多操作” ----
-const moreActions = computed<FileMenuItem[]>(() => [
-  { key: 'createFile', label: t('fileManager.createFile'), icon: IconNewFile },
-  { key: 'copy', label: t('fileManager.copy'), icon: IconCopy, disabled: !hasSelection.value },
-  { key: 'cut', label: t('fileManager.cut'), icon: IconCut, disabled: !hasSelection.value },
-  { key: 'paste', label: t('fileManager.paste'), icon: IconPaste, disabled: !clipboard.value },
-  { key: 'divider-1', label: '', divider: true },
-  { key: 'compress', label: t('fileManager.compress'), icon: IconCompress, disabled: !hasSelection.value },
-  { key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: selectedRows.value.length !== 1 },
-])
+const moreActions = computed<FileMenuItem[]>(() => {
+  const caps = currentCaps.value
+  const actions: FileMenuItem[] = [
+    { key: 'createFile', label: t('fileManager.createFile'), icon: IconNewFile },
+  ]
+  if (caps.copy) {
+    actions.push({ key: 'copy', label: t('fileManager.copy'), icon: IconCopy, disabled: !hasSelection.value })
+  }
+  if (caps.move) {
+    actions.push({ key: 'cut', label: t('fileManager.cut'), icon: IconCut, disabled: !hasSelection.value })
+  }
+  if (caps.copy || caps.move) {
+    actions.push({ key: 'paste', label: t('fileManager.paste'), icon: IconPaste, disabled: !clipboard.value })
+  }
+  actions.push({ key: 'divider-1', label: '', divider: true })
+  if (caps.compress) {
+    actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress, disabled: !hasSelection.value })
+  }
+  // 分享仅本地系统盘支持。
+  if (!currentSourceId.value) {
+    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: selectedRows.value.length !== 1 })
+  }
+  return actions
+})
 const onMoreAction = (key: string) => {
   if (key === 'createFile') openCreateFile()
   else if (key === 'copy') setClipboard('copy', selectedRows.value)
@@ -848,17 +921,19 @@ const onMoreAction = (key: string) => {
 
 // ---- 行“更多” ----
 const rowActions = (row: FileEntryInfo): FileMenuItem[] => {
-  const actions: FileMenuItem[] = [
-    { key: 'rename', label: t('fileManager.rename'), icon: IconRename },
-    { key: 'copy', label: t('fileManager.copy'), icon: IconCopy },
-    { key: 'cut', label: t('fileManager.cut'), icon: IconCut },
-    { key: 'compress', label: t('fileManager.compress'), icon: IconCompress },
-  ]
-  if (!row.isDir && /\.(zip|tar|gz|tgz|rar|7z)$/i.test(row.name)) {
+  const caps = currentCaps.value
+  const actions: FileMenuItem[] = [{ key: 'rename', label: t('fileManager.rename'), icon: IconRename }]
+  if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copy'), icon: IconCopy })
+  if (caps.move) actions.push({ key: 'cut', label: t('fileManager.cut'), icon: IconCut })
+  if (caps.compress) actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress })
+  if (caps.compress && !row.isDir && /\.(zip|tar|gz|tgz|rar|7z)$/i.test(row.name)) {
     actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: IconUnzip })
   }
   actions.push({ key: 'divider', label: '', divider: true })
-  actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare })
+  // 分享仅本地系统盘支持。
+  if (!currentSourceId.value) {
+    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare })
+  }
   if (!row.isDir) {
     actions.push({ key: 'copyLink', label: t('fileManager.copyLink'), icon: IconLink })
   }
@@ -874,7 +949,10 @@ const onRowAction = (key: string, row: FileEntryInfo) => {
   else if (key === 'copyLink') copyLink(row)
 }
 
-onMounted(loadList)
+onMounted(() => {
+  loadSources()
+  loadList()
+})
 
 defineExpose({ refresh, navigateTo })
 </script>
@@ -902,6 +980,14 @@ defineExpose({ refresh, navigateTo })
 .fb-nav-actions {
   display: flex;
   gap: 0.125rem;
+}
+.fb-source {
+  flex-shrink: 0;
+}
+.fb-source-select {
+  height: 32px;
+  max-width: 200px;
+  cursor: pointer;
 }
 .fb-breadcrumb {
   flex: 1;

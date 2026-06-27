@@ -75,8 +75,8 @@ export interface FileClient {
   // 打开文本文件，返回解码文本（二进制时 isBinary=true）
   open(path: string): Promise<FileOpenResult>
   edit(path: string, content: string): Promise<void>
-  // 下载预签名路径（配 resolvePreSignedFileUrl 使用）
-  preSignDownload(path: string): Promise<string>
+  // 下载/预览预签名路径（配 resolvePreSignedFileUrl 使用）；inline=true 走内联预览
+  preSignDownload(path: string, inline?: boolean): Promise<string>
   preSignUpload(params: FileUploadSignParams): Promise<UploadInfo>
 }
 

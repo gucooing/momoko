@@ -183,6 +183,20 @@ func (_u *FileUploadUpdate) SetNillableUserID(v *string) *FileUploadUpdate {
 	return _u
 }
 
+// SetSourceID sets the "source_id" field.
+func (_u *FileUploadUpdate) SetSourceID(v string) *FileUploadUpdate {
+	_u.mutation.SetSourceID(v)
+	return _u
+}
+
+// SetNillableSourceID sets the "source_id" field if the given value is not nil.
+func (_u *FileUploadUpdate) SetNillableSourceID(v *string) *FileUploadUpdate {
+	if v != nil {
+		_u.SetSourceID(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileUploadUpdate) SetUser(v *User) *FileUploadUpdate {
 	return _u.SetUserID(v.ID)
@@ -326,6 +340,9 @@ func (_u *FileUploadUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Cancel(); ok {
 		_spec.SetField(fileupload.FieldCancel, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SourceID(); ok {
+		_spec.SetField(fileupload.FieldSourceID, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -574,6 +591,20 @@ func (_u *FileUploadUpdateOne) SetNillableUserID(v *string) *FileUploadUpdateOne
 	return _u
 }
 
+// SetSourceID sets the "source_id" field.
+func (_u *FileUploadUpdateOne) SetSourceID(v string) *FileUploadUpdateOne {
+	_u.mutation.SetSourceID(v)
+	return _u
+}
+
+// SetNillableSourceID sets the "source_id" field if the given value is not nil.
+func (_u *FileUploadUpdateOne) SetNillableSourceID(v *string) *FileUploadUpdateOne {
+	if v != nil {
+		_u.SetSourceID(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileUploadUpdateOne) SetUser(v *User) *FileUploadUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -747,6 +778,9 @@ func (_u *FileUploadUpdateOne) sqlSave(ctx context.Context) (_node *FileUpload, 
 	}
 	if value, ok := _u.mutation.Cancel(); ok {
 		_spec.SetField(fileupload.FieldCancel, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SourceID(); ok {
+		_spec.SetField(fileupload.FieldSourceID, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

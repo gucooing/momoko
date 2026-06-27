@@ -6,6 +6,7 @@ import (
 	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
@@ -127,6 +128,37 @@ func init() {
 	fileshareDescEnabled := fileshareFields[10].Descriptor()
 	// fileshare.DefaultEnabled holds the default value on creation for the enabled field.
 	fileshare.DefaultEnabled = fileshareDescEnabled.Default.(bool)
+	filesourceMixin := schema.FileSource{}.Mixin()
+	filesourceMixinFields0 := filesourceMixin[0].Fields()
+	_ = filesourceMixinFields0
+	filesourceFields := schema.FileSource{}.Fields()
+	_ = filesourceFields
+	// filesourceDescCreateTime is the schema descriptor for create_time field.
+	filesourceDescCreateTime := filesourceMixinFields0[0].Descriptor()
+	// filesource.DefaultCreateTime holds the default value on creation for the create_time field.
+	filesource.DefaultCreateTime = filesourceDescCreateTime.Default.(func() time.Time)
+	// filesourceDescUpdateTime is the schema descriptor for update_time field.
+	filesourceDescUpdateTime := filesourceMixinFields0[1].Descriptor()
+	// filesource.DefaultUpdateTime holds the default value on creation for the update_time field.
+	filesource.DefaultUpdateTime = filesourceDescUpdateTime.Default.(func() time.Time)
+	// filesource.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	filesource.UpdateDefaultUpdateTime = filesourceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// filesourceDescName is the schema descriptor for name field.
+	filesourceDescName := filesourceFields[1].Descriptor()
+	// filesource.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	filesource.NameValidator = filesourceDescName.Validators[0].(func(string) error)
+	// filesourceDescEnabled is the schema descriptor for enabled field.
+	filesourceDescEnabled := filesourceFields[3].Descriptor()
+	// filesource.DefaultEnabled holds the default value on creation for the enabled field.
+	filesource.DefaultEnabled = filesourceDescEnabled.Default.(bool)
+	// filesourceDescRedirect302 is the schema descriptor for redirect_302 field.
+	filesourceDescRedirect302 := filesourceFields[4].Descriptor()
+	// filesource.DefaultRedirect302 holds the default value on creation for the redirect_302 field.
+	filesource.DefaultRedirect302 = filesourceDescRedirect302.Default.(bool)
+	// filesourceDescConfig is the schema descriptor for config field.
+	filesourceDescConfig := filesourceFields[5].Descriptor()
+	// filesource.DefaultConfig holds the default value on creation for the config field.
+	filesource.DefaultConfig = filesourceDescConfig.Default.(string)
 	fileuploadMixin := schema.FileUpload{}.Mixin()
 	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
 	_ = fileuploadMixinFields0
@@ -150,6 +182,10 @@ func init() {
 	fileuploadDescCancel := fileuploadFields[8].Descriptor()
 	// fileupload.DefaultCancel holds the default value on creation for the cancel field.
 	fileupload.DefaultCancel = fileuploadDescCancel.Default.(bool)
+	// fileuploadDescSourceID is the schema descriptor for source_id field.
+	fileuploadDescSourceID := fileuploadFields[10].Descriptor()
+	// fileupload.DefaultSourceID holds the default value on creation for the source_id field.
+	fileupload.DefaultSourceID = fileuploadDescSourceID.Default.(string)
 	fileuploadchunkMixin := schema.FileUploadChunk{}.Mixin()
 	fileuploadchunkMixinFields0 := fileuploadchunkMixin[0].Fields()
 	_ = fileuploadchunkMixinFields0

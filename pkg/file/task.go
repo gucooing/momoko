@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -45,42 +46,67 @@ func newTaskManager() *taskManager {
 	}
 }
 
+// StartCopyTask 在任意支持复制的来源上启动异步复制任务。
+// 任务在后台 goroutine 执行，使用 context.Background()（脱离请求生命周期）。
+func StartCopyTask(
+	userID string,
+	c Copier,
+	paths []string,
+	targetPath string,
+	operation string,
+) (*v1.FileTaskInfo, error) {
+	if err := validateTransferRequest(paths); err != nil {
+		return nil, err
+	}
+	return startTransferTask(
+		userID,
+		operation,
+		paths,
+		func(path string) *v1.FileOperationResult {
+			return firstOperationResult(path, c.CopyToDir(context.Background(), []string{path}, targetPath))
+		},
+	), nil
+}
+
+// StartMoveTask 在任意支持移动的来源上启动异步移动任务。
+func StartMoveTask(
+	userID string,
+	m Mover,
+	paths []string,
+	targetPath string,
+	operation string,
+) (*v1.FileTaskInfo, error) {
+	if err := validateTransferRequest(paths); err != nil {
+		return nil, err
+	}
+	return startTransferTask(
+		userID,
+		operation,
+		paths,
+		func(path string) *v1.FileOperationResult {
+			return firstOperationResult(path, m.MoveToDir(context.Background(), []string{path}, targetPath))
+		},
+	), nil
+}
+
+// StartCopyToDirTask 本地来源的异步复制（保留方法形式，供实例文件等既有调用）。
 func (f *FileOper) StartCopyToDirTask(
 	userID string,
 	paths []string,
 	targetPath string,
 	operation string,
 ) (*v1.FileTaskInfo, error) {
-	if err := validateTransferRequest(paths); err != nil {
-		return nil, err
-	}
-	return startTransferTask(
-		userID,
-		operation,
-		paths,
-		func(path string) *v1.FileOperationResult {
-			return firstOperationResult(path, f.CopyToDir([]string{path}, targetPath))
-		},
-	), nil
+	return StartCopyTask(userID, &LocalStore{oper: f}, paths, targetPath, operation)
 }
 
+// StartMoveToDirTask 本地来源的异步移动（保留方法形式，供实例文件等既有调用）。
 func (f *FileOper) StartMoveToDirTask(
 	userID string,
 	paths []string,
 	targetPath string,
 	operation string,
 ) (*v1.FileTaskInfo, error) {
-	if err := validateTransferRequest(paths); err != nil {
-		return nil, err
-	}
-	return startTransferTask(
-		userID,
-		operation,
-		paths,
-		func(path string) *v1.FileOperationResult {
-			return firstOperationResult(path, f.MoveToDir([]string{path}, targetPath))
-		},
-	), nil
+	return StartMoveTask(userID, &LocalStore{oper: f}, paths, targetPath, operation)
 }
 
 func GetTask(userID, taskID string) (*v1.FileTaskInfo, bool) {

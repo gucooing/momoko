@@ -99,7 +99,7 @@ func (f *FileService) FileSystemPreSign(ctx context.Context, req *v1.FileSystemP
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	url, err := f.uc.FileSystemPreSign(ctx, authCtx.UserID, req.Path)
+	url, err := f.uc.FileSystemPreSign(ctx, authCtx.UserID, req)
 	if err != nil {
 		return nil, err
 	}
@@ -202,14 +202,65 @@ func (f *FileService) DeleteShare(ctx context.Context, req *v1.DeleteShareReques
 	return &v1.DeleteShareResponse{}, nil
 }
 
-// GetShareMeta 公开接口：无需登录（/api/v1/public/ 前缀免鉴权）。
+// GetShareMeta 公开接口：无需登录（/api/v1/public/ 前缀免鉴权），仅返回引导用的元信息。
 func (f *FileService) GetShareMeta(ctx context.Context, req *v1.GetShareMetaRequest) (*v1.GetShareMetaResponse, error) {
 	return f.uc.GetShareMeta(ctx, req.Token)
 }
 
-// ListShareDir 公开接口：无需登录，提取码由业务层校验。
+// CreateShareSession 公开接口：用 token(+提取码) 换取一次性会话签名。
+func (f *FileService) CreateShareSession(ctx context.Context, req *v1.CreateShareSessionRequest) (*v1.CreateShareSessionResponse, error) {
+	return f.uc.CreateShareSession(ctx, req.Token, req.Code)
+}
+
+// ListShareDir 公开接口：无需登录，由会话签名校验。
 func (f *FileService) ListShareDir(ctx context.Context, req *v1.ListShareDirRequest) (*v1.ListShareDirResponse, error) {
 	return f.uc.ListShareDir(ctx, req)
+}
+
+// ---- 文件来源 ----
+
+func (f *FileService) ListFileSources(ctx context.Context, req *v1.ListFileSourcesRequest) (*v1.ListFileSourcesResponse, error) {
+	return f.uc.ListFileSources(ctx, req)
+}
+
+func (f *FileService) CreateFileSource(ctx context.Context, req *v1.CreateFileSourceRequest) (*v1.CreateFileSourceResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := f.uc.CreateFileSource(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateFileSourceResponse{Info: info}, nil
+}
+
+func (f *FileService) UpdateFileSource(ctx context.Context, req *v1.UpdateFileSourceRequest) (*v1.UpdateFileSourceResponse, error) {
+	if _, ok := auth.FromContext(ctx); !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := f.uc.UpdateFileSource(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateFileSourceResponse{Info: info}, nil
+}
+
+func (f *FileService) DeleteFileSource(ctx context.Context, req *v1.DeleteFileSourceRequest) (*v1.DeleteFileSourceResponse, error) {
+	if _, ok := auth.FromContext(ctx); !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	if err := f.uc.DeleteFileSource(ctx, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteFileSourceResponse{}, nil
+}
+
+func (f *FileService) TestFileSource(ctx context.Context, req *v1.TestFileSourceRequest) (*v1.TestFileSourceResponse, error) {
+	if _, ok := auth.FromContext(ctx); !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return f.uc.TestFileSource(ctx, req)
 }
 
 func (f *FileService) shareDownload(w khttp.ResponseWriter, r *khttp.Request) {
@@ -222,7 +273,7 @@ func (f *FileService) preFileDownload(w khttp.ResponseWriter, r *khttp.Request) 
 		w.WriteHeader(stdhttp.StatusBadRequest)
 		return
 	}
-	f.uc.FileDownload(info.Path, w, r)
+	f.uc.FileServe(r.Context(), info, w, r)
 }
 
 func (f *FileService) preFileUpload(w khttp.ResponseWriter, r *khttp.Request) {

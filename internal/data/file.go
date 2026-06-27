@@ -9,6 +9,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
@@ -34,6 +35,7 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 			Where(
 				fileupload.HashEQ(info.Hash),
 				fileupload.PathEQ(info.Path),
+				fileupload.SourceIDEQ(info.SourceID),
 				fileupload.CompletedEQ(false),
 				fileupload.CancelEQ(false),
 			).
@@ -51,6 +53,7 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 			SetFileSize(info.FileSize).
 			SetChunkSize(info.ChunkSize).
 			SetTotalChunks(info.TotalChunks).
+			SetSourceID(info.SourceID).
 			SetUserID(userId).Save(ctx)
 		if err != nil {
 			return err
@@ -193,6 +196,53 @@ func (f *fileRepo) DeleteShare(ctx context.Context, userID, id string) error {
 // IncrShareDownload 原子地将下载次数 +1。
 func (f *fileRepo) IncrShareDownload(ctx context.Context, id string) error {
 	return f.data.db.FileShare.UpdateOneID(id).AddDownloadCount(1).Exec(ctx)
+}
+
+// ---- 文件来源（OSS/FTP/WebDAV，全局/管理员维护）----
+
+// CreateFileSource 新建一条文件来源；config 为已加密好的 JSON 串。
+func (f *fileRepo) CreateFileSource(ctx context.Context, userID, name, typ, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error) {
+	return f.data.db.FileSource.Create().
+		SetID(uuid.NewString()).
+		SetUserID(userID).
+		SetName(name).
+		SetType(filesource.Type(typ)).
+		SetEnabled(enabled).
+		SetRedirect302(redirect302).
+		SetConfig(configJSON).
+		Save(ctx)
+}
+
+// ListFileSources 返回全部文件来源（全局可见），可按名称过滤、仅取启用项；带出创建者。
+func (f *fileRepo) ListFileSources(ctx context.Context, keywords string, enabledOnly bool) ([]*gen.FileSource, error) {
+	query := f.data.db.FileSource.Query()
+	if keywords != "" {
+		query = query.Where(filesource.NameContainsFold(keywords))
+	}
+	if enabledOnly {
+		query = query.Where(filesource.EnabledEQ(true))
+	}
+	return query.Order(gen.Desc(filesource.FieldCreateTime)).WithUser().All(ctx)
+}
+
+// GetFileSource 按 id 获取一条文件来源（带出创建者）。
+func (f *fileRepo) GetFileSource(ctx context.Context, id string) (*gen.FileSource, error) {
+	return f.data.db.FileSource.Query().Where(filesource.IDEQ(id)).WithUser().Only(ctx)
+}
+
+// UpdateFileSource 更新一条文件来源（类型不可改）。
+func (f *fileRepo) UpdateFileSource(ctx context.Context, id, name, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error) {
+	return f.data.db.FileSource.UpdateOneID(id).
+		SetName(name).
+		SetEnabled(enabled).
+		SetRedirect302(redirect302).
+		SetConfig(configJSON).
+		Save(ctx)
+}
+
+// DeleteFileSource 删除一条文件来源。
+func (f *fileRepo) DeleteFileSource(ctx context.Context, id string) error {
+	return f.data.db.FileSource.DeleteOneID(id).Exec(ctx)
 }
 
 func (f *fileRepo) WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error {

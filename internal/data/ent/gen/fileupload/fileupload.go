@@ -36,6 +36,8 @@ const (
 	FieldCancel = "cancel"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldSourceID holds the string denoting the source_id field in the database.
+	FieldSourceID = "source_id"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeChunks holds the string denoting the chunks edge name in mutations.
@@ -72,6 +74,7 @@ var Columns = []string{
 	FieldCompleted,
 	FieldCancel,
 	FieldUserID,
+	FieldSourceID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -95,6 +98,8 @@ var (
 	DefaultCompleted bool
 	// DefaultCancel holds the default value on creation for the "cancel" field.
 	DefaultCancel bool
+	// DefaultSourceID holds the default value on creation for the "source_id" field.
+	DefaultSourceID string
 )
 
 // OrderOption defines the ordering options for the FileUpload queries.
@@ -158,6 +163,11 @@ func ByCancel(opts ...sql.OrderTermOption) OrderOption {
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// BySourceID orders the results by the source_id field.
+func BySourceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceID, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

@@ -25,6 +25,8 @@ func (FileUpload) Fields() []ent.Field {
 		field.Bool("completed").Default(false).Comment("是否完成"),
 		field.Bool("cancel").Default(false).Comment("是否取消"),
 		field.String("user_id").Comment("上传发起人"),
+		// 上传目标来源：空=本地磁盘，否则为 file_source.id；用于服务重启后重建上传会话并落地到正确来源。
+		field.String("source_id").Default("").Comment("目标文件来源id，空=本地"),
 	}
 }
 
@@ -44,8 +46,8 @@ func (FileUpload) Edges() []ent.Edge {
 
 func (FileUpload) Indexes() []ent.Index {
 	return []ent.Index{
-		// 保证同一路径下，同一 hash 文件只能有一条未完成且未取消的上传会话
-		index.Fields("path", "hash").
+		// 保证同一来源、同一路径下，同一 hash 文件只能有一条未完成且未取消的上传会话
+		index.Fields("source_id", "path", "hash").
 			Unique().
 			Annotations(
 				entsql.IndexWhere("NOT completed AND NOT cancel"),

@@ -10,6 +10,7 @@ import type {
   GetShareMetaResponse,
   ListShareDirRequest,
   ListShareDirResponse,
+  CreateShareSessionResponse,
 } from '@/types/v1/file'
 
 // 文件分享 HTTP 封装：创建者管理（需登录） + 公开访问（按 token/提取码）。
@@ -30,11 +31,15 @@ export const updateShareRequest = (data: UpdateShareRequest) =>
 export const deleteShareRequest = (id: string) =>
   request.post<DeleteShareResponse>('/file/share/delete', { id })
 
-// 公开：获取分享元信息（无需提取码）
+// 公开：获取分享元信息（引导用，不含目录/文件数据）
 export const getShareMetaRequest = (token: string) =>
   request.get<GetShareMetaResponse>('/public/share/meta', { params: { token } })
 
-// 公开：浏览分享目录（按需提取码）
+// 公开：用 token(+提取码) 换取一次性会话签名；后续请求只带签名。
+export const createShareSessionRequest = (token: string, code = '') =>
+  request.post<CreateShareSessionResponse>('/public/share/session', { token, code })
+
+// 公开：浏览分享目录（需会话签名）
 export const listShareDirRequest = (data: ListShareDirRequest) =>
   request.post<ListShareDirResponse>('/public/share/list', data)
 
@@ -44,16 +49,17 @@ export const buildShareLink = (token: string): string => {
   return `${origin}/public/share/${token}`
 }
 
-// 公开下载/预览链接：分享 token + 相对子路径（用于公开页下载/预览按钮）。
+// 公开下载/预览链接：分享 token + 会话签名 + 相对子路径。
 // inline=true 走预览（不计下载次数）；否则附件下载。后端路由：/api/v1/public/share/download
+// 所有访问都强制携带会话签名（避免无签名直链导致的越权）。
 export const buildShareDownloadUrl = (
   token: string,
-  options: { path?: string; code?: string; inline?: boolean } = {},
+  sign: string,
+  options: { path?: string; inline?: boolean } = {},
 ): string => {
   const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-  const params = new URLSearchParams({ token })
+  const params = new URLSearchParams({ token, sign })
   if (options.path) params.set('path', options.path)
-  if (options.code) params.set('code', options.code)
   if (options.inline) params.set('inline', '1')
   return `${base}/public/share/download?${params.toString()}`
 }

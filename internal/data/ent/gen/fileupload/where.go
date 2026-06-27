@@ -120,6 +120,11 @@ func UserID(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldUserID, v))
 }
 
+// SourceID applies equality check predicate on the "source_id" field. It's identical to SourceIDEQ.
+func SourceID(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldSourceID, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldCreateTime, v))
@@ -598,6 +603,71 @@ func UserIDEqualFold(v string) predicate.FileUpload {
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldContainsFold(FieldUserID, v))
+}
+
+// SourceIDEQ applies the EQ predicate on the "source_id" field.
+func SourceIDEQ(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldSourceID, v))
+}
+
+// SourceIDNEQ applies the NEQ predicate on the "source_id" field.
+func SourceIDNEQ(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNEQ(FieldSourceID, v))
+}
+
+// SourceIDIn applies the In predicate on the "source_id" field.
+func SourceIDIn(vs ...string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldIn(FieldSourceID, vs...))
+}
+
+// SourceIDNotIn applies the NotIn predicate on the "source_id" field.
+func SourceIDNotIn(vs ...string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNotIn(FieldSourceID, vs...))
+}
+
+// SourceIDGT applies the GT predicate on the "source_id" field.
+func SourceIDGT(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldGT(FieldSourceID, v))
+}
+
+// SourceIDGTE applies the GTE predicate on the "source_id" field.
+func SourceIDGTE(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldGTE(FieldSourceID, v))
+}
+
+// SourceIDLT applies the LT predicate on the "source_id" field.
+func SourceIDLT(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldLT(FieldSourceID, v))
+}
+
+// SourceIDLTE applies the LTE predicate on the "source_id" field.
+func SourceIDLTE(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldLTE(FieldSourceID, v))
+}
+
+// SourceIDContains applies the Contains predicate on the "source_id" field.
+func SourceIDContains(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldContains(FieldSourceID, v))
+}
+
+// SourceIDHasPrefix applies the HasPrefix predicate on the "source_id" field.
+func SourceIDHasPrefix(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldHasPrefix(FieldSourceID, v))
+}
+
+// SourceIDHasSuffix applies the HasSuffix predicate on the "source_id" field.
+func SourceIDHasSuffix(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldHasSuffix(FieldSourceID, v))
+}
+
+// SourceIDEqualFold applies the EqualFold predicate on the "source_id" field.
+func SourceIDEqualFold(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEqualFold(FieldSourceID, v))
+}
+
+// SourceIDContainsFold applies the ContainsFold predicate on the "source_id" field.
+func SourceIDContainsFold(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldContainsFold(FieldSourceID, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

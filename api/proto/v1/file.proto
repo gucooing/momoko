@@ -155,10 +155,52 @@ service FileManager {
       get: "/api/v1/public/share/meta"
     };
   }
-  // 公开：浏览分享目录（按需提取码）
+  // 公开：浏览分享目录（需会话签名）
   rpc ListShareDir(ListShareDirRequest) returns (ListShareDirResponse) {
     option (google.api.http) = {
       post: "/api/v1/public/share/list"
+      body: "*"
+    };
+  }
+  // 公开：用 token(+提取码) 换取一次性会话签名，后续分享请求只带签名不带提取码
+  rpc CreateShareSession(CreateShareSessionRequest) returns (CreateShareSessionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/public/share/session"
+      body: "*"
+    };
+  }
+
+  // 文件来源列表(系统级)
+  rpc ListFileSources(ListFileSourcesRequest) returns (ListFileSourcesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/source"
+    };
+  }
+  // 新增文件来源(系统级)
+  rpc CreateFileSource(CreateFileSourceRequest) returns (CreateFileSourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/source/create"
+      body: "*"
+    };
+  }
+  // 更新文件来源(系统级)
+  rpc UpdateFileSource(UpdateFileSourceRequest) returns (UpdateFileSourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/source/update"
+      body: "*"
+    };
+  }
+  // 删除文件来源(系统级)
+  rpc DeleteFileSource(DeleteFileSourceRequest) returns (DeleteFileSourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/source/delete"
+      body: "*"
+    };
+  }
+  // 测试文件来源连通性(系统级)
+  rpc TestFileSource(TestFileSourceRequest) returns (TestFileSourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/file/source/test"
       body: "*"
     };
   }
@@ -299,12 +341,12 @@ message GetShareMetaResponse {
   string owner_avatar = 10;
 }
 
-// 浏览分享目录请求（公开）
+// 浏览分享目录请求（公开，需会话签名）
 message ListShareDirRequest {
   // 公开访问令牌
   string token = 1;
-  // 提取码（如分享设置了）
-  string code = 2;
+  // 会话签名（由 CreateShareSession 换取，替代逐次携带提取码）
+  string sign = 2;
   // 分享根下的相对子路径，空=根
   string sub_path = 3;
 }
@@ -329,6 +371,182 @@ message ListShareDirResponse {
   repeated ShareEntry items = 1;
   // 当前子路径
   string sub_path = 2;
+}
+
+// 换取分享会话签名请求（公开）
+message CreateShareSessionRequest {
+  // 公开访问令牌
+  string token = 1;
+  // 提取码（如分享设置了）
+  string code = 2;
+}
+
+// 换取分享会话签名响应（公开）
+message CreateShareSessionResponse {
+  // 会话签名；为空表示需要先通过验证（见 need_code/message）
+  string sign = 1;
+  // 签名过期时间（限时分享下不晚于分享过期时间）
+  google.protobuf.Timestamp expires_at = 2;
+  // 是否需要提取码（未提供或错误）
+  bool need_code = 3;
+  // 失败原因（已关闭/已过期/次数用尽/提取码错误等）
+  string message = 4;
+}
+
+// 文件来源能力（供前端隐藏/禁用不支持的动作）
+message FileSourceCaps {
+  // 支持预签名直链（启用 302 跳转的前提）
+  bool presign = 1;
+  // 支持复制
+  bool copy = 2;
+  // 支持移动/剪切
+  bool move = 3;
+  // 支持压缩/解压
+  bool compress = 4;
+  // 支持断点续传上传
+  bool resumable_upload = 5;
+}
+
+// 文件来源类型相关配置（密钥字段仅写入、响应中恒为空）
+message FileSourceConfig {
+  // —— OSS / S3 ——
+  // 访问端点，如 oss-cn-hangzhou.aliyuncs.com / s3.amazonaws.com / minio:9000
+  string endpoint = 1;
+  // 区域
+  string region = 2;
+  // 桶名
+  string bucket = 3;
+  // Access Key ID
+  string access_key = 4;
+  // Secret Key（仅写入，响应恒为空；更新时留空=保留原值）
+  string secret_key = 5;
+  // 基础路径/对象 key 前缀
+  string prefix = 6;
+  // 是否使用 https
+  bool use_ssl = 7;
+  // 是否 path-style（MinIO 等需要）
+  bool path_style = 8;
+  // —— FTP / WebDAV ——
+  // 主机
+  string host = 9;
+  // 端口
+  int32 port = 10;
+  // 用户名
+  string username = 11;
+  // 密码（仅写入，响应恒为空；更新时留空=保留原值）
+  string password = 12;
+  // 基础路径
+  string base_path = 13;
+  // 是否启用 TLS（FTP over TLS）
+  bool tls = 14;
+  // —— WebDAV ——
+  // 完整 WebDAV 基础 URL，如 https://dav.example.com/remote.php/dav/files/me
+  string url = 15;
+}
+
+// 文件来源信息
+message FileSourceInfo {
+  // id
+  string id = 1;
+  // 展示名称
+  string name = 2;
+  // 类型 oss/ftp/webdav
+  string type = 3;
+  // 是否启用
+  bool enabled = 4;
+  // 是否优先 302 直链
+  bool redirect_302 = 5;
+  // 配置（密钥字段为空）
+  FileSourceConfig config = 6;
+  // 能力
+  FileSourceCaps caps = 7;
+  // 创建者昵称
+  string creator_name = 8;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 9;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 10;
+}
+
+// 文件来源列表请求
+message ListFileSourcesRequest {
+  // 搜索关键字（名称）
+  optional string keywords = 1;
+  // 只返回已启用（文件浏览器下拉用）
+  optional bool enabled_only = 2;
+}
+
+// 文件来源列表响应
+message ListFileSourcesResponse {
+  // 列表
+  repeated FileSourceInfo items = 1;
+}
+
+// 新增文件来源请求
+message CreateFileSourceRequest {
+  // 展示名称
+  string name = 1;
+  // 类型 oss/ftp/webdav
+  string type = 2;
+  // 是否启用
+  bool enabled = 3;
+  // 是否优先 302 直链
+  bool redirect_302 = 4;
+  // 配置
+  FileSourceConfig config = 5;
+}
+
+// 新增文件来源响应
+message CreateFileSourceResponse {
+  // 来源信息
+  FileSourceInfo info = 1;
+}
+
+// 更新文件来源请求
+message UpdateFileSourceRequest {
+  // id
+  string id = 1;
+  // 展示名称
+  string name = 2;
+  // 是否启用
+  bool enabled = 3;
+  // 是否优先 302 直链
+  bool redirect_302 = 4;
+  // 配置（密钥字段留空=保留原值）
+  FileSourceConfig config = 5;
+}
+
+// 更新文件来源响应
+message UpdateFileSourceResponse {
+  // 来源信息
+  FileSourceInfo info = 1;
+}
+
+// 删除文件来源请求
+message DeleteFileSourceRequest {
+  // id
+  string id = 1;
+}
+
+// 删除文件来源响应
+message DeleteFileSourceResponse {}
+
+// 测试文件来源连通性请求（传 id 测已存在来源；或传 type+config 测未保存配置）
+message TestFileSourceRequest {
+  // 已存在来源 id（优先）
+  string id = 1;
+  // 类型 oss/ftp/webdav
+  string type = 2;
+  // 配置
+  FileSourceConfig config = 3;
+}
+
+// 测试文件来源连通性响应
+message TestFileSourceResponse {
+  // 是否连通
+  bool ok = 1;
+  // 结果消息
+  string message = 2;
 }
 
 // 文件排序字段
@@ -371,6 +589,8 @@ message GetFileSystemListRequest {
   FileSortField sort_field = 6;
   // 排序是否倒序
   bool is_desc = 7;
+  // 文件来源id，空=本地磁盘
+  string source_id = 8;
 }
 
 // 获取系统文件列表响应
@@ -441,6 +661,8 @@ message FileTreeNode {
 message GetFileSystemTreeRequest {
   // 目录路径，空=根目录
   string path = 1;
+  // 文件来源id，空=本地磁盘
+  string source_id = 2;
 }
 
 // 获取目录树响应(系统级)
@@ -473,6 +695,8 @@ message FileSizeResult {
 message BatchDeleteFileSystemRequest {
   // 路径列表
   repeated string paths = 1;
+  // 文件来源id，空=本地磁盘
+  string source_id = 2;
 }
 
 // 批量删除系统文件响应
@@ -485,6 +709,8 @@ message BatchDeleteFileSystemResponse {
 message CreateFileSystemRequest {
   // 创建信息
   FileCreateItem info = 1;
+  // 文件来源id，空=本地磁盘
+  string source_id = 2;
 }
 
 // 批量创建系统文件响应
@@ -496,6 +722,8 @@ message RenameFileSystemRequest {
   string path = 1;
   // 新名称，不包含路径
   string new_name = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 重命名系统文件响应
@@ -510,6 +738,8 @@ message CopyFileSystemRequest {
   repeated string paths = 1;
   // 目标目录路径
   string target_path = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 复制系统文件响应
@@ -524,6 +754,8 @@ message CutFileSystemRequest {
   repeated string paths = 1;
   // 目标目录路径
   string target_path = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 剪贴系统文件响应
@@ -572,6 +804,8 @@ message BatchCompressFileSystemRequest {
   repeated string paths = 1;
   // 目标压缩文件路径，不传时由服务端自动生成
   optional string target_path = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 批量压缩系统文件响应
@@ -586,6 +820,8 @@ message UnzipFileSystemRequest {
   string path = 1;
   // 解压目标目录，不传时由服务端自动生成
   optional string target_path = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 解压系统文件响应
@@ -618,6 +854,8 @@ message FileOperationResult {
 message OpenFileSystemFileRequest {
   // 文件路径
   string path = 1;
+  // 文件来源id，空=本地磁盘
+  string source_id = 2;
 }
 
 // 打开系统文件响应
@@ -632,6 +870,8 @@ message EditFileSystemFileRequest {
   string path = 1;
   // 文件内容
   bytes content = 2;
+  // 文件来源id，空=本地磁盘
+  string source_id = 3;
 }
 
 // 编辑系统文件响应
@@ -641,6 +881,10 @@ message EditFileSystemFileResponse {}
 message FileSystemPreSignRequest {
   // 路径
   string path = 1;
+  // 文件来源id，空=本地磁盘
+  string source_id = 2;
+  // 是否内联预览（true=inline 预览，false=attachment 下载）
+  bool inline = 3;
 }
 
 // 文件下载预签名响应
@@ -661,6 +905,8 @@ message FileSystemPreSignUploadRequest {
   string hash = 4;
   // 分片大小（字节），不传时由服务端自动决定
   optional uint64 part_size = 5;
+  // 文件来源id，空=本地磁盘
+  string source_id = 6;
 }
 
 // 文件上传预签名(系统级)响应

@@ -50,6 +50,14 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationFileManagerUpdateShare: constant.FileShare,
 	v1.OperationFileManagerDeleteShare: constant.FileShare,
 
+	// —— 文件来源（管理）——
+	// 列表(ListFileSources)不登记：回退到 FileManager 默认(constant.Terminal)，
+	// 使文件浏览器的来源下拉对所有有文件管理权限的用户可用；增删改/测试需文件来源管理权限。
+	v1.OperationFileManagerCreateFileSource: constant.FileSource,
+	v1.OperationFileManagerUpdateFileSource: constant.FileSource,
+	v1.OperationFileManagerDeleteFileSource: constant.FileSource,
+	v1.OperationFileManagerTestFileSource:   constant.FileSource,
+
 	// —— Sub2API（编辑）——
 	v1.OperationSub2APIManagerUpdateSub2APIConfig:       constant.Sub2APIEdit,
 	v1.OperationSub2APIManagerCreateSub2APIAnnouncement: constant.Sub2APIEdit,

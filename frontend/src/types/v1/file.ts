@@ -180,12 +180,12 @@ export interface GetShareMetaResponse {
   ownerAvatar: string;
 }
 
-/** 浏览分享目录请求（公开） */
+/** 浏览分享目录请求（公开，需会话签名） */
 export interface ListShareDirRequest {
   /** 公开访问令牌 */
   token: string;
-  /** 提取码（如分享设置了） */
-  code: string;
+  /** 会话签名（由 CreateShareSession 换取，替代逐次携带提取码） */
+  sign: string;
   /** 分享根下的相对子路径，空=根 */
   subPath: string;
 }
@@ -214,6 +214,199 @@ export interface ListShareDirResponse {
   subPath: string;
 }
 
+/** 换取分享会话签名请求（公开） */
+export interface CreateShareSessionRequest {
+  /** 公开访问令牌 */
+  token: string;
+  /** 提取码（如分享设置了） */
+  code: string;
+}
+
+/** 换取分享会话签名响应（公开） */
+export interface CreateShareSessionResponse {
+  /** 会话签名；为空表示需要先通过验证（见 need_code/message） */
+  sign: string;
+  /** 签名过期时间（限时分享下不晚于分享过期时间） */
+  expiresAt:
+    | Date
+    | undefined;
+  /** 是否需要提取码（未提供或错误） */
+  needCode: boolean;
+  /** 失败原因（已关闭/已过期/次数用尽/提取码错误等） */
+  message: string;
+}
+
+/** 文件来源能力（供前端隐藏/禁用不支持的动作） */
+export interface FileSourceCaps {
+  /** 支持预签名直链（启用 302 跳转的前提） */
+  presign: boolean;
+  /** 支持复制 */
+  copy: boolean;
+  /** 支持移动/剪切 */
+  move: boolean;
+  /** 支持压缩/解压 */
+  compress: boolean;
+  /** 支持断点续传上传 */
+  resumableUpload: boolean;
+}
+
+/** 文件来源类型相关配置（密钥字段仅写入、响应中恒为空） */
+export interface FileSourceConfig {
+  /**
+   * —— OSS / S3 ——
+   * 访问端点，如 oss-cn-hangzhou.aliyuncs.com / s3.amazonaws.com / minio:9000
+   */
+  endpoint: string;
+  /** 区域 */
+  region: string;
+  /** 桶名 */
+  bucket: string;
+  /** Access Key ID */
+  accessKey: string;
+  /** Secret Key（仅写入，响应恒为空；更新时留空=保留原值） */
+  secretKey: string;
+  /** 基础路径/对象 key 前缀 */
+  prefix: string;
+  /** 是否使用 https */
+  useSsl: boolean;
+  /** 是否 path-style（MinIO 等需要） */
+  pathStyle: boolean;
+  /**
+   * —— FTP / WebDAV ——
+   * 主机
+   */
+  host: string;
+  /** 端口 */
+  port: number;
+  /** 用户名 */
+  username: string;
+  /** 密码（仅写入，响应恒为空；更新时留空=保留原值） */
+  password: string;
+  /** 基础路径 */
+  basePath: string;
+  /** 是否启用 TLS（FTP over TLS） */
+  tls: boolean;
+  /**
+   * —— WebDAV ——
+   * 完整 WebDAV 基础 URL，如 https://dav.example.com/remote.php/dav/files/me
+   */
+  url: string;
+}
+
+/** 文件来源信息 */
+export interface FileSourceInfo {
+  /** id */
+  id: string;
+  /** 展示名称 */
+  name: string;
+  /** 类型 oss/ftp/webdav */
+  type: string;
+  /** 是否启用 */
+  enabled: boolean;
+  /** 是否优先 302 直链 */
+  redirect302: boolean;
+  /** 配置（密钥字段为空） */
+  config:
+    | FileSourceConfig
+    | undefined;
+  /** 能力 */
+  caps:
+    | FileSourceCaps
+    | undefined;
+  /** 创建者昵称 */
+  creatorName: string;
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 更新时间 */
+  updateTime: Date | undefined;
+}
+
+/** 文件来源列表请求 */
+export interface ListFileSourcesRequest {
+  /** 搜索关键字（名称） */
+  keywords?:
+    | string
+    | undefined;
+  /** 只返回已启用（文件浏览器下拉用） */
+  enabledOnly?: boolean | undefined;
+}
+
+/** 文件来源列表响应 */
+export interface ListFileSourcesResponse {
+  /** 列表 */
+  items: FileSourceInfo[];
+}
+
+/** 新增文件来源请求 */
+export interface CreateFileSourceRequest {
+  /** 展示名称 */
+  name: string;
+  /** 类型 oss/ftp/webdav */
+  type: string;
+  /** 是否启用 */
+  enabled: boolean;
+  /** 是否优先 302 直链 */
+  redirect302: boolean;
+  /** 配置 */
+  config: FileSourceConfig | undefined;
+}
+
+/** 新增文件来源响应 */
+export interface CreateFileSourceResponse {
+  /** 来源信息 */
+  info: FileSourceInfo | undefined;
+}
+
+/** 更新文件来源请求 */
+export interface UpdateFileSourceRequest {
+  /** id */
+  id: string;
+  /** 展示名称 */
+  name: string;
+  /** 是否启用 */
+  enabled: boolean;
+  /** 是否优先 302 直链 */
+  redirect302: boolean;
+  /** 配置（密钥字段留空=保留原值） */
+  config: FileSourceConfig | undefined;
+}
+
+/** 更新文件来源响应 */
+export interface UpdateFileSourceResponse {
+  /** 来源信息 */
+  info: FileSourceInfo | undefined;
+}
+
+/** 删除文件来源请求 */
+export interface DeleteFileSourceRequest {
+  /** id */
+  id: string;
+}
+
+/** 删除文件来源响应 */
+export interface DeleteFileSourceResponse {
+}
+
+/** 测试文件来源连通性请求（传 id 测已存在来源；或传 type+config 测未保存配置） */
+export interface TestFileSourceRequest {
+  /** 已存在来源 id（优先） */
+  id: string;
+  /** 类型 oss/ftp/webdav */
+  type: string;
+  /** 配置 */
+  config: FileSourceConfig | undefined;
+}
+
+/** 测试文件来源连通性响应 */
+export interface TestFileSourceResponse {
+  /** 是否连通 */
+  ok: boolean;
+  /** 结果消息 */
+  message: string;
+}
+
 /** 获取系统文件列表请求 */
 export interface GetFileSystemListRequest {
   /** 目录路径 */
@@ -234,6 +427,8 @@ export interface GetFileSystemListRequest {
   sortField: FileSortField;
   /** 排序是否倒序 */
   isDesc: boolean;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 获取系统文件列表响应 */
@@ -306,6 +501,8 @@ export interface FileTreeNode {
 export interface GetFileSystemTreeRequest {
   /** 目录路径，空=根目录 */
   path: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 获取目录树响应(系统级) */
@@ -338,6 +535,8 @@ export interface FileSizeResult {
 export interface BatchDeleteFileSystemRequest {
   /** 路径列表 */
   paths: string[];
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 批量删除系统文件响应 */
@@ -349,7 +548,11 @@ export interface BatchDeleteFileSystemResponse {
 /** 批量创建系统文件请求 */
 export interface CreateFileSystemRequest {
   /** 创建信息 */
-  info: FileCreateItem | undefined;
+  info:
+    | FileCreateItem
+    | undefined;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 批量创建系统文件响应 */
@@ -362,6 +565,8 @@ export interface RenameFileSystemRequest {
   path: string;
   /** 新名称，不包含路径 */
   newName: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 重命名系统文件响应 */
@@ -376,6 +581,8 @@ export interface CopyFileSystemRequest {
   paths: string[];
   /** 目标目录路径 */
   targetPath: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 复制系统文件响应 */
@@ -390,6 +597,8 @@ export interface CutFileSystemRequest {
   paths: string[];
   /** 目标目录路径 */
   targetPath: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 剪贴系统文件响应 */
@@ -439,7 +648,11 @@ export interface BatchCompressFileSystemRequest {
   /** 路径列表 */
   paths: string[];
   /** 目标压缩文件路径，不传时由服务端自动生成 */
-  targetPath?: string | undefined;
+  targetPath?:
+    | string
+    | undefined;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 批量压缩系统文件响应 */
@@ -453,7 +666,11 @@ export interface UnzipFileSystemRequest {
   /** 压缩文件路径 */
   path: string;
   /** 解压目标目录，不传时由服务端自动生成 */
-  targetPath?: string | undefined;
+  targetPath?:
+    | string
+    | undefined;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 解压系统文件响应 */
@@ -486,6 +703,8 @@ export interface FileOperationResult {
 export interface OpenFileSystemFileRequest {
   /** 文件路径 */
   path: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 打开系统文件响应 */
@@ -500,6 +719,8 @@ export interface EditFileSystemFileRequest {
   path: string;
   /** 文件内容 */
   content: Uint8Array;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 编辑系统文件响应 */
@@ -510,6 +731,10 @@ export interface EditFileSystemFileResponse {
 export interface FileSystemPreSignRequest {
   /** 路径 */
   path: string;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
+  /** 是否内联预览（true=inline 预览，false=attachment 下载） */
+  inline: boolean;
 }
 
 /** 文件下载预签名响应 */
@@ -529,7 +754,11 @@ export interface FileSystemPreSignUploadRequest {
   /** 快速hash */
   hash: string;
   /** 分片大小（字节），不传时由服务端自动决定 */
-  partSize?: number | undefined;
+  partSize?:
+    | number
+    | undefined;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 文件上传预签名(系统级)响应 */

@@ -40,7 +40,7 @@ func gcStaleUploads(ctx context.Context, store UploadGCStore, retention time.Dur
 		return
 	}
 	for _, u := range stale {
-		_ = os.Remove(TempPartPath(u.Path, u.FileName, u.ID))
+		_ = os.Remove(uploadBufferPath(u))
 		_ = store.DeleteUploadCascade(ctx, u.ID)
 	}
 }

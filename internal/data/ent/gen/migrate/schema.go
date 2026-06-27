@@ -107,6 +107,44 @@ var (
 			},
 		},
 	}
+	// FileSourcesColumns holds the columns for the "file_sources" table.
+	FileSourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"oss", "ftp", "webdav"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "redirect_302", Type: field.TypeBool, Default: false},
+		{Name: "config", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// FileSourcesTable holds the schema information for the "file_sources" table.
+	FileSourcesTable = &schema.Table{
+		Name:       "file_sources",
+		Columns:    FileSourcesColumns,
+		PrimaryKey: []*schema.Column{FileSourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "file_sources_users_user",
+				Columns:    []*schema.Column{FileSourcesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "filesource_type",
+				Unique:  false,
+				Columns: []*schema.Column{FileSourcesColumns[4]},
+			},
+			{
+				Name:    "filesource_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{FileSourcesColumns[5]},
+			},
+		},
+	}
 	// FileUploadsColumns holds the columns for the "file_uploads" table.
 	FileUploadsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -120,6 +158,7 @@ var (
 		{Name: "total_chunks", Type: field.TypeUint64},
 		{Name: "completed", Type: field.TypeBool, Default: false},
 		{Name: "cancel", Type: field.TypeBool, Default: false},
+		{Name: "source_id", Type: field.TypeString, Default: ""},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FileUploadsTable holds the schema information for the "file_uploads" table.
@@ -130,16 +169,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_uploads_users_user",
-				Columns:    []*schema.Column{FileUploadsColumns[11]},
+				Columns:    []*schema.Column{FileUploadsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "fileupload_path_hash",
+				Name:    "fileupload_source_id_path_hash",
 				Unique:  true,
-				Columns: []*schema.Column{FileUploadsColumns[4], FileUploadsColumns[3]},
+				Columns: []*schema.Column{FileUploadsColumns[11], FileUploadsColumns[4], FileUploadsColumns[3]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "NOT completed AND NOT cancel",
 				},
@@ -814,6 +853,7 @@ var (
 		AuthsTable,
 		EmailTemplatesTable,
 		FileSharesTable,
+		FileSourcesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
 		FrpTunnelsTable,
@@ -844,6 +884,7 @@ func init() {
 		Table: "email_templates",
 	}
 	FileSharesTable.ForeignKeys[0].RefTable = UsersTable
+	FileSourcesTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	FrpTunnelsTable.ForeignKeys[0].RefTable = UsersTable

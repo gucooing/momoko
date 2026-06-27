@@ -20,6 +20,8 @@ type Tx struct {
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
 	FileShare *FileShareClient
+	// FileSource is the client for interacting with the FileSource builders.
+	FileSource *FileSourceClient
 	// FileUpload is the client for interacting with the FileUpload builders.
 	FileUpload *FileUploadClient
 	// FileUploadChunk is the client for interacting with the FileUploadChunk builders.
@@ -194,6 +196,7 @@ func (tx *Tx) init() {
 	tx.Auth = NewAuthClient(tx.config)
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileShare = NewFileShareClient(tx.config)
+	tx.FileSource = NewFileSourceClient(tx.config)
 	tx.FileUpload = NewFileUploadClient(tx.config)
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
 	tx.FrpTunnel = NewFrpTunnelClient(tx.config)

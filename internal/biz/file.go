@@ -1,11 +1,16 @@
 package biz
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -15,9 +20,11 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/fileupload"
+	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
+	"momoko/pkg/secretbox"
 	"momoko/pkg/share"
 	"momoko/pkg/utils"
 )
@@ -26,10 +33,14 @@ const (
 	PreFileDownload = "/api/v1/download/pre" // 下载路径
 	PreFileUpload   = "/api/v1/upload/pre"   // 上传路径
 
-	// ShareDownloadPath 公开分享下载入口；/api/v1/public/ 前缀免 JWT，业务层自校验令牌/提取码。
+	// ShareDownloadPath 公开分享下载入口；/api/v1/public/ 前缀免 JWT，业务层用签名自校验。
 	ShareDownloadPath = "/api/v1/public/share/download"
 
 	UploadPeriod = 2 * time.Hour
+	// ShareSessionTTL 分享会话签名默认有效期（限时分享下会被裁剪到不超过分享过期时间）。
+	ShareSessionTTL = 2 * time.Hour
+	// fileServeTTL 预签名直链(302)对外暴露的有效期。
+	fileServeTTL = 5 * time.Minute
 )
 
 var uploadCache = cache.New[string, *file.ChunkedUpload](UploadPeriod) // 全局上传缓存
@@ -49,6 +60,12 @@ type FileRepo interface {
 	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest, targetPath string, isDir bool) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
 	IncrShareDownload(ctx context.Context, id string) error
+
+	CreateFileSource(ctx context.Context, userID, name, typ, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
+	ListFileSources(ctx context.Context, keywords string, enabledOnly bool) ([]*gen.FileSource, error)
+	GetFileSource(ctx context.Context, id string) (*gen.FileSource, error)
+	UpdateFileSource(ctx context.Context, id, name, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
+	DeleteFileSource(ctx context.Context, id string) error
 }
 
 type FileUsecase struct {
@@ -60,6 +77,8 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
 		os.MkdirAll(file.ServersPath, 0755)
 	}
+	// 远端来源上传的本地分片缓冲目录。
+	os.MkdirAll(file.UploadBufferDir, 0755)
 	uc := &FileUsecase{
 		repo: repo,
 	}
@@ -71,29 +90,53 @@ func NewFileUsecase(repo FileRepo) *FileUsecase {
 // uploadGCInterval 是清理废弃上传会话的周期。
 const uploadGCInterval = 30 * time.Minute
 
-func (f *FileUsecase) newSystemInstance() (*file.FileOper, error) {
-	return file.NewFileOper(file.SystemPath)
+// storeFor 按来源 id 解析存储后端：空/"local" 为本地磁盘（系统级，含 Windows 盘符虚拟根），
+// 否则从 file_source 表读取并解密配置后构造对应来源。第二返回值在远端来源时为来源记录。
+func (f *FileUsecase) storeFor(ctx context.Context, sourceID string) (file.Store, *gen.FileSource, error) {
+	if sourceID == "" || sourceID == "local" {
+		s, err := file.NewLocalStore(file.SystemPath)
+		if err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+		return s, nil, nil
+	}
+	rec, err := f.repo.GetFileSource(ctx, sourceID)
+	if err != nil {
+		return nil, nil, ErrFileSourceNotFound
+	}
+	if !rec.Enabled {
+		return nil, nil, ErrFileSourceDisabled
+	}
+	cfg, err := f.decryptedConfig(rec)
+	if err != nil {
+		return nil, rec, ErrSystem(err)
+	}
+	s, err := file.NewStore(cfg)
+	if err != nil {
+		return nil, rec, ErrSystem(err)
+	}
+	return s, rec, nil
 }
 
-// GetFileSystemList 获取系统文件列表。
+// GetFileSystemList 获取文件列表（按来源）。
 func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSystemListRequest) (*v1.GetFileSystemListResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
 
 	var result []*v1.FileEntryInfo
 	if req.Keywords != nil {
-		result, err = fileOper.QueryDir(req.Path, req.GetKeywords(), req.GetIncludeSubDir())
+		result, err = store.Search(ctx, req.Path, req.GetKeywords(), req.GetIncludeSubDir())
 	} else {
-		result, err = fileOper.ListDir(req.Path, req.SortField, req.IsDesc)
+		result, err = store.List(ctx, req.Path, req.SortField, req.IsDesc)
 	}
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	// 分页
-	pages := make([]*v1.FileEntryInfo, 0)
 	total := int64(len(result))
+	pages := make([]*v1.FileEntryInfo, 0)
 	start := (req.Page - 1) * req.PageSize
 	end := req.Page * req.PageSize
 	if start >= total || start < 0 {
@@ -104,7 +147,7 @@ func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 		}
 		pages = result[start:end]
 	}
-	directory, err := fileOper.DirInfo(req.Path)
+	directory, err := store.DirInfo(ctx, req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -120,11 +163,11 @@ func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 
 // GetFileSystemTree 列出指定目录的直接子项（懒加载，供编辑器文件树使用）。
 func (f *FileUsecase) GetFileSystemTree(ctx context.Context, req *v1.GetFileSystemTreeRequest) (*v1.GetFileSystemTreeResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	entries, err := fileOper.ListDir(req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
+	entries, err := store.List(ctx, req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -149,100 +192,100 @@ func toTreeNodes(entries []*v1.FileEntryInfo) []*v1.FileTreeNode {
 
 // BatchDeleteFileSystem 批量删除文件。
 func (f *FileUsecase) BatchDeleteFileSystem(ctx context.Context, req *v1.BatchDeleteFileSystemRequest) (*v1.BatchDeleteFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
 	return &v1.BatchDeleteFileSystemResponse{
-		Items: fileOper.BatchDelete(req.Paths),
+		Items: store.Delete(ctx, req.Paths),
 	}, nil
 }
 
-// BatchCompressFileSystem 压缩系统文件或目录。
+// BatchCompressFileSystem 压缩文件或目录（仅支持的来源）。
 func (f *FileUsecase) BatchCompressFileSystem(ctx context.Context, req *v1.BatchCompressFileSystemRequest) (*v1.BatchCompressFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
+	if err != nil {
+		return nil, err
+	}
+	archiver, ok := store.(file.Archiver)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	outputPath, err := archiver.Compress(ctx, req.Paths, req.GetTargetPath())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-
-	outputPath, err := fileOper.BatchCompress(req.Paths, req.GetTargetPath())
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-
 	return &v1.BatchCompressFileSystemResponse{OutputPath: outputPath}, nil
 }
 
-// UnzipFileSystem 解压系统压缩包。
+// UnzipFileSystem 解压压缩包（仅支持的来源）。
 func (f *FileUsecase) UnzipFileSystem(ctx context.Context, req *v1.UnzipFileSystemRequest) (*v1.UnzipFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
+	if err != nil {
+		return nil, err
+	}
+	archiver, ok := store.(file.Archiver)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	outputPath, err := archiver.Unzip(ctx, req.Path, req.GetTargetPath())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-
-	outputPath, err := fileOper.Unzip(req.Path, req.GetTargetPath())
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-
 	return &v1.UnzipFileSystemResponse{OutputPath: outputPath}, nil
 }
 
 // CreateFileSystem 创建文件。
 func (f *FileUsecase) CreateFileSystem(ctx context.Context, req *v1.CreateFileSystemRequest) (*v1.CreateFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
+		return nil, err
+	}
+	if err = store.Create(ctx, req.Info); err != nil {
 		return nil, ErrSystem(err)
 	}
-
-	err = fileOper.Create(req.Info)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-
 	return &v1.CreateFileSystemResponse{}, nil
 }
 
 // RenameFileSystem 重命名文件或目录。
 func (f *FileUsecase) RenameFileSystem(ctx context.Context, req *v1.RenameFileSystemRequest) (*v1.RenameFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-
-	path, err := fileOper.Rename(req.Path, req.NewName)
+	path, err := store.Rename(ctx, req.Path, req.NewName)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	return &v1.RenameFileSystemResponse{Path: path}, nil
 }
 
-func (f *FileUsecase) CopyFileSystem(
-	ctx context.Context,
-	userID string,
-	req *v1.CopyFileSystemRequest,
-) (*v1.CopyFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+func (f *FileUsecase) CopyFileSystem(ctx context.Context, userID string, req *v1.CopyFileSystemRequest) (*v1.CopyFileSystemResponse, error) {
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	task, err := fileOper.StartCopyToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationSystemCopy)
+	copier, ok := store.(file.Copier)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	task, err := file.StartCopyTask(userID, copier, req.Paths, req.TargetPath, file.TaskOperationSystemCopy)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	return &v1.CopyFileSystemResponse{Task: task}, nil
 }
 
-func (f *FileUsecase) CutFileSystem(
-	ctx context.Context,
-	userID string,
-	req *v1.CutFileSystemRequest,
-) (*v1.CutFileSystemResponse, error) {
-	fileOper, err := f.newSystemInstance()
+func (f *FileUsecase) CutFileSystem(ctx context.Context, userID string, req *v1.CutFileSystemRequest) (*v1.CutFileSystemResponse, error) {
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	task, err := fileOper.StartMoveToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationSystemCut)
+	mover, ok := store.(file.Mover)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	task, err := file.StartMoveTask(userID, mover, req.Paths, req.TargetPath, file.TaskOperationSystemCut)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -257,14 +300,13 @@ func (f *FileUsecase) GetFileTask(ctx context.Context, userID, taskID string) (*
 	return task, nil
 }
 
-// OpenFileSystemFile 打开文件并返回内容。
+// OpenFileSystemFile 打开文件并返回内容（编辑器小文件读取，仍用 bytes 传输）。
 func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-
-	content, err := fileOper.LoadFile(req.Path)
+	content, err := store.Read(ctx, req.Path, file.MaxLoadFileSize)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -273,68 +315,112 @@ func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSy
 
 // EditFileSystemFile 覆盖保存文件内容。
 func (f *FileUsecase) EditFileSystemFile(ctx context.Context, req *v1.EditFileSystemFileRequest) (*v1.EditFileSystemFileResponse, error) {
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-
-	if err = fileOper.SaveFile(req.Path, req.Content); err != nil {
+	if len(req.Content) > file.MaxLoadFileSize {
+		return nil, ErrSystem(fmt.Errorf("文件太大"))
+	}
+	if err = store.Write(ctx, req.Path, bytes.NewReader(req.Content)); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return &v1.EditFileSystemFileResponse{}, nil
 }
 
-func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID, path string) (string, error) {
-	fileOper, err := f.newSystemInstance()
+// FileSystemPreSign 生成预览/下载用的短期签名 URL（inline=true 为内联预览）。
+func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID string, req *v1.FileSystemPreSignRequest) (string, error) {
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return "", ErrSystem(err)
+		return "", err
 	}
-	realPath, err := fileOper.ResolveRealPath(path)
-	if err != nil {
-		return "", ErrSystem(err)
-	}
-	if _, err := os.Stat(realPath); os.IsNotExist(err) {
+	if _, err := store.Stat(ctx, req.Path); err != nil {
 		return "", ErrFileNotExist
 	}
-	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), path, userID, 24*time.Hour)
+	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), req.Path, userID, 24*time.Hour)
+	preInfo.SourceID = req.SourceId
+	preInfo.Inline = req.Inline
 	sign, err := preInfo.Sign()
 	if err != nil {
 		return "", ErrSign
 	}
-	urlPath := fmt.Sprintf("%s?sign=%s", PreFileDownload, sign)
-	return urlPath, nil
+	return fmt.Sprintf("%s?sign=%s", PreFileDownload, sign), nil
 }
 
-func (f *FileUsecase) FileDownload(path string, w http.ResponseWriter, r *http.Request) {
-	fs, err := os.Open(path)
+// FileServe 校验签名后服务文件：可直链(302)的来源且开启 redirect_302 时跳转到来源预签名 URL，
+// 否则由后端代理串流（支持 Range，inline 预览 / attachment 下载）。
+func (f *FileUsecase) FileServe(ctx context.Context, info *pre.FileSignInfo, w http.ResponseWriter, r *http.Request) {
+	store, src, err := f.storeFor(ctx, info.SourceID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	defer fs.Close()
-	info, err := fs.Stat()
+	// 来源开启 302 且支持预签名 → 直链跳转，省服务器带宽。
+	if src != nil && src.Redirect302 {
+		if presigner, ok := store.(file.Presigner); ok {
+			if u, err := presigner.Presign(ctx, info.Path, info.Inline, fileServeTTL); err == nil {
+				http.Redirect(w, r, u, http.StatusFound)
+				return
+			}
+		}
+	}
+	rc, entry, err := store.Open(ctx, info.Path)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Disposition", `attachment; filename="`+info.Name()+`"`)
-	w.Header().Set("Accept-Ranges", "bytes")
-	http.ServeContent(w, r, info.Name(), info.ModTime(), fs)
+	defer rc.Close()
+
+	disposition := "attachment"
+	if info.Inline {
+		disposition = "inline"
+	}
+	w.Header().Set("Content-Disposition", disposition+`; filename="`+entry.Name+`"`)
+
+	var mod time.Time
+	if entry.UpdateTime != nil {
+		mod = entry.UpdateTime.AsTime()
+	}
+	// 可 Seek 的来源（本地、OSS）走 ServeContent，支持 Range 续传/拖动。
+	if seeker, ok := rc.(io.ReadSeeker); ok {
+		w.Header().Set("Accept-Ranges", "bytes")
+		http.ServeContent(w, r, entry.Name, mod, seeker)
+		return
+	}
+	// 不可 Seek 的来源（FTP/WebDAV）：整流返回，不支持 Range。
+	ctype := mime.TypeByExtension(filepath.Ext(entry.Name))
+	if ctype == "" {
+		ctype = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", ctype)
+	if entry.Size > 0 {
+		w.Header().Set("Content-Length", strconv.FormatUint(entry.Size, 10))
+	}
+	_, _ = io.Copy(w, rc)
 }
 
 func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string, req *v1.FileSystemPreSignUploadRequest) (*v1.UploadInfo, error) {
 	if req.FileSize > math.MaxInt64 {
 		return nil, ErrUploadRequestInvalid
 	}
-	fileOper, err := f.newSystemInstance()
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	realPath, err := fileOper.ResolveRealPath(req.Path)
-	if err != nil {
-		return nil, ErrSystem(err)
+	// 目标路径：本地来源解析为真实路径；远端来源直接用逻辑路径。
+	targetPath := req.Path
+	if req.SourceId == "" {
+		local, ok := store.(*file.LocalStore)
+		if !ok {
+			return nil, ErrSystem(fmt.Errorf("本地来源异常"))
+		}
+		targetPath, err = local.Oper().ResolveRealPath(req.Path)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
 	}
-	upload := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize)
+	upload := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize)
+	upload.SourceID = req.SourceId
 	info, err := f.repo.GetOrCreate(ctx, userID, upload)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -346,13 +432,16 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 		return nil, ErrSign
 	}
 	upload.FileUpload = info
+	if req.SourceId != "" {
+		upload.SetRemote(store)
+	}
 	uploadCache.Set(info.ID, upload)
 
 	return toUploadInfo(info, sign), nil
 }
 
 // getChunkedUpload 获取指定上传会话。缓存未命中（典型如服务重启后内存丢失）时
-// 从数据库重建会话，使断点续传不再依赖进程内缓存——这是旧实现 nil 解引用崩溃的根因。
+// 从数据库重建会话，使断点续传不再依赖进程内缓存。远端来源会重新注入落地目标。
 func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID string) (*file.ChunkedUpload, error) {
 	if upload, ok := uploadCache.Get(uploadID); ok {
 		return upload, nil
@@ -362,6 +451,11 @@ func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID str
 		return nil, ErrSystem(err)
 	}
 	upload := &file.ChunkedUpload{FileUpload: info}
+	if info.SourceID != "" {
+		if store, _, err := f.storeFor(ctx, info.SourceID); err == nil {
+			upload.SetRemote(store)
+		}
+	}
 	uploadCache.Set(uploadID, upload)
 	return upload, nil
 }
@@ -393,12 +487,10 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 		if err != nil {
 			return err
 		}
-		err = info.Complete()
-		if err != nil {
+		if err = info.Complete(ctx); err != nil {
 			return err
 		}
 		info.Completed = true
-
 		return nil
 	})
 	if err != nil {
@@ -419,8 +511,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 			return err
 		}
 		info.Cancel = true
-		err = info.Canceld()
-		if err != nil {
+		if err = info.Canceld(); err != nil {
 			return err
 		}
 		uploadCache.Del(uploadID)
@@ -447,23 +538,262 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 		return err
 	}
 	// 写入hash
-	err = f.repo.SaveChunkRecord(ctx, pr.UploadId, chunk, hash, size)
-	if err != nil {
+	if err = f.repo.SaveChunkRecord(ctx, pr.UploadId, chunk, hash, size); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ---- 分享 ----
-// biz 仅做鉴权 + 仓储编排；令牌生成、提取码/有效期校验、目录浏览与打包下载等逻辑在 pkg/share。
+// ---- 文件来源（OSS/FTP/WebDAV，全局/管理员维护）----
 
-// CreateShare 为指定路径创建一条分享。
-func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
-	fileOper, err := f.newSystemInstance()
+func validSourceType(typ string) bool {
+	return typ == "oss" || typ == "ftp" || typ == "webdav"
+}
+
+func (f *FileUsecase) box() *secretbox.Box { return secretbox.New(auth.AuthSecretKey) }
+
+// parseStoredConfig 解析数据库中存储的配置 JSON（密钥字段仍为加密态）。
+func (f *FileUsecase) parseStoredConfig(rec *gen.FileSource) (file.Config, error) {
+	var cfg file.Config
+	if rec.Config != "" {
+		if err := json.Unmarshal([]byte(rec.Config), &cfg); err != nil {
+			return cfg, err
+		}
+	}
+	cfg.Type = string(rec.Type)
+	return cfg, nil
+}
+
+// decryptedConfig 解析并解密密钥，得到可用于构造 Store 的明文配置。
+func (f *FileUsecase) decryptedConfig(rec *gen.FileSource) (file.Config, error) {
+	cfg, err := f.parseStoredConfig(rec)
+	if err != nil {
+		return cfg, err
+	}
+	box := f.box()
+	if cfg.SecretKey != "" {
+		if v, err := box.Decrypt(cfg.SecretKey); err == nil {
+			cfg.SecretKey = v
+		}
+	}
+	if cfg.Password != "" {
+		if v, err := box.Decrypt(cfg.Password); err == nil {
+			cfg.Password = v
+		}
+	}
+	return cfg, nil
+}
+
+// buildStoredConfig 由请求配置生成入库 JSON（密钥加密）；existing 提供「更新时密钥留空=保留原值」的回退。
+func (f *FileUsecase) buildStoredConfig(typ string, c *v1.FileSourceConfig, existing *file.Config) (string, error) {
+	if c == nil {
+		c = &v1.FileSourceConfig{}
+	}
+	box := f.box()
+	cfg := file.Config{
+		Type:      typ,
+		Endpoint:  c.GetEndpoint(),
+		Region:    c.GetRegion(),
+		Bucket:    c.GetBucket(),
+		AccessKey: c.GetAccessKey(),
+		Prefix:    c.GetPrefix(),
+		UseSSL:    c.GetUseSsl(),
+		PathStyle: c.GetPathStyle(),
+		Host:      c.GetHost(),
+		Port:      int(c.GetPort()),
+		Username:  c.GetUsername(),
+		BasePath:  c.GetBasePath(),
+		TLS:       c.GetTls(),
+		URL:       c.GetUrl(),
+	}
+	if c.GetSecretKey() != "" {
+		enc, err := box.Encrypt(c.GetSecretKey())
+		if err != nil {
+			return "", err
+		}
+		cfg.SecretKey = enc
+	} else if existing != nil {
+		cfg.SecretKey = existing.SecretKey // 已是加密态
+	}
+	if c.GetPassword() != "" {
+		enc, err := box.Encrypt(c.GetPassword())
+		if err != nil {
+			return "", err
+		}
+		cfg.Password = enc
+	} else if existing != nil {
+		cfg.Password = existing.Password
+	}
+	b, err := json.Marshal(cfg)
+	return string(b), err
+}
+
+// requestToConfig 直接用请求里的明文配置（测试未保存来源时使用）。
+func requestToConfig(typ string, c *v1.FileSourceConfig) file.Config {
+	if c == nil {
+		c = &v1.FileSourceConfig{}
+	}
+	return file.Config{
+		Type:      typ,
+		Endpoint:  c.GetEndpoint(),
+		Region:    c.GetRegion(),
+		Bucket:    c.GetBucket(),
+		AccessKey: c.GetAccessKey(),
+		SecretKey: c.GetSecretKey(),
+		Prefix:    c.GetPrefix(),
+		UseSSL:    c.GetUseSsl(),
+		PathStyle: c.GetPathStyle(),
+		Host:      c.GetHost(),
+		Port:      int(c.GetPort()),
+		Username:  c.GetUsername(),
+		Password:  c.GetPassword(),
+		BasePath:  c.GetBasePath(),
+		TLS:       c.GetTls(),
+		URL:       c.GetUrl(),
+	}
+}
+
+// toFileSourceInfo 映射为对外信息：密钥脱敏（清空），附带能力。
+func (f *FileUsecase) toFileSourceInfo(rec *gen.FileSource) *v1.FileSourceInfo {
+	cfg, _ := f.parseStoredConfig(rec)
+	caps := file.CapsForType(string(rec.Type))
+	creator := ""
+	if rec.Edges.User != nil {
+		creator = rec.Edges.User.Name
+		if creator == "" {
+			creator = rec.Edges.User.Username
+		}
+	}
+	return &v1.FileSourceInfo{
+		Id:           rec.ID,
+		Name:         rec.Name,
+		Type:         string(rec.Type),
+		Enabled:      rec.Enabled,
+		Redirect_302: rec.Redirect302,
+		Config: &v1.FileSourceConfig{
+			Endpoint:  cfg.Endpoint,
+			Region:    cfg.Region,
+			Bucket:    cfg.Bucket,
+			AccessKey: cfg.AccessKey,
+			Prefix:    cfg.Prefix,
+			UseSsl:    cfg.UseSSL,
+			PathStyle: cfg.PathStyle,
+			Host:      cfg.Host,
+			Port:      int32(cfg.Port),
+			Username:  cfg.Username,
+			BasePath:  cfg.BasePath,
+			Tls:       cfg.TLS,
+			Url:       cfg.URL,
+			// SecretKey / Password 不返回
+		},
+		Caps: &v1.FileSourceCaps{
+			Presign:         caps.Presign,
+			Copy:            caps.Copy,
+			Move:            caps.Move,
+			Compress:        caps.Compress,
+			ResumableUpload: caps.ResumableUpload,
+		},
+		CreatorName: creator,
+		CreateTime:  timestamppb.New(rec.CreateTime),
+		UpdateTime:  timestamppb.New(rec.UpdateTime),
+	}
+}
+
+func (f *FileUsecase) ListFileSources(ctx context.Context, req *v1.ListFileSourcesRequest) (*v1.ListFileSourcesResponse, error) {
+	items, err := f.repo.ListFileSources(ctx, req.GetKeywords(), req.GetEnabledOnly())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	realPath, err := fileOper.ResolveRealPath(req.Path)
+	resp := &v1.ListFileSourcesResponse{Items: make([]*v1.FileSourceInfo, 0, len(items))}
+	for _, it := range items {
+		resp.Items = append(resp.Items, f.toFileSourceInfo(it))
+	}
+	return resp, nil
+}
+
+func (f *FileUsecase) CreateFileSource(ctx context.Context, userID string, req *v1.CreateFileSourceRequest) (*v1.FileSourceInfo, error) {
+	if !validSourceType(req.Type) {
+		return nil, ErrFileSourceType
+	}
+	cfgJSON, err := f.buildStoredConfig(req.Type, req.Config, nil)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	rec, err := f.repo.CreateFileSource(ctx, userID, req.Name, req.Type, cfgJSON, req.Enabled, req.Redirect_302)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if full, err := f.repo.GetFileSource(ctx, rec.ID); err == nil {
+		rec = full
+	}
+	return f.toFileSourceInfo(rec), nil
+}
+
+func (f *FileUsecase) UpdateFileSource(ctx context.Context, req *v1.UpdateFileSourceRequest) (*v1.FileSourceInfo, error) {
+	rec, err := f.repo.GetFileSource(ctx, req.Id)
+	if err != nil {
+		return nil, ErrFileSourceNotFound
+	}
+	existing, _ := f.parseStoredConfig(rec)
+	cfgJSON, err := f.buildStoredConfig(string(rec.Type), req.Config, &existing)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if _, err := f.repo.UpdateFileSource(ctx, req.Id, req.Name, cfgJSON, req.Enabled, req.Redirect_302); err != nil {
+		return nil, ErrSystem(err)
+	}
+	full, err := f.repo.GetFileSource(ctx, req.Id)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return f.toFileSourceInfo(full), nil
+}
+
+func (f *FileUsecase) DeleteFileSource(ctx context.Context, id string) error {
+	if err := f.repo.DeleteFileSource(ctx, id); err != nil {
+		return ErrSystem(err)
+	}
+	return nil
+}
+
+// TestFileSource 测试来源连通性：传 id 测已存在来源；否则用请求里的明文配置测未保存的来源。
+func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSourceRequest) (*v1.TestFileSourceResponse, error) {
+	var cfg file.Config
+	if req.Id != "" {
+		rec, err := f.repo.GetFileSource(ctx, req.Id)
+		if err != nil {
+			return &v1.TestFileSourceResponse{Ok: false, Message: "来源不存在"}, nil
+		}
+		cfg, err = f.decryptedConfig(rec)
+		if err != nil {
+			return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+		}
+	} else {
+		if !validSourceType(req.Type) {
+			return &v1.TestFileSourceResponse{Ok: false, Message: "类型不合法"}, nil
+		}
+		cfg = requestToConfig(req.Type, req.Config)
+	}
+	store, err := file.NewStore(cfg)
+	if err != nil {
+		return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+	}
+	if _, err := store.List(ctx, "", v1.FileSortField_FILE_SORT_FIELD_NAME, false); err != nil {
+		return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+	}
+	return &v1.TestFileSourceResponse{Ok: true, Message: "连接成功"}, nil
+}
+
+// ---- 分享 ----
+// biz 仅做鉴权 + 仓储编排；令牌生成、提取码/有效期校验、目录浏览与打包下载等逻辑在 pkg/share。
+
+// CreateShare 为指定路径创建一条分享（仅本地系统盘）。
+func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
+	local, err := file.NewLocalStore(file.SystemPath)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	realPath, err := local.Oper().ResolveRealPath(req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -501,16 +831,15 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 }
 
 // UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
-// req.Path 非空时改换分享目标（文件/文件夹），token 不变、原链接继续有效。
 func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*v1.ShareInfo, error) {
 	var targetPath string
 	var isDir bool
 	if req.Path != "" {
-		fileOper, err := f.newSystemInstance()
+		local, err := file.NewLocalStore(file.SystemPath)
 		if err != nil {
 			return nil, ErrSystem(err)
 		}
-		realPath, err := fileOper.ResolveRealPath(req.Path)
+		realPath, err := local.Oper().ResolveRealPath(req.Path)
 		if err != nil {
 			return nil, ErrSystem(err)
 		}
@@ -539,7 +868,8 @@ func (f *FileUsecase) DeleteShare(ctx context.Context, userID, id string) error 
 	return nil
 }
 
-// GetShareMeta 公开：返回分享元信息（不含提取码与真实路径）。
+// GetShareMeta 公开：返回分享元信息（仅 name/isDir/needCode/可用性/分享者等，不含目录与文件数据，
+// 作为「需验证」引导面，本身不构成越权面）。
 func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetShareMetaResponse, error) {
 	rec, err := f.repo.GetShareByToken(ctx, token)
 	if err != nil {
@@ -548,14 +878,66 @@ func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetSh
 	return share.ToMeta(rec, rec.Edges.User, time.Now()), nil
 }
 
-// ListShareDir 公开：浏览文件夹分享的子目录（校验提取码与可用性）。
+// CreateShareSession 公开：用 token(+提取码) 换取一次性会话签名。
+// 限时分享下，签名有效期被裁剪到不超过分享过期时间。无签名/失效签名时前端据 need_code/message 弹验证。
+func (f *FileUsecase) CreateShareSession(ctx context.Context, token, code string) (*v1.CreateShareSessionResponse, error) {
+	rec, err := f.repo.GetShareByToken(ctx, token)
+	if err != nil {
+		return nil, ErrShareNotFound
+	}
+	if !rec.Enabled {
+		return &v1.CreateShareSessionResponse{Message: "分享已关闭"}, nil
+	}
+	if rec.ExpiresAt != nil && time.Now().After(*rec.ExpiresAt) {
+		return &v1.CreateShareSessionResponse{Message: "分享已过期"}, nil
+	}
+	if rec.MaxDownloads > 0 && rec.DownloadCount >= rec.MaxDownloads {
+		return &v1.CreateShareSessionResponse{Message: "分享下载次数已用尽"}, nil
+	}
+	if rec.Code != "" && rec.Code != code {
+		resp := &v1.CreateShareSessionResponse{NeedCode: true}
+		if code != "" {
+			resp.Message = "提取码错误"
+		}
+		return resp, nil
+	}
+	ttl := ShareSessionTTL
+	if rec.ExpiresAt != nil {
+		if remain := time.Until(*rec.ExpiresAt); remain < ttl {
+			ttl = remain
+		}
+	}
+	si := pre.NewShareSignInfo(rec.ID, ttl)
+	sign, err := si.Sign()
+	if err != nil {
+		return nil, ErrSign
+	}
+	return &v1.CreateShareSessionResponse{
+		Sign:      sign,
+		ExpiresAt: timestamppb.New(time.Now().Add(ttl)),
+	}, nil
+}
+
+// verifyShareSign 校验分享会话签名：签名有效、绑定到本分享、且分享仍可用。
+func (f *FileUsecase) verifyShareSign(sign string, rec *gen.FileShare) error {
+	info, err := pre.Verify(sign)
+	if err != nil || info.ShareID != rec.ID {
+		return ErrShareSignInvalid
+	}
+	if !share.Available(rec, time.Now()) {
+		return ErrShareForbidden
+	}
+	return nil
+}
+
+// ListShareDir 公开：浏览文件夹分享的子目录（需会话签名）。
 func (f *FileUsecase) ListShareDir(ctx context.Context, req *v1.ListShareDirRequest) (*v1.ListShareDirResponse, error) {
 	rec, err := f.repo.GetShareByToken(ctx, req.Token)
 	if err != nil {
 		return nil, ErrShareNotFound
 	}
-	if err := share.Verify(rec, req.Code, time.Now()); err != nil {
-		return nil, ErrShareForbidden
+	if err := f.verifyShareSign(req.Sign, rec); err != nil {
+		return nil, err
 	}
 	items, sub, err := share.ListDir(rec, req.SubPath)
 	if err != nil {
@@ -564,8 +946,8 @@ func (f *FileUsecase) ListShareDir(ctx context.Context, req *v1.ListShareDirRequ
 	return &v1.ListShareDirResponse{Items: items, SubPath: sub}, nil
 }
 
-// ShareDownload 公开：校验后将分享目标写入响应（文件直传 / 文件夹打包 zip），成功计一次下载。
-// Range 续传请求不重复计数。
+// ShareDownload 公开：校验会话签名后将分享目标写入响应（文件直传/文件夹打包 zip），
+// 成功（且非预览、非 Range 续传）计一次下载。
 func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	q := r.URL.Query()
@@ -574,17 +956,14 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	if err := share.Verify(rec, q.Get("code"), time.Now()); err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		_, _ = w.Write([]byte(err.Error()))
+	if err := f.verifyShareSign(q.Get("sign"), rec); err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = w.Write([]byte("分享会话已失效，请重新验证"))
 		return
 	}
-	countable := r.Header.Get("Range") == ""
 	inline := q.Get("inline") == "1"
-	// 预览（inline）不计入下载次数，仅真正下载（attachment 且非续传分段）计数。
-	if inline {
-		countable = false
-	}
+	// 预览(inline)与 Range 续传分段不计入下载次数。
+	countable := r.Header.Get("Range") == "" && !inline
 	if err := share.ServeDownload(rec, q.Get("path"), inline, w, r); err != nil {
 		return
 	}
@@ -612,3 +991,4 @@ func toUploadInfo(d *gen.FileUpload, sign string) *v1.UploadInfo {
 	}
 	return info
 }
+

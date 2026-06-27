@@ -36,14 +36,23 @@ func signingKey() []byte {
 	return derivedKey
 }
 
-// 下载预签名
+// 下载/上传/分享 预签名
 type FileSignInfo struct {
-	UploadId       string        `json:"upload_id"`       // 上传id
-	Path           string        `json:"path"`            // 路径
-	CreateAt       time.Time     `json:"create_at"`       // 创建时间
-	ValidityPeriod time.Duration `json:"validity_period"` // 有效时间
-	Creator        string        `json:"creator"`         // 创建人
-	Salt           []byte        `json:"salt"`            // 随机数
+	UploadId       string        `json:"upload_id"`           // 上传id
+	Path           string        `json:"path"`                // 路径
+	CreateAt       time.Time     `json:"create_at"`           // 创建时间
+	ValidityPeriod time.Duration `json:"validity_period"`     // 有效时间
+	Creator        string        `json:"creator"`             // 创建人
+	Salt           []byte        `json:"salt"`                // 随机数
+	SourceID       string        `json:"source_id,omitempty"` // 文件来源id，空=本地
+	Inline         bool          `json:"inline,omitempty"`    // 预览(inline) 还是 下载(attachment)
+	ShareID        string        `json:"share_id,omitempty"`  // 分享会话签名所属分享id
+}
+
+func newSalt() []byte {
+	key := make([]byte, 32)
+	rand.Read(key)
+	return key
 }
 
 func NewFileSignInfo(uploadId, path, creator string, validityPeriod time.Duration) *FileSignInfo {
@@ -53,11 +62,17 @@ func NewFileSignInfo(uploadId, path, creator string, validityPeriod time.Duratio
 		CreateAt:       time.Now(),
 		ValidityPeriod: validityPeriod,
 		Creator:        creator,
-		Salt: func() []byte {
-			key := make([]byte, 32)
-			rand.Read(key)
-			return key
-		}(),
+		Salt:           newSalt(),
+	}
+}
+
+// NewShareSignInfo 生成一次性分享会话签名信息（仅绑定分享id；有效期由调用方按「不超过分享过期」给定）。
+func NewShareSignInfo(shareID string, validityPeriod time.Duration) *FileSignInfo {
+	return &FileSignInfo{
+		ShareID:        shareID,
+		CreateAt:       time.Now(),
+		ValidityPeriod: validityPeriod,
+		Salt:           newSalt(),
 	}
 }
 

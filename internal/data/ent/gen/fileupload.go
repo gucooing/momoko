@@ -41,6 +41,8 @@ type FileUpload struct {
 	Cancel bool `json:"cancel,omitempty"`
 	// 上传发起人
 	UserID string `json:"user_id,omitempty"`
+	// 目标文件来源id，空=本地
+	SourceID string `json:"source_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileUploadQuery when eager-loading is set.
 	Edges        FileUploadEdges `json:"edges"`
@@ -87,7 +89,7 @@ func (*FileUpload) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case fileupload.FieldFileSize, fileupload.FieldChunkSize, fileupload.FieldTotalChunks:
 			values[i] = new(sql.NullInt64)
-		case fileupload.FieldID, fileupload.FieldHash, fileupload.FieldPath, fileupload.FieldFileName, fileupload.FieldUserID:
+		case fileupload.FieldID, fileupload.FieldHash, fileupload.FieldPath, fileupload.FieldFileName, fileupload.FieldUserID, fileupload.FieldSourceID:
 			values[i] = new(sql.NullString)
 		case fileupload.FieldCreateTime, fileupload.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -178,6 +180,12 @@ func (_m *FileUpload) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UserID = value.String
 			}
+		case fileupload.FieldSourceID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_id", values[i])
+			} else if value.Valid {
+				_m.SourceID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -256,6 +264,9 @@ func (_m *FileUpload) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("source_id=")
+	builder.WriteString(_m.SourceID)
 	builder.WriteByte(')')
 	return builder.String()
 }

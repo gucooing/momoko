@@ -148,7 +148,12 @@ import { showRequestError } from '@/utils/request'
 import { useThemeStore } from '@/stores/theme'
 import { formatDateTime, formatFileSize, splitPathSegments } from '@/utils/file'
 import { resolveAvatarUrl } from '@/utils/assets'
-import { getShareMetaRequest, listShareDirRequest, buildShareDownloadUrl } from '@/api/share'
+import {
+  getShareMetaRequest,
+  createShareSessionRequest,
+  listShareDirRequest,
+  buildShareDownloadUrl,
+} from '@/api/share'
 import FileViewerDialog from '@/components/file/FileViewerDialog.vue'
 import { IconFolder, IconFile, IconDownload, IconChevronRight, IconWarning } from '@/components/file/icons'
 import type { GetShareMetaResponse, ShareEntry } from '@/types/v1/file'
@@ -164,7 +169,9 @@ const notFound = ref(false)
 const meta = ref<GetShareMetaResponse | null>(null)
 
 const code = ref('')
-const codeVerified = ref(false)
+// 会话签名：换取后所有请求只带签名（不再逐次携带提取码）；有签名即视为已通过验证。
+const sign = ref('')
+const codeVerified = computed(() => !!sign.value)
 
 const subPath = ref('')
 const entries = ref<ShareEntry[]>([])
@@ -174,8 +181,8 @@ const dirLoading = ref(false)
 const viewer = reactive({ open: false, name: '', previewUrl: '', downloadUrl: '', size: 0 })
 const previewFile = (relPath: string, name: string, size = 0) => {
   viewer.name = name
-  viewer.previewUrl = buildShareDownloadUrl(token, { path: relPath, code: code.value, inline: true })
-  viewer.downloadUrl = buildShareDownloadUrl(token, { path: relPath, code: code.value })
+  viewer.previewUrl = buildShareDownloadUrl(token, sign.value, { path: relPath, inline: true })
+  viewer.downloadUrl = buildShareDownloadUrl(token, sign.value, { path: relPath })
   viewer.size = size
   viewer.open = true
 }
@@ -186,15 +193,34 @@ const subSegments = computed(() => {
 })
 
 const downloadUrl = (path = '', inline = false) =>
-  buildShareDownloadUrl(token, { path, code: code.value, inline })
+  buildShareDownloadUrl(token, sign.value, { path, inline })
+
+// 用 token(+提取码) 换取会话签名；失败时按 need_code/message 提示。返回是否成功。
+const acquireSession = async (codeVal: string): Promise<boolean> => {
+  try {
+    const { data } = await createShareSessionRequest(token, codeVal)
+    if (data.sign) {
+      sign.value = data.sign
+      return true
+    }
+    if (data.message) showRequestError(new Error(data.message), data.message)
+    return false
+  } catch (error) {
+    showRequestError(error, t('file.share.unavailable'))
+    return false
+  }
+}
 
 const fetchMeta = async () => {
   loading.value = true
   try {
     const { data } = await getShareMetaRequest(token)
     meta.value = data
-    if (data?.isDir && data.available && !data.needCode) {
-      await loadDir('')
+    // 无需提取码的分享：直接换取会话签名；文件夹则加载根目录。
+    if (data?.available && !data.needCode) {
+      if (await acquireSession('') && data.isDir) {
+        await loadDir('')
+      }
     }
   } catch {
     notFound.value = true
@@ -206,10 +232,9 @@ const fetchMeta = async () => {
 const loadDir = async (path: string) => {
   dirLoading.value = true
   try {
-    const { data } = await listShareDirRequest({ token, code: code.value, subPath: path })
+    const { data } = await listShareDirRequest({ token, sign: sign.value, subPath: path })
     entries.value = data?.items || []
     subPath.value = data?.subPath ?? path
-    codeVerified.value = true
   } catch (error) {
     showRequestError(error, t('file.share.unavailable'))
   } finally {
@@ -219,12 +244,8 @@ const loadDir = async (path: string) => {
 
 const verifyCode = async () => {
   if (!code.value.trim()) return
-  if (meta.value?.isDir) {
-    await loadDir('')
-  } else {
-    // 文件分享：提取码由下载端点校验，这里仅放行到下载按钮
-    codeVerified.value = true
-  }
+  if (!(await acquireSession(code.value))) return
+  if (meta.value?.isDir) await loadDir('')
 }
 
 const goTo = (path: string) => loadDir(path)

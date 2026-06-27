@@ -71,4 +71,6 @@ const (
 	Tunnel Permissions = "tunnel:manage"
 	// FileShare 允许管理文件分享。
 	FileShare Permissions = "file:share"
+	// FileSource 允许管理文件来源（OSS/FTP/WebDAV 等网络来源）。
+	FileSource Permissions = "file:source"
 )
