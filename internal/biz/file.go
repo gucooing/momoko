@@ -991,4 +991,3 @@ func toUploadInfo(d *gen.FileUpload, sign string) *v1.UploadInfo {
 	}
 	return info
 }
-
