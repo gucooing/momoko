@@ -1,192 +1,209 @@
 <template>
-  <div>
-    <el-card shadow="never" class="card-clear-mb">
-      <el-form :model="queryForm" label-width="auto" @keyup.enter="getList">
-        <el-row :gutter="12">
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item :label="t('file.share.keyword')">
-              <el-input
-                v-model="queryForm.keywords"
-                :placeholder="t('file.share.keywordPlaceholder')"
-                :prefix-icon="menuStore.iconComponents.Search"
-                clearable
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="8" :lg="6">
-            <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
-                {{ t('system.common.search') }}
-              </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">
-                {{ t('system.common.reset') }}
-              </el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-    </el-card>
-
-    <el-card shadow="never" class="card-mt-16">
-      <div class="operation-container">
-        <el-button type="primary" :icon="menuStore.iconComponents.Plus" @click="openCreate">
-          {{ t('file.share.create') }}
-        </el-button>
+  <el-card class="share-page" shadow="never">
+    <div class="share-toolbar">
+      <h2 class="share-title">{{ t('file.share.pageTitle') }}</h2>
+      <div class="share-toolbar-right">
+        <el-input
+          v-model="keywords"
+          :placeholder="t('file.share.keywordPlaceholder')"
+          clearable
+          class="share-search"
+          @input="onSearch"
+        />
+        <el-button type="primary" @click="openCreate">{{ t('file.share.create') }}</el-button>
       </div>
+    </div>
 
-      <el-table v-loading="loading" :data="list" class="table-mt-16" border>
-        <el-table-column :label="t('file.share.name')" prop="name" min-width="140" show-overflow-tooltip />
-        <el-table-column v-if="!isMobile" :label="t('file.share.type')" width="90">
-          <template #default="{ row }">
-            <el-tag :type="row.isDir ? 'warning' : 'info'" size="small">
-              {{ row.isDir ? t('file.share.folder') : t('file.share.file') }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isMobile" :label="t('file.share.code')" width="100">
-          <template #default="{ row }">
-            <span>{{ row.code || t('file.share.noCode') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isMobile" :label="t('file.share.expires')" min-width="160">
-          <template #default="{ row }">
-            <span>{{ row.expiresAt ? formatTime(row.expiresAt) : t('file.share.never') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isMobile" :label="t('file.share.downloads')" width="110">
-          <template #default="{ row }">
-            <span>{{ row.downloadCount }} / {{ Number(row.maxDownloads) > 0 ? row.maxDownloads : '∞' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('file.share.enabled')" width="80">
-          <template #default="{ row }">
-            <el-switch :model-value="row.enabled" @change="toggleEnabled(row)" />
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('system.common.operation')" :width="isMobile ? 130 : 180" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="copyLink(row)">{{ t('file.share.copyLink') }}</el-button>
-            <el-button link type="primary" @click="openEdit(row)">{{ t('system.common.edit') }}</el-button>
-            <el-popconfirm :title="t('file.share.confirmDelete')" @confirm="remove(row)">
-              <template #reference>
-                <el-button link type="danger">{{ t('system.common.delete') }}</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-      </el-table>
+    <el-table v-loading="loading" :data="items" class="share-table">
+      <el-table-column :label="t('file.share.name')" min-width="160">
+        <template #default="{ row }">
+          <div class="share-name">
+            <el-icon><component :is="row.isDir ? IconFolder : IconFile" /></el-icon>
+            <span>{{ row.name }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('file.share.path')" prop="targetPath" min-width="200" show-overflow-tooltip />
+      <el-table-column :label="t('file.share.code')" width="100">
+        <template #default="{ row }">
+          {{ row.code || t('file.share.noCode') }}
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('file.share.expires')" width="170">
+        <template #default="{ row }">
+          {{ row.expiresAt ? formatDateTime(row.expiresAt) : t('file.share.never') }}
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('file.share.downloads')" width="110">
+        <template #default="{ row }">
+          {{ row.downloadCount }}<span v-if="Number(row.maxDownloads) > 0"> / {{ row.maxDownloads }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('file.share.enabled')" width="90">
+        <template #default="{ row }">
+          <el-switch :model-value="row.enabled" @change="toggleEnabled(row)" />
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('fileManager.operation')" width="200" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="copyLink(row)">{{ t('file.share.copyLink') }}</el-button>
+          <el-button link type="primary" @click="openEdit(row)">{{ t('system.common.edit') }}</el-button>
+          <el-button link type="danger" @click="remove(row)">{{ t('fileManager.delete') }}</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <el-pagination
-        class="pagination-mt-16"
-        :current-page="queryForm.page"
-        :page-size="queryForm.pageSize"
+    <div class="share-footer">
+      <TablePagination
+        v-model:current-page="page"
+        v-model:page-size="pageSize"
         :total="total"
-        layout="total, prev, pager, next"
-        @current-change="onPageChange"
+        :is-mobile="false"
+        @change="loadList"
       />
-    </el-card>
+    </div>
 
-    <ShareFormDialog v-model="dialogVisible" :share="editingShare" @saved="getList" />
-  </div>
+    <ShareFormDialog v-model="formOpen" :share="editing" @saved="loadList" />
+  </el-card>
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'FileShareView' })
 import { useI18n } from 'vue-i18n'
-import { useWindowSize } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
+import { showRequestError } from '@/utils/request'
+import { formatDateTime, copyTextToClipboard } from '@/utils/file'
+import { listSharesRequest, deleteShareRequest, updateShareRequest, buildShareLink } from '@/api/share'
+import TablePagination from '@/components/pagination/TablePagination.vue'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
-import { buildShareLink, deleteShareRequest, listSharesRequest, updateShareRequest } from '@/api/share'
+import { IconFolder, IconFile } from '@/components/file/icons'
 import type { ShareInfo } from '@/types/v1/file'
 
-defineOptions({ name: 'FileShareManage' })
-
 const { t } = useI18n()
-const menuStore = useMenuStore()
 
-const { width } = useWindowSize()
-const isMobile = computed(() => width.value <= 640)
-
+const items = ref<ShareInfo[]>([])
 const loading = ref(false)
-const list = ref<ShareInfo[]>([])
+const page = ref(1)
+const pageSize = ref(20)
 const total = ref(0)
-const queryForm = reactive({ keywords: '', page: 1, pageSize: 10 })
+const keywords = ref('')
 
-const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
+const formOpen = ref(false)
+const editing = ref<ShareInfo | null>(null)
 
-const getList = async () => {
+const loadList = async () => {
   loading.value = true
   try {
     const { data } = await listSharesRequest({
-      page: queryForm.page,
-      pageSize: queryForm.pageSize,
-      keywords: queryForm.keywords || undefined,
+      page: page.value,
+      pageSize: pageSize.value,
+      keywords: keywords.value.trim() || undefined,
     })
-    list.value = data?.items ?? []
-    total.value = Number(data?.total ?? 0)
+    items.value = data?.items || []
+    total.value = data?.total || 0
+  } catch (error) {
+    showRequestError(error)
   } finally {
     loading.value = false
   }
 }
 
-const reset = () => {
-  queryForm.keywords = ''
-  queryForm.page = 1
-  getList()
+const onSearch = useDebounceFn(() => {
+  page.value = 1
+  loadList()
+}, 350)
+
+const openCreate = () => {
+  editing.value = null
+  formOpen.value = true
+}
+const openEdit = (row: ShareInfo) => {
+  editing.value = row
+  formOpen.value = true
 }
 
-const onPageChange = (page: number) => {
-  queryForm.page = page
-  getList()
+const toggleEnabled = async (row: ShareInfo) => {
+  try {
+    await updateShareRequest({
+      id: row.id,
+      name: row.name,
+      code: row.code,
+      expiresAt: row.expiresAt,
+      maxDownloads: row.maxDownloads,
+      enabled: !row.enabled,
+      path: '',
+    })
+    loadList()
+  } catch (error) {
+    showRequestError(error)
+  }
 }
 
 const copyLink = async (row: ShareInfo) => {
   try {
-    await navigator.clipboard.writeText(buildShareLink(row.token))
+    await copyTextToClipboard(buildShareLink(row.token))
     ElMessage.success(t('file.share.copied'))
   } catch {
     ElMessage.error(t('file.share.copyFailed'))
   }
 }
 
-const dialogVisible = ref(false)
-const editingShare = ref<ShareInfo | null>(null)
-
-const openCreate = () => {
-  editingShare.value = null
-  dialogVisible.value = true
-}
-
-const openEdit = (row: ShareInfo) => {
-  editingShare.value = row
-  dialogVisible.value = true
-}
-
-const toggleEnabled = async (row: ShareInfo) => {
-  await updateShareRequest({
-    id: row.id,
-    name: row.name,
-    code: row.code,
-    expiresAt: row.expiresAt ? new Date(row.expiresAt as unknown as string) : undefined,
-    maxDownloads: Number(row.maxDownloads) || 0,
-    enabled: !row.enabled,
-  })
-  getList()
-}
-
 const remove = async (row: ShareInfo) => {
-  await deleteShareRequest({ id: row.id })
-  ElMessage.success(t('system.common.deleteSuccess'))
-  getList()
+  try {
+    await ElMessageBox.confirm(t('file.share.confirmDelete'), t('fileManager.confirmDelete'), {
+      type: 'warning',
+      confirmButtonText: t('system.common.confirm'),
+      cancelButtonText: t('system.common.cancel'),
+    })
+  } catch {
+    return
+  }
+  try {
+    await deleteShareRequest(row.id)
+    ElMessage.success(t('system.common.deleteSuccess'))
+    loadList()
+  } catch (error) {
+    showRequestError(error)
+  }
 }
 
-onMounted(getList)
+onMounted(loadList)
 </script>
 
-<style scoped lang="scss">
-.table-mt-16 {
-  margin-top: 16px;
+<style scoped>
+.share-page {
+  display: flex;
+  flex-direction: column;
 }
-.pagination-mt-16 {
-  margin-top: 16px;
+.share-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.share-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.share-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.share-search {
+  width: 240px;
+}
+.share-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.share-footer {
+  display: flex;
   justify-content: flex-end;
+  margin-top: 1rem;
 }
 </style>

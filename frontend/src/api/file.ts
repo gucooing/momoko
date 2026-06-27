@@ -1,120 +1,93 @@
 import request from '@/utils/request'
 import type {
-  BatchCompressFileSystemRequest,
-  BatchCompressFileSystemResponse,
-  BatchDeleteFileSystemRequest,
-  BatchDeleteFileSystemResponse,
-  CancelFileUploadRequest,
-  CancelFileUploadResponse,
-  CompleteFileUploadRequest,
-  CompleteFileUploadResponse,
-  CopyFileSystemRequest,
-  CopyFileSystemResponse,
-  CreateFileSystemRequest,
-  CreateFileSystemResponse,
-  CutFileSystemRequest,
-  CutFileSystemResponse,
-  EditFileSystemFileRequest,
-  EditFileSystemFileResponse,
-  FileSystemPreSignRequest,
-  FileSystemPreSignResponse,
-  FileSystemPreSignUploadRequest,
-  FileSystemPreSignUploadResponse,
-  GetFileTaskResponse,
-  GetFileUploadStatusRequest,
-  GetFileUploadStatusResponse,
   GetFileSystemListRequest,
   GetFileSystemListResponse,
-  OpenFileSystemFileRequest,
-  OpenFileSystemFileResponse,
-  RenameFileSystemRequest,
+  GetFileSystemTreeResponse,
+  CreateFileSystemResponse,
   RenameFileSystemResponse,
-  UnzipFileSystemRequest,
+  BatchDeleteFileSystemResponse,
+  CopyFileSystemResponse,
+  CutFileSystemResponse,
+  BatchCompressFileSystemResponse,
   UnzipFileSystemResponse,
+  OpenFileSystemFileResponse,
+  EditFileSystemFileResponse,
+  FileSystemPreSignResponse,
+  FileSystemPreSignUploadResponse,
+  GetFileUploadStatusResponse,
+  CompleteFileUploadResponse,
+  CancelFileUploadResponse,
 } from '@/types/v1/file'
-import { encodeBytesToBase64 } from '@/utils/filePreview'
 
-export const getFileSystemListRequest = (params: GetFileSystemListRequest) => {
-  return request.get<GetFileSystemListResponse>('/file/system', { params })
-}
+// 系统级文件管理 HTTP 封装（ts_proto 仅出类型，请求函数手写）。
+// bytes 字段（open.info / edit.content / create.info.content）以 base64 字符串传输，
+// 由调用方（fileClient）负责编解码，这里只负责路由与透传。
 
-export const createFileSystemRequest = (data: CreateFileSystemRequest = { info: undefined }) => {
-  const payload = data.info
-    ? {
-        info: {
-          ...data.info,
-          content: encodeBytesToBase64(data.info.content),
-        },
-      }
-    : data
+// 列表
+export const getFileSystemList = (params: GetFileSystemListRequest) =>
+  request.get<GetFileSystemListResponse>('/file/system', { params })
 
-  return request.post<CreateFileSystemResponse>('/file/system/create', payload)
-}
+// 目录树（懒加载）
+export const getFileSystemTree = (path: string) =>
+  request.get<GetFileSystemTreeResponse>('/file/system/tree', { params: { path } })
 
-export const deleteFileSystemEntriesRequest = (
-  data: BatchDeleteFileSystemRequest = { paths: [] },
-) => {
-  return request.post<BatchDeleteFileSystemResponse>('/file/system/deletes', data)
-}
+// 创建文件/目录（content 为 base64 文本，目录时省略）
+export const createFileSystem = (info: { path: string; isDir: boolean; content?: string }) =>
+  request.post<CreateFileSystemResponse>('/file/system/create', { info })
 
-export const getFileSystemPreSignRequest = (params: FileSystemPreSignRequest = { path: '' }) => {
-  return request.get<FileSystemPreSignResponse>('/file/system/file/pre-sign', { params })
-}
+// 重命名
+export const renameFileSystem = (path: string, newName: string) =>
+  request.post<RenameFileSystemResponse>('/file/system/rename', { path, newName })
 
-export const getFileSystemUploadPreSignRequest = (
-  params: FileSystemPreSignUploadRequest = {
-    path: '',
-    fileName: '',
-    fileSize: 0,
-    hash: '',
-  },
-) => {
-  return request.get<FileSystemPreSignUploadResponse>('/file/system/file/upload/pre-sign', {
-    params,
-  })
-}
+// 批量删除
+export const batchDeleteFileSystem = (paths: string[]) =>
+  request.post<BatchDeleteFileSystemResponse>('/file/system/deletes', { paths })
 
-export const openFileSystemFileRequest = (data: OpenFileSystemFileRequest = { path: '' }) => {
-  return request.post<OpenFileSystemFileResponse>('/file/system/open/file', data)
-}
+// 复制（异步任务）
+export const copyFileSystem = (paths: string[], targetPath: string) =>
+  request.post<CopyFileSystemResponse>('/file/system/copy', { paths, targetPath })
 
-export const completeFileUploadRequest = (data: CompleteFileUploadRequest = { uploadId: '' }) => {
-  return request.post<CompleteFileUploadResponse>('/file/upload/complete', data)
-}
+// 剪切（异步任务）
+export const cutFileSystem = (paths: string[], targetPath: string) =>
+  request.post<CutFileSystemResponse>('/file/system/cut', { paths, targetPath })
 
-export const cancelFileUploadRequest = (data: CancelFileUploadRequest = { uploadId: '' }) => {
-  return request.post<CancelFileUploadResponse>('/file/upload/cancel', data)
-}
+// 压缩
+export const batchCompressFileSystem = (paths: string[], targetPath?: string) =>
+  request.post<BatchCompressFileSystemResponse>('/file/system/compress', { paths, targetPath })
 
-export const getFileUploadStatusRequest = (
-  params: GetFileUploadStatusRequest = { uploadId: '' },
-) => {
-  return request.get<GetFileUploadStatusResponse>('/file/upload/status', { params })
-}
+// 解压
+export const unzipFileSystem = (path: string, targetPath?: string) =>
+  request.post<UnzipFileSystemResponse>('/file/system/unzip', { path, targetPath })
 
-export const compressFileSystemRequest = (data: BatchCompressFileSystemRequest) =>
-  request.post<BatchCompressFileSystemResponse>('/file/system/compress', data)
+// 打开文件（响应 info 为 base64 字符串）
+export const openFileSystemFile = (path: string) =>
+  request.post<OpenFileSystemFileResponse>('/file/system/open/file', { path })
 
-export const renameFileSystemRequest = (data: RenameFileSystemRequest) =>
-  request.post<RenameFileSystemResponse>('/file/system/rename', data)
+// 编辑文件（content 为 base64 字符串）
+export const editFileSystemFile = (path: string, content: string) =>
+  request.post<EditFileSystemFileResponse>('/file/system/edit/file', { path, content })
 
-export const unzipFileSystemRequest = (data: UnzipFileSystemRequest) =>
-  request.post<UnzipFileSystemResponse>('/file/system/unzip', data)
+// 下载预签名
+export const fileSystemPreSign = (path: string) =>
+  request.get<FileSystemPreSignResponse>('/file/system/file/pre-sign', { params: { path } })
 
-export const copyFileSystemRequest = (data: CopyFileSystemRequest) =>
-  request.post<CopyFileSystemResponse>('/file/system/copy', data)
+// 上传预签名（分片）
+export const fileSystemPreSignUpload = (params: {
+  path: string
+  fileName: string
+  fileSize: number
+  hash: string
+  partSize?: number
+}) => request.get<FileSystemPreSignUploadResponse>('/file/system/file/upload/pre-sign', { params })
 
-export const cutFileSystemRequest = (data: CutFileSystemRequest) =>
-  request.post<CutFileSystemResponse>('/file/system/cut', data)
+// 上传状态
+export const getFileUploadStatus = (uploadId: string) =>
+  request.get<GetFileUploadStatusResponse>('/file/upload/status', { params: { uploadId } })
 
-export const editFileSystemFileRequest = (data: EditFileSystemFileRequest = { path: '', content: new Uint8Array() }) => {
-  const payload = {
-    path: data.path,
-    content: encodeBytesToBase64(data.content),
-  }
+// 完成上传（合并分片）
+export const completeFileUpload = (uploadId: string) =>
+  request.post<CompleteFileUploadResponse>('/file/upload/complete', { uploadId })
 
-  return request.post<EditFileSystemFileResponse>('/file/system/edit/file', payload)
-}
-
-export const getFileTaskRequest = (taskId: string) =>
-  request.get<GetFileTaskResponse>(`/file/task/${taskId}`)
+// 取消上传
+export const cancelFileUpload = (uploadId: string) =>
+  request.post<CancelFileUploadResponse>('/file/upload/cancel', { uploadId })

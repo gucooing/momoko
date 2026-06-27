@@ -34,6 +34,10 @@ func (f *FileService) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 	return f.uc.GetFileSystemList(ctx, req)
 }
 
+func (f *FileService) GetFileSystemTree(ctx context.Context, req *v1.GetFileSystemTreeRequest) (*v1.GetFileSystemTreeResponse, error) {
+	return f.uc.GetFileSystemTree(ctx, req)
+}
+
 func (f *FileService) BatchDeleteFileSystem(ctx context.Context, req *v1.BatchDeleteFileSystemRequest) (*v1.BatchDeleteFileSystemResponse, error) {
 	return f.uc.BatchDeleteFileSystem(ctx, req)
 }

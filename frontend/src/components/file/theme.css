@@ -1,0 +1,187 @@
+/*
+ * 文件管理模块自成体系的设计令牌（浅色默认 + 暗色变体）。
+ * 所有文件相关组件根节点加 `.file-module`，逐元素显式取这些令牌上色，
+ * 不继承 app 的暗/紫主题，也不依赖覆盖 --el-color-primary。
+ * 蓝(#1677ff)只用于主按钮/选中等有意为之处；文件夹=琥珀；删除=红；结构/悬停=中性灰。
+ */
+.file-module {
+  --fm-bg: #ffffff;
+  --fm-surface: #ffffff;
+  --fm-subtle: #f5f7fa;
+  --fm-header: #f6f8fa;
+  --fm-hover: #f3f5f8;
+  --fm-active: #eaf2ff;
+
+  --fm-text: #1f2328;
+  --fm-text-2: #57606a;
+  --fm-text-3: #8c959f;
+
+  --fm-border: #e4e8ee;
+  --fm-border-strong: #d4dae3;
+
+  --fm-accent: #1677ff;
+  --fm-accent-hover: #3a8bff;
+  --fm-accent-active: #0e5fd8;
+  --fm-accent-soft: #eaf2ff;
+
+  --fm-danger: #e5484d;
+  --fm-danger-soft: #fdeced;
+  --fm-folder: #e3a008;
+
+  --fm-radius: 0.5rem;
+  --fm-radius-sm: 0.375rem;
+  --fm-shadow: 0 8px 28px rgba(15, 23, 42, 0.16);
+  --fm-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+
+  color: var(--fm-text);
+  font-size: 14px;
+}
+
+/* ---- 共享浅色控件（按钮/输入），逐元素显式上色 ---- */
+.file-module .fm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-sm);
+  background: var(--fm-surface);
+  color: var(--fm-text-2);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+.file-module .fm-btn:hover:not(:disabled) {
+  border-color: var(--fm-border-strong);
+  color: var(--fm-text);
+  background: var(--fm-hover);
+}
+.file-module .fm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.file-module .fm-btn .el-icon,
+.file-module .fm-btn svg {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+.file-module .fm-btn--primary {
+  background: var(--fm-accent);
+  border-color: var(--fm-accent);
+  color: #fff;
+}
+.file-module .fm-btn--primary:hover:not(:disabled) {
+  background: var(--fm-accent-hover);
+  border-color: var(--fm-accent-hover);
+  color: #fff;
+}
+.file-module .fm-btn--primary:active:not(:disabled) {
+  background: var(--fm-accent-active);
+}
+.file-module .fm-btn--danger {
+  color: var(--fm-danger);
+}
+.file-module .fm-btn--danger:hover:not(:disabled) {
+  background: var(--fm-danger-soft);
+  border-color: var(--fm-danger);
+  color: var(--fm-danger);
+}
+.file-module .fm-btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* 纯图标按钮 */
+.file-module .fm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--fm-radius-sm);
+  background: transparent;
+  color: var(--fm-text-2);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.file-module .fm-icon-btn:hover:not(:disabled) {
+  background: var(--fm-hover);
+  color: var(--fm-text);
+}
+.file-module .fm-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.file-module .fm-icon-btn.is-danger:hover:not(:disabled) {
+  background: var(--fm-danger-soft);
+  color: var(--fm-danger);
+}
+.file-module .fm-icon-btn .el-icon,
+.file-module .fm-icon-btn svg {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+}
+
+/* 输入框 */
+.file-module .fm-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 0.625rem;
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-sm);
+  background: var(--fm-surface);
+  color: var(--fm-text);
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.file-module .fm-input::placeholder {
+  color: var(--fm-text-3);
+}
+.file-module .fm-input:focus {
+  border-color: var(--fm-accent);
+  box-shadow: 0 0 0 2px var(--fm-accent-soft);
+}
+
+/* 暗色变体（编辑器主题切换为“暗”时整窗一起切） */
+.file-module.is-dark {
+  --fm-bg: #1e1e1e;
+  --fm-surface: #252526;
+  --fm-subtle: #2a2d2e;
+  --fm-header: #2d2d30;
+  --fm-hover: #2a2d2e;
+  --fm-active: #094771;
+
+  --fm-text: #e6e6e6;
+  --fm-text-2: #b8bcc2;
+  --fm-text-3: #8a9099;
+
+  --fm-border: #3c3c3c;
+  --fm-border-strong: #4a4a4a;
+
+  --fm-accent: #3b82f6;
+  --fm-accent-hover: #60a5fa;
+  --fm-accent-active: #2563eb;
+  --fm-accent-soft: #1e3a5f;
+
+  --fm-danger: #f87171;
+  --fm-danger-soft: #3a1d1f;
+  --fm-folder: #e3a008;
+
+  --fm-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}

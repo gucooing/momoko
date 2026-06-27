@@ -30,7 +30,16 @@
     <!-- 表单：新建 / 编辑 -->
     <el-form v-else :model="form" label-width="110px" label-position="right">
       <el-form-item :label="t('file.share.path')" required>
-        <el-input v-model="form.path" :disabled="pathLocked" :placeholder="t('file.share.pathPlaceholder')" />
+        <el-input
+          :model-value="form.path"
+          :disabled="pathLocked"
+          :placeholder="t('file.share.pathPlaceholder')"
+          readonly
+        >
+          <template v-if="!pathLocked" #append>
+            <el-button @click="pickerOpen = true">{{ t('fileManager.selectFile') }}</el-button>
+          </template>
+        </el-input>
       </el-form-item>
       <el-form-item :label="t('file.share.name')">
         <el-input v-model="form.name" :placeholder="t('file.share.namePlaceholder')" />
@@ -54,6 +63,8 @@
       </el-form-item>
     </el-form>
 
+    <FilePicker v-model="pickerOpen" :initial-path="form.path" @confirm="onPickPath" />
+
     <template #footer>
       <template v-if="created">
         <el-button type="primary" @click="visible = false">{{ t('file.share.done') }}</el-button>
@@ -69,6 +80,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import FilePicker from '@/components/file/FilePicker.vue'
 import { buildShareLink, createShareRequest, updateShareRequest } from '@/api/share'
 import type { ShareInfo } from '@/types/v1/file'
 
@@ -93,7 +105,8 @@ const visible = computed({
 })
 
 const isEdit = computed(() => !!props.share)
-const pathLocked = computed(() => isEdit.value || !!props.path)
+// 路径仅在“从文件列表带入指定文件分享”时锁定；编辑已有分享允许改换目标（经文件树选择）。
+const pathLocked = computed(() => !!props.path)
 const dialogTitle = computed(() => {
   if (created.value) return t('file.share.createdTitle')
   return isEdit.value ? t('file.share.editTitle') : t('file.share.createTitle')
@@ -112,6 +125,12 @@ const defaultForm = () => ({
   enabled: true,
 })
 const form = reactive(defaultForm())
+
+// 通过文件树选择分享路径（取代手动输入绝对路径）
+const pickerOpen = ref(false)
+const onPickPath = (path: string) => {
+  form.path = path
+}
 
 const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
 
@@ -157,6 +176,7 @@ const save = async () => {
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
+        path: form.path,
       })
       ElMessage.success(t('system.common.editSuccess'))
       visible.value = false

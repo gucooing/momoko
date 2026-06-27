@@ -1,6 +1,7 @@
 import '@/styles/index.css' // 公共样式
 import 'element-plus/theme-chalk/dark/css-vars.css' // Element Plus 深色模式样式
 import 'nprogress/nprogress.css' // NProgress 样式
+import '@/components/file/theme.css' // 文件模块自成体系的浅/暗设计令牌（全局，供 teleport 弹层共享）
 import { APP_CONFIG } from '@/config/app.config' // 全局应用配置
 import { loadingFadeOut } from 'virtual:app-loading' // 全局loading
 import { permissionDirective } from '@/directives/permission' // 自定义权限指令

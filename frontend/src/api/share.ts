@@ -2,47 +2,58 @@ import request from '@/utils/request'
 import type {
   CreateShareRequest,
   CreateShareResponse,
-  DeleteShareRequest,
-  DeleteShareResponse,
-  GetShareMetaResponse,
-  ListShareDirRequest,
-  ListShareDirResponse,
   ListSharesRequest,
   ListSharesResponse,
   UpdateShareRequest,
   UpdateShareResponse,
+  DeleteShareResponse,
+  GetShareMetaResponse,
+  ListShareDirRequest,
+  ListShareDirResponse,
 } from '@/types/v1/file'
 
-// —— 管理（需登录 + file:share 权限）——
+// 文件分享 HTTP 封装：创建者管理（需登录） + 公开访问（按 token/提取码）。
+
+// 创建分享
 export const createShareRequest = (data: CreateShareRequest) =>
   request.post<CreateShareResponse>('/file/share/create', data)
 
+// 分享列表
 export const listSharesRequest = (params: ListSharesRequest) =>
   request.get<ListSharesResponse>('/file/share/list', { params })
 
+// 更新分享（全量覆盖可编辑字段）
 export const updateShareRequest = (data: UpdateShareRequest) =>
   request.post<UpdateShareResponse>('/file/share/update', data)
 
-export const deleteShareRequest = (data: DeleteShareRequest) =>
-  request.post<DeleteShareResponse>('/file/share/delete', data)
+// 删除分享
+export const deleteShareRequest = (id: string) =>
+  request.post<DeleteShareResponse>('/file/share/delete', { id })
 
-// —— 公开（免登录）——
+// 公开：获取分享元信息（无需提取码）
 export const getShareMetaRequest = (token: string) =>
   request.get<GetShareMetaResponse>('/public/share/meta', { params: { token } })
 
+// 公开：浏览分享目录（按需提取码）
 export const listShareDirRequest = (data: ListShareDirRequest) =>
   request.post<ListShareDirResponse>('/public/share/list', data)
 
-// 分享落地页链接（前端公开路由，与 /public/* 约定一致）
-export const buildShareLink = (token: string) => `${window.location.origin}/public/share/${token}`
+// 由 token 生成公开访问链接。
+export const buildShareLink = (token: string): string => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${origin}/public/share/${token}`
+}
 
-// 公开下载/预览直链（浏览器直接访问，免登录；提取码/子路径按需带上）
-// inline=true 用于预览（内联返回，且不计入下载次数）。
-export const buildShareDownloadUrl = (token: string, code = '', relPath = '', inline = false) => {
-  const base = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+// 公开下载/预览链接：分享 token + 相对子路径（用于公开页下载/预览按钮）。
+// inline=true 走预览（不计下载次数）；否则附件下载。后端路由：/api/v1/public/share/download
+export const buildShareDownloadUrl = (
+  token: string,
+  options: { path?: string; code?: string; inline?: boolean } = {},
+): string => {
+  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
   const params = new URLSearchParams({ token })
-  if (code) params.set('code', code)
-  if (relPath) params.set('path', relPath)
-  if (inline) params.set('inline', '1')
+  if (options.path) params.set('path', options.path)
+  if (options.code) params.set('code', options.code)
+  if (options.inline) params.set('inline', '1')
   return `${base}/public/share/download?${params.toString()}`
 }

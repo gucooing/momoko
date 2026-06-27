@@ -105,6 +105,12 @@ service InstanceManager {
       get: "/api/v1/instance/file/{id}"
     };
   }
+  // 获取实例目录树(懒加载，供编辑器文件树使用)
+  rpc GetInstanceFileTree(GetInstanceFileTreeRequest) returns (GetInstanceFileTreeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/file/tree/{id}"
+    };
+  }
   // 创建实例目录内文件/文件夹
   rpc CreateInstanceFile(CreateInstanceFileRequest) returns (CreateInstanceFileResponse) {
     option (google.api.http) = {
@@ -477,6 +483,22 @@ message GetInstanceFileListResponse {
   int64 page_size = 4;
   // 总数
   int64 total = 5;
+}
+
+// 获取实例目录树请求(复用 file.proto 的 FileTreeNode)
+message GetInstanceFileTreeRequest {
+  // 实例id
+  string id = 1;
+  // 实例目录内相对路径；空值表示实例根目录
+  string path = 2;
+}
+
+// 获取实例目录树响应
+message GetInstanceFileTreeResponse {
+  // 实际列出的目录路径(回显)
+  string path = 1;
+  // 直接子项(目录在前，按名称排序)
+  repeated FileTreeNode nodes = 2;
 }
 
 // 创建实例文件请求

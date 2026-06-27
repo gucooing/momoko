@@ -170,6 +170,14 @@ func (i *InstanceService) GetInstanceFileList(ctx context.Context, req *v1.GetIn
 	return i.uc.GetFileList(ctx, authCtx.UserID, req)
 }
 
+func (i *InstanceService) GetInstanceFileTree(ctx context.Context, req *v1.GetInstanceFileTreeRequest) (*v1.GetInstanceFileTreeResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.GetFileTree(ctx, authCtx.UserID, req)
+}
+
 func (i *InstanceService) CreateInstanceFile(ctx context.Context, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

@@ -11,6 +11,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -48,6 +49,37 @@ func NewFileOper(basePath string) (*FileOper, error) {
 	}
 
 	return f, nil
+}
+
+// isSystemRoot 系统级且未指定路径时，代表“虚拟根”：
+// Windows 下为盘符列表（此电脑），类 Unix 下为根目录 "/"。
+// 这样前端无需手动输入盘符即可跨盘浏览整个文件系统。
+func (f *FileOper) isSystemRoot(dir string) bool {
+	return f.basePath == SystemPath && dir == ""
+}
+
+// listDrives 枚举当前存在的 Windows 盘符为目录项；非 Windows 返回 nil。
+func listDrives() []*v1.FileEntryInfo {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+	drives := make([]*v1.FileEntryInfo, 0, 26)
+	for c := 'A'; c <= 'Z'; c++ {
+		p := fmt.Sprintf("%c:\\", c)
+		info, err := os.Stat(p)
+		if err != nil {
+			continue
+		}
+		drives = append(drives, &v1.FileEntryInfo{
+			Name:       fmt.Sprintf("%c:", c),
+			Path:       p,
+			IsDir:      true,
+			Permission: "drwxrwxrwx",
+			Size:       0,
+			UpdateTime: timestamppb.New(info.ModTime()),
+		})
+	}
+	return drives
 }
 
 // ResolveRealPath 返回 targetPath 对应的真实路径。
@@ -92,6 +124,12 @@ func (f *FileOper) ResolveRealPath(targetPath string) (string, error) {
 
 // ListDir 获取文件列表
 func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v1.FileEntryInfo, error) {
+	if f.isSystemRoot(dir) {
+		if runtime.GOOS == "windows" {
+			return listDrives(), nil
+		}
+		dir = "/"
+	}
 	var results []*v1.FileEntryInfo
 	path, err := f.ResolveRealPath(dir)
 	if err != nil {
@@ -152,6 +190,19 @@ func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v
 }
 
 func (f *FileOper) QueryDir(dir, keywords string, recursive bool) ([]*v1.FileEntryInfo, error) {
+	if f.isSystemRoot(dir) {
+		if runtime.GOOS == "windows" {
+			// 盘符层级仅按盘符名过滤，不做跨盘递归（代价过大）
+			res := make([]*v1.FileEntryInfo, 0)
+			for _, d := range listDrives() {
+				if keywords == "" || strings.Contains(d.Name, keywords) {
+					res = append(res, d)
+				}
+			}
+			return res, nil
+		}
+		dir = "/"
+	}
 	var results []*v1.FileEntryInfo
 
 	root, err := f.ResolveRealPath(dir)
@@ -205,6 +256,20 @@ func toFileEntryInfo(d fs.FileInfo, fullPath string) *v1.FileEntryInfo {
 }
 
 func (f *FileOper) DirInfo(dir string) (*v1.FileDirectoryInfo, error) {
+	if f.isSystemRoot(dir) {
+		if runtime.GOOS == "windows" {
+			drives := listDrives()
+			return &v1.FileDirectoryInfo{
+				Name:       "此电脑",
+				Path:       "",
+				ParentPath: "",
+				DirCount:   int64(len(drives)),
+				FileCount:  0,
+				ItemCount:  int64(len(drives)),
+			}, nil
+		}
+		dir = "/"
+	}
 	path, err := f.ResolveRealPath(dir)
 	if err != nil {
 		return nil, err

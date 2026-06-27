@@ -209,8 +209,8 @@ func ToInfo(s *gen.FileShare) *v1.ShareInfo {
 	return info
 }
 
-// ToMeta 将分享记录映射为公开元信息（不暴露提取码与真实路径）。
-func ToMeta(s *gen.FileShare, now time.Time) *v1.GetShareMetaResponse {
+// ToMeta 将分享记录映射为公开元信息（不暴露提取码与真实路径）；owner 为分享者（可空）。
+func ToMeta(s *gen.FileShare, owner *gen.User, now time.Time) *v1.GetShareMetaResponse {
 	meta := &v1.GetShareMetaResponse{
 		Name:          s.Name,
 		IsDir:         s.IsDir,
@@ -218,6 +218,13 @@ func ToMeta(s *gen.FileShare, now time.Time) *v1.GetShareMetaResponse {
 		MaxDownloads:  s.MaxDownloads,
 		DownloadCount: s.DownloadCount,
 		Available:     Available(s, now),
+	}
+	if owner != nil {
+		meta.OwnerName = owner.Name
+		if meta.OwnerName == "" {
+			meta.OwnerName = owner.Username
+		}
+		meta.OwnerAvatar = owner.Avatar
 	}
 	if s.ExpiresAt != nil {
 		meta.ExpiresAt = timestamppb.New(*s.ExpiresAt)

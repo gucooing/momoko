@@ -157,19 +157,23 @@ func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize
 	return items, int64(total), nil
 }
 
-// GetShareByToken 按公开令牌获取分享（不限用户）。供公开访问使用。
+// GetShareByToken 按公开令牌获取分享（不限用户）。供公开访问使用；带出分享者用于公开展示。
 func (f *fileRepo) GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error) {
-	return f.data.db.FileShare.Query().Where(fileshare.TokenEQ(token)).Only(ctx)
+	return f.data.db.FileShare.Query().Where(fileshare.TokenEQ(token)).WithUser().Only(ctx)
 }
 
 // UpdateShare 全量覆盖可编辑字段（仅限本人）。expires_at 为空表示清除（永久）。
-func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error) {
+// targetPath 非空时同时更新分享目标（文件/文件夹），token 不变，原链接继续有效。
+func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest, targetPath string, isDir bool) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.UpdateOneID(req.Id).
 		Where(fileshare.UserIDEQ(userID)).
 		SetName(req.Name).
 		SetCode(req.Code).
 		SetMaxDownloads(req.MaxDownloads).
 		SetEnabled(req.Enabled)
+	if targetPath != "" {
+		builder.SetTargetPath(targetPath).SetIsDir(isDir)
+	}
 	if req.ExpiresAt != nil {
 		builder.SetExpiresAt(req.ExpiresAt.AsTime())
 	} else {

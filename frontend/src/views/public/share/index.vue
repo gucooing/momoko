@@ -1,205 +1,200 @@
 <template>
-  <div class="share-page">
-    <!-- 顶栏 -->
-    <header class="share-topbar">
-      <div class="topbar-inner">
-        <div class="brand">
-          <span class="brand-logo">M</span>
-          <span class="brand-text">{{ t('file.share.pageTitle') }}</span>
-        </div>
+  <div class="file-module share-public" :class="{ 'is-dark': isDark }">
+    <div class="sp-card">
+      <!-- 加载中 -->
+      <div v-if="loading" class="sp-state">{{ t('file.share.loading') }}</div>
+
+      <!-- 不存在 / 失效 -->
+      <div v-else-if="notFound" class="sp-state">
+        <el-icon class="sp-state-icon"><IconWarning /></el-icon>
+        <p>{{ t('file.share.notFound') }}</p>
       </div>
-    </header>
 
-    <main class="share-main">
-      <div class="share-card">
-        <div v-if="loading" class="share-state">{{ t('file.share.loading') }}</div>
+      <!-- 已关闭/过期/超次数 -->
+      <div v-else-if="meta && !meta.available" class="sp-state">
+        <el-icon class="sp-state-icon"><IconWarning /></el-icon>
+        <p>{{ t('file.share.unavailable') }}</p>
+      </div>
 
-        <div v-else-if="notFound" class="share-state">{{ t('file.share.notFound') }}</div>
+      <template v-else-if="meta">
+        <!-- 头部 -->
+        <header class="sp-header">
+          <el-icon class="sp-header-icon" :class="meta.isDir ? 'is-folder' : 'is-file'">
+            <component :is="meta.isDir ? IconFolder : IconFile" />
+          </el-icon>
+          <div class="sp-header-info">
+            <h1 class="sp-name">{{ meta.name }}</h1>
+            <div class="sp-meta">
+              <span v-if="!meta.isDir">{{ t('file.share.size') }}: {{ formatFileSize(meta.size) }}</span>
+              <span v-if="meta.expiresAt">{{ t('file.share.expiresAt', { time: formatDateTime(meta.expiresAt) }) }}</span>
+              <span v-if="Number(meta.maxDownloads) > 0">
+                {{ t('file.share.downloads') }}: {{ meta.downloadCount }} / {{ meta.maxDownloads }}
+              </span>
+            </div>
+          </div>
+          <div v-if="meta.ownerName || meta.ownerAvatar" class="sp-owner">
+            <img
+              v-if="meta.ownerAvatar"
+              :src="resolveAvatarUrl(meta.ownerAvatar)"
+              :alt="meta.ownerName"
+              class="sp-owner-avatar"
+            />
+            <span class="sp-owner-name">{{ meta.ownerName }}</span>
+          </div>
+        </header>
+
+        <!-- 提取码门 -->
+        <div v-if="meta.needCode && !codeVerified" class="sp-code">
+          <input
+            v-model="code"
+            class="fm-input sp-code-input"
+            :placeholder="t('file.share.codePrompt')"
+            @keyup.enter="verifyCode"
+          />
+          <button type="button" class="fm-btn fm-btn--primary" @click="verifyCode">
+            {{ t('file.share.access') }}
+          </button>
+        </div>
 
         <template v-else>
-          <!-- 头部：分享信息 + 操作 -->
-          <div class="card-head">
-            <div class="head-info">
-              <el-icon class="head-icon" :size="40"><component :is="meta.isDir ? Folder : kindIcon(meta.name)" /></el-icon>
-              <div class="head-text">
-                <div class="head-name" :title="meta.name">{{ meta.name }}</div>
-                <div class="head-sub">
-                  <span>{{ meta.expiresAt ? t('file.share.expiresAt', { time: formatTime(meta.expiresAt) }) : t('file.share.never') }}</span>
-                  <span v-if="!meta.isDir"> · {{ formatSize(meta.size) }}</span>
-                </div>
-              </div>
-            </div>
-            <div v-if="meta.available && unlocked" class="head-actions">
-              <el-button
-                v-if="!meta.isDir && isPreviewable(meta.name)"
-                :icon="View"
-                @click="previewItem(meta.name, '')"
-              >
-                {{ t('file.share.preview') }}
-              </el-button>
-              <el-button type="primary" :icon="Download" @click="download(meta.isDir ? subPath : '')">
-                {{ meta.isDir ? t('file.share.downloadZip') : t('file.share.download') }}
-              </el-button>
-            </div>
+          <!-- 文件：直接下载/预览 -->
+          <div v-if="!meta.isDir" class="sp-file-actions">
+            <a class="fm-btn fm-btn--primary" :href="downloadUrl()" target="_blank" rel="noopener">
+              <el-icon><IconDownload /></el-icon>{{ t('file.share.download') }}
+            </a>
+            <button
+              type="button"
+              class="fm-btn"
+              @click="previewFile('', meta.name, Number(meta.size) || 0)"
+            >
+              {{ t('file.share.preview') }}
+            </button>
           </div>
 
-          <div v-if="!meta.available" class="share-state share-unavailable">
-            {{ t('file.share.unavailable') }}
-          </div>
-
-          <!-- 提取码门禁 -->
-          <div v-else-if="meta.needCode && !unlocked" class="share-gate">
-            <el-input
-              v-model="code"
-              :placeholder="t('file.share.codePrompt')"
-              maxlength="16"
-              size="large"
-              @keyup.enter="unlock"
-            />
-            <el-button type="primary" size="large" :loading="unlocking" @click="unlock">
-              {{ t('file.share.access') }}
-            </el-button>
-          </div>
-
-          <!-- 文件列表 -->
-          <template v-else>
-            <div class="list-bar">
-              <span class="list-count">{{ t('file.share.itemCount', { count: displayEntries.length }) }}</span>
-              <nav v-if="meta.isDir" class="crumbs">
-                <a class="crumb" :class="{ active: !crumbs.length }" @click="goTo('')">{{ t('file.share.allFiles') }}</a>
-                <template v-for="(seg, i) in crumbs" :key="i">
-                  <span class="crumb-sep">›</span>
-                  <a class="crumb" :class="{ active: i === crumbs.length - 1 }" @click="goTo(crumbPath(i))">{{ seg }}</a>
+          <!-- 文件夹：浏览 -->
+          <div v-else class="sp-dir">
+            <div class="sp-dir-bar">
+              <div class="sp-breadcrumb">
+                <button type="button" class="sp-crumb" @click="goTo('')">
+                  {{ t('file.share.root') }}
+                </button>
+                <template v-for="(seg, index) in subSegments" :key="seg.path">
+                  <el-icon class="sp-crumb-sep"><IconChevronRight /></el-icon>
+                  <button type="button" class="sp-crumb" @click="goTo(seg.path)">{{ seg.name }}</button>
+                  <span v-if="index === subSegments.length - 1"></span>
                 </template>
-              </nav>
-            </div>
-
-            <div class="list-head">
-              <span class="col-name">{{ t('file.share.name') }}</span>
-              <span class="col-time">{{ t('file.share.modifiedTime') }}</span>
-              <span class="col-size">{{ t('file.share.size') }}</span>
-              <span class="col-ops"></span>
-            </div>
-
-            <div v-loading="browsing" class="file-list">
-              <div
-                v-for="entry in displayEntries"
-                :key="entry.relPath || entry.name"
-                class="file-row"
-                @click="onRowClick(entry)"
-              >
-                <div class="col-name file-main">
-                  <el-icon class="file-icon" :class="{ 'is-dir': entry.isDir }" :size="22">
-                    <component :is="entry.isDir ? Folder : kindIcon(entry.name)" />
-                  </el-icon>
-                  <div class="file-name-wrap">
-                    <span class="file-name" :title="entry.name">{{ entry.name }}</span>
-                    <span class="file-submeta">
-                      {{ entry.isDir ? '-' : formatSize(entry.size) }}<template v-if="entry.updateTime"> · {{ formatTime(entry.updateTime) }}</template>
-                    </span>
-                  </div>
-                </div>
-                <div class="col-time file-meta">{{ entry.updateTime ? formatTime(entry.updateTime) : '-' }}</div>
-                <div class="col-size file-meta">{{ entry.isDir ? '-' : formatSize(entry.size) }}</div>
-                <div class="col-ops file-ops">
-                  <el-button
-                    v-if="!entry.isDir && isPreviewable(entry.name)"
-                    link
-                    :icon="View"
-                    @click.stop="previewItem(entry.name, entry.relPath)"
-                  />
-                  <el-button link :icon="Download" @click.stop="download(entry.relPath)" />
-                </div>
               </div>
-              <div v-if="!displayEntries.length && !browsing" class="list-empty">{{ t('file.share.empty') }}</div>
+              <a class="fm-btn" :href="downloadUrl(subPath)" target="_blank" rel="noopener">
+                <el-icon><IconDownload /></el-icon>{{ t('file.share.downloadZip') }}
+              </a>
             </div>
-          </template>
+
+            <div v-if="dirLoading" class="sp-state">{{ t('file.share.loading') }}</div>
+            <div v-else-if="!entries.length" class="sp-state">{{ t('file.share.empty') }}</div>
+            <ul v-else class="sp-list">
+              <li v-for="entry in entries" :key="entry.relPath" class="sp-entry">
+                <button type="button" class="sp-entry-main" @click="onEntry(entry)">
+                  <el-icon class="sp-entry-icon" :class="entry.isDir ? 'is-folder' : 'is-file'">
+                    <component :is="entry.isDir ? IconFolder : IconFile" />
+                  </el-icon>
+                  <span class="sp-entry-name">{{ entry.name }}</span>
+                </button>
+                <span class="sp-entry-size">{{ entry.isDir ? '' : formatFileSize(entry.size) }}</span>
+                <span class="sp-entry-time">{{ formatDateTime(entry.updateTime) }}</span>
+                <span class="sp-entry-ops">
+                  <button
+                    v-if="!entry.isDir"
+                    type="button"
+                    class="sp-entry-link"
+                    @click.stop="previewFile(entry.relPath, entry.name, Number(entry.size) || 0)"
+                  >
+                    {{ t('file.share.preview') }}
+                  </button>
+                  <a
+                    v-if="!entry.isDir"
+                    class="sp-entry-link"
+                    :href="downloadUrl(entry.relPath)"
+                    target="_blank"
+                    rel="noopener"
+                    @click.stop
+                  >
+                    {{ t('file.share.download') }}
+                  </a>
+                </span>
+              </li>
+            </ul>
+          </div>
         </template>
-      </div>
+      </template>
 
-      <p class="share-disclaimer">{{ t('file.share.disclaimer') }}</p>
-    </main>
+      <footer class="sp-disclaimer">{{ t('file.share.disclaimer') }}</footer>
+    </div>
 
-    <!-- 预览 -->
-    <el-dialog v-model="previewVisible" :title="previewName" width="min(960px, 94vw)" align-center class="preview-dialog" @closed="onPreviewClosed">
-      <div class="preview-body">
-        <img v-if="previewKind === 'image'" :src="previewUrl" class="preview-image" :alt="previewName" />
-        <video v-else-if="previewKind === 'video'" :src="previewUrl" class="preview-video" controls autoplay />
-        <audio v-else-if="previewKind === 'audio'" :src="previewUrl" controls autoplay />
-      </div>
-    </el-dialog>
+    <FileViewerDialog
+      v-model="viewer.open"
+      :name="viewer.name"
+      :preview-url="viewer.previewUrl"
+      :download-url="viewer.downloadUrl"
+      :size="viewer.size"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'PublicShareView' })
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { Download, Document, Folder, Headset, Picture, VideoPlay, View } from '@element-plus/icons-vue'
-import { buildShareDownloadUrl, getShareMetaRequest, listShareDirRequest } from '@/api/share'
-import { resolveFilePreviewKind } from '@/utils/filePreview'
+import { showRequestError } from '@/utils/request'
+import { useThemeStore } from '@/stores/theme'
+import { formatDateTime, formatFileSize, splitPathSegments } from '@/utils/file'
+import { resolveAvatarUrl } from '@/utils/assets'
+import { getShareMetaRequest, listShareDirRequest, buildShareDownloadUrl } from '@/api/share'
+import FileViewerDialog from '@/components/file/FileViewerDialog.vue'
+import { IconFolder, IconFile, IconDownload, IconChevronRight, IconWarning } from '@/components/file/icons'
 import type { GetShareMetaResponse, ShareEntry } from '@/types/v1/file'
-
-defineOptions({ name: 'PublicShare' })
 
 const { t } = useI18n()
 const route = useRoute()
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.isDarkTheme)
 const token = String(route.params.token || '')
 
 const loading = ref(true)
 const notFound = ref(false)
-const meta = ref<GetShareMetaResponse>({} as GetShareMetaResponse)
+const meta = ref<GetShareMetaResponse | null>(null)
+
 const code = ref('')
-const unlocked = ref(false)
-const unlocking = ref(false)
+const codeVerified = ref(false)
 
 const subPath = ref('')
 const entries = ref<ShareEntry[]>([])
-const browsing = ref(false)
+const dirLoading = ref(false)
 
-const crumbs = computed(() => subPath.value.split('/').filter(Boolean))
-const crumbPath = (i: number) => crumbs.value.slice(0, i + 1).join('/')
+// 分享页内只读预览（与文件管理“打开文件”一致：文本高亮 / 媒体内联），仅查看 + 下载，不可编辑。
+const viewer = reactive({ open: false, name: '', previewUrl: '', downloadUrl: '', size: 0 })
+const previewFile = (relPath: string, name: string, size = 0) => {
+  viewer.name = name
+  viewer.previewUrl = buildShareDownloadUrl(token, { path: relPath, code: code.value, inline: true })
+  viewer.downloadUrl = buildShareDownloadUrl(token, { path: relPath, code: code.value })
+  viewer.size = size
+  viewer.open = true
+}
 
-// 单文件分享时也以「一行」形式展示，统一交互
-const displayEntries = computed<ShareEntry[]>(() => {
-  if (meta.value.isDir) return entries.value
-  if (!meta.value.name) return []
-  return [{ name: meta.value.name, isDir: false, size: meta.value.size, relPath: '', updateTime: undefined }]
+const subSegments = computed(() => {
+  if (!subPath.value) return []
+  return splitPathSegments(subPath.value.replace(/\\/g, '/'))
 })
 
-const isPreviewable = (name: string) => resolveFilePreviewKind(name) !== null
-const kindIcon = (name: string) => {
-  switch (resolveFilePreviewKind(name)) {
-    case 'image':
-      return Picture
-    case 'video':
-      return VideoPlay
-    case 'audio':
-      return Headset
-    default:
-      return Document
-  }
-}
+const downloadUrl = (path = '', inline = false) =>
+  buildShareDownloadUrl(token, { path, code: code.value, inline })
 
-const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
-const formatSize = (n: unknown) => {
-  let size = Number(n) || 0
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let i = 0
-  while (size >= 1024 && i < units.length - 1) {
-    size /= 1024
-    i++
-  }
-  return `${size.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
-}
-
-const loadMeta = async () => {
+const fetchMeta = async () => {
   loading.value = true
   try {
     const { data } = await getShareMetaRequest(token)
     meta.value = data
-    if (data.available && !data.needCode) {
-      unlocked.value = true
-      if (data.isDir) await loadDir('')
+    if (data?.isDir && data.available && !data.needCode) {
+      await loadDir('')
     }
   } catch {
     notFound.value = true
@@ -209,335 +204,233 @@ const loadMeta = async () => {
 }
 
 const loadDir = async (path: string) => {
-  browsing.value = true
+  dirLoading.value = true
   try {
     const { data } = await listShareDirRequest({ token, code: code.value, subPath: path })
-    entries.value = data?.items ?? []
+    entries.value = data?.items || []
     subPath.value = data?.subPath ?? path
+    codeVerified.value = true
+  } catch (error) {
+    showRequestError(error, t('file.share.unavailable'))
   } finally {
-    browsing.value = false
+    dirLoading.value = false
   }
 }
 
-const unlock = async () => {
-  unlocking.value = true
-  try {
-    if (meta.value.isDir) await loadDir('')
-    unlocked.value = true
-  } catch {
-    // 提取码错误：request 拦截器已提示，保持门禁
-  } finally {
-    unlocking.value = false
+const verifyCode = async () => {
+  if (!code.value.trim()) return
+  if (meta.value?.isDir) {
+    await loadDir('')
+  } else {
+    // 文件分享：提取码由下载端点校验，这里仅放行到下载按钮
+    codeVerified.value = true
   }
 }
 
 const goTo = (path: string) => loadDir(path)
 
-const download = (relPath: string) => {
-  window.location.href = buildShareDownloadUrl(token, code.value, relPath)
-}
-
-const onRowClick = (entry: ShareEntry) => {
+const onEntry = (entry: ShareEntry) => {
   if (entry.isDir) {
-    goTo(entry.relPath)
-  } else if (isPreviewable(entry.name)) {
-    previewItem(entry.name, entry.relPath)
-  } else {
-    download(entry.relPath)
+    loadDir(entry.relPath)
+    return
   }
+  previewFile(entry.relPath, entry.name, Number(entry.size) || 0)
 }
 
-// 预览
-const previewVisible = ref(false)
-const previewName = ref('')
-const previewUrl = ref('')
-const previewKind = ref<ReturnType<typeof resolveFilePreviewKind>>(null)
-
-const previewItem = (name: string, relPath: string) => {
-  previewKind.value = resolveFilePreviewKind(name)
-  previewName.value = name
-  previewUrl.value = buildShareDownloadUrl(token, code.value, relPath, true)
-  previewVisible.value = true
-}
-const onPreviewClosed = () => {
-  previewUrl.value = ''
-  previewName.value = ''
-}
-
-onMounted(loadMeta)
+onMounted(fetchMeta)
 </script>
 
-<style scoped lang="scss">
-.share-page {
+<style scoped>
+.share-public {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  background: var(--el-fill-color-light);
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background: var(--fm-subtle);
 }
-
-.share-topbar {
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-.topbar-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  padding: 0 1rem;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-.brand-logo {
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 0.55rem;
-  background: var(--el-color-primary);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-}
-
-.share-main {
-  flex: 1;
+.sp-card {
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1.6rem 1rem 2.4rem;
-  box-sizing: border-box;
-}
-
-.share-card {
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 14px;
-  padding: 1.4rem 1.5rem;
-  box-shadow: var(--el-box-shadow-light);
-}
-
-.card-head {
+  max-width: 760px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius);
+  box-shadow: var(--fm-shadow-sm);
+  overflow: hidden;
+}
+.sp-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 3rem 1rem;
+  color: var(--fm-text-3);
+  font-size: 14px;
+}
+.sp-state-icon {
+  font-size: 34px;
+  color: var(--fm-folder);
+}
+.sp-header {
+  display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--fm-border);
 }
-.head-info {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
+.sp-header-icon {
+  font-size: 40px;
 }
-.head-icon {
-  color: var(--el-color-primary);
-  flex-shrink: 0;
+.sp-header-icon.is-folder {
+  color: var(--fm-folder);
 }
-.head-text {
-  min-width: 0;
+.sp-header-icon.is-file {
+  color: var(--fm-accent);
 }
-.head-name {
-  font-size: 1.05rem;
+.sp-name {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--fm-text);
+  word-break: break-all;
 }
-.head-sub {
-  margin-top: 0.2rem;
-  font-size: 0.8rem;
-  color: var(--el-text-color-secondary);
-}
-.head-actions {
+.sp-meta {
   display: flex;
-  gap: 0.6rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 12.5px;
+  color: var(--fm-text-3);
+}
+.sp-owner {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
-
-.share-state {
-  padding: 2.5rem 0;
-  text-align: center;
-  color: var(--el-text-color-secondary);
+.sp-owner-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--fm-border);
 }
-.share-unavailable {
-  color: var(--el-color-danger);
+.sp-owner-name {
+  font-size: 13px;
+  color: var(--fm-text-2);
 }
-
-.share-gate {
+.sp-code {
   display: flex;
-  gap: 0.6rem;
-  margin-top: 1.6rem;
-  max-width: 420px;
+  gap: 0.625rem;
+  padding: 1.25rem 1.5rem;
 }
-
-.list-bar {
+.sp-code-input {
+  max-width: 240px;
+}
+.sp-file-actions {
   display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-top: 1.5rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--el-border-color-lighter);
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1.5rem;
 }
-.list-count {
-  font-weight: 600;
-}
-.crumbs {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.86rem;
-  color: var(--el-text-color-secondary);
-  flex-wrap: wrap;
-}
-.crumb {
-  cursor: pointer;
-  color: var(--el-color-primary);
-}
-.crumb.active {
-  color: var(--el-text-color-regular);
-  cursor: default;
-}
-.crumb-sep {
-  color: var(--el-text-color-placeholder);
-}
-
-.list-head,
-.file-row {
-  display: grid;
-  grid-template-columns: 1fr 170px 110px 84px;
-  align-items: center;
-  gap: 0.6rem;
-}
-.list-head {
-  padding: 0.7rem 0.6rem;
-  font-size: 0.82rem;
-  color: var(--el-text-color-secondary);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-.file-row {
-  padding: 0.6rem;
-  border-radius: 8px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--el-border-color-extra-light);
-}
-.file-row:hover {
-  background: var(--el-fill-color-light);
-}
-.file-main {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-.file-icon {
-  color: var(--el-color-primary);
-  flex-shrink: 0;
-}
-.file-icon.is-dir {
-  color: var(--el-color-warning);
-}
-.file-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.file-name-wrap {
-  min-width: 0;
+.sp-dir {
   display: flex;
   flex-direction: column;
 }
-.file-submeta {
-  display: none;
-  font-size: 0.74rem;
-  color: var(--el-text-color-secondary);
+.sp-dir-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid var(--fm-border);
 }
-.file-meta {
-  font-size: 0.82rem;
-  color: var(--el-text-color-secondary);
+.sp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
 }
-.col-size {
+.sp-crumb {
+  border: none;
+  background: transparent;
+  color: var(--fm-text-2);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sp-crumb:hover {
+  color: var(--fm-accent);
+}
+.sp-crumb-sep {
+  font-size: 13px;
+  color: var(--fm-text-3);
+}
+.sp-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sp-entry {
+  display: grid;
+  grid-template-columns: 1fr 110px 170px 90px;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  height: 46px;
+  border-bottom: 1px solid var(--fm-border);
+  font-size: 13px;
+}
+.sp-entry:hover {
+  background: var(--fm-hover);
+}
+.sp-entry-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--fm-text);
+  cursor: pointer;
+  min-width: 0;
+  text-align: left;
+}
+.sp-entry-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sp-entry-icon.is-folder {
+  color: var(--fm-folder);
+}
+.sp-entry-icon.is-file {
+  color: var(--fm-text-3);
+}
+.sp-entry-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-entry-size,
+.sp-entry-time {
+  color: var(--fm-text-3);
+  font-size: 12px;
+}
+.sp-entry-ops {
   text-align: right;
 }
-.file-ops {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.3rem;
-  opacity: 0;
-  transition: opacity 0.15s;
+.sp-entry-link {
+  color: var(--fm-accent);
+  font-size: 12.5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0 0 0.625rem;
 }
-.file-row:hover .file-ops {
-  opacity: 1;
-}
-.list-empty {
-  padding: 2rem 0;
-  text-align: center;
-  color: var(--el-text-color-secondary);
-}
-
-.share-disclaimer {
-  margin: 1.6rem 0 0;
-  text-align: center;
-  font-size: 0.78rem;
-  color: var(--el-text-color-secondary);
-}
-
-.preview-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.preview-image {
-  max-width: 100%;
-  max-height: 72vh;
-  object-fit: contain;
-}
-.preview-video {
-  max-width: 100%;
-  max-height: 72vh;
-}
-
-/* 移动端适配 */
-@media (max-width: 640px) {
-  .share-card {
-    padding: 1.1rem;
-    border-radius: 12px;
-  }
-  .head-actions {
-    width: 100%;
-  }
-  .head-actions .el-button {
-    flex: 1;
-  }
-  .share-gate {
-    max-width: none;
-  }
-  /* 列表收起为「名称 + 操作」，时间/大小并入名称下方 */
-  .list-head .col-time,
-  .list-head .col-size,
-  .file-row .col-time,
-  .file-row .col-size {
-    display: none;
-  }
-  .list-head,
-  .file-row {
-    grid-template-columns: 1fr auto;
-  }
-  .file-main {
-    flex-direction: row;
-    align-items: center;
-  }
-  .file-submeta {
-    display: block;
-  }
-  .file-ops {
-    opacity: 1;
-  }
+.sp-disclaimer {
+  padding: 1rem 1.5rem;
+  font-size: 12px;
+  color: var(--fm-text-3);
+  border-top: 1px solid var(--fm-border);
+  background: var(--fm-subtle);
 }
 </style>

@@ -26,32 +26,10 @@ import type {
   UpdateInstanceResponse,
   UpdateInstanceTypeRequest,
   UpdateInstanceTypeResponse,
-  GetInstanceFileListRequest,
-  GetInstanceFileListResponse,
-  CreateInstanceFileRequest,
-  CreateInstanceFileResponse,
-  BatchDeleteInstanceFileRequest,
-  BatchDeleteInstanceFileResponse,
-  BatchCompressInstanceFileRequest,
-  BatchCompressInstanceFileResponse,
-  UnzipInstanceFileRequest,
-  UnzipInstanceFileResponse,
-  OpenInstanceFileRequest,
-  OpenInstanceFileResponse,
-  EditInstanceFileRequest,
-  EditInstanceFileResponse,
-  RenameInstanceFileRequest,
-  RenameInstanceFileResponse,
-  InstanceFilePreSignRequest,
-  InstanceFilePreSignResponse,
-  InstanceFilePreSignUploadRequest,
-  InstanceFilePreSignUploadResponse,
-  CopyInstanceFileRequest,
-  CopyInstanceFileResponse,
-  CutInstanceFileRequest,
-  CutInstanceFileResponse,
 } from '@/types/v1/instance'
-import { encodeBytesToBase64 } from '@/utils/filePreview'
+
+// 实例生命周期与类型管理 API。
+// 实例「文件管理」相关 HTTP 已拆分到 `@/api/instanceFile`，并由 `@/components/file/fileClient` 统一封装。
 
 export const getInstances = (params: GetInstancesRequest) => {
   return request.get<GetInstancesResponse>('/instance', { params })
@@ -93,9 +71,7 @@ export const getInstanceTypes = (params: GetInstanceTypesRequest = {}) => {
   return request.get<GetInstanceTypesResponse>('/instance/type', { params })
 }
 
-export const createInstanceType = (
-  data: CreateInstanceTypeRequest & { isEnable?: boolean },
-) => {
+export const createInstanceType = (data: CreateInstanceTypeRequest & { isEnable?: boolean }) => {
   return request.post<CreateInstanceTypeResponse>('/instance/type', data)
 }
 
@@ -105,69 +81,4 @@ export const updateInstanceType = (data: UpdateInstanceTypeRequest) => {
 
 export const deleteInstanceType = (params: DelInstanceTypeRequest) => {
   return request.delete<DelInstanceTypeResponse>(`/instance/type/${params.id}`)
-}
-
-export const getInstanceFileListRequest = (params: GetInstanceFileListRequest) => {
-  return request.get<GetInstanceFileListResponse>(`/instance/file/${params.id}`, { params })
-}
-
-export const createInstanceFileRequest = (data: CreateInstanceFileRequest) => {
-  return request.post<CreateInstanceFileResponse>(`/instance/file/create/${data.id}`, data)
-}
-
-export const batchDeleteInstanceFileRequest = (data: BatchDeleteInstanceFileRequest) => {
-  return request.post<BatchDeleteInstanceFileResponse>(`/instance/file/deletes/${data.id}`, data)
-}
-
-export const openInstanceFileRequest = (data: OpenInstanceFileRequest) => {
-  return request.post<OpenInstanceFileResponse>(`/instance/file/open/${data.id}`, data)
-}
-
-export const getInstanceFilePreSignRequest = (params: InstanceFilePreSignRequest) => {
-  return request.get<InstanceFilePreSignResponse>(`/instance/file/pre-sign/${params.id}`, {
-    params,
-  })
-}
-
-export const getInstanceFilePreSignUploadRequest = (
-  params: InstanceFilePreSignUploadRequest,
-) => {
-  return request.get<InstanceFilePreSignUploadResponse>(
-    `/instance/file/upload/pre-sign/${params.id}`,
-    { params },
-  )
-}
-
-export const batchCompressInstanceFileRequest = (data: BatchCompressInstanceFileRequest) => {
-  return request.post<BatchCompressInstanceFileResponse>(
-    `/instance/file/compress/${data.id}`,
-    data,
-  )
-}
-
-export const renameInstanceFileRequest = (data: RenameInstanceFileRequest) => {
-  return request.post<RenameInstanceFileResponse>(`/instance/file/rename/${data.id}`, data)
-}
-
-export const unzipInstanceFileRequest = (data: UnzipInstanceFileRequest) => {
-  return request.post<UnzipInstanceFileResponse>(`/instance/file/unzip/${data.id}`, data)
-}
-
-export const copyInstanceFileRequest = (data: CopyInstanceFileRequest) => {
-  return request.post<CopyInstanceFileResponse>(`/instance/file/copy/${data.id}`, data)
-}
-
-
-export const editInstanceFileRequest = (data: EditInstanceFileRequest) => {
-  const payload = {
-    id: data.id,
-    path: data.path,
-    content: encodeBytesToBase64(data.content),
-  }
-
-  return request.post<EditInstanceFileResponse>(`/instance/file/edit/${data.id}`, payload)
-}
-
-export const cutInstanceFileRequest = (data: CutInstanceFileRequest) => {
-  return request.post<CutInstanceFileResponse>(`/instance/file/cut/${data.id}`, data)
 }

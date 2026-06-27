@@ -499,6 +499,22 @@ func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v
 	}, nil
 }
 
+// GetFileTree 列出实例目录的直接子项（懒加载，供编辑器文件树使用）。
+func (i *InstanceUsecase) GetFileTree(ctx context.Context, userID string, req *v1.GetInstanceFileTreeRequest) (*v1.GetInstanceFileTreeResponse, error) {
+	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	entries, err := fileOper.ListDir(req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.GetInstanceFileTreeResponse{
+		Path:  req.Path,
+		Nodes: toTreeNodes(entries),
+	}, nil
+}
+
 func (i *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
 	fileOper, err := i.newFileOper(ctx, userID, req.Id)
 	if err != nil {

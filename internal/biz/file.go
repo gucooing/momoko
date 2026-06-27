@@ -46,7 +46,7 @@ type FileRepo interface {
 	CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error)
 	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
 	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
-	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error)
+	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest, targetPath string, isDir bool) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
 	IncrShareDownload(ctx context.Context, id string) error
 }
@@ -116,6 +116,35 @@ func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 		PageSize:  req.PageSize,
 		Total:     total,
 	}, nil
+}
+
+// GetFileSystemTree 列出指定目录的直接子项（懒加载，供编辑器文件树使用）。
+func (f *FileUsecase) GetFileSystemTree(ctx context.Context, req *v1.GetFileSystemTreeRequest) (*v1.GetFileSystemTreeResponse, error) {
+	fileOper, err := f.newSystemInstance()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	entries, err := fileOper.ListDir(req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.GetFileSystemTreeResponse{
+		Path:  req.Path,
+		Nodes: toTreeNodes(entries),
+	}, nil
+}
+
+// toTreeNodes 把文件条目裁剪为目录树节点（仅名称/路径/是否目录）。
+func toTreeNodes(entries []*v1.FileEntryInfo) []*v1.FileTreeNode {
+	nodes := make([]*v1.FileTreeNode, 0, len(entries))
+	for _, e := range entries {
+		nodes = append(nodes, &v1.FileTreeNode{
+			Name:  e.Name,
+			Path:  e.Path,
+			IsDir: e.IsDir,
+		})
+	}
+	return nodes
 }
 
 // BatchDeleteFileSystem 批量删除文件。
@@ -472,8 +501,27 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 }
 
 // UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
+// req.Path 非空时改换分享目标（文件/文件夹），token 不变、原链接继续有效。
 func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*v1.ShareInfo, error) {
-	rec, err := f.repo.UpdateShare(ctx, userID, req)
+	var targetPath string
+	var isDir bool
+	if req.Path != "" {
+		fileOper, err := f.newSystemInstance()
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		realPath, err := fileOper.ResolveRealPath(req.Path)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		d, _, err := share.Prepare(realPath)
+		if err != nil {
+			return nil, ErrFileNotExist
+		}
+		targetPath = realPath
+		isDir = d
+	}
+	rec, err := f.repo.UpdateShare(ctx, userID, req, targetPath, isDir)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrShareNotFound
@@ -497,7 +545,7 @@ func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetSh
 	if err != nil {
 		return nil, ErrShareNotFound
 	}
-	return share.ToMeta(rec, time.Now()), nil
+	return share.ToMeta(rec, rec.Edges.User, time.Now()), nil
 }
 
 // ListShareDir 公开：浏览文件夹分享的子目录（校验提取码与可用性）。
