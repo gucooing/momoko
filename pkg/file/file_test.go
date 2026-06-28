@@ -159,10 +159,8 @@ func Test_Download_Speed(t *testing.T) {
 			return
 		}
 	}()
-	select {
-	case <-testCtx.Done():
-		srv.Close()
-	}
+	<-testCtx.Done()
+	srv.Close()
 	t.Log("Download_Speed End")
 }
 
@@ -188,6 +186,7 @@ func Test_SaveFile(t *testing.T) {
 		if err != nil {
 			return err
 		}
+		wrote := false
 		for {
 			part, err := mr.NextPart()
 			if err == io.EOF {
@@ -217,21 +216,21 @@ func Test_SaveFile(t *testing.T) {
 				_ = os.Remove(dstPath)
 				return closeErr2
 			}
-
-			w.WriteHeader(200)
-			return nil
+			wrote = true
 		}
 
-		return errors.New("没有找到上传文件")
+		if !wrote {
+			return errors.New("没有找到上传文件")
+		}
+		w.WriteHeader(200)
+		return nil
 	})
 	go func() {
 		if err := srv.Start(testCtx); err != nil {
 			return
 		}
 	}()
-	select {
-	case <-testCtx.Done():
-		srv.Close()
-	}
+	<-testCtx.Done()
+	srv.Close()
 	t.Log("SaveFile End")
 }

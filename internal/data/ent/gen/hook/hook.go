@@ -272,6 +272,18 @@ func (f SystemConfigFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SystemConfigMutation", m)
 }
 
+// The TaskFunc type is an adapter to allow the use of ordinary
+// function as Task mutator.
+type TaskFunc func(context.Context, *gen.TaskMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TaskFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.TaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.TaskMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *gen.UserMutation) (gen.Value, error)

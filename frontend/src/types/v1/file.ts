@@ -63,7 +63,11 @@ export interface ShareInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
 }
 
 /** 创建分享请求 */
@@ -82,6 +86,10 @@ export interface CreateShareRequest {
   maxDownloads: number;
   /** 是否启用 */
   enabled: boolean;
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
+  /** 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用） */
+  size: number;
 }
 
 /** 创建分享响应 */
@@ -130,6 +138,10 @@ export interface UpdateShareRequest {
   enabled: boolean;
   /** 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变） */
   path: string;
+  /** 新目标的文件来源id（path 非空时生效） */
+  sourceId: string;
+  /** 新目标文件大小（前端提供的展示值，path 非空时生效） */
+  size: number;
 }
 
 /** 更新分享响应 */
@@ -787,6 +799,8 @@ export interface CompleteFileUploadRequest {
 
 /** 上传完成合并分片响应 */
 export interface CompleteFileUploadResponse {
+  /** 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。 */
+  task: FileTaskInfo | undefined;
 }
 
 /** 取消文件上传请求 */
@@ -803,8 +817,6 @@ export interface CancelFileUploadResponse {
 export interface UploadInfo {
   /** 上传会话 id */
   uploadId: string;
-  /** 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始） */
-  uploadPartUrlPathTemplate: string;
   /** 实际分片大小（字节） */
   partSize: number;
   /** 文件总大小（字节） */
@@ -818,10 +830,22 @@ export interface UploadInfo {
   /** 是否已取消上传 */
   cancel: boolean;
   /** 预签名过期时间 */
-  expiredAt: Date | undefined;
+  expiredAt:
+    | Date
+    | undefined;
+  /**
+   * 各分片的上传 URL（partNumber→URL）。本地/FTP/WebDAV 指向 momoko 签名端点，OSS 指向来源预签名直链。
+   * 前端对每片 PUT part_urls[n]，来源透明、一套代码。
+   */
+  partUrls: { [key: number]: string };
 }
 
 export interface UploadInfo_UploadedPartsEntry {
+  key: number;
+  value: string;
+}
+
+export interface UploadInfo_PartUrlsEntry {
   key: number;
   value: string;
 }

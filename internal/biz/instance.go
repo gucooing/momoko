@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/servercore"
+	"momoko/pkg/task"
 )
 
 const (
@@ -30,6 +32,7 @@ const (
 type InstanceUsecase struct {
 	repo     InstanceRepo
 	fileRepo FileRepo
+	tasks    *task.Manager
 	instance *servercore.ServerManager
 }
 
@@ -46,11 +49,12 @@ type InstanceRepo interface {
 	GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error)
 }
 
-func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo) (*InstanceUsecase, func(), error) {
+func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo, tasks *task.Manager) (*InstanceUsecase, func(), error) {
 	usecase := &InstanceUsecase{
 		repo:     repo,
 		instance: servercore.NewServerManager(),
 		fileRepo: fileRepo,
+		tasks:    tasks,
 	}
 	go usecase.start()
 	return usecase, usecase.Close, nil
@@ -434,24 +438,24 @@ func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *gen.In
 	return info
 }
 
-func (i *InstanceUsecase) newFileOper(ctx context.Context, userID, instanceID string) (*file.FileOper, error) {
+// instanceStore 返回实例工作目录对应的本地 Store 及其根路径（实例文件统一走 Store 接口）。
+func (i *InstanceUsecase) instanceStore(ctx context.Context, userID, instanceID string) (file.Store, string, error) {
 	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, ErrInstanceAccess
+			return nil, "", ErrInstanceAccess
 		}
-		return nil, ErrSystem(err)
+		return nil, "", ErrSystem(err)
 	}
-
-	fileOper, err := file.NewFileOper(item.Path)
+	store, err := file.NewLocalStore(item.Path)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, "", ErrSystem(err)
 	}
-	return fileOper, nil
+	return store, item.Path, nil
 }
 
 func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v1.GetInstanceFileListRequest) (*v1.GetInstanceFileListResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -466,9 +470,9 @@ func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v
 	}
 	var result []*v1.FileEntryInfo
 	if req.Keywords != nil {
-		result, err = fileOper.QueryDir(req.Path, req.GetKeywords(), req.GetIncludeSubDir())
+		result, err = store.Search(ctx, req.Path, req.GetKeywords(), req.GetIncludeSubDir())
 	} else {
-		result, err = fileOper.ListDir(req.Path, req.SortField, req.IsDesc)
+		result, err = store.List(ctx, req.Path, req.SortField, req.IsDesc)
 	}
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -485,7 +489,7 @@ func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v
 		pages = result[start:end]
 	}
 
-	directory, err := fileOper.DirInfo(req.Path)
+	directory, err := store.DirInfo(ctx, req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -501,11 +505,11 @@ func (i *InstanceUsecase) GetFileList(ctx context.Context, userID string, req *v
 
 // GetFileTree 列出实例目录的直接子项（懒加载，供编辑器文件树使用）。
 func (i *InstanceUsecase) GetFileTree(ctx context.Context, userID string, req *v1.GetInstanceFileTreeRequest) (*v1.GetInstanceFileTreeResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	entries, err := fileOper.ListDir(req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
+	entries, err := store.List(ctx, req.Path, v1.FileSortField_FILE_SORT_FIELD_NAME, false)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -516,25 +520,25 @@ func (i *InstanceUsecase) GetFileTree(ctx context.Context, userID string, req *v
 }
 
 func (i *InstanceUsecase) CreateFile(ctx context.Context, userID string, req *v1.CreateInstanceFileRequest) (*v1.CreateInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
 	if req.Info == nil {
 		return nil, ErrSystem(errors.New("创建信息为空"))
 	}
-	if err = fileOper.Create(req.Info); err != nil {
+	if err = store.Create(ctx, req.Info); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return &v1.CreateInstanceFileResponse{}, nil
 }
 
 func (i *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1.RenameInstanceFileRequest) (*v1.RenameInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	path, err := fileOper.Rename(req.Path, req.NewName)
+	path, err := store.Rename(ctx, req.Path, req.NewName)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -542,44 +546,60 @@ func (i *InstanceUsecase) RenameFile(ctx context.Context, userID string, req *v1
 }
 
 func (i *InstanceUsecase) CopyFile(ctx context.Context, userID string, req *v1.CopyInstanceFileRequest) (*v1.CopyInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, basePath, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	task, err := fileOper.StartCopyToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationInstanceCopy)
-	if err != nil {
-		return nil, ErrSystem(err)
+	copier, ok := store.(file.Copier)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
 	}
-	return &v1.CopyInstanceFileResponse{Task: task}, nil
+	payload := file.TransferPayload{BasePath: basePath, Paths: req.Paths, Target: req.TargetPath}
+	t := file.NewCopyTask(task.Meta{UserID: userID, Title: transferTitle("复制", req.Paths)}, copier, payload)
+	info, err := submitTransfer(ctx, i.tasks, t)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CopyInstanceFileResponse{Task: info}, nil
 }
 
 func (i *InstanceUsecase) CutFile(ctx context.Context, userID string, req *v1.CutInstanceFileRequest) (*v1.CutInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, basePath, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	task, err := fileOper.StartMoveToDirTask(userID, req.Paths, req.TargetPath, file.TaskOperationInstanceCut)
-	if err != nil {
-		return nil, ErrSystem(err)
+	mover, ok := store.(file.Mover)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
 	}
-	return &v1.CutInstanceFileResponse{Task: task}, nil
+	payload := file.TransferPayload{BasePath: basePath, Paths: req.Paths, Target: req.TargetPath}
+	t := file.NewMoveTask(task.Meta{UserID: userID, Title: transferTitle("移动", req.Paths)}, mover, payload)
+	info, err := submitTransfer(ctx, i.tasks, t)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CutInstanceFileResponse{Task: info}, nil
 }
 
 func (i *InstanceUsecase) BatchDeleteFile(ctx context.Context, userID string, req *v1.BatchDeleteInstanceFileRequest) (*v1.BatchDeleteInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	items := fileOper.BatchDelete(req.Paths)
+	items := store.Delete(ctx, req.Paths)
 	return &v1.BatchDeleteInstanceFileResponse{Items: items}, nil
 }
 
 func (i *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, req *v1.BatchCompressInstanceFileRequest) (*v1.BatchCompressInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	outputPath, err := fileOper.BatchCompress(req.Paths, *req.TargetPath)
+	archiver, ok := store.(file.Archiver)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	outputPath, err := archiver.Compress(ctx, req.Paths, req.GetTargetPath())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -587,11 +607,15 @@ func (i *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, 
 }
 
 func (i *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.UnzipInstanceFileRequest) (*v1.UnzipInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	outputPath, err := fileOper.Unzip(req.Path, *req.TargetPath)
+	archiver, ok := store.(file.Archiver)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	outputPath, err := archiver.Unzip(ctx, req.Path, req.GetTargetPath())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -599,11 +623,11 @@ func (i *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.
 }
 
 func (i *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	content, err := fileOper.LoadFile(req.Path)
+	content, err := store.Read(ctx, req.Path, file.MaxLoadFileSize)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -611,22 +635,25 @@ func (i *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.O
 }
 
 func (i *InstanceUsecase) EditFile(ctx context.Context, userID string, req *v1.EditInstanceFileRequest) (*v1.EditInstanceFileResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	if err = fileOper.SaveFile(req.Path, req.Content); err != nil {
+	if len(req.Content) > file.MaxLoadFileSize {
+		return nil, ErrSystem(fmt.Errorf("文件太大"))
+	}
+	if err = store.Write(ctx, req.Path, bytes.NewReader(req.Content)); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return &v1.EditInstanceFileResponse{}, nil
 }
 
 func (i *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	_, basePath, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	realPath, err := fileOper.ResolveRealPath(req.Path)
+	realPath, err := file.ResolveLocalPath(basePath, req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -645,26 +672,30 @@ func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 	if req.FileSize > math.MaxInt64 {
 		return nil, ErrUploadRequestInvalid
 	}
-	fileOper, err := i.newFileOper(ctx, userID, req.Id)
+	store, basePath, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	realPath, err := fileOper.ResolveRealPath(req.Path)
+	realPath, err := file.ResolveLocalPath(basePath, req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	upload := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize)
-	info, err := i.fileRepo.GetOrCreate(ctx, userID, upload)
+	seed := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize)
+	row, err := i.fileRepo.GetOrCreate(ctx, userID, seed)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	preInfo := pre.NewFileSignInfo(info.ID, info.Path, userID, UploadPeriod)
-	sign, err := preInfo.Sign()
-	if err != nil {
-		return nil, ErrSign
+	if row.Completed {
+		return toUploadInfo(row, &file.Upload{}), nil
 	}
-	upload.FileUpload = info
-	uploadCache.Set(info.ID, upload)
-
-	return toUploadInfo(info, sign), nil
+	u, err := buildUpload(i.fileRepo, userID, row)
+	if err != nil {
+		return nil, err
+	}
+	// 盲调用：实例文件为本地来源，store 在接口内填充 momoko 签名分片地址。
+	if err := store.PrepareUpload(ctx, u); err != nil {
+		return nil, ErrSystem(err)
+	}
+	uploadCache.Set(row.ID, &file.ChunkedUpload{FileUpload: row})
+	return toUploadInfo(row, u), nil
 }

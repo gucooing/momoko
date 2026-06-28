@@ -125,6 +125,11 @@ func SourceID(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldSourceID, v))
 }
 
+// ProviderRef applies equality check predicate on the "provider_ref" field. It's identical to ProviderRefEQ.
+func ProviderRef(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldProviderRef, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldCreateTime, v))
@@ -668,6 +673,71 @@ func SourceIDEqualFold(v string) predicate.FileUpload {
 // SourceIDContainsFold applies the ContainsFold predicate on the "source_id" field.
 func SourceIDContainsFold(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldContainsFold(FieldSourceID, v))
+}
+
+// ProviderRefEQ applies the EQ predicate on the "provider_ref" field.
+func ProviderRefEQ(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldProviderRef, v))
+}
+
+// ProviderRefNEQ applies the NEQ predicate on the "provider_ref" field.
+func ProviderRefNEQ(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNEQ(FieldProviderRef, v))
+}
+
+// ProviderRefIn applies the In predicate on the "provider_ref" field.
+func ProviderRefIn(vs ...string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldIn(FieldProviderRef, vs...))
+}
+
+// ProviderRefNotIn applies the NotIn predicate on the "provider_ref" field.
+func ProviderRefNotIn(vs ...string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNotIn(FieldProviderRef, vs...))
+}
+
+// ProviderRefGT applies the GT predicate on the "provider_ref" field.
+func ProviderRefGT(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldGT(FieldProviderRef, v))
+}
+
+// ProviderRefGTE applies the GTE predicate on the "provider_ref" field.
+func ProviderRefGTE(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldGTE(FieldProviderRef, v))
+}
+
+// ProviderRefLT applies the LT predicate on the "provider_ref" field.
+func ProviderRefLT(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldLT(FieldProviderRef, v))
+}
+
+// ProviderRefLTE applies the LTE predicate on the "provider_ref" field.
+func ProviderRefLTE(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldLTE(FieldProviderRef, v))
+}
+
+// ProviderRefContains applies the Contains predicate on the "provider_ref" field.
+func ProviderRefContains(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldContains(FieldProviderRef, v))
+}
+
+// ProviderRefHasPrefix applies the HasPrefix predicate on the "provider_ref" field.
+func ProviderRefHasPrefix(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldHasPrefix(FieldProviderRef, v))
+}
+
+// ProviderRefHasSuffix applies the HasSuffix predicate on the "provider_ref" field.
+func ProviderRefHasSuffix(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldHasSuffix(FieldProviderRef, v))
+}
+
+// ProviderRefEqualFold applies the EqualFold predicate on the "provider_ref" field.
+func ProviderRefEqualFold(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEqualFold(FieldProviderRef, v))
+}
+
+// ProviderRefContainsFold applies the ContainsFold predicate on the "provider_ref" field.
+func ProviderRefContainsFold(v string) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldContainsFold(FieldProviderRef, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

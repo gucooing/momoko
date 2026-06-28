@@ -28,6 +28,7 @@ import (
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
+	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"reflect"
@@ -118,6 +119,7 @@ func checkColumn(t, c string) error {
 			sub2apitimelineitem.Table: sub2apitimelineitem.ValidColumn,
 			sub2apiusagerecord.Table:  sub2apiusagerecord.ValidColumn,
 			systemconfig.Table:        systemconfig.ValidColumn,
+			task.Table:                task.ValidColumn,
 			user.Table:                user.ValidColumn,
 			userapikey.Table:          userapikey.ValidColumn,
 		})

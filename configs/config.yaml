@@ -1,10 +1,10 @@
 server:
   http:
     addr: 0.0.0.0:22633
-    timeout: 5s
+    timeout: 15s
   grpc:
     addr: 0.0.0.0:22733
-    timeout: 5s
+    timeout: 15s
 data:
   database:
     driver: sqlite3

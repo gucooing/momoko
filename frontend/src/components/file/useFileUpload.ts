@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { translate as t } from '@/locales'
 import { resolveStaticResourceUrl } from '@/utils/assets'
 import { cancelFileUpload, completeFileUpload, getFileUploadStatus } from '@/api/file'
+import { waitFileTask } from '@/utils/fileTask'
 import type { FileClient } from './types'
 
 // 分片并发上传：scope 无关。预签名走 client（系统/实例各自路由），分片 PUT 直传签名 URL
@@ -134,8 +135,9 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
     )
   }
 
+  // 每片直传到 part_urls[chunk]：来源透明（OSS=来源预签名直链，绝对 URL；本地/FTP/WebDAV=momoko 签名相对路径）。
   const putPart = async (
-    template: string,
+    partUrls: { [key: number]: string },
     chunk: number,
     partSize: number,
     item: UploadItem,
@@ -144,7 +146,11 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
     const start = (chunk - 1) * partSize
     const end = Math.min(start + partSize, item.size)
     const blob = item.file.slice(start, end)
-    const url = resolveStaticResourceUrl(template.replace('{partNumber}', String(chunk)))
+    const raw = partUrls?.[chunk]
+    if (!raw) {
+      throw new Error(t('fileManager.partUploadFailedHttp', { status: 0 }))
+    }
+    const url = /^https?:\/\//i.test(raw) ? raw : resolveStaticResourceUrl(raw)
     const res = await fetch(url, { method: 'PUT', body: blob, signal })
     if (!res.ok) {
       throw new Error(t('fileManager.partUploadFailedHttp', { status: res.status }))
@@ -198,7 +204,7 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
       item.statusText = t('fileManager.chunkUploadingWithThreads', { count: threads.value })
       await runPool(pending, threads.value, async (chunk) => {
         if (signal.aborted) throw new DOMException('aborted', 'AbortError')
-        await putPart(info.uploadPartUrlPathTemplate, chunk, partSize, item, signal)
+        await putPart(info.partUrls, chunk, partSize, item, signal)
         completed += 1
         updateProgress()
       })
@@ -212,7 +218,7 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
       if (missing.length) {
         await runPool(missing, threads.value, async (chunk) => {
           if (signal.aborted) throw new DOMException('aborted', 'AbortError')
-          await putPart(info.uploadPartUrlPathTemplate, chunk, partSize, item, signal)
+          await putPart(info.partUrls, chunk, partSize, item, signal)
         })
         const stillMissing = await findMissingParts(info.uploadId, totalParts)
         if (stillMissing.length) {
@@ -222,7 +228,11 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
 
       item.status = 'finishing'
       item.statusText = t('fileManager.finishing')
-      await completeFileUpload(info.uploadId)
+      // 收尾：FTP/WebDAV 远端整流收尾会返回异步任务，轮询至终态；本地/OSS 瞬时收尾无任务。
+      const { data: completeData } = await completeFileUpload(info.uploadId)
+      if (completeData?.task?.taskId) {
+        await waitFileTask(completeData.task.taskId, { initialTask: completeData.task })
+      }
 
       item.progress = 100
       item.status = 'done'

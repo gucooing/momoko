@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 任务管理：通用任务管理器（pkg/task）的统一对外面板，可见可操作全部任务
+// （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取、常驻任务等）。
+service TaskManager {
+  // 列出全部任务（跨用户 + 系统任务）
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tasks"
+    };
+  }
+  // 获取单个任务
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/task/{id}"
+    };
+  }
+  // 取消运行中的任务
+  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/task/cancel"
+      body: "*"
+    };
+  }
+  // 重试失败的任务（按工厂重建重投）
+  rpc RetryTask(RetryTaskRequest) returns (RetryTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/task/retry"
+      body: "*"
+    };
+  }
+  // 删除终态任务行（清理列表）
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/task/delete"
+      body: "*"
+    };
+  }
+}
+
+// 任务状态
+enum TaskStatus {
+  TASK_STATUS_UNKNOWN = 0;
+  TASK_STATUS_PENDING = 1;
+  TASK_STATUS_RUNNING = 2;
+  TASK_STATUS_SUCCESS = 3;
+  TASK_STATUS_FAILED = 4;
+  TASK_STATUS_CANCELED = 5;
+}
+
+// 任务种类
+enum TaskKind {
+  TASK_KIND_UNKNOWN = 0;
+  // 超时型一次性任务（复制/剪切/远端收尾/镜像拉取）
+  TASK_KIND_ONESHOT = 1;
+  // 定时触发任务（上传 GC 等）
+  TASK_KIND_SCHEDULED = 2;
+  // 常驻任务（开机启动、长期运行）
+  TASK_KIND_DAEMON = 3;
+}
+
+// 单项执行结果
+message TaskResult {
+  string path = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// 任务信息
+message TaskInfo {
+  // 任务id
+  string id = 1;
+  // 注册类型键（如 file.copy / docker.image_pull / file.upload_gc）
+  string type = 2;
+  // 任务种类
+  TaskKind kind = 3;
+  // 展示标题
+  string title = 4;
+  // 发起用户id（空=系统任务）
+  string user_id = 5;
+  // 发起用户名（解析自 user_id）
+  string user_name = 6;
+  // 任务状态
+  TaskStatus status = 7;
+  // 总进度
+  int64 total = 8;
+  // 已完成进度
+  int64 finished = 9;
+  // 当前消息
+  string message = 10;
+  // 错误信息
+  string error = 11;
+  // 执行结果明细
+  repeated TaskResult results = 12;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 13;
+  // 结束时间
+  google.protobuf.Timestamp end_time = 14;
+}
+
+// 列出任务请求
+message ListTasksRequest {
+  // 页码（从 1 开始）
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 关键字（标题/类型）
+  optional string keywords = 3;
+  // 按状态过滤
+  optional string status = 4;
+  // 按类型过滤
+  optional string type = 5;
+  // 按种类过滤
+  optional string kind = 6;
+}
+
+// 列出任务响应
+message ListTasksResponse {
+  repeated TaskInfo items = 1;
+  int64 total = 2;
+  int64 page = 3;
+  int64 page_size = 4;
+}
+
+message GetTaskRequest {
+  string id = 1;
+}
+
+message GetTaskResponse {
+  TaskInfo task = 1;
+}
+
+message CancelTaskRequest {
+  string id = 1;
+}
+
+message CancelTaskResponse {}
+
+message RetryTaskRequest {
+  string id = 1;
+}
+
+message RetryTaskResponse {
+  TaskInfo task = 1;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+message DeleteTaskResponse {}

@@ -132,6 +132,8 @@ const toggleEnabled = async (row: ShareInfo) => {
       maxDownloads: row.maxDownloads,
       enabled: !row.enabled,
       path: '',
+      sourceId: row.sourceId,
+      size: 0,
     })
     loadList()
   } catch (error) {

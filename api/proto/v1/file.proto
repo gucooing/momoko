@@ -232,6 +232,8 @@ message ShareInfo {
   google.protobuf.Timestamp create_time = 11;
   // 更新时间
   google.protobuf.Timestamp update_time = 12;
+  // 文件来源id，空=本地磁盘
+  string source_id = 13;
 }
 
 // 创建分享请求
@@ -248,6 +250,10 @@ message CreateShareRequest {
   int64 max_downloads = 5;
   // 是否启用
   bool enabled = 6;
+  // 文件来源id，空=本地磁盘
+  string source_id = 7;
+  // 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
+  uint64 size = 8;
 }
 
 // 创建分享响应
@@ -294,6 +300,10 @@ message UpdateShareRequest {
   bool enabled = 6;
   // 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
   string path = 7;
+  // 新目标的文件来源id（path 非空时生效）
+  string source_id = 8;
+  // 新目标文件大小（前端提供的展示值，path 非空时生效）
+  uint64 size = 9;
 }
 
 // 更新分享响应
@@ -934,7 +944,10 @@ message CompleteFileUploadRequest {
 }
 
 // 上传完成合并分片响应
-message CompleteFileUploadResponse {}
+message CompleteFileUploadResponse {
+  // 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
+  FileTaskInfo task = 1;
+}
 
 // 取消文件上传请求
 message CancelFileUploadRequest {
@@ -947,10 +960,10 @@ message CancelFileUploadResponse {}
 
 // 上传信息
 message UploadInfo {
+  reserved 2; // 原 upload_part_url_path_template（模板式上传地址），已被 part_urls 取代
+  reserved "upload_part_url_path_template";
   // 上传会话 id
   string upload_id = 1;
-  // 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
-  string upload_part_url_path_template = 2;
   // 实际分片大小（字节）
   uint64 part_size = 3;
   // 文件总大小（字节）
@@ -965,4 +978,7 @@ message UploadInfo {
   bool cancel = 8;
   // 预签名过期时间
   google.protobuf.Timestamp expired_at = 9;
+  // 各分片的上传 URL（partNumber→URL）。本地/FTP/WebDAV 指向 momoko 签名端点，OSS 指向来源预签名直链。
+  // 前端对每片 PUT part_urls[n]，来源透明、一套代码。
+  map<uint64, string> part_urls = 10;
 }

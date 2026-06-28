@@ -2,7 +2,7 @@
 <template>
   <div class="redirect-container">
     <div class="redirect-loading">
-      <img src="@/assets/logo.svg" alt="logo" class="loading-logo" />
+      <img src="@/assets/logo.png" alt="logo" class="loading-logo" />
       <div class="loading-text">{{ t('utils.redirecting') }}</div>
     </div>
   </div>

@@ -9,6 +9,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	dockerpkg "momoko/pkg/docker"
+	"momoko/pkg/task"
 )
 
 const (
@@ -22,19 +23,21 @@ type DockerUsecase struct {
 	docker *dockerpkg.Manager
 }
 
-func NewDockerUsecase(config ConfigRepo) (*DockerUsecase, error) {
+func NewDockerUsecase(config ConfigRepo, tasks *task.Manager) (*DockerUsecase, error) {
 	ctx := context.Background()
 	cfg, err := config.DockerConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
-	manager, err := dockerpkg.NewManager(cfg)
+	manager, err := dockerpkg.NewManager(cfg, tasks)
 	if err != nil {
 		// Docker 客户端初始化失败不应阻断服务启动，否则一份无法连接的持久化配置
 		// （如启用了 TLS 却缺少证书路径）会导致整个面板无法启动且无界面可修复。
 		// 此处以降级状态启动，运行时可通过 Docker 状态/配置页面查看并修正。
 		log.Errorf("初始化 Docker 管理器失败，已降级启动: %v", err)
 	}
+	// 开机把上次中断（重启时仍在跑）的 Docker 任务标记为失败（拉取/重建不可重入）。
+	_ = tasks.Resume(ctx, dockerpkg.DockerTaskTypes()...)
 	return &DockerUsecase{config: config, docker: manager}, nil
 }
 

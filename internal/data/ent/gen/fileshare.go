@@ -27,10 +27,14 @@ type FileShare struct {
 	UserID string `json:"user_id,omitempty"`
 	// 展示名称
 	Name string `json:"name,omitempty"`
-	// 被分享的文件/文件夹真实路径
+	// 被分享的文件/文件夹路径（来源内逻辑路径）
 	TargetPath string `json:"target_path,omitempty"`
+	// 文件来源id，空=本地
+	SourceID string `json:"source_id,omitempty"`
 	// 是否文件夹
 	IsDir bool `json:"is_dir,omitempty"`
+	// 文件大小快照(单文件分享，供公开元信息展示)
+	Size uint64 `json:"size,omitempty"`
 	// 公开访问令牌
 	Token string `json:"token,omitempty"`
 	// 提取码，空=无需
@@ -76,9 +80,9 @@ func (*FileShare) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case fileshare.FieldIsDir, fileshare.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case fileshare.FieldMaxDownloads, fileshare.FieldDownloadCount:
+		case fileshare.FieldSize, fileshare.FieldMaxDownloads, fileshare.FieldDownloadCount:
 			values[i] = new(sql.NullInt64)
-		case fileshare.FieldID, fileshare.FieldUserID, fileshare.FieldName, fileshare.FieldTargetPath, fileshare.FieldToken, fileshare.FieldCode:
+		case fileshare.FieldID, fileshare.FieldUserID, fileshare.FieldName, fileshare.FieldTargetPath, fileshare.FieldSourceID, fileshare.FieldToken, fileshare.FieldCode:
 			values[i] = new(sql.NullString)
 		case fileshare.FieldCreateTime, fileshare.FieldUpdateTime, fileshare.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -133,11 +137,23 @@ func (_m *FileShare) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TargetPath = value.String
 			}
+		case fileshare.FieldSourceID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_id", values[i])
+			} else if value.Valid {
+				_m.SourceID = value.String
+			}
 		case fileshare.FieldIsDir:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_dir", values[i])
 			} else if value.Valid {
 				_m.IsDir = value.Bool
+			}
+		case fileshare.FieldSize:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field size", values[i])
+			} else if value.Valid {
+				_m.Size = uint64(value.Int64)
 			}
 		case fileshare.FieldToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -232,8 +248,14 @@ func (_m *FileShare) String() string {
 	builder.WriteString("target_path=")
 	builder.WriteString(_m.TargetPath)
 	builder.WriteString(", ")
+	builder.WriteString("source_id=")
+	builder.WriteString(_m.SourceID)
+	builder.WriteString(", ")
 	builder.WriteString("is_dir=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsDir))
+	builder.WriteString(", ")
+	builder.WriteString("size=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Size))
 	builder.WriteString(", ")
 	builder.WriteString("token=")
 	builder.WriteString(_m.Token)

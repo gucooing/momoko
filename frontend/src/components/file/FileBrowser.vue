@@ -296,7 +296,12 @@
       @deleted="loadList"
     />
 
-    <ShareFormDialog v-model="shareOpen" :path="sharePath" />
+    <ShareFormDialog
+      v-model="shareOpen"
+      :path="sharePath"
+      :source-id="shareSourceId"
+      :size="shareSize"
+    />
   </div>
 </template>
 
@@ -477,6 +482,8 @@ const editor = reactive({ open: false, path: '' })
 const uploadOpen = ref(false)
 const shareOpen = ref(false)
 const sharePath = ref('')
+const shareSourceId = ref('')
+const shareSize = ref(0)
 
 // ---- 选择 ----
 const selectedRows = computed(() => items.value.filter((item) => selectedPaths.value.has(item.path)))
@@ -880,6 +887,8 @@ const paste = async () => {
 // ---- 分享 ----
 const openShare = (row: FileEntryInfo) => {
   sharePath.value = row.path
+  shareSourceId.value = currentSourceId.value
+  shareSize.value = Number(row.size) || 0
   shareOpen.value = true
 }
 
@@ -902,8 +911,8 @@ const moreActions = computed<FileMenuItem[]>(() => {
   if (caps.compress) {
     actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress, disabled: !hasSelection.value })
   }
-  // 分享仅本地系统盘支持。
-  if (!currentSourceId.value) {
+  // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
+  if (isSystemScope) {
     actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: selectedRows.value.length !== 1 })
   }
   return actions
@@ -930,8 +939,8 @@ const rowActions = (row: FileEntryInfo): FileMenuItem[] => {
     actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: IconUnzip })
   }
   actions.push({ key: 'divider', label: '', divider: true })
-  // 分享仅本地系统盘支持。
-  if (!currentSourceId.value) {
+  // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
+  if (isSystemScope) {
     actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare })
   }
   if (!row.isDir) {
@@ -1045,8 +1054,11 @@ defineExpose({ refresh, navigateTo })
   animation: fb-spin 0.8s linear infinite;
 }
 @keyframes fb-spin {
+  from {
+    transform: perspective(120px) rotateY(0deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: perspective(120px) rotateY(360deg);
   }
 }
 

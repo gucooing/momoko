@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"momoko/internal/data/ent/gen"
@@ -16,31 +15,17 @@ type UploadGCStore interface {
 	DeleteUploadCascade(ctx context.Context, id string) error
 }
 
-// StartUploadJanitor 启动后台 GC：每 interval 清理一次「超过 retention 仍未收尾」的上传会话，
-// 删除残留的 .part 临时文件与对应的数据库记录，避免磁盘与表项随中断上传无限堆积。
-// 随 ctx 取消而退出。
-func StartUploadJanitor(ctx context.Context, store UploadGCStore, interval, retention time.Duration) {
-	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				gcStaleUploads(ctx, store, retention)
-			}
-		}
-	}()
-}
-
-func gcStaleUploads(ctx context.Context, store UploadGCStore, retention time.Duration) {
+// gcStaleUploads 清理「超过 retention 仍未收尾」的上传会话：先经 cancel 中止来源侧机制
+// （删本地缓冲 / 中止 OSS 残留 multipart），再删除数据库记录，避免磁盘、对象存储分片与表项随中断上传无限堆积。
+func gcStaleUploads(ctx context.Context, store UploadGCStore, retention time.Duration, cancel UploadCanceler) {
 	stale, err := store.ListStaleUploads(ctx, time.Now().Add(-retention))
 	if err != nil {
 		return
 	}
 	for _, u := range stale {
-		_ = os.Remove(uploadBufferPath(u))
+		if cancel != nil {
+			cancel(ctx, u)
+		}
 		_ = store.DeleteUploadCascade(ctx, u.ID)
 	}
 }

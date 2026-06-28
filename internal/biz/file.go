@@ -19,13 +19,13 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
-	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
 	"momoko/pkg/secretbox"
 	"momoko/pkg/share"
+	"momoko/pkg/task"
 	"momoko/pkg/utils"
 )
 
@@ -53,6 +53,9 @@ type FileRepo interface {
 	SaveChunkRecord(ctx context.Context, uploadID string, chunk uint64, hash string, size uint64) error
 	ListStaleUploads(ctx context.Context, before time.Time) ([]*gen.FileUpload, error)
 	DeleteUploadCascade(ctx context.Context, id string) error
+	SetUploadCompleted(ctx context.Context, id string) error
+	// SetUploadProviderRefIfEmpty 仅当 provider_ref 仍为空时写入（OSS multipart uploadID 初始化幂等/防竞态）。
+	SetUploadProviderRefIfEmpty(ctx context.Context, id, ref string) (bool, error)
 
 	CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error)
 	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
@@ -69,24 +72,81 @@ type FileRepo interface {
 }
 
 type FileUsecase struct {
-	repo FileRepo
-	box  *secretbox.Box
+	repo  FileRepo
+	box   *secretbox.Box
+	tasks *task.Manager
 }
 
 // NewFileUsecase 创建文件操作用例。
-func NewFileUsecase(repo FileRepo) *FileUsecase {
+func NewFileUsecase(repo FileRepo, tasks *task.Manager) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
 		os.MkdirAll(file.ServersPath, 0755)
 	}
 	// 远端来源上传的本地分片缓冲目录。
 	os.MkdirAll(file.UploadBufferDir, 0755)
 	uc := &FileUsecase{
-		repo: repo,
-		box:  secretbox.New(auth.AuthSecretKey),
+		repo:  repo,
+		box:   secretbox.New(auth.AuthSecretKey),
+		tasks: tasks,
 	}
-	// 上传会话 GC 的清理逻辑位于 pkg/file，biz 仅负责装配并注入数据访问能力。
-	file.StartUploadJanitor(context.Background(), repo, uploadGCInterval, 2*UploadPeriod)
+	// 注册文件传输/收尾任务工厂（开机/重试时按 payload 重建对应来源的 Copier/Mover/收尾会话）。
+	uc.registerTaskFactories()
+	// 恢复本域未完成的一次性任务：复制/剪切=不可重入(重启即标失败)，远端上传收尾=可重入(重启续做)。
+	_ = tasks.Resume(context.Background(), file.TaskTypeCopy, file.TaskTypeMove, file.TaskTypeUploadFinalize)
+	// 上传会话清理改为定时单例任务（开机随任务管理器启动），清理时一并中止 OSS 残留 multipart。
+	gcTask := file.NewUploadGCTask(repo, uploadGCInterval, 2*UploadPeriod, uc.cancelStaleUpload)
+	_ = tasks.EnsureSingleton(context.Background(), gcTask)
 	return uc
+}
+
+// cancelStaleUpload 在清理残留上传会话时经来源中止其机制（删本地缓冲 / 中止 OSS multipart）。
+func (f *FileUsecase) cancelStaleUpload(ctx context.Context, row *gen.FileUpload) {
+	store, _, err := f.storeFor(ctx, row.SourceID)
+	if err != nil {
+		return
+	}
+	_ = store.CancelUpload(ctx, uploadFromRow(row))
+}
+
+// registerTaskFactories 注册文件传输任务的重建工厂；store 解析（含解密/实例本地根）留在 biz。
+func (f *FileUsecase) registerTaskFactories() {
+	f.tasks.Register(file.TaskTypeCopy, func(ctx context.Context, rec *task.Record) (task.Task, error) {
+		p, err := parseTransferPayload(rec)
+		if err != nil {
+			return nil, err
+		}
+		copier, err := f.copierForPayload(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		return file.NewCopyTask(metaFromRecord(rec), copier, p), nil
+	})
+	f.tasks.Register(file.TaskTypeMove, func(ctx context.Context, rec *task.Record) (task.Task, error) {
+		p, err := parseTransferPayload(rec)
+		if err != nil {
+			return nil, err
+		}
+		mover, err := f.moverForPayload(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		return file.NewMoveTask(metaFromRecord(rec), mover, p), nil
+	})
+	f.tasks.Register(file.TaskTypeUploadFinalize, func(ctx context.Context, rec *task.Record) (task.Task, error) {
+		var p file.FinalizePayload
+		if err := json.Unmarshal(rec.Payload, &p); err != nil {
+			return nil, err
+		}
+		row, err := f.repo.QueryByUserID(ctx, rec.UserID, p.UploadID)
+		if err != nil {
+			return nil, err
+		}
+		store, _, err := f.storeFor(ctx, row.SourceID)
+		if err != nil {
+			return nil, err
+		}
+		return file.NewFinalizeTask(metaFromRecord(rec), store, uploadFromRow(row), f.repo), nil
+	})
 }
 
 // uploadGCInterval 是清理废弃上传会话的周期。
@@ -271,11 +331,13 @@ func (f *FileUsecase) CopyFileSystem(ctx context.Context, userID string, req *v1
 	if !ok {
 		return nil, ErrFileSourceUnsupported
 	}
-	task, err := file.StartCopyTask(userID, copier, req.Paths, req.TargetPath, file.TaskOperationSystemCopy)
+	payload := file.TransferPayload{SourceID: req.SourceId, Paths: req.Paths, Target: req.TargetPath}
+	t := file.NewCopyTask(task.Meta{UserID: userID, Title: transferTitle("复制", req.Paths)}, copier, payload)
+	info, err := submitTransfer(ctx, f.tasks, t)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	return &v1.CopyFileSystemResponse{Task: task}, nil
+	return &v1.CopyFileSystemResponse{Task: info}, nil
 }
 
 func (f *FileUsecase) CutFileSystem(ctx context.Context, userID string, req *v1.CutFileSystemRequest) (*v1.CutFileSystemResponse, error) {
@@ -287,19 +349,129 @@ func (f *FileUsecase) CutFileSystem(ctx context.Context, userID string, req *v1.
 	if !ok {
 		return nil, ErrFileSourceUnsupported
 	}
-	task, err := file.StartMoveTask(userID, mover, req.Paths, req.TargetPath, file.TaskOperationSystemCut)
+	payload := file.TransferPayload{SourceID: req.SourceId, Paths: req.Paths, Target: req.TargetPath}
+	t := file.NewMoveTask(task.Meta{UserID: userID, Title: transferTitle("移动", req.Paths)}, mover, payload)
+	info, err := submitTransfer(ctx, f.tasks, t)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	return &v1.CutFileSystemResponse{Task: task}, nil
+	return &v1.CutFileSystemResponse{Task: info}, nil
 }
 
 func (f *FileUsecase) GetFileTask(ctx context.Context, userID, taskID string) (*v1.FileTaskInfo, error) {
-	task, ok := file.GetTask(userID, taskID)
+	info, ok := f.tasks.Get(taskID)
+	if !ok || info.UserID != userID {
+		return nil, ErrFileTaskNotFound
+	}
+	return toFileTaskInfo(info), nil
+}
+
+// submitTransfer 提交一个复制/移动任务并返回其文件任务视图（系统/实例共用）。
+func submitTransfer(ctx context.Context, mgr *task.Manager, t task.Task) (*v1.FileTaskInfo, error) {
+	id, err := mgr.Submit(ctx, t)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	info, ok := mgr.Get(id)
 	if !ok {
 		return nil, ErrFileTaskNotFound
 	}
-	return task, nil
+	return toFileTaskInfo(info), nil
+}
+
+// storeForPayload 按传输任务的 payload 解析目标 Store：实例本地根优先，否则按系统来源 id。
+func (f *FileUsecase) storeForPayload(ctx context.Context, p file.TransferPayload) (file.Store, error) {
+	if p.BasePath != "" {
+		s, err := file.NewLocalStore(p.BasePath)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		return s, nil
+	}
+	store, _, err := f.storeFor(ctx, p.SourceID)
+	return store, err
+}
+
+func (f *FileUsecase) copierForPayload(ctx context.Context, p file.TransferPayload) (file.Copier, error) {
+	store, err := f.storeForPayload(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	copier, ok := store.(file.Copier)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	return copier, nil
+}
+
+func (f *FileUsecase) moverForPayload(ctx context.Context, p file.TransferPayload) (file.Mover, error) {
+	store, err := f.storeForPayload(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	mover, ok := store.(file.Mover)
+	if !ok {
+		return nil, ErrFileSourceUnsupported
+	}
+	return mover, nil
+}
+
+func parseTransferPayload(rec *task.Record) (file.TransferPayload, error) {
+	var p file.TransferPayload
+	if err := json.Unmarshal(rec.Payload, &p); err != nil {
+		return p, err
+	}
+	return p, nil
+}
+
+func metaFromRecord(rec *task.Record) task.Meta {
+	return task.Meta{ID: rec.ID, Title: rec.Title, UserID: rec.UserID}
+}
+
+func transferTitle(verb string, paths []string) string {
+	if len(paths) == 1 {
+		return fmt.Sprintf("%s「%s」", verb, filepath.Base(paths[0]))
+	}
+	return fmt.Sprintf("%s %d 个项目", verb, len(paths))
+}
+
+func toFileTaskInfo(info *task.Info) *v1.FileTaskInfo {
+	if info == nil {
+		return nil
+	}
+	out := &v1.FileTaskInfo{
+		TaskId:     info.ID,
+		Operation:  info.Type,
+		Status:     toFileTaskStatus(info.Status),
+		Total:      info.Total,
+		Finished:   info.Finished,
+		Message:    info.Message,
+		Items:      make([]*v1.FileOperationResult, 0, len(info.Results)),
+		CreateTime: timestamppb.New(info.CreateTime),
+	}
+	for _, r := range info.Results {
+		out.Items = append(out.Items, &v1.FileOperationResult{Path: r.Path, Success: r.Success, Message: r.Message})
+	}
+	if info.EndTime != nil {
+		out.UpdateTime = timestamppb.New(*info.EndTime)
+	} else {
+		out.UpdateTime = timestamppb.New(info.CreateTime)
+	}
+	return out
+}
+
+func toFileTaskStatus(s task.Status) v1.FileTaskStatus {
+	switch s {
+	case task.StatusPending:
+		return v1.FileTaskStatus_FILE_TASK_STATUS_PENDING
+	case task.StatusRunning:
+		return v1.FileTaskStatus_FILE_TASK_STATUS_RUNNING
+	case task.StatusSuccess:
+		return v1.FileTaskStatus_FILE_TASK_STATUS_SUCCESS
+	default:
+		// 失败/取消都映射为失败（FileTaskStatus 无取消态）。
+		return v1.FileTaskStatus_FILE_TASK_STATUS_FAILED
+	}
 }
 
 // OpenFileSystemFile 打开文件并返回内容（编辑器小文件读取，仍用 bytes 传输）。
@@ -332,13 +504,22 @@ func (f *FileUsecase) EditFileSystemFile(ctx context.Context, req *v1.EditFileSy
 
 // FileSystemPreSign 生成预览/下载用的短期签名 URL（inline=true 为内联预览）。
 func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID string, req *v1.FileSystemPreSignRequest) (string, error) {
-	store, _, err := f.storeFor(ctx, req.SourceId)
+	store, src, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
 		return "", err
 	}
 	if _, err := store.Stat(ctx, req.Path); err != nil {
 		return "", ErrFileNotExist
 	}
+	// 来源开启 302 且支持预签名（OSS）→ 直接返回来源预签名 GET 直链，浏览器直连来源、momoko 不在数据路径。
+	if src != nil && src.Redirect302 {
+		if presigner, ok := store.(file.Presigner); ok {
+			if u, err := presigner.Presign(ctx, req.Path, req.Inline, fileServeTTL); err == nil {
+				return u, nil
+			}
+		}
+	}
+	// 其余来源：返回 momoko 签名下载 URL（由 FileServe 代理串流/Range，或 302 兜底）。
 	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), req.Path, userID, 24*time.Hour)
 	preInfo.SourceID = req.SourceId
 	preInfo.Inline = req.Inline
@@ -409,41 +590,85 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 	if err != nil {
 		return nil, err
 	}
-	// 目标路径：本地来源解析为真实路径；远端来源直接用逻辑路径。
+	// 本地来源落地到真实路径（便于原子 rename）；远端来源用逻辑路径（来源在接口内自行处理）。
 	targetPath := req.Path
 	if req.SourceId == "" {
-		local, ok := store.(*file.LocalStore)
-		if !ok {
-			return nil, ErrSystem(fmt.Errorf("本地来源异常"))
-		}
-		targetPath, err = local.Oper().ResolveRealPath(req.Path)
-		if err != nil {
+		if targetPath, err = file.ResolveLocalPath(file.SystemPath, req.Path); err != nil {
 			return nil, ErrSystem(err)
 		}
 	}
-	upload := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize)
-	upload.SourceID = req.SourceId
-	info, err := f.repo.GetOrCreate(ctx, userID, upload)
+	seed := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize)
+	seed.SourceID = req.SourceId
+	row, err := f.repo.GetOrCreate(ctx, userID, seed)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	// 签名此次上传
-	preInfo := pre.NewFileSignInfo(info.ID, info.Path, userID, UploadPeriod)
-	sign, err := preInfo.Sign()
+	if row.Completed {
+		return toUploadInfo(row, &file.Upload{}), nil
+	}
+	u, err := buildUpload(f.repo, userID, row)
+	if err != nil {
+		return nil, err
+	}
+	// 盲调用：来源在接口内自行处理机制（OSS 预签名直传 / 本地·FTP·WebDAV momoko 缓冲）。
+	if err := store.PrepareUpload(ctx, u); err != nil {
+		return nil, ErrSystem(err)
+	}
+	row.ProviderRef = u.Ref // 来源可能在 Prepare 内建立并持久化续传句柄，回写以保持内存行一致
+	uploadCache.Set(row.ID, &file.ChunkedUpload{FileUpload: row})
+	return toUploadInfo(row, u), nil
+}
+
+// uploadFromRow 由数据库行构造通用上传载体（不含签名/续传闭包，供取消/收尾的盲调用）。
+func uploadFromRow(row *gen.FileUpload) *file.Upload {
+	u := &file.Upload{
+		ID:         row.ID,
+		UserID:     row.UserID,
+		Path:       row.Path,
+		FileName:   row.FileName,
+		FileSize:   row.FileSize,
+		PartSize:   row.ChunkSize,
+		TotalParts: row.TotalChunks,
+		Ref:        row.ProviderRef,
+		Uploaded:   map[uint64]string{},
+	}
+	for _, c := range row.Edges.Chunks {
+		u.Uploaded[c.Chunk] = c.Hash
+	}
+	return u
+}
+
+// buildUpload 在 uploadFromRow 基础上注入分片签名端点与续传句柄持久化闭包（供准备/状态/收尾）。
+// SignPart 返回 momoko 签名 PUT URL（缓冲型来源用）；SaveRef 幂等持久化来源句柄并返回竞态胜出者。
+func buildUpload(repo FileRepo, userID string, row *gen.FileUpload) (*file.Upload, error) {
+	sign, err := pre.NewFileSignInfo(row.ID, row.Path, userID, UploadPeriod).Sign()
 	if err != nil {
 		return nil, ErrSign
 	}
-	upload.FileUpload = info
-	if req.SourceId != "" {
-		upload.SetRemote(store)
+	u := uploadFromRow(row)
+	u.UserID = userID
+	u.SignPart = func(part uint64) string {
+		return fmt.Sprintf("%s?sign=%s&chunk=%d", PreFileUpload, sign, part)
 	}
-	uploadCache.Set(info.ID, upload)
-
-	return toUploadInfo(info, sign), nil
+	u.SaveRef = func(ctx context.Context, ref string) (string, error) {
+		set, err := repo.SetUploadProviderRefIfEmpty(ctx, row.ID, ref)
+		if err != nil {
+			return "", err
+		}
+		if set {
+			return ref, nil
+		}
+		cur, err := repo.QueryByUserID(ctx, userID, row.ID)
+		if err != nil {
+			return "", err
+		}
+		return cur.ProviderRef, nil
+	}
+	return u, nil
 }
 
-// getChunkedUpload 获取指定上传会话。缓存未命中（典型如服务重启后内存丢失）时
-// 从数据库重建会话，使断点续传不再依赖进程内缓存。远端来源会重新注入落地目标。
+// getChunkedUpload 获取 momoko 缓冲型上传会话（供分片接收端点 PreFileUpload 写缓冲）。
+// 缓存未命中（如服务重启）时从数据库重建，使断点续传不依赖进程内缓存。
 func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID string) (*file.ChunkedUpload, error) {
 	if upload, ok := uploadCache.Get(uploadID); ok {
 		return upload, nil
@@ -453,75 +678,78 @@ func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID str
 		return nil, ErrSystem(err)
 	}
 	upload := &file.ChunkedUpload{FileUpload: info}
-	if info.SourceID != "" {
-		if store, _, err := f.storeFor(ctx, info.SourceID); err == nil {
-			upload.SetRemote(store)
-		}
-	}
 	uploadCache.Set(uploadID, upload)
 	return upload, nil
 }
 
+// GetFileUploadStatus 返回上传会话的已传分片与分片直传地址（前端据此补传缺片）。
+// 盲调用 PrepareUpload：来源在接口内刷新 u.Uploaded（OSS 以来源为准，其余以本地分片表为准）。
 func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID string) (*v1.UploadInfo, error) {
-	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
+	row, err := f.repo.QueryByUserID(ctx, userID, uploadID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return toUploadInfo(info, ""), nil
+	if row.Completed || row.Cancel {
+		return toUploadInfo(row, uploadFromRow(row)), nil
+	}
+	u, err := buildUpload(f.repo, userID, row)
+	if err != nil {
+		return nil, err
+	}
+	if store, _, err := f.storeFor(ctx, row.SourceID); err == nil {
+		_ = store.PrepareUpload(ctx, u)
+		row.ProviderRef = u.Ref
+	}
+	return toUploadInfo(row, u), nil
 }
 
-func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID string) error {
-	info, err := f.getChunkedUpload(ctx, uploadID, userID)
+// CompleteFileUpload 收尾上传：来源在接口内自处理（本地 rename / OSS 合并分片 / 远端整流推送）。
+// 收尾可能较慢的来源（缓冲型远端）放进任务管理器异步执行，返回非空 task 供前端轮询。
+func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID string) (*v1.FileTaskInfo, error) {
+	row, err := f.repo.QueryByUserID(ctx, userID, uploadID)
 	if err != nil {
-		return ErrSystem(err)
+		return nil, ErrSystem(err)
 	}
-	err = f.repo.WithTx(ctx, func(tx *gen.Tx) error {
-		info.FileUpload, err = tx.FileUpload.Query().
-			Where(
-				fileupload.IDEQ(uploadID),
-				fileupload.UserIDEQ(userID),
-			).WithChunks().Only(ctx)
-		if err != nil {
-			return err
-		}
-		_, err = tx.FileUpload.UpdateOneID(uploadID).
-			SetCompleted(true).Save(ctx)
-		if err != nil {
-			return err
-		}
-		if err = info.Complete(ctx); err != nil {
-			return err
-		}
-		info.Completed = true
-		return nil
-	})
+	if row.Completed {
+		return nil, nil
+	}
+	store, _, err := f.storeFor(ctx, row.SourceID)
 	if err != nil {
-		return ErrSystem(err)
+		return nil, err
 	}
-	return nil
+	// 收尾较慢的来源（缓冲型远端）→ 放进任务管理器用不超时 ctx 执行，前端轮询任务。
+	if fa, ok := store.(file.AsyncFinalizer); ok && fa.AsyncFinalize() {
+		meta := task.Meta{UserID: userID, Title: "上传收尾「" + row.FileName + "」"}
+		t := file.NewFinalizeTask(meta, store, uploadFromRow(row), f.repo)
+		return submitTransfer(ctx, f.tasks, t)
+	}
+	// 瞬时收尾（本地 rename / OSS 合并分片）：同步完成。
+	if err := store.CompleteUpload(ctx, uploadFromRow(row)); err != nil {
+		return nil, ErrSystem(err)
+	}
+	if err := f.repo.SetUploadCompleted(ctx, uploadID); err != nil {
+		return nil, ErrSystem(err)
+	}
+	uploadCache.Del(uploadID)
+	return nil, nil
 }
 
+// CancelFileUpload 取消上传：盲调用来源 CancelUpload（删缓冲 / 中止远端句柄），再标记取消并清缓存。
 func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID string) error {
-	info, err := f.getChunkedUpload(ctx, uploadID, userID)
+	row, err := f.repo.QueryByUserID(ctx, userID, uploadID)
 	if err != nil {
 		return ErrSystem(err)
 	}
-	err = f.repo.WithTx(ctx, func(tx *gen.Tx) error {
-		_, err = tx.FileUpload.UpdateOneID(uploadID).
-			SetCancel(true).Save(ctx)
-		if err != nil {
-			return err
-		}
-		info.Cancel = true
-		if err = info.Canceld(); err != nil {
-			return err
-		}
-		uploadCache.Del(uploadID)
-		return nil
-	})
-	if err != nil {
+	if store, _, err := f.storeFor(ctx, row.SourceID); err == nil {
+		_ = store.CancelUpload(ctx, uploadFromRow(row))
+	}
+	if err := f.repo.WithTx(ctx, func(tx *gen.Tx) error {
+		_, e := tx.FileUpload.UpdateOneID(uploadID).SetCancel(true).Save(ctx)
+		return e
+	}); err != nil {
 		return ErrSystem(err)
 	}
+	uploadCache.Del(uploadID)
 	return nil
 }
 
@@ -787,15 +1015,12 @@ func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSource
 
 // CreateShare 为指定路径创建一条分享（仅本地系统盘）。
 func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
-	local, err := file.NewLocalStore(file.SystemPath)
+	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
-	realPath, err := local.Oper().ResolveRealPath(req.Path)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	isDir, baseName, err := share.Prepare(realPath)
+	// is_dir 由后端经来源 Store 权威判定；size 用前端提供的展示值（入库，不回源查询）。
+	isDir, baseName, err := share.Prepare(ctx, store, req.Path)
 	if err != nil {
 		return nil, ErrFileNotExist
 	}
@@ -803,7 +1028,7 @@ func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.Cr
 	if name == "" {
 		name = baseName
 	}
-	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, realPath, isDir, req)
+	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, req.Path, isDir, req)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -833,19 +1058,15 @@ func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.Up
 	var targetPath string
 	var isDir bool
 	if req.Path != "" {
-		local, err := file.NewLocalStore(file.SystemPath)
+		store, _, err := f.storeFor(ctx, req.SourceId)
 		if err != nil {
-			return nil, ErrSystem(err)
+			return nil, err
 		}
-		realPath, err := local.Oper().ResolveRealPath(req.Path)
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		d, _, err := share.Prepare(realPath)
+		d, _, err := share.Prepare(ctx, store, req.Path)
 		if err != nil {
 			return nil, ErrFileNotExist
 		}
-		targetPath = realPath
+		targetPath = req.Path
 		isDir = d
 	}
 	rec, err := f.repo.UpdateShare(ctx, userID, req, targetPath, isDir)
@@ -937,7 +1158,11 @@ func (f *FileUsecase) ListShareDir(ctx context.Context, req *v1.ListShareDirRequ
 	if err := f.verifyShareSign(req.Sign, rec); err != nil {
 		return nil, err
 	}
-	items, sub, err := share.ListDir(rec, req.SubPath)
+	store, _, err := f.storeFor(ctx, rec.SourceID)
+	if err != nil {
+		return nil, err
+	}
+	items, sub, err := share.ListDir(ctx, store, rec, req.SubPath)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -959,10 +1184,17 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("分享会话已失效，请重新验证"))
 		return
 	}
+	store, src, err := f.storeFor(ctx, rec.SourceID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	inline := q.Get("inline") == "1"
 	// 预览(inline)与 Range 续传分段不计入下载次数。
 	countable := r.Header.Get("Range") == "" && !inline
-	if err := share.ServeDownload(rec, q.Get("path"), inline, w, r); err != nil {
+	// 来源开启 302 且支持预签名（OSS）→ 单文件跳转到（公开域名）直链，momoko 不代理。
+	redirect302 := src != nil && src.Redirect302
+	if err := share.ServeDownload(ctx, store, rec, q.Get("path"), inline, redirect302, w, r); err != nil {
 		return
 	}
 	if countable {
@@ -970,22 +1202,22 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func toUploadInfo(d *gen.FileUpload, sign string) *v1.UploadInfo {
+// toUploadInfo 由数据库行 + 通用上传载体构造上传信息：part_urls/uploaded 来自来源在接口内填充的结果，
+// 来源透明（OSS=来源预签名直链；本地/FTP/WebDAV=momoko 签名端点）。
+func toUploadInfo(row *gen.FileUpload, u *file.Upload) *v1.UploadInfo {
 	info := &v1.UploadInfo{
-		UploadId:                  d.ID,
-		UploadPartUrlPathTemplate: fmt.Sprintf("%s?sign=%s&chunk={partNumber}", PreFileUpload, sign),
-		PartSize:                  d.ChunkSize,
-		FileSize:                  d.FileSize,
-		TotalParts:                d.TotalChunks,
-		UploadedParts:             make(map[uint64]string),
-		Completed:                 d.Completed,
-		Cancel:                    d.Cancel,
-		ExpiredAt:                 timestamppb.New(d.CreateTime.Add(UploadPeriod)),
+		UploadId:      row.ID,
+		PartSize:      row.ChunkSize,
+		FileSize:      row.FileSize,
+		TotalParts:    row.TotalChunks,
+		UploadedParts: u.Uploaded,
+		Completed:     row.Completed,
+		Cancel:        row.Cancel,
+		ExpiredAt:     timestamppb.New(row.CreateTime.Add(UploadPeriod)),
+		PartUrls:      u.PartURLs,
 	}
-	if chunks := d.Edges.Chunks; chunks != nil {
-		for _, chunk := range chunks {
-			info.UploadedParts[chunk.Chunk] = chunk.Hash
-		}
+	if info.UploadedParts == nil {
+		info.UploadedParts = make(map[uint64]string)
 	}
 	return info
 }

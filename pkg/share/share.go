@@ -1,20 +1,24 @@
 // Package share 实现文件/文件夹对外分享的底层逻辑：令牌生成、可用性与提取码校验、
 // 目录浏览（防穿越）、以及下载（单文件直传、文件夹实时打包 zip）。
 //
-// 按分层约定，这里只放与分享相关的纯逻辑与文件系统操作；biz 仅负责鉴权 + 仓储调用，
-// 不直接编写文件系统/打包/校验等底层代码。
+// 分享统一走 file.Store 接口，支持任意来源（本地 / OSS / FTP / WebDAV）。按分层约定，
+// 这里只放与分享相关的纯逻辑与 Store 调用；biz 仅负责鉴权 + 仓储 + 解析来源 Store。
 package share
 
 import (
 	"archive/zip"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"io"
+	"mime"
 	"net/http"
-	"os"
+	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,6 +27,9 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/file"
 )
+
+// shareServeTTL 是公开分享 302 直链的有效期。
+const shareServeTTL = 5 * time.Minute
 
 // GenToken 生成 URL 安全的随机分享令牌。
 func GenToken() string {
@@ -33,13 +40,17 @@ func GenToken() string {
 	return hex.EncodeToString(b)
 }
 
-// Prepare 检查被分享的真实路径，返回是否目录与默认展示名（路径基名）。
-func Prepare(realPath string) (isDir bool, name string, err error) {
-	fi, err := os.Stat(realPath)
+// Prepare 通过来源 Store 校验被分享路径，返回是否目录与默认展示名（后端权威判定 is_dir）。
+func Prepare(ctx context.Context, store file.Store, logicalPath string) (isDir bool, name string, err error) {
+	entry, err := store.Stat(ctx, logicalPath)
 	if err != nil {
 		return false, "", errors.New("文件不存在")
 	}
-	return fi.IsDir(), fi.Name(), nil
+	name = entry.Name
+	if name == "" {
+		name = path.Base(strings.ReplaceAll(strings.TrimRight(logicalPath, "/\\"), "\\", "/"))
+	}
+	return entry.IsDir, name, nil
 }
 
 // Available 报告分享当前是否可用（启用、未过期、未超下载次数），不校验提取码。
@@ -73,50 +84,52 @@ func Verify(s *gen.FileShare, code string, now time.Time) error {
 	return nil
 }
 
-// resolve 将分享内的相对子路径解析为真实路径（限制在分享根内，防止路径穿越）。
-func resolve(s *gen.FileShare, subPath string) (string, error) {
+// resolve 将分享内的相对子路径安全解析为来源内路径（限制在分享根内，消除 .. 防穿越）。
+func resolve(s *gen.FileShare, subPath string) string {
 	if !s.IsDir {
-		return s.TargetPath, nil
+		return s.TargetPath
 	}
-	if subPath == "" || subPath == "." || subPath == "/" {
-		return s.TargetPath, nil
+	rel := normalizeSub(subPath)
+	if rel == "" {
+		return s.TargetPath
 	}
-	oper, err := file.NewFileOper(s.TargetPath)
-	if err != nil {
-		return "", err
-	}
-	return oper.ResolveRealPath(subPath)
+	// 各 Store 实现会规整分隔符与多余斜杠，这里统一用 "/" 拼接子路径。
+	return strings.TrimRight(s.TargetPath, "/\\") + "/" + rel
 }
 
-// ListDir 列出文件夹分享下某子路径的条目（按目录优先、名称升序），返回相对分享根的路径。
-func ListDir(s *gen.FileShare, subPath string) ([]*v1.ShareEntry, string, error) {
+// normalizeSub 把客户端子路径规整为相对、正斜杠、无 .. 的安全相对路径。
+func normalizeSub(sub string) string {
+	sub = strings.ReplaceAll(sub, "\\", "/")
+	cleaned := path.Clean("/" + strings.Trim(sub, "/"))
+	return strings.TrimPrefix(cleaned, "/")
+}
+
+func joinSlash(base, name string) string {
+	if base == "" {
+		return name
+	}
+	return base + "/" + name
+}
+
+// ListDir 列出文件夹分享下某子路径的条目（目录优先、名称升序），RelPath 为相对分享根的正斜杠路径。
+func ListDir(ctx context.Context, store file.Store, s *gen.FileShare, subPath string) ([]*v1.ShareEntry, string, error) {
 	if !s.IsDir {
 		return nil, "", errors.New("该分享不是文件夹")
 	}
-	dir, err := resolve(s, subPath)
-	if err != nil {
-		return nil, "", err
-	}
-	entries, err := os.ReadDir(dir)
+	dir := resolve(s, subPath)
+	entries, err := store.List(ctx, dir, file.SortByName, false)
 	if err != nil {
 		return nil, "", errors.New("读取目录失败")
 	}
+	sub := normalizeSub(subPath)
 	items := make([]*v1.ShareEntry, 0, len(entries))
 	for _, e := range entries {
-		fi, err := e.Info()
-		if err != nil {
-			continue
-		}
-		rel, err := filepath.Rel(s.TargetPath, filepath.Join(dir, e.Name()))
-		if err != nil {
-			continue
-		}
 		items = append(items, &v1.ShareEntry{
-			Name:       e.Name(),
-			IsDir:      e.IsDir(),
-			Size:       uint64(fi.Size()),
-			UpdateTime: timestamppb.New(fi.ModTime()),
-			RelPath:    filepath.ToSlash(rel),
+			Name:       e.Name,
+			IsDir:      e.IsDir,
+			Size:       e.Size,
+			UpdateTime: e.UpdateTime,
+			RelPath:    joinSlash(sub, e.Name),
 		})
 	}
 	sort.Slice(items, func(i, j int) bool {
@@ -125,67 +138,106 @@ func ListDir(s *gen.FileShare, subPath string) ([]*v1.ShareEntry, string, error)
 		}
 		return items[i].Name < items[j].Name
 	})
-	return items, filepath.ToSlash(subPath), nil
+	return items, sub, nil
 }
 
-// ServeDownload 将分享内 subPath 指向的目标写入 w：文件直接传输（支持 Range），
-// 文件夹则实时打包为 zip 流式返回。inline=true 时以内联方式返回（用于预览，不强制下载）。
-func ServeDownload(s *gen.FileShare, subPath string, inline bool, w http.ResponseWriter, r *http.Request) error {
-	real, err := resolve(s, subPath)
-	if err != nil {
-		return err
+// ServeDownload 将分享内 subPath 指向的目标写入 w：文件直传（可 Seek 来源支持 Range），
+// 目录则实时打包为 zip 流式返回。inline=true 时以内联方式返回（用于预览）。
+// redirect302=true 且来源支持预签名（OSS）时，单文件改为 302 跳转到（公开域名）预签名直链，momoko 不在数据路径。
+func ServeDownload(ctx context.Context, store file.Store, s *gen.FileShare, subPath string, inline, redirect302 bool, w http.ResponseWriter, r *http.Request) error {
+	target := resolve(s, subPath)
+	// 文件夹分享：根、或子路径指向目录时打包 zip。
+	if s.IsDir && (normalizeSub(subPath) == "" || isDirEntry(ctx, store, target)) {
+		return streamZip(ctx, store, target, s.Name, w)
 	}
-	fi, err := os.Stat(real)
+	// 开启 302 且来源支持预签名（OSS）→ 跳转到公开域名预签名直链，外部访客直连来源、momoko 不代理。
+	if redirect302 {
+		if presigner, ok := store.(file.Presigner); ok {
+			if u, err := presigner.Presign(ctx, target, inline, shareServeTTL); err == nil {
+				http.Redirect(w, r, u, http.StatusFound)
+				return nil
+			}
+		}
+	}
+	rc, entry, err := store.Open(ctx, target)
 	if err != nil {
 		return errors.New("文件不存在")
 	}
-	if fi.IsDir() {
-		return streamZip(real, fi.Name(), w)
-	}
-	f, err := os.Open(real)
-	if err != nil {
-		return errors.New("文件打开失败")
-	}
-	defer f.Close()
+	defer rc.Close()
+
 	disposition := "attachment"
 	if inline {
 		disposition = "inline"
 	}
-	w.Header().Set("Content-Disposition", disposition+`; filename="`+fi.Name()+`"`)
-	w.Header().Set("Accept-Ranges", "bytes")
-	http.ServeContent(w, r, fi.Name(), fi.ModTime(), f)
-	return nil
+	w.Header().Set("Content-Disposition", disposition+`; filename="`+entry.Name+`"`)
+
+	var mod time.Time
+	if entry.UpdateTime != nil {
+		mod = entry.UpdateTime.AsTime()
+	}
+	// 可 Seek 的来源（本地、OSS）走 ServeContent，支持 Range 续传/拖动。
+	if seeker, ok := rc.(io.ReadSeeker); ok {
+		w.Header().Set("Accept-Ranges", "bytes")
+		http.ServeContent(w, r, entry.Name, mod, seeker)
+		return nil
+	}
+	// 不可 Seek 的来源（FTP/WebDAV）：整流返回。
+	ctype := mime.TypeByExtension(filepath.Ext(entry.Name))
+	if ctype == "" {
+		ctype = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", ctype)
+	if entry.Size > 0 {
+		w.Header().Set("Content-Length", strconv.FormatUint(entry.Size, 10))
+	}
+	_, err = io.Copy(w, rc)
+	return err
 }
 
-// streamZip 将 dir 下所有文件实时打包为 zip 写入 w（不落临时文件）。
-func streamZip(dir, name string, w http.ResponseWriter) error {
+func isDirEntry(ctx context.Context, store file.Store, p string) bool {
+	entry, err := store.Stat(ctx, p)
+	return err == nil && entry.IsDir
+}
+
+// streamZip 通过 Store 递归遍历 root 下所有文件，实时打包为 zip 写入 w（不落临时文件）。
+func streamZip(ctx context.Context, store file.Store, root, name string, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`.zip"`)
 	zw := zip.NewWriter(w)
 	defer zw.Close()
-	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		rel, err := filepath.Rel(dir, p)
-		if err != nil {
-			return err
-		}
-		fw, err := zw.Create(filepath.ToSlash(rel))
-		if err != nil {
-			return err
-		}
-		src, err := os.Open(p)
-		if err != nil {
-			return err
-		}
-		defer src.Close()
-		_, err = io.Copy(fw, src)
+	return walkZip(ctx, store, root, "", zw)
+}
+
+func walkZip(ctx context.Context, store file.Store, dir, relBase string, zw *zip.Writer) error {
+	entries, err := store.List(ctx, dir, file.SortByName, false)
+	if err != nil {
 		return err
-	})
+	}
+	for _, e := range entries {
+		rel := joinSlash(relBase, e.Name)
+		if e.IsDir {
+			// e.Path 为来源原生路径，回传给 Store 可正确续游目录。
+			if err := walkZip(ctx, store, e.Path, rel, zw); err != nil {
+				return err
+			}
+			continue
+		}
+		rc, _, err := store.Open(ctx, e.Path)
+		if err != nil {
+			return err
+		}
+		fw, err := zw.Create(rel)
+		if err != nil {
+			_ = rc.Close()
+			return err
+		}
+		_, err = io.Copy(fw, rc)
+		_ = rc.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ToInfo 将分享记录映射为管理视图（含提取码，仅创建者可见）。
@@ -194,6 +246,7 @@ func ToInfo(s *gen.FileShare) *v1.ShareInfo {
 		Id:            s.ID,
 		Name:          s.Name,
 		TargetPath:    s.TargetPath,
+		SourceId:      s.SourceID,
 		IsDir:         s.IsDir,
 		Token:         s.Token,
 		Code:          s.Code,
@@ -229,10 +282,9 @@ func ToMeta(s *gen.FileShare, owner *gen.User, now time.Time) *v1.GetShareMetaRe
 	if s.ExpiresAt != nil {
 		meta.ExpiresAt = timestamppb.New(*s.ExpiresAt)
 	}
+	// 单文件分享展示大小：使用入库的展示值（前端创建时提供，可自定义），不再回源查询。
 	if !s.IsDir {
-		if fi, err := os.Stat(s.TargetPath); err == nil {
-			meta.Size = uint64(fi.Size())
-		}
+		meta.Size = s.Size
 	}
 	return meta
 }

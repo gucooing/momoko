@@ -137,6 +137,20 @@ func (_c *FileUploadCreate) SetNillableSourceID(v *string) *FileUploadCreate {
 	return _c
 }
 
+// SetProviderRef sets the "provider_ref" field.
+func (_c *FileUploadCreate) SetProviderRef(v string) *FileUploadCreate {
+	_c.mutation.SetProviderRef(v)
+	return _c
+}
+
+// SetNillableProviderRef sets the "provider_ref" field if the given value is not nil.
+func (_c *FileUploadCreate) SetNillableProviderRef(v *string) *FileUploadCreate {
+	if v != nil {
+		_c.SetProviderRef(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FileUploadCreate) SetID(v string) *FileUploadCreate {
 	_c.mutation.SetID(v)
@@ -218,6 +232,10 @@ func (_c *FileUploadCreate) defaults() {
 		v := fileupload.DefaultSourceID
 		_c.mutation.SetSourceID(v)
 	}
+	if _, ok := _c.mutation.ProviderRef(); !ok {
+		v := fileupload.DefaultProviderRef
+		_c.mutation.SetProviderRef(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -257,6 +275,9 @@ func (_c *FileUploadCreate) check() error {
 	}
 	if _, ok := _c.mutation.SourceID(); !ok {
 		return &ValidationError{Name: "source_id", err: errors.New(`gen: missing required field "FileUpload.source_id"`)}
+	}
+	if _, ok := _c.mutation.ProviderRef(); !ok {
+		return &ValidationError{Name: "provider_ref", err: errors.New(`gen: missing required field "FileUpload.provider_ref"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`gen: missing required edge "FileUpload.user"`)}
@@ -340,6 +361,10 @@ func (_c *FileUploadCreate) createSpec() (*FileUpload, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SourceID(); ok {
 		_spec.SetField(fileupload.FieldSourceID, field.TypeString, value)
 		_node.SourceID = value
+	}
+	if value, ok := _c.mutation.ProviderRef(); ok {
+		_spec.SetField(fileupload.FieldProviderRef, field.TypeString, value)
+		_node.ProviderRef = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -576,6 +601,18 @@ func (u *FileUploadUpsert) UpdateSourceID() *FileUploadUpsert {
 	return u
 }
 
+// SetProviderRef sets the "provider_ref" field.
+func (u *FileUploadUpsert) SetProviderRef(v string) *FileUploadUpsert {
+	u.Set(fileupload.FieldProviderRef, v)
+	return u
+}
+
+// UpdateProviderRef sets the "provider_ref" field to the value that was provided on create.
+func (u *FileUploadUpsert) UpdateProviderRef() *FileUploadUpsert {
+	u.SetExcluded(fileupload.FieldProviderRef)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -799,6 +836,20 @@ func (u *FileUploadUpsertOne) SetSourceID(v string) *FileUploadUpsertOne {
 func (u *FileUploadUpsertOne) UpdateSourceID() *FileUploadUpsertOne {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateSourceID()
+	})
+}
+
+// SetProviderRef sets the "provider_ref" field.
+func (u *FileUploadUpsertOne) SetProviderRef(v string) *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetProviderRef(v)
+	})
+}
+
+// UpdateProviderRef sets the "provider_ref" field to the value that was provided on create.
+func (u *FileUploadUpsertOne) UpdateProviderRef() *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateProviderRef()
 	})
 }
 
@@ -1192,6 +1243,20 @@ func (u *FileUploadUpsertBulk) SetSourceID(v string) *FileUploadUpsertBulk {
 func (u *FileUploadUpsertBulk) UpdateSourceID() *FileUploadUpsertBulk {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateSourceID()
+	})
+}
+
+// SetProviderRef sets the "provider_ref" field.
+func (u *FileUploadUpsertBulk) SetProviderRef(v string) *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetProviderRef(v)
+	})
+}
+
+// UpdateProviderRef sets the "provider_ref" field to the value that was provided on create.
+func (u *FileUploadUpsertBulk) UpdateProviderRef() *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateProviderRef()
 	})
 }
 

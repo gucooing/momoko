@@ -29,6 +29,7 @@ import (
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
+	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"sync"
@@ -69,6 +70,7 @@ const (
 	TypeSub2APITimelineItem = "Sub2APITimelineItem"
 	TypeSub2APIUsageRecord  = "Sub2APIUsageRecord"
 	TypeSystemConfig        = "SystemConfig"
+	TypeTask                = "Task"
 	TypeUser                = "User"
 	TypeUserAPIKey          = "UserAPIKey"
 )
@@ -1405,7 +1407,10 @@ type FileShareMutation struct {
 	update_time       *time.Time
 	name              *string
 	target_path       *string
+	source_id         *string
 	is_dir            *bool
+	size              *uint64
+	addsize           *int64
 	token             *string
 	code              *string
 	expires_at        *time.Time
@@ -1706,6 +1711,42 @@ func (m *FileShareMutation) ResetTargetPath() {
 	m.target_path = nil
 }
 
+// SetSourceID sets the "source_id" field.
+func (m *FileShareMutation) SetSourceID(s string) {
+	m.source_id = &s
+}
+
+// SourceID returns the value of the "source_id" field in the mutation.
+func (m *FileShareMutation) SourceID() (r string, exists bool) {
+	v := m.source_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceID returns the old "source_id" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldSourceID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceID: %w", err)
+	}
+	return oldValue.SourceID, nil
+}
+
+// ResetSourceID resets all changes to the "source_id" field.
+func (m *FileShareMutation) ResetSourceID() {
+	m.source_id = nil
+}
+
 // SetIsDir sets the "is_dir" field.
 func (m *FileShareMutation) SetIsDir(b bool) {
 	m.is_dir = &b
@@ -1740,6 +1781,62 @@ func (m *FileShareMutation) OldIsDir(ctx context.Context) (v bool, err error) {
 // ResetIsDir resets all changes to the "is_dir" field.
 func (m *FileShareMutation) ResetIsDir() {
 	m.is_dir = nil
+}
+
+// SetSize sets the "size" field.
+func (m *FileShareMutation) SetSize(u uint64) {
+	m.size = &u
+	m.addsize = nil
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *FileShareMutation) Size() (r uint64, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the FileShare entity.
+// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileShareMutation) OldSize(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// AddSize adds u to the "size" field.
+func (m *FileShareMutation) AddSize(u int64) {
+	if m.addsize != nil {
+		*m.addsize += u
+	} else {
+		m.addsize = &u
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *FileShareMutation) AddedSize() (r int64, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *FileShareMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
 }
 
 // SetToken sets the "token" field.
@@ -2072,7 +2169,7 @@ func (m *FileShareMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileShareMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, fileshare.FieldCreateTime)
 	}
@@ -2088,8 +2185,14 @@ func (m *FileShareMutation) Fields() []string {
 	if m.target_path != nil {
 		fields = append(fields, fileshare.FieldTargetPath)
 	}
+	if m.source_id != nil {
+		fields = append(fields, fileshare.FieldSourceID)
+	}
 	if m.is_dir != nil {
 		fields = append(fields, fileshare.FieldIsDir)
+	}
+	if m.size != nil {
+		fields = append(fields, fileshare.FieldSize)
 	}
 	if m.token != nil {
 		fields = append(fields, fileshare.FieldToken)
@@ -2127,8 +2230,12 @@ func (m *FileShareMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case fileshare.FieldTargetPath:
 		return m.TargetPath()
+	case fileshare.FieldSourceID:
+		return m.SourceID()
 	case fileshare.FieldIsDir:
 		return m.IsDir()
+	case fileshare.FieldSize:
+		return m.Size()
 	case fileshare.FieldToken:
 		return m.Token()
 	case fileshare.FieldCode:
@@ -2160,8 +2267,12 @@ func (m *FileShareMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldName(ctx)
 	case fileshare.FieldTargetPath:
 		return m.OldTargetPath(ctx)
+	case fileshare.FieldSourceID:
+		return m.OldSourceID(ctx)
 	case fileshare.FieldIsDir:
 		return m.OldIsDir(ctx)
+	case fileshare.FieldSize:
+		return m.OldSize(ctx)
 	case fileshare.FieldToken:
 		return m.OldToken(ctx)
 	case fileshare.FieldCode:
@@ -2218,12 +2329,26 @@ func (m *FileShareMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTargetPath(v)
 		return nil
+	case fileshare.FieldSourceID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceID(v)
+		return nil
 	case fileshare.FieldIsDir:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsDir(v)
+		return nil
+	case fileshare.FieldSize:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
 		return nil
 	case fileshare.FieldToken:
 		v, ok := value.(string)
@@ -2275,6 +2400,9 @@ func (m *FileShareMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *FileShareMutation) AddedFields() []string {
 	var fields []string
+	if m.addsize != nil {
+		fields = append(fields, fileshare.FieldSize)
+	}
 	if m.addmax_downloads != nil {
 		fields = append(fields, fileshare.FieldMaxDownloads)
 	}
@@ -2289,6 +2417,8 @@ func (m *FileShareMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *FileShareMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case fileshare.FieldSize:
+		return m.AddedSize()
 	case fileshare.FieldMaxDownloads:
 		return m.AddedMaxDownloads()
 	case fileshare.FieldDownloadCount:
@@ -2302,6 +2432,13 @@ func (m *FileShareMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FileShareMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case fileshare.FieldSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
 	case fileshare.FieldMaxDownloads:
 		v, ok := value.(int64)
 		if !ok {
@@ -2367,8 +2504,14 @@ func (m *FileShareMutation) ResetField(name string) error {
 	case fileshare.FieldTargetPath:
 		m.ResetTargetPath()
 		return nil
+	case fileshare.FieldSourceID:
+		m.ResetSourceID()
+		return nil
 	case fileshare.FieldIsDir:
 		m.ResetIsDir()
+		return nil
+	case fileshare.FieldSize:
+		m.ResetSize()
 		return nil
 	case fileshare.FieldToken:
 		m.ResetToken()
@@ -3250,6 +3393,7 @@ type FileUploadMutation struct {
 	completed       *bool
 	cancel          *bool
 	source_id       *string
+	provider_ref    *string
 	clearedFields   map[string]struct{}
 	user            *string
 	cleareduser     bool
@@ -3857,6 +4001,42 @@ func (m *FileUploadMutation) ResetSourceID() {
 	m.source_id = nil
 }
 
+// SetProviderRef sets the "provider_ref" field.
+func (m *FileUploadMutation) SetProviderRef(s string) {
+	m.provider_ref = &s
+}
+
+// ProviderRef returns the value of the "provider_ref" field in the mutation.
+func (m *FileUploadMutation) ProviderRef() (r string, exists bool) {
+	v := m.provider_ref
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProviderRef returns the old "provider_ref" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldProviderRef(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProviderRef is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProviderRef requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProviderRef: %w", err)
+	}
+	return oldValue.ProviderRef, nil
+}
+
+// ResetProviderRef resets all changes to the "provider_ref" field.
+func (m *FileUploadMutation) ResetProviderRef() {
+	m.provider_ref = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *FileUploadMutation) ClearUser() {
 	m.cleareduser = true
@@ -3972,7 +4152,7 @@ func (m *FileUploadMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileUploadMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.create_time != nil {
 		fields = append(fields, fileupload.FieldCreateTime)
 	}
@@ -4009,6 +4189,9 @@ func (m *FileUploadMutation) Fields() []string {
 	if m.source_id != nil {
 		fields = append(fields, fileupload.FieldSourceID)
 	}
+	if m.provider_ref != nil {
+		fields = append(fields, fileupload.FieldProviderRef)
+	}
 	return fields
 }
 
@@ -4041,6 +4224,8 @@ func (m *FileUploadMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case fileupload.FieldSourceID:
 		return m.SourceID()
+	case fileupload.FieldProviderRef:
+		return m.ProviderRef()
 	}
 	return nil, false
 }
@@ -4074,6 +4259,8 @@ func (m *FileUploadMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case fileupload.FieldSourceID:
 		return m.OldSourceID(ctx)
+	case fileupload.FieldProviderRef:
+		return m.OldProviderRef(ctx)
 	}
 	return nil, fmt.Errorf("unknown FileUpload field %s", name)
 }
@@ -4166,6 +4353,13 @@ func (m *FileUploadMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceID(v)
+		return nil
+	case fileupload.FieldProviderRef:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProviderRef(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FileUpload field %s", name)
@@ -4290,6 +4484,9 @@ func (m *FileUploadMutation) ResetField(name string) error {
 		return nil
 	case fileupload.FieldSourceID:
 		m.ResetSourceID()
+		return nil
+	case fileupload.FieldProviderRef:
+		m.ResetProviderRef()
 		return nil
 	}
 	return fmt.Errorf("unknown FileUpload field %s", name)
@@ -20279,6 +20476,1413 @@ func (m *SystemConfigMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SystemConfigMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown SystemConfig edge %s", name)
+}
+
+// TaskMutation represents an operation that mutates the Task nodes in the graph.
+type TaskMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *string
+	create_time          *time.Time
+	update_time          *time.Time
+	_type                *string
+	kind                 *task.Kind
+	status               *task.Status
+	resume_policy        *task.ResumePolicy
+	title                *string
+	user_id              *string
+	payload              *string
+	state                *string
+	result               *string
+	progress_total       *int64
+	addprogress_total    *int64
+	progress_finished    *int64
+	addprogress_finished *int64
+	message              *string
+	error                *string
+	interval_ms          *int64
+	addinterval_ms       *int64
+	timeout_ms           *int64
+	addtimeout_ms        *int64
+	end_time             *time.Time
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*Task, error)
+	predicates           []predicate.Task
+}
+
+var _ ent.Mutation = (*TaskMutation)(nil)
+
+// taskOption allows management of the mutation configuration using functional options.
+type taskOption func(*TaskMutation)
+
+// newTaskMutation creates new mutation for the Task entity.
+func newTaskMutation(c config, op Op, opts ...taskOption) *TaskMutation {
+	m := &TaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTaskID sets the ID field of the mutation.
+func withTaskID(id string) taskOption {
+	return func(m *TaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Task
+		)
+		m.oldValue = func(ctx context.Context) (*Task, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Task.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTask sets the old Task of the mutation.
+func withTask(node *Task) taskOption {
+	return func(m *TaskMutation) {
+		m.oldValue = func(context.Context) (*Task, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Task entities.
+func (m *TaskMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TaskMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TaskMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Task.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *TaskMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *TaskMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *TaskMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *TaskMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *TaskMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *TaskMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetType sets the "type" field.
+func (m *TaskMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *TaskMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *TaskMutation) ResetType() {
+	m._type = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *TaskMutation) SetKind(t task.Kind) {
+	m.kind = &t
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *TaskMutation) Kind() (r task.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldKind(ctx context.Context) (v task.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *TaskMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *TaskMutation) SetStatus(t task.Status) {
+	m.status = &t
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *TaskMutation) Status() (r task.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldStatus(ctx context.Context) (v task.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *TaskMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetResumePolicy sets the "resume_policy" field.
+func (m *TaskMutation) SetResumePolicy(tp task.ResumePolicy) {
+	m.resume_policy = &tp
+}
+
+// ResumePolicy returns the value of the "resume_policy" field in the mutation.
+func (m *TaskMutation) ResumePolicy() (r task.ResumePolicy, exists bool) {
+	v := m.resume_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResumePolicy returns the old "resume_policy" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldResumePolicy(ctx context.Context) (v task.ResumePolicy, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResumePolicy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResumePolicy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResumePolicy: %w", err)
+	}
+	return oldValue.ResumePolicy, nil
+}
+
+// ResetResumePolicy resets all changes to the "resume_policy" field.
+func (m *TaskMutation) ResetResumePolicy() {
+	m.resume_policy = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *TaskMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *TaskMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *TaskMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *TaskMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *TaskMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *TaskMutation) ResetUserID() {
+	m.user_id = nil
+}
+
+// SetPayload sets the "payload" field.
+func (m *TaskMutation) SetPayload(s string) {
+	m.payload = &s
+}
+
+// Payload returns the value of the "payload" field in the mutation.
+func (m *TaskMutation) Payload() (r string, exists bool) {
+	v := m.payload
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayload returns the old "payload" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldPayload(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayload is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayload requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayload: %w", err)
+	}
+	return oldValue.Payload, nil
+}
+
+// ResetPayload resets all changes to the "payload" field.
+func (m *TaskMutation) ResetPayload() {
+	m.payload = nil
+}
+
+// SetState sets the "state" field.
+func (m *TaskMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *TaskMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *TaskMutation) ResetState() {
+	m.state = nil
+}
+
+// SetResult sets the "result" field.
+func (m *TaskMutation) SetResult(s string) {
+	m.result = &s
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *TaskMutation) Result() (r string, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldResult(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *TaskMutation) ResetResult() {
+	m.result = nil
+}
+
+// SetProgressTotal sets the "progress_total" field.
+func (m *TaskMutation) SetProgressTotal(i int64) {
+	m.progress_total = &i
+	m.addprogress_total = nil
+}
+
+// ProgressTotal returns the value of the "progress_total" field in the mutation.
+func (m *TaskMutation) ProgressTotal() (r int64, exists bool) {
+	v := m.progress_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProgressTotal returns the old "progress_total" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldProgressTotal(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProgressTotal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProgressTotal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProgressTotal: %w", err)
+	}
+	return oldValue.ProgressTotal, nil
+}
+
+// AddProgressTotal adds i to the "progress_total" field.
+func (m *TaskMutation) AddProgressTotal(i int64) {
+	if m.addprogress_total != nil {
+		*m.addprogress_total += i
+	} else {
+		m.addprogress_total = &i
+	}
+}
+
+// AddedProgressTotal returns the value that was added to the "progress_total" field in this mutation.
+func (m *TaskMutation) AddedProgressTotal() (r int64, exists bool) {
+	v := m.addprogress_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetProgressTotal resets all changes to the "progress_total" field.
+func (m *TaskMutation) ResetProgressTotal() {
+	m.progress_total = nil
+	m.addprogress_total = nil
+}
+
+// SetProgressFinished sets the "progress_finished" field.
+func (m *TaskMutation) SetProgressFinished(i int64) {
+	m.progress_finished = &i
+	m.addprogress_finished = nil
+}
+
+// ProgressFinished returns the value of the "progress_finished" field in the mutation.
+func (m *TaskMutation) ProgressFinished() (r int64, exists bool) {
+	v := m.progress_finished
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProgressFinished returns the old "progress_finished" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldProgressFinished(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProgressFinished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProgressFinished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProgressFinished: %w", err)
+	}
+	return oldValue.ProgressFinished, nil
+}
+
+// AddProgressFinished adds i to the "progress_finished" field.
+func (m *TaskMutation) AddProgressFinished(i int64) {
+	if m.addprogress_finished != nil {
+		*m.addprogress_finished += i
+	} else {
+		m.addprogress_finished = &i
+	}
+}
+
+// AddedProgressFinished returns the value that was added to the "progress_finished" field in this mutation.
+func (m *TaskMutation) AddedProgressFinished() (r int64, exists bool) {
+	v := m.addprogress_finished
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetProgressFinished resets all changes to the "progress_finished" field.
+func (m *TaskMutation) ResetProgressFinished() {
+	m.progress_finished = nil
+	m.addprogress_finished = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *TaskMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *TaskMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *TaskMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetError sets the "error" field.
+func (m *TaskMutation) SetError(s string) {
+	m.error = &s
+}
+
+// Error returns the value of the "error" field in the mutation.
+func (m *TaskMutation) Error() (r string, exists bool) {
+	v := m.error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldError returns the old "error" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldError: %w", err)
+	}
+	return oldValue.Error, nil
+}
+
+// ResetError resets all changes to the "error" field.
+func (m *TaskMutation) ResetError() {
+	m.error = nil
+}
+
+// SetIntervalMs sets the "interval_ms" field.
+func (m *TaskMutation) SetIntervalMs(i int64) {
+	m.interval_ms = &i
+	m.addinterval_ms = nil
+}
+
+// IntervalMs returns the value of the "interval_ms" field in the mutation.
+func (m *TaskMutation) IntervalMs() (r int64, exists bool) {
+	v := m.interval_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIntervalMs returns the old "interval_ms" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldIntervalMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIntervalMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIntervalMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIntervalMs: %w", err)
+	}
+	return oldValue.IntervalMs, nil
+}
+
+// AddIntervalMs adds i to the "interval_ms" field.
+func (m *TaskMutation) AddIntervalMs(i int64) {
+	if m.addinterval_ms != nil {
+		*m.addinterval_ms += i
+	} else {
+		m.addinterval_ms = &i
+	}
+}
+
+// AddedIntervalMs returns the value that was added to the "interval_ms" field in this mutation.
+func (m *TaskMutation) AddedIntervalMs() (r int64, exists bool) {
+	v := m.addinterval_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIntervalMs resets all changes to the "interval_ms" field.
+func (m *TaskMutation) ResetIntervalMs() {
+	m.interval_ms = nil
+	m.addinterval_ms = nil
+}
+
+// SetTimeoutMs sets the "timeout_ms" field.
+func (m *TaskMutation) SetTimeoutMs(i int64) {
+	m.timeout_ms = &i
+	m.addtimeout_ms = nil
+}
+
+// TimeoutMs returns the value of the "timeout_ms" field in the mutation.
+func (m *TaskMutation) TimeoutMs() (r int64, exists bool) {
+	v := m.timeout_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeoutMs returns the old "timeout_ms" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldTimeoutMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimeoutMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimeoutMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeoutMs: %w", err)
+	}
+	return oldValue.TimeoutMs, nil
+}
+
+// AddTimeoutMs adds i to the "timeout_ms" field.
+func (m *TaskMutation) AddTimeoutMs(i int64) {
+	if m.addtimeout_ms != nil {
+		*m.addtimeout_ms += i
+	} else {
+		m.addtimeout_ms = &i
+	}
+}
+
+// AddedTimeoutMs returns the value that was added to the "timeout_ms" field in this mutation.
+func (m *TaskMutation) AddedTimeoutMs() (r int64, exists bool) {
+	v := m.addtimeout_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTimeoutMs resets all changes to the "timeout_ms" field.
+func (m *TaskMutation) ResetTimeoutMs() {
+	m.timeout_ms = nil
+	m.addtimeout_ms = nil
+}
+
+// SetEndTime sets the "end_time" field.
+func (m *TaskMutation) SetEndTime(t time.Time) {
+	m.end_time = &t
+}
+
+// EndTime returns the value of the "end_time" field in the mutation.
+func (m *TaskMutation) EndTime() (r time.Time, exists bool) {
+	v := m.end_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndTime returns the old "end_time" field's value of the Task entity.
+// If the Task object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaskMutation) OldEndTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
+	}
+	return oldValue.EndTime, nil
+}
+
+// ClearEndTime clears the value of the "end_time" field.
+func (m *TaskMutation) ClearEndTime() {
+	m.end_time = nil
+	m.clearedFields[task.FieldEndTime] = struct{}{}
+}
+
+// EndTimeCleared returns if the "end_time" field was cleared in this mutation.
+func (m *TaskMutation) EndTimeCleared() bool {
+	_, ok := m.clearedFields[task.FieldEndTime]
+	return ok
+}
+
+// ResetEndTime resets all changes to the "end_time" field.
+func (m *TaskMutation) ResetEndTime() {
+	m.end_time = nil
+	delete(m.clearedFields, task.FieldEndTime)
+}
+
+// Where appends a list predicates to the TaskMutation builder.
+func (m *TaskMutation) Where(ps ...predicate.Task) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Task, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Task).
+func (m *TaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TaskMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.create_time != nil {
+		fields = append(fields, task.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, task.FieldUpdateTime)
+	}
+	if m._type != nil {
+		fields = append(fields, task.FieldType)
+	}
+	if m.kind != nil {
+		fields = append(fields, task.FieldKind)
+	}
+	if m.status != nil {
+		fields = append(fields, task.FieldStatus)
+	}
+	if m.resume_policy != nil {
+		fields = append(fields, task.FieldResumePolicy)
+	}
+	if m.title != nil {
+		fields = append(fields, task.FieldTitle)
+	}
+	if m.user_id != nil {
+		fields = append(fields, task.FieldUserID)
+	}
+	if m.payload != nil {
+		fields = append(fields, task.FieldPayload)
+	}
+	if m.state != nil {
+		fields = append(fields, task.FieldState)
+	}
+	if m.result != nil {
+		fields = append(fields, task.FieldResult)
+	}
+	if m.progress_total != nil {
+		fields = append(fields, task.FieldProgressTotal)
+	}
+	if m.progress_finished != nil {
+		fields = append(fields, task.FieldProgressFinished)
+	}
+	if m.message != nil {
+		fields = append(fields, task.FieldMessage)
+	}
+	if m.error != nil {
+		fields = append(fields, task.FieldError)
+	}
+	if m.interval_ms != nil {
+		fields = append(fields, task.FieldIntervalMs)
+	}
+	if m.timeout_ms != nil {
+		fields = append(fields, task.FieldTimeoutMs)
+	}
+	if m.end_time != nil {
+		fields = append(fields, task.FieldEndTime)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case task.FieldCreateTime:
+		return m.CreateTime()
+	case task.FieldUpdateTime:
+		return m.UpdateTime()
+	case task.FieldType:
+		return m.GetType()
+	case task.FieldKind:
+		return m.Kind()
+	case task.FieldStatus:
+		return m.Status()
+	case task.FieldResumePolicy:
+		return m.ResumePolicy()
+	case task.FieldTitle:
+		return m.Title()
+	case task.FieldUserID:
+		return m.UserID()
+	case task.FieldPayload:
+		return m.Payload()
+	case task.FieldState:
+		return m.State()
+	case task.FieldResult:
+		return m.Result()
+	case task.FieldProgressTotal:
+		return m.ProgressTotal()
+	case task.FieldProgressFinished:
+		return m.ProgressFinished()
+	case task.FieldMessage:
+		return m.Message()
+	case task.FieldError:
+		return m.Error()
+	case task.FieldIntervalMs:
+		return m.IntervalMs()
+	case task.FieldTimeoutMs:
+		return m.TimeoutMs()
+	case task.FieldEndTime:
+		return m.EndTime()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case task.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case task.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case task.FieldType:
+		return m.OldType(ctx)
+	case task.FieldKind:
+		return m.OldKind(ctx)
+	case task.FieldStatus:
+		return m.OldStatus(ctx)
+	case task.FieldResumePolicy:
+		return m.OldResumePolicy(ctx)
+	case task.FieldTitle:
+		return m.OldTitle(ctx)
+	case task.FieldUserID:
+		return m.OldUserID(ctx)
+	case task.FieldPayload:
+		return m.OldPayload(ctx)
+	case task.FieldState:
+		return m.OldState(ctx)
+	case task.FieldResult:
+		return m.OldResult(ctx)
+	case task.FieldProgressTotal:
+		return m.OldProgressTotal(ctx)
+	case task.FieldProgressFinished:
+		return m.OldProgressFinished(ctx)
+	case task.FieldMessage:
+		return m.OldMessage(ctx)
+	case task.FieldError:
+		return m.OldError(ctx)
+	case task.FieldIntervalMs:
+		return m.OldIntervalMs(ctx)
+	case task.FieldTimeoutMs:
+		return m.OldTimeoutMs(ctx)
+	case task.FieldEndTime:
+		return m.OldEndTime(ctx)
+	}
+	return nil, fmt.Errorf("unknown Task field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case task.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case task.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case task.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case task.FieldKind:
+		v, ok := value.(task.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case task.FieldStatus:
+		v, ok := value.(task.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case task.FieldResumePolicy:
+		v, ok := value.(task.ResumePolicy)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResumePolicy(v)
+		return nil
+	case task.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case task.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case task.FieldPayload:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayload(v)
+		return nil
+	case task.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case task.FieldResult:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case task.FieldProgressTotal:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProgressTotal(v)
+		return nil
+	case task.FieldProgressFinished:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProgressFinished(v)
+		return nil
+	case task.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case task.FieldError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetError(v)
+		return nil
+	case task.FieldIntervalMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIntervalMs(v)
+		return nil
+	case task.FieldTimeoutMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeoutMs(v)
+		return nil
+	case task.FieldEndTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndTime(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Task field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TaskMutation) AddedFields() []string {
+	var fields []string
+	if m.addprogress_total != nil {
+		fields = append(fields, task.FieldProgressTotal)
+	}
+	if m.addprogress_finished != nil {
+		fields = append(fields, task.FieldProgressFinished)
+	}
+	if m.addinterval_ms != nil {
+		fields = append(fields, task.FieldIntervalMs)
+	}
+	if m.addtimeout_ms != nil {
+		fields = append(fields, task.FieldTimeoutMs)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TaskMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case task.FieldProgressTotal:
+		return m.AddedProgressTotal()
+	case task.FieldProgressFinished:
+		return m.AddedProgressFinished()
+	case task.FieldIntervalMs:
+		return m.AddedIntervalMs()
+	case task.FieldTimeoutMs:
+		return m.AddedTimeoutMs()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case task.FieldProgressTotal:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddProgressTotal(v)
+		return nil
+	case task.FieldProgressFinished:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddProgressFinished(v)
+		return nil
+	case task.FieldIntervalMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIntervalMs(v)
+		return nil
+	case task.FieldTimeoutMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTimeoutMs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Task numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(task.FieldEndTime) {
+		fields = append(fields, task.FieldEndTime)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TaskMutation) ClearField(name string) error {
+	switch name {
+	case task.FieldEndTime:
+		m.ClearEndTime()
+		return nil
+	}
+	return fmt.Errorf("unknown Task nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TaskMutation) ResetField(name string) error {
+	switch name {
+	case task.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case task.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case task.FieldType:
+		m.ResetType()
+		return nil
+	case task.FieldKind:
+		m.ResetKind()
+		return nil
+	case task.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case task.FieldResumePolicy:
+		m.ResetResumePolicy()
+		return nil
+	case task.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case task.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case task.FieldPayload:
+		m.ResetPayload()
+		return nil
+	case task.FieldState:
+		m.ResetState()
+		return nil
+	case task.FieldResult:
+		m.ResetResult()
+		return nil
+	case task.FieldProgressTotal:
+		m.ResetProgressTotal()
+		return nil
+	case task.FieldProgressFinished:
+		m.ResetProgressFinished()
+		return nil
+	case task.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case task.FieldError:
+		m.ResetError()
+		return nil
+	case task.FieldIntervalMs:
+		m.ResetIntervalMs()
+		return nil
+	case task.FieldTimeoutMs:
+		m.ResetTimeoutMs()
+		return nil
+	case task.FieldEndTime:
+		m.ResetEndTime()
+		return nil
+	}
+	return fmt.Errorf("unknown Task field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TaskMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TaskMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TaskMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Task unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TaskMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Task edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

@@ -27,6 +27,8 @@ func (FileUpload) Fields() []ent.Field {
 		field.String("user_id").Comment("上传发起人"),
 		// 上传目标来源：空=本地磁盘，否则为 file_source.id；用于服务重启后重建上传会话并落地到正确来源。
 		field.String("source_id").Default("").Comment("目标文件来源id，空=本地"),
+		// 来源侧句柄：如 OSS 分片上传的 uploadID；用于浏览器直传 OSS 时重启续传/收尾/中止。
+		field.String("provider_ref").Default("").Comment("来源侧上传句柄(如OSS multipart uploadID)"),
 	}
 }
 

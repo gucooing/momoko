@@ -58,6 +58,8 @@ type Tx struct {
 	Sub2APIUsageRecord *Sub2APIUsageRecordClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
+	// Task is the client for interacting with the Task builders.
+	Task *TaskClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAPIKey is the client for interacting with the UserAPIKey builders.
@@ -215,6 +217,7 @@ func (tx *Tx) init() {
 	tx.Sub2APITimelineItem = NewSub2APITimelineItemClient(tx.config)
 	tx.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
+	tx.Task = NewTaskClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAPIKey = NewUserAPIKeyClient(tx.config)
 }

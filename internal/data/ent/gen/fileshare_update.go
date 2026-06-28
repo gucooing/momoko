@@ -77,6 +77,20 @@ func (_u *FileShareUpdate) SetNillableTargetPath(v *string) *FileShareUpdate {
 	return _u
 }
 
+// SetSourceID sets the "source_id" field.
+func (_u *FileShareUpdate) SetSourceID(v string) *FileShareUpdate {
+	_u.mutation.SetSourceID(v)
+	return _u
+}
+
+// SetNillableSourceID sets the "source_id" field if the given value is not nil.
+func (_u *FileShareUpdate) SetNillableSourceID(v *string) *FileShareUpdate {
+	if v != nil {
+		_u.SetSourceID(*v)
+	}
+	return _u
+}
+
 // SetIsDir sets the "is_dir" field.
 func (_u *FileShareUpdate) SetIsDir(v bool) *FileShareUpdate {
 	_u.mutation.SetIsDir(v)
@@ -88,6 +102,27 @@ func (_u *FileShareUpdate) SetNillableIsDir(v *bool) *FileShareUpdate {
 	if v != nil {
 		_u.SetIsDir(*v)
 	}
+	return _u
+}
+
+// SetSize sets the "size" field.
+func (_u *FileShareUpdate) SetSize(v uint64) *FileShareUpdate {
+	_u.mutation.ResetSize()
+	_u.mutation.SetSize(v)
+	return _u
+}
+
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (_u *FileShareUpdate) SetNillableSize(v *uint64) *FileShareUpdate {
+	if v != nil {
+		_u.SetSize(*v)
+	}
+	return _u
+}
+
+// AddSize adds value to the "size" field.
+func (_u *FileShareUpdate) AddSize(v int64) *FileShareUpdate {
+	_u.mutation.AddSize(v)
 	return _u
 }
 
@@ -276,8 +311,17 @@ func (_u *FileShareUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.TargetPath(); ok {
 		_spec.SetField(fileshare.FieldTargetPath, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.SourceID(); ok {
+		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.IsDir(); ok {
 		_spec.SetField(fileshare.FieldIsDir, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Size(); ok {
+		_spec.SetField(fileshare.FieldSize, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedSize(); ok {
+		_spec.AddField(fileshare.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)
@@ -403,6 +447,20 @@ func (_u *FileShareUpdateOne) SetNillableTargetPath(v *string) *FileShareUpdateO
 	return _u
 }
 
+// SetSourceID sets the "source_id" field.
+func (_u *FileShareUpdateOne) SetSourceID(v string) *FileShareUpdateOne {
+	_u.mutation.SetSourceID(v)
+	return _u
+}
+
+// SetNillableSourceID sets the "source_id" field if the given value is not nil.
+func (_u *FileShareUpdateOne) SetNillableSourceID(v *string) *FileShareUpdateOne {
+	if v != nil {
+		_u.SetSourceID(*v)
+	}
+	return _u
+}
+
 // SetIsDir sets the "is_dir" field.
 func (_u *FileShareUpdateOne) SetIsDir(v bool) *FileShareUpdateOne {
 	_u.mutation.SetIsDir(v)
@@ -414,6 +472,27 @@ func (_u *FileShareUpdateOne) SetNillableIsDir(v *bool) *FileShareUpdateOne {
 	if v != nil {
 		_u.SetIsDir(*v)
 	}
+	return _u
+}
+
+// SetSize sets the "size" field.
+func (_u *FileShareUpdateOne) SetSize(v uint64) *FileShareUpdateOne {
+	_u.mutation.ResetSize()
+	_u.mutation.SetSize(v)
+	return _u
+}
+
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (_u *FileShareUpdateOne) SetNillableSize(v *uint64) *FileShareUpdateOne {
+	if v != nil {
+		_u.SetSize(*v)
+	}
+	return _u
+}
+
+// AddSize adds value to the "size" field.
+func (_u *FileShareUpdateOne) AddSize(v int64) *FileShareUpdateOne {
+	_u.mutation.AddSize(v)
 	return _u
 }
 
@@ -632,8 +711,17 @@ func (_u *FileShareUpdateOne) sqlSave(ctx context.Context) (_node *FileShare, er
 	if value, ok := _u.mutation.TargetPath(); ok {
 		_spec.SetField(fileshare.FieldTargetPath, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.SourceID(); ok {
+		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.IsDir(); ok {
 		_spec.SetField(fileshare.FieldIsDir, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Size(); ok {
+		_spec.SetField(fileshare.FieldSize, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedSize(); ok {
+		_spec.AddField(fileshare.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)

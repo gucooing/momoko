@@ -629,8 +629,11 @@ onBeforeUnmount(disposeEditor)
   animation: fe-spin 0.8s linear infinite;
 }
 @keyframes fe-spin {
+  from {
+    transform: perspective(120px) rotateY(0deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: perspective(120px) rotateY(360deg);
   }
 }
 

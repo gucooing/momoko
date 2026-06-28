@@ -25,6 +25,7 @@ import (
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
+	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/internal/data/ent/schema"
@@ -108,24 +109,32 @@ func init() {
 	fileshare.DefaultUpdateTime = fileshareDescUpdateTime.Default.(func() time.Time)
 	// fileshare.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	fileshare.UpdateDefaultUpdateTime = fileshareDescUpdateTime.UpdateDefault.(func() time.Time)
+	// fileshareDescSourceID is the schema descriptor for source_id field.
+	fileshareDescSourceID := fileshareFields[4].Descriptor()
+	// fileshare.DefaultSourceID holds the default value on creation for the source_id field.
+	fileshare.DefaultSourceID = fileshareDescSourceID.Default.(string)
 	// fileshareDescIsDir is the schema descriptor for is_dir field.
-	fileshareDescIsDir := fileshareFields[4].Descriptor()
+	fileshareDescIsDir := fileshareFields[5].Descriptor()
 	// fileshare.DefaultIsDir holds the default value on creation for the is_dir field.
 	fileshare.DefaultIsDir = fileshareDescIsDir.Default.(bool)
+	// fileshareDescSize is the schema descriptor for size field.
+	fileshareDescSize := fileshareFields[6].Descriptor()
+	// fileshare.DefaultSize holds the default value on creation for the size field.
+	fileshare.DefaultSize = fileshareDescSize.Default.(uint64)
 	// fileshareDescCode is the schema descriptor for code field.
-	fileshareDescCode := fileshareFields[6].Descriptor()
+	fileshareDescCode := fileshareFields[8].Descriptor()
 	// fileshare.DefaultCode holds the default value on creation for the code field.
 	fileshare.DefaultCode = fileshareDescCode.Default.(string)
 	// fileshareDescMaxDownloads is the schema descriptor for max_downloads field.
-	fileshareDescMaxDownloads := fileshareFields[8].Descriptor()
+	fileshareDescMaxDownloads := fileshareFields[10].Descriptor()
 	// fileshare.DefaultMaxDownloads holds the default value on creation for the max_downloads field.
 	fileshare.DefaultMaxDownloads = fileshareDescMaxDownloads.Default.(int64)
 	// fileshareDescDownloadCount is the schema descriptor for download_count field.
-	fileshareDescDownloadCount := fileshareFields[9].Descriptor()
+	fileshareDescDownloadCount := fileshareFields[11].Descriptor()
 	// fileshare.DefaultDownloadCount holds the default value on creation for the download_count field.
 	fileshare.DefaultDownloadCount = fileshareDescDownloadCount.Default.(int64)
 	// fileshareDescEnabled is the schema descriptor for enabled field.
-	fileshareDescEnabled := fileshareFields[10].Descriptor()
+	fileshareDescEnabled := fileshareFields[12].Descriptor()
 	// fileshare.DefaultEnabled holds the default value on creation for the enabled field.
 	fileshare.DefaultEnabled = fileshareDescEnabled.Default.(bool)
 	filesourceMixin := schema.FileSource{}.Mixin()
@@ -186,6 +195,10 @@ func init() {
 	fileuploadDescSourceID := fileuploadFields[10].Descriptor()
 	// fileupload.DefaultSourceID holds the default value on creation for the source_id field.
 	fileupload.DefaultSourceID = fileuploadDescSourceID.Default.(string)
+	// fileuploadDescProviderRef is the schema descriptor for provider_ref field.
+	fileuploadDescProviderRef := fileuploadFields[11].Descriptor()
+	// fileupload.DefaultProviderRef holds the default value on creation for the provider_ref field.
+	fileupload.DefaultProviderRef = fileuploadDescProviderRef.Default.(string)
 	fileuploadchunkMixin := schema.FileUploadChunk{}.Mixin()
 	fileuploadchunkMixinFields0 := fileuploadchunkMixin[0].Fields()
 	_ = fileuploadchunkMixinFields0
@@ -770,6 +783,65 @@ func init() {
 	systemconfigDescValue := systemconfigFields[1].Descriptor()
 	// systemconfig.DefaultValue holds the default value on creation for the value field.
 	systemconfig.DefaultValue = systemconfigDescValue.Default.(string)
+	taskMixin := schema.Task{}.Mixin()
+	taskMixinFields0 := taskMixin[0].Fields()
+	_ = taskMixinFields0
+	taskFields := schema.Task{}.Fields()
+	_ = taskFields
+	// taskDescCreateTime is the schema descriptor for create_time field.
+	taskDescCreateTime := taskMixinFields0[0].Descriptor()
+	// task.DefaultCreateTime holds the default value on creation for the create_time field.
+	task.DefaultCreateTime = taskDescCreateTime.Default.(func() time.Time)
+	// taskDescUpdateTime is the schema descriptor for update_time field.
+	taskDescUpdateTime := taskMixinFields0[1].Descriptor()
+	// task.DefaultUpdateTime holds the default value on creation for the update_time field.
+	task.DefaultUpdateTime = taskDescUpdateTime.Default.(func() time.Time)
+	// task.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	task.UpdateDefaultUpdateTime = taskDescUpdateTime.UpdateDefault.(func() time.Time)
+	// taskDescTitle is the schema descriptor for title field.
+	taskDescTitle := taskFields[5].Descriptor()
+	// task.DefaultTitle holds the default value on creation for the title field.
+	task.DefaultTitle = taskDescTitle.Default.(string)
+	// taskDescUserID is the schema descriptor for user_id field.
+	taskDescUserID := taskFields[6].Descriptor()
+	// task.DefaultUserID holds the default value on creation for the user_id field.
+	task.DefaultUserID = taskDescUserID.Default.(string)
+	// taskDescPayload is the schema descriptor for payload field.
+	taskDescPayload := taskFields[7].Descriptor()
+	// task.DefaultPayload holds the default value on creation for the payload field.
+	task.DefaultPayload = taskDescPayload.Default.(string)
+	// taskDescState is the schema descriptor for state field.
+	taskDescState := taskFields[8].Descriptor()
+	// task.DefaultState holds the default value on creation for the state field.
+	task.DefaultState = taskDescState.Default.(string)
+	// taskDescResult is the schema descriptor for result field.
+	taskDescResult := taskFields[9].Descriptor()
+	// task.DefaultResult holds the default value on creation for the result field.
+	task.DefaultResult = taskDescResult.Default.(string)
+	// taskDescProgressTotal is the schema descriptor for progress_total field.
+	taskDescProgressTotal := taskFields[10].Descriptor()
+	// task.DefaultProgressTotal holds the default value on creation for the progress_total field.
+	task.DefaultProgressTotal = taskDescProgressTotal.Default.(int64)
+	// taskDescProgressFinished is the schema descriptor for progress_finished field.
+	taskDescProgressFinished := taskFields[11].Descriptor()
+	// task.DefaultProgressFinished holds the default value on creation for the progress_finished field.
+	task.DefaultProgressFinished = taskDescProgressFinished.Default.(int64)
+	// taskDescMessage is the schema descriptor for message field.
+	taskDescMessage := taskFields[12].Descriptor()
+	// task.DefaultMessage holds the default value on creation for the message field.
+	task.DefaultMessage = taskDescMessage.Default.(string)
+	// taskDescError is the schema descriptor for error field.
+	taskDescError := taskFields[13].Descriptor()
+	// task.DefaultError holds the default value on creation for the error field.
+	task.DefaultError = taskDescError.Default.(string)
+	// taskDescIntervalMs is the schema descriptor for interval_ms field.
+	taskDescIntervalMs := taskFields[14].Descriptor()
+	// task.DefaultIntervalMs holds the default value on creation for the interval_ms field.
+	task.DefaultIntervalMs = taskDescIntervalMs.Default.(int64)
+	// taskDescTimeoutMs is the schema descriptor for timeout_ms field.
+	taskDescTimeoutMs := taskFields[15].Descriptor()
+	// task.DefaultTimeoutMs holds the default value on creation for the timeout_ms field.
+	task.DefaultTimeoutMs = taskDescTimeoutMs.Default.(int64)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

@@ -1,7 +1,6 @@
 package file
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -427,11 +426,10 @@ func (f *FileOper) Rename(path, newName string) (string, error) {
 type ChunkedUpload struct {
 	*gen.FileUpload
 	fileSync sync.RWMutex
-	dst      Store // 远端落地目标；nil=本地磁盘（直接 rename）
 }
 
 const (
-	minChunkSize = 4 * 1024 * 1024  // 4MB
+	minChunkSize = 5 * 1024 * 1024  // 5MiB（S3 分片上传最小分片大小，统一取此下限）
 	maxChunkSize = 64 * 1024 * 1024 // 64MB
 	targetChunks = 100
 
@@ -447,17 +445,19 @@ func TempPartPath(dir, fileName, id string) string {
 	return filepath.Join(dir, fmt.Sprintf(tempName, fileName, id))
 }
 
-// uploadBufferPath 返回某上传会话分片缓冲文件的本地路径：
-// 本地来源（source_id 为空）缓冲在目标目录旁；远端来源缓冲在统一的本地临时目录。
-func uploadBufferPath(u *gen.FileUpload) string {
-	if u.SourceID == "" {
-		return TempPartPath(u.Path, u.FileName, u.ID)
+// bufferPath 返回某上传会话分片缓冲文件的本地路径：本地来源缓冲在目标目录旁（便于原子 rename），
+// 远端来源缓冲在统一的本地临时目录。缓冲型 Store 据自身类型传入 local。
+func bufferPath(local bool, dir, fileName, id string) string {
+	if local {
+		return TempPartPath(dir, fileName, id)
 	}
-	return TempPartPath(UploadBufferDir, u.FileName, u.ID)
+	return TempPartPath(UploadBufferDir, fileName, id)
 }
 
-// SetRemote 指定远端落地目标（远端来源上传时由业务层注入）。
-func (u *ChunkedUpload) SetRemote(dst Store) { u.dst = dst }
+// uploadBufferPath 返回某上传会话分片缓冲文件的本地路径（按来源是否本地选择目录）。
+func uploadBufferPath(u *gen.FileUpload) string {
+	return bufferPath(u.SourceID == "", u.Path, u.FileName, u.ID)
+}
 
 func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 	chunkSize := calcChunkSize(fileSize)
@@ -554,109 +554,4 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 
 	partHash := hex.EncodeToString(hasher.Sum(nil))
 	return partSize, partHash, nil
-}
-
-// Complete 校验分片完整性后将临时文件原子地落为最终文件。
-// 校验项：分片齐全且编号无重复、每片大小正确、合计与临时文件实际大小均等于声明大小，
-// 以避免 offset 空洞 / 短写 / 漏片导致合并出损坏文件。
-func (u *ChunkedUpload) Complete(ctx context.Context) error {
-	u.fileSync.Lock()
-	defer u.fileSync.Unlock()
-	if u.Completed {
-		return nil
-	}
-	if u.Cancel {
-		return errors.New("上传已取消")
-	}
-
-	partPath := uploadBufferPath(u.FileUpload)
-	// 远端来源：落地到目标来源的逻辑路径；本地来源：目标真实路径。
-	finalPath := filepath.Join(u.Path, u.FileName)
-
-	// 空文件没有分片，直接落一个空文件。
-	if u.TotalChunks == 0 {
-		if u.dst != nil {
-			return u.dst.Write(ctx, finalPath, strings.NewReader(""))
-		}
-		f, err := os.OpenFile(finalPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
-		if err != nil {
-			return fmt.Errorf("创建文件失败: %w", err)
-		}
-		return f.Close()
-	}
-
-	if err := u.verifyChunks(); err != nil {
-		return err
-	}
-	fi, err := os.Stat(partPath)
-	if err != nil {
-		return fmt.Errorf("临时文件缺失: %w", err)
-	}
-	if uint64(fi.Size()) != u.FileSize {
-		return fmt.Errorf("文件大小不一致：实际 %d，声明 %d", fi.Size(), u.FileSize)
-	}
-
-	// 远端来源：把拼好的缓冲文件流式推送到来源，再删除本地缓冲。
-	if u.dst != nil {
-		f, err := os.Open(partPath)
-		if err != nil {
-			return fmt.Errorf("打开临时文件失败: %w", err)
-		}
-		if err := u.dst.Write(ctx, finalPath, f); err != nil {
-			_ = f.Close()
-			return fmt.Errorf("上传到来源失败: %w", err)
-		}
-		_ = f.Close()
-		_ = os.Remove(partPath)
-		return nil
-	}
-
-	if err := os.Rename(partPath, finalPath); err != nil {
-		return fmt.Errorf("重命名文件失败: %w", err)
-	}
-	return nil
-}
-
-// verifyChunks 校验已记录的分片：齐全、编号合法、每片大小符合预期、合计等于文件大小。
-// 不校验「重复」——分片表对 (upload_id, chunk) 有唯一约束、写入用 upsert，重复上传是
-// 幂等的（覆盖同偏移同内容），不应在此（或上传分片时）报错而打断客户端续传/重试。
-func (u *ChunkedUpload) verifyChunks() error {
-	chunks := u.Edges.Chunks
-	if uint64(len(chunks)) != u.TotalChunks {
-		return fmt.Errorf("分片未上传完成：%d/%d", len(chunks), u.TotalChunks)
-	}
-	var total uint64
-	for _, c := range chunks {
-		if c.Chunk < 1 || c.Chunk > u.TotalChunks {
-			return errors.New("存在异常分片编号")
-		}
-		expected := u.ChunkSize
-		if c.Chunk == u.TotalChunks {
-			expected = u.FileSize - (u.TotalChunks-1)*u.ChunkSize
-		}
-		if c.Size != expected {
-			return fmt.Errorf("分片 %d 大小异常：%d，应为 %d", c.Chunk, c.Size, expected)
-		}
-		total += c.Size
-	}
-	if total != u.FileSize {
-		return fmt.Errorf("分片合计 %d 与文件大小 %d 不一致", total, u.FileSize)
-	}
-	return nil
-}
-
-// Canceld 取消上传并删除临时分片文件。
-func (u *ChunkedUpload) Canceld() error {
-	u.fileSync.Lock()
-	defer u.fileSync.Unlock()
-	if u.Completed {
-		return errors.New("上传已完成")
-	}
-	if u.Cancel {
-		return nil
-	}
-	if err := os.Remove(uploadBufferPath(u.FileUpload)); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	return nil
 }

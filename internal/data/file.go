@@ -112,6 +112,20 @@ func (f *fileRepo) DeleteUploadCascade(ctx context.Context, id string) error {
 	})
 }
 
+// SetUploadCompleted 标记一个上传会话为已完成。
+func (f *fileRepo) SetUploadCompleted(ctx context.Context, id string) error {
+	return f.data.db.FileUpload.UpdateOneID(id).SetCompleted(true).Exec(ctx)
+}
+
+// SetUploadProviderRefIfEmpty 仅当 provider_ref 仍为空时写入，返回是否写入成功（OSS uploadID 初始化幂等/防竞态）。
+func (f *fileRepo) SetUploadProviderRefIfEmpty(ctx context.Context, id, ref string) (bool, error) {
+	n, err := f.data.db.FileUpload.Update().
+		Where(fileupload.IDEQ(id), fileupload.ProviderRefEQ("")).
+		SetProviderRef(ref).
+		Save(ctx)
+	return n > 0, err
+}
+
 // CreateShare 新建一条分享记录。id 由仓储生成，token/name/路径与是否目录由业务层算好传入。
 func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.Create().
@@ -119,6 +133,8 @@ func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name, targetP
 		SetUserID(userID).
 		SetName(name).
 		SetTargetPath(targetPath).
+		SetSourceID(req.SourceId).
+		SetSize(req.Size).
 		SetIsDir(isDir).
 		SetToken(token).
 		SetCode(req.Code).
@@ -175,7 +191,7 @@ func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.Updat
 		SetMaxDownloads(req.MaxDownloads).
 		SetEnabled(req.Enabled)
 	if targetPath != "" {
-		builder.SetTargetPath(targetPath).SetIsDir(isDir)
+		builder.SetTargetPath(targetPath).SetIsDir(isDir).SetSourceID(req.SourceId).SetSize(req.Size)
 	}
 	if req.ExpiresAt != nil {
 		builder.SetExpiresAt(req.ExpiresAt.AsTime())

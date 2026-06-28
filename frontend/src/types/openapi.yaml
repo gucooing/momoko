@@ -3726,6 +3726,126 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SystemStatusResponse'
+    /api/v1/task/cancel:
+        post:
+            tags:
+                - TaskManager
+            description: 取消运行中的任务
+            operationId: TaskManager_CancelTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CancelTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CancelTaskResponse'
+    /api/v1/task/delete:
+        post:
+            tags:
+                - TaskManager
+            description: 删除终态任务行（清理列表）
+            operationId: TaskManager_DeleteTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DeleteTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteTaskResponse'
+    /api/v1/task/retry:
+        post:
+            tags:
+                - TaskManager
+            description: 重试失败的任务（按工厂重建重投）
+            operationId: TaskManager_RetryTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RetryTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RetryTaskResponse'
+    /api/v1/task/{id}:
+        get:
+            tags:
+                - TaskManager
+            description: 获取单个任务
+            operationId: TaskManager_GetTask
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetTaskResponse'
+    /api/v1/tasks:
+        get:
+            tags:
+                - TaskManager
+            description: 列出全部任务（跨用户 + 系统任务）
+            operationId: TaskManager_ListTasks
+            parameters:
+                - name: page
+                  in: query
+                  description: 页码（从 1 开始）
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 关键字（标题/类型）
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: 按状态过滤
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: 按类型过滤
+                  schema:
+                    type: string
+                - name: kind
+                  in: query
+                  description: 按种类过滤
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListTasksResponse'
     /api/v1/tunnel/frps-config:
         get:
             tags:
@@ -4419,6 +4539,14 @@ components:
             type: object
             properties: {}
             description: 取消文件上传响应
+        v1.CancelTaskRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.CancelTaskResponse:
+            type: object
+            properties: {}
         v1.CompleteFileUploadRequest:
             type: object
             properties:
@@ -4428,7 +4556,11 @@ components:
             description: 上传完成合并分片请求
         v1.CompleteFileUploadResponse:
             type: object
-            properties: {}
+            properties:
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileTaskInfo'
+                    description: 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
             description: 上传完成合并分片响应
         v1.ConfirmInitializeRequest:
             type: object
@@ -4877,6 +5009,12 @@ components:
                 enabled:
                     type: boolean
                     description: 是否启用
+                sourceId:
+                    type: string
+                    description: 文件来源id，空=本地磁盘
+                size:
+                    type: string
+                    description: 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
             description: 创建分享请求
         v1.CreateShareResponse:
             type: object
@@ -5095,6 +5233,14 @@ components:
             type: object
             properties: {}
         v1.DeleteSub2APITimelineItemResponse:
+            type: object
+            properties: {}
+        v1.DeleteTaskRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.DeleteTaskResponse:
             type: object
             properties: {}
         v1.DeleteTunnelResponse:
@@ -6982,6 +7128,11 @@ components:
             properties:
                 stats:
                     $ref: '#/components/schemas/v1.Sub2APIStats'
+        v1.GetTaskResponse:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/v1.TaskInfo'
         v1.GetTunnelResponse:
             type: object
             properties:
@@ -7446,6 +7597,20 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITimelineItem'
+        v1.ListTasksResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TaskInfo'
+                total:
+                    type: string
+                page:
+                    type: string
+                pageSize:
+                    type: string
+            description: 列出任务响应
         v1.ListTunnelsResponse:
             type: object
             properties:
@@ -8241,6 +8406,16 @@ components:
             type: object
             properties: {}
             description: 重启实例响应
+        v1.RetryTaskRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.RetryTaskResponse:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/v1.TaskInfo'
         v1.RoleInfo:
             type: object
             properties:
@@ -8442,6 +8617,9 @@ components:
                     type: string
                     description: 更新时间
                     format: date-time
+                sourceId:
+                    type: string
+                    description: 文件来源id，空=本地磁盘
             description: 分享信息（仅创建者可见的管理视图，含提取码）
         v1.ShareSSHHostRequest:
             type: object
@@ -8940,6 +9118,68 @@ components:
             type: object
             properties: {}
             description: 给镜像打标签响应
+        v1.TaskInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 任务id
+                type:
+                    type: string
+                    description: 注册类型键（如 file.copy / docker.image_pull / file.upload_gc）
+                kind:
+                    type: integer
+                    description: 任务种类
+                    format: enum
+                title:
+                    type: string
+                    description: 展示标题
+                userId:
+                    type: string
+                    description: 发起用户id（空=系统任务）
+                userName:
+                    type: string
+                    description: 发起用户名（解析自 user_id）
+                status:
+                    type: integer
+                    description: 任务状态
+                    format: enum
+                total:
+                    type: string
+                    description: 总进度
+                finished:
+                    type: string
+                    description: 已完成进度
+                message:
+                    type: string
+                    description: 当前消息
+                error:
+                    type: string
+                    description: 错误信息
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TaskResult'
+                    description: 执行结果明细
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                endTime:
+                    type: string
+                    description: 结束时间
+                    format: date-time
+            description: 任务信息
+        v1.TaskResult:
+            type: object
+            properties:
+                path:
+                    type: string
+                success:
+                    type: boolean
+                message:
+                    type: string
+            description: 单项执行结果
         v1.TestDockerConfigRequest:
             type: object
             properties:
@@ -9712,6 +9952,12 @@ components:
                 path:
                     type: string
                     description: 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
+                sourceId:
+                    type: string
+                    description: 新目标的文件来源id（path 非空时生效）
+                size:
+                    type: string
+                    description: 新目标文件大小（前端提供的展示值，path 非空时生效）
             description: 更新分享请求（全量覆盖可编辑字段）
         v1.UpdateShareResponse:
             type: object
@@ -9817,9 +10063,6 @@ components:
                 uploadId:
                     type: string
                     description: 上传会话 id
-                uploadPartUrlPathTemplate:
-                    type: string
-                    description: 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
                 partSize:
                     type: string
                     description: 实际分片大小（字节）
@@ -9844,6 +10087,13 @@ components:
                     type: string
                     description: 预签名过期时间
                     format: date-time
+                partUrls:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: |-
+                        各分片的上传 URL（partNumber→URL）。本地/FTP/WebDAV 指向 momoko 签名端点，OSS 指向来源预签名直链。
+                         前端对每片 PUT part_urls[n]，来源透明、一套代码。
             description: 上传信息
         v1.UserInfo:
             type: object
@@ -9964,6 +10214,10 @@ tags:
       description: Sub2API 公共首页与管理
     - name: System
       description: 系统管理
+    - name: TaskManager
+      description: |-
+        任务管理：通用任务管理器（pkg/task）的统一对外面板，可见可操作全部任务
+         （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取、常驻任务等）。
     - name: TunnelManager
       description: 内网穿透（frp）管理
     - name: UserService

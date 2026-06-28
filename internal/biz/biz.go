@@ -7,6 +7,8 @@ var ProviderSet = wire.NewSet(
 	NewAuthUsecase,
 	NewConfigUsecase,
 	NewFileUsecase,
+	NewTaskManager,
+	NewTaskUsecase,
 	NewUserUsecase,
 	NewSystemUsecase,
 	NewInstanceUsecase,

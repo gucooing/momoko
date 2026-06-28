@@ -5,8 +5,12 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
+	"net/http"
 	"net/url"
 	"path"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +20,9 @@ import (
 
 	v1 "momoko/api/gen/v1"
 )
+
+// UploadPresignTTL 是分片预签名直传 URL 的有效期，需覆盖单次上传会话的最长时长（与 biz 的 UploadPeriod 对齐）。
+const UploadPresignTTL = 2 * time.Hour
 
 // ossStore 基于 S3 兼容协议（minio-go），覆盖 AWS S3 / MinIO / 阿里云OSS(S3端点) / 腾讯COS / R2 等。
 // 逻辑路径以 root(前缀) 为根；目录用「key 以 / 结尾」表示。
@@ -329,4 +336,126 @@ func (s *ossStore) Presign(ctx context.Context, p string, inline bool, ttl time.
 
 func (s *ossStore) Caps() Caps {
 	return Caps{Presign: true, Copy: true, Move: true, Compress: false, ResumableUpload: true}
+}
+
+// ---- 分片上传：浏览器直传 OSS（S3 分片上传），momoko 不在数据路径。机制全部私有于本来源。----
+
+func (s *ossStore) core() minio.Core { return minio.Core{Client: s.client} }
+
+// PrepareUpload 初始化（或复用）来源侧 multipart，按需建立续传句柄并逐片生成预签名直传 URL；
+// 已传分片以来源 ListObjectParts 为准（合并进 u.Uploaded）。
+func (s *ossStore) PrepareUpload(ctx context.Context, u *Upload) error {
+	if u.TotalParts == 0 { // 空文件无分片：收尾时直接写空对象，无需 multipart
+		u.PartURLs = map[uint64]string{}
+		return nil
+	}
+	objectPath := path.Join(u.Path, u.FileName)
+	// 幂等建立来源侧 multipart uploadID（并发竞态由 SaveRef 收敛，败者中止自己的残留）。
+	if u.Ref == "" {
+		candidate, err := s.initMultipart(ctx, objectPath)
+		if err != nil {
+			return err
+		}
+		ref := candidate
+		if u.SaveRef != nil {
+			winner, err := u.SaveRef(ctx, candidate)
+			if err != nil {
+				_ = s.abortMultipart(ctx, objectPath, candidate)
+				return err
+			}
+			if winner != candidate {
+				_ = s.abortMultipart(ctx, objectPath, candidate)
+				ref = winner
+			}
+		}
+		u.Ref = ref
+	}
+	partURLs := make(map[uint64]string, u.TotalParts)
+	for i := uint64(1); i <= u.TotalParts; i++ {
+		url, err := s.presignPart(ctx, objectPath, u.Ref, i)
+		if err != nil {
+			return err
+		}
+		partURLs[i] = url
+	}
+	u.PartURLs = partURLs
+	if uploaded, err := s.listParts(ctx, objectPath, u.Ref); err == nil {
+		if u.Uploaded == nil {
+			u.Uploaded = map[uint64]string{}
+		}
+		maps.Copy(u.Uploaded, uploaded)
+	}
+	return nil
+}
+
+// CompleteUpload 合并分片完成上传（空文件直接写空对象）。
+func (s *ossStore) CompleteUpload(ctx context.Context, u *Upload) error {
+	objectPath := path.Join(u.Path, u.FileName)
+	if u.Ref == "" { // 无 multipart 句柄（空文件）→ 写空对象
+		return s.Write(ctx, objectPath, bytes.NewReader(nil))
+	}
+	parts, err := s.listParts(ctx, objectPath, u.Ref)
+	if err != nil {
+		return err
+	}
+	if len(parts) == 0 {
+		return errors.New("没有已上传的分片")
+	}
+	nums := make([]int, 0, len(parts))
+	for n := range parts {
+		nums = append(nums, int(n))
+	}
+	sort.Ints(nums)
+	complete := make([]minio.CompletePart, 0, len(nums))
+	for _, n := range nums {
+		complete = append(complete, minio.CompletePart{PartNumber: n, ETag: parts[uint64(n)]})
+	}
+	_, err = s.core().CompleteMultipartUpload(ctx, s.bucket, s.key(objectPath), u.Ref, complete, minio.PutObjectOptions{})
+	return err
+}
+
+// CancelUpload 中止来源侧 multipart（无句柄则无操作）。
+func (s *ossStore) CancelUpload(ctx context.Context, u *Upload) error {
+	if u.Ref == "" {
+		return nil
+	}
+	return s.abortMultipart(ctx, path.Join(u.Path, u.FileName), u.Ref)
+}
+
+func (s *ossStore) initMultipart(ctx context.Context, objectPath string) (string, error) {
+	return s.core().NewMultipartUpload(ctx, s.bucket, s.key(objectPath), minio.PutObjectOptions{ContentType: "application/octet-stream"})
+}
+
+func (s *ossStore) presignPart(ctx context.Context, objectPath, uploadID string, part uint64) (string, error) {
+	reqParams := make(url.Values)
+	reqParams.Set("uploadId", uploadID)
+	reqParams.Set("partNumber", strconv.FormatUint(part, 10))
+	u, err := s.client.Presign(ctx, http.MethodPut, s.bucket, s.key(objectPath), UploadPresignTTL, reqParams)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
+}
+
+func (s *ossStore) listParts(ctx context.Context, objectPath, uploadID string) (map[uint64]string, error) {
+	parts := make(map[uint64]string)
+	marker := 0
+	for {
+		res, err := s.core().ListObjectParts(ctx, s.bucket, s.key(objectPath), uploadID, marker, 1000)
+		if err != nil {
+			return nil, err
+		}
+		for _, op := range res.ObjectParts {
+			parts[uint64(op.PartNumber)] = op.ETag
+		}
+		if !res.IsTruncated {
+			break
+		}
+		marker = res.NextPartNumberMarker
+	}
+	return parts, nil
+}
+
+func (s *ossStore) abortMultipart(ctx context.Context, objectPath, uploadID string) error {
+	return s.core().AbortMultipartUpload(ctx, s.bucket, s.key(objectPath), uploadID)
 }

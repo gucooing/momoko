@@ -43,6 +43,8 @@ type FileUpload struct {
 	UserID string `json:"user_id,omitempty"`
 	// 目标文件来源id，空=本地
 	SourceID string `json:"source_id,omitempty"`
+	// 来源侧上传句柄(如OSS multipart uploadID)
+	ProviderRef string `json:"provider_ref,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileUploadQuery when eager-loading is set.
 	Edges        FileUploadEdges `json:"edges"`
@@ -89,7 +91,7 @@ func (*FileUpload) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case fileupload.FieldFileSize, fileupload.FieldChunkSize, fileupload.FieldTotalChunks:
 			values[i] = new(sql.NullInt64)
-		case fileupload.FieldID, fileupload.FieldHash, fileupload.FieldPath, fileupload.FieldFileName, fileupload.FieldUserID, fileupload.FieldSourceID:
+		case fileupload.FieldID, fileupload.FieldHash, fileupload.FieldPath, fileupload.FieldFileName, fileupload.FieldUserID, fileupload.FieldSourceID, fileupload.FieldProviderRef:
 			values[i] = new(sql.NullString)
 		case fileupload.FieldCreateTime, fileupload.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -186,6 +188,12 @@ func (_m *FileUpload) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SourceID = value.String
 			}
+		case fileupload.FieldProviderRef:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field provider_ref", values[i])
+			} else if value.Valid {
+				_m.ProviderRef = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -267,6 +275,9 @@ func (_m *FileUpload) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source_id=")
 	builder.WriteString(_m.SourceID)
+	builder.WriteString(", ")
+	builder.WriteString("provider_ref=")
+	builder.WriteString(_m.ProviderRef)
 	builder.WriteByte(')')
 	return builder.String()
 }

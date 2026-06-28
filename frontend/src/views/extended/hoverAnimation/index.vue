@@ -78,7 +78,7 @@
                 :tag="animationForm.tag"
               >
                 <div class="preview-svg-container">
-                  <img src="@/assets/logo.svg" alt="Logo" class="preview-logo" />
+                  <img src="@/assets/logo.png" alt="Logo" class="preview-logo" />
                 </div>
               </HoverAnimateWrapper>
             </div>

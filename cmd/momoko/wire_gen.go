@@ -49,7 +49,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	configUsecase := biz.NewConfigUsecase(configRepo)
 	authService := service.NewAuthService(authUsecase, userUsecase, configUsecase, systemUsecase)
 	fileRepo := data.NewFileRepo(dataData)
-	fileUsecase := biz.NewFileUsecase(fileRepo)
+	store := data.NewTaskRepo(dataData)
+	taskManager, cleanup2 := biz.NewTaskManager(store)
+	fileUsecase := biz.NewFileUsecase(fileRepo, taskManager)
 	fileService := service.NewFileService(fileUsecase)
 	userService := service.NewUserService(userUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
@@ -57,8 +59,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	initializeUsecase := biz.NewInitializeUsecase(initializeRepo)
 	initializeService := service.NewInitializeService(initializeUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)
-	instanceUsecase, cleanup2, err := biz.NewInstanceUsecase(instanceRepo, fileRepo)
+	instanceUsecase, cleanup3, err := biz.NewInstanceUsecase(instanceRepo, fileRepo, taskManager)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
@@ -70,43 +73,25 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	nodeUsecase := biz.NewNodeUsecase(apiKeyRepo)
 	nodeService := service.NewNodeService(nodeUsecase)
 	networkRepo := data.NewNetworkRepo(dataData)
-	networkUsecase, cleanup3, err := biz.NewNetworkUsecase(networkRepo)
+	networkUsecase, cleanup4, err := biz.NewNetworkUsecase(networkRepo)
 	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	networkService := service.NewNetworkService(networkUsecase)
 	tunnelRepo := data.NewTunnelRepo(dataData)
-	tunnelUsecase, cleanup4, err := biz.NewTunnelUsecase(tunnelRepo, configRepo)
+	tunnelUsecase, cleanup5, err := biz.NewTunnelUsecase(tunnelRepo, configRepo)
 	if err != nil {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	tunnelService := service.NewTunnelService(tunnelUsecase)
-	dockerUsecase, err := biz.NewDockerUsecase(configRepo)
-	if err != nil {
-		cleanup4()
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	dockerService := service.NewDockerService(dockerUsecase)
-	sub2APIRepo := data.NewSub2APIRepo(dataData)
-	sub2APIUsecase, cleanup5, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
-	if err != nil {
-		cleanup4()
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
-	imageGenRepo := data.NewImageGenRepo(dataData)
-	imageGenUsecase, cleanup6, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
+	dockerUsecase, err := biz.NewDockerUsecase(configRepo, taskManager)
 	if err != nil {
 		cleanup5()
 		cleanup4()
@@ -115,10 +100,36 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		cleanup()
 		return nil, nil, err
 	}
+	dockerService := service.NewDockerService(dockerUsecase)
+	sub2APIRepo := data.NewSub2APIRepo(dataData)
+	sub2APIUsecase, cleanup6, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
+	if err != nil {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
+	imageGenRepo := data.NewImageGenRepo(dataData)
+	imageGenUsecase, cleanup7, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
+	if err != nil {
+		cleanup6()
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	imageGenService := service.NewImageGenService(imageGenUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, sub2APIService, imageGenService)
+	taskUsecase := biz.NewTaskUsecase(taskManager, userRepo)
+	taskService := service.NewTaskService(taskUsecase)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, sub2APIService, imageGenService, taskService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup7()
 		cleanup6()
 		cleanup5()
 		cleanup4()

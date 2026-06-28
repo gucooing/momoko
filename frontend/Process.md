@@ -246,7 +246,7 @@ export default defineConfig({
 ```html
 <div id="__app-loading__" class="app-loading">
   <div class="app-loading-content">
-    <img src="/logo.svg" alt="logo" class="loading-logo" />
+    <img src="/logo.png" alt="logo" class="loading-logo" />
     <div class="loading-text">正在加载...</div>
   </div>
 </div>

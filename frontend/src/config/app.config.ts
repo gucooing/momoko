@@ -5,13 +5,13 @@
 
 export const APP_CONFIG = {
   // 项目名称
-  name: 'Poleaxe Admin',
+  name: 'Momoko',
 
   // Favicon src - 根据环境动态设置 base path
-  faviconSrc: `${import.meta.env.VITE_STATIC_URL}favicon.ico`,
+  faviconSrc: `${import.meta.env.VITE_STATIC_URL}logo.png`,
 
   // Logo src
-  logoSrc: new URL('@/assets/logo.svg', import.meta.url).href,
+  logoSrc: new URL('@/assets/logo.png', import.meta.url).href,
 
   // 是否展示主题配置
   showThemeConfig: true,

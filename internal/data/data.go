@@ -29,6 +29,7 @@ var ProviderSet = wire.NewSet(
 	NewUserAPIKeyRepo,
 	NewAPIKeyRepo,
 	NewFileRepo,
+	NewTaskRepo,
 	NewOperationLogRepo,
 	NewInitializeRepo,
 	NewSub2APIRepo,

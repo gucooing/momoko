@@ -77,7 +77,9 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "target_path", Type: field.TypeString},
+		{Name: "source_id", Type: field.TypeString, Default: ""},
 		{Name: "is_dir", Type: field.TypeBool, Default: false},
+		{Name: "size", Type: field.TypeUint64, Default: 0},
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "code", Type: field.TypeString, Default: ""},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
@@ -94,7 +96,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_shares_users_user",
-				Columns:    []*schema.Column{FileSharesColumns[12]},
+				Columns:    []*schema.Column{FileSharesColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -103,7 +105,7 @@ var (
 			{
 				Name:    "fileshare_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{FileSharesColumns[12]},
+				Columns: []*schema.Column{FileSharesColumns[14]},
 			},
 		},
 	}
@@ -159,6 +161,7 @@ var (
 		{Name: "completed", Type: field.TypeBool, Default: false},
 		{Name: "cancel", Type: field.TypeBool, Default: false},
 		{Name: "source_id", Type: field.TypeString, Default: ""},
+		{Name: "provider_ref", Type: field.TypeString, Default: ""},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FileUploadsTable holds the schema information for the "file_uploads" table.
@@ -169,7 +172,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_uploads_users_user",
-				Columns:    []*schema.Column{FileUploadsColumns[12]},
+				Columns:    []*schema.Column{FileUploadsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -731,6 +734,56 @@ var (
 		Columns:    ConfigsColumns,
 		PrimaryKey: []*schema.Column{ConfigsColumns[0]},
 	}
+	// TasksColumns holds the columns for the "tasks" table.
+	TasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"oneshot", "scheduled", "daemon"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "success", "failed", "canceled"}, Default: "pending"},
+		{Name: "resume_policy", Type: field.TypeEnum, Enums: []string{"none", "rerun", "always"}, Default: "none"},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "user_id", Type: field.TypeString, Default: ""},
+		{Name: "payload", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "state", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "progress_total", Type: field.TypeInt64, Default: 0},
+		{Name: "progress_finished", Type: field.TypeInt64, Default: 0},
+		{Name: "message", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "interval_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "timeout_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "end_time", Type: field.TypeTime, Nullable: true},
+	}
+	// TasksTable holds the schema information for the "tasks" table.
+	TasksTable = &schema.Table{
+		Name:       "tasks",
+		Columns:    TasksColumns,
+		PrimaryKey: []*schema.Column{TasksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "task_status",
+				Unique:  false,
+				Columns: []*schema.Column{TasksColumns[5]},
+			},
+			{
+				Name:    "task_type",
+				Unique:  false,
+				Columns: []*schema.Column{TasksColumns[3]},
+			},
+			{
+				Name:    "task_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{TasksColumns[8]},
+			},
+			{
+				Name:    "task_resume_policy_status",
+				Unique:  false,
+				Columns: []*schema.Column{TasksColumns[6], TasksColumns[5]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -872,6 +925,7 @@ var (
 		Sub2apiTimelineItemsTable,
 		Sub2apiUsageRecordsTable,
 		ConfigsTable,
+		TasksTable,
 		UsersTable,
 		UserAPIKeysTable,
 		RoleMenusTable,

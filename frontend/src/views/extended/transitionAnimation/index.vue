@@ -65,7 +65,7 @@
                 :style="animationStyle"
               >
                 <div v-if="showLogo" class="logo-container">
-                  <img src="@/assets/logo.svg" alt="Logo" class="preview-logo" />
+                  <img src="@/assets/logo.png" alt="Logo" class="preview-logo" />
                 </div>
               </Transition>
             </div>

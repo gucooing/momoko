@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/logo.svg" alt="Momoko Frontend Logo" width="120" />
+  <img src="./public/logo.png" alt="Momoko Frontend Logo" width="120" />
 
 # Momoko Frontend
 

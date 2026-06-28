@@ -8,6 +8,5 @@ import (
 	v1 "momoko/api/gen/v1"
 )
 
-func fillOwnerInfo(info *v1.FileEntryInfo, d fs.FileInfo) {
-	return
-}
+// fillOwnerInfo 在非 unix 平台无属主/属组概念，保持空实现。
+func fillOwnerInfo(_ *v1.FileEntryInfo, _ fs.FileInfo) {}

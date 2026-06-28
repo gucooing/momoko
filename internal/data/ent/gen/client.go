@@ -33,6 +33,7 @@ import (
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
+	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 
@@ -93,6 +94,8 @@ type Client struct {
 	Sub2APIUsageRecord *Sub2APIUsageRecordClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
+	// Task is the client for interacting with the Task builders.
+	Task *TaskClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAPIKey is the client for interacting with the UserAPIKey builders.
@@ -130,6 +133,7 @@ func (c *Client) init() {
 	c.Sub2APITimelineItem = NewSub2APITimelineItemClient(c.config)
 	c.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
+	c.Task = NewTaskClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAPIKey = NewUserAPIKeyClient(c.config)
 }
@@ -246,6 +250,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
 		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
 		SystemConfig:        NewSystemConfigClient(cfg),
+		Task:                NewTaskClient(cfg),
 		User:                NewUserClient(cfg),
 		UserAPIKey:          NewUserAPIKeyClient(cfg),
 	}, nil
@@ -289,6 +294,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
 		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
 		SystemConfig:        NewSystemConfigClient(cfg),
+		Task:                NewTaskClient(cfg),
 		User:                NewUserClient(cfg),
 		UserAPIKey:          NewUserAPIKeyClient(cfg),
 	}, nil
@@ -324,7 +330,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
+		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User,
 		c.UserAPIKey,
 	} {
 		n.Use(hooks...)
@@ -339,7 +345,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.User,
+		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User,
 		c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
@@ -393,6 +399,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Sub2APIUsageRecord.mutate(ctx, m)
 	case *SystemConfigMutation:
 		return c.SystemConfig.mutate(ctx, m)
+	case *TaskMutation:
+		return c.Task.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *UserAPIKeyMutation:
@@ -3568,6 +3576,139 @@ func (c *SystemConfigClient) mutate(ctx context.Context, m *SystemConfigMutation
 	}
 }
 
+// TaskClient is a client for the Task schema.
+type TaskClient struct {
+	config
+}
+
+// NewTaskClient returns a client for the Task from the given config.
+func NewTaskClient(c config) *TaskClient {
+	return &TaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `task.Hooks(f(g(h())))`.
+func (c *TaskClient) Use(hooks ...Hook) {
+	c.hooks.Task = append(c.hooks.Task, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `task.Intercept(f(g(h())))`.
+func (c *TaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Task = append(c.inters.Task, interceptors...)
+}
+
+// Create returns a builder for creating a Task entity.
+func (c *TaskClient) Create() *TaskCreate {
+	mutation := newTaskMutation(c.config, OpCreate)
+	return &TaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Task entities.
+func (c *TaskClient) CreateBulk(builders ...*TaskCreate) *TaskCreateBulk {
+	return &TaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TaskClient) MapCreateBulk(slice any, setFunc func(*TaskCreate, int)) *TaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TaskCreateBulk{err: fmt.Errorf("calling to TaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Task.
+func (c *TaskClient) Update() *TaskUpdate {
+	mutation := newTaskMutation(c.config, OpUpdate)
+	return &TaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaskClient) UpdateOne(_m *Task) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTask(_m))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaskClient) UpdateOneID(id string) *TaskUpdateOne {
+	mutation := newTaskMutation(c.config, OpUpdateOne, withTaskID(id))
+	return &TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Task.
+func (c *TaskClient) Delete() *TaskDelete {
+	mutation := newTaskMutation(c.config, OpDelete)
+	return &TaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TaskClient) DeleteOne(_m *Task) *TaskDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TaskClient) DeleteOneID(id string) *TaskDeleteOne {
+	builder := c.Delete().Where(task.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaskDeleteOne{builder}
+}
+
+// Query returns a query builder for Task.
+func (c *TaskClient) Query() *TaskQuery {
+	return &TaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Task entity by its id.
+func (c *TaskClient) Get(ctx context.Context, id string) (*Task, error) {
+	return c.Query().Where(task.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaskClient) GetX(ctx context.Context, id string) *Task {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TaskClient) Hooks() []Hook {
+	return c.hooks.Task
+}
+
+// Interceptors returns the client interceptors.
+func (c *TaskClient) Interceptors() []Interceptor {
+	return c.inters.Task
+}
+
+func (c *TaskClient) mutate(ctx context.Context, m *TaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Task mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -3889,14 +4030,14 @@ type (
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
 		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		User, UserAPIKey []ent.Hook
+		Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
 		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		User, UserAPIKey []ent.Interceptor
+		Task, User, UserAPIKey []ent.Interceptor
 	}
 )
 

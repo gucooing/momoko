@@ -209,8 +209,11 @@ onMounted(() => {
   color: var(--fm-text-3);
 }
 @keyframes ftn-spin {
+  from {
+    transform: perspective(120px) rotateY(0deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: perspective(120px) rotateY(360deg);
   }
 }
 </style>

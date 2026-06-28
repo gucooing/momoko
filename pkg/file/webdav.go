@@ -197,6 +197,24 @@ func (s *webdavStore) Caps() Caps {
 	return Caps{Presign: false, Copy: true, Move: true, Compress: false, ResumableUpload: true}
 }
 
+// ---- 分片上传：分片经 momoko 签名端点落本地缓冲，收尾时整流推送到 WebDAV（缓冲型远端）----
+
+func (s *webdavStore) PrepareUpload(_ context.Context, u *Upload) error {
+	fillSignedParts(u)
+	return nil
+}
+
+func (s *webdavStore) CompleteUpload(ctx context.Context, u *Upload) error {
+	return completeBufferedRemote(ctx, s, u)
+}
+
+func (s *webdavStore) CancelUpload(_ context.Context, u *Upload) error {
+	return cancelBufferedRemote(u)
+}
+
+// AsyncFinalize 收尾需把本地缓冲整流推送到 WebDAV，可能较慢，应作为后台任务执行。
+func (s *webdavStore) AsyncFinalize() bool { return true }
+
 func webdavEntry(info os.FileInfo, logical string) *v1.FileEntryInfo {
 	return &v1.FileEntryInfo{
 		Name:       info.Name(),

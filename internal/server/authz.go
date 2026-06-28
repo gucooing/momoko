@@ -104,6 +104,7 @@ var servicePrefixPermissions = []struct {
 }{
 	{"/v1.DockerManager/", constant.DockerView},
 	{"/v1.FileManager/", constant.Terminal},
+	{"/v1.TaskManager/", constant.TaskManage},
 	{"/v1.InstanceManager/", constant.Instance},
 	{"/v1.NetworkManager/", constant.Network},
 	{"/v1.TunnelManager/", constant.Tunnel},

@@ -180,10 +180,10 @@ const loadingIconComponent = computed(() => {
 // 旋转动画
 @keyframes rotating {
   from {
-    transform: rotate(0deg);
+    transform: perspective(120px) rotateY(0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: perspective(120px) rotateY(360deg);
   }
 }
 </style>

@@ -163,7 +163,9 @@ type ShareInfo struct {
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 文件来源id，空=本地磁盘
+	SourceId      string `protobuf:"bytes,13,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,6 +284,13 @@ func (x *ShareInfo) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *ShareInfo) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
 // 创建分享请求
 type CreateShareRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -296,7 +305,11 @@ type CreateShareRequest struct {
 	// 下载次数上限，0=不限
 	MaxDownloads int64 `protobuf:"varint,5,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
 	// 是否启用
-	Enabled       bool `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled bool `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 文件来源id，空=本地磁盘
+	SourceId string `protobuf:"bytes,7,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	// 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
+	Size          uint64 `protobuf:"varint,8,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -371,6 +384,20 @@ func (x *CreateShareRequest) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *CreateShareRequest) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *CreateShareRequest) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
 }
 
 // 创建分享响应
@@ -572,7 +599,11 @@ type UpdateShareRequest struct {
 	// 是否启用
 	Enabled bool `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
-	Path          string `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
+	Path string `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
+	// 新目标的文件来源id（path 非空时生效）
+	SourceId string `protobuf:"bytes,8,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	// 新目标文件大小（前端提供的展示值，path 非空时生效）
+	Size          uint64 `protobuf:"varint,9,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -654,6 +685,20 @@ func (x *UpdateShareRequest) GetPath() string {
 		return x.Path
 	}
 	return ""
+}
+
+func (x *UpdateShareRequest) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *UpdateShareRequest) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
 }
 
 // 更新分享响应
@@ -4602,7 +4647,9 @@ func (x *CompleteFileUploadRequest) GetUploadId() string {
 
 // 上传完成合并分片响应
 type CompleteFileUploadResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
+	Task          *FileTaskInfo `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4635,6 +4682,13 @@ func (x *CompleteFileUploadResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CompleteFileUploadResponse.ProtoReflect.Descriptor instead.
 func (*CompleteFileUploadResponse) Descriptor() ([]byte, []int) {
 	return file_v1_file_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *CompleteFileUploadResponse) GetTask() *FileTaskInfo {
+	if x != nil {
+		return x.Task
+	}
+	return nil
 }
 
 // 取消文件上传请求
@@ -4725,8 +4779,6 @@ type UploadInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 上传会话 id
 	UploadId string `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
-	// 分片上传地址模板，客户端需要将 {partNumber} 替换为实际分片序号（从 1 开始）
-	UploadPartUrlPathTemplate string `protobuf:"bytes,2,opt,name=upload_part_url_path_template,json=uploadPartUrlPathTemplate,proto3" json:"upload_part_url_path_template,omitempty"`
 	// 实际分片大小（字节）
 	PartSize uint64 `protobuf:"varint,3,opt,name=part_size,json=partSize,proto3" json:"part_size,omitempty"`
 	// 文件总大小（字节）
@@ -4740,7 +4792,10 @@ type UploadInfo struct {
 	// 是否已取消上传
 	Cancel bool `protobuf:"varint,8,opt,name=cancel,proto3" json:"cancel,omitempty"`
 	// 预签名过期时间
-	ExpiredAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	ExpiredAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=expired_at,json=expiredAt,proto3" json:"expired_at,omitempty"`
+	// 各分片的上传 URL（partNumber→URL）。本地/FTP/WebDAV 指向 momoko 签名端点，OSS 指向来源预签名直链。
+	// 前端对每片 PUT part_urls[n]，来源透明、一套代码。
+	PartUrls      map[uint64]string `protobuf:"bytes,10,rep,name=part_urls,json=partUrls,proto3" json:"part_urls,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4778,13 +4833,6 @@ func (*UploadInfo) Descriptor() ([]byte, []int) {
 func (x *UploadInfo) GetUploadId() string {
 	if x != nil {
 		return x.UploadId
-	}
-	return ""
-}
-
-func (x *UploadInfo) GetUploadPartUrlPathTemplate() string {
-	if x != nil {
-		return x.UploadPartUrlPathTemplate
 	}
 	return ""
 }
@@ -4838,11 +4886,18 @@ func (x *UploadInfo) GetExpiredAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *UploadInfo) GetPartUrls() map[uint64]string {
+	if x != nil {
+		return x.PartUrls
+	}
+	return nil
+}
+
 var File_v1_file_proto protoreflect.FileDescriptor
 
 const file_v1_file_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/file.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xac\x03\n" +
+	"\rv1/file.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x03\n" +
 	"\tShareInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
@@ -4860,7 +4915,8 @@ const file_v1_file_proto_rawDesc = "" +
 	"\vcreate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"\xca\x01\n" +
+	"updateTime\x12\x1b\n" +
+	"\tsource_id\x18\r \x01(\tR\bsourceId\"\xfb\x01\n" +
 	"\x12CreateShareRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -4868,7 +4924,9 @@ const file_v1_file_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
 	"\rmax_downloads\x18\x05 \x01(\x03R\fmaxDownloads\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"8\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x1b\n" +
+	"\tsource_id\x18\a \x01(\tR\bsourceId\x12\x12\n" +
+	"\x04size\x18\b \x01(\x04R\x04size\"8\n" +
 	"\x13CreateShareResponse\x12!\n" +
 	"\x04info\x18\x01 \x01(\v2\r.v1.ShareInfoR\x04info\"r\n" +
 	"\x11ListSharesRequest\x12\x12\n" +
@@ -4880,7 +4938,7 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\r.v1.ShareInfoR\x05items\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\xda\x01\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\x8b\x02\n" +
 	"\x12UpdateShareRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -4889,7 +4947,9 @@ const file_v1_file_proto_rawDesc = "" +
 	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
 	"\rmax_downloads\x18\x05 \x01(\x03R\fmaxDownloads\x12\x18\n" +
 	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x12\n" +
-	"\x04path\x18\a \x01(\tR\x04path\"8\n" +
+	"\x04path\x18\a \x01(\tR\x04path\x12\x1b\n" +
+	"\tsource_id\x18\b \x01(\tR\bsourceId\x12\x12\n" +
+	"\x04size\x18\t \x01(\x04R\x04size\"8\n" +
 	"\x13UpdateShareResponse\x12!\n" +
 	"\x04info\x18\x01 \x01(\v2\r.v1.ShareInfoR\x04info\"$\n" +
 	"\x12DeleteShareRequest\x12\x0e\n" +
@@ -5172,15 +5232,15 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x1bGetFileUploadStatusResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.UploadInfoR\x04info\"8\n" +
 	"\x19CompleteFileUploadRequest\x12\x1b\n" +
-	"\tupload_id\x18\x01 \x01(\tR\buploadId\"\x1c\n" +
-	"\x1aCompleteFileUploadResponse\"6\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\"B\n" +
+	"\x1aCompleteFileUploadResponse\x12$\n" +
+	"\x04task\x18\x01 \x01(\v2\x10.v1.FileTaskInfoR\x04task\"6\n" +
 	"\x17CancelFileUploadRequest\x12\x1b\n" +
 	"\tupload_id\x18\x01 \x01(\tR\buploadId\"\x1a\n" +
-	"\x18CancelFileUploadResponse\"\xc3\x03\n" +
+	"\x18CancelFileUploadResponse\"\x9e\x04\n" +
 	"\n" +
 	"UploadInfo\x12\x1b\n" +
-	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12@\n" +
-	"\x1dupload_part_url_path_template\x18\x02 \x01(\tR\x19uploadPartUrlPathTemplate\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12\x1b\n" +
 	"\tpart_size\x18\x03 \x01(\x04R\bpartSize\x12\x1b\n" +
 	"\tfile_size\x18\x04 \x01(\x04R\bfileSize\x12\x1f\n" +
 	"\vtotal_parts\x18\x05 \x01(\x04R\n" +
@@ -5189,10 +5249,15 @@ const file_v1_file_proto_rawDesc = "" +
 	"\tcompleted\x18\a \x01(\bR\tcompleted\x12\x16\n" +
 	"\x06cancel\x18\b \x01(\bR\x06cancel\x129\n" +
 	"\n" +
-	"expired_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\texpiredAt\x1a@\n" +
+	"expired_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\texpiredAt\x129\n" +
+	"\tpart_urls\x18\n" +
+	" \x03(\v2\x1c.v1.UploadInfo.PartUrlsEntryR\bpartUrls\x1a@\n" +
 	"\x12UploadedPartsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x04R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*k\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a;\n" +
+	"\rPartUrlsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x04R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x02\x10\x03R\x1dupload_part_url_path_template*k\n" +
 	"\rFileSortField\x12\x1f\n" +
 	"\x1bFILE_SORT_FIELD_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14FILE_SORT_FIELD_NAME\x10\x01\x12\x1f\n" +
@@ -5248,7 +5313,7 @@ func file_v1_file_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_file_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_file_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
+var file_v1_file_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
 var file_v1_file_proto_goTypes = []any{
 	(FileSortField)(0),                      // 0: v1.FileSortField
 	(FileTaskStatus)(0),                     // 1: v1.FileTaskStatus
@@ -5325,25 +5390,26 @@ var file_v1_file_proto_goTypes = []any{
 	(*CancelFileUploadResponse)(nil),        // 72: v1.CancelFileUploadResponse
 	(*UploadInfo)(nil),                      // 73: v1.UploadInfo
 	nil,                                     // 74: v1.UploadInfo.UploadedPartsEntry
-	(*timestamppb.Timestamp)(nil),           // 75: google.protobuf.Timestamp
+	nil,                                     // 75: v1.UploadInfo.PartUrlsEntry
+	(*timestamppb.Timestamp)(nil),           // 76: google.protobuf.Timestamp
 }
 var file_v1_file_proto_depIdxs = []int32{
-	75, // 0: v1.ShareInfo.expires_at:type_name -> google.protobuf.Timestamp
-	75, // 1: v1.ShareInfo.create_time:type_name -> google.protobuf.Timestamp
-	75, // 2: v1.ShareInfo.update_time:type_name -> google.protobuf.Timestamp
-	75, // 3: v1.CreateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
+	76, // 0: v1.ShareInfo.expires_at:type_name -> google.protobuf.Timestamp
+	76, // 1: v1.ShareInfo.create_time:type_name -> google.protobuf.Timestamp
+	76, // 2: v1.ShareInfo.update_time:type_name -> google.protobuf.Timestamp
+	76, // 3: v1.CreateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 4: v1.CreateShareResponse.info:type_name -> v1.ShareInfo
 	2,  // 5: v1.ListSharesResponse.items:type_name -> v1.ShareInfo
-	75, // 6: v1.UpdateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
+	76, // 6: v1.UpdateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 7: v1.UpdateShareResponse.info:type_name -> v1.ShareInfo
-	75, // 8: v1.GetShareMetaResponse.expires_at:type_name -> google.protobuf.Timestamp
-	75, // 9: v1.ShareEntry.update_time:type_name -> google.protobuf.Timestamp
+	76, // 8: v1.GetShareMetaResponse.expires_at:type_name -> google.protobuf.Timestamp
+	76, // 9: v1.ShareEntry.update_time:type_name -> google.protobuf.Timestamp
 	14, // 10: v1.ListShareDirResponse.items:type_name -> v1.ShareEntry
-	75, // 11: v1.CreateShareSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
+	76, // 11: v1.CreateShareSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
 	19, // 12: v1.FileSourceInfo.config:type_name -> v1.FileSourceConfig
 	18, // 13: v1.FileSourceInfo.caps:type_name -> v1.FileSourceCaps
-	75, // 14: v1.FileSourceInfo.create_time:type_name -> google.protobuf.Timestamp
-	75, // 15: v1.FileSourceInfo.update_time:type_name -> google.protobuf.Timestamp
+	76, // 14: v1.FileSourceInfo.create_time:type_name -> google.protobuf.Timestamp
+	76, // 15: v1.FileSourceInfo.update_time:type_name -> google.protobuf.Timestamp
 	20, // 16: v1.ListFileSourcesResponse.items:type_name -> v1.FileSourceInfo
 	19, // 17: v1.CreateFileSourceRequest.config:type_name -> v1.FileSourceConfig
 	20, // 18: v1.CreateFileSourceResponse.info:type_name -> v1.FileSourceInfo
@@ -5353,7 +5419,7 @@ var file_v1_file_proto_depIdxs = []int32{
 	0,  // 22: v1.GetFileSystemListRequest.sort_field:type_name -> v1.FileSortField
 	33, // 23: v1.GetFileSystemListResponse.directory:type_name -> v1.FileDirectoryInfo
 	34, // 24: v1.GetFileSystemListResponse.items:type_name -> v1.FileEntryInfo
-	75, // 25: v1.FileEntryInfo.update_time:type_name -> google.protobuf.Timestamp
+	76, // 25: v1.FileEntryInfo.update_time:type_name -> google.protobuf.Timestamp
 	35, // 26: v1.GetFileSystemTreeResponse.nodes:type_name -> v1.FileTreeNode
 	39, // 27: v1.BatchCalcFileSystemSizeResponse.items:type_name -> v1.FileSizeResult
 	58, // 28: v1.BatchDeleteFileSystemResponse.items:type_name -> v1.FileOperationResult
@@ -5363,75 +5429,77 @@ var file_v1_file_proto_depIdxs = []int32{
 	52, // 32: v1.GetFileTaskResponse.task:type_name -> v1.FileTaskInfo
 	1,  // 33: v1.FileTaskInfo.status:type_name -> v1.FileTaskStatus
 	58, // 34: v1.FileTaskInfo.items:type_name -> v1.FileOperationResult
-	75, // 35: v1.FileTaskInfo.create_time:type_name -> google.protobuf.Timestamp
-	75, // 36: v1.FileTaskInfo.update_time:type_name -> google.protobuf.Timestamp
+	76, // 35: v1.FileTaskInfo.create_time:type_name -> google.protobuf.Timestamp
+	76, // 36: v1.FileTaskInfo.update_time:type_name -> google.protobuf.Timestamp
 	73, // 37: v1.FileSystemPreSignUploadResponse.info:type_name -> v1.UploadInfo
 	73, // 38: v1.GetFileUploadStatusResponse.info:type_name -> v1.UploadInfo
-	74, // 39: v1.UploadInfo.uploaded_parts:type_name -> v1.UploadInfo.UploadedPartsEntry
-	75, // 40: v1.UploadInfo.expired_at:type_name -> google.protobuf.Timestamp
-	31, // 41: v1.FileManager.GetFileSystemList:input_type -> v1.GetFileSystemListRequest
-	36, // 42: v1.FileManager.GetFileSystemTree:input_type -> v1.GetFileSystemTreeRequest
-	40, // 43: v1.FileManager.BatchDeleteFileSystem:input_type -> v1.BatchDeleteFileSystemRequest
-	42, // 44: v1.FileManager.CreateFileSystem:input_type -> v1.CreateFileSystemRequest
-	44, // 45: v1.FileManager.RenameFileSystem:input_type -> v1.RenameFileSystemRequest
-	46, // 46: v1.FileManager.CopyFileSystem:input_type -> v1.CopyFileSystemRequest
-	48, // 47: v1.FileManager.CutFileSystem:input_type -> v1.CutFileSystemRequest
-	50, // 48: v1.FileManager.GetFileTask:input_type -> v1.GetFileTaskRequest
-	53, // 49: v1.FileManager.BatchCompressFileSystem:input_type -> v1.BatchCompressFileSystemRequest
-	55, // 50: v1.FileManager.UnzipFileSystem:input_type -> v1.UnzipFileSystemRequest
-	59, // 51: v1.FileManager.OpenFileSystemFile:input_type -> v1.OpenFileSystemFileRequest
-	61, // 52: v1.FileManager.EditFileSystemFile:input_type -> v1.EditFileSystemFileRequest
-	63, // 53: v1.FileManager.FileSystemPreSign:input_type -> v1.FileSystemPreSignRequest
-	65, // 54: v1.FileManager.FileSystemPreSignUpload:input_type -> v1.FileSystemPreSignUploadRequest
-	67, // 55: v1.FileManager.GetFileUploadStatus:input_type -> v1.GetFileUploadStatusRequest
-	69, // 56: v1.FileManager.CompleteFileUpload:input_type -> v1.CompleteFileUploadRequest
-	71, // 57: v1.FileManager.CancelFileUpload:input_type -> v1.CancelFileUploadRequest
-	3,  // 58: v1.FileManager.CreateShare:input_type -> v1.CreateShareRequest
-	5,  // 59: v1.FileManager.ListShares:input_type -> v1.ListSharesRequest
-	7,  // 60: v1.FileManager.UpdateShare:input_type -> v1.UpdateShareRequest
-	9,  // 61: v1.FileManager.DeleteShare:input_type -> v1.DeleteShareRequest
-	11, // 62: v1.FileManager.GetShareMeta:input_type -> v1.GetShareMetaRequest
-	13, // 63: v1.FileManager.ListShareDir:input_type -> v1.ListShareDirRequest
-	16, // 64: v1.FileManager.CreateShareSession:input_type -> v1.CreateShareSessionRequest
-	21, // 65: v1.FileManager.ListFileSources:input_type -> v1.ListFileSourcesRequest
-	23, // 66: v1.FileManager.CreateFileSource:input_type -> v1.CreateFileSourceRequest
-	25, // 67: v1.FileManager.UpdateFileSource:input_type -> v1.UpdateFileSourceRequest
-	27, // 68: v1.FileManager.DeleteFileSource:input_type -> v1.DeleteFileSourceRequest
-	29, // 69: v1.FileManager.TestFileSource:input_type -> v1.TestFileSourceRequest
-	32, // 70: v1.FileManager.GetFileSystemList:output_type -> v1.GetFileSystemListResponse
-	37, // 71: v1.FileManager.GetFileSystemTree:output_type -> v1.GetFileSystemTreeResponse
-	41, // 72: v1.FileManager.BatchDeleteFileSystem:output_type -> v1.BatchDeleteFileSystemResponse
-	43, // 73: v1.FileManager.CreateFileSystem:output_type -> v1.CreateFileSystemResponse
-	45, // 74: v1.FileManager.RenameFileSystem:output_type -> v1.RenameFileSystemResponse
-	47, // 75: v1.FileManager.CopyFileSystem:output_type -> v1.CopyFileSystemResponse
-	49, // 76: v1.FileManager.CutFileSystem:output_type -> v1.CutFileSystemResponse
-	51, // 77: v1.FileManager.GetFileTask:output_type -> v1.GetFileTaskResponse
-	54, // 78: v1.FileManager.BatchCompressFileSystem:output_type -> v1.BatchCompressFileSystemResponse
-	56, // 79: v1.FileManager.UnzipFileSystem:output_type -> v1.UnzipFileSystemResponse
-	60, // 80: v1.FileManager.OpenFileSystemFile:output_type -> v1.OpenFileSystemFileResponse
-	62, // 81: v1.FileManager.EditFileSystemFile:output_type -> v1.EditFileSystemFileResponse
-	64, // 82: v1.FileManager.FileSystemPreSign:output_type -> v1.FileSystemPreSignResponse
-	66, // 83: v1.FileManager.FileSystemPreSignUpload:output_type -> v1.FileSystemPreSignUploadResponse
-	68, // 84: v1.FileManager.GetFileUploadStatus:output_type -> v1.GetFileUploadStatusResponse
-	70, // 85: v1.FileManager.CompleteFileUpload:output_type -> v1.CompleteFileUploadResponse
-	72, // 86: v1.FileManager.CancelFileUpload:output_type -> v1.CancelFileUploadResponse
-	4,  // 87: v1.FileManager.CreateShare:output_type -> v1.CreateShareResponse
-	6,  // 88: v1.FileManager.ListShares:output_type -> v1.ListSharesResponse
-	8,  // 89: v1.FileManager.UpdateShare:output_type -> v1.UpdateShareResponse
-	10, // 90: v1.FileManager.DeleteShare:output_type -> v1.DeleteShareResponse
-	12, // 91: v1.FileManager.GetShareMeta:output_type -> v1.GetShareMetaResponse
-	15, // 92: v1.FileManager.ListShareDir:output_type -> v1.ListShareDirResponse
-	17, // 93: v1.FileManager.CreateShareSession:output_type -> v1.CreateShareSessionResponse
-	22, // 94: v1.FileManager.ListFileSources:output_type -> v1.ListFileSourcesResponse
-	24, // 95: v1.FileManager.CreateFileSource:output_type -> v1.CreateFileSourceResponse
-	26, // 96: v1.FileManager.UpdateFileSource:output_type -> v1.UpdateFileSourceResponse
-	28, // 97: v1.FileManager.DeleteFileSource:output_type -> v1.DeleteFileSourceResponse
-	30, // 98: v1.FileManager.TestFileSource:output_type -> v1.TestFileSourceResponse
-	70, // [70:99] is the sub-list for method output_type
-	41, // [41:70] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	52, // 39: v1.CompleteFileUploadResponse.task:type_name -> v1.FileTaskInfo
+	74, // 40: v1.UploadInfo.uploaded_parts:type_name -> v1.UploadInfo.UploadedPartsEntry
+	76, // 41: v1.UploadInfo.expired_at:type_name -> google.protobuf.Timestamp
+	75, // 42: v1.UploadInfo.part_urls:type_name -> v1.UploadInfo.PartUrlsEntry
+	31, // 43: v1.FileManager.GetFileSystemList:input_type -> v1.GetFileSystemListRequest
+	36, // 44: v1.FileManager.GetFileSystemTree:input_type -> v1.GetFileSystemTreeRequest
+	40, // 45: v1.FileManager.BatchDeleteFileSystem:input_type -> v1.BatchDeleteFileSystemRequest
+	42, // 46: v1.FileManager.CreateFileSystem:input_type -> v1.CreateFileSystemRequest
+	44, // 47: v1.FileManager.RenameFileSystem:input_type -> v1.RenameFileSystemRequest
+	46, // 48: v1.FileManager.CopyFileSystem:input_type -> v1.CopyFileSystemRequest
+	48, // 49: v1.FileManager.CutFileSystem:input_type -> v1.CutFileSystemRequest
+	50, // 50: v1.FileManager.GetFileTask:input_type -> v1.GetFileTaskRequest
+	53, // 51: v1.FileManager.BatchCompressFileSystem:input_type -> v1.BatchCompressFileSystemRequest
+	55, // 52: v1.FileManager.UnzipFileSystem:input_type -> v1.UnzipFileSystemRequest
+	59, // 53: v1.FileManager.OpenFileSystemFile:input_type -> v1.OpenFileSystemFileRequest
+	61, // 54: v1.FileManager.EditFileSystemFile:input_type -> v1.EditFileSystemFileRequest
+	63, // 55: v1.FileManager.FileSystemPreSign:input_type -> v1.FileSystemPreSignRequest
+	65, // 56: v1.FileManager.FileSystemPreSignUpload:input_type -> v1.FileSystemPreSignUploadRequest
+	67, // 57: v1.FileManager.GetFileUploadStatus:input_type -> v1.GetFileUploadStatusRequest
+	69, // 58: v1.FileManager.CompleteFileUpload:input_type -> v1.CompleteFileUploadRequest
+	71, // 59: v1.FileManager.CancelFileUpload:input_type -> v1.CancelFileUploadRequest
+	3,  // 60: v1.FileManager.CreateShare:input_type -> v1.CreateShareRequest
+	5,  // 61: v1.FileManager.ListShares:input_type -> v1.ListSharesRequest
+	7,  // 62: v1.FileManager.UpdateShare:input_type -> v1.UpdateShareRequest
+	9,  // 63: v1.FileManager.DeleteShare:input_type -> v1.DeleteShareRequest
+	11, // 64: v1.FileManager.GetShareMeta:input_type -> v1.GetShareMetaRequest
+	13, // 65: v1.FileManager.ListShareDir:input_type -> v1.ListShareDirRequest
+	16, // 66: v1.FileManager.CreateShareSession:input_type -> v1.CreateShareSessionRequest
+	21, // 67: v1.FileManager.ListFileSources:input_type -> v1.ListFileSourcesRequest
+	23, // 68: v1.FileManager.CreateFileSource:input_type -> v1.CreateFileSourceRequest
+	25, // 69: v1.FileManager.UpdateFileSource:input_type -> v1.UpdateFileSourceRequest
+	27, // 70: v1.FileManager.DeleteFileSource:input_type -> v1.DeleteFileSourceRequest
+	29, // 71: v1.FileManager.TestFileSource:input_type -> v1.TestFileSourceRequest
+	32, // 72: v1.FileManager.GetFileSystemList:output_type -> v1.GetFileSystemListResponse
+	37, // 73: v1.FileManager.GetFileSystemTree:output_type -> v1.GetFileSystemTreeResponse
+	41, // 74: v1.FileManager.BatchDeleteFileSystem:output_type -> v1.BatchDeleteFileSystemResponse
+	43, // 75: v1.FileManager.CreateFileSystem:output_type -> v1.CreateFileSystemResponse
+	45, // 76: v1.FileManager.RenameFileSystem:output_type -> v1.RenameFileSystemResponse
+	47, // 77: v1.FileManager.CopyFileSystem:output_type -> v1.CopyFileSystemResponse
+	49, // 78: v1.FileManager.CutFileSystem:output_type -> v1.CutFileSystemResponse
+	51, // 79: v1.FileManager.GetFileTask:output_type -> v1.GetFileTaskResponse
+	54, // 80: v1.FileManager.BatchCompressFileSystem:output_type -> v1.BatchCompressFileSystemResponse
+	56, // 81: v1.FileManager.UnzipFileSystem:output_type -> v1.UnzipFileSystemResponse
+	60, // 82: v1.FileManager.OpenFileSystemFile:output_type -> v1.OpenFileSystemFileResponse
+	62, // 83: v1.FileManager.EditFileSystemFile:output_type -> v1.EditFileSystemFileResponse
+	64, // 84: v1.FileManager.FileSystemPreSign:output_type -> v1.FileSystemPreSignResponse
+	66, // 85: v1.FileManager.FileSystemPreSignUpload:output_type -> v1.FileSystemPreSignUploadResponse
+	68, // 86: v1.FileManager.GetFileUploadStatus:output_type -> v1.GetFileUploadStatusResponse
+	70, // 87: v1.FileManager.CompleteFileUpload:output_type -> v1.CompleteFileUploadResponse
+	72, // 88: v1.FileManager.CancelFileUpload:output_type -> v1.CancelFileUploadResponse
+	4,  // 89: v1.FileManager.CreateShare:output_type -> v1.CreateShareResponse
+	6,  // 90: v1.FileManager.ListShares:output_type -> v1.ListSharesResponse
+	8,  // 91: v1.FileManager.UpdateShare:output_type -> v1.UpdateShareResponse
+	10, // 92: v1.FileManager.DeleteShare:output_type -> v1.DeleteShareResponse
+	12, // 93: v1.FileManager.GetShareMeta:output_type -> v1.GetShareMetaResponse
+	15, // 94: v1.FileManager.ListShareDir:output_type -> v1.ListShareDirResponse
+	17, // 95: v1.FileManager.CreateShareSession:output_type -> v1.CreateShareSessionResponse
+	22, // 96: v1.FileManager.ListFileSources:output_type -> v1.ListFileSourcesResponse
+	24, // 97: v1.FileManager.CreateFileSource:output_type -> v1.CreateFileSourceResponse
+	26, // 98: v1.FileManager.UpdateFileSource:output_type -> v1.UpdateFileSourceResponse
+	28, // 99: v1.FileManager.DeleteFileSource:output_type -> v1.DeleteFileSourceResponse
+	30, // 100: v1.FileManager.TestFileSource:output_type -> v1.TestFileSourceResponse
+	72, // [72:101] is the sub-list for method output_type
+	43, // [43:72] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_v1_file_proto_init() }
@@ -5451,7 +5519,7 @@ func file_v1_file_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_file_proto_rawDesc), len(file_v1_file_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   73,
+			NumMessages:   74,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

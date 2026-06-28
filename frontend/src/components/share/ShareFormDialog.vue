@@ -90,6 +90,10 @@ const props = defineProps<{
   share?: ShareInfo | null
   // 新建时预置的路径（如从文件管理器选中文件/文件夹）；置位后路径只读
   path?: string
+  // 文件来源 id（空=本地磁盘）：从文件管理器当前来源带入，支持远端来源分享
+  sourceId?: string
+  // 文件大小（前端展示值）：从文件列表项带入
+  size?: number
 }>()
 
 const emit = defineEmits<{
@@ -177,6 +181,8 @@ const save = async () => {
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
         path: form.path,
+        sourceId: props.sourceId ?? props.share.sourceId ?? '',
+        size: props.size ?? 0,
       })
       ElMessage.success(t('system.common.editSuccess'))
       visible.value = false
@@ -189,6 +195,8 @@ const save = async () => {
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
+        sourceId: props.sourceId ?? '',
+        size: props.size ?? 0,
       })
       // 创建成功后切换到详情视图（展示链接/提取码），不直接关闭
       created.value = data?.info ?? null

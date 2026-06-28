@@ -140,11 +140,11 @@ func (f *FileService) CompleteFileUpload(ctx context.Context, req *v1.CompleteFi
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	err := f.uc.CompleteFileUpload(ctx, authCtx.UserID, req.UploadId)
+	taskInfo, err := f.uc.CompleteFileUpload(ctx, authCtx.UserID, req.UploadId)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CompleteFileUploadResponse{}, nil
+	return &v1.CompleteFileUploadResponse{Task: taskInfo}, nil
 }
 
 func (f *FileService) CancelFileUpload(ctx context.Context, req *v1.CancelFileUploadRequest) (*v1.CancelFileUploadResponse, error) {
