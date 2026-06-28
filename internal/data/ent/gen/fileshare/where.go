@@ -85,24 +85,9 @@ func Name(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldEQ(FieldName, v))
 }
 
-// TargetPath applies equality check predicate on the "target_path" field. It's identical to TargetPathEQ.
-func TargetPath(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldTargetPath, v))
-}
-
 // SourceID applies equality check predicate on the "source_id" field. It's identical to SourceIDEQ.
 func SourceID(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldEQ(FieldSourceID, v))
-}
-
-// IsDir applies equality check predicate on the "is_dir" field. It's identical to IsDirEQ.
-func IsDir(v bool) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldIsDir, v))
-}
-
-// Size applies equality check predicate on the "size" field. It's identical to SizeEQ.
-func Size(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldSize, v))
 }
 
 // Token applies equality check predicate on the "token" field. It's identical to TokenEQ.
@@ -345,71 +330,6 @@ func NameContainsFold(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldContainsFold(FieldName, v))
 }
 
-// TargetPathEQ applies the EQ predicate on the "target_path" field.
-func TargetPathEQ(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldTargetPath, v))
-}
-
-// TargetPathNEQ applies the NEQ predicate on the "target_path" field.
-func TargetPathNEQ(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNEQ(FieldTargetPath, v))
-}
-
-// TargetPathIn applies the In predicate on the "target_path" field.
-func TargetPathIn(vs ...string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldIn(FieldTargetPath, vs...))
-}
-
-// TargetPathNotIn applies the NotIn predicate on the "target_path" field.
-func TargetPathNotIn(vs ...string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNotIn(FieldTargetPath, vs...))
-}
-
-// TargetPathGT applies the GT predicate on the "target_path" field.
-func TargetPathGT(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGT(FieldTargetPath, v))
-}
-
-// TargetPathGTE applies the GTE predicate on the "target_path" field.
-func TargetPathGTE(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGTE(FieldTargetPath, v))
-}
-
-// TargetPathLT applies the LT predicate on the "target_path" field.
-func TargetPathLT(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLT(FieldTargetPath, v))
-}
-
-// TargetPathLTE applies the LTE predicate on the "target_path" field.
-func TargetPathLTE(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLTE(FieldTargetPath, v))
-}
-
-// TargetPathContains applies the Contains predicate on the "target_path" field.
-func TargetPathContains(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldContains(FieldTargetPath, v))
-}
-
-// TargetPathHasPrefix applies the HasPrefix predicate on the "target_path" field.
-func TargetPathHasPrefix(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldHasPrefix(FieldTargetPath, v))
-}
-
-// TargetPathHasSuffix applies the HasSuffix predicate on the "target_path" field.
-func TargetPathHasSuffix(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldHasSuffix(FieldTargetPath, v))
-}
-
-// TargetPathEqualFold applies the EqualFold predicate on the "target_path" field.
-func TargetPathEqualFold(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEqualFold(FieldTargetPath, v))
-}
-
-// TargetPathContainsFold applies the ContainsFold predicate on the "target_path" field.
-func TargetPathContainsFold(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldContainsFold(FieldTargetPath, v))
-}
-
 // SourceIDEQ applies the EQ predicate on the "source_id" field.
 func SourceIDEQ(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldEQ(FieldSourceID, v))
@@ -473,56 +393,6 @@ func SourceIDEqualFold(v string) predicate.FileShare {
 // SourceIDContainsFold applies the ContainsFold predicate on the "source_id" field.
 func SourceIDContainsFold(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldContainsFold(FieldSourceID, v))
-}
-
-// IsDirEQ applies the EQ predicate on the "is_dir" field.
-func IsDirEQ(v bool) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldIsDir, v))
-}
-
-// IsDirNEQ applies the NEQ predicate on the "is_dir" field.
-func IsDirNEQ(v bool) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNEQ(FieldIsDir, v))
-}
-
-// SizeEQ applies the EQ predicate on the "size" field.
-func SizeEQ(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldSize, v))
-}
-
-// SizeNEQ applies the NEQ predicate on the "size" field.
-func SizeNEQ(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNEQ(FieldSize, v))
-}
-
-// SizeIn applies the In predicate on the "size" field.
-func SizeIn(vs ...uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldIn(FieldSize, vs...))
-}
-
-// SizeNotIn applies the NotIn predicate on the "size" field.
-func SizeNotIn(vs ...uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNotIn(FieldSize, vs...))
-}
-
-// SizeGT applies the GT predicate on the "size" field.
-func SizeGT(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGT(FieldSize, v))
-}
-
-// SizeGTE applies the GTE predicate on the "size" field.
-func SizeGTE(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGTE(FieldSize, v))
-}
-
-// SizeLT applies the LT predicate on the "size" field.
-func SizeLT(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLT(FieldSize, v))
-}
-
-// SizeLTE applies the LTE predicate on the "size" field.
-func SizeLTE(v uint64) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLTE(FieldSize, v))
 }
 
 // TokenEQ applies the EQ predicate on the "token" field.

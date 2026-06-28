@@ -1406,11 +1406,9 @@ type FileShareMutation struct {
 	create_time       *time.Time
 	update_time       *time.Time
 	name              *string
-	target_path       *string
+	paths             *[]string
+	appendpaths       []string
 	source_id         *string
-	is_dir            *bool
-	size              *uint64
-	addsize           *int64
 	token             *string
 	code              *string
 	expires_at        *time.Time
@@ -1675,40 +1673,55 @@ func (m *FileShareMutation) ResetName() {
 	m.name = nil
 }
 
-// SetTargetPath sets the "target_path" field.
-func (m *FileShareMutation) SetTargetPath(s string) {
-	m.target_path = &s
+// SetPaths sets the "paths" field.
+func (m *FileShareMutation) SetPaths(s []string) {
+	m.paths = &s
+	m.appendpaths = nil
 }
 
-// TargetPath returns the value of the "target_path" field in the mutation.
-func (m *FileShareMutation) TargetPath() (r string, exists bool) {
-	v := m.target_path
+// Paths returns the value of the "paths" field in the mutation.
+func (m *FileShareMutation) Paths() (r []string, exists bool) {
+	v := m.paths
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTargetPath returns the old "target_path" field's value of the FileShare entity.
+// OldPaths returns the old "paths" field's value of the FileShare entity.
 // If the FileShare object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileShareMutation) OldTargetPath(ctx context.Context) (v string, err error) {
+func (m *FileShareMutation) OldPaths(ctx context.Context) (v []string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTargetPath is only allowed on UpdateOne operations")
+		return v, errors.New("OldPaths is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTargetPath requires an ID field in the mutation")
+		return v, errors.New("OldPaths requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTargetPath: %w", err)
+		return v, fmt.Errorf("querying old value for OldPaths: %w", err)
 	}
-	return oldValue.TargetPath, nil
+	return oldValue.Paths, nil
 }
 
-// ResetTargetPath resets all changes to the "target_path" field.
-func (m *FileShareMutation) ResetTargetPath() {
-	m.target_path = nil
+// AppendPaths adds s to the "paths" field.
+func (m *FileShareMutation) AppendPaths(s []string) {
+	m.appendpaths = append(m.appendpaths, s...)
+}
+
+// AppendedPaths returns the list of values that were appended to the "paths" field in this mutation.
+func (m *FileShareMutation) AppendedPaths() ([]string, bool) {
+	if len(m.appendpaths) == 0 {
+		return nil, false
+	}
+	return m.appendpaths, true
+}
+
+// ResetPaths resets all changes to the "paths" field.
+func (m *FileShareMutation) ResetPaths() {
+	m.paths = nil
+	m.appendpaths = nil
 }
 
 // SetSourceID sets the "source_id" field.
@@ -1745,98 +1758,6 @@ func (m *FileShareMutation) OldSourceID(ctx context.Context) (v string, err erro
 // ResetSourceID resets all changes to the "source_id" field.
 func (m *FileShareMutation) ResetSourceID() {
 	m.source_id = nil
-}
-
-// SetIsDir sets the "is_dir" field.
-func (m *FileShareMutation) SetIsDir(b bool) {
-	m.is_dir = &b
-}
-
-// IsDir returns the value of the "is_dir" field in the mutation.
-func (m *FileShareMutation) IsDir() (r bool, exists bool) {
-	v := m.is_dir
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsDir returns the old "is_dir" field's value of the FileShare entity.
-// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileShareMutation) OldIsDir(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsDir is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsDir requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsDir: %w", err)
-	}
-	return oldValue.IsDir, nil
-}
-
-// ResetIsDir resets all changes to the "is_dir" field.
-func (m *FileShareMutation) ResetIsDir() {
-	m.is_dir = nil
-}
-
-// SetSize sets the "size" field.
-func (m *FileShareMutation) SetSize(u uint64) {
-	m.size = &u
-	m.addsize = nil
-}
-
-// Size returns the value of the "size" field in the mutation.
-func (m *FileShareMutation) Size() (r uint64, exists bool) {
-	v := m.size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSize returns the old "size" field's value of the FileShare entity.
-// If the FileShare object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileShareMutation) OldSize(ctx context.Context) (v uint64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSize is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSize requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSize: %w", err)
-	}
-	return oldValue.Size, nil
-}
-
-// AddSize adds u to the "size" field.
-func (m *FileShareMutation) AddSize(u int64) {
-	if m.addsize != nil {
-		*m.addsize += u
-	} else {
-		m.addsize = &u
-	}
-}
-
-// AddedSize returns the value that was added to the "size" field in this mutation.
-func (m *FileShareMutation) AddedSize() (r int64, exists bool) {
-	v := m.addsize
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetSize resets all changes to the "size" field.
-func (m *FileShareMutation) ResetSize() {
-	m.size = nil
-	m.addsize = nil
 }
 
 // SetToken sets the "token" field.
@@ -2169,7 +2090,7 @@ func (m *FileShareMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileShareMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 12)
 	if m.create_time != nil {
 		fields = append(fields, fileshare.FieldCreateTime)
 	}
@@ -2182,17 +2103,11 @@ func (m *FileShareMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, fileshare.FieldName)
 	}
-	if m.target_path != nil {
-		fields = append(fields, fileshare.FieldTargetPath)
+	if m.paths != nil {
+		fields = append(fields, fileshare.FieldPaths)
 	}
 	if m.source_id != nil {
 		fields = append(fields, fileshare.FieldSourceID)
-	}
-	if m.is_dir != nil {
-		fields = append(fields, fileshare.FieldIsDir)
-	}
-	if m.size != nil {
-		fields = append(fields, fileshare.FieldSize)
 	}
 	if m.token != nil {
 		fields = append(fields, fileshare.FieldToken)
@@ -2228,14 +2143,10 @@ func (m *FileShareMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case fileshare.FieldName:
 		return m.Name()
-	case fileshare.FieldTargetPath:
-		return m.TargetPath()
+	case fileshare.FieldPaths:
+		return m.Paths()
 	case fileshare.FieldSourceID:
 		return m.SourceID()
-	case fileshare.FieldIsDir:
-		return m.IsDir()
-	case fileshare.FieldSize:
-		return m.Size()
 	case fileshare.FieldToken:
 		return m.Token()
 	case fileshare.FieldCode:
@@ -2265,14 +2176,10 @@ func (m *FileShareMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldUserID(ctx)
 	case fileshare.FieldName:
 		return m.OldName(ctx)
-	case fileshare.FieldTargetPath:
-		return m.OldTargetPath(ctx)
+	case fileshare.FieldPaths:
+		return m.OldPaths(ctx)
 	case fileshare.FieldSourceID:
 		return m.OldSourceID(ctx)
-	case fileshare.FieldIsDir:
-		return m.OldIsDir(ctx)
-	case fileshare.FieldSize:
-		return m.OldSize(ctx)
 	case fileshare.FieldToken:
 		return m.OldToken(ctx)
 	case fileshare.FieldCode:
@@ -2322,12 +2229,12 @@ func (m *FileShareMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
-	case fileshare.FieldTargetPath:
-		v, ok := value.(string)
+	case fileshare.FieldPaths:
+		v, ok := value.([]string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTargetPath(v)
+		m.SetPaths(v)
 		return nil
 	case fileshare.FieldSourceID:
 		v, ok := value.(string)
@@ -2335,20 +2242,6 @@ func (m *FileShareMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceID(v)
-		return nil
-	case fileshare.FieldIsDir:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsDir(v)
-		return nil
-	case fileshare.FieldSize:
-		v, ok := value.(uint64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSize(v)
 		return nil
 	case fileshare.FieldToken:
 		v, ok := value.(string)
@@ -2400,9 +2293,6 @@ func (m *FileShareMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *FileShareMutation) AddedFields() []string {
 	var fields []string
-	if m.addsize != nil {
-		fields = append(fields, fileshare.FieldSize)
-	}
 	if m.addmax_downloads != nil {
 		fields = append(fields, fileshare.FieldMaxDownloads)
 	}
@@ -2417,8 +2307,6 @@ func (m *FileShareMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *FileShareMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case fileshare.FieldSize:
-		return m.AddedSize()
 	case fileshare.FieldMaxDownloads:
 		return m.AddedMaxDownloads()
 	case fileshare.FieldDownloadCount:
@@ -2432,13 +2320,6 @@ func (m *FileShareMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FileShareMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case fileshare.FieldSize:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSize(v)
-		return nil
 	case fileshare.FieldMaxDownloads:
 		v, ok := value.(int64)
 		if !ok {
@@ -2501,17 +2382,11 @@ func (m *FileShareMutation) ResetField(name string) error {
 	case fileshare.FieldName:
 		m.ResetName()
 		return nil
-	case fileshare.FieldTargetPath:
-		m.ResetTargetPath()
+	case fileshare.FieldPaths:
+		m.ResetPaths()
 		return nil
 	case fileshare.FieldSourceID:
 		m.ResetSourceID()
-		return nil
-	case fileshare.FieldIsDir:
-		m.ResetIsDir()
-		return nil
-	case fileshare.FieldSize:
-		m.ResetSize()
 		return nil
 	case fileshare.FieldToken:
 		m.ResetToken()

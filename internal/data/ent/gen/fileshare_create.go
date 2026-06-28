@@ -64,9 +64,9 @@ func (_c *FileShareCreate) SetName(v string) *FileShareCreate {
 	return _c
 }
 
-// SetTargetPath sets the "target_path" field.
-func (_c *FileShareCreate) SetTargetPath(v string) *FileShareCreate {
-	_c.mutation.SetTargetPath(v)
+// SetPaths sets the "paths" field.
+func (_c *FileShareCreate) SetPaths(v []string) *FileShareCreate {
+	_c.mutation.SetPaths(v)
 	return _c
 }
 
@@ -80,34 +80,6 @@ func (_c *FileShareCreate) SetSourceID(v string) *FileShareCreate {
 func (_c *FileShareCreate) SetNillableSourceID(v *string) *FileShareCreate {
 	if v != nil {
 		_c.SetSourceID(*v)
-	}
-	return _c
-}
-
-// SetIsDir sets the "is_dir" field.
-func (_c *FileShareCreate) SetIsDir(v bool) *FileShareCreate {
-	_c.mutation.SetIsDir(v)
-	return _c
-}
-
-// SetNillableIsDir sets the "is_dir" field if the given value is not nil.
-func (_c *FileShareCreate) SetNillableIsDir(v *bool) *FileShareCreate {
-	if v != nil {
-		_c.SetIsDir(*v)
-	}
-	return _c
-}
-
-// SetSize sets the "size" field.
-func (_c *FileShareCreate) SetSize(v uint64) *FileShareCreate {
-	_c.mutation.SetSize(v)
-	return _c
-}
-
-// SetNillableSize sets the "size" field if the given value is not nil.
-func (_c *FileShareCreate) SetNillableSize(v *uint64) *FileShareCreate {
-	if v != nil {
-		_c.SetSize(*v)
 	}
 	return _c
 }
@@ -246,14 +218,6 @@ func (_c *FileShareCreate) defaults() {
 		v := fileshare.DefaultSourceID
 		_c.mutation.SetSourceID(v)
 	}
-	if _, ok := _c.mutation.IsDir(); !ok {
-		v := fileshare.DefaultIsDir
-		_c.mutation.SetIsDir(v)
-	}
-	if _, ok := _c.mutation.Size(); !ok {
-		v := fileshare.DefaultSize
-		_c.mutation.SetSize(v)
-	}
 	if _, ok := _c.mutation.Code(); !ok {
 		v := fileshare.DefaultCode
 		_c.mutation.SetCode(v)
@@ -286,17 +250,11 @@ func (_c *FileShareCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "FileShare.name"`)}
 	}
-	if _, ok := _c.mutation.TargetPath(); !ok {
-		return &ValidationError{Name: "target_path", err: errors.New(`gen: missing required field "FileShare.target_path"`)}
+	if _, ok := _c.mutation.Paths(); !ok {
+		return &ValidationError{Name: "paths", err: errors.New(`gen: missing required field "FileShare.paths"`)}
 	}
 	if _, ok := _c.mutation.SourceID(); !ok {
 		return &ValidationError{Name: "source_id", err: errors.New(`gen: missing required field "FileShare.source_id"`)}
-	}
-	if _, ok := _c.mutation.IsDir(); !ok {
-		return &ValidationError{Name: "is_dir", err: errors.New(`gen: missing required field "FileShare.is_dir"`)}
-	}
-	if _, ok := _c.mutation.Size(); !ok {
-		return &ValidationError{Name: "size", err: errors.New(`gen: missing required field "FileShare.size"`)}
 	}
 	if _, ok := _c.mutation.Token(); !ok {
 		return &ValidationError{Name: "token", err: errors.New(`gen: missing required field "FileShare.token"`)}
@@ -364,21 +322,13 @@ func (_c *FileShareCreate) createSpec() (*FileShare, *sqlgraph.CreateSpec) {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := _c.mutation.TargetPath(); ok {
-		_spec.SetField(fileshare.FieldTargetPath, field.TypeString, value)
-		_node.TargetPath = value
+	if value, ok := _c.mutation.Paths(); ok {
+		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
+		_node.Paths = value
 	}
 	if value, ok := _c.mutation.SourceID(); ok {
 		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
 		_node.SourceID = value
-	}
-	if value, ok := _c.mutation.IsDir(); ok {
-		_spec.SetField(fileshare.FieldIsDir, field.TypeBool, value)
-		_node.IsDir = value
-	}
-	if value, ok := _c.mutation.Size(); ok {
-		_spec.SetField(fileshare.FieldSize, field.TypeUint64, value)
-		_node.Size = value
 	}
 	if value, ok := _c.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)
@@ -509,15 +459,15 @@ func (u *FileShareUpsert) UpdateName() *FileShareUpsert {
 	return u
 }
 
-// SetTargetPath sets the "target_path" field.
-func (u *FileShareUpsert) SetTargetPath(v string) *FileShareUpsert {
-	u.Set(fileshare.FieldTargetPath, v)
+// SetPaths sets the "paths" field.
+func (u *FileShareUpsert) SetPaths(v []string) *FileShareUpsert {
+	u.Set(fileshare.FieldPaths, v)
 	return u
 }
 
-// UpdateTargetPath sets the "target_path" field to the value that was provided on create.
-func (u *FileShareUpsert) UpdateTargetPath() *FileShareUpsert {
-	u.SetExcluded(fileshare.FieldTargetPath)
+// UpdatePaths sets the "paths" field to the value that was provided on create.
+func (u *FileShareUpsert) UpdatePaths() *FileShareUpsert {
+	u.SetExcluded(fileshare.FieldPaths)
 	return u
 }
 
@@ -530,36 +480,6 @@ func (u *FileShareUpsert) SetSourceID(v string) *FileShareUpsert {
 // UpdateSourceID sets the "source_id" field to the value that was provided on create.
 func (u *FileShareUpsert) UpdateSourceID() *FileShareUpsert {
 	u.SetExcluded(fileshare.FieldSourceID)
-	return u
-}
-
-// SetIsDir sets the "is_dir" field.
-func (u *FileShareUpsert) SetIsDir(v bool) *FileShareUpsert {
-	u.Set(fileshare.FieldIsDir, v)
-	return u
-}
-
-// UpdateIsDir sets the "is_dir" field to the value that was provided on create.
-func (u *FileShareUpsert) UpdateIsDir() *FileShareUpsert {
-	u.SetExcluded(fileshare.FieldIsDir)
-	return u
-}
-
-// SetSize sets the "size" field.
-func (u *FileShareUpsert) SetSize(v uint64) *FileShareUpsert {
-	u.Set(fileshare.FieldSize, v)
-	return u
-}
-
-// UpdateSize sets the "size" field to the value that was provided on create.
-func (u *FileShareUpsert) UpdateSize() *FileShareUpsert {
-	u.SetExcluded(fileshare.FieldSize)
-	return u
-}
-
-// AddSize adds v to the "size" field.
-func (u *FileShareUpsert) AddSize(v uint64) *FileShareUpsert {
-	u.Add(fileshare.FieldSize, v)
 	return u
 }
 
@@ -746,17 +666,17 @@ func (u *FileShareUpsertOne) UpdateName() *FileShareUpsertOne {
 	})
 }
 
-// SetTargetPath sets the "target_path" field.
-func (u *FileShareUpsertOne) SetTargetPath(v string) *FileShareUpsertOne {
+// SetPaths sets the "paths" field.
+func (u *FileShareUpsertOne) SetPaths(v []string) *FileShareUpsertOne {
 	return u.Update(func(s *FileShareUpsert) {
-		s.SetTargetPath(v)
+		s.SetPaths(v)
 	})
 }
 
-// UpdateTargetPath sets the "target_path" field to the value that was provided on create.
-func (u *FileShareUpsertOne) UpdateTargetPath() *FileShareUpsertOne {
+// UpdatePaths sets the "paths" field to the value that was provided on create.
+func (u *FileShareUpsertOne) UpdatePaths() *FileShareUpsertOne {
 	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateTargetPath()
+		s.UpdatePaths()
 	})
 }
 
@@ -771,41 +691,6 @@ func (u *FileShareUpsertOne) SetSourceID(v string) *FileShareUpsertOne {
 func (u *FileShareUpsertOne) UpdateSourceID() *FileShareUpsertOne {
 	return u.Update(func(s *FileShareUpsert) {
 		s.UpdateSourceID()
-	})
-}
-
-// SetIsDir sets the "is_dir" field.
-func (u *FileShareUpsertOne) SetIsDir(v bool) *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetIsDir(v)
-	})
-}
-
-// UpdateIsDir sets the "is_dir" field to the value that was provided on create.
-func (u *FileShareUpsertOne) UpdateIsDir() *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateIsDir()
-	})
-}
-
-// SetSize sets the "size" field.
-func (u *FileShareUpsertOne) SetSize(v uint64) *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetSize(v)
-	})
-}
-
-// AddSize adds v to the "size" field.
-func (u *FileShareUpsertOne) AddSize(v uint64) *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.AddSize(v)
-	})
-}
-
-// UpdateSize sets the "size" field to the value that was provided on create.
-func (u *FileShareUpsertOne) UpdateSize() *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateSize()
 	})
 }
 
@@ -1174,17 +1059,17 @@ func (u *FileShareUpsertBulk) UpdateName() *FileShareUpsertBulk {
 	})
 }
 
-// SetTargetPath sets the "target_path" field.
-func (u *FileShareUpsertBulk) SetTargetPath(v string) *FileShareUpsertBulk {
+// SetPaths sets the "paths" field.
+func (u *FileShareUpsertBulk) SetPaths(v []string) *FileShareUpsertBulk {
 	return u.Update(func(s *FileShareUpsert) {
-		s.SetTargetPath(v)
+		s.SetPaths(v)
 	})
 }
 
-// UpdateTargetPath sets the "target_path" field to the value that was provided on create.
-func (u *FileShareUpsertBulk) UpdateTargetPath() *FileShareUpsertBulk {
+// UpdatePaths sets the "paths" field to the value that was provided on create.
+func (u *FileShareUpsertBulk) UpdatePaths() *FileShareUpsertBulk {
 	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateTargetPath()
+		s.UpdatePaths()
 	})
 }
 
@@ -1199,41 +1084,6 @@ func (u *FileShareUpsertBulk) SetSourceID(v string) *FileShareUpsertBulk {
 func (u *FileShareUpsertBulk) UpdateSourceID() *FileShareUpsertBulk {
 	return u.Update(func(s *FileShareUpsert) {
 		s.UpdateSourceID()
-	})
-}
-
-// SetIsDir sets the "is_dir" field.
-func (u *FileShareUpsertBulk) SetIsDir(v bool) *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetIsDir(v)
-	})
-}
-
-// UpdateIsDir sets the "is_dir" field to the value that was provided on create.
-func (u *FileShareUpsertBulk) UpdateIsDir() *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateIsDir()
-	})
-}
-
-// SetSize sets the "size" field.
-func (u *FileShareUpsertBulk) SetSize(v uint64) *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetSize(v)
-	})
-}
-
-// AddSize adds v to the "size" field.
-func (u *FileShareUpsertBulk) AddSize(v uint64) *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.AddSize(v)
-	})
-}
-
-// UpdateSize sets the "size" field to the value that was provided on create.
-func (u *FileShareUpsertBulk) UpdateSize() *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateSize()
 	})
 }
 

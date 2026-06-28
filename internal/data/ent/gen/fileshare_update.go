@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -63,17 +64,15 @@ func (_u *FileShareUpdate) SetNillableName(v *string) *FileShareUpdate {
 	return _u
 }
 
-// SetTargetPath sets the "target_path" field.
-func (_u *FileShareUpdate) SetTargetPath(v string) *FileShareUpdate {
-	_u.mutation.SetTargetPath(v)
+// SetPaths sets the "paths" field.
+func (_u *FileShareUpdate) SetPaths(v []string) *FileShareUpdate {
+	_u.mutation.SetPaths(v)
 	return _u
 }
 
-// SetNillableTargetPath sets the "target_path" field if the given value is not nil.
-func (_u *FileShareUpdate) SetNillableTargetPath(v *string) *FileShareUpdate {
-	if v != nil {
-		_u.SetTargetPath(*v)
-	}
+// AppendPaths appends value to the "paths" field.
+func (_u *FileShareUpdate) AppendPaths(v []string) *FileShareUpdate {
+	_u.mutation.AppendPaths(v)
 	return _u
 }
 
@@ -88,41 +87,6 @@ func (_u *FileShareUpdate) SetNillableSourceID(v *string) *FileShareUpdate {
 	if v != nil {
 		_u.SetSourceID(*v)
 	}
-	return _u
-}
-
-// SetIsDir sets the "is_dir" field.
-func (_u *FileShareUpdate) SetIsDir(v bool) *FileShareUpdate {
-	_u.mutation.SetIsDir(v)
-	return _u
-}
-
-// SetNillableIsDir sets the "is_dir" field if the given value is not nil.
-func (_u *FileShareUpdate) SetNillableIsDir(v *bool) *FileShareUpdate {
-	if v != nil {
-		_u.SetIsDir(*v)
-	}
-	return _u
-}
-
-// SetSize sets the "size" field.
-func (_u *FileShareUpdate) SetSize(v uint64) *FileShareUpdate {
-	_u.mutation.ResetSize()
-	_u.mutation.SetSize(v)
-	return _u
-}
-
-// SetNillableSize sets the "size" field if the given value is not nil.
-func (_u *FileShareUpdate) SetNillableSize(v *uint64) *FileShareUpdate {
-	if v != nil {
-		_u.SetSize(*v)
-	}
-	return _u
-}
-
-// AddSize adds value to the "size" field.
-func (_u *FileShareUpdate) AddSize(v int64) *FileShareUpdate {
-	_u.mutation.AddSize(v)
 	return _u
 }
 
@@ -308,20 +272,16 @@ func (_u *FileShareUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.TargetPath(); ok {
-		_spec.SetField(fileshare.FieldTargetPath, field.TypeString, value)
+	if value, ok := _u.mutation.Paths(); ok {
+		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPaths(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, fileshare.FieldPaths, value)
+		})
 	}
 	if value, ok := _u.mutation.SourceID(); ok {
 		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.IsDir(); ok {
-		_spec.SetField(fileshare.FieldIsDir, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Size(); ok {
-		_spec.SetField(fileshare.FieldSize, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.AddedSize(); ok {
-		_spec.AddField(fileshare.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)
@@ -433,17 +393,15 @@ func (_u *FileShareUpdateOne) SetNillableName(v *string) *FileShareUpdateOne {
 	return _u
 }
 
-// SetTargetPath sets the "target_path" field.
-func (_u *FileShareUpdateOne) SetTargetPath(v string) *FileShareUpdateOne {
-	_u.mutation.SetTargetPath(v)
+// SetPaths sets the "paths" field.
+func (_u *FileShareUpdateOne) SetPaths(v []string) *FileShareUpdateOne {
+	_u.mutation.SetPaths(v)
 	return _u
 }
 
-// SetNillableTargetPath sets the "target_path" field if the given value is not nil.
-func (_u *FileShareUpdateOne) SetNillableTargetPath(v *string) *FileShareUpdateOne {
-	if v != nil {
-		_u.SetTargetPath(*v)
-	}
+// AppendPaths appends value to the "paths" field.
+func (_u *FileShareUpdateOne) AppendPaths(v []string) *FileShareUpdateOne {
+	_u.mutation.AppendPaths(v)
 	return _u
 }
 
@@ -458,41 +416,6 @@ func (_u *FileShareUpdateOne) SetNillableSourceID(v *string) *FileShareUpdateOne
 	if v != nil {
 		_u.SetSourceID(*v)
 	}
-	return _u
-}
-
-// SetIsDir sets the "is_dir" field.
-func (_u *FileShareUpdateOne) SetIsDir(v bool) *FileShareUpdateOne {
-	_u.mutation.SetIsDir(v)
-	return _u
-}
-
-// SetNillableIsDir sets the "is_dir" field if the given value is not nil.
-func (_u *FileShareUpdateOne) SetNillableIsDir(v *bool) *FileShareUpdateOne {
-	if v != nil {
-		_u.SetIsDir(*v)
-	}
-	return _u
-}
-
-// SetSize sets the "size" field.
-func (_u *FileShareUpdateOne) SetSize(v uint64) *FileShareUpdateOne {
-	_u.mutation.ResetSize()
-	_u.mutation.SetSize(v)
-	return _u
-}
-
-// SetNillableSize sets the "size" field if the given value is not nil.
-func (_u *FileShareUpdateOne) SetNillableSize(v *uint64) *FileShareUpdateOne {
-	if v != nil {
-		_u.SetSize(*v)
-	}
-	return _u
-}
-
-// AddSize adds value to the "size" field.
-func (_u *FileShareUpdateOne) AddSize(v int64) *FileShareUpdateOne {
-	_u.mutation.AddSize(v)
 	return _u
 }
 
@@ -708,20 +631,16 @@ func (_u *FileShareUpdateOne) sqlSave(ctx context.Context) (_node *FileShare, er
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.TargetPath(); ok {
-		_spec.SetField(fileshare.FieldTargetPath, field.TypeString, value)
+	if value, ok := _u.mutation.Paths(); ok {
+		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPaths(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, fileshare.FieldPaths, value)
+		})
 	}
 	if value, ok := _u.mutation.SourceID(); ok {
 		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.IsDir(); ok {
-		_spec.SetField(fileshare.FieldIsDir, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Size(); ok {
-		_spec.SetField(fileshare.FieldSize, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.AddedSize(); ok {
-		_spec.AddField(fileshare.FieldSize, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)

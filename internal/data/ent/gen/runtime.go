@@ -113,28 +113,20 @@ func init() {
 	fileshareDescSourceID := fileshareFields[4].Descriptor()
 	// fileshare.DefaultSourceID holds the default value on creation for the source_id field.
 	fileshare.DefaultSourceID = fileshareDescSourceID.Default.(string)
-	// fileshareDescIsDir is the schema descriptor for is_dir field.
-	fileshareDescIsDir := fileshareFields[5].Descriptor()
-	// fileshare.DefaultIsDir holds the default value on creation for the is_dir field.
-	fileshare.DefaultIsDir = fileshareDescIsDir.Default.(bool)
-	// fileshareDescSize is the schema descriptor for size field.
-	fileshareDescSize := fileshareFields[6].Descriptor()
-	// fileshare.DefaultSize holds the default value on creation for the size field.
-	fileshare.DefaultSize = fileshareDescSize.Default.(uint64)
 	// fileshareDescCode is the schema descriptor for code field.
-	fileshareDescCode := fileshareFields[8].Descriptor()
+	fileshareDescCode := fileshareFields[6].Descriptor()
 	// fileshare.DefaultCode holds the default value on creation for the code field.
 	fileshare.DefaultCode = fileshareDescCode.Default.(string)
 	// fileshareDescMaxDownloads is the schema descriptor for max_downloads field.
-	fileshareDescMaxDownloads := fileshareFields[10].Descriptor()
+	fileshareDescMaxDownloads := fileshareFields[8].Descriptor()
 	// fileshare.DefaultMaxDownloads holds the default value on creation for the max_downloads field.
 	fileshare.DefaultMaxDownloads = fileshareDescMaxDownloads.Default.(int64)
 	// fileshareDescDownloadCount is the schema descriptor for download_count field.
-	fileshareDescDownloadCount := fileshareFields[11].Descriptor()
+	fileshareDescDownloadCount := fileshareFields[9].Descriptor()
 	// fileshare.DefaultDownloadCount holds the default value on creation for the download_count field.
 	fileshare.DefaultDownloadCount = fileshareDescDownloadCount.Default.(int64)
 	// fileshareDescEnabled is the schema descriptor for enabled field.
-	fileshareDescEnabled := fileshareFields[12].Descriptor()
+	fileshareDescEnabled := fileshareFields[10].Descriptor()
 	// fileshare.DefaultEnabled holds the default value on creation for the enabled field.
 	fileshare.DefaultEnabled = fileshareDescEnabled.Default.(bool)
 	filesourceMixin := schema.FileSource{}.Mixin()

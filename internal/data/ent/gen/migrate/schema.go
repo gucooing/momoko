@@ -76,10 +76,8 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "target_path", Type: field.TypeString},
+		{Name: "paths", Type: field.TypeJSON},
 		{Name: "source_id", Type: field.TypeString, Default: ""},
-		{Name: "is_dir", Type: field.TypeBool, Default: false},
-		{Name: "size", Type: field.TypeUint64, Default: 0},
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "code", Type: field.TypeString, Default: ""},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
@@ -96,7 +94,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_shares_users_user",
-				Columns:    []*schema.Column{FileSharesColumns[14]},
+				Columns:    []*schema.Column{FileSharesColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -105,7 +103,7 @@ var (
 			{
 				Name:    "fileshare_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{FileSharesColumns[14]},
+				Columns: []*schema.Column{FileSharesColumns[12]},
 			},
 		},
 	}

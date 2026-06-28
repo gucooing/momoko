@@ -145,27 +145,25 @@ type ShareInfo struct {
 	// 展示名称
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 被分享的真实路径
-	TargetPath string `protobuf:"bytes,3,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
-	// 是否文件夹
-	IsDir bool `protobuf:"varint,4,opt,name=is_dir,json=isDir,proto3" json:"is_dir,omitempty"`
+	Paths []string `protobuf:"bytes,3,rep,name=paths,proto3" json:"paths,omitempty"`
 	// 公开访问令牌
-	Token string `protobuf:"bytes,5,opt,name=token,proto3" json:"token,omitempty"`
+	Token string `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
 	// 提取码，空=无需
-	Code string `protobuf:"bytes,6,opt,name=code,proto3" json:"code,omitempty"`
+	Code string `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
 	// 过期时间，空=永久
-	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	// 下载次数上限，0=不限
-	MaxDownloads int64 `protobuf:"varint,8,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
+	MaxDownloads int64 `protobuf:"varint,7,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
 	// 已下载次数
-	DownloadCount int64 `protobuf:"varint,9,opt,name=download_count,json=downloadCount,proto3" json:"download_count,omitempty"`
+	DownloadCount int64 `protobuf:"varint,8,opt,name=download_count,json=downloadCount,proto3" json:"download_count,omitempty"`
 	// 是否启用
-	Enabled bool `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled bool `protobuf:"varint,9,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 创建时间
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	// 文件来源id，空=本地磁盘
-	SourceId      string `protobuf:"bytes,13,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	SourceId      string `protobuf:"bytes,12,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -214,18 +212,11 @@ func (x *ShareInfo) GetName() string {
 	return ""
 }
 
-func (x *ShareInfo) GetTargetPath() string {
+func (x *ShareInfo) GetPaths() []string {
 	if x != nil {
-		return x.TargetPath
+		return x.Paths
 	}
-	return ""
-}
-
-func (x *ShareInfo) GetIsDir() bool {
-	if x != nil {
-		return x.IsDir
-	}
-	return false
+	return nil
 }
 
 func (x *ShareInfo) GetToken() string {
@@ -295,7 +286,7 @@ func (x *ShareInfo) GetSourceId() string {
 type CreateShareRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 要分享的文件/文件夹路径
-	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Paths []string `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
 	// 展示名称，空=路径名
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 提取码，空=公开
@@ -307,9 +298,7 @@ type CreateShareRequest struct {
 	// 是否启用
 	Enabled bool `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 文件来源id，空=本地磁盘
-	SourceId string `protobuf:"bytes,7,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
-	// 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
-	Size          uint64 `protobuf:"varint,8,opt,name=size,proto3" json:"size,omitempty"`
+	SourceId      string `protobuf:"bytes,7,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -344,11 +333,11 @@ func (*CreateShareRequest) Descriptor() ([]byte, []int) {
 	return file_v1_file_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateShareRequest) GetPath() string {
+func (x *CreateShareRequest) GetPaths() []string {
 	if x != nil {
-		return x.Path
+		return x.Paths
 	}
-	return ""
+	return nil
 }
 
 func (x *CreateShareRequest) GetName() string {
@@ -391,13 +380,6 @@ func (x *CreateShareRequest) GetSourceId() string {
 		return x.SourceId
 	}
 	return ""
-}
-
-func (x *CreateShareRequest) GetSize() uint64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
 }
 
 // 创建分享响应
@@ -598,12 +580,10 @@ type UpdateShareRequest struct {
 	MaxDownloads int64 `protobuf:"varint,5,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
 	// 是否启用
 	Enabled bool `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	// 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
-	Path string `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
-	// 新目标的文件来源id（path 非空时生效）
-	SourceId string `protobuf:"bytes,8,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
-	// 新目标文件大小（前端提供的展示值，path 非空时生效）
-	Size          uint64 `protobuf:"varint,9,opt,name=size,proto3" json:"size,omitempty"`
+	// 新的分享内容，空=不修改
+	Paths []string `protobuf:"bytes,7,rep,name=paths,proto3" json:"paths,omitempty"`
+	// 新内容的文件来源id（paths 非空时生效）
+	SourceId      string `protobuf:"bytes,8,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -680,11 +660,11 @@ func (x *UpdateShareRequest) GetEnabled() bool {
 	return false
 }
 
-func (x *UpdateShareRequest) GetPath() string {
+func (x *UpdateShareRequest) GetPaths() []string {
 	if x != nil {
-		return x.Path
+		return x.Paths
 	}
-	return ""
+	return nil
 }
 
 func (x *UpdateShareRequest) GetSourceId() string {
@@ -692,13 +672,6 @@ func (x *UpdateShareRequest) GetSourceId() string {
 		return x.SourceId
 	}
 	return ""
-}
-
-func (x *UpdateShareRequest) GetSize() uint64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
 }
 
 // 更新分享响应
@@ -881,24 +854,20 @@ type GetShareMetaResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 展示名称
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 是否文件夹
-	IsDir bool `protobuf:"varint,2,opt,name=is_dir,json=isDir,proto3" json:"is_dir,omitempty"`
-	// 文件大小（文件夹为 0）
-	Size uint64 `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
 	// 是否需要提取码
-	NeedCode bool `protobuf:"varint,4,opt,name=need_code,json=needCode,proto3" json:"need_code,omitempty"`
+	NeedCode bool `protobuf:"varint,2,opt,name=need_code,json=needCode,proto3" json:"need_code,omitempty"`
 	// 过期时间，空=永久
-	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	// 下载次数上限，0=不限
-	MaxDownloads int64 `protobuf:"varint,6,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
+	MaxDownloads int64 `protobuf:"varint,4,opt,name=max_downloads,json=maxDownloads,proto3" json:"max_downloads,omitempty"`
 	// 已下载次数
-	DownloadCount int64 `protobuf:"varint,7,opt,name=download_count,json=downloadCount,proto3" json:"download_count,omitempty"`
+	DownloadCount int64 `protobuf:"varint,5,opt,name=download_count,json=downloadCount,proto3" json:"download_count,omitempty"`
 	// 当前是否可用（启用/未过期/未超次数）
-	Available bool `protobuf:"varint,8,opt,name=available,proto3" json:"available,omitempty"`
+	Available bool `protobuf:"varint,6,opt,name=available,proto3" json:"available,omitempty"`
 	// 分享者昵称（公开展示）
-	OwnerName string `protobuf:"bytes,9,opt,name=owner_name,json=ownerName,proto3" json:"owner_name,omitempty"`
+	OwnerName string `protobuf:"bytes,7,opt,name=owner_name,json=ownerName,proto3" json:"owner_name,omitempty"`
 	// 分享者头像（公开展示）
-	OwnerAvatar   string `protobuf:"bytes,10,opt,name=owner_avatar,json=ownerAvatar,proto3" json:"owner_avatar,omitempty"`
+	OwnerAvatar   string `protobuf:"bytes,8,opt,name=owner_avatar,json=ownerAvatar,proto3" json:"owner_avatar,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -938,20 +907,6 @@ func (x *GetShareMetaResponse) GetName() string {
 		return x.Name
 	}
 	return ""
-}
-
-func (x *GetShareMetaResponse) GetIsDir() bool {
-	if x != nil {
-		return x.IsDir
-	}
-	return false
-}
-
-func (x *GetShareMetaResponse) GetSize() uint64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
 }
 
 func (x *GetShareMetaResponse) GetNeedCode() bool {
@@ -4796,36 +4751,33 @@ var File_v1_file_proto protoreflect.FileDescriptor
 
 const file_v1_file_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/file.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x03\n" +
+	"\rv1/file.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa7\x03\n" +
 	"\tShareInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
-	"\vtarget_path\x18\x03 \x01(\tR\n" +
-	"targetPath\x12\x15\n" +
-	"\x06is_dir\x18\x04 \x01(\bR\x05isDir\x12\x14\n" +
-	"\x05token\x18\x05 \x01(\tR\x05token\x12\x12\n" +
-	"\x04code\x18\x06 \x01(\tR\x04code\x129\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05paths\x18\x03 \x03(\tR\x05paths\x12\x14\n" +
+	"\x05token\x18\x04 \x01(\tR\x05token\x12\x12\n" +
+	"\x04code\x18\x05 \x01(\tR\x04code\x129\n" +
 	"\n" +
-	"expires_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
-	"\rmax_downloads\x18\b \x01(\x03R\fmaxDownloads\x12%\n" +
-	"\x0edownload_count\x18\t \x01(\x03R\rdownloadCount\x12\x18\n" +
-	"\aenabled\x18\n" +
-	" \x01(\bR\aenabled\x12;\n" +
-	"\vcreate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
+	"\rmax_downloads\x18\a \x01(\x03R\fmaxDownloads\x12%\n" +
+	"\x0edownload_count\x18\b \x01(\x03R\rdownloadCount\x12\x18\n" +
+	"\aenabled\x18\t \x01(\bR\aenabled\x12;\n" +
+	"\vcreate_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
-	"\vupdate_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"\vupdate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\x12\x1b\n" +
-	"\tsource_id\x18\r \x01(\tR\bsourceId\"\xfb\x01\n" +
-	"\x12CreateShareRequest\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
+	"\tsource_id\x18\f \x01(\tR\bsourceId\"\xe9\x01\n" +
+	"\x12CreateShareRequest\x12\x14\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x129\n" +
 	"\n" +
 	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
 	"\rmax_downloads\x18\x05 \x01(\x03R\fmaxDownloads\x12\x18\n" +
 	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x1b\n" +
-	"\tsource_id\x18\a \x01(\tR\bsourceId\x12\x12\n" +
-	"\x04size\x18\b \x01(\x04R\x04size\"8\n" +
+	"\tsource_id\x18\a \x01(\tR\bsourceId\"8\n" +
 	"\x13CreateShareResponse\x12!\n" +
 	"\x04info\x18\x01 \x01(\v2\r.v1.ShareInfoR\x04info\"r\n" +
 	"\x11ListSharesRequest\x12\x12\n" +
@@ -4837,7 +4789,7 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\r.v1.ShareInfoR\x05items\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\x8b\x02\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\xf9\x01\n" +
 	"\x12UpdateShareRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -4845,31 +4797,27 @@ const file_v1_file_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
 	"\rmax_downloads\x18\x05 \x01(\x03R\fmaxDownloads\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x12\n" +
-	"\x04path\x18\a \x01(\tR\x04path\x12\x1b\n" +
-	"\tsource_id\x18\b \x01(\tR\bsourceId\x12\x12\n" +
-	"\x04size\x18\t \x01(\x04R\x04size\"8\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x14\n" +
+	"\x05paths\x18\a \x03(\tR\x05paths\x12\x1b\n" +
+	"\tsource_id\x18\b \x01(\tR\bsourceId\"8\n" +
 	"\x13UpdateShareResponse\x12!\n" +
 	"\x04info\x18\x01 \x01(\v2\r.v1.ShareInfoR\x04info\"$\n" +
 	"\x12DeleteShareRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
 	"\x13DeleteShareResponse\"+\n" +
 	"\x13GetShareMetaRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"\xd9\x02\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"\xae\x02\n" +
 	"\x14GetShareMetaResponse\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x15\n" +
-	"\x06is_dir\x18\x02 \x01(\bR\x05isDir\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\x04R\x04size\x12\x1b\n" +
-	"\tneed_code\x18\x04 \x01(\bR\bneedCode\x129\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
+	"\tneed_code\x18\x02 \x01(\bR\bneedCode\x129\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
-	"\rmax_downloads\x18\x06 \x01(\x03R\fmaxDownloads\x12%\n" +
-	"\x0edownload_count\x18\a \x01(\x03R\rdownloadCount\x12\x1c\n" +
-	"\tavailable\x18\b \x01(\bR\tavailable\x12\x1d\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12#\n" +
+	"\rmax_downloads\x18\x04 \x01(\x03R\fmaxDownloads\x12%\n" +
+	"\x0edownload_count\x18\x05 \x01(\x03R\rdownloadCount\x12\x1c\n" +
+	"\tavailable\x18\x06 \x01(\bR\tavailable\x12\x1d\n" +
 	"\n" +
-	"owner_name\x18\t \x01(\tR\townerName\x12!\n" +
-	"\fowner_avatar\x18\n" +
-	" \x01(\tR\vownerAvatar\"Z\n" +
+	"owner_name\x18\a \x01(\tR\townerName\x12!\n" +
+	"\fowner_avatar\x18\b \x01(\tR\vownerAvatar\"Z\n" +
 	"\x13ListShareDirRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x12\n" +
 	"\x04sign\x18\x02 \x01(\tR\x04sign\x12\x19\n" +

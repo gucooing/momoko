@@ -41,9 +41,7 @@ export interface ShareInfo {
   /** 展示名称 */
   name: string;
   /** 被分享的真实路径 */
-  targetPath: string;
-  /** 是否文件夹 */
-  isDir: boolean;
+  paths: string[];
   /** 公开访问令牌 */
   token: string;
   /** 提取码，空=无需 */
@@ -73,7 +71,7 @@ export interface ShareInfo {
 /** 创建分享请求 */
 export interface CreateShareRequest {
   /** 要分享的文件/文件夹路径 */
-  path: string;
+  paths: string[];
   /** 展示名称，空=路径名 */
   name: string;
   /** 提取码，空=公开 */
@@ -88,8 +86,6 @@ export interface CreateShareRequest {
   enabled: boolean;
   /** 文件来源id，空=本地磁盘 */
   sourceId: string;
-  /** 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用） */
-  size: number;
 }
 
 /** 创建分享响应 */
@@ -136,12 +132,10 @@ export interface UpdateShareRequest {
   maxDownloads: number;
   /** 是否启用 */
   enabled: boolean;
-  /** 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变） */
-  path: string;
-  /** 新目标的文件来源id（path 非空时生效） */
+  /** 新的分享内容，空=不修改 */
+  paths: string[];
+  /** 新内容的文件来源id（paths 非空时生效） */
   sourceId: string;
-  /** 新目标文件大小（前端提供的展示值，path 非空时生效） */
-  size: number;
 }
 
 /** 更新分享响应 */
@@ -170,10 +164,6 @@ export interface GetShareMetaRequest {
 export interface GetShareMetaResponse {
   /** 展示名称 */
   name: string;
-  /** 是否文件夹 */
-  isDir: boolean;
-  /** 文件大小（文件夹为 0） */
-  size: number;
   /** 是否需要提取码 */
   needCode: boolean;
   /** 过期时间，空=永久 */

@@ -206,33 +206,31 @@ message ShareInfo {
   // 展示名称
   string name = 2;
   // 被分享的真实路径
-  string target_path = 3;
-  // 是否文件夹
-  bool is_dir = 4;
+  repeated string paths = 3;
   // 公开访问令牌
-  string token = 5;
+  string token = 4;
   // 提取码，空=无需
-  string code = 6;
+  string code = 5;
   // 过期时间，空=永久
-  google.protobuf.Timestamp expires_at = 7;
+  google.protobuf.Timestamp expires_at = 6;
   // 下载次数上限，0=不限
-  int64 max_downloads = 8;
+  int64 max_downloads = 7;
   // 已下载次数
-  int64 download_count = 9;
+  int64 download_count = 8;
   // 是否启用
-  bool enabled = 10;
+  bool enabled = 9;
   // 创建时间
-  google.protobuf.Timestamp create_time = 11;
+  google.protobuf.Timestamp create_time = 10;
   // 更新时间
-  google.protobuf.Timestamp update_time = 12;
+  google.protobuf.Timestamp update_time = 11;
   // 文件来源id，空=本地磁盘
-  string source_id = 13;
+  string source_id = 12;
 }
 
 // 创建分享请求
 message CreateShareRequest {
   // 要分享的文件/文件夹路径
-  string path = 1;
+  repeated string paths = 1;
   // 展示名称，空=路径名
   string name = 2;
   // 提取码，空=公开
@@ -245,8 +243,6 @@ message CreateShareRequest {
   bool enabled = 6;
   // 文件来源id，空=本地磁盘
   string source_id = 7;
-  // 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
-  uint64 size = 8;
 }
 
 // 创建分享响应
@@ -291,12 +287,10 @@ message UpdateShareRequest {
   int64 max_downloads = 5;
   // 是否启用
   bool enabled = 6;
-  // 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
-  string path = 7;
-  // 新目标的文件来源id（path 非空时生效）
+  // 新的分享内容，空=不修改
+  repeated string paths = 7;
+  // 新内容的文件来源id（paths 非空时生效）
   string source_id = 8;
-  // 新目标文件大小（前端提供的展示值，path 非空时生效）
-  uint64 size = 9;
 }
 
 // 更新分享响应
@@ -324,24 +318,20 @@ message GetShareMetaRequest {
 message GetShareMetaResponse {
   // 展示名称
   string name = 1;
-  // 是否文件夹
-  bool is_dir = 2;
-  // 文件大小（文件夹为 0）
-  uint64 size = 3;
   // 是否需要提取码
-  bool need_code = 4;
+  bool need_code = 2;
   // 过期时间，空=永久
-  google.protobuf.Timestamp expires_at = 5;
+  google.protobuf.Timestamp expires_at = 3;
   // 下载次数上限，0=不限
-  int64 max_downloads = 6;
+  int64 max_downloads = 4;
   // 已下载次数
-  int64 download_count = 7;
+  int64 download_count = 5;
   // 当前是否可用（启用/未过期/未超次数）
-  bool available = 8;
+  bool available = 6;
   // 分享者昵称（公开展示）
-  string owner_name = 9;
+  string owner_name = 7;
   // 分享者头像（公开展示）
-  string owner_avatar = 10;
+  string owner_avatar = 8;
 }
 
 // 浏览分享目录请求（公开，需会话签名）

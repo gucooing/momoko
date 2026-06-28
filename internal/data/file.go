@@ -126,16 +126,14 @@ func (f *fileRepo) SetUploadProviderRefIfEmpty(ctx context.Context, id, ref stri
 	return n > 0, err
 }
 
-// CreateShare 新建一条分享记录。id 由仓储生成，token/name/路径与是否目录由业务层算好传入。
-func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error) {
+// CreateShare 新建一条分享记录。
+func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name string, req *v1.CreateShareRequest) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.Create().
 		SetID(uuid.NewString()).
 		SetUserID(userID).
 		SetName(name).
-		SetTargetPath(targetPath).
+		SetPaths(req.Paths).
 		SetSourceID(req.SourceId).
-		SetSize(req.Size).
-		SetIsDir(isDir).
 		SetToken(token).
 		SetCode(req.Code).
 		SetMaxDownloads(req.MaxDownloads).
@@ -150,10 +148,7 @@ func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name, targetP
 func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error) {
 	query := f.data.db.FileShare.Query().Where(fileshare.UserIDEQ(userID))
 	if keywords != "" {
-		query = query.Where(fileshare.Or(
-			fileshare.NameContainsFold(keywords),
-			fileshare.TargetPathContainsFold(keywords),
-		))
+		query = query.Where(fileshare.NameContainsFold(keywords))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -182,16 +177,15 @@ func (f *fileRepo) GetShareByToken(ctx context.Context, token string) (*gen.File
 }
 
 // UpdateShare 全量覆盖可编辑字段（仅限本人）。expires_at 为空表示清除（永久）。
-// targetPath 非空时同时更新分享目标（文件/文件夹），token 不变，原链接继续有效。
-func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest, targetPath string, isDir bool) (*gen.FileShare, error) {
+func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.UpdateOneID(req.Id).
 		Where(fileshare.UserIDEQ(userID)).
 		SetName(req.Name).
 		SetCode(req.Code).
 		SetMaxDownloads(req.MaxDownloads).
 		SetEnabled(req.Enabled)
-	if targetPath != "" {
-		builder.SetTargetPath(targetPath).SetIsDir(isDir).SetSourceID(req.SourceId).SetSize(req.Size)
+	if len(req.Paths) > 0 {
+		builder.SetPaths(req.Paths).SetSourceID(req.SourceId)
 	}
 	if req.ExpiresAt != nil {
 		builder.SetExpiresAt(req.ExpiresAt.AsTime())

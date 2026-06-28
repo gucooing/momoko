@@ -22,14 +22,10 @@ const (
 	FieldUserID = "user_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldTargetPath holds the string denoting the target_path field in the database.
-	FieldTargetPath = "target_path"
+	// FieldPaths holds the string denoting the paths field in the database.
+	FieldPaths = "paths"
 	// FieldSourceID holds the string denoting the source_id field in the database.
 	FieldSourceID = "source_id"
-	// FieldIsDir holds the string denoting the is_dir field in the database.
-	FieldIsDir = "is_dir"
-	// FieldSize holds the string denoting the size field in the database.
-	FieldSize = "size"
 	// FieldToken holds the string denoting the token field in the database.
 	FieldToken = "token"
 	// FieldCode holds the string denoting the code field in the database.
@@ -62,10 +58,8 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldUserID,
 	FieldName,
-	FieldTargetPath,
+	FieldPaths,
 	FieldSourceID,
-	FieldIsDir,
-	FieldSize,
 	FieldToken,
 	FieldCode,
 	FieldExpiresAt,
@@ -93,10 +87,6 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultSourceID holds the default value on creation for the "source_id" field.
 	DefaultSourceID string
-	// DefaultIsDir holds the default value on creation for the "is_dir" field.
-	DefaultIsDir bool
-	// DefaultSize holds the default value on creation for the "size" field.
-	DefaultSize uint64
 	// DefaultCode holds the default value on creation for the "code" field.
 	DefaultCode string
 	// DefaultMaxDownloads holds the default value on creation for the "max_downloads" field.
@@ -135,24 +125,9 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByTargetPath orders the results by the target_path field.
-func ByTargetPath(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTargetPath, opts...).ToFunc()
-}
-
 // BySourceID orders the results by the source_id field.
 func BySourceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceID, opts...).ToFunc()
-}
-
-// ByIsDir orders the results by the is_dir field.
-func ByIsDir(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsDir, opts...).ToFunc()
-}
-
-// BySize orders the results by the size field.
-func BySize(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSize, opts...).ToFunc()
 }
 
 // ByToken orders the results by the token field.

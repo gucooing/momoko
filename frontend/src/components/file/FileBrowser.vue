@@ -298,9 +298,8 @@
 
     <ShareFormDialog
       v-model="shareOpen"
-      :path="sharePath"
+      :paths="sharePaths"
       :source-id="shareSourceId"
-      :size="shareSize"
     />
   </div>
 </template>
@@ -481,9 +480,8 @@ const media = reactive({
 const editor = reactive({ open: false, path: '' })
 const uploadOpen = ref(false)
 const shareOpen = ref(false)
-const sharePath = ref('')
+const sharePaths = ref<string[]>([])
 const shareSourceId = ref('')
-const shareSize = ref(0)
 
 // ---- 选择 ----
 const selectedRows = computed(() => items.value.filter((item) => selectedPaths.value.has(item.path)))
@@ -885,10 +883,9 @@ const paste = async () => {
 }
 
 // ---- 分享 ----
-const openShare = (row: FileEntryInfo) => {
-  sharePath.value = row.path
+const openShare = (rows: FileEntryInfo[]) => {
+  sharePaths.value = rows.map((row) => row.path)
   shareSourceId.value = currentSourceId.value
-  shareSize.value = Number(row.size) || 0
   shareOpen.value = true
 }
 
@@ -913,7 +910,7 @@ const moreActions = computed<FileMenuItem[]>(() => {
   }
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
   if (isSystemScope) {
-    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: selectedRows.value.length !== 1 })
+    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: !hasSelection.value })
   }
   return actions
 })
@@ -924,7 +921,7 @@ const onMoreAction = (key: string) => {
   else if (key === 'paste') paste()
   else if (key === 'compress') openCompress(selectedRows.value)
   else if (key === 'share') {
-    if (selectedRows.value[0]) openShare(selectedRows.value[0])
+    openShare(selectedRows.value)
   }
 }
 
@@ -954,7 +951,7 @@ const onRowAction = (key: string, row: FileEntryInfo) => {
   else if (key === 'cut') setClipboard('cut', [row])
   else if (key === 'compress') openCompress([row])
   else if (key === 'unzip') openUnzip(row)
-  else if (key === 'share') openShare(row)
+  else if (key === 'share') openShare([row])
   else if (key === 'copyLink') copyLink(row)
 }
 

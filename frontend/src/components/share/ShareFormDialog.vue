@@ -30,16 +30,10 @@
     <!-- 表单：新建 / 编辑 -->
     <el-form v-else :model="form" label-width="110px" label-position="right">
       <el-form-item :label="t('file.share.path')" required>
-        <el-input
-          :model-value="form.path"
-          :disabled="pathLocked"
-          :placeholder="t('file.share.pathPlaceholder')"
-          readonly
-        >
-          <template v-if="!pathLocked" #append>
-            <el-button @click="pickerOpen = true">{{ t('fileManager.selectFile') }}</el-button>
-          </template>
-        </el-input>
+        <div class="share-paths">
+          <el-tag v-for="path in form.paths" :key="path" class="share-path-tag">{{ path }}</el-tag>
+          <el-button @click="pickerOpen = true">{{ t('fileManager.selectFile') }}</el-button>
+        </div>
       </el-form-item>
       <el-form-item :label="t('file.share.name')">
         <el-input v-model="form.name" :placeholder="t('file.share.namePlaceholder')" />
@@ -63,7 +57,7 @@
       </el-form-item>
     </el-form>
 
-    <FilePicker v-model="pickerOpen" :initial-path="form.path" @confirm="onPickPath" />
+    <FilePicker v-model="pickerOpen" :initial-path="form.paths[0] || ''" @confirm="onPickPath" />
 
     <template #footer>
       <template v-if="created">
@@ -88,12 +82,10 @@ const props = defineProps<{
   modelValue: boolean
   // 编辑已有分享（优先于 path）
   share?: ShareInfo | null
-  // 新建时预置的路径（如从文件管理器选中文件/文件夹）；置位后路径只读
-  path?: string
+  // 新建时预置的路径（如从文件管理器选中文件/文件夹）
+  paths?: string[]
   // 文件来源 id（空=本地磁盘）：从文件管理器当前来源带入，支持远端来源分享
   sourceId?: string
-  // 文件大小（前端展示值）：从文件列表项带入
-  size?: number
 }>()
 
 const emit = defineEmits<{
@@ -109,8 +101,6 @@ const visible = computed({
 })
 
 const isEdit = computed(() => !!props.share)
-// 路径仅在“从文件列表带入指定文件分享”时锁定；编辑已有分享允许改换目标（经文件树选择）。
-const pathLocked = computed(() => !!props.path)
 const dialogTitle = computed(() => {
   if (created.value) return t('file.share.createdTitle')
   return isEdit.value ? t('file.share.editTitle') : t('file.share.createTitle')
@@ -121,7 +111,7 @@ const created = ref<ShareInfo | null>(null)
 const link = computed(() => (created.value ? buildShareLink(created.value.token) : ''))
 
 const defaultForm = () => ({
-  path: '',
+  paths: [] as string[],
   name: '',
   code: '',
   expiresAt: null as Date | null,
@@ -133,7 +123,7 @@ const form = reactive(defaultForm())
 // 通过文件树选择分享路径（取代手动输入绝对路径）
 const pickerOpen = ref(false)
 const onPickPath = (path: string) => {
-  form.path = path
+  form.paths = [path]
 }
 
 const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
@@ -152,20 +142,20 @@ const onOpened = () => {
   Object.assign(form, defaultForm())
   if (props.share) {
     Object.assign(form, {
-      path: props.share.targetPath,
+      paths: props.share.paths,
       name: props.share.name,
       code: props.share.code,
       expiresAt: props.share.expiresAt ? new Date(props.share.expiresAt as unknown as string) : null,
       maxDownloads: Number(props.share.maxDownloads) || 0,
       enabled: props.share.enabled,
     })
-  } else if (props.path) {
-    form.path = props.path
+  } else if (props.paths?.length) {
+    form.paths = props.paths
   }
 }
 
 const save = async () => {
-  if (!form.path.trim()) {
+  if (!form.paths.length) {
     ElMessage.warning(t('file.share.pathRequired'))
     return
   }
@@ -180,23 +170,21 @@ const save = async () => {
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
-        path: form.path,
+        paths: form.paths,
         sourceId: props.sourceId ?? props.share.sourceId ?? '',
-        size: props.size ?? 0,
       })
       ElMessage.success(t('system.common.editSuccess'))
       visible.value = false
       emit('saved')
     } else {
       const { data } = await createShareRequest({
-        path: form.path,
+        paths: form.paths,
         name: form.name,
         code: form.code,
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
         sourceId: props.sourceId ?? '',
-        size: props.size ?? 0,
       })
       // 创建成功后切换到详情视图（展示链接/提取码），不直接关闭
       created.value = data?.info ?? null
@@ -217,5 +205,14 @@ const save = async () => {
 }
 .share-result :deep(.el-form-item__label) {
   white-space: nowrap;
+}
+.share-paths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+.share-path-tag {
+  max-width: 100%;
 }
 </style>

@@ -19,13 +19,12 @@
       <template v-else-if="meta">
         <!-- 头部 -->
         <header class="sp-header">
-          <el-icon class="sp-header-icon" :class="meta.isDir ? 'is-folder' : 'is-file'">
-            <component :is="meta.isDir ? IconFolder : IconFile" />
+          <el-icon class="sp-header-icon is-folder">
+            <IconFolder />
           </el-icon>
           <div class="sp-header-info">
             <h1 class="sp-name">{{ meta.name }}</h1>
             <div class="sp-meta">
-              <span v-if="!meta.isDir">{{ t('file.share.size') }}: {{ formatFileSize(meta.size) }}</span>
               <span v-if="meta.expiresAt">{{ t('file.share.expiresAt', { time: formatDateTime(meta.expiresAt) }) }}</span>
               <span v-if="Number(meta.maxDownloads) > 0">
                 {{ t('file.share.downloads') }}: {{ meta.downloadCount }} / {{ meta.maxDownloads }}
@@ -57,22 +56,7 @@
         </div>
 
         <template v-else>
-          <!-- 文件：直接下载/预览 -->
-          <div v-if="!meta.isDir" class="sp-file-actions">
-            <a class="fm-btn fm-btn--primary" :href="downloadUrl()" target="_blank" rel="noopener">
-              <el-icon><IconDownload /></el-icon>{{ t('file.share.download') }}
-            </a>
-            <button
-              type="button"
-              class="fm-btn"
-              @click="previewFile('', meta.name, Number(meta.size) || 0)"
-            >
-              {{ t('file.share.preview') }}
-            </button>
-          </div>
-
-          <!-- 文件夹：浏览 -->
-          <div v-else class="sp-dir">
+          <div class="sp-dir">
             <div class="sp-dir-bar">
               <div class="sp-breadcrumb">
                 <button type="button" class="sp-crumb" @click="goTo('')">
@@ -216,9 +200,9 @@ const fetchMeta = async () => {
   try {
     const { data } = await getShareMetaRequest(token)
     meta.value = data
-    // 无需提取码的分享：直接换取会话签名；文件夹则加载根目录。
+    // 无需提取码的分享：直接换取会话签名并加载根目录。
     if (data?.available && !data.needCode) {
-      if (await acquireSession('') && data.isDir) {
+      if (await acquireSession('')) {
         await loadDir('')
       }
     }
@@ -245,7 +229,7 @@ const loadDir = async (path: string) => {
 const verifyCode = async () => {
   if (!code.value.trim()) return
   if (!(await acquireSession(code.value))) return
-  if (meta.value?.isDir) await loadDir('')
+  await loadDir('')
 }
 
 const goTo = (path: string) => loadDir(path)
@@ -349,11 +333,6 @@ onMounted(fetchMeta)
 }
 .sp-code-input {
   max-width: 240px;
-}
-.sp-file-actions {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1.5rem;
 }
 .sp-dir {
   display: flex;

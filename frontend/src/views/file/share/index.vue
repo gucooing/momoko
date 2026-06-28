@@ -18,12 +18,16 @@
       <el-table-column :label="t('file.share.name')" min-width="160">
         <template #default="{ row }">
           <div class="share-name">
-            <el-icon><component :is="row.isDir ? IconFolder : IconFile" /></el-icon>
+            <el-icon><IconFolder /></el-icon>
             <span>{{ row.name }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column :label="t('file.share.path')" prop="targetPath" min-width="200" show-overflow-tooltip />
+      <el-table-column :label="t('file.share.path')" min-width="200" show-overflow-tooltip>
+        <template #default="{ row }">
+          {{ row.paths.join(', ') }}
+        </template>
+      </el-table-column>
       <el-table-column :label="t('file.share.code')" width="100">
         <template #default="{ row }">
           {{ row.code || t('file.share.noCode') }}
@@ -76,7 +80,7 @@ import { formatDateTime, copyTextToClipboard } from '@/utils/file'
 import { listSharesRequest, deleteShareRequest, updateShareRequest, buildShareLink } from '@/api/share'
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
-import { IconFolder, IconFile } from '@/components/file/icons'
+import { IconFolder } from '@/components/file/icons'
 import type { ShareInfo } from '@/types/v1/file'
 
 const { t } = useI18n()
@@ -131,9 +135,8 @@ const toggleEnabled = async (row: ShareInfo) => {
       expiresAt: row.expiresAt,
       maxDownloads: row.maxDownloads,
       enabled: !row.enabled,
-      path: '',
+      paths: [],
       sourceId: row.sourceId,
-      size: 0,
     })
     loadList()
   } catch (error) {

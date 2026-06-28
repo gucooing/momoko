@@ -57,10 +57,10 @@ type FileRepo interface {
 	// SetUploadProviderRefIfEmpty 仅当 provider_ref 仍为空时写入（OSS multipart uploadID 初始化幂等/防竞态）。
 	SetUploadProviderRefIfEmpty(ctx context.Context, id, ref string) (bool, error)
 
-	CreateShare(ctx context.Context, userID, token, name, targetPath string, isDir bool, req *v1.CreateShareRequest) (*gen.FileShare, error)
+	CreateShare(ctx context.Context, userID, token, name string, req *v1.CreateShareRequest) (*gen.FileShare, error)
 	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
 	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
-	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest, targetPath string, isDir bool) (*gen.FileShare, error)
+	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
 	IncrShareDownload(ctx context.Context, id string) error
 
@@ -1000,22 +1000,17 @@ func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSource
 // ---- 分享 ----
 // biz 仅做鉴权 + 仓储编排；令牌生成、提取码/有效期校验、目录浏览与打包下载等逻辑在 pkg/share。
 
-// CreateShare 为指定路径创建一条分享（仅本地系统盘）。
+// CreateShare 为选定路径创建一条分享。
 func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
 	store, _, err := f.storeFor(ctx, req.SourceId)
 	if err != nil {
 		return nil, err
 	}
-	// is_dir 由后端经来源 Store 权威判定；size 用前端提供的展示值（入库，不回源查询）。
-	isDir, baseName, err := share.Prepare(ctx, store, req.Path)
+	name, err := share.Prepare(ctx, store, req.Paths, req.Name)
 	if err != nil {
 		return nil, ErrFileNotExist
 	}
-	name := req.Name
-	if name == "" {
-		name = baseName
-	}
-	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, req.Path, isDir, req)
+	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, req)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1042,21 +1037,16 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 
 // UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
 func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*v1.ShareInfo, error) {
-	var targetPath string
-	var isDir bool
-	if req.Path != "" {
+	if len(req.Paths) > 0 {
 		store, _, err := f.storeFor(ctx, req.SourceId)
 		if err != nil {
 			return nil, err
 		}
-		d, _, err := share.Prepare(ctx, store, req.Path)
-		if err != nil {
+		if _, err := share.Prepare(ctx, store, req.Paths, req.Name); err != nil {
 			return nil, ErrFileNotExist
 		}
-		targetPath = req.Path
-		isDir = d
 	}
-	rec, err := f.repo.UpdateShare(ctx, userID, req, targetPath, isDir)
+	rec, err := f.repo.UpdateShare(ctx, userID, req)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrShareNotFound

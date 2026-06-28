@@ -4981,8 +4981,10 @@ components:
         v1.CreateShareRequest:
             type: object
             properties:
-                path:
-                    type: string
+                paths:
+                    type: array
+                    items:
+                        type: string
                     description: 要分享的文件/文件夹路径
                 name:
                     type: string
@@ -5003,9 +5005,6 @@ components:
                 sourceId:
                     type: string
                     description: 文件来源id，空=本地磁盘
-                size:
-                    type: string
-                    description: 文件大小（前端提供的展示值，可自定义，单文件分享的公开元信息展示用）
             description: 创建分享请求
         v1.CreateShareResponse:
             type: object
@@ -7055,12 +7054,6 @@ components:
                 name:
                     type: string
                     description: 展示名称
-                isDir:
-                    type: boolean
-                    description: 是否文件夹
-                size:
-                    type: string
-                    description: 文件大小（文件夹为 0）
                 needCode:
                     type: boolean
                     description: 是否需要提取码
@@ -8542,12 +8535,11 @@ components:
                 name:
                     type: string
                     description: 展示名称
-                targetPath:
-                    type: string
+                paths:
+                    type: array
+                    items:
+                        type: string
                     description: 被分享的真实路径
-                isDir:
-                    type: boolean
-                    description: 是否文件夹
                 token:
                     type: string
                     description: 公开访问令牌
@@ -9907,15 +9899,14 @@ components:
                 enabled:
                     type: boolean
                     description: 是否启用
-                path:
-                    type: string
-                    description: 新的分享目标路径（文件/文件夹），空=不修改；修改不影响原有分享链接（token 不变）
+                paths:
+                    type: array
+                    items:
+                        type: string
+                    description: 新的分享内容，空=不修改
                 sourceId:
                     type: string
-                    description: 新目标的文件来源id（path 非空时生效）
-                size:
-                    type: string
-                    description: 新目标文件大小（前端提供的展示值，path 非空时生效）
+                    description: 新内容的文件来源id（paths 非空时生效）
             description: 更新分享请求（全量覆盖可编辑字段）
         v1.UpdateShareResponse:
             type: object
