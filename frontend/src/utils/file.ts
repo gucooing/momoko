@@ -89,7 +89,7 @@ export const splitPathSegments = (path: string): PathSegment[] => {
     if (index === 0) {
       if (isPosixRoot) {
         segments.push({ name: sep, path: sep })
-        accumulated = ''
+        accumulated = sep
         if (part !== '') {
           accumulated = `${sep}${part}`
           segments.push({ name: part, path: accumulated })

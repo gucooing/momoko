@@ -3,7 +3,7 @@
     <!-- 创建成功：展示分享详情，便于复制/转发 -->
     <div v-if="created" class="share-result">
       <el-result icon="success" :title="t('file.share.createdTitle')" :sub-title="created.name" />
-      <el-form label-width="90px" label-position="right">
+      <el-form label-width="112px" label-position="right">
         <el-form-item :label="t('file.share.link')">
           <el-input :model-value="link" readonly>
             <template #append>
@@ -214,5 +214,8 @@ const save = async () => {
 }
 .share-result :deep(.el-result) {
   padding: 0.4rem 0 0.8rem;
+}
+.share-result :deep(.el-form-item__label) {
+  white-space: nowrap;
 }
 </style>
