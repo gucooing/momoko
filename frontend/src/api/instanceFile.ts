@@ -10,7 +10,6 @@ import type {
   CutInstanceFileResponse,
   BatchCompressInstanceFileResponse,
   UnzipInstanceFileResponse,
-  OpenInstanceFileResponse,
   EditInstanceFileResponse,
   InstanceFilePreSignResponse,
   InstanceFilePreSignUploadResponse,
@@ -60,10 +59,6 @@ export const batchCompressInstanceFile = (id: string, paths: string[], targetPat
 // 解压
 export const unzipInstanceFile = (id: string, path: string, targetPath?: string) =>
   request.post<UnzipInstanceFileResponse>(`/instance/file/unzip/${id}`, { id, path, targetPath })
-
-// 打开文件（响应 info 为 base64 字符串）
-export const openInstanceFile = (id: string, path: string) =>
-  request.post<OpenInstanceFileResponse>(`/instance/file/open/${id}`, { id, path })
 
 // 编辑文件（content 为 base64 字符串）
 export const editInstanceFile = (id: string, path: string, content: string) =>

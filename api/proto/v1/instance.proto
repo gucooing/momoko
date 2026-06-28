@@ -160,13 +160,6 @@ service InstanceManager {
       body: "*"
     };
   }
-  // 打开实例目录内文件
-  rpc OpenInstanceFile(OpenInstanceFileRequest) returns (OpenInstanceFileResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/instance/file/open/{id}"
-      body: "*"
-    };
-  }
   // 编辑实例目录内文件
   rpc EditInstanceFile(EditInstanceFileRequest) returns (EditInstanceFileResponse) {
     option (google.api.http) = {
@@ -604,20 +597,6 @@ message UnzipInstanceFileRequest {
 message UnzipInstanceFileResponse {
   // 实际生成的相对路径
   string output_path = 1;
-}
-
-// 打开实例文件请求
-message OpenInstanceFileRequest {
-  // 实例id
-  string id = 1;
-  // 文件相对路径
-  string path = 2;
-}
-
-// 打开实例文件响应
-message OpenInstanceFileResponse {
-  // 文件内容
-  bytes info = 1;
 }
 
 // 编辑实例文件请求

@@ -234,14 +234,6 @@ func (i *InstanceService) UnzipInstanceFile(ctx context.Context, req *v1.UnzipIn
 	return i.uc.UnzipFile(ctx, authCtx.UserID, req)
 }
 
-func (i *InstanceService) OpenInstanceFile(ctx context.Context, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	return i.uc.OpenFile(ctx, authCtx.UserID, req)
-}
-
 func (i *InstanceService) EditInstanceFile(ctx context.Context, req *v1.EditInstanceFileRequest) (*v1.EditInstanceFileResponse, error) {
 	authCtx, ok := auth.FromContext(ctx)
 	if !ok {

@@ -29,6 +29,7 @@ const OperationSystemAdminPermissions = "/v1.System/AdminPermissions"
 const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
+const OperationSystemCheckUpdate = "/v1.System/CheckUpdate"
 const OperationSystemEmailConfig = "/v1.System/EmailConfig"
 const OperationSystemEmailTemplate = "/v1.System/EmailTemplate"
 const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
@@ -62,6 +63,8 @@ type SystemHTTPServer interface {
 	AdminRole(context.Context, *AdminRoleRequest) (*AdminRoleResponse, error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
+	// CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+	CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// EmailTemplate 获取指定邮件模板
@@ -89,6 +92,7 @@ type SystemHTTPServer interface {
 func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/permissions/me", _System_MePermissions0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/update/check", _System_CheckUpdate0_HTTP_Handler(srv))
 	r.GET("/api/v1/permissions/admin", _System_AdminPermissions0_HTTP_Handler(srv))
 	r.GET("/api/v1/permissions/admin/{menu_id}", _System_AdminPermissionsInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/permissions/admin/add", _System_AdminAddPermissions0_HTTP_Handler(srv))
@@ -126,6 +130,25 @@ func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Con
 			return err
 		}
 		reply := out.(*MePermissionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_CheckUpdate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CheckUpdateRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemCheckUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CheckUpdate(ctx, req.(*CheckUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CheckUpdateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -570,6 +593,8 @@ type SystemHTTPClient interface {
 	AdminRole(ctx context.Context, req *AdminRoleRequest, opts ...http.CallOption) (rsp *AdminRoleResponse, err error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
+	// CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+	CheckUpdate(ctx context.Context, req *CheckUpdateRequest, opts ...http.CallOption) (rsp *CheckUpdateResponse, err error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(ctx context.Context, req *EmailConfigRequest, opts ...http.CallOption) (rsp *EmailConfigResponse, err error)
 	// EmailTemplate 获取指定邮件模板
@@ -734,6 +759,20 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 	pattern := "/api/v1/role/admin"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemAdminRoles))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+func (c *SystemHTTPClientImpl) CheckUpdate(ctx context.Context, in *CheckUpdateRequest, opts ...http.CallOption) (*CheckUpdateResponse, error) {
+	var out CheckUpdateResponse
+	pattern := "/api/v1/system/update/check"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemCheckUpdate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

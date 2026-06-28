@@ -27,6 +27,7 @@ export const useMenuStore = defineStore('menu', () => {
   const buttonPermissions = ref<string[]>([])
   const allButtonPermissions = ref<string[]>([])
   const hasLoadedPermissions = ref(false)
+  const currentVersion = ref('')
 
   const filterActiveMenus = (menus: MenuInfo[]): MenuInfo[] => {
     return menus
@@ -57,6 +58,7 @@ export const useMenuStore = defineStore('menu', () => {
     allButtonPermissions.value = permissions
     menuList.value = activeMenus
     buttonPermissions.value = permissions
+    currentVersion.value = res.currentVersion || ''
     hasLoadedPermissions.value = true
   }
 
@@ -65,6 +67,7 @@ export const useMenuStore = defineStore('menu', () => {
     allMenuList.value = []
     buttonPermissions.value = []
     allButtonPermissions.value = []
+    currentVersion.value = ''
     hasLoadedPermissions.value = false
   }
 
@@ -78,6 +81,7 @@ export const useMenuStore = defineStore('menu', () => {
     isCollapse,
     isMobileMenuOpen,
     hasLoadedPermissions,
+    currentVersion,
     isMobile,
     toggleCollapse,
     toggleMobileMenu,

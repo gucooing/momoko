@@ -42,7 +42,6 @@ const OperationFileManagerGetShareMeta = "/v1.FileManager/GetShareMeta"
 const OperationFileManagerListFileSources = "/v1.FileManager/ListFileSources"
 const OperationFileManagerListShareDir = "/v1.FileManager/ListShareDir"
 const OperationFileManagerListShares = "/v1.FileManager/ListShares"
-const OperationFileManagerOpenFileSystemFile = "/v1.FileManager/OpenFileSystemFile"
 const OperationFileManagerRenameFileSystem = "/v1.FileManager/RenameFileSystem"
 const OperationFileManagerTestFileSource = "/v1.FileManager/TestFileSource"
 const OperationFileManagerUnzipFileSystem = "/v1.FileManager/UnzipFileSystem"
@@ -96,8 +95,6 @@ type FileManagerHTTPServer interface {
 	ListShareDir(context.Context, *ListShareDirRequest) (*ListShareDirResponse, error)
 	// ListShares 分享列表(系统级)
 	ListShares(context.Context, *ListSharesRequest) (*ListSharesResponse, error)
-	// OpenFileSystemFile 打开指定文件(系统级)
-	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(context.Context, *RenameFileSystemRequest) (*RenameFileSystemResponse, error)
 	// TestFileSource 测试文件来源连通性(系统级)
@@ -122,7 +119,6 @@ func RegisterFileManagerHTTPServer(s *http.Server, srv FileManagerHTTPServer) {
 	r.GET("/api/v1/file/task/{task_id}", _FileManager_GetFileTask0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/compress", _FileManager_BatchCompressFileSystem0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/unzip", _FileManager_UnzipFileSystem0_HTTP_Handler(srv))
-	r.POST("/api/v1/file/system/open/file", _FileManager_OpenFileSystemFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/file/system/edit/file", _FileManager_EditFileSystemFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/file/system/file/pre-sign", _FileManager_FileSystemPreSign0_HTTP_Handler(srv))
 	r.GET("/api/v1/file/system/file/upload/pre-sign", _FileManager_FileSystemPreSignUpload0_HTTP_Handler(srv))
@@ -353,28 +349,6 @@ func _FileManager_UnzipFileSystem0_HTTP_Handler(srv FileManagerHTTPServer) func(
 			return err
 		}
 		reply := out.(*UnzipFileSystemResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _FileManager_OpenFileSystemFile0_HTTP_Handler(srv FileManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in OpenFileSystemFileRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationFileManagerOpenFileSystemFile)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.OpenFileSystemFile(ctx, req.(*OpenFileSystemFileRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*OpenFileSystemFileResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -804,8 +778,6 @@ type FileManagerHTTPClient interface {
 	ListShareDir(ctx context.Context, req *ListShareDirRequest, opts ...http.CallOption) (rsp *ListShareDirResponse, err error)
 	// ListShares 分享列表(系统级)
 	ListShares(ctx context.Context, req *ListSharesRequest, opts ...http.CallOption) (rsp *ListSharesResponse, err error)
-	// OpenFileSystemFile 打开指定文件(系统级)
-	OpenFileSystemFile(ctx context.Context, req *OpenFileSystemFileRequest, opts ...http.CallOption) (rsp *OpenFileSystemFileResponse, err error)
 	// RenameFileSystem 重命名指定文件/文件夹(系统级)
 	RenameFileSystem(ctx context.Context, req *RenameFileSystemRequest, opts ...http.CallOption) (rsp *RenameFileSystemResponse, err error)
 	// TestFileSource 测试文件来源连通性(系统级)
@@ -1142,20 +1114,6 @@ func (c *FileManagerHTTPClientImpl) ListShares(ctx context.Context, in *ListShar
 	opts = append(opts, http.Operation(OperationFileManagerListShares))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// OpenFileSystemFile 打开指定文件(系统级)
-func (c *FileManagerHTTPClientImpl) OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...http.CallOption) (*OpenFileSystemFileResponse, error) {
-	var out OpenFileSystemFileResponse
-	pattern := "/api/v1/file/system/open/file"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationFileManagerOpenFileSystemFile))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

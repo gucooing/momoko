@@ -76,13 +76,6 @@ service FileManager {
       body: "*"
     };
   }
-  // 打开指定文件(系统级)
-  rpc OpenFileSystemFile(OpenFileSystemFileRequest) returns (OpenFileSystemFileResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/file/system/open/file"
-      body: "*"
-    };
-  }
   // 编辑指定文件(系统级)
   rpc EditFileSystemFile(EditFileSystemFileRequest) returns (EditFileSystemFileResponse) {
     option (google.api.http) = {
@@ -858,20 +851,6 @@ message FileOperationResult {
   bool success = 2;
   // 结果消息
   string message = 3;
-}
-
-// 打开系统文件请求
-message OpenFileSystemFileRequest {
-  // 文件路径
-  string path = 1;
-  // 文件来源id，空=本地磁盘
-  string source_id = 2;
-}
-
-// 打开系统文件响应
-message OpenFileSystemFileResponse {
-  // 文件内容
-  bytes info = 1;
 }
 
 // 编辑系统文件请求

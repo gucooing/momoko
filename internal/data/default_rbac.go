@@ -110,6 +110,7 @@ var (
 		newDefaultMenu("menu_12_4", entmenu.TypeMenu, "/system/operation", "操作记录", "HOutline:ChartBarSquareIcon", new("menu_12"), 3, constant.SystemConfigView, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5", entmenu.TypeMenu, "/system/settings", "系统配置", "HOutline:CogIcon", new("menu_12"), 4, constant.SystemConfigView, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_1", entmenu.TypeButton, "", "编辑系统配置", "", new("menu_12_5"), 0, constant.SystemConfigEdit, entmenu.StatusActive),
+		newDefaultMenu("menu_12_5_button_2", entmenu.TypeButton, "", "更新检查", "", new("menu_12_5"), 1, constant.SystemUpdate, entmenu.StatusActive),
 		newDefaultMenu("menu_12_6", entmenu.TypeMenu, "/system/task", "任务管理", "HOutline:QueueListIcon", new("menu_12"), 5, constant.TaskManage, entmenu.StatusActive),
 
 		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, constant.Dev, entmenu.StatusInactive),

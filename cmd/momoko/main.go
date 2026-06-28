@@ -9,6 +9,7 @@ import (
 	"momoko/internal/conf"
 	"momoko/internal/initialize"
 	"momoko/pkg/auth"
+	"momoko/pkg/version"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -67,6 +68,7 @@ func newInitializeApp(logger log.Logger, hs *http.Server) *kratos.App {
 
 func main() {
 	flag.Parse()
+	version.Set(Version)
 	logger := log.With(log.NewStdLogger(os.Stdout),
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,

@@ -37,7 +37,6 @@ const OperationInstanceManagerGetInstanceTypes = "/v1.InstanceManager/GetInstanc
 const OperationInstanceManagerGetInstances = "/v1.InstanceManager/GetInstances"
 const OperationInstanceManagerInstanceFilePreSign = "/v1.InstanceManager/InstanceFilePreSign"
 const OperationInstanceManagerInstanceFilePreSignUpload = "/v1.InstanceManager/InstanceFilePreSignUpload"
-const OperationInstanceManagerOpenInstanceFile = "/v1.InstanceManager/OpenInstanceFile"
 const OperationInstanceManagerRenameInstanceFile = "/v1.InstanceManager/RenameInstanceFile"
 const OperationInstanceManagerRestartInstance = "/v1.InstanceManager/RestartInstance"
 const OperationInstanceManagerStartInstance = "/v1.InstanceManager/StartInstance"
@@ -85,8 +84,6 @@ type InstanceManagerHTTPServer interface {
 	InstanceFilePreSign(context.Context, *InstanceFilePreSignRequest) (*InstanceFilePreSignResponse, error)
 	// InstanceFilePreSignUpload 实例目录内文件上传预签名
 	InstanceFilePreSignUpload(context.Context, *InstanceFilePreSignUploadRequest) (*InstanceFilePreSignUploadResponse, error)
-	// OpenInstanceFile 打开实例目录内文件
-	OpenInstanceFile(context.Context, *OpenInstanceFileRequest) (*OpenInstanceFileResponse, error)
 	// RenameInstanceFile 重命名实例目录内文件/文件夹
 	RenameInstanceFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error)
 	// RestartInstance 重启实例
@@ -127,7 +124,6 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.POST("/api/v1/instance/file/deletes/{id}", _InstanceManager_BatchDeleteInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/compress/{id}", _InstanceManager_BatchCompressInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/unzip/{id}", _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv))
-	r.POST("/api/v1/instance/file/open/{id}", _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/instance/file/edit/{id}", _InstanceManager_EditInstanceFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/pre-sign/{id}", _InstanceManager_InstanceFilePreSign0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/upload/pre-sign/{id}", _InstanceManager_InstanceFilePreSignUpload0_HTTP_Handler(srv))
@@ -647,31 +643,6 @@ func _InstanceManager_UnzipInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPSer
 	}
 }
 
-func _InstanceManager_OpenInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in OpenInstanceFileRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationInstanceManagerOpenInstanceFile)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.OpenInstanceFile(ctx, req.(*OpenInstanceFileRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*OpenInstanceFileResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _InstanceManager_EditInstanceFile0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in EditInstanceFileRequest
@@ -780,8 +751,6 @@ type InstanceManagerHTTPClient interface {
 	InstanceFilePreSign(ctx context.Context, req *InstanceFilePreSignRequest, opts ...http.CallOption) (rsp *InstanceFilePreSignResponse, err error)
 	// InstanceFilePreSignUpload 实例目录内文件上传预签名
 	InstanceFilePreSignUpload(ctx context.Context, req *InstanceFilePreSignUploadRequest, opts ...http.CallOption) (rsp *InstanceFilePreSignUploadResponse, err error)
-	// OpenInstanceFile 打开实例目录内文件
-	OpenInstanceFile(ctx context.Context, req *OpenInstanceFileRequest, opts ...http.CallOption) (rsp *OpenInstanceFileResponse, err error)
 	// RenameInstanceFile 重命名实例目录内文件/文件夹
 	RenameInstanceFile(ctx context.Context, req *RenameInstanceFileRequest, opts ...http.CallOption) (rsp *RenameInstanceFileResponse, err error)
 	// RestartInstance 重启实例
@@ -1054,20 +1023,6 @@ func (c *InstanceManagerHTTPClientImpl) InstanceFilePreSignUpload(ctx context.Co
 	opts = append(opts, http.Operation(OperationInstanceManagerInstanceFilePreSignUpload))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// OpenInstanceFile 打开实例目录内文件
-func (c *InstanceManagerHTTPClientImpl) OpenInstanceFile(ctx context.Context, in *OpenInstanceFileRequest, opts ...http.CallOption) (*OpenInstanceFileResponse, error) {
-	var out OpenInstanceFileResponse
-	pattern := "/api/v1/instance/file/open/{id}"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationInstanceManagerOpenInstanceFile))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

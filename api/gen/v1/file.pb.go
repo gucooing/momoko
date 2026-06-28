@@ -4058,107 +4058,6 @@ func (x *FileOperationResult) GetMessage() string {
 	return ""
 }
 
-// 打开系统文件请求
-type OpenFileSystemFileRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 文件路径
-	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	// 文件来源id，空=本地磁盘
-	SourceId      string `protobuf:"bytes,2,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OpenFileSystemFileRequest) Reset() {
-	*x = OpenFileSystemFileRequest{}
-	mi := &file_v1_file_proto_msgTypes[57]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OpenFileSystemFileRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OpenFileSystemFileRequest) ProtoMessage() {}
-
-func (x *OpenFileSystemFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[57]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OpenFileSystemFileRequest.ProtoReflect.Descriptor instead.
-func (*OpenFileSystemFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{57}
-}
-
-func (x *OpenFileSystemFileRequest) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *OpenFileSystemFileRequest) GetSourceId() string {
-	if x != nil {
-		return x.SourceId
-	}
-	return ""
-}
-
-// 打开系统文件响应
-type OpenFileSystemFileResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 文件内容
-	Info          []byte `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OpenFileSystemFileResponse) Reset() {
-	*x = OpenFileSystemFileResponse{}
-	mi := &file_v1_file_proto_msgTypes[58]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OpenFileSystemFileResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OpenFileSystemFileResponse) ProtoMessage() {}
-
-func (x *OpenFileSystemFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[58]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OpenFileSystemFileResponse.ProtoReflect.Descriptor instead.
-func (*OpenFileSystemFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{58}
-}
-
-func (x *OpenFileSystemFileResponse) GetInfo() []byte {
-	if x != nil {
-		return x.Info
-	}
-	return nil
-}
-
 // 编辑系统文件请求
 type EditFileSystemFileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -4174,7 +4073,7 @@ type EditFileSystemFileRequest struct {
 
 func (x *EditFileSystemFileRequest) Reset() {
 	*x = EditFileSystemFileRequest{}
-	mi := &file_v1_file_proto_msgTypes[59]
+	mi := &file_v1_file_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4186,7 +4085,7 @@ func (x *EditFileSystemFileRequest) String() string {
 func (*EditFileSystemFileRequest) ProtoMessage() {}
 
 func (x *EditFileSystemFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[59]
+	mi := &file_v1_file_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4199,7 +4098,7 @@ func (x *EditFileSystemFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditFileSystemFileRequest.ProtoReflect.Descriptor instead.
 func (*EditFileSystemFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{59}
+	return file_v1_file_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *EditFileSystemFileRequest) GetPath() string {
@@ -4232,7 +4131,7 @@ type EditFileSystemFileResponse struct {
 
 func (x *EditFileSystemFileResponse) Reset() {
 	*x = EditFileSystemFileResponse{}
-	mi := &file_v1_file_proto_msgTypes[60]
+	mi := &file_v1_file_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4244,7 +4143,7 @@ func (x *EditFileSystemFileResponse) String() string {
 func (*EditFileSystemFileResponse) ProtoMessage() {}
 
 func (x *EditFileSystemFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[60]
+	mi := &file_v1_file_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4257,7 +4156,7 @@ func (x *EditFileSystemFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditFileSystemFileResponse.ProtoReflect.Descriptor instead.
 func (*EditFileSystemFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{60}
+	return file_v1_file_proto_rawDescGZIP(), []int{58}
 }
 
 // 文件下载预签名请求
@@ -4275,7 +4174,7 @@ type FileSystemPreSignRequest struct {
 
 func (x *FileSystemPreSignRequest) Reset() {
 	*x = FileSystemPreSignRequest{}
-	mi := &file_v1_file_proto_msgTypes[61]
+	mi := &file_v1_file_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4186,7 @@ func (x *FileSystemPreSignRequest) String() string {
 func (*FileSystemPreSignRequest) ProtoMessage() {}
 
 func (x *FileSystemPreSignRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[61]
+	mi := &file_v1_file_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4199,7 @@ func (x *FileSystemPreSignRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileSystemPreSignRequest.ProtoReflect.Descriptor instead.
 func (*FileSystemPreSignRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{61}
+	return file_v1_file_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *FileSystemPreSignRequest) GetPath() string {
@@ -4335,7 +4234,7 @@ type FileSystemPreSignResponse struct {
 
 func (x *FileSystemPreSignResponse) Reset() {
 	*x = FileSystemPreSignResponse{}
-	mi := &file_v1_file_proto_msgTypes[62]
+	mi := &file_v1_file_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4347,7 +4246,7 @@ func (x *FileSystemPreSignResponse) String() string {
 func (*FileSystemPreSignResponse) ProtoMessage() {}
 
 func (x *FileSystemPreSignResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[62]
+	mi := &file_v1_file_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4360,7 +4259,7 @@ func (x *FileSystemPreSignResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileSystemPreSignResponse.ProtoReflect.Descriptor instead.
 func (*FileSystemPreSignResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{62}
+	return file_v1_file_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *FileSystemPreSignResponse) GetDownloadUrlPath() string {
@@ -4391,7 +4290,7 @@ type FileSystemPreSignUploadRequest struct {
 
 func (x *FileSystemPreSignUploadRequest) Reset() {
 	*x = FileSystemPreSignUploadRequest{}
-	mi := &file_v1_file_proto_msgTypes[63]
+	mi := &file_v1_file_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4403,7 +4302,7 @@ func (x *FileSystemPreSignUploadRequest) String() string {
 func (*FileSystemPreSignUploadRequest) ProtoMessage() {}
 
 func (x *FileSystemPreSignUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[63]
+	mi := &file_v1_file_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4416,7 +4315,7 @@ func (x *FileSystemPreSignUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileSystemPreSignUploadRequest.ProtoReflect.Descriptor instead.
 func (*FileSystemPreSignUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{63}
+	return file_v1_file_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *FileSystemPreSignUploadRequest) GetPath() string {
@@ -4472,7 +4371,7 @@ type FileSystemPreSignUploadResponse struct {
 
 func (x *FileSystemPreSignUploadResponse) Reset() {
 	*x = FileSystemPreSignUploadResponse{}
-	mi := &file_v1_file_proto_msgTypes[64]
+	mi := &file_v1_file_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4484,7 +4383,7 @@ func (x *FileSystemPreSignUploadResponse) String() string {
 func (*FileSystemPreSignUploadResponse) ProtoMessage() {}
 
 func (x *FileSystemPreSignUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[64]
+	mi := &file_v1_file_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4497,7 +4396,7 @@ func (x *FileSystemPreSignUploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileSystemPreSignUploadResponse.ProtoReflect.Descriptor instead.
 func (*FileSystemPreSignUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{64}
+	return file_v1_file_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *FileSystemPreSignUploadResponse) GetInfo() *UploadInfo {
@@ -4518,7 +4417,7 @@ type GetFileUploadStatusRequest struct {
 
 func (x *GetFileUploadStatusRequest) Reset() {
 	*x = GetFileUploadStatusRequest{}
-	mi := &file_v1_file_proto_msgTypes[65]
+	mi := &file_v1_file_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4530,7 +4429,7 @@ func (x *GetFileUploadStatusRequest) String() string {
 func (*GetFileUploadStatusRequest) ProtoMessage() {}
 
 func (x *GetFileUploadStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[65]
+	mi := &file_v1_file_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4543,7 +4442,7 @@ func (x *GetFileUploadStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileUploadStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetFileUploadStatusRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{65}
+	return file_v1_file_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetFileUploadStatusRequest) GetUploadId() string {
@@ -4564,7 +4463,7 @@ type GetFileUploadStatusResponse struct {
 
 func (x *GetFileUploadStatusResponse) Reset() {
 	*x = GetFileUploadStatusResponse{}
-	mi := &file_v1_file_proto_msgTypes[66]
+	mi := &file_v1_file_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4576,7 +4475,7 @@ func (x *GetFileUploadStatusResponse) String() string {
 func (*GetFileUploadStatusResponse) ProtoMessage() {}
 
 func (x *GetFileUploadStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[66]
+	mi := &file_v1_file_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4589,7 +4488,7 @@ func (x *GetFileUploadStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileUploadStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetFileUploadStatusResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{66}
+	return file_v1_file_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetFileUploadStatusResponse) GetInfo() *UploadInfo {
@@ -4610,7 +4509,7 @@ type CompleteFileUploadRequest struct {
 
 func (x *CompleteFileUploadRequest) Reset() {
 	*x = CompleteFileUploadRequest{}
-	mi := &file_v1_file_proto_msgTypes[67]
+	mi := &file_v1_file_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4622,7 +4521,7 @@ func (x *CompleteFileUploadRequest) String() string {
 func (*CompleteFileUploadRequest) ProtoMessage() {}
 
 func (x *CompleteFileUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[67]
+	mi := &file_v1_file_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4635,7 +4534,7 @@ func (x *CompleteFileUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteFileUploadRequest.ProtoReflect.Descriptor instead.
 func (*CompleteFileUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{67}
+	return file_v1_file_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *CompleteFileUploadRequest) GetUploadId() string {
@@ -4656,7 +4555,7 @@ type CompleteFileUploadResponse struct {
 
 func (x *CompleteFileUploadResponse) Reset() {
 	*x = CompleteFileUploadResponse{}
-	mi := &file_v1_file_proto_msgTypes[68]
+	mi := &file_v1_file_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4668,7 +4567,7 @@ func (x *CompleteFileUploadResponse) String() string {
 func (*CompleteFileUploadResponse) ProtoMessage() {}
 
 func (x *CompleteFileUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[68]
+	mi := &file_v1_file_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4681,7 +4580,7 @@ func (x *CompleteFileUploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteFileUploadResponse.ProtoReflect.Descriptor instead.
 func (*CompleteFileUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{68}
+	return file_v1_file_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *CompleteFileUploadResponse) GetTask() *FileTaskInfo {
@@ -4702,7 +4601,7 @@ type CancelFileUploadRequest struct {
 
 func (x *CancelFileUploadRequest) Reset() {
 	*x = CancelFileUploadRequest{}
-	mi := &file_v1_file_proto_msgTypes[69]
+	mi := &file_v1_file_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4714,7 +4613,7 @@ func (x *CancelFileUploadRequest) String() string {
 func (*CancelFileUploadRequest) ProtoMessage() {}
 
 func (x *CancelFileUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[69]
+	mi := &file_v1_file_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4727,7 +4626,7 @@ func (x *CancelFileUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelFileUploadRequest.ProtoReflect.Descriptor instead.
 func (*CancelFileUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{69}
+	return file_v1_file_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CancelFileUploadRequest) GetUploadId() string {
@@ -4746,7 +4645,7 @@ type CancelFileUploadResponse struct {
 
 func (x *CancelFileUploadResponse) Reset() {
 	*x = CancelFileUploadResponse{}
-	mi := &file_v1_file_proto_msgTypes[70]
+	mi := &file_v1_file_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4758,7 +4657,7 @@ func (x *CancelFileUploadResponse) String() string {
 func (*CancelFileUploadResponse) ProtoMessage() {}
 
 func (x *CancelFileUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[70]
+	mi := &file_v1_file_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4771,7 +4670,7 @@ func (x *CancelFileUploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelFileUploadResponse.ProtoReflect.Descriptor instead.
 func (*CancelFileUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{70}
+	return file_v1_file_proto_rawDescGZIP(), []int{68}
 }
 
 // 上传信息
@@ -4802,7 +4701,7 @@ type UploadInfo struct {
 
 func (x *UploadInfo) Reset() {
 	*x = UploadInfo{}
-	mi := &file_v1_file_proto_msgTypes[71]
+	mi := &file_v1_file_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4814,7 +4713,7 @@ func (x *UploadInfo) String() string {
 func (*UploadInfo) ProtoMessage() {}
 
 func (x *UploadInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_file_proto_msgTypes[71]
+	mi := &file_v1_file_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4827,7 +4726,7 @@ func (x *UploadInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadInfo.ProtoReflect.Descriptor instead.
 func (*UploadInfo) Descriptor() ([]byte, []int) {
-	return file_v1_file_proto_rawDescGZIP(), []int{71}
+	return file_v1_file_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *UploadInfo) GetUploadId() string {
@@ -5199,12 +5098,7 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x13FileOperationResult\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x18\n" +
 	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"L\n" +
-	"\x19OpenFileSystemFileRequest\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\x12\x1b\n" +
-	"\tsource_id\x18\x02 \x01(\tR\bsourceId\"0\n" +
-	"\x1aOpenFileSystemFileResponse\x12\x12\n" +
-	"\x04info\x18\x01 \x01(\fR\x04info\"f\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"f\n" +
 	"\x19EditFileSystemFileRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12\x1b\n" +
@@ -5267,7 +5161,7 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x18FILE_TASK_STATUS_PENDING\x10\x01\x12\x1c\n" +
 	"\x18FILE_TASK_STATUS_RUNNING\x10\x02\x12\x1c\n" +
 	"\x18FILE_TASK_STATUS_SUCCESS\x10\x03\x12\x1b\n" +
-	"\x17FILE_TASK_STATUS_FAILED\x10\x042\xb8\x1a\n" +
+	"\x17FILE_TASK_STATUS_FAILED\x10\x042\xb9\x19\n" +
 	"\vFileManager\x12m\n" +
 	"\x11GetFileSystemList\x12\x1c.v1.GetFileSystemListRequest\x1a\x1d.v1.GetFileSystemListResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/file/system\x12r\n" +
 	"\x11GetFileSystemTree\x12\x1c.v1.GetFileSystemTreeRequest\x1a\x1d.v1.GetFileSystemTreeResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/file/system/tree\x12\x84\x01\n" +
@@ -5279,7 +5173,6 @@ const file_v1_file_proto_rawDesc = "" +
 	"\vGetFileTask\x12\x16.v1.GetFileTaskRequest\x1a\x17.v1.GetFileTaskResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/file/task/{task_id}\x12\x8b\x01\n" +
 	"\x17BatchCompressFileSystem\x12\".v1.BatchCompressFileSystemRequest\x1a#.v1.BatchCompressFileSystemResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/file/system/compress\x12p\n" +
 	"\x0fUnzipFileSystem\x12\x1a.v1.UnzipFileSystemRequest\x1a\x1b.v1.UnzipFileSystemResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/file/system/unzip\x12}\n" +
-	"\x12OpenFileSystemFile\x12\x1d.v1.OpenFileSystemFileRequest\x1a\x1e.v1.OpenFileSystemFileResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/file/system/open/file\x12}\n" +
 	"\x12EditFileSystemFile\x12\x1d.v1.EditFileSystemFileRequest\x1a\x1e.v1.EditFileSystemFileResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/file/system/edit/file\x12{\n" +
 	"\x11FileSystemPreSign\x12\x1c.v1.FileSystemPreSignRequest\x1a\x1d.v1.FileSystemPreSignResponse\")\x82\xd3\xe4\x93\x02#\x12!/api/v1/file/system/file/pre-sign\x12\x94\x01\n" +
 	"\x17FileSystemPreSignUpload\x12\".v1.FileSystemPreSignUploadRequest\x1a#.v1.FileSystemPreSignUploadResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/file/system/file/upload/pre-sign\x12z\n" +
@@ -5313,7 +5206,7 @@ func file_v1_file_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_file_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_file_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
+var file_v1_file_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
 var file_v1_file_proto_goTypes = []any{
 	(FileSortField)(0),                      // 0: v1.FileSortField
 	(FileTaskStatus)(0),                     // 1: v1.FileTaskStatus
@@ -5374,42 +5267,40 @@ var file_v1_file_proto_goTypes = []any{
 	(*UnzipFileSystemResponse)(nil),         // 56: v1.UnzipFileSystemResponse
 	(*FileCreateItem)(nil),                  // 57: v1.FileCreateItem
 	(*FileOperationResult)(nil),             // 58: v1.FileOperationResult
-	(*OpenFileSystemFileRequest)(nil),       // 59: v1.OpenFileSystemFileRequest
-	(*OpenFileSystemFileResponse)(nil),      // 60: v1.OpenFileSystemFileResponse
-	(*EditFileSystemFileRequest)(nil),       // 61: v1.EditFileSystemFileRequest
-	(*EditFileSystemFileResponse)(nil),      // 62: v1.EditFileSystemFileResponse
-	(*FileSystemPreSignRequest)(nil),        // 63: v1.FileSystemPreSignRequest
-	(*FileSystemPreSignResponse)(nil),       // 64: v1.FileSystemPreSignResponse
-	(*FileSystemPreSignUploadRequest)(nil),  // 65: v1.FileSystemPreSignUploadRequest
-	(*FileSystemPreSignUploadResponse)(nil), // 66: v1.FileSystemPreSignUploadResponse
-	(*GetFileUploadStatusRequest)(nil),      // 67: v1.GetFileUploadStatusRequest
-	(*GetFileUploadStatusResponse)(nil),     // 68: v1.GetFileUploadStatusResponse
-	(*CompleteFileUploadRequest)(nil),       // 69: v1.CompleteFileUploadRequest
-	(*CompleteFileUploadResponse)(nil),      // 70: v1.CompleteFileUploadResponse
-	(*CancelFileUploadRequest)(nil),         // 71: v1.CancelFileUploadRequest
-	(*CancelFileUploadResponse)(nil),        // 72: v1.CancelFileUploadResponse
-	(*UploadInfo)(nil),                      // 73: v1.UploadInfo
-	nil,                                     // 74: v1.UploadInfo.UploadedPartsEntry
-	nil,                                     // 75: v1.UploadInfo.PartUrlsEntry
-	(*timestamppb.Timestamp)(nil),           // 76: google.protobuf.Timestamp
+	(*EditFileSystemFileRequest)(nil),       // 59: v1.EditFileSystemFileRequest
+	(*EditFileSystemFileResponse)(nil),      // 60: v1.EditFileSystemFileResponse
+	(*FileSystemPreSignRequest)(nil),        // 61: v1.FileSystemPreSignRequest
+	(*FileSystemPreSignResponse)(nil),       // 62: v1.FileSystemPreSignResponse
+	(*FileSystemPreSignUploadRequest)(nil),  // 63: v1.FileSystemPreSignUploadRequest
+	(*FileSystemPreSignUploadResponse)(nil), // 64: v1.FileSystemPreSignUploadResponse
+	(*GetFileUploadStatusRequest)(nil),      // 65: v1.GetFileUploadStatusRequest
+	(*GetFileUploadStatusResponse)(nil),     // 66: v1.GetFileUploadStatusResponse
+	(*CompleteFileUploadRequest)(nil),       // 67: v1.CompleteFileUploadRequest
+	(*CompleteFileUploadResponse)(nil),      // 68: v1.CompleteFileUploadResponse
+	(*CancelFileUploadRequest)(nil),         // 69: v1.CancelFileUploadRequest
+	(*CancelFileUploadResponse)(nil),        // 70: v1.CancelFileUploadResponse
+	(*UploadInfo)(nil),                      // 71: v1.UploadInfo
+	nil,                                     // 72: v1.UploadInfo.UploadedPartsEntry
+	nil,                                     // 73: v1.UploadInfo.PartUrlsEntry
+	(*timestamppb.Timestamp)(nil),           // 74: google.protobuf.Timestamp
 }
 var file_v1_file_proto_depIdxs = []int32{
-	76, // 0: v1.ShareInfo.expires_at:type_name -> google.protobuf.Timestamp
-	76, // 1: v1.ShareInfo.create_time:type_name -> google.protobuf.Timestamp
-	76, // 2: v1.ShareInfo.update_time:type_name -> google.protobuf.Timestamp
-	76, // 3: v1.CreateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
+	74, // 0: v1.ShareInfo.expires_at:type_name -> google.protobuf.Timestamp
+	74, // 1: v1.ShareInfo.create_time:type_name -> google.protobuf.Timestamp
+	74, // 2: v1.ShareInfo.update_time:type_name -> google.protobuf.Timestamp
+	74, // 3: v1.CreateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 4: v1.CreateShareResponse.info:type_name -> v1.ShareInfo
 	2,  // 5: v1.ListSharesResponse.items:type_name -> v1.ShareInfo
-	76, // 6: v1.UpdateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
+	74, // 6: v1.UpdateShareRequest.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 7: v1.UpdateShareResponse.info:type_name -> v1.ShareInfo
-	76, // 8: v1.GetShareMetaResponse.expires_at:type_name -> google.protobuf.Timestamp
-	76, // 9: v1.ShareEntry.update_time:type_name -> google.protobuf.Timestamp
+	74, // 8: v1.GetShareMetaResponse.expires_at:type_name -> google.protobuf.Timestamp
+	74, // 9: v1.ShareEntry.update_time:type_name -> google.protobuf.Timestamp
 	14, // 10: v1.ListShareDirResponse.items:type_name -> v1.ShareEntry
-	76, // 11: v1.CreateShareSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
+	74, // 11: v1.CreateShareSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
 	19, // 12: v1.FileSourceInfo.config:type_name -> v1.FileSourceConfig
 	18, // 13: v1.FileSourceInfo.caps:type_name -> v1.FileSourceCaps
-	76, // 14: v1.FileSourceInfo.create_time:type_name -> google.protobuf.Timestamp
-	76, // 15: v1.FileSourceInfo.update_time:type_name -> google.protobuf.Timestamp
+	74, // 14: v1.FileSourceInfo.create_time:type_name -> google.protobuf.Timestamp
+	74, // 15: v1.FileSourceInfo.update_time:type_name -> google.protobuf.Timestamp
 	20, // 16: v1.ListFileSourcesResponse.items:type_name -> v1.FileSourceInfo
 	19, // 17: v1.CreateFileSourceRequest.config:type_name -> v1.FileSourceConfig
 	20, // 18: v1.CreateFileSourceResponse.info:type_name -> v1.FileSourceInfo
@@ -5419,7 +5310,7 @@ var file_v1_file_proto_depIdxs = []int32{
 	0,  // 22: v1.GetFileSystemListRequest.sort_field:type_name -> v1.FileSortField
 	33, // 23: v1.GetFileSystemListResponse.directory:type_name -> v1.FileDirectoryInfo
 	34, // 24: v1.GetFileSystemListResponse.items:type_name -> v1.FileEntryInfo
-	76, // 25: v1.FileEntryInfo.update_time:type_name -> google.protobuf.Timestamp
+	74, // 25: v1.FileEntryInfo.update_time:type_name -> google.protobuf.Timestamp
 	35, // 26: v1.GetFileSystemTreeResponse.nodes:type_name -> v1.FileTreeNode
 	39, // 27: v1.BatchCalcFileSystemSizeResponse.items:type_name -> v1.FileSizeResult
 	58, // 28: v1.BatchDeleteFileSystemResponse.items:type_name -> v1.FileOperationResult
@@ -5429,14 +5320,14 @@ var file_v1_file_proto_depIdxs = []int32{
 	52, // 32: v1.GetFileTaskResponse.task:type_name -> v1.FileTaskInfo
 	1,  // 33: v1.FileTaskInfo.status:type_name -> v1.FileTaskStatus
 	58, // 34: v1.FileTaskInfo.items:type_name -> v1.FileOperationResult
-	76, // 35: v1.FileTaskInfo.create_time:type_name -> google.protobuf.Timestamp
-	76, // 36: v1.FileTaskInfo.update_time:type_name -> google.protobuf.Timestamp
-	73, // 37: v1.FileSystemPreSignUploadResponse.info:type_name -> v1.UploadInfo
-	73, // 38: v1.GetFileUploadStatusResponse.info:type_name -> v1.UploadInfo
+	74, // 35: v1.FileTaskInfo.create_time:type_name -> google.protobuf.Timestamp
+	74, // 36: v1.FileTaskInfo.update_time:type_name -> google.protobuf.Timestamp
+	71, // 37: v1.FileSystemPreSignUploadResponse.info:type_name -> v1.UploadInfo
+	71, // 38: v1.GetFileUploadStatusResponse.info:type_name -> v1.UploadInfo
 	52, // 39: v1.CompleteFileUploadResponse.task:type_name -> v1.FileTaskInfo
-	74, // 40: v1.UploadInfo.uploaded_parts:type_name -> v1.UploadInfo.UploadedPartsEntry
-	76, // 41: v1.UploadInfo.expired_at:type_name -> google.protobuf.Timestamp
-	75, // 42: v1.UploadInfo.part_urls:type_name -> v1.UploadInfo.PartUrlsEntry
+	72, // 40: v1.UploadInfo.uploaded_parts:type_name -> v1.UploadInfo.UploadedPartsEntry
+	74, // 41: v1.UploadInfo.expired_at:type_name -> google.protobuf.Timestamp
+	73, // 42: v1.UploadInfo.part_urls:type_name -> v1.UploadInfo.PartUrlsEntry
 	31, // 43: v1.FileManager.GetFileSystemList:input_type -> v1.GetFileSystemListRequest
 	36, // 44: v1.FileManager.GetFileSystemTree:input_type -> v1.GetFileSystemTreeRequest
 	40, // 45: v1.FileManager.BatchDeleteFileSystem:input_type -> v1.BatchDeleteFileSystemRequest
@@ -5447,56 +5338,54 @@ var file_v1_file_proto_depIdxs = []int32{
 	50, // 50: v1.FileManager.GetFileTask:input_type -> v1.GetFileTaskRequest
 	53, // 51: v1.FileManager.BatchCompressFileSystem:input_type -> v1.BatchCompressFileSystemRequest
 	55, // 52: v1.FileManager.UnzipFileSystem:input_type -> v1.UnzipFileSystemRequest
-	59, // 53: v1.FileManager.OpenFileSystemFile:input_type -> v1.OpenFileSystemFileRequest
-	61, // 54: v1.FileManager.EditFileSystemFile:input_type -> v1.EditFileSystemFileRequest
-	63, // 55: v1.FileManager.FileSystemPreSign:input_type -> v1.FileSystemPreSignRequest
-	65, // 56: v1.FileManager.FileSystemPreSignUpload:input_type -> v1.FileSystemPreSignUploadRequest
-	67, // 57: v1.FileManager.GetFileUploadStatus:input_type -> v1.GetFileUploadStatusRequest
-	69, // 58: v1.FileManager.CompleteFileUpload:input_type -> v1.CompleteFileUploadRequest
-	71, // 59: v1.FileManager.CancelFileUpload:input_type -> v1.CancelFileUploadRequest
-	3,  // 60: v1.FileManager.CreateShare:input_type -> v1.CreateShareRequest
-	5,  // 61: v1.FileManager.ListShares:input_type -> v1.ListSharesRequest
-	7,  // 62: v1.FileManager.UpdateShare:input_type -> v1.UpdateShareRequest
-	9,  // 63: v1.FileManager.DeleteShare:input_type -> v1.DeleteShareRequest
-	11, // 64: v1.FileManager.GetShareMeta:input_type -> v1.GetShareMetaRequest
-	13, // 65: v1.FileManager.ListShareDir:input_type -> v1.ListShareDirRequest
-	16, // 66: v1.FileManager.CreateShareSession:input_type -> v1.CreateShareSessionRequest
-	21, // 67: v1.FileManager.ListFileSources:input_type -> v1.ListFileSourcesRequest
-	23, // 68: v1.FileManager.CreateFileSource:input_type -> v1.CreateFileSourceRequest
-	25, // 69: v1.FileManager.UpdateFileSource:input_type -> v1.UpdateFileSourceRequest
-	27, // 70: v1.FileManager.DeleteFileSource:input_type -> v1.DeleteFileSourceRequest
-	29, // 71: v1.FileManager.TestFileSource:input_type -> v1.TestFileSourceRequest
-	32, // 72: v1.FileManager.GetFileSystemList:output_type -> v1.GetFileSystemListResponse
-	37, // 73: v1.FileManager.GetFileSystemTree:output_type -> v1.GetFileSystemTreeResponse
-	41, // 74: v1.FileManager.BatchDeleteFileSystem:output_type -> v1.BatchDeleteFileSystemResponse
-	43, // 75: v1.FileManager.CreateFileSystem:output_type -> v1.CreateFileSystemResponse
-	45, // 76: v1.FileManager.RenameFileSystem:output_type -> v1.RenameFileSystemResponse
-	47, // 77: v1.FileManager.CopyFileSystem:output_type -> v1.CopyFileSystemResponse
-	49, // 78: v1.FileManager.CutFileSystem:output_type -> v1.CutFileSystemResponse
-	51, // 79: v1.FileManager.GetFileTask:output_type -> v1.GetFileTaskResponse
-	54, // 80: v1.FileManager.BatchCompressFileSystem:output_type -> v1.BatchCompressFileSystemResponse
-	56, // 81: v1.FileManager.UnzipFileSystem:output_type -> v1.UnzipFileSystemResponse
-	60, // 82: v1.FileManager.OpenFileSystemFile:output_type -> v1.OpenFileSystemFileResponse
-	62, // 83: v1.FileManager.EditFileSystemFile:output_type -> v1.EditFileSystemFileResponse
-	64, // 84: v1.FileManager.FileSystemPreSign:output_type -> v1.FileSystemPreSignResponse
-	66, // 85: v1.FileManager.FileSystemPreSignUpload:output_type -> v1.FileSystemPreSignUploadResponse
-	68, // 86: v1.FileManager.GetFileUploadStatus:output_type -> v1.GetFileUploadStatusResponse
-	70, // 87: v1.FileManager.CompleteFileUpload:output_type -> v1.CompleteFileUploadResponse
-	72, // 88: v1.FileManager.CancelFileUpload:output_type -> v1.CancelFileUploadResponse
-	4,  // 89: v1.FileManager.CreateShare:output_type -> v1.CreateShareResponse
-	6,  // 90: v1.FileManager.ListShares:output_type -> v1.ListSharesResponse
-	8,  // 91: v1.FileManager.UpdateShare:output_type -> v1.UpdateShareResponse
-	10, // 92: v1.FileManager.DeleteShare:output_type -> v1.DeleteShareResponse
-	12, // 93: v1.FileManager.GetShareMeta:output_type -> v1.GetShareMetaResponse
-	15, // 94: v1.FileManager.ListShareDir:output_type -> v1.ListShareDirResponse
-	17, // 95: v1.FileManager.CreateShareSession:output_type -> v1.CreateShareSessionResponse
-	22, // 96: v1.FileManager.ListFileSources:output_type -> v1.ListFileSourcesResponse
-	24, // 97: v1.FileManager.CreateFileSource:output_type -> v1.CreateFileSourceResponse
-	26, // 98: v1.FileManager.UpdateFileSource:output_type -> v1.UpdateFileSourceResponse
-	28, // 99: v1.FileManager.DeleteFileSource:output_type -> v1.DeleteFileSourceResponse
-	30, // 100: v1.FileManager.TestFileSource:output_type -> v1.TestFileSourceResponse
-	72, // [72:101] is the sub-list for method output_type
-	43, // [43:72] is the sub-list for method input_type
+	59, // 53: v1.FileManager.EditFileSystemFile:input_type -> v1.EditFileSystemFileRequest
+	61, // 54: v1.FileManager.FileSystemPreSign:input_type -> v1.FileSystemPreSignRequest
+	63, // 55: v1.FileManager.FileSystemPreSignUpload:input_type -> v1.FileSystemPreSignUploadRequest
+	65, // 56: v1.FileManager.GetFileUploadStatus:input_type -> v1.GetFileUploadStatusRequest
+	67, // 57: v1.FileManager.CompleteFileUpload:input_type -> v1.CompleteFileUploadRequest
+	69, // 58: v1.FileManager.CancelFileUpload:input_type -> v1.CancelFileUploadRequest
+	3,  // 59: v1.FileManager.CreateShare:input_type -> v1.CreateShareRequest
+	5,  // 60: v1.FileManager.ListShares:input_type -> v1.ListSharesRequest
+	7,  // 61: v1.FileManager.UpdateShare:input_type -> v1.UpdateShareRequest
+	9,  // 62: v1.FileManager.DeleteShare:input_type -> v1.DeleteShareRequest
+	11, // 63: v1.FileManager.GetShareMeta:input_type -> v1.GetShareMetaRequest
+	13, // 64: v1.FileManager.ListShareDir:input_type -> v1.ListShareDirRequest
+	16, // 65: v1.FileManager.CreateShareSession:input_type -> v1.CreateShareSessionRequest
+	21, // 66: v1.FileManager.ListFileSources:input_type -> v1.ListFileSourcesRequest
+	23, // 67: v1.FileManager.CreateFileSource:input_type -> v1.CreateFileSourceRequest
+	25, // 68: v1.FileManager.UpdateFileSource:input_type -> v1.UpdateFileSourceRequest
+	27, // 69: v1.FileManager.DeleteFileSource:input_type -> v1.DeleteFileSourceRequest
+	29, // 70: v1.FileManager.TestFileSource:input_type -> v1.TestFileSourceRequest
+	32, // 71: v1.FileManager.GetFileSystemList:output_type -> v1.GetFileSystemListResponse
+	37, // 72: v1.FileManager.GetFileSystemTree:output_type -> v1.GetFileSystemTreeResponse
+	41, // 73: v1.FileManager.BatchDeleteFileSystem:output_type -> v1.BatchDeleteFileSystemResponse
+	43, // 74: v1.FileManager.CreateFileSystem:output_type -> v1.CreateFileSystemResponse
+	45, // 75: v1.FileManager.RenameFileSystem:output_type -> v1.RenameFileSystemResponse
+	47, // 76: v1.FileManager.CopyFileSystem:output_type -> v1.CopyFileSystemResponse
+	49, // 77: v1.FileManager.CutFileSystem:output_type -> v1.CutFileSystemResponse
+	51, // 78: v1.FileManager.GetFileTask:output_type -> v1.GetFileTaskResponse
+	54, // 79: v1.FileManager.BatchCompressFileSystem:output_type -> v1.BatchCompressFileSystemResponse
+	56, // 80: v1.FileManager.UnzipFileSystem:output_type -> v1.UnzipFileSystemResponse
+	60, // 81: v1.FileManager.EditFileSystemFile:output_type -> v1.EditFileSystemFileResponse
+	62, // 82: v1.FileManager.FileSystemPreSign:output_type -> v1.FileSystemPreSignResponse
+	64, // 83: v1.FileManager.FileSystemPreSignUpload:output_type -> v1.FileSystemPreSignUploadResponse
+	66, // 84: v1.FileManager.GetFileUploadStatus:output_type -> v1.GetFileUploadStatusResponse
+	68, // 85: v1.FileManager.CompleteFileUpload:output_type -> v1.CompleteFileUploadResponse
+	70, // 86: v1.FileManager.CancelFileUpload:output_type -> v1.CancelFileUploadResponse
+	4,  // 87: v1.FileManager.CreateShare:output_type -> v1.CreateShareResponse
+	6,  // 88: v1.FileManager.ListShares:output_type -> v1.ListSharesResponse
+	8,  // 89: v1.FileManager.UpdateShare:output_type -> v1.UpdateShareResponse
+	10, // 90: v1.FileManager.DeleteShare:output_type -> v1.DeleteShareResponse
+	12, // 91: v1.FileManager.GetShareMeta:output_type -> v1.GetShareMetaResponse
+	15, // 92: v1.FileManager.ListShareDir:output_type -> v1.ListShareDirResponse
+	17, // 93: v1.FileManager.CreateShareSession:output_type -> v1.CreateShareSessionResponse
+	22, // 94: v1.FileManager.ListFileSources:output_type -> v1.ListFileSourcesResponse
+	24, // 95: v1.FileManager.CreateFileSource:output_type -> v1.CreateFileSourceResponse
+	26, // 96: v1.FileManager.UpdateFileSource:output_type -> v1.UpdateFileSourceResponse
+	28, // 97: v1.FileManager.DeleteFileSource:output_type -> v1.DeleteFileSourceResponse
+	30, // 98: v1.FileManager.TestFileSource:output_type -> v1.TestFileSourceResponse
+	71, // [71:99] is the sub-list for method output_type
+	43, // [43:71] is the sub-list for method input_type
 	43, // [43:43] is the sub-list for extension type_name
 	43, // [43:43] is the sub-list for extension extendee
 	0,  // [0:43] is the sub-list for field type_name
@@ -5512,14 +5401,14 @@ func file_v1_file_proto_init() {
 	file_v1_file_proto_msgTypes[29].OneofWrappers = []any{}
 	file_v1_file_proto_msgTypes[51].OneofWrappers = []any{}
 	file_v1_file_proto_msgTypes[53].OneofWrappers = []any{}
-	file_v1_file_proto_msgTypes[63].OneofWrappers = []any{}
+	file_v1_file_proto_msgTypes[61].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_file_proto_rawDesc), len(file_v1_file_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   74,
+			NumMessages:   72,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

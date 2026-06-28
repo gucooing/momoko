@@ -86,10 +86,6 @@ func (f *FileService) GetFileTask(ctx context.Context, req *v1.GetFileTaskReques
 	return &v1.GetFileTaskResponse{Task: task}, nil
 }
 
-func (f *FileService) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
-	return f.uc.OpenFileSystemFile(ctx, req)
-}
-
 func (f *FileService) EditFileSystemFile(ctx context.Context, req *v1.EditFileSystemFileRequest) (*v1.EditFileSystemFileResponse, error) {
 	return f.uc.EditFileSystemFile(ctx, req)
 }

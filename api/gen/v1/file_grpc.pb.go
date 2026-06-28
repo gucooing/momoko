@@ -29,7 +29,6 @@ const (
 	FileManager_GetFileTask_FullMethodName             = "/v1.FileManager/GetFileTask"
 	FileManager_BatchCompressFileSystem_FullMethodName = "/v1.FileManager/BatchCompressFileSystem"
 	FileManager_UnzipFileSystem_FullMethodName         = "/v1.FileManager/UnzipFileSystem"
-	FileManager_OpenFileSystemFile_FullMethodName      = "/v1.FileManager/OpenFileSystemFile"
 	FileManager_EditFileSystemFile_FullMethodName      = "/v1.FileManager/EditFileSystemFile"
 	FileManager_FileSystemPreSign_FullMethodName       = "/v1.FileManager/FileSystemPreSign"
 	FileManager_FileSystemPreSignUpload_FullMethodName = "/v1.FileManager/FileSystemPreSignUpload"
@@ -76,8 +75,6 @@ type FileManagerClient interface {
 	BatchCompressFileSystem(ctx context.Context, in *BatchCompressFileSystemRequest, opts ...grpc.CallOption) (*BatchCompressFileSystemResponse, error)
 	// 解压指定压缩包(系统级)
 	UnzipFileSystem(ctx context.Context, in *UnzipFileSystemRequest, opts ...grpc.CallOption) (*UnzipFileSystemResponse, error)
-	// 打开指定文件(系统级)
-	OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...grpc.CallOption) (*OpenFileSystemFileResponse, error)
 	// 编辑指定文件(系统级)
 	EditFileSystemFile(ctx context.Context, in *EditFileSystemFileRequest, opts ...grpc.CallOption) (*EditFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
@@ -218,16 +215,6 @@ func (c *fileManagerClient) UnzipFileSystem(ctx context.Context, in *UnzipFileSy
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnzipFileSystemResponse)
 	err := c.cc.Invoke(ctx, FileManager_UnzipFileSystem_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *fileManagerClient) OpenFileSystemFile(ctx context.Context, in *OpenFileSystemFileRequest, opts ...grpc.CallOption) (*OpenFileSystemFileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OpenFileSystemFileResponse)
-	err := c.cc.Invoke(ctx, FileManager_OpenFileSystemFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -440,8 +427,6 @@ type FileManagerServer interface {
 	BatchCompressFileSystem(context.Context, *BatchCompressFileSystemRequest) (*BatchCompressFileSystemResponse, error)
 	// 解压指定压缩包(系统级)
 	UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error)
-	// 打开指定文件(系统级)
-	OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error)
 	// 编辑指定文件(系统级)
 	EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error)
 	// 文件下载预签名(系统级)
@@ -517,9 +502,6 @@ func (UnimplementedFileManagerServer) BatchCompressFileSystem(context.Context, *
 }
 func (UnimplementedFileManagerServer) UnzipFileSystem(context.Context, *UnzipFileSystemRequest) (*UnzipFileSystemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UnzipFileSystem not implemented")
-}
-func (UnimplementedFileManagerServer) OpenFileSystemFile(context.Context, *OpenFileSystemFileRequest) (*OpenFileSystemFileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method OpenFileSystemFile not implemented")
 }
 func (UnimplementedFileManagerServer) EditFileSystemFile(context.Context, *EditFileSystemFileRequest) (*EditFileSystemFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EditFileSystemFile not implemented")
@@ -772,24 +754,6 @@ func _FileManager_UnzipFileSystem_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileManagerServer).UnzipFileSystem(ctx, req.(*UnzipFileSystemRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FileManager_OpenFileSystemFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OpenFileSystemFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FileManagerServer).OpenFileSystemFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FileManager_OpenFileSystemFile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileManagerServer).OpenFileSystemFile(ctx, req.(*OpenFileSystemFileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1164,10 +1128,6 @@ var FileManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnzipFileSystem",
 			Handler:    _FileManager_UnzipFileSystem_Handler,
-		},
-		{
-			MethodName: "OpenFileSystemFile",
-			Handler:    _FileManager_OpenFileSystemFile_Handler,
 		},
 		{
 			MethodName: "EditFileSystemFile",

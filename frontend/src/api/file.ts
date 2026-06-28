@@ -10,7 +10,6 @@ import type {
   CutFileSystemResponse,
   BatchCompressFileSystemResponse,
   UnzipFileSystemResponse,
-  OpenFileSystemFileResponse,
   EditFileSystemFileResponse,
   FileSystemPreSignResponse,
   FileSystemPreSignUploadResponse,
@@ -61,10 +60,6 @@ export const batchCompressFileSystem = (paths: string[], targetPath?: string, so
 // 解压
 export const unzipFileSystem = (path: string, targetPath?: string, sourceId = '') =>
   request.post<UnzipFileSystemResponse>('/file/system/unzip', { path, targetPath, sourceId })
-
-// 打开文件（响应 info 为 base64 字符串）
-export const openFileSystemFile = (path: string, sourceId = '') =>
-  request.post<OpenFileSystemFileResponse>('/file/system/open/file', { path, sourceId })
 
 // 编辑文件（content 为 base64 字符串）
 export const editFileSystemFile = (path: string, content: string, sourceId = '') =>

@@ -475,20 +475,6 @@ export interface UnzipInstanceFileResponse {
   outputPath: string;
 }
 
-/** 打开实例文件请求 */
-export interface OpenInstanceFileRequest {
-  /** 实例id */
-  id: string;
-  /** 文件相对路径 */
-  path: string;
-}
-
-/** 打开实例文件响应 */
-export interface OpenInstanceFileResponse {
-  /** 文件内容 */
-  info: Uint8Array;
-}
-
 /** 编辑实例文件请求 */
 export interface EditInstanceFileRequest {
   /** 实例id */

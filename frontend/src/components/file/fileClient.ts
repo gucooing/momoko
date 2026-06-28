@@ -1,4 +1,5 @@
 import { decodeFileContent, encodeTextToBase64 } from '@/utils/fileEncoding'
+import { resolvePreSignedFileUrl } from '@/utils/file'
 import { waitFileTask } from '@/utils/fileTask'
 import { translate as t } from '@/locales'
 import * as systemApi from '@/api/file'
@@ -10,6 +11,17 @@ import type { FileClient, FileScope } from './types'
 const finishTask = async (task: FileTaskInfo | undefined): Promise<FileTaskInfo> => {
   if (!task) throw new Error(t('utils.fileTask.missingTask'))
   return waitFileTask(task.taskId, { initialTask: task })
+}
+
+// 编辑器加载正文：统一走签名下载链接（代理串流 / OSS 302 直链），拉取字节后做二进制/UTF-8 判定。
+// 取代旧的 base64 open 接口——正文不再经 JSON/base64 传输。媒体文件在编辑器外用 <img/video src> 预览。
+const openViaDownload = async (downloadUrlPath: string) => {
+  const res = await fetch(resolvePreSignedFileUrl(downloadUrlPath))
+  if (!res.ok) {
+    throw new Error(t('fileManager.openFailed'))
+  }
+  const buf = await res.arrayBuffer()
+  return decodeFileContent(new Uint8Array(buf))
 }
 
 // 系统级客户端：source_id 由 getSourceId() 动态读取（切换来源无需重建 client，子组件持有的引用不变）。
@@ -64,8 +76,8 @@ const createSystemFileClient = (getSourceId: () => string = () => ''): FileClien
     return data.outputPath
   },
   async open(path) {
-    const { data } = await systemApi.openFileSystemFile(path, getSourceId())
-    return decodeFileContent(data.info)
+    const { data } = await systemApi.fileSystemPreSign(path, getSourceId(), true)
+    return openViaDownload(data.downloadUrlPath)
   },
   async edit(path, content) {
     await systemApi.editFileSystemFile(path, encodeTextToBase64(content), getSourceId())
@@ -128,8 +140,8 @@ const createInstanceFileClient = (id: string): FileClient => ({
     return data.outputPath
   },
   async open(path) {
-    const { data } = await instanceApi.openInstanceFile(id, path)
-    return decodeFileContent(data.info)
+    const { data } = await instanceApi.instanceFilePreSign(id, path)
+    return openViaDownload(data.downloadUrlPath)
   },
   async edit(path, content) {
     await instanceApi.editInstanceFile(id, path, encodeTextToBase64(content))

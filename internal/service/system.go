@@ -35,9 +35,15 @@ func (s *SystemService) MePermissions(ctx context.Context, req *v1.MePermissions
 	}
 
 	return &v1.MePermissionsResponse{
-		Permissions: permissions,
-		Menus:       menus,
+		Permissions:    permissions,
+		Menus:          menus,
+		CurrentVersion: s.uc.CurrentVersion(),
 	}, nil
+}
+
+// CheckUpdate 检查更新（需 system:update 权限，鉴权在中间件完成）。
+func (s *SystemService) CheckUpdate(ctx context.Context, req *v1.CheckUpdateRequest) (*v1.CheckUpdateResponse, error) {
+	return s.uc.CheckUpdate(ctx)
 }
 
 func (s *SystemService) AdminPermissions(ctx context.Context, req *v1.AdminPermissionsRequest) (*v1.AdminPermissionsResponse, error) {

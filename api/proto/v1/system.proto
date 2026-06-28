@@ -15,6 +15,12 @@ service System {
       get: "/api/v1/permissions/me"
     };
   }
+  // 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+  rpc CheckUpdate(CheckUpdateRequest) returns (CheckUpdateResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/update/check"
+    };
+  }
   // 管理员获取全部权限菜单
   rpc AdminPermissions(AdminPermissionsRequest) returns (AdminPermissionsResponse) {
     option (google.api.http) = {
@@ -154,6 +160,27 @@ message MePermissionsResponse {
   repeated string permissions = 1;
   // 权限菜单
   repeated MenuInfo menus = 2;
+  // 当前运行版本号（构建期注入，开发构建为 "dev"）
+  string current_version = 3;
+}
+
+// 检查更新请求
+message CheckUpdateRequest {}
+
+// 检查更新响应
+message CheckUpdateResponse {
+  // 当前运行版本号
+  string current_version = 1;
+  // 远程最新版本号（tag）
+  string latest_version = 2;
+  // 是否有可用更新
+  bool has_update = 3;
+  // 最新发行版页面地址
+  string release_url = 4;
+  // 最新发行版名称
+  string release_name = 5;
+  // 最新发行版发布时间
+  google.protobuf.Timestamp published_at = 6;
 }
 
 // 权限菜单信息

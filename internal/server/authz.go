@@ -94,6 +94,9 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemUpdateEmailTemplate: constant.SystemConfigEdit,
 	v1.OperationSystemTestEmailConfig:     constant.SystemConfigEdit,
 	v1.OperationSystemListOperationLogs:   constant.SystemConfigView,
+
+	// —— 系统：更新检查 ——
+	v1.OperationSystemCheckUpdate: constant.SystemUpdate,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。

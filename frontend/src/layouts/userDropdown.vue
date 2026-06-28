@@ -56,11 +56,11 @@
             <el-icon><IconGithub /></el-icon>
             <span>GitHub</span>
           </el-dropdown-item>
-          <el-dropdown-item command="help">
+          <el-dropdown-item v-if="canCheckUpdate" command="checkUpdate">
             <el-icon>
-              <component :is="menuStore.iconComponents['HOutline:QuestionMarkCircleIcon']" />
+              <component :is="menuStore.iconComponents['HOutline:ArrowPathIcon']" />
             </el-icon>
-            <span>{{ t('layout.help') }}</span>
+            <span>{{ t('layout.version', { version: currentVersion }) }}</span>
           </el-dropdown-item>
           <el-dropdown-item divided command="password">
             <el-icon>
@@ -86,6 +86,7 @@
 import IconGithub from '@/components/icons/IconGithub.vue'
 import { useUserProfileStore } from '@/stores/user/profile'
 import { Dialog } from '@/utils/dialog'
+import { checkUpdateRequest } from '@/api/login'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
@@ -93,11 +94,43 @@ const menuStore = useMenuStore()
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
 const updatePasswordRef = useTemplateRef('updatePasswordRef')
-const PROJECT_LINK = 'https://github.com/DFANNN/DFAN-Admin'
+const PROJECT_LINK = 'https://github.com/gucooing/momoko'
 const { t } = useI18n()
 
 // 用户角色名称
 const userRoleName = computed(() => userStore.getUserRoleName())
+
+// 更新检查：仅有 system:update 权限时显示该项；版本号取自权限响应。
+const canCheckUpdate = computed(() => menuStore.hasButtonPermission('system:update'))
+const currentVersion = computed(() => menuStore.currentVersion || 'dev')
+const checkingUpdate = ref(false)
+
+const onCheckUpdate = async () => {
+  if (checkingUpdate.value) return
+  checkingUpdate.value = true
+  try {
+    const { data } = await checkUpdateRequest()
+    if (data?.hasUpdate) {
+      Dialog.info({
+        showCancelButton: true,
+        title: t('layout.updateAvailableTitle'),
+        content: t('layout.updateAvailableContent', {
+          current: data.currentVersion,
+          latest: data.latestVersion,
+        }),
+        confirmText: t('layout.updateGoDownload'),
+        cancelText: t('layout.logoutCancelText'),
+        onConfirm: () => {
+          window.open(data.releaseUrl || PROJECT_LINK, '_blank')
+        },
+      })
+    } else {
+      ElMessage.success(t('layout.updateUpToDate', { version: data?.currentVersion }))
+    }
+  } finally {
+    checkingUpdate.value = false
+  }
+}
 
 // 用户菜单命令处理
 const showLogoutConfirm = () => {
@@ -120,8 +153,10 @@ const handleCommand = (command: string) => {
       break
     case 'docs':
     case 'github':
-    case 'help':
       window.open(PROJECT_LINK, '_blank')
+      break
+    case 'checkUpdate':
+      onCheckUpdate()
       break
     case 'password':
       updatePasswordRef.value?.showDialog()

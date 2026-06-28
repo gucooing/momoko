@@ -33,6 +33,8 @@ import type {
   LoginConfigResponse,
   MePermissionsRequest,
   MePermissionsResponse,
+  CheckUpdateRequest,
+  CheckUpdateResponse,
   UpdateLoginConfigRequest,
   UpdateLoginConfigResponse,
 } from '@/types/v1/system'
@@ -91,4 +93,9 @@ export const mePermissionsRequest = (params: MePermissionsRequest = {}) => {
       },
     }
   })
+}
+
+// 检查更新（需 system:update 权限）：查询远程最新发行版并与当前版本比较。
+export const checkUpdateRequest = (params: CheckUpdateRequest = {}) => {
+  return request.get<CheckUpdateResponse>('/system/update/check', { params })
 }

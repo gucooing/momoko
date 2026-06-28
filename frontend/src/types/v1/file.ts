@@ -711,20 +711,6 @@ export interface FileOperationResult {
   message: string;
 }
 
-/** 打开系统文件请求 */
-export interface OpenFileSystemFileRequest {
-  /** 文件路径 */
-  path: string;
-  /** 文件来源id，空=本地磁盘 */
-  sourceId: string;
-}
-
-/** 打开系统文件响应 */
-export interface OpenFileSystemFileResponse {
-  /** 文件内容 */
-  info: Uint8Array;
-}
-
 /** 编辑系统文件请求 */
 export interface EditFileSystemFileRequest {
   /** 文件路径 */

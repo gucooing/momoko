@@ -622,18 +622,6 @@ func (i *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.
 	return &v1.UnzipInstanceFileResponse{OutputPath: outputPath}, nil
 }
 
-func (i *InstanceUsecase) OpenFile(ctx context.Context, userID string, req *v1.OpenInstanceFileRequest) (*v1.OpenInstanceFileResponse, error) {
-	store, _, err := i.instanceStore(ctx, userID, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	content, err := store.Read(ctx, req.Path, file.MaxLoadFileSize)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return &v1.OpenInstanceFileResponse{Info: content}, nil
-}
-
 func (i *InstanceUsecase) EditFile(ctx context.Context, userID string, req *v1.EditInstanceFileRequest) (*v1.EditInstanceFileResponse, error) {
 	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {

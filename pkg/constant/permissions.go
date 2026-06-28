@@ -75,4 +75,6 @@ const (
 	FileSource Permissions = "file:source"
 	// TaskManage 允许查看与操作任务管理器中的全部任务。
 	TaskManage Permissions = "task:manage"
+	// SystemUpdate 允许执行更新检查（查询远程发行版并比较版本）。
+	SystemUpdate Permissions = "system:update"
 )

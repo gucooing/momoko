@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	System_MePermissions_FullMethodName          = "/v1.System/MePermissions"
+	System_CheckUpdate_FullMethodName            = "/v1.System/CheckUpdate"
 	System_AdminPermissions_FullMethodName       = "/v1.System/AdminPermissions"
 	System_AdminPermissionsInfo_FullMethodName   = "/v1.System/AdminPermissionsInfo"
 	System_AdminAddPermissions_FullMethodName    = "/v1.System/AdminAddPermissions"
@@ -50,6 +51,8 @@ const (
 type SystemClient interface {
 	// 获取当前角色的全部权限
 	MePermissions(ctx context.Context, in *MePermissionsRequest, opts ...grpc.CallOption) (*MePermissionsResponse, error)
+	// 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+	CheckUpdate(ctx context.Context, in *CheckUpdateRequest, opts ...grpc.CallOption) (*CheckUpdateResponse, error)
 	// 管理员获取全部权限菜单
 	AdminPermissions(ctx context.Context, in *AdminPermissionsRequest, opts ...grpc.CallOption) (*AdminPermissionsResponse, error)
 	// 管理员获取单个权限菜单
@@ -104,6 +107,16 @@ func (c *systemClient) MePermissions(ctx context.Context, in *MePermissionsReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MePermissionsResponse)
 	err := c.cc.Invoke(ctx, System_MePermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) CheckUpdate(ctx context.Context, in *CheckUpdateRequest, opts ...grpc.CallOption) (*CheckUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckUpdateResponse)
+	err := c.cc.Invoke(ctx, System_CheckUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +331,8 @@ func (c *systemClient) ListOperationLogs(ctx context.Context, in *ListOperationL
 type SystemServer interface {
 	// 获取当前角色的全部权限
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
+	// 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+	CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error)
 	// 管理员获取全部权限菜单
 	AdminPermissions(context.Context, *AdminPermissionsRequest) (*AdminPermissionsResponse, error)
 	// 管理员获取单个权限菜单
@@ -370,6 +385,9 @@ type UnimplementedSystemServer struct{}
 
 func (UnimplementedSystemServer) MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MePermissions not implemented")
+}
+func (UnimplementedSystemServer) CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckUpdate not implemented")
 }
 func (UnimplementedSystemServer) AdminPermissions(context.Context, *AdminPermissionsRequest) (*AdminPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AdminPermissions not implemented")
@@ -466,6 +484,24 @@ func _System_MePermissions_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SystemServer).MePermissions(ctx, req.(*MePermissionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_CheckUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).CheckUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_CheckUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).CheckUpdate(ctx, req.(*CheckUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -840,6 +876,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MePermissions",
 			Handler:    _System_MePermissions_Handler,
+		},
+		{
+			MethodName: "CheckUpdate",
+			Handler:    _System_CheckUpdate_Handler,
 		},
 		{
 			MethodName: "AdminPermissions",

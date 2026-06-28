@@ -17,6 +17,7 @@ import (
 	"momoko/pkg/constant"
 	"momoko/pkg/email"
 	"momoko/pkg/sysinfo"
+	"momoko/pkg/version"
 )
 
 type SystemUsecase struct {
@@ -33,6 +34,33 @@ type SystemUsecase struct {
 type RoleOjb struct {
 	Menus       []*gen.Menu                       // 原始数据
 	Permissions map[constant.Permissions]struct{} // 权限快速获取数据
+}
+
+// CurrentVersion 返回当前运行版本号。
+func (s *SystemUsecase) CurrentVersion() string {
+	return version.Current()
+}
+
+// CheckUpdate 查询远程最新发行版并与当前版本比较（更新检查逻辑在 pkg/version 内）。
+func (s *SystemUsecase) CheckUpdate(ctx context.Context) (*v1.CheckUpdateResponse, error) {
+	rel, err := version.CheckLatest(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	resp := &v1.CheckUpdateResponse{
+		CurrentVersion: version.Current(),
+		LatestVersion:  rel.TagName,
+		HasUpdate:      version.HasUpdate(rel.TagName),
+		ReleaseUrl:     rel.HTMLURL,
+		ReleaseName:    rel.Name,
+	}
+	if resp.ReleaseUrl == "" {
+		resp.ReleaseUrl = version.ReleasesURL
+	}
+	if !rel.PublishedAt.IsZero() {
+		resp.PublishedAt = timestamppb.New(rel.PublishedAt)
+	}
+	return resp, nil
 }
 
 func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissions) error {

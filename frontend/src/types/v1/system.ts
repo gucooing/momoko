@@ -244,6 +244,28 @@ export interface MePermissionsResponse {
   permissions: string[];
   /** 权限菜单 */
   menus: MenuInfo[];
+  /** 当前运行版本号（构建期注入，开发构建为 "dev"） */
+  currentVersion: string;
+}
+
+/** 检查更新请求 */
+export interface CheckUpdateRequest {
+}
+
+/** 检查更新响应 */
+export interface CheckUpdateResponse {
+  /** 当前运行版本号 */
+  currentVersion: string;
+  /** 远程最新版本号（tag） */
+  latestVersion: string;
+  /** 是否有可用更新 */
+  hasUpdate: boolean;
+  /** 最新发行版页面地址 */
+  releaseUrl: string;
+  /** 最新发行版名称 */
+  releaseName: string;
+  /** 最新发行版发布时间 */
+  publishedAt: Date | undefined;
 }
 
 /** 权限菜单信息 */

@@ -474,19 +474,6 @@ func toFileTaskStatus(s task.Status) v1.FileTaskStatus {
 	}
 }
 
-// OpenFileSystemFile 打开文件并返回内容（编辑器小文件读取，仍用 bytes 传输）。
-func (f *FileUsecase) OpenFileSystemFile(ctx context.Context, req *v1.OpenFileSystemFileRequest) (*v1.OpenFileSystemFileResponse, error) {
-	store, _, err := f.storeFor(ctx, req.SourceId)
-	if err != nil {
-		return nil, err
-	}
-	content, err := store.Read(ctx, req.Path, file.MaxLoadFileSize)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return &v1.OpenFileSystemFileResponse{Info: content}, nil
-}
-
 // EditFileSystemFile 覆盖保存文件内容。
 func (f *FileUsecase) EditFileSystemFile(ctx context.Context, req *v1.EditFileSystemFileRequest) (*v1.EditFileSystemFileResponse, error) {
 	store, _, err := f.storeFor(ctx, req.SourceId)

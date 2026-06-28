@@ -1442,25 +1442,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.FileSystemPreSignUploadResponse'
-    /api/v1/file/system/open/file:
-        post:
-            tags:
-                - FileManager
-            description: 打开指定文件(系统级)
-            operationId: FileManager_OpenFileSystemFile
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.OpenFileSystemFileRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.OpenFileSystemFileResponse'
     /api/v1/file/system/rename:
         post:
             tags:
@@ -1816,32 +1797,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.EditInstanceFileResponse'
-    /api/v1/instance/file/open/{id}:
-        post:
-            tags:
-                - InstanceManager
-            description: 打开实例目录内文件
-            operationId: InstanceManager_OpenInstanceFile
-            parameters:
-                - name: id
-                  in: path
-                  description: 实例id
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.OpenInstanceFileRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.OpenInstanceFileResponse'
     /api/v1/instance/file/pre-sign/{id}:
         get:
             tags:
@@ -3726,6 +3681,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SystemStatusResponse'
+    /api/v1/system/update/check:
+        get:
+            tags:
+                - System
+            description: 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
+            operationId: System_CheckUpdate
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CheckUpdateResponse'
     /api/v1/task/cancel:
         post:
             tags:
@@ -4547,6 +4515,29 @@ components:
         v1.CancelTaskResponse:
             type: object
             properties: {}
+        v1.CheckUpdateResponse:
+            type: object
+            properties:
+                currentVersion:
+                    type: string
+                    description: 当前运行版本号
+                latestVersion:
+                    type: string
+                    description: 远程最新版本号（tag）
+                hasUpdate:
+                    type: boolean
+                    description: 是否有可用更新
+                releaseUrl:
+                    type: string
+                    description: 最新发行版页面地址
+                releaseName:
+                    type: string
+                    description: 最新发行版名称
+                publishedAt:
+                    type: string
+                    description: 最新发行版发布时间
+                    format: date-time
+            description: 检查更新响应
         v1.CompleteFileUploadRequest:
             type: object
             properties:
@@ -7759,6 +7750,9 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 权限菜单
+                currentVersion:
+                    type: string
+                    description: 当前运行版本号（构建期注入，开发构建为 "dev"）
             description: 获取当前角色的全部权限响应
         v1.MemoryOverview:
             type: object
@@ -7989,42 +7983,6 @@ components:
                         - $ref: '#/components/schemas/v1.NetworkConnectionStatus'
                     description: 网络连接统计
             description: 网络实时状态
-        v1.OpenFileSystemFileRequest:
-            type: object
-            properties:
-                path:
-                    type: string
-                    description: 文件路径
-                sourceId:
-                    type: string
-                    description: 文件来源id，空=本地磁盘
-            description: 打开系统文件请求
-        v1.OpenFileSystemFileResponse:
-            type: object
-            properties:
-                info:
-                    type: string
-                    description: 文件内容
-                    format: bytes
-            description: 打开系统文件响应
-        v1.OpenInstanceFileRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: 实例id
-                path:
-                    type: string
-                    description: 文件相对路径
-            description: 打开实例文件请求
-        v1.OpenInstanceFileResponse:
-            type: object
-            properties:
-                info:
-                    type: string
-                    description: 文件内容
-                    format: bytes
-            description: 打开实例文件响应
         v1.OperationLogInfo:
             type: object
             properties:
