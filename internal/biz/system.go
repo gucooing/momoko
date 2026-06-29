@@ -53,6 +53,7 @@ func (s *SystemUsecase) CheckUpdate(ctx context.Context) (*v1.CheckUpdateRespons
 		HasUpdate:      version.HasUpdate(rel.TagName),
 		ReleaseUrl:     rel.HTMLURL,
 		ReleaseName:    rel.Name,
+		ReleaseBody:    rel.Body,
 	}
 	if resp.ReleaseUrl == "" {
 		resp.ReleaseUrl = version.ReleasesURL

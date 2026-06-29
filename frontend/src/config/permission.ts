@@ -23,6 +23,7 @@ export const PERM = {
   // ---- 系统配置 ----
   SYSTEM_CONFIG_VIEW: 'system_config:view',
   SYSTEM_CONFIG_EDIT: 'system_config:edit',
+  OIDC_EDIT: 'oidc:edit',
 
   // ---- Docker 管理 ----
   DOCKER_VIEW: 'docker:view',

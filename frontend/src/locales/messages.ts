@@ -619,13 +619,15 @@ const systemMessages = {
       emailLogin: 'Email Login',
       emailLoginDesc: 'Sign in with email and verification code',
       registerEmailVerification: 'Registration Email Verification',
-      registerEmailVerificationDesc: 'Require email verification code during registration when enabled',
+      registerEmailVerificationDesc:
+        'Require email verification code during registration when enabled',
       switchOn: 'On',
       switchOff: 'Off',
       saveConfig: 'Save Config',
       emailService: 'Email Service',
       enableEmailService: 'Enable Email Service',
-      enableEmailServiceDesc: 'The system will use the configuration below to send emails when enabled',
+      enableEmailServiceDesc:
+        'The system will use the configuration below to send emails when enabled',
       smtpHost: 'SMTP Host',
       smtpHostDesc: 'Email server address, such as smtp.example.com',
       smtpPort: 'SMTP Port',
@@ -1180,7 +1182,8 @@ const toolsMessages = {
       },
       frpc: {
         titleWithName: 'frpc Config - {name}',
-        intro: 'Load this config with the official frpc on your internal machine to establish the tunnel (verify the public address):',
+        intro:
+          'Load this config with the official frpc on your internal machine to establish the tunnel (verify the public address):',
         copy: 'Copy',
         copied: 'Copied to clipboard',
         download: 'Download',
@@ -2596,17 +2599,20 @@ const nodeMessages = {
       operation: 'Operation',
       serialNumber: 'No.',
       copyTitle: 'Copy API Key',
-      copyWarning: 'Copy and save this API Key now. The full value cannot be viewed again after closing.',
+      copyWarning:
+        'Copy and save this API Key now. The full value cannot be viewed again after closing.',
       close: 'Close',
       refreshTitle: 'Refresh API Key',
-      refreshContent: 'Refreshing will generate a new API Key and invalidate the old one. Continue?',
+      refreshContent:
+        'Refreshing will generate a new API Key and invalidate the old one. Continue?',
       confirm: 'Confirm',
       cancel: 'Cancel',
       refreshSuccess: 'API Key refreshed',
       copied: 'Copied to clipboard',
       expiresPlaceholder: 'Select expiration time (leave empty for permanent)',
       neverExpires: 'Permanent',
-      neverExpiresTip: 'When checked, expiration time will be cleared and this API Key will be permanent',
+      neverExpiresTip:
+        'When checked, expiration time will be cleared and this API Key will be permanent',
       editSuccess: 'Edited',
       addSuccess: 'Added',
     },
@@ -2849,7 +2855,8 @@ const sub2apiMessages = {
       updateTimeline: '更新时间线',
       noAnnouncements: '暂无公告',
       disabledTitle: 'Sub2API 首页未开启',
-      disabledDesc: '管理员开启公开首页并完成 Sub2API 地址与管理员 API Key 配置后，这里会展示运行概览。',
+      disabledDesc:
+        '管理员开启公开首页并完成 Sub2API 地址与管理员 API Key 配置后，这里会展示运行概览。',
       heroLead: '统一接入，洞察用量',
       heroHighlight: '海量 AI 模型网关',
       heroSubtitle: '通过统一标准接口接入多家模型，实时掌握调用量、成功率与吞吐表现。',
@@ -3084,7 +3091,8 @@ const sub2apiMessages = {
       updateTimeline: '更新時間線',
       noAnnouncements: '暫無公告',
       disabledTitle: 'Sub2API 首頁未開啟',
-      disabledDesc: '管理員開啟公開首頁並完成 Sub2API 地址與管理員 API Key 配置後，這裡會展示運行概覽。',
+      disabledDesc:
+        '管理員開啟公開首頁並完成 Sub2API 地址與管理員 API Key 配置後，這裡會展示運行概覽。',
       heroLead: '統一接入，洞察用量',
       heroHighlight: '海量 AI 模型網關',
       heroSubtitle: '通過統一標準接口接入多家模型，實時掌握調用量、成功率與吞吐表現。',
@@ -3275,7 +3283,8 @@ const sub2apiMessages = {
     },
     admin: {
       title: 'Sub2API Admin',
-      subtitle: 'Configure unified gateway connections, inspect usage, and maintain public announcements and timeline.',
+      subtitle:
+        'Configure unified gateway connections, inspect usage, and maintain public announcements and timeline.',
       configSubtitle: 'Configure the gateway backend connection and sync parameters.',
       enablePublicHome: 'Enable Public Home',
       publicHomeHint: 'Visitors can access /sub2api public home when enabled',
@@ -3319,10 +3328,12 @@ const sub2apiMessages = {
       updateTimeline: 'Update Timeline',
       noAnnouncements: 'No announcements',
       disabledTitle: 'Sub2API Home Disabled',
-      disabledDesc: 'After the administrator enables public home and configures Sub2API URL and Admin API Key, the runtime overview will appear here.',
+      disabledDesc:
+        'After the administrator enables public home and configures Sub2API URL and Admin API Key, the runtime overview will appear here.',
       heroLead: 'Unified access, usage insight',
       heroHighlight: 'Massive AI model gateway',
-      heroSubtitle: 'Access multiple model providers through one standard API and monitor calls, success rate, and throughput in realtime.',
+      heroSubtitle:
+        'Access multiple model providers through one standard API and monitor calls, success rate, and throughput in realtime.',
       statusSyncing: 'Data syncing',
       statusError: 'Connection error',
       statusRunning: 'Service running',
@@ -3458,6 +3469,8 @@ export const messages = {
       version: '版本号: {version}',
       updateAvailableTitle: '发现新版本',
       updateAvailableContent: '当前版本 {current}，最新版本 {latest}，是否前往下载？',
+      updateReleaseContent: '更新内容',
+      updateReleaseEmpty: '暂无更新内容',
       updateGoDownload: '前往下载',
       updateUpToDate: '已是最新版本（{version}）',
       changePassword: '修改密码',
@@ -4131,7 +4144,8 @@ export const messages = {
       analysis: {
         businessOverview: 'Business Overview',
         operationsCenter: '全球业务运营中心',
-        overviewText: '本月业绩增长势头强劲，已完成季度目标的 {percentage}%，建议加大对移动端大促活动的资源投入',
+        overviewText:
+          '本月业绩增长势头强劲，已完成季度目标的 {percentage}%，建议加大对移动端大促活动的资源投入',
         generateMonthlyReport: '生成月报',
         performanceForecast: '业绩预测',
         totalRevenue: '总营收',
@@ -4267,7 +4281,8 @@ export const messages = {
       profileUpdateFailed: '修改个人资料失败',
       deleteAccountNotImplemented: '注销账户功能暂未实现',
       permissionTitle: '我的权限',
-      permissionDescription: '查看您在系统中获准访问的菜单项与操作功能。如有权限变动，请联系系统管理员。',
+      permissionDescription:
+        '查看您在系统中获准访问的菜单项与操作功能。如有权限变动，请联系系统管理员。',
       menuPermission: '菜单权限',
       buttonPermission: '按钮权限',
       menuFunctionName: '菜单/功能名称',
@@ -4319,7 +4334,8 @@ export const messages = {
         all: '全部消息',
         unread: '未读消息',
         maintenanceTitle: '系统维护通知',
-        maintenanceContent: '系统将于今晚 22:00-24:00 进行维护升级，期间可能无法访问，请提前做好准备。',
+        maintenanceContent:
+          '系统将于今晚 22:00-24:00 进行维护升级，期间可能无法访问，请提前做好准备。',
         opsTitle: '运维同事',
         opsContent: '今天的任务清单已经更新，记得先确认实例巡检结果。',
         newFeatureTitle: '新功能上线',
@@ -4467,6 +4483,8 @@ export const messages = {
       version: '版本號: {version}',
       updateAvailableTitle: '發現新版本',
       updateAvailableContent: '目前版本 {current}，最新版本 {latest}，是否前往下載？',
+      updateReleaseContent: '更新內容',
+      updateReleaseEmpty: '暫無更新內容',
       updateGoDownload: '前往下載',
       updateUpToDate: '已是最新版本（{version}）',
       changePassword: '修改密碼',
@@ -5140,7 +5158,8 @@ export const messages = {
       analysis: {
         businessOverview: 'Business Overview',
         operationsCenter: '全球業務運營中心',
-        overviewText: '本月業績增長勢頭強勁，已完成季度目標的 {percentage}%，建議加大對移動端大促活動的資源投入',
+        overviewText:
+          '本月業績增長勢頭強勁，已完成季度目標的 {percentage}%，建議加大對移動端大促活動的資源投入',
         generateMonthlyReport: '生成月報',
         performanceForecast: '業績預測',
         totalRevenue: '總營收',
@@ -5276,7 +5295,8 @@ export const messages = {
       profileUpdateFailed: '修改個人資料失敗',
       deleteAccountNotImplemented: '註銷帳號功能暫未實現',
       permissionTitle: '我的權限',
-      permissionDescription: '查看您在系統中獲准訪問的選單項與操作功能。如有權限變動，請聯繫系統管理員。',
+      permissionDescription:
+        '查看您在系統中獲准訪問的選單項與操作功能。如有權限變動，請聯繫系統管理員。',
       menuPermission: '選單權限',
       buttonPermission: '按鈕權限',
       menuFunctionName: '選單/功能名稱',
@@ -5328,7 +5348,8 @@ export const messages = {
         all: '全部消息',
         unread: '未讀消息',
         maintenanceTitle: '系統維護通知',
-        maintenanceContent: '系統將於今晚 22:00-24:00 進行維護升級，期間可能無法訪問，請提前做好準備。',
+        maintenanceContent:
+          '系統將於今晚 22:00-24:00 進行維護升級，期間可能無法訪問，請提前做好準備。',
         opsTitle: '運維同事',
         opsContent: '今天的任務清單已經更新，記得先確認實例巡檢結果。',
         newFeatureTitle: '新功能上線',
@@ -5476,6 +5497,8 @@ export const messages = {
       version: 'Version: {version}',
       updateAvailableTitle: 'New version available',
       updateAvailableContent: 'Current {current}, latest {latest}. Go to download?',
+      updateReleaseContent: 'Release notes',
+      updateReleaseEmpty: 'No release notes',
       updateGoDownload: 'Download',
       updateUpToDate: 'Already up to date ({version})',
       changePassword: 'Change password',
@@ -5548,7 +5571,8 @@ export const messages = {
       reuploadHint: 'Click to upload again or drag to replace the image',
       searchPlaceholder: 'Search avatar name',
       urlTitle: 'Enter avatar URL',
-      urlTip: 'Enter the avatar image URL. It will be saved as the current avatar after confirmation.',
+      urlTip:
+        'Enter the avatar image URL. It will be saved as the current avatar after confirmation.',
       urlPlaceholder: 'Enter avatar URL',
       preview: 'Preview',
       urlPreviewEmpty: 'A valid avatar URL will preview here',
@@ -5570,7 +5594,8 @@ export const messages = {
       redirect302: '302 Redirect',
       redirectOn: 'Direct',
       redirectOff: 'Proxy',
-      redirectHint: 'When on, preview/download will 302-redirect to the source URL, saving server bandwidth.',
+      redirectHint:
+        'When on, preview/download will 302-redirect to the source URL, saving server bandwidth.',
       redirectUnsupported: 'This source does not support direct redirect; the server will proxy.',
       creator: 'Creator',
       createTime: 'Created',
@@ -5781,7 +5806,8 @@ export const messages = {
       partUploadAborted: 'Chunk upload interrupted',
       sessionCanceled: 'Upload session has been canceled. Upload again',
       fileSizeMismatch: 'Server file size does not match the current file',
-      partVerifyFailed: 'Chunk verification failed. {count} chunks are still abnormal. Retry upload',
+      partVerifyFailed:
+        'Chunk verification failed. {count} chunks are still abnormal. Retry upload',
       editorThemeAuto: 'Auto',
       editorThemeLight: 'Light',
       editorThemeDark: 'Dark',
@@ -5952,7 +5978,8 @@ export const messages = {
       instanceTypeRequired: 'Select instance type',
       instancePathRequired: 'Enter instance path',
       startCommandRequired: 'Enter start command',
-      fileWorkbenchNote: 'The current API supports sorting by name and modified time. Click a file to view its content.',
+      fileWorkbenchNote:
+        'The current API supports sorting by name and modified time. Click a file to view its content.',
       fileListLoadFailed: 'Failed to load instance files',
       deletePartialFailed: 'Deleted {success} items, some entries failed',
       directoryLoadFailed: 'Failed to load directory',
@@ -6072,8 +6099,10 @@ export const messages = {
       resultFailed: 'Initialization failed',
       resultDone: 'Initialization complete',
       resultRunning: 'Initializing system',
-      resultFailedSubtitle: 'An error occurred during initialization. Check the configuration and try again',
-      resultDoneSubtitle: 'The system has initialized and restarted. Sign in with the admin account you just created',
+      resultFailedSubtitle:
+        'An error occurred during initialization. Check the configuration and try again',
+      resultDoneSubtitle:
+        'The system has initialized and restarted. Sign in with the admin account you just created',
       resultRunningSubtitle: 'The service is restarting automatically. Please wait...',
       pleaseSelect: 'Select',
       databaseTypeRequired: 'Select database type',
@@ -6149,7 +6178,8 @@ export const messages = {
       analysis: {
         businessOverview: 'Business Overview',
         operationsCenter: 'Global Operations Center',
-        overviewText: 'This month is growing strongly. {percentage}% of the quarterly target has been completed. Increase investment in mobile campaigns.',
+        overviewText:
+          'This month is growing strongly. {percentage}% of the quarterly target has been completed. Increase investment in mobile campaigns.',
         generateMonthlyReport: 'Generate Report',
         performanceForecast: 'Forecast',
         totalRevenue: 'Total Revenue',
@@ -6261,7 +6291,8 @@ export const messages = {
       profileCenter: 'Profile Center',
       saveAllChanges: 'Save all changes',
       avatarTitle: 'Your avatar',
-      avatarDescription: 'Built-in avatars are available. JPG, PNG, GIF and similar uploads are supported. Recommended size is under 2 MB.',
+      avatarDescription:
+        'Built-in avatars are available. JPG, PNG, GIF and similar uploads are supported. Recommended size is under 2 MB.',
       changeAvatar: 'Change avatar',
       name: 'Name',
       loginUsernamePlaceholder: 'Enter sign-in username',
@@ -6270,9 +6301,11 @@ export const messages = {
       bioLabel: 'Bio / Motto',
       bioPlaceholder: 'Write something about yourself...',
       tagsLabel: 'Tags (use a few keywords to describe yourself)',
-      tagsPlaceholder: 'Separate tags with English commas, for example: coding, coffee, fitness, learning',
+      tagsPlaceholder:
+        'Separate tags with English commas, for example: coding, coffee, fitness, learning',
       passwordCardTitle: 'Change Password',
-      passwordCardDescription: 'Changing to a strong password regularly improves account security. Use both letters and numbers.',
+      passwordCardDescription:
+        'Changing to a strong password regularly improves account security. Use both letters and numbers.',
       changeNow: 'Change now',
       dangerZone: 'Danger Zone',
       deleteAccount: 'Delete Account',
@@ -6285,7 +6318,8 @@ export const messages = {
       profileUpdateFailed: 'Failed to update profile',
       deleteAccountNotImplemented: 'Account deletion is not implemented',
       permissionTitle: 'My Permissions',
-      permissionDescription: 'View the menus and actions you can access in the system. Contact the system administrator if permissions change.',
+      permissionDescription:
+        'View the menus and actions you can access in the system. Contact the system administrator if permissions change.',
       menuPermission: 'Menu Permissions',
       buttonPermission: 'Button Permissions',
       menuFunctionName: 'Menu / Feature',
@@ -6337,14 +6371,18 @@ export const messages = {
         all: 'All messages',
         unread: 'Unread',
         maintenanceTitle: 'System Maintenance Notice',
-        maintenanceContent: 'The system will be maintained tonight from 22:00 to 24:00. Access may be unavailable during that time.',
+        maintenanceContent:
+          'The system will be maintained tonight from 22:00 to 24:00. Access may be unavailable during that time.',
         opsTitle: 'Operations Team',
-        opsContent: 'Today’s task list has been updated. Confirm instance inspection results first.',
+        opsContent:
+          'Today’s task list has been updated. Confirm instance inspection results first.',
         newFeatureTitle: 'New Feature Released',
-        newFeatureContent: 'Profile Center is now available. You can manage personal information and view notifications.',
+        newFeatureContent:
+          'Profile Center is now available. You can manage personal information and view notifications.',
         rankingContent: 'Your ranking progress has updated. You are now #2. Keep going.',
         securityTitle: 'Security Reminder',
-        securityContent: 'Change your password regularly and enable two-factor authentication to protect your account.',
+        securityContent:
+          'Change your password regularly and enable two-factor authentication to protect your account.',
         unknownUser: 'Unknown user',
       },
       extra: {

@@ -97,6 +97,15 @@ var operationWritePermissions = map[string]constant.Permissions{
 
 	// —— 系统：更新检查 ——
 	v1.OperationSystemCheckUpdate: constant.SystemUpdate,
+
+	// —— OIDC 服务端 ——
+	v1.OperationOIDCServiceOIDCConfig:              constant.OIDCView,
+	v1.OperationOIDCServiceListOIDCClients:         constant.OIDCView,
+	v1.OperationOIDCServiceUpdateOIDCConfig:        constant.OIDCEdit,
+	v1.OperationOIDCServiceCreateOIDCClient:        constant.OIDCEdit,
+	v1.OperationOIDCServiceUpdateOIDCClient:        constant.OIDCEdit,
+	v1.OperationOIDCServiceDeleteOIDCClient:        constant.OIDCEdit,
+	v1.OperationOIDCServiceRefreshOIDCClientSecret: constant.OIDCEdit,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。

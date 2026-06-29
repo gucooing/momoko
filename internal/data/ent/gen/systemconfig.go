@@ -23,7 +23,7 @@ type SystemConfig struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 配置键
 	Key string `json:"key,omitempty"`
-	// 配置值
+	// 配置值，支持 OIDC 私钥、邮件模板等长文本
 	Value        string `json:"value,omitempty"`
 	selectValues sql.SelectValues
 }

@@ -25,6 +25,10 @@
   </div>
 </template>
 
+<script lang="ts">
+let hasAutoCheckedUpdate = false
+</script>
+
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import WelcomePanel from '@/views/dashboard/home/welcomePanel.vue'
@@ -32,14 +36,27 @@ import RunningInstanceSection from '@/views/dashboard/home/runningInstanceSectio
 import ShortcutSection from '@/views/dashboard/home/shortcutSection.vue'
 import SystemRealtimeCharts from '@/views/dashboard/home/systemRealtimeCharts.vue'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
+import { checkForUpdate } from '@/utils/updateCheck'
 import type { RefreshInterval } from '@/stores/dashboard/home'
 
 defineOptions({ name: 'HomeView' })
 
-const dashboardHomeStore = useDashboardHomeStore()
+const BUILTIN_SUPER_ADMIN_ROLE_ID = 'role_1'
 
-const { cpuHistory, memoryHistory, networkHistory, diskHistory, refreshInterval, selectedInterface, selectedDisk, overview } =
-  storeToRefs(dashboardHomeStore)
+const dashboardHomeStore = useDashboardHomeStore()
+const menuStore = useMenuStore()
+const userStore = useUserStore()
+
+const {
+  cpuHistory,
+  memoryHistory,
+  networkHistory,
+  diskHistory,
+  refreshInterval,
+  selectedInterface,
+  selectedDisk,
+  overview,
+} = storeToRefs(dashboardHomeStore)
 const {
   fetchOverview,
   startAutoRefresh,
@@ -69,9 +86,28 @@ const onDiskChange = (value: string) => {
   setSelectedDisk(value)
 }
 
+const autoCheckUpdate = async () => {
+  if (hasAutoCheckedUpdate) return
+
+  if (!userStore.userInfo) {
+    await userStore.getUserInfo()
+  }
+  if (!menuStore.hasLoadedPermissions) {
+    await menuStore.getUserPermissions()
+  }
+
+  // 内置超级管理员由后端默认角色 role_1 表示，只允许该角色进入工作台时自动检查一次。
+  const isBuiltinSuperAdmin = userStore.userInfo?.roleId === BUILTIN_SUPER_ADMIN_ROLE_ID
+  if (!isBuiltinSuperAdmin || !menuStore.hasButtonPermission('system:update')) return
+
+  hasAutoCheckedUpdate = true
+  await checkForUpdate({ silentNoUpdate: true })
+}
+
 onMounted(() => {
   fetchOverview()
   startAutoRefresh()
+  void autoCheckUpdate()
 })
 
 onBeforeUnmount(() => {

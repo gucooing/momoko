@@ -97,6 +97,9 @@ func (h *distHandler) tryServe(w http.ResponseWriter, r *http.Request) bool {
 	if cleanPath == "/" {
 		return h.serveDistFile(w, r, distIndex)
 	}
+	if cleanPath == "/.well-known/openid-configuration" {
+		return false
+	}
 
 	filePath := strings.TrimPrefix(cleanPath, "/")
 	if _, ok := h.distFiles[filePath]; ok {

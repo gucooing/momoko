@@ -164,6 +164,18 @@ func (f MenuFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.MenuMutation", m)
 }
 
+// The OIDCClientFunc type is an adapter to allow the use of ordinary
+// function as OIDCClient mutator.
+type OIDCClientFunc func(context.Context, *gen.OIDCClientMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OIDCClientFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.OIDCClientMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.OIDCClientMutation", m)
+}
+
 // The OperationLogFunc type is an adapter to allow the use of ordinary
 // function as OperationLog mutator.
 type OperationLogFunc func(context.Context, *gen.OperationLogMutation) (gen.Value, error)

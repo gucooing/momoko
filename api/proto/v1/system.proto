@@ -181,6 +181,8 @@ message CheckUpdateResponse {
   string release_name = 5;
   // 最新发行版发布时间
   google.protobuf.Timestamp published_at = 6;
+  // 最新发行版 Markdown 更新内容
+  string release_body = 7;
 }
 
 // 权限菜单信息
@@ -1104,6 +1106,18 @@ enum OperationType {
   OperationTypeDockerVolumeRestore = 95;
   // Docker 配置测试
   OperationTypeDockerConfigTest = 96;
+  // OIDC 配置更新
+  OperationTypeOIDCConfigUpdate = 97;
+  // OIDC 客户端创建
+  OperationTypeOIDCClientCreate = 98;
+  // OIDC 客户端更新
+  OperationTypeOIDCClientUpdate = 99;
+  // OIDC 客户端删除
+  OperationTypeOIDCClientDelete = 100;
+  // OIDC Client Secret 刷新
+  OperationTypeOIDCClientSecretRefresh = 101;
+  // OIDC 授权码创建
+  OperationTypeOIDCAuthorizationCodeCreate = 102;
 }
 
 message ListOperationLogsRequest {

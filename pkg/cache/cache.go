@@ -100,6 +100,16 @@ func (c *Cache[K, V]) Set(k K, v V) bool {
 	return true
 }
 
+// Take 读取缓存值后立即删除，适合授权码、一次性令牌这类只能消费一次的数据。
+func (c *Cache[K, V]) Take(k K) (V, bool) {
+	ojb, ok := c.dict.LoadAndDelete(k)
+	if !ok {
+		var v V
+		return v, false
+	}
+	return ojb.(*valueInterface).v.(V), true
+}
+
 func (c *Cache[K, V]) Del(k K) {
 	c.dict.Delete(k)
 }

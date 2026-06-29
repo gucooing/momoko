@@ -441,6 +441,31 @@ var (
 		Columns:    MenusColumns,
 		PrimaryKey: []*schema.Column{MenusColumns[0]},
 	}
+	// OidcClientsColumns holds the columns for the "oidc_clients" table.
+	OidcClientsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "client_id", Type: field.TypeString, Unique: true},
+		{Name: "client_secret", Type: field.TypeString},
+		{Name: "redirect_uris", Type: field.TypeJSON},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "active", Type: field.TypeBool, Default: true},
+	}
+	// OidcClientsTable holds the schema information for the "oidc_clients" table.
+	OidcClientsTable = &schema.Table{
+		Name:       "oidc_clients",
+		Columns:    OidcClientsColumns,
+		PrimaryKey: []*schema.Column{OidcClientsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "oidcclient_client_id",
+				Unique:  false,
+				Columns: []*schema.Column{OidcClientsColumns[4]},
+			},
+		},
+	}
 	// OperationLogsColumns holds the columns for the "operation_logs" table.
 	OperationLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -724,7 +749,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "key", Type: field.TypeString, Unique: true},
-		{Name: "value", Type: field.TypeString, Default: ""},
+		{Name: "value", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// ConfigsTable holds the schema information for the "configs" table.
 	ConfigsTable = &schema.Table{
@@ -914,6 +939,7 @@ var (
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
+		OidcClientsTable,
 		OperationLogsTable,
 		PortForwardsTable,
 		PortForwardStatsTable,

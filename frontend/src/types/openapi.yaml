@@ -2519,6 +2519,193 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshAPIKeyResponse'
+    /api/v1/oidc/authorize-code:
+        post:
+            tags:
+                - OIDCService
+            description: 创建 OIDC 授权码；由前端授权确认页在用户已登录后调用
+            operationId: OIDCService_CreateOIDCAuthorizationCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateOIDCAuthorizationCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateOIDCAuthorizationCodeResponse'
+    /api/v1/oidc/authorize-info:
+        post:
+            tags:
+                - OIDCService
+            description: 获取 OIDC 授权页展示信息；只校验授权请求并返回客户端名称，不生成授权码
+            operationId: OIDCService_OIDCAuthorizationInfo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.OIDCAuthorizationInfoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.OIDCAuthorizationInfoResponse'
+    /api/v1/oidc/clients:
+        get:
+            tags:
+                - OIDCService
+            description: 获取 OIDC 客户端列表
+            operationId: OIDCService_ListOIDCClients
+            parameters:
+                - name: page
+                  in: query
+                  description: 页码
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 客户端名称关键字
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListOIDCClientsResponse'
+        post:
+            tags:
+                - OIDCService
+            description: 创建 OIDC 客户端；创建后会返回完整 Client Secret
+            operationId: OIDCService_CreateOIDCClient
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateOIDCClientRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateOIDCClientResponse'
+    /api/v1/oidc/clients/{id}:
+        put:
+            tags:
+                - OIDCService
+            description: 更新 OIDC 客户端基础配置；不会修改 Client ID 和 Client Secret
+            operationId: OIDCService_UpdateOIDCClient
+            parameters:
+                - name: id
+                  in: path
+                  description: 客户端记录 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateOIDCClientRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateOIDCClientResponse'
+        delete:
+            tags:
+                - OIDCService
+            description: 删除 OIDC 客户端
+            operationId: OIDCService_DeleteOIDCClient
+            parameters:
+                - name: id
+                  in: path
+                  description: 客户端记录 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteOIDCClientResponse'
+    /api/v1/oidc/clients/{id}/secret:
+        post:
+            tags:
+                - OIDCService
+            description: 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
+            operationId: OIDCService_RefreshOIDCClientSecret
+            parameters:
+                - name: id
+                  in: path
+                  description: 客户端记录 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RefreshOIDCClientSecretRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RefreshOIDCClientSecretResponse'
+    /api/v1/oidc/config:
+        get:
+            tags:
+                - OIDCService
+            description: 获取 OIDC 服务端配置
+            operationId: OIDCService_OIDCConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.OIDCConfigResponse'
+        put:
+            tags:
+                - OIDCService
+            description: 更新 OIDC 服务端配置
+            operationId: OIDCService_UpdateOIDCConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateOIDCConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateOIDCConfigResponse'
     /api/v1/openssh/host:
         get:
             tags:
@@ -4537,6 +4724,9 @@ components:
                     type: string
                     description: 最新发行版发布时间
                     format: date-time
+                releaseBody:
+                    type: string
+                    description: 最新发行版 Markdown 更新内容
             description: 检查更新响应
         v1.CompleteFileUploadRequest:
             type: object
@@ -4894,6 +5084,69 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.CreateOIDCAuthorizationCodeRequest:
+            type: object
+            properties:
+                responseType:
+                    type: string
+                    description: 授权响应类型；当前仅支持 code
+                clientId:
+                    type: string
+                    description: Client ID
+                redirectUri:
+                    type: string
+                    description: 回调地址，必须命中客户端配置中的 redirect_uris
+                scope:
+                    type: string
+                    description: 请求 scopes，必须包含 openid
+                state:
+                    type: string
+                    description: 客户端透传状态值
+                nonce:
+                    type: string
+                    description: 客户端 nonce；会写入 ID Token
+                codeChallenge:
+                    type: string
+                    description: PKCE code challenge
+                codeChallengeMethod:
+                    type: string
+                    description: PKCE code challenge method，支持 plain 和 S256
+            description: 创建 OIDC 授权码请求
+        v1.CreateOIDCAuthorizationCodeResponse:
+            type: object
+            properties:
+                redirectUrl:
+                    type: string
+                    description: 携带 code 和 state 的第三方客户端回调地址
+            description: 创建 OIDC 授权码响应
+        v1.CreateOIDCClientRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 客户端名称
+                redirectUris:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的回调地址
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的 scopes；为空时使用 openid email profile
+                active:
+                    type: boolean
+                    description: 是否启用
+            description: 创建 OIDC 客户端请求
+        v1.CreateOIDCClientResponse:
+            type: object
+            properties:
+                client:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCClientInfo'
+                    description: 新建客户端信息；包含完整 Client Secret
+            description: 创建 OIDC 客户端响应
         v1.CreatePortForwardRequest:
             type: object
             properties:
@@ -5202,6 +5455,10 @@ components:
         v1.DeleteImageGenGenerationResponse:
             type: object
             properties: {}
+        v1.DeleteOIDCClientResponse:
+            type: object
+            properties: {}
+            description: 删除 OIDC 客户端响应
         v1.DeletePortForwardResponse:
             type: object
             properties: {}
@@ -7489,6 +7746,24 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.ImageGenModel'
+        v1.ListOIDCClientsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: 实际页码
+                pageSize:
+                    type: string
+                    description: 实际每页数量
+                total:
+                    type: string
+                    description: 总数
+                clients:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.OIDCClientInfo'
+                    description: 客户端列表
+            description: 获取 OIDC 客户端列表响应
         v1.ListOperationLogsResponse:
             type: object
             properties:
@@ -7976,6 +8251,154 @@ components:
                         - $ref: '#/components/schemas/v1.NetworkConnectionStatus'
                     description: 网络连接统计
             description: 网络实时状态
+        v1.OIDCAuthorizationInfo:
+            type: object
+            properties:
+                clientName:
+                    type: string
+                    description: 客户端名称，用于授权确认页展示
+                clientId:
+                    type: string
+                    description: Client ID，用于排查第三方接入配置
+                redirectUri:
+                    type: string
+                    description: 当前授权请求的回调地址
+                scope:
+                    type: string
+                    description: 当前授权请求的 scopes
+            description: OIDC 授权页展示信息
+        v1.OIDCAuthorizationInfoRequest:
+            type: object
+            properties:
+                responseType:
+                    type: string
+                    description: 授权响应类型；当前仅支持 code
+                clientId:
+                    type: string
+                    description: Client ID
+                redirectUri:
+                    type: string
+                    description: 回调地址，必须命中客户端配置中的 redirect_uris
+                scope:
+                    type: string
+                    description: 请求 scopes，必须包含 openid
+            description: 获取 OIDC 授权页展示信息请求
+        v1.OIDCAuthorizationInfoResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCAuthorizationInfo'
+                    description: 授权页展示信息
+            description: 获取 OIDC 授权页展示信息响应
+        v1.OIDCClientInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 客户端记录 id
+                name:
+                    type: string
+                    description: 客户端名称
+                clientId:
+                    type: string
+                    description: Client ID
+                clientSecret:
+                    type: string
+                    description: Client Secret；列表接口返回脱敏值，创建/刷新接口返回完整值
+                redirectUris:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的回调地址
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的 scopes，必须包含 openid
+                active:
+                    type: boolean
+                    description: 是否启用
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+            description: OIDC 客户端信息
+        v1.OIDCConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用 OIDC 服务端
+                issuerUrl:
+                    type: string
+                    description: Issuer URL；为空时服务端会按当前请求域名推导
+                accessTokenTtlSeconds:
+                    type: string
+                    description: Access Token 有效期，单位秒
+                idTokenTtlSeconds:
+                    type: string
+                    description: ID Token 有效期，单位秒
+                authorizationCodeTtlSeconds:
+                    type: string
+                    description: Authorization Code 有效期，单位秒
+                endpoints:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCEndpoints'
+                    description: 根据 Issuer URL 自动生成的 OIDC 端点配置
+            description: OIDC 服务端配置
+        v1.OIDCConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCConfig'
+                    description: OIDC 服务端配置
+            description: 获取 OIDC 配置响应
+        v1.OIDCEndpoints:
+            type: object
+            properties:
+                providerName:
+                    type: string
+                    description: Provider 名称
+                issuerUrl:
+                    type: string
+                    description: Issuer URL
+                discoveryUrl:
+                    type: string
+                    description: Discovery URL
+                authorizeUrl:
+                    type: string
+                    description: 授权端点 URL
+                tokenUrl:
+                    type: string
+                    description: Token 端点 URL
+                userinfoUrl:
+                    type: string
+                    description: UserInfo 端点 URL
+                jwksUrl:
+                    type: string
+                    description: JWKS 端点 URL
+                scopes:
+                    type: string
+                    description: 默认 scopes
+                frontendCallbackPath:
+                    type: string
+                    description: momoko 前端授权回调页路径
+                tokenEndpointAuthMethod:
+                    type: string
+                    description: Token 端点客户端认证方式
+                clockSkewSeconds:
+                    type: string
+                    description: 推荐客户端配置的时钟偏移容忍秒数
+                allowedIdTokenSigningAlgs:
+                    type: string
+                    description: 支持的 ID Token 签名算法
+            description: OIDC 客户端接入所需端点信息
         v1.OperationLogInfo:
             type: object
             properties:
@@ -8230,6 +8653,21 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
+        v1.RefreshOIDCClientSecretRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 客户端记录 id
+            description: 刷新 OIDC Client Secret 请求
+        v1.RefreshOIDCClientSecretResponse:
+            type: object
+            properties:
+                client:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCClientInfo'
+                    description: 刷新后的客户端信息；包含新的完整 Client Secret
+            description: 刷新 OIDC Client Secret 响应
         v1.RefreshRequest:
             type: object
             properties:
@@ -9778,6 +10216,64 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新个人资料响应
+        v1.UpdateOIDCClientRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 客户端记录 id
+                name:
+                    type: string
+                    description: 客户端名称
+                redirectUris:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的回调地址
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                    description: 允许的 scopes；必须包含 openid
+                active:
+                    type: boolean
+                    description: 是否启用
+            description: 更新 OIDC 客户端请求
+        v1.UpdateOIDCClientResponse:
+            type: object
+            properties:
+                client:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCClientInfo'
+                    description: 更新后的客户端信息；Client Secret 为脱敏值
+            description: 更新 OIDC 客户端响应
+        v1.UpdateOIDCConfigRequest:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否启用 OIDC 服务端
+                issuerUrl:
+                    type: string
+                    description: Issuer URL；建议配置为当前 momoko 对外访问域名
+                accessTokenTtlSeconds:
+                    type: string
+                    description: Access Token 有效期，单位秒；小于等于 0 时使用默认值
+                idTokenTtlSeconds:
+                    type: string
+                    description: ID Token 有效期，单位秒；小于等于 0 时使用默认值
+                authorizationCodeTtlSeconds:
+                    type: string
+                    description: Authorization Code 有效期，单位秒；小于等于 0 时使用默认值
+            description: 更新 OIDC 配置请求
+        v1.UpdateOIDCConfigResponse:
+            type: object
+            properties:
+                config:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.OIDCConfig'
+                    description: 更新后的 OIDC 服务端配置
+            description: 更新 OIDC 配置响应
         v1.UpdatePasswordRequest:
             type: object
             properties:
@@ -10152,6 +10648,8 @@ tags:
       description: 网络管理
     - name: NodeService
       description: 节点服务
+    - name: OIDCService
+      description: OIDC 服务端管理与授权服务
     - name: OpenSSHManager
       description: OpenSSH 管理
     - name: Sub2APIImageGen

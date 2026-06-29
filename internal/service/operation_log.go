@@ -196,6 +196,12 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationDockerManagerDeleteDockerNetwork:         v1.OperationType_OperationTypeDockerNetworkDelete,
 	v1.OperationDockerManagerConnectDockerNetwork:        v1.OperationType_OperationTypeDockerNetworkConnect,
 	v1.OperationDockerManagerDisconnectDockerNetwork:     v1.OperationType_OperationTypeDockerNetworkDisconnect,
+	v1.OperationOIDCServiceUpdateOIDCConfig:              v1.OperationType_OperationTypeOIDCConfigUpdate,
+	v1.OperationOIDCServiceCreateOIDCClient:              v1.OperationType_OperationTypeOIDCClientCreate,
+	v1.OperationOIDCServiceUpdateOIDCClient:              v1.OperationType_OperationTypeOIDCClientUpdate,
+	v1.OperationOIDCServiceDeleteOIDCClient:              v1.OperationType_OperationTypeOIDCClientDelete,
+	v1.OperationOIDCServiceRefreshOIDCClientSecret:       v1.OperationType_OperationTypeOIDCClientSecretRefresh,
+	v1.OperationOIDCServiceCreateOIDCAuthorizationCode:   v1.OperationType_OperationTypeOIDCAuthorizationCodeCreate,
 }
 
 func toOperationType(operation string) (v1.OperationType, bool) {

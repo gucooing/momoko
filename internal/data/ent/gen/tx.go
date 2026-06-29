@@ -40,6 +40,8 @@ type Tx struct {
 	InstanceType *InstanceTypeClient
 	// Menu is the client for interacting with the Menu builders.
 	Menu *MenuClient
+	// OIDCClient is the client for interacting with the OIDCClient builders.
+	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
 	// PortForward is the client for interacting with the PortForward builders.
@@ -208,6 +210,7 @@ func (tx *Tx) init() {
 	tx.Instance = NewInstanceClient(tx.config)
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)
+	tx.OIDCClient = NewOIDCClientClient(tx.config)
 	tx.OperationLog = NewOperationLogClient(tx.config)
 	tx.PortForward = NewPortForwardClient(tx.config)
 	tx.PortForwardStat = NewPortForwardStatClient(tx.config)

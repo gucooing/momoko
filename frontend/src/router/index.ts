@@ -48,6 +48,9 @@ router.beforeEach(async (to) => {
 
   const menuStore = useMenuStore()
 
+  // 仅要求登录的静态路由不依赖菜单权限，例如 OIDC 授权确认页。
+  if (to.meta?.authOnly) return true
+
   // 首次加载：初始化动态路由
   if (!menuStore.hasLoadedPermissions) {
     await menuStore.getUserPermissions()

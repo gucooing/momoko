@@ -112,6 +112,8 @@ var (
 		newDefaultMenu("menu_12_5_button_1", entmenu.TypeButton, "", "编辑系统配置", "", new("menu_12_5"), 0, constant.SystemConfigEdit, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_2", entmenu.TypeButton, "", "更新检查", "", new("menu_12_5"), 1, constant.SystemUpdate, entmenu.StatusActive),
 		newDefaultMenu("menu_12_6", entmenu.TypeMenu, "/system/task", "任务管理", "HOutline:QueueListIcon", new("menu_12"), 5, constant.TaskManage, entmenu.StatusActive),
+		newDefaultMenu("menu_12_7", entmenu.TypeMenu, "/system/oidc", "OIDC", "HOutline:KeyIcon", new("menu_12"), 6, constant.OIDCView, entmenu.StatusActive),
+		newDefaultMenu("menu_12_7_button_1", entmenu.TypeButton, "", "编辑 OIDC", "", new("menu_12_7"), 0, constant.OIDCEdit, entmenu.StatusActive),
 
 		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, constant.Dev, entmenu.StatusInactive),
 		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", new("menu_13"), 0, constant.Dev, entmenu.StatusInactive),

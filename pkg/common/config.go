@@ -8,6 +8,13 @@ const (
 	ConfigLoginEmailLoginEnabled                 ConfigKey = "login.email_login_enabled"
 	ConfigLoginRegisterEmailVerificationRequired ConfigKey = "login.register_email_verification_required"
 
+	ConfigOIDCEnabled                     ConfigKey = "oidc.enabled"
+	ConfigOIDCIssuerURL                   ConfigKey = "oidc.issuer_url"
+	ConfigOIDCAccessTokenTTLSeconds       ConfigKey = "oidc.access_token_ttl_seconds"
+	ConfigOIDCIDTokenTTLSeconds           ConfigKey = "oidc.id_token_ttl_seconds"
+	ConfigOIDCAuthorizationCodeTTLSeconds ConfigKey = "oidc.authorization_code_ttl_seconds"
+	ConfigOIDCPrivateKey                  ConfigKey = "oidc.private_key"
+
 	ConfigEmailEnabled        ConfigKey = "email.enabled"
 	ConfigEmailHost           ConfigKey = "email.host"
 	ConfigEmailPort           ConfigKey = "email.port"
@@ -71,6 +78,13 @@ var configDefaults = map[ConfigKey]string{
 	ConfigLoginUsernameLoginEnabled:              "true",
 	ConfigLoginEmailLoginEnabled:                 "false",
 	ConfigLoginRegisterEmailVerificationRequired: "false",
+
+	ConfigOIDCEnabled:                     "false",
+	ConfigOIDCIssuerURL:                   "",
+	ConfigOIDCAccessTokenTTLSeconds:       "3600",
+	ConfigOIDCIDTokenTTLSeconds:           "3600",
+	ConfigOIDCAuthorizationCodeTTLSeconds: "300",
+	ConfigOIDCPrivateKey:                  "",
 
 	ConfigEmailEnabled:        "false",
 	ConfigEmailHost:           "",

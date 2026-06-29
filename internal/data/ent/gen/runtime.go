@@ -16,6 +16,7 @@ import (
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
@@ -488,6 +489,41 @@ func init() {
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	menu.IDValidator = menuDescID.Validators[0].(func(string) error)
+	oidcclientMixin := schema.OIDCClient{}.Mixin()
+	oidcclientMixinFields0 := oidcclientMixin[0].Fields()
+	_ = oidcclientMixinFields0
+	oidcclientFields := schema.OIDCClient{}.Fields()
+	_ = oidcclientFields
+	// oidcclientDescCreateTime is the schema descriptor for create_time field.
+	oidcclientDescCreateTime := oidcclientMixinFields0[0].Descriptor()
+	// oidcclient.DefaultCreateTime holds the default value on creation for the create_time field.
+	oidcclient.DefaultCreateTime = oidcclientDescCreateTime.Default.(func() time.Time)
+	// oidcclientDescUpdateTime is the schema descriptor for update_time field.
+	oidcclientDescUpdateTime := oidcclientMixinFields0[1].Descriptor()
+	// oidcclient.DefaultUpdateTime holds the default value on creation for the update_time field.
+	oidcclient.DefaultUpdateTime = oidcclientDescUpdateTime.Default.(func() time.Time)
+	// oidcclient.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	oidcclient.UpdateDefaultUpdateTime = oidcclientDescUpdateTime.UpdateDefault.(func() time.Time)
+	// oidcclientDescName is the schema descriptor for name field.
+	oidcclientDescName := oidcclientFields[1].Descriptor()
+	// oidcclient.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	oidcclient.NameValidator = oidcclientDescName.Validators[0].(func(string) error)
+	// oidcclientDescClientID is the schema descriptor for client_id field.
+	oidcclientDescClientID := oidcclientFields[2].Descriptor()
+	// oidcclient.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
+	oidcclient.ClientIDValidator = oidcclientDescClientID.Validators[0].(func(string) error)
+	// oidcclientDescClientSecret is the schema descriptor for client_secret field.
+	oidcclientDescClientSecret := oidcclientFields[3].Descriptor()
+	// oidcclient.ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
+	oidcclient.ClientSecretValidator = oidcclientDescClientSecret.Validators[0].(func(string) error)
+	// oidcclientDescActive is the schema descriptor for active field.
+	oidcclientDescActive := oidcclientFields[6].Descriptor()
+	// oidcclient.DefaultActive holds the default value on creation for the active field.
+	oidcclient.DefaultActive = oidcclientDescActive.Default.(bool)
+	// oidcclientDescID is the schema descriptor for id field.
+	oidcclientDescID := oidcclientFields[0].Descriptor()
+	// oidcclient.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	oidcclient.IDValidator = oidcclientDescID.Validators[0].(func(string) error)
 	operationlogFields := schema.OperationLog{}.Fields()
 	_ = operationlogFields
 	// operationlogDescOperationType is the schema descriptor for operation_type field.

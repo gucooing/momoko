@@ -45,6 +45,9 @@ type InstanceType func(*sql.Selector)
 // Menu is the predicate function for menu builders.
 type Menu func(*sql.Selector)
 
+// OIDCClient is the predicate function for oidcclient builders.
+type OIDCClient func(*sql.Selector)
+
 // OperationLog is the predicate function for operationlog builders.
 type OperationLog func(*sql.Selector)
 

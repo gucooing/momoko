@@ -40,6 +40,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true },
   },
   {
+    path: '/oidc/authorize',
+    name: 'OIDCAuthorize',
+    component: () => import('@/views/public/oidc/authorize/index.vue'),
+    meta: { keepAlive: false, authOnly: true },
+  },
+  {
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/index.vue'),

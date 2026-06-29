@@ -1,0 +1,304 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// OIDC 服务端管理与授权服务
+service OIDCService {
+  // 获取 OIDC 服务端配置
+  rpc OIDCConfig(OIDCConfigRequest) returns (OIDCConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/oidc/config"
+    };
+  }
+  // 更新 OIDC 服务端配置
+  rpc UpdateOIDCConfig(UpdateOIDCConfigRequest) returns (UpdateOIDCConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/oidc/config"
+      body: "*"
+    };
+  }
+  // 获取 OIDC 客户端列表
+  rpc ListOIDCClients(ListOIDCClientsRequest) returns (ListOIDCClientsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/oidc/clients"
+    };
+  }
+  // 创建 OIDC 客户端；创建后会返回完整 Client Secret
+  rpc CreateOIDCClient(CreateOIDCClientRequest) returns (CreateOIDCClientResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/clients"
+      body: "*"
+    };
+  }
+  // 更新 OIDC 客户端基础配置；不会修改 Client ID 和 Client Secret
+  rpc UpdateOIDCClient(UpdateOIDCClientRequest) returns (UpdateOIDCClientResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/oidc/clients/{id}"
+      body: "*"
+    };
+  }
+  // 删除 OIDC 客户端
+  rpc DeleteOIDCClient(DeleteOIDCClientRequest) returns (DeleteOIDCClientResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/oidc/clients/{id}"
+    };
+  }
+  // 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
+  rpc RefreshOIDCClientSecret(RefreshOIDCClientSecretRequest) returns (RefreshOIDCClientSecretResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/clients/{id}/secret"
+      body: "*"
+    };
+  }
+  // 获取 OIDC 授权页展示信息；只校验授权请求并返回客户端名称，不生成授权码
+  rpc OIDCAuthorizationInfo(OIDCAuthorizationInfoRequest) returns (OIDCAuthorizationInfoResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/authorize-info"
+      body: "*"
+    };
+  }
+  // 创建 OIDC 授权码；由前端授权确认页在用户已登录后调用
+  rpc CreateOIDCAuthorizationCode(CreateOIDCAuthorizationCodeRequest) returns (CreateOIDCAuthorizationCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/authorize-code"
+      body: "*"
+    };
+  }
+}
+
+// OIDC 服务端配置
+message OIDCConfig {
+  // 是否启用 OIDC 服务端
+  bool enabled = 1;
+  // Issuer URL；为空时服务端会按当前请求域名推导
+  string issuer_url = 2;
+  // Access Token 有效期，单位秒
+  int64 access_token_ttl_seconds = 3;
+  // ID Token 有效期，单位秒
+  int64 id_token_ttl_seconds = 4;
+  // Authorization Code 有效期，单位秒
+  int64 authorization_code_ttl_seconds = 5;
+  // 根据 Issuer URL 自动生成的 OIDC 端点配置
+  OIDCEndpoints endpoints = 6;
+}
+
+// OIDC 客户端接入所需端点信息
+message OIDCEndpoints {
+  // Provider 名称
+  string provider_name = 1;
+  // Issuer URL
+  string issuer_url = 2;
+  // Discovery URL
+  string discovery_url = 3;
+  // 授权端点 URL
+  string authorize_url = 4;
+  // Token 端点 URL
+  string token_url = 5;
+  // UserInfo 端点 URL
+  string userinfo_url = 6;
+  // JWKS 端点 URL
+  string jwks_url = 7;
+  // 默认 scopes
+  string scopes = 8;
+  // momoko 前端授权回调页路径
+  string frontend_callback_path = 9;
+  // Token 端点客户端认证方式
+  string token_endpoint_auth_method = 10;
+  // 推荐客户端配置的时钟偏移容忍秒数
+  int64 clock_skew_seconds = 11;
+  // 支持的 ID Token 签名算法
+  string allowed_id_token_signing_algs = 12;
+}
+
+// 获取 OIDC 配置请求
+message OIDCConfigRequest {}
+
+// 获取 OIDC 配置响应
+message OIDCConfigResponse {
+  // OIDC 服务端配置
+  OIDCConfig config = 1;
+}
+
+// 更新 OIDC 配置请求
+message UpdateOIDCConfigRequest {
+  // 是否启用 OIDC 服务端
+  bool enabled = 1;
+  // Issuer URL；建议配置为当前 momoko 对外访问域名
+  string issuer_url = 2;
+  // Access Token 有效期，单位秒；小于等于 0 时使用默认值
+  int64 access_token_ttl_seconds = 3;
+  // ID Token 有效期，单位秒；小于等于 0 时使用默认值
+  int64 id_token_ttl_seconds = 4;
+  // Authorization Code 有效期，单位秒；小于等于 0 时使用默认值
+  int64 authorization_code_ttl_seconds = 5;
+}
+
+// 更新 OIDC 配置响应
+message UpdateOIDCConfigResponse {
+  // 更新后的 OIDC 服务端配置
+  OIDCConfig config = 1;
+}
+
+// OIDC 客户端信息
+message OIDCClientInfo {
+  // 客户端记录 id
+  string id = 1;
+  // 客户端名称
+  string name = 2;
+  // Client ID
+  string client_id = 3;
+  // Client Secret；列表接口返回脱敏值，创建/刷新接口返回完整值
+  string client_secret = 4;
+  // 允许的回调地址
+  repeated string redirect_uris = 5;
+  // 允许的 scopes，必须包含 openid
+  repeated string scopes = 6;
+  // 是否启用
+  bool active = 7;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 8;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 9;
+}
+
+// 获取 OIDC 客户端列表请求
+message ListOIDCClientsRequest {
+  // 页码
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 客户端名称关键字
+  optional string keywords = 3;
+}
+
+// 获取 OIDC 客户端列表响应
+message ListOIDCClientsResponse {
+  // 实际页码
+  int64 page = 1;
+  // 实际每页数量
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 客户端列表
+  repeated OIDCClientInfo clients = 4;
+}
+
+// 创建 OIDC 客户端请求
+message CreateOIDCClientRequest {
+  // 客户端名称
+  string name = 1;
+  // 允许的回调地址
+  repeated string redirect_uris = 2;
+  // 允许的 scopes；为空时使用 openid email profile
+  repeated string scopes = 3;
+  // 是否启用
+  bool active = 4;
+}
+
+// 创建 OIDC 客户端响应
+message CreateOIDCClientResponse {
+  // 新建客户端信息；包含完整 Client Secret
+  OIDCClientInfo client = 1;
+}
+
+// 更新 OIDC 客户端请求
+message UpdateOIDCClientRequest {
+  // 客户端记录 id
+  string id = 1;
+  // 客户端名称
+  string name = 2;
+  // 允许的回调地址
+  repeated string redirect_uris = 3;
+  // 允许的 scopes；必须包含 openid
+  repeated string scopes = 4;
+  // 是否启用
+  bool active = 5;
+}
+
+// 更新 OIDC 客户端响应
+message UpdateOIDCClientResponse {
+  // 更新后的客户端信息；Client Secret 为脱敏值
+  OIDCClientInfo client = 1;
+}
+
+// 删除 OIDC 客户端请求
+message DeleteOIDCClientRequest {
+  // 客户端记录 id
+  string id = 1;
+}
+
+// 删除 OIDC 客户端响应
+message DeleteOIDCClientResponse {}
+
+// 刷新 OIDC Client Secret 请求
+message RefreshOIDCClientSecretRequest {
+  // 客户端记录 id
+  string id = 1;
+}
+
+// 刷新 OIDC Client Secret 响应
+message RefreshOIDCClientSecretResponse {
+  // 刷新后的客户端信息；包含新的完整 Client Secret
+  OIDCClientInfo client = 1;
+}
+
+// 获取 OIDC 授权页展示信息请求
+message OIDCAuthorizationInfoRequest {
+  // 授权响应类型；当前仅支持 code
+  string response_type = 1;
+  // Client ID
+  string client_id = 2;
+  // 回调地址，必须命中客户端配置中的 redirect_uris
+  string redirect_uri = 3;
+  // 请求 scopes，必须包含 openid
+  string scope = 4;
+}
+
+// OIDC 授权页展示信息
+message OIDCAuthorizationInfo {
+  // 客户端名称，用于授权确认页展示
+  string client_name = 1;
+  // Client ID，用于排查第三方接入配置
+  string client_id = 2;
+  // 当前授权请求的回调地址
+  string redirect_uri = 3;
+  // 当前授权请求的 scopes
+  string scope = 4;
+}
+
+// 获取 OIDC 授权页展示信息响应
+message OIDCAuthorizationInfoResponse {
+  // 授权页展示信息
+  OIDCAuthorizationInfo info = 1;
+}
+
+// 创建 OIDC 授权码请求
+message CreateOIDCAuthorizationCodeRequest {
+  // 授权响应类型；当前仅支持 code
+  string response_type = 1;
+  // Client ID
+  string client_id = 2;
+  // 回调地址，必须命中客户端配置中的 redirect_uris
+  string redirect_uri = 3;
+  // 请求 scopes，必须包含 openid
+  string scope = 4;
+  // 客户端透传状态值
+  string state = 5;
+  // 客户端 nonce；会写入 ID Token
+  string nonce = 6;
+  // PKCE code challenge
+  string code_challenge = 7;
+  // PKCE code challenge method，支持 plain 和 S256
+  string code_challenge_method = 8;
+}
+
+// 创建 OIDC 授权码响应
+message CreateOIDCAuthorizationCodeResponse {
+  // 携带 code 和 state 的第三方客户端回调地址
+  string redirect_url = 1;
+}

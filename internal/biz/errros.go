@@ -74,4 +74,7 @@ var (
 	ErrFileSourceType             = response.BadRequest(500, "文件来源类型不合法")
 	ErrShareSignInvalid           = response.BadRequest(500, "分享会话已失效，请重新验证")
 	ErrTaskNotFound               = response.BadRequest(500, "任务不存在")
+	ErrOIDCClientName             = response.BadRequest(500, "OIDC 客户端名称不能为空")
+	ErrOIDCRedirectURI            = response.BadRequest(500, "OIDC 回调地址不正确")
+	ErrOIDCClientNotFound         = response.BadRequest(500, "OIDC 客户端不存在")
 )

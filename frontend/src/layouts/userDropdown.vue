@@ -86,7 +86,7 @@
 import IconGithub from '@/components/icons/IconGithub.vue'
 import { useUserProfileStore } from '@/stores/user/profile'
 import { Dialog } from '@/utils/dialog'
-import { checkUpdateRequest } from '@/api/login'
+import { checkForUpdate } from '@/utils/updateCheck'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
@@ -109,24 +109,7 @@ const onCheckUpdate = async () => {
   if (checkingUpdate.value) return
   checkingUpdate.value = true
   try {
-    const { data } = await checkUpdateRequest()
-    if (data?.hasUpdate) {
-      Dialog.info({
-        showCancelButton: true,
-        title: t('layout.updateAvailableTitle'),
-        content: t('layout.updateAvailableContent', {
-          current: data.currentVersion,
-          latest: data.latestVersion,
-        }),
-        confirmText: t('layout.updateGoDownload'),
-        cancelText: t('layout.logoutCancelText'),
-        onConfirm: () => {
-          window.open(data.releaseUrl || PROJECT_LINK, '_blank')
-        },
-      })
-    } else {
-      ElMessage.success(t('layout.updateUpToDate', { version: data?.currentVersion }))
-    }
+    await checkForUpdate()
   } finally {
     checkingUpdate.value = false
   }

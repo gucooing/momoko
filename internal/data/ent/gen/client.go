@@ -24,6 +24,7 @@ import (
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
@@ -76,6 +77,8 @@ type Client struct {
 	InstanceType *InstanceTypeClient
 	// Menu is the client for interacting with the Menu builders.
 	Menu *MenuClient
+	// OIDCClient is the client for interacting with the OIDCClient builders.
+	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
 	// PortForward is the client for interacting with the PortForward builders.
@@ -124,6 +127,7 @@ func (c *Client) init() {
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
+	c.OIDCClient = NewOIDCClientClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
 	c.PortForward = NewPortForwardClient(c.config)
 	c.PortForwardStat = NewPortForwardStatClient(c.config)
@@ -241,6 +245,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instance:            NewInstanceClient(cfg),
 		InstanceType:        NewInstanceTypeClient(cfg),
 		Menu:                NewMenuClient(cfg),
+		OIDCClient:          NewOIDCClientClient(cfg),
 		OperationLog:        NewOperationLogClient(cfg),
 		PortForward:         NewPortForwardClient(cfg),
 		PortForwardStat:     NewPortForwardStatClient(cfg),
@@ -285,6 +290,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instance:            NewInstanceClient(cfg),
 		InstanceType:        NewInstanceTypeClient(cfg),
 		Menu:                NewMenuClient(cfg),
+		OIDCClient:          NewOIDCClientClient(cfg),
 		OperationLog:        NewOperationLogClient(cfg),
 		PortForward:         NewPortForwardClient(cfg),
 		PortForwardStat:     NewPortForwardStatClient(cfg),
@@ -328,10 +334,10 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User,
-		c.UserAPIKey,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
+		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -343,10 +349,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Sub2APIAnnouncement,
-		c.Sub2APITimelineItem, c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User,
-		c.UserAPIKey,
+		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
+		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -381,6 +387,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.InstanceType.mutate(ctx, m)
 	case *MenuMutation:
 		return c.Menu.mutate(ctx, m)
+	case *OIDCClientMutation:
+		return c.OIDCClient.mutate(ctx, m)
 	case *OperationLogMutation:
 		return c.OperationLog.mutate(ctx, m)
 	case *PortForwardMutation:
@@ -2299,6 +2307,139 @@ func (c *MenuClient) mutate(ctx context.Context, m *MenuMutation) (Value, error)
 	}
 }
 
+// OIDCClientClient is a client for the OIDCClient schema.
+type OIDCClientClient struct {
+	config
+}
+
+// NewOIDCClientClient returns a client for the OIDCClient from the given config.
+func NewOIDCClientClient(c config) *OIDCClientClient {
+	return &OIDCClientClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oidcclient.Hooks(f(g(h())))`.
+func (c *OIDCClientClient) Use(hooks ...Hook) {
+	c.hooks.OIDCClient = append(c.hooks.OIDCClient, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oidcclient.Intercept(f(g(h())))`.
+func (c *OIDCClientClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OIDCClient = append(c.inters.OIDCClient, interceptors...)
+}
+
+// Create returns a builder for creating a OIDCClient entity.
+func (c *OIDCClientClient) Create() *OIDCClientCreate {
+	mutation := newOIDCClientMutation(c.config, OpCreate)
+	return &OIDCClientCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OIDCClient entities.
+func (c *OIDCClientClient) CreateBulk(builders ...*OIDCClientCreate) *OIDCClientCreateBulk {
+	return &OIDCClientCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OIDCClientClient) MapCreateBulk(slice any, setFunc func(*OIDCClientCreate, int)) *OIDCClientCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OIDCClientCreateBulk{err: fmt.Errorf("calling to OIDCClientClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OIDCClientCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OIDCClientCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OIDCClient.
+func (c *OIDCClientClient) Update() *OIDCClientUpdate {
+	mutation := newOIDCClientMutation(c.config, OpUpdate)
+	return &OIDCClientUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OIDCClientClient) UpdateOne(_m *OIDCClient) *OIDCClientUpdateOne {
+	mutation := newOIDCClientMutation(c.config, OpUpdateOne, withOIDCClient(_m))
+	return &OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OIDCClientClient) UpdateOneID(id string) *OIDCClientUpdateOne {
+	mutation := newOIDCClientMutation(c.config, OpUpdateOne, withOIDCClientID(id))
+	return &OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OIDCClient.
+func (c *OIDCClientClient) Delete() *OIDCClientDelete {
+	mutation := newOIDCClientMutation(c.config, OpDelete)
+	return &OIDCClientDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OIDCClientClient) DeleteOne(_m *OIDCClient) *OIDCClientDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OIDCClientClient) DeleteOneID(id string) *OIDCClientDeleteOne {
+	builder := c.Delete().Where(oidcclient.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OIDCClientDeleteOne{builder}
+}
+
+// Query returns a query builder for OIDCClient.
+func (c *OIDCClientClient) Query() *OIDCClientQuery {
+	return &OIDCClientQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOIDCClient},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OIDCClient entity by its id.
+func (c *OIDCClientClient) Get(ctx context.Context, id string) (*OIDCClient, error) {
+	return c.Query().Where(oidcclient.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OIDCClientClient) GetX(ctx context.Context, id string) *OIDCClient {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OIDCClientClient) Hooks() []Hook {
+	return c.hooks.OIDCClient
+}
+
+// Interceptors returns the client interceptors.
+func (c *OIDCClientClient) Interceptors() []Interceptor {
+	return c.inters.OIDCClient
+}
+
+func (c *OIDCClientClient) mutate(ctx context.Context, m *OIDCClientMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OIDCClientCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OIDCClientUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OIDCClientDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown OIDCClient mutation op: %q", m.Op())
+	}
+}
+
 // OperationLogClient is a client for the OperationLog schema.
 type OperationLogClient struct {
 	config
@@ -4028,16 +4169,16 @@ type (
 	hooks struct {
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
-		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
-		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		Task, User, UserAPIKey []ent.Hook
+		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
+		SystemConfig, Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
-		InstanceType, Menu, OperationLog, PortForward, PortForwardStat, Role, SSHHost,
-		Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		Task, User, UserAPIKey []ent.Interceptor
+		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
+		SystemConfig, Task, User, UserAPIKey []ent.Interceptor
 	}
 )
 
