@@ -27,6 +27,7 @@
             v-model="queryForm.operationType"
             :placeholder="t('system.operation.selectOperationType')"
             clearable
+            filterable
             style="width: 200px"
           >
             <el-option
@@ -75,10 +76,15 @@
           <span class="op-type-tag">{{ getOperationTypeLabel(row.operationType) }}</span>
         </template>
         <template #column-success="{ row }">
-          <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('system.common.success') : t('system.common.failed')" />
+          <BaseTag
+            :type="row.success ? 'success' : 'danger'"
+            :text="row.success ? t('system.common.success') : t('system.common.failed')"
+          />
         </template>
         <template #column-detail="{ row }">
-          <span class="detail-preview" @click="showDetailDialog(row.detail)">{{ row.detail || '-' }}</span>
+          <span class="detail-preview" @click="showDetailDialog(row.detail)">{{
+            row.detail || '-'
+          }}</span>
         </template>
         <template #column-duration="{ row }">{{ `${row.durationMs}ms` }}</template>
         <template #column-operationTime="{ row }">{{ formatTime(row.operationTime) }}</template>
@@ -86,12 +92,22 @@
 
       <!-- mobile: cards -->
       <div v-else class="mobile-card-list">
-        <div v-if="!logs.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
-        <div v-for="(row, idx) in logs" :key="idx" class="mobile-card" @click="row.detail && showDetailDialog(row.detail)">
+        <div v-if="!logs.length" class="mobile-empty">
+          <el-empty :description="t('system.common.noData')" />
+        </div>
+        <div
+          v-for="(row, idx) in logs"
+          :key="idx"
+          class="mobile-card"
+          @click="row.detail && showDetailDialog(row.detail)"
+        >
           <div class="mobile-card-body">
             <div class="mobile-card-header">
               <span class="mobile-card-title">{{ getOperationTypeLabel(row.operationType) }}</span>
-              <BaseTag :type="row.success ? 'success' : 'danger'" :text="row.success ? t('system.common.success') : t('system.common.failed')" />
+              <BaseTag
+                :type="row.success ? 'success' : 'danger'"
+                :text="row.success ? t('system.common.success') : t('system.common.failed')"
+              />
             </div>
             <div class="mobile-card-meta">
               <span>{{ t('system.operation.userMeta', { userId: row.userId }) }}</span>
@@ -127,7 +143,9 @@
           </template>
           {{ t('system.common.copy') }}
         </el-button>
-        <el-button type="primary" @click="detailVisible = false">{{ t('system.common.close') }}</el-button>
+        <el-button type="primary" @click="detailVisible = false">{{
+          t('system.common.close')
+        }}</el-button>
       </template>
     </BaseDialog>
   </div>
@@ -174,19 +192,24 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeAuthLogout]: 'system.operation.types.authLogout',
   [OperationType.OperationTypeAuthUpdatePassword]: 'system.operation.types.authUpdatePassword',
   [OperationType.OperationTypeAuthDeviceDelete]: 'system.operation.types.authDeviceDelete',
-  [OperationType.OperationTypeAuthRegisterEmailCode]: 'system.operation.types.authRegisterEmailCode',
+  [OperationType.OperationTypeAuthRegisterEmailCode]:
+    'system.operation.types.authRegisterEmailCode',
   [OperationType.OperationTypeAuthLoginEmailCode]: 'system.operation.types.authLoginEmailCode',
   [OperationType.OperationTypeUserUpdateMe]: 'system.operation.types.userUpdateMe',
   [OperationType.OperationTypeUserCreate]: 'system.operation.types.userCreate',
   [OperationType.OperationTypeUserUpdate]: 'system.operation.types.userUpdate',
   [OperationType.OperationTypeUserDelete]: 'system.operation.types.userDelete',
-  [OperationType.OperationTypeSystemPermissionCreate]: 'system.operation.types.systemPermissionCreate',
-  [OperationType.OperationTypeSystemPermissionUpdate]: 'system.operation.types.systemPermissionUpdate',
-  [OperationType.OperationTypeSystemPermissionDelete]: 'system.operation.types.systemPermissionDelete',
+  [OperationType.OperationTypeSystemPermissionCreate]:
+    'system.operation.types.systemPermissionCreate',
+  [OperationType.OperationTypeSystemPermissionUpdate]:
+    'system.operation.types.systemPermissionUpdate',
+  [OperationType.OperationTypeSystemPermissionDelete]:
+    'system.operation.types.systemPermissionDelete',
   [OperationType.OperationTypeSystemRoleCreate]: 'system.operation.types.systemRoleCreate',
   [OperationType.OperationTypeSystemRoleUpdate]: 'system.operation.types.systemRoleUpdate',
   [OperationType.OperationTypeSystemRoleDelete]: 'system.operation.types.systemRoleDelete',
-  [OperationType.OperationTypeSystemLoginConfigUpdate]: 'system.operation.types.systemLoginConfigUpdate',
+  [OperationType.OperationTypeSystemLoginConfigUpdate]:
+    'system.operation.types.systemLoginConfigUpdate',
   [OperationType.OperationTypeFileCreate]: 'system.operation.types.fileCreate',
   [OperationType.OperationTypeFileRename]: 'system.operation.types.fileRename',
   [OperationType.OperationTypeFileCopy]: 'system.operation.types.fileCopy',
@@ -213,8 +236,10 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeInstanceFileMove]: 'system.operation.types.instanceFileMove',
   [OperationType.OperationTypeInstanceFileDelete]: 'system.operation.types.instanceFileDelete',
   [OperationType.OperationTypeInstanceFileCompress]: 'system.operation.types.instanceFileCompress',
-  [OperationType.OperationTypeInstanceFileDecompress]: 'system.operation.types.instanceFileDecompress',
-  [OperationType.OperationTypeInstanceFileUploadPreSign]: 'system.operation.types.instanceFileUploadPreSign',
+  [OperationType.OperationTypeInstanceFileDecompress]:
+    'system.operation.types.instanceFileDecompress',
+  [OperationType.OperationTypeInstanceFileUploadPreSign]:
+    'system.operation.types.instanceFileUploadPreSign',
   [OperationType.OperationTypeInstanceFileEdit]: 'system.operation.types.instanceFileEdit',
   [OperationType.OperationTypeSSHHostCreate]: 'system.operation.types.sshHostCreate',
   [OperationType.OperationTypeSSHHostUpdate]: 'system.operation.types.sshHostUpdate',
@@ -222,13 +247,66 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeSSHHostShare]: 'system.operation.types.sshHostShare',
   [OperationType.OperationTypeSSHHostTest]: 'system.operation.types.sshHostTest',
   [OperationType.OperationTypeSSHHostBatchTest]: 'system.operation.types.sshHostBatchTest',
-  [OperationType.OperationTypeSystemEmailConfigUpdate]: 'system.operation.types.systemEmailConfigUpdate',
-  [OperationType.OperationTypeSystemEmailConfigTest]: 'system.operation.types.systemEmailConfigTest',
-  [OperationType.OperationTypeSystemEmailTemplateUpdate]: 'system.operation.types.systemEmailTemplateUpdate',
+  [OperationType.OperationTypeSystemEmailConfigUpdate]:
+    'system.operation.types.systemEmailConfigUpdate',
+  [OperationType.OperationTypeSystemEmailConfigTest]:
+    'system.operation.types.systemEmailConfigTest',
+  [OperationType.OperationTypeSystemEmailTemplateUpdate]:
+    'system.operation.types.systemEmailTemplateUpdate',
   [OperationType.OperationTypeNodeAPIKeyCreate]: 'system.operation.types.nodeAPIKeyCreate',
   [OperationType.OperationTypeNodeAPIKeyCopy]: 'system.operation.types.nodeAPIKeyCopy',
   [OperationType.OperationTypeNodeAPIKeyUpdate]: 'system.operation.types.nodeAPIKeyUpdate',
   [OperationType.OperationTypeNodeAPIKeyRefresh]: 'system.operation.types.nodeAPIKeyRefresh',
+  [OperationType.OperationTypeDockerConfigUpdate]: 'system.operation.types.dockerConfigUpdate',
+  [OperationType.OperationTypeDockerContainerCreate]:
+    'system.operation.types.dockerContainerCreate',
+  [OperationType.OperationTypeDockerContainerUpdate]:
+    'system.operation.types.dockerContainerUpdate',
+  [OperationType.OperationTypeDockerContainerDelete]:
+    'system.operation.types.dockerContainerDelete',
+  [OperationType.OperationTypeDockerContainerStart]: 'system.operation.types.dockerContainerStart',
+  [OperationType.OperationTypeDockerContainerStop]: 'system.operation.types.dockerContainerStop',
+  [OperationType.OperationTypeDockerContainerRestart]:
+    'system.operation.types.dockerContainerRestart',
+  [OperationType.OperationTypeDockerContainerKill]: 'system.operation.types.dockerContainerKill',
+  [OperationType.OperationTypeDockerContainerPause]: 'system.operation.types.dockerContainerPause',
+  [OperationType.OperationTypeDockerContainerUnpause]:
+    'system.operation.types.dockerContainerUnpause',
+  [OperationType.OperationTypeDockerContainerRename]:
+    'system.operation.types.dockerContainerRename',
+  [OperationType.OperationTypeDockerContainerRecreate]:
+    'system.operation.types.dockerContainerRecreate',
+  [OperationType.OperationTypeDockerImagePull]: 'system.operation.types.dockerImagePull',
+  [OperationType.OperationTypeDockerImageTagsUpdate]:
+    'system.operation.types.dockerImageTagsUpdate',
+  [OperationType.OperationTypeDockerImageTag]: 'system.operation.types.dockerImageTag',
+  [OperationType.OperationTypeDockerImageDelete]: 'system.operation.types.dockerImageDelete',
+  [OperationType.OperationTypeDockerNetworkCreate]: 'system.operation.types.dockerNetworkCreate',
+  [OperationType.OperationTypeDockerNetworkUpdate]: 'system.operation.types.dockerNetworkUpdate',
+  [OperationType.OperationTypeDockerNetworkRecreate]:
+    'system.operation.types.dockerNetworkRecreate',
+  [OperationType.OperationTypeDockerNetworkDelete]: 'system.operation.types.dockerNetworkDelete',
+  [OperationType.OperationTypeDockerNetworkConnect]: 'system.operation.types.dockerNetworkConnect',
+  [OperationType.OperationTypeDockerNetworkDisconnect]:
+    'system.operation.types.dockerNetworkDisconnect',
+  [OperationType.OperationTypeDockerNetworkPrune]: 'system.operation.types.dockerNetworkPrune',
+  [OperationType.OperationTypeDockerVolumeCreate]: 'system.operation.types.dockerVolumeCreate',
+  [OperationType.OperationTypeDockerVolumeUpdate]: 'system.operation.types.dockerVolumeUpdate',
+  [OperationType.OperationTypeDockerVolumeRecreate]: 'system.operation.types.dockerVolumeRecreate',
+  [OperationType.OperationTypeDockerVolumeDelete]: 'system.operation.types.dockerVolumeDelete',
+  [OperationType.OperationTypeDockerVolumePrune]: 'system.operation.types.dockerVolumePrune',
+  [OperationType.OperationTypeDockerVolumeExport]: 'system.operation.types.dockerVolumeExport',
+  [OperationType.OperationTypeDockerVolumeRestore]: 'system.operation.types.dockerVolumeRestore',
+  [OperationType.OperationTypeDockerConfigTest]: 'system.operation.types.dockerConfigTest',
+  [OperationType.OperationTypeOIDCConfigUpdate]: 'system.operation.types.oidcConfigUpdate',
+  [OperationType.OperationTypeOIDCClientCreate]: 'system.operation.types.oidcClientCreate',
+  [OperationType.OperationTypeOIDCClientUpdate]: 'system.operation.types.oidcClientUpdate',
+  [OperationType.OperationTypeOIDCClientDelete]: 'system.operation.types.oidcClientDelete',
+  [OperationType.OperationTypeOIDCClientSecretRefresh]:
+    'system.operation.types.oidcClientSecretRefresh',
+  [OperationType.OperationTypeOIDCAuthorizationCodeCreate]:
+    'system.operation.types.oidcAuthorizationCodeCreate',
+  [OperationType.UNRECOGNIZED]: 'system.operation.types.unrecognized',
 }
 
 const getOperationTypeLabel = (operationType: string) => {
@@ -237,10 +315,12 @@ const getOperationTypeLabel = (operationType: string) => {
 }
 
 const operationTypeOptions = computed(() =>
-  Object.entries(operationTypeLabelKeys).map(([value, labelKey]) => ({
-    value,
-    label: t(labelKey),
-  })),
+  Object.entries(operationTypeLabelKeys)
+    .filter(([value]) => value !== OperationType.UNRECOGNIZED)
+    .map(([value, labelKey]) => ({
+      value,
+      label: t(labelKey),
+    })),
 )
 
 const gridConfig = computed<VxeGridProps>(() => ({
@@ -250,12 +330,37 @@ const gridConfig = computed<VxeGridProps>(() => ({
   data: logs.value,
   columns: [
     { field: 'userId', title: t('system.operation.userId'), minWidth: 140 },
-    { field: 'operationType', title: t('system.operation.operationType'), minWidth: 140, slots: { default: 'column-operationType' } },
+    {
+      field: 'operationType',
+      title: t('system.operation.operationType'),
+      minWidth: 140,
+      slots: { default: 'column-operationType' },
+    },
     { field: 'ip', title: t('system.operation.ipAddress'), minWidth: 140 },
-    { field: 'durationMs', title: t('system.operation.duration'), width: 100, slots: { default: 'column-duration' } },
-    { field: 'success', title: t('system.operation.result'), width: 80, slots: { default: 'column-success' } },
-    { field: 'operationTime', title: t('system.operation.operationTime'), minWidth: 170, slots: { default: 'column-operationTime' } },
-    { field: 'detail', title: t('system.operation.detail'), minWidth: 160, slots: { default: 'column-detail' } },
+    {
+      field: 'durationMs',
+      title: t('system.operation.duration'),
+      width: 100,
+      slots: { default: 'column-duration' },
+    },
+    {
+      field: 'success',
+      title: t('system.operation.result'),
+      width: 80,
+      slots: { default: 'column-success' },
+    },
+    {
+      field: 'operationTime',
+      title: t('system.operation.operationTime'),
+      minWidth: 170,
+      slots: { default: 'column-operationTime' },
+    },
+    {
+      field: 'detail',
+      title: t('system.operation.detail'),
+      minWidth: 160,
+      slots: { default: 'column-detail' },
+    },
     { field: 'userAgent', title: t('system.operation.userAgent'), minWidth: 200 },
   ],
 }))
@@ -399,13 +504,55 @@ onMounted(() => {
 }
 
 /* mobile */
-.mobile-card-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.mobile-empty { padding: 1.5rem 0; }
-.mobile-card { padding: 0.65rem 0.75rem; border: 1px solid var(--el-border-color-extra-light); border-radius: 0.6rem; background: var(--el-bg-color); }
-.mobile-card-body { min-width: 0; }
-.mobile-card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.mobile-card-title { font-size: 0.85rem; font-weight: 700; color: var(--el-text-color-primary); }
-.mobile-card-meta { display: flex; align-items: center; gap: 0.25rem; margin-top: 0.2rem; font-size: 0.72rem; color: var(--el-text-color-secondary); flex-wrap: wrap; }
-.meta-sep { color: var(--el-text-color-placeholder); }
-.mobile-card-detail { margin-top: 0.3rem; font-size: 0.7rem; color: var(--el-text-color-placeholder); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.mobile-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.mobile-empty {
+  padding: 1.5rem 0;
+}
+.mobile-card {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 0.6rem;
+  background: var(--el-bg-color);
+}
+.mobile-card-body {
+  min-width: 0;
+}
+.mobile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mobile-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.mobile-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--el-text-color-secondary);
+  flex-wrap: wrap;
+}
+.meta-sep {
+  color: var(--el-text-color-placeholder);
+}
+.mobile-card-detail {
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--el-text-color-placeholder);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
 </style>
