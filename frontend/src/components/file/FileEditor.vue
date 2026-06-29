@@ -170,13 +170,16 @@
 import { useI18n } from 'vue-i18n'
 import { showRequestError } from '@/utils/request'
 import { useThemeStore } from '@/stores/theme'
+import { FileSortField } from '@/types/v1/file'
 import {
   applyEndOfLine,
   detectEndOfLine,
   detectMonacoLanguage,
   downloadFileFromUrl,
   getBaseName,
+  getParentPath,
   isMediaFile,
+  isFileTooLargeForEditor,
   resolvePreSignedFileUrl,
   type EndOfLine,
 } from '@/utils/file'
@@ -409,6 +412,36 @@ const applyContent = (text: string) => {
 }
 
 // ---- 打开文件 ----
+const normalizePathForCompare = (path: string) => path.replace(/\\/g, '/').replace(/\/+$/, '')
+const isSamePath = (left: string, right: string) =>
+  normalizePathForCompare(left).toLowerCase() === normalizePathForCompare(right).toLowerCase()
+const editorTooLargeMessage = () => t('fileManager.fileTooLargeForEditor')
+const warnEditorFileTooLarge = () => ElMessage.warning(editorTooLargeMessage())
+
+const lookupFileSize = async (path: string, name: string): Promise<number | undefined> => {
+  try {
+    const { items } = await props.client.list({
+      path: getParentPath(path),
+      page: 1,
+      pageSize: 100,
+      keywords: name,
+      sortField: FileSortField.FILE_SORT_FIELD_NAME,
+      isDesc: false,
+    })
+    return items.find((item) => !item.isDir && isSamePath(item.path, path))?.size
+  } catch {
+    return undefined
+  }
+}
+
+const ensureEditorFileSizeAllowed = async (path: string, name: string): Promise<boolean> => {
+  if (isMediaFile(name)) return true
+  const size = await lookupFileSize(path, name)
+  if (!isFileTooLargeForEditor(name, size)) return true
+  warnEditorFileTooLarge()
+  return false
+}
+
 const confirmDiscardIfDirty = async (): Promise<boolean> => {
   if (!dirty.value) return true
   try {
@@ -425,10 +458,18 @@ const confirmDiscardIfDirty = async (): Promise<boolean> => {
 
 const openPath = async (path: string, name?: string) => {
   if (!path) return
+  const nextName = name || getBaseName(path)
+  if (!(await ensureEditorFileSizeAllowed(path, nextName))) return
   if (!(await confirmDiscardIfDirty())) return
 
+  const previous = {
+    path: activePath.value,
+    name: activeName.value,
+    language: language.value,
+    isBinary: isBinary.value,
+  }
   activePath.value = path
-  activeName.value = name || getBaseName(path)
+  activeName.value = nextName
   language.value = detectMonacoLanguage(activeName.value)
 
   // 媒体在编辑区给遮罩（走列表的预览，不在编辑器打开）
@@ -447,6 +488,14 @@ const openPath = async (path: string, name?: string) => {
     await ensureEditor()
     applyContent(result.text)
   } catch (error) {
+    if (error instanceof Error && error.message === editorTooLargeMessage()) {
+      activePath.value = previous.path
+      activeName.value = previous.name
+      language.value = previous.language
+      isBinary.value = previous.isBinary
+      warnEditorFileTooLarge()
+      return
+    }
     showRequestError(error, t('fileManager.openFailed'))
   }
 }
@@ -609,7 +658,7 @@ onBeforeUnmount(disposeEditor)
 .fe-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2100;
+  z-index: 1990;
   background: rgba(15, 23, 42, 0.32);
 }
 

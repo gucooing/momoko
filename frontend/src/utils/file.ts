@@ -4,15 +4,9 @@ import { resolveStaticResourceUrl } from '@/utils/assets'
 // 文件管理通用工具：路径、媒体判定、格式化、下载、剪贴板、Monaco 语言识别。
 // 与具体 scope（系统/实例）无关，纯函数，便于复用与测试。
 
-const IMAGE_EXTENSIONS = new Set([
-  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico', 'avif',
-])
-const VIDEO_EXTENSIONS = new Set([
-  'mp4', 'webm', 'ogv', 'mov', 'mkv', 'avi', 'm4v',
-])
-const AUDIO_EXTENSIONS = new Set([
-  'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a',
-])
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico', 'avif'])
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv', 'mov', 'mkv', 'avi', 'm4v'])
+const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'])
 
 export type FilePreviewKind = 'image' | 'video' | 'audio'
 
@@ -35,6 +29,16 @@ export const resolveFilePreviewKind = (path: string): FilePreviewKind | null => 
 }
 
 export const isMediaFile = (path: string): boolean => resolveFilePreviewKind(path) !== null
+
+export const MAX_EDITOR_FILE_SIZE = 5 * 1024 * 1024
+
+export const isFileTooLargeForEditor = (
+  path: string,
+  size: number | string | undefined | null,
+): boolean => {
+  const bytes = Number(size)
+  return !isMediaFile(path) && Number.isFinite(bytes) && bytes > MAX_EDITOR_FILE_SIZE
+}
 
 // 检测路径分隔符：含反斜杠视为 Windows 风格。
 export const getPathSeparator = (path: string): '\\' | '/' => (path.includes('\\') ? '\\' : '/')
@@ -168,18 +172,62 @@ export const copyTextToClipboard = async (text: string): Promise<void> => {
 
 // 扩展名/文件名 → Monaco 语言 id（识别失败回退 plaintext）。
 const LANGUAGE_BY_EXTENSION: Record<string, string> = {
-  js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript',
-  ts: 'typescript', mts: 'typescript', cts: 'typescript', tsx: 'typescript',
-  json: 'json', json5: 'json', jsonc: 'json',
-  html: 'html', htm: 'html', vue: 'html', xml: 'xml', svg: 'xml',
-  css: 'css', scss: 'scss', less: 'less',
-  md: 'markdown', markdown: 'markdown',
-  yaml: 'yaml', yml: 'yaml', toml: 'ini', ini: 'ini', conf: 'ini', cfg: 'ini', env: 'ini', properties: 'ini',
-  sh: 'shell', bash: 'shell', zsh: 'shell', ps1: 'powershell', bat: 'bat', cmd: 'bat',
-  go: 'go', rs: 'rust', py: 'python', rb: 'ruby', php: 'php', java: 'java', kt: 'kotlin',
-  c: 'c', h: 'c', cpp: 'cpp', cc: 'cpp', cxx: 'cpp', hpp: 'cpp', cs: 'csharp',
-  sql: 'sql', dockerfile: 'dockerfile', lua: 'lua', swift: 'swift', dart: 'dart',
-  log: 'plaintext', txt: 'plaintext',
+  js: 'javascript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  mts: 'typescript',
+  cts: 'typescript',
+  tsx: 'typescript',
+  json: 'json',
+  json5: 'json',
+  jsonc: 'json',
+  html: 'html',
+  htm: 'html',
+  vue: 'html',
+  xml: 'xml',
+  svg: 'xml',
+  css: 'css',
+  scss: 'scss',
+  less: 'less',
+  md: 'markdown',
+  markdown: 'markdown',
+  yaml: 'yaml',
+  yml: 'yaml',
+  toml: 'ini',
+  ini: 'ini',
+  conf: 'ini',
+  cfg: 'ini',
+  env: 'ini',
+  properties: 'ini',
+  sh: 'shell',
+  bash: 'shell',
+  zsh: 'shell',
+  ps1: 'powershell',
+  bat: 'bat',
+  cmd: 'bat',
+  go: 'go',
+  rs: 'rust',
+  py: 'python',
+  rb: 'ruby',
+  php: 'php',
+  java: 'java',
+  kt: 'kotlin',
+  c: 'c',
+  h: 'c',
+  cpp: 'cpp',
+  cc: 'cpp',
+  cxx: 'cpp',
+  hpp: 'cpp',
+  cs: 'csharp',
+  sql: 'sql',
+  dockerfile: 'dockerfile',
+  lua: 'lua',
+  swift: 'swift',
+  dart: 'dart',
+  log: 'plaintext',
+  txt: 'plaintext',
 }
 
 const LANGUAGE_BY_FILENAME: Record<string, string> = {

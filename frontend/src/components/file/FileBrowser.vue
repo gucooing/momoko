@@ -94,12 +94,7 @@
         <button type="button" class="fm-btn" @click="openCreateFolder">
           <el-icon><IconNewFolder /></el-icon>{{ t('fileManager.createFolder') }}
         </button>
-        <button
-          type="button"
-          class="fm-btn"
-          :disabled="!hasSelection"
-          @click="downloadSelected"
-        >
+        <button type="button" class="fm-btn" :disabled="!hasSelection" @click="downloadSelected">
           <el-icon><IconDownload /></el-icon>{{ t('fileManager.download') }}
         </button>
         <button
@@ -214,14 +209,6 @@
               <button
                 type="button"
                 class="fm-icon-btn"
-                :title="t('fileManager.open')"
-                @click="onRowOpen(row)"
-              >
-                <el-icon><IconRename /></el-icon>
-              </button>
-              <button
-                type="button"
-                class="fm-icon-btn"
                 :title="t('fileManager.download')"
                 :disabled="row.isDir"
                 @click="downloadOne(row)"
@@ -272,12 +259,7 @@
       @confirm="onPromptConfirm"
     />
 
-    <FileMediaDialog
-      v-model="media.open"
-      :name="media.name"
-      :kind="media.kind"
-      :url="media.url"
-    />
+    <FileMediaDialog v-model="media.open" :name="media.name" :kind="media.kind" :url="media.url" />
 
     <FileUploadDialog
       v-model="uploadOpen"
@@ -296,11 +278,7 @@
       @deleted="loadList"
     />
 
-    <ShareFormDialog
-      v-model="shareOpen"
-      :paths="sharePaths"
-      :source-id="shareSourceId"
-    />
+    <ShareFormDialog v-model="shareOpen" :paths="sharePaths" :source-id="shareSourceId" />
   </div>
 </template>
 
@@ -329,6 +307,7 @@ import {
   splitPathSegments,
   downloadFileFromUrl,
   copyTextToClipboard,
+  isFileTooLargeForEditor,
   type FilePreviewKind,
 } from '@/utils/file'
 import { createFileClient } from './fileClient'
@@ -484,7 +463,9 @@ const sharePaths = ref<string[]>([])
 const shareSourceId = ref('')
 
 // ---- 选择 ----
-const selectedRows = computed(() => items.value.filter((item) => selectedPaths.value.has(item.path)))
+const selectedRows = computed(() =>
+  items.value.filter((item) => selectedPaths.value.has(item.path)),
+)
 const hasSelection = computed(() => selectedPaths.value.size > 0)
 const allSelected = computed(
   () => items.value.length > 0 && items.value.every((item) => selectedPaths.value.has(item.path)),
@@ -653,6 +634,10 @@ const onRowOpen = (row: FileEntryInfo) => {
     openMedia(row)
     return
   }
+  if (isFileTooLargeForEditor(row.path, row.size)) {
+    ElMessage.warning(t('fileManager.fileTooLargeForEditor'))
+    return
+  }
   editor.path = row.path
   editor.open = true
 }
@@ -764,12 +749,16 @@ const onPromptConfirm = async (value: string) => {
         prompt.targets.map((item) => item.path),
         joinPath(currentPath.value, name),
       )
-      ElMessage.success(t('fileManager.compressDone', { path: t('fileManager.outputPath', { path: output }) }))
+      ElMessage.success(
+        t('fileManager.compressDone', { path: t('fileManager.outputPath', { path: output }) }),
+      )
     } else if (prompt.mode === 'unzip') {
       const target = prompt.targets[0]
       if (!target) return
       const output = await client.unzip(target.path, joinPath(currentPath.value, value))
-      ElMessage.success(t('fileManager.unzipDone', { path: t('fileManager.outputPath', { path: output }) }))
+      ElMessage.success(
+        t('fileManager.unzipDone', { path: t('fileManager.outputPath', { path: output }) }),
+      )
     }
     prompt.open = false
     loadList()
@@ -827,7 +816,6 @@ const downloadSelected = async () => {
     return
   }
   for (const file of files) {
-     
     await downloadOne(file)
   }
 }
@@ -848,7 +836,9 @@ const copyLink = async (row: FileEntryInfo) => {
 // ---- 复制 / 剪切 / 粘贴 ----
 const setClipboard = (mode: 'copy' | 'cut', rows: FileEntryInfo[]) => {
   if (!rows.length) {
-    ElMessage.warning(mode === 'copy' ? t('fileManager.selectCopyTarget') : t('fileManager.selectCutTarget'))
+    ElMessage.warning(
+      mode === 'copy' ? t('fileManager.selectCopyTarget') : t('fileManager.selectCutTarget'),
+    )
     return
   }
   clipboard.value = { mode, paths: rows.map((item) => item.path) }
@@ -896,21 +886,46 @@ const moreActions = computed<FileMenuItem[]>(() => {
     { key: 'createFile', label: t('fileManager.createFile'), icon: IconNewFile },
   ]
   if (caps.copy) {
-    actions.push({ key: 'copy', label: t('fileManager.copy'), icon: IconCopy, disabled: !hasSelection.value })
+    actions.push({
+      key: 'copy',
+      label: t('fileManager.copy'),
+      icon: IconCopy,
+      disabled: !hasSelection.value,
+    })
   }
   if (caps.move) {
-    actions.push({ key: 'cut', label: t('fileManager.cut'), icon: IconCut, disabled: !hasSelection.value })
+    actions.push({
+      key: 'cut',
+      label: t('fileManager.cut'),
+      icon: IconCut,
+      disabled: !hasSelection.value,
+    })
   }
   if (caps.copy || caps.move) {
-    actions.push({ key: 'paste', label: t('fileManager.paste'), icon: IconPaste, disabled: !clipboard.value })
+    actions.push({
+      key: 'paste',
+      label: t('fileManager.paste'),
+      icon: IconPaste,
+      disabled: !clipboard.value,
+    })
   }
   actions.push({ key: 'divider-1', label: '', divider: true })
   if (caps.compress) {
-    actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress, disabled: !hasSelection.value })
+    actions.push({
+      key: 'compress',
+      label: t('fileManager.compress'),
+      icon: IconCompress,
+      disabled: !hasSelection.value,
+    })
   }
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
   if (isSystemScope) {
-    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare, disabled: !hasSelection.value })
+    actions.push({
+      key: 'share',
+      label: t('fileManager.share'),
+      icon: IconShare,
+      disabled: !hasSelection.value,
+    })
   }
   return actions
 })
@@ -928,10 +943,13 @@ const onMoreAction = (key: string) => {
 // ---- 行“更多” ----
 const rowActions = (row: FileEntryInfo): FileMenuItem[] => {
   const caps = currentCaps.value
-  const actions: FileMenuItem[] = [{ key: 'rename', label: t('fileManager.rename'), icon: IconRename }]
+  const actions: FileMenuItem[] = [
+    { key: 'rename', label: t('fileManager.rename'), icon: IconRename },
+  ]
   if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copy'), icon: IconCopy })
   if (caps.move) actions.push({ key: 'cut', label: t('fileManager.cut'), icon: IconCut })
-  if (caps.compress) actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress })
+  if (caps.compress)
+    actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress })
   if (caps.compress && !row.isDir && /\.(zip|tar|gz|tgz|rar|7z)$/i.test(row.name)) {
     actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: IconUnzip })
   }
