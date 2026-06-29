@@ -19,10 +19,14 @@
           </el-input>
         </el-form-item>
         <el-form-item :label="t('file.share.expires')">
-          <span>{{ created.expiresAt ? formatTime(created.expiresAt) : t('file.share.never') }}</span>
+          <span>{{
+            created.expiresAt ? formatTime(created.expiresAt) : t('file.share.never')
+          }}</span>
         </el-form-item>
         <el-form-item :label="t('file.share.maxDownloads')">
-          <span>{{ Number(created.maxDownloads) > 0 ? created.maxDownloads : t('file.share.unlimited') }}</span>
+          <span>{{
+            Number(created.maxDownloads) > 0 ? created.maxDownloads : t('file.share.unlimited')
+          }}</span>
         </el-form-item>
       </el-form>
     </div>
@@ -39,7 +43,11 @@
         <el-input v-model="form.name" :placeholder="t('file.share.namePlaceholder')" />
       </el-form-item>
       <el-form-item :label="t('file.share.code')">
-        <el-input v-model="form.code" :placeholder="t('file.share.codePlaceholder')" maxlength="16" />
+        <el-input
+          v-model="form.code"
+          :placeholder="t('file.share.codePlaceholder')"
+          maxlength="16"
+        />
       </el-form-item>
       <el-form-item :label="t('file.share.expires')">
         <el-date-picker
@@ -50,14 +58,19 @@
         />
       </el-form-item>
       <el-form-item :label="t('file.share.maxDownloads')">
-        <el-input-number v-model="form.maxDownloads" :min="0" controls-position="right" class="full-input" />
+        <el-input-number
+          v-model="form.maxDownloads"
+          :min="0"
+          controls-position="right"
+          class="full-input"
+        />
       </el-form-item>
       <el-form-item :label="t('file.share.enabled')">
         <el-switch v-model="form.enabled" />
       </el-form-item>
     </el-form>
 
-    <FilePicker v-model="pickerOpen" :initial-path="form.paths[0] || ''" @confirm="onPickPath" />
+    <FilePicker v-model="pickerOpen" multiple :initial-paths="form.paths" @confirm="onPickPaths" />
 
     <template #footer>
       <template v-if="created">
@@ -65,7 +78,9 @@
       </template>
       <template v-else>
         <el-button @click="visible = false">{{ t('system.common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="save">{{ t('system.common.confirm') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="save">{{
+          t('system.common.confirm')
+        }}</el-button>
       </template>
     </template>
   </BaseDialog>
@@ -122,8 +137,8 @@ const form = reactive(defaultForm())
 
 // 通过文件树选择分享路径（取代手动输入绝对路径）
 const pickerOpen = ref(false)
-const onPickPath = (path: string) => {
-  form.paths = [path]
+const onPickPaths = (paths: string | string[]) => {
+  form.paths = Array.isArray(paths) ? paths : [paths]
 }
 
 const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
@@ -145,7 +160,9 @@ const onOpened = () => {
       paths: props.share.paths,
       name: props.share.name,
       code: props.share.code,
-      expiresAt: props.share.expiresAt ? new Date(props.share.expiresAt as unknown as string) : null,
+      expiresAt: props.share.expiresAt
+        ? new Date(props.share.expiresAt as unknown as string)
+        : null,
       maxDownloads: Number(props.share.maxDownloads) || 0,
       enabled: props.share.enabled,
     })

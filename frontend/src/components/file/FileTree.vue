@@ -18,9 +18,13 @@ const props = withDefaults(
     client: FileClient
     rootPath: string
     activePath: string
+    selectedPaths?: string[]
+    multiple?: boolean
     selectable?: 'file' | 'all'
   }>(),
   {
+    selectedPaths: () => [],
+    multiple: false,
     selectable: 'file',
   },
 )
@@ -35,6 +39,8 @@ const loading = ref(false)
 provide(FILE_TREE_CONTEXT, {
   client: props.client,
   activePath: toRef(props, 'activePath'),
+  selectedPaths: computed(() => new Set(props.selectedPaths)),
+  multiple: props.multiple,
   selectable: props.selectable,
   select: (path: string, name: string, isDir: boolean) => emit('select', path, name, isDir),
 })

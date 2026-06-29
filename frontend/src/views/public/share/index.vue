@@ -1,5 +1,13 @@
 <template>
   <div class="file-module share-public" :class="{ 'is-dark': isDark }">
+    <header class="sp-site-header">
+      <div class="sp-site-brand">
+        <img :src="APP_CONFIG.logoSrc" :alt="APP_CONFIG.name" class="sp-site-logo" />
+        <span class="sp-site-name">{{ APP_CONFIG.name }}</span>
+      </div>
+      <a class="sp-login-button" :href="loginHref">登录</a>
+    </header>
+
     <div class="sp-card">
       <!-- 加载中 -->
       <div v-if="loading" class="sp-state">{{ t('file.share.loading') }}</div>
@@ -19,25 +27,19 @@
       <template v-else-if="meta">
         <!-- 头部 -->
         <header class="sp-header">
-          <el-icon class="sp-header-icon is-folder">
-            <IconFolder />
-          </el-icon>
           <div class="sp-header-info">
             <h1 class="sp-name">{{ meta.name }}</h1>
             <div class="sp-meta">
-              <span v-if="meta.expiresAt">{{ t('file.share.expiresAt', { time: formatDateTime(meta.expiresAt) }) }}</span>
+              <span v-if="meta.expiresAt">{{
+                t('file.share.expiresAt', { time: formatDateTime(meta.expiresAt) })
+              }}</span>
               <span v-if="Number(meta.maxDownloads) > 0">
                 {{ t('file.share.downloads') }}: {{ meta.downloadCount }} / {{ meta.maxDownloads }}
               </span>
             </div>
           </div>
           <div v-if="meta.ownerName || meta.ownerAvatar" class="sp-owner">
-            <img
-              v-if="meta.ownerAvatar"
-              :src="resolveAvatarUrl(meta.ownerAvatar)"
-              :alt="meta.ownerName"
-              class="sp-owner-avatar"
-            />
+            <img :src="ownerAvatarUrl" :alt="meta.ownerName" class="sp-owner-avatar" />
             <span class="sp-owner-name">{{ meta.ownerName }}</span>
           </div>
         </header>
@@ -64,7 +66,9 @@
                 </button>
                 <template v-for="(seg, index) in subSegments" :key="seg.path">
                   <el-icon class="sp-crumb-sep"><IconChevronRight /></el-icon>
-                  <button type="button" class="sp-crumb" @click="goTo(seg.path)">{{ seg.name }}</button>
+                  <button type="button" class="sp-crumb" @click="goTo(seg.path)">
+                    {{ seg.name }}
+                  </button>
                   <span v-if="index === subSegments.length - 1"></span>
                 </template>
               </div>
@@ -83,8 +87,12 @@
                   </el-icon>
                   <span class="sp-entry-name">{{ entry.name }}</span>
                 </button>
-                <span class="sp-entry-size">{{ entry.isDir ? '' : formatFileSize(entry.size) }}</span>
-                <span class="sp-entry-time">{{ formatDateTime(entry.updateTime) }}</span>
+                <div class="sp-entry-meta-row">
+                  <span class="sp-entry-size">{{
+                    entry.isDir ? '' : formatFileSize(entry.size)
+                  }}</span>
+                  <span class="sp-entry-time">{{ formatDateTime(entry.updateTime) }}</span>
+                </div>
                 <span class="sp-entry-ops">
                   <button
                     v-if="!entry.isDir"
@@ -130,8 +138,10 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { showRequestError } from '@/utils/request'
 import { useThemeStore } from '@/stores/theme'
+import { APP_CONFIG } from '@/config/app.config'
 import { formatDateTime, formatFileSize, splitPathSegments } from '@/utils/file'
 import { resolveAvatarUrl } from '@/utils/assets'
+import defaultAvatarSvg from '@/assets/defaultAvatar.svg'
 import {
   getShareMetaRequest,
   createShareSessionRequest,
@@ -139,7 +149,13 @@ import {
   buildShareDownloadUrl,
 } from '@/api/share'
 import FileViewerDialog from '@/components/file/FileViewerDialog.vue'
-import { IconFolder, IconFile, IconDownload, IconChevronRight, IconWarning } from '@/components/file/icons'
+import {
+  IconFolder,
+  IconFile,
+  IconDownload,
+  IconChevronRight,
+  IconWarning,
+} from '@/components/file/icons'
 import type { GetShareMetaResponse, ShareEntry } from '@/types/v1/file'
 
 const { t } = useI18n()
@@ -147,10 +163,12 @@ const route = useRoute()
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.isDarkTheme)
 const token = String(route.params.token || '')
+const loginHref = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/login`
 
 const loading = ref(true)
 const notFound = ref(false)
 const meta = ref<GetShareMetaResponse | null>(null)
+const ownerAvatarUrl = computed(() => resolveAvatarUrl(meta.value?.ownerAvatar) || defaultAvatarSvg)
 
 const code = ref('')
 // 会话签名：换取后所有请求只带签名（不再逐次携带提取码）；有签名即视为已通过验证。
@@ -249,10 +267,64 @@ onMounted(fetchMeta)
 .share-public {
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 3rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 1rem 3rem;
   background: var(--fm-subtle);
+}
+.sp-site-header {
+  align-self: stretch;
+  width: auto;
+  height: 56px;
+  margin: 0 -1rem 2rem;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--fm-surface);
+  border-bottom: 1px solid var(--fm-border);
+}
+.sp-site-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sp-site-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.sp-site-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fm-text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.sp-login-button {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 0.875rem;
+  border-radius: 0.375rem;
+  background: var(--fm-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+}
+.sp-login-button:hover {
+  color: #fff;
+  filter: brightness(0.96);
 }
 .sp-card {
   width: 100%;
@@ -285,14 +357,9 @@ onMounted(fetchMeta)
   padding: 1.5rem;
   border-bottom: 1px solid var(--fm-border);
 }
-.sp-header-icon {
-  font-size: 40px;
-}
-.sp-header-icon.is-folder {
-  color: var(--fm-folder);
-}
-.sp-header-icon.is-file {
-  color: var(--fm-accent);
+.sp-header-info {
+  min-width: 0;
+  flex: 1;
 }
 .sp-name {
   margin: 0 0 0.25rem;
@@ -373,7 +440,7 @@ onMounted(fetchMeta)
 }
 .sp-entry {
   display: grid;
-  grid-template-columns: 1fr 110px 170px 90px;
+  grid-template-columns: 1fr 290px 90px;
   align-items: center;
   gap: 0.5rem;
   padding: 0 1.5rem;
@@ -410,6 +477,11 @@ onMounted(fetchMeta)
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.sp-entry-meta-row {
+  display: grid;
+  grid-template-columns: 110px 170px;
+  gap: 0.5rem;
+}
 .sp-entry-size,
 .sp-entry-time {
   color: var(--fm-text-3);
@@ -432,5 +504,131 @@ onMounted(fetchMeta)
   color: var(--fm-text-3);
   border-top: 1px solid var(--fm-border);
   background: var(--fm-subtle);
+}
+
+@media (max-width: 767px) {
+  .share-public {
+    min-height: 100dvh;
+    padding: 0 0.75rem 1rem;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .sp-site-header {
+    height: 52px;
+    margin: 0 -0.75rem 0.75rem;
+    padding: 0 1rem;
+  }
+  .sp-site-logo {
+    width: 28px;
+    height: 28px;
+  }
+  .sp-site-name {
+    font-size: 1rem;
+  }
+  .sp-login-button {
+    height: 30px;
+    padding: 0 0.75rem;
+  }
+  .sp-card {
+    max-width: none;
+    border-radius: 0.5rem;
+  }
+  .sp-state {
+    padding: 2rem 1rem;
+  }
+  .sp-header {
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .sp-header-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .sp-name {
+    font-size: 1rem;
+  }
+  .sp-meta {
+    gap: 0.35rem;
+    flex-direction: column;
+  }
+  .sp-owner {
+    width: auto;
+    margin-left: auto;
+    max-width: 132px;
+  }
+  .sp-owner-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sp-code {
+    padding: 1rem;
+    flex-direction: column;
+  }
+  .sp-code-input {
+    max-width: none;
+  }
+  .sp-code .fm-btn {
+    width: 100%;
+  }
+  .sp-dir-bar {
+    align-items: center;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  .sp-breadcrumb {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+    overflow: hidden;
+  }
+  .sp-crumb {
+    min-width: 0;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sp-dir-bar .fm-btn {
+    width: auto;
+    flex-shrink: 0;
+    padding: 0 0.65rem;
+  }
+  .sp-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 44px;
+    padding: 0 1rem;
+  }
+  .sp-entry-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .sp-entry-meta-row {
+    display: flex;
+    flex-shrink: 0;
+    padding-left: 0;
+    white-space: nowrap;
+  }
+  .sp-entry-size {
+    display: none;
+  }
+  .sp-entry-ops {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.45rem;
+    padding-left: 0;
+  }
+  .sp-entry-link {
+    padding: 0;
+    white-space: nowrap;
+  }
+  .sp-disclaimer {
+    padding: 0.8rem 1rem;
+  }
 }
 </style>

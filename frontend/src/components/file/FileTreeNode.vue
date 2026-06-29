@@ -14,6 +14,14 @@
       >
         <el-icon v-if="node.isDir"><IconChevronRight /></el-icon>
       </span>
+      <input
+        v-if="ctx.multiple && isSelectable"
+        class="ftn-check"
+        type="checkbox"
+        :checked="isActive"
+        @click.stop
+        @change="onCheckChange"
+      />
       <el-icon class="ftn-icon" :class="node.isDir ? 'is-folder' : 'is-file'">
         <component :is="nodeIcon" />
       </el-icon>
@@ -22,12 +30,7 @@
     </div>
 
     <div v-if="expanded">
-      <FileTreeNode
-        v-for="child in children"
-        :key="child.path"
-        :node="child"
-        :depth="depth + 1"
-      />
+      <FileTreeNode v-for="child in children" :key="child.path" :node="child" :depth="depth + 1" />
       <div
         v-if="loaded && !children.length"
         class="ftn-empty"
@@ -62,7 +65,36 @@ const loading = ref(false)
 const children = ref<FileTreeNodeType[]>([])
 const rowRef = ref<HTMLElement | null>(null)
 
-const isActive = computed(() => ctx.activePath.value === props.node.path)
+const normalizeComparePath = (path: string) => path.replace(/\\/g, '/').replace(/\/+$/, '')
+const isWindowsPath = (path: string) =>
+  /^[a-z]:\//i.test(normalizeComparePath(path)) || path.includes('\\')
+const isSameOrDescendantPath = (path: string, parent: string) => {
+  const normalizedPath = normalizeComparePath(path)
+  const normalizedParent = normalizeComparePath(parent)
+  if (!normalizedPath || !normalizedParent) return false
+
+  const ignoreCase = isWindowsPath(path) || isWindowsPath(parent)
+  const current = ignoreCase ? normalizedPath.toLowerCase() : normalizedPath
+  const base = ignoreCase ? normalizedParent.toLowerCase() : normalizedParent
+  return current === base || current.startsWith(`${base}/`)
+}
+
+const isSelectable = computed(() => ctx.selectable === 'all' || !props.node.isDir)
+const isExplicitlySelected = computed(() => Boolean(ctx.selectedPaths?.value.has(props.node.path)))
+const selectedAncestorPath = computed(() => {
+  for (const selectedPath of ctx.selectedPaths?.value ?? []) {
+    if (selectedPath !== props.node.path && isSameOrDescendantPath(props.node.path, selectedPath)) {
+      return selectedPath
+    }
+  }
+
+  return ''
+})
+const isActive = computed(() => {
+  if (ctx.multiple) return isExplicitlySelected.value || Boolean(selectedAncestorPath.value)
+  return ctx.activePath.value === props.node.path
+})
+const isCurrentActive = computed(() => ctx.activePath.value === props.node.path)
 const nodeIcon = computed(() => {
   if (!props.node.isDir) return IconFile
   return expanded.value ? IconFolderOpen : IconFolder
@@ -87,11 +119,25 @@ const toggleExpand = async () => {
   expanded.value = !expanded.value
 }
 
+const selectNode = () => {
+  if (!isSelectable.value) return
+  if (ctx.multiple && selectedAncestorPath.value && !isExplicitlySelected.value) {
+    ctx.select(selectedAncestorPath.value, props.node.name, true)
+    return
+  }
+
+  ctx.select(props.node.path, props.node.name, props.node.isDir)
+}
+
+const onCheckChange = () => {
+  selectNode()
+}
+
 const onRowClick = async () => {
   if (props.node.isDir) {
     if (ctx.selectable === 'all') {
       // 选择器：点目录=选中并下钻；用箭头折叠
-      ctx.select(props.node.path, props.node.name, true)
+      selectNode()
       if (!expanded.value) {
         if (!loaded.value) await loadChildren()
         expanded.value = true
@@ -100,7 +146,7 @@ const onRowClick = async () => {
       await toggleExpand()
     }
   } else {
-    ctx.select(props.node.path, props.node.name, false)
+    selectNode()
   }
 }
 
@@ -110,7 +156,9 @@ const isAncestorOfActive = () => {
   const active = ctx.activePath.value
   if (!active || !props.node.isDir) return false
   const base = props.node.path.replace(/[\\/]+$/, '')
-  return active.length > base.length && active.toLowerCase().startsWith(`${base}${sep}`.toLowerCase())
+  return (
+    active.length > base.length && active.toLowerCase().startsWith(`${base}${sep}`.toLowerCase())
+  )
 }
 const reveal = async () => {
   if (!isAncestorOfActive()) return
@@ -123,13 +171,13 @@ const scrollToActive = () => {
   nextTick(() => rowRef.value?.scrollIntoView({ block: 'center' }))
 }
 
-watch(isActive, (active) => {
+watch(isCurrentActive, (active) => {
   if (active) scrollToActive()
 })
 watch(() => ctx.activePath.value, reveal)
 onMounted(() => {
   reveal()
-  if (isActive.value) scrollToActive()
+  if (isCurrentActive.value) scrollToActive()
 })
 </script>
 
@@ -179,6 +227,13 @@ onMounted(() => {
 }
 .ftn-caret.is-open {
   transform: rotate(90deg);
+}
+.ftn-check {
+  width: 14px;
+  height: 14px;
+  margin: 0 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--fm-accent);
 }
 .ftn-icon {
   flex-shrink: 0;

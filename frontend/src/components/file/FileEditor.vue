@@ -4,14 +4,23 @@
       <div v-if="modelValue" class="fe-overlay">
         <div
           class="file-module fe-window"
-          :class="{ 'is-dark': resolvedDark, 'is-fullscreen': fullscreen, 'is-minimized': minimized }"
+          :class="{
+            'is-dark': resolvedDark,
+            'is-fullscreen': fullscreen,
+            'is-minimized': minimized,
+          }"
           :style="windowStyle"
         >
           <!-- 标题栏（可拖拽） -->
           <header class="fe-titlebar" @mousedown="startDrag" @dblclick="toggleFullscreen">
             <span class="fe-title">{{ t('fileManager.editTitle') }} - {{ activeName || '—' }}</span>
             <div class="fe-title-actions" @mousedown.stop>
-              <button type="button" class="fm-icon-btn" :title="t('fileManager.minimize')" @click="toggleMinimize">
+              <button
+                type="button"
+                class="fm-icon-btn"
+                :title="t('fileManager.minimize')"
+                @click="toggleMinimize"
+              >
                 <el-icon><IconMinimize /></el-icon>
               </button>
               <button type="button" class="fm-icon-btn" :title="t('common.close')" @click="close">
@@ -29,7 +38,8 @@
                 :disabled="!dirty || saving || isBinary"
                 @click="save"
               >
-                <el-icon :class="{ 'is-spinning': saving }"><IconSave /></el-icon>{{ t('common.save') }}
+                <el-icon :class="{ 'is-spinning': saving }"><IconSave /></el-icon
+                >{{ t('common.save') }}
               </button>
               <button type="button" class="fm-btn" :disabled="!activePath" @click="refresh">
                 <el-icon><IconRefresh /></el-icon>{{ t('fileManager.refresh') }}
@@ -63,14 +73,34 @@
                 :title="fullscreen ? t('fileManager.exitFullscreen') : t('fileManager.fullscreen')"
                 @click="toggleFullscreen"
               >
-                <el-icon><component :is="fullscreen ? IconExitFullscreen : IconFullscreen" /></el-icon>
+                <el-icon
+                  ><component :is="fullscreen ? IconExitFullscreen : IconFullscreen"
+                /></el-icon>
               </button>
             </div>
 
             <!-- 主体：树 | 分隔条 | 编辑区 -->
             <div class="fe-body">
-              <aside class="fe-tree" :style="{ width: `${treeWidth}px` }">
-                <div class="fe-tree-head">{{ t('fileManager.fileTree') }}</div>
+              <button type="button" class="fe-tree-toggle" @click="mobileTreeOpen = true">
+                {{ t('fileManager.fileTree') }}
+              </button>
+              <div
+                v-if="mobileTreeOpen"
+                class="fe-tree-backdrop"
+                @click="mobileTreeOpen = false"
+              ></div>
+
+              <aside
+                class="fe-tree"
+                :class="{ 'is-mobile-open': mobileTreeOpen }"
+                :style="{ width: `${treeWidth}px` }"
+              >
+                <div class="fe-tree-head">
+                  <span>{{ t('fileManager.fileTree') }}</span>
+                  <button type="button" class="fe-tree-close" @click="mobileTreeOpen = false">
+                    <el-icon><IconClose /></el-icon>
+                  </button>
+                </div>
                 <div class="fe-tree-scroll">
                   <FileTree
                     ref="treeRef"
@@ -88,7 +118,9 @@
                 <div ref="monacoEl" class="fe-monaco"></div>
                 <div v-if="maskVisible" class="fe-mask">
                   <el-icon class="fe-mask-icon"><IconWarning /></el-icon>
-                  <p>{{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}</p>
+                  <p>
+                    {{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -104,7 +136,9 @@
               <button type="button" class="fe-status-btn" @click="toggleEol">
                 {{ t('fileManager.eol') }}: {{ eol }}
               </button>
-              <span class="fe-status-sep">{{ t('fileManager.lineCol', { line: cursor.line, col: cursor.col }) }}</span>
+              <span class="fe-status-sep">{{
+                t('fileManager.lineCol', { line: cursor.line, col: cursor.col })
+              }}</span>
               <span>{{ t('fileManager.totalLines', { n: totalLines }) }}</span>
             </footer>
           </template>
@@ -189,9 +223,7 @@ const themeStore = useThemeStore()
 // ---- 主题（自动/亮/暗，localStorage 持久；整窗 + Monaco 一起切） ----
 type ThemeMode = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'fileEditorTheme'
-const themeMode = ref<ThemeMode>(
-  (localStorage.getItem(THEME_KEY) as ThemeMode) || 'auto',
-)
+const themeMode = ref<ThemeMode>((localStorage.getItem(THEME_KEY) as ThemeMode) || 'auto')
 const resolvedDark = computed(() =>
   themeMode.value === 'auto' ? themeStore.isDarkTheme : themeMode.value === 'dark',
 )
@@ -214,6 +246,7 @@ const win = reactive({ left: 0, top: 0, width: 1200, height: 760 })
 const fullscreen = ref(false)
 const minimized = ref(false)
 const treeWidth = ref(248)
+const mobileTreeOpen = ref(false)
 
 const windowStyle = computed<CSSProperties>(() => {
   if (fullscreen.value) return {}
@@ -229,6 +262,15 @@ const windowStyle = computed<CSSProperties>(() => {
 const computeDefaultGeometry = () => {
   const vw = window.innerWidth
   const vh = window.innerHeight
+  if (vw <= 767) {
+    win.width = Math.max(320, vw - 16)
+    win.height = Math.max(360, vh - 16)
+    win.left = 8
+    win.top = 8
+    treeWidth.value = Math.min(300, Math.max(240, vw - 72))
+    return
+  }
+
   win.width = Math.min(1360, vw - 24)
   win.height = Math.min(880, vh - 64)
   win.left = Math.max(12, (vw - win.width) / 2)
@@ -246,7 +288,7 @@ const toggleMinimize = () => {
 
 // 拖拽移动
 const startDrag = (event: MouseEvent) => {
-  if (fullscreen.value) return
+  if (fullscreen.value || window.innerWidth <= 767) return
   const startX = event.clientX
   const startY = event.clientY
   const originLeft = win.left
@@ -265,6 +307,7 @@ const startDrag = (event: MouseEvent) => {
 
 // 右下角缩放
 const startResize = (event: MouseEvent) => {
+  if (window.innerWidth <= 767) return
   event.preventDefault()
   const startX = event.clientX
   const startY = event.clientY
@@ -408,7 +451,10 @@ const openPath = async (path: string, name?: string) => {
   }
 }
 
-const onTreeSelect = (path: string, name: string) => openPath(path, name)
+const onTreeSelect = (path: string, name: string) => {
+  mobileTreeOpen.value = false
+  openPath(path, name)
+}
 
 // ---- 操作 ----
 const save = async () => {
@@ -533,6 +579,7 @@ watch(
       computeDefaultGeometry()
       fullscreen.value = false
       minimized.value = false
+      mobileTreeOpen.value = false
       await nextTick()
       await ensureEditor()
       if (props.path) await openPath(props.path)
@@ -542,6 +589,7 @@ watch(
       activeName.value = ''
       dirty.value = false
       isBinary.value = false
+      mobileTreeOpen.value = false
     }
   },
 )
@@ -642,6 +690,12 @@ onBeforeUnmount(disposeEditor)
   flex: 1;
   display: flex;
   min-height: 0;
+  position: relative;
+}
+.fe-tree-toggle,
+.fe-tree-close,
+.fe-tree-backdrop {
+  display: none;
 }
 .fe-tree {
   display: flex;
@@ -655,6 +709,7 @@ onBeforeUnmount(disposeEditor)
   height: 34px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 0.875rem;
   font-size: 12px;
   font-weight: 600;
@@ -765,5 +820,116 @@ onBeforeUnmount(disposeEditor)
 .fe-fade-enter-from,
 .fe-fade-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 767px) {
+  .fe-window:not(.is-minimized) {
+    left: 8px !important;
+    top: 8px !important;
+    width: calc(100vw - 16px) !important;
+    height: calc(100dvh - 16px) !important;
+    min-width: 0;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .fe-window.is-minimized {
+    left: 8px !important;
+    top: 8px !important;
+    width: calc(100vw - 16px) !important;
+    min-width: 0;
+  }
+  .fe-titlebar {
+    height: 36px;
+    padding-left: 0.75rem;
+    cursor: default;
+  }
+  .fe-toolbar {
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding: 0.45rem 0.6rem;
+  }
+  .fe-toolbar .fm-btn,
+  .fe-toolbar .fm-icon-btn {
+    flex-shrink: 0;
+  }
+  .fe-body {
+    overflow: hidden;
+  }
+  .fe-tree-toggle {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 84px;
+    padding: 0;
+    border: 1px solid var(--fm-border);
+    border-left: none;
+    border-radius: 0 var(--fm-radius-sm) var(--fm-radius-sm) 0;
+    background: var(--fm-surface);
+    color: var(--fm-text-2);
+    font-size: 12px;
+    writing-mode: vertical-rl;
+    transform: translateY(-50%);
+  }
+  .fe-tree-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: block;
+    background: rgba(15, 23, 42, 0.24);
+  }
+  .fe-tree {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 5;
+    width: min(300px, calc(100vw - 56px)) !important;
+    max-width: calc(100vw - 56px);
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    box-shadow: var(--fm-shadow);
+  }
+  .fe-tree.is-mobile-open {
+    transform: translateX(0);
+  }
+  .fe-tree-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: var(--fm-radius-sm);
+    background: transparent;
+    color: var(--fm-text-3);
+  }
+  .fe-tree-close .el-icon {
+    font-size: 16px;
+  }
+  .fe-splitter {
+    display: none;
+  }
+  .fe-main {
+    flex-basis: 100%;
+  }
+  .fe-statusbar {
+    gap: 0.55rem;
+    height: 26px;
+    padding: 0 0.6rem;
+  }
+  .fe-status-path {
+    max-width: 62%;
+  }
+  .fe-status-sep,
+  .fe-status-btn,
+  .fe-statusbar > span:last-child {
+    display: none;
+  }
+  .fe-resize {
+    display: none;
+  }
 }
 </style>

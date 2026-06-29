@@ -110,6 +110,8 @@ export type FileManagerAction =
 export interface FileTreeContext {
   client: FileClient
   activePath: Ref<string>
+  selectedPaths?: Ref<Set<string>>
+  multiple: boolean
   // 'file'=仅文件可选（编辑器）；'all'=文件与文件夹均可选（分享/选择器）
   selectable: 'file' | 'all'
   select: (path: string, name: string, isDir: boolean) => void
