@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/schema/sharetype"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -64,23 +65,9 @@ func (_c *FileShareCreate) SetName(v string) *FileShareCreate {
 	return _c
 }
 
-// SetPaths sets the "paths" field.
-func (_c *FileShareCreate) SetPaths(v []string) *FileShareCreate {
-	_c.mutation.SetPaths(v)
-	return _c
-}
-
-// SetSourceID sets the "source_id" field.
-func (_c *FileShareCreate) SetSourceID(v string) *FileShareCreate {
-	_c.mutation.SetSourceID(v)
-	return _c
-}
-
-// SetNillableSourceID sets the "source_id" field if the given value is not nil.
-func (_c *FileShareCreate) SetNillableSourceID(v *string) *FileShareCreate {
-	if v != nil {
-		_c.SetSourceID(*v)
-	}
+// SetItems sets the "items" field.
+func (_c *FileShareCreate) SetItems(v []sharetype.Item) *FileShareCreate {
+	_c.mutation.SetItems(v)
 	return _c
 }
 
@@ -214,10 +201,6 @@ func (_c *FileShareCreate) defaults() {
 		v := fileshare.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
-	if _, ok := _c.mutation.SourceID(); !ok {
-		v := fileshare.DefaultSourceID
-		_c.mutation.SetSourceID(v)
-	}
 	if _, ok := _c.mutation.Code(); !ok {
 		v := fileshare.DefaultCode
 		_c.mutation.SetCode(v)
@@ -250,11 +233,8 @@ func (_c *FileShareCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "FileShare.name"`)}
 	}
-	if _, ok := _c.mutation.Paths(); !ok {
-		return &ValidationError{Name: "paths", err: errors.New(`gen: missing required field "FileShare.paths"`)}
-	}
-	if _, ok := _c.mutation.SourceID(); !ok {
-		return &ValidationError{Name: "source_id", err: errors.New(`gen: missing required field "FileShare.source_id"`)}
+	if _, ok := _c.mutation.Items(); !ok {
+		return &ValidationError{Name: "items", err: errors.New(`gen: missing required field "FileShare.items"`)}
 	}
 	if _, ok := _c.mutation.Token(); !ok {
 		return &ValidationError{Name: "token", err: errors.New(`gen: missing required field "FileShare.token"`)}
@@ -322,13 +302,9 @@ func (_c *FileShareCreate) createSpec() (*FileShare, *sqlgraph.CreateSpec) {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := _c.mutation.Paths(); ok {
-		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
-		_node.Paths = value
-	}
-	if value, ok := _c.mutation.SourceID(); ok {
-		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
-		_node.SourceID = value
+	if value, ok := _c.mutation.Items(); ok {
+		_spec.SetField(fileshare.FieldItems, field.TypeJSON, value)
+		_node.Items = value
 	}
 	if value, ok := _c.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)
@@ -459,27 +435,15 @@ func (u *FileShareUpsert) UpdateName() *FileShareUpsert {
 	return u
 }
 
-// SetPaths sets the "paths" field.
-func (u *FileShareUpsert) SetPaths(v []string) *FileShareUpsert {
-	u.Set(fileshare.FieldPaths, v)
+// SetItems sets the "items" field.
+func (u *FileShareUpsert) SetItems(v []sharetype.Item) *FileShareUpsert {
+	u.Set(fileshare.FieldItems, v)
 	return u
 }
 
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *FileShareUpsert) UpdatePaths() *FileShareUpsert {
-	u.SetExcluded(fileshare.FieldPaths)
-	return u
-}
-
-// SetSourceID sets the "source_id" field.
-func (u *FileShareUpsert) SetSourceID(v string) *FileShareUpsert {
-	u.Set(fileshare.FieldSourceID, v)
-	return u
-}
-
-// UpdateSourceID sets the "source_id" field to the value that was provided on create.
-func (u *FileShareUpsert) UpdateSourceID() *FileShareUpsert {
-	u.SetExcluded(fileshare.FieldSourceID)
+// UpdateItems sets the "items" field to the value that was provided on create.
+func (u *FileShareUpsert) UpdateItems() *FileShareUpsert {
+	u.SetExcluded(fileshare.FieldItems)
 	return u
 }
 
@@ -666,31 +630,17 @@ func (u *FileShareUpsertOne) UpdateName() *FileShareUpsertOne {
 	})
 }
 
-// SetPaths sets the "paths" field.
-func (u *FileShareUpsertOne) SetPaths(v []string) *FileShareUpsertOne {
+// SetItems sets the "items" field.
+func (u *FileShareUpsertOne) SetItems(v []sharetype.Item) *FileShareUpsertOne {
 	return u.Update(func(s *FileShareUpsert) {
-		s.SetPaths(v)
+		s.SetItems(v)
 	})
 }
 
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *FileShareUpsertOne) UpdatePaths() *FileShareUpsertOne {
+// UpdateItems sets the "items" field to the value that was provided on create.
+func (u *FileShareUpsertOne) UpdateItems() *FileShareUpsertOne {
 	return u.Update(func(s *FileShareUpsert) {
-		s.UpdatePaths()
-	})
-}
-
-// SetSourceID sets the "source_id" field.
-func (u *FileShareUpsertOne) SetSourceID(v string) *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetSourceID(v)
-	})
-}
-
-// UpdateSourceID sets the "source_id" field to the value that was provided on create.
-func (u *FileShareUpsertOne) UpdateSourceID() *FileShareUpsertOne {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateSourceID()
+		s.UpdateItems()
 	})
 }
 
@@ -1059,31 +1009,17 @@ func (u *FileShareUpsertBulk) UpdateName() *FileShareUpsertBulk {
 	})
 }
 
-// SetPaths sets the "paths" field.
-func (u *FileShareUpsertBulk) SetPaths(v []string) *FileShareUpsertBulk {
+// SetItems sets the "items" field.
+func (u *FileShareUpsertBulk) SetItems(v []sharetype.Item) *FileShareUpsertBulk {
 	return u.Update(func(s *FileShareUpsert) {
-		s.SetPaths(v)
+		s.SetItems(v)
 	})
 }
 
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *FileShareUpsertBulk) UpdatePaths() *FileShareUpsertBulk {
+// UpdateItems sets the "items" field to the value that was provided on create.
+func (u *FileShareUpsertBulk) UpdateItems() *FileShareUpsertBulk {
 	return u.Update(func(s *FileShareUpsert) {
-		s.UpdatePaths()
-	})
-}
-
-// SetSourceID sets the "source_id" field.
-func (u *FileShareUpsertBulk) SetSourceID(v string) *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.SetSourceID(v)
-	})
-}
-
-// UpdateSourceID sets the "source_id" field to the value that was provided on create.
-func (u *FileShareUpsertBulk) UpdateSourceID() *FileShareUpsertBulk {
-	return u.Update(func(s *FileShareUpsert) {
-		s.UpdateSourceID()
+		s.UpdateItems()
 	})
 }
 

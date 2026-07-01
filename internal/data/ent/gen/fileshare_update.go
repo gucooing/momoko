@@ -9,6 +9,7 @@ import (
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/schema/sharetype"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -64,29 +65,15 @@ func (_u *FileShareUpdate) SetNillableName(v *string) *FileShareUpdate {
 	return _u
 }
 
-// SetPaths sets the "paths" field.
-func (_u *FileShareUpdate) SetPaths(v []string) *FileShareUpdate {
-	_u.mutation.SetPaths(v)
+// SetItems sets the "items" field.
+func (_u *FileShareUpdate) SetItems(v []sharetype.Item) *FileShareUpdate {
+	_u.mutation.SetItems(v)
 	return _u
 }
 
-// AppendPaths appends value to the "paths" field.
-func (_u *FileShareUpdate) AppendPaths(v []string) *FileShareUpdate {
-	_u.mutation.AppendPaths(v)
-	return _u
-}
-
-// SetSourceID sets the "source_id" field.
-func (_u *FileShareUpdate) SetSourceID(v string) *FileShareUpdate {
-	_u.mutation.SetSourceID(v)
-	return _u
-}
-
-// SetNillableSourceID sets the "source_id" field if the given value is not nil.
-func (_u *FileShareUpdate) SetNillableSourceID(v *string) *FileShareUpdate {
-	if v != nil {
-		_u.SetSourceID(*v)
-	}
+// AppendItems appends value to the "items" field.
+func (_u *FileShareUpdate) AppendItems(v []sharetype.Item) *FileShareUpdate {
+	_u.mutation.AppendItems(v)
 	return _u
 }
 
@@ -272,16 +259,13 @@ func (_u *FileShareUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Paths(); ok {
-		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
+	if value, ok := _u.mutation.Items(); ok {
+		_spec.SetField(fileshare.FieldItems, field.TypeJSON, value)
 	}
-	if value, ok := _u.mutation.AppendedPaths(); ok {
+	if value, ok := _u.mutation.AppendedItems(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, fileshare.FieldPaths, value)
+			sqljson.Append(u, fileshare.FieldItems, value)
 		})
-	}
-	if value, ok := _u.mutation.SourceID(); ok {
-		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)
@@ -393,29 +377,15 @@ func (_u *FileShareUpdateOne) SetNillableName(v *string) *FileShareUpdateOne {
 	return _u
 }
 
-// SetPaths sets the "paths" field.
-func (_u *FileShareUpdateOne) SetPaths(v []string) *FileShareUpdateOne {
-	_u.mutation.SetPaths(v)
+// SetItems sets the "items" field.
+func (_u *FileShareUpdateOne) SetItems(v []sharetype.Item) *FileShareUpdateOne {
+	_u.mutation.SetItems(v)
 	return _u
 }
 
-// AppendPaths appends value to the "paths" field.
-func (_u *FileShareUpdateOne) AppendPaths(v []string) *FileShareUpdateOne {
-	_u.mutation.AppendPaths(v)
-	return _u
-}
-
-// SetSourceID sets the "source_id" field.
-func (_u *FileShareUpdateOne) SetSourceID(v string) *FileShareUpdateOne {
-	_u.mutation.SetSourceID(v)
-	return _u
-}
-
-// SetNillableSourceID sets the "source_id" field if the given value is not nil.
-func (_u *FileShareUpdateOne) SetNillableSourceID(v *string) *FileShareUpdateOne {
-	if v != nil {
-		_u.SetSourceID(*v)
-	}
+// AppendItems appends value to the "items" field.
+func (_u *FileShareUpdateOne) AppendItems(v []sharetype.Item) *FileShareUpdateOne {
+	_u.mutation.AppendItems(v)
 	return _u
 }
 
@@ -631,16 +601,13 @@ func (_u *FileShareUpdateOne) sqlSave(ctx context.Context) (_node *FileShare, er
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(fileshare.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Paths(); ok {
-		_spec.SetField(fileshare.FieldPaths, field.TypeJSON, value)
+	if value, ok := _u.mutation.Items(); ok {
+		_spec.SetField(fileshare.FieldItems, field.TypeJSON, value)
 	}
-	if value, ok := _u.mutation.AppendedPaths(); ok {
+	if value, ok := _u.mutation.AppendedItems(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, fileshare.FieldPaths, value)
+			sqljson.Append(u, fileshare.FieldItems, value)
 		})
-	}
-	if value, ok := _u.mutation.SourceID(); ok {
-		_spec.SetField(fileshare.FieldSourceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Token(); ok {
 		_spec.SetField(fileshare.FieldToken, field.TypeString, value)

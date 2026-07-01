@@ -278,7 +278,7 @@
       @deleted="loadList"
     />
 
-    <ShareFormDialog v-model="shareOpen" :paths="sharePaths" :source-id="shareSourceId" />
+    <ShareFormDialog v-model="shareOpen" :items="shareItems" />
   </div>
 </template>
 
@@ -311,7 +311,7 @@ import {
   type FilePreviewKind,
 } from '@/utils/file'
 import { createFileClient } from './fileClient'
-import type { FileClient, FileClipboard, FileScope } from './types'
+import type { FileClient, FileClipboard, FileScope, PickedFile } from './types'
 import FilePager from './FilePager.vue'
 import FileMenu, { type FileMenuItem } from './FileMenu.vue'
 import FilePromptDialog from './FilePromptDialog.vue'
@@ -459,8 +459,7 @@ const media = reactive({
 const editor = reactive({ open: false, path: '' })
 const uploadOpen = ref(false)
 const shareOpen = ref(false)
-const sharePaths = ref<string[]>([])
-const shareSourceId = ref('')
+const shareItems = ref<PickedFile[]>([])
 
 // ---- 选择 ----
 const selectedRows = computed(() =>
@@ -874,8 +873,8 @@ const paste = async () => {
 
 // ---- 分享 ----
 const openShare = (rows: FileEntryInfo[]) => {
-  sharePaths.value = rows.map((row) => row.path)
-  shareSourceId.value = currentSourceId.value
+  // 选中项按当前来源打包为分享条目（分享支持跨来源，此处均来自当前浏览来源）。
+  shareItems.value = rows.map((row) => ({ sourceId: currentSourceId.value, path: row.path }))
   shareOpen.value = true
 }
 

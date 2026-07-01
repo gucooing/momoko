@@ -34,14 +34,28 @@ export enum FileTaskStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 分享条目（可跨来源）。请求时仅需填 sourceId + path，名称/类型/大小由服务端探测缓存；管理视图回传全部字段。 */
+export interface ShareItem {
+  /** 文件来源id，空=本地磁盘 */
+  sourceId: string;
+  /** 来源内真实路径 */
+  path: string;
+  /** 展示名（缓存；请求时可留空） */
+  name: string;
+  /** 是否目录（缓存；请求时可留空） */
+  isDir: boolean;
+  /** 大小（缓存，字节；请求时可留空） */
+  size: number;
+}
+
 /** 分享信息（仅创建者可见的管理视图，含提取码） */
 export interface ShareInfo {
   /** 分享 id */
   id: string;
   /** 展示名称 */
   name: string;
-  /** 被分享的真实路径 */
-  paths: string[];
+  /** 被分享的条目（可跨来源，含来源 id） */
+  items: ShareItem[];
   /** 公开访问令牌 */
   token: string;
   /** 提取码，空=无需 */
@@ -64,15 +78,13 @@ export interface ShareInfo {
   updateTime:
     | Date
     | undefined;
-  /** 文件来源id，空=本地磁盘 */
-  sourceId: string;
 }
 
 /** 创建分享请求 */
 export interface CreateShareRequest {
-  /** 要分享的文件/文件夹路径 */
-  paths: string[];
-  /** 展示名称，空=路径名 */
+  /** 要分享的条目（可跨来源；仅需填 sourceId + path） */
+  items: ShareItem[];
+  /** 展示名称，空=首个条目名 */
   name: string;
   /** 提取码，空=公开 */
   code: string;
@@ -84,8 +96,6 @@ export interface CreateShareRequest {
   maxDownloads: number;
   /** 是否启用 */
   enabled: boolean;
-  /** 文件来源id，空=本地磁盘 */
-  sourceId: string;
 }
 
 /** 创建分享响应 */
@@ -132,10 +142,8 @@ export interface UpdateShareRequest {
   maxDownloads: number;
   /** 是否启用 */
   enabled: boolean;
-  /** 新的分享内容，空=不修改 */
-  paths: string[];
-  /** 新内容的文件来源id（paths 非空时生效） */
-  sourceId: string;
+  /** 新的分享内容（可跨来源；仅需填 sourceId + path），空=不修改 */
+  items: ShareItem[];
 }
 
 /** 更新分享响应 */

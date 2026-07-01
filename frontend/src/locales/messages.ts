@@ -3680,7 +3680,6 @@ export const messages = {
       redirectOn: '直链',
       redirectOff: '代理',
       redirectHint: '开启后预览/下载将 302 跳转到来源直链，节省服务器带宽。',
-      redirectUnsupported: '当前来源不支持直连跳转，将由服务器代理。',
       creator: '创建者',
       createTime: '创建时间',
       test: '测试连接',
@@ -4696,7 +4695,6 @@ export const messages = {
       redirectOn: '直鏈',
       redirectOff: '代理',
       redirectHint: '開啟後預覽/下載將 302 跳轉到來源直鏈，節省伺服器頻寬。',
-      redirectUnsupported: '目前來源不支援直連跳轉，將由伺服器代理。',
       creator: '建立者',
       createTime: '建立時間',
       test: '測試連線',
@@ -5714,7 +5712,6 @@ export const messages = {
       redirectOff: 'Proxy',
       redirectHint:
         'When on, preview/download will 302-redirect to the source URL, saving server bandwidth.',
-      redirectUnsupported: 'This source does not support direct redirect; the server will proxy.',
       creator: 'Creator',
       createTime: 'Created',
       test: 'Test',

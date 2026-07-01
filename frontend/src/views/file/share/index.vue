@@ -25,7 +25,7 @@
       </el-table-column>
       <el-table-column :label="t('file.share.path')" min-width="200" show-overflow-tooltip>
         <template #default="{ row }">
-          {{ row.paths.join(', ') }}
+          {{ row.items.map((i: ShareItem) => i.path).join(', ') }}
         </template>
       </el-table-column>
       <el-table-column :label="t('file.share.code')" width="100">
@@ -76,8 +76,13 @@
             <el-switch :model-value="row.enabled" @change="toggleEnabled(row)" />
           </div>
           <div class="share-mobile-paths">
-            <el-tag v-for="path in row.paths" :key="path" class="share-mobile-path" size="small">
-              {{ path }}
+            <el-tag
+              v-for="item in row.items"
+              :key="`${item.sourceId}\n${item.path}`"
+              class="share-mobile-path"
+              size="small"
+            >
+              {{ item.path }}
             </el-tag>
           </div>
           <div class="share-mobile-meta">
@@ -133,7 +138,7 @@ import {
 import TablePagination from '@/components/pagination/TablePagination.vue'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
 import { IconFolder } from '@/components/file/icons'
-import type { ShareInfo } from '@/types/v1/file'
+import type { ShareInfo, ShareItem } from '@/types/v1/file'
 
 const { t } = useI18n()
 const menuStore = useMenuStore()
@@ -157,7 +162,8 @@ const loadList = async () => {
       keywords: keywords.value.trim() || undefined,
     })
     items.value = data?.items || []
-    total.value = data?.total || 0
+    // 后端 total 为 int64，protobuf-JSON 序列化成字符串，这里转回 Number 供分页组件使用。
+    total.value = Number(data?.total || 0)
   } catch (error) {
     showRequestError(error)
   } finally {
@@ -188,8 +194,7 @@ const toggleEnabled = async (row: ShareInfo) => {
       expiresAt: row.expiresAt,
       maxDownloads: row.maxDownloads,
       enabled: !row.enabled,
-      paths: [],
-      sourceId: row.sourceId,
+      items: [],
     })
     loadList()
   } catch (error) {

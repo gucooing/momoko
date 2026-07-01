@@ -80,6 +80,12 @@ export interface FileClient {
   preSignUpload(params: FileUploadSignParams): Promise<UploadInfo>
 }
 
+// 文件选择器选中的文件/文件夹：自带来源 id（空=本地磁盘），支持在一次选择里跨来源累积。
+export interface PickedFile {
+  sourceId: string
+  path: string
+}
+
 // 剪贴板（复制/剪切缓冲）。
 export type ClipboardMode = 'copy' | 'cut'
 

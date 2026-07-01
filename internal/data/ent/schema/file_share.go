@@ -5,6 +5,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+
+	"momoko/internal/data/ent/schema/sharetype"
 )
 
 // FileShare 记录一条对外分享，通过随机 token 公开访问，
@@ -18,8 +20,7 @@ func (FileShare) Fields() []ent.Field {
 		field.String("id").Unique().Comment("id"),
 		field.String("user_id").Comment("创建者用户id"),
 		field.String("name").Comment("展示名称"),
-		field.JSON("paths", []string{}).Comment("被分享的来源内逻辑路径"),
-		field.String("source_id").Default("").Comment("文件来源id，空=本地"),
+		field.JSON("items", []sharetype.Item{}).Comment("被分享的条目（可跨来源）：来源id + 来源内路径 + 缓存的名称/类型/大小/修改时间"),
 		field.String("token").Unique().Comment("公开访问令牌"),
 		field.String("code").Default("").Comment("提取码，空=无需"),
 		field.Time("expires_at").Optional().Nillable().Comment("过期时间，空=永久"),

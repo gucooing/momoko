@@ -85,11 +85,6 @@ func Name(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldEQ(FieldName, v))
 }
 
-// SourceID applies equality check predicate on the "source_id" field. It's identical to SourceIDEQ.
-func SourceID(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldSourceID, v))
-}
-
 // Token applies equality check predicate on the "token" field. It's identical to TokenEQ.
 func Token(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldEQ(FieldToken, v))
@@ -328,71 +323,6 @@ func NameEqualFold(v string) predicate.FileShare {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.FileShare {
 	return predicate.FileShare(sql.FieldContainsFold(FieldName, v))
-}
-
-// SourceIDEQ applies the EQ predicate on the "source_id" field.
-func SourceIDEQ(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEQ(FieldSourceID, v))
-}
-
-// SourceIDNEQ applies the NEQ predicate on the "source_id" field.
-func SourceIDNEQ(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNEQ(FieldSourceID, v))
-}
-
-// SourceIDIn applies the In predicate on the "source_id" field.
-func SourceIDIn(vs ...string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldIn(FieldSourceID, vs...))
-}
-
-// SourceIDNotIn applies the NotIn predicate on the "source_id" field.
-func SourceIDNotIn(vs ...string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldNotIn(FieldSourceID, vs...))
-}
-
-// SourceIDGT applies the GT predicate on the "source_id" field.
-func SourceIDGT(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGT(FieldSourceID, v))
-}
-
-// SourceIDGTE applies the GTE predicate on the "source_id" field.
-func SourceIDGTE(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldGTE(FieldSourceID, v))
-}
-
-// SourceIDLT applies the LT predicate on the "source_id" field.
-func SourceIDLT(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLT(FieldSourceID, v))
-}
-
-// SourceIDLTE applies the LTE predicate on the "source_id" field.
-func SourceIDLTE(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldLTE(FieldSourceID, v))
-}
-
-// SourceIDContains applies the Contains predicate on the "source_id" field.
-func SourceIDContains(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldContains(FieldSourceID, v))
-}
-
-// SourceIDHasPrefix applies the HasPrefix predicate on the "source_id" field.
-func SourceIDHasPrefix(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldHasPrefix(FieldSourceID, v))
-}
-
-// SourceIDHasSuffix applies the HasSuffix predicate on the "source_id" field.
-func SourceIDHasSuffix(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldHasSuffix(FieldSourceID, v))
-}
-
-// SourceIDEqualFold applies the EqualFold predicate on the "source_id" field.
-func SourceIDEqualFold(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldEqualFold(FieldSourceID, v))
-}
-
-// SourceIDContainsFold applies the ContainsFold predicate on the "source_id" field.
-func SourceIDContainsFold(v string) predicate.FileShare {
-	return predicate.FileShare(sql.FieldContainsFold(FieldSourceID, v))
 }
 
 // TokenEQ applies the EQ predicate on the "token" field.

@@ -7,7 +7,7 @@
     </el-card>
 
     <el-card shadow="never" class="card-mt-16">
-      <el-table v-loading="loading" :data="items" stripe>
+      <el-table v-if="!menuStore.isMobile" v-loading="loading" :data="items" stripe>
         <el-table-column :label="t('fileSource.name')" prop="name" min-width="140" />
         <el-table-column :label="t('fileSource.type')" width="120">
           <template #default="{ row }">
@@ -55,10 +55,53 @@
         </el-table-column>
         <template #empty>{{ t('fileSource.empty') }}</template>
       </el-table>
+
+      <!-- 移动端：卡片列表（表格在窄屏不易操作） -->
+      <div v-else v-loading="loading" class="fs-mobile-list">
+        <el-empty v-if="!items.length" :description="t('fileSource.empty')" />
+        <div v-for="row in items" v-else :key="row.id" class="fs-mobile-card">
+          <div class="fs-mobile-body">
+            <div class="fs-mobile-header">
+              <div class="fs-mobile-name">
+                <el-tag size="small" :type="typeTagType(row.type)">{{ typeLabel(row.type) }}</el-tag>
+                <span>{{ row.name }}</span>
+              </div>
+              <el-switch
+                :model-value="row.enabled"
+                size="small"
+                @change="(v: string | number | boolean) => toggleEnabled(row, !!v)"
+              />
+            </div>
+            <div class="fs-mobile-meta">
+              <el-tag v-if="row.caps?.presign && row.redirect302" type="success" size="small">
+                {{ t('fileSource.redirect302') }}
+              </el-tag>
+              <span>{{ row.creatorName || '—' }}</span>
+              <span>{{ formatDateTime(row.createTime) }}</span>
+            </div>
+          </div>
+          <div class="fs-mobile-actions">
+            <el-button type="primary" link @click="testExisting(row)">
+              {{ t('fileSource.test') }}
+            </el-button>
+            <el-button type="primary" link @click="openEdit(row)">
+              {{ t('system.common.edit') }}
+            </el-button>
+            <el-popconfirm
+              :title="t('fileSource.confirmDelete', { name: row.name })"
+              @confirm="remove(row)"
+            >
+              <template #reference>
+                <el-button type="danger" link>{{ t('system.common.delete') }}</el-button>
+              </template>
+            </el-popconfirm>
+          </div>
+        </div>
+      </div>
     </el-card>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog
+    <BaseDialog
       v-model="dialog.open"
       :title="dialog.isEdit ? t('fileSource.editTitle') : t('fileSource.addTitle')"
       width="560px"
@@ -78,11 +121,9 @@
         <el-form-item :label="t('fileSource.enabled')">
           <el-switch v-model="form.enabled" />
         </el-form-item>
-        <el-form-item :label="t('fileSource.redirect302')">
-          <el-switch v-model="form.redirect302" :disabled="!supportsRedirect" />
-          <span class="fs-field-hint">
-            {{ supportsRedirect ? t('fileSource.redirectHint') : t('fileSource.redirectUnsupported') }}
-          </span>
+        <el-form-item v-if="supportsRedirect" :label="t('fileSource.redirect302')">
+          <el-switch v-model="form.redirect302" />
+          <span class="fs-field-hint">{{ t('fileSource.redirectHint') }}</span>
         </el-form-item>
 
         <!-- OSS / S3 -->
@@ -172,7 +213,7 @@
           {{ t('system.common.confirm') }}
         </el-button>
       </template>
-    </el-dialog>
+    </BaseDialog>
   </div>
 </template>
 
@@ -181,7 +222,9 @@ defineOptions({ name: 'FileSourceView' })
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules } from 'element-plus'
 import { showRequestError } from '@/utils/request'
+import { useMenuStore } from '@/stores/menu'
 import { formatDateTime } from '@/utils/file'
+import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import {
   listFileSourcesRequest,
   createFileSourceRequest,
@@ -192,6 +235,7 @@ import {
 import type { FileSourceInfo, FileSourceConfig } from '@/types/v1/file'
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
 
 const loading = ref(false)
 const items = ref<FileSourceInfo[]>([])
@@ -386,5 +430,72 @@ onMounted(getList)
   margin-left: 0.75rem;
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+
+/* 移动端卡片列表 */
+.fs-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.fs-mobile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 0.6rem;
+  background: var(--el-bg-color);
+}
+.fs-mobile-body {
+  flex: 1;
+  min-width: 0;
+}
+.fs-mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.fs-mobile-name {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.fs-mobile-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fs-mobile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.74rem;
+  color: var(--el-text-color-secondary);
+}
+.fs-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+.fs-mobile-actions .el-button + .el-button {
+  margin-left: 0;
+}
+
+@media (max-width: 767px) {
+  .fs-header .el-button {
+    width: 100%;
+  }
+  :deep(.el-card__body) {
+    padding: 0.85rem;
+  }
 }
 </style>

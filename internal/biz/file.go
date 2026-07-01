@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -19,6 +20,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/file"
@@ -57,10 +59,10 @@ type FileRepo interface {
 	// SetUploadProviderRefIfEmpty 仅当 provider_ref 仍为空时写入（OSS multipart uploadID 初始化幂等/防竞态）。
 	SetUploadProviderRefIfEmpty(ctx context.Context, id, ref string) (bool, error)
 
-	CreateShare(ctx context.Context, userID, token, name string, req *v1.CreateShareRequest) (*gen.FileShare, error)
+	CreateShare(ctx context.Context, userID, token, name string, items []sharetype.Item, req *v1.CreateShareRequest) (*gen.FileShare, error)
 	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
 	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
-	UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error)
+	UpdateShare(ctx context.Context, userID, name string, items []sharetype.Item, req *v1.UpdateShareRequest) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
 	IncrShareDownload(ctx context.Context, id string) error
 
@@ -1000,17 +1002,16 @@ func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSource
 // ---- 分享 ----
 // biz 仅做鉴权 + 仓储编排；令牌生成、提取码/有效期校验、目录浏览与打包下载等逻辑在 pkg/share。
 
-// CreateShare 为选定路径创建一条分享。
+// CreateShare 为选定条目（可跨来源）创建一条分享。逐条目经其来源探测并缓存名称/类型/大小/修改时间。
 func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.CreateShareRequest) (*v1.ShareInfo, error) {
-	store, _, err := f.storeFor(ctx, req.SourceId)
+	items, name, err := share.PrepareItems(ctx, f.storeFor, req.Items, req.Name)
 	if err != nil {
+		if errors.Is(err, share.ErrItemNotFound) {
+			return nil, ErrFileNotExist
+		}
 		return nil, err
 	}
-	name, err := share.Prepare(ctx, store, req.Paths, req.Name)
-	if err != nil {
-		return nil, ErrFileNotExist
-	}
-	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, req)
+	rec, err := f.repo.CreateShare(ctx, userID, share.GenToken(), name, items, req)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1036,17 +1037,21 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 }
 
 // UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
+// items 非空时覆盖分享内容并重新探测/缓存各条目属性；为空则仅改元信息，不动内容。
 func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*v1.ShareInfo, error) {
-	if len(req.Paths) > 0 {
-		store, _, err := f.storeFor(ctx, req.SourceId)
+	name := req.Name
+	var items []sharetype.Item
+	if len(req.Items) > 0 {
+		var err error
+		items, name, err = share.PrepareItems(ctx, f.storeFor, req.Items, req.Name)
 		if err != nil {
+			if errors.Is(err, share.ErrItemNotFound) {
+				return nil, ErrFileNotExist
+			}
 			return nil, err
 		}
-		if _, err := share.Prepare(ctx, store, req.Paths, req.Name); err != nil {
-			return nil, ErrFileNotExist
-		}
 	}
-	rec, err := f.repo.UpdateShare(ctx, userID, req)
+	rec, err := f.repo.UpdateShare(ctx, userID, name, items, req)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrShareNotFound
@@ -1135,11 +1140,8 @@ func (f *FileUsecase) ListShareDir(ctx context.Context, req *v1.ListShareDirRequ
 	if err := f.verifyShareSign(req.Sign, rec); err != nil {
 		return nil, err
 	}
-	store, _, err := f.storeFor(ctx, rec.SourceID)
-	if err != nil {
-		return nil, err
-	}
-	items, sub, err := share.ListDir(ctx, store, rec, req.SubPath)
+	// 传入来源解析器：根目录用缓存条目、无需访问来源；进入子目录时按该条目来源解析 Store。
+	items, sub, err := share.ListDir(ctx, f.storeFor, rec, req.SubPath)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1161,17 +1163,11 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("分享会话已失效，请重新验证"))
 		return
 	}
-	store, src, err := f.storeFor(ctx, rec.SourceID)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 	inline := q.Get("inline") == "1"
 	// 预览(inline)与 Range 续传分段不计入下载次数。
 	countable := r.Header.Get("Range") == "" && !inline
-	// 来源开启 302 且支持预签名（OSS）→ 单文件跳转到（公开域名）直链，momoko 不代理。
-	redirect302 := src != nil && src.Redirect302
-	if err := share.ServeDownload(ctx, store, rec, q.Get("path"), inline, redirect302, w, r); err != nil {
+	// 传入来源解析器：目标条目按其来源解析 Store，并由该来源自身的 redirect_302 决定是否 302 直链。
+	if err := share.ServeDownload(ctx, f.storeFor, rec, q.Get("path"), inline, w, r); err != nil {
 		return
 	}
 	if countable {

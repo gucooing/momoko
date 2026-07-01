@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/internal/data/ent/schema/sharetype"
 	"strings"
 	"time"
 
@@ -28,10 +29,8 @@ type FileShare struct {
 	UserID string `json:"user_id,omitempty"`
 	// 展示名称
 	Name string `json:"name,omitempty"`
-	// 被分享的来源内逻辑路径
-	Paths []string `json:"paths,omitempty"`
-	// 文件来源id，空=本地
-	SourceID string `json:"source_id,omitempty"`
+	// 被分享的条目（可跨来源）：来源id + 来源内路径 + 缓存的名称/类型/大小/修改时间
+	Items []sharetype.Item `json:"items,omitempty"`
 	// 公开访问令牌
 	Token string `json:"token,omitempty"`
 	// 提取码，空=无需
@@ -75,13 +74,13 @@ func (*FileShare) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case fileshare.FieldPaths:
+		case fileshare.FieldItems:
 			values[i] = new([]byte)
 		case fileshare.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case fileshare.FieldMaxDownloads, fileshare.FieldDownloadCount:
 			values[i] = new(sql.NullInt64)
-		case fileshare.FieldID, fileshare.FieldUserID, fileshare.FieldName, fileshare.FieldSourceID, fileshare.FieldToken, fileshare.FieldCode:
+		case fileshare.FieldID, fileshare.FieldUserID, fileshare.FieldName, fileshare.FieldToken, fileshare.FieldCode:
 			values[i] = new(sql.NullString)
 		case fileshare.FieldCreateTime, fileshare.FieldUpdateTime, fileshare.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -130,19 +129,13 @@ func (_m *FileShare) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case fileshare.FieldPaths:
+		case fileshare.FieldItems:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field paths", values[i])
+				return fmt.Errorf("unexpected type %T for field items", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Paths); err != nil {
-					return fmt.Errorf("unmarshal field paths: %w", err)
+				if err := json.Unmarshal(*value, &_m.Items); err != nil {
+					return fmt.Errorf("unmarshal field items: %w", err)
 				}
-			}
-		case fileshare.FieldSourceID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field source_id", values[i])
-			} else if value.Valid {
-				_m.SourceID = value.String
 			}
 		case fileshare.FieldToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -234,11 +227,8 @@ func (_m *FileShare) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
-	builder.WriteString("paths=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Paths))
-	builder.WriteString(", ")
-	builder.WriteString("source_id=")
-	builder.WriteString(_m.SourceID)
+	builder.WriteString("items=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Items))
 	builder.WriteString(", ")
 	builder.WriteString("token=")
 	builder.WriteString(_m.Token)

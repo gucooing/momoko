@@ -1,10 +1,11 @@
 // Package share 实现对外分享的底层逻辑：令牌生成、可用性与提取码校验、目录浏览（防穿越）、
 // 以及下载（单文件直传、多选/文件夹实时打包 zip）。
 //
-// 分享内容抽象为一层虚拟顶层目录：被分享的若干路径（文件或文件夹）即其顶层条目，
-// 单选/多选、文件/文件夹由此统一处理。分享统一走 file.Store 接口，支持任意来源
-// （本地 / OSS / FTP / WebDAV）。按分层约定，这里只放与分享相关的纯逻辑与 Store 调用；
-// biz 仅负责鉴权 + 仓储 + 解析来源 Store。
+// 分享内容抽象为一层虚拟顶层目录：被分享的若干条目（文件或文件夹）即其顶层条目，
+// 单选/多选、文件/文件夹由此统一处理。每个条目自带来源 id，可跨来源（本地 / OSS / FTP / WebDAV）
+// 混合于同一分享。创建时探测并缓存各条目的名称/类型/大小/修改时间，浏览分享根目录时
+// 直接用缓存、无需再访问来源。按分层约定，这里只放与分享相关的纯逻辑与 Store 调用；
+// biz 仅负责鉴权 + 仓储 + 提供来源 Store 解析器。
 package share
 
 import (
@@ -27,11 +28,19 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/file"
 )
 
 // shareServeTTL 是公开分享 302 直链的有效期。
 const shareServeTTL = 5 * time.Minute
+
+// ErrItemNotFound 表示待分享条目在其来源内不存在（biz 据此回 ErrFileNotExist）。
+var ErrItemNotFound = errors.New("文件不存在")
+
+// StoreResolver 按来源 id 解析对应存储后端（空/"local"=本地），第二返回值在远端来源时为来源记录。
+// 由 biz 注入（其 storeFor），使「构造/解密来源」留在 biz，而「按条目选择来源」的编排留在本包。
+type StoreResolver func(ctx context.Context, sourceID string) (file.Store, *gen.FileSource, error)
 
 // GenToken 生成 URL 安全的随机分享令牌。
 func GenToken() string {
@@ -42,24 +51,44 @@ func GenToken() string {
 	return hex.EncodeToString(b)
 }
 
-// Prepare 通过来源 Store 校验被分享的每个路径是否存在，并返回默认展示名（name 为空时取首个条目名）。
-func Prepare(ctx context.Context, store file.Store, paths []string, name string) (string, error) {
-	if len(paths) == 0 {
-		return "", errors.New("文件不存在")
+// PrepareItems 校验每个待分享条目在其来源内存在，并回填展示名/类型/大小/修改时间（缓存进分享记录，
+// 使后续浏览根目录无需再逐一 Stat）。返回补全后的条目与默认展示名（name 为空时取首个条目名）。
+// 条目缺失返回 ErrItemNotFound；来源解析失败返回解析器给出的错误（如来源停用）。
+func PrepareItems(ctx context.Context, resolve StoreResolver, inputs []*v1.ShareItem, name string) ([]sharetype.Item, string, error) {
+	if len(inputs) == 0 {
+		return nil, "", ErrItemNotFound
 	}
-	for i, p := range paths {
-		entry, err := store.Stat(ctx, p)
+	items := make([]sharetype.Item, 0, len(inputs))
+	for i, in := range inputs {
+		store, _, err := resolve(ctx, in.SourceId)
 		if err != nil {
-			return "", errors.New("文件不存在")
+			return nil, "", err
 		}
+		entry, err := store.Stat(ctx, in.Path)
+		if err != nil {
+			return nil, "", ErrItemNotFound
+		}
+		nm := entry.Name
+		if nm == "" {
+			nm = baseName(in.Path)
+		}
+		var mod time.Time
+		if entry.UpdateTime != nil {
+			mod = entry.UpdateTime.AsTime()
+		}
+		items = append(items, sharetype.Item{
+			SourceID:   in.SourceId,
+			Path:       in.Path,
+			Name:       nm,
+			IsDir:      entry.IsDir,
+			Size:       entry.Size,
+			UpdateTime: mod,
+		})
 		if i == 0 && name == "" {
-			name = entry.Name
-			if name == "" {
-				name = baseName(p)
-			}
+			name = nm
 		}
 	}
-	return name, nil
+	return items, name, nil
 }
 
 // Available 报告分享当前是否可用（启用、未过期、未超下载次数），不校验提取码。
@@ -105,25 +134,25 @@ func baseName(p string) string {
 	return path.Base(strings.ReplaceAll(strings.TrimRight(p, "/\\"), "\\", "/"))
 }
 
-// resolve 将公开端的虚拟子路径映射为来源内真实路径：首段对应被分享的某个顶层条目（按展示名匹配），
-// 其余段原样拼到该条目真实路径之后。匹配不到（越界/不存在）返回 ok=false。
-// 公开端只见虚拟路径，真实来源路径不出 pkg/share，既防越权穿越也不泄露存储细节。
-func resolve(s *gen.FileShare, sub string) (string, bool) {
+// resolveItem 将公开端的虚拟子路径映射到某个被分享条目及其来源内真实路径：
+// 首段按缓存展示名匹配某条目（与列根目录一致），其余段原样拼到该条目真实路径之后。
+// 匹配不到（越界/不存在）返回 ok=false。公开端只见虚拟路径与展示名，真实来源路径与来源 id 不出本包。
+func resolveItem(s *gen.FileShare, sub string) (sharetype.Item, string, bool) {
 	sub = normalizeSub(sub)
 	if sub == "" {
-		return "", false
+		return sharetype.Item{}, "", false
 	}
 	first, rest, _ := strings.Cut(sub, "/")
-	for _, p := range s.Paths {
-		if baseName(p) != first {
+	for _, it := range s.Items {
+		if it.Name != first {
 			continue
 		}
 		if rest == "" {
-			return p, true
+			return it, it.Path, true
 		}
-		return strings.TrimRight(p, "/\\") + "/" + rest, true
+		return it, strings.TrimRight(it.Path, "/\\") + "/" + rest, true
 	}
-	return "", false
+	return sharetype.Item{}, "", false
 }
 
 func joinSlash(base, name string) string {
@@ -133,33 +162,53 @@ func joinSlash(base, name string) string {
 	return base + "/" + name
 }
 
-// ListDir 列出分享内某子路径的条目（目录优先、名称升序）。subPath 为空时列出虚拟顶层目录
-// （即被分享的各顶层条目）；否则经 resolve 映射到来源真实目录后列出。
-// 返回的 RelPath 均为虚拟路径，公开端据此续航，不暴露来源真实路径。
-func ListDir(ctx context.Context, store file.Store, s *gen.FileShare, subPath string) ([]*v1.ShareEntry, string, error) {
+// sortShareEntries 按目录优先、名称升序排序。
+func sortShareEntries(items []*v1.ShareEntry) {
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].IsDir != items[j].IsDir {
+			return items[i].IsDir
+		}
+		return items[i].Name < items[j].Name
+	})
+}
+
+// ListDir 列出分享内某子路径的条目。subPath 为空时直接用缓存的顶层条目（不访问任何来源，
+// 显著加快分享页打开）；否则经 resolveItem 映射到对应来源的真实目录后列出。
+// 返回的 RelPath 均为虚拟路径，公开端据此续航，不暴露来源真实路径与来源 id。
+func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPath string) ([]*v1.ShareEntry, string, error) {
 	sub := normalizeSub(subPath)
-	var entries []*v1.FileEntryInfo
+	// 根目录：直接用创建时缓存的条目属性，无需 Stat/List 任何来源。
 	if sub == "" {
-		entries = make([]*v1.FileEntryInfo, 0, len(s.Paths))
-		for _, p := range s.Paths {
-			entry, err := store.Stat(ctx, p)
-			if err != nil {
-				return nil, "", errors.New("读取目录失败")
+		items := make([]*v1.ShareEntry, 0, len(s.Items))
+		for _, it := range s.Items {
+			e := &v1.ShareEntry{
+				Name:    it.Name,
+				IsDir:   it.IsDir,
+				Size:    it.Size,
+				RelPath: it.Name, // 顶层条目的虚拟路径即其展示名
 			}
-			entries = append(entries, entry)
+			if !it.UpdateTime.IsZero() {
+				e.UpdateTime = timestamppb.New(it.UpdateTime)
+			}
+			items = append(items, e)
 		}
-	} else {
-		real, ok := resolve(s, sub)
-		if !ok {
-			return nil, "", errors.New("路径不存在")
-		}
-		var err error
-		entries, err = store.List(ctx, real, file.SortByName, false)
-		if err != nil {
-			return nil, "", errors.New("读取目录失败")
-		}
+		sortShareEntries(items)
+		return items, sub, nil
 	}
 
+	// 子目录：定位条目 → 解析其来源 → 列真实目录。
+	it, real, ok := resolveItem(s, sub)
+	if !ok {
+		return nil, "", errors.New("路径不存在")
+	}
+	store, _, err := resolve(ctx, it.SourceID)
+	if err != nil {
+		return nil, "", err
+	}
+	entries, err := store.List(ctx, real, file.SortByName, false)
+	if err != nil {
+		return nil, "", errors.New("读取目录失败")
+	}
 	items := make([]*v1.ShareEntry, 0, len(entries))
 	for _, e := range entries {
 		items = append(items, &v1.ShareEntry{
@@ -171,25 +220,25 @@ func ListDir(ctx context.Context, store file.Store, s *gen.FileShare, subPath st
 			RelPath: joinSlash(sub, e.Name),
 		})
 	}
-	sort.Slice(items, func(i, j int) bool {
-		if items[i].IsDir != items[j].IsDir {
-			return items[i].IsDir
-		}
-		return items[i].Name < items[j].Name
-	})
+	sortShareEntries(items)
 	return items, sub, nil
 }
 
-// ServeDownload 将分享内 subPath 指向的目标写入 w：subPath 为空时打包全部顶层条目为 zip；
+// ServeDownload 将分享内 subPath 指向的目标写入 w：subPath 为空时打包全部顶层条目（可跨来源）为 zip；
 // 指向目录时打包该目录；指向文件时直传（可 Seek 来源支持 Range）。inline=true 以内联方式返回（用于预览）。
-// redirect302=true 且来源支持预签名（OSS）时，单文件改为 302 跳转到（公开域名）预签名直链，momoko 不在数据路径。
-func ServeDownload(ctx context.Context, store file.Store, s *gen.FileShare, subPath string, inline, redirect302 bool, w http.ResponseWriter, r *http.Request) error {
+// 若目标条目所属来源开启 redirect_302 且支持预签名（OSS），单文件改为 302 跳转到（公开域名）预签名直链，momoko 不在数据路径。
+func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPath string, inline bool, w http.ResponseWriter, r *http.Request) error {
 	sub := normalizeSub(subPath)
+	// 根：打包全部顶层条目（可能来自不同来源）为 zip。
 	if sub == "" {
-		return streamZip(ctx, store, s.Paths, s.Name, w)
+		return streamZipItems(ctx, resolve, s.Items, s.Name, w)
 	}
-	real, ok := resolve(s, sub)
+	it, real, ok := resolveItem(s, sub)
 	if !ok {
+		return errors.New("文件不存在")
+	}
+	store, src, err := resolve(ctx, it.SourceID)
+	if err != nil {
 		return errors.New("文件不存在")
 	}
 	entry, err := store.Stat(ctx, real)
@@ -198,10 +247,10 @@ func ServeDownload(ctx context.Context, store file.Store, s *gen.FileShare, subP
 	}
 	// 子路径指向目录：实时打包为 zip。
 	if entry.IsDir {
-		return streamZip(ctx, store, []string{real}, entry.Name, w)
+		return streamZipRoot(ctx, store, real, entry.Name, w)
 	}
-	// 开启 302 且来源支持预签名（OSS）→ 跳转到公开域名预签名直链，外部访客直连来源、momoko 不代理。
-	if redirect302 {
+	// 该条目来源开启 302 且支持预签名（OSS）→ 跳转到公开域名预签名直链，外部访客直连来源、momoko 不代理。
+	if src != nil && src.Redirect302 {
 		if presigner, ok := store.(file.Presigner); ok {
 			if u, err := presigner.Presign(ctx, real, inline, shareServeTTL); err == nil {
 				http.Redirect(w, r, u, http.StatusFound)
@@ -245,44 +294,62 @@ func ServeDownload(ctx context.Context, store file.Store, s *gen.FileShare, subP
 	return err
 }
 
-// streamZip 将 roots（文件或目录）实时打包为 zip 写入 w（不落临时文件）：目录递归遍历，文件直接写入根层。
-func streamZip(ctx context.Context, store file.Store, roots []string, name string, w http.ResponseWriter) error {
+// zipHeader 写 zip 响应头。
+func zipHeader(w http.ResponseWriter, name string) {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`.zip"`)
+}
+
+// streamZipItems 将多个（可跨来源）条目实时打包为 zip 写入 w：逐条目解析其来源后写入。
+func streamZipItems(ctx context.Context, resolve StoreResolver, items []sharetype.Item, name string, w http.ResponseWriter) error {
+	zipHeader(w, name)
 	zw := zip.NewWriter(w)
 	defer zw.Close()
-
-	for _, root := range roots {
-		entry, err := store.Stat(ctx, root)
+	for _, it := range items {
+		store, _, err := resolve(ctx, it.SourceID)
 		if err != nil {
 			return err
 		}
-		base := entry.Name
-		if base == "" {
-			base = baseName(root)
-		}
-		if entry.IsDir {
-			if err := walkZip(ctx, store, root, base, zw); err != nil {
-				return err
-			}
-			continue
-		}
-		rc, _, err := store.Open(ctx, root)
-		if err != nil {
-			return err
-		}
-		fw, err := zw.Create(base)
-		if err != nil {
-			_ = rc.Close()
-			return err
-		}
-		_, err = io.Copy(fw, rc)
-		_ = rc.Close()
-		if err != nil {
+		if err := zipRoot(ctx, store, it.Path, zw); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// streamZipRoot 将单一来源内的一个文件/目录实时打包为 zip 写入 w。
+func streamZipRoot(ctx context.Context, store file.Store, root, name string, w http.ResponseWriter) error {
+	zipHeader(w, name)
+	zw := zip.NewWriter(w)
+	defer zw.Close()
+	return zipRoot(ctx, store, root, zw)
+}
+
+// zipRoot 把某来源内一个根（文件或目录）写入 zw：目录递归遍历（以其名为顶层），文件直接写入根层。
+func zipRoot(ctx context.Context, store file.Store, root string, zw *zip.Writer) error {
+	entry, err := store.Stat(ctx, root)
+	if err != nil {
+		return err
+	}
+	base := entry.Name
+	if base == "" {
+		base = baseName(root)
+	}
+	if entry.IsDir {
+		return walkZip(ctx, store, root, base, zw)
+	}
+	rc, _, err := store.Open(ctx, root)
+	if err != nil {
+		return err
+	}
+	fw, err := zw.Create(base)
+	if err != nil {
+		_ = rc.Close()
+		return err
+	}
+	_, err = io.Copy(fw, rc)
+	_ = rc.Close()
+	return err
 }
 
 func walkZip(ctx context.Context, store file.Store, dir, relBase string, zw *zip.Writer) error {
@@ -317,13 +384,12 @@ func walkZip(ctx context.Context, store file.Store, dir, relBase string, zw *zip
 	return nil
 }
 
-// ToInfo 将分享记录映射为管理视图（含提取码，仅创建者可见）。
+// ToInfo 将分享记录映射为管理视图（含提取码与来源 id，仅创建者可见）。
 func ToInfo(s *gen.FileShare) *v1.ShareInfo {
 	info := &v1.ShareInfo{
 		Id:            s.ID,
 		Name:          s.Name,
-		Paths:         s.Paths,
-		SourceId:      s.SourceID,
+		Items:         toItemInfos(s.Items),
 		Token:         s.Token,
 		Code:          s.Code,
 		MaxDownloads:  s.MaxDownloads,
@@ -336,6 +402,21 @@ func ToInfo(s *gen.FileShare) *v1.ShareInfo {
 		info.ExpiresAt = timestamppb.New(*s.ExpiresAt)
 	}
 	return info
+}
+
+// toItemInfos 将缓存条目映射为管理视图条目（保留来源 id 与展示属性；公开端另用 ShareEntry 不含来源）。
+func toItemInfos(items []sharetype.Item) []*v1.ShareItem {
+	out := make([]*v1.ShareItem, 0, len(items))
+	for _, it := range items {
+		out = append(out, &v1.ShareItem{
+			SourceId: it.SourceID,
+			Path:     it.Path,
+			Name:     it.Name,
+			IsDir:    it.IsDir,
+			Size:     it.Size,
+		})
+	}
+	return out
 }
 
 // ToMeta 将分享记录映射为公开元信息（不暴露提取码与真实路径）；owner 为分享者（可空）。

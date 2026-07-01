@@ -199,14 +199,29 @@ service FileManager {
   }
 }
 
+// 分享条目（可跨来源）。请求时仅需填 source_id + path，名称/类型/大小由服务端创建时 Stat 探测并缓存；
+// 管理视图（ShareInfo）中回传全部字段（含来源 id）。公开访问端另用 ShareEntry，不含来源信息。
+message ShareItem {
+  // 文件来源id，空=本地磁盘
+  string source_id = 1;
+  // 来源内真实路径
+  string path = 2;
+  // 展示名（缓存；创建/更新时服务端填充，请求时可留空）
+  string name = 3;
+  // 是否目录（缓存；请求时可留空）
+  bool is_dir = 4;
+  // 大小（缓存，字节；请求时可留空）
+  uint64 size = 5;
+}
+
 // 分享信息（仅创建者可见的管理视图，含提取码）
 message ShareInfo {
   // 分享 id
   string id = 1;
   // 展示名称
   string name = 2;
-  // 被分享的真实路径
-  repeated string paths = 3;
+  // 被分享的条目（可跨来源，含来源 id）
+  repeated ShareItem items = 3;
   // 公开访问令牌
   string token = 4;
   // 提取码，空=无需
@@ -223,15 +238,13 @@ message ShareInfo {
   google.protobuf.Timestamp create_time = 10;
   // 更新时间
   google.protobuf.Timestamp update_time = 11;
-  // 文件来源id，空=本地磁盘
-  string source_id = 12;
 }
 
 // 创建分享请求
 message CreateShareRequest {
-  // 要分享的文件/文件夹路径
-  repeated string paths = 1;
-  // 展示名称，空=路径名
+  // 要分享的条目（可跨来源；仅需填 source_id + path，名称/类型/大小由服务端探测）
+  repeated ShareItem items = 1;
+  // 展示名称，空=首个条目名
   string name = 2;
   // 提取码，空=公开
   string code = 3;
@@ -241,8 +254,6 @@ message CreateShareRequest {
   int64 max_downloads = 5;
   // 是否启用
   bool enabled = 6;
-  // 文件来源id，空=本地磁盘
-  string source_id = 7;
 }
 
 // 创建分享响应
@@ -287,10 +298,8 @@ message UpdateShareRequest {
   int64 max_downloads = 5;
   // 是否启用
   bool enabled = 6;
-  // 新的分享内容，空=不修改
-  repeated string paths = 7;
-  // 新内容的文件来源id（paths 非空时生效）
-  string source_id = 8;
+  // 新的分享内容（可跨来源；仅需填 source_id + path），空=不修改
+  repeated ShareItem items = 7;
 }
 
 // 更新分享响应

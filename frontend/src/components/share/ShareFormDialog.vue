@@ -35,7 +35,9 @@
     <el-form v-else :model="form" label-width="110px" label-position="right">
       <el-form-item :label="t('file.share.path')" required>
         <div class="share-paths">
-          <el-tag v-for="path in form.paths" :key="path" class="share-path-tag">{{ path }}</el-tag>
+          <el-tag v-for="item in form.items" :key="itemKey(item)" class="share-path-tag">{{
+            item.path
+          }}</el-tag>
           <el-button @click="pickerOpen = true">{{ t('fileManager.selectFile') }}</el-button>
         </div>
       </el-form-item>
@@ -70,7 +72,7 @@
       </el-form-item>
     </el-form>
 
-    <FilePicker v-model="pickerOpen" multiple :initial-paths="form.paths" @confirm="onPickPaths" />
+    <FilePicker v-model="pickerOpen" multiple :initial-items="form.items" @confirm="onPickItems" />
 
     <template #footer>
       <template v-if="created">
@@ -90,17 +92,16 @@
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import FilePicker from '@/components/file/FilePicker.vue'
+import type { PickedFile } from '@/components/file/types'
 import { buildShareLink, createShareRequest, updateShareRequest } from '@/api/share'
 import type { ShareInfo } from '@/types/v1/file'
 
 const props = defineProps<{
   modelValue: boolean
-  // 编辑已有分享（优先于 path）
+  // 编辑已有分享（优先于 items）
   share?: ShareInfo | null
-  // 新建时预置的路径（如从文件管理器选中文件/文件夹）
-  paths?: string[]
-  // 文件来源 id（空=本地磁盘）：从文件管理器当前来源带入，支持远端来源分享
-  sourceId?: string
+  // 新建时预置的条目（如从文件管理器选中文件/文件夹，自带各自来源）
+  items?: PickedFile[]
 }>()
 
 const emit = defineEmits<{
@@ -126,7 +127,7 @@ const created = ref<ShareInfo | null>(null)
 const link = computed(() => (created.value ? buildShareLink(created.value.token) : ''))
 
 const defaultForm = () => ({
-  paths: [] as string[],
+  items: [] as PickedFile[],
   name: '',
   code: '',
   expiresAt: null as Date | null,
@@ -134,11 +135,12 @@ const defaultForm = () => ({
   enabled: true,
 })
 const form = reactive(defaultForm())
+const itemKey = (item: PickedFile) => `${item.sourceId}\n${item.path}`
 
-// 通过文件树选择分享路径（取代手动输入绝对路径）
+// 通过文件树选择分享条目（可跨来源），取代手动输入绝对路径。
 const pickerOpen = ref(false)
-const onPickPaths = (paths: string | string[]) => {
-  form.paths = Array.isArray(paths) ? paths : [paths]
+const onPickItems = (items: PickedFile[]) => {
+  form.items = items
 }
 
 const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() : '')
@@ -157,7 +159,7 @@ const onOpened = () => {
   Object.assign(form, defaultForm())
   if (props.share) {
     Object.assign(form, {
-      paths: props.share.paths,
+      items: props.share.items.map((i) => ({ sourceId: i.sourceId, path: i.path })),
       name: props.share.name,
       code: props.share.code,
       expiresAt: props.share.expiresAt
@@ -166,13 +168,17 @@ const onOpened = () => {
       maxDownloads: Number(props.share.maxDownloads) || 0,
       enabled: props.share.enabled,
     })
-  } else if (props.paths?.length) {
-    form.paths = props.paths
+  } else if (props.items?.length) {
+    form.items = props.items.map((i) => ({ sourceId: i.sourceId, path: i.path }))
   }
 }
 
+// 请求条目：仅 sourceId + path 有意义，名称/类型/大小由服务端探测缓存（此处占位以满足类型）。
+const toRequestItems = () =>
+  form.items.map((i) => ({ sourceId: i.sourceId, path: i.path, name: '', isDir: false, size: 0 }))
+
 const save = async () => {
-  if (!form.paths.length) {
+  if (!form.items.length) {
     ElMessage.warning(t('file.share.pathRequired'))
     return
   }
@@ -187,21 +193,19 @@ const save = async () => {
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
-        paths: form.paths,
-        sourceId: props.sourceId ?? props.share.sourceId ?? '',
+        items: toRequestItems(),
       })
       ElMessage.success(t('system.common.editSuccess'))
       visible.value = false
       emit('saved')
     } else {
       const { data } = await createShareRequest({
-        paths: form.paths,
+        items: toRequestItems(),
         name: form.name,
         code: form.code,
         expiresAt,
         maxDownloads: form.maxDownloads,
         enabled: form.enabled,
-        sourceId: props.sourceId ?? '',
       })
       // 创建成功后切换到详情视图（展示链接/提取码），不直接关闭
       created.value = data?.info ?? null

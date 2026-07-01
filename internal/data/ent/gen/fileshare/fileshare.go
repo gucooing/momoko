@@ -22,10 +22,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldPaths holds the string denoting the paths field in the database.
-	FieldPaths = "paths"
-	// FieldSourceID holds the string denoting the source_id field in the database.
-	FieldSourceID = "source_id"
+	// FieldItems holds the string denoting the items field in the database.
+	FieldItems = "items"
 	// FieldToken holds the string denoting the token field in the database.
 	FieldToken = "token"
 	// FieldCode holds the string denoting the code field in the database.
@@ -58,8 +56,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldUserID,
 	FieldName,
-	FieldPaths,
-	FieldSourceID,
+	FieldItems,
 	FieldToken,
 	FieldCode,
 	FieldExpiresAt,
@@ -85,8 +82,6 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// DefaultSourceID holds the default value on creation for the "source_id" field.
-	DefaultSourceID string
 	// DefaultCode holds the default value on creation for the "code" field.
 	DefaultCode string
 	// DefaultMaxDownloads holds the default value on creation for the "max_downloads" field.
@@ -123,11 +118,6 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
-// BySourceID orders the results by the source_id field.
-func BySourceID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSourceID, opts...).ToFunc()
 }
 
 // ByToken orders the results by the token field.

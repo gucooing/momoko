@@ -13,6 +13,7 @@ import (
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/file"
 	"momoko/pkg/utils"
 )
@@ -126,14 +127,13 @@ func (f *fileRepo) SetUploadProviderRefIfEmpty(ctx context.Context, id, ref stri
 	return n > 0, err
 }
 
-// CreateShare 新建一条分享记录。
-func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name string, req *v1.CreateShareRequest) (*gen.FileShare, error) {
+// CreateShare 新建一条分享记录。items 为已探测/缓存好的被分享条目（可跨来源）。
+func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name string, items []sharetype.Item, req *v1.CreateShareRequest) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.Create().
 		SetID(uuid.NewString()).
 		SetUserID(userID).
 		SetName(name).
-		SetPaths(req.Paths).
-		SetSourceID(req.SourceId).
+		SetItems(items).
 		SetToken(token).
 		SetCode(req.Code).
 		SetMaxDownloads(req.MaxDownloads).
@@ -177,15 +177,16 @@ func (f *fileRepo) GetShareByToken(ctx context.Context, token string) (*gen.File
 }
 
 // UpdateShare 全量覆盖可编辑字段（仅限本人）。expires_at 为空表示清除（永久）。
-func (f *fileRepo) UpdateShare(ctx context.Context, userID string, req *v1.UpdateShareRequest) (*gen.FileShare, error) {
+// items 非空时覆盖分享内容（已探测/缓存好，可跨来源）；为空表示不修改内容。
+func (f *fileRepo) UpdateShare(ctx context.Context, userID, name string, items []sharetype.Item, req *v1.UpdateShareRequest) (*gen.FileShare, error) {
 	builder := f.data.db.FileShare.UpdateOneID(req.Id).
 		Where(fileshare.UserIDEQ(userID)).
-		SetName(req.Name).
+		SetName(name).
 		SetCode(req.Code).
 		SetMaxDownloads(req.MaxDownloads).
 		SetEnabled(req.Enabled)
-	if len(req.Paths) > 0 {
-		builder.SetPaths(req.Paths).SetSourceID(req.SourceId)
+	if len(items) > 0 {
+		builder.SetItems(items)
 	}
 	if req.ExpiresAt != nil {
 		builder.SetExpiresAt(req.ExpiresAt.AsTime())
