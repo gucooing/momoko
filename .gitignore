@@ -38,6 +38,7 @@ bin/
 .cache/
 .idea/
 *.swp
+.browser-tmp/
 /dist
 /test/bedrock-server
 /servers

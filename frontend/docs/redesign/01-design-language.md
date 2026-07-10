@@ -1,0 +1,184 @@
+# 01 · 设计语言(Design Language)
+
+> 这一份是**视觉宪法**。任何页面的颜色、间距、字号、圆角、阴影、动效都必须从这里取值,
+> 不允许在页面里即兴发明。改动视觉规则 = 改这份文档,而不是在某个页面写死。
+
+命名:**Momoko Console**。气质:**精致、清爽、克制、通透**。参照气质(非抄袭):Linear、Vercel、Stripe Dashboard 的"安静、排版驱动、极少装饰"。
+
+---
+
+## 0. 三条铁律(违反即返工)
+
+1. **一个强调色**。中性色搭建一切结构;强调色(主色)只用于:激活导航、主按钮、焦点环、链接、选中态、关键小高亮。**不得**给每个指标/图标配不同颜色。
+2. **扁平 + 细线**。静态表面**不用**投影,靠 1px hairline 边框与背景层次区分。投影只给**真正浮起**的层(下拉、气泡、弹窗、抽屉)与 hover 抬升。
+3. **排版与留白负责层次**。用字号/字重/字色/间距建立信息层级,而不是靠加卡片、加底色、加边框。加任何装饰前先问:"去掉它是不是更干净?"
+
+### 反面清单(出现即算跑偏)
+- ❌ 并排的彩色图标底色(rainbow KPI 卡)。指标区一律**单色**(数字用主文本色)。
+- ❌ 白卡叠白底、彼此边界靠猜。→ 用背景层次(页面灰 vs 卡片白)+ hairline。
+- ❌ 到处大软阴影 `box-shadow: 0 10px 25px …`。→ 静态卡最多 hairline,不投影或极轻。
+- ❌ 什么数据都塞表格 / 什么内容都塞进一个大白卡。
+- ❌ 圆角忽大忽小、图标 outline/solid 混用、渐变滥用。
+
+---
+
+## 1. 色彩(Color)
+
+主色**可切换**(默认 **薄荷青绿 `#14B8A6`**,由主题 store 内联注入 Nuxt UI 的 `--ui-primary` 全阶,见 `03b` §4)。
+所有中性色/语义色写进 `design-tokens.css`,覆盖 **Nuxt UI 的 `--ui-*` 令牌 + Tailwind v4 `@theme`**。
+
+> 下表变量名沿用旧 `--el-*` 仅为**数值载体**;实现时映射到 Nuxt UI `--ui-*` / Tailwind token(映射见 `03b`)。**数值不变**。
+
+### 1.1 中性色(浅色)
+```
+页面底   --el-bg-color-page      #F3F5F9   // 冷灰,让白卡浮起
+卡片/面  --el-bg-color           #FFFFFF
+浮层     --el-bg-color-overlay   #FFFFFF
+文本主   --el-text-color-primary #1B2333   // 近板岩黑(非纯黑)
+文本常规 --el-text-color-regular #434C60
+文本次   --el-text-color-secondary #6B7384
+占位     --el-text-color-placeholder #97A0B0
+禁用     --el-text-color-disabled #B8BFCA
+边框(强) --el-border-color        #E2E7EE
+边框     --el-border-color-light  #E9EDF3
+边框(细) --el-border-color-lighter #EEF1F6   // hairline 默认
+边框(极细)--el-border-color-extra-light #F4F6F9
+填充     --el-fill-color / -light / -lighter …  见 tokens
+```
+
+### 1.2 中性色(深色) —— 干净的深板岩,忌死黑
+```
+页面底   #0E1116     卡片 #171B22     浮层 #1C212B
+文本主   #E8EBF1     常规 #BCC3D0     次 #8B93A3     占位 #626B7B
+边框     #2B323D     细 #222831
+```
+
+### 1.3 语义色(只用于状态/反馈,不做装饰)
+```
+成功 #16A34A(暗 #22C55E)  警告 #F59E0B  危险 #EF4444  信息 #64748B
+```
+用法:状态胶囊、校验反馈、危险操作按钮。**用柔和淡色底 + 语义文字**(如 `color-mix(success 12%, transparent)` 底),不要满色块。
+
+### 1.4 强调色使用边界
+- 允许:激活导航项、`el-button--primary`、输入焦点环、链接、选中行/选中卡描边、Tab 激活下划线、开关开启、少量关键数字趋势。
+- 禁止:指标卡图标底色轮播、整块主色背景(除登录品牌区外)、大面积主色填充。
+
+---
+
+## 2. 排版(Typography)
+
+字体族沿用 `--el-font-family`(系统 UI 栈);数字统一 `font-variant-numeric: tabular-nums`(指标、金额、时间、端口等)。
+
+### 2.1 字号阶(rem,根 16px)
+| Token | px | 用途 |
+|---|---|---|
+| display | 28 / 1.75rem | 仪表盘大数、空状态主标题(少用) |
+| h1 | 20 / 1.25rem | 页面标题(PageHeader) |
+| h2 | 16 / 1rem | 面板/区块标题 |
+| h3 | 14 / 0.875rem | 卡片标题、表头强调 |
+| body | 14 / 0.875rem | 正文默认 |
+| small | 13 / 0.8125rem | 次要说明、表格内文 |
+| micro | 12 / 0.75rem | 标签、脚注、分组标签 |
+| overline | 12 | 分组标签:大写 + `letter-spacing:.06em` + secondary 色 |
+
+### 2.2 字重
+400 正文 / 500 中强调(按钮、导航) / 600 小标题、标签 / 700 标题、关键数字。**不用 800/900**(过粗显廉价),仪表盘大数最多 700。
+
+### 2.3 规则
+- 标题 `letter-spacing:-0.01em`;大数 `-0.02em`。
+- 段落行高 1.5–1.6;标题 1.2–1.25。
+- 次要信息一律降到 secondary/placeholder 色 + small/micro 号,**靠字色分层而非加框**。
+- 中英文混排、超长文本必须省略号(`TextEllipsis` 组件或 `text-overflow`)。
+
+---
+
+## 3. 间距与栅格(Spacing & Grid)
+
+4px 基准。常用:`4 8 12 16 20 24 32 40 48`。
+
+| 场景 | 值 |
+|---|---|
+| 页面内容内边距(桌面) | 24px |
+| 页面内容内边距(移动) | 16px |
+| 卡片/面板内边距 | 20–24px |
+| 面板标题区内边距 | 16–20px |
+| 列表/卡片网格间距 | 16px(移动 12px) |
+| 筛选条内边距 | 14–16px |
+| 内容最大宽度 | 1600px(超宽屏居中,两侧留白);常规不限宽 |
+| 区块之间纵向间距 | 24px(移动 16px) |
+
+栅格:优先 CSS Grid(`repeat(auto-fill, minmax(280px,1fr))` 等)做卡片流;表单用 EP `el-row/el-col` 12 栅格。
+
+---
+
+## 4. 圆角(Radius)
+```
+--app-radius-xs 6   小徽标/小标签
+--app-radius-sm 8    按钮、输入、下拉
+--app-radius   12    小卡、图标容器
+--app-radius-lg 16   卡片/面板/筛选条(主用)
+--app-radius-xl 20   大容器、抽屉圆角侧
+pill 999             状态胶囊、开关、头像
+```
+**同一层级圆角必须一致**。卡片统一 `lg(16)`;控件统一 `sm(8)`。
+
+---
+
+## 5. 层级与阴影(Elevation)
+
+**默认扁平**。层级从低到高:
+1. **页面**:无边框,页面底色。
+2. **静态卡/面板**:`1px hairline`(`--el-border-color-light`)+ **无投影或极轻** `--app-shadow-card`(`0 1px 2px /.04`)。清爽的关键是这一层不要重阴影。
+3. **可交互卡 hover**:`translateY(-2px)` + 边框转主色淡 + 轻阴影 `--app-shadow-md`。仅限可点卡片。
+4. **浮层(下拉/气泡/弹窗/抽屉)**:柔和阴影 `--app-shadow-md/lg`,允许更明显。
+
+阴影令牌(浅色):
+```
+--app-shadow-card 0 1px 2px rgba(16,24,40,.04)                 // 静态卡(可选)
+--app-shadow-sm   0 1px 2px /.05, 0 1px 3px /.05
+--app-shadow-md   0 4px 8px -4px /.08, 0 12px 28px -12px /.14  // 浮层/hover
+--app-shadow-lg   0 12px 32px -12px /.18                        // 弹窗/抽屉
+```
+深色阴影更深(见 tokens)。**静态卡片能不用投影就不用**,用 hairline 即可。
+
+---
+
+## 6. 动效(Motion)
+
+克制、快、无弹跳。
+- 时长 150–220ms,缓动 `cubic-bezier(.4,0,.2,1)` 或 `ease`。
+- hover:`background/opacity/border-color/transform: translateY(-1~2px)`。
+- 进度/宽度变化 400–600ms。
+- 路由切换:轻微 fade(≤180ms),不要大幅位移/缩放。
+- **禁止**:抖动、橡皮筋、360° 旋转装饰、持续动画(除加载指示)。移动端进一步减弱。
+- 尊重 `prefers-reduced-motion`:关闭非必要动画。
+
+---
+
+## 7. 图标(Iconography)
+
+- 主用 **Heroicons outline**(`@heroicons/vue/24/outline`)统一线性风格;filled 状态才用 solid。EP 图标仅在个别处沿用。
+- 尺寸:导航 18、行内动作 16–18、页头/大图标容器 20–24。stroke 一致。
+- 颜色:**继承文本色**;激活/选中才用主色。**不给图标配彩色底盒满屏用**(IconBox 的彩色/渐变变体仅限极少数品牌化场景,如登录、单个空状态)。
+- 通过 `menuStore.iconComponents['HOutline:XxxIcon']` 取用;新增图标先在 `config/iconRegistry.ts` 注册。
+
+---
+
+## 8. 数据呈现原则(把"表格味"降下来)
+
+- **指标**:大号 tabular 数字 + 小号大写标签 + 极简单色细进度线(可选)。**不配彩色图标盒**。多指标并列用**一块面板 + 竖向 hairline 分隔**(metric strip),不是 N 张浮卡。
+- **列表**:实体型数据(用户、实例、隧道、密钥…)优先**卡片流**;强列型/可比较型数据(操作日志、任务、菜单树)用**精致表格**。二者可提供视图切换。判定细则见 `05-page-patterns.md`。
+- **表格**:去重边框、行 hover、表头 sticky、行高舒适(44–52px)、次要列可隐藏;移动端必转卡片。
+- **空/加载/错误**:统一用 `EmptyState` / 骨架 / 可重试错误块(见 `03`)。
+
+---
+
+## 9. Do / Don't 速查
+
+**Do**
+- 页面灰底 + 白卡 + hairline;一个强调色;大量留白。
+- 数字 tabular、标题克制字重、次要信息降级为灰。
+- 状态用小胶囊 + 圆点;操作用文字/幽灵按钮成组。
+
+**Don't**
+- 彩色 KPI 卡阵列;白卡叠白卡;重投影;渐变满屏;圆角乱;粗到 900 的字;什么都表格。
