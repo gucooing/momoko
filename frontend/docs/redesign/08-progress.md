@@ -14,14 +14,14 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | ⬜ |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% 完成；实例/Docker/文件/工具/仪表盘余项待推 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
 ---
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 **工作台 + 用户管理** + Phase 3 系统管理**全部列表页**（角色 `system/role` / 菜单 `system/menu` 树表 / 操作日志 `system/operation` 只读 / 定时任务 `system/task` / **OIDC 客户端 `system/oidc`**）均已完成并浏览器验证；**系统管理仅剩 `system/settings`(P3 配置型)**。**P1 列表/CRUD 范式已定稿**（PageHeader+FilterBar+批量条+卡/表切换+DataTable+Pagination+FormDialog）；额外产出 **`PermissionTree`**（三态勾选树）、`DataTable.rowSelectable`（逐行禁选）+ `tree`（树表）、**`AppSelect`**（圆角下拉，替代所有原生 `<select>`，泛型/`fit`/`searchable`，浮层 z-index 2300 可用于弹窗内）、**`AppSwitch`**（令牌开关，替代 el-switch）。**⚠️ 用户已两次反馈"密度"**：整套已做**紧凑化**（控件 32px、表行 ~43px、间距 12/10px、FilterBar 12px 无阴影），见 [[compact-density-appselect]] 记忆——续做页面**必须**沿用这套密度，勿回到大留白。**⚠️ 自 `dab4581` 起 Phase 3 全部改动（role/menu/operation/task/oidc + 组件）仍未提交**，工作区待提交。**下一步 = `system/settings` 或转 实例/文件/Docker 等其余模块**。旧栈 EP/VXE 迁移期共存，未卸载。
+> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 **工作台 + 用户管理** + Phase 3 **系统管理模块 100% 完成**（角色 `system/role` / 菜单 `system/menu` 树表 / 操作日志 `system/operation` 只读 / 定时任务 `system/task` / OIDC 客户端 `system/oidc` / **系统设置 `system/settings` P3 双 Tab 配置页**）均已浏览器验证。**P1 列表/CRUD 范式已定稿**（PageHeader+FilterBar+批量条+卡/表切换+DataTable+Pagination+FormDialog）；额外产出 **`PermissionTree`**（三态勾选树）、`DataTable.rowSelectable`（逐行禁选）+ `tree`（树表）、**`AppSelect`**（圆角下拉，替代所有原生 `<select>`，泛型/`fit`/`searchable`，浮层 z-index 2300 可用于弹窗内）、**`AppSwitch`**（令牌开关，替代 el-switch）。**⚠️ 用户已两次反馈"密度"**：整套已做**紧凑化**（控件 32px、表行 ~43px、间距 12/10px、FilterBar 12px 无阴影），见 [[compact-density-appselect]] 记忆——续做页面**必须**沿用这套密度，勿回到大留白。Phase 3 role/menu/operation/task/oidc 批次已提交（`902082e`）；**`system/settings` 重写为工作区新改动，待提交**。**下一步 = 转 实例/Docker/文件/工具/仪表盘等其余模块**（多为 P1 列表，直接套范式）。P3 设置页范式：PageHeader + 令牌 seg Tab 条 + `AppPanel`(flush) 设置组 + `.set-row` + 分区保存页脚 + FormDialog；**踩坑**：Vue 文本插值里写字面 `{{` 会触发解析错误 → 用脚本 helper 返回该串（见 `fieldToken`）。旧栈 EP/VXE 迁移期共存，未卸载。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -124,7 +124,7 @@
 | 角色管理 | system/role | P1 | ✅ | ✅ | ✅ | ✅ |
 | 菜单管理 | system/menu | P1 | ✅ | ✅ | ✅ | ✅ |
 | OIDC 客户端 | system/oidc | P1 | ✅ | ✅ | ✅ | ✅ |
-| 系统设置 | system/settings | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 系统设置 | system/settings | P3 | ✅ | ✅ | ✅ | ✅ |
 | 定时任务 | system/task | P1 | ✅ | ✅ | ✅ | ✅ |
 | 操作日志 | system/operation | P1 | ✅ | ✅ | ✅ | ✅ |
 
@@ -178,3 +178,4 @@
 | 2026-07-11 | **用户反馈-密度太松 + 原生 select 直角浮层（两次强调，所有已重写页通病）**：全局紧凑化（`design-tokens.css` 控件 36→32/字号 14→13/label 13→12；`DataTable` 行 padding 11→7px；`FilterBar` 16→12px 去阴影；段间距 16/14→12/10；`AppIconButton` 加 `box`、`ActionMenu` 用 28px → 表行 63→43px）。新建 **`components/ui/AppSelect.vue`**（令牌圆角下拉，teleport z-index 2300、泛型 v-model 类型安全、`fit`/`searchable` 本地过滤），**替换全部原生 `<select>`**（两筛选栏/菜单父级/用户角色/分页每页）。记忆 [[compact-density-appselect]]。**操作日志 `system/operation`**（P1 只读）：PageHeader+FilterBar（可搜索用户/类型 AppSelect+布尔结果+路径）+DataTable/移动卡+Pagination+详情 FormDialog(JSON+复制)；用户预加载一次做 userId→用户名 映射。i18n 补 operation.title/pageDesc/emptyDesc/allUsers/allTypes（三语）。浏览器验证 menu(树表/创建弹窗内 AppSelect 浮层高于弹窗/筛选) + role(卡/分页 AppSelect) + operation(搜索下拉/详情弹窗) + 明暗，lint+tsc 绿。 | 继续 Phase 3：`system/task` 或 `system/oidc` |
 | 2026-07-11 | **用户反馈-总条数显示两次**：`Pagination` 组件自带的“共 N 条”与各页顶部 `X-page__bar-hint` 的总数重复（user/role/operation 都中招；menu 是树无分页故单次）。**统一从 `Pagination` 移除总数**（一处改动全解决）→ 全部页面总数只在顶部显示一次。**定时任务 `system/task`（P1 只读+行内操作）**：PageHeader(+刷新)+FilterBar(关键字+状态 AppSelect)+DataTable/移动卡+Pagination；令牌进度条（track+fill 按状态着色）、种类/状态 StatusPill、行内 `ActionMenu` 取消/重试/删除（按状态条件显示：active→取消、failed→重试、terminal→删除；删除走 Dialog.info）、2.5s 静默轮询。i18n 补 taskManager.pageTitle/pageDesc/allStatus/emptyDesc（三语）。浏览器验证桌面(表/进度/条件操作菜单)+移动卡+暗色，总数单次，lint+tsc 绿。 | 继续 Phase 3：`system/oidc`（系统管理最后一个列表页） |
 | 2026-07-11 | **OIDC 客户端 `system/oidc`（P1，系统管理最后一个列表页）**：按 P1 范式重写 `index.vue`（PageHeader+两操作按钮 OIDC配置/生成客户端 → FilterBar → DataTable/移动卡 → Pagination）+ 三个子件：`configDialog.vue`（服务端配置：AppSwitch 启用 + Issuer/当前域名 + 3 列 TTL + 只读端点复制区）、`clientForm.vue`（创建/编辑：名称/回调必填内联校验 + Scopes + AppSwitch 状态；保存后若返回**完整** secret(无`*`)则 emit reveal）、内联 reveal `FormDialog`（完整 Client Secret 仅一次 + 13 端点字段 + 单项/全部复制）。行内 编辑/刷新密钥/删除（Dialog.info 确认）。新建自建令牌组件 **`AppSwitch.vue`**（替代 el-switch）。文案硬编码中文（唯一 i18n key=`system.common.total`；Phase 4 统一）。保留 list/create/update/delete/refreshSecret/getConfig/updateConfig 契约 + `PERM.OIDC_EDIT`。**浏览器全链路验证**：桌面暗(列表/配置弹窗/创建→reveal 完整secret/行菜单/校验/删除确认)+桌面浅+移动390(强制卡/折叠筛选/简化分页)，创建真实客户端走通后删除清理，零控制台报错，vue-tsc+eslint 绿。**⚠️ 本页及 role/menu/operation/task 全部 Phase 3 改动仍未提交。** | Phase 3：`system/settings`(P3 配置型) 或转 实例/文件/Docker 模块；提交 Phase 3 批次 |
+| 2026-07-11 | **提交 Phase 3 批次**（`902082e`：role/menu/operation/task/oidc + AppSelect/AppSwitch/PermissionTree + 密度化 + i18n，24 文件）。**系统设置 `system/settings`（P3 双 Tab 配置页，系统管理最后一页）**：EP 整页重写为 PageHeader + 令牌 seg Tab 条（安全与认证/邮件配置）+ `AppPanel`(flush) 分组 + `.set-row`（label+desc / 控件，分区保存页脚）。控件：`AppSwitch`(替 el-switch)、令牌 `.app-input`/number/`.app-textarea`、`AppSelect`(替 el-select，模板类型；`@change` 不存在→用 `watch` 承接重载)、密码眼睛显隐、占位符 chips 快捷插入。3 个 `FormDialog`：测试邮件/模板测试(动态占位符字段)/预览(iframe srcdoc + 占位符黄底高亮)。保留全部 login/email/template API + `PERM.SYSTEM_CONFIG_EDIT` + 占位符插入/渲染逻辑。i18n 补 `settings.pageTitle/pageDesc`(三语)。**踩坑**：模板测试字段标签 `{{ '{{.'+name+'}}' }}` 在 Vue 文本插值里字面 `{{` 触发 eslint 解析错误 → 抽 `fieldToken()` helper 返回该串。**浏览器全链路验证**：桌面暗/浅(双 Tab、开关/输入/密码眼睛、AppSelect 切换 watch 重载、预览 iframe 高亮、模板测试动态字段、空收件禁用发送)+移动390(行竖堆/Tab 撑满/控件全宽)，零控制台报错，vue-tsc+eslint 绿。**⚠️ 未提交。** | Phase 3 转其余模块：实例/Docker(多 P1 列表)、文件分享/来源、工具、仪表盘 profile/analysis/monitor |

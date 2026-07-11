@@ -1,365 +1,283 @@
+<!-- 系统设置（重写 · P3 配置型）：PageHeader + 令牌 Tab 条（安全/邮件）+ AppPanel 分组，每组分区保存。
+     控件用 AppSwitch / 令牌 .app-input/.app-textarea / AppSelect；对话框用 FormDialog（测试/模板测试/预览）。
+     保留全部 API（login/email/template 配置）、PERM.SYSTEM_CONFIG_EDIT、i18n、占位符插入与预览逻辑。 -->
 <template>
-  <div>
-    <el-card shadow="never">
-      <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
-        <el-tab-pane :label="t('system.settings.securityTab')" name="security">
-          <div class="setting-module">
-            <div class="setting-group">
-              <div class="setting-group-header">{{ t('system.settings.loginSettings') }}</div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.registerFeature') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.registerFeatureDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="loginForm.registerEnabled"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.usernameLogin') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.usernameLoginDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="loginForm.usernameLoginEnabled"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.emailLogin') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.emailLoginDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="loginForm.emailLoginEnabled"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.registerEmailVerification') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.registerEmailVerificationDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="loginForm.registerEmailVerificationRequired"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-            </div>
+  <div class="settings-page">
+    <PageHeader :title="t('system.settings.pageTitle')" :description="t('system.settings.pageDesc')" />
 
-            <div class="setting-footer">
-              <el-button
-                type="primary"
-                :loading="loginSaving"
+    <!-- Tab 条 -->
+    <div class="settings-tabs" role="tablist">
+      <button
+        v-for="tab in TABS"
+        :key="tab.name"
+        type="button"
+        role="tab"
+        class="settings-tabs__btn"
+        :class="{ 'is-active': activeTab === tab.name }"
+        :aria-selected="activeTab === tab.name"
+        @click="setTab(tab.name)"
+      >
+        <component :is="menuStore.iconComponents[tab.icon]" />
+        {{ t(tab.labelKey) }}
+      </button>
+    </div>
+
+    <!-- 安全与认证 -->
+    <div v-show="activeTab === 'security'" class="settings-tab">
+      <AppPanel :title="t('system.settings.loginSettings')" :padded="false">
+        <div class="set-rows">
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.registerFeature') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.registerFeatureDesc') }}</span>
+            </div>
+            <AppSwitch v-model="loginForm.registerEnabled" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.usernameLogin') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.usernameLoginDesc') }}</span>
+            </div>
+            <AppSwitch v-model="loginForm.usernameLoginEnabled" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.emailLogin') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.emailLoginDesc') }}</span>
+            </div>
+            <AppSwitch v-model="loginForm.emailLoginEnabled" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.registerEmailVerification') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.registerEmailVerificationDesc') }}</span>
+            </div>
+            <AppSwitch v-model="loginForm.registerEmailVerificationRequired" :disabled="!canEdit" />
+          </div>
+        </div>
+        <template #footer>
+          <UButton color="primary" :loading="loginSaving" :disabled="!canEdit" @click="handleLoginSave">
+            {{ t('system.settings.saveConfig') }}
+          </UButton>
+        </template>
+      </AppPanel>
+    </div>
+
+    <!-- 邮件配置 -->
+    <div v-show="activeTab === 'email'" class="settings-tab">
+      <AppPanel :title="t('system.settings.emailService')" :padded="false">
+        <div class="set-rows">
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.enableEmailService') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.enableEmailServiceDesc') }}</span>
+            </div>
+            <AppSwitch v-model="emailForm.enabled" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.smtpHost') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.smtpHostDesc') }}</span>
+            </div>
+            <input v-model="emailForm.host" class="app-input set-input" :disabled="!canEdit" placeholder="smtp.example.com" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.smtpPort') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.smtpPortDesc') }}</span>
+            </div>
+            <input v-model.number="emailForm.port" type="number" min="1" max="65535" class="app-input set-num" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.smtpUsername') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.smtpUsernameDesc') }}</span>
+            </div>
+            <input v-model="emailForm.username" class="app-input set-input" :disabled="!canEdit" placeholder="user@example.com" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.smtpPassword') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.smtpPasswordDesc') }}</span>
+            </div>
+            <div class="set-input set-pwd">
+              <input
+                v-model="emailForm.password"
+                :type="showPwd ? 'text' : 'password'"
+                class="app-input"
                 :disabled="!canEdit"
-                @click="handleLoginSave"
-              >
-                {{ t('system.settings.saveConfig') }}
-              </el-button>
+                :placeholder="t('system.settings.smtpPasswordPlaceholder')"
+              />
+              <AppIconButton
+                :icon="showPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'"
+                :label="t('system.settings.smtpPassword')"
+                :box="30"
+                @click="showPwd = !showPwd"
+              />
             </div>
           </div>
-        </el-tab-pane>
-
-        <el-tab-pane :label="t('system.settings.emailTab')" name="email">
-          <div class="setting-module">
-            <div class="setting-group">
-              <div class="setting-group-header">{{ t('system.settings.emailService') }}</div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.enableEmailService') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.enableEmailServiceDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="emailForm.enabled"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.smtpHost') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.smtpHostDesc') }}</span>
-                </div>
-                <el-input
-                  v-model="emailForm.host"
-                  :disabled="!canEdit"
-                  placeholder="smtp.example.com"
-                  style="width: 260px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.smtpPort') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.smtpPortDesc') }}</span>
-                </div>
-                <el-input-number
-                  v-model="emailForm.port"
-                  :disabled="!canEdit"
-                  :min="1"
-                  :max="65535"
-                  style="width: 160px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.smtpUsername') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.smtpUsernameDesc') }}</span>
-                </div>
-                <el-input
-                  v-model="emailForm.username"
-                  :disabled="!canEdit"
-                  placeholder="user@example.com"
-                  style="width: 260px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.smtpPassword') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.smtpPasswordDesc') }}</span>
-                </div>
-                <el-input
-                  v-model="emailForm.password"
-                  :disabled="!canEdit"
-                  type="password"
-                  show-password
-                  :placeholder="t('system.settings.smtpPasswordPlaceholder')"
-                  style="width: 260px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.fromEmail') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.fromEmailDesc') }}</span>
-                </div>
-                <el-input
-                  v-model="emailForm.from"
-                  :disabled="!canEdit"
-                  placeholder="noreply@example.com"
-                  style="width: 260px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.fromName') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.fromNameDesc') }}</span>
-                </div>
-                <el-input
-                  v-model="emailForm.fromName"
-                  :disabled="!canEdit"
-                  placeholder="Momoko"
-                  style="width: 260px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.useTls') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.useTlsDesc') }}</span>
-                </div>
-                <el-switch
-                  v-model="emailForm.useTls"
-                  :disabled="!canEdit"
-                  inline-prompt
-                  :active-text="t('system.settings.switchOn')"
-                  :inactive-text="t('system.settings.switchOff')"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.timeoutSeconds') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.timeoutSecondsDesc') }}</span>
-                </div>
-                <el-input-number
-                  v-model="emailForm.timeoutSeconds"
-                  :disabled="!canEdit"
-                  :min="1"
-                  :max="60"
-                  style="width: 160px"
-                />
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.concurrency') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.concurrencyDesc') }}</span>
-                </div>
-                <el-input-number
-                  v-model="emailForm.ccsN"
-                  :disabled="!canEdit"
-                  :min="1"
-                  :max="50"
-                  style="width: 160px"
-                />
-              </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.fromEmail') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.fromEmailDesc') }}</span>
             </div>
-
-            <div class="setting-footer">
-              <el-button
-                type="primary"
-                :loading="emailSaving"
-                :disabled="!canEdit"
-                @click="handleEmailSave"
-              >
-                {{ t('system.settings.saveConfig') }}
-              </el-button>
-              <el-button
-                :loading="emailTesting"
-                :disabled="!canEdit"
-                @click="testDialogVisible = true"
-              >
-                {{ t('system.settings.testEmail') }}
-              </el-button>
-            </div>
+            <input v-model="emailForm.from" class="app-input set-input" :disabled="!canEdit" placeholder="noreply@example.com" />
           </div>
-
-          <div class="setting-module">
-            <div class="setting-group">
-              <div class="setting-group-header">{{ t('system.settings.templateConfig') }}</div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.templateType') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.templateTypeDesc') }}</span>
-                </div>
-                <el-select
-                  v-model="templateType"
-                  :disabled="!canEdit"
-                  style="width: 200px"
-                  @change="handleTemplateTypeChange"
-                >
-                  <el-option
-                    v-for="tpl in templateTypeOptions"
-                    :key="tpl.value"
-                    :label="tpl.label"
-                    :value="tpl.value"
-                  />
-                </el-select>
-              </div>
-              <div class="setting-item">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.emailSubject') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.subjectDesc', subjectDescParams) }}</span>
-                </div>
-                <el-input
-                  v-model="templateForm.subject"
-                  :disabled="!canEdit"
-                  :placeholder="t('system.settings.subjectPlaceholder')"
-                  style="width: 400px"
-                  @focus="onInputFocus"
-                />
-              </div>
-              <div class="setting-item setting-item-vertical">
-                <div class="setting-item-info">
-                  <span class="setting-item-label">{{ t('system.settings.emailContent') }}</span>
-                  <span class="setting-item-desc">{{ t('system.settings.contentDesc', contentDescParams) }}</span>
-                </div>
-                <el-input
-                  v-model="templateForm.template"
-                  :disabled="!canEdit"
-                  type="textarea"
-                  :rows="12"
-                  placeholder="<html><body>...</body></html>"
-                  @focus="onInputFocus"
-                />
-              </div>
-              <div class="placeholder-strip">
-                <span class="placeholder-strip-label">{{ t('system.settings.quickInsert') }}</span>
-                <el-tag
-                  v-for="p in placeholders"
-                  :key="p"
-                  size="small"
-                  class="placeholder-tag"
-                  :class="{ 'tag-disabled': !canEdit }"
-                  @click="canEdit && insertPlaceholder(p)"
-                >
-                  {{ p }}
-                </el-tag>
-              </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.fromName') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.fromNameDesc') }}</span>
             </div>
-
-            <div class="setting-footer">
-              <el-button
-                type="primary"
-                :loading="templateSaving"
-                :disabled="!canEdit"
-                @click="handleTemplateSave"
-              >
-                {{ t('system.settings.saveTemplate') }}
-              </el-button>
-              <el-button
-                :loading="templateTesting"
-                :disabled="!canEdit"
-                @click="openTemplateTestDialog"
-              >
-                {{ t('system.settings.testSend') }}
-              </el-button>
-              <el-button
-                :disabled="!canEdit"
-                @click="openPreviewDialog"
-              >
-                {{ t('system.settings.preview') }}
-              </el-button>
-            </div>
+            <input v-model="emailForm.fromName" class="app-input set-input" :disabled="!canEdit" placeholder="Momoko" />
           </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.useTls') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.useTlsDesc') }}</span>
+            </div>
+            <AppSwitch v-model="emailForm.useTls" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.timeoutSeconds') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.timeoutSecondsDesc') }}</span>
+            </div>
+            <input v-model.number="emailForm.timeoutSeconds" type="number" min="1" max="60" class="app-input set-num" :disabled="!canEdit" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.concurrency') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.concurrencyDesc') }}</span>
+            </div>
+            <input v-model.number="emailForm.ccsN" type="number" min="1" max="50" class="app-input set-num" :disabled="!canEdit" />
+          </div>
+        </div>
+        <template #footer>
+          <UButton color="primary" :loading="emailSaving" :disabled="!canEdit" @click="handleEmailSave">
+            {{ t('system.settings.saveConfig') }}
+          </UButton>
+          <UButton color="neutral" variant="soft" :loading="emailTesting" :disabled="!canEdit" @click="testDialogVisible = true">
+            {{ t('system.settings.testEmail') }}
+          </UButton>
+        </template>
+      </AppPanel>
 
-          <!-- 邮件服务测试对话框 -->
-          <BaseDialog v-model="testDialogVisible" :title="t('system.settings.testEmailTitle')" width="420">
-            <el-form label-position="top">
-              <el-form-item :label="t('system.settings.recipientEmail')">
-                <el-input v-model="testRecipient" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <el-button @click="testDialogVisible = false">{{ t('system.common.cancel') }}</el-button>
-              <el-button type="primary" :loading="emailTesting" :disabled="!testRecipient" @click="handleEmailTest">{{ t('system.settings.send') }}</el-button>
-            </template>
-          </BaseDialog>
+      <AppPanel :title="t('system.settings.templateConfig')" :padded="false">
+        <div class="set-rows">
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.templateType') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.templateTypeDesc') }}</span>
+            </div>
+            <AppSelect v-model="templateType" :options="templateTypeOptions" :disabled="!canEdit" class="set-input" />
+          </div>
+          <div class="set-row">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.emailSubject') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.subjectDesc', subjectDescParams) }}</span>
+            </div>
+            <input
+              v-model="templateForm.subject"
+              class="app-input set-wide"
+              :disabled="!canEdit"
+              :placeholder="t('system.settings.subjectPlaceholder')"
+              @focus="onInputFocus"
+            />
+          </div>
+          <div class="set-row set-row--col">
+            <div class="set-row__info">
+              <span class="set-row__label">{{ t('system.settings.emailContent') }}</span>
+              <span class="set-row__desc">{{ t('system.settings.contentDesc', contentDescParams) }}</span>
+            </div>
+            <textarea
+              v-model="templateForm.template"
+              class="app-textarea set-code"
+              :disabled="!canEdit"
+              rows="12"
+              placeholder="<html><body>...</body></html>"
+              @focus="onInputFocus"
+            />
+          </div>
+          <div class="set-row set-row--chips">
+            <span class="set-chips__label">{{ t('system.settings.quickInsert') }}</span>
+            <button
+              v-for="p in placeholders"
+              :key="p"
+              type="button"
+              class="set-chip"
+              :disabled="!canEdit"
+              @click="insertPlaceholder(p)"
+            >
+              {{ p }}
+            </button>
+          </div>
+        </div>
+        <template #footer>
+          <UButton color="primary" :loading="templateSaving" :disabled="!canEdit" @click="handleTemplateSave">
+            {{ t('system.settings.saveTemplate') }}
+          </UButton>
+          <UButton color="neutral" variant="soft" :loading="templateTesting" :disabled="!canEdit" @click="openTemplateTestDialog">
+            {{ t('system.settings.testSend') }}
+          </UButton>
+          <UButton color="neutral" variant="ghost" :disabled="!canEdit" @click="openPreviewDialog">
+            {{ t('system.settings.preview') }}
+          </UButton>
+        </template>
+      </AppPanel>
+    </div>
 
-          <!-- 模板测试发送对话框 -->
-          <BaseDialog v-model="templateTestDialogVisible" :title="t('system.settings.testTemplateEmailTitle')" width="420">
-            <el-form label-position="top">
-              <el-form-item :label="t('system.settings.recipientEmail')">
-                <el-input v-model="templateTestRecipient" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
-              </el-form-item>
-              <el-form-item v-for="field in templateTestFields" :key="field.name" :label="'{{.' + field.name + '}}'">
-                <el-input v-model="field.value" :placeholder="t('system.settings.templateFieldPlaceholder', { placeholder: `{{.${field.name}}}` })" />
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <el-button @click="templateTestDialogVisible = false">{{ t('system.common.cancel') }}</el-button>
-              <el-button type="primary" :loading="templateTesting" :disabled="!templateTestRecipient" @click="handleTemplateTest">{{ t('system.settings.send') }}</el-button>
-            </template>
-          </BaseDialog>
+    <!-- 邮件服务测试 -->
+    <FormDialog v-model="testDialogVisible" :title="t('system.settings.testEmailTitle')" :width="440">
+      <div class="app-field">
+        <label class="app-label">{{ t('system.settings.recipientEmail') }}</label>
+        <input v-model="testRecipient" class="app-input" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('system.common.cancel') }}</UButton>
+        <UButton color="primary" :loading="emailTesting" :disabled="!testRecipient" @click="handleEmailTest">
+          {{ t('system.settings.send') }}
+        </UButton>
+      </template>
+    </FormDialog>
 
-          <!-- 模板预览对话框 -->
-          <BaseDialog v-model="previewDialogVisible" :title="t('system.settings.templatePreviewTitle')" width="750" resizable>
-            <el-scrollbar max-height="60vh">
-              <div class="preview-subject">
-                <span class="preview-label">{{ t('system.settings.subjectLabel') }}</span>
-                <span>{{ renderedPreviewSubject }}</span>
-              </div>
-              <div class="preview-divider" />
-              <iframe :srcdoc="renderedPreviewBody" class="preview-iframe" sandbox="allow-same-origin" />
-            </el-scrollbar>
-            <template #footer>
-              <el-button @click="previewDialogVisible = false">{{ t('system.common.close') }}</el-button>
-            </template>
-          </BaseDialog>
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
+    <!-- 模板测试发送 -->
+    <FormDialog v-model="templateTestDialogVisible" :title="t('system.settings.testTemplateEmailTitle')" :width="440">
+      <div class="settings-form">
+        <div class="app-field">
+          <label class="app-label">{{ t('system.settings.recipientEmail') }}</label>
+          <input v-model="templateTestRecipient" class="app-input" :placeholder="t('system.settings.recipientEmailPlaceholder')" />
+        </div>
+        <div v-for="field in templateTestFields" :key="field.name" class="app-field">
+          <label class="app-label">{{ fieldToken(field.name) }}</label>
+          <input
+            v-model="field.value"
+            class="app-input"
+            :placeholder="t('system.settings.templateFieldPlaceholder', { placeholder: fieldToken(field.name) })"
+          />
+        </div>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('system.common.cancel') }}</UButton>
+        <UButton color="primary" :loading="templateTesting" :disabled="!templateTestRecipient" @click="handleTemplateTest">
+          {{ t('system.settings.send') }}
+        </UButton>
+      </template>
+    </FormDialog>
+
+    <!-- 模板预览 -->
+    <FormDialog v-model="previewDialogVisible" :title="t('system.settings.templatePreviewTitle')" :width="760">
+      <div class="preview">
+        <div class="preview__subject">
+          <span class="preview__label">{{ t('system.settings.subjectLabel') }}</span>
+          <span>{{ renderedPreviewSubject }}</span>
+        </div>
+        <div class="preview__divider" />
+        <iframe :srcdoc="renderedPreviewBody" class="preview__iframe" sandbox="allow-same-origin" />
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('system.common.close') }}</UButton>
+      </template>
+    </FormDialog>
   </div>
 </template>
 
@@ -370,15 +288,22 @@ import { getEmailConfig, updateEmailConfig, testEmailConfig, updateEmailTemplate
 import { EmailTemplateType } from '@/types/v1/system'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 
 defineOptions({ name: 'SystemSettingsView' })
 
 const { t } = useI18n()
-const activeTab = ref('security')
+const menuStore = useMenuStore()
+
+const TABS = [
+  { name: 'security', labelKey: 'system.settings.securityTab', icon: 'HOutline:ShieldCheckIcon' },
+  { name: 'email', labelKey: 'system.settings.emailTab', icon: 'HOutline:EnvelopeIcon' },
+] as const
+
+const activeTab = ref<'security' | 'email'>('security')
 const loginSaving = ref(false)
 const emailSaving = ref(false)
 const emailTesting = ref(false)
+const showPwd = ref(false)
 const testRecipient = ref('')
 const testDialogVisible = ref(false)
 
@@ -393,6 +318,9 @@ const canEdit = useButtonPermission([PERM.SYSTEM_CONFIG_EDIT], [])
 const placeholders = ['{{.name}}', '{{.email}}', '{{.code}}']
 const subjectDescParams = { placeholder: placeholders[0] }
 const contentDescParams = { email: placeholders[1], code: placeholders[2] }
+
+// 模板占位符字面量（避免在模板文本插值里写字面 {{ 触发 Vue 解析错误）
+const fieldToken = (name: string) => `{{.${name}}}`
 
 const lastFocusedEl = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
 
@@ -417,9 +345,9 @@ const TEMPLATE_TYPE_LABEL_KEYS: Record<string, string> = {
   [EmailTemplateType.EmailTemplateType_Login]: 'system.settings.loginEmailTemplate',
 }
 
-const templateTypeOptions = computed(() =>
+const templateTypeOptions = computed<{ label: string; value: EmailTemplateType }[]>(() =>
   Object.entries(TEMPLATE_TYPE_LABEL_KEYS).map(([value, labelKey]) => ({
-    value,
+    value: value as EmailTemplateType,
     label: t(labelKey),
   })),
 )
@@ -444,7 +372,7 @@ const emailForm = reactive({
   ccsN: 5,
 })
 
-const templateType = ref(EmailTemplateType.EmailTemplateType_Register)
+const templateType = ref<EmailTemplateType>(EmailTemplateType.EmailTemplateType_Register)
 const templateForm = reactive({
   subject: '',
   template: '',
@@ -483,7 +411,7 @@ const highlightPlaceholders = (source: string): string => {
 
 const handleTemplateTypeChange = async () => {
   try {
-    const { data } = await getEmailTemplate({ type: templateType.value as EmailTemplateType })
+    const { data } = await getEmailTemplate({ type: templateType.value })
     if (data?.template) {
       templateForm.subject = data.template.subject
       templateForm.template = data.template.template
@@ -501,7 +429,7 @@ const handleTemplateSave = async () => {
   templateSaving.value = true
   try {
     await updateEmailTemplate({
-      type: templateType.value as EmailTemplateType,
+      type: templateType.value,
       subject: templateForm.subject,
       template: templateForm.template,
     })
@@ -512,10 +440,8 @@ const handleTemplateSave = async () => {
 }
 
 const openTemplateTestDialog = () => {
-  const placeholders = extractPlaceholders(
-    templateForm.subject + ' ' + templateForm.template
-  )
-  templateTestFields.value = placeholders.map((name) => ({ name, value: '' }))
+  const names = extractPlaceholders(templateForm.subject + ' ' + templateForm.template)
+  templateTestFields.value = names.map((name) => ({ name, value: '' }))
   templateTestRecipient.value = ''
   templateTestDialogVisible.value = true
 }
@@ -532,11 +458,11 @@ const handleTemplateTest = async () => {
   try {
     await testEmailConfig({
       recipient: templateTestRecipient.value,
-      config:  undefined, // 使用全局邮件配置
+      config: undefined, // 使用全局邮件配置
       messages: {
         subject: templateForm.subject,
         template: templateForm.template,
-        type: templateType.value as EmailTemplateType,
+        type: templateType.value,
       },
       Data: data,
     })
@@ -667,17 +593,24 @@ const handleEmailTest = async () => {
 
 const loadedTabs = ref(new Set<string>())
 
-const onTabChange = (name: string | number) => {
-  const tab = String(name)
-  if (loadedTabs.value.has(tab)) return
-  loadedTabs.value.add(tab)
-  if (tab === 'security') {
+const onTabChange = (name: string) => {
+  if (loadedTabs.value.has(name)) return
+  loadedTabs.value.add(name)
+  if (name === 'security') {
     loadLoginConfig()
-  } else if (tab === 'email') {
+  } else if (name === 'email') {
     loadEmailConfig()
     handleTemplateTypeChange()
   }
 }
+
+const setTab = (name: 'security' | 'email') => {
+  activeTab.value = name
+  onTabChange(name)
+}
+
+// 切换模板类型即拉取对应模板（AppSelect 仅 emit update:modelValue，用 watch 承接）
+watch(templateType, handleTemplateTypeChange)
 
 onMounted(() => {
   onTabChange(activeTab.value)
@@ -685,152 +618,212 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.setting-module {
-  & + .setting-module {
-    margin-top: 1.5rem;
-  }
-}
-
-.setting-group {
+.settings-page {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: var(--el-border-color-lighter);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 0.5rem;
-  overflow: hidden;
+  gap: 12px;
 }
 
-.setting-group-header {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  padding: 0.5rem 0.75rem;
-  background: var(--el-bg-color-overlay);
-  border-bottom: 1px solid var(--el-border-color-lighter);
+/* Tab 条 —— 令牌分段（沿用 list 页 .seg 观感，页级放大） */
+.settings-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
 }
-
-.setting-item {
-  display: flex;
-  justify-content: space-between;
+.settings-tabs__btn {
+  display: inline-flex;
   align-items: center;
-  padding: 0.45rem 0.75rem;
-  background: var(--el-bg-color-overlay);
+  gap: 6px;
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.settings-tabs__btn :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+.settings-tabs__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
 }
 
-.setting-item-vertical {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-
-  .setting-item-info {
-    margin-right: 0;
-  }
-}
-
-.setting-item-info {
+.settings-tab {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 12px;
+}
+
+/* 设置行 */
+.set-rows {
+  display: flex;
+  flex-direction: column;
+}
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 20px;
+}
+.set-row + .set-row {
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.set-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
   flex: 1;
-  margin-right: 1rem;
+}
+.set-row__label {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-primary);
+}
+.set-row__desc {
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
+}
+.set-row--col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.set-row--col .set-row__info {
+  flex: none;
 }
 
-.setting-item-label {
+/* 控件宽度 */
+.set-input {
+  width: 260px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.set-num {
+  width: 150px;
+  flex-shrink: 0;
+}
+.set-wide {
+  width: 400px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.set-code {
+  width: 100%;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.set-pwd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.set-pwd .app-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 快捷插入占位符 */
+.set-row--chips {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--el-fill-color-lighter);
+}
+.set-chips__label {
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
+  margin-right: 2px;
+}
+.set-chip {
+  padding: 2px 9px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 999px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.set-chip:hover:not(:disabled) {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+.set-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* 对话框内多字段间距 */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 预览 */
+.preview__subject {
+  display: flex;
+  gap: 8px;
   font-size: 0.875rem;
   color: var(--el-text-color-primary);
 }
-
-.setting-item-desc {
-  font-size: 0.75rem;
-  color: var(--el-text-color-placeholder);
-}
-
-.setting-footer {
-  margin-top: 1rem;
-}
-
-.preview-subject {
-  font-size: 0.9rem;
-  color: var(--el-text-color-primary);
-  padding: 0.5rem 0;
-}
-
-.preview-label {
+.preview__label {
   font-weight: 600;
+  flex-shrink: 0;
 }
-
-.preview-divider {
+.preview__divider {
   height: 1px;
   background: var(--el-border-color-lighter);
-  margin: 0.5rem 0;
+  margin: 12px 0;
 }
-
-.preview-iframe {
+.preview__iframe {
   width: 100%;
-  height: 400px;
+  height: 420px;
   border: 1px solid var(--el-border-color);
-  border-radius: 4px;
+  border-radius: var(--app-radius-sm);
+  background: #fff;
 }
 
-.placeholder-strip {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-  padding: 0.35rem 0.75rem;
-  background: var(--el-bg-color-overlay);
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-
-.placeholder-strip-label {
-  font-size: 0.75rem;
-  color: var(--el-text-color-placeholder);
-  margin-right: 0.15rem;
-  white-space: nowrap;
-}
-
-.placeholder-tag {
-  cursor: pointer;
-  user-select: none;
-
-  &:hover { opacity: 0.8; }
-  &.tag-disabled { cursor: not-allowed; opacity: 0.6; }
-}
-
-/* mobile */
 @media (width <= 768px) {
-  .setting-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.6rem 0.75rem;
-  }
-
-  .setting-item-info {
-    margin-right: 0;
-  }
-
-  .setting-item :deep(.el-input),
-  .setting-item :deep(.el-input-number),
-  .setting-item :deep(.el-select) {
-    width: 100% !important;
-  }
-
-  .setting-footer {
+  .settings-tabs {
+    align-self: stretch;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
-
-  .setting-footer :deep(.el-button) {
+  .settings-tabs__btn {
     flex: 1;
-    min-width: 0;
+    justify-content: center;
   }
-
-  .preview-iframe {
-    height: 260px;
+  .set-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .set-row__info {
+    flex: none;
+  }
+  .set-row :deep(.app-input),
+  .set-input,
+  .set-num,
+  .set-wide {
+    width: 100%;
+  }
+  .set-row .app-switch {
+    align-self: flex-start;
+  }
+  .preview__iframe {
+    height: 280px;
   }
 }
 </style>

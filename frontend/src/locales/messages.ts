@@ -128,6 +128,8 @@ const systemMessages = {
       permissionsRequired: '请输入权限标识',
     },
     settings: {
+      pageTitle: '系统设置',
+      pageDesc: '登录认证与邮件服务配置',
       securityTab: '安全与认证',
       emailTab: '邮件配置',
       loginSettings: '登录设置',
@@ -446,6 +448,8 @@ const systemMessages = {
       permissionsRequired: '請輸入權限標識',
     },
     settings: {
+      pageTitle: '系統設定',
+      pageDesc: '登入認證與郵件服務配置',
       securityTab: '安全與認證',
       emailTab: '郵件配置',
       loginSettings: '登入設定',
@@ -764,6 +768,8 @@ const systemMessages = {
       permissionsRequired: 'Enter permission key',
     },
     settings: {
+      pageTitle: 'System Settings',
+      pageDesc: 'Login, authentication and email service configuration',
       securityTab: 'Security & Auth',
       emailTab: 'Email Config',
       loginSettings: 'Login Settings',

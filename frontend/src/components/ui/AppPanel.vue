@@ -85,6 +85,9 @@ const menuStore = useMenuStore()
   padding: 0;
 }
 .app-panel__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 13px 20px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
