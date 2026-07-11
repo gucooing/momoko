@@ -79,7 +79,7 @@ export const useThemeStore = defineStore('theme', () => {
     { value: '#909399', labelKey: 'theme.colors.gray' },
   ]
 
-  const primaryColor = ref(localStorage.getItem('theme-color-primary') || '#8B5CF6')
+  const primaryColor = ref(localStorage.getItem('theme-color-primary') || '#14B8A6')
 
   const applyThemeMode = () => {
     toggleDark(isDarkTheme.value)

@@ -10,12 +10,42 @@
 | 阶段 | 内容 | 状态 |
 |---|---|---|
 | 任务书 | `docs/redesign/*` 全套 | ✅ |
-| 基线撤回 | 探索性改动还原 | ⬜ |
-| Phase 0 | Nuxt UI 接入 + 令牌 + 图标 + 横切设施 + `components/ui/*` | ⬜ |
-| Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ⬜ |
-| Phase 2 | 样板页:工作台 + 用户管理(定方向) | ⬜ |
+| 基线撤回 | 探索性改动还原 | ✅ |
+| Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
+| Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
+| Phase 2 | 样板页:工作台 + 用户管理(定方向) | 🟡 工作台 ✅ **方向已确认(2026-07-10)**;用户管理 ⬜ ← 下一步 |
 | Phase 3 | 全量推广(见下逐页) | ⬜ |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
+
+---
+
+## ⭐ 交接手册（新会话从这里接手）
+
+> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 工作台**样板已完成并浏览器验证，设计方向经用户确认（2026-07-10）**。**下一步 = 用户管理列表页样板**（定最高频 P1 页型）。旧栈 EP/VXE 迁移期共存，未卸载。
+
+### 如何启动 / 可视化验证
+- 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
+- 浏览器 MCP `chrome-devtools`（local，autoConnect）：`navigate_page` / `take_screenshot` / `resize_page` / `evaluate_script`。**每页验收：桌面 1440×900 + 移动 390×844，明+暗。** 截图落 `.browser-tmp/shots/`（gitignored）。
+- ⚠️ `.app-content` 是**内部滚动容器**（非 window）：截"整页底部"要 `document.querySelector('.app-content').scrollTop = ...`，`fullPage` 只截到视口。
+
+### 新增文件清单（读这些即懂样板架构）
+- **地基**：`vite.config.ts`（`@nuxt/ui/vite` `ui()`，auto-import/components 并入其中）、`src/main.ts`（导入 `design-tokens.css` + `@nuxt/ui/vue-plugin`）、`src/App.vue`（`<UApp>` 包裹）、`src/styles/index.css`（`@import '@nuxt/ui'`）、`src/styles/design-tokens.css`（**令牌核心**）、`src/stores/theme/index.ts`（默认色 `#14B8A6`）
+- **外壳**：`src/layouts/index.vue`（渲染 `AppShell`+`ThemeConfig`）、`src/layouts/app/*` = `AppShell/AppSidebar/AppNav/AppNavItem/AppTopbar/AppTabs/AppContent/CommandSearch/LanguageMenu/NotificationMenu/UserMenu`
+- **基础组件**：`src/components/ui/*` = `AppPanel/SectionHeader/StatusPill/AppAvatar/AppIconButton/MetricStrip/MetricItem/EntityCard/EmptyState/DescriptionList/AppDropdown`（全令牌驱动、自动全局注册）
+- **工作台**：`src/views/dashboard/home/*` = `index.vue`（编排+问候+MetricStrip）、`runningInstanceSection.vue`、`shortcutSection.vue`、`systemRealtimeCharts.vue`（仅重写壳、保留 ECharts）。`welcomePanel.vue`/`systemOverviewCards.vue` 已弃用可删。
+
+### 接手要点 / 已踩坑（务必先看）
+1. **单实例 unplugin**：Nuxt UI 只允许一个 `unplugin-auto-import`/`unplugin-vue-components`，配置**并入 `ui({autoImport,components})`**（defu 合并、数组拼接），**别再加独立实例**（否则启动报 "Multiple instances"）。
+2. **暗色**：`ui({colorMode:false})`，`.dark` 由 `themeStore`（`useDark()`）独占。`design-tokens.css` 必须在 `main.ts` 里**于 EP 暗色 css 之后**导入才能覆盖；暗色块用 `html.dark` 提特异性。teal-500 == 薄荷 `#14B8A6`。
+3. **命名避让**：自建组件勿与既有全局组件撞名（已踩 `IconButton`→改 `AppIconButton`）。新建前先 grep `components/**`。
+4. **多根 class 不透传**：`AppDropdown` 含 `Teleport` 属多根，外部 `class` 不落到触发器 → 响应式隐藏要包**普通 div**（见 `AppTopbar .app-topbar__desktop`）。
+5. **内容区无 keep-alive**：复刻原语义——导航即重挂载，`:key = tabsStore.getRouteRenderKey(fullPath)`；页面轮询靠 `onBeforeUnmount` 停（勿包 `<keep-alive>`）。
+6. **store 契约不改**：`menuStore/tabsStore/themeStore/userStore/userProfileStore/useDashboardHomeStore` 全部复用，只换壳。图标经 `menuStore.iconComponents['HOutline:XxxIcon']`（Heroicons，Proxy 按需）。
+
+### 下一步：用户管理列表页样板（`system/user`，P1）
+- 读 `06d`（system/user 规格）+ `05`（P1 列表页型）+ `03b`（VXE→UTable 映射）。
+- 需新增 `components/ui/`：`DataTable`（`UTable`/TanStack 封装，表头 sticky/hover/空/加载，**移动转 EntityCard 卡片**）、`FilterBar`（+移动 `FilterSheet`）、`FormDialog`（CRUD 弹窗，配 valibot schema）、`Pagination`、`ActionMenu`（行内⋯，可基于 `AppDropdown`）。
+- 保留 `system/user` 的 store/接口/`v-permission`（`PERM`）。目标：**确认最高频列表/CRUD 范式**，达标后按 Phase 3 顺序推平。
 
 ---
 
@@ -46,7 +76,7 @@
 ### 仪表盘/个人中心(`06a`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
-| 工作台 | dashboard/home | P4 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 工作台 | dashboard/home | P4 | ✅ | ✅ | ✅ | 🟡 待用户确认方向 |
 | 分析页(待决) | dashboard/analysis | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 监控页 | dashboard/monitor | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 个人中心 | profile | P2 | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -115,7 +145,20 @@
 
 ---
 
+## 本次样板的务实取舍(待与用户确认，确认后回填/修订计划)
+> 目标是"最快看到真实设计方向"，故对少数非视觉项做了务实取舍。方向确认后可按需回正：
+- **图标**：暂**复用现有 `iconComponents`(Heroicons，Proxy 按需加载)**，未做 `iconMap.ts` + `UIcon` 迁移。设计主图标本就是 Heroicons outline，视觉一致；iconify 迁移留待正式 Phase 0 收尾。
+- **下拉弹层**：自建**令牌驱动 `AppDropdown`**(onClickOutside+Teleport)承载 语言/通知/用户/命令搜索，未用 `UDropdownMenu`/`UPopover`(避免库 API 试错、完全掌控观感)。可后续替换为 U* 或保留。
+- **移动抽屉**：复用现有 **EP `el-drawer`** 承载侧栏(可靠、迁移期共存)；正式可换 `USlideover`。
+- **实时图表**：`systemRealtimeCharts` **仅重写 template(AppPanel+令牌化分段/原生 select)+样式，保留全部 ECharts 逻辑**；控件由 EP 换为原生+令牌。
+- **ThemeConfig**：暂**原样复用**(EP 抽屉，齿轮打开)；`layout` 的 topMode 选项在新外壳下暂为空操作(任务书允许移除 topMode)。
+- **i18n**：`搜索菜单…` 等 2~3 处样板文案用中文字面量(zh-CN)，未入 `messages.ts`；`theme.colors.teal` 选项键未加。正式需补 `messages.ts`。
+- **主色**：默认改薄荷青 `#14B8A6`(Nuxt UI `colors.primary:'teal'`=teal-500 同值)；`themeStore` 仅改默认值，未把主色切换同步给 Nuxt UI 全阶(切色时 U* 组件仍为 teal)。
+- **命名冲突**：`components/ui/IconButton.vue` 与既有 `components/button/IconButton.vue` 撞名，已改名 `AppIconButton`。后续新自建组件注意避让既有全局组件名。
+
 ## 会话日志(每次追加一行)
 | 日期 | 会话做了什么 | 下一步 |
 |---|---|---|
 | (首个会话) | 探索期尝试(令牌/组件/仪表盘,已撤回);定方向(精致侧边栏 + Nuxt UI + EP/VXE 下线);编写完整任务书;还原基线 | 下会话从 Phase 0 接入 spike 开始 |
+| 2026-07-10 | **样板落地**：Phase 0(Nuxt UI 4.9 接入+`design-tokens.css`薄荷主色+明暗)跑通;Phase 1 外壳(手写侧栏/顶栏/命令搜索/三下拉/极简标签/内容区/移动抽屉,`layouts/app/*`)+`components/ui/*` 10 个基础组件;Phase 2 工作台重写(安静问候+单色 MetricStrip+实时面板+运行实例 EntityCard/空态+快捷入口+系统信息)。浏览器验证桌面/移动×明/暗、抽屉、下拉、徽标均 OK,零控制台报错,新增文件 lint 绿。见"务实取舍"。 | 等用户确认设计方向;确认后据反馈修订计划,再做 用户管理(列表页样板)与全量推广 |
+| 2026-07-11 | **用户反馈-头像收敛**：原三处头像(顶栏右上角 `UserMenu`、工作台问候区、侧栏底部)统一收敛到**仅侧栏底部**。`UserMenu` 加 `variant='topbar'\|'sidebar'`——侧栏整行触发器、向上弹出,展开显示 用户信息/操作/版本号;`AppDropdown` 加 `side='top'`(向上弹)+`block`(填充 flex 父)。顶栏移除 `UserMenu`、工作台移除 `AppAvatar`。下拉底部常驻"版本号: dev";原"版本号"动作行改叫`layout.checkUpdate`(zh-CN/zh-TW/en 已补)避免重复。浏览器验证桌面(展开/折叠)×明/暗 + 移动抽屉均 OK,零控制台报错,lint+tsc 绿。 | 用户管理(列表页样板);顶栏右上角现仅剩 通知铃(用户菜单已下移) |

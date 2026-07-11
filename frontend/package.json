@@ -23,6 +23,7 @@
     "@guolao/vue-monaco-editor": "^1.6.0",
     "@heroicons/vue": "^2.2.0",
     "@noble/hashes": "^2.2.0",
+    "@nuxt/ui": "^4.9.0",
     "@tailwindcss/vite": "^4.1.18",
     "@vueuse/core": "^14.0.0",
     "@vueuse/motion": "^3.0.3",
@@ -48,6 +49,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
+    "@iconify-json/lucide": "^1.2.116",
     "@tsconfig/node22": "^22.0.2",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.18.11",

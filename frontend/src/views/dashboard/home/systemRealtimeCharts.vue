@@ -1,72 +1,65 @@
 <template>
-  <BaseCard>
-    <template #header-right>
-      <div class="chart-header-right">
-        <span class="chart-interval-label">{{ t('dashboard.home.refreshInterval') }}</span>
-        <el-radio-group
-          :model-value="refreshInterval"
-          size="small"
-          @change="onIntervalChange"
+  <AppPanel title="实时监控" title-icon="HOutline:ChartBarSquareIcon">
+    <template #actions>
+      <div class="rt-interval" role="group">
+        <button
+          v-for="opt in [1, 3, 5, 10]"
+          :key="opt"
+          type="button"
+          class="rt-interval__btn"
+          :class="{ 'is-active': refreshInterval === opt }"
+          @click="onIntervalChange(opt)"
         >
-          <el-radio-button :value="1">1s</el-radio-button>
-          <el-radio-button :value="3">3s</el-radio-button>
-          <el-radio-button :value="5">5s</el-radio-button>
-          <el-radio-button :value="10">10s</el-radio-button>
-        </el-radio-group>
+          {{ opt }}s
+        </button>
       </div>
     </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-      <div class="chart-panel">
-        <div class="chart-title">{{ t('dashboard.home.cpuUsageChart') }}</div>
-        <div class="chart-box"><VChart :option="cpuChartOption" autoresize /></div>
-      </div>
-      <div class="chart-panel">
-        <div class="chart-title">{{ t('dashboard.home.memorySwapUsageChart') }}</div>
-        <div class="chart-box"><VChart :option="memoryChartOption" autoresize /></div>
-      </div>
-      <div class="chart-panel">
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <div class="chart-title" style="margin-bottom:0">{{ t('dashboard.home.networkRate') }}</div>
-          <el-select
-            :model-value="selectedInterface"
-            size="small"
-            class="selector"
-            @change="onInterfaceChange"
-          >
-            <el-option :label="t('dashboard.home.allSummary')" value="" />
-            <el-option
-              v-for="iface in networkOptions"
-              :key="iface.value"
-              :label="iface.label"
-              :value="iface.value"
-            />
-          </el-select>
+    <div class="rt-grid">
+      <div class="rt-chart">
+        <div class="rt-chart__head">
+          <span class="rt-chart__title">{{ t('dashboard.home.cpuUsageChart') }}</span>
         </div>
-        <div class="chart-box"><VChart :option="networkChartOption" autoresize /></div>
+        <div class="rt-chart__box"><VChart :option="cpuChartOption" autoresize /></div>
       </div>
-      <div class="chart-panel">
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <div class="chart-title" style="margin-bottom:0">{{ t('dashboard.home.diskIoRate') }}</div>
-          <el-select
-            :model-value="selectedDisk"
-            size="small"
-            class="selector"
-            @change="onDiskChange"
-          >
-            <el-option :label="t('dashboard.home.allSummary')" value="" />
-            <el-option
-              v-for="d in diskOptions"
-              :key="d.value"
-              :label="d.label"
-              :value="d.value"
-            />
-          </el-select>
+      <div class="rt-chart">
+        <div class="rt-chart__head">
+          <span class="rt-chart__title">{{ t('dashboard.home.memorySwapUsageChart') }}</span>
         </div>
-        <div class="chart-box"><VChart :option="diskChartOption" autoresize /></div>
+        <div class="rt-chart__box"><VChart :option="memoryChartOption" autoresize /></div>
+      </div>
+      <div class="rt-chart">
+        <div class="rt-chart__head">
+          <span class="rt-chart__title">{{ t('dashboard.home.networkRate') }}</span>
+          <select
+            class="rt-select"
+            :value="selectedInterface"
+            @change="onInterfaceChange(($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">{{ t('dashboard.home.allSummary') }}</option>
+            <option v-for="iface in networkOptions" :key="iface.value" :value="iface.value">
+              {{ iface.label }}
+            </option>
+          </select>
+        </div>
+        <div class="rt-chart__box"><VChart :option="networkChartOption" autoresize /></div>
+      </div>
+      <div class="rt-chart">
+        <div class="rt-chart__head">
+          <span class="rt-chart__title">{{ t('dashboard.home.diskIoRate') }}</span>
+          <select
+            class="rt-select"
+            :value="selectedDisk"
+            @change="onDiskChange(($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">{{ t('dashboard.home.allSummary') }}</option>
+            <option v-for="d in diskOptions" :key="d.value" :value="d.value">{{ d.label }}</option>
+          </select>
+        </div>
+        <div class="rt-chart__box"><VChart :option="diskChartOption" autoresize /></div>
       </div>
     </div>
-  </BaseCard>
+  </AppPanel>
 </template>
 
 <script setup lang="ts">
@@ -307,58 +300,77 @@ const diskChartOption = computed(() => ({
 </script>
 
 <style scoped lang="scss">
-.chart-header-right {
+.rt-interval {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius-sm);
+}
+.rt-interval__btn {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s, color 0.15s;
+}
+.rt-interval__btn:hover {
+  color: var(--el-text-color-primary);
+}
+.rt-interval__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-color-primary);
+  box-shadow: var(--app-shadow-card);
+}
+
+.rt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (width >= 1024px) {
+  .rt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.rt-chart {
+  padding: 14px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius);
+  background: var(--el-bg-color);
+}
+.rt-chart__head {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  margin-bottom: 8px;
 }
-
-.chart-interval-label {
-  font-size: 0.7rem;
-  color: var(--el-text-color-secondary);
-  white-space: nowrap;
+.rt-chart__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
 }
-
-.chart-panel {
-  background: var(--el-bg-color-page);
-  border-radius: 1rem;
-  padding: 12px;
-
-  @media (width >= 640px) {
-    padding: 16px;
-  }
-
-  .chart-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 6px;
-    flex-shrink: 0;
-
-    @media (width >= 640px) {
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-  }
-
-  .chart-box {
-    width: 100%;
-    height: 200px;
-    overflow: visible;
-
-    @media (width >= 640px) {
-      height: 240px;
-    }
-  }
-
-  .selector {
-    width: 130px;
-    flex-shrink: 0;
-
-    @media (width >= 640px) {
-      width: 160px;
-    }
-  }
+.rt-chart__box {
+  width: 100%;
+  height: 220px;
+  overflow: visible;
+}
+.rt-select {
+  height: 28px;
+  max-width: 160px;
+  padding: 0 8px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-sm);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
+  font-size: 0.75rem;
+  cursor: pointer;
 }
 </style>

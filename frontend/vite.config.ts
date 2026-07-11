@@ -3,10 +3,9 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AppLoading from 'vite-plugin-app-loading'
+import ui from '@nuxt/ui/vite'
 
 const resolveManualChunks = (id: string) => {
   if (!id.includes('node_modules')) return undefined
@@ -95,17 +94,26 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       tailwindcss(),
+      // Nuxt UI v4（Reka UI + Tailwind v4）。colorMode:false —— 明暗仍由 themeStore 的 useDark() 独占 .dark。
+      // 主色 primary=teal（teal-500 = #14b8a6 薄荷青），中性 neutral=slate。
+      // 自建 auto-import/components 各写独立 dts，避免与项目现有 unplugin 实例互相覆盖。
+      // Nuxt UI 只允许单个 unplugin-auto-import / unplugin-vue-components 实例，
+      // 故把项目原有配置并入这里（defu 合并：数组与 Nuxt UI 默认项拼接，二者共存）。
+      ui({
+        colorMode: false,
+        ui: { colors: { primary: 'teal', neutral: 'slate' } },
+        autoImport: {
+          imports: ['vue', 'vue-router', 'pinia'],
+          dirs: ['src/stores', 'src/stores/**'],
+          resolvers: [ElementPlusResolver()],
+        },
+        components: {
+          resolvers: [ElementPlusResolver()],
+          dirs: ['src/components'], // src/components 下组件自动全局注册（PascalCase）
+        },
+      }),
       !isProd && vueDevTools(),
       AppLoading(),
-      AutoImport({
-        imports: ['vue', 'vue-router', 'pinia'],
-        dirs: ['src/stores', 'src/stores/**'],
-        resolvers: [ElementPlusResolver()],
-      }),
-      Components({
-        resolvers: [ElementPlusResolver()],
-        dirs: ['src/components'], // 指定组件目录,注册为全局组件
-      }),
     ].filter(Boolean),
     resolve: {
       alias: {

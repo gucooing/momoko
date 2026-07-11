@@ -1,0 +1,150 @@
+/* ============================================================
+   Momoko Console · 设计令牌 (Design Tokens)
+   —— 唯一事实来源见 docs/redesign/01-design-language.md
+   本文件把 01 的数值映射到三套载体：
+     · Element Plus 的 --el-*（迁移期 EP 组件与旧样式仍在用）
+     · Nuxt UI v4 的 --ui-*（U* 组件读取）
+     · 自建 --app-*（圆角/阴影/hairline）
+   浅色写在 :root，深色写在 html.dark。
+   本文件在 main.ts 中于 EP 暗色变量之后最后导入，确保覆盖生效。
+   ============================================================ */
+
+:root {
+  /* ---------- 中性色 · 浅色 (01 §1.1) ---------- */
+  --el-bg-color-page: #f3f5f9; /* 冷灰页底，让白卡浮起 */
+  --el-bg-color: #ffffff; /* 卡片/面板 */
+  --el-bg-color-overlay: #ffffff; /* 浮层 */
+
+  --el-text-color-primary: #1b2333; /* 近板岩黑 */
+  --el-text-color-regular: #434c60;
+  --el-text-color-secondary: #6b7384;
+  --el-text-color-placeholder: #97a0b0;
+  --el-text-color-disabled: #b8bfca;
+
+  --el-border-color: #e2e7ee; /* 强 */
+  --el-border-color-light: #e9edf3;
+  --el-border-color-lighter: #eef1f6; /* hairline 默认 */
+  --el-border-color-extra-light: #f4f6f9;
+
+  --el-fill-color: #eef1f6;
+  --el-fill-color-light: #f4f6f9;
+  --el-fill-color-lighter: #f8fafc;
+  --el-fill-color-blank: #ffffff;
+
+  /* ---------- 圆角 (01 §4) ---------- */
+  --app-radius-xs: 6px;
+  --app-radius-sm: 8px;
+  --app-radius: 12px;
+  --app-radius-lg: 16px;
+  --app-radius-xl: 20px;
+
+  /* ---------- 阴影 · 浅色 (01 §5) —— 静态卡尽量不投影 ---------- */
+  --app-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --app-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --app-shadow-md: 0 4px 8px -4px rgba(16, 24, 40, 0.08), 0 12px 28px -12px rgba(16, 24, 40, 0.14);
+  --app-shadow-lg: 0 12px 32px -12px rgba(16, 24, 40, 0.18);
+
+  /* hairline 便捷别名 */
+  --app-hairline: var(--el-border-color-lighter);
+
+  /* ---------- Nuxt UI 语义令牌映射 · 浅色 ---------- */
+  --ui-bg: var(--el-bg-color);
+  --ui-bg-muted: var(--el-fill-color-light);
+  --ui-bg-elevated: var(--el-fill-color);
+  --ui-bg-accented: var(--el-fill-color);
+  --ui-bg-inverted: var(--el-text-color-primary);
+
+  --ui-text-dimmed: var(--el-text-color-placeholder);
+  --ui-text-muted: var(--el-text-color-secondary);
+  --ui-text-toned: var(--el-text-color-regular);
+  --ui-text: var(--el-text-color-primary);
+  --ui-text-highlighted: var(--el-text-color-primary);
+  --ui-text-inverted: #ffffff;
+
+  --ui-border: var(--el-border-color-light);
+  --ui-border-muted: var(--el-border-color-lighter);
+  --ui-border-accented: var(--el-border-color);
+
+  --ui-radius: var(--app-radius-sm);
+}
+
+/* ============================================================
+   深色 —— 干净的深板岩，忌死黑 (01 §1.2)
+   用 html.dark 提升特异性，覆盖 EP dark css-vars 的 html.dark
+   ============================================================ */
+html.dark {
+  --el-bg-color-page: #0e1116;
+  --el-bg-color: #171b22;
+  --el-bg-color-overlay: #1c212b;
+
+  --el-text-color-primary: #e8ebf1;
+  --el-text-color-regular: #bcc3d0;
+  --el-text-color-secondary: #8b93a3;
+  --el-text-color-placeholder: #626b7b;
+  --el-text-color-disabled: #4a5261;
+
+  --el-border-color: #2b323d;
+  --el-border-color-light: #262c36;
+  --el-border-color-lighter: #222831; /* hairline 默认(暗) */
+  --el-border-color-extra-light: #1c222b;
+
+  --el-fill-color: #222831;
+  --el-fill-color-light: #1c212b;
+  --el-fill-color-lighter: #191e26;
+  --el-fill-color-blank: #171b22;
+
+  /* 阴影 · 深色更深 */
+  --app-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --app-shadow-md: 0 4px 10px -4px rgba(0, 0, 0, 0.5), 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+  --app-shadow-lg: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+
+  /* Nuxt UI 语义令牌 · 深色 */
+  --ui-bg: var(--el-bg-color);
+  --ui-bg-muted: var(--el-fill-color-light);
+  --ui-bg-elevated: var(--el-fill-color);
+  --ui-bg-accented: var(--el-fill-color);
+  --ui-bg-inverted: var(--el-text-color-primary);
+
+  --ui-text-dimmed: var(--el-text-color-placeholder);
+  --ui-text-muted: var(--el-text-color-secondary);
+  --ui-text-toned: var(--el-text-color-regular);
+  --ui-text: var(--el-text-color-primary);
+  --ui-text-highlighted: var(--el-text-color-primary);
+  --ui-text-inverted: #0e1116;
+
+  --ui-border: var(--el-border-color-light);
+  --ui-border-muted: var(--el-border-color-lighter);
+  --ui-border-accented: var(--el-border-color);
+}
+
+/* ---------- 基础表面 ---------- */
+body {
+  background: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- 细滚动条 (01 §7 通透) ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--el-border-color) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--el-border-color);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--el-text-color-placeholder);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}

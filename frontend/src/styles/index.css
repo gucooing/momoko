@@ -3,6 +3,7 @@
 @import '@/styles/nprogress.css'; /* NProgress 进度条样式 */
 @import '@/styles/common.scss'; /* 公共样式 */
 @import 'tailwindcss'; /* Tailwind CSS 样式 */
+@import '@nuxt/ui'; /* Nuxt UI v4 组件样式与主题（须紧随 tailwindcss） */
 
 /* 全局重置样式 */
 * {
