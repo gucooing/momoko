@@ -1,112 +1,99 @@
-﻿<template>
-  <BaseDialog
+<!-- 实例新建/配置弹窗（重写）：FormDialog 外壳 + 令牌化字段 + AppSelect/AppSwitch + 内联校验。
+     保留受控契约：props(visible/mode/loading/submitting/form/typeOptions) + emits(close/submit)。 -->
+<template>
+  <FormDialog
     :model-value="visible"
     :title="mode === 'create' ? t('instance.editorTitleCreate') : t('instance.editorTitleEdit')"
-    width="820"
-    @update:model-value="handleDialogVisibleChange"
-    @close="handleDialogClose"
+    :width="640"
+    :loading="submitting"
+    @close="handleClose"
+    @confirm="handleSubmit"
   >
-    <div class="instance-editor-body" v-loading="loading">
-      <el-form
-        ref="formRef"
-        :model="localForm"
-        :rules="formRules"
-        label-width="98px"
-        class="instance-editor-form"
-      >
-        <el-row :gutter="12">
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.instanceName')" prop="name">
-              <el-input v-model="localForm.name" maxlength="100" clearable />
-            </el-form-item>
-          </el-col>
+    <div v-if="loading" class="inst-form__loading">{{ t('common.loading') }}…</div>
 
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.instanceType')" prop="type">
-              <el-select v-model="localForm.type" clearable filterable :placeholder="t('instance.selectInstanceType')">
-                <el-option
-                  v-for="typeOption in typeOptions"
-                  :key="typeOption.value"
-                  :label="typeOption.label"
-                  :value="typeOption.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
+    <div v-else class="inst-form">
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('instance.instanceName') }}</label>
+        <input
+          v-model="localForm.name"
+          class="app-input"
+          :class="{ 'is-error': errors.name }"
+          maxlength="100"
+        />
+        <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
 
-          <el-col :xs="24" :md="24">
-            <el-form-item :label="t('instance.instancePath')" prop="instancePath">
-              <el-input v-model="localForm.instancePath" clearable />
-            </el-form-item>
-          </el-col>
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('instance.instanceType') }}</label>
+        <AppSelect
+          v-model="localForm.type"
+          :options="typeOptions"
+          :placeholder="t('instance.selectInstanceType')"
+          :error="!!errors.type"
+        />
+        <span v-if="errors.type" class="app-field__error">{{ errors.type }}</span>
+      </div>
 
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.startCommand')" prop="startCommand">
-              <el-input v-model="localForm.startCommand" clearable />
-            </el-form-item>
-          </el-col>
+      <div class="app-field inst-form__full">
+        <label class="app-label app-label--required">{{ t('instance.instancePath') }}</label>
+        <input
+          v-model="localForm.instancePath"
+          class="app-input"
+          :class="{ 'is-error': errors.instancePath }"
+        />
+        <span v-if="errors.instancePath" class="app-field__error">{{ errors.instancePath }}</span>
+      </div>
 
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.stopCommand')" prop="stopCommand">
-              <el-input v-model="localForm.stopCommand" clearable />
-            </el-form-item>
-          </el-col>
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('instance.startCommand') }}</label>
+        <input
+          v-model="localForm.startCommand"
+          class="app-input"
+          :class="{ 'is-error': errors.startCommand }"
+        />
+        <span v-if="errors.startCommand" class="app-field__error">{{ errors.startCommand }}</span>
+      </div>
 
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.tags')" prop="tags">
-              <el-input v-model="localForm.tags" clearable :placeholder="t('instance.tagsPlaceholder')" />
-            </el-form-item>
-          </el-col>
+      <div class="app-field">
+        <label class="app-label">{{ t('instance.stopCommand') }}</label>
+        <input v-model="localForm.stopCommand" class="app-input" />
+      </div>
 
-          <el-col :xs="24" :md="12">
-            <el-form-item :label="t('instance.autoStart')" prop="autoStart">
-              <el-switch v-model="localForm.autoStart" />
-            </el-form-item>
-          </el-col>
+      <div class="app-field">
+        <label class="app-label">{{ t('instance.tags') }}</label>
+        <input v-model="localForm.tags" class="app-input" :placeholder="t('instance.tagsPlaceholder')" />
+      </div>
 
-          <el-col :xs="24" :md="24">
-            <el-form-item :label="t('common.remark')" prop="remark">
-              <el-input v-model="localForm.remark" type="textarea" :rows="2" maxlength="500" show-word-limit />
-            </el-form-item>
-          </el-col>
+      <div class="app-field inst-form__switch">
+        <label class="app-label">{{ t('instance.autoStart') }}</label>
+        <AppSwitch v-model="localForm.autoStart" />
+      </div>
 
-          <el-col :xs="24" :md="24">
-            <el-form-item :label="t('instance.environmentVariables')" prop="envText">
-              <el-input
-                v-model="localForm.envText"
-                type="textarea"
-                :rows="4"
-                :placeholder="t('instance.envPlaceholder')"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+      <div class="app-field inst-form__full">
+        <label class="app-label">{{ t('common.remark') }}</label>
+        <textarea v-model="localForm.remark" class="app-textarea" rows="2" maxlength="500" />
+      </div>
+
+      <div class="app-field inst-form__full">
+        <label class="app-label">{{ t('instance.environmentVariables') }}</label>
+        <textarea
+          v-model="localForm.envText"
+          class="app-textarea"
+          rows="4"
+          :placeholder="t('instance.envPlaceholder')"
+        />
+      </div>
     </div>
-
-    <template #footer>
-      <el-button @click="handleDialogClose">{{ t('common.cancel') }}</el-button>
-      <el-button
-        type="primary"
-        :loading="submitting"
-        :disabled="loading"
-        @click="handleSubmit"
-      >
-        {{ t('common.save') }}
-      </el-button>
-    </template>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import { type FormInstance, type FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import {
   type InstanceEditorFormValue,
   type InstanceEditorMode,
   type InstanceTypeOption,
 } from '@/stores/instance/types'
-import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceEditor' })
 
@@ -124,8 +111,8 @@ const emit = defineEmits<{
   submit: [value: InstanceEditorFormValue]
 }>()
 
-const formRef = useTemplateRef<FormInstance>('formRef')
 const { t } = useI18n()
+
 const localForm = reactive<InstanceEditorFormValue>({
   id: '',
   name: '',
@@ -139,55 +126,32 @@ const localForm = reactive<InstanceEditorFormValue>({
   envText: '',
 })
 
-const requiredTrimmedValidator = (message: string) => {
-  return (_rule: unknown, value: unknown, callback: (error?: Error) => void) => {
-    if (typeof value !== 'string' || !value.trim()) {
-      callback(new Error(message))
-      return
-    }
+const errors = ref<Record<string, string>>({})
 
-    callback()
-  }
+const validate = (): boolean => {
+  const e: Record<string, string> = {}
+  if (!localForm.name.trim()) e.name = t('instance.instanceNameRequired')
+  if (!localForm.type.trim()) e.type = t('instance.instanceTypeRequired')
+  if (!localForm.instancePath.trim()) e.instancePath = t('instance.instancePathRequired')
+  if (!localForm.startCommand.trim()) e.startCommand = t('instance.startCommandRequired')
+  errors.value = e
+  return Object.keys(e).length === 0
 }
 
-const formRules = computed<FormRules<InstanceEditorFormValue>>(() => ({
-  name: [{ validator: requiredTrimmedValidator(t('instance.instanceNameRequired')), trigger: 'blur' }],
-  type: [{ validator: requiredTrimmedValidator(t('instance.instanceTypeRequired')), trigger: 'change' }],
-  instancePath: [{ validator: requiredTrimmedValidator(t('instance.instancePathRequired')), trigger: 'blur' }],
-  startCommand: [{ validator: requiredTrimmedValidator(t('instance.startCommandRequired')), trigger: 'blur' }],
-}))
-
-const clearValidateState = () => {
-  formRef.value?.clearValidate()
-}
-
-const handleDialogClose = () => {
-  clearValidateState()
+const handleClose = () => {
+  errors.value = {}
   emit('close')
 }
 
-const handleDialogVisibleChange = (visible: boolean) => {
-  if (!visible) {
-    handleDialogClose()
-  }
-}
-
-const handleSubmit = async () => {
-  try {
-    await formRef.value?.validate()
-  } catch {
-    return
-  }
-
+const handleSubmit = () => {
+  if (!validate()) return
   emit('submit', { ...localForm })
 }
 
 watch(
   () => props.visible,
   (visible) => {
-    if (!visible) {
-      clearValidateState()
-    }
+    if (!visible) errors.value = {}
   },
 )
 
@@ -201,11 +165,31 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.instance-editor-body {
-  min-height: 180px;
+.inst-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
-
-.instance-editor-form :deep(.el-form-item) {
-  margin-bottom: 0.9rem;
+.inst-form__full {
+  grid-column: 1 / -1;
+}
+.inst-form__switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.inst-form__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+}
+@media (width <= 768px) {
+  .inst-form {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
