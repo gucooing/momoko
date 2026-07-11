@@ -5,6 +5,7 @@
     type="button"
     class="app-icon-btn"
     :class="{ 'app-icon-btn--active': active }"
+    :style="{ width: box + 'px', height: box + 'px' }"
     :aria-label="label"
     :title="label"
   >
@@ -29,11 +30,14 @@ withDefaults(
   defineProps<{
     icon?: string
     label?: string
+    /** 图标尺寸（px） */
     size?: number
+    /** 按钮命中盒尺寸（px），行内/卡片动作可传更紧凑值 */
+    box?: number
     active?: boolean
     badge?: number | string
   }>(),
-  { size: 18 },
+  { size: 18, box: 36 },
 )
 const menuStore = useMenuStore()
 </script>
@@ -44,8 +48,6 @@ const menuStore = useMenuStore()
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
   border-radius: var(--app-radius-sm);
   color: var(--el-text-color-secondary);
   background: transparent;

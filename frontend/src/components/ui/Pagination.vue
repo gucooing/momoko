@@ -1,18 +1,16 @@
-<!-- 分页：总数 + 每页 + 页码（省略号）。移动端简化为 上一页/页码/下一页（03/M-1）。令牌驱动。 -->
+<!-- 分页：每页 + 页码（省略号）。总数由页面顶部“共 N 条”统一显示，此处不再重复。
+     移动端简化为 上一页/页码/下一页（03/M-1）。令牌驱动。 -->
 <template>
   <div class="pagination">
-    <span class="pagination__total">{{ t('system.common.total', { total }) }}</span>
-
     <div class="pagination__spacer" />
 
-    <select
+    <AppSelect
       v-if="!menuStore.isMobile"
-      class="app-select pagination__size"
-      :value="pageSize"
-      @change="onSizeChange"
-    >
-      <option v-for="s in pageSizes" :key="s" :value="s">{{ t('system.common.perPage', { size: s }) }}</option>
-    </select>
+      fit
+      :model-value="pageSize"
+      :options="sizeOptions"
+      @update:model-value="onSizePick"
+    />
 
     <nav class="pagination__pages" aria-label="pagination">
       <button
@@ -71,6 +69,10 @@ const { t } = useI18n()
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
 
+const sizeOptions = computed<{ label: string; value: number }[]>(() =>
+  props.pageSizes.map((s) => ({ label: t('system.common.perPage', { size: s }), value: s })),
+)
+
 const pageItems = computed<(number | '...')[]>(() => {
   const count = pageCount.value
   const cur = props.page
@@ -92,8 +94,7 @@ const go = (target: number) => {
   emit('change')
 }
 
-const onSizeChange = (e: Event) => {
-  const size = Number((e.target as HTMLSelectElement).value)
+const onSizePick = (size: number) => {
   emit('update:pageSize', size)
   emit('update:page', 1)
   emit('change')
@@ -107,19 +108,8 @@ const onSizeChange = (e: Event) => {
   gap: 12px;
   flex-wrap: wrap;
 }
-.pagination__total {
-  font-size: 0.8125rem;
-  color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
 .pagination__spacer {
   flex: 1;
-}
-.pagination__size {
-  width: auto;
-  height: 32px;
-  padding: 0 30px 0 10px;
-  font-size: 0.8125rem;
 }
 .pagination__pages {
   display: flex;

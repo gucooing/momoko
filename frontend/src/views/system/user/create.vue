@@ -62,16 +62,12 @@
 
       <div class="app-field">
         <label class="app-label app-label--required">{{ t('system.common.userRole') }}</label>
-        <select
+        <AppSelect
           v-model="submitForm.roleId"
-          class="app-select"
-          :class="{ 'is-error': errors.roleId }"
-        >
-          <option value="" disabled>{{ t('system.user.rolePlaceholder') }}</option>
-          <option v-for="role in roleList" :key="role.roleId" :value="role.roleId">
-            {{ role.name }}
-          </option>
-        </select>
+          :options="roleOptions"
+          :placeholder="t('system.user.rolePlaceholder')"
+          :error="!!errors.roleId"
+        />
         <span v-if="errors.roleId" class="app-field__error">{{ errors.roleId }}</span>
       </div>
 
@@ -108,6 +104,10 @@ const open = ref(false)
 const submitLoading = ref(false)
 const roleList = ref<RoleInfo[]>([])
 const errors = ref<Record<string, string>>({})
+
+const roleOptions = computed<{ label: string; value: string }[]>(() =>
+  roleList.value.map((r) => ({ label: r.name, value: r.roleId })),
+)
 
 const emptyForm = () => ({
   userId: undefined as string | undefined,
@@ -238,19 +238,19 @@ defineExpose({ showDialog })
 .user-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 .user-form__radios {
   display: flex;
   gap: 20px;
-  height: 36px;
+  min-height: 32px;
   align-items: center;
 }
 .user-form__radio {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-regular);
   cursor: pointer;
 }

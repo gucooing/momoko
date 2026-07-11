@@ -21,7 +21,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 **工作台 + 用户管理列表页样板均已完成并浏览器验证**（设计方向经用户确认 2026-07-10）。**P1 列表/CRUD 范式已定稿**（PageHeader+FilterBar+批量条+卡/表切换+DataTable+Pagination+FormDialog），**下一步 = Phase 3 全量推广**（建议从 角色管理 `system/role` 起，复用这套范式）。旧栈 EP/VXE 迁移期共存，未卸载。
+> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 **工作台 + 用户管理** + Phase 3 系统管理**全部列表页**（角色 `system/role` / 菜单 `system/menu` 树表 / 操作日志 `system/operation` 只读 / 定时任务 `system/task` / **OIDC 客户端 `system/oidc`**）均已完成并浏览器验证；**系统管理仅剩 `system/settings`(P3 配置型)**。**P1 列表/CRUD 范式已定稿**（PageHeader+FilterBar+批量条+卡/表切换+DataTable+Pagination+FormDialog）；额外产出 **`PermissionTree`**（三态勾选树）、`DataTable.rowSelectable`（逐行禁选）+ `tree`（树表）、**`AppSelect`**（圆角下拉，替代所有原生 `<select>`，泛型/`fit`/`searchable`，浮层 z-index 2300 可用于弹窗内）、**`AppSwitch`**（令牌开关，替代 el-switch）。**⚠️ 用户已两次反馈"密度"**：整套已做**紧凑化**（控件 32px、表行 ~43px、间距 12/10px、FilterBar 12px 无阴影），见 [[compact-density-appselect]] 记忆——续做页面**必须**沿用这套密度，勿回到大留白。**⚠️ 自 `dab4581` 起 Phase 3 全部改动（role/menu/operation/task/oidc + 组件）仍未提交**，工作区待提交。**下一步 = `system/settings` 或转 实例/文件/Docker 等其余模块**。旧栈 EP/VXE 迁移期共存，未卸载。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -51,9 +51,10 @@
 - 校验**内联函数**（非 valibot schema）——移植原 rules；`schemas/*`+valibot 留待后续。
 - 删除确认复用 `Dialog.info`、toast 复用 `ElMessage`（迁移期共存，全局横切后续统一换）。
 
-### 下一步：Phase 3 全量推广（建议从 `system/role` 起）
-- 复用上面这套 P1 范式推平系统管理其余页（角色/菜单/OIDC/任务/操作日志）与实例/文件等模块。
-- 角色管理需 **权限勾选树**（`UTree` 或自建）；菜单/任务/操作日志是**表格主型**，直接用 `DataTable`（操作日志详情走弹窗，勿塞单元格）。
+### 下一步：Phase 3 全量推广（系统管理列表页已全部完成 → 接 `system/settings` 或 实例/文件/Docker 模块）
+- 复用上面这套 P1 范式推平系统管理其余页（菜单/OIDC/任务/操作日志）与实例/文件等模块。
+- ✅ **角色管理 `system/role` 已完成并浏览器验证**（2026-07-11）：新增自建 `components/ui/PermissionTree.vue`（令牌驱动三态勾选树，替代 `el-tree`；v-model=扁平 menuIds=全选∪半选，与后端语义一致）；`DataTable` 加 `rowSelectable` 逐行禁选（内置角色不可选/编辑/删除，用锁图标）；create.vue 用 FormDialog+PermissionTree。**踩坑**：后端 `role.go` 的 `description` 是 `NotEmpty()`，原表单未校验会 500——本次改为**必填**（内联校验 + `descriptionRequired` i18n）。
+- 菜单/任务/操作日志是**表格主型**，直接用 `DataTable`（操作日志详情走弹窗，勿塞单元格）；菜单管理也可复用 `PermissionTree` 思路或树表。
 - 待补：`FilterSheet`(移动底部 sheet，当前用内联折叠代替)、`schemas/*`+valibot、`utils/feedback.ts`(toast 收口)。
 
 ---
@@ -120,12 +121,12 @@
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
 | 用户管理 | system/user | P1 | ✅ | ✅ | ✅ | ✅ |
-| 角色管理 | system/role | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 菜单管理 | system/menu | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
-| OIDC 客户端 | system/oidc | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 角色管理 | system/role | P1 | ✅ | ✅ | ✅ | ✅ |
+| 菜单管理 | system/menu | P1 | ✅ | ✅ | ✅ | ✅ |
+| OIDC 客户端 | system/oidc | P1 | ✅ | ✅ | ✅ | ✅ |
 | 系统设置 | system/settings | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 定时任务 | system/task | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 操作日志 | system/operation | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 定时任务 | system/task | P1 | ✅ | ✅ | ✅ | ✅ |
+| 操作日志 | system/operation | P1 | ✅ | ✅ | ✅ | ✅ |
 
 ### 认证/独立(`06e`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -171,4 +172,9 @@
 | (首个会话) | 探索期尝试(令牌/组件/仪表盘,已撤回);定方向(精致侧边栏 + Nuxt UI + EP/VXE 下线);编写完整任务书;还原基线 | 下会话从 Phase 0 接入 spike 开始 |
 | 2026-07-10 | **样板落地**：Phase 0(Nuxt UI 4.9 接入+`design-tokens.css`薄荷主色+明暗)跑通;Phase 1 外壳(手写侧栏/顶栏/命令搜索/三下拉/极简标签/内容区/移动抽屉,`layouts/app/*`)+`components/ui/*` 10 个基础组件;Phase 2 工作台重写(安静问候+单色 MetricStrip+实时面板+运行实例 EntityCard/空态+快捷入口+系统信息)。浏览器验证桌面/移动×明/暗、抽屉、下拉、徽标均 OK,零控制台报错,新增文件 lint 绿。见"务实取舍"。 | 等用户确认设计方向;确认后据反馈修订计划,再做 用户管理(列表页样板)与全量推广 |
 | 2026-07-11 | **用户管理列表页样板（P1 定稿）**：新增 `components/ui/` 六件套（PageHeader/FilterBar/Pagination/DataTable/ActionMenu/FormDialog）+ 全局令牌化表单控件；重写 `system/user`（卡/表切换、批量删除、Dialog.info 删除确认、内联校验的 create/edit FormDialog），保留 userPage/deleteUser 接口与 PERM 权限。浏览器验证桌面卡/表、创建/编辑弹窗+校验、行内⋯菜单、批量条、分页、移动强制卡+筛选折叠、明/暗全 OK，零控制台报错，lint+tsc 绿。见"P1 范式"与务实取舍。 | Phase 3 全量推广（从 `system/role` 起） |
+| 2026-07-11 | **Phase 3 首页-角色管理 `system/role`**：按 P1 范式重写 index（卡/表切换、批量删、Dialog.info 确认）+ create（FormDialog+校验）。新建自建令牌组件 **`components/ui/PermissionTree.vue`**（三态勾选树替代 el-tree，v-model=扁平 menuIds）；`DataTable` 加 `rowSelectable` 逐行禁选（内置角色锁图标、不可选/编辑/删除）。修复原表单 description 未必填导致的 500（后端 `NotEmpty`）→ 改必填。i18n 补 role.title/pageDesc/selectedCount/clearSelection/emptyDesc/descriptionRequired + 树控件 selectAll/clearAll/expandAll/collapseAll（三语）。浏览器验证：桌面卡/表、创建/编辑权限树全链路（父子联动+半选+后端往返恢复）、批量删、移动强制卡+折叠筛选、明/暗全 OK，lint+tsc 绿。 | 接 `system/menu`（菜单管理，表格主型）继续 Phase 3 |
 | 2026-07-11 | **用户反馈-头像收敛**：原三处头像(顶栏右上角 `UserMenu`、工作台问候区、侧栏底部)统一收敛到**仅侧栏底部**。`UserMenu` 加 `variant='topbar'\|'sidebar'`——侧栏整行触发器、向上弹出,展开显示 用户信息/操作/版本号;`AppDropdown` 加 `side='top'`(向上弹)+`block`(填充 flex 父)。顶栏移除 `UserMenu`、工作台移除 `AppAvatar`。下拉底部常驻"版本号: dev";原"版本号"动作行改叫`layout.checkUpdate`(zh-CN/zh-TW/en 已补)避免重复。浏览器验证桌面(展开/折叠)×明/暗 + 移动抽屉均 OK,零控制台报错,lint+tsc 绿。 | 用户管理(列表页样板);顶栏右上角现仅剩 通知铃(用户菜单已下移) |
+| 2026-07-11 | **菜单管理 `system/menu`（树表）**：`DataTable` 加 `tree` 树表模式（缩进+展开插入符+扁平化 displayRows）；index 用树表 + 客户端筛选（保留匹配祖先），create 用 FormDialog+令牌字段（类型/父级/条件路径/权限/图标/排序/状态+内联校验），父级选择用**扁平缩进下拉**（后接改为 AppSelect）规避 el-tree-select 嵌套层级；复用 IconSelectorDialog（spacious）。i18n 补 menu.title/pageDesc/topLevel/emptyDesc（三语）。 | 用户反馈"密度" → 全局紧凑化 |
+| 2026-07-11 | **用户反馈-密度太松 + 原生 select 直角浮层（两次强调，所有已重写页通病）**：全局紧凑化（`design-tokens.css` 控件 36→32/字号 14→13/label 13→12；`DataTable` 行 padding 11→7px；`FilterBar` 16→12px 去阴影；段间距 16/14→12/10；`AppIconButton` 加 `box`、`ActionMenu` 用 28px → 表行 63→43px）。新建 **`components/ui/AppSelect.vue`**（令牌圆角下拉，teleport z-index 2300、泛型 v-model 类型安全、`fit`/`searchable` 本地过滤），**替换全部原生 `<select>`**（两筛选栏/菜单父级/用户角色/分页每页）。记忆 [[compact-density-appselect]]。**操作日志 `system/operation`**（P1 只读）：PageHeader+FilterBar（可搜索用户/类型 AppSelect+布尔结果+路径）+DataTable/移动卡+Pagination+详情 FormDialog(JSON+复制)；用户预加载一次做 userId→用户名 映射。i18n 补 operation.title/pageDesc/emptyDesc/allUsers/allTypes（三语）。浏览器验证 menu(树表/创建弹窗内 AppSelect 浮层高于弹窗/筛选) + role(卡/分页 AppSelect) + operation(搜索下拉/详情弹窗) + 明暗，lint+tsc 绿。 | 继续 Phase 3：`system/task` 或 `system/oidc` |
+| 2026-07-11 | **用户反馈-总条数显示两次**：`Pagination` 组件自带的“共 N 条”与各页顶部 `X-page__bar-hint` 的总数重复（user/role/operation 都中招；menu 是树无分页故单次）。**统一从 `Pagination` 移除总数**（一处改动全解决）→ 全部页面总数只在顶部显示一次。**定时任务 `system/task`（P1 只读+行内操作）**：PageHeader(+刷新)+FilterBar(关键字+状态 AppSelect)+DataTable/移动卡+Pagination；令牌进度条（track+fill 按状态着色）、种类/状态 StatusPill、行内 `ActionMenu` 取消/重试/删除（按状态条件显示：active→取消、failed→重试、terminal→删除；删除走 Dialog.info）、2.5s 静默轮询。i18n 补 taskManager.pageTitle/pageDesc/allStatus/emptyDesc（三语）。浏览器验证桌面(表/进度/条件操作菜单)+移动卡+暗色，总数单次，lint+tsc 绿。 | 继续 Phase 3：`system/oidc`（系统管理最后一个列表页） |
+| 2026-07-11 | **OIDC 客户端 `system/oidc`（P1，系统管理最后一个列表页）**：按 P1 范式重写 `index.vue`（PageHeader+两操作按钮 OIDC配置/生成客户端 → FilterBar → DataTable/移动卡 → Pagination）+ 三个子件：`configDialog.vue`（服务端配置：AppSwitch 启用 + Issuer/当前域名 + 3 列 TTL + 只读端点复制区）、`clientForm.vue`（创建/编辑：名称/回调必填内联校验 + Scopes + AppSwitch 状态；保存后若返回**完整** secret(无`*`)则 emit reveal）、内联 reveal `FormDialog`（完整 Client Secret 仅一次 + 13 端点字段 + 单项/全部复制）。行内 编辑/刷新密钥/删除（Dialog.info 确认）。新建自建令牌组件 **`AppSwitch.vue`**（替代 el-switch）。文案硬编码中文（唯一 i18n key=`system.common.total`；Phase 4 统一）。保留 list/create/update/delete/refreshSecret/getConfig/updateConfig 契约 + `PERM.OIDC_EDIT`。**浏览器全链路验证**：桌面暗(列表/配置弹窗/创建→reveal 完整secret/行菜单/校验/删除确认)+桌面浅+移动390(强制卡/折叠筛选/简化分页)，创建真实客户端走通后删除清理，零控制台报错，vue-tsc+eslint 绿。**⚠️ 本页及 role/menu/operation/task 全部 Phase 3 改动仍未提交。** | Phase 3：`system/settings`(P3 配置型) 或转 实例/文件/Docker 模块；提交 Phase 3 批次 |

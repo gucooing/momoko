@@ -25,13 +25,13 @@ defineEmits<{ click: [] }>()
 .entity-card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.625rem;
   width: 100%;
   text-align: left;
-  padding: 16px;
+  padding: 14px;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
+  border-radius: var(--app-radius);
   color: inherit;
   font: inherit;
 }
@@ -77,7 +77,7 @@ defineEmits<{ click: [] }>()
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding-top: 0.75rem;
+  padding-top: 0.625rem;
   border-top: 1px solid var(--el-border-color-lighter);
   font-size: 0.75rem;
   color: var(--el-text-color-placeholder);

@@ -11,7 +11,7 @@
               type="checkbox"
               class="data-table__checkbox"
               :checked="allChecked"
-              :disabled="!rows.length"
+              :disabled="!selectableRows.length"
               @change="toggleAll"
             />
           </th>
@@ -38,7 +38,7 @@
         </template>
 
         <!-- 空态 -->
-        <tr v-else-if="!rows.length" class="data-table__empty-row">
+        <tr v-else-if="!displayRows.length" class="data-table__empty-row">
           <td :colspan="totalCols">
             <slot name="empty">
               <EmptyState :title="emptyText || t('system.common.noData')" />
@@ -49,16 +49,17 @@
         <!-- 数据行 -->
         <template v-else>
           <tr
-            v-for="(row, index) in rows"
-            :key="rowId(row)"
-            :class="{ 'is-selected': selectedSet.has(rowId(row)) }"
+            v-for="(entry, index) in displayRows"
+            :key="rowId(entry.row)"
+            :class="{ 'is-selected': selectedSet.has(rowId(entry.row)) }"
           >
             <td v-if="selectable" class="data-table__check">
               <input
                 type="checkbox"
                 class="data-table__checkbox"
-                :checked="selectedSet.has(rowId(row))"
-                @change="toggleRow(rowId(row))"
+                :checked="selectedSet.has(rowId(entry.row))"
+                :disabled="!isRowSelectable(entry.row)"
+                @change="toggleRow(rowId(entry.row))"
               />
             </td>
             <td v-if="seq" class="data-table__seq">{{ index + 1 }}</td>
@@ -67,8 +68,34 @@
               :key="col.key"
               :class="[`is-${col.align || 'left'}`, col.ellipsis !== false ? 'is-ellipsis' : '']"
             >
-              <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]" :index="index">
-                {{ formatValue(row[col.key]) }}
+              <!-- 树列：缩进 + 展开插入符 -->
+              <div
+                v-if="tree && col.key === treeColKey"
+                class="data-table__tree-cell"
+                :style="{ paddingInlineStart: `${entry.depth * treeIndent}px` }"
+              >
+                <button
+                  v-if="entry.hasChildren"
+                  type="button"
+                  class="data-table__tree-caret"
+                  :class="{ 'is-open': expandedSet.has(rowId(entry.row)) }"
+                  @click="toggleExpand(rowId(entry.row))"
+                >
+                  <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" />
+                </button>
+                <span v-else class="data-table__tree-caret data-table__tree-caret--leaf" />
+                <slot :name="`cell-${col.key}`" :row="entry.row" :value="entry.row[col.key]" :index="index">
+                  <span class="data-table__tree-label">{{ formatValue(entry.row[col.key]) }}</span>
+                </slot>
+              </div>
+              <slot
+                v-else
+                :name="`cell-${col.key}`"
+                :row="entry.row"
+                :value="entry.row[col.key]"
+                :index="index"
+              >
+                {{ formatValue(entry.row[col.key]) }}
               </slot>
             </td>
           </tr>
@@ -96,43 +123,113 @@ const props = withDefaults(
     rows: Record<string, unknown>[]
     rowKey?: string
     selectable?: boolean
+    /** 逐行可选判定；返回 false 的行 checkbox 禁用且不参与全选（如内置角色）。 */
+    rowSelectable?: (row: Record<string, unknown>) => boolean
     modelValue?: string[]
     loading?: boolean
     emptyText?: string
     seq?: boolean
+    /** 树表模式：rows 为嵌套树，按 childrenKey 展开；树列显示缩进 + 展开插入符。 */
+    tree?: boolean
+    childrenKey?: string
+    /** 树列（放缩进/插入符）的 key；默认首列。 */
+    treeColumnKey?: string
+    treeIndent?: number
+    defaultExpandAll?: boolean
   }>(),
-  { rowKey: 'id', modelValue: () => [] },
+  { rowKey: 'id', modelValue: () => [], childrenKey: 'children', treeIndent: 20, defaultExpandAll: true },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string[]] }>()
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
 
 const rowId = (row: Record<string, unknown>) => String(row[props.rowKey])
+
+// —— 树表：扁平化 + 展开态（非树模式退化为一层包裹，选择/序号逻辑统一走 displayRows）——
+interface DisplayRow {
+  row: Record<string, unknown>
+  depth: number
+  hasChildren: boolean
+}
+const treeColKey = computed(() => props.treeColumnKey || props.columns[0]?.key)
+const childrenOf = (row: Record<string, unknown>) =>
+  row[props.childrenKey] as Record<string, unknown>[] | undefined
+
+const expandedSet = ref<Set<string>>(new Set())
+const collectExpandable = (rows: Record<string, unknown>[], acc: Set<string>) => {
+  for (const row of rows) {
+    const kids = childrenOf(row)
+    if (kids && kids.length) {
+      acc.add(rowId(row))
+      collectExpandable(kids, acc)
+    }
+  }
+}
+watch(
+  () => props.rows,
+  (rows) => {
+    if (props.tree && props.defaultExpandAll) {
+      const s = new Set<string>()
+      collectExpandable(rows, s)
+      expandedSet.value = s
+    }
+  },
+  { immediate: true },
+)
+const toggleExpand = (id: string) => {
+  const next = new Set(expandedSet.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedSet.value = next
+}
+
+const displayRows = computed<DisplayRow[]>(() => {
+  if (!props.tree) return props.rows.map((row) => ({ row, depth: 0, hasChildren: false }))
+  const acc: DisplayRow[] = []
+  const walk = (rows: Record<string, unknown>[], depth: number) => {
+    for (const row of rows) {
+      const kids = childrenOf(row)
+      const hasChildren = !!(kids && kids.length)
+      acc.push({ row, depth, hasChildren })
+      if (hasChildren && expandedSet.value.has(rowId(row))) walk(kids!, depth + 1)
+    }
+  }
+  walk(props.rows, 0)
+  return acc
+})
+
+const isRowSelectable = (row: Record<string, unknown>) =>
+  props.rowSelectable ? props.rowSelectable(row) : true
+const selectableRows = computed(() => displayRows.value.map((e) => e.row).filter(isRowSelectable))
 const selectedSet = computed(() => new Set(props.modelValue))
 const totalCols = computed(
   () => props.columns.length + (props.selectable ? 1 : 0) + (props.seq ? 1 : 0),
 )
 const allChecked = computed(
-  () => props.rows.length > 0 && props.rows.every((r) => selectedSet.value.has(rowId(r))),
+  () =>
+    selectableRows.value.length > 0 &&
+    selectableRows.value.every((r) => selectedSet.value.has(rowId(r))),
 )
 
 const allCheckRef = ref<HTMLInputElement>()
 watchEffect(() => {
   if (allCheckRef.value) {
-    const some = props.rows.some((r) => selectedSet.value.has(rowId(r)))
+    const some = selectableRows.value.some((r) => selectedSet.value.has(rowId(r)))
     allCheckRef.value.indeterminate = some && !allChecked.value
   }
 })
 
 const toggleAll = () => {
+  const selIds = selectableRows.value.map(rowId)
   if (allChecked.value) {
-    const ids = new Set(props.rows.map(rowId))
+    const ids = new Set(selIds)
     emit(
       'update:modelValue',
       props.modelValue.filter((id) => !ids.has(id)),
     )
   } else {
-    const merged = new Set([...props.modelValue, ...props.rows.map(rowId)])
+    const merged = new Set([...props.modelValue, ...selIds])
     emit('update:modelValue', [...merged])
   }
 }
@@ -163,7 +260,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 .data-table__scroll {
   overflow-x: auto;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
+  border-radius: var(--app-radius);
   background: var(--el-bg-color);
 }
 .data-table {
@@ -173,9 +270,13 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 }
 .data-table th,
 .data-table td {
-  padding: 11px 14px;
+  padding: 7px 12px;
   text-align: left;
   white-space: nowrap;
+}
+.data-table thead th {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 .data-table th.is-center,
 .data-table td.is-center {
@@ -215,6 +316,48 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* 树表：缩进 + 插入符 */
+.data-table__tree-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.data-table__tree-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-xs);
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.data-table__tree-caret:hover {
+  background: var(--el-fill-color);
+}
+.data-table__tree-caret :deep(svg) {
+  width: 14px;
+  height: 14px;
+}
+.data-table__tree-caret.is-open {
+  transform: rotate(90deg);
+}
+.data-table__tree-caret--leaf {
+  cursor: default;
+}
+.data-table__tree-caret--leaf:hover {
+  background: transparent;
+}
+.data-table__tree-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .data-table__check {
   width: 44px;

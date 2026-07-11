@@ -1,120 +1,208 @@
+<!-- 角色管理（重写 · P1 列表/CRUD 范式）：PageHeader + FilterBar + 批量条 + 卡/表切换
+     + EntityCard 卡片流 / DataTable 表视图 + Pagination + FormDialog(create.vue)。
+     内置角色不可选/编辑/删除（rowSelectable 过滤）。保留 rolePage/deleteRole 接口、PERM 权限（06d）。 -->
 <template>
-  <div>
-    <el-card shadow="never" class="card-clear-mb">
-      <el-form :model="queryForm" label-width="auto" ref="queryFormRef" @keyup.enter="getRoleList">
-        <el-row :gutter="10">
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item :label="t('system.common.roleName')" prop="name">
-              <el-input v-model="queryForm.name" :placeholder="t('system.role.namePlaceholder')" />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item :label="t('system.common.status')" prop="status">
-              <el-select v-model="queryForm.status" :placeholder="t('system.common.select')">
-                <el-option :label="t('system.common.enabled')" :value="RoleStatus.RoleStatus_Active" />
-                <el-option :label="t('system.common.inactive')" :value="RoleStatus.RoleStatus_InActive" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-            <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getRoleList">
-                {{ t('system.common.search') }}
-              </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">{{ t('system.common.reset') }}</el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-    </el-card>
-
-    <el-card shadow="never" class="card-mt-16">
-      <div class="operation-container">
-        <el-button
-          type="primary"
-          :icon="menuStore.iconComponents.Plus"
-          @click="roleCreateRef?.showDialog(undefined)"
+  <div class="role-page">
+    <PageHeader :title="t('system.role.title')" :description="t('system.role.pageDesc')">
+      <template #actions>
+        <UButton
           v-permission="[PERM.ROLE_ADD]"
+          color="primary"
+          icon="i-lucide-plus"
+          @click="openCreate"
         >
           {{ t('system.role.addRole') }}
-        </el-button>
-        <AdaptiveConfirm
-          :title="t('system.role.confirmDeleteSelected')"
-          :placement="POPCONFIRM_CONFIG.placement"
-          :width="POPCONFIRM_CONFIG.width"
-          @confirm="deleteRoleHandle(deleteRoleIds)"
-        >
-          <template #reference>
-            <el-button
-              type="danger"
-              :icon="menuStore.iconComponents.Delete"
-              :disabled="
-                !useButtonPermission([PERM.ROLE_DELETE], [() => !!deleteRoleIds.length]).value
-              "
-            >
-              {{ t('system.role.batchDelete') }}
-            </el-button>
-          </template>
-        </AdaptiveConfirm>
+        </UButton>
+      </template>
+    </PageHeader>
+
+    <FilterBar @search="search" @reset="reset">
+      <template #fields>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.common.roleName') }}</label>
+          <input
+            v-model="queryForm.name"
+            class="app-input"
+            :placeholder="t('system.role.namePlaceholder')"
+            @keyup.enter="search"
+          />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.common.status') }}</label>
+          <AppSelect v-model="queryForm.status" :options="statusOptions" />
+        </div>
+      </template>
+    </FilterBar>
+
+    <!-- 批量操作条（选中后出现，权限内） -->
+    <div v-if="selectedIds.length && canDelete" class="role-page__batch">
+      <span class="role-page__batch-count">{{ t('system.role.selectedCount', { count: selectedIds.length }) }}</span>
+      <div class="role-page__batch-actions">
+        <UButton color="neutral" variant="ghost" size="sm" @click="selectedIds = []">
+          {{ t('system.role.clearSelection') }}
+        </UButton>
+        <UButton color="error" variant="soft" size="sm" icon="i-lucide-trash-2" @click="confirmDelete(selectedIds)">
+          {{ t('system.role.batchDelete') }}
+        </UButton>
       </div>
+    </div>
 
-      <!-- desktop: table -->
-      <VxeGrid
-        v-if="!menuStore.isMobile"
-        v-bind="roleGridConfig"
-        @checkbox-change="tableSelectionChange"
-        @checkbox-all="tableSelectionChange"
-      >
-        <template #column-type="{ row }: { row: RoleInfo }">
-          <BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')" />
-        </template>
-        <template #column-status="{ row }: { row: RoleInfo }">
-          <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? t('system.common.enabled') : t('system.common.inactive')" />
-        </template>
-        <template #column-operation="{ row }: { row: RoleInfo }">
-          <el-button v-if="!row.isBuiltin" type="primary" :icon="menuStore.iconComponents.Edit" link @click="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">{{ t('system.common.edit') }}</el-button>
-          <AdaptiveConfirm v-if="!row.isBuiltin" :title="t('system.role.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
-            <template #reference>
-              <el-button type="danger" :icon="menuStore.iconComponents.Delete" link v-permission="[PERM.ROLE_DELETE]">{{ t('system.common.delete') }}</el-button>
-            </template>
-          </AdaptiveConfirm>
-        </template>
-      </VxeGrid>
-
-      <!-- mobile: cards -->
-      <div v-else class="mobile-card-list">
-        <div v-if="!roleList.length" class="mobile-empty"><el-empty :description="t('system.common.noData')" /></div>
-        <div v-for="row in roleList" :key="row.roleId" class="mobile-card" :class="{ 'is-selected': deleteRoleIds.includes(row.roleId) && !row.isBuiltin }">
-          <div class="mobile-card-check" @click.stop>
-            <el-checkbox v-if="!row.isBuiltin" :model-value="deleteRoleIds.includes(row.roleId)" size="small" @change="(v) => toggleMobileRoleSelect(row.roleId, v as boolean)" />
-          </div>
-          <div class="mobile-card-body">
-            <div class="mobile-card-header">
-              <span class="mobile-card-title">{{ row.name }}</span>
-              <BaseTag :type="row.status === RoleStatus.RoleStatus_Active ? 'success' : 'danger'" :text="row.status === RoleStatus.RoleStatus_Active ? t('system.common.enabled') : t('system.common.inactive')" />
-            </div>
-            <div class="mobile-card-meta">{{ row.description || '-' }}</div>
-            <div class="mobile-card-meta"><BaseTag :type="row.isBuiltin ? 'warning' : 'success'" :text="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')" /></div>
-          </div>
-          <div v-if="!row.isBuiltin" class="mobile-card-actions">
-            <el-button size="small" plain type="primary" @click.stop="openRoleEdit(row)" v-permission="[PERM.ROLE_EDIT]">{{ t('system.common.edit') }}</el-button>
-            <AdaptiveConfirm :title="t('system.role.confirmDeleteSelected')" :placement="POPCONFIRM_CONFIG.placement" :width="POPCONFIRM_CONFIG.width" @confirm="deleteRoleHandle([row.roleId])">
-              <template #reference>
-                <el-button size="small" plain type="danger" v-permission="[PERM.ROLE_DELETE]">{{ t('system.common.delete') }}</el-button>
-              </template>
-            </AdaptiveConfirm>
-          </div>
+    <!-- 主体：卡/表切换（桌面）；移动强制卡片 -->
+    <div class="role-page__body">
+      <div class="role-page__bar">
+        <span class="role-page__bar-hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
+        <div v-if="!menuStore.isMobile" class="seg">
+          <button
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': viewMode === 'card' }"
+            @click="viewMode = 'card'"
+          >
+            <component :is="menuStore.iconComponents['HOutline:Squares2X2Icon']" />
+            {{ t('system.common.card') }}
+          </button>
+          <button
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': viewMode === 'table' }"
+            @click="viewMode = 'table'"
+          >
+            <component :is="menuStore.iconComponents['HOutline:Bars3Icon']" />
+            {{ t('system.common.table') }}
+          </button>
         </div>
       </div>
 
-      <TablePagination
-        v-model:current-page="pagination.page"
+      <!-- 卡片流 -->
+      <template v-if="menuStore.isMobile || viewMode === 'card'">
+        <div v-if="loading" class="role-grid">
+          <div v-for="i in 6" :key="i" class="role-skeleton" />
+        </div>
+        <EmptyState
+          v-else-if="!roleList.length"
+          icon="HOutline:ShieldCheckIcon"
+          :title="t('system.common.noData')"
+          :description="t('system.role.emptyDesc')"
+        >
+          <template #action>
+            <UButton
+              v-permission="[PERM.ROLE_ADD]"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-plus"
+              @click="openCreate"
+            >
+              {{ t('system.role.addRole') }}
+            </UButton>
+          </template>
+        </EmptyState>
+        <div v-else class="role-grid">
+          <EntityCard
+            v-for="row in roleList"
+            :key="row.roleId"
+            class="role-card"
+            :class="{ 'is-selected': selectedSet.has(row.roleId) }"
+          >
+            <template #title>
+              <div class="role-card__id">
+                <input
+                  v-if="!row.isBuiltin"
+                  type="checkbox"
+                  class="role-card__check"
+                  :checked="selectedSet.has(row.roleId)"
+                  @change="toggleSelect(row.roleId)"
+                />
+                <span v-else class="role-card__lock">
+                  <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />
+                </span>
+                <span class="role-card__name">{{ row.name }}</span>
+              </div>
+            </template>
+            <template #status>
+              <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(row.status)" />
+            </template>
+            <template #meta>
+              <span class="role-card__desc">{{ row.description || '—' }}</span>
+              <StatusPill
+                :variant="row.isBuiltin ? 'warning' : 'info'"
+                :dot="false"
+                :label="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')"
+              />
+            </template>
+            <template #footer>
+              <span>{{ fmtTime(row.createTime) }}</span>
+              <div v-if="!row.isBuiltin" class="role-card__actions">
+                <UButton
+                  v-permission="[PERM.ROLE_EDIT]"
+                  color="neutral"
+                  variant="soft"
+                  size="xs"
+                  icon="i-lucide-pencil"
+                  @click="openEdit(row)"
+                >
+                  {{ t('system.common.edit') }}
+                </UButton>
+                <UButton
+                  v-permission="[PERM.ROLE_DELETE]"
+                  color="error"
+                  variant="soft"
+                  size="xs"
+                  icon="i-lucide-trash-2"
+                  @click="confirmDelete([row.roleId])"
+                >
+                  {{ t('system.common.delete') }}
+                </UButton>
+              </div>
+            </template>
+          </EntityCard>
+        </div>
+      </template>
+
+      <!-- 表视图（桌面） -->
+      <DataTable
+        v-else
+        v-model="selectedIds"
+        :columns="columns"
+        :rows="roleList"
+        row-key="roleId"
+        selectable
+        :row-selectable="(row) => !row.isBuiltin"
+        seq
+        :loading="loading"
+      >
+        <template #cell-description="{ row }">
+          <span v-if="row.description">{{ row.description }}</span>
+          <span v-else class="text-dim">—</span>
+        </template>
+        <template #cell-isBuiltin="{ row }">
+          <StatusPill
+            :variant="row.isBuiltin ? 'warning' : 'info'"
+            :dot="false"
+            :label="row.isBuiltin ? t('system.common.builtIn') : t('system.common.custom')"
+          />
+        </template>
+        <template #cell-status="{ row }">
+          <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(row.status)" />
+        </template>
+        <template #cell-createTime="{ row }">{{ fmtTime(row.createTime) }}</template>
+        <template #cell-updateTime="{ row }">{{ fmtTime(row.updateTime) }}</template>
+        <template #cell-operation="{ row }">
+          <ActionMenu
+            v-if="!row.isBuiltin"
+            :items="rowActions"
+            @select="(key) => onRowAction(key, row)"
+          />
+          <span v-else class="text-dim">—</span>
+        </template>
+      </DataTable>
+
+      <Pagination
+        v-model:page="pagination.page"
         v-model:page-size="pagination.pageSize"
         :total="pagination.total"
-        :is-mobile="menuStore.isMobile"
         @change="getRoleList"
       />
-    </el-card>
+    </div>
 
     <RoleCreate ref="roleCreateRef" @refresh="refresh" />
   </div>
@@ -122,131 +210,300 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
 import { deleteRole, rolePage } from '@/api/role'
-import TablePagination from '@/components/pagination/TablePagination.vue'
-import { useButtonPermission } from '@/composables/useButtonPermission'
-import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
 import { PERM } from '@/config/permission'
-import { VxeGrid } from '@/plugins/vxeGrid'
+import { Dialog } from '@/utils/dialog'
 import { RoleStatus, type RoleInfo } from '@/types/v1/system'
+import type { DataTableColumn } from '@/components/ui/DataTable.vue'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import RoleCreate from '@/views/system/role/create.vue'
-import type { FormInstance } from 'element-plus'
-import type { VxeGridProps } from 'vxe-table'
 
 defineOptions({ name: 'RoleView' })
 
 const menuStore = useMenuStore()
 const { t } = useI18n()
-const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const roleCreateRef = useTemplateRef<InstanceType<typeof RoleCreate> | null>('roleCreateRef')
 
-const deleteRoleIds = ref<string[]>([])
+const viewMode = ref<'card' | 'table'>('card')
+const loading = ref(false)
 const roleList = ref<RoleInfo[]>([])
+const selectedIds = ref<string[]>([])
+const selectedSet = computed(() => new Set(selectedIds.value))
 
-const queryForm = ref({
+const queryForm = ref<{ name: string; status: RoleStatus | undefined }>({
   name: '',
-  status: undefined as RoleStatus | undefined,
+  status: undefined,
 })
+const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
-const pagination = ref({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-})
+const canDelete = computed(() => menuStore.hasButtonPermission(PERM.ROLE_DELETE))
 
-const roleGridConfig = computed<VxeGridProps>(() => ({
-  border: true,
-  showOverflow: true,
-  rowConfig: { isHover: true },
-  checkboxConfig: {
-    highlight: true,
-    checkMethod: ({ row }: { row: RoleInfo }) => !row.isBuiltin,
+const statusOptions = computed<{ label: string; value: RoleStatus | undefined }[]>(() => [
+  { label: t('system.common.all'), value: undefined },
+  { label: t('system.common.enabled'), value: RoleStatus.RoleStatus_Active },
+  { label: t('system.common.inactive'), value: RoleStatus.RoleStatus_InActive },
+])
+
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'name', title: t('system.common.roleName'), minWidth: 160 },
+  { key: 'description', title: t('system.common.roleDescription'), minWidth: 200 },
+  { key: 'isBuiltin', title: t('system.common.type'), width: 110 },
+  { key: 'status', title: t('system.common.status'), width: 110 },
+  { key: 'createTime', title: t('system.common.createTime'), width: 170 },
+  { key: 'updateTime', title: t('system.common.updateTime'), width: 170 },
+  { key: 'operation', title: t('system.common.operation'), width: 90, align: 'center' },
+])
+
+const rowActions = computed<ActionMenuItem[]>(() => [
+  {
+    key: 'edit',
+    label: t('system.common.edit'),
+    icon: 'HOutline:PencilSquareIcon',
+    hidden: !menuStore.hasButtonPermission(PERM.ROLE_EDIT),
   },
-  data: roleList.value,
-  columns: [
-    { type: 'checkbox', width: 55, fixed: 'left' },
-    { type: 'seq', title: t('system.common.serialNumber'), width: 55, fixed: 'left' },
-    { field: 'name', title: t('system.common.roleName'), minWidth: 160, fixed: 'left' },
-    { field: 'description', title: t('system.common.roleDescription'), minWidth: 200 },
-    { field: 'isBuiltin', title: t('system.common.type'), width: 110, slots: { default: 'column-type' } },
-    { field: 'status', title: t('system.common.status'), width: 110, slots: { default: 'column-status' } },
-    { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
-    { field: 'updateTime', title: t('system.common.updateTime'), minWidth: 180 },
-    { title: t('system.common.operation'), width: 150, fixed: 'right', slots: { default: 'column-operation' } },
-  ],
-}))
+  {
+    key: 'delete',
+    label: t('system.common.delete'),
+    icon: 'HOutline:TrashIcon',
+    danger: true,
+    hidden: !canDelete.value,
+  },
+])
 
-const reset = () => {
-  queryFormRef.value?.resetFields()
-  getRoleList()
+const statusVariant = (s: unknown) => (s === RoleStatus.RoleStatus_Active ? 'success' : 'neutral')
+const statusLabel = (s: unknown) =>
+  s === RoleStatus.RoleStatus_Active ? t('system.common.enabled') : t('system.common.inactive')
+const fmtTime = (v: unknown) => (v ? dayjs(v as string | Date).format('YYYY-MM-DD HH:mm') : '—')
+
+const toggleSelect = (id: string) => {
+  selectedIds.value = selectedSet.value.has(id)
+    ? selectedIds.value.filter((x) => x !== id)
+    : [...selectedIds.value, id]
 }
 
 const getRoleList = async () => {
-  const { data: res } = await rolePage({
-    page: pagination.value.page,
-    pageSize: pagination.value.pageSize,
-    name: queryForm.value.name || undefined,
-    status: queryForm.value.status,
-  })
-
-  roleList.value = res?.roles || []
-  pagination.value.total = Number(res?.total || 0)
-}
-
-const tableSelectionChange = ({ records }: { records: RoleInfo[] }) => {
-  deleteRoleIds.value = records.map((item) => item.roleId)
-}
-
-const toggleMobileRoleSelect = (roleId: string, checked: boolean) => {
-  if (checked) {
-    deleteRoleIds.value = [...deleteRoleIds.value, roleId]
-  } else {
-    deleteRoleIds.value = deleteRoleIds.value.filter((id) => id !== roleId)
+  loading.value = true
+  try {
+    const { data: res } = await rolePage({
+      page: pagination.value.page,
+      pageSize: pagination.value.pageSize,
+      name: queryForm.value.name || undefined,
+      status: queryForm.value.status,
+    })
+    roleList.value = res?.roles || []
+    pagination.value.total = Number(res?.total || 0)
+    pagination.value.page = Number(res?.page || pagination.value.page)
+    pagination.value.pageSize = Number(res?.pageSize || pagination.value.pageSize)
+  } finally {
+    loading.value = false
   }
 }
 
-const openRoleEdit = (role: RoleInfo) => {
-  if (role.isBuiltin) return
-  roleCreateRef.value?.showDialog(role.roleId)
+const search = () => {
+  pagination.value.page = 1
+  getRoleList()
+}
+const reset = () => {
+  queryForm.value = { name: '', status: undefined }
+  pagination.value.page = 1
+  getRoleList()
 }
 
-const deleteRoleHandle = async (ids: string[]) => {
-  if (!ids.length) return
+const openCreate = () => roleCreateRef.value?.showDialog()
+const openEdit = (row: RoleInfo) => {
+  if (row.isBuiltin) return
+  roleCreateRef.value?.showDialog(row.roleId)
+}
 
-  const canDeleteIds = ids.filter((id) => {
-    const role = roleList.value.find((item) => item.roleId === id)
-    return !role?.isBuiltin
+const onRowAction = (key: string, row: Record<string, unknown>) => {
+  const roleId = String(row.roleId)
+  if (key === 'edit') roleCreateRef.value?.showDialog(roleId)
+  else if (key === 'delete') confirmDelete([roleId])
+}
+
+const confirmDelete = (ids: string[]) => {
+  // 内置角色不可删（双保险，UI 已禁用其选择/操作）
+  const deletable = ids.filter((id) => !roleList.value.find((r) => r.roleId === id)?.isBuiltin)
+  if (!deletable.length) return
+  Dialog.info({
+    showCancelButton: true,
+    content: t('system.role.confirmDeleteSelected'),
+    confirmText: t('system.common.delete'),
+    cancelText: t('system.common.cancel'),
+    onConfirm: async () => {
+      await deleteRole({ roleIds: deletable })
+      selectedIds.value = selectedIds.value.filter((id) => !deletable.includes(id))
+      ElMessage.success(t('system.common.deleteSuccess'))
+      getRoleList()
+    },
   })
-  if (!canDeleteIds.length) return
-
-  await deleteRole({ roleIds: canDeleteIds })
-
-  deleteRoleIds.value = []
-  ElMessage.success(t('system.common.deleteSuccess'))
-  getRoleList()
 }
 
 const refresh = (type: 'create' | 'update') => {
-  if (type === 'create') {
-    pagination.value.page = 1
-  }
+  if (type === 'create') pagination.value.page = 1
   getRoleList()
 }
 
-onMounted(() => {
-  getRoleList()
-})
+onMounted(getRoleList)
 </script>
 
-<style lang="scss" scoped>
-.mobile-card-list { display: flex; flex-direction: column; gap: 0.55rem; }
-.mobile-empty { padding: 1.5rem 0; }
-.mobile-card { position: relative; display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.7rem 0.8rem; border: 1px solid var(--el-border-color-extra-light); border-radius: 0.6rem; background: var(--el-bg-color); }
-.mobile-card.is-selected { border-color: var(--el-color-primary); background: color-mix(in srgb, var(--el-color-primary) 3%, var(--el-bg-color)); }
-.mobile-card-check { flex-shrink: 0; padding-top: 0.1rem; min-width: 18px; }
-.mobile-card-body { flex: 1; min-width: 0; }
-.mobile-card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.mobile-card-title { font-size: 0.88rem; font-weight: 700; color: var(--el-text-color-primary); }
-.mobile-card-meta { margin-top: 0.25rem; font-size: 0.74rem; color: var(--el-text-color-secondary); }
-.mobile-card-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+<style scoped lang="scss">
+.role-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 批量条 */
+.role-page__batch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 30%, var(--el-border-color-lighter));
+  border-radius: var(--app-radius-lg);
+  background: color-mix(in srgb, var(--el-color-primary) 5%, var(--el-bg-color));
+}
+.role-page__batch-count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-color-primary);
+}
+.role-page__batch-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 主体 */
+.role-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.role-page__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.role-page__bar-hint {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 卡/表切换 分段控件 */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
+}
+.seg__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.seg__btn :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+.seg__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
+}
+
+/* 卡片流 */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (width >= 560px) {
+  .role-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+.role-card.is-selected {
+  border-color: color-mix(in srgb, var(--el-color-primary) 55%, var(--el-border-color));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 30%, transparent);
+}
+.role-card__id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.role-card__check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--el-color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.role-card__lock {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--el-text-color-placeholder);
+}
+.role-card__lock :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+.role-card__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role-card__desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.role-card__actions {
+  display: flex;
+  gap: 6px;
+}
+.text-dim {
+  color: var(--el-text-color-placeholder);
+}
+
+/* 卡片骨架 */
+.role-skeleton {
+  height: 150px;
+  border-radius: var(--app-radius-lg);
+  background: linear-gradient(
+    100deg,
+    var(--el-fill-color-light) 30%,
+    var(--el-fill-color) 50%,
+    var(--el-fill-color-light) 70%
+  );
+  background-size: 200% 100%;
+  animation: role-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes role-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
 </style>

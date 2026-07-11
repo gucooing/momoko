@@ -2,7 +2,7 @@
 <template>
   <AppDropdown align="end" :width="160">
     <template #trigger>
-      <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="label" :size="18" />
+      <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="label" :size="18" :box="28" />
     </template>
     <template #default="{ close }">
       <div class="action-menu">

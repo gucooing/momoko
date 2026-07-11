@@ -26,14 +26,14 @@ defineProps<{ title?: string; description?: string }>()
   min-width: 0;
 }
 .page-header__title {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--el-text-color-primary);
   line-height: 1.3;
 }
 .page-header__desc {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }

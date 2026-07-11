@@ -29,11 +29,7 @@
         </div>
         <div class="app-field">
           <label class="app-label">{{ t('system.common.status') }}</label>
-          <select v-model="queryForm.status" class="app-select">
-            <option :value="undefined">{{ t('system.common.all') }}</option>
-            <option :value="UserStatus.Active">{{ t('system.common.enabled') }}</option>
-            <option :value="UserStatus.InActive">{{ t('system.common.inactive') }}</option>
-          </select>
+          <AppSelect v-model="queryForm.status" :options="statusOptions" />
         </div>
       </template>
     </FilterBar>
@@ -231,6 +227,12 @@ const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
 const canDelete = computed(() => menuStore.hasButtonPermission(PERM.USER_DELETE))
 
+const statusOptions = computed<{ label: string; value: UserStatus | undefined }[]>(() => [
+  { label: t('system.common.all'), value: undefined },
+  { label: t('system.common.enabled'), value: UserStatus.Active },
+  { label: t('system.common.inactive'), value: UserStatus.InActive },
+])
+
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'username', title: t('system.common.username'), minWidth: 150 },
   { key: 'name', title: t('system.common.name'), minWidth: 130 },
@@ -339,7 +341,7 @@ onMounted(getUserList)
 .user-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* 批量条 */
@@ -367,7 +369,7 @@ onMounted(getUserList)
 .user-page__body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 .user-page__bar {
   display: flex;

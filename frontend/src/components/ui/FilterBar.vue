@@ -38,25 +38,24 @@ const expanded = ref(false)
 .filter-bar {
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-shadow-card);
-  padding: 16px;
+  border-radius: var(--app-radius);
+  padding: 12px;
 }
 .filter-bar__body {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 .filter-bar__fields {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 }
 .filter-bar__fields > :deep(*) {
-  width: 216px;
+  width: 190px;
 }
 .filter-bar__actions {
   display: flex;

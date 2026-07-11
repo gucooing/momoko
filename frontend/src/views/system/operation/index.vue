@@ -1,189 +1,186 @@
+<!-- 操作记录（重写 · P1 只读列表）：PageHeader + FilterBar(可搜索用户/类型 AppSelect) + DataTable / 移动卡片 + Pagination + 详情 FormDialog。
+     只读审计页，无 CRUD；用户预加载一次用于筛选下拉 + userId→用户名 映射。保留 listOperationLogs 接口与筛选契约。 -->
 <template>
-  <div>
-    <el-card shadow="never" class="mb-4">
-      <el-form ref="queryFormRef" :model="queryForm" :inline="true">
-        <el-form-item :label="t('system.operation.user')" prop="userId">
-          <el-select
+  <div class="op-page">
+    <PageHeader :title="t('system.operation.title')" :description="t('system.operation.pageDesc')" />
+
+    <FilterBar @search="search" @reset="reset">
+      <template #fields>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.operation.user') }}</label>
+          <AppSelect
             v-model="queryForm.userId"
-            filterable
-            remote
-            clearable
-            reserve-keyword
-            :placeholder="t('system.operation.searchUserPlaceholder')"
-            :remote-method="searchUser"
-            :loading="userLoading"
-            style="width: 200px"
-          >
-            <el-option
-              v-for="item in userOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('system.operation.operationType')" prop="operationType">
-          <el-select
+            :options="userOptions"
+            searchable
+            :search-placeholder="t('system.operation.searchUserPlaceholder')"
+            :no-match-text="t('system.common.noData')"
+          />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.operation.operationType') }}</label>
+          <AppSelect
             v-model="queryForm.operationType"
-            :placeholder="t('system.operation.selectOperationType')"
-            clearable
-            filterable
-            style="width: 200px"
-          >
-            <el-option
-              v-for="item in operationTypeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('system.operation.result')" prop="success">
-          <el-select
-            v-model="queryForm.success"
-            :placeholder="t('system.common.all')"
-            clearable
-            style="width: 120px"
-          >
-            <el-option :label="t('system.common.success')" :value="true" />
-            <el-option :label="t('system.common.failed')" :value="false" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('system.operation.requestPath')" prop="path">
-          <el-input
+            :options="typeSelectOptions"
+            searchable
+            :search-placeholder="t('system.operation.selectOperationType')"
+            :no-match-text="t('system.common.noData')"
+          />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.operation.result') }}</label>
+          <AppSelect v-model="queryForm.success" :options="successOptions" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('system.operation.requestPath') }}</label>
+          <input
             v-model="queryForm.path"
+            class="app-input"
             :placeholder="t('system.operation.requestPathPlaceholder')"
-            clearable
-            style="width: 200px"
+            @keyup.enter="search"
           />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="search">
-            <template #icon>
-              <component :is="menuStore.iconComponents.Search" />
-            </template>
-            {{ t('system.operation.query') }}
-          </el-button>
-          <el-button @click="reset">{{ t('system.common.reset') }}</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card shadow="never">
-      <!-- desktop: table -->
-      <VxeGrid v-if="!menuStore.isMobile" v-bind="gridConfig">
-        <template #column-operationType="{ row }">
-          <span class="op-type-tag">{{ getOperationTypeLabel(row.operationType) }}</span>
-        </template>
-        <template #column-success="{ row }">
-          <BaseTag
-            :type="row.success ? 'success' : 'danger'"
-            :text="row.success ? t('system.common.success') : t('system.common.failed')"
-          />
-        </template>
-        <template #column-detail="{ row }">
-          <span class="detail-preview" @click="showDetailDialog(row.detail)">{{
-            row.detail || '-'
-          }}</span>
-        </template>
-        <template #column-duration="{ row }">{{ `${row.durationMs}ms` }}</template>
-        <template #column-operationTime="{ row }">{{ formatTime(row.operationTime) }}</template>
-      </VxeGrid>
-
-      <!-- mobile: cards -->
-      <div v-else class="mobile-card-list">
-        <div v-if="!logs.length" class="mobile-empty">
-          <el-empty :description="t('system.common.noData')" />
         </div>
-        <div
-          v-for="(row, idx) in logs"
-          :key="idx"
-          class="mobile-card"
-          @click="row.detail && showDetailDialog(row.detail)"
-        >
-          <div class="mobile-card-body">
-            <div class="mobile-card-header">
-              <span class="mobile-card-title">{{ getOperationTypeLabel(row.operationType) }}</span>
-              <BaseTag
-                :type="row.success ? 'success' : 'danger'"
-                :text="row.success ? t('system.common.success') : t('system.common.failed')"
-              />
-            </div>
-            <div class="mobile-card-meta">
-              <span>{{ t('system.operation.userMeta', { userId: row.userId }) }}</span>
-              <span class="meta-sep">·</span>
-              <span>IP: {{ row.ip || '-' }}</span>
-              <span class="meta-sep">·</span>
-              <span>{{ row.durationMs }}ms</span>
-            </div>
-            <div class="mobile-card-meta">{{ formatTime(row.operationTime) }}</div>
-            <div v-if="row.detail" class="mobile-card-detail">{{ row.detail }}</div>
-          </div>
-        </div>
+      </template>
+    </FilterBar>
+
+    <div class="op-page__body">
+      <div class="op-page__bar">
+        <span class="op-page__bar-hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
       </div>
 
-      <TablePagination
-        v-model:current-page="pagination.page"
+      <!-- 桌面：表格 -->
+      <DataTable
+        v-if="!menuStore.isMobile"
+        :columns="columns"
+        :rows="logs"
+        :loading="loading"
+        :empty-text="t('system.operation.emptyDesc')"
+      >
+        <template #cell-userId="{ row }">{{ userLabel(row.userId) }}</template>
+        <template #cell-operationType="{ row }">
+          <StatusPill variant="primary" :dot="false" :label="getOperationTypeLabel(String(row.operationType))" />
+        </template>
+        <template #cell-durationMs="{ row }">{{ row.durationMs }}ms</template>
+        <template #cell-success="{ row }">
+          <StatusPill
+            :variant="row.success ? 'success' : 'error'"
+            :label="row.success ? t('system.common.success') : t('system.common.failed')"
+          />
+        </template>
+        <template #cell-operationTime="{ row }">{{ formatTime(row.operationTime) }}</template>
+        <template #cell-detail="{ row }">
+          <span v-if="row.detail" class="op-detail-link" @click="showDetailDialog(String(row.detail))">
+            {{ row.detail }}
+          </span>
+          <span v-else class="text-dim">—</span>
+        </template>
+      </DataTable>
+
+      <!-- 移动：卡片 -->
+      <template v-else>
+        <div v-if="loading" class="op-cards">
+          <div v-for="i in 6" :key="i" class="op-skeleton" />
+        </div>
+        <EmptyState
+          v-else-if="!logs.length"
+          icon="HOutline:ClipboardDocumentListIcon"
+          :title="t('system.common.noData')"
+          :description="t('system.operation.emptyDesc')"
+        />
+        <div v-else class="op-cards">
+          <EntityCard
+            v-for="(row, idx) in logs"
+            :key="idx"
+            :clickable="!!row.detail"
+            @click="row.detail && showDetailDialog(row.detail)"
+          >
+            <template #title>{{ getOperationTypeLabel(row.operationType) }}</template>
+            <template #status>
+              <StatusPill
+                :variant="row.success ? 'success' : 'error'"
+                :label="row.success ? t('system.common.success') : t('system.common.failed')"
+              />
+            </template>
+            <template #meta>
+              <span>{{ userLabel(row.userId) }}</span>
+              <span>IP: {{ row.ip || '—' }}</span>
+              <span>{{ row.durationMs }}ms</span>
+            </template>
+            <template #footer>
+              <span>{{ formatTime(row.operationTime) }}</span>
+              <span v-if="row.detail" class="op-card__view">{{ t('system.operation.detail') }}</span>
+            </template>
+          </EntityCard>
+        </div>
+      </template>
+
+      <Pagination
+        v-model:page="pagination.page"
         v-model:page-size="pagination.pageSize"
         :total="pagination.total"
-        :is-mobile="menuStore.isMobile"
         @change="getList"
       />
-    </el-card>
+    </div>
 
-    <BaseDialog v-model="detailVisible" :title="t('system.operation.detailTitle')" width="560">
-      <el-scrollbar max-height="60vh">
-        <pre v-if="isDetailJson" class="detail-json">{{ detailContent }}</pre>
-        <div v-else class="detail-dialog-body">{{ detailContent }}</div>
-      </el-scrollbar>
-      <template #footer>
-        <el-button @click="copyDetail">
-          <template #icon>
-            <component :is="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" />
-          </template>
+    <FormDialog v-model="detailVisible" :title="t('system.operation.detailTitle')" :width="560">
+      <pre v-if="isDetailJson" class="op-detail__json">{{ detailContent }}</pre>
+      <div v-else class="op-detail__text">{{ detailContent }}</div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" icon="i-lucide-copy" @click="copyDetail">
           {{ t('system.common.copy') }}
-        </el-button>
-        <el-button type="primary" @click="detailVisible = false">{{
-          t('system.common.close')
-        }}</el-button>
+        </UButton>
+        <UButton color="primary" @click="close">{{ t('system.common.close') }}</UButton>
       </template>
-    </BaseDialog>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
+import { useClipboard } from '@vueuse/core'
 import { listOperationLogs } from '@/api/system'
 import { userPage } from '@/api/user'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import TablePagination from '@/components/pagination/TablePagination.vue'
-import { useClipboard } from '@vueuse/core'
-import { VxeGrid } from '@/plugins/vxeGrid'
-import dayjs from 'dayjs'
 import { OperationType, type OperationLogInfo } from '@/types/v1/system'
-import type { FormInstance } from 'element-plus'
-import type { VxeGridProps } from 'vxe-table'
+import type { UserInfo } from '@/types/v1/user'
+import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 
 defineOptions({ name: 'OperationLogView' })
 
 const menuStore = useMenuStore()
 const { t } = useI18n()
 
-const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
+const loading = ref(false)
 const logs = ref<OperationLogInfo[]>([])
+const users = ref<UserInfo[]>([])
 
 const queryForm = ref({
-  userId: '',
-  operationType: undefined as OperationType | undefined,
+  userId: '' as string,
+  operationType: '' as string,
   success: undefined as boolean | undefined,
   path: '',
 })
+const pagination = ref({ page: 1, pageSize: 20, total: 0 })
 
-const pagination = ref({
-  page: 1,
-  pageSize: 20,
-  total: 0,
+// —— 用户预加载：筛选下拉 + userId→用户名 映射 ——
+const userMap = computed<Record<string, string>>(() => {
+  const m: Record<string, string> = {}
+  for (const u of users.value) m[u.userId] = `${u.username}${u.name ? ` (${u.name})` : ''}`
+  return m
 })
+const userOptions = computed<{ label: string; value: string }[]>(() => [
+  { label: t('system.operation.allUsers'), value: '' },
+  ...users.value.map((u) => ({ label: userMap.value[u.userId] || u.userId, value: u.userId })),
+])
+const userLabel = (id: unknown) => {
+  const key = id == null ? '' : String(id)
+  return key ? userMap.value[key] || key : '—'
+}
+
+const successOptions = computed<{ label: string; value: boolean | undefined }[]>(() => [
+  { label: t('system.common.all'), value: undefined },
+  { label: t('system.common.success'), value: true },
+  { label: t('system.common.failed'), value: false },
+])
 
 const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeUncategorized]: 'system.operation.types.uncategorized',
@@ -192,24 +189,19 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeAuthLogout]: 'system.operation.types.authLogout',
   [OperationType.OperationTypeAuthUpdatePassword]: 'system.operation.types.authUpdatePassword',
   [OperationType.OperationTypeAuthDeviceDelete]: 'system.operation.types.authDeviceDelete',
-  [OperationType.OperationTypeAuthRegisterEmailCode]:
-    'system.operation.types.authRegisterEmailCode',
+  [OperationType.OperationTypeAuthRegisterEmailCode]: 'system.operation.types.authRegisterEmailCode',
   [OperationType.OperationTypeAuthLoginEmailCode]: 'system.operation.types.authLoginEmailCode',
   [OperationType.OperationTypeUserUpdateMe]: 'system.operation.types.userUpdateMe',
   [OperationType.OperationTypeUserCreate]: 'system.operation.types.userCreate',
   [OperationType.OperationTypeUserUpdate]: 'system.operation.types.userUpdate',
   [OperationType.OperationTypeUserDelete]: 'system.operation.types.userDelete',
-  [OperationType.OperationTypeSystemPermissionCreate]:
-    'system.operation.types.systemPermissionCreate',
-  [OperationType.OperationTypeSystemPermissionUpdate]:
-    'system.operation.types.systemPermissionUpdate',
-  [OperationType.OperationTypeSystemPermissionDelete]:
-    'system.operation.types.systemPermissionDelete',
+  [OperationType.OperationTypeSystemPermissionCreate]: 'system.operation.types.systemPermissionCreate',
+  [OperationType.OperationTypeSystemPermissionUpdate]: 'system.operation.types.systemPermissionUpdate',
+  [OperationType.OperationTypeSystemPermissionDelete]: 'system.operation.types.systemPermissionDelete',
   [OperationType.OperationTypeSystemRoleCreate]: 'system.operation.types.systemRoleCreate',
   [OperationType.OperationTypeSystemRoleUpdate]: 'system.operation.types.systemRoleUpdate',
   [OperationType.OperationTypeSystemRoleDelete]: 'system.operation.types.systemRoleDelete',
-  [OperationType.OperationTypeSystemLoginConfigUpdate]:
-    'system.operation.types.systemLoginConfigUpdate',
+  [OperationType.OperationTypeSystemLoginConfigUpdate]: 'system.operation.types.systemLoginConfigUpdate',
   [OperationType.OperationTypeFileCreate]: 'system.operation.types.fileCreate',
   [OperationType.OperationTypeFileRename]: 'system.operation.types.fileRename',
   [OperationType.OperationTypeFileCopy]: 'system.operation.types.fileCopy',
@@ -236,10 +228,8 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeInstanceFileMove]: 'system.operation.types.instanceFileMove',
   [OperationType.OperationTypeInstanceFileDelete]: 'system.operation.types.instanceFileDelete',
   [OperationType.OperationTypeInstanceFileCompress]: 'system.operation.types.instanceFileCompress',
-  [OperationType.OperationTypeInstanceFileDecompress]:
-    'system.operation.types.instanceFileDecompress',
-  [OperationType.OperationTypeInstanceFileUploadPreSign]:
-    'system.operation.types.instanceFileUploadPreSign',
+  [OperationType.OperationTypeInstanceFileDecompress]: 'system.operation.types.instanceFileDecompress',
+  [OperationType.OperationTypeInstanceFileUploadPreSign]: 'system.operation.types.instanceFileUploadPreSign',
   [OperationType.OperationTypeInstanceFileEdit]: 'system.operation.types.instanceFileEdit',
   [OperationType.OperationTypeSSHHostCreate]: 'system.operation.types.sshHostCreate',
   [OperationType.OperationTypeSSHHostUpdate]: 'system.operation.types.sshHostUpdate',
@@ -247,48 +237,35 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeSSHHostShare]: 'system.operation.types.sshHostShare',
   [OperationType.OperationTypeSSHHostTest]: 'system.operation.types.sshHostTest',
   [OperationType.OperationTypeSSHHostBatchTest]: 'system.operation.types.sshHostBatchTest',
-  [OperationType.OperationTypeSystemEmailConfigUpdate]:
-    'system.operation.types.systemEmailConfigUpdate',
-  [OperationType.OperationTypeSystemEmailConfigTest]:
-    'system.operation.types.systemEmailConfigTest',
-  [OperationType.OperationTypeSystemEmailTemplateUpdate]:
-    'system.operation.types.systemEmailTemplateUpdate',
+  [OperationType.OperationTypeSystemEmailConfigUpdate]: 'system.operation.types.systemEmailConfigUpdate',
+  [OperationType.OperationTypeSystemEmailConfigTest]: 'system.operation.types.systemEmailConfigTest',
+  [OperationType.OperationTypeSystemEmailTemplateUpdate]: 'system.operation.types.systemEmailTemplateUpdate',
   [OperationType.OperationTypeNodeAPIKeyCreate]: 'system.operation.types.nodeAPIKeyCreate',
   [OperationType.OperationTypeNodeAPIKeyCopy]: 'system.operation.types.nodeAPIKeyCopy',
   [OperationType.OperationTypeNodeAPIKeyUpdate]: 'system.operation.types.nodeAPIKeyUpdate',
   [OperationType.OperationTypeNodeAPIKeyRefresh]: 'system.operation.types.nodeAPIKeyRefresh',
   [OperationType.OperationTypeDockerConfigUpdate]: 'system.operation.types.dockerConfigUpdate',
-  [OperationType.OperationTypeDockerContainerCreate]:
-    'system.operation.types.dockerContainerCreate',
-  [OperationType.OperationTypeDockerContainerUpdate]:
-    'system.operation.types.dockerContainerUpdate',
-  [OperationType.OperationTypeDockerContainerDelete]:
-    'system.operation.types.dockerContainerDelete',
+  [OperationType.OperationTypeDockerContainerCreate]: 'system.operation.types.dockerContainerCreate',
+  [OperationType.OperationTypeDockerContainerUpdate]: 'system.operation.types.dockerContainerUpdate',
+  [OperationType.OperationTypeDockerContainerDelete]: 'system.operation.types.dockerContainerDelete',
   [OperationType.OperationTypeDockerContainerStart]: 'system.operation.types.dockerContainerStart',
   [OperationType.OperationTypeDockerContainerStop]: 'system.operation.types.dockerContainerStop',
-  [OperationType.OperationTypeDockerContainerRestart]:
-    'system.operation.types.dockerContainerRestart',
+  [OperationType.OperationTypeDockerContainerRestart]: 'system.operation.types.dockerContainerRestart',
   [OperationType.OperationTypeDockerContainerKill]: 'system.operation.types.dockerContainerKill',
   [OperationType.OperationTypeDockerContainerPause]: 'system.operation.types.dockerContainerPause',
-  [OperationType.OperationTypeDockerContainerUnpause]:
-    'system.operation.types.dockerContainerUnpause',
-  [OperationType.OperationTypeDockerContainerRename]:
-    'system.operation.types.dockerContainerRename',
-  [OperationType.OperationTypeDockerContainerRecreate]:
-    'system.operation.types.dockerContainerRecreate',
+  [OperationType.OperationTypeDockerContainerUnpause]: 'system.operation.types.dockerContainerUnpause',
+  [OperationType.OperationTypeDockerContainerRename]: 'system.operation.types.dockerContainerRename',
+  [OperationType.OperationTypeDockerContainerRecreate]: 'system.operation.types.dockerContainerRecreate',
   [OperationType.OperationTypeDockerImagePull]: 'system.operation.types.dockerImagePull',
-  [OperationType.OperationTypeDockerImageTagsUpdate]:
-    'system.operation.types.dockerImageTagsUpdate',
+  [OperationType.OperationTypeDockerImageTagsUpdate]: 'system.operation.types.dockerImageTagsUpdate',
   [OperationType.OperationTypeDockerImageTag]: 'system.operation.types.dockerImageTag',
   [OperationType.OperationTypeDockerImageDelete]: 'system.operation.types.dockerImageDelete',
   [OperationType.OperationTypeDockerNetworkCreate]: 'system.operation.types.dockerNetworkCreate',
   [OperationType.OperationTypeDockerNetworkUpdate]: 'system.operation.types.dockerNetworkUpdate',
-  [OperationType.OperationTypeDockerNetworkRecreate]:
-    'system.operation.types.dockerNetworkRecreate',
+  [OperationType.OperationTypeDockerNetworkRecreate]: 'system.operation.types.dockerNetworkRecreate',
   [OperationType.OperationTypeDockerNetworkDelete]: 'system.operation.types.dockerNetworkDelete',
   [OperationType.OperationTypeDockerNetworkConnect]: 'system.operation.types.dockerNetworkConnect',
-  [OperationType.OperationTypeDockerNetworkDisconnect]:
-    'system.operation.types.dockerNetworkDisconnect',
+  [OperationType.OperationTypeDockerNetworkDisconnect]: 'system.operation.types.dockerNetworkDisconnect',
   [OperationType.OperationTypeDockerNetworkPrune]: 'system.operation.types.dockerNetworkPrune',
   [OperationType.OperationTypeDockerVolumeCreate]: 'system.operation.types.dockerVolumeCreate',
   [OperationType.OperationTypeDockerVolumeUpdate]: 'system.operation.types.dockerVolumeUpdate',
@@ -302,10 +279,8 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeOIDCClientCreate]: 'system.operation.types.oidcClientCreate',
   [OperationType.OperationTypeOIDCClientUpdate]: 'system.operation.types.oidcClientUpdate',
   [OperationType.OperationTypeOIDCClientDelete]: 'system.operation.types.oidcClientDelete',
-  [OperationType.OperationTypeOIDCClientSecretRefresh]:
-    'system.operation.types.oidcClientSecretRefresh',
-  [OperationType.OperationTypeOIDCAuthorizationCodeCreate]:
-    'system.operation.types.oidcAuthorizationCodeCreate',
+  [OperationType.OperationTypeOIDCClientSecretRefresh]: 'system.operation.types.oidcClientSecretRefresh',
+  [OperationType.OperationTypeOIDCAuthorizationCodeCreate]: 'system.operation.types.oidcAuthorizationCodeCreate',
   [OperationType.UNRECOGNIZED]: 'system.operation.types.unrecognized',
 }
 
@@ -314,57 +289,25 @@ const getOperationTypeLabel = (operationType: string) => {
   return labelKey ? t(labelKey) : operationType
 }
 
-const operationTypeOptions = computed(() =>
-  Object.entries(operationTypeLabelKeys)
+const typeSelectOptions = computed<{ label: string; value: string }[]>(() => [
+  { label: t('system.operation.allTypes'), value: '' },
+  ...Object.entries(operationTypeLabelKeys)
     .filter(([value]) => value !== OperationType.UNRECOGNIZED)
-    .map(([value, labelKey]) => ({
-      value,
-      label: t(labelKey),
-    })),
-)
+    .map(([value, labelKey]) => ({ label: t(labelKey), value })),
+])
 
-const gridConfig = computed<VxeGridProps>(() => ({
-  border: true,
-  showOverflow: true,
-  rowConfig: { isHover: true },
-  data: logs.value,
-  columns: [
-    { field: 'userId', title: t('system.operation.userId'), minWidth: 140 },
-    {
-      field: 'operationType',
-      title: t('system.operation.operationType'),
-      minWidth: 140,
-      slots: { default: 'column-operationType' },
-    },
-    { field: 'ip', title: t('system.operation.ipAddress'), minWidth: 140 },
-    {
-      field: 'durationMs',
-      title: t('system.operation.duration'),
-      width: 100,
-      slots: { default: 'column-duration' },
-    },
-    {
-      field: 'success',
-      title: t('system.operation.result'),
-      width: 80,
-      slots: { default: 'column-success' },
-    },
-    {
-      field: 'operationTime',
-      title: t('system.operation.operationTime'),
-      minWidth: 170,
-      slots: { default: 'column-operationTime' },
-    },
-    {
-      field: 'detail',
-      title: t('system.operation.detail'),
-      minWidth: 160,
-      slots: { default: 'column-detail' },
-    },
-    { field: 'userAgent', title: t('system.operation.userAgent'), minWidth: 200 },
-  ],
-}))
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'userId', title: t('system.operation.user'), minWidth: 150 },
+  { key: 'operationType', title: t('system.operation.operationType'), minWidth: 160 },
+  { key: 'ip', title: t('system.operation.ipAddress'), width: 140 },
+  { key: 'durationMs', title: t('system.operation.duration'), width: 90, align: 'right' },
+  { key: 'success', title: t('system.operation.result'), width: 90 },
+  { key: 'operationTime', title: t('system.operation.operationTime'), width: 170 },
+  { key: 'detail', title: t('system.operation.detail'), minWidth: 220 },
+  { key: 'userAgent', title: t('system.operation.userAgent'), minWidth: 180 },
+])
 
+// —— 详情弹窗 ——
 const { copy } = useClipboard()
 const detailVisible = ref(false)
 const detailContent = ref('')
@@ -372,15 +315,13 @@ const isDetailJson = ref(false)
 
 const showDetailDialog = (detail: string) => {
   if (!detail) {
-    detailContent.value = '-'
+    detailContent.value = '—'
     isDetailJson.value = false
     detailVisible.value = true
     return
   }
-
   try {
-    const parsed = JSON.parse(detail)
-    detailContent.value = JSON.stringify(parsed, null, 2)
+    detailContent.value = JSON.stringify(JSON.parse(detail), null, 2)
     isDetailJson.value = true
   } catch {
     detailContent.value = detail
@@ -398,33 +339,27 @@ const copyDetail = async () => {
   }
 }
 
-const userOptions = ref<{ label: string; value: string }[]>([])
-const userLoading = ref(false)
+const formatTime = (value: unknown) => {
+  if (!value) return '—'
+  const d = dayjs(value as string | number | Date)
+  return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : String(value)
+}
 
-const searchUser = async (query: string) => {
-  if (!query) {
-    userOptions.value = []
-    return
-  }
-  userLoading.value = true
+const loadUsers = async () => {
   try {
-    const { data } = await userPage({ username: query, page: 1, pageSize: 10 })
-    userOptions.value = (data?.users || []).map((u) => ({
-      label: `${u.username}${u.name ? ` (${u.name})` : ''}`,
-      value: u.userId,
-    }))
+    const { data } = await userPage({ page: 1, pageSize: 1000 })
+    users.value = data?.users || []
   } catch {
-    userOptions.value = []
-  } finally {
-    userLoading.value = false
+    users.value = []
   }
 }
 
 const getList = async () => {
+  loading.value = true
   try {
     const { data } = await listOperationLogs({
       userId: queryForm.value.userId || undefined,
-      operationType: queryForm.value.operationType,
+      operationType: (queryForm.value.operationType || undefined) as OperationType | undefined,
       success: queryForm.value.success,
       path: queryForm.value.path || undefined,
       page: pagination.value.page,
@@ -433,13 +368,13 @@ const getList = async () => {
       endTime: undefined,
     })
     logs.value = data?.logs || []
-    pagination.value = {
-      page: Number(data?.page || 1),
-      pageSize: Number(data?.pageSize || 10),
-      total: Number(data?.total || 0),
-    }
+    pagination.value.total = Number(data?.total || 0)
+    pagination.value.page = Number(data?.page || pagination.value.page)
+    pagination.value.pageSize = Number(data?.pageSize || pagination.value.pageSize)
   } catch {
     logs.value = []
+  } finally {
+    loading.value = false
   }
 }
 
@@ -447,112 +382,99 @@ const search = () => {
   pagination.value.page = 1
   getList()
 }
-
 const reset = () => {
-  queryFormRef.value?.resetFields()
+  queryForm.value = { userId: '', operationType: '', success: undefined, path: '' }
   pagination.value.page = 1
   getList()
 }
 
-const formatTime = (value: unknown) => {
-  if (!value) return '-'
-  const d = dayjs(value as string | number | Date)
-  return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : String(value)
-}
-
 onMounted(() => {
+  loadUsers()
   getList()
 })
 </script>
 
 <style scoped lang="scss">
-.op-type-tag {
-  display: inline-block;
-  padding: 0.1rem 0.45rem;
-  font-size: 0.8rem;
+.op-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.op-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.op-page__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.op-page__bar-hint {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.op-detail-link {
   color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--el-color-primary) 30%, transparent);
-  border-radius: 0.25rem;
-}
-
-.detail-preview {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
   cursor: pointer;
-  word-break: break-word;
+}
+.op-detail-link:hover {
+  text-decoration: underline;
+}
+.text-dim {
+  color: var(--el-text-color-placeholder);
 }
 
-.detail-dialog-body {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.detail-json {
+/* 详情弹窗 */
+.op-detail__json {
   margin: 0;
-  padding: 0.75rem 1rem;
-  background: color-mix(in srgb, var(--el-fill-color) 60%, transparent);
-  border-radius: 0.5rem;
+  padding: 12px 14px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius-sm);
   font-size: 0.8rem;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   line-height: 1.55;
   color: var(--el-text-color-primary);
   overflow-x: auto;
+  white-space: pre;
+}
+.op-detail__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
 }
 
-/* mobile */
-.mobile-card-list {
+/* 移动卡片 */
+.op-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 10px;
 }
-.mobile-empty {
-  padding: 1.5rem 0;
+.op-card__view {
+  color: var(--el-color-primary);
 }
-.mobile-card {
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--el-border-color-extra-light);
-  border-radius: 0.6rem;
-  background: var(--el-bg-color);
+.op-skeleton {
+  height: 96px;
+  border-radius: var(--app-radius);
+  background: linear-gradient(
+    100deg,
+    var(--el-fill-color-light) 30%,
+    var(--el-fill-color) 50%,
+    var(--el-fill-color-light) 70%
+  );
+  background-size: 200% 100%;
+  animation: op-shimmer 1.4s ease-in-out infinite;
 }
-.mobile-card-body {
-  min-width: 0;
-}
-.mobile-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.mobile-card-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-}
-.mobile-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.2rem;
-  font-size: 0.72rem;
-  color: var(--el-text-color-secondary);
-  flex-wrap: wrap;
-}
-.meta-sep {
-  color: var(--el-text-color-placeholder);
-}
-.mobile-card-detail {
-  margin-top: 0.3rem;
-  font-size: 0.7rem;
-  color: var(--el-text-color-placeholder);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+@keyframes op-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 </style>
