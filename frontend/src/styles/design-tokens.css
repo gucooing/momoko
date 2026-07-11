@@ -126,6 +126,92 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================================
+   令牌驱动表单控件（原生 input/select/textarea + 类名复用）
+   —— 供 FilterBar / FormDialog / 其它 CRUD 页复用，避免 U* 表单主题不齐。
+   ============================================================ */
+.app-input,
+.app-select,
+.app-textarea {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--el-text-color-primary);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--app-radius-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  appearance: none;
+}
+.app-textarea {
+  height: auto;
+  min-height: 84px;
+  padding: 9px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.app-input::placeholder,
+.app-textarea::placeholder {
+  color: var(--el-text-color-placeholder);
+}
+.app-input:hover,
+.app-select:hover,
+.app-textarea:hover {
+  border-color: var(--el-text-color-placeholder);
+}
+.app-input:focus,
+.app-select:focus,
+.app-textarea:focus {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 15%, transparent);
+}
+.app-input:disabled,
+.app-select:disabled,
+.app-textarea:disabled {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-placeholder);
+  cursor: not-allowed;
+}
+.app-select {
+  cursor: pointer;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2397a0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 16px;
+}
+html.dark .app-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.app-input.is-error,
+.app-select.is-error,
+.app-textarea.is-error {
+  border-color: var(--el-color-danger, #ef4444);
+}
+.app-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.app-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+}
+.app-label--required::after {
+  content: '*';
+  margin-left: 3px;
+  color: var(--el-color-danger, #ef4444);
+}
+.app-field__error {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--el-color-danger, #ef4444);
+}
+
 /* ---------- 细滚动条 (01 §7 通透) ---------- */
 * {
   scrollbar-width: thin;

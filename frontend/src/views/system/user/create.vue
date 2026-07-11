@@ -1,141 +1,150 @@
+<!-- 用户创建/编辑弹窗（重写）：FormDialog 外壳 + 令牌化字段 + 内联校验。
+     保留 rolePage/createUser/updateUser/userInfo 接口与 showDialog/refresh 契约（06d）。 -->
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="open"
     :title="submitForm.userId ? t('system.user.editUser') : t('system.user.addUser')"
-    width="600"
-    @close="close"
+    :width="560"
+    :loading="submitLoading"
+    @confirm="confirm"
+    @close="onClose"
   >
-    <el-form
-      ref="submitFormRef"
-      :model="submitForm"
-      :rules="formRules"
-      label-width="100px"
-      label-position="right"
-    >
-      <el-form-item :label="t('system.common.username')" prop="username">
-        <el-input
+    <div class="user-form">
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('system.common.username') }}</label>
+        <input
           v-model="submitForm.username"
+          class="app-input"
+          :class="{ 'is-error': errors.username }"
           :placeholder="t('system.user.usernameCreatePlaceholder')"
           :disabled="!!submitForm.userId"
         />
-      </el-form-item>
+        <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
+      </div>
 
-      <el-form-item v-if="!submitForm.userId" :label="t('system.common.password')" prop="password" :required="true">
-        <el-input
+      <div v-if="!submitForm.userId" class="app-field">
+        <label class="app-label app-label--required">{{ t('system.common.password') }}</label>
+        <input
           v-model="submitForm.password"
           type="password"
+          class="app-input"
+          :class="{ 'is-error': errors.password }"
           :placeholder="t('system.user.passwordPlaceholder')"
-          show-password
         />
-      </el-form-item>
+        <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
+      </div>
 
-      <el-form-item :label="t('system.common.name')" prop="name" :required="!submitForm.userId">
-        <el-input v-model="submitForm.name" :placeholder="t('system.user.namePlaceholder')" />
-      </el-form-item>
+      <div class="app-field">
+        <label class="app-label" :class="{ 'app-label--required': !submitForm.userId }">
+          {{ t('system.common.name') }}
+        </label>
+        <input
+          v-model="submitForm.name"
+          class="app-input"
+          :class="{ 'is-error': errors.name }"
+          :placeholder="t('system.user.namePlaceholder')"
+        />
+        <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
 
-      <el-form-item :label="t('system.common.email')" prop="email" :required="!submitForm.userId">
-        <el-input v-model="submitForm.email" :placeholder="t('system.user.emailPlaceholder')" />
-      </el-form-item>
+      <div class="app-field">
+        <label class="app-label" :class="{ 'app-label--required': !submitForm.userId }">
+          {{ t('system.common.email') }}
+        </label>
+        <input
+          v-model="submitForm.email"
+          class="app-input"
+          :class="{ 'is-error': errors.email }"
+          :placeholder="t('system.user.emailPlaceholder')"
+        />
+        <span v-if="errors.email" class="app-field__error">{{ errors.email }}</span>
+      </div>
 
-      <el-form-item :label="t('system.common.userRole')" prop="roleId">
-        <el-select v-model="submitForm.roleId" :placeholder="t('system.user.rolePlaceholder')" style="width: 100%">
-          <el-option
-            v-for="role in roleList"
-            :key="role.roleId"
-            :label="role.name"
-            :value="role.roleId"
-          />
-        </el-select>
-      </el-form-item>
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('system.common.userRole') }}</label>
+        <select
+          v-model="submitForm.roleId"
+          class="app-select"
+          :class="{ 'is-error': errors.roleId }"
+        >
+          <option value="" disabled>{{ t('system.user.rolePlaceholder') }}</option>
+          <option v-for="role in roleList" :key="role.roleId" :value="role.roleId">
+            {{ role.name }}
+          </option>
+        </select>
+        <span v-if="errors.roleId" class="app-field__error">{{ errors.roleId }}</span>
+      </div>
 
-      <el-form-item :label="t('system.common.status')" prop="status">
-        <el-radio-group v-model="submitForm.status">
-          <el-radio :label="UserStatus.Active">{{ t('system.common.enabled') }}</el-radio>
-          <el-radio :label="UserStatus.InActive">{{ t('system.common.inactive') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="close">{{ t('system.common.cancel') }}</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('system.common.confirm') }}</el-button>
-    </template>
-  </BaseDialog>
+      <div class="app-field">
+        <label class="app-label">{{ t('system.common.status') }}</label>
+        <div class="user-form__radios">
+          <label class="user-form__radio">
+            <input v-model="submitForm.status" type="radio" :value="UserStatus.Active" />
+            <span>{{ t('system.common.enabled') }}</span>
+          </label>
+          <label class="user-form__radio">
+            <input v-model="submitForm.status" type="radio" :value="UserStatus.InActive" />
+            <span>{{ t('system.common.inactive') }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { rolePage } from '@/api/role'
 import { createUser, updateUser, userInfo } from '@/api/user'
 import type { RoleInfo } from '@/types/v1/system'
 import { UserStatus, type UserInfo } from '@/types/v1/user'
-import { type FormInstance, type FormRules } from 'element-plus'
 
 defineOptions({ name: 'UserCreate' })
 
 const emits = defineEmits(['refresh'])
 const { t } = useI18n()
-const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
 
 const open = ref(false)
 const submitLoading = ref(false)
 const roleList = ref<RoleInfo[]>([])
+const errors = ref<Record<string, string>>({})
 
-const submitForm = ref({
+const emptyForm = () => ({
   userId: undefined as string | undefined,
   username: '',
   password: '',
   name: '',
   email: '',
-  roleId: undefined as string | undefined,
+  roleId: '' as string,
   status: UserStatus.Active as UserStatus,
   avatar: '',
   bio: '',
   tags: '',
 })
+const submitForm = ref(emptyForm())
 
-const close = () => {
-  open.value = false
-  submitFormRef.value?.resetFields()
+const onClose = () => {
+  errors.value = {}
   roleList.value = []
-  submitForm.value = {
-    userId: undefined,
-    username: '',
-    password: '',
-    name: '',
-    email: '',
-    roleId: undefined,
-    status: UserStatus.Active,
-    avatar: '',
-    bio: '',
-    tags: '',
-  }
+  submitForm.value = emptyForm()
 }
 
 const getRoleList = async () => {
-  const { data: res } = await rolePage({
-    page: 1,
-    pageSize: 1000,
-  })
+  const { data: res } = await rolePage({ page: 1, pageSize: 1000 })
   roleList.value = res?.roles || []
 }
 
-const resolveRoleId = (user: UserInfo, fallbackRoleName?: string): string | undefined => {
-  const roleIdFromPayload = (user as UserInfo & { roleId?: string }).roleId
-  if (roleIdFromPayload) return roleIdFromPayload
-
+const resolveRoleId = (user: UserInfo, fallbackRoleName?: string): string => {
+  if (user.roleId) return user.roleId
   const roleName = user.roleName || fallbackRoleName
-  if (!roleName) return undefined
-
-  return roleList.value.find((role) => role.name === roleName)?.roleId
+  if (!roleName) return ''
+  return roleList.value.find((role) => role.name === roleName)?.roleId || ''
 }
 
 const getUserDetail = async (userId: string, fallbackRoleName?: string) => {
   const { data: res } = await userInfo({ userId })
   if (!res?.user) return
   const user = res.user
-
   submitForm.value = {
     userId: user.userId,
     username: user.username,
@@ -150,100 +159,70 @@ const getUserDetail = async (userId: string, fallbackRoleName?: string) => {
   }
 }
 
+const validate = (): boolean => {
+  const e: Record<string, string> = {}
+  const f = submitForm.value
+  const creating = !f.userId
+
+  if (!f.username.trim()) e.username = t('system.user.usernameRequired')
+  else if (/[一-龥]/.test(f.username)) e.username = t('system.user.usernameNoChinese')
+
+  if (creating && !f.password.trim()) e.password = t('system.user.passwordRequired')
+  if (creating && !f.name.trim()) e.name = t('system.user.nameRequired')
+
+  if (creating && !f.email.trim()) e.email = t('system.user.emailRequired')
+  else if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))
+    e.email = t('system.user.emailInvalid')
+
+  if (!f.roleId) e.roleId = t('system.user.roleRequired')
+
+  errors.value = e
+  return Object.keys(e).length === 0
+}
+
 const confirm = async () => {
-  await submitFormRef.value?.validate()
+  if (!validate()) return
 
   submitLoading.value = true
   try {
-    if (submitForm.value.userId) {
+    const f = submitForm.value
+    if (f.userId) {
       await updateUser({
-        userId: submitForm.value.userId,
-        email: submitForm.value.email,
-        name: submitForm.value.name,
-        avatar: submitForm.value.avatar,
-        bio: submitForm.value.bio,
-        tags: submitForm.value.tags,
-        status: submitForm.value.status,
-        roleId: submitForm.value.roleId || '',
+        userId: f.userId,
+        email: f.email,
+        name: f.name,
+        avatar: f.avatar,
+        bio: f.bio,
+        tags: f.tags,
+        status: f.status,
+        roleId: f.roleId,
       })
     } else {
       await createUser({
-        username: submitForm.value.username,
-        password: submitForm.value.password,
-        email: submitForm.value.email,
-        name: submitForm.value.name,
-        avatar: submitForm.value.avatar,
-        bio: submitForm.value.bio,
-        tags: submitForm.value.tags,
-        status: submitForm.value.status,
-        roleId: submitForm.value.roleId || '',
+        username: f.username,
+        password: f.password,
+        email: f.email,
+        name: f.name,
+        avatar: f.avatar,
+        bio: f.bio,
+        tags: f.tags,
+        status: f.status,
+        roleId: f.roleId,
       })
     }
 
-    ElMessage.success(
-      submitForm.value.userId ? t('system.common.editSuccess') : t('system.common.addSuccess'),
-    )
-    emits('refresh', submitForm.value.userId ? 'update' : 'create')
-    close()
+    ElMessage.success(f.userId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
+    emits('refresh', f.userId ? 'update' : 'create')
+    open.value = false
+    onClose()
   } finally {
     submitLoading.value = false
   }
 }
 
-const formRules = computed<FormRules>(() => ({
-  username: [
-    { required: true, message: t('system.user.usernameRequired'), trigger: 'blur' },
-    {
-      pattern: /^[^\u4e00-\u9fa5]+$/,
-      message: t('system.user.usernameNoChinese'),
-      trigger: 'blur',
-    },
-  ],
-  password: [
-    {
-      validator: (_, value: string, callback) => {
-        if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error(t('system.user.passwordRequired')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-  name: [
-    {
-      validator: (_, value: string, callback) => {
-        if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error(t('system.user.nameRequired')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-  email: [
-    {
-      validator: (_, value: string, callback) => {
-        if (!submitForm.value.userId && !value?.trim()) {
-          callback(new Error(t('system.user.emailRequired')))
-          return
-        }
-        if (value?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          callback(new Error(t('system.user.emailInvalid')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-  roleId: [{ required: true, message: t('system.user.roleRequired'), trigger: 'change' }],
-  status: [{ required: true, message: t('system.user.statusRequired'), trigger: 'change' }],
-}))
-
 const showDialog = async (payload?: { userId: string; roleName?: string }) => {
+  submitForm.value = emptyForm()
+  errors.value = {}
   open.value = true
   await getRoleList()
 
@@ -252,9 +231,33 @@ const showDialog = async (payload?: { userId: string; roleName?: string }) => {
   await getUserDetail(payload.userId, payload.roleName)
 }
 
-defineExpose({
-  showDialog,
-})
+defineExpose({ showDialog })
 </script>
 
-<style></style>
+<style scoped lang="scss">
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.user-form__radios {
+  display: flex;
+  gap: 20px;
+  height: 36px;
+  align-items: center;
+}
+.user-form__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+}
+.user-form__radio input {
+  accent-color: var(--el-color-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+</style>
