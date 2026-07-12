@@ -7,76 +7,99 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AppLoading from 'vite-plugin-app-loading'
 import ui from '@nuxt/ui/vite'
 
+// Normalize to forward slashes so Windows + pnpm paths match reliably.
+const nm = (id: string) => id.replace(/\\/g, '/')
+
+// Match a package root under node_modules (handles pnpm: .../node_modules/<pkg>/...).
+const isPkg = (id: string, pkg: string) => {
+  const p = nm(id)
+  return p.includes(`/node_modules/${pkg}/`)
+}
+
+/**
+ * manualChunks 注意事项：
+ * - Vue 3 本体拆成 vue + @vue/* 多个包；只把 `vue` 放进 vendor-vue、@vue/*
+ *   落进其它 chunk 会形成 vendor-vue ↔ vendor-misc 环，浏览器 TDZ：
+ *   `Cannot access 'Kt' before initialization`。
+ * - vendor-vue 只放「不会再依赖外部 vendor」的核心：vue / @vue/* / vue-router /
+ *   pinia / vue-demi / vue-i18n / @intlify。
+ * - 不要把 @vueuse 塞进 vendor-vue：@vueuse/motion 依赖 popmotion 等，
+ *   会再次形成 vendor-vue → vendor-misc → vendor-vue 环。
+ * - 重型、边界清晰的库单独拆；其余进 vendor-misc。
+ */
 const resolveManualChunks = (id: string) => {
-  if (!id.includes('node_modules')) return undefined
+  if (!nm(id).includes('/node_modules/')) return undefined
 
+  // —— Vue 运行时核心：必须同 chunk，且内部不得再依赖其它 vendor chunk ——
   if (
-    id.includes('/node_modules/@element-plus/icons-vue/')
-  ) {
-    return 'vendor-element-icons'
-  }
-
-  if (id.includes('/node_modules/@heroicons/vue/24/outline/')) {
-    return 'vendor-hero-outline'
-  }
-
-  if (id.includes('/node_modules/@heroicons/vue/24/solid/')) {
-    return 'vendor-hero-solid'
-  }
-
-  if (
-    id.includes('/node_modules/vue/') ||
-    id.includes('/node_modules/vue-router/') ||
-    id.includes('/node_modules/pinia/') ||
-    id.includes('/node_modules/@vueuse/')
+    isPkg(id, 'vue') ||
+    isPkg(id, '@vue') || // @vue/runtime-core | reactivity | shared | ...
+    isPkg(id, 'vue-router') ||
+    isPkg(id, 'pinia') ||
+    isPkg(id, 'vue-demi') ||
+    isPkg(id, 'vue-i18n') ||
+    isPkg(id, '@intlify')
   ) {
     return 'vendor-vue'
   }
 
-  if (
-    id.includes('/node_modules/element-plus/') ||
-    id.includes('/node_modules/@element-plus/')
-  ) {
+  if (isPkg(id, '@element-plus/icons-vue')) {
+    return 'vendor-element-icons'
+  }
+
+  if (isPkg(id, '@heroicons/vue')) {
+    const p = nm(id)
+    if (p.includes('/24/solid/')) return 'vendor-hero-solid'
+    return 'vendor-hero-outline'
+  }
+
+  if (isPkg(id, 'element-plus') || isPkg(id, '@element-plus')) {
     return 'vendor-element'
   }
 
-  if (
-    id.includes('/node_modules/echarts/') ||
-    id.includes('/node_modules/vue-echarts/')
-  ) {
+  if (isPkg(id, 'echarts') || isPkg(id, 'vue-echarts')) {
     return 'vendor-echarts'
   }
 
-  if (id.includes('/node_modules/zrender/')) {
+  if (isPkg(id, 'zrender')) {
     return 'vendor-zrender'
   }
 
-  if (id.includes('/node_modules/vxe-table/')) {
+  if (isPkg(id, 'vxe-table')) {
     return 'vendor-vxe-table'
   }
 
-  if (id.includes('/node_modules/vxe-pc-ui/')) {
+  if (isPkg(id, 'vxe-pc-ui')) {
     return 'vendor-vxe-ui'
   }
 
-  if (id.includes('/node_modules/@vxe-ui/')) {
+  if (isPkg(id, '@vxe-ui')) {
     return 'vendor-vxe-core'
   }
 
-  if (id.includes('/node_modules/xlsx/')) {
+  if (isPkg(id, 'xlsx')) {
     return 'vendor-xlsx'
   }
 
-  if (id.includes('/node_modules/lottie-web/')) {
+  if (isPkg(id, 'lottie-web')) {
     return 'vendor-lottie'
   }
 
+  // Monaco / xterm 较大且与入口解耦，单独拆，避免撑爆 vendor-misc
+  if (isPkg(id, 'monaco-editor') || isPkg(id, '@guolao/vue-monaco-editor') || isPkg(id, '@monaco-editor')) {
+    return 'vendor-monaco'
+  }
+
+  if (isPkg(id, '@xterm') || isPkg(id, 'xterm')) {
+    return 'vendor-xterm'
+  }
+
   if (
-    id.includes('/node_modules/axios/') ||
-    id.includes('/node_modules/dayjs/') ||
-    id.includes('/node_modules/@bufbuild/') ||
-    id.includes('/node_modules/nprogress/') ||
-    id.includes('/node_modules/platform/')
+    isPkg(id, 'axios') ||
+    isPkg(id, 'dayjs') ||
+    isPkg(id, '@bufbuild') ||
+    isPkg(id, 'nprogress') ||
+    isPkg(id, 'platform')
   ) {
     return 'vendor-utils'
   }
