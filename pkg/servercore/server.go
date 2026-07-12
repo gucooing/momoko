@@ -1,7 +1,6 @@
 package servercore
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +13,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
+
+	pty "github.com/aymanbagabas/go-pty"
 )
 
 const (
@@ -22,6 +23,8 @@ const (
 	defaultMaxRestartAttempts = 3
 	defaultRestartInterval    = time.Second
 	defaultStopTimeout        = 3 * time.Second
+	defaultPtyCols            = 120
+	defaultPtyRows            = 32
 )
 
 var closedWaitDone = func() <-chan struct{} {
@@ -30,13 +33,13 @@ var closedWaitDone = func() <-chan struct{} {
 	return ch
 }()
 
-// LogSource 表示日志来源。
+// LogSource 表示日志来源。子进程运行在 PTY 中，stdout/stderr 合并为同一路输出，
+// LogSourceStdout 即 PTY 输出；LogSourceStderr 仅用于 servercore 自身的错误消息。
 type LogSource string
 
 const (
 	LogSourceStdout LogSource = "stdout"
 	LogSourceStderr LogSource = "stderr"
-	LogSourceStdin  LogSource = "stdin"
 )
 
 // LogEntry 表示一条控制台事件。
@@ -63,24 +66,27 @@ type ServerConfig struct {
 }
 
 // Server 表示一个只管理单个子进程的服务端实例。
+// 子进程运行在真实伪终端(PTY)中：输入原样写入 PTY（回显/行编辑由 PTY 负责），
+// 输出为原始字节流（含 ANSI），窗口尺寸可随前端终端调整。
 type Server struct {
 	cfg        ServerConfig
 	createTime time.Time
 
-	mu           sync.RWMutex
-	stdin        io.WriteCloser
-	running      bool
-	startTime    time.Time
-	waitDone     chan struct{}
-	waitFn       func() error
-	stopFn       func(force bool) error
-	closeFn      func()
-	stdinLineEnd string
-	runID        uint64
-	manualStop   bool
-	logs         []LogEntry
-	nextSubID    uint64
-	subscribers  map[uint64]*logSubscriber
+	mu          sync.RWMutex
+	ptmx        pty.Pty
+	cols        int
+	rows        int
+	running     bool
+	startTime   time.Time
+	waitDone    chan struct{}
+	waitFn      func() error
+	stopFn      func(force bool) error
+	closeFn     func()
+	runID       uint64
+	manualStop  bool
+	logs        []LogEntry
+	nextSubID   uint64
+	subscribers map[uint64]*logSubscriber
 }
 
 type logSubscriber struct {
@@ -90,13 +96,10 @@ type logSubscriber struct {
 }
 
 type startResult struct {
-	stdin        io.WriteCloser
-	stdout       io.ReadCloser
-	stderr       io.ReadCloser
-	waitFn       func() error
-	stopFn       func(force bool) error
-	closeFn      func()
-	stdinLineEnd string
+	ptmx    pty.Pty
+	waitFn  func() error
+	stopFn  func(force bool) error
+	closeFn func()
 }
 
 // normalizeServerConfig 清洗配置内容并补齐默认值。
@@ -145,6 +148,8 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	return &Server{
 		cfg:         normalized,
 		createTime:  time.Now(),
+		cols:        defaultPtyCols,
+		rows:        defaultPtyRows,
 		subscribers: make(map[uint64]*logSubscriber),
 	}, nil
 }
@@ -269,8 +274,7 @@ func (s *Server) stop(force bool) error {
 	s.mu.Lock()
 	waitDone := s.waitDone
 	stopFn := s.stopFn
-	stdin := s.stdin
-	lineEnd := s.stdinLineEnd
+	ptmx := s.ptmx
 	stopCommand := s.cfg.StopCommand
 	s.manualStop = true
 	s.mu.Unlock()
@@ -279,8 +283,8 @@ func (s *Server) stop(force bool) error {
 		return nil
 	}
 
-	if !force && stopCommand != "" && stdin != nil {
-		if _, err := writeLine(stdin, stopCommand, lineEnd); err == nil {
+	if !force && stopCommand != "" && ptmx != nil {
+		if _, err := writeLine(ptmx, stopCommand, ptyStdinLineEnd); err == nil {
 			select {
 			case <-waitDone:
 				return nil
@@ -327,29 +331,57 @@ func (s *Server) ForceRestart() error {
 	return s.Start()
 }
 
-// Send 向子进程 stdin 写入一条命令，并把输入作为事件广播。
+// Send 向 PTY 写入一条整行命令（自动补行结束符）。
+// PTY 会自行回显，因此不再单独发布 stdin 日志事件。
 func (s *Server) Send(input string) error {
 	s.mu.RLock()
-	stdin := s.stdin
+	ptmx := s.ptmx
 	running := s.running
-	lineEnd := s.stdinLineEnd
 	s.mu.RUnlock()
 
-	if !running || stdin == nil {
+	if !running || ptmx == nil {
 		return errors.New("服务端未运行")
 	}
 
-	payload, err := writeLine(stdin, input, lineEnd)
-	if err != nil {
-		return fmt.Errorf("写入 stdin 失败: %w", err)
+	if _, err := writeLine(ptmx, input, ptyStdinLineEnd); err != nil {
+		return fmt.Errorf("写入终端失败: %w", err)
+	}
+	return nil
+}
+
+// Write 把原始输入字节写入 PTY（键盘流，不做任何加工）。
+func (s *Server) Write(p []byte) error {
+	s.mu.RLock()
+	ptmx := s.ptmx
+	running := s.running
+	s.mu.RUnlock()
+
+	if !running || ptmx == nil {
+		return errors.New("服务端未运行")
 	}
 
-	s.publish(LogEntry{
-		Time:   time.Now(),
-		Source: LogSourceStdin,
-		Text:   strings.TrimRight(payload, "\r\n"),
-	})
+	if _, err := ptmx.Write(p); err != nil {
+		return fmt.Errorf("写入终端失败: %w", err)
+	}
 	return nil
+}
+
+// Resize 调整终端窗口尺寸；未运行时记录尺寸，下次启动生效。
+func (s *Server) Resize(cols, rows int) error {
+	if cols <= 0 || rows <= 0 {
+		return errors.New("非法的终端尺寸")
+	}
+
+	s.mu.Lock()
+	s.cols = cols
+	s.rows = rows
+	ptmx := s.ptmx
+	s.mu.Unlock()
+
+	if ptmx == nil {
+		return nil
+	}
+	return ptmx.Resize(cols, rows)
 }
 
 // Subscribe 订阅实时日志。
@@ -404,21 +436,22 @@ func (s *Server) ClearLogs() {
 	s.logs = nil
 }
 
-// readPipe 按行读取标准输出或标准错误，并转成日志事件。
+// readPipe 原样读取 PTY 输出字节流，不分行、不删改，直接作为日志事件转发，
+// 交由前端(xterm)自行渲染。子进程退出/PTY 关闭引发的读错误(EOF/EIO)属正常结束。
 func (s *Server) readPipe(r io.Reader, source LogSource) {
 	if r == nil {
 		return
 	}
 
-	scanner := bufio.NewScanner(r)
-	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
-
-	for scanner.Scan() {
-		s.publish(LogEntry{Time: time.Now(), Source: source, Text: scanner.Text()})
-	}
-
-	if err := scanner.Err(); err != nil {
-		s.publish(LogEntry{Time: time.Now(), Source: LogSourceStderr, Text: "读取输出失败: " + err.Error()})
+	buf := make([]byte, 32*1024)
+	for {
+		n, err := r.Read(buf)
+		if n > 0 {
+			s.publish(LogEntry{Time: time.Now(), Source: source, Text: string(buf[:n])})
+		}
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -527,78 +560,72 @@ func (s *Server) markStoppedLocked() {
 
 // applyStartResultLocked 写入本次启动生成的运行时句柄和输出配置。
 func (s *Server) applyStartResultLocked(result *startResult) {
-	s.stdin = result.stdin
+	s.ptmx = result.ptmx
 	s.waitFn = result.waitFn
 	s.stopFn = result.stopFn
 	s.closeFn = result.closeFn
-	s.stdinLineEnd = result.stdinLineEnd
 }
 
 // resetProcessStateLocked 清空当前进程相关的运行时状态。
 func (s *Server) resetProcessStateLocked() {
-	s.stdin = nil
+	s.ptmx = nil
 	s.waitFn = nil
 	s.stopFn = nil
 	s.closeFn = nil
-	s.stdinLineEnd = ""
 }
 
-// startReaders 启动标准输出和标准错误的日志读取协程。
+// startReaders 启动 PTY 输出读取协程（stdout/stderr 已由 PTY 合并）。
 func (s *Server) startReaders(result *startResult) {
-	go s.readPipe(result.stdout, LogSourceStdout)
-	if result.stderr != nil {
-		go s.readPipe(result.stderr, LogSourceStderr)
-	}
+	go s.readPipe(result.ptmx, LogSourceStdout)
 }
 
-// startProcessLocked 按当前配置启动子进程，并返回本次启动需要的运行时句柄。
+// startProcessLocked 按当前配置在新 PTY 中启动子进程，并返回本次启动需要的运行时句柄。
 func (s *Server) startProcessLocked() (*startResult, error) {
-	cmd := buildExecCommand(s.cfg.CommandLine, s.cfg.Command, s.cfg.Args, s.cfg.Dir)
+	ptmx, err := pty.New()
+	if err != nil {
+		return nil, fmt.Errorf("创建伪终端失败: %w", err)
+	}
+
+	name, args := buildCommandParts(s.cfg.CommandLine, s.cfg.Command, s.cfg.Args, s.cfg.Dir)
+	cmd := ptmx.Command(name, args...)
 	cmd.Dir = s.cfg.Dir
 	if len(s.cfg.Env) > 0 {
 		cmd.Env = append(os.Environ(), s.cfg.Env...)
 	}
-	configureExecCmd(cmd)
+	configurePtyCmd(cmd)
 
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, fmt.Errorf("获取 stdout 管道失败: %w", err)
-	}
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, fmt.Errorf("获取 stderr 管道失败: %w", err)
-	}
-	stdinPipe, err := cmd.StdinPipe()
-	if err != nil {
-		return nil, fmt.Errorf("获取 stdin 管道失败: %w", err)
-	}
 	if err := cmd.Start(); err != nil {
+		_ = ptmx.Close()
 		return nil, fmt.Errorf("启动子进程失败: %w", err)
 	}
+	_ = ptmx.Resize(s.cols, s.rows)
 
 	return &startResult{
-		stdin:        stdinPipe,
-		stdout:       stdoutPipe,
-		stderr:       stderrPipe,
-		waitFn:       cmd.Wait,
-		stopFn:       func(force bool) error { return stopExecCmd(cmd, force) },
-		stdinLineEnd: "\n",
+		ptmx:   ptmx,
+		waitFn: cmd.Wait,
+		stopFn: func(force bool) error { return stopPtyProcess(cmd.Process, force) },
+		closeFn: func() {
+			_ = ptmx.Close()
+		},
 	}, nil
 }
 
-// buildExecCommand 根据配置构造 exec.Cmd，并解析命令路径。
-func buildExecCommand(commandLine bool, command string, args []string, dir string) *exec.Cmd {
+// buildCommandParts 根据配置解析出可执行文件与参数。
+func buildCommandParts(commandLine bool, command string, args []string, dir string) (string, []string) {
 	if commandLine {
 		parts := splitCommandLine(command)
 		if len(parts) == 0 {
-			return exec.Command(resolveCommandPath(command, dir))
+			return resolveCommandPath(command, dir), nil
 		}
-		return exec.Command(resolveCommandPath(parts[0], dir), parts[1:]...)
+		return resolveCommandPath(parts[0], dir), parts[1:]
 	}
-	return exec.Command(resolveCommandPath(command, dir), args...)
+	return resolveCommandPath(command, dir), args
 }
 
 // resolveCommandPath 结合工作目录解析命令的实际可执行路径。
+// 裸命令名优先在工作目录中查找，找不到再回退 PATH 搜索并返回绝对路径：
+// go-pty 在 Windows 下会把相对 argv0 拼接到 Dir 上（不查 PATH），
+// 因此对 PATH 中安装的命令（如 codex/node/java）必须在这里解析出绝对路径。
 func resolveCommandPath(command, dir string) string {
 	name := strings.TrimSpace(command)
 	if name == "" {
@@ -616,24 +643,35 @@ func resolveCommandPath(command, dir string) string {
 		return filepath.Join(dir, name)
 	}
 
-	if dir == "" {
-		return name
+	if dir != "" {
+		if candidate, ok := findInDir(name, dir); ok {
+			return candidate
+		}
 	}
 
-	if candidate, ok := findInDir(name, dir); ok {
-		return candidate
+	if resolved, err := exec.LookPath(name); err == nil && filepath.IsAbs(resolved) {
+		return resolved
 	}
 	return name
 }
 
-// findInDir 在指定目录中查找命令文件，Windows 下会补齐 PATHEXT 后缀尝试。
+// findInDir 在指定目录中查找命令文件，Windows 下会补齐 PATHEXT 后缀尝试；
+// 类 Unix 下要求可执行位，避免目录内同名普通文件遮蔽 PATH 中的命令。
 func findInDir(name, dir string) (string, bool) {
 	base := filepath.Join(dir, name)
-	if isFile(base) {
+
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(base)
+		if err != nil || info.IsDir() || info.Mode()&0o111 == 0 {
+			return "", false
+		}
 		return base, true
 	}
 
-	if runtime.GOOS != "windows" || filepath.Ext(name) != "" {
+	if isFile(base) {
+		return base, true
+	}
+	if filepath.Ext(name) != "" {
 		return "", false
 	}
 

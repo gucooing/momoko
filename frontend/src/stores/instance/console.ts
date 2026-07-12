@@ -17,8 +17,6 @@ import { InstanceStatus } from '@/types/v1/instance'
 import { useTabsStore } from '@/stores/tabs'
 import { translate } from '@/locales'
 
-const DEFAULT_OUTPUT_LINES = [translate('instance.loadingInstanceConsole')]
-
 const DEFAULT_FEATURE_ITEMS: ConsoleFeatureItem[] = [
   {
     key: 'file-manager',
@@ -63,10 +61,8 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     const instanceId = ref('')
     const getCurrentInstanceId = () => instanceId.value.trim()
     const session = createConsoleSession({
-      defaultOutputLines: DEFAULT_OUTPUT_LINES,
       entityLabel: translate('instance.instanceEntity'),
       loadTargetLabel: translate('instance.instanceConsole'),
-      outputLabel: translate('instance.consoleOutput'),
       featureItems: DEFAULT_FEATURE_ITEMS,
       contextIdLabel: translate('instance.contextInstanceId'),
       getContextId: getCurrentInstanceId,
@@ -220,20 +216,10 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
   const socketStatus = computed<ConsoleSocketStatus>(
     () => activeSession.value?.socketStatus.value || 'disconnected',
   )
-  const commandValue = computed({
-    get: () => activeSession.value?.commandValue.value || '',
-    set: (value: string) => {
-      if (!activeSession.value) return
-      activeSession.value.commandValue.value = value
-    },
-  })
-  const outputLines = computed(() => activeSession.value?.outputLines.value || DEFAULT_OUTPUT_LINES)
   const featureItems = computed<ConsoleFeatureItem[]>(
     () => activeSession.value?.featureItems.value || DEFAULT_FEATURE_ITEMS,
   )
-  const canSendCommand = computed(() => activeSession.value?.canSendCommand.value ?? false)
   const isBusy = computed(() => activeSession.value?.isBusy.value ?? false)
-  const sendPlaceholder = computed(() => activeSession.value?.sendPlaceholder.value || '')
 
   const clearScreen = () => {
     const session = activeSession.value
@@ -246,29 +232,24 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     })
   }
 
-  const executeCommand = () => {
-    activeSession.value?.executeCommand()
+  // —— PTY 终端直连（与 SSH 终端同一协议）——
+  const sendRaw = (data: string | Uint8Array) => {
+    activeSession.value?.sendRaw(data)
   }
-
-  const selectPrevCommand = () => {
-    activeSession.value?.selectPrevCommand()
+  const sendResize = (cols: number, rows: number) => {
+    activeSession.value?.sendResize(cols, rows)
   }
-
-  const selectNextCommand = () => {
-    activeSession.value?.selectNextCommand()
-  }
+  const subscribeOutput = (cb: (chunk: string) => void) =>
+    activeSession.value?.onOutput(cb) ?? (() => {})
+  const getOutputBuffer = () => activeSession.value?.getBuffer() ?? ''
 
   return {
     activeSessionKey,
     instanceId,
     terminalInfo,
     socketStatus,
-    commandValue,
-    outputLines,
     featureItems,
-    canSendCommand,
     isBusy,
-    sendPlaceholder,
     initialize,
     refreshCurrentInfo,
     togglePower: togglePowerState,
@@ -276,8 +257,9 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     forceStopConsole,
     forceRestartTerminal,
     clearScreen,
-    executeCommand,
-    selectPrevCommand,
-    selectNextCommand,
+    sendRaw,
+    sendResize,
+    subscribeOutput,
+    getOutputBuffer,
   }
 })

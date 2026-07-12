@@ -68,7 +68,7 @@ func TestServerManagerShutdownStopsServersConcurrently(t *testing.T) {
 
 	for _, logCh := range logChs {
 		waitForEntry(t, logCh, func(entry LogEntry) bool {
-			return entry.Source == LogSourceStdout && entry.Text == "ready"
+			return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 		})
 	}
 
@@ -107,7 +107,7 @@ func TestServerManagerShutdownFallsBackToForceStop(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	start := time.Now()
@@ -148,7 +148,7 @@ func TestServerUpdateConfigAppliesStopCommandWithoutRestart(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	updatedCfg := cfg
@@ -189,7 +189,7 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 	}
 
 	waitForEntry(t, ch, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 	waitForCondition(t, "启动后未进入运行状态", func() bool {
 		return server.Running()
@@ -217,7 +217,7 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 	}
 
 	waitForEntry(t, ch, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 	waitForCondition(t, "重启后未进入运行状态", func() bool {
 		return server.Running()
@@ -230,7 +230,7 @@ func TestServerManagerStopAndRestart(t *testing.T) {
 
 	readyCount := 0
 	for _, entry := range logs {
-		if entry.Source == LogSourceStdout && entry.Text == "ready" {
+		if entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready") {
 			readyCount++
 		}
 	}
@@ -266,7 +266,7 @@ func TestServerForceStopAndForceRestart(t *testing.T) {
 		t.Fatalf("启动服务端失败: %v", err)
 	}
 	waitForEntry(t, ch, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	start := time.Now()
@@ -281,7 +281,7 @@ func TestServerForceStopAndForceRestart(t *testing.T) {
 		t.Fatalf("强制重启失败: %v", err)
 	}
 	waitForEntry(t, ch, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	_ = manager.ForceStop(id)
@@ -314,7 +314,7 @@ func TestServerAutoRestartSuccessResetsRetryAttempts(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	if err := server.Send("crash"); err != nil {
@@ -322,7 +322,7 @@ func TestServerAutoRestartSuccessResetsRetryAttempts(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	missingCommand := filepath.Join(t.TempDir(), "missing-command")
@@ -351,7 +351,7 @@ func TestServerAutoRestartSuccessResetsRetryAttempts(t *testing.T) {
 	readyCount := 0
 	retryFailCount := 0
 	for _, entry := range logs {
-		if entry.Source == LogSourceStdout && entry.Text == "ready" {
+		if entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready") {
 			readyCount++
 		}
 		if entry.Source == LogSourceStderr && strings.HasPrefix(entry.Text, "自动重启失败(") {
@@ -404,7 +404,7 @@ func TestServerUnexpectedExitWithoutAutoRestartDoesNotRestart(t *testing.T) {
 
 	bootCount := 0
 	for _, entry := range logs {
-		if entry.Source == LogSourceStdout && entry.Text == "boot" {
+		if entry.Source == LogSourceStdout && strings.Contains(entry.Text, "boot") {
 			bootCount++
 		}
 	}
@@ -438,7 +438,7 @@ func TestServerStopDoesNotTriggerAutoRestart(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	if err := server.Stop(); err != nil {
@@ -453,7 +453,7 @@ func TestServerStopDoesNotTriggerAutoRestart(t *testing.T) {
 	logs := server.RecentLogs()
 	readyCount := 0
 	for _, entry := range logs {
-		if entry.Source == LogSourceStdout && entry.Text == "ready" {
+		if entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready") {
 			readyCount++
 		}
 	}
@@ -489,7 +489,7 @@ func TestServerAutoRestartRetriesFailedStartsUntilMaxAttempts(t *testing.T) {
 	}
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	missingCommand := filepath.Join(t.TempDir(), "missing-command")
@@ -523,6 +523,38 @@ func TestServerAutoRestartRetriesFailedStartsUntilMaxAttempts(t *testing.T) {
 	}
 	if retryFailCount != 3 {
 		t.Fatalf("启动失败后应继续重试到上限，期望 3 次失败日志，实际 %d", retryFailCount)
+	}
+}
+
+// TestResolveCommandPathDirFirstThenPath 验证裸命令名先取工作目录内文件，
+// 目录中不存在时回退 PATH 并解析为绝对路径（go-pty 在 Windows 下不查 PATH）。
+func TestResolveCommandPathDirFirstThenPath(t *testing.T) {
+	dir := t.TempDir()
+
+	name := "sh"
+	if runtime.GOOS == "windows" {
+		name = "cmd"
+	}
+
+	resolved := resolveCommandPath(name, dir)
+	if !filepath.IsAbs(resolved) {
+		t.Fatalf("PATH 中的命令应解析为绝对路径，实际 %q", resolved)
+	}
+	if _, err := os.Stat(resolved); err != nil {
+		t.Fatalf("解析出的命令路径不存在: %v", err)
+	}
+
+	local := filepath.Join(dir, name)
+	if runtime.GOOS == "windows" {
+		local += ".exe"
+	}
+	if err := os.WriteFile(local, []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatalf("创建目录内命令失败: %v", err)
+	}
+
+	resolved = resolveCommandPath(name, dir)
+	if filepath.Dir(resolved) != dir {
+		t.Fatalf("工作目录内存在同名命令时应优先使用，实际 %q", resolved)
 	}
 }
 
@@ -632,7 +664,9 @@ func waitForCondition(t *testing.T, message string, check func() bool) {
 
 func runConsoleHelper() {
 	fmt.Fprintln(os.Stdout, "ready")
-	fmt.Fprintln(os.Stderr, "stderr-ready")
+	// PTY 会把 stderr 与 stdout 合并输出，这里的标记不能包含 "ready" 子串，
+	// 否则会被各测试的 ready 匹配误命中。
+	fmt.Fprintln(os.Stderr, "stderr-mark")
 
 	stopDelay, _ := time.ParseDuration(os.Getenv("SERVERCORE_STOP_DELAY"))
 	ignoreStop := os.Getenv("SERVERCORE_IGNORE_STOP") == "1"

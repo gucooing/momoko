@@ -35,7 +35,7 @@ func TestServerStopTerminatesChildProcessTree(t *testing.T) {
 	}()
 
 	waitForEntry(t, logCh, func(entry LogEntry) bool {
-		return entry.Source == LogSourceStdout && entry.Text == "ready"
+		return entry.Source == LogSourceStdout && strings.Contains(entry.Text, "ready")
 	})
 
 	childPID := waitForChildPID(t, childPidFile)

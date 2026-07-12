@@ -3,6 +3,7 @@ package biz
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -10,6 +11,7 @@ import (
 	"momoko/pkg/pre"
 	"momoko/pkg/utils"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -323,10 +325,12 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 	}
 
 	var sendMu sync.Mutex
-	sendText := func(text string) error { // 发送文本方法
+	// 原样转发为二进制帧：日志/输出是原始字节流(见 servercore.readPipe)，用二进制帧发送，
+	// 避免文本帧在多字节字符(如中文)跨帧边界处被 UTF-8 校验损坏；前端用流式解码还原。
+	sendText := func(text string) error {
 		sendMu.Lock()
 		defer sendMu.Unlock()
-		return websocket.Message.Send(conn, text)
+		return websocket.Message.Send(conn, []byte(text))
 	}
 	sendPing := func() error { // 发送ping方法
 		sendMu.Lock()
@@ -342,7 +346,7 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 		return err
 	}
 
-	// 创建连接后发送历史日志
+	// 创建连接后发送历史日志（原始字节，前端 xterm 直接渲染）
 	for _, entry := range server.RecentLogs() {
 		if err := sendText(entry.Text); err != nil {
 			return
@@ -364,18 +368,18 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 	defer closeWsDone()
 
 	go func() {
-		for { // 循环接收ws消息并转发到实例中
+		for { // 循环接收ws消息：resize 控制帧调整 PTY 尺寸，其余按原始键盘流写入 PTY（与 SSH 终端同构）
 			var input string
 			if err := websocket.Message.Receive(conn, &input); err != nil {
 				closeWsDone()
 				return
 			}
-			if err := server.Send(input); err != nil {
-				if sendErr := sendText(err.Error()); sendErr != nil {
-					closeWsDone()
-					return
-				}
+			if cols, rows, ok := parseWsResizeControl(input); ok {
+				_ = server.Resize(cols, rows)
+				continue
 			}
+			// 未运行时静默丢弃击键（前端以状态标签提示，不逐键回错误）
+			_ = server.Write([]byte(input))
 		}
 	}()
 
@@ -390,13 +394,36 @@ func (i *InstanceUsecase) StartInstanceWsConn(conn *websocket.Conn, server *serv
 				closeWsDone()
 				return
 			}
-		case entry := <-logCh: // 将实例日志转发到ws
+		case entry := <-logCh: // 将实例日志转发到ws（原始字节）
 			if err := sendText(entry.Text); err != nil {
 				closeWsDone()
 				return
 			}
 		}
 	}
+}
+
+// wsResizeControl 是终端 ws 上的窗口尺寸控制帧（与 SSH 终端同一协议）。
+type wsResizeControl struct {
+	Type string `json:"type"`
+	Cols int    `json:"cols"`
+	Rows int    `json:"rows"`
+}
+
+// parseWsResizeControl 识别 {"type":"resize","cols":N,"rows":N} 控制帧。
+func parseWsResizeControl(input string) (cols, rows int, ok bool) {
+	trimmed := strings.TrimSpace(input)
+	if !strings.HasPrefix(trimmed, "{") {
+		return 0, 0, false
+	}
+	var control wsResizeControl
+	if err := json.Unmarshal([]byte(trimmed), &control); err != nil {
+		return 0, 0, false
+	}
+	if control.Type != "resize" || control.Cols <= 0 || control.Rows <= 0 {
+		return 0, 0, false
+	}
+	return control.Cols, control.Rows, true
 }
 
 func toInstanceTypeInfo(data *gen.InstanceType) *v1.InstanceTypeInfo {

@@ -14,8 +14,13 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% 完成；实例/Docker/文件/工具/仪表盘余项待推 |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% 完成；实例列表 + **终端(实例控制台/SSH)** 完成；Docker/文件/工具/仪表盘余项待推 |
+| Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
+
+> **🔓 后端破坏性修改授权(2026-07-12,用户明确)**：若前端重写需要,**允许破坏性修改后端、不必考虑兼容性**(协议/RPC/表结构随意改)。后端从 GoLand 运行,改 Go 后需用户手动重跑。
+>
+> **🖥️ 终端(P6 伪终端)重写口径(2026-07-12,用户点名)**：实例控制台 + SSH 终端"都不好看、不符合新规范" → 一并重写为**真 xterm.js**。定稿:①**升级实例控制台为真 xterm**(旧为自建 `outputLines` 行渲染的"伪终端";SSH 本就是 xterm);②明暗**改为终端自身手动切换、不受全局主题影响、默认黑色**(自包含 `--term-*` 令牌 + `localStorage`,类似文件编辑器的独立主题);③外壳/工具条走**新令牌 + 薄荷强调 + 状态点**;④**终端页 fullBleed 全出血**(用户:"整个页面都属于终端,强行加框不伦不类");⑤**后端真 PTY**(用户:"一个是真实的终端,一个只是假装的终端" → 实例子进程跑在 `go-pty` 伪终端里,ws 协议与 SSH 完全同构:原始键盘流入 / `{"type":"resize"}` 控制帧 / 原始字节流出(二进制帧+前端流式 UTF-8 解码),后端**零加工输出**;实例控制台去掉命令输入条,xterm 直接键入)。共享 `components/terminal/` 的 **`TerminalConsole.vue`(两页唯一公共入口:外壳+xterm+主题+输入输出接线,页面只写传输层)** + `TerminalShell.vue`(外壳) + `useTerminalX.ts`(xterm 封装,含 onBinary 二进制鼠标通道) + `useTerminalTheme.ts`(手动主题)。**踩坑**:go-pty Windows 下把相对 argv0 拼到 Dir 上不查 PATH → `servercore.resolveCommandPath` 必须对裸命令名做 `exec.LookPath` 兜底(codex 等 PATH 安装的命令);Unix `findInDir` 要求可执行位防同名普通文件遮蔽;**Win10 inbox ConPTY 不透传 alt-buffer/鼠标开启序列且丢弃鼠标输入(探针实证)** → Windows 宿主上 TUI 滚轮无响应属 OS 限制,Linux 部署目标不受影响。
 
 ---
 
@@ -95,7 +100,7 @@
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
 | 应用列表 | instance/list | P1 | ✅ | ✅ | ✅ | ✅ |
-| 实例控制台 | instance/console/:id | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 实例控制台 | instance/console/:id | P6 | 🟡 | ⬜ | 🟡 | 🟡 PTY 直连已实机验证(键入/回显/ws 抓包);移动+浅色待验 |
 | 实例文件 | instance/files/:id | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 实例类型 | instance/type | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Docker 容器 | docker/container | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -104,7 +109,7 @@
 | Docker 配置 | docker/config | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
 | API Key | node/key | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
 | SSH 管理 | openssh/management | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
-| SSH 终端 | openssh/terminal | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
+| SSH 终端 | openssh/terminal | P6 | 🟡 | ⬜ | 🟡 | 🟡 重写完成,htop+鼠标滚轮+初始 resize 实测通过;移动+浅色待验 |
 
 ### 工具/文件/Sub2API(`06c`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |

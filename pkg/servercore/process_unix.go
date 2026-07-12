@@ -5,23 +5,23 @@ package servercore
 import (
 	"errors"
 	"os"
-	"os/exec"
 	"syscall"
+
+	pty "github.com/aymanbagabas/go-pty"
 )
 
-// configureExecCmd 为子进程创建独立进程组，
-// 方便停止时一次性处理整个进程树。
-func configureExecCmd(cmd *exec.Cmd) {
-	if cmd == nil {
-		return
-	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+// ptyStdinLineEnd 是向 PTY 写入整行命令（停止命令等）时使用的行结束符。
+const ptyStdinLineEnd = "\n"
+
+// configurePtyCmd 在非 Linux 的类 Unix 平台不需要额外属性；
+// go-pty 已为子进程 Setsid（成为会话首进程，pgid=pid）。
+func configurePtyCmd(cmd *pty.Cmd) {
+	_ = cmd
 }
 
-// stopExecCmd 在类 Unix 平台按进程组发信号，
-// 避免只结束直接子进程。
-func stopExecCmd(cmd *exec.Cmd, force bool) error {
-	if cmd == nil || cmd.Process == nil {
+// stopPtyProcess 按进程组发信号，避免只结束直接子进程。
+func stopPtyProcess(proc *os.Process, force bool) error {
+	if proc == nil {
 		return os.ErrProcessDone
 	}
 
@@ -30,7 +30,7 @@ func stopExecCmd(cmd *exec.Cmd, force bool) error {
 		sig = syscall.SIGKILL
 	}
 
-	if err := syscall.Kill(-cmd.Process.Pid, sig); err != nil {
+	if err := syscall.Kill(-proc.Pid, sig); err != nil {
 		if errors.Is(err, syscall.ESRCH) {
 			return os.ErrProcessDone
 		}

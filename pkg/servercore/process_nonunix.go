@@ -4,19 +4,25 @@ package servercore
 
 import (
 	"os"
-	"os/exec"
+
+	pty "github.com/aymanbagabas/go-pty"
 )
 
-// configureExecCmd 在非 Unix 平台上不需要额外的进程属性配置。
-func configureExecCmd(cmd *exec.Cmd) {
+// ptyStdinLineEnd 是向 PTY 写入整行命令（停止命令等）时使用的行结束符。
+// Windows ConPTY 的输入是按键流，回车键为 CR。
+const ptyStdinLineEnd = "\r"
+
+// configurePtyCmd 在非 Unix 平台上不需要额外的进程属性配置。
+func configurePtyCmd(cmd *pty.Cmd) {
 	_ = cmd
 }
 
-// stopExecCmd 在非 Unix 平台上直接结束目标进程。
-func stopExecCmd(cmd *exec.Cmd, force bool) error {
+// stopPtyProcess 在非 Unix 平台上直接结束目标进程；
+// 优雅停止依赖 StopCommand 路径，关闭 ConPTY 也会促使控制台程序退出。
+func stopPtyProcess(proc *os.Process, force bool) error {
 	_ = force
-	if cmd == nil || cmd.Process == nil {
+	if proc == nil {
 		return os.ErrProcessDone
 	}
-	return cmd.Process.Kill()
+	return proc.Kill()
 }

@@ -1,12 +1,13 @@
 import { ElMessage } from 'element-plus'
 import type { ConsoleFeatureItem, ConsoleSocketStatus } from '@/stores/instance/types'
-import { InstanceStatus, type InstanceInfo } from '@/types/v1/instance'
+import type { InstanceInfo } from '@/types/v1/instance'
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
 import { translate } from '@/locales'
 
-const MAX_OUTPUT_LINES = 600
 const SOCKET_RETRY_DELAY = 5000
 const SOCKET_AUTH_QUERY_KEYS = ['accessToken', 'token', 'authorization', 'auth']
+// 回放缓冲上限：xterm 挂载晚于 ws 连接时，用它补齐已收到的输出
+const RAW_BUFFER_LIMIT = 200_000
 
 type SessionAction = 'load' | 'start' | 'stop' | 'restart'
 
@@ -17,10 +18,8 @@ const getActionLabel = (action: Exclude<SessionAction, 'load'>) => {
 }
 
 interface ConsoleSessionOptions {
-  defaultOutputLines: string[]
   entityLabel: string
   loadTargetLabel: string
-  outputLabel: string
   featureItems: ConsoleFeatureItem[]
   getInfo: () => Promise<InstanceInfo | undefined>
   getContextId?: () => string
@@ -37,86 +36,56 @@ interface RunActionOptions {
   refreshOutputOnSuccess?: boolean
 }
 
-const normalizeLines = (value: string) =>
-  value
-    .split(/\r?\n/u)
-    .map((line) => line.replace(/\r/g, ''))
-
-const buildConsoleLines = (
-  info: InstanceInfo | undefined,
-  socketState: ConsoleSocketStatus,
-  options: Pick<ConsoleSessionOptions, 'defaultOutputLines' | 'entityLabel' | 'outputLabel'>,
-) => {
-  if (!info) {
-    return [...options.defaultOutputLines]
-  }
-
-  const lines = [
-    `[system] ${options.entityLabel}${translate('common.name')}：${info.name || translate('instance.notProvided')}`,
-    `[system] ${options.entityLabel}${translate('common.status')}：${info.status || translate('instance.notProvided')}`,
-  ]
-
-  if (info.status !== InstanceStatus.INSTANCE_STATUS_RUNNING) {
-    lines.push(
-      `[system] ${translate('instance.disabledBecauseStopped', { entity: options.entityLabel })}`,
-    )
-  }
-
-  if (!info.wsPath) {
-    lines.push(`[system] ${translate('instance.noWsAddress', { entity: options.entityLabel })}`)
-    return lines
-  }
-
-  if (socketState === 'connecting') {
-    lines.push(`[system] ${translate('instance.wsConnecting')}`)
-  } else if (socketState === 'connected') {
-    lines.push(
-      `[system] ${translate('instance.wsConnectedWaiting', { output: options.outputLabel })}`,
-    )
-  } else if (socketState === 'error') {
-    lines.push(`[system] ${translate('instance.wsConnectError')}`)
-  } else {
-    lines.push(`[system] ${translate('instance.wsDisconnected')}`)
-  }
-
-  return lines
-}
-
+// createConsoleSession 管理一条实例终端会话：
+// 输出是后端 PTY 的原始字节流（二进制 ws 帧），原样推给 xterm 渲染；
+// 输入是原始键盘流(sendRaw)与 resize 控制帧(sendResize)，与 SSH 终端协议同构。
 export const createConsoleSession = (options: ConsoleSessionOptions) => {
   const terminalInfo = ref<InstanceInfo>()
   const socketStatus = ref<ConsoleSocketStatus>('disconnected')
-  const commandValue = ref('')
   const featureItems = ref<ConsoleFeatureItem[]>([...options.featureItems])
-  const commandHistory = ref<string[]>([])
-  const historyCursor = ref(0)
   const pendingAction = ref<SessionAction | null>(null)
-  const outputLines = ref<string[]>([...options.defaultOutputLines])
   const requestToken = ref(0)
+
+  // —— 原始输出流：订阅者(xterm)实时接收，rawBuffer 供挂载时回放 ——
+  const outputListeners = new Set<(chunk: string) => void>()
+  let rawBuffer = ''
+  // 流式 UTF-8 解码：多字节字符可能跨帧边界，stream:true 缓存半个字符避免乱码
+  let streamDecoder = new TextDecoder('utf-8')
+
+  const emitOutput = (chunk: string) => {
+    if (!chunk) return
+    rawBuffer += chunk
+    if (rawBuffer.length > RAW_BUFFER_LIMIT) {
+      rawBuffer = rawBuffer.slice(-RAW_BUFFER_LIMIT)
+    }
+    outputListeners.forEach((cb) => cb(chunk))
+  }
+
+  const onOutput = (cb: (chunk: string) => void) => {
+    outputListeners.add(cb)
+    return () => outputListeners.delete(cb)
+  }
+
+  const getBuffer = () => rawBuffer
+
+  // system 以暗淡样式向终端写入一条本地状态消息（连接失败/重试等），不经过后端
+  const system = (text: string) => {
+    emitOutput(`\x1b[2m[system] ${text}\x1b[0m\r\n`)
+  }
+
+  // 每次连接成功后后端会回放最近日志，清空本地缓冲避免重复；
+  // 视图侧监听 socketStatus 变为 connected 时同步 reset xterm。
+  const resetOutput = () => {
+    rawBuffer = ''
+    streamDecoder = new TextDecoder('utf-8')
+  }
 
   let terminalSocket: WebSocket | null = null
   let activeSocketUrl = ''
   let socketRetryTimer: ReturnType<typeof setTimeout> | null = null
   let manualCloseSocket: WebSocket | null = null
 
-  const canSendCommand = computed(
-    () =>
-      terminalInfo.value?.status === InstanceStatus.INSTANCE_STATUS_RUNNING &&
-      socketStatus.value === 'connected',
-  )
-
   const isBusy = computed(() => pendingAction.value !== null)
-
-  const sendPlaceholder = computed(() => {
-    if (terminalInfo.value?.status !== InstanceStatus.INSTANCE_STATUS_RUNNING) {
-      return translate('instance.stoppedReadonly', { entity: options.entityLabel })
-    }
-
-    if (socketStatus.value !== 'connected') {
-      return translate('instance.wsCannotSend')
-    }
-
-    return translate('instance.sendHistoryPlaceholder')
-  })
 
   const nextRequestToken = () => {
     requestToken.value += 1
@@ -128,48 +97,6 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
   const hasRequiredContext = () => {
     if (!options.getContextId) return true
     return !!options.getContextId().trim()
-  }
-
-  const appendOutput = (...lines: string[]) => {
-    outputLines.value.push(...lines.flatMap((line) => normalizeLines(line)))
-
-    if (outputLines.value.length > MAX_OUTPUT_LINES) {
-      outputLines.value = outputLines.value.slice(-MAX_OUTPUT_LINES)
-    }
-  }
-
-  const replaceOutput = (...lines: string[]) => {
-    outputLines.value = []
-    appendOutput(...lines)
-  }
-
-  const hasDefaultOutput = () =>
-    outputLines.value.length === options.defaultOutputLines.length &&
-    outputLines.value.every((line, index) => line === options.defaultOutputLines[index])
-
-  const replaceConsoleOutput = (
-    info?: InstanceInfo,
-    socketState: ConsoleSocketStatus = socketStatus.value,
-  ) => replaceOutput(...buildConsoleLines(info, socketState, options))
-
-  const refreshConsoleOnConnected = (info?: InstanceInfo) => {
-    if (socketStatus.value !== 'connected') return
-
-    if (hasDefaultOutput()) {
-      replaceConsoleOutput(info, 'connected')
-      return
-    }
-
-    appendOutput(`[system] ${translate('instance.wsConnected')}`)
-  }
-
-  const syncConsolePlaceholder = (
-    info?: InstanceInfo,
-    socketState: ConsoleSocketStatus = socketStatus.value,
-  ) => {
-    if (!hasDefaultOutput()) return
-
-    replaceConsoleOutput(info, socketState)
   }
 
   const clearSocketRetryTimer = () => {
@@ -235,16 +162,10 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     return wsUrl.toString()
   }
 
-  const decodeSocketPayload = async (payload: Blob | ArrayBuffer | string) => {
+  const decodeSocketPayload = (payload: ArrayBuffer | string): string => {
     if (typeof payload === 'string') return payload
-    if (payload instanceof Blob) return payload.text()
-    return new TextDecoder().decode(payload)
-  }
-
-  const handleSocketMessage = async (payload: Blob | ArrayBuffer | string) => {
-    const decodedPayload = await decodeSocketPayload(payload)
-    if (!decodedPayload) return
-    appendOutput(decodedPayload)
+    // 流式解码：跨帧缓存不完整的多字节序列
+    return streamDecoder.decode(payload, { stream: true })
   }
 
   const canRetrySocketConnection = (info?: InstanceInfo) => {
@@ -267,18 +188,14 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
     if (!wsPath) {
       closeTerminalSocket()
-      syncConsolePlaceholder(terminalInfo.value)
+      system(translate('instance.noWsAddress', { entity: options.entityLabel }))
       return
     }
 
     const socketUrl = buildTerminalSocketUrl(wsPath)
     if (!socketUrl) {
       socketStatus.value = 'error'
-      if (hasDefaultOutput()) {
-        replaceOutput(`[system] ${translate('instance.invalidWsAddress')}`)
-      } else {
-        appendOutput(`[system] ${translate('instance.invalidWsAddress')}`)
-      }
+      system(translate('instance.invalidWsAddress'))
       return
     }
 
@@ -297,29 +214,25 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     manualCloseSocket = null
 
     const socket = new WebSocket(socketUrl)
+    socket.binaryType = 'arraybuffer' // 二进制帧取 ArrayBuffer，便于同步、按序流式解码
     terminalSocket = socket
 
     socket.onopen = () => {
       if (terminalSocket !== socket || !isActiveRequest(token)) return
 
+      resetOutput()
       socketStatus.value = 'connected'
-      refreshConsoleOnConnected(terminalInfo.value)
     }
 
     socket.onmessage = (event) => {
       if (terminalSocket !== socket || !isActiveRequest(token)) return
-      void handleSocketMessage(event.data as Blob | ArrayBuffer | string)
+      emitOutput(decodeSocketPayload(event.data as ArrayBuffer | string))
     }
 
     socket.onerror = () => {
       if (terminalSocket !== socket || !isActiveRequest(token)) return
 
       socketStatus.value = 'error'
-      if (hasDefaultOutput()) {
-        syncConsolePlaceholder(terminalInfo.value, 'error')
-      } else {
-        appendOutput(`[system] ${translate('instance.wsConnectionError')}`)
-      }
     }
 
     socket.onclose = () => {
@@ -334,26 +247,17 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       activeSocketUrl = ''
       socketStatus.value = 'disconnected'
 
-      if (hasDefaultOutput()) {
-        syncConsolePlaceholder(terminalInfo.value, 'disconnected')
-      }
-
       if (isManualClose) {
-        if (!hasDefaultOutput()) {
-          appendOutput(`[system] ${translate('instance.wsDisconnectedLine')}`)
-        }
         return
       }
 
       if (canRetrySocketConnection(terminalInfo.value)) {
-        appendOutput(`[system] ${translate('instance.wsRetryAfter', { seconds: SOCKET_RETRY_DELAY / 1000 })}`)
+        system(translate('instance.wsRetryAfter', { seconds: SOCKET_RETRY_DELAY / 1000 }))
         scheduleSocketRetry(token)
         return
       }
 
-      if (!hasDefaultOutput()) {
-        appendOutput(`[system] ${translate('instance.wsDisconnectedLine')}`)
-      }
+      system(translate('instance.wsDisconnectedLine'))
     }
   }
 
@@ -364,7 +268,9 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     }
 
     closeTerminalSocket()
-    syncConsolePlaceholder(info)
+    if (info) {
+      system(translate('instance.noWsAddress', { entity: options.entityLabel }))
+    }
   }
 
   const applyTerminalInfo = async (
@@ -396,11 +302,10 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       terminalInfo.value = undefined
 
       if (options.contextIdLabel) {
-        outputLines.value = [
-          `[system] ${translate('instance.missingContextLoad', { context: options.contextIdLabel, target: options.loadTargetLabel })}`,
-        ]
-      } else {
-        outputLines.value = [...options.defaultOutputLines]
+        system(translate('instance.missingContextLoad', {
+          context: options.contextIdLabel,
+          target: options.loadTargetLabel,
+        }))
       }
 
       if (!silent && isActiveRequest(token)) {
@@ -417,15 +322,9 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     } catch {
       if (!isActiveRequest(token)) return
 
-      if (terminalInfo.value) {
-        if (refreshOutput) {
-          syncConsolePlaceholder(terminalInfo.value, socketStatus.value)
-        }
-      } else {
-        outputLines.value = [
-          `[system] ${translate('instance.loadInfoFailed', { target: options.loadTargetLabel })}`,
-          `[system] ${translate('instance.checkBackendRetry')}`,
-        ]
+      if (!terminalInfo.value) {
+        system(translate('instance.loadInfoFailed', { target: options.loadTargetLabel }))
+        system(translate('instance.checkBackendRetry'))
       }
     } finally {
       if (!silent && isActiveRequest(token)) {
@@ -484,15 +383,31 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     }
   }
 
+  // —— PTY 输入：与 SSH 终端同一协议 ——
+  // sendRaw 把 xterm onData/onBinary 的原始输入原样发给后端；未连接时静默丢弃。
+  // Uint8Array 走二进制帧（legacy 鼠标编码等高位字节按 UTF-8 文本发送会被损坏）。
+  const sendRaw = (data: string | Uint8Array) => {
+    if (!data.length || !terminalSocket || terminalSocket.readyState !== WebSocket.OPEN) return
+    terminalSocket.send(data)
+  }
+
+  // sendResize 通知后端调整 PTY 窗口尺寸
+  const sendResize = (cols: number, rows: number) => {
+    if (cols <= 0 || rows <= 0) return
+    if (!terminalSocket || terminalSocket.readyState !== WebSocket.OPEN) return
+    terminalSocket.send(JSON.stringify({ type: 'resize', cols, rows }))
+  }
+
+  const clearScreen = () => {
+    rawBuffer = ''
+  }
+
   const resetSession = () => {
     closeTerminalSocket()
     terminalInfo.value = undefined
     socketStatus.value = 'disconnected'
-    commandValue.value = ''
-    commandHistory.value = []
-    historyCursor.value = 0
     pendingAction.value = null
-    outputLines.value = [...options.defaultOutputLines]
+    resetOutput()
   }
 
   const initializeSession = async () => {
@@ -505,76 +420,26 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
     await loadTerminalInfo(loadOptions)
   }
 
-  const clearScreen = () => {
-    outputLines.value = []
-  }
-
-  const executeCommand = () => {
-    const command = commandValue.value.trim()
-    if (!command) return
-
-    if (!terminalSocket || terminalSocket.readyState !== WebSocket.OPEN) {
-      ElMessage.warning(translate('instance.wsSendUnavailable'))
-      return
-    }
-
-    const lastCommand = commandHistory.value[commandHistory.value.length - 1]
-    if (!commandHistory.value.length || lastCommand !== command) {
-      commandHistory.value.push(command)
-    }
-
-    historyCursor.value = commandHistory.value.length
-    commandValue.value = ''
-    terminalSocket.send(`${command}\n`)
-  }
-
-  const selectPrevCommand = () => {
-    if (!commandHistory.value.length) return
-
-    if (historyCursor.value <= 0) {
-      historyCursor.value = 0
-    } else {
-      historyCursor.value -= 1
-    }
-
-    commandValue.value = commandHistory.value[historyCursor.value] || ''
-  }
-
-  const selectNextCommand = () => {
-    if (!commandHistory.value.length) return
-
-    if (historyCursor.value >= commandHistory.value.length - 1) {
-      historyCursor.value = commandHistory.value.length
-      commandValue.value = ''
-      return
-    }
-
-    historyCursor.value += 1
-    commandValue.value = commandHistory.value[historyCursor.value] || ''
-  }
-
   const dispose = () => {
     nextRequestToken()
     resetSession()
+    outputListeners.clear()
   }
 
   return {
     pendingAction,
     terminalInfo,
     socketStatus,
-    commandValue,
     featureItems,
-    outputLines,
-    canSendCommand,
     isBusy,
-    sendPlaceholder,
     runAction,
     initializeSession,
     refreshInfo,
     clearScreen,
-    executeCommand,
-    selectPrevCommand,
-    selectNextCommand,
+    sendRaw,
+    sendResize,
+    onOutput,
+    getBuffer,
     dispose,
   }
 }

@@ -66,13 +66,13 @@ export const staticRoutes = [
         path: '/openssh/terminal',
         name: 'OpensshTerminalView',
         component: () => import('@/views/openssh/terminal/index.vue'),
-        meta: { title: 'SSH 终端', icon: 'HOutline:CommandLineIcon', keepAlive: true },
+        meta: { title: 'SSH 终端', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
       {
         path: '/instance/console/:instanceId',
         name: 'InstanceTerminalConsoleView',
         component: () => import('@/views/instance/console/index.vue'),
-        meta: { title: '实例控制台', icon: 'HOutline:CommandLineIcon', keepAlive: true },
+        meta: { title: '实例控制台', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
       {
         path: '/instance/files/:instanceId',
