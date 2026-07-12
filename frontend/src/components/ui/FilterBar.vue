@@ -14,10 +14,10 @@
     <div v-show="!menuStore.isMobile || expanded" class="filter-bar__body">
       <div class="filter-bar__fields"><slot name="fields" /></div>
       <div class="filter-bar__actions">
-        <UButton color="primary" icon="i-lucide-search" @click="$emit('search')">
+        <UButton color="primary" size="sm" icon="i-lucide-search" @click="$emit('search')">
           {{ t('system.common.search') }}
         </UButton>
-        <UButton color="neutral" variant="soft" icon="i-lucide-rotate-ccw" @click="$emit('reset')">
+        <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-rotate-ccw" @click="$emit('reset')">
           {{ t('system.common.reset') }}
         </UButton>
       </div>
@@ -39,7 +39,7 @@ const expanded = ref(false)
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius);
-  padding: 12px;
+  padding: 10px 12px;
 }
 .filter-bar__body {
   display: flex;
@@ -66,33 +66,38 @@ const expanded = ref(false)
 .filter-bar__toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
+  min-height: 28px;
   border: none;
   background: transparent;
   color: var(--el-text-color-regular);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
 }
 .filter-bar__toggle-ico {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--el-text-color-secondary);
 }
 .filter-bar__toggle-chev {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-left: auto;
   color: var(--el-text-color-placeholder);
 }
 @media (width <= 768px) {
+  .filter-bar {
+    padding: 8px 10px;
+  }
   .filter-bar__body {
-    margin-top: 12px;
+    margin-top: 8px;
   }
   .filter-bar__fields {
     flex-direction: column;
     width: 100%;
+    gap: 8px;
   }
   .filter-bar__fields > :deep(*) {
     width: 100%;

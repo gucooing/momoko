@@ -1,68 +1,70 @@
+<!-- frps 服务端配置（重写）：FormDialog + 令牌字段 + AppSwitch。保存后 emit saved。 -->
 <template>
-  <BaseDialog v-model="visible" :title="t('tools.tunnel.frps.title')" width="640" @opened="load">
+  <FormDialog
+    v-model="visible"
+    :title="t('tools.tunnel.frps.title')"
+    :width="640"
+    :loading="saving"
+    @confirm="save"
+  >
     <p class="frps-intro">{{ t('tools.tunnel.frps.intro') }}</p>
-    <el-form v-loading="loading" :model="form" label-width="120px" label-position="right">
-      <el-form-item :label="t('tools.tunnel.frps.isEnable')">
-        <el-switch v-model="form.isEnable" />
-      </el-form-item>
-      <el-row :gutter="10">
-        <el-col :xs="24" :sm="14">
-          <el-form-item :label="t('tools.tunnel.frps.bindAddr')">
-            <el-input v-model="form.bindAddr" placeholder="0.0.0.0" />
-          </el-form-item>
-        </el-col>
-        <el-col :xs="24" :sm="10">
-          <el-form-item :label="t('tools.tunnel.frps.bindPort')" label-width="90px">
-            <el-input-number v-model="form.bindPort" :min="0" :max="65535" controls-position="right" class="full-input" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-form-item :label="t('tools.tunnel.frps.serverAddr')">
-        <el-input v-model="form.serverAddr" :placeholder="t('tools.tunnel.frps.serverAddrPlaceholder')" />
-      </el-form-item>
-      <el-row :gutter="10">
-        <el-col :xs="24" :sm="12">
-          <el-form-item :label="t('tools.tunnel.frps.vhostHttpPort')" label-width="120px">
-            <el-input-number v-model="form.vhostHttpPort" :min="0" :max="65535" controls-position="right" class="full-input" />
-          </el-form-item>
-        </el-col>
-        <el-col :xs="24" :sm="12">
-          <el-form-item :label="t('tools.tunnel.frps.vhostHttpsPort')" label-width="120px">
-            <el-input-number v-model="form.vhostHttpsPort" :min="0" :max="65535" controls-position="right" class="full-input" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row :gutter="10">
-        <el-col :xs="24" :sm="12">
-          <el-form-item :label="t('tools.tunnel.frps.kcpBindPort')" label-width="120px">
-            <el-input-number v-model="form.kcpBindPort" :min="0" :max="65535" controls-position="right" class="full-input" />
-          </el-form-item>
-        </el-col>
-        <el-col :xs="24" :sm="12">
-          <el-form-item :label="t('tools.tunnel.frps.quicBindPort')" label-width="120px">
-            <el-input-number v-model="form.quicBindPort" :min="0" :max="65535" controls-position="right" class="full-input" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-form-item :label="t('tools.tunnel.frps.subdomainHost')">
-        <el-input v-model="form.subdomainHost" placeholder="frps.example.com" />
-      </el-form-item>
-      <el-form-item :label="t('tools.tunnel.frps.sampleInterval')">
-        <el-input-number v-model="form.statSampleInterval" :min="5" :max="3600" controls-position="right" />
-        <span class="frps-hint">{{ t('tools.tunnel.frps.portHint') }}</span>
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="visible = false">{{ t('system.common.cancel') }}</el-button>
-      <el-button type="primary" :loading="saving" @click="save">{{ t('tools.tunnel.frps.save') }}</el-button>
+    <div v-if="loading" class="frps-loading">{{ t('tools.tunnel.frps.loading') }}</div>
+    <div v-else class="frps-form">
+      <div class="app-field frps-form__switch frps-form__full">
+        <div>
+          <label class="app-label">{{ t('tools.tunnel.frps.isEnable') }}</label>
+        </div>
+        <AppSwitch v-model="form.isEnable" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.bindAddr') }}</label>
+        <input v-model="form.bindAddr" class="app-input" placeholder="0.0.0.0" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.bindPort') }}</label>
+        <input v-model.number="form.bindPort" type="number" min="0" max="65535" class="app-input" />
+      </div>
+      <div class="app-field frps-form__full">
+        <label class="app-label">{{ t('tools.tunnel.frps.serverAddr') }}</label>
+        <input v-model="form.serverAddr" class="app-input" :placeholder="t('tools.tunnel.frps.serverAddrPlaceholder')" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.vhostHttpPort') }}</label>
+        <input v-model.number="form.vhostHttpPort" type="number" min="0" max="65535" class="app-input" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.vhostHttpsPort') }}</label>
+        <input v-model.number="form.vhostHttpsPort" type="number" min="0" max="65535" class="app-input" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.kcpBindPort') }}</label>
+        <input v-model.number="form.kcpBindPort" type="number" min="0" max="65535" class="app-input" />
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.frps.quicBindPort') }}</label>
+        <input v-model.number="form.quicBindPort" type="number" min="0" max="65535" class="app-input" />
+      </div>
+      <div class="app-field frps-form__full">
+        <label class="app-label">{{ t('tools.tunnel.frps.subdomainHost') }}</label>
+        <input v-model="form.subdomainHost" class="app-input" placeholder="frps.example.com" />
+      </div>
+      <div class="app-field frps-form__full">
+        <label class="app-label">{{ t('tools.tunnel.frps.sampleInterval') }}</label>
+        <div class="frps-row">
+          <input v-model.number="form.statSampleInterval" type="number" min="5" max="3600" class="app-input" style="max-width: 140px" />
+          <span class="frps-hint">{{ t('tools.tunnel.frps.portHint') }}</span>
+        </div>
+      </div>
+    </div>
+    <template #footer="{ close }">
+      <UButton color="neutral" variant="soft" @click="close">{{ t('tools.tunnel.cancel') }}</UButton>
+      <UButton color="primary" :loading="saving" @click="save">{{ t('tools.tunnel.frps.save') }}</UButton>
     </template>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { getFrpsConfig, updateFrpsConfig } from '@/api/tunnel'
 import type { FrpsConfig } from '@/types/v1/tunnel'
 
@@ -115,22 +117,46 @@ const save = async () => {
     saving.value = false
   }
 }
+
+watch(visible, (open) => {
+  if (open) void load()
+})
 </script>
 
 <style scoped lang="scss">
 .frps-intro {
-  margin: 0 0 0.8rem;
-  font-size: 0.85rem;
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
-
-.full-input {
-  width: 100%;
+.frps-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--el-text-color-placeholder);
+  font-size: 0.8125rem;
 }
-
+.frps-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.frps-form__full { grid-column: 1 / -1; }
+.frps-form__switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.frps-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .frps-hint {
-  margin-left: 0.6rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
+}
+@media (width <= 768px) {
+  .frps-form { grid-template-columns: 1fr; }
+  .frps-form__full { grid-column: 1; }
 }
 </style>

@@ -1,21 +1,21 @@
+<!-- frpc 客户端配置预览（重写）：FormDialog + 代码块 + 复制/下载。内容由前端根据隧道+frps 生成。 -->
 <template>
-  <BaseDialog v-model="visible" :title="title" width="640" :show-footer="false">
+  <FormDialog v-model="visible" :title="title" :width="640" :show-footer="false">
     <p class="frpc-intro">{{ t('tools.tunnel.frpc.intro') }}</p>
     <pre class="frpc-content">{{ content }}</pre>
     <div class="frpc-actions">
-      <el-button :icon="menuStore.iconComponents['HOutline:ClipboardDocumentIcon']" @click="copy">
+      <UButton color="neutral" variant="soft" icon="i-lucide-copy" @click="copy">
         {{ t('tools.tunnel.frpc.copy') }}
-      </el-button>
-      <el-button type="primary" :icon="menuStore.iconComponents['HOutline:ArrowDownTrayIcon']" @click="download">
+      </UButton>
+      <UButton color="primary" icon="i-lucide-download" @click="download">
         {{ t('tools.tunnel.frpc.download') }}
-      </el-button>
+      </UButton>
     </div>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { TunnelType, type TunnelInfo, type FrpsConfig } from '@/types/v1/tunnel'
 
 const props = defineProps<{
@@ -26,7 +26,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
-const menuStore = useMenuStore()
 const { t } = useI18n()
 
 const visible = computed({
@@ -40,7 +39,6 @@ const title = computed(() =>
 
 const typeString = (type: TunnelType) => type.replace('TUNNEL_TYPE_', '').toLowerCase()
 
-// frpc.toml 完全由前端依据隧道信息与 frps 配置生成。
 const content = computed(() => {
   const row = props.row
   if (!row) return ''
@@ -83,8 +81,6 @@ const content = computed(() => {
     lines.push(`secretKey = "${row.credential}"`)
   }
 
-  // 隧道限速：momoko 对该隧道设了带宽上限时，必须体现在 frpc 配置里，
-  // 否则 frpc 声明 proxy 时会被服务端鉴权插件拒绝（见 authNewProxy 的 enforceClientPolicy）。
   if (row.maxBandwidth) {
     lines.push('', '# 服务端限速策略（不满足将被拒绝连接）')
     lines.push(`transport.bandwidthLimit = "${row.maxBandwidth}"`)
@@ -98,8 +94,7 @@ const copy = async () => {
     await navigator.clipboard.writeText(content.value)
     ElMessage.success(t('tools.tunnel.frpc.copied'))
   } catch {
-    // 某些非安全上下文不支持 clipboard，回退到选中提示
-    ElMessage.error(t('tools.tunnel.frpc.copy'))
+    ElMessage.error(t('tools.tunnel.frpc.copyFailed'))
   }
 }
 
@@ -116,29 +111,28 @@ const download = () => {
 
 <style scoped lang="scss">
 .frpc-intro {
-  margin: 0 0 0.6rem;
-  font-size: 0.85rem;
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
-
 .frpc-content {
   margin: 0;
-  padding: 0.8rem 1rem;
+  padding: 10px 12px;
   max-height: 16rem;
   overflow: auto;
   background: var(--el-fill-color-light);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-  font-size: 0.82rem;
+  border-radius: var(--app-radius);
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.78rem;
   line-height: 1.5;
   white-space: pre;
+  color: var(--el-text-color-regular);
 }
-
 .frpc-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.8rem;
+  gap: 8px;
+  margin-top: 12px;
 }
 </style>

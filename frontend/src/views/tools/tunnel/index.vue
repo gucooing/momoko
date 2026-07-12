@@ -1,186 +1,143 @@
+<!-- 内网穿透（重写 · P1 列表）：PageHeader(新增/frps) + FilterBar + 批量删除 + DataTable/移动卡 + Pagination。
+     行内 统计/frpc/编辑/删除；启用 AppSwitch；统计/frpc/frps 弹窗。 -->
 <template>
-  <div>
-    <el-card shadow="never" class="card-clear-mb">
-      <el-form ref="queryFormRef" :model="queryForm" label-width="auto" @keyup.enter="getList">
-        <el-row :gutter="12">
-          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-            <el-form-item :label="t('tools.tunnel.keyword')" prop="keywords">
-              <el-input
-                v-model="queryForm.keywords"
-                :placeholder="t('tools.tunnel.keywordPlaceholder')"
-                :prefix-icon="menuStore.iconComponents.Search"
-                clearable
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-            <el-form-item :label="t('tools.tunnel.proxyType')" prop="type">
-              <el-select v-model="queryForm.type" :placeholder="t('system.common.select')" clearable>
-                <el-option v-for="opt in typeOptions" :key="opt" :label="typeLabel(opt)" :value="opt" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-            <el-form-item :label="t('tools.tunnel.enableStatus')" prop="isEnable">
-              <el-select v-model="queryForm.isEnable" :placeholder="t('system.common.select')" clearable>
-                <el-option :label="t('tools.tunnel.enabled')" :value="true" />
-                <el-option :label="t('tools.tunnel.disabled')" :value="false" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-            <el-form-item>
-              <el-button type="primary" :icon="menuStore.iconComponents.Search" @click="getList">
-                {{ t('system.common.search') }}
-              </el-button>
-              <el-button :icon="menuStore.iconComponents.Refresh" @click="reset">
-                {{ t('system.common.reset') }}
-              </el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-    </el-card>
-
-    <el-card shadow="never" class="card-mt-16">
-      <div class="operation-container">
-        <el-button type="primary" :icon="menuStore.iconComponents.Plus" @click="openCreateDialog()">
-          {{ t('tools.tunnel.addTunnel') }}
-        </el-button>
-        <AdaptiveConfirm
-          :title="t('tools.tunnel.confirmDeleteSelected')"
-          :placement="POPCONFIRM_CONFIG.placement"
-          :width="POPCONFIRM_CONFIG.width"
-          @confirm="batchDelete"
-        >
-          <template #reference>
-            <el-button type="danger" :icon="menuStore.iconComponents.Delete" :disabled="!deleteIds.length">
-              {{ t('tools.tunnel.batchDelete') }}
-            </el-button>
-          </template>
-        </AdaptiveConfirm>
-        <el-button :icon="menuStore.iconComponents['HOutline:Cog6ToothIcon']" @click="frpsVisible = true">
+  <div class="tn-page">
+    <PageHeader :title="t('tools.tunnel.title')" :description="t('tools.tunnel.pageDesc')">
+      <template #actions>
+        <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-settings" @click="frpsVisible = true">
           {{ t('tools.tunnel.frpsConfig') }}
-        </el-button>
+        </UButton>
+        <UButton color="primary" size="sm" icon="i-lucide-plus" @click="openCreateDialog()">
+          {{ t('tools.tunnel.addTunnel') }}
+        </UButton>
+      </template>
+    </PageHeader>
+
+    <FilterBar @search="search" @reset="reset">
+      <template #fields>
+        <div class="app-field">
+          <label class="app-label">{{ t('tools.tunnel.keyword') }}</label>
+          <input v-model="queryForm.keywords" class="app-input" :placeholder="t('tools.tunnel.keywordPlaceholder')" @keyup.enter="search" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('tools.tunnel.proxyType') }}</label>
+          <AppSelect v-model="queryForm.type" :options="typeFilterOptions" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('tools.tunnel.enableStatus') }}</label>
+          <AppSelect v-model="queryForm.isEnable" :options="enableFilterOptions" />
+        </div>
+      </template>
+    </FilterBar>
+
+    <div v-if="selectedIds.length" class="tn-page__batch">
+      <span class="tn-page__batch-count">{{ t('tools.tunnel.selectedCount', { count: selectedIds.length }) }}</span>
+      <div class="tn-page__batch-actions">
+        <UButton color="error" variant="soft" size="sm" icon="i-lucide-trash-2" @click="batchDelete">
+          {{ t('tools.tunnel.batchDelete') }}
+        </UButton>
+        <UButton color="neutral" variant="ghost" size="sm" @click="selectedIds = []">
+          {{ t('tools.tunnel.clearSelection') }}
+        </UButton>
+      </div>
+    </div>
+
+    <div class="tn-page__body">
+      <div class="tn-page__bar">
+        <span class="tn-page__hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
+        <button v-if="menuStore.isMobile && list.length" type="button" class="tn-page__selall" @click="toggleSelectAll">
+          {{ isAllSelected ? t('tools.tunnel.clearSelection') : t('tools.tunnel.selectAll') }}
+        </button>
       </div>
 
-      <!-- desktop: table -->
-      <VxeGrid
+      <DataTable
         v-if="!menuStore.isMobile"
-        v-bind="gridConfig"
-        @checkbox-change="selectionChange"
-        @checkbox-all="selectionChange"
+        v-model="selectedIds"
+        :columns="columns"
+        :rows="list"
+        row-key="id"
+        selectable
+        seq
+        :loading="loading"
+        :empty-text="t('tools.tunnel.noData')"
       >
-        <template #column-type="{ row }">
-          <el-tag size="small">{{ typeLabel(row.type) }}</el-tag>
+        <template #cell-type="{ row }">
+          <StatusPill variant="info" :label="typeLabel(String(row.type || ''))" :dot="false" />
         </template>
-        <template #column-status="{ row }">
-          <el-tag :type="statusInfo(row.status).type" size="small">{{ statusInfo(row.status).label }}</el-tag>
+        <template #cell-status="{ row }">
+          <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(String(row.status || ''))" />
         </template>
-        <template #column-remote="{ row }">
-          <span class="mono-text">{{ remoteText(row) }}</span>
+        <template #cell-remote="{ row }">
+          <span class="tn-mono">{{ remoteText(row) }}</span>
         </template>
-        <template #column-target="{ row }">
-          <span class="mono-text">{{ row.localIp }}:{{ row.localPort }}</span>
+        <template #cell-target="{ row }">
+          <span class="tn-mono">{{ row.localIp }}:{{ row.localPort }}</span>
         </template>
-        <template #column-isEnable="{ row }">
-          <el-switch
-            :model-value="row.isEnable"
-            size="small"
-            @change="(val: string | number | boolean) => toggleEnable(row, !!val)"
-          />
+        <template #cell-isEnable="{ row }">
+          <AppSwitch :model-value="!!row.isEnable" @update:model-value="(v) => toggleEnable(row, v)" />
         </template>
-        <template #column-connections="{ row }">
-          <span>{{ Number(row.activeConnections || 0) }}</span>
+        <template #cell-connections="{ row }">{{ Number(row.activeConnections || 0) }}</template>
+        <template #cell-traffic="{ row }">
+          <span class="tn-traffic">↓ {{ formatBytes(row.bytesIn) }} · ↑ {{ formatBytes(row.bytesOut) }}</span>
         </template>
-        <template #column-traffic="{ row }">
-          <span class="tn-traffic">
-            <span class="tn-traffic-item">↓ {{ formatBytes(row.bytesIn) }}</span>
-            <span class="tn-traffic-item">↑ {{ formatBytes(row.bytesOut) }}</span>
-          </span>
+        <template #cell-createTime="{ row }">{{ formatTime(row.createTime) }}</template>
+        <template #cell-operation="{ row }">
+          <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
         </template>
-        <template #column-operation="{ row }">
-          <div class="tn-actions">
-            <el-button type="primary" :icon="menuStore.iconComponents['HOutline:ChartBarIcon']" link @click="openStatsDialog(row)">
-              {{ t('tools.tunnel.stats.details') }}
-            </el-button>
-            <el-button type="primary" :icon="menuStore.iconComponents['HOutline:DocumentTextIcon']" link @click="openFrpcDialog(row)">
-              {{ t('tools.tunnel.frpcConfig') }}
-            </el-button>
-            <el-button type="primary" :icon="menuStore.iconComponents.Edit" link @click="openEditDialog(row)">
-              {{ t('system.common.edit') }}
-            </el-button>
-            <el-popconfirm :title="t('tools.tunnel.confirmDeleteRule')" :width="POPCONFIRM_CONFIG.width" @confirm="confirmDelete(row)">
-              <template #reference>
-                <el-button type="danger" :icon="menuStore.iconComponents.Delete" link>{{ t('system.common.delete') }}</el-button>
-              </template>
-            </el-popconfirm>
-          </div>
-        </template>
-      </VxeGrid>
+      </DataTable>
 
-      <!-- mobile: cards -->
-      <div v-else v-loading="loading" class="mobile-card-list">
-        <div v-if="!list.length" class="mobile-empty">
-          <el-empty :description="t('system.common.noData')" />
+      <template v-else>
+        <div v-if="loading" class="tn-cards">
+          <div v-for="i in 4" :key="i" class="tn-skeleton" />
         </div>
-        <div v-for="row in list" :key="row.id" class="tn-card" :class="{ 'is-selected': deleteIds.includes(row.id) }">
-          <div class="tn-card-check" @click.stop="toggleMobileSelect(row.id)">
-            <el-checkbox :model-value="deleteIds.includes(row.id)" size="small" />
-          </div>
-
-          <div class="tn-card-header">
-            <span class="tn-card-name">{{ row.name }}</span>
-            <el-tag :type="statusInfo(row.status).type" size="small">{{ statusInfo(row.status).label }}</el-tag>
-            <el-switch
-              :model-value="row.isEnable"
-              size="small"
-              @change="(val: string | number | boolean) => toggleEnable(row, !!val)"
-            />
-          </div>
-
-          <div class="tn-card-body">
-            <div class="tn-card-meta">
-              <el-tag size="small">{{ typeLabel(row.type) }}</el-tag>
-              <span class="mono-text">{{ remoteText(row) }}</span>
+        <EmptyState
+          v-else-if="!list.length"
+          icon="HOutline:GlobeAltIcon"
+          :title="t('tools.tunnel.noData')"
+          :description="t('tools.tunnel.emptyDesc')"
+        />
+        <div v-else class="tn-cards">
+          <div
+            v-for="row in list"
+            :key="row.id"
+            class="tn-card"
+            :class="{ 'is-selected': selectedIds.includes(row.id) }"
+            @click="toggleMobileSelect(row.id)"
+          >
+            <div class="tn-card__top">
+              <label class="tn-card__title" @click.stop>
+                <input
+                  type="checkbox"
+                  class="tn-card__check"
+                  :checked="selectedIds.includes(row.id)"
+                  @change="toggleMobileSelect(row.id)"
+                />
+                <span class="tn-card__name">{{ row.name }}</span>
+              </label>
+              <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(row.status)" />
             </div>
-            <div class="tn-card-meta">
-              <span>{{ t('tools.tunnel.target') }}:</span>
-              <span class="mono-text">{{ row.localIp }}:{{ row.localPort }}</span>
+            <div class="tn-card__route tn-mono">
+              <StatusPill variant="info" :label="typeLabel(row.type)" :dot="false" />
+              <span>{{ remoteText(row as unknown as Record<string, unknown>) }} → {{ row.localIp }}:{{ row.localPort }}</span>
             </div>
-            <div class="tn-card-meta">
-              <span>{{ t('tools.tunnel.stats.connections') }}: {{ Number(row.activeConnections || 0) }}</span>
-              <span class="mono-text">↓ {{ formatBytes(row.bytesIn) }} ↑ {{ formatBytes(row.bytesOut) }}</span>
+            <div class="tn-card__foot" @click.stop>
+              <span class="tn-card__meta">
+                {{ Number(row.activeConnections || 0) }} 连接 · ↓{{ formatBytes(row.bytesIn) }} ↑{{ formatBytes(row.bytesOut) }}
+              </span>
+              <AppSwitch :model-value="row.isEnable" @update:model-value="(v) => toggleEnable(row as unknown as Record<string, unknown>, v)" />
+              <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row as unknown as Record<string, unknown>)" />
             </div>
-            <div class="tn-card-time">{{ row.createTime }}</div>
-          </div>
-
-          <div class="tn-card-footer">
-            <el-button size="small" plain @click="openStatsDialog(row)">{{ t('tools.tunnel.stats.details') }}</el-button>
-            <el-button size="small" plain @click="openFrpcDialog(row)">{{ t('tools.tunnel.frpcConfig') }}</el-button>
-            <el-button size="small" plain type="primary" @click="openEditDialog(row)">{{ t('system.common.edit') }}</el-button>
-            <el-popconfirm :title="t('tools.tunnel.confirmDeleteRule')" :width="POPCONFIRM_CONFIG.width" @confirm="confirmDelete(row)">
-              <template #reference>
-                <el-button size="small" plain type="danger">{{ t('system.common.delete') }}</el-button>
-              </template>
-            </el-popconfirm>
           </div>
         </div>
-      </div>
+      </template>
 
-      <div v-if="menuStore.isMobile && deleteIds.length" class="mobile-batch-bar">
-        <span>{{ t('tools.tunnel.selectedCount', { count: deleteIds.length }) }}</span>
-        <el-button size="small" type="danger" @click="batchDelete">{{ t('tools.tunnel.batchDelete') }}</el-button>
-      </div>
-
-      <TablePagination
-        v-model:current-page="pagination.page"
+      <Pagination
+        v-model:page="pagination.page"
         v-model:page-size="pagination.pageSize"
         :total="pagination.total"
-        :is-mobile="menuStore.isMobile"
         @change="getList"
       />
-    </el-card>
+    </div>
 
     <TunnelCreate ref="createRef" @refresh="refresh" />
     <TunnelStatsDialog v-model="statsVisible" :row="statsRow" />
@@ -191,26 +148,23 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import TablePagination from '@/components/pagination/TablePagination.vue'
-import { POPCONFIRM_CONFIG } from '@/config/elementConfig'
-import { VxeGrid } from '@/plugins/vxeGrid'
 import TunnelCreate from '@/views/tools/tunnel/create.vue'
 import TunnelStatsDialog from '@/views/tools/tunnel/TunnelStatsDialog.vue'
 import FrpcConfigDialog from '@/views/tools/tunnel/FrpcConfigDialog.vue'
 import FrpsConfigDialog from '@/views/tools/tunnel/FrpsConfigDialog.vue'
 import { listTunnels, deleteTunnel, updateTunnel, getFrpsConfig } from '@/api/tunnel'
 import { TunnelType, TunnelStatus, type TunnelInfo, type FrpsConfig } from '@/types/v1/tunnel'
-import type { FormInstance } from 'element-plus'
-import type { VxeGridProps } from 'vxe-table'
+import type { DataTableColumn } from '@/components/ui/DataTable.vue'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
+import { Dialog } from '@/utils/dialog'
 
 defineOptions({ name: 'TunnelView' })
 
 const menuStore = useMenuStore()
 const { t } = useI18n()
-const queryFormRef = useTemplateRef<FormInstance>('queryFormRef')
 const createRef = useTemplateRef<InstanceType<typeof TunnelCreate> | null>('createRef')
 
-const deleteIds = ref<string[]>([])
+const selectedIds = ref<string[]>([])
 const list = ref<TunnelInfo[]>([])
 const loading = ref(false)
 const statsVisible = ref(false)
@@ -229,18 +183,21 @@ const typeOptions = [
   TunnelType.TUNNEL_TYPE_XTCP,
   TunnelType.TUNNEL_TYPE_TCPMUX,
 ]
+const typeLabel = (type: string) => String(type || '').replace('TUNNEL_TYPE_', '') || '-'
+const typeFilterOptions = computed(() => [
+  { label: t('tools.tunnel.allTypes'), value: '' },
+  ...typeOptions.map((opt) => ({ label: typeLabel(opt), value: opt })),
+])
+const enableFilterOptions = computed(() => [
+  { label: t('tools.tunnel.allStatus'), value: '' },
+  { label: t('tools.tunnel.enabled'), value: 'true' },
+  { label: t('tools.tunnel.disabled'), value: 'false' },
+])
 
-const typeLabel = (type: TunnelType) => type.replace('TUNNEL_TYPE_', '')
-
-const queryForm = ref({
-  keywords: '',
-  type: undefined as TunnelType | undefined,
-  isEnable: undefined as boolean | undefined,
-})
-
+const queryForm = reactive({ keywords: '', type: '' as string, isEnable: '' as string })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
-const formatBytes = (bytes?: number | string): string => {
+const formatBytes = (bytes?: unknown): string => {
   const n = Number(bytes)
   if (!n) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -252,51 +209,73 @@ const formatBytes = (bytes?: number | string): string => {
   }
   return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
 }
-
-const statusInfo = (status: TunnelStatus): { type: 'success' | 'warning' | 'info'; label: string } => {
-  switch (status) {
-    case TunnelStatus.TUNNEL_STATUS_ONLINE:
-      return { type: 'success', label: t('tools.tunnel.status.online') }
-    case TunnelStatus.TUNNEL_STATUS_PENDING:
-      return { type: 'warning', label: t('tools.tunnel.status.pending') }
-    default:
-      return { type: 'info', label: t('tools.tunnel.status.offline') }
-  }
+const formatTime = (value: unknown) => {
+  const s = value ? String(value) : ''
+  if (!s || s.startsWith('0001-')) return '—'
+  const date = new Date(s)
+  if (Number.isNaN(date.getTime())) return s
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-const remoteText = (row: TunnelInfo): string => {
-  if ([TunnelType.TUNNEL_TYPE_HTTP, TunnelType.TUNNEL_TYPE_HTTPS].includes(row.type)) {
-    return row.customDomains || row.subdomain || '-'
+type PillVariant = 'success' | 'info' | 'warning' | 'error' | 'neutral'
+const statusLabel = (status: string) => {
+  if (status === TunnelStatus.TUNNEL_STATUS_ONLINE) return t('tools.tunnel.status.online')
+  if (status === TunnelStatus.TUNNEL_STATUS_PENDING) return t('tools.tunnel.status.pending')
+  return t('tools.tunnel.status.offline')
+}
+const statusVariant = (status: unknown): PillVariant => {
+  if (status === TunnelStatus.TUNNEL_STATUS_ONLINE) return 'success'
+  if (status === TunnelStatus.TUNNEL_STATUS_PENDING) return 'warning'
+  return 'neutral'
+}
+
+const remoteText = (row: Record<string, unknown>) => {
+  const type = String(row.type || '')
+  if ([TunnelType.TUNNEL_TYPE_HTTP, TunnelType.TUNNEL_TYPE_HTTPS].includes(type as TunnelType)) {
+    return String(row.customDomains || row.subdomain || '-')
   }
   return row.remotePort ? `:${row.remotePort}` : '-'
 }
 
-const gridConfig = computed<VxeGridProps>(() => ({
-  border: true,
-  showOverflow: true,
-  rowConfig: { isHover: true },
-  checkboxConfig: { highlight: true },
-  loading: loading.value,
-  data: list.value,
-  columns: [
-    { type: 'checkbox', width: 55, fixed: 'left' },
-    { field: 'name', title: t('tools.tunnel.name'), minWidth: 100, fixed: 'left' },
-    { field: 'type', title: t('tools.tunnel.proxyType'), width: 90, slots: { default: 'column-type' } },
-    { field: 'status', title: t('system.common.status'), width: 90, slots: { default: 'column-status' } },
-    { title: t('tools.tunnel.remotePort'), minWidth: 140, slots: { default: 'column-remote' } },
-    { title: t('tools.tunnel.target'), minWidth: 160, slots: { default: 'column-target' } },
-    { field: 'isEnable', title: t('system.common.enabled'), width: 80, slots: { default: 'column-isEnable' } },
-    { title: t('tools.tunnel.stats.connections'), width: 90, slots: { default: 'column-connections' } },
-    { title: t('tools.tunnel.stats.traffic'), minWidth: 170, slots: { default: 'column-traffic' } },
-    { field: 'createTime', title: t('system.common.createTime'), minWidth: 180 },
-    { title: t('system.common.operation'), width: 280, fixed: 'right', showOverflow: false, slots: { default: 'column-operation' } },
-  ],
-}))
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'name', title: t('tools.tunnel.name'), minWidth: 110 },
+  { key: 'type', title: t('tools.tunnel.proxyType'), width: 90 },
+  { key: 'status', title: t('tools.tunnel.statusCol'), width: 90 },
+  { key: 'remote', title: t('tools.tunnel.remotePort'), minWidth: 130 },
+  { key: 'target', title: t('tools.tunnel.target'), minWidth: 150 },
+  { key: 'isEnable', title: t('tools.tunnel.enabled'), width: 80 },
+  { key: 'connections', title: t('tools.tunnel.stats.connections'), width: 80 },
+  { key: 'traffic', title: t('tools.tunnel.stats.traffic'), minWidth: 150 },
+  { key: 'createTime', title: t('tools.tunnel.createTime'), width: 140 },
+  { key: 'operation', title: t('tools.tunnel.operation'), width: 80, align: 'center' },
+])
 
-const reset = () => {
-  queryFormRef.value?.resetFields()
-  pagination.value.page = 1
-  getList()
+const rowActions = computed<ActionMenuItem[]>(() => [
+  { key: 'stats', label: t('tools.tunnel.stats.details'), icon: 'HOutline:ChartBarIcon' },
+  { key: 'frpc', label: t('tools.tunnel.frpcConfig'), icon: 'HOutline:DocumentTextIcon' },
+  { key: 'edit', label: t('tools.tunnel.edit'), icon: 'HOutline:PencilSquareIcon' },
+  { key: 'delete', label: t('tools.tunnel.delete'), icon: 'HOutline:TrashIcon', danger: true },
+])
+
+const isAllSelected = computed(() => list.value.length > 0 && list.value.every((r) => selectedIds.value.includes(r.id)))
+const toggleSelectAll = () => {
+  selectedIds.value = isAllSelected.value ? [] : list.value.map((r) => r.id)
+}
+const toggleMobileSelect = (id: string) => {
+  const idx = selectedIds.value.indexOf(id)
+  if (idx === -1) selectedIds.value = [...selectedIds.value, id]
+  else selectedIds.value = selectedIds.value.filter((d) => d !== id)
+}
+
+const findRow = (id: string) => list.value.find((x) => x.id === id)
+const onRowAction = (key: string, row: Record<string, unknown>) => {
+  const record = findRow(String(row.id))
+  if (!record) return
+  if (key === 'stats') openStatsDialog(record)
+  else if (key === 'frpc') openFrpcDialog(record)
+  else if (key === 'edit') openEditDialog(record)
+  else if (key === 'delete') confirmDelete(record)
 }
 
 const getList = async () => {
@@ -305,15 +284,28 @@ const getList = async () => {
     const { data } = await listTunnels({
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
-      keywords: queryForm.value.keywords || undefined,
-      type: queryForm.value.type || undefined,
-      isEnable: queryForm.value.isEnable,
+      keywords: queryForm.keywords || undefined,
+      type: (queryForm.type || undefined) as TunnelType | undefined,
+      isEnable: queryForm.isEnable === '' ? undefined : queryForm.isEnable === 'true',
     })
     list.value = data?.infos || []
     pagination.value.total = Number(data?.total) || 0
+  } catch {
+    list.value = []
+    pagination.value.total = 0
   } finally {
     loading.value = false
   }
+}
+const search = () => {
+  pagination.value.page = 1
+  getList()
+}
+const reset = () => {
+  queryForm.keywords = ''
+  queryForm.type = ''
+  queryForm.isEnable = ''
+  search()
 }
 
 const loadFrpsConfig = async () => {
@@ -321,79 +313,69 @@ const loadFrpsConfig = async () => {
     const { data } = await getFrpsConfig()
     frpsConfig.value = data?.config || null
   } catch {
-    // 非致命：frpc 配置弹窗会回退到占位地址
+    /* non-fatal */
   }
 }
-
 const onFrpsSaved = (config: FrpsConfig) => {
   frpsConfig.value = config
   getList()
 }
 
-const selectionChange = ({ records }: { records: TunnelInfo[] }) => {
-  deleteIds.value = records.map((item) => item.id)
-}
-
-const toggleMobileSelect = (id: string) => {
-  const idx = deleteIds.value.indexOf(id)
-  if (idx === -1) {
-    deleteIds.value = [...deleteIds.value, id]
-  } else {
-    deleteIds.value = deleteIds.value.filter((d) => d !== id)
-  }
-}
-
 const openCreateDialog = () => createRef.value?.showDialog()
 const openEditDialog = (row: TunnelInfo) => createRef.value?.showDialog(row)
-
 const openStatsDialog = (row: TunnelInfo) => {
   statsRow.value = row
   statsVisible.value = true
 }
-
 const openFrpcDialog = (row: TunnelInfo) => {
   frpcRow.value = row
   frpcVisible.value = true
 }
 
-const toggleEnable = async (row: TunnelInfo, val: boolean) => {
+const toggleEnable = async (row: Record<string, unknown>, val: boolean) => {
+  const record = findRow(String(row.id))
+  if (!record) return
   try {
-    const { data } = await updateTunnel({ id: row.id, isEnable: val })
+    const { data } = await updateTunnel({ id: record.id, isEnable: val })
     if (data?.info) {
-      row.isEnable = data.info.isEnable
-      row.status = data.info.status
+      record.isEnable = data.info.isEnable
+      record.status = data.info.status
       ElMessage.success(data.info.isEnable ? t('tools.tunnel.enabled') : t('tools.tunnel.disabled'))
     }
   } catch {
-    // error handled by interceptor
+    /* interceptor */
   }
 }
 
 const confirmDelete = (row: TunnelInfo) => {
-  ElMessageBox.confirm(t('tools.tunnel.confirmDeleteRule'), t('tools.tunnel.confirmDeleteTitle'), {
-    type: 'warning',
-    confirmButtonText: t('tools.tunnel.confirmDeleteText'),
-    cancelButtonText: t('system.common.cancel'),
-  })
-    .then(async () => {
+  Dialog.confirm({
+    title: t('tools.tunnel.confirmDeleteTitle'),
+    content: t('tools.tunnel.confirmDeleteRule'),
+    confirmText: t('tools.tunnel.confirmDeleteText'),
+    cancelText: t('tools.tunnel.cancel'),
+    onConfirm: async () => {
       await deleteTunnel({ id: row.id })
-      ElMessage.success(t('system.common.deleteSuccess'))
-      deleteIds.value = deleteIds.value.filter((d) => d !== row.id)
+      ElMessage.success(t('tools.tunnel.deleteSuccess'))
+      selectedIds.value = selectedIds.value.filter((d) => d !== row.id)
       getList()
-    })
-    .catch(() => { /* cancelled */ })
+    },
+  })
 }
 
-const batchDelete = async () => {
-  if (!deleteIds.value.length) return
-  try {
-    await Promise.all(deleteIds.value.map((id) => deleteTunnel({ id })))
-    ElMessage.success(t('tools.tunnel.batchDeleteSuccess'))
-    deleteIds.value = []
-    getList()
-  } catch {
-    // error handled by interceptor
-  }
+const batchDelete = () => {
+  if (!selectedIds.value.length) return
+  Dialog.confirm({
+    title: t('tools.tunnel.confirmDeleteTitle'),
+    content: t('tools.tunnel.confirmDeleteSelected'),
+    confirmText: t('tools.tunnel.confirmDeleteText'),
+    cancelText: t('tools.tunnel.cancel'),
+    onConfirm: async () => {
+      await Promise.all(selectedIds.value.map((id) => deleteTunnel({ id })))
+      ElMessage.success(t('tools.tunnel.batchDeleteSuccess'))
+      selectedIds.value = []
+      getList()
+    },
+  })
 }
 
 const refresh = (type: 'create' | 'update') => {
@@ -408,125 +390,110 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.tn-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
+.tn-page { display: flex; flex-direction: column; gap: 10px; }
+.tn-page__body { display: flex; flex-direction: column; gap: 8px; }
+@media (width <= 768px) {
+  .tn-page { gap: 8px; }
+  .tn-page__body { gap: 6px; }
+  .tn-page__batch { padding: 6px 10px; }
 }
-
-.tn-actions :deep(.el-button) {
-  margin-left: 0;
+.tn-page__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tn-page__hint { font-size: 0.8125rem; color: var(--el-text-color-secondary); font-variant-numeric: tabular-nums; }
+.tn-page__selall {
+  border: none; background: transparent; color: var(--el-color-primary);
+  font-size: 0.8125rem; cursor: pointer;
 }
-
-.mono-text {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-  font-size: 0.88rem;
+.tn-page__batch {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 12px; border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius); background: color-mix(in srgb, var(--el-color-primary) 6%, transparent);
 }
-
-.tn-traffic {
-  display: inline-flex;
-  flex-direction: column;
-  line-height: 1.3;
-  font-size: 0.8rem;
+.tn-page__batch-count { font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
+.tn-page__batch-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tn-mono {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.78rem;
 }
-
-.tn-traffic-item {
-  white-space: nowrap;
-  color: var(--el-text-color-regular);
-}
-
-/* ===== mobile ===== */
-.mobile-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.mobile-empty {
-  padding: 1.5rem 0;
-}
-
+.tn-traffic { font-size: 0.75rem; color: var(--el-text-color-secondary); font-variant-numeric: tabular-nums; }
+/* 移动紧凑行卡：三行密度 */
+.tn-cards { display: flex; flex-direction: column; gap: 6px; }
 .tn-card {
-  position: relative;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid var(--el-border-color-extra-light);
-  border-radius: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius);
   background: var(--el-bg-color);
-  transition: border-color 0.15s;
 }
-
 .tn-card.is-selected {
   border-color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 4%, var(--el-bg-color));
+  background: color-mix(in srgb, var(--el-color-primary) 6%, var(--el-bg-color));
 }
-
-.tn-card-check {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.7rem;
-  z-index: 1;
-}
-
-.tn-card-header {
+.tn-card__top {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-right: 2rem;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
 }
-
-.tn-card-name {
-  font-size: 0.9rem;
-  font-weight: 700;
+.tn-card__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.tn-card__check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  accent-color: var(--el-color-primary);
+}
+.tn-card__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
 }
-
-.tn-card-body {
-  margin-top: 0.55rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.tn-card-meta {
+.tn-card__route {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.76rem;
-  color: var(--el-text-color-secondary);
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-regular);
+  overflow: hidden;
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
-
-.tn-card-time {
+.tn-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tn-card__meta {
+  flex: 1;
+  min-width: 0;
   font-size: 0.7rem;
   color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.tn-card-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--el-border-color-extra-light);
+.tn-skeleton {
+  height: 72px;
+  border-radius: var(--app-radius);
+  background: linear-gradient(100deg, var(--el-fill-color-light) 30%, var(--el-fill-color) 50%, var(--el-fill-color-light) 70%);
+  background-size: 200% 100%;
+  animation: tn-shimmer 1.4s ease-in-out infinite;
 }
-
-/* ===== mobile batch bar ===== */
-.mobile-batch-bar {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.65rem -0.5rem -0.5rem;
-  padding: 0.6rem 0.75rem;
-  background: var(--el-bg-color);
-  border-top: 1px solid var(--el-border-color);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--el-text-color-secondary);
-}
+@keyframes tn-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 </style>

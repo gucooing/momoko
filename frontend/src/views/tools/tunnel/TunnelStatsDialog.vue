@@ -1,19 +1,18 @@
+<!-- 隧道统计（重写）：FormDialog + 摘要 + 时间段 seg + echarts。逻辑保留（速率差分、轮询）。 -->
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="visible"
     :title="dialogTitle"
-    width="820"
+    :width="820"
     :show-footer="false"
-    @opened="handleOpened"
+    overflow-visible
     @close="handleClosed"
   >
     <div class="tn-stats">
       <div class="tn-stats-bar">
-        <el-tag size="small" type="primary">{{ typeLabel }}</el-tag>
+        <StatusPill variant="primary" :label="typeLabel" :dot="false" />
         <span class="tn-stats-route mono">{{ routeText }}</span>
-        <span class="tn-stats-state" :class="online ? 'is-online' : 'is-offline'">
-          <span class="tn-stats-dot" />{{ online ? t('tools.tunnel.stats.online') : t('tools.tunnel.stats.offline') }}
-        </span>
+        <StatusPill :variant="online ? 'success' : 'neutral'" :label="online ? t('tools.tunnel.stats.online') : t('tools.tunnel.stats.offline')" />
       </div>
       <div class="tn-stats-metrics">
         <span><i>{{ t('tools.tunnel.stats.activeConnections') }}</i><b>{{ activeConnections }}</b></span>
@@ -22,100 +21,71 @@
       </div>
 
       <div class="tn-stats-toolbar">
-        <el-radio-group v-model="rangeKey" size="small" @change="onRangeChange">
-          <el-radio-button value="5m">{{ t('tools.tunnel.stats.range5m') }}</el-radio-button>
-          <el-radio-button value="30m">{{ t('tools.tunnel.stats.range30m') }}</el-radio-button>
-          <el-radio-button value="1h">{{ t('tools.tunnel.stats.range1h') }}</el-radio-button>
-          <el-radio-button value="6h">{{ t('tools.tunnel.stats.range6h') }}</el-radio-button>
-          <el-radio-button value="24h">{{ t('tools.tunnel.stats.range24h') }}</el-radio-button>
-          <el-radio-button value="custom">{{ t('tools.tunnel.stats.rangeCustom') }}</el-radio-button>
-        </el-radio-group>
+        <div class="seg">
+          <button
+            v-for="opt in rangeOptions"
+            :key="opt.value"
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': rangeKey === opt.value }"
+            @click="setRange(opt.value)"
+          >{{ opt.label }}</button>
+        </div>
         <template v-if="rangeKey === 'custom'">
-          <el-date-picker
-            v-model="customStart"
-            type="datetime"
-            size="small"
-            format="MM-DD HH:mm"
-            :placeholder="t('tools.tunnel.stats.rangeStart')"
-            :clearable="false"
-            class="tn-stats-dt"
+          <input
+            v-model="customStartLocal"
+            type="datetime-local"
+            class="app-input tn-stats-dt"
+            :aria-label="t('tools.tunnel.stats.rangeStart')"
             @change="onCustomChange"
           />
           <span class="tn-stats-muted">~</span>
-          <el-date-picker
-            v-model="customEnd"
-            type="datetime"
-            size="small"
-            format="MM-DD HH:mm"
-            :placeholder="t('tools.tunnel.stats.rangeEnd')"
-            :clearable="false"
-            class="tn-stats-dt"
+          <input
+            v-model="customEndLocal"
+            type="datetime-local"
+            class="app-input tn-stats-dt"
+            :aria-label="t('tools.tunnel.stats.rangeEnd')"
             @change="onCustomChange"
           />
         </template>
         <span class="tn-stats-spacer" />
-        <el-button size="small" :icon="menuStore.iconComponents.Refresh" :loading="loading" @click="refresh">
+        <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-refresh-cw" :loading="loading" @click="refresh">
           {{ t('tools.tunnel.stats.refresh') }}
-        </el-button>
-        <el-checkbox v-model="autoRefresh" size="small" @change="restartPolling">
-          {{ t('tools.tunnel.stats.autoRefresh') }}
-        </el-checkbox>
+        </UButton>
+        <label class="tn-stats-check">
+          <input v-model="autoRefresh" type="checkbox" @change="restartPolling" />
+          <span>{{ t('tools.tunnel.stats.autoRefresh') }}</span>
+        </label>
       </div>
 
       <div class="tn-stats-chart-wrap">
         <div ref="chartEl" class="tn-stats-chart" />
         <div v-if="!points.length && !loading" class="tn-stats-empty">
-          <el-empty :description="t('tools.tunnel.stats.noData')" :image-size="60" />
+          <EmptyState icon="HOutline:ChartBarIcon" :title="t('tools.tunnel.stats.noData')" />
         </div>
       </div>
     </div>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
-
 import { getTunnelStats } from '@/api/tunnel'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { TunnelType, type TunnelInfo, type TunnelStatPoint } from '@/types/v1/tunnel'
 import { showRequestError } from '@/utils/request'
 
 type RangeKey = '5m' | '30m' | '1h' | '6h' | '24h' | 'custom'
-
-type ChartPoint = {
-  time: string
-  activeConnections: number
-  inboundRate: number
-  outboundRate: number
-}
-
-type ChartTooltipParam = {
-  axisValueLabel?: string
-  marker?: string
-  seriesName?: string
-  value?: number | string
-}
+type ChartPoint = { time: string; activeConnections: number; inboundRate: number; outboundRate: number }
+type ChartTooltipParam = { axisValueLabel?: string; marker?: string; seriesName?: string; value?: number | string }
 
 const POLL_INTERVAL_MS = 10000
 const PRESET_SECONDS: Record<Exclude<RangeKey, 'custom'>, number> = {
-  '5m': 300,
-  '30m': 1800,
-  '1h': 3600,
-  '6h': 21600,
-  '24h': 86400,
+  '5m': 300, '30m': 1800, '1h': 3600, '6h': 21600, '24h': 86400,
 }
 
-const props = defineProps<{
-  modelValue: boolean
-  row: TunnelInfo | null
-}>()
-
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
-
-const menuStore = useMenuStore()
+const props = defineProps<{ modelValue: boolean; row: TunnelInfo | null }>()
+const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 const { t, locale } = useI18n()
 
 const visible = computed({
@@ -138,24 +108,42 @@ const points = ref<ChartPoint[]>([])
 let chart: echarts.ECharts | null = null
 let pollTimer: ReturnType<typeof setTimeout> | null = null
 
+const toLocalInput = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+const customStartLocal = computed({
+  get: () => (customStart.value ? toLocalInput(customStart.value) : ''),
+  set: (v: string) => { customStart.value = v ? new Date(v) : null },
+})
+const customEndLocal = computed({
+  get: () => (customEnd.value ? toLocalInput(customEnd.value) : ''),
+  set: (v: string) => { customEnd.value = v ? new Date(v) : null },
+})
+
+const rangeOptions = computed(() => [
+  { value: '5m' as RangeKey, label: t('tools.tunnel.stats.range5m') },
+  { value: '30m' as RangeKey, label: t('tools.tunnel.stats.range30m') },
+  { value: '1h' as RangeKey, label: t('tools.tunnel.stats.range1h') },
+  { value: '6h' as RangeKey, label: t('tools.tunnel.stats.range6h') },
+  { value: '24h' as RangeKey, label: t('tools.tunnel.stats.range24h') },
+  { value: 'custom' as RangeKey, label: t('tools.tunnel.stats.rangeCustom') },
+])
+
 const dialogTitle = computed(() => {
   const name = props.row?.name
   return name ? t('tools.tunnel.stats.titleWithName', { name }) : t('tools.tunnel.stats.title')
 })
-
 const typeLabel = computed(() => (props.row?.type || TunnelType.TUNNEL_TYPE_TCP).replace('TUNNEL_TYPE_', ''))
-
 const routeText = computed(() => {
   const row = props.row
   if (!row) return ''
-  const type = row.type
-  if ([TunnelType.TUNNEL_TYPE_HTTP, TunnelType.TUNNEL_TYPE_HTTPS].includes(type)) {
+  if ([TunnelType.TUNNEL_TYPE_HTTP, TunnelType.TUNNEL_TYPE_HTTPS].includes(row.type)) {
     return row.customDomains || row.subdomain || '-'
   }
   const local = `${row.localIp || '127.0.0.1'}:${row.localPort || 0}`
   return row.remotePort ? `:${row.remotePort} → ${local}` : local
 })
-
 const chartLabels = computed(() => ({
   connections: t('tools.tunnel.stats.connectionsChart'),
   inbound: t('tools.tunnel.stats.inbound'),
@@ -163,22 +151,16 @@ const chartLabels = computed(() => ({
 }))
 
 const toNumber = (value?: number | string) => Number(value || 0)
-
 const formatBytes = (bytes?: number | string) => {
   const n = Number(bytes)
   if (!n) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   let i = 0
   let v = n
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024
-    i++
-  }
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++ }
   return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
 }
-
 const formatRate = (bytesPerSecond?: number | string) => `${formatBytes(bytesPerSecond)}/s`
-
 const formatAxisTime = (date: Date) => {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`
@@ -196,8 +178,8 @@ const resolveRange = (): { startTimeMs: number; endTimeMs: number } => {
   return { startTimeMs: end - seconds * 1000, endTimeMs: end }
 }
 
-const buildChartPoints = (raw: TunnelStatPoint[]): ChartPoint[] => {
-  return raw.map((point, index) => {
+const buildChartPoints = (raw: TunnelStatPoint[]): ChartPoint[] =>
+  raw.map((point, index) => {
     const time = point.time ? new Date(point.time) : new Date()
     const bytesIn = toNumber(point.bytesIn)
     const bytesOut = toNumber(point.bytesOut)
@@ -210,121 +192,98 @@ const buildChartPoints = (raw: TunnelStatPoint[]): ChartPoint[] => {
       inboundRate = Math.max(0, (bytesIn - toNumber(prev.bytesIn)) / dt)
       outboundRate = Math.max(0, (bytesOut - toNumber(prev.bytesOut)) / dt)
     }
-    return {
-      time: formatAxisTime(time),
-      activeConnections: toNumber(point.activeConnections),
-      inboundRate,
-      outboundRate,
-    }
+    return { time: formatAxisTime(time), activeConnections: toNumber(point.activeConnections), inboundRate, outboundRate }
   })
-}
 
 const tooltipFormatter = (params: unknown) => {
   const items = (Array.isArray(params) ? params : [params]) as ChartTooltipParam[]
   const title = items[0]?.axisValueLabel || ''
-  const rows = items
-    .map((item) => {
-      const name = item.seriesName || ''
-      const value = Number(item.value ?? 0)
-      const text = name === chartLabels.value.connections ? String(value) : formatRate(value)
-      return `<div class="tn-stats-tooltip__row"><span>${item.marker || ''}${name}</span><strong>${text}</strong></div>`
-    })
-    .join('')
+  const rows = items.map((item) => {
+    const name = item.seriesName || ''
+    const value = Number(item.value ?? 0)
+    const text = name === chartLabels.value.connections ? String(value) : formatRate(value)
+    return `<div class="tn-stats-tooltip__row"><span>${item.marker || ''}${name}</span><strong>${text}</strong></div>`
+  }).join('')
   return `<div class="tn-stats-tooltip"><div class="tn-stats-tooltip__title">${title}</div>${rows}</div>`
+}
+
+const themeColors = () => {
+  const isDark = document.documentElement.classList.contains('dark')
+  return {
+    isDark,
+    text: isDark ? '#c9d1d9' : '#4b5563',
+    muted: isDark ? '#8b949e' : '#9ca3af',
+    split: isDark ? 'rgba(148,163,184,0.18)' : '#e5e7eb',
+    bg: isDark ? '#0d1117' : '#ffffff',
+  }
 }
 
 const ensureChart = () => {
   if (!chartEl.value) return
-  if (!chart) chart = echarts.init(chartEl.value)
+  if (!chart) chart = echarts.init(chartEl.value, undefined, { renderer: 'canvas' })
 }
 
 const updateChart = (animate = false) => {
   ensureChart()
   if (!chart) return
   const labels = chartLabels.value
-
-  const option: echarts.EChartsOption = {
+  const theme = themeColors()
+  const showSymbol = points.value.length > 0 && points.value.length <= 8
+  chart.setOption({
+    backgroundColor: theme.bg,
     animation: animate,
-    animationDuration: 600,
-    animationDurationUpdate: 500,
-    animationEasing: 'cubicOut',
-    animationEasingUpdate: 'cubicOut',
+    animationDuration: 400,
+    animationDurationUpdate: 300,
     color: ['#2f7cff', '#13b981', '#f59e0b'],
-    tooltip: { trigger: 'axis', formatter: tooltipFormatter, confine: true },
+    tooltip: {
+      trigger: 'axis',
+      formatter: tooltipFormatter,
+      confine: true,
+      backgroundColor: theme.isDark ? '#161b22' : '#fff',
+      borderColor: theme.split,
+      textStyle: { color: theme.text, fontSize: 12 },
+    },
     legend: {
-      top: 4,
-      left: 8,
-      itemWidth: 10,
-      itemHeight: 10,
-      itemGap: 12,
+      top: 4, left: 8, itemWidth: 10, itemHeight: 10, itemGap: 12,
+      textStyle: { color: theme.text, fontSize: 11 },
       data: [labels.connections, labels.inbound, labels.outbound],
     },
-    grid: { top: 38, left: 44, right: 70, bottom: 28 },
+    grid: { top: 40, left: 48, right: 72, bottom: 30 },
     xAxis: {
-      type: 'category',
-      boundaryGap: false,
+      type: 'category', boundaryGap: false,
       data: points.value.map((item) => item.time),
       axisTick: { alignWithLabel: true },
+      axisLabel: { color: theme.muted, fontSize: 11 },
+      axisLine: { lineStyle: { color: theme.split } },
     },
     yAxis: [
-      {
-        type: 'value',
-        min: 0,
-        minInterval: 1,
-        splitLine: { lineStyle: { color: '#e5e7eb' } },
-      },
-      {
-        type: 'value',
-        min: 0,
-        axisLabel: { formatter: (value: number) => formatRate(value) },
-        splitLine: { show: false },
-      },
+      { type: 'value', min: 0, minInterval: 1, splitLine: { lineStyle: { color: theme.split } }, axisLabel: { color: theme.muted, fontSize: 11 } },
+      { type: 'value', min: 0, axisLabel: { formatter: (value: number) => formatRate(value), color: theme.muted, fontSize: 11 }, splitLine: { show: false } },
     ],
     series: [
-      {
-        name: labels.connections,
-        type: 'line',
-        yAxisIndex: 0,
-        data: points.value.map((item) => item.activeConnections),
-        showSymbol: false,
-        smooth: true,
-        lineStyle: { width: 2 },
-      },
-      {
-        name: labels.inbound,
-        type: 'line',
-        yAxisIndex: 1,
-        data: points.value.map((item) => item.inboundRate),
-        showSymbol: false,
-        smooth: true,
-        areaStyle: { opacity: 0.08 },
-        lineStyle: { width: 2 },
-      },
-      {
-        name: labels.outbound,
-        type: 'line',
-        yAxisIndex: 1,
-        data: points.value.map((item) => item.outboundRate),
-        showSymbol: false,
-        smooth: true,
-        areaStyle: { opacity: 0.08 },
-        lineStyle: { width: 2 },
-      },
+      { name: labels.connections, type: 'line', yAxisIndex: 0, data: points.value.map((i) => i.activeConnections), showSymbol, symbolSize: 6, smooth: true, lineStyle: { width: 2 } },
+      { name: labels.inbound, type: 'line', yAxisIndex: 1, data: points.value.map((i) => i.inboundRate), showSymbol, symbolSize: 6, smooth: true, areaStyle: { opacity: theme.isDark ? 0.12 : 0.08 }, lineStyle: { width: 2 } },
+      { name: labels.outbound, type: 'line', yAxisIndex: 1, data: points.value.map((i) => i.outboundRate), showSymbol, symbolSize: 6, smooth: true, areaStyle: { opacity: theme.isDark ? 0.12 : 0.08 }, lineStyle: { width: 2 } },
     ],
-  }
-  chart.setOption(option)
+  })
+  requestAnimationFrame(() => chart?.resize())
+}
+
+const stopPolling = () => {
+  if (pollTimer) { clearTimeout(pollTimer); pollTimer = null }
+}
+const schedulePolling = () => {
+  stopPolling()
+  if (!visible.value || !autoRefresh.value) return
+  pollTimer = setTimeout(() => { void loadStats() }, POLL_INTERVAL_MS)
 }
 
 const loadStats = async (animate = false) => {
-  if (!props.row?.id || loading.value) return
+  if (!props.row?.id) return
   loading.value = true
   try {
     const range = resolveRange()
-    const { data } = await getTunnelStats({
-      id: props.row.id,
-      startTimeMs: range.startTimeMs,
-      endTimeMs: range.endTimeMs,
-    })
+    const { data } = await getTunnelStats({ id: props.row.id, startTimeMs: range.startTimeMs, endTimeMs: range.endTimeMs })
     const snapshot = data?.snapshot
     online.value = !!snapshot?.online
     activeConnections.value = toNumber(snapshot?.activeConnections)
@@ -333,6 +292,8 @@ const loadStats = async (animate = false) => {
     points.value = buildChartPoints(data?.points || [])
     await nextTick()
     updateChart(animate)
+    await nextTick()
+    chart?.resize()
   } catch (error) {
     showRequestError(error, t('tools.tunnel.stats.loadFailed'))
   } finally {
@@ -341,43 +302,22 @@ const loadStats = async (animate = false) => {
   }
 }
 
-const stopPolling = () => {
-  if (pollTimer) {
-    clearTimeout(pollTimer)
-    pollTimer = null
-  }
-}
-
-const schedulePolling = () => {
-  stopPolling()
-  if (!visible.value || !autoRefresh.value) return
-  pollTimer = setTimeout(() => {
-    void loadStats()
-  }, POLL_INTERVAL_MS)
-}
-
 const refresh = () => {
   stopPolling()
+  loading.value = false
   void loadStats(true)
 }
-
-const onRangeChange = () => {
-  if (rangeKey.value === 'custom' && (!customStart.value || !customEnd.value)) {
+const setRange = (key: RangeKey) => {
+  rangeKey.value = key
+  if (key === 'custom' && (!customStart.value || !customEnd.value)) {
     const now = new Date()
     customStart.value = new Date(now.getTime() - 3600 * 1000)
     customEnd.value = now
   }
   refresh()
 }
-
-const onCustomChange = () => {
-  if (customStart.value && customEnd.value) refresh()
-}
-
-const restartPolling = () => {
-  if (autoRefresh.value) schedulePolling()
-  else stopPolling()
-}
+const onCustomChange = () => { if (customStart.value && customEnd.value) refresh() }
+const restartPolling = () => { if (autoRefresh.value) schedulePolling(); else stopPolling() }
 
 const handleOpened = async () => {
   await nextTick()
@@ -385,22 +325,12 @@ const handleOpened = async () => {
   chart?.resize()
   await loadStats(true)
 }
+const handleClosed = () => { stopPolling(); points.value = [] }
 
-const handleClosed = () => {
-  stopPolling()
-  points.value = []
-}
-
+watch(visible, (open) => { if (open) void handleOpened(); else handleClosed() })
+watch(locale, () => { if (visible.value) updateChart() })
 const resizeChart = () => chart?.resize()
-
-watch(locale, () => {
-  if (visible.value) updateChart()
-})
-
-onMounted(() => {
-  window.addEventListener('resize', resizeChart)
-})
-
+onMounted(() => window.addEventListener('resize', resizeChart))
 onBeforeUnmount(() => {
   stopPolling()
   window.removeEventListener('resize', resizeChart)
@@ -410,149 +340,93 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.tn-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.tn-stats-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
-  font-size: 0.82rem;
-}
-
-.tn-stats-route {
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-
-.tn-stats-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.tn-stats-state.is-online {
-  color: var(--el-color-success);
-}
-
-.tn-stats-state.is-offline {
-  color: var(--el-text-color-secondary);
-}
-
-.tn-stats-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.tn-stats-muted {
-  color: var(--el-text-color-secondary);
-}
-
+.tn-stats { display: flex; flex-direction: column; gap: 10px; }
+.tn-stats-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 0.8125rem; }
+.tn-stats-route { color: var(--el-text-color-primary); font-weight: 600; }
 .tn-stats-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.4rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-
-  span {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.4rem;
-  }
-
-  i {
-    color: var(--el-text-color-secondary);
-    font-style: normal;
-    font-size: 0.78rem;
-  }
-
-  b {
-    color: var(--el-text-color-primary);
-    font-size: 0.95rem;
-    font-variant-numeric: tabular-nums;
-  }
+  display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 8px 12px;
+  border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius);
+  span { display: inline-flex; align-items: baseline; gap: 6px; }
+  i { color: var(--el-text-color-secondary); font-style: normal; font-size: 0.75rem; }
+  b { color: var(--el-text-color-primary); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 }
-
 .tn-stats-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 6px 8px;
 }
-
+.seg {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex: 0 1 auto;
+  padding: 2px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.seg__btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.seg__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
+}
 .tn-stats-dt {
-  width: 9.5rem;
+  width: 11.5rem;
+  max-width: 100%;
+  height: 32px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
 }
-
-.tn-stats-spacer {
-  flex: 1;
+.tn-stats-spacer { flex: 1 1 8px; min-width: 0; }
+.tn-stats-muted { color: var(--el-text-color-secondary); }
+.tn-stats-check {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;
+  color: var(--el-text-color-regular); cursor: pointer; user-select: none;
 }
-
+.tn-stats-check input { accent-color: var(--el-color-primary); }
 .tn-stats-chart-wrap {
   position: relative;
   width: 100%;
   height: 16rem;
+  min-height: 256px;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
+  border-radius: var(--app-radius);
+  overflow: hidden;
+  background: var(--el-bg-color);
 }
-
 .tn-stats-chart {
   width: 100%;
   height: 100%;
+  min-height: 256px;
 }
-
 .tn-stats-empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--el-bg-color);
-  border-radius: 8px;
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--el-bg-color); border-radius: var(--app-radius);
 }
-
-:global(.tn-stats-tooltip) {
-  min-width: 11rem;
-}
-
-:global(.tn-stats-tooltip__title) {
-  margin-bottom: 0.35rem;
-  color: var(--el-text-color-regular);
-  font-weight: 600;
-}
-
-:global(.tn-stats-tooltip__row) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  line-height: 1.6;
-}
-
-:global(.tn-stats-tooltip__row span) {
-  color: var(--el-text-color-secondary);
-}
-
-.mono {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-}
-
-@media (max-width: 768px) {
-  .tn-stats-spacer {
-    display: none;
-  }
-
-  .tn-stats-dt {
-    flex: 1;
-    width: auto;
-  }
+.mono { font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace; }
+:global(.tn-stats-tooltip) { min-width: 11rem; }
+:global(.tn-stats-tooltip__title) { margin-bottom: 0.35rem; color: var(--el-text-color-regular); font-weight: 600; }
+:global(.tn-stats-tooltip__row) { display: flex; justify-content: space-between; gap: 1rem; line-height: 1.6; }
+:global(.tn-stats-tooltip__row span) { color: var(--el-text-color-secondary); }
+@media (width <= 768px) {
+  .tn-stats-spacer { display: none; }
+  .tn-stats-dt { flex: 1; width: auto; }
 }
 </style>

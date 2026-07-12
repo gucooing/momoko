@@ -4,13 +4,19 @@
   <Teleport to="body">
     <Transition name="form-dialog">
       <div v-if="modelValue" class="form-dialog" @mousedown.self="onOverlay">
-        <div class="form-dialog__panel" :style="{ maxWidth: panelWidth }" role="dialog" aria-modal="true">
+        <div
+            class="form-dialog__panel"
+            :class="{ 'form-dialog__panel--overflow-visible': overflowVisible }"
+            :style="{ maxWidth: panelWidth }"
+            role="dialog"
+            aria-modal="true"
+          >
           <header class="form-dialog__head">
             <h3 class="form-dialog__title">{{ title }}</h3>
             <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :size="18" @click="close" />
           </header>
 
-          <div class="form-dialog__body"><slot /></div>
+          <div class="form-dialog__body" :class="{ 'form-dialog__body--overflow-visible': overflowVisible }"><slot /></div>
 
           <footer v-if="showFooter" class="form-dialog__foot">
             <slot name="footer" :close="close" :confirm="confirm">
@@ -41,8 +47,10 @@ const props = withDefaults(
     closeOnOverlay?: boolean
     confirmText?: string
     cancelText?: string
+    /** 允许 body 内原生弹出层（如 datetime-local 日历）不被裁切 */
+    overflowVisible?: boolean
   }>(),
-  { width: 600, showFooter: true, closeOnOverlay: true },
+  { width: 600, showFooter: true, closeOnOverlay: true, overflowVisible: false },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; confirm: []; close: [] }>()
 
@@ -113,6 +121,12 @@ onBeforeUnmount(() => {
 .form-dialog__body {
   padding: 20px;
   overflow-y: auto;
+}
+.form-dialog__panel--overflow-visible {
+  overflow: visible;
+}
+.form-dialog__body--overflow-visible {
+  overflow: visible;
 }
 .form-dialog__foot {
   display: flex;
