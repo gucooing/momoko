@@ -1702,6 +1702,9 @@ const dockerMessages = {
       },
     },
     image: {
+      title: '镜像',
+      pageDesc: '管理 Docker 镜像（拉取 / 打标签 / 历史 / 删除）',
+      emptyDesc: '还没有镜像，点击右上角拉取',
       keywordPlaceholder: '仓库名 / 标签',
       dangling: '悬空',
       pullImage: '拉取镜像',
@@ -1743,6 +1746,9 @@ const dockerMessages = {
     },
     network: {
       namePlaceholder: '网络名称',
+      title: '网络',
+      pageDesc: '管理 Docker 网络（创建 / 详情 / 删除）',
+      emptyDesc: '还没有网络，点击右上角创建',
       createNetwork: '创建网络',
       noNetworks: '暂无网络',
       containerMeta: '容器：{count}',
@@ -2039,6 +2045,9 @@ const dockerMessages = {
       },
     },
     image: {
+      title: '鏡像',
+      pageDesc: '管理 Docker 鏡像（拉取 / 打標籤 / 歷史 / 刪除）',
+      emptyDesc: '還沒有鏡像，點擊右上角拉取',
       keywordPlaceholder: '倉庫名 / 標籤',
       dangling: '懸空',
       pullImage: '拉取鏡像',
@@ -2080,6 +2089,9 @@ const dockerMessages = {
     },
     network: {
       namePlaceholder: '網絡名稱',
+      title: '網絡',
+      pageDesc: '管理 Docker 網絡（創建 / 詳情 / 刪除）',
+      emptyDesc: '還沒有網絡，點擊右上角創建',
       createNetwork: '創建網絡',
       noNetworks: '暫無網絡',
       containerMeta: '容器：{count}',
@@ -2376,6 +2388,9 @@ const dockerMessages = {
       },
     },
     image: {
+      title: 'Images',
+      pageDesc: 'Manage Docker images (pull / tag / history / delete)',
+      emptyDesc: 'No images yet — click "Pull" to fetch one',
       keywordPlaceholder: 'Repository / tag',
       dangling: 'Dangling',
       pullImage: 'Pull Image',
@@ -2417,6 +2432,9 @@ const dockerMessages = {
     },
     network: {
       namePlaceholder: 'Network name',
+      title: 'Networks',
+      pageDesc: 'Manage Docker networks (create / detail / delete)',
+      emptyDesc: 'No networks yet — click "Create" to add one',
       createNetwork: 'Create Network',
       noNetworks: 'No networks',
       containerMeta: 'Containers: {count}',
