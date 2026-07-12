@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% 完成；实例列表 + **终端(实例控制台/SSH)** 完成；Docker/文件/工具/仪表盘余项待推 |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% + 实例列表/类型 + API Key + SSH 管理 + **终端(实例控制台/SSH)** 完成；Docker/文件/工具/仪表盘余项待推 |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -102,13 +102,13 @@
 | 应用列表 | instance/list | P1 | ✅ | ✅ | ✅ | ✅ |
 | 实例控制台 | instance/console/:id | P6 | 🟡 | ⬜ | 🟡 | 🟡 PTY 直连已实机验证(键入/回显/ws 抓包);移动+浅色待验 |
 | 实例文件 | instance/files/:id | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 实例类型 | instance/type | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 实例类型 | instance/type | P1 | ✅ | ✅ | ✅ | ✅ |
 | Docker 容器 | docker/container | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Docker 镜像 | docker/image | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Docker 网络 | docker/network | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Docker 配置 | docker/config | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
-| API Key | node/key | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
-| SSH 管理 | openssh/management | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
+| API Key | node/key | P1 | ✅ | ✅ | ✅ | ✅ |
+| SSH 管理 | openssh/management | P1 | ✅ | ✅ | ✅ | ✅ |
 | SSH 终端 | openssh/terminal | P6 | 🟡 | ⬜ | 🟡 | 🟡 重写完成,htop+鼠标滚轮+初始 resize 实测通过;移动+浅色待验 |
 
 ### 工具/文件/Sub2API(`06c`)
@@ -184,4 +184,5 @@
 | 2026-07-11 | **用户反馈-总条数显示两次**：`Pagination` 组件自带的“共 N 条”与各页顶部 `X-page__bar-hint` 的总数重复（user/role/operation 都中招；menu 是树无分页故单次）。**统一从 `Pagination` 移除总数**（一处改动全解决）→ 全部页面总数只在顶部显示一次。**定时任务 `system/task`（P1 只读+行内操作）**：PageHeader(+刷新)+FilterBar(关键字+状态 AppSelect)+DataTable/移动卡+Pagination；令牌进度条（track+fill 按状态着色）、种类/状态 StatusPill、行内 `ActionMenu` 取消/重试/删除（按状态条件显示：active→取消、failed→重试、terminal→删除；删除走 Dialog.info）、2.5s 静默轮询。i18n 补 taskManager.pageTitle/pageDesc/allStatus/emptyDesc（三语）。浏览器验证桌面(表/进度/条件操作菜单)+移动卡+暗色，总数单次，lint+tsc 绿。 | 继续 Phase 3：`system/oidc`（系统管理最后一个列表页） |
 | 2026-07-11 | **OIDC 客户端 `system/oidc`（P1，系统管理最后一个列表页）**：按 P1 范式重写 `index.vue`（PageHeader+两操作按钮 OIDC配置/生成客户端 → FilterBar → DataTable/移动卡 → Pagination）+ 三个子件：`configDialog.vue`（服务端配置：AppSwitch 启用 + Issuer/当前域名 + 3 列 TTL + 只读端点复制区）、`clientForm.vue`（创建/编辑：名称/回调必填内联校验 + Scopes + AppSwitch 状态；保存后若返回**完整** secret(无`*`)则 emit reveal）、内联 reveal `FormDialog`（完整 Client Secret 仅一次 + 13 端点字段 + 单项/全部复制）。行内 编辑/刷新密钥/删除（Dialog.info 确认）。新建自建令牌组件 **`AppSwitch.vue`**（替代 el-switch）。文案硬编码中文（唯一 i18n key=`system.common.total`；Phase 4 统一）。保留 list/create/update/delete/refreshSecret/getConfig/updateConfig 契约 + `PERM.OIDC_EDIT`。**浏览器全链路验证**：桌面暗(列表/配置弹窗/创建→reveal 完整secret/行菜单/校验/删除确认)+桌面浅+移动390(强制卡/折叠筛选/简化分页)，创建真实客户端走通后删除清理，零控制台报错，vue-tsc+eslint 绿。**⚠️ 本页及 role/menu/operation/task 全部 Phase 3 改动仍未提交。** | Phase 3：`system/settings`(P3 配置型) 或转 实例/文件/Docker 模块；提交 Phase 3 批次 |
 | 2026-07-12 | **提交系统设置**（`f67e374`：`system/settings` P3 双 Tab + AppPanel 页脚 flex + i18n）→ 系统管理模块 100% 收口。**转 实例模块：应用列表 `instance/list`（P1，旗舰页）全量重写**：4 文件套 P1 范式——`index.vue`（PageHeader+FilterBar+批量条+卡/表切换+DataTable/卡片流+Pagination+受控 InstanceEditor，薄壳保留 `useInstanceListStore` 全部状态/动作契约与业务处理）、`instanceCard.vue`（EntityCard+StatusPill+ActionMenu+UButton，去 el-button/checkbox/dropdown/icon）、`instanceEditor.vue`（FormDialog+令牌字段+AppSelect+AppSwitch+内联校验，保留受控 props/emits）。表视图行操作收进 ActionMenu（控制台/配置/启动或停止/强制重启/文件管理/删除，删除按 owner 隐藏）。i18n 补 instance.title/pageDesc/allTypes/allStatus/emptyDesc/createTime（三语）。浏览器验证桌面暗（卡/表切换、行菜单全项、配置弹窗 fetch 回填 + 类型 AppSelect 浮层高于弹窗）+移动390（强制卡/折叠筛选/简化分页），零控制台报错，vue-tsc+eslint 绿。**⚠️ 用户第三次密度反馈**："总览占用大量空间 + 大组件大留白"——**删掉大号 MetricStrip 总览带**（P4 仪表盘才配），把 当前页运行/停止 计数**内联进列表工具条**（`共 N 条 · ●运行中 X · ●已停止 Y`，总数不再与「总实例」重复），删 `overviewStats.vue`。见 [[compact-density-appselect]] 新增「列表页禁大指标带」条。**未提交。** | 转 实例其余（`instance/type` 已存在待核）与 Docker/Node/工具/文件 P1 列表；套本页范式 + 密度铁律 |
+| 2026-07-12 | **P1 推广三页 + 新增 UserPicker**：①**实例类型 `instance/type`**（PageHeader+FilterBar[名称/状态]+内联计数[启用/禁用]+DataTable/移动卡+FormDialog[名称+AppSwitch 启用]，内置类型锁定，删除走 Dialog.info）。②**API Key `node/key`**（同范式+原生 `datetime-local` 过期时间+AppSwitch 永久有效[仅编辑]+复制 FormDialog[完整值一次+警示条]；行内 编辑/复制/刷新；**无删除接口**属原样保留）。③**SSH 管理 `openssh/management`**（可选表+批量测试/删除+行内 连接/测试/编辑/分享/删除[仅创建者]+分享 FormDialog；create 大表单 authType seg+条件密码/密钥[眼睛显隐]+patch-diff 更新；createTime 格式化修复宽度溢出）。新增自建 **`components/ui/UserPicker.vue`**（多选用户：预载全部用户 chips+可搜索 AppSelect 追加，替代 el-select multiple remote，SSH create/分享共用）。**踩坑**：`system.common.selectAll` 不存在（selectAll 在别的 `common` 命名空间）→ 移动端全选按钮显示原始 key，改用 `ssh.common.selectAll`（自加）。i18n 三语补 instance.type*/node.key.title+pageDesc/ssh.common.title+pageDesc+selectAll 等。**浏览器全验**：三页桌面暗/浅+移动，CRUD/弹窗/校验/批量/分享全链路，vue-tsc+eslint 绿。**未提交。** | 转 Docker(容器/镜像/网络+config) 或 工具(tunnel/port-forward) 或 文件(share/source) P1 列表 |
 | 2026-07-11 | **提交 Phase 3 批次**（`902082e`：role/menu/operation/task/oidc + AppSelect/AppSwitch/PermissionTree + 密度化 + i18n，24 文件）。**系统设置 `system/settings`（P3 双 Tab 配置页，系统管理最后一页）**：EP 整页重写为 PageHeader + 令牌 seg Tab 条（安全与认证/邮件配置）+ `AppPanel`(flush) 分组 + `.set-row`（label+desc / 控件，分区保存页脚）。控件：`AppSwitch`(替 el-switch)、令牌 `.app-input`/number/`.app-textarea`、`AppSelect`(替 el-select，模板类型；`@change` 不存在→用 `watch` 承接重载)、密码眼睛显隐、占位符 chips 快捷插入。3 个 `FormDialog`：测试邮件/模板测试(动态占位符字段)/预览(iframe srcdoc + 占位符黄底高亮)。保留全部 login/email/template API + `PERM.SYSTEM_CONFIG_EDIT` + 占位符插入/渲染逻辑。i18n 补 `settings.pageTitle/pageDesc`(三语)。**踩坑**：模板测试字段标签 `{{ '{{.'+name+'}}' }}` 在 Vue 文本插值里字面 `{{` 触发 eslint 解析错误 → 抽 `fieldToken()` helper 返回该串。**浏览器全链路验证**：桌面暗/浅(双 Tab、开关/输入/密码眼睛、AppSelect 切换 watch 重载、预览 iframe 高亮、模板测试动态字段、空收件禁用发送)+移动390(行竖堆/Tab 撑满/控件全宽)，零控制台报错，vue-tsc+eslint 绿。**⚠️ 未提交。** | Phase 3 转其余模块：实例/Docker(多 P1 列表)、文件分享/来源、工具、仪表盘 profile/analysis/monitor |

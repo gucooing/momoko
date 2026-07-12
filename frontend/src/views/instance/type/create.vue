@@ -1,74 +1,73 @@
+<!-- 实例类型 新建/编辑弹窗（重写 · P1）：FormDialog 外壳 + 令牌字段 + AppSwitch + 内联校验。
+     保留 ref 契约 showDialog(row?) + @refresh；直连 create/updateInstanceType。 -->
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="open"
     :title="submitForm.id ? t('instance.editInstanceType') : t('instance.addInstanceType')"
-    width="520"
+    :width="460"
+    :loading="submitLoading"
     @close="close"
+    @confirm="confirm"
   >
-    <el-form
-      ref="submitFormRef"
-      :model="submitForm"
-      :rules="formRules"
-      label-width="100px"
-      label-position="right"
-    >
-      <el-form-item :label="t('instance.typeName')" prop="name">
-        <el-input
+    <div class="type-form">
+      <div class="app-field">
+        <label class="app-label app-label--required">{{ t('instance.typeName') }}</label>
+        <input
           v-model="submitForm.name"
+          class="app-input"
+          :class="{ 'is-error': errors.name }"
           :placeholder="t('instance.typeNamePlaceholder')"
           maxlength="50"
-          clearable
+          @keyup.enter="confirm"
         />
-      </el-form-item>
+        <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
 
-      <el-form-item :label="t('instance.isEnabled')" prop="isEnable">
-        <el-radio-group v-model="submitForm.isEnable">
-          <el-radio :label="true">{{ t('common.enabled') }}</el-radio>
-          <el-radio :label="false">{{ t('common.disabled') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="close">{{ t('common.cancel') }}</el-button>
-      <el-button type="primary" :loading="submitLoading" @click="confirm">{{ t('common.confirm') }}</el-button>
-    </template>
-  </BaseDialog>
+      <div class="app-field type-form__switch">
+        <label class="app-label">{{ t('instance.isEnabled') }}</label>
+        <AppSwitch v-model="submitForm.isEnable" />
+      </div>
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { createInstanceType, updateInstanceType } from '@/api/instance'
 import type { InstanceTypeInfo } from '@/types/v1/instance'
-import { type FormInstance, type FormRules } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InstanceTypeCreate' })
 
-const emits = defineEmits(['refresh'])
-const submitFormRef = useTemplateRef<FormInstance>('submitFormRef')
+const emits = defineEmits<{ refresh: [] }>()
 const { t } = useI18n()
 
 const open = ref(false)
 const submitLoading = ref(false)
+const errors = ref<Record<string, string>>({})
 
 const getDefaultForm = () => ({
   id: undefined as string | undefined,
   name: '',
   isEnable: true,
 })
-
 const submitForm = ref(getDefaultForm())
 
 const close = () => {
   open.value = false
   submitLoading.value = false
-  submitFormRef.value?.resetFields()
+  errors.value = {}
   submitForm.value = getDefaultForm()
 }
 
+const validate = () => {
+  const e: Record<string, string> = {}
+  if (!submitForm.value.name.trim()) e.name = t('instance.instanceTypeNameRequired')
+  errors.value = e
+  return Object.keys(e).length === 0
+}
+
 const confirm = async () => {
-  await submitFormRef.value?.validate()
+  if (!validate()) return
 
   const payload = {
     name: submitForm.value.name.trim(),
@@ -82,7 +81,6 @@ const confirm = async () => {
     } else {
       await createInstanceType(payload)
     }
-
     ElMessage.success(submitForm.value.id ? t('instance.editSuccess') : t('instance.addSuccess'))
     emits('refresh')
     close()
@@ -92,36 +90,32 @@ const confirm = async () => {
 }
 
 const showDialog = (instanceType?: InstanceTypeInfo) => {
-  open.value = true
-
-  if (!instanceType) return
-
-  submitForm.value = {
-    id: instanceType.id,
-    name: instanceType.name,
-    isEnable: instanceType.isEnable,
+  errors.value = {}
+  if (instanceType) {
+    submitForm.value = {
+      id: instanceType.id,
+      name: instanceType.name,
+      isEnable: instanceType.isEnable,
+    }
+  } else {
+    submitForm.value = getDefaultForm()
   }
+  open.value = true
 }
 
-const formRules = computed<FormRules>(() => ({
-  name: [
-    {
-      validator: (_rule, value: string, callback) => {
-        if (!value?.trim()) {
-          callback(new Error(t('instance.instanceTypeNameRequired')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-  isEnable: [{ required: true, message: t('instance.isEnabledRequired'), trigger: 'change' }],
-}))
-
-defineExpose({
-  showDialog,
-})
+defineExpose({ showDialog })
 </script>
 
-<style></style>
+<style scoped lang="scss">
+.type-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.type-form__switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+</style>

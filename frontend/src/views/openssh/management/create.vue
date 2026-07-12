@@ -1,138 +1,166 @@
+<!-- SSH 连接 新建/编辑弹窗（重写 · P1）：FormDialog + 令牌字段 + authType seg + 条件密码/密钥（眼睛显隐）
+     + UserPicker 分享用户 + 内联校验。保留 patch-diff 更新（仅提交变更字段 + 非空凭据）与 ref 契约 showDialog(row?) + @refresh。 -->
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="open"
     :title="editingId ? t('ssh.common.editConnection') : t('ssh.common.addConnection')"
-    width="640"
+    :width="680"
+    :loading="loading"
     @close="close"
+    @confirm="confirm"
   >
-    <el-form
-      ref="formRef"
-      :model="form"
-      :rules="formRules"
-      label-width="100px"
-      label-position="right"
-    >
-      <el-form-item :label="t('ssh.common.name')" prop="name">
-        <el-input v-model="form.name" :placeholder="t('ssh.common.namePlaceholder')" />
-      </el-form-item>
-
-      <el-row :gutter="10">
-        <el-col :span="16">
-          <el-form-item :label="t('ssh.common.host')" prop="host" label-width="100px">
-            <el-input v-model="form.host" :placeholder="t('ssh.common.hostPlaceholder')" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item :label="t('ssh.common.port')" prop="port" label-width="60px">
-            <el-input-number v-model="form.port" :min="1" :max="65535" style="width: 100%" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <el-form-item :label="t('ssh.common.username')" prop="username">
-        <el-input v-model="form.username" :placeholder="t('ssh.common.usernamePlaceholder')" />
-      </el-form-item>
-
-      <el-form-item :label="t('ssh.common.authType')" prop="authType">
-        <el-radio-group v-model="form.authType">
-          <el-radio value="SSH_AUTH_TYPE_PASSWORD">{{ t('ssh.common.passwordLogin') }}</el-radio>
-          <el-radio value="SSH_AUTH_TYPE_KEY">{{ t('ssh.common.keyLogin') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item v-if="form.authType === 'SSH_AUTH_TYPE_PASSWORD'" :label="t('ssh.common.password')" prop="password">
-        <el-input
-          v-model="form.password"
-          type="password"
-          :placeholder="t('ssh.common.passwordPlaceholder')"
-          show-password
+    <div class="ssh-form">
+      <div class="app-field ssh-form__full">
+        <label class="app-label app-label--required">{{ t('ssh.common.name') }}</label>
+        <input
+          v-model="form.name"
+          class="app-input"
+          :class="{ 'is-error': errors.name }"
+          :placeholder="t('ssh.common.namePlaceholder')"
         />
-      </el-form-item>
+        <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
+
+      <div class="app-field ssh-form__host">
+        <label class="app-label app-label--required">{{ t('ssh.common.host') }}</label>
+        <input
+          v-model="form.host"
+          class="app-input"
+          :class="{ 'is-error': errors.host }"
+          :placeholder="t('ssh.common.hostPlaceholder')"
+        />
+        <span v-if="errors.host" class="app-field__error">{{ errors.host }}</span>
+      </div>
+      <div class="app-field ssh-form__port">
+        <label class="app-label app-label--required">{{ t('ssh.common.port') }}</label>
+        <input v-model.number="form.port" type="number" min="1" max="65535" class="app-input" />
+      </div>
+
+      <div class="app-field ssh-form__full">
+        <label class="app-label app-label--required">{{ t('ssh.common.username') }}</label>
+        <input
+          v-model="form.username"
+          class="app-input"
+          :class="{ 'is-error': errors.username }"
+          :placeholder="t('ssh.common.usernamePlaceholder')"
+        />
+        <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
+      </div>
+
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.common.authType') }}</label>
+        <div class="seg seg--wide">
+          <button
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': form.authType === 'SSH_AUTH_TYPE_PASSWORD' }"
+            @click="form.authType = 'SSH_AUTH_TYPE_PASSWORD'"
+          >
+            {{ t('ssh.common.passwordLogin') }}
+          </button>
+          <button
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': form.authType === 'SSH_AUTH_TYPE_KEY' }"
+            @click="form.authType = 'SSH_AUTH_TYPE_KEY'"
+          >
+            {{ t('ssh.common.keyLogin') }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="form.authType === 'SSH_AUTH_TYPE_PASSWORD'" class="app-field ssh-form__full">
+        <label class="app-label" :class="{ 'app-label--required': !editingId }">{{ t('ssh.common.password') }}</label>
+        <div class="ssh-form__pwd">
+          <input
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            class="app-input"
+            :class="{ 'is-error': errors.password }"
+            :placeholder="t('ssh.common.passwordPlaceholder')"
+            autocomplete="new-password"
+          />
+          <AppIconButton
+            :icon="showPassword ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'"
+            :label="t('ssh.common.password')"
+            :box="32"
+            @click="showPassword = !showPassword"
+          />
+        </div>
+        <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
+      </div>
 
       <template v-else>
-        <el-form-item :label="t('ssh.common.privateKey')" prop="privateKey">
-          <el-input
+        <div class="app-field ssh-form__full">
+          <label class="app-label" :class="{ 'app-label--required': !editingId }">{{ t('ssh.common.privateKey') }}</label>
+          <textarea
             v-model="form.privateKey"
-            type="textarea"
-            :rows="4"
+            class="app-textarea"
+            :class="{ 'is-error': errors.privateKey }"
+            rows="4"
             :placeholder="t('ssh.common.privateKeyPlaceholder')"
           />
-        </el-form-item>
-        <el-form-item :label="t('ssh.common.passphrase')" prop="passphrase">
-          <el-input
-            v-model="form.passphrase"
-            type="password"
-            :placeholder="t('ssh.common.passphrasePlaceholder')"
-            show-password
-          />
-        </el-form-item>
+          <span v-if="errors.privateKey" class="app-field__error">{{ errors.privateKey }}</span>
+        </div>
+        <div class="app-field ssh-form__full">
+          <label class="app-label">{{ t('ssh.common.passphrase') }}</label>
+          <div class="ssh-form__pwd">
+            <input
+              v-model="form.passphrase"
+              :type="showPassphrase ? 'text' : 'password'"
+              class="app-input"
+              :placeholder="t('ssh.common.passphrasePlaceholder')"
+              autocomplete="new-password"
+            />
+            <AppIconButton
+              :icon="showPassphrase ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'"
+              :label="t('ssh.common.passphrase')"
+              :box="32"
+              @click="showPassphrase = !showPassphrase"
+            />
+          </div>
+        </div>
       </template>
 
-      <el-form-item :label="t('ssh.common.fingerprint')" prop="fingerprint">
-        <el-input v-model="form.fingerprint" :placeholder="t('ssh.common.fingerprintPlaceholder')" />
-      </el-form-item>
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.common.fingerprint') }}</label>
+        <input v-model="form.fingerprint" class="app-input" :placeholder="t('ssh.common.fingerprintPlaceholder')" />
+      </div>
 
-      <el-form-item :label="t('ssh.common.tags')" prop="tags">
-        <el-input v-model="form.tags" :placeholder="t('ssh.common.tagsPlaceholder')" />
-      </el-form-item>
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.common.tags') }}</label>
+        <input v-model="form.tags" class="app-input" :placeholder="t('ssh.common.tagsPlaceholder')" />
+      </div>
 
-      <el-form-item :label="t('ssh.common.sharedUsers')" prop="sharedUserIds">
-        <el-select
-          v-model="form.sharedUserIds"
-          multiple
-          filterable
-          remote
-          reserve-keyword
-          :placeholder="t('ssh.common.shareUsersPlaceholder')"
-          :remote-method="searchUsers"
-          :loading="userSearchLoading"
-          style="width: 100%"
-        >
-          <el-option
-            v-for="user in userOptions"
-            :key="user.userId"
-            :label="user.name || user.userId"
-            :value="user.userId"
-          />
-        </el-select>
-      </el-form-item>
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.common.sharedUsers') }}</label>
+        <UserPicker v-model="form.sharedUserIds" :placeholder="t('ssh.common.shareUsersPlaceholder')" />
+      </div>
 
-      <el-form-item :label="t('ssh.common.remark')" prop="remark">
-        <el-input
-          v-model="form.remark"
-          type="textarea"
-          :rows="2"
-          :placeholder="t('ssh.common.remarkPlaceholder')"
-        />
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="close">{{ t('ssh.common.cancel') }}</el-button>
-      <el-button type="primary" :loading="loading" @click="confirm">{{ t('ssh.common.confirm') }}</el-button>
-    </template>
-  </BaseDialog>
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.common.remark') }}</label>
+        <textarea v-model="form.remark" class="app-textarea" rows="2" :placeholder="t('ssh.common.remarkPlaceholder')" />
+      </div>
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { createSshHost, updateSshHost } from '@/api/openssh'
-import { userPage } from '@/api/user'
-import { SSHAuthType, type SSHHostInfo, type SSHHostSharedUser, type UpdateSSHHostRequest } from '@/types/v1/openssh'
-import type { FormInstance, FormRules } from 'element-plus'
+import { SSHAuthType, type SSHHostInfo, type UpdateSSHHostRequest } from '@/types/v1/openssh'
 
 defineOptions({ name: 'SshConnectionCreate' })
 
-const emits = defineEmits(['refresh'])
-const formRef = useTemplateRef<FormInstance>('formRef')
+const emits = defineEmits<{ refresh: [type: 'create' | 'update'] }>()
 const { t } = useI18n()
 
 const open = ref(false)
 const loading = ref(false)
 const editingId = ref('')
-const userSearchLoading = ref(false)
-const userOptions = ref<SSHHostSharedUser[]>([])
+const showPassword = ref(false)
+const showPassphrase = ref(false)
+const errors = ref<Record<string, string>>({})
 
 const defaultForm = () => ({
   name: '',
@@ -150,37 +178,49 @@ const defaultForm = () => ({
 })
 
 const form = ref(defaultForm())
+const originalForm = ref(defaultForm())
 
 const close = () => {
   open.value = false
-  formRef.value?.resetFields()
+  loading.value = false
   editingId.value = ''
+  errors.value = {}
+  showPassword.value = false
+  showPassphrase.value = false
   form.value = defaultForm()
-  userOptions.value = []
 }
 
-const originalForm = ref(defaultForm())
+const validate = () => {
+  const e: Record<string, string> = {}
+  if (!form.value.name.trim()) e.name = t('ssh.common.namePlaceholder')
+  if (!form.value.host.trim()) e.host = t('ssh.common.hostPlaceholder')
+  if (!form.value.username.trim()) e.username = t('ssh.common.usernamePlaceholder')
+  if (form.value.authType === 'SSH_AUTH_TYPE_PASSWORD' && !editingId.value && !form.value.password.trim())
+    e.password = t('ssh.common.passwordPlaceholder')
+  if (form.value.authType === 'SSH_AUTH_TYPE_KEY' && !editingId.value && !form.value.privateKey.trim())
+    e.privateKey = t('ssh.common.privateKeyRequired')
+  errors.value = e
+  return Object.keys(e).length === 0
+}
 
 const confirm = async () => {
-  await formRef.value?.validate()
+  if (!validate()) return
   loading.value = true
   try {
     if (editingId.value) {
-      // Build patch payload: only changed fields
+      // patch: 仅提交变更字段
       const patch: Record<string, unknown> = { id: editingId.value }
       const tracked: (keyof typeof form.value)[] = [
-        'name', 'host', 'port', 'username', 'authType',
-        'fingerprint', 'tags', 'remark',
+        'name', 'host', 'port', 'username', 'authType', 'fingerprint', 'tags', 'remark', 'sharedUserIds',
       ]
       for (const key of tracked) {
-        if (form.value[key] !== originalForm.value[key]) {
+        if (JSON.stringify(form.value[key]) !== JSON.stringify(originalForm.value[key])) {
           patch[key] = form.value[key]
         }
       }
-      // credentials: only include if non-empty (user entered new ones)
+      // 凭据：仅当用户输入了新值才包含
       if (form.value.password) {
         patch.password = form.value.password
-        // if switching to password auth or changing password, include authType
         if (!patch.authType) patch.authType = form.value.authType
       }
       if (form.value.privateKey) {
@@ -188,7 +228,6 @@ const confirm = async () => {
         if (form.value.passphrase) patch.passphrase = form.value.passphrase
         if (!patch.authType) patch.authType = form.value.authType
       }
-
       await updateSshHost(patch as unknown as UpdateSSHHostRequest)
     } else {
       await createSshHost({
@@ -206,7 +245,6 @@ const confirm = async () => {
         sharedUserIds: form.value.sharedUserIds,
       })
     }
-
     ElMessage.success(editingId.value ? t('ssh.common.editSuccess') : t('ssh.common.addSuccess'))
     emits('refresh', editingId.value ? 'update' : 'create')
     close()
@@ -215,58 +253,15 @@ const confirm = async () => {
   }
 }
 
-const formRules = computed<FormRules>(() => ({
-  name: [{ required: true, message: t('ssh.common.namePlaceholder'), trigger: 'blur' }],
-  host: [{ required: true, message: t('ssh.common.hostPlaceholder'), trigger: 'blur' }],
-  port: [{ required: true, message: t('ssh.common.portRequired'), trigger: 'blur' }],
-  username: [{ required: true, message: t('ssh.common.usernamePlaceholder'), trigger: 'blur' }],
-  password: [
-    {
-      validator: (_, value: string, callback) => {
-        if (form.value.authType === 'SSH_AUTH_TYPE_PASSWORD' && !editingId.value && !value?.trim()) {
-          callback(new Error(t('ssh.common.passwordPlaceholder')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-  privateKey: [
-    {
-      validator: (_, value: string, callback) => {
-        if (form.value.authType === 'SSH_AUTH_TYPE_KEY' && !editingId.value && !value?.trim()) {
-          callback(new Error(t('ssh.common.privateKeyRequired')))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur',
-    },
-  ],
-}))
-
-const searchUsers = async (query: string) => {
-  if (!query) {
-    userOptions.value = []
-    return
-  }
-  userSearchLoading.value = true
-  try {
-    const { data } = await userPage({ page: 1, pageSize: 20, username: query })
-    userOptions.value = (data?.users || []).map((u) => ({
-      userId: u.userId,
-      name: u.name || u.username,
-    }))
-  } finally {
-    userSearchLoading.value = false
-  }
-}
-
 const showDialog = (payload?: SSHHostInfo) => {
-  open.value = true
+  errors.value = {}
+  showPassword.value = false
+  showPassphrase.value = false
   if (!payload?.id) {
+    editingId.value = ''
+    form.value = defaultForm()
     originalForm.value = defaultForm()
+    open.value = true
     return
   }
 
@@ -285,13 +280,73 @@ const showDialog = (payload?: SSHHostInfo) => {
     sharedUserIds: payload.sharedUsers?.map((user) => user.userId) || [],
     remark: payload.remark || '',
   }
-  originalForm.value = { ...form.value }
-
-  // pre-load shared users into options so the select shows names, not IDs
-  if (payload.sharedUsers?.length) {
-    userOptions.value = [...payload.sharedUsers]
-  }
+  originalForm.value = { ...form.value, sharedUserIds: [...form.value.sharedUserIds] }
+  open.value = true
 }
 
 defineExpose({ showDialog })
 </script>
+
+<style scoped lang="scss">
+.ssh-form {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 14px;
+}
+.ssh-form__full {
+  grid-column: 1 / -1;
+}
+.ssh-form__host {
+  grid-column: 1 / 2;
+}
+.ssh-form__port {
+  grid-column: 2 / 3;
+}
+.ssh-form__pwd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ssh-form__pwd .app-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* authType seg */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
+}
+.seg--wide {
+  width: 100%;
+}
+.seg__btn {
+  flex: 1;
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.seg__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
+}
+@media (width <= 768px) {
+  .ssh-form {
+    grid-template-columns: 1fr;
+  }
+  .ssh-form__host,
+  .ssh-form__port {
+    grid-column: 1 / -1;
+  }
+}
+</style>
