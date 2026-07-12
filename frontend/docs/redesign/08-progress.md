@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理模块 100% + 实例列表/类型 + API Key + SSH 管理 + **终端(实例控制台/SSH)** 完成；Docker/文件/工具/仪表盘余项待推 |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例列表/类型 + API Key + SSH + 终端 + **Docker 全模块(container/image/network/config)** 完成；文件/工具/仪表盘余项待推 |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -103,10 +103,10 @@
 | 实例控制台 | instance/console/:id | P6 | 🟡 | ⬜ | 🟡 | 🟡 PTY 直连已实机验证(键入/回显/ws 抓包);移动+浅色待验 |
 | 实例文件 | instance/files/:id | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 实例类型 | instance/type | P1 | ✅ | ✅ | ✅ | ✅ |
-| Docker 容器 | docker/container | P1 | ⬜ | ⬜ | ⬜ | ⬜ |
+| Docker 容器 | docker/container | P1 | ✅ | ✅ | ✅ | 🟡 全量重写(列表+创建/编辑结构化表单+详情+TerminalConsole 日志/终端+Stats FormDialog)；浏览器桌面/移动/暗色验证；后端 docker 未启用，数据流未跑 |
 | Docker 镜像 | docker/image | P1 | ✅ | ✅ | ✅ | 🟡 结构+弹窗验证（后端无 Docker 守护，数据流未跑） |
 | Docker 网络 | docker/network | P1 | ✅ | ✅ | ✅ | 🟡 结构+弹窗验证（后端无 Docker 守护，数据流未跑） |
-| Docker 配置 | docker/config | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
+| Docker 配置 | docker/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 四 Tab(状态/连接/默认/仓库) + AppPanel；浏览器验证；docker 未启用时状态正确显示 |
 | API Key | node/key | P1 | ✅ | ✅ | ✅ | ✅ |
 | SSH 管理 | openssh/management | P1 | ✅ | ✅ | ✅ | ✅ |
 | SSH 终端 | openssh/terminal | P6 | 🟡 | ⬜ | 🟡 | 🟡 重写完成,htop+鼠标滚轮+初始 resize 实测通过;移动+浅色待验 |
@@ -187,3 +187,4 @@
 | 2026-07-12 | **Docker 列表两页（image/network）**：按 P1 范式重写 `docker/image`（PageHeader[任务/拉取镜像]+FilterBar[关键字/悬空 AppSelect]+DataTable/移动卡+Pagination；拉取/打标签/编辑标签/详情[令牌 KV+chips]/历史[DataTable] 全部 FormDialog；行内 ActionMenu 详情/编辑标签/打标签/历史/删除，管理权限 + 容器数门控）与 `docker/network`（同范式+创建[名称/驱动 AppSelect/内部·IPv6·可附加 AppSwitch/子网/网关]/详情[hero+KV+IPAM 列表+标签+已连接容器带断开]/编辑[标签+重建开关→条件驱动/强制/子网/网关] FormDialog）。**沿用** `DockerTaskDialogs`（拉取/重建进度，迁移期 EP 保留）。i18n 三语补 docker.image/network title+pageDesc+emptyDesc。**后端无 Docker 守护** → 仅验证页面结构+空态+弹窗渲染（拉取/创建弹窗桌面暗已截图），行/详情数据流未跑；vue-tsc+eslint 绿。**未提交前项已提交 `c6e1a14`；本两页待提交。** 剩 `docker/container`（70KB 巨页：列表+创建表单+exec/logs/stats 终端弹窗，exec/logs 应复用 TerminalConsole）+ `docker/config`(P3)。 | Docker 容器(大)+配置；或转 工具/文件 | 
 | 2026-07-12 | **P1 推广三页 + 新增 UserPicker**：①**实例类型 `instance/type`**（PageHeader+FilterBar[名称/状态]+内联计数[启用/禁用]+DataTable/移动卡+FormDialog[名称+AppSwitch 启用]，内置类型锁定，删除走 Dialog.info）。②**API Key `node/key`**（同范式+原生 `datetime-local` 过期时间+AppSwitch 永久有效[仅编辑]+复制 FormDialog[完整值一次+警示条]；行内 编辑/复制/刷新；**无删除接口**属原样保留）。③**SSH 管理 `openssh/management`**（可选表+批量测试/删除+行内 连接/测试/编辑/分享/删除[仅创建者]+分享 FormDialog；create 大表单 authType seg+条件密码/密钥[眼睛显隐]+patch-diff 更新；createTime 格式化修复宽度溢出）。新增自建 **`components/ui/UserPicker.vue`**（多选用户：预载全部用户 chips+可搜索 AppSelect 追加，替代 el-select multiple remote，SSH create/分享共用）。**踩坑**：`system.common.selectAll` 不存在（selectAll 在别的 `common` 命名空间）→ 移动端全选按钮显示原始 key，改用 `ssh.common.selectAll`（自加）。i18n 三语补 instance.type*/node.key.title+pageDesc/ssh.common.title+pageDesc+selectAll 等。**浏览器全验**：三页桌面暗/浅+移动，CRUD/弹窗/校验/批量/分享全链路，vue-tsc+eslint 绿。**未提交。** | 转 Docker(容器/镜像/网络+config) 或 工具(tunnel/port-forward) 或 文件(share/source) P1 列表 |
 | 2026-07-11 | **提交 Phase 3 批次**（`902082e`：role/menu/operation/task/oidc + AppSelect/AppSwitch/PermissionTree + 密度化 + i18n，24 文件）。**系统设置 `system/settings`（P3 双 Tab 配置页，系统管理最后一页）**：EP 整页重写为 PageHeader + 令牌 seg Tab 条（安全与认证/邮件配置）+ `AppPanel`(flush) 分组 + `.set-row`（label+desc / 控件，分区保存页脚）。控件：`AppSwitch`(替 el-switch)、令牌 `.app-input`/number/`.app-textarea`、`AppSelect`(替 el-select，模板类型；`@change` 不存在→用 `watch` 承接重载)、密码眼睛显隐、占位符 chips 快捷插入。3 个 `FormDialog`：测试邮件/模板测试(动态占位符字段)/预览(iframe srcdoc + 占位符黄底高亮)。保留全部 login/email/template API + `PERM.SYSTEM_CONFIG_EDIT` + 占位符插入/渲染逻辑。i18n 补 `settings.pageTitle/pageDesc`(三语)。**踩坑**：模板测试字段标签 `{{ '{{.'+name+'}}' }}` 在 Vue 文本插值里字面 `{{` 触发 eslint 解析错误 → 抽 `fieldToken()` helper 返回该串。**浏览器全链路验证**：桌面暗/浅(双 Tab、开关/输入/密码眼睛、AppSelect 切换 watch 重载、预览 iframe 高亮、模板测试动态字段、空收件禁用发送)+移动390(行竖堆/Tab 撑满/控件全宽)，零控制台报错，vue-tsc+eslint 绿。**⚠️ 未提交。** | Phase 3 转其余模块：实例/Docker(多 P1 列表)、文件分享/来源、工具、仪表盘 profile/analysis/monitor |
+| 2026-07-12 | **Docker 全模块收口**：①**容器 `docker/container` P1 全量**——PageHeader+FilterBar+DataTable/移动卡+Pagination；创建/编辑 FormDialog 结构化控件（`AppCombobox` 镜像、重启策略 seg、内存/CPU chips+数字、`ContainerPort/Mount/EnvEditor`）；详情令牌壳；日志/终端复用 `TerminalConsole` 浮层；统计 FormDialog+echarts。②**配置 `docker/config` P3**——四 Tab（状态/连接/默认/仓库）+ AppPanel+AppSwitch。③新组件 `AppCombobox` + 三个 spec 编辑器。**反人类修复**：列表失败置 `dockerUnavailable`，创建弹窗不再二次请求镜像/网络选项（拦截器 500 会连弹 toast）。浏览器：桌面/移动/暗色+创建表单结构化行 OK；后端 docker 未启用。vue-tsc 绿。**待提交本批。** | 提交 Docker 批次后停（用户指定）；下一会话 工具 tunnel/port-forward 或 文件 share/source |

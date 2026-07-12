@@ -1,52 +1,45 @@
+<!-- 容器统计（重写）：FormDialog 令牌壳 + 摘要卡 + echarts 折线。
+     轮询 getDockerContainerStats；保留 CPU/内存/网络/块 IO 计算与 5 分钟窗口。 -->
 <template>
-  <BaseDialog
-    v-model="visible"
-    :title="dialogTitle"
-    width="860"
-    :show-footer="false"
-    @opened="handleOpened"
-    @close="handleClosed"
-  >
-    <div class="docker-stats-dialog">
-      <div class="docker-stats-toolbar">
-        <el-button
-          size="small"
-          :icon="menuStore.iconComponents.Refresh"
-          :loading="loading"
-          @click="refresh"
-        >
+  <FormDialog v-model="visible" :title="dialogTitle" :width="900" :show-footer="false" @close="handleClosed">
+    <div class="dk-stats">
+      <div class="dk-stats__bar">
+        <UButton color="neutral" variant="soft" icon="i-lucide-refresh-cw" size="sm" :loading="loading" @click="refresh">
           {{ t('docker.common.refresh') }}
-        </el-button>
-        <div class="docker-stats-interval">
+        </UButton>
+        <div class="dk-stats__interval">
           <span>{{ t('docker.statsDialog.interval') }}</span>
-          <el-input-number
-            v-model="pollIntervalSeconds"
-            size="small"
-            :min="1"
-            :max="60"
-            :step="1"
-            controls-position="right"
+          <input
+            v-model.number="pollIntervalSeconds"
+            type="number"
+            min="1"
+            max="60"
+            step="1"
+            class="app-input dk-stats__num"
             @change="restartPolling"
           />
           <span>{{ t('docker.common.seconds') }}</span>
         </div>
-        <span class="docker-stats-status" :class="statusClass">
-          <span class="docker-stats-status__dot" />
-          {{ statusLabel }}
+        <span class="dk-stats__status">
+          <StatusPill :variant="status === 'polling' ? 'success' : status === 'error' ? 'error' : 'neutral'" :label="statusLabel" />
         </span>
       </div>
 
-      <div class="docker-stats-summary">
-        <div v-for="item in summaryItems" :key="item.label" class="docker-stats-summary__item">
+      <div class="dk-stats__summary">
+        <div v-for="item in summaryItems" :key="item.label" class="dk-stats__item">
           <span>{{ item.label }}</span>
           <strong>{{ item.value }}</strong>
         </div>
       </div>
 
-      <div ref="chartEl" class="docker-stats-chart" />
-      <el-empty v-if="!history.length && !loading" :description="t('docker.statsDialog.noData')" />
+      <div ref="chartEl" class="dk-stats__chart" />
+      <EmptyState
+        v-if="!history.length && !loading"
+        icon="HOutline:ChartBarIcon"
+        :title="t('docker.statsDialog.noData')"
+      />
     </div>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -54,7 +47,6 @@ import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 
 import { getDockerContainerStats } from '@/api/docker'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { DockerBlkioOperation } from '@/types/v1/docker'
 import type { DockerBlkioEntry, DockerContainerStats } from '@/types/v1/docker'
 import { showRequestError } from '@/utils/request'
@@ -100,7 +92,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
-const menuStore = useMenuStore()
 const { t, locale } = useI18n()
 const visible = computed({
   get: () => props.modelValue,
@@ -126,11 +117,6 @@ const statusLabel = computed(() => {
   if (status.value === 'error') return t('docker.common.requestFailed')
   return t('docker.common.stopped')
 })
-
-const statusClass = computed(() => ({
-  'docker-stats-status--connected': status.value === 'polling',
-  'docker-stats-status--error': status.value === 'error',
-}))
 
 const currentSample = computed(() => history.value[history.value.length - 1])
 
@@ -178,7 +164,6 @@ const formatBytes = (bytes?: number | string) => {
 }
 
 const formatRate = (bytesPerSecond?: number | string) => `${formatBytes(bytesPerSecond)}/s`
-
 const toPercent = (value: number) => `${Math.max(0, value).toFixed(2)}%`
 
 const formatSeriesValue = (seriesName: string, value: number) => {
@@ -195,9 +180,9 @@ const tooltipFormatter = (params: unknown) => {
     const name = item.seriesName || ''
     const marker = item.marker || ''
     const value = formatSeriesValue(name, tooltipValue(item))
-    return `<div class="docker-stats-tooltip__row"><span>${marker}${name}</span><strong>${value}</strong></div>`
+    return `<div class="dk-stats-tooltip__row"><span>${marker}${name}</span><strong>${value}</strong></div>`
   }).join('')
-  return `<div class="docker-stats-tooltip"><div class="docker-stats-tooltip__title">${title}</div>${rows}</div>`
+  return `<div class="dk-stats-tooltip"><div class="dk-stats-tooltip__title">${title}</div>${rows}</div>`
 }
 
 const sumNetwork = (networks: DockerContainerStats['networks'], field: 'rxBytes' | 'txBytes') => {
@@ -247,7 +232,7 @@ const parseStatsSample = (data: DockerContainerStats, previous?: StatsSample): S
 
 const pruneHistory = (items: StatsSample[], now: number) => {
   return items
-    .filter(item => now - item.timestamp <= HISTORY_WINDOW_MS)
+    .filter((item) => now - item.timestamp <= HISTORY_WINDOW_MS)
     .slice(-MAX_HISTORY_POINTS)
 }
 
@@ -256,10 +241,23 @@ const ensureChart = () => {
   if (!chart) chart = echarts.init(chartEl.value)
 }
 
+const lineSeries = (name: string, data: number[], yAxisIndex: number) => ({
+  name,
+  type: 'line' as const,
+  yAxisIndex,
+  data,
+  showSymbol: false,
+  smooth: true,
+  lineStyle: { width: 2 },
+})
+
 const updateChart = () => {
   ensureChart()
   if (!chart) return
   const labels = chartLabels.value
+  const isDark = document.documentElement.classList.contains('dark')
+    || document.documentElement.getAttribute('data-theme') === 'dark'
+  const split = isDark ? 'rgba(148,163,184,0.15)' : '#e5e7eb'
 
   const option: echarts.EChartsOption = {
     animation: false,
@@ -277,52 +275,47 @@ const updateChart = () => {
       itemWidth: 10,
       itemHeight: 10,
       itemGap: 12,
+      textStyle: { color: 'var(--el-text-color-regular)', fontSize: 11 },
       data: [labels.cpu, labels.memory, labels.networkRx, labels.networkTx, labels.blockRead, labels.blockWrite],
     },
     grid: { top: 58, left: 52, right: 64, bottom: 34 },
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: history.value.map(item => item.time),
+      data: history.value.map((item) => item.time),
       axisTick: { alignWithLabel: true },
+      axisLabel: { color: 'var(--el-text-color-secondary)', fontSize: 11 },
+      axisLine: { lineStyle: { color: split } },
     },
     yAxis: [
       {
         type: 'value',
         min: 0,
         max: 100,
-        axisLabel: { formatter: '{value}%' },
-        splitLine: { lineStyle: { color: '#e5e7eb' } },
+        axisLabel: { formatter: '{value}%', color: 'var(--el-text-color-secondary)', fontSize: 11 },
+        splitLine: { lineStyle: { color: split } },
       },
       {
         type: 'value',
         axisLabel: {
           formatter: (value: number) => formatRate(value),
+          color: 'var(--el-text-color-secondary)',
+          fontSize: 11,
         },
         splitLine: { show: false },
       },
     ],
     series: [
-      lineSeries(labels.cpu, history.value.map(item => item.cpuPercent), 0),
-      lineSeries(labels.memory, history.value.map(item => item.memoryPercent), 0),
-      lineSeries(labels.networkRx, history.value.map(item => item.networkRxRate), 1),
-      lineSeries(labels.networkTx, history.value.map(item => item.networkTxRate), 1),
-      lineSeries(labels.blockRead, history.value.map(item => item.blockReadRate), 1),
-      lineSeries(labels.blockWrite, history.value.map(item => item.blockWriteRate), 1),
+      lineSeries(labels.cpu, history.value.map((item) => item.cpuPercent), 0),
+      lineSeries(labels.memory, history.value.map((item) => item.memoryPercent), 0),
+      lineSeries(labels.networkRx, history.value.map((item) => item.networkRxRate), 1),
+      lineSeries(labels.networkTx, history.value.map((item) => item.networkTxRate), 1),
+      lineSeries(labels.blockRead, history.value.map((item) => item.blockReadRate), 1),
+      lineSeries(labels.blockWrite, history.value.map((item) => item.blockWriteRate), 1),
     ],
   }
   chart.setOption(option, true)
 }
-
-const lineSeries = (name: string, data: number[], yAxisIndex: number) => ({
-  name,
-  type: 'line' as const,
-  yAxisIndex,
-  data,
-  showSymbol: false,
-  smooth: true,
-  lineStyle: { width: 2 },
-})
 
 const stopPolling = () => {
   if (pollTimer) {
@@ -391,6 +384,11 @@ const resizeChart = () => {
   chart?.resize()
 }
 
+watch(visible, (open) => {
+  if (open) void handleOpened()
+  else handleClosed()
+})
+
 watch([() => props.containerId], () => {
   if (!visible.value) return
   reset()
@@ -415,147 +413,87 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.docker-stats-dialog {
+.dk-stats {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 12px;
   min-height: 26rem;
 }
-
-.docker-stats-toolbar {
+.dk-stats__bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-
-.docker-stats-interval {
+.dk-stats__interval {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 6px;
   color: var(--el-text-color-regular);
-  font-size: 0.82rem;
-
-  :deep(.el-input-number) {
-    width: 5.75rem;
-  }
+  font-size: 0.8125rem;
 }
-
-.docker-stats-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+.dk-stats__num {
+  width: 72px;
+}
+.dk-stats__status {
   margin-left: auto;
-  color: var(--el-text-color-secondary);
-  font-size: 0.78rem;
 }
-
-.docker-stats-status__dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--el-text-color-placeholder);
-}
-
-.docker-stats-status--connected .docker-stats-status__dot {
-  background: var(--el-color-success);
-}
-
-.docker-stats-status--error .docker-stats-status__dot {
-  background: var(--el-color-danger);
-}
-
-.docker-stats-summary {
+.dk-stats__summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius);
+  overflow: hidden;
 }
-
-.docker-stats-summary__item {
+.dk-stats__item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 2px;
   min-width: 0;
-  padding: 0.65rem 0.75rem;
+  padding: 8px 10px;
   border-right: 1px solid var(--el-border-color-lighter);
   border-bottom: 1px solid var(--el-border-color-lighter);
-
   span {
     color: var(--el-text-color-secondary);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
   }
-
   strong {
     color: var(--el-text-color-primary);
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 }
-
-.docker-stats-summary__item:nth-child(4n) {
-  border-right: 0;
-}
-
-.docker-stats-summary__item:nth-last-child(-n + 4) {
-  border-bottom: 0;
-}
-
-.docker-stats-chart {
+.dk-stats__item:nth-child(4n) { border-right: 0; }
+.dk-stats__item:nth-last-child(-n + 4) { border-bottom: 0; }
+.dk-stats__chart {
   width: 100%;
   height: 22rem;
   border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius);
 }
 
-:global(.docker-stats-tooltip) {
-  min-width: 12rem;
-}
-
-:global(.docker-stats-tooltip__title) {
+:global(.dk-stats-tooltip) { min-width: 12rem; }
+:global(.dk-stats-tooltip__title) {
   margin-bottom: 0.35rem;
   color: var(--el-text-color-regular);
   font-weight: 600;
 }
-
-:global(.docker-stats-tooltip__row) {
+:global(.dk-stats-tooltip__row) {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   line-height: 1.6;
 }
+:global(.dk-stats-tooltip__row span) { color: var(--el-text-color-secondary); }
+:global(.dk-stats-tooltip__row strong) { color: var(--el-text-color-primary); font-weight: 600; }
 
-:global(.docker-stats-tooltip__row span) {
-  color: var(--el-text-color-secondary);
-}
-
-:global(.docker-stats-tooltip__row strong) {
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .docker-stats-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .docker-stats-status {
-    margin-left: 0;
-  }
-
-  .docker-stats-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .docker-stats-summary__item:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .docker-stats-summary__item:nth-last-child(-n + 4) {
-    border-bottom: 1px solid var(--el-border-color-lighter);
-  }
-
-  .docker-stats-summary__item:nth-last-child(-n + 2) {
-    border-bottom: 0;
-  }
+@media (width <= 768px) {
+  .dk-stats__status { margin-left: 0; width: 100%; }
+  .dk-stats__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dk-stats__item:nth-child(2n) { border-right: 0; }
+  .dk-stats__item:nth-last-child(-n + 4) { border-bottom: 1px solid var(--el-border-color-lighter); }
+  .dk-stats__item:nth-last-child(-n + 2) { border-bottom: 0; }
 }
 </style>

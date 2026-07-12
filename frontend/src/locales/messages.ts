@@ -1543,6 +1543,8 @@ const dockerMessages = {
       delete: '删除',
     },
     config: {
+      pageTitle: 'Docker 配置',
+      pageDesc: '连接 Docker Engine、默认参数与仓库认证',
       statusTab: '连接状态',
       connectionTab: '连接配置',
       defaultsTab: '默认设置',
@@ -1633,6 +1635,9 @@ const dockerMessages = {
       loadFailed: '获取容器统计失败',
     },
     container: {
+      title: '容器',
+      pageDesc: '管理 Docker 容器（生命周期 / 终端 / 日志 / 统计）',
+      emptyDesc: '还没有容器，点击右上角创建',
       namePlaceholder: '容器名称',
       imagePlaceholder: '镜像名',
       createContainer: '创建容器',
@@ -1886,6 +1891,8 @@ const dockerMessages = {
       delete: '刪除',
     },
     config: {
+      pageTitle: 'Docker 配置',
+      pageDesc: '連接 Docker Engine、默認參數與倉庫認證',
       statusTab: '連接狀態',
       connectionTab: '連接配置',
       defaultsTab: '默認設定',
@@ -1976,6 +1983,9 @@ const dockerMessages = {
       loadFailed: '獲取容器統計失敗',
     },
     container: {
+      title: '容器',
+      pageDesc: '管理 Docker 容器（生命週期 / 終端 / 日誌 / 統計）',
+      emptyDesc: '還沒有容器，點擊右上角創建',
       namePlaceholder: '容器名稱',
       imagePlaceholder: '鏡像名',
       createContainer: '創建容器',
@@ -2229,6 +2239,8 @@ const dockerMessages = {
       delete: 'Delete',
     },
     config: {
+      pageTitle: 'Docker Config',
+      pageDesc: 'Connect Docker Engine, defaults, and registry auth',
       statusTab: 'Connection Status',
       connectionTab: 'Connection Config',
       defaultsTab: 'Defaults',
@@ -2319,6 +2331,9 @@ const dockerMessages = {
       loadFailed: 'Failed to load container stats',
     },
     container: {
+      title: 'Containers',
+      pageDesc: 'Manage Docker containers (lifecycle / terminal / logs / stats)',
+      emptyDesc: 'No containers yet — click "Create" to add one',
       namePlaceholder: 'Container name',
       imagePlaceholder: 'Image name',
       createContainer: 'Create Container',

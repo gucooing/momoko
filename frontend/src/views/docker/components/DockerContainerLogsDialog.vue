@@ -1,56 +1,45 @@
+<!-- 容器日志（重写）：令牌浮层 + TerminalConsole（只读流）。
+     协议：ws 原始字节输出 → 持久 TextDecoder → write；不发输入/resize。
+     工具栏：tail 行数 + 时间戳开关 + 重连/清空；reconnect 用当前参数重连。 -->
 <template>
-  <BaseDialog
-    v-model="visible"
-    :title="dialogTitle"
-    width="960"
-    :show-footer="false"
-    @opened="handleOpened"
-    @close="handleClosed"
-  >
-    <div class="docker-log-dialog">
-      <div class="docker-log-toolbar">
-        <el-input-number
-          v-model="tail"
-          :min="10"
-          :max="10000"
-          :step="100"
-          size="small"
-          controls-position="right"
-          class="docker-log-tail"
-        />
-        <el-checkbox v-model="timestamps" size="small">{{ t('docker.logsDialog.timestamps') }}</el-checkbox>
-        <el-button
-          size="small"
-          :icon="menuStore.iconComponents.Refresh"
-          :loading="socketStatus === 'connecting'"
-          @click="reconnect"
-        >
-          {{ t('docker.common.reconnect') }}
-        </el-button>
-        <el-button size="small" :icon="menuStore.iconComponents.Delete" @click="clearTerminal">
-          {{ t('docker.common.clear') }}
-        </el-button>
-        <span class="docker-log-status" :class="statusClass">
-          <span class="docker-log-status__dot" />
-          {{ statusLabel }}
-        </span>
+  <Teleport to="body">
+    <Transition name="dk-term">
+      <div v-if="visible" class="dk-term-overlay" @mousedown.self="close">
+        <div class="dk-term-panel">
+          <div class="dk-term-bar">
+            <span class="dk-term-bar__label">{{ t('docker.common.logs') }}</span>
+            <div class="dk-term-bar__field">
+              <span class="dk-term-bar__hint">tail</span>
+              <input v-model.number="tail" type="number" min="10" max="10000" step="100" class="app-input dk-term-num" />
+            </div>
+            <label class="dk-term-check">
+              <input v-model="timestamps" type="checkbox" />
+              <span>{{ t('docker.logsDialog.timestamps') }}</span>
+            </label>
+          </div>
+          <div class="dk-term-body">
+            <TerminalConsole
+              ref="termRef"
+              :title="dialogTitle"
+              icon="HOutline:DocumentTextIcon"
+              :status="socketStatus"
+              :status-label="statusLabel"
+              :actions="actions"
+              @action="onAction"
+            />
+          </div>
+        </div>
       </div>
-      <div class="docker-log-terminal-shell">
-        <div ref="terminalRef" class="docker-log-terminal" />
-      </div>
-    </div>
-  </BaseDialog>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FitAddon } from '@xterm/addon-fit'
-import { Terminal } from '@xterm/xterm'
-import '@xterm/xterm/css/xterm.css'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
+import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
+import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
-
-type SocketStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 const props = defineProps<{
   modelValue: boolean
@@ -58,259 +47,184 @@ const props = defineProps<{
   wsPath: string
   containerName?: string
 }>()
+const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
-
-const menuStore = useMenuStore()
 const { t } = useI18n()
 const visible = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
 })
 
-const terminalRef = ref<HTMLElement>()
+const termRef = ref<InstanceType<typeof TerminalConsole> | null>(null)
 const tail = ref(200)
 const timestamps = ref(true)
-const socketStatus = ref<SocketStatus>('disconnected')
+const socketStatus = ref<ConsoleSocketStatus>('disconnected')
 
 let socket: WebSocket | null = null
-let terminal: Terminal | null = null
-let fitAddon: FitAddon | null = null
-let resizeObserver: ResizeObserver | null = null
-let manualSocketClose = false
+let decoder: TextDecoder | null = null
+let manualClose = false
 
 const dialogTitle = computed(() => {
   const name = props.containerName || props.containerId
   return name ? t('docker.logsDialog.titleWithName', { name }) : t('docker.logsDialog.title')
 })
-
 const statusLabel = computed(() => {
   if (socketStatus.value === 'connected') return t('docker.common.connected')
   if (socketStatus.value === 'connecting') return t('docker.common.connecting')
   if (socketStatus.value === 'error') return t('docker.common.connectionFailed')
   return t('docker.common.notConnected')
 })
+const actions = computed<TerminalAction[]>(() => [
+  { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('docker.common.reconnect'), tone: 'primary' },
+  { key: 'clear', icon: 'HOutline:TrashIcon', label: t('docker.common.clear') },
+  { key: 'close', icon: 'HOutline:XMarkIcon', label: t('system.common.close'), tone: 'danger' },
+])
 
-const statusClass = computed(() => ({
-  'docker-log-status--connected': socketStatus.value === 'connected',
-  'docker-log-status--connecting': socketStatus.value === 'connecting',
-  'docker-log-status--error': socketStatus.value === 'error',
-}))
-
-const buildSocketUrl = () => {
-  return buildBackendWebSocketUrl(props.wsPath, (url) => {
-    url.searchParams.set('id', props.containerId)
-    url.searchParams.set('tail', String(tail.value || 200))
-    url.searchParams.set('timestamps', String(timestamps.value))
-  })
-}
-
-const mountTerminal = () => {
-  const el = terminalRef.value
-  if (!el || terminal) return
-
-  terminal = new Terminal({
-    convertEol: true,
-    cursorBlink: false,
-    disableStdin: true,
-    fontFamily: 'Consolas, Menlo, Monaco, monospace',
-    fontSize: 13,
-    theme: {
-      background: '#0b1020',
-      foreground: '#d5dde8',
-    },
-  })
-  fitAddon = new FitAddon()
-  terminal.loadAddon(fitAddon)
-  terminal.open(el)
-  fitAddon.fit()
-
-  resizeObserver = new ResizeObserver(() => fitAddon?.fit())
-  resizeObserver.observe(el)
-}
-
-const resetTerminal = () => {
-  resizeObserver?.disconnect()
-  resizeObserver = null
-  terminal?.dispose()
-  terminal = null
-  fitAddon = null
-}
-
-const clearTerminal = () => {
-  terminal?.clear()
+const writePayload = (payload: ArrayBuffer | string) => {
+  const term = termRef.value
+  if (!term) return
+  if (typeof payload === 'string') term.write(payload)
+  else if (decoder) term.write(decoder.decode(payload, { stream: true }))
 }
 
 const closeSocket = () => {
   if (!socket) return
-  manualSocketClose = true
+  manualClose = true
   socket.close()
   socket = null
   socketStatus.value = 'disconnected'
 }
 
-const writePayload = (payload: ArrayBuffer | string) => {
-  if (!terminal) return
-  if (typeof payload === 'string') {
-    terminal.write(payload)
-    return
-  }
-  terminal.write(new Uint8Array(payload))
-}
-
 const connect = () => {
   if (!props.containerId || !props.wsPath) return
-
   closeSocket()
-  manualSocketClose = false
+  manualClose = false
+  decoder = new TextDecoder('utf-8', { fatal: false })
   socketStatus.value = 'connecting'
 
-  const socketUrl = buildSocketUrl()
-  if (!socketUrl) {
-    socketStatus.value = 'error'
-    return
-  }
+  const socketUrl = buildBackendWebSocketUrl(props.wsPath, (url) => {
+    url.searchParams.set('id', props.containerId)
+    url.searchParams.set('tail', String(tail.value || 200))
+    url.searchParams.set('timestamps', String(timestamps.value))
+  })
+  if (!socketUrl) { socketStatus.value = 'error'; return }
 
-  const nextSocket = new WebSocket(socketUrl)
-  nextSocket.binaryType = 'arraybuffer'
-  socket = nextSocket
-
-  nextSocket.onopen = () => {
-    if (socket !== nextSocket) return
-    socketStatus.value = 'connected'
-  }
-
-  nextSocket.onmessage = (event) => {
-    if (socket !== nextSocket) return
-    writePayload(event.data as ArrayBuffer | string)
-  }
-
-  nextSocket.onerror = () => {
-    if (socket !== nextSocket) return
-    socketStatus.value = 'error'
-  }
-
-  nextSocket.onclose = () => {
-    const closedManually = manualSocketClose
-    if (socket !== nextSocket) return
+  const next = new WebSocket(socketUrl)
+  next.binaryType = 'arraybuffer'
+  socket = next
+  next.onopen = () => { if (socket === next) socketStatus.value = 'connected' }
+  next.onmessage = (event) => { if (socket === next) writePayload(event.data as ArrayBuffer | string) }
+  next.onerror = () => { if (socket === next) socketStatus.value = 'error' }
+  next.onclose = () => {
+    const closedManually = manualClose
+    if (socket !== next) return
     socket = null
-    if (!closedManually) {
-      socketStatus.value = 'disconnected'
-    }
+    if (!closedManually) socketStatus.value = 'disconnected'
   }
 }
 
-const reconnect = () => {
-  terminal?.clear()
-  connect()
+const reconnect = () => { termRef.value?.reset(); connect() }
+const onAction = (key: string) => {
+  if (key === 'reconnect') reconnect()
+  else if (key === 'clear') termRef.value?.reset()
+  else if (key === 'close') close()
 }
+const close = () => { visible.value = false }
 
-const handleOpened = async () => {
-  await nextTick()
-  mountTerminal()
-  terminal?.clear()
-  connect()
-}
-
-const handleClosed = () => {
-  closeSocket()
-  resetTerminal()
-}
-
+watch(visible, (open) => {
+  if (open) nextTick(() => { termRef.value?.reset(); connect() })
+  else closeSocket()
+})
 watch([() => props.containerId, () => props.wsPath, tail, timestamps], () => {
-  if (!visible.value) return
-  reconnect()
+  if (visible.value) reconnect()
 })
 
-onBeforeUnmount(() => {
-  closeSocket()
-  resetTerminal()
-})
+onBeforeUnmount(closeSocket)
 </script>
 
 <style scoped lang="scss">
-.docker-log-dialog {
+.dk-term-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, #0b1220 55%, transparent);
+  backdrop-filter: blur(2px);
+}
+.dk-term-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  min-height: 24rem;
+  width: min(1000px, 96vw);
+  height: min(80vh, 720px);
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--app-shadow-lg);
 }
-
-.docker-log-toolbar {
+.dk-term-bar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-light);
 }
-
-.docker-log-tail {
-  width: 8rem;
+.dk-term-bar__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
 }
-
-.docker-log-status {
+.dk-term-bar__field {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  margin-left: auto;
-  color: var(--el-text-color-secondary);
-  font-size: 0.78rem;
+  gap: 6px;
+}
+.dk-term-bar__hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
+}
+.dk-term-num {
+  width: 96px;
+}
+.dk-term-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  user-select: none;
+}
+.dk-term-check input {
+  accent-color: var(--el-color-primary);
+}
+.dk-term-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.dk-term-body :deep(.term-shell) {
+  flex: 1;
+  min-height: 0;
+  border-radius: 0;
 }
 
-.docker-log-status__dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--el-text-color-placeholder);
-}
-
-.docker-log-status--connected .docker-log-status__dot {
-  background: var(--el-color-success);
-}
-
-.docker-log-status--connecting .docker-log-status__dot {
-  background: var(--el-color-warning);
-}
-
-.docker-log-status--error .docker-log-status__dot {
-  background: var(--el-color-danger);
-}
-
-.docker-log-terminal-shell {
-  height: min(64vh, 580px);
-  min-height: 360px;
-  padding: 0.5rem;
-  border-radius: 6px;
-  background: #0b1020;
-}
-
-.docker-log-terminal {
-  width: 100%;
-  height: 100%;
-}
-
-.docker-log-terminal :deep(.xterm) {
-  height: 100%;
-}
-
-.docker-log-terminal :deep(.xterm-viewport) {
-  overflow-y: auto;
-}
+.dk-term-enter-active,
+.dk-term-leave-active { transition: opacity 0.18s ease; }
+.dk-term-enter-active .dk-term-panel,
+.dk-term-leave-active .dk-term-panel { transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1); }
+.dk-term-enter-from,
+.dk-term-leave-to { opacity: 0; }
+.dk-term-enter-from .dk-term-panel,
+.dk-term-leave-to .dk-term-panel { transform: translateY(8px) scale(0.98); }
 
 @media (width <= 768px) {
-  .docker-log-dialog {
-    min-height: 18rem;
-  }
-
-  .docker-log-terminal-shell {
-    height: min(70vh, 520px);
-    min-height: 280px;
-  }
-
-  .docker-log-status {
-    width: 100%;
-    margin-left: 0;
-  }
+  .dk-term-overlay { padding: 0; }
+  .dk-term-panel { width: 100vw; height: 100vh; border-radius: 0; }
 }
 </style>
