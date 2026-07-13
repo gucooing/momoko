@@ -167,7 +167,6 @@
         :rows="userList"
         row-key="userId"
         selectable
-        seq
         :loading="loading"
       >
         <template #cell-roleName="{ row }">

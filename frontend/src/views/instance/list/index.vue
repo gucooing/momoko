@@ -167,7 +167,6 @@
         :rows="pagedInstances"
         row-key="id"
         selectable
-        seq
         :loading="loading"
         :empty-text="t('instance.noMatchedInstances')"
       >

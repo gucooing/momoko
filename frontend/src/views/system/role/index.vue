@@ -167,7 +167,6 @@
         row-key="roleId"
         selectable
         :row-selectable="(row) => !row.isBuiltin"
-        seq
         :loading="loading"
       >
         <template #cell-description="{ row }">

@@ -54,7 +54,6 @@
         :rows="list"
         row-key="id"
         selectable
-        seq
         :loading="loading"
         :empty-text="t('tools.portForward.noData')"
       >

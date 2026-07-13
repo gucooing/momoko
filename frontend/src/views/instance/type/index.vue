@@ -43,7 +43,6 @@
         :columns="columns"
         :rows="filteredList"
         row-key="id"
-        seq
         :loading="loading"
         :empty-text="t('instance.noInstanceTypeData')"
       >

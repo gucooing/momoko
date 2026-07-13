@@ -37,7 +37,6 @@
         :columns="columns"
         :rows="list"
         row-key="id"
-        seq
         :loading="loading"
         :empty-text="t('docker.network.noNetworks')"
       >

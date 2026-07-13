@@ -42,7 +42,6 @@
         :columns="columns"
         :rows="list"
         row-key="id"
-        seq
         :loading="loading"
         :empty-text="t('docker.image.noImages')"
       >
@@ -181,7 +180,6 @@
         :columns="historyColumns"
         :rows="historyRows"
         row-key="_idx"
-        seq
         :loading="historyLoading"
         :empty-text="t('docker.common.noData')"
       >

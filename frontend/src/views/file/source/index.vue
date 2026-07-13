@@ -1,244 +1,153 @@
+<!-- 文件来源（重写 · P1 列表）：PageHeader(新增) + FilterBar(关键词) + 内联计数 + DataTable/移动卡。
+     行内 测试/编辑/删除；启用 AppSwitch；类型/直链胶囊。列表非分页（后端一次返回全部）。 -->
 <template>
-  <div>
-    <el-card shadow="never" class="card-clear-mb">
-      <div class="fs-header">
-        <el-button type="primary" @click="openCreate">{{ t('fileSource.add') }}</el-button>
+  <div class="src-page">
+    <PageHeader :title="t('fileSource.title')" :description="t('fileSource.pageDesc')">
+      <template #actions>
+        <UButton color="primary" size="sm" icon="i-lucide-plus" @click="openCreate()">
+          {{ t('fileSource.add') }}
+        </UButton>
+      </template>
+    </PageHeader>
+
+    <FilterBar @search="search" @reset="reset">
+      <template #fields>
+        <div class="app-field">
+          <label class="app-label">{{ t('fileSource.keyword') }}</label>
+          <input
+            v-model="keywords"
+            class="app-input"
+            :placeholder="t('fileSource.keywordPlaceholder')"
+            @keyup.enter="search"
+          />
+        </div>
+      </template>
+    </FilterBar>
+
+    <div class="src-page__body">
+      <div class="src-page__bar">
+        <span class="src-page__hint">
+          {{ t('system.common.total', { total: items.length }) }}
+          <template v-if="items.length">
+            · <span class="src-page__dot src-page__dot--on" />{{ t('fileSource.enabled') }} {{ enabledCount }}
+            · <span class="src-page__dot" />{{ t('fileSource.disabled') }} {{ items.length - enabledCount }}
+          </template>
+        </span>
       </div>
-    </el-card>
 
-    <el-card shadow="never" class="card-mt-16">
-      <el-table v-if="!menuStore.isMobile" v-loading="loading" :data="items" stripe>
-        <el-table-column :label="t('fileSource.name')" prop="name" min-width="140" />
-        <el-table-column :label="t('fileSource.type')" width="120">
-          <template #default="{ row }">
-            <el-tag size="small" :type="typeTagType(row.type)">{{ typeLabel(row.type) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('fileSource.enabled')" width="90">
-          <template #default="{ row }">
-            <el-switch
-              :model-value="row.enabled"
-              size="small"
-              @change="(v: string | number | boolean) => toggleEnabled(row, !!v)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('fileSource.redirect302')" width="110">
-          <template #default="{ row }">
-            <el-tag v-if="row.caps?.presign && row.redirect302" type="success" size="small">
-              {{ t('fileSource.redirectOn') }}
-            </el-tag>
-            <span v-else class="fs-muted">{{ t('fileSource.redirectOff') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('fileSource.creator')" prop="creatorName" width="120" />
-        <el-table-column :label="t('fileSource.createTime')" width="170">
-          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('system.common.operation')" width="220" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="testExisting(row)">
-              {{ t('fileSource.test') }}
-            </el-button>
-            <el-button type="primary" link @click="openEdit(row)">
-              {{ t('system.common.edit') }}
-            </el-button>
-            <el-popconfirm
-              :title="t('fileSource.confirmDelete', { name: row.name })"
-              @confirm="remove(row)"
-            >
-              <template #reference>
-                <el-button type="danger" link>{{ t('system.common.delete') }}</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-        <template #empty>{{ t('fileSource.empty') }}</template>
-      </el-table>
+      <DataTable
+        v-if="!menuStore.isMobile"
+        :columns="columns"
+        :rows="items"
+        row-key="id"
+        :loading="loading"
+        :empty-text="t('fileSource.empty')"
+      >
+        <template #cell-name="{ row }">
+          <span class="src-name">{{ row.name }}</span>
+        </template>
+        <template #cell-type="{ row }">
+          <StatusPill :variant="typeVariant(String(row.type))" :label="typeLabel(String(row.type))" :dot="false" />
+        </template>
+        <template #cell-enabled="{ row }">
+          <AppSwitch :model-value="!!row.enabled" @update:model-value="(v) => toggleEnabled(row, v)" />
+        </template>
+        <template #cell-redirect302="{ row }">
+          <StatusPill
+            v-if="hasRedirect(row)"
+            variant="success"
+            :label="t('fileSource.redirectOn')"
+            :dot="false"
+          />
+          <span v-else class="src-muted">{{ t('fileSource.redirectOff') }}</span>
+        </template>
+        <template #cell-creatorName="{ row }">{{ row.creatorName || '—' }}</template>
+        <template #cell-createTime="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        <template #cell-operation="{ row }">
+          <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
+        </template>
+      </DataTable>
 
-      <!-- 移动端：卡片列表（表格在窄屏不易操作） -->
-      <div v-else v-loading="loading" class="fs-mobile-list">
-        <el-empty v-if="!items.length" :description="t('fileSource.empty')" />
-        <div v-for="row in items" v-else :key="row.id" class="fs-mobile-card">
-          <div class="fs-mobile-body">
-            <div class="fs-mobile-header">
-              <div class="fs-mobile-name">
-                <el-tag size="small" :type="typeTagType(row.type)">{{ typeLabel(row.type) }}</el-tag>
-                <span>{{ row.name }}</span>
-              </div>
-              <el-switch
-                :model-value="row.enabled"
-                size="small"
-                @change="(v: string | number | boolean) => toggleEnabled(row, !!v)"
-              />
-            </div>
-            <div class="fs-mobile-meta">
-              <el-tag v-if="row.caps?.presign && row.redirect302" type="success" size="small">
-                {{ t('fileSource.redirect302') }}
-              </el-tag>
+      <template v-else>
+        <div v-if="loading" class="src-cards">
+          <div v-for="i in 3" :key="i" class="src-skeleton" />
+        </div>
+        <EmptyState
+          v-else-if="!items.length"
+          icon="HOutline:CircleStackIcon"
+          :title="t('fileSource.empty')"
+          :description="t('fileSource.emptyDesc')"
+        />
+        <div v-else class="src-cards">
+          <EntityCard v-for="row in items" :key="row.id" :title="row.name">
+            <template #status>
+              <StatusPill :variant="typeVariant(row.type)" :label="typeLabel(row.type)" :dot="false" />
+            </template>
+            <template #meta>
+              <span v-if="hasRedirect(row)" class="src-card__redirect">{{ t('fileSource.redirect302') }}</span>
               <span>{{ row.creatorName || '—' }}</span>
               <span>{{ formatDateTime(row.createTime) }}</span>
-            </div>
-          </div>
-          <div class="fs-mobile-actions">
-            <el-button type="primary" link @click="testExisting(row)">
-              {{ t('fileSource.test') }}
-            </el-button>
-            <el-button type="primary" link @click="openEdit(row)">
-              {{ t('system.common.edit') }}
-            </el-button>
-            <el-popconfirm
-              :title="t('fileSource.confirmDelete', { name: row.name })"
-              @confirm="remove(row)"
-            >
-              <template #reference>
-                <el-button type="danger" link>{{ t('system.common.delete') }}</el-button>
-              </template>
-            </el-popconfirm>
-          </div>
+            </template>
+            <template #footer>
+              <AppSwitch :model-value="!!row.enabled" @update:model-value="(v) => toggleEnabled(row, v)" />
+              <div class="src-card__actions">
+                <UButton color="neutral" variant="ghost" size="xs" @click="testExisting(row)">
+                  {{ t('fileSource.test') }}
+                </UButton>
+                <ActionMenu :items="rowActions.filter((a) => a.key !== 'test')" @select="(key) => onRowAction(key, row)" />
+              </div>
+            </template>
+          </EntityCard>
         </div>
-      </div>
-    </el-card>
-
-    <!-- 新增/编辑弹窗 -->
-    <BaseDialog
-      v-model="dialog.open"
-      :title="dialog.isEdit ? t('fileSource.editTitle') : t('fileSource.addTitle')"
-      width="560px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item :label="t('fileSource.name')" prop="name">
-          <el-input v-model="form.name" :placeholder="t('fileSource.namePlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="t('fileSource.type')" prop="type">
-          <el-select v-model="form.type" :disabled="dialog.isEdit" @change="onTypeChange">
-            <el-option :label="t('fileSource.typeOss')" value="oss" />
-            <el-option :label="t('fileSource.typeFtp')" value="ftp" />
-            <el-option :label="t('fileSource.typeWebdav')" value="webdav" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('fileSource.enabled')">
-          <el-switch v-model="form.enabled" />
-        </el-form-item>
-        <el-form-item v-if="supportsRedirect" :label="t('fileSource.redirect302')">
-          <el-switch v-model="form.redirect302" />
-          <span class="fs-field-hint">{{ t('fileSource.redirectHint') }}</span>
-        </el-form-item>
-
-        <!-- OSS / S3 -->
-        <template v-if="form.type === 'oss'">
-          <el-form-item :label="t('fileSource.endpoint')" prop="config.endpoint">
-            <el-input v-model="form.config.endpoint" placeholder="oss-cn-hangzhou.aliyuncs.com" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.bucket')" prop="config.bucket">
-            <el-input v-model="form.config.bucket" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.region')">
-            <el-input v-model="form.config.region" placeholder="cn-hangzhou" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.accessKey')">
-            <el-input v-model="form.config.accessKey" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.secretKey')">
-            <el-input
-              v-model="form.config.secretKey"
-              type="password"
-              show-password
-              :placeholder="dialog.isEdit ? t('fileSource.secretKeep') : ''"
-            />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.prefix')">
-            <el-input v-model="form.config.prefix" placeholder="momoko/" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.options')">
-            <el-checkbox v-model="form.config.useSsl">HTTPS</el-checkbox>
-            <el-checkbox v-model="form.config.pathStyle">Path-Style</el-checkbox>
-          </el-form-item>
-        </template>
-
-        <!-- FTP -->
-        <template v-else-if="form.type === 'ftp'">
-          <el-form-item :label="t('fileSource.host')" prop="config.host">
-            <el-input v-model="form.config.host" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.port')">
-            <el-input v-model.number="form.config.port" type="number" placeholder="21" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.username')">
-            <el-input v-model="form.config.username" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.password')">
-            <el-input
-              v-model="form.config.password"
-              type="password"
-              show-password
-              :placeholder="dialog.isEdit ? t('fileSource.secretKeep') : ''"
-            />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.basePath')">
-            <el-input v-model="form.config.basePath" placeholder="/" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.options')">
-            <el-checkbox v-model="form.config.tls">FTPS (TLS)</el-checkbox>
-          </el-form-item>
-        </template>
-
-        <!-- WebDAV -->
-        <template v-else-if="form.type === 'webdav'">
-          <el-form-item :label="t('fileSource.url')" prop="config.url">
-            <el-input v-model="form.config.url" placeholder="https://dav.example.com/dav" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.username')">
-            <el-input v-model="form.config.username" />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.password')">
-            <el-input
-              v-model="form.config.password"
-              type="password"
-              show-password
-              :placeholder="dialog.isEdit ? t('fileSource.secretKeep') : ''"
-            />
-          </el-form-item>
-          <el-form-item :label="t('fileSource.basePath')">
-            <el-input v-model="form.config.basePath" placeholder="/" />
-          </el-form-item>
-        </template>
-      </el-form>
-
-      <template #footer>
-        <el-button :loading="testing" @click="testForm">{{ t('fileSource.test') }}</el-button>
-        <el-button @click="dialog.open = false">{{ t('system.common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="save">
-          {{ t('system.common.confirm') }}
-        </el-button>
       </template>
-    </BaseDialog>
+    </div>
+
+    <SourceCreate ref="createRef" @refresh="getList" />
   </div>
 </template>
 
 <script setup lang="ts">
-defineOptions({ name: 'FileSourceView' })
 import { useI18n } from 'vue-i18n'
-import type { FormInstance, FormRules } from 'element-plus'
-import { showRequestError } from '@/utils/request'
-import { useMenuStore } from '@/stores/menu'
+import SourceCreate from '@/views/file/source/create.vue'
 import { formatDateTime } from '@/utils/file'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import { Dialog } from '@/utils/dialog'
 import {
   listFileSourcesRequest,
-  createFileSourceRequest,
   updateFileSourceRequest,
   deleteFileSourceRequest,
   testFileSourceRequest,
 } from '@/api/fileSource'
 import type { FileSourceInfo, FileSourceConfig } from '@/types/v1/file'
+import type { DataTableColumn } from '@/components/ui/DataTable.vue'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 
-const { t } = useI18n()
+defineOptions({ name: 'FileSourceView' })
+
 const menuStore = useMenuStore()
+const { t } = useI18n()
+const createRef = useTemplateRef<InstanceType<typeof SourceCreate> | null>('createRef')
 
 const loading = ref(false)
 const items = ref<FileSourceInfo[]>([])
+const keywords = ref('')
+
+const enabledCount = computed(() => items.value.filter((i) => i.enabled).length)
+
+const typeLabel = (type: string) =>
+  type === 'oss'
+    ? t('fileSource.typeOss')
+    : type === 'ftp'
+      ? t('fileSource.typeFtp')
+      : type === 'webdav'
+        ? t('fileSource.typeWebdav')
+        : type
+type PillVariant = 'success' | 'info' | 'warning' | 'primary'
+const typeVariant = (type: string): PillVariant =>
+  type === 'oss' ? 'primary' : type === 'ftp' ? 'warning' : 'success'
+const hasRedirect = (row: Record<string, unknown>) => {
+  const caps = row.caps as { presign?: boolean } | undefined
+  return !!caps?.presign && !!row.redirect302
+}
 
 const emptyConfig = (): FileSourceConfig => ({
   endpoint: '',
@@ -258,244 +167,173 @@ const emptyConfig = (): FileSourceConfig => ({
   url: '',
 })
 
-const dialog = reactive({ open: false, isEdit: false, id: '' })
-const form = reactive({
-  name: '',
-  type: 'oss',
-  enabled: true,
-  redirect302: false,
-  config: emptyConfig(),
-})
-const formRef = ref<FormInstance>()
-const saving = ref(false)
-const testing = ref(false)
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'name', title: t('fileSource.name'), minWidth: 140 },
+  { key: 'type', title: t('fileSource.type'), width: 120 },
+  { key: 'enabled', title: t('fileSource.enabled'), width: 80 },
+  { key: 'redirect302', title: t('fileSource.redirect302'), width: 110 },
+  { key: 'creatorName', title: t('fileSource.creator'), width: 120 },
+  { key: 'createTime', title: t('fileSource.createTime'), width: 170 },
+  { key: 'operation', title: t('system.common.operation'), width: 80, align: 'center' },
+])
 
-const rules: FormRules = {
-  name: [{ required: true, message: t('fileSource.namePlaceholder'), trigger: 'blur' }],
-  type: [{ required: true, trigger: 'change' }],
+const rowActions = computed<ActionMenuItem[]>(() => [
+  { key: 'test', label: t('fileSource.test'), icon: 'HOutline:SignalIcon' },
+  { key: 'edit', label: t('system.common.edit'), icon: 'HOutline:PencilSquareIcon' },
+  { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
+])
+
+const findRow = (id: string) => items.value.find((x) => x.id === id)
+const onRowAction = (key: string, row: Record<string, unknown>) => {
+  const record = findRow(String(row.id))
+  if (!record) return
+  if (key === 'test') testExisting(record)
+  else if (key === 'edit') openEdit(record)
+  else if (key === 'delete') confirmDelete(record)
 }
-
-// 仅对象存储支持预签名直链(302)。
-const supportsRedirect = computed(() => form.type === 'oss')
-
-const typeLabel = (type: string) =>
-  type === 'oss'
-    ? t('fileSource.typeOss')
-    : type === 'ftp'
-      ? t('fileSource.typeFtp')
-      : type === 'webdav'
-        ? t('fileSource.typeWebdav')
-        : type
-const typeTagType = (type: string) =>
-  type === 'oss' ? 'primary' : type === 'ftp' ? 'warning' : 'success'
 
 const getList = async () => {
   loading.value = true
   try {
-    const { data } = await listFileSourcesRequest()
+    const { data } = await listFileSourcesRequest({ keywords: keywords.value.trim() || undefined })
     items.value = data.items ?? []
-  } catch (error) {
-    showRequestError(error, t('fileSource.loadFailed'))
+  } catch {
+    items.value = []
   } finally {
     loading.value = false
   }
 }
-
-const onTypeChange = () => {
-  if (!supportsRedirect.value) form.redirect302 = false
+const search = () => getList()
+const reset = () => {
+  keywords.value = ''
+  getList()
 }
 
-const openCreate = () => {
-  dialog.isEdit = false
-  dialog.id = ''
-  form.name = ''
-  form.type = 'oss'
-  form.enabled = true
-  form.redirect302 = false
-  Object.assign(form.config, emptyConfig())
-  dialog.open = true
-}
+const openCreate = () => createRef.value?.showDialog()
+const openEdit = (row: FileSourceInfo) => createRef.value?.showDialog(row)
 
-const openEdit = (row: FileSourceInfo) => {
-  dialog.isEdit = true
-  dialog.id = row.id
-  form.name = row.name
-  form.type = row.type
-  form.enabled = row.enabled
-  form.redirect302 = row.redirect302
-  // 密钥不回显（留空=保留原值）
-  Object.assign(form.config, emptyConfig(), row.config ?? {}, { secretKey: '', password: '' })
-  dialog.open = true
-}
-
-const buildPayloadConfig = (): FileSourceConfig => ({ ...form.config, port: Number(form.config.port) || 0 })
-
-const save = async () => {
-  if (!formRef.value) return
+const testExisting = async (row: FileSourceInfo) => {
   try {
-    await formRef.value.validate()
-  } catch {
-    return
-  }
-  saving.value = true
-  try {
-    if (dialog.isEdit) {
-      await updateFileSourceRequest({
-        id: dialog.id,
-        name: form.name,
-        enabled: form.enabled,
-        redirect302: form.redirect302,
-        config: buildPayloadConfig(),
-      })
-      ElMessage.success(t('fileSource.updateSuccess'))
-    } else {
-      await createFileSourceRequest({
-        name: form.name,
-        type: form.type,
-        enabled: form.enabled,
-        redirect302: form.redirect302,
-        config: buildPayloadConfig(),
-      })
-      ElMessage.success(t('fileSource.createSuccess'))
-    }
-    dialog.open = false
-    getList()
-  } catch (error) {
-    showRequestError(error, t('fileSource.saveFailed'))
-  } finally {
-    saving.value = false
-  }
-}
-
-const runTest = async (payload: { id?: string; type?: string; config?: FileSourceConfig }) => {
-  testing.value = true
-  try {
-    const { data } = await testFileSourceRequest({
-      id: payload.id ?? '',
-      type: payload.type ?? '',
-      config: payload.config,
-    })
+    const { data } = await testFileSourceRequest({ id: row.id, type: '', config: undefined })
     if (data.ok) ElMessage.success(data.message || t('fileSource.testOk'))
     else ElMessage.error(data.message || t('fileSource.testFailed'))
-  } catch (error) {
-    showRequestError(error, t('fileSource.testFailed'))
-  } finally {
-    testing.value = false
+  } catch {
+    /* interceptor */
   }
 }
 
-const testForm = () => runTest({ type: form.type, config: buildPayloadConfig() })
-const testExisting = (row: FileSourceInfo) => runTest({ id: row.id })
-
-const toggleEnabled = async (row: FileSourceInfo, enabled: boolean) => {
+const toggleEnabled = async (row: Record<string, unknown>, enabled: boolean) => {
+  const record = findRow(String(row.id))
+  if (!record) return
   try {
     await updateFileSourceRequest({
-      id: row.id,
-      name: row.name,
+      id: record.id,
+      name: record.name,
       enabled,
-      redirect302: row.redirect302,
-      config: { ...emptyConfig(), ...(row.config ?? {}), secretKey: '', password: '' },
+      redirect302: record.redirect302,
+      config: { ...emptyConfig(), ...(record.config ?? {}), secretKey: '', password: '' },
     })
-    row.enabled = enabled
+    record.enabled = enabled
     ElMessage.success(t('fileSource.updateSuccess'))
-  } catch (error) {
-    showRequestError(error, t('fileSource.saveFailed'))
+  } catch {
+    /* interceptor */
   }
 }
 
-const remove = async (row: FileSourceInfo) => {
-  try {
-    await deleteFileSourceRequest(row.id)
-    ElMessage.success(t('fileSource.deleteSuccess'))
-    getList()
-  } catch (error) {
-    showRequestError(error, t('fileSource.deleteFailed'))
-  }
+const confirmDelete = (row: FileSourceInfo) => {
+  Dialog.confirm({
+    content: t('fileSource.confirmDelete', { name: row.name }),
+    onConfirm: async () => {
+      await deleteFileSourceRequest(row.id)
+      ElMessage.success(t('fileSource.deleteSuccess'))
+      getList()
+    },
+  })
 }
 
 onMounted(getList)
 </script>
 
-<style scoped>
-.fs-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.fs-muted {
-  color: var(--el-text-color-placeholder);
-  font-size: 12px;
-}
-.fs-field-hint {
-  margin-left: 0.75rem;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 移动端卡片列表 */
-.fs-mobile-list {
+<style scoped lang="scss">
+.src-page {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 10px;
 }
-.fs-mobile-card {
+.src-page__body {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 0.8rem;
-  border: 1px solid var(--el-border-color-extra-light);
-  border-radius: 0.6rem;
-  background: var(--el-bg-color);
+  flex-direction: column;
+  gap: 8px;
 }
-.fs-mobile-body {
-  flex: 1;
-  min-width: 0;
-}
-.fs-mobile-header {
+.src-page__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
 }
-.fs-mobile-name {
-  display: flex;
+.src-page__hint {
+  display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
+  gap: 4px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.src-page__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 2px;
+  border-radius: 999px;
+  background: var(--el-text-color-placeholder);
+}
+.src-page__dot--on {
+  background: var(--el-color-success, #16a34a);
+}
+.src-name {
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
-.fs-mobile-name span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.src-muted {
+  color: var(--el-text-color-placeholder);
+  font-size: 0.75rem;
 }
-.fs-mobile-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.75rem;
-  margin-top: 0.5rem;
-  font-size: 0.74rem;
-  color: var(--el-text-color-secondary);
-}
-.fs-mobile-actions {
+.src-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  flex-shrink: 0;
+  gap: 8px;
 }
-.fs-mobile-actions .el-button + .el-button {
-  margin-left: 0;
+.src-card__redirect {
+  color: var(--el-color-success, #16a34a);
 }
-
-@media (max-width: 767px) {
-  .fs-header .el-button {
-    width: 100%;
+.src-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.src-skeleton {
+  height: 96px;
+  border-radius: var(--app-radius);
+  background: linear-gradient(
+    100deg,
+    var(--el-fill-color-light) 30%,
+    var(--el-fill-color) 50%,
+    var(--el-fill-color-light) 70%
+  );
+  background-size: 200% 100%;
+  animation: src-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes src-shimmer {
+  from {
+    background-position: 200% 0;
   }
-  :deep(.el-card__body) {
-    padding: 0.85rem;
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (width <= 768px) {
+  .src-page {
+    gap: 8px;
   }
 }
 </style>

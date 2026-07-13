@@ -44,7 +44,6 @@
         :columns="columns"
         :rows="clients"
         row-key="id"
-        seq
         :loading="loading"
       >
         <template #cell-clientSecret="{ row }">
