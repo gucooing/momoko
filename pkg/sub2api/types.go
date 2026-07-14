@@ -12,6 +12,7 @@ import (
 const (
 	DefaultAdminUsagePath          = "/api/v1/admin/usage"
 	DefaultAdminUpstreamErrorsPath = "/api/v1/admin/ops/upstream-errors"
+	DefaultAdminGroupsPath         = "/api/v1/admin/groups/all"
 	StatusUpstreamError            = "upstream_error"
 )
 
@@ -42,8 +43,8 @@ type GroupField string
 
 const (
 	GroupByModel     GroupField = "model"
-	GroupByEndpoint  GroupField = "endpoint"
 	GroupByUserAgent GroupField = "user_agent"
+	GroupByGroup     GroupField = "group"
 )
 
 // ClientConfig 调用 Sub2API 管理端所需的连接信息。
@@ -70,6 +71,8 @@ type UsageRecord struct {
 	RequestDate  string
 	Model        string
 	Endpoint     string
+	GroupID      string // 关联本地 Sub2APIGroup.id
+	GroupName    string // Sub2API 分组名称
 	UserAgent    string
 	Status       string
 	Success      bool
@@ -85,6 +88,18 @@ type UsageRecord struct {
 	ErrorMessage    string  // 错误详情（失败/上游错误请求）
 	HTTPStatus      int     // HTTP 状态码
 }
+
+// Group 本地分组领域模型。
+type Group struct {
+	ID            string
+	Name          string
+	PublicEnabled bool
+	Deleted       bool
+}
+
+// DeletedGroupPublicKey 配置页「已删除分组」合并选项的约定 key。
+// 勾选后，所有 deleted=true 的分组 public_enabled 一并开启。
+const DeletedGroupPublicKey = "__deleted__"
 
 // SyncState 最近一次同步的状态。
 type SyncState struct {
@@ -135,16 +150,26 @@ type Totals struct {
 // UsageStore 数据层需实现的持久化与读取接口（仅做 ent CRUD/读取）。
 // 统计聚合改为读取记录后在内存中计算，数据层只需提供一次性读取入口，
 // 避免一个页面触发数十次聚合查询。
+//
+// 公开页读路径必须在数据库侧按 public_enabled 分组过滤，保证全局一致。
 type UsageStore interface {
 	SaveUsageRecords(ctx context.Context, records []*UsageRecord) error
 	ClearUsageRecords(ctx context.Context) error
 	LatestUsageRecordTime(ctx context.Context) (*time.Time, error)
 	LatestUpstreamErrorRecordTime(ctx context.Context) (*time.Time, error)
 	// RecordsSince 按时间升序返回 start（含）之后的记录；start 为 nil 时返回全部记录。
-	RecordsSince(ctx context.Context, start *time.Time) ([]*UsageRecord, error)
+	// publicOnly=true 时仅返回「关联分组 public_enabled=true」的记录（DB 过滤）。
+	RecordsSince(ctx context.Context, start *time.Time, publicOnly bool) ([]*UsageRecord, error)
 	// RecordsPage 按时间倒序（最新在前）返回 [start, end] 区间内分页的记录及区间总数。
-	// start/end 为 nil 时不施加对应边界。
-	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int) ([]*UsageRecord, int, error)
+	// publicOnly 语义同 RecordsSince。
+	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool) ([]*UsageRecord, int, error)
+	// ListGroups 返回本地分组列表（活跃在前，按名称排序）。
+	ListGroups(ctx context.Context) ([]*Group, error)
+	// SyncGroups 用上游存活分组 ID 集合刷新本地：命中的标未删除并更新名；本地多出的标 deleted。
+	SyncGroups(ctx context.Context, live []*Group) error
+	// SetPublicGroups 设置公开启用。
+	// names 为活跃分组 name；若包含 DeletedGroupPublicKey，则所有已删除分组一并启用。
+	SetPublicGroups(ctx context.Context, names []string) error
 }
 
 // ConfigStore KV 配置存储（由数据层 ConfigRepo 适配）。

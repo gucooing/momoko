@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"momoko/internal/data/ent/gen/predicate"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"time"
 
@@ -99,6 +100,46 @@ func (_u *Sub2APIUsageRecordUpdate) SetNillableEndpoint(v *string) *Sub2APIUsage
 // ClearEndpoint clears the value of the "endpoint" field.
 func (_u *Sub2APIUsageRecordUpdate) ClearEndpoint() *Sub2APIUsageRecordUpdate {
 	_u.mutation.ClearEndpoint()
+	return _u
+}
+
+// SetGroupID sets the "group_id" field.
+func (_u *Sub2APIUsageRecordUpdate) SetGroupID(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetGroupID(v)
+	return _u
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableGroupID(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetGroupID(*v)
+	}
+	return _u
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearGroupID() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearGroupID()
+	return _u
+}
+
+// SetGroupName sets the "group_name" field.
+func (_u *Sub2APIUsageRecordUpdate) SetGroupName(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetGroupName(v)
+	return _u
+}
+
+// SetNillableGroupName sets the "group_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableGroupName(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetGroupName(*v)
+	}
+	return _u
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearGroupName() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearGroupName()
 	return _u
 }
 
@@ -363,9 +404,20 @@ func (_u *Sub2APIUsageRecordUpdate) AddHTTPStatus(v int) *Sub2APIUsageRecordUpda
 	return _u
 }
 
+// SetGroup sets the "group" edge to the Sub2APIGroup entity.
+func (_u *Sub2APIUsageRecordUpdate) SetGroup(v *Sub2APIGroup) *Sub2APIUsageRecordUpdate {
+	return _u.SetGroupID(v.ID)
+}
+
 // Mutation returns the Sub2APIUsageRecordMutation object of the builder.
 func (_u *Sub2APIUsageRecordUpdate) Mutation() *Sub2APIUsageRecordMutation {
 	return _u.mutation
+}
+
+// ClearGroup clears the "group" edge to the Sub2APIGroup entity.
+func (_u *Sub2APIUsageRecordUpdate) ClearGroup() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearGroup()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -433,6 +485,12 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if _u.mutation.EndpointCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldEndpoint, field.TypeString)
+	}
+	if value, ok := _u.mutation.GroupName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldGroupName, field.TypeString, value)
+	}
+	if _u.mutation.GroupNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldGroupName, field.TypeString)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
@@ -508,6 +566,35 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.AddedHTTPStatus(); ok {
 		_spec.AddField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
+	}
+	if _u.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   sub2apiusagerecord.GroupTable,
+			Columns: []string{sub2apiusagerecord.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   sub2apiusagerecord.GroupTable,
+			Columns: []string{sub2apiusagerecord.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -600,6 +687,46 @@ func (_u *Sub2APIUsageRecordUpdateOne) SetNillableEndpoint(v *string) *Sub2APIUs
 // ClearEndpoint clears the value of the "endpoint" field.
 func (_u *Sub2APIUsageRecordUpdateOne) ClearEndpoint() *Sub2APIUsageRecordUpdateOne {
 	_u.mutation.ClearEndpoint()
+	return _u
+}
+
+// SetGroupID sets the "group_id" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetGroupID(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetGroupID(v)
+	return _u
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableGroupID(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetGroupID(*v)
+	}
+	return _u
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearGroupID() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearGroupID()
+	return _u
+}
+
+// SetGroupName sets the "group_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetGroupName(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetGroupName(v)
+	return _u
+}
+
+// SetNillableGroupName sets the "group_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableGroupName(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetGroupName(*v)
+	}
+	return _u
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearGroupName() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearGroupName()
 	return _u
 }
 
@@ -864,9 +991,20 @@ func (_u *Sub2APIUsageRecordUpdateOne) AddHTTPStatus(v int) *Sub2APIUsageRecordU
 	return _u
 }
 
+// SetGroup sets the "group" edge to the Sub2APIGroup entity.
+func (_u *Sub2APIUsageRecordUpdateOne) SetGroup(v *Sub2APIGroup) *Sub2APIUsageRecordUpdateOne {
+	return _u.SetGroupID(v.ID)
+}
+
 // Mutation returns the Sub2APIUsageRecordMutation object of the builder.
 func (_u *Sub2APIUsageRecordUpdateOne) Mutation() *Sub2APIUsageRecordMutation {
 	return _u.mutation
+}
+
+// ClearGroup clears the "group" edge to the Sub2APIGroup entity.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearGroup() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearGroup()
+	return _u
 }
 
 // Where appends a list predicates to the Sub2APIUsageRecordUpdate builder.
@@ -965,6 +1103,12 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	if _u.mutation.EndpointCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldEndpoint, field.TypeString)
 	}
+	if value, ok := _u.mutation.GroupName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldGroupName, field.TypeString, value)
+	}
+	if _u.mutation.GroupNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldGroupName, field.TypeString)
+	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
 	}
@@ -1039,6 +1183,35 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	}
 	if value, ok := _u.mutation.AddedHTTPStatus(); ok {
 		_spec.AddField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
+	}
+	if _u.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   sub2apiusagerecord.GroupTable,
+			Columns: []string{sub2apiusagerecord.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   sub2apiusagerecord.GroupTable,
+			Columns: []string{sub2apiusagerecord.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Sub2APIUsageRecord{config: _u.config}
 	_spec.Assign = _node.assignValues

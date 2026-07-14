@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
@@ -18,6 +19,8 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 		field.String("request_date").Comment("请求日期（本地时区 YYYY-MM-DD，用于按日聚合）"),
 		field.String("model").Optional().Comment("模型名称"),
 		field.String("endpoint").Optional().Comment("接口/通道"),
+		field.String("group_id").Optional().Nillable().Comment("关联 Sub2APIGroup.id"),
+		field.String("group_name").Optional().Comment("Sub2API 分组名称（冗余展示）"),
 		field.String("user_agent").Optional().Comment("客户端 User-Agent（用于 UA 维度统计）"),
 		field.String("status").Optional().Comment("状态"),
 		field.Bool("success").Default(false).Comment("是否成功"),
@@ -35,6 +38,15 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 	}
 }
 
+func (Sub2APIUsageRecord) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("group", Sub2APIGroup.Type).
+			Ref("usage_records").
+			Field("group_id").
+			Unique(),
+	}
+}
+
 func (Sub2APIUsageRecord) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("request_time"),
@@ -43,6 +55,10 @@ func (Sub2APIUsageRecord) Indexes() []ent.Index {
 		index.Fields("status"),
 		index.Fields("model"),
 		index.Fields("endpoint"),
+		index.Fields("group_id"),
+		index.Fields("group_name"),
+		// 公开页按分组过滤 + 时间范围扫描
+		index.Fields("group_id", "request_time"),
 	}
 }
 

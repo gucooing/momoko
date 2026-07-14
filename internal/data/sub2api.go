@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	sub2apipkg "momoko/pkg/sub2api"
@@ -27,6 +29,11 @@ func NewSub2APIRepo(data *Data) biz.Sub2APIRepo {
 
 func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipkg.UsageRecord) error {
 	const batchSize = 500
+	// 与 usage 同批：按上游 group_id 直接 upsert 分组，再写记录。
+	if err := r.upsertGroupsFromRecords(ctx, records); err != nil {
+		return err
+	}
+
 	for start := 0; start < len(records); start += batchSize {
 		end := start + batchSize
 		if end > len(records) {
@@ -38,12 +45,15 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 			if requestDate == "" {
 				requestDate = record.RequestTime.In(time.Local).Format("2006-01-02")
 			}
-			builders = append(builders, r.data.db.Sub2APIUsageRecord.Create().
+			groupID := strings.TrimSpace(record.GroupID)
+			groupName := strings.TrimSpace(record.GroupName)
+			b := r.data.db.Sub2APIUsageRecord.Create().
 				SetID(record.ID).
 				SetRequestTime(record.RequestTime).
 				SetRequestDate(requestDate).
 				SetModel(record.Model).
 				SetEndpoint(record.Endpoint).
+				SetGroupName(groupName).
 				SetUserAgent(record.UserAgent).
 				SetStatus(record.Status).
 				SetSuccess(record.Success).
@@ -56,8 +66,11 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetReasoningEffort(record.ReasoningEffort).
 				SetAccountName(record.AccountName).
 				SetErrorMessage(record.ErrorMessage).
-				SetHTTPStatus(record.HTTPStatus),
-			)
+				SetHTTPStatus(record.HTTPStatus)
+			if groupID != "" {
+				b = b.SetGroupID(groupID)
+			}
+			builders = append(builders, b)
 		}
 		if err := r.data.db.Sub2APIUsageRecord.CreateBulk(builders...).
 			OnConflictColumns(sub2apiusagerecord.FieldID).
@@ -69,7 +82,47 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 	return nil
 }
 
+// upsertGroupsFromRecords 用上游 group_id 作主键直接入库。
+// 新分组 public_enabled=false；已存在则更新 name（保留公开勾选）。
+func (r *sub2APIRepo) upsertGroupsFromRecords(ctx context.Context, records []*sub2apipkg.UsageRecord) error {
+	type gkey struct{ id, name string }
+	seen := make(map[string]string) // id -> name
+	for _, rec := range records {
+		id := strings.TrimSpace(rec.GroupID)
+		if id == "" {
+			continue
+		}
+		name := strings.TrimSpace(rec.GroupName)
+		if name == "" {
+			name = id
+		}
+		if prev, ok := seen[id]; !ok || (prev == id && name != id) {
+			seen[id] = name
+		}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	builders := make([]*gen.Sub2APIGroupCreate, 0, len(seen))
+	for id, name := range seen {
+		builders = append(builders, r.data.db.Sub2APIGroup.Create().
+			SetID(id).
+			SetName(name).
+			SetPublicEnabled(false),
+		)
+	}
+	return r.data.db.Sub2APIGroup.CreateBulk(builders...).
+		OnConflictColumns(sub2apigroup.FieldID).
+		Update(func(u *gen.Sub2APIGroupUpsert) {
+			u.UpdateName()
+			u.SetDeleted(false)
+			// 不覆盖 PublicEnabled
+		}).
+		Exec(ctx)
+}
+
 func (r *sub2APIRepo) ClearUsageRecords(ctx context.Context) error {
+	// 全量重同步：清 usage，保留分组（以便保留 public_enabled 勾选）。
 	_, err := r.data.db.Sub2APIUsageRecord.Delete().Exec(ctx)
 	return err
 }
@@ -101,13 +154,15 @@ func (r *sub2APIRepo) LatestUpstreamErrorRecordTime(ctx context.Context) (*time.
 	return &record.RequestTime, nil
 }
 
-// RecordsSince 按时间升序读取 start（含）之后的记录；start 为 nil 时返回全部记录。
-// 聚合统计统一改为读取记录后在内存中计算（见 pkg/sub2api），因此数据层只保留这一个读取入口，
-// 把原先一个页面数十次的聚合查询降到一次。
-func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time) ([]*sub2apipkg.UsageRecord, error) {
+// RecordsSince 按时间升序读取 start（含）之后的记录。
+// publicOnly 时仅返回关联分组 public_enabled=true 的记录（数据库过滤）。
+func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time, publicOnly bool) ([]*sub2apipkg.UsageRecord, error) {
 	query := r.data.db.Sub2APIUsageRecord.Query()
 	if start != nil {
 		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
+	}
+	if publicOnly {
+		query = query.Where(sub2apiusagerecord.HasGroupWith(sub2apigroup.PublicEnabledEQ(true)))
 	}
 	records, err := query.Order(gen.Asc(sub2apiusagerecord.FieldRequestTime)).All(ctx)
 	if err != nil {
@@ -120,14 +175,17 @@ func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time) ([]*su
 	return result, nil
 }
 
-// RecordsPage 按时间倒序（最新在前）分页读取 [start, end] 区间内的记录，并返回区间总数。
-func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int) ([]*sub2apipkg.UsageRecord, int, error) {
+// RecordsPage 按时间倒序分页读取 [start, end] 区间内的记录。
+func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool) ([]*sub2apipkg.UsageRecord, int, error) {
 	query := r.data.db.Sub2APIUsageRecord.Query()
 	if start != nil {
 		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
 	}
 	if end != nil {
 		query = query.Where(sub2apiusagerecord.RequestTimeLTE(*end))
+	}
+	if publicOnly {
+		query = query.Where(sub2apiusagerecord.HasGroupWith(sub2apigroup.PublicEnabledEQ(true)))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -154,13 +212,20 @@ func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, of
 	return result, total, nil
 }
 
+
 func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
+	groupID := ""
+	if record.GroupID != nil {
+		groupID = *record.GroupID
+	}
 	return &sub2apipkg.UsageRecord{
 		ID:              record.ID,
 		RequestTime:     record.RequestTime,
 		RequestDate:     record.RequestDate,
 		Model:           record.Model,
 		Endpoint:        record.Endpoint,
+		GroupID:         groupID,
+		GroupName:       record.GroupName,
 		UserAgent:       record.UserAgent,
 		Status:          record.Status,
 		Success:         record.Success,
@@ -175,6 +240,135 @@ func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 		ErrorMessage:    record.ErrorMessage,
 		HTTPStatus:      record.HTTPStatus,
 	}
+}
+
+func (r *sub2APIRepo) ListGroups(ctx context.Context) ([]*sub2apipkg.Group, error) {
+	rows, err := r.data.db.Sub2APIGroup.Query().
+		Order(gen.Asc(sub2apigroup.FieldDeleted), gen.Asc(sub2apigroup.FieldName)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*sub2apipkg.Group, 0, len(rows))
+	for _, g := range rows {
+		out = append(out, &sub2apipkg.Group{
+			ID:            g.ID,
+			Name:          g.Name,
+			PublicEnabled: g.PublicEnabled,
+			Deleted:       g.Deleted,
+		})
+	}
+	return out, nil
+}
+
+// SyncGroups 以 upstream 存活列表为准刷新本地分组。
+// live 中的 ID 标记 deleted=false 并更新 name；本地有但 live 没有的标记 deleted=true。
+func (r *sub2APIRepo) SyncGroups(ctx context.Context, live []*sub2apipkg.Group) error {
+	liveIDs := make(map[string]string, len(live)) // id -> name
+	for _, g := range live {
+		if g == nil {
+			continue
+		}
+		id := strings.TrimSpace(g.ID)
+		if id == "" {
+			continue
+		}
+		name := strings.TrimSpace(g.Name)
+		if name == "" {
+			name = id
+		}
+		liveIDs[id] = name
+	}
+
+	// upsert live
+	if len(liveIDs) > 0 {
+		builders := make([]*gen.Sub2APIGroupCreate, 0, len(liveIDs))
+		for id, name := range liveIDs {
+			builders = append(builders, r.data.db.Sub2APIGroup.Create().
+				SetID(id).
+				SetName(name).
+				SetDeleted(false).
+				SetPublicEnabled(false),
+			)
+		}
+		if err := r.data.db.Sub2APIGroup.CreateBulk(builders...).
+			OnConflictColumns(sub2apigroup.FieldID).
+			Update(func(u *gen.Sub2APIGroupUpsert) {
+				u.UpdateName()
+				u.SetDeleted(false)
+			}).
+			Exec(ctx); err != nil {
+			return err
+		}
+	}
+
+	// mark missing as deleted
+	existing, err := r.data.db.Sub2APIGroup.Query().Select(sub2apigroup.FieldID).All(ctx)
+	if err != nil {
+		return err
+	}
+	stale := make([]string, 0)
+	for _, g := range existing {
+		if _, ok := liveIDs[g.ID]; !ok {
+			stale = append(stale, g.ID)
+		}
+	}
+	if len(stale) == 0 {
+		return nil
+	}
+	_, err = r.data.db.Sub2APIGroup.Update().
+		Where(sub2apigroup.IDIn(stale...)).
+		SetDeleted(true).
+		Save(ctx)
+	return err
+}
+
+// SetPublicGroups names 为活跃分组 name；含 DeletedGroupPublicKey 时启用全部已删除分组。
+func (r *sub2APIRepo) SetPublicGroups(ctx context.Context, names []string) error {
+	enableDeleted := false
+	seen := make(map[string]struct{}, len(names))
+	active := make([]string, 0, len(names))
+	for _, n := range names {
+		n = strings.TrimSpace(n)
+		if n == "" {
+			continue
+		}
+		if n == sub2apipkg.DeletedGroupPublicKey {
+			enableDeleted = true
+			continue
+		}
+		if _, ok := seen[n]; ok {
+			continue
+		}
+		seen[n] = struct{}{}
+		active = append(active, n)
+	}
+
+	if _, err := r.data.db.Sub2APIGroup.Update().
+		SetPublicEnabled(false).
+		Save(ctx); err != nil {
+		return err
+	}
+	if len(active) > 0 {
+		if _, err := r.data.db.Sub2APIGroup.Update().
+			Where(
+				sub2apigroup.DeletedEQ(false),
+				sub2apigroup.NameIn(active...),
+			).
+			SetPublicEnabled(true).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+	if enableDeleted {
+		if _, err := r.data.db.Sub2APIGroup.Update().
+			Where(sub2apigroup.DeletedEQ(true)).
+			SetPublicEnabled(true).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ---------- 公告 CRUD ----------

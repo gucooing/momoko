@@ -27,6 +27,7 @@ import (
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -70,6 +71,7 @@ const (
 	TypeRole                = "Role"
 	TypeSSHHost             = "SSHHost"
 	TypeSub2APIAnnouncement = "Sub2APIAnnouncement"
+	TypeSub2APIGroup        = "Sub2APIGroup"
 	TypeSub2APITimelineItem = "Sub2APITimelineItem"
 	TypeSub2APIUsageRecord  = "Sub2APIUsageRecord"
 	TypeSystemConfig        = "SystemConfig"
@@ -18220,6 +18222,647 @@ func (m *Sub2APIAnnouncementMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Sub2APIAnnouncement edge %s", name)
 }
 
+// Sub2APIGroupMutation represents an operation that mutates the Sub2APIGroup nodes in the graph.
+type Sub2APIGroupMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *string
+	create_time          *time.Time
+	update_time          *time.Time
+	name                 *string
+	public_enabled       *bool
+	deleted              *bool
+	clearedFields        map[string]struct{}
+	usage_records        map[string]struct{}
+	removedusage_records map[string]struct{}
+	clearedusage_records bool
+	done                 bool
+	oldValue             func(context.Context) (*Sub2APIGroup, error)
+	predicates           []predicate.Sub2APIGroup
+}
+
+var _ ent.Mutation = (*Sub2APIGroupMutation)(nil)
+
+// sub2apigroupOption allows management of the mutation configuration using functional options.
+type sub2apigroupOption func(*Sub2APIGroupMutation)
+
+// newSub2APIGroupMutation creates new mutation for the Sub2APIGroup entity.
+func newSub2APIGroupMutation(c config, op Op, opts ...sub2apigroupOption) *Sub2APIGroupMutation {
+	m := &Sub2APIGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APIGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APIGroupID sets the ID field of the mutation.
+func withSub2APIGroupID(id string) sub2apigroupOption {
+	return func(m *Sub2APIGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APIGroup
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APIGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APIGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APIGroup sets the old Sub2APIGroup of the mutation.
+func withSub2APIGroup(node *Sub2APIGroup) sub2apigroupOption {
+	return func(m *Sub2APIGroupMutation) {
+		m.oldValue = func(context.Context) (*Sub2APIGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APIGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APIGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Sub2APIGroup entities.
+func (m *Sub2APIGroupMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APIGroupMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APIGroupMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APIGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APIGroupMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APIGroupMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APIGroup entity.
+// If the Sub2APIGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIGroupMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APIGroupMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APIGroupMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APIGroupMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APIGroup entity.
+// If the Sub2APIGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIGroupMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APIGroupMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the "name" field.
+func (m *Sub2APIGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *Sub2APIGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Sub2APIGroup entity.
+// If the Sub2APIGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *Sub2APIGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetPublicEnabled sets the "public_enabled" field.
+func (m *Sub2APIGroupMutation) SetPublicEnabled(b bool) {
+	m.public_enabled = &b
+}
+
+// PublicEnabled returns the value of the "public_enabled" field in the mutation.
+func (m *Sub2APIGroupMutation) PublicEnabled() (r bool, exists bool) {
+	v := m.public_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicEnabled returns the old "public_enabled" field's value of the Sub2APIGroup entity.
+// If the Sub2APIGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIGroupMutation) OldPublicEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicEnabled: %w", err)
+	}
+	return oldValue.PublicEnabled, nil
+}
+
+// ResetPublicEnabled resets all changes to the "public_enabled" field.
+func (m *Sub2APIGroupMutation) ResetPublicEnabled() {
+	m.public_enabled = nil
+}
+
+// SetDeleted sets the "deleted" field.
+func (m *Sub2APIGroupMutation) SetDeleted(b bool) {
+	m.deleted = &b
+}
+
+// Deleted returns the value of the "deleted" field in the mutation.
+func (m *Sub2APIGroupMutation) Deleted() (r bool, exists bool) {
+	v := m.deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeleted returns the old "deleted" field's value of the Sub2APIGroup entity.
+// If the Sub2APIGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIGroupMutation) OldDeleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeleted: %w", err)
+	}
+	return oldValue.Deleted, nil
+}
+
+// ResetDeleted resets all changes to the "deleted" field.
+func (m *Sub2APIGroupMutation) ResetDeleted() {
+	m.deleted = nil
+}
+
+// AddUsageRecordIDs adds the "usage_records" edge to the Sub2APIUsageRecord entity by ids.
+func (m *Sub2APIGroupMutation) AddUsageRecordIDs(ids ...string) {
+	if m.usage_records == nil {
+		m.usage_records = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.usage_records[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUsageRecords clears the "usage_records" edge to the Sub2APIUsageRecord entity.
+func (m *Sub2APIGroupMutation) ClearUsageRecords() {
+	m.clearedusage_records = true
+}
+
+// UsageRecordsCleared reports if the "usage_records" edge to the Sub2APIUsageRecord entity was cleared.
+func (m *Sub2APIGroupMutation) UsageRecordsCleared() bool {
+	return m.clearedusage_records
+}
+
+// RemoveUsageRecordIDs removes the "usage_records" edge to the Sub2APIUsageRecord entity by IDs.
+func (m *Sub2APIGroupMutation) RemoveUsageRecordIDs(ids ...string) {
+	if m.removedusage_records == nil {
+		m.removedusage_records = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.usage_records, ids[i])
+		m.removedusage_records[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUsageRecords returns the removed IDs of the "usage_records" edge to the Sub2APIUsageRecord entity.
+func (m *Sub2APIGroupMutation) RemovedUsageRecordsIDs() (ids []string) {
+	for id := range m.removedusage_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UsageRecordsIDs returns the "usage_records" edge IDs in the mutation.
+func (m *Sub2APIGroupMutation) UsageRecordsIDs() (ids []string) {
+	for id := range m.usage_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUsageRecords resets all changes to the "usage_records" edge.
+func (m *Sub2APIGroupMutation) ResetUsageRecords() {
+	m.usage_records = nil
+	m.clearedusage_records = false
+	m.removedusage_records = nil
+}
+
+// Where appends a list predicates to the Sub2APIGroupMutation builder.
+func (m *Sub2APIGroupMutation) Where(ps ...predicate.Sub2APIGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APIGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APIGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APIGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APIGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APIGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APIGroup).
+func (m *Sub2APIGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APIGroupMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.create_time != nil {
+		fields = append(fields, sub2apigroup.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apigroup.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, sub2apigroup.FieldName)
+	}
+	if m.public_enabled != nil {
+		fields = append(fields, sub2apigroup.FieldPublicEnabled)
+	}
+	if m.deleted != nil {
+		fields = append(fields, sub2apigroup.FieldDeleted)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APIGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apigroup.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apigroup.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apigroup.FieldName:
+		return m.Name()
+	case sub2apigroup.FieldPublicEnabled:
+		return m.PublicEnabled()
+	case sub2apigroup.FieldDeleted:
+		return m.Deleted()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APIGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apigroup.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apigroup.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apigroup.FieldName:
+		return m.OldName(ctx)
+	case sub2apigroup.FieldPublicEnabled:
+		return m.OldPublicEnabled(ctx)
+	case sub2apigroup.FieldDeleted:
+		return m.OldDeleted(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APIGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apigroup.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apigroup.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apigroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case sub2apigroup.FieldPublicEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicEnabled(v)
+		return nil
+	case sub2apigroup.FieldDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeleted(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APIGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APIGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APIGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Sub2APIGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APIGroupMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APIGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APIGroupMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Sub2APIGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APIGroupMutation) ResetField(name string) error {
+	switch name {
+	case sub2apigroup.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apigroup.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apigroup.FieldName:
+		m.ResetName()
+		return nil
+	case sub2apigroup.FieldPublicEnabled:
+		m.ResetPublicEnabled()
+		return nil
+	case sub2apigroup.FieldDeleted:
+		m.ResetDeleted()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APIGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.usage_records != nil {
+		edges = append(edges, sub2apigroup.EdgeUsageRecords)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APIGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case sub2apigroup.EdgeUsageRecords:
+		ids := make([]ent.Value, 0, len(m.usage_records))
+		for id := range m.usage_records {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APIGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedusage_records != nil {
+		edges = append(edges, sub2apigroup.EdgeUsageRecords)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APIGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case sub2apigroup.EdgeUsageRecords:
+		ids := make([]ent.Value, 0, len(m.removedusage_records))
+		for id := range m.removedusage_records {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APIGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedusage_records {
+		edges = append(edges, sub2apigroup.EdgeUsageRecords)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APIGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case sub2apigroup.EdgeUsageRecords:
+		return m.clearedusage_records
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APIGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Sub2APIGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APIGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case sub2apigroup.EdgeUsageRecords:
+		m.ResetUsageRecords()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APIGroup edge %s", name)
+}
+
 // Sub2APITimelineItemMutation represents an operation that mutates the Sub2APITimelineItem nodes in the graph.
 type Sub2APITimelineItemMutation struct {
 	config
@@ -18894,6 +19537,7 @@ type Sub2APIUsageRecordMutation struct {
 	request_date      *string
 	model             *string
 	endpoint          *string
+	group_name        *string
 	user_agent        *string
 	status            *string
 	success           *bool
@@ -18915,6 +19559,8 @@ type Sub2APIUsageRecordMutation struct {
 	http_status       *int
 	addhttp_status    *int
 	clearedFields     map[string]struct{}
+	group             *string
+	clearedgroup      bool
 	done              bool
 	oldValue          func(context.Context) (*Sub2APIUsageRecord, error)
 	predicates        []predicate.Sub2APIUsageRecord
@@ -19264,6 +19910,104 @@ func (m *Sub2APIUsageRecordMutation) EndpointCleared() bool {
 func (m *Sub2APIUsageRecordMutation) ResetEndpoint() {
 	m.endpoint = nil
 	delete(m.clearedFields, sub2apiusagerecord.FieldEndpoint)
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *Sub2APIUsageRecordMutation) SetGroupID(s string) {
+	m.group = &s
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) GroupID() (r string, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldGroupID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (m *Sub2APIUsageRecordMutation) ClearGroupID() {
+	m.group = nil
+	m.clearedFields[sub2apiusagerecord.FieldGroupID] = struct{}{}
+}
+
+// GroupIDCleared returns if the "group_id" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) GroupIDCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldGroupID]
+	return ok
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *Sub2APIUsageRecordMutation) ResetGroupID() {
+	m.group = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldGroupID)
+}
+
+// SetGroupName sets the "group_name" field.
+func (m *Sub2APIUsageRecordMutation) SetGroupName(s string) {
+	m.group_name = &s
+}
+
+// GroupName returns the value of the "group_name" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) GroupName() (r string, exists bool) {
+	v := m.group_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupName returns the old "group_name" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldGroupName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupName: %w", err)
+	}
+	return oldValue.GroupName, nil
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (m *Sub2APIUsageRecordMutation) ClearGroupName() {
+	m.group_name = nil
+	m.clearedFields[sub2apiusagerecord.FieldGroupName] = struct{}{}
+}
+
+// GroupNameCleared returns if the "group_name" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) GroupNameCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldGroupName]
+	return ok
+}
+
+// ResetGroupName resets all changes to the "group_name" field.
+func (m *Sub2APIUsageRecordMutation) ResetGroupName() {
+	m.group_name = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldGroupName)
 }
 
 // SetUserAgent sets the "user_agent" field.
@@ -19939,6 +20683,33 @@ func (m *Sub2APIUsageRecordMutation) ResetHTTPStatus() {
 	m.addhttp_status = nil
 }
 
+// ClearGroup clears the "group" edge to the Sub2APIGroup entity.
+func (m *Sub2APIUsageRecordMutation) ClearGroup() {
+	m.clearedgroup = true
+	m.clearedFields[sub2apiusagerecord.FieldGroupID] = struct{}{}
+}
+
+// GroupCleared reports if the "group" edge to the Sub2APIGroup entity was cleared.
+func (m *Sub2APIUsageRecordMutation) GroupCleared() bool {
+	return m.GroupIDCleared() || m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *Sub2APIUsageRecordMutation) GroupIDs() (ids []string) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *Sub2APIUsageRecordMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
 // Where appends a list predicates to the Sub2APIUsageRecordMutation builder.
 func (m *Sub2APIUsageRecordMutation) Where(ps ...predicate.Sub2APIUsageRecord) {
 	m.predicates = append(m.predicates, ps...)
@@ -19973,7 +20744,7 @@ func (m *Sub2APIUsageRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *Sub2APIUsageRecordMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 21)
 	if m.create_time != nil {
 		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
 	}
@@ -19991,6 +20762,12 @@ func (m *Sub2APIUsageRecordMutation) Fields() []string {
 	}
 	if m.endpoint != nil {
 		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
+	}
+	if m.group != nil {
+		fields = append(fields, sub2apiusagerecord.FieldGroupID)
+	}
+	if m.group_name != nil {
+		fields = append(fields, sub2apiusagerecord.FieldGroupName)
 	}
 	if m.user_agent != nil {
 		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
@@ -20051,6 +20828,10 @@ func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.Model()
 	case sub2apiusagerecord.FieldEndpoint:
 		return m.Endpoint()
+	case sub2apiusagerecord.FieldGroupID:
+		return m.GroupID()
+	case sub2apiusagerecord.FieldGroupName:
+		return m.GroupName()
 	case sub2apiusagerecord.FieldUserAgent:
 		return m.UserAgent()
 	case sub2apiusagerecord.FieldStatus:
@@ -20098,6 +20879,10 @@ func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldModel(ctx)
 	case sub2apiusagerecord.FieldEndpoint:
 		return m.OldEndpoint(ctx)
+	case sub2apiusagerecord.FieldGroupID:
+		return m.OldGroupID(ctx)
+	case sub2apiusagerecord.FieldGroupName:
+		return m.OldGroupName(ctx)
 	case sub2apiusagerecord.FieldUserAgent:
 		return m.OldUserAgent(ctx)
 	case sub2apiusagerecord.FieldStatus:
@@ -20174,6 +20959,20 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndpoint(v)
+		return nil
+	case sub2apiusagerecord.FieldGroupID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
+		return nil
+	case sub2apiusagerecord.FieldGroupName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupName(v)
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		v, ok := value.(string)
@@ -20389,6 +21188,12 @@ func (m *Sub2APIUsageRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(sub2apiusagerecord.FieldEndpoint) {
 		fields = append(fields, sub2apiusagerecord.FieldEndpoint)
 	}
+	if m.FieldCleared(sub2apiusagerecord.FieldGroupID) {
+		fields = append(fields, sub2apiusagerecord.FieldGroupID)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldGroupName) {
+		fields = append(fields, sub2apiusagerecord.FieldGroupName)
+	}
 	if m.FieldCleared(sub2apiusagerecord.FieldUserAgent) {
 		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
 	}
@@ -20423,6 +21228,12 @@ func (m *Sub2APIUsageRecordMutation) ClearField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldEndpoint:
 		m.ClearEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldGroupID:
+		m.ClearGroupID()
+		return nil
+	case sub2apiusagerecord.FieldGroupName:
+		m.ClearGroupName()
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		m.ClearUserAgent()
@@ -20464,6 +21275,12 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldEndpoint:
 		m.ResetEndpoint()
+		return nil
+	case sub2apiusagerecord.FieldGroupID:
+		m.ResetGroupID()
+		return nil
+	case sub2apiusagerecord.FieldGroupName:
+		m.ResetGroupName()
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		m.ResetUserAgent()
@@ -20510,19 +21327,28 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *Sub2APIUsageRecordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.group != nil {
+		edges = append(edges, sub2apiusagerecord.EdgeGroup)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *Sub2APIUsageRecordMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case sub2apiusagerecord.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *Sub2APIUsageRecordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -20534,25 +21360,42 @@ func (m *Sub2APIUsageRecordMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *Sub2APIUsageRecordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedgroup {
+		edges = append(edges, sub2apiusagerecord.EdgeGroup)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *Sub2APIUsageRecordMutation) EdgeCleared(name string) bool {
+	switch name {
+	case sub2apiusagerecord.EdgeGroup:
+		return m.clearedgroup
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *Sub2APIUsageRecordMutation) ClearEdge(name string) error {
+	switch name {
+	case sub2apiusagerecord.EdgeGroup:
+		m.ClearGroup()
+		return nil
+	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *Sub2APIUsageRecordMutation) ResetEdge(name string) error {
+	switch name {
+	case sub2apiusagerecord.EdgeGroup:
+		m.ResetGroup()
+		return nil
+	}
 	return fmt.Errorf("unknown Sub2APIUsageRecord edge %s", name)
 }
 

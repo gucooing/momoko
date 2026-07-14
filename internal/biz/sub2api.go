@@ -49,6 +49,14 @@ func (s *Sub2APIUsecase) Config(ctx context.Context) (*v1.Sub2APIConfig, error) 
 	return cfg, nil
 }
 
+func (s *Sub2APIUsecase) ListGroups(ctx context.Context) ([]*sub2apipkg.Group, error) {
+	groups, err := s.service.ListGroups(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return groups, nil
+}
+
 func (s *Sub2APIUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateSub2APIConfigRequest) (*v1.Sub2APIConfig, error) {
 	cfg, err := s.service.UpdateConfig(ctx, req.GetConfig())
 	if err != nil {

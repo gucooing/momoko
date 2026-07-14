@@ -26,6 +26,7 @@ import (
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -118,6 +119,7 @@ func checkColumn(t, c string) error {
 			role.Table:                role.ValidColumn,
 			sshhost.Table:             sshhost.ValidColumn,
 			sub2apiannouncement.Table: sub2apiannouncement.ValidColumn,
+			sub2apigroup.Table:        sub2apigroup.ValidColumn,
 			sub2apitimelineitem.Table: sub2apitimelineitem.ValidColumn,
 			sub2apiusagerecord.Table:  sub2apiusagerecord.ValidColumn,
 			systemconfig.Table:        systemconfig.ValidColumn,

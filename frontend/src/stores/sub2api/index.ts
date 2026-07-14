@@ -28,6 +28,7 @@ import type {
   CreateSub2APITimelineItemRequest,
   Sub2APIAnnouncement,
   Sub2APIConfig,
+  Sub2APIGroup,
   Sub2APIHome,
   Sub2APIRecentRequest,
   Sub2APIStats,
@@ -65,6 +66,7 @@ const createDefaultConfig = (): Sub2APIConfig => ({
   allowedSrcHosts: [],
   imageEnabled: true,
   srcHostWhitelistEnabled: false,
+  publicGroups: [],
 })
 
 const toNumber = (value: unknown) => {
@@ -86,6 +88,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
 
   const config = ref<Sub2APIConfig>(createDefaultConfig())
   const configForm = reactive<Sub2APIConfig>(createDefaultConfig())
+  const groups = ref<Sub2APIGroup[]>([])
   const snapshot = ref<Sub2APIUsageSnapshot>()
   const home = ref<Sub2APIHome>()
   const stats = ref<Sub2APIStats>()
@@ -112,6 +115,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
 
   const applyConfig = (next?: Sub2APIConfig) => {
     const normalized = { ...createDefaultConfig(), ...(next || {}) }
+    if (!Array.isArray(normalized.publicGroups)) normalized.publicGroups = []
+    if (!Array.isArray(normalized.allowedSrcHosts)) normalized.allowedSrcHosts = []
     config.value = normalized
     Object.assign(configForm, normalized)
   }
@@ -120,7 +125,17 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     configLoading.value = true
     try {
       const { data } = await getSub2APIConfig({})
-      applyConfig(data?.config)
+      const list = data?.groups || []
+      groups.value = list
+      const cfg = { ...(data?.config || {}) } as Sub2APIConfig
+      const activeEnabled = list
+        .filter((g) => g && !g.deleted && g.publicEnabled && g.name)
+        .map((g) => g.name)
+      const deletedEnabled = list.some((g) => g?.deleted && g.publicEnabled)
+      cfg.publicGroups = deletedEnabled
+        ? [...activeEnabled, '__deleted__']
+        : activeEnabled
+      applyConfig(cfg)
       return config.value
     } catch (error) {
       showRequestError(error, t('sub2api.store.loadConfigFailed'))
@@ -210,8 +225,9 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const saveConfig = async () => {
     saving.value = true
     try {
-      const { data } = await updateSub2APIConfig({ config: { ...configForm } })
-      applyConfig(data?.config)
+      await updateSub2APIConfig({ config: { ...configForm } })
+      // 回读完整配置 + 分组表状态（public_enabled / deleted），避免仅回写 config 导致 groups 过期
+      await loadConfig()
       return true
     } catch (error) {
       showRequestError(error, t('sub2api.store.saveConfigFailed'))
@@ -340,6 +356,31 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     if (abs >= 1e3) return `${(count / 1e3).toFixed(1)}K`
     return formatNumber(count)
   }
+  // 请求量紧凑显示（与 formatToken 同口径：K/M/B），用于图表轴与 tooltip
+  const formatCompactCount = (value: unknown) => formatToken(value)
+
+  // ECharts axis tooltip 参数（不依赖 echarts 类型包）
+  type ChartTooltipParam = {
+    axisValueLabel?: string
+    axisValue?: string | number
+    seriesName?: string
+    value?: unknown
+    marker?: string
+  }
+  const formatAxisTooltip = (
+    params: ChartTooltipParam | ChartTooltipParam[],
+    formatValue: (name: string, raw: unknown) => string,
+  ) => {
+    const list = Array.isArray(params) ? params : [params]
+    if (!list.length) return ''
+    const title = String(list[0]?.axisValueLabel ?? list[0]?.axisValue ?? '')
+    const lines = list.map((p) => {
+      const name = p.seriesName || ''
+      const raw = Array.isArray(p.value) ? p.value[p.value.length - 1] : p.value
+      return `${p.marker || ''}${name}: ${formatValue(name, raw)}`
+    })
+    return [title, ...lines].join('<br/>')
+  }
   const formatThroughput = (value: unknown) => {
     const tps = toNumber(value)
     if (tps >= 10000) {
@@ -428,7 +469,16 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     const compact = isCompactChart.value
     return {
       color: ['#3b82f6', '#8b5cf6', '#10b981'],
-      tooltip: { trigger: 'axis', confine: true },
+      tooltip: {
+        trigger: 'axis',
+        confine: true,
+        formatter: (params: ChartTooltipParam | ChartTooltipParam[]) =>
+          formatAxisTooltip(params, (name, raw) => {
+            if (name === t('sub2api.common.successRate')) return formatPercent(raw)
+            if (name === 'Token') return formatToken(raw)
+            return formatCompactCount(raw)
+          }),
+      },
       legend: {
         top: 0,
         left: 0,
@@ -512,7 +562,11 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       grid: { left: compact ? 72 : 96, right: compact ? 8 : 18, top: 16, bottom: 20 },
       xAxis: {
         type: 'value',
-        axisLabel: { color: axisColor, fontSize: 11 },
+        axisLabel: {
+          color: axisColor,
+          fontSize: 11,
+          formatter: (val: number) => formatCompactCount(val),
+        },
         splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } },
       },
       yAxis: {
@@ -534,7 +588,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
 
   const adminTrendOption = computed(() => trendOption(adminStats.value?.trend))
   const adminModelOption = computed(() => topOption(adminStats.value?.models, t('sub2api.common.modelRequestTop')))
-  const adminEndpointOption = computed(() => topOption(adminStats.value?.endpoints, t('sub2api.common.endpointRequestTop')))
+  const adminGroupOption = computed(() => topOption(adminStats.value?.groups, t('sub2api.common.groupRequestTop')))
   const publicTrendOption = computed(() => trendOption(home.value?.snapshot?.trend))
   const statsTrendOption = computed(() => trendOption(stats.value?.trend))
 
@@ -551,6 +605,12 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       tooltip: {
         trigger: 'axis',
         confine: true,
+        formatter: (params: ChartTooltipParam | ChartTooltipParam[]) =>
+          formatAxisTooltip(params, (name, raw) => {
+            if (name === t('sub2api.common.successRate')) return formatPercent(raw)
+            if (name === t('sub2api.common.generationSpeed')) return formatThroughput(raw)
+            return formatCompactCount(raw)
+          }),
       },
       legend: {
         top: 0,
@@ -592,7 +652,11 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           position: 'right',
           offset: 46,
           show: !compact,
-          axisLabel: { color: axisColor, fontSize: 11 },
+          axisLabel: {
+            color: axisColor,
+            fontSize: 11,
+            formatter: (val: number) => formatCompactCount(val),
+          },
           splitLine: { show: false },
         },
       ],
@@ -670,6 +734,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   return {
     config,
     configForm,
+    groups,
     snapshot,
     home,
     stats,
@@ -695,7 +760,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     adminStatsMetricCards,
     adminTrendOption,
     adminModelOption,
-    adminEndpointOption,
+    adminGroupOption,
     publicTrendOption,
     statsTrendOption,
     todaySeriesOption,

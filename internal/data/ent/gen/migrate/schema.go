@@ -658,6 +658,43 @@ var (
 			},
 		},
 	}
+	// Sub2apiGroupsColumns holds the columns for the "sub2api_groups" table.
+	Sub2apiGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "public_enabled", Type: field.TypeBool, Default: false},
+		{Name: "deleted", Type: field.TypeBool, Default: false},
+	}
+	// Sub2apiGroupsTable holds the schema information for the "sub2api_groups" table.
+	Sub2apiGroupsTable = &schema.Table{
+		Name:       "sub2api_groups",
+		Columns:    Sub2apiGroupsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apigroup_name",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiGroupsColumns[3]},
+			},
+			{
+				Name:    "sub2apigroup_public_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiGroupsColumns[4]},
+			},
+			{
+				Name:    "sub2apigroup_deleted",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiGroupsColumns[5]},
+			},
+			{
+				Name:    "sub2apigroup_name_deleted",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiGroupsColumns[3], Sub2apiGroupsColumns[5]},
+			},
+		},
+	}
 	// Sub2apiTimelineItemsColumns holds the columns for the "sub2api_timeline_items" table.
 	Sub2apiTimelineItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -690,6 +727,7 @@ var (
 		{Name: "request_date", Type: field.TypeString},
 		{Name: "model", Type: field.TypeString, Nullable: true},
 		{Name: "endpoint", Type: field.TypeString, Nullable: true},
+		{Name: "group_name", Type: field.TypeString, Nullable: true},
 		{Name: "user_agent", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "success", Type: field.TypeBool, Default: false},
@@ -703,12 +741,21 @@ var (
 		{Name: "account_name", Type: field.TypeString, Nullable: true},
 		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "http_status", Type: field.TypeInt, Default: 0},
+		{Name: "group_id", Type: field.TypeString, Nullable: true},
 	}
 	// Sub2apiUsageRecordsTable holds the schema information for the "sub2api_usage_records" table.
 	Sub2apiUsageRecordsTable = &schema.Table{
 		Name:       "sub2api_usage_records",
 		Columns:    Sub2apiUsageRecordsColumns,
 		PrimaryKey: []*schema.Column{Sub2apiUsageRecordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sub2api_usage_records_sub2api_groups_usage_records",
+				Columns:    []*schema.Column{Sub2apiUsageRecordsColumns[21]},
+				RefColumns: []*schema.Column{Sub2apiGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "sub2apiusagerecord_request_time",
@@ -723,12 +770,12 @@ var (
 			{
 				Name:    "sub2apiusagerecord_success",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[10]},
 			},
 			{
 				Name:    "sub2apiusagerecord_status",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9]},
 			},
 			{
 				Name:    "sub2apiusagerecord_model",
@@ -739,6 +786,21 @@ var (
 				Name:    "sub2apiusagerecord_endpoint",
 				Unique:  false,
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[6]},
+			},
+			{
+				Name:    "sub2apiusagerecord_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[21]},
+			},
+			{
+				Name:    "sub2apiusagerecord_group_name",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[7]},
+			},
+			{
+				Name:    "sub2apiusagerecord_group_id_request_time",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[21], Sub2apiUsageRecordsColumns[3]},
 			},
 		},
 	}
@@ -945,6 +1007,7 @@ var (
 		RolesTable,
 		SSHHostsTable,
 		Sub2apiAnnouncementsTable,
+		Sub2apiGroupsTable,
 		Sub2apiTimelineItemsTable,
 		Sub2apiUsageRecordsTable,
 		ConfigsTable,
@@ -970,6 +1033,7 @@ func init() {
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable
 	PortForwardsTable.ForeignKeys[0].RefTable = UsersTable
 	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
+	Sub2apiUsageRecordsTable.ForeignKeys[0].RefTable = Sub2apiGroupsTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",
 	}

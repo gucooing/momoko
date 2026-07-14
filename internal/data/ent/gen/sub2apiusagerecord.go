@@ -4,6 +4,7 @@ package gen
 
 import (
 	"fmt"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"strings"
 	"time"
@@ -30,6 +31,10 @@ type Sub2APIUsageRecord struct {
 	Model string `json:"model,omitempty"`
 	// 接口/通道
 	Endpoint string `json:"endpoint,omitempty"`
+	// 关联 Sub2APIGroup.id
+	GroupID *string `json:"group_id,omitempty"`
+	// Sub2API 分组名称（冗余展示）
+	GroupName string `json:"group_name,omitempty"`
 	// 客户端 User-Agent（用于 UA 维度统计）
 	UserAgent string `json:"user_agent,omitempty"`
 	// 状态
@@ -55,8 +60,31 @@ type Sub2APIUsageRecord struct {
 	// 错误详情（失败/上游错误请求）
 	ErrorMessage string `json:"error_message,omitempty"`
 	// HTTP 状态码
-	HTTPStatus   int `json:"http_status,omitempty"`
+	HTTPStatus int `json:"http_status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the Sub2APIUsageRecordQuery when eager-loading is set.
+	Edges        Sub2APIUsageRecordEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// Sub2APIUsageRecordEdges holds the relations/edges for other nodes in the graph.
+type Sub2APIUsageRecordEdges struct {
+	// Group holds the value of the group edge.
+	Group *Sub2APIGroup `json:"group,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// GroupOrErr returns the Group value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e Sub2APIUsageRecordEdges) GroupOrErr() (*Sub2APIGroup, error) {
+	if e.Group != nil {
+		return e.Group, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: sub2apigroup.Label}
+	}
+	return nil, &NotLoadedError{edge: "group"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -70,7 +98,7 @@ func (*Sub2APIUsageRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
 			values[i] = new(sql.NullInt64)
-		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
+		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldGroupID, sub2apiusagerecord.FieldGroupName, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case sub2apiusagerecord.FieldCreateTime, sub2apiusagerecord.FieldUpdateTime, sub2apiusagerecord.FieldRequestTime:
 			values[i] = new(sql.NullTime)
@@ -130,6 +158,19 @@ func (_m *Sub2APIUsageRecord) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field endpoint", values[i])
 			} else if value.Valid {
 				_m.Endpoint = value.String
+			}
+		case sub2apiusagerecord.FieldGroupID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group_id", values[i])
+			} else if value.Valid {
+				_m.GroupID = new(string)
+				*_m.GroupID = value.String
+			}
+		case sub2apiusagerecord.FieldGroupName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group_name", values[i])
+			} else if value.Valid {
+				_m.GroupName = value.String
 			}
 		case sub2apiusagerecord.FieldUserAgent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -222,6 +263,11 @@ func (_m *Sub2APIUsageRecord) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryGroup queries the "group" edge of the Sub2APIUsageRecord entity.
+func (_m *Sub2APIUsageRecord) QueryGroup() *Sub2APIGroupQuery {
+	return NewSub2APIUsageRecordClient(_m.config).QueryGroup(_m)
+}
+
 // Update returns a builder for updating this Sub2APIUsageRecord.
 // Note that you need to call Sub2APIUsageRecord.Unwrap() before calling this method if this Sub2APIUsageRecord
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -262,6 +308,14 @@ func (_m *Sub2APIUsageRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("endpoint=")
 	builder.WriteString(_m.Endpoint)
+	builder.WriteString(", ")
+	if v := _m.GroupID; v != nil {
+		builder.WriteString("group_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("group_name=")
+	builder.WriteString(_m.GroupName)
 	builder.WriteString(", ")
 	builder.WriteString("user_agent=")
 	builder.WriteString(_m.UserAgent)

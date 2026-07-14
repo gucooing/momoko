@@ -54,6 +54,8 @@ type Tx struct {
 	SSHHost *SSHHostClient
 	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
+	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
+	Sub2APIGroup *Sub2APIGroupClient
 	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
 	Sub2APITimelineItem *Sub2APITimelineItemClient
 	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
@@ -217,6 +219,7 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(tx.config)
+	tx.Sub2APIGroup = NewSub2APIGroupClient(tx.config)
 	tx.Sub2APITimelineItem = NewSub2APITimelineItemClient(tx.config)
 	tx.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)

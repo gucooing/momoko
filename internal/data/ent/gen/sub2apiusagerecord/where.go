@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -92,6 +93,16 @@ func Model(v string) predicate.Sub2APIUsageRecord {
 // Endpoint applies equality check predicate on the "endpoint" field. It's identical to EndpointEQ.
 func Endpoint(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldEndpoint, v))
+}
+
+// GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
+func GroupID(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldGroupID, v))
+}
+
+// GroupName applies equality check predicate on the "group_name" field. It's identical to GroupNameEQ.
+func GroupName(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldGroupName, v))
 }
 
 // UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
@@ -492,6 +503,156 @@ func EndpointEqualFold(v string) predicate.Sub2APIUsageRecord {
 // EndpointContainsFold applies the ContainsFold predicate on the "endpoint" field.
 func EndpointContainsFold(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldEndpoint, v))
+}
+
+// GroupIDEQ applies the EQ predicate on the "group_id" field.
+func GroupIDEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldGroupID, v))
+}
+
+// GroupIDNEQ applies the NEQ predicate on the "group_id" field.
+func GroupIDNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldGroupID, v))
+}
+
+// GroupIDIn applies the In predicate on the "group_id" field.
+func GroupIDIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldGroupID, vs...))
+}
+
+// GroupIDNotIn applies the NotIn predicate on the "group_id" field.
+func GroupIDNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldGroupID, vs...))
+}
+
+// GroupIDGT applies the GT predicate on the "group_id" field.
+func GroupIDGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldGroupID, v))
+}
+
+// GroupIDGTE applies the GTE predicate on the "group_id" field.
+func GroupIDGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldGroupID, v))
+}
+
+// GroupIDLT applies the LT predicate on the "group_id" field.
+func GroupIDLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldGroupID, v))
+}
+
+// GroupIDLTE applies the LTE predicate on the "group_id" field.
+func GroupIDLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldGroupID, v))
+}
+
+// GroupIDContains applies the Contains predicate on the "group_id" field.
+func GroupIDContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldGroupID, v))
+}
+
+// GroupIDHasPrefix applies the HasPrefix predicate on the "group_id" field.
+func GroupIDHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldGroupID, v))
+}
+
+// GroupIDHasSuffix applies the HasSuffix predicate on the "group_id" field.
+func GroupIDHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldGroupID, v))
+}
+
+// GroupIDIsNil applies the IsNil predicate on the "group_id" field.
+func GroupIDIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldGroupID))
+}
+
+// GroupIDNotNil applies the NotNil predicate on the "group_id" field.
+func GroupIDNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldGroupID))
+}
+
+// GroupIDEqualFold applies the EqualFold predicate on the "group_id" field.
+func GroupIDEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldGroupID, v))
+}
+
+// GroupIDContainsFold applies the ContainsFold predicate on the "group_id" field.
+func GroupIDContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldGroupID, v))
+}
+
+// GroupNameEQ applies the EQ predicate on the "group_name" field.
+func GroupNameEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldGroupName, v))
+}
+
+// GroupNameNEQ applies the NEQ predicate on the "group_name" field.
+func GroupNameNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldGroupName, v))
+}
+
+// GroupNameIn applies the In predicate on the "group_name" field.
+func GroupNameIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldGroupName, vs...))
+}
+
+// GroupNameNotIn applies the NotIn predicate on the "group_name" field.
+func GroupNameNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldGroupName, vs...))
+}
+
+// GroupNameGT applies the GT predicate on the "group_name" field.
+func GroupNameGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldGroupName, v))
+}
+
+// GroupNameGTE applies the GTE predicate on the "group_name" field.
+func GroupNameGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldGroupName, v))
+}
+
+// GroupNameLT applies the LT predicate on the "group_name" field.
+func GroupNameLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldGroupName, v))
+}
+
+// GroupNameLTE applies the LTE predicate on the "group_name" field.
+func GroupNameLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldGroupName, v))
+}
+
+// GroupNameContains applies the Contains predicate on the "group_name" field.
+func GroupNameContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldGroupName, v))
+}
+
+// GroupNameHasPrefix applies the HasPrefix predicate on the "group_name" field.
+func GroupNameHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldGroupName, v))
+}
+
+// GroupNameHasSuffix applies the HasSuffix predicate on the "group_name" field.
+func GroupNameHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldGroupName, v))
+}
+
+// GroupNameIsNil applies the IsNil predicate on the "group_name" field.
+func GroupNameIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldGroupName))
+}
+
+// GroupNameNotNil applies the NotNil predicate on the "group_name" field.
+func GroupNameNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldGroupName))
+}
+
+// GroupNameEqualFold applies the EqualFold predicate on the "group_name" field.
+func GroupNameEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldGroupName, v))
+}
+
+// GroupNameContainsFold applies the ContainsFold predicate on the "group_name" field.
+func GroupNameContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldGroupName, v))
 }
 
 // UserAgentEQ applies the EQ predicate on the "user_agent" field.
@@ -1157,6 +1318,29 @@ func HTTPStatusLT(v int) predicate.Sub2APIUsageRecord {
 // HTTPStatusLTE applies the LTE predicate on the "http_status" field.
 func HTTPStatusLTE(v int) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldHTTPStatus, v))
+}
+
+// HasGroup applies the HasEdge predicate on the "group" edge.
+func HasGroup() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
+func HasGroupWith(preds ...predicate.Sub2APIGroup) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(func(s *sql.Selector) {
+		step := newGroupStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

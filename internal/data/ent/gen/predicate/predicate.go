@@ -66,6 +66,9 @@ type SSHHost func(*sql.Selector)
 // Sub2APIAnnouncement is the predicate function for sub2apiannouncement builders.
 type Sub2APIAnnouncement func(*sql.Selector)
 
+// Sub2APIGroup is the predicate function for sub2apigroup builders.
+type Sub2APIGroup func(*sql.Selector)
+
 // Sub2APITimelineItem is the predicate function for sub2apitimelineitem builders.
 type Sub2APITimelineItem func(*sql.Selector)
 

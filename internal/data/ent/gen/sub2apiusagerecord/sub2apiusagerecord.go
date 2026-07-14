@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -25,6 +26,10 @@ const (
 	FieldModel = "model"
 	// FieldEndpoint holds the string denoting the endpoint field in the database.
 	FieldEndpoint = "endpoint"
+	// FieldGroupID holds the string denoting the group_id field in the database.
+	FieldGroupID = "group_id"
+	// FieldGroupName holds the string denoting the group_name field in the database.
+	FieldGroupName = "group_name"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -51,8 +56,17 @@ const (
 	FieldErrorMessage = "error_message"
 	// FieldHTTPStatus holds the string denoting the http_status field in the database.
 	FieldHTTPStatus = "http_status"
+	// EdgeGroup holds the string denoting the group edge name in mutations.
+	EdgeGroup = "group"
 	// Table holds the table name of the sub2apiusagerecord in the database.
 	Table = "sub2api_usage_records"
+	// GroupTable is the table that holds the group relation/edge.
+	GroupTable = "sub2api_usage_records"
+	// GroupInverseTable is the table name for the Sub2APIGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "sub2apigroup" package.
+	GroupInverseTable = "sub2api_groups"
+	// GroupColumn is the table column denoting the group relation/edge.
+	GroupColumn = "group_id"
 )
 
 // Columns holds all SQL columns for sub2apiusagerecord fields.
@@ -64,6 +78,8 @@ var Columns = []string{
 	FieldRequestDate,
 	FieldModel,
 	FieldEndpoint,
+	FieldGroupID,
+	FieldGroupName,
 	FieldUserAgent,
 	FieldStatus,
 	FieldSuccess,
@@ -154,6 +170,16 @@ func ByEndpoint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndpoint, opts...).ToFunc()
 }
 
+// ByGroupID orders the results by the group_id field.
+func ByGroupID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupID, opts...).ToFunc()
+}
+
+// ByGroupName orders the results by the group_name field.
+func ByGroupName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupName, opts...).ToFunc()
+}
+
 // ByUserAgent orders the results by the user_agent field.
 func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
@@ -217,4 +243,18 @@ func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
 // ByHTTPStatus orders the results by the http_status field.
 func ByHTTPStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHTTPStatus, opts...).ToFunc()
+}
+
+// ByGroupField orders the results by group field.
+func ByGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newGroupStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+	)
 }
