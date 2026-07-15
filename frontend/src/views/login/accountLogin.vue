@@ -1,97 +1,147 @@
+<!-- 账号登录：紧凑令牌表单；密码眼睛内嵌输入框。 -->
 <template>
-  <div class="form-content-inner">
-    <h2 class="title">{{ t('login.welcomeBack') }}</h2>
-    <p class="subtitle">{{ t('login.subtitle') }}</p>
+  <div class="auth-form">
+    <header class="auth-form__head">
+      <h1 class="auth-form__title">{{ t('login.welcomeBack') }}</h1>
+      <p class="auth-form__sub">{{ t('login.subtitle') }}</p>
+    </header>
 
-    <!-- 登录表单 -->
-    <el-form
-      ref="loginFormRef"
-      :model="loginForm"
-      :rules="loginRules"
-      label-position="top"
-      class="login-form"
-      @keyup.enter="handleLogin"
-    >
-      <div v-if="showLoginTypeSwitch" class="login-type-switch" :class="`type-${loginType}`">
-        <span class="switch-indicator"></span>
+    <form class="auth-form__body" @submit.prevent="handleLogin">
+      <div
+        v-if="showLoginTypeSwitch"
+        class="auth-seg"
+        :class="`auth-seg--${loginType}`"
+        role="tablist"
+      >
+        <span class="auth-seg__indicator" aria-hidden="true" />
         <button
           type="button"
-          class="switch-item"
-          :class="{ active: loginType === 'username' }"
+          role="tab"
+          class="auth-seg__item"
+          :class="{ 'is-active': loginType === 'username' }"
+          :aria-selected="loginType === 'username'"
           @click="setLoginType('username')"
         >
           {{ t('login.usernameLogin') }}
         </button>
         <button
           type="button"
-          class="switch-item"
-          :class="{ active: loginType === 'email' }"
+          role="tab"
+          class="auth-seg__item"
+          :class="{ 'is-active': loginType === 'email' }"
+          :aria-selected="loginType === 'email'"
           @click="setLoginType('email')"
         >
           {{ t('login.emailLogin') }}
         </button>
       </div>
 
-      <el-form-item prop="username">
-        <el-input
+      <div class="app-field">
+        <label class="app-label" for="login-account">
+          {{ isEmailMode ? t('login.emailLogin') : t('login.usernameLogin') }}
+        </label>
+        <input
+          id="login-account"
           v-model="loginForm.username"
+          class="app-input auth-input"
+          :class="{ 'is-error': errors.username }"
           :placeholder="loginInputPlaceholder"
+          autocomplete="username"
           @input="handleAccountInput"
         />
-      </el-form-item>
+        <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
+      </div>
 
-      <Transition name="fade-slide" mode="out-in">
-        <el-form-item v-if="loginType === 'username'" key="password-mode" prop="password">
-          <el-input
-            class="credential-input credential-input--password"
-            v-model="loginForm.password"
-            type="password"
-            show-password
-            :placeholder="t('login.passwordPlaceholder')"
-          />
-        </el-form-item>
-
-        <div v-else key="code-mode" class="code-row">
-          <el-form-item prop="password" class="code-input-item">
-            <el-input
-              class="credential-input credential-input--code"
+      <Transition name="login-fade" mode="out-in">
+        <div v-if="loginType === 'username'" key="password-mode" class="app-field">
+          <label class="app-label" for="login-password">{{ t('login.passwordLabel') }}</label>
+          <div class="auth-input-wrap">
+            <input
+              id="login-password"
               v-model="loginForm.password"
+              class="app-input auth-input auth-input--with-icon"
+              :class="{ 'is-error': errors.password }"
+              :type="showPwd ? 'text' : 'password'"
+              :placeholder="t('login.passwordPlaceholder')"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="auth-eye"
+              :aria-label="showPwd ? t('login.hidePassword') : t('login.showPassword')"
+              @click="showPwd = !showPwd"
+            >
+              <component
+                :is="
+                  menuStore.iconComponents[
+                    showPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
+                  ]
+                "
+                class="auth-eye__icon"
+              />
+            </button>
+          </div>
+          <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
+        </div>
+
+        <div v-else key="code-mode" class="app-field">
+          <label class="app-label" for="login-code">{{ t('login.codePlaceholder') }}</label>
+          <div class="auth-code-row">
+            <input
+              id="login-code"
+              v-model="loginForm.password"
+              class="app-input auth-input"
+              :class="{ 'is-error': errors.password }"
               :placeholder="t('login.codePlaceholder')"
               maxlength="6"
+              inputmode="numeric"
+              autocomplete="one-time-code"
             />
-          </el-form-item>
-
-          <el-button
-            type="primary"
-            class="send-code-btn send-code-btn--standalone"
-            :class="{ 'is-countdown': sendCodeCountdown > 0 }"
-            :disabled="sendCodeDisabled"
-            @click="handleSendCode"
-          >
-            {{ sendCodeButtonText }}
-          </el-button>
+            <UButton
+              type="button"
+              color="primary"
+              variant="soft"
+              class="auth-code-btn"
+              :disabled="sendCodeDisabled"
+              @click="handleSendCode"
+            >
+              {{ sendCodeButtonText }}
+            </UButton>
+          </div>
+          <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
         </div>
       </Transition>
 
-      <div class="form-options">
-        <el-checkbox v-model="loginForm.remember" @change="handleRememberChange">
-          {{ t('login.rememberMe') }}
-        </el-checkbox>
-        <el-link type="primary" :underline="false" @click="emits('goToMode', 'forgot')"
-          >{{ t('login.forgotPassword') }}</el-link
-        >
+      <div class="auth-options">
+        <label class="auth-check">
+          <input
+            v-model="loginForm.remember"
+            type="checkbox"
+            @change="handleRememberChange(loginForm.remember)"
+          />
+          <span>{{ t('login.rememberMe') }}</span>
+        </label>
+        <button type="button" class="auth-text-btn" @click="emits('goToMode', 'forgot')">
+          {{ t('login.forgotPassword') }}
+        </button>
       </div>
 
-      <el-button type="primary" class="submit-btn" :loading="loading" @click="handleLogin">
-        {{ t('login.submit') }}
-      </el-button>
-    </el-form>
-
-    <p v-if="registerEnabled" class="register-link">
-      <span>{{ t('login.noAccount') }}</span>
-      <el-link type="primary" :underline="false" @click="emits('goToMode', 'register')"
-        >{{ t('login.registerNow') }}</el-link
+      <UButton
+        type="submit"
+        color="primary"
+        block
+        class="auth-submit"
+        :loading="loading"
       >
+        {{ t('login.submit') }}
+      </UButton>
+    </form>
+
+    <p v-if="registerEnabled" class="auth-switch">
+      <span>{{ t('login.noAccount') }}</span>
+      <button type="button" class="auth-text-btn" @click="emits('goToMode', 'register')">
+        {{ t('login.registerNow') }}
+      </button>
     </p>
   </div>
 </template>
@@ -99,12 +149,11 @@
 <script setup lang="ts">
 import platform from 'platform'
 import { login, sendLoginEmailCode } from '@/api/login'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import type { LoginRequest } from '@/types/v1/auth'
 import { normalizeAuthRedirect } from '@/utils/authRedirect'
 import { normalizeAuthToken } from '@/utils/request'
 import { getDeviceId } from '@/utils/deviceId'
+import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
 
 interface IEmits {
@@ -122,6 +171,7 @@ interface ILoginFormModel {
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const VERIFY_CODE_REGEXP = /^\d{4,6}$/
 const SEND_CODE_COUNTDOWN_SECONDS = 60
+const REMEMBER_USERNAME_KEY = 'remember_username'
 
 defineOptions({ name: 'AccountLogin' })
 
@@ -136,11 +186,12 @@ const emits = defineEmits<IEmits>()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
-const loginFormRef = useTemplateRef<FormInstance>('loginFormRef')
-const loading = ref(false)
+const fb = useFeedback()
+const menuStore = useMenuStore()
 
-// 记住我的 localStorage key
-const REMEMBER_USERNAME_KEY = 'remember_username'
+const loading = ref(false)
+const showPwd = ref(false)
+const errors = ref<Record<string, string>>({})
 
 const loginForm = ref<ILoginFormModel>({
   username: '',
@@ -159,15 +210,16 @@ const resolveDefaultLoginType = (): LoginType => {
 const loginType = ref<LoginType>(resolveDefaultLoginType())
 const isEmailMode = computed(() => loginType.value === 'email')
 const accountValue = computed(() => loginForm.value.username.trim())
-const loginInputPlaceholder = computed(() => {
-  return isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')
-})
+const loginInputPlaceholder = computed(() =>
+  isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder'),
+)
+
 const sendCodeCountdown = ref(0)
 let sendCodeTimer: ReturnType<typeof setInterval> | null = null
 
 const resetCredentialInput = () => {
   loginForm.value.password = ''
-  loginFormRef.value?.clearValidate(['username', 'password'])
+  errors.value = {}
 }
 
 const setLoginType = (type: LoginType) => {
@@ -176,19 +228,14 @@ const setLoginType = (type: LoginType) => {
   resetCredentialInput()
 }
 
-const handleAccountInput = (value: string | number) => {
-  if (
-    typeof value === 'string' &&
-    value.includes('@') &&
-    !isEmailMode.value &&
-    props.emailLoginEnabled
-  ) {
+const handleAccountInput = (e: Event) => {
+  const value = (e.target as HTMLInputElement).value
+  if (value.includes('@') && !isEmailMode.value && props.emailLoginEnabled) {
     loginType.value = 'email'
     resetCredentialInput()
   }
 }
 
-// 从 localStorage 读取记住的用户名
 const loadRememberedUsername = () => {
   const rememberedUsername = localStorage.getItem(REMEMBER_USERNAME_KEY)
   if (rememberedUsername) {
@@ -200,32 +247,26 @@ const loadRememberedUsername = () => {
   }
 }
 
-// 保存或清除记住的用户名
-const handleRememberChange = (value: boolean | string | number) => {
-  const remember = Boolean(value)
+const handleRememberChange = (value: boolean) => {
   const account = accountValue.value
-  if (remember) {
-    if (account) {
-      localStorage.setItem(REMEMBER_USERNAME_KEY, account)
-    }
+  if (value) {
+    if (account) localStorage.setItem(REMEMBER_USERNAME_KEY, account)
   } else {
     localStorage.removeItem(REMEMBER_USERNAME_KEY)
   }
 }
 
-const isValidEmail = (email: string) => {
-  return EMAIL_REGEXP.test(email)
-}
+const isValidEmail = (email: string) => EMAIL_REGEXP.test(email)
 
-const sendCodeButtonText = computed(() => {
-  return sendCodeCountdown.value > 0
+const sendCodeButtonText = computed(() =>
+  sendCodeCountdown.value > 0
     ? t('login.resendIn', { seconds: sendCodeCountdown.value })
-    : t('login.sendCode')
-})
+    : t('login.sendCode'),
+)
 
-const sendCodeDisabled = computed(() => {
-  return loading.value || sendCodeCountdown.value > 0 || !isValidEmail(accountValue.value)
-})
+const sendCodeDisabled = computed(
+  () => loading.value || sendCodeCountdown.value > 0 || !isValidEmail(accountValue.value),
+)
 
 const clearSendCodeTimer = () => {
   if (sendCodeTimer) {
@@ -237,7 +278,6 @@ const clearSendCodeTimer = () => {
 const startSendCodeCountdown = () => {
   sendCodeCountdown.value = SEND_CODE_COUNTDOWN_SECONDS
   clearSendCodeTimer()
-
   sendCodeTimer = setInterval(() => {
     if (sendCodeCountdown.value <= 1) {
       sendCodeCountdown.value = 0
@@ -251,41 +291,58 @@ const startSendCodeCountdown = () => {
 const handleSendCode = async () => {
   const email = accountValue.value
   if (!isValidEmail(email)) {
-    ElMessage.warning(t('login.validEmailFirst'))
+    fb.warning(t('login.validEmailFirst'))
     return
   }
-
   try {
     await sendLoginEmailCode({ email })
-    ElMessage.success(t('login.codeSent'))
+    fb.success(t('login.codeSent'))
     startSendCodeCountdown()
   } catch {
-    ElMessage.error(t('login.codeSendFailed'))
+    fb.error(t('login.codeSendFailed'))
   }
 }
 
-const buildLoginPayload = async (): Promise<LoginRequest> => {
+const buildLoginPayload = (): LoginRequest => {
   const account = accountValue.value
   const unknownDevice = t('login.unknownDevice')
-  const device = `${platform.os?.toString() || unknownDevice} / ${platform.name || unknownDevice} ${platform.version || ''}`.trim()
+  const device =
+    `${platform.os?.toString() || unknownDevice} / ${platform.name || unknownDevice} ${platform.version || ''}`.trim()
   const deviceId = getDeviceId()
-  const useEmail = isEmailMode.value
-
-  return useEmail
+  return isEmailMode.value
     ? { email: account, password: '', device, deviceId, code: loginForm.value.password }
     : { username: account, password: loginForm.value.password, device, deviceId, code: '' }
 }
 
-// 登录
+const validate = (): boolean => {
+  const next: Record<string, string> = {}
+  const account = accountValue.value
+  if (!account) {
+    next.username = isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')
+  } else if (isEmailMode.value && !EMAIL_REGEXP.test(account)) {
+    next.username = t('login.emailInvalid')
+  }
+
+  const credential = loginForm.value.password.trim()
+  if (!credential) {
+    next.password = isEmailMode.value ? t('login.codePlaceholder') : t('login.passwordPlaceholder')
+  } else if (isEmailMode.value && !VERIFY_CODE_REGEXP.test(credential)) {
+    next.password = t('login.codeInvalid')
+  }
+
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
 const handleLogin = async () => {
-  await loginFormRef.value?.validate()
+  if (!validate()) return
   loading.value = true
   try {
-    const payload = await buildLoginPayload()
+    const payload = buildLoginPayload()
     const { data: loginRes } = await login(payload)
 
     if (!loginRes?.accessToken) {
-      ElMessage.error(t('login.missingAccessToken'))
+      fb.error(t('login.missingAccessToken'))
       return
     }
 
@@ -302,54 +359,16 @@ const handleLogin = async () => {
       localStorage.removeItem(REMEMBER_USERNAME_KEY)
     }
 
-    ElMessage.success(t('login.success'))
+    fb.success(t('login.success'))
     const redirectQuery = Array.isArray(route.query.redirect)
       ? route.query.redirect[0]
       : route.query.redirect
     const redirectPath = normalizeAuthRedirect(redirectQuery)
-
     await router.push(redirectPath || '/')
   } finally {
     loading.value = false
   }
 }
-
-const validateAccount: FormItemRule['validator'] = (_rule, value, callback) => {
-  const account = String(value || '').trim()
-  if (!account) {
-    callback(new Error(isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')))
-    return
-  }
-
-  if (isEmailMode.value) {
-    if (!EMAIL_REGEXP.test(account)) {
-      callback(new Error(t('login.emailInvalid')))
-      return
-    }
-  }
-
-  callback()
-}
-
-const validateCredential: FormItemRule['validator'] = (_rule, value, callback) => {
-  const credential = String(value || '').trim()
-  if (!credential) {
-    callback(new Error(isEmailMode.value ? t('login.codePlaceholder') : t('login.passwordPlaceholder')))
-    return
-  }
-
-  if (isEmailMode.value && !VERIFY_CODE_REGEXP.test(credential)) {
-    callback(new Error(t('login.codeInvalid')))
-    return
-  }
-
-  callback()
-}
-
-const loginRules = reactive<FormRules>({
-  username: [{ validator: validateAccount, trigger: 'blur' }],
-  password: [{ validator: validateCredential, trigger: 'blur' }],
-})
 
 watch(
   () => [props.usernameLoginEnabled, props.emailLoginEnabled],
@@ -374,228 +393,205 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.form-content-inner {
-  .fade-slide-enter-active,
-  .fade-slide-leave-active {
-    transition: all 0.22s ease;
-  }
-  .fade-slide-enter-from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  .fade-slide-leave-to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
+.auth-form {
+  width: 100%;
+}
 
-  .title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--el-text-color-primary);
-    margin-bottom: 0.5rem;
-  }
+.auth-form__head {
+  margin-bottom: 1rem;
+}
 
-  .subtitle {
-    font-size: 0.95rem;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 1.7rem;
-  }
+.auth-form__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--el-text-color-primary);
+}
 
-  .login-form {
-    .credential-input {
-      width: 100%;
-    }
+.auth-form__sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--el-text-color-secondary);
+}
 
-    .credential-input--code {
-      width: 100%;
-    }
+.auth-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-    :deep(.el-input__wrapper),
-    :deep(.el-select__wrapper) {
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 0 0 1px var(--el-border-color) inset;
-      min-height: 2.75rem;
+.auth-input {
+  height: 36px;
+  font-size: 0.8125rem;
+}
 
-      &.is-focus {
-        box-shadow: 0 0 0 1px var(--el-color-primary) inset;
-      }
-    }
+.auth-input-wrap {
+  position: relative;
+}
 
-    .code-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      width: 100%;
-    }
+.auth-input--with-icon {
+  padding-right: 36px;
+}
 
-    .code-input-item {
-      flex: 1;
-      margin-bottom: 0;
+.auth-eye {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--el-text-color-placeholder);
+  cursor: pointer;
+  padding: 0;
+}
 
-      :deep(.el-form-item__content) {
-        width: 100%;
-      }
-    }
+.auth-eye:hover {
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
+}
 
-    .send-code-btn {
-      position: relative;
-      height: 2.75rem;
-      min-width: 8.5rem;
-      border: none;
-      border-radius: 0.75rem;
-      padding: 0 1rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--el-color-primary) 84%, #ffffff),
-        var(--el-color-primary)
-      );
-      transition:
-        transform 0.15s ease,
-        filter 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 72%, transparent);
+.auth-eye__icon {
+  width: 16px;
+  height: 16px;
+}
 
-      &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.22), transparent 65%);
-        opacity: 0;
-        transform: scale(0.9);
-        transition: all 0.18s ease;
-        pointer-events: none;
-      }
+.auth-seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 3px;
+  border-radius: var(--app-radius-sm);
+  background: var(--el-fill-color-light);
+  overflow: hidden;
+}
 
-      &:hover:not(:disabled) {
-        filter: brightness(1.06);
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 90%, transparent);
-      }
+.auth-seg__indicator {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  border-radius: calc(var(--app-radius-sm) - 2px);
+  background: var(--el-bg-color);
+  box-shadow: inset 0 0 0 1px var(--app-hairline);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
-      &:active:not(:disabled) {
-        transform: translateY(1px) scale(0.97);
-        filter: brightness(0.96);
+.auth-seg--email .auth-seg__indicator {
+  transform: translateX(100%);
+}
 
-        &::after {
-          opacity: 1;
-          transform: scale(1.1);
-        }
-      }
+.auth-seg__item {
+  position: relative;
+  z-index: 1;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
 
-      &.is-countdown {
-        background: color-mix(in srgb, var(--el-color-primary) 24%, var(--el-bg-color-overlay));
-        color: var(--el-color-primary);
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 40%, transparent);
-      }
+.auth-seg__item.is-active {
+  color: var(--el-color-primary);
+}
 
-      &.is-countdown:disabled {
-        color: var(--el-color-primary);
-        background: color-mix(in srgb, var(--el-color-primary) 24%, var(--el-bg-color-overlay));
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 40%, transparent);
-        opacity: 0.9;
-        transform: none;
-        filter: none;
-      }
+.auth-code-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
 
-      &:disabled:not(.is-countdown) {
-        color: var(--el-text-color-placeholder);
-        background: color-mix(in srgb, var(--el-color-primary) 12%, var(--el-fill-color-light));
-        box-shadow: none;
-        transform: none;
-        filter: none;
-      }
-    }
+.auth-code-row .app-input {
+  flex: 1;
+  min-width: 0;
+}
 
-    .login-type-switch {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      padding: 0.25rem;
-      margin-bottom: 1rem;
-      border-radius: 0.75rem;
-      background: var(--el-fill-color-light);
-      overflow: hidden;
+.auth-code-btn {
+  flex-shrink: 0;
+  min-width: 6.5rem;
+  height: 36px !important;
+}
 
-      .switch-indicator {
-        position: absolute;
-        top: 0.25rem;
-        left: 0.25rem;
-        width: calc(50% - 0.25rem);
-        height: calc(100% - 0.5rem);
-        border-radius: 0.6rem;
-        background: var(--el-bg-color-overlay);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 18%, transparent) inset;
-        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      }
+.auth-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: -2px;
+}
 
-      &.type-email {
-        .switch-indicator {
-          transform: translateX(100%);
-        }
-      }
+.auth-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  user-select: none;
+}
 
-      .switch-item {
-        position: relative;
-        z-index: 1;
-        height: 2.25rem;
-        border: none;
-        border-radius: 0.6rem;
-        background: transparent;
-        color: var(--el-text-color-regular);
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
+.auth-check input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--el-color-primary);
+  cursor: pointer;
+}
 
-        &:hover {
-          color: var(--el-color-primary);
-        }
+.auth-text-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-color-primary);
+  cursor: pointer;
+}
 
-        &.active {
-          color: var(--el-color-primary);
-        }
-      }
-    }
+.auth-text-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
-    .form-options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
+.auth-submit {
+  margin-top: 4px;
+  height: 36px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+}
 
-    .submit-btn {
-      width: 100%;
-      height: 2.75rem;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      letter-spacing: 0.5rem;
-    }
-  }
+.auth-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 14px 0 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 
-  @media (max-width: 400px) {
-    .send-code-btn {
-      min-width: 6.5rem;
-      padding: 0 0.5rem;
-      font-size: 0.72rem;
-    }
-  }
-
-  .register-link {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.875rem;
-    color: var(--el-text-color-secondary);
-    .el-link {
-      margin-left: 0.5rem;
-      font-weight: 600;
-    }
-  }
+.login-fade-enter-active,
+.login-fade-leave-active {
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+.login-fade-enter-from {
+  opacity: 0;
+  transform: translateY(3px);
+}
+.login-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-2px);
 }
 </style>

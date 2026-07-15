@@ -1,99 +1,134 @@
+<!-- 找回密码：占位流程；紧凑卡内表单。 -->
 <template>
-  <div class="form-content-inner">
-    <h2 class="title">{{ t('forgot.title') }}</h2>
-    <p class="subtitle">{{ t('forgot.subtitle') }}</p>
+  <div class="auth-form">
+    <header class="auth-form__head">
+      <h1 class="auth-form__title">{{ t('forgot.title') }}</h1>
+      <p class="auth-form__sub">{{ t('forgot.subtitle') }}</p>
+    </header>
 
-    <el-form :model="forgotPasswordForm" label-position="top" class="forgot-password-form">
-      <el-form-item>
-        <el-input v-model="forgotPasswordForm.email" :placeholder="t('forgot.emailPlaceholder')" />
-      </el-form-item>
-      <el-button type="primary" class="submit-btn" @click="handleAction">
-        {{ t('forgot.submit') }}
-      </el-button>
-      <div class="back-link">
-        <el-link :underline="false" @click="emits('goToMode', 'login')">
-          <el-icon><component :is="menuStore.iconComponents['Element:ArrowLeft']" /></el-icon>
-          {{ t('forgot.backLogin') }}
-        </el-link>
+    <form class="auth-form__body" @submit.prevent="handleAction">
+      <div class="app-field">
+        <label class="app-label" for="forgot-email">{{ t('forgot.emailPlaceholder') }}</label>
+        <input
+          id="forgot-email"
+          v-model="forgotPasswordForm.email"
+          class="app-input auth-input"
+          :class="{ 'is-error': error }"
+          type="email"
+          :placeholder="t('forgot.emailPlaceholder')"
+          autocomplete="email"
+        />
+        <span v-if="error" class="app-field__error">{{ error }}</span>
       </div>
-    </el-form>
+
+      <UButton type="submit" color="primary" block class="auth-submit">
+        {{ t('forgot.submit') }}
+      </UButton>
+    </form>
+
+    <p class="auth-switch">
+      <button type="button" class="auth-text-btn" @click="emits('goToMode', 'login')">
+        {{ t('forgot.backLogin') }}
+      </button>
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
+
+defineOptions({ name: 'ForgotPassword' })
 
 const emits = defineEmits<{
   (e: 'goToMode', mode: 'login' | 'forgot' | 'register'): void
 }>()
-const menuStore = useMenuStore()
+
 const { t } = useI18n()
+const fb = useFeedback()
+
+const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const forgotPasswordForm = ref({
   email: '',
 })
+const error = ref('')
 
 const handleAction = () => {
-  ElMessage.success(t('forgot.comingSoon'))
+  const email = forgotPasswordForm.value.email.trim()
+  if (!email) {
+    error.value = t('forgot.emailPlaceholder')
+    return
+  }
+  if (!EMAIL_REGEXP.test(email)) {
+    error.value = t('login.emailInvalid')
+    return
+  }
+  error.value = ''
+  fb.info(t('forgot.comingSoon'))
 }
 </script>
 
 <style scoped lang="scss">
-.form-content-inner {
-  .title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--el-text-color-primary);
-    margin-bottom: 0.5rem;
-  }
+.auth-form {
+  width: 100%;
+}
 
-  .subtitle {
-    font-size: 0.95rem;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 2rem;
-  }
+.auth-form__head {
+  margin-bottom: 1rem;
+}
 
-  .forgot-password-form {
-    :deep(.el-input__wrapper),
-    :deep(.el-select__wrapper) {
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 0 0 1px var(--el-border-color) inset;
-      min-height: 2.75rem;
+.auth-form__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--el-text-color-primary);
+}
 
-      &.is-focus {
-        box-shadow: 0 0 0 1px var(--el-color-primary) inset;
-      }
-    }
+.auth-form__sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--el-text-color-secondary);
+}
 
-    .submit-btn {
-      width: 100%;
-      height: 2.75rem;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
+.auth-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-    .back-link {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+.auth-input {
+  height: 36px;
+  font-size: 0.8125rem;
+}
 
-      .el-link {
-        font-size: 0.875rem;
-        color: var(--el-text-color-secondary);
-        font-weight: 500;
-        transition: all 0.3s;
+.auth-submit {
+  margin-top: 4px;
+  height: 36px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+}
 
-        &:hover {
-          color: var(--el-color-primary);
-          transform: translateX(-4px);
-        }
-      }
-    }
-  }
+.auth-switch {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 0;
+}
+
+.auth-text-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-color-primary);
+  cursor: pointer;
+}
+
+.auth-text-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 </style>

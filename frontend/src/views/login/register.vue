@@ -1,85 +1,148 @@
+<!-- 注册：紧凑令牌表单，密码眼睛内嵌。 -->
 <template>
-  <div class="form-content-inner">
-    <h2 class="title">{{ t('register.title') }}</h2>
-    <p class="subtitle">{{ t('register.subtitle', { name: APP_CONFIG.name }) }}</p>
+  <div class="auth-form">
+    <header class="auth-form__head">
+      <h1 class="auth-form__title">{{ t('register.title') }}</h1>
+      <p class="auth-form__sub">{{ t('register.subtitle', { name: APP_CONFIG.name }) }}</p>
+    </header>
 
-    <el-form
-      ref="registerFormRef"
-      :model="registerForm"
-      :rules="registerRules"
-      label-position="top"
-      class="register-form"
-      @keyup.enter="handleRegister"
-    >
-      <el-form-item prop="username">
-        <el-input v-model="registerForm.username" :placeholder="t('register.usernamePlaceholder')" />
-      </el-form-item>
+    <form class="auth-form__body" @submit.prevent="handleRegister">
+      <div class="app-field">
+        <label class="app-label" for="reg-username">{{ t('register.usernamePlaceholder') }}</label>
+        <input
+          id="reg-username"
+          v-model="registerForm.username"
+          class="app-input auth-input"
+          :class="{ 'is-error': errors.username }"
+          :placeholder="t('register.usernamePlaceholder')"
+          autocomplete="username"
+        />
+        <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
+      </div>
 
-      <el-form-item prop="email">
-        <el-input
+      <div class="app-field">
+        <label class="app-label" for="reg-email">{{ t('register.emailPlaceholder') }}</label>
+        <input
+          id="reg-email"
           v-model="registerForm.email"
+          class="app-input auth-input"
+          :class="{ 'is-error': errors.email }"
           :placeholder="t('register.emailPlaceholder')"
+          autocomplete="email"
           @input="handleEmailInput"
         />
-      </el-form-item>
+        <span v-if="errors.email" class="app-field__error">{{ errors.email }}</span>
+      </div>
 
-      <div v-if="props.registerEmailVerificationRequired" class="code-row">
-        <el-form-item prop="code" class="code-input-item">
-          <el-input
+      <div v-if="props.registerEmailVerificationRequired" class="app-field">
+        <label class="app-label" for="reg-code">{{ t('register.codePlaceholder') }}</label>
+        <div class="auth-code-row">
+          <input
+            id="reg-code"
             v-model="registerForm.code"
+            class="app-input auth-input"
+            :class="{ 'is-error': errors.code }"
             :placeholder="t('register.codePlaceholder')"
             maxlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
           />
-        </el-form-item>
-        <el-button
-          type="primary"
-          class="send-code-btn"
-          :class="{ 'is-countdown': sendCodeCountdown > 0 }"
-          :disabled="sendCodeDisabled"
-          @click="handleSendCode"
-        >
-          {{ sendCodeButtonText }}
-        </el-button>
+          <UButton
+            type="button"
+            color="primary"
+            variant="soft"
+            class="auth-code-btn"
+            :disabled="sendCodeDisabled"
+            @click="handleSendCode"
+          >
+            {{ sendCodeButtonText }}
+          </UButton>
+        </div>
+        <span v-if="errors.code" class="app-field__error">{{ errors.code }}</span>
       </div>
 
-      <el-form-item prop="password">
-        <el-input
-          v-model="registerForm.password"
-          type="password"
-          show-password
-          :placeholder="t('register.passwordPlaceholder')"
-        />
-      </el-form-item>
+      <div class="app-field">
+        <label class="app-label" for="reg-password">{{ t('register.passwordPlaceholder') }}</label>
+        <div class="auth-input-wrap">
+          <input
+            id="reg-password"
+            v-model="registerForm.password"
+            class="app-input auth-input auth-input--with-icon"
+            :class="{ 'is-error': errors.password }"
+            :type="showPwd ? 'text' : 'password'"
+            :placeholder="t('register.passwordPlaceholder')"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="auth-eye"
+            :aria-label="showPwd ? t('login.hidePassword') : t('login.showPassword')"
+            @click="showPwd = !showPwd"
+          >
+            <component
+              :is="
+                menuStore.iconComponents[showPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon']
+              "
+              class="auth-eye__icon"
+            />
+          </button>
+        </div>
+        <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
+      </div>
 
-      <el-form-item prop="confirmPassword">
-        <el-input
-          v-model="registerForm.confirmPassword"
-          type="password"
-          show-password
-          :placeholder="t('register.confirmPasswordPlaceholder')"
-        />
-      </el-form-item>
+      <div class="app-field">
+        <label class="app-label" for="reg-confirm">{{
+          t('register.confirmPasswordPlaceholder')
+        }}</label>
+        <div class="auth-input-wrap">
+          <input
+            id="reg-confirm"
+            v-model="registerForm.confirmPassword"
+            class="app-input auth-input auth-input--with-icon"
+            :class="{ 'is-error': errors.confirmPassword }"
+            :type="showConfirmPwd ? 'text' : 'password'"
+            :placeholder="t('register.confirmPasswordPlaceholder')"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="auth-eye"
+            :aria-label="showConfirmPwd ? t('login.hidePassword') : t('login.showPassword')"
+            @click="showConfirmPwd = !showConfirmPwd"
+          >
+            <component
+              :is="
+                menuStore.iconComponents[
+                  showConfirmPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
+                ]
+              "
+              class="auth-eye__icon"
+            />
+          </button>
+        </div>
+        <span v-if="errors.confirmPassword" class="app-field__error">{{
+          errors.confirmPassword
+        }}</span>
+      </div>
 
-      <el-button type="primary" class="submit-btn" :loading="loading" @click="handleRegister">
+      <UButton type="submit" color="primary" block class="auth-submit" :loading="loading">
         {{ t('register.submit') }}
-      </el-button>
+      </UButton>
+    </form>
 
-      <div class="back-link">
-        <span class="have-account">{{ t('register.haveAccount') }}</span>
-        <el-link :underline="false" @click="emits('goToMode', 'login')">
-          <el-icon><component :is="menuStore.iconComponents['Element:ArrowLeft']" /></el-icon>
-          {{ t('register.backLogin') }}
-        </el-link>
-      </div>
-    </el-form>
+    <p class="auth-switch">
+      <span>{{ t('register.haveAccount') }}</span>
+      <button type="button" class="auth-text-btn" @click="emits('goToMode', 'login')">
+        {{ t('register.backLogin') }}
+      </button>
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { APP_CONFIG } from '@/config/app.config'
 import { register, sendRegisterEmailCode } from '@/api/login'
-import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
+import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'RegisterComponent' })
@@ -93,9 +156,13 @@ const emits = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const fb = useFeedback()
 const menuStore = useMenuStore()
-const registerFormRef = useTemplateRef<FormInstance>('registerFormRef')
+
 const loading = ref(false)
+const showPwd = ref(false)
+const showConfirmPwd = ref(false)
+const errors = ref<Record<string, string>>({})
 
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SEND_CODE_COUNTDOWN_SECONDS = 60
@@ -113,15 +180,16 @@ let sendCodeTimer: ReturnType<typeof setInterval> | null = null
 
 const isValidEmail = (email: string) => EMAIL_REGEXP.test(email)
 
-const sendCodeButtonText = computed(() => {
-  return sendCodeCountdown.value > 0
+const sendCodeButtonText = computed(() =>
+  sendCodeCountdown.value > 0
     ? t('login.resendIn', { seconds: sendCodeCountdown.value })
-    : t('login.sendCode')
-})
+    : t('login.sendCode'),
+)
 
-const sendCodeDisabled = computed(() => {
-  return loading.value || sendCodeCountdown.value > 0 || !isValidEmail(registerForm.value.email.trim())
-})
+const sendCodeDisabled = computed(
+  () =>
+    loading.value || sendCodeCountdown.value > 0 || !isValidEmail(registerForm.value.email.trim()),
+)
 
 const clearSendCodeTimer = () => {
   if (sendCodeTimer) {
@@ -151,90 +219,46 @@ const handleEmailInput = () => {
 const handleSendCode = async () => {
   const email = registerForm.value.email.trim()
   if (!isValidEmail(email)) {
-    ElMessage.warning(t('login.validEmailFirst'))
+    fb.warning(t('login.validEmailFirst'))
     return
   }
-
   try {
     await sendRegisterEmailCode({ email })
-    ElMessage.success(t('login.codeSent'))
+    fb.success(t('login.codeSent'))
     startSendCodeCountdown()
   } catch {
-    ElMessage.error(t('login.codeSendFailed'))
+    fb.error(t('login.codeSendFailed'))
   }
 }
 
-const validateUsername: FormItemRule['validator'] = (_rule, value, callback) => {
-  const val = String(value || '').trim()
-  if (!val) {
-    callback(new Error(t('register.usernameRequired')))
-    return
-  }
-  callback()
-}
+const validate = (): boolean => {
+  const next: Record<string, string> = {}
+  const username = registerForm.value.username.trim()
+  const email = registerForm.value.email.trim()
+  const password = registerForm.value.password
+  const confirmPassword = registerForm.value.confirmPassword
+  const code = registerForm.value.code.trim()
 
-const validateEmail: FormItemRule['validator'] = (_rule, value, callback) => {
-  const val = String(value || '').trim()
-  if (!val) {
-    callback(new Error(t('register.emailRequired')))
-    return
-  }
-  if (!EMAIL_REGEXP.test(val)) {
-    callback(new Error(t('login.emailInvalid')))
-    return
-  }
-  callback()
-}
+  if (!username) next.username = t('register.usernameRequired')
+  if (!email) next.email = t('register.emailRequired')
+  else if (!EMAIL_REGEXP.test(email)) next.email = t('login.emailInvalid')
 
-const validatePassword: FormItemRule['validator'] = (_rule, value, callback) => {
-  const val = String(value || '')
-  if (!val) {
-    callback(new Error(t('register.passwordRequired')))
-    return
+  if (props.registerEmailVerificationRequired && !code) {
+    next.code = t('register.emailCodeRequired')
   }
-  if (val.length < 6) {
-    callback(new Error(t('register.passwordMin')))
-    return
-  }
-  callback()
-}
 
-const validateConfirmPassword: FormItemRule['validator'] = (_rule, value, callback) => {
-  const val = String(value || '')
-  if (!val) {
-    callback(new Error(t('register.confirmPasswordRequired')))
-    return
-  }
-  if (val !== registerForm.value.password) {
-    callback(new Error(t('register.confirmPasswordMismatch')))
-    return
-  }
-  callback()
-}
+  if (!password) next.password = t('register.passwordRequired')
+  else if (password.length < 6) next.password = t('register.passwordMin')
 
-const validateCode: FormItemRule['validator'] = (_rule, value, callback) => {
-  if (!props.registerEmailVerificationRequired) {
-    callback()
-    return
-  }
-  const val = String(value || '').trim()
-  if (!val) {
-    callback(new Error(t('register.emailCodeRequired')))
-    return
-  }
-  callback()
-}
+  if (!confirmPassword) next.confirmPassword = t('register.confirmPasswordRequired')
+  else if (confirmPassword !== password) next.confirmPassword = t('register.confirmPasswordMismatch')
 
-const registerRules = reactive<FormRules>({
-  username: [{ validator: validateUsername, trigger: 'blur' }],
-  email: [{ validator: validateEmail, trigger: 'blur' }],
-  password: [{ validator: validatePassword, trigger: 'blur' }],
-  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
-  code: [{ validator: validateCode, trigger: 'blur' }],
-})
+  errors.value = next
+  return Object.keys(next).length === 0
+}
 
 const handleRegister = async () => {
-  await registerFormRef.value?.validate()
+  if (!validate()) return
   loading.value = true
   try {
     await register({
@@ -243,7 +267,7 @@ const handleRegister = async () => {
       password: registerForm.value.password,
       code: registerForm.value.code.trim(),
     })
-    ElMessage.success(t('register.success'))
+    fb.success(t('register.success'))
     emits('goToMode', 'login')
   } finally {
     loading.value = false
@@ -256,160 +280,122 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.form-content-inner {
-  .title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--el-text-color-primary);
-    margin-bottom: 0.5rem;
-  }
+.auth-form {
+  width: 100%;
+}
 
-  .subtitle {
-    font-size: 0.95rem;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 2rem;
-  }
+.auth-form__head {
+  margin-bottom: 0.9rem;
+}
 
-  .register-form {
-    :deep(.el-input__wrapper),
-    :deep(.el-select__wrapper) {
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 0 0 1px var(--el-border-color) inset;
-      min-height: 2.75rem;
+.auth-form__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--el-text-color-primary);
+}
 
-      &.is-focus {
-        box-shadow: 0 0 0 1px var(--el-color-primary) inset;
-      }
-    }
+.auth-form__sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--el-text-color-secondary);
+}
 
-    .code-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      width: 100%;
-    }
+.auth-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-    .code-input-item {
-      flex: 1;
+.auth-input {
+  height: 36px;
+  font-size: 0.8125rem;
+}
 
-      :deep(.el-form-item__content) {
-        width: 100%;
-      }
-    }
+.auth-input-wrap {
+  position: relative;
+}
 
-    .send-code-btn {
-      position: relative;
-      height: 2.75rem;
-      min-width: 8.5rem;
-      border: none;
-      border-radius: 0.75rem;
-      padding: 0 1rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(
-        120deg,
-        color-mix(in srgb, var(--el-color-primary) 84%, #ffffff),
-        var(--el-color-primary)
-      );
-      transition:
-        transform 0.15s ease,
-        filter 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 72%, transparent);
+.auth-input--with-icon {
+  padding-right: 36px;
+}
 
-      &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.22), transparent 65%);
-        opacity: 0;
-        transform: scale(0.9);
-        transition: all 0.18s ease;
-        pointer-events: none;
-      }
+.auth-eye {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--el-text-color-placeholder);
+  cursor: pointer;
+  padding: 0;
+}
 
-      &:hover:not(:disabled) {
-        filter: brightness(1.06);
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 90%, transparent);
-      }
+.auth-eye:hover {
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
+}
 
-      &:active:not(:disabled) {
-        transform: translateY(1px) scale(0.97);
-        filter: brightness(0.96);
+.auth-eye__icon {
+  width: 16px;
+  height: 16px;
+}
 
-        &::after {
-          opacity: 1;
-          transform: scale(1.1);
-        }
-      }
+.auth-code-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
 
-      &.is-countdown {
-        background: color-mix(in srgb, var(--el-color-primary) 24%, var(--el-bg-color-overlay));
-        color: var(--el-color-primary);
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 40%, transparent);
-      }
+.auth-code-row .app-input {
+  flex: 1;
+  min-width: 0;
+}
 
-      &.is-countdown:disabled {
-        color: var(--el-color-primary);
-        background: color-mix(in srgb, var(--el-color-primary) 24%, var(--el-bg-color-overlay));
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--el-color-primary) 40%, transparent);
-        opacity: 0.9;
-        transform: none;
-        filter: none;
-      }
+.auth-code-btn {
+  flex-shrink: 0;
+  min-width: 6.5rem;
+  height: 36px !important;
+}
 
-      &:disabled:not(.is-countdown) {
-        color: var(--el-text-color-placeholder);
-        background: color-mix(in srgb, var(--el-color-primary) 12%, var(--el-fill-color-light));
-        box-shadow: none;
-        transform: none;
-        filter: none;
-      }
-    }
+.auth-submit {
+  margin-top: 4px;
+  height: 36px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+}
 
-    @media (max-width: 400px) {
-      .send-code-btn {
-        min-width: 6.5rem;
-        padding: 0 0.6rem;
-        font-size: 0.75rem;
-      }
-    }
+.auth-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 12px 0 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 
-    .submit-btn {
-      width: 100%;
-      height: 2.75rem;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
+.auth-text-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-color-primary);
+  cursor: pointer;
+}
 
-    .back-link {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-
-      .have-account {
-        font-size: 0.875rem;
-        color: var(--el-text-color-secondary);
-      }
-
-      .el-link {
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s;
-        color: var(--el-text-color-secondary);
-
-        &:hover {
-          color: var(--el-color-primary);
-          transform: translateX(-4px);
-        }
-      }
-    }
-  }
+.auth-text-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 </style>
