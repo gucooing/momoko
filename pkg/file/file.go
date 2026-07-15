@@ -380,13 +380,13 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 		return err
 	}
 	if item.IsDir {
-		err = os.MkdirAll(absPath, 0o755)
-	} else {
-		if err = os.MkdirAll(filepath.Dir(absPath), 0o755); err == nil {
-			err = os.WriteFile(absPath, item.Content, 0o644)
-		}
+		return os.MkdirAll(absPath, 0o755)
 	}
-	return nil
+	if err = os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
+		return err
+	}
+	// Content 允许为空（创建即编辑）；写失败必须返回，不能吞成成功。
+	return os.WriteFile(absPath, item.Content, 0o644)
 }
 
 // Rename 重命名文件或目录，目标名称不能包含路径分隔符。

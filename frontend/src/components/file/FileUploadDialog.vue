@@ -1,57 +1,56 @@
+<!-- 文件上传弹窗（分片并发/哈希/重试）：令牌驱动 FormDialog + AppSelect 线程数 + 令牌进度条。
+     上传逻辑（useFileUpload：addFiles/startAll/retryFailed/cancel/removeItem/threads）全部保留，只重画观感。 -->
 <template>
-  <FileDialog v-model="visible" :title="t('fileManager.uploadTitle')" :width="600">
+  <FormDialog v-model="visible" :title="t('fileManager.uploadTitle')" :width="600">
     <div class="fu">
-      <div class="fu-target">
-        <span class="fu-target-label">{{ t('fileManager.uploadTargetDirectory') }}</span>
-        <span class="fu-target-path" :title="targetPath">{{ targetPath || '—' }}</span>
+      <div class="fu__target">
+        <span class="fu__target-label">{{ t('fileManager.uploadTargetDirectory') }}</span>
+        <span class="fu__target-path" :title="targetPath">{{ targetPath || '—' }}</span>
       </div>
 
       <div
-        class="fu-dropzone"
+        class="fu__drop"
         :class="{ 'is-over': dragOver }"
         @click="pick"
         @dragover.prevent="dragOver = true"
         @dragleave.prevent="dragOver = false"
         @drop.prevent="onDrop"
       >
-        <el-icon class="fu-dropzone-icon"><IconUpload /></el-icon>
-        <p class="fu-dropzone-title">{{ t('fileManager.uploadDropzoneTitle') }}</p>
-        <p class="fu-dropzone-desc">
+        <component :is="menuStore.iconComponents['HOutline:ArrowUpTrayIcon']" class="fu__drop-ico" />
+        <p class="fu__drop-title">{{ t('fileManager.uploadDropzoneTitle') }}</p>
+        <p class="fu__drop-desc">
           {{ t('fileManager.uploadDropzoneDescription', { count: upload.threads.value }) }}
         </p>
-        <input ref="inputRef" type="file" multiple class="fu-input" @change="onPick" />
+        <input ref="inputRef" type="file" multiple class="fu__input" @change="onPick" />
       </div>
 
-      <div class="fu-controls">
-        <label class="fu-threads">
-          {{ t('fileManager.threads') }}
-          <select v-model.number="upload.threads.value" class="fu-threads-select">
-            <option v-for="n in [1, 2, 3, 4, 6]" :key="n" :value="n">{{ n }}</option>
-          </select>
-        </label>
+      <div class="fu__controls">
+        <span class="fu__threads-label">{{ t('fileManager.threads') }}</span>
+        <AppSelect
+          :model-value="upload.threads.value"
+          :options="threadOptions"
+          fit
+          @update:model-value="(v) => (upload.threads.value = v)"
+        />
       </div>
 
-      <div v-if="upload.items.value.length" class="fu-list">
-        <div v-for="item in upload.items.value" :key="item.id" class="fu-item">
-          <div class="fu-item-main">
-            <span class="fu-item-name" :title="item.name">{{ item.name }}</span>
-            <span class="fu-item-size">{{ formatFileSize(item.size) }}</span>
+      <div v-if="upload.items.value.length" class="fu__list">
+        <div v-for="item in upload.items.value" :key="item.id" class="fu__item">
+          <div class="fu__item-main">
+            <span class="fu__item-name" :title="item.name">{{ item.name }}</span>
+            <span class="fu__item-size">{{ formatFileSize(item.size) }}</span>
           </div>
-          <div class="fu-item-bar">
-            <div
-              class="fu-item-bar-fill"
-              :class="`is-${item.status}`"
-              :style="{ width: `${item.progress}%` }"
-            ></div>
+          <div class="fu__bar">
+            <div class="fu__bar-fill" :class="`is-${item.status}`" :style="{ width: `${item.progress}%` }"></div>
           </div>
-          <div class="fu-item-meta">
-            <span class="fu-item-status" :class="`is-${item.status}`">
+          <div class="fu__item-meta">
+            <span class="fu__item-status" :class="`is-${item.status}`">
               {{ item.error || item.statusText }}
             </span>
             <button
               v-if="item.status === 'uploading' || item.status === 'hashing'"
               type="button"
-              class="fu-item-action"
+              class="fu__item-action"
               @click="upload.cancel(item)"
             >
               {{ t('system.common.cancel') }}
@@ -59,7 +58,7 @@
             <button
               v-else-if="item.status !== 'finishing' && item.status !== 'verifying'"
               type="button"
-              class="fu-item-action"
+              class="fu__item-action"
               @click="upload.removeItem(item.id)"
             >
               {{ t('fileManager.remove') }}
@@ -67,47 +66,43 @@
           </div>
         </div>
       </div>
-      <p v-else class="fu-empty">{{ t('fileManager.uploadEmpty') }}</p>
+      <p v-else class="fu__empty">{{ t('fileManager.uploadEmpty') }}</p>
     </div>
 
-    <template #footer>
-      <span class="fu-summary">
+    <template #footer="{ close }">
+      <span class="fu__summary">
         {{ t('fileManager.uploadSuccessCount', { success: upload.successCount.value, total: upload.items.value.length }) }}
         <template v-if="upload.failedCount.value">
           {{ t('fileManager.uploadFailedCount', { failed: upload.failedCount.value }) }}
         </template>
       </span>
-      <div class="fu-footer-actions">
-        <button type="button" class="fm-btn" @click="visible = false">
-          {{ t('system.common.cancel') }}
-        </button>
-        <button
-          v-if="upload.hasFailed.value"
-          type="button"
-          class="fm-btn"
-          :disabled="upload.uploading.value"
-          @click="onRetry"
-        >
-          {{ t('fileManager.retryFailedItems') }}
-        </button>
-        <button
-          type="button"
-          class="fm-btn fm-btn--primary"
-          :disabled="!upload.hasPending.value || upload.uploading.value"
-          @click="onStart"
-        >
-          {{ upload.uploading.value ? t('fileManager.uploading') : t('fileManager.startUpload') }}
-        </button>
-      </div>
+      <UButton color="neutral" variant="soft" @click="close">
+        {{ t('system.common.cancel') }}
+      </UButton>
+      <UButton
+        v-if="upload.hasFailed.value"
+        color="neutral"
+        variant="soft"
+        :disabled="upload.uploading.value"
+        @click="onRetry"
+      >
+        {{ t('fileManager.retryFailedItems') }}
+      </UButton>
+      <UButton
+        color="primary"
+        :loading="upload.uploading.value"
+        :disabled="!upload.hasPending.value || upload.uploading.value"
+        @click="onStart"
+      >
+        {{ upload.uploading.value ? t('fileManager.uploading') : t('fileManager.startUpload') }}
+      </UButton>
     </template>
-  </FileDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/utils/file'
-import FileDialog from './FileDialog.vue'
-import { IconUpload } from './icons'
 import { useFileUpload } from './useFileUpload'
 import type { FileClient } from './types'
 
@@ -123,11 +118,14 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
 
 const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+
+const threadOptions = [1, 2, 3, 4, 6].map((n) => ({ label: String(n), value: n }))
 
 const upload = useFileUpload(
   () => props.client,
@@ -162,177 +160,164 @@ const onRetry = async () => {
 .fu {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 14px;
 }
-.fu-target {
+.fu__target {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 0.8125rem;
 }
-.fu-target-label {
-  color: var(--fm-text-3);
+.fu__target-label {
+  color: var(--el-text-color-secondary);
 }
-.fu-target-path {
-  color: var(--fm-text);
+.fu__target-path {
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.fu-dropzone {
+.fu__drop {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  padding: 1.75rem 1rem;
-  border: 1.5px dashed var(--fm-border-strong);
-  border-radius: var(--fm-radius);
-  background: var(--fm-subtle);
+  gap: 6px;
+  padding: 28px 16px;
+  border: 1.5px dashed var(--el-border-color);
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
   cursor: pointer;
-  transition:
-    border-color 0.15s,
-    background 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.fu-dropzone:hover,
-.fu-dropzone.is-over {
-  border-color: var(--fm-accent);
-  background: var(--fm-accent-soft);
+.fu__drop:hover,
+.fu__drop.is-over {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
-.fu-dropzone-icon {
-  font-size: 30px;
-  color: var(--fm-accent);
+.fu__drop-ico {
+  width: 30px;
+  height: 30px;
+  color: var(--el-color-primary);
 }
-.fu-dropzone-title {
+.fu__drop-title {
   margin: 0;
-  font-size: 13.5px;
-  color: var(--fm-text);
+  font-size: 0.85rem;
+  color: var(--el-text-color-primary);
 }
-.fu-dropzone-desc {
+.fu__drop-desc {
   margin: 0;
-  font-size: 12px;
-  color: var(--fm-text-3);
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
 }
-.fu-input {
+.fu__input {
   display: none;
 }
 
-.fu-controls {
+.fu__controls {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
-.fu-threads {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 13px;
-  color: var(--fm-text-2);
-}
-.fu-threads-select {
-  height: 30px;
-  padding: 0 0.5rem;
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius-sm);
-  background: var(--fm-surface);
-  color: var(--fm-text);
+.fu__threads-label {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
 }
 
-.fu-list {
+.fu__list {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 10px;
   max-height: 280px;
   overflow: auto;
 }
-.fu-item {
+.fu__item {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius-sm);
-  background: var(--fm-surface);
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-sm);
+  background: var(--el-bg-color);
 }
-.fu-item-main {
+.fu__item-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 0.8125rem;
 }
-.fu-item-name {
-  color: var(--fm-text);
+.fu__item-name {
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.fu-item-size {
+.fu__item-size {
   flex-shrink: 0;
-  color: var(--fm-text-3);
-  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
-.fu-item-bar {
+.fu__bar {
   height: 6px;
   border-radius: 999px;
-  background: var(--fm-subtle);
+  background: var(--el-fill-color);
   overflow: hidden;
 }
-.fu-item-bar-fill {
+.fu__bar-fill {
   height: 100%;
-  background: var(--fm-accent);
+  background: var(--el-color-primary);
   transition: width 0.2s;
 }
-.fu-item-bar-fill.is-done {
-  background: #18a058;
+.fu__bar-fill.is-done {
+  background: var(--el-color-success);
 }
-.fu-item-bar-fill.is-failed {
-  background: var(--fm-danger);
+.fu__bar-fill.is-failed {
+  background: var(--el-color-danger);
 }
-.fu-item-bar-fill.is-canceled {
-  background: var(--fm-text-3);
+.fu__bar-fill.is-canceled {
+  background: var(--el-text-color-placeholder);
 }
-.fu-item-meta {
+.fu__item-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 0.75rem;
 }
-.fu-item-status {
-  color: var(--fm-text-3);
+.fu__item-status {
+  color: var(--el-text-color-placeholder);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.fu-item-status.is-done {
-  color: #18a058;
+.fu__item-status.is-done {
+  color: var(--el-color-success);
 }
-.fu-item-status.is-failed {
-  color: var(--fm-danger);
+.fu__item-status.is-failed {
+  color: var(--el-color-danger);
 }
-.fu-item-action {
+.fu__item-action {
   flex-shrink: 0;
   border: none;
   background: transparent;
-  color: var(--fm-accent);
-  font-size: 12px;
+  color: var(--el-color-primary);
+  font-size: 0.75rem;
   cursor: pointer;
 }
-.fu-empty {
-  padding: 1rem;
+.fu__empty {
+  padding: 16px;
   text-align: center;
-  font-size: 13px;
-  color: var(--fm-text-3);
+  font-size: 0.8125rem;
+  color: var(--el-text-color-placeholder);
 }
 
-.fu-summary {
+.fu__summary {
   flex: 1;
-  font-size: 12px;
-  color: var(--fm-text-3);
-}
-.fu-footer-actions {
-  display: flex;
-  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
 }
 </style>

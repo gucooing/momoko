@@ -12,9 +12,13 @@
 </template>
 
 <script setup lang="ts">
+import { useContentFullBleed } from '@/composables/useAppLayout'
+
 const route = useRoute()
 const tabsStore = useTabsStore()
-const isBleed = computed(() => !!route.meta?.fullBleed)
+// 全出血：静态路由用 meta.fullBleed（终端页）；动态菜单页由页面自身声明（见 useFullBleed）。
+const contentFullBleed = useContentFullBleed()
+const isBleed = computed(() => !!route.meta?.fullBleed || contentFullBleed.value)
 </script>
 
 <style scoped lang="scss">
@@ -40,10 +44,14 @@ const isBleed = computed(() => !!route.meta?.fullBleed)
   margin: 0 auto;
   width: 100%;
 }
+/* 全出血工具页（文件管理/终端）：内容区自身不滚，由页内双栏/终端主体各自滚，避免树变高把整页（含列表）一起拖走。 */
 .app-content--bleed {
   padding: 0;
+  overflow: hidden;
 }
 .app-content--bleed .app-page {
   max-width: none;
+  height: 100%;
+  min-height: 0;
 }
 </style>

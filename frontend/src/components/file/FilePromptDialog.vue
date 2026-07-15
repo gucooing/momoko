@@ -1,36 +1,39 @@
+<!-- 文件名输入弹窗（新建文件夹/新建文件/重命名/压缩/解压 共用）：令牌驱动 FormDialog + .app-* 表单控件。 -->
 <template>
-  <FileDialog v-model="visible" :title="title" :width="440" @close="onClose">
-    <div class="fp-form">
-      <p v-if="description" class="fp-desc">{{ description }}</p>
-      <label v-if="label" class="fp-label">{{ label }}</label>
-      <input
-        ref="inputRef"
-        v-model="text"
-        class="fm-input"
-        :placeholder="placeholder"
-        @keyup.enter="confirm"
-      />
+  <FormDialog
+    v-model="visible"
+    :title="title"
+    :width="440"
+    :loading="confirming"
+    @close="onClose"
+  >
+    <div class="fpd">
+      <p v-if="description" class="fpd__desc">{{ description }}</p>
+      <div class="app-field">
+        <label v-if="label" class="app-label">{{ label }}</label>
+        <input
+          ref="inputRef"
+          v-model="text"
+          class="app-input"
+          :placeholder="placeholder"
+          @keyup.enter="confirm"
+        />
+      </div>
     </div>
 
-    <template #footer>
-      <button type="button" class="fm-btn" @click="visible = false">
+    <template #footer="{ close }">
+      <UButton color="neutral" variant="soft" @click="close">
         {{ t('system.common.cancel') }}
-      </button>
-      <button
-        type="button"
-        class="fm-btn fm-btn--primary"
-        :disabled="!text.trim() || confirming"
-        @click="confirm"
-      >
+      </UButton>
+      <UButton color="primary" :loading="confirming" :disabled="!text.trim()" @click="confirm">
         {{ confirmText || t('system.common.confirm') }}
-      </button>
+      </UButton>
     </template>
-  </FileDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import FileDialog from './FileDialog.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -82,20 +85,16 @@ const onClose = () => {
 </script>
 
 <style scoped>
-.fp-form {
+.fpd {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 12px;
 }
-.fp-desc {
-  margin: 0 0 0.25rem;
-  font-size: 13px;
+.fpd__desc {
+  margin: 0;
+  font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--fm-text-2);
+  color: var(--el-text-color-secondary);
   word-break: break-all;
-}
-.fp-label {
-  font-size: 13px;
-  color: var(--fm-text-2);
 }
 </style>

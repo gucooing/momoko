@@ -1,250 +1,298 @@
+<!-- 文件管理（真·重写 · P6 全屏工具页）：app 设计令牌 + 令牌组件（UButton/AppSelect/ActionMenu/
+     AppDropdown/EmptyState/Pagination/StatusPill）+ heroicons（menuStore.iconComponents）。
+     外壳=导航条(来源/前进后退上级/面包屑/刷新) + 双栏(左目录树 + 右主区)。
+     右主区=工具栏(上传/新建/更多 · 搜索/筛选/视图切换) + 选择条 + 列表·网格 + 页脚(汇总+分页)。
+     逻辑全部复用 fileClient（scope 无关，系统级/实例级同构），只重画观感。移动端单栏 + 面包屑下钻。 -->
 <template>
-  <div class="file-module file-browser" :class="{ 'is-dark': isDark }">
-    <!-- 顶部导航：来源切换 + 返回/前进/上级 + 面包屑地址 -->
-    <div class="fb-navbar">
+  <div class="fb">
+    <!-- 顶部导航：来源切换 + 返回/前进/上级 + 面包屑地址 + 刷新 -->
+    <div class="fb-nav">
       <div v-if="isSystemScope" class="fb-source">
-        <select
-          v-model="currentSourceId"
-          class="fm-input fb-source-select"
-          :title="t('fileSource.switchSource')"
-          @change="onSourceChange"
-        >
-          <option value="">{{ t('fileSource.localDisk') }}</option>
-          <option v-for="s in sources" :key="s.id" :value="s.id">
-            {{ s.name }}（{{ s.type.toUpperCase() }}）
-          </option>
-        </select>
+        <AppSelect
+          :model-value="currentSourceId"
+          :options="sourceOptions"
+          :placeholder="t('fileSource.localDisk')"
+          @update:model-value="onSourceChange"
+        />
       </div>
-      <div class="fb-nav-actions">
-        <button
-          type="button"
-          class="fm-icon-btn"
-          :disabled="!canGoBack"
-          :title="t('fileManager.back')"
-          @click="goBack"
-        >
-          <el-icon><IconBack /></el-icon>
+
+      <div class="fb-nav__group">
+        <button type="button" class="fb-ico" :disabled="!canGoBack" :title="t('fileManager.back')" @click="goBack">
+          <UIcon name="i-lucide-arrow-left" />
         </button>
-        <button
-          type="button"
-          class="fm-icon-btn"
-          :disabled="!canGoForward"
-          :title="t('fileManager.forward')"
-          @click="goForward"
-        >
-          <el-icon><IconForward /></el-icon>
+        <button type="button" class="fb-ico" :disabled="!canGoForward" :title="t('fileManager.forward')" @click="goForward">
+          <UIcon name="i-lucide-arrow-right" />
         </button>
-        <button
-          type="button"
-          class="fm-icon-btn"
-          :disabled="!canGoUp"
-          :title="t('fileManager.up')"
-          @click="goUp"
-        >
-          <el-icon><IconUp /></el-icon>
+        <button type="button" class="fb-ico" :disabled="!canGoUp" :title="t('fileManager.up')" @click="goUp">
+          <UIcon name="i-lucide-arrow-up" />
         </button>
       </div>
 
-      <div class="fb-breadcrumb" @click="startEditPath">
+      <div class="fb-crumb" @click="startEditPath">
         <input
           v-if="editingPath"
           ref="pathInputRef"
           v-model="pathDraft"
-          class="fm-input fb-path-input"
+          class="app-input fb-crumb__input"
           @keyup.enter="commitPath"
           @keyup.esc="editingPath = false"
           @blur="editingPath = false"
           @click.stop
         />
         <template v-else>
-          <button
-            type="button"
-            class="fb-crumb fb-crumb-root"
-            :title="t('fileManager.rootDir')"
-            @click.stop="navigateTo('')"
-          >
-            <el-icon><IconHome /></el-icon>
+          <button type="button" class="fb-crumb__seg fb-crumb__root" :title="t('fileManager.rootDir')" @click.stop="navigateTo('')">
+            <UIcon name="i-lucide-home" />
           </button>
           <template v-for="segment in pathSegments" :key="segment.path">
-            <el-icon class="fb-crumb-sep"><IconChevronRight /></el-icon>
-            <button type="button" class="fb-crumb" @click.stop="navigateTo(segment.path)">
-              {{ segment.name }}
-            </button>
+            <UIcon name="i-lucide-chevron-right" class="fb-crumb__sep" />
+            <button type="button" class="fb-crumb__seg" @click.stop="navigateTo(segment.path)">{{ segment.name }}</button>
           </template>
         </template>
       </div>
 
       <button
         type="button"
-        class="fm-icon-btn"
+        class="fb-ico"
+        :class="{ 'is-spin': loading }"
         :title="t('fileManager.refresh')"
-        :class="{ 'is-spinning': loading }"
         @click="refresh"
       >
-        <el-icon><IconRefresh /></el-icon>
+        <UIcon name="i-lucide-refresh-cw" />
       </button>
     </div>
 
-    <!-- 工具栏 -->
-    <div class="fb-toolbar">
-      <div class="fb-toolbar-left">
-        <button type="button" class="fm-btn fm-btn--primary" @click="uploadOpen = true">
-          <el-icon><IconUpload /></el-icon>{{ t('fileManager.uploadTitle') }}
-        </button>
-        <button type="button" class="fm-btn" @click="openCreateFolder">
-          <el-icon><IconNewFolder /></el-icon>{{ t('fileManager.createFolder') }}
-        </button>
-        <button type="button" class="fm-btn" :disabled="!hasSelection" @click="downloadSelected">
-          <el-icon><IconDownload /></el-icon>{{ t('fileManager.download') }}
-        </button>
-        <button
-          type="button"
-          class="fm-btn fm-btn--danger"
-          :disabled="!hasSelection"
-          @click="deleteSelected"
-        >
-          <el-icon><IconDelete /></el-icon>{{ t('fileManager.delete') }}
-        </button>
-        <FileMenu :items="moreActions" @select="onMoreAction">
-          <button type="button" class="fm-btn">
-            {{ t('fileManager.moreActions') }}<el-icon><IconChevronDown /></el-icon>
-          </button>
-        </FileMenu>
-      </div>
+    <!-- 主体：左目录树 + 右列表 -->
+    <div class="fb-body">
+      <aside v-if="!menuStore.isMobile" class="fb-aside">
+        <FileTree
+          ref="treeRef"
+          :client="client"
+          root-path=""
+          :active-path="currentPath"
+          selectable="all"
+          @select="onTreeSelect"
+        />
+      </aside>
 
-      <div class="fb-toolbar-right">
-        <div class="fb-search">
-          <el-icon class="fb-search-icon"><IconSearch /></el-icon>
-          <input
-            v-model="keywords"
-            class="fm-input fb-search-input"
-            :placeholder="t('fileManager.searchPlaceholder')"
-          />
-        </div>
-        <div ref="filterRef" class="fb-filter">
-          <button
-            type="button"
-            class="fm-icon-btn"
-            :class="{ 'is-active': includeSubDir }"
-            :title="t('fileManager.filter')"
-            @click="filterOpen = !filterOpen"
-          >
-            <el-icon><IconFilter /></el-icon>
-          </button>
-          <transition name="fp-fade">
-            <div v-if="filterOpen" class="fb-filter-panel">
-              <label class="fb-filter-item">
-                <input v-model="includeSubDir" type="checkbox" @change="onFilterChange" />
-                <span>{{ t('fileManager.subdirectories') }}</span>
-              </label>
-            </div>
-          </transition>
-        </div>
-      </div>
-    </div>
+      <div class="fb-main">
+        <!-- 工具栏 -->
+        <div class="fb-tools">
+          <div class="fb-tools__left">
+            <UButton color="primary" size="sm" icon="i-lucide-upload" @click="uploadOpen = true">
+              {{ t('fileManager.upload') }}
+            </UButton>
+            <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-folder-plus" @click="openCreateFolder">
+              {{ t('fileManager.createFolder') }}
+            </UButton>
 
-    <!-- 表格 -->
-    <div class="fb-table">
-      <div class="fb-thead">
-        <div class="fb-col fb-col-check">
-          <input
-            type="checkbox"
-            :checked="allSelected"
-            :indeterminate.prop="someSelected"
-            @change="toggleSelectAll"
-          />
-        </div>
-        <button type="button" class="fb-col fb-col-name fb-sortable" @click="sortBy('name')">
-          {{ t('fileManager.tableName') }}
-          <el-icon v-if="sortField === FileSortField.FILE_SORT_FIELD_NAME" class="fb-sort-icon">
-            <component :is="isDesc ? IconChevronDown : IconChevronUp" />
-          </el-icon>
-        </button>
-        <div class="fb-col fb-col-type">{{ t('fileManager.type') }}</div>
-        <div class="fb-col fb-col-size">{{ t('fileManager.size') }}</div>
-        <div class="fb-col fb-col-path">{{ t('fileManager.path') }}</div>
-        <button type="button" class="fb-col fb-col-time fb-sortable" @click="sortBy('time')">
-          {{ t('fileManager.updatedAt') }}
-          <el-icon
-            v-if="sortField === FileSortField.FILE_SORT_FIELD_UPDATE_TIME"
-            class="fb-sort-icon"
-          >
-            <component :is="isDesc ? IconChevronDown : IconChevronUp" />
-          </el-icon>
-        </button>
-        <div class="fb-col fb-col-ops">{{ t('fileManager.operation') }}</div>
-      </div>
+            <AppDropdown align="start" :width="200">
+              <template #trigger>
+                <!-- 点击由 AppDropdown 外壳接管，勿再 @click=toggle（会开→关） -->
+                <UButton color="neutral" variant="soft" size="sm" trailing-icon="i-lucide-chevron-down">
+                  {{ t('fileManager.moreActions') }}
+                </UButton>
+              </template>
+              <template #default="{ close }">
+                <div class="fb-menu">
+                  <template v-for="item in moreActions" :key="item.key">
+                    <div v-if="item.divider" class="fb-menu__div" />
+                    <button
+                      v-else
+                      type="button"
+                      class="fb-menu__item"
+                      :disabled="item.disabled"
+                      @click="() => { onMoreAction(item.key); close() }"
+                    >
+                      <UIcon :name="item.icon" class="fb-menu__ico" />
+                      <span>{{ item.label }}</span>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </AppDropdown>
+          </div>
 
-      <div class="fb-tbody">
-        <div v-if="loading" class="fb-placeholder">{{ t('fileManager.directoryLoading') }}</div>
-        <div v-else-if="!items.length" class="fb-placeholder">
-          {{ t('fileManager.directoryEmpty') }}
-        </div>
-        <template v-else>
-          <div
-            v-for="row in items"
-            :key="row.path"
-            class="fb-row"
-            :class="{ 'is-selected': selectedPaths.has(row.path) }"
-            @click="onRowClick(row, $event)"
-          >
-            <div class="fb-col fb-col-check" @click.stop>
-              <input
-                type="checkbox"
-                :checked="selectedPaths.has(row.path)"
-                @change="toggleSelect(row)"
-              />
+          <div class="fb-tools__right">
+            <div class="fb-search">
+              <UIcon name="i-lucide-search" class="fb-search__ico" />
+              <input v-model="keywords" class="app-input fb-search__input" :placeholder="t('fileManager.searchPlaceholder')" />
             </div>
-            <div class="fb-col fb-col-name">
-              <el-icon class="fb-row-icon" :class="row.isDir ? 'is-folder' : 'is-file'">
-                <component :is="rowIcon(row)" />
-              </el-icon>
-              <span class="fb-row-name" :title="row.name">{{ row.name }}</span>
-            </div>
-            <div class="fb-col fb-col-type">{{ typeLabel(row) }}</div>
-            <div class="fb-col fb-col-size">{{ row.isDir ? '-' : formatFileSize(row.size) }}</div>
-            <div class="fb-col fb-col-path" :title="row.path">{{ displayPath(row) }}</div>
-            <div class="fb-col fb-col-time">{{ formatDateTime(row.updateTime) }}</div>
-            <div class="fb-col fb-col-ops" @click.stop>
-              <button
-                type="button"
-                class="fm-icon-btn"
-                :title="t('fileManager.download')"
-                :disabled="row.isDir"
-                @click="downloadOne(row)"
-              >
-                <el-icon><IconDownload /></el-icon>
-              </button>
-              <button
-                type="button"
-                class="fm-icon-btn is-danger"
-                :title="t('fileManager.delete')"
-                @click="deleteRows([row])"
-              >
-                <el-icon><IconDelete /></el-icon>
-              </button>
-              <FileMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)">
-                <button type="button" class="fm-icon-btn" :title="t('fileManager.more')">
-                  <el-icon><IconMoreVertical /></el-icon>
+
+            <AppDropdown align="end" :width="200">
+              <template #trigger>
+                <button
+                  type="button"
+                  class="fb-ico"
+                  :class="{ 'is-active': includeSubDir }"
+                  :title="t('fileManager.filter')"
+                >
+                  <UIcon name="i-lucide-funnel" />
                 </button>
-              </FileMenu>
+              </template>
+              <template #default>
+                <div class="fb-filter">
+                  <label class="fb-filter__item">
+                    <input v-model="includeSubDir" type="checkbox" @change="onFilterChange" />
+                    <span>{{ t('fileManager.subdirectories') }}</span>
+                  </label>
+                </div>
+              </template>
+            </AppDropdown>
+
+            <div class="fb-seg">
+              <button
+                type="button"
+                class="fb-seg__btn"
+                :class="{ 'is-active': viewMode === 'list' }"
+                :title="t('fileManager.viewList')"
+                @click="viewMode = 'list'"
+              >
+                <UIcon name="i-lucide-list" />
+              </button>
+              <button
+                type="button"
+                class="fb-seg__btn"
+                :class="{ 'is-active': viewMode === 'grid' }"
+                :title="t('fileManager.viewGrid')"
+                @click="viewMode = 'grid'"
+              >
+                <UIcon name="i-lucide-layout-grid" />
+              </button>
             </div>
           </div>
-        </template>
-      </div>
-    </div>
+        </div>
 
-    <!-- 底部：汇总 + 分页 -->
-    <div class="fb-footer">
-      <span class="fb-summary">
-        {{ t('fileManager.footerSummary', { folders: folderCount, files: fileCount }) }}
-      </span>
-      <FilePager
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        @change="loadList"
-      />
+        <!-- 选择条（选中出现，批量 下载/删除/清空，同 app 批量条范式） -->
+        <div v-if="hasSelection" class="fb-selbar">
+          <span class="fb-selbar__count">{{ t('fileManager.selectedCount', { count: selectedPaths.size }) }}</span>
+          <div class="fb-selbar__actions">
+            <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-download" @click="downloadSelected">
+              {{ t('fileManager.download') }}
+            </UButton>
+            <UButton color="error" variant="soft" size="sm" icon="i-lucide-trash-2" @click="deleteSelected">
+              {{ t('fileManager.delete') }}
+            </UButton>
+            <UButton color="neutral" variant="ghost" size="sm" @click="clearSelection">
+              {{ t('fileManager.clearSelection') }}
+            </UButton>
+          </div>
+        </div>
+
+        <!-- 内容区：列表 或 网格 -->
+        <div class="fb-content">
+          <!-- 加载骨架 -->
+          <div v-if="loading" class="fb-skeleton">
+            <div v-for="i in 8" :key="i" class="fb-skeleton__row" />
+          </div>
+
+          <!-- 空态 -->
+          <EmptyState
+            v-else-if="!items.length"
+            icon="HOutline:FolderOpenIcon"
+            :title="t('fileManager.directoryEmpty')"
+            :description="keywords ? t('system.common.noData') : t('fileManager.uploadDropzoneTitle')"
+          />
+
+          <!-- 列表视图 -->
+          <div v-else-if="viewMode === 'list'" class="fb-table">
+            <div class="fb-thead">
+              <div class="fb-col fb-col--check">
+                <input type="checkbox" :checked="allSelected" :indeterminate.prop="someSelected" @change="toggleSelectAll" />
+              </div>
+              <button type="button" class="fb-col fb-col--name fb-sort" @click="sortBy('name')">
+                {{ t('fileManager.tableName') }}
+                <UIcon
+                  v-if="sortField === FileSortField.FILE_SORT_FIELD_NAME"
+                  :name="isDesc ? 'i-lucide-chevron-down' : 'i-lucide-chevron-up'"
+                  class="fb-sort__ico"
+                />
+              </button>
+              <div class="fb-col fb-col--type">{{ t('fileManager.type') }}</div>
+              <div class="fb-col fb-col--size">{{ t('fileManager.size') }}</div>
+              <button type="button" class="fb-col fb-col--time fb-sort" @click="sortBy('time')">
+                {{ t('fileManager.updatedAt') }}
+                <UIcon
+                  v-if="sortField === FileSortField.FILE_SORT_FIELD_UPDATE_TIME"
+                  :name="isDesc ? 'i-lucide-chevron-down' : 'i-lucide-chevron-up'"
+                  class="fb-sort__ico"
+                />
+              </button>
+              <div class="fb-col fb-col--ops">{{ t('fileManager.operation') }}</div>
+            </div>
+
+            <div class="fb-tbody">
+              <div
+                v-for="row in items"
+                :key="row.path"
+                class="fb-row"
+                :class="{ 'is-selected': selectedPaths.has(row.path) }"
+                @click="onRowClick(row, $event)"
+              >
+                <div class="fb-col fb-col--check" @click.stop>
+                  <input type="checkbox" :checked="selectedPaths.has(row.path)" @change="toggleSelect(row)" />
+                </div>
+                <div class="fb-col fb-col--name">
+                  <UIcon :name="rowIcon(row)" class="fb-row__ico" :class="row.isDir ? 'is-folder' : 'is-file'" />
+                  <span class="fb-row__name" :title="row.name">{{ row.name }}</span>
+                </div>
+                <div class="fb-col fb-col--type">{{ typeLabel(row) }}</div>
+                <div class="fb-col fb-col--size">{{ row.isDir ? '—' : formatFileSize(row.size) }}</div>
+                <div class="fb-col fb-col--time">{{ formatDateTime(row.updateTime) }}</div>
+                <div class="fb-col fb-col--ops" @click.stop>
+                  <button
+                    type="button"
+                    class="fb-ico fb-ico--sm"
+                    :title="t('fileManager.download')"
+                    :disabled="row.isDir"
+                    @click="downloadOne(row)"
+                  >
+                    <UIcon name="i-lucide-download" />
+                  </button>
+                  <ActionMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 网格视图 -->
+          <div v-else class="fb-grid">
+            <div
+              v-for="row in items"
+              :key="row.path"
+              class="fb-tile"
+              :class="{ 'is-selected': selectedPaths.has(row.path) }"
+              @click="onRowClick(row, $event)"
+            >
+              <input
+                type="checkbox"
+                class="fb-tile__check"
+                :checked="selectedPaths.has(row.path)"
+                @click.stop
+                @change="toggleSelect(row)"
+              />
+              <div class="fb-tile__more" @click.stop>
+                <ActionMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)" />
+              </div>
+              <UIcon :name="rowIcon(row)" class="fb-tile__ico" :class="row.isDir ? 'is-folder' : 'is-file'" />
+              <span class="fb-tile__name" :title="row.name">{{ row.name }}</span>
+              <span class="fb-tile__meta">{{ row.isDir ? typeLabel(row) : formatFileSize(row.size) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部：汇总 + 分页 -->
+        <div class="fb-foot">
+          <span class="fb-foot__summary">
+            {{ t('fileManager.footerSummary', { folders: folderCount, files: fileCount }) }}
+          </span>
+          <Pagination
+            v-model:page="page"
+            v-model:page-size="pageSize"
+            :total="total"
+            @change="loadList"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- 子弹窗 -->
@@ -261,12 +309,7 @@
 
     <FileMediaDialog v-model="media.open" :name="media.name" :kind="media.kind" :url="media.url" />
 
-    <FileUploadDialog
-      v-model="uploadOpen"
-      :client="client"
-      :target-path="currentPath"
-      @uploaded="loadList"
-    />
+    <FileUploadDialog v-model="uploadOpen" :client="client" :target-path="currentPath" @uploaded="afterMutation" />
 
     <FileEditor
       v-model="editor.open"
@@ -274,19 +317,28 @@
       :path="editor.path"
       root-path=""
       @saved="loadList"
-      @renamed="loadList"
-      @deleted="loadList"
+      @renamed="afterMutation"
+      @deleted="afterMutation"
     />
 
     <ShareFormDialog v-model="shareOpen" :items="shareItems" />
+
+    <!-- 删除确认（令牌 FormDialog，替代 EP 命令式确认） -->
+    <FormDialog v-model="del.open" :title="t('fileManager.confirmDelete')" :width="420" :loading="del.pending" @confirm="confirmDelete">
+      <p class="fb-confirm">{{ del.message }}</p>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('system.common.cancel') }}</UButton>
+        <UButton color="error" :loading="del.pending" @click="confirmDelete">{{ t('system.common.confirm') }}</UButton>
+      </template>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onClickOutside, useDebounceFn } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
-import { showRequestError } from '@/utils/request'
-import { useThemeStore } from '@/stores/theme'
+import { getRequestErrorMessage } from '@/utils/request'
+import { useFeedback } from '@/utils/feedback'
 import {
   FileSortField,
   type FileEntryInfo,
@@ -312,44 +364,13 @@ import {
 } from '@/utils/file'
 import { createFileClient } from './fileClient'
 import type { FileClient, FileClipboard, FileScope, PickedFile } from './types'
-import FilePager from './FilePager.vue'
-import FileMenu, { type FileMenuItem } from './FileMenu.vue'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
+import FileTree from './FileTree.vue'
 import FilePromptDialog from './FilePromptDialog.vue'
 import FileMediaDialog from './FileMediaDialog.vue'
 import FileUploadDialog from './FileUploadDialog.vue'
 import FileEditor from './FileEditor.vue'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
-import {
-  IconBack,
-  IconForward,
-  IconUp,
-  IconHome,
-  IconRefresh,
-  IconChevronRight,
-  IconChevronDown,
-  IconChevronUp,
-  IconUpload,
-  IconNewFolder,
-  IconNewFile,
-  IconDownload,
-  IconDelete,
-  IconSearch,
-  IconFilter,
-  IconMoreVertical,
-  IconRename,
-  IconFolder,
-  IconFile,
-  IconImage,
-  IconVideo,
-  IconAudio,
-  IconShare,
-  IconLink,
-  IconCompress,
-  IconUnzip,
-  IconCopy,
-  IconCut,
-  IconPaste,
-} from './icons'
 
 const props = defineProps<{
   scope: FileScope
@@ -357,10 +378,17 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
+const fb = useFeedback()
 
-// 文件模块自成体系：用自己的中性令牌，但跟随 app 浅/暗切换（非继承紫色主题）。
-const themeStore = useThemeStore()
-const isDark = computed(() => themeStore.isDarkTheme)
+// 请求错误反馈：走统一 toast（getRequestErrorMessage 解析后端消息）。
+const notifyError = (error: unknown, fallback: string) => fb.error(getRequestErrorMessage(error, fallback))
+
+// ---- 视图模式（列表/网格，持久化）----
+const viewMode = ref<'list' | 'grid'>(
+  (localStorage.getItem('fm-view') as 'list' | 'grid') === 'grid' ? 'grid' : 'list',
+)
+watch(viewMode, (v) => localStorage.setItem('fm-view', v))
 
 // ---- 文件来源（仅系统级显示切换）----
 const isSystemScope = props.scope.kind === 'system'
@@ -377,9 +405,22 @@ const currentCaps = computed<FileSourceCaps>(() => {
   if (!currentSourceId.value) return localCaps
   return sources.value.find((s) => s.id === currentSourceId.value)?.caps ?? localCaps
 })
+const sourceOptions = computed<{ label: string; value: string }[]>(() => [
+  { label: t('fileSource.localDisk'), value: '' },
+  ...sources.value.map((s) => ({ label: `${s.name}（${s.type.toUpperCase()}）`, value: s.id })),
+])
 
 // scope 在组件生命周期内稳定；source_id 动态读取，切换来源无需重建 client。
 const client: FileClient = createFileClient(props.scope, () => currentSourceId.value)
+
+// 左侧目录树引用：结构性变更（新建/删除/重命名/粘贴/切换来源）后重载。
+const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
+const reloadTree = () => treeRef.value?.reload()
+// 变更后统一刷新列表 + 目录树
+const afterMutation = () => {
+  loadList()
+  reloadTree()
+}
 
 const loadSources = async () => {
   if (!isSystemScope) return
@@ -391,8 +432,9 @@ const loadSources = async () => {
   }
 }
 
-const onSourceChange = () => {
+const onSourceChange = (id: string) => {
   // 切换来源：清空历史/选择，回到该来源根目录。
+  currentSourceId.value = id
   history.value = []
   historyIndex.value = -1
   selectedPaths.value = new Set()
@@ -400,7 +442,7 @@ const onSourceChange = () => {
   keywords.value = ''
   page.value = 1
   currentPath.value = ''
-  loadList()
+  afterMutation()
 }
 
 // ---- 列表状态 ----
@@ -482,13 +524,17 @@ const toggleSelectAll = () => {
     ? new Set()
     : new Set(items.value.map((item) => item.path))
 }
+const clearSelection = () => {
+  selectedPaths.value = new Set()
+}
 
 // ---- 汇总 ----
 const folderCount = computed(() => Number(directory.value?.dirCount ?? 0))
 const fileCount = computed(() => Number(directory.value?.fileCount ?? 0))
 
 // ---- 加载 ----
-const loadList = async () => {
+// 返回是否成功：导航失败时调用方必须回滚 currentPath / 历史，避免「报错了却已经切进去」。
+const loadList = async (): Promise<boolean> => {
   loading.value = true
   try {
     const res = await client.list({
@@ -510,17 +556,25 @@ const loadList = async () => {
       history.value = [currentPath.value]
       historyIndex.value = 0
     }
+    return true
   } catch (error) {
-    showRequestError(error, t('fileManager.refreshFailed'))
+    notifyError(error, t('fileManager.refreshFailed'))
+    return false
   } finally {
     loading.value = false
   }
 }
 
-const refresh = () => loadList()
+const refresh = () => afterMutation()
 
-// ---- 导航 ----
-const navigateTo = (path: string, pushHistory = true) => {
+// ---- 导航（失败回滚路径，禁止“报错却切进去”）----
+const navigateTo = async (path: string, pushHistory = true) => {
+  const prevPath = currentPath.value
+  const prevPage = page.value
+  const prevKeywords = keywords.value
+  const prevHistory = history.value.slice()
+  const prevHistoryIndex = historyIndex.value
+
   if (pushHistory) {
     history.value = history.value.slice(0, historyIndex.value + 1)
     history.value.push(path)
@@ -529,25 +583,48 @@ const navigateTo = (path: string, pushHistory = true) => {
   currentPath.value = path
   page.value = 1
   keywords.value = ''
-  loadList()
+  const ok = await loadList()
+  if (!ok) {
+    currentPath.value = prevPath
+    page.value = prevPage
+    keywords.value = prevKeywords
+    history.value = prevHistory
+    historyIndex.value = prevHistoryIndex
+  }
 }
-const goBack = () => {
+const goBack = async () => {
   if (!canGoBack.value) return
+  const prevIndex = historyIndex.value
+  const prevPath = currentPath.value
+  const prevPage = page.value
   historyIndex.value -= 1
   currentPath.value = history.value[historyIndex.value] ?? currentPath.value
   page.value = 1
-  loadList()
+  const ok = await loadList()
+  if (!ok) {
+    historyIndex.value = prevIndex
+    currentPath.value = prevPath
+    page.value = prevPage
+  }
 }
-const goForward = () => {
+const goForward = async () => {
   if (!canGoForward.value) return
+  const prevIndex = historyIndex.value
+  const prevPath = currentPath.value
+  const prevPage = page.value
   historyIndex.value += 1
   currentPath.value = history.value[historyIndex.value] ?? currentPath.value
   page.value = 1
-  loadList()
+  const ok = await loadList()
+  if (!ok) {
+    historyIndex.value = prevIndex
+    currentPath.value = prevPath
+    page.value = prevPage
+  }
 }
 const goUp = () => {
   if (!canGoUp.value) return
-  navigateTo(getParentPath(currentPath.value))
+  void navigateTo(getParentPath(currentPath.value))
 }
 
 const startEditPath = () => {
@@ -562,6 +639,15 @@ const commitPath = () => {
   if (target && target !== currentPath.value) navigateTo(target)
 }
 
+// ---- 目录树点击：目录→进入，文件→打开 ----
+const onTreeSelect = (path: string, name: string, isDir: boolean) => {
+  if (isDir) {
+    if (path !== currentPath.value) navigateTo(path)
+    return
+  }
+  openFileByName(path, name, 0)
+}
+
 // ---- 搜索/筛选 ----
 const debouncedReload = useDebounceFn(() => {
   page.value = 1
@@ -569,9 +655,6 @@ const debouncedReload = useDebounceFn(() => {
 }, 350)
 watch(keywords, () => debouncedReload())
 
-const filterRef = ref<HTMLElement | null>(null)
-const filterOpen = ref(false)
-onClickOutside(filterRef, () => (filterOpen.value = false))
 const onFilterChange = () => {
   page.value = 1
   loadList()
@@ -593,14 +676,14 @@ const sortBy = (field: 'name' | 'time') => {
   loadList()
 }
 
-// ---- 行展示 ----
+// ---- 行展示（Lucide iconify name，与 UButton 同源）----
 const rowIcon = (row: FileEntryInfo) => {
-  if (row.isDir) return IconFolder
+  if (row.isDir) return 'i-lucide-folder'
   const kind = resolveFilePreviewKind(row.name)
-  if (kind === 'image') return IconImage
-  if (kind === 'video') return IconVideo
-  if (kind === 'audio') return IconAudio
-  return IconFile
+  if (kind === 'image') return 'i-lucide-image'
+  if (kind === 'video') return 'i-lucide-film'
+  if (kind === 'audio') return 'i-lucide-music'
+  return 'i-lucide-file'
 }
 const typeLabel = (row: FileEntryInfo) => {
   if (row.isDir) return t('fileManager.typeFolder')
@@ -613,7 +696,6 @@ const typeLabel = (row: FileEntryInfo) => {
   if (ext) return t('fileManager.typeNamed', { ext: extUpper })
   return t('fileManager.typeFile')
 }
-const displayPath = (row: FileEntryInfo) => getParentPath(row.path)
 
 // ---- 行交互 ----
 const onRowClick = (row: FileEntryInfo, event: MouseEvent) => {
@@ -630,27 +712,40 @@ const onRowOpen = (row: FileEntryInfo) => {
     return
   }
   if (isMediaFile(row.name)) {
-    openMedia(row)
+    openMedia(row.path, row.name)
     return
   }
   if (isFileTooLargeForEditor(row.path, row.size)) {
-    ElMessage.warning(t('fileManager.fileTooLargeForEditor'))
+    fb.warning(t('fileManager.fileTooLargeForEditor'))
     return
   }
   editor.path = row.path
   editor.open = true
 }
+// 目录树点击文件：无 size 信息，媒体走预览，其它进编辑器（大小校验在编辑器内兜底）。
+const openFileByName = (path: string, name: string, size: number) => {
+  if (isMediaFile(name)) {
+    openMedia(path, name)
+    return
+  }
+  if (size && isFileTooLargeForEditor(path, size)) {
+    fb.warning(t('fileManager.fileTooLargeForEditor'))
+    return
+  }
+  editor.path = path
+  editor.open = true
+}
 
 // ---- 媒体预览 ----
-const openMedia = async (row: FileEntryInfo) => {
+const openMedia = async (path: string, name: string) => {
   try {
-    const downloadPath = await client.preSignDownload(row.path, true)
+    const downloadPath = await client.preSignDownload(path, true)
     media.url = resolvePreSignedFileUrl(downloadPath)
-    media.name = row.name
-    media.kind = (resolveFilePreviewKind(row.name) || 'image') as FilePreviewKind
+    media.name = name
+    media.kind = (resolveFilePreviewKind(name) || 'image') as FilePreviewKind
     media.open = true
   } catch (error) {
-    showRequestError(error, t('fileManager.openFailed'))
+    notifyError(error, t('fileManager.openFailed'))
   }
 }
 
@@ -694,7 +789,7 @@ const openRename = (row: FileEntryInfo) => {
 const openCompress = (rows: FileEntryInfo[]) => {
   const first = rows[0]
   if (!first) {
-    ElMessage.warning(t('fileManager.selectCompressTarget'))
+    fb.warning(t('fileManager.selectCompressTarget'))
     return
   }
   const description =
@@ -730,69 +825,70 @@ const onPromptConfirm = async (value: string) => {
   try {
     if (prompt.mode === 'createFolder') {
       await client.create({ path: joinPath(currentPath.value, value), isDir: true })
-      ElMessage.success(t('fileManager.folderCreateSuccess'))
+      fb.success(t('fileManager.folderCreateSuccess'))
     } else if (prompt.mode === 'createFile') {
       const newPath = joinPath(currentPath.value, value)
       await client.create({ path: newPath, isDir: false, content: '' })
-      ElMessage.success(t('fileManager.fileCreateSuccess'))
+      fb.success(t('fileManager.fileCreateSuccess'))
       // 新建文件后直接进入编辑器（创建即编辑，符合直觉）
       editor.path = newPath
       editor.open = true
     } else if (prompt.mode === 'rename') {
       const target = prompt.targets[0]
       if (target) await client.rename(target.path, value)
-      ElMessage.success(t('fileManager.renameSuccess'))
+      fb.success(t('fileManager.renameSuccess'))
     } else if (prompt.mode === 'compress') {
       const name = /\.(zip|tar|gz|tgz)$/i.test(value) ? value : `${value}.zip`
       const output = await client.compress(
         prompt.targets.map((item) => item.path),
         joinPath(currentPath.value, name),
       )
-      ElMessage.success(
+      fb.success(
         t('fileManager.compressDone', { path: t('fileManager.outputPath', { path: output }) }),
       )
     } else if (prompt.mode === 'unzip') {
       const target = prompt.targets[0]
       if (!target) return
       const output = await client.unzip(target.path, joinPath(currentPath.value, value))
-      ElMessage.success(
+      fb.success(
         t('fileManager.unzipDone', { path: t('fileManager.outputPath', { path: output }) }),
       )
     }
     prompt.open = false
-    loadList()
+    afterMutation()
   } catch (error) {
-    showRequestError(error, t('fileManager.refreshFailed'))
+    notifyError(error, t('fileManager.refreshFailed'))
   } finally {
     prompt.confirming = false
   }
 }
 
 // ---- 删除 ----
-const deleteRows = async (rows: FileEntryInfo[]) => {
+// 删除确认走令牌 FormDialog（内联状态），不用 EP 命令式弹窗。
+const del = reactive({ open: false, message: '', pending: false, rows: [] as FileEntryInfo[] })
+const deleteRows = (rows: FileEntryInfo[]) => {
   if (!rows.length) {
-    ElMessage.warning(t('fileManager.selectDeleteTarget'))
+    fb.warning(t('fileManager.selectDeleteTarget'))
     return
   }
-  const message =
+  del.rows = rows
+  del.message =
     rows.length === 1
       ? t('fileManager.deleteOneConfirm', { name: rows[0]?.name ?? '' })
       : t('fileManager.deleteManyConfirm', { count: rows.length })
+  del.open = true
+}
+const confirmDelete = async () => {
+  del.pending = true
   try {
-    await ElMessageBox.confirm(message, t('fileManager.confirmDelete'), {
-      type: 'warning',
-      confirmButtonText: t('system.common.confirm'),
-      cancelButtonText: t('system.common.cancel'),
-    })
-  } catch {
-    return
-  }
-  try {
-    await client.remove(rows.map((item) => item.path))
-    ElMessage.success(t('fileManager.deleteSuccess'))
-    loadList()
+    await client.remove(del.rows.map((item) => item.path))
+    fb.success(t('fileManager.deleteSuccess'))
+    del.open = false
+    afterMutation()
   } catch (error) {
-    showRequestError(error, t('fileManager.deleteFailed'))
+    notifyError(error, t('fileManager.deleteFailed'))
+  } finally {
+    del.pending = false
   }
 }
 const deleteSelected = () => deleteRows(selectedRows.value)
@@ -803,15 +899,15 @@ const downloadOne = async (row: FileEntryInfo) => {
   try {
     const downloadPath = await client.preSignDownload(row.path)
     downloadFileFromUrl(resolvePreSignedFileUrl(downloadPath), row.name)
-    ElMessage.success(t('fileManager.downloadStarted', { name: row.name }))
+    fb.success(t('fileManager.downloadStarted', { name: row.name }))
   } catch (error) {
-    showRequestError(error, t('fileManager.downloadFailed'))
+    notifyError(error, t('fileManager.downloadFailed'))
   }
 }
 const downloadSelected = async () => {
   const files = selectedRows.value.filter((row) => !row.isDir)
   if (!files.length) {
-    ElMessage.warning(t('fileManager.selectDownloadFile'))
+    fb.warning(t('fileManager.selectDownloadFile'))
     return
   }
   for (const file of files) {
@@ -820,28 +916,28 @@ const downloadSelected = async () => {
 }
 const copyLink = async (row: FileEntryInfo) => {
   if (row.isDir) {
-    ElMessage.warning(t('fileManager.selectCopyLinkFile'))
+    fb.warning(t('fileManager.selectCopyLinkFile'))
     return
   }
   try {
     const downloadPath = await client.preSignDownload(row.path)
     await copyTextToClipboard(resolvePreSignedFileUrl(downloadPath))
-    ElMessage.success(t('fileManager.copiedTemporaryLink', { name: row.name }))
+    fb.success(t('fileManager.copiedTemporaryLink', { name: row.name }))
   } catch (error) {
-    showRequestError(error, t('fileManager.copyLinkFailed'))
+    notifyError(error, t('fileManager.copyLinkFailed'))
   }
 }
 
 // ---- 复制 / 剪切 / 粘贴 ----
 const setClipboard = (mode: 'copy' | 'cut', rows: FileEntryInfo[]) => {
   if (!rows.length) {
-    ElMessage.warning(
+    fb.warning(
       mode === 'copy' ? t('fileManager.selectCopyTarget') : t('fileManager.selectCutTarget'),
     )
     return
   }
   clipboard.value = { mode, paths: rows.map((item) => item.path) }
-  ElMessage.success(
+  fb.success(
     mode === 'copy'
       ? t('fileManager.copiedItems', { count: rows.length })
       : t('fileManager.cutItems', { count: rows.length }),
@@ -849,25 +945,21 @@ const setClipboard = (mode: 'copy' | 'cut', rows: FileEntryInfo[]) => {
 }
 const paste = async () => {
   if (!clipboard.value || !clipboard.value.paths.length) {
-    ElMessage.warning(t('fileManager.copyOrCutFirst'))
+    fb.warning(t('fileManager.copyOrCutFirst'))
     return
   }
   const { mode, paths } = clipboard.value
-  const loadingInstance = ElMessage({
-    message: t('fileManager.pasteProcessing'),
-    type: 'info',
-    duration: 0,
-  })
+  const pending = fb.add({ title: t('fileManager.pasteProcessing'), color: 'info', duration: 0 })
   try {
     if (mode === 'copy') await client.copy(paths, currentPath.value)
     else await client.move(paths, currentPath.value)
-    ElMessage.success(t('fileManager.pasteDone'))
+    fb.success(t('fileManager.pasteDone'))
     if (mode === 'cut') clipboard.value = null
-    loadList()
+    afterMutation()
   } catch (error) {
-    showRequestError(error, t('fileManager.pasteFailed'))
+    notifyError(error, t('fileManager.pasteFailed'))
   } finally {
-    loadingInstance.close()
+    fb.remove(pending.id)
   }
 }
 
@@ -878,53 +970,29 @@ const openShare = (rows: FileEntryInfo[]) => {
   shareOpen.value = true
 }
 
-// ---- 工具栏“更多操作” ----
-const moreActions = computed<FileMenuItem[]>(() => {
+// ---- 工具栏"更多操作"（含分隔符，走 AppDropdown 自定义面板）----
+type MoreItem = { key: string; label: string; icon: string; disabled?: boolean; divider?: boolean }
+const moreActions = computed<MoreItem[]>(() => {
   const caps = currentCaps.value
-  const actions: FileMenuItem[] = [
-    { key: 'createFile', label: t('fileManager.createFile'), icon: IconNewFile },
+  const actions: MoreItem[] = [
+    { key: 'createFile', label: t('fileManager.createFile'), icon: 'i-lucide-file-plus' },
   ]
   if (caps.copy) {
-    actions.push({
-      key: 'copy',
-      label: t('fileManager.copy'),
-      icon: IconCopy,
-      disabled: !hasSelection.value,
-    })
+    actions.push({ key: 'copy', label: t('fileManager.copy'), icon: 'i-lucide-copy', disabled: !hasSelection.value })
   }
   if (caps.move) {
-    actions.push({
-      key: 'cut',
-      label: t('fileManager.cut'),
-      icon: IconCut,
-      disabled: !hasSelection.value,
-    })
+    actions.push({ key: 'cut', label: t('fileManager.cut'), icon: 'i-lucide-scissors', disabled: !hasSelection.value })
   }
   if (caps.copy || caps.move) {
-    actions.push({
-      key: 'paste',
-      label: t('fileManager.paste'),
-      icon: IconPaste,
-      disabled: !clipboard.value,
-    })
+    actions.push({ key: 'paste', label: t('fileManager.paste'), icon: 'i-lucide-clipboard-paste', disabled: !clipboard.value })
   }
-  actions.push({ key: 'divider-1', label: '', divider: true })
+  actions.push({ key: 'divider-1', label: '', icon: '', divider: true })
   if (caps.compress) {
-    actions.push({
-      key: 'compress',
-      label: t('fileManager.compress'),
-      icon: IconCompress,
-      disabled: !hasSelection.value,
-    })
+    actions.push({ key: 'compress', label: t('fileManager.compress'), icon: 'i-lucide-archive', disabled: !hasSelection.value })
   }
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
   if (isSystemScope) {
-    actions.push({
-      key: 'share',
-      label: t('fileManager.share'),
-      icon: IconShare,
-      disabled: !hasSelection.value,
-    })
+    actions.push({ key: 'share', label: t('fileManager.share'), icon: 'i-lucide-share-2', disabled: !hasSelection.value })
   }
   return actions
 })
@@ -934,42 +1002,40 @@ const onMoreAction = (key: string) => {
   else if (key === 'cut') setClipboard('cut', selectedRows.value)
   else if (key === 'paste') paste()
   else if (key === 'compress') openCompress(selectedRows.value)
-  else if (key === 'share') {
-    openShare(selectedRows.value)
-  }
+  else if (key === 'share') openShare(selectedRows.value)
 }
 
-// ---- 行“更多” ----
-const rowActions = (row: FileEntryInfo): FileMenuItem[] => {
+// ---- 行"更多"（列表 ⋯ 与 网格瓦片 ⋯ 共用；下载/删除并入）----
+const rowActions = (row: FileEntryInfo): ActionMenuItem[] => {
   const caps = currentCaps.value
-  const actions: FileMenuItem[] = [
-    { key: 'rename', label: t('fileManager.rename'), icon: IconRename },
+  const actions: ActionMenuItem[] = [
+    { key: 'rename', label: t('fileManager.rename'), icon: 'i-lucide-pencil' },
   ]
-  if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copy'), icon: IconCopy })
-  if (caps.move) actions.push({ key: 'cut', label: t('fileManager.cut'), icon: IconCut })
-  if (caps.compress)
-    actions.push({ key: 'compress', label: t('fileManager.compress'), icon: IconCompress })
+  if (!row.isDir) actions.push({ key: 'download', label: t('fileManager.download'), icon: 'i-lucide-download' })
+  if (!row.isDir) actions.push({ key: 'copyLink', label: t('fileManager.copyLink'), icon: 'i-lucide-link' })
+  if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copy'), icon: 'i-lucide-copy' })
+  if (caps.move) actions.push({ key: 'cut', label: t('fileManager.cut'), icon: 'i-lucide-scissors' })
+  if (caps.compress) actions.push({ key: 'compress', label: t('fileManager.compress'), icon: 'i-lucide-archive' })
   if (caps.compress && !row.isDir && /\.(zip|tar|gz|tgz|rar|7z)$/i.test(row.name)) {
-    actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: IconUnzip })
+    actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: 'i-lucide-folder-archive' })
   }
-  actions.push({ key: 'divider', label: '', divider: true })
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
   if (isSystemScope) {
-    actions.push({ key: 'share', label: t('fileManager.share'), icon: IconShare })
+    actions.push({ key: 'share', label: t('fileManager.share'), icon: 'i-lucide-share-2' })
   }
-  if (!row.isDir) {
-    actions.push({ key: 'copyLink', label: t('fileManager.copyLink'), icon: IconLink })
-  }
+  actions.push({ key: 'delete', label: t('fileManager.delete'), icon: 'i-lucide-trash-2', danger: true })
   return actions
 }
 const onRowAction = (key: string, row: FileEntryInfo) => {
   if (key === 'rename') openRename(row)
+  else if (key === 'download') downloadOne(row)
+  else if (key === 'copyLink') copyLink(row)
   else if (key === 'copy') setClipboard('copy', [row])
   else if (key === 'cut') setClipboard('cut', [row])
   else if (key === 'compress') openCompress([row])
   else if (key === 'unzip') openUnzip(row)
   else if (key === 'share') openShare([row])
-  else if (key === 'copyLink') copyLink(row)
+  else if (key === 'delete') deleteRows([row])
 }
 
 onMounted(() => {
@@ -980,309 +1046,610 @@ onMounted(() => {
 defineExpose({ refresh, navigateTo })
 </script>
 
-<style scoped>
-.file-browser {
+<style scoped lang="scss">
+/* 全出血：整页即文件管理，用 app 令牌，跟随浅/暗 + 薄荷主色（不自带主题）。
+   填满高度：flex:1 + min-height:0（勿用 height:100% 靠百分比，见终端页 TerminalShell）。 */
+.fb {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
   min-height: 0;
-  background: var(--fm-bg);
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius);
   overflow: hidden;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  font-size: 0.8125rem;
 }
 
-/* 导航栏 */
-.fb-navbar {
+/* ===== 顶部导航栏 ===== */
+.fb-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--fm-border);
-}
-.fb-nav-actions {
-  display: flex;
-  gap: 0.125rem;
-}
-.fb-source {
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   flex-shrink: 0;
 }
-.fb-source-select {
-  height: 32px;
-  max-width: 200px;
-  cursor: pointer;
+.fb-source {
+  width: 180px;
+  flex-shrink: 0;
 }
-.fb-breadcrumb {
+.fb-nav__group {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.fb-crumb {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.125rem;
+  gap: 2px;
   min-width: 0;
   height: 32px;
-  padding: 0 0.5rem;
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius-sm);
-  background: var(--fm-subtle);
+  padding: 0 8px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-sm);
+  background: var(--el-fill-color-light);
   overflow-x: auto;
   cursor: text;
   white-space: nowrap;
 }
-.fb-breadcrumb::-webkit-scrollbar {
+.fb-crumb::-webkit-scrollbar {
   height: 0;
 }
-.fb-path-input {
+.fb-crumb__input {
   height: 26px;
-  background: var(--fm-surface);
 }
-.fb-crumb {
+.fb-crumb__seg {
   flex-shrink: 0;
-  padding: 0.125rem 0.375rem;
-  border: none;
-  border-radius: var(--fm-radius-sm);
-  background: transparent;
-  color: var(--fm-text-2);
-  font-size: 13px;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-.fb-crumb:hover {
-  background: var(--fm-hover);
-  color: var(--fm-accent);
-}
-.fb-crumb-sep {
-  flex-shrink: 0;
-  font-size: 13px;
-  color: var(--fm-text-3);
-}
-.fb-crumb-root {
   display: inline-flex;
   align-items: center;
+  padding: 2px 6px;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
-.fb-crumb-root .el-icon {
-  font-size: 15px;
+.fb-crumb__seg:hover {
+  background: var(--el-fill-color);
+  color: var(--el-color-primary);
+}
+.fb-crumb__seg :deep(svg),
+.fb-crumb__seg :deep(.iconify) {
+  width: 15px;
+  height: 15px;
+}
+.fb-crumb__sep {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--el-text-color-placeholder);
 }
 
-.is-spinning {
+/* ===== 令牌图标按钮（导航/工具条）===== */
+.fb-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.fb-ico:hover:not(:disabled) {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
+}
+.fb-ico:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.fb-ico.is-active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+.fb-ico :deep(svg),
+.fb-ico :deep(.iconify) {
+  width: 17px;
+  height: 17px;
+}
+.fb-ico--sm {
+  width: 28px;
+  height: 28px;
+}
+.fb-ico--sm :deep(svg),
+.fb-ico--sm :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
+.fb-ico.is-spin :deep(svg) {
   animation: fb-spin 0.8s linear infinite;
 }
 @keyframes fb-spin {
-  from {
-    transform: perspective(120px) rotateY(0deg);
-  }
   to {
-    transform: perspective(120px) rotateY(360deg);
+    transform: rotate(360deg);
   }
 }
 
-/* 工具栏 */
-.fb-toolbar {
+/* ===== 主体双栏 ===== */
+.fb-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  /* 双栏各自滚动，禁止树变高时把整页/列表一起撑飞 */
+  overflow: hidden;
+}
+.fb-aside {
+  width: 240px;
+  flex: 0 0 240px;
+  min-height: 0;
+  border-right: 1px solid var(--el-border-color-lighter);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--el-bg-color);
+}
+.fb-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===== 工具栏 ===== */
+.fb-tools {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 12px;
   flex-wrap: wrap;
-  padding: 0.75rem 0.875rem;
-  border-bottom: 1px solid var(--fm-border);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  flex-shrink: 0;
 }
-.fb-toolbar-left,
-.fb-toolbar-right {
+.fb-tools__left,
+.fb-tools__right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 .fb-search {
   position: relative;
   display: flex;
   align-items: center;
 }
-.fb-search-icon {
+.fb-search__ico {
   position: absolute;
-  left: 0.5rem;
-  font-size: 15px;
-  color: var(--fm-text-3);
+  left: 9px;
+  width: 15px;
+  height: 15px;
+  color: var(--el-text-color-placeholder);
   pointer-events: none;
 }
-.fb-search-input {
-  width: 220px;
-  padding-left: 1.875rem;
+.fb-search__ico :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+.fb-search__input {
+  width: 200px;
+  padding-left: 30px;
+}
+
+/* 视图切换分段 */
+.fb-seg {
+  display: inline-flex;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.fb-seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
   height: 32px;
+  border: none;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-placeholder);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
-.fb-filter {
-  position: relative;
+.fb-seg__btn + .fb-seg__btn {
+  border-left: 1px solid var(--el-border-color-lighter);
 }
-.fm-icon-btn.is-active {
-  color: var(--fm-accent);
-  background: var(--fm-accent-soft);
+.fb-seg__btn:hover {
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-light);
 }
-.fb-filter-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 30;
-  padding: 0.625rem 0.75rem;
-  background: var(--fm-surface);
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius-sm);
-  box-shadow: var(--fm-shadow);
-  white-space: nowrap;
+.fb-seg__btn.is-active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
-.fb-filter-item {
+.fb-seg__btn :deep(svg),
+.fb-seg__btn :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== 更多操作下拉面板（AppDropdown 内容）===== */
+.fb-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+.fb-menu__item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 13px;
-  color: var(--fm-text-2);
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font-size: 0.8125rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.fb-menu__item:hover:not(:disabled) {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+.fb-menu__item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.fb-menu__ico {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.fb-menu__ico :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+.fb-menu__div {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--el-border-color-lighter);
+}
+
+/* 筛选面板（AppDropdown 内容）*/
+.fb-filter {
+  padding: 8px 4px;
+}
+.fb-filter__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+}
+.fb-filter__item input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--el-color-primary);
   cursor: pointer;
 }
 
-/* 表格 */
-.fb-table {
-  flex: 1;
+/* ===== 选择条 ===== */
+.fb-selbar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-color-primary-light-9);
+}
+.fb-selbar__count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-color-primary);
+}
+.fb-selbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ===== 内容区 ===== */
+.fb-content {
+  flex: 1;
   min-height: 0;
   overflow: auto;
 }
+
+/* 骨架 */
+.fb-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+.fb-skeleton__row {
+  height: 44px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: linear-gradient(
+    100deg,
+    var(--el-fill-color-light) 30%,
+    var(--el-fill-color) 50%,
+    var(--el-fill-color-light) 70%
+  );
+  background-size: 200% 100%;
+  animation: fb-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes fb-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== 列表视图 ===== */
 .fb-thead,
 .fb-row {
   display: grid;
-  grid-template-columns: 44px minmax(220px, 2fr) 130px 110px minmax(160px, 1.4fr) 180px 148px;
+  grid-template-columns: 42px minmax(200px, 2fr) 120px 100px 168px 88px;
   align-items: center;
 }
 .fb-thead {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--fm-header);
-  border-bottom: 1px solid var(--fm-border);
-  color: var(--fm-text-2);
-  font-size: 12.5px;
+  height: 40px;
+  background: var(--el-fill-color-lighter);
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
   font-weight: 600;
 }
 .fb-col {
-  padding: 0 0.625rem;
+  padding: 0 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .fb-thead .fb-col {
-  height: 40px;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 4px;
+  height: 100%;
 }
-.fb-col-check {
+.fb-col--check {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
 }
-.fb-col-ops {
+.fb-col--ops {
   display: flex;
   align-items: center;
-  gap: 0.125rem;
+  gap: 2px;
   justify-content: flex-end;
 }
-.fb-sortable {
+.fb-sort {
   border: none;
   background: transparent;
   font: inherit;
   color: inherit;
   cursor: pointer;
 }
-.fb-sortable:hover {
-  color: var(--fm-accent);
+.fb-sort:hover {
+  color: var(--el-color-primary);
 }
-.fb-sort-icon {
-  font-size: 13px;
-  color: var(--fm-accent);
+.fb-sort__ico {
+  width: 13px;
+  height: 13px;
+  color: var(--el-color-primary);
 }
-
-.fb-tbody {
-  flex: 1;
+.fb-sort__ico :deep(svg) {
+  width: 13px;
+  height: 13px;
 }
 .fb-row {
   height: 44px;
-  border-bottom: 1px solid var(--fm-border);
-  color: var(--fm-text);
-  font-size: 13px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-primary);
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: background 0.12s;
 }
 .fb-row:hover {
-  background: var(--fm-hover);
+  background: var(--el-fill-color-light);
 }
 .fb-row.is-selected {
-  background: var(--fm-active);
+  background: var(--el-color-primary-light-9);
 }
-.fb-row-icon {
+.fb-row__ico {
   flex-shrink: 0;
-  font-size: 18px;
-  margin-right: 0.5rem;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
 }
-.fb-row-icon.is-folder {
-  color: var(--fm-folder);
+.fb-row__ico :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
-.fb-row-icon.is-file {
-  color: var(--fm-text-3);
+/* 图标只继承文本色（01 §7）；文件夹不用琥珀色/彩色，选中行由行背景表达。 */
+.fb-row__ico.is-folder {
+  color: var(--el-text-color-regular);
 }
-.fb-col-name {
+.fb-row__ico.is-file {
+  color: var(--el-text-color-placeholder);
+}
+.fb-col--name {
   display: flex;
   align-items: center;
   min-width: 0;
 }
-.fb-row-name {
+.fb-row__name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.fb-col-type,
-.fb-col-size,
-.fb-col-path,
-.fb-col-time {
-  color: var(--fm-text-2);
-}
-.fb-placeholder {
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--fm-text-3);
-  font-size: 13px;
+.fb-col--type,
+.fb-col--size,
+.fb-col--time {
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
-/* 复选框浅色化 */
-.fb-table input[type='checkbox'] {
+/* ===== 网格视图 ===== */
+.fb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+.fb-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--app-radius);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.fb-tile:hover {
+  background: var(--el-fill-color-light);
+}
+.fb-tile.is-selected {
+  background: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary);
+}
+.fb-tile__check {
+  position: absolute;
+  top: 6px;
+  left: 6px;
   width: 15px;
   height: 15px;
-  accent-color: var(--fm-accent);
+  accent-color: var(--el-color-primary);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.fb-tile:hover .fb-tile__check,
+.fb-tile.is-selected .fb-tile__check {
+  opacity: 1;
+}
+.fb-tile__more {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.fb-tile:hover .fb-tile__more {
+  opacity: 1;
+}
+.fb-tile__ico {
+  width: 40px;
+  height: 40px;
+}
+.fb-tile__ico :deep(svg) {
+  width: 40px;
+  height: 40px;
+}
+.fb-tile__ico.is-folder {
+  color: var(--el-text-color-regular);
+}
+.fb-tile__ico.is-file {
+  color: var(--el-text-color-placeholder);
+}
+.fb-tile__name {
+  max-width: 100%;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--el-text-color-primary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fb-tile__meta {
+  font-size: 0.6875rem;
+  color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 复选框令牌化 */
+.fb-content input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--el-color-primary);
   cursor: pointer;
 }
 
-/* 底部 */
-.fb-footer {
+/* ===== 底部 ===== */
+.fb-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 16px;
   flex-wrap: wrap;
-  padding: 0.625rem 0.875rem;
-  border-top: 1px solid var(--fm-border);
-  background: var(--fm-surface);
+  padding: 8px 12px;
+  border-top: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  flex-shrink: 0;
 }
-.fb-summary {
-  font-size: 13px;
-  color: var(--fm-text-3);
+.fb-foot__summary {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
 }
-.fp-fade-enter-active,
-.fp-fade-leave-active {
-  transition:
-    opacity 0.15s,
-    transform 0.15s;
+
+/* 删除确认文案 */
+.fb-confirm {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
+  word-break: break-word;
 }
-.fp-fade-enter-from,
-.fp-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
+
+/* ===== 移动端：隐藏树，工具栏换行 ===== */
+@media (width <= 768px) {
+  .fb-nav {
+    gap: 6px;
+    padding: 8px;
+  }
+  .fb-source {
+    width: 130px;
+  }
+  .fb-search__input {
+    width: 150px;
+  }
+  .fb-tools {
+    padding: 8px;
+  }
+  .fb-thead,
+  .fb-row {
+    grid-template-columns: 36px minmax(140px, 2fr) 92px 64px;
+  }
+  /* 提高特异性覆盖 .fb-thead .fb-col{display:flex}，否则表头 类型/时间 列不会被隐藏 */
+  .fb-thead .fb-col--type,
+  .fb-thead .fb-col--time,
+  .fb-row .fb-col--type,
+  .fb-row .fb-col--time {
+    display: none;
+  }
 }
 </style>

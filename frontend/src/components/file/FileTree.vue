@@ -8,7 +8,8 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { showRequestError } from '@/utils/request'
+import { getRequestErrorMessage } from '@/utils/request'
+import { useFeedback } from '@/utils/feedback'
 import type { FileTreeNode as FileTreeNodeType } from '@/types/v1/file'
 import { FILE_TREE_CONTEXT, type FileClient } from './types'
 import FileTreeNode from './FileTreeNode.vue'
@@ -32,6 +33,7 @@ const props = withDefaults(
 const emit = defineEmits<{ select: [path: string, name: string, isDir: boolean] }>()
 
 const { t } = useI18n()
+const fb = useFeedback()
 
 const nodes = ref<FileTreeNodeType[]>([])
 const loading = ref(false)
@@ -50,7 +52,7 @@ const loadRoot = async () => {
   try {
     nodes.value = await props.client.tree(props.rootPath)
   } catch (error) {
-    showRequestError(error, t('fileManager.treeLoadFailed'))
+    fb.error(getRequestErrorMessage(error, t('fileManager.treeLoadFailed')))
   } finally {
     loading.value = false
   }
@@ -70,6 +72,6 @@ defineExpose({ reload: loadRoot })
   padding: 1.5rem 0.75rem;
   text-align: center;
   font-size: 12.5px;
-  color: var(--fm-text-3);
+  color: var(--ft-fg-dim, var(--el-text-color-placeholder));
 }
 </style>

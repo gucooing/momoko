@@ -40,14 +40,20 @@ export const isFileTooLargeForEditor = (
   return !isMediaFile(path) && Number.isFinite(bytes) && bytes > MAX_EDITOR_FILE_SIZE
 }
 
-// 检测路径分隔符：含反斜杠视为 Windows 风格。
-export const getPathSeparator = (path: string): '\\' | '/' => (path.includes('\\') ? '\\' : '/')
+// 检测路径分隔符：含反斜杠或 Windows 盘符（C: / C:/）视为 Windows 风格。
+// 注意：盘符根 "C:" 本身不含 `\`，若只看反斜杠会误判为 POSIX，拼成 "C:/x"。
+export const getPathSeparator = (path: string): '\\' | '/' => {
+  if (path.includes('\\') || /^[a-zA-Z]:/.test(path)) return '\\'
+  return '/'
+}
 
 // 拼接目录与子项名，沿用根路径的分隔符风格。
 export const joinPath = (root: string, segment: string): string => {
   if (!root) return segment
   const sep = getPathSeparator(root)
   const trimmed = root.replace(/[\\/]+$/, '')
+  // 盘符根 "C:" → "C:\name"（保留盘符根形态，与 getParentPath 对称）
+  if (/^[a-zA-Z]:$/.test(trimmed)) return `${trimmed}${sep}${segment}`
   return `${trimmed}${sep}${segment}`
 }
 

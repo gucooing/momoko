@@ -2,15 +2,15 @@
  * 文件管理模块自成体系的设计令牌（浅色默认 + 暗色变体）。
  * 所有文件相关组件根节点加 `.file-module`，逐元素显式取这些令牌上色，
  * 不继承 app 的暗/紫主题，也不依赖覆盖 --el-color-primary。
- * 蓝(#1677ff)只用于主按钮/选中等有意为之处；文件夹=琥珀；删除=红；结构/悬停=中性灰。
+ * 强调色=薄荷青(与 app 主题统一)；文件夹=琥珀；删除=红；结构/悬停=中性灰。
  */
 .file-module {
   --fm-bg: #ffffff;
   --fm-surface: #ffffff;
-  --fm-subtle: #f5f7fa;
-  --fm-header: #f6f8fa;
-  --fm-hover: #f3f5f8;
-  --fm-active: #eaf2ff;
+  --fm-subtle: #f6f8f9;
+  --fm-header: #f6f8f8;
+  --fm-hover: #f2f5f5;
+  --fm-active: #e2f7f3;
 
   --fm-text: #1f2328;
   --fm-text-2: #57606a;
@@ -19,10 +19,10 @@
   --fm-border: #e4e8ee;
   --fm-border-strong: #d4dae3;
 
-  --fm-accent: #1677ff;
-  --fm-accent-hover: #3a8bff;
-  --fm-accent-active: #0e5fd8;
-  --fm-accent-soft: #eaf2ff;
+  --fm-accent: #14b8a6;
+  --fm-accent-hover: #2dd4bf;
+  --fm-accent-active: #0d9488;
+  --fm-accent-soft: #e2f7f3;
 
   --fm-danger: #e5484d;
   --fm-danger-soft: #fdeced;
@@ -174,10 +174,10 @@
   --fm-border: #3c3c3c;
   --fm-border-strong: #4a4a4a;
 
-  --fm-accent: #3b82f6;
-  --fm-accent-hover: #60a5fa;
-  --fm-accent-active: #2563eb;
-  --fm-accent-soft: #1e3a5f;
+  --fm-accent: #2dd4bf;
+  --fm-accent-hover: #5eead4;
+  --fm-accent-active: #14b8a6;
+  --fm-accent-soft: #103b38;
 
   --fm-danger: #f87171;
   --fm-danger-soft: #3a1d1f;

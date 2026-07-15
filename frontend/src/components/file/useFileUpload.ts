@@ -3,6 +3,7 @@ import { translate as t } from '@/locales'
 import { resolveStaticResourceUrl } from '@/utils/assets'
 import { cancelFileUpload, completeFileUpload, getFileUploadStatus } from '@/api/file'
 import { waitFileTask } from '@/utils/fileTask'
+import { useFeedback } from '@/utils/feedback'
 import type { FileClient } from './types'
 
 // 分片并发上传：scope 无关。预签名走 client（系统/实例各自路由），分片 PUT 直传签名 URL
@@ -91,6 +92,7 @@ const nextId = () => {
 }
 
 export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => string) => {
+  const fb = useFeedback()
   const items = ref<UploadItem[]>([])
   const threads = ref(3)
   const uploading = ref(false)
@@ -108,7 +110,7 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
         (item) => item.name === file.name && item.size === file.size && item.status !== 'failed',
       )
       if (duplicate) {
-        ElMessage.warning(t('fileManager.duplicateFile'))
+        fb.warning(t('fileManager.duplicateFile'))
         continue
       }
       items.value.push({

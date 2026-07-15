@@ -1,28 +1,27 @@
+<!-- 媒体预览弹窗（图片/视频/音频）：令牌驱动 FormDialog；页脚提供下载与关闭。 -->
 <template>
-  <FileDialog v-model="visible" :title="name" :width="720">
-    <div class="fmd-stage">
-      <img v-if="kind === 'image'" :src="url" :alt="name" class="fmd-image" />
-      <video v-else-if="kind === 'video'" :src="url" class="fmd-video" controls autoplay />
-      <audio v-else-if="kind === 'audio'" :src="url" class="fmd-audio" controls autoplay />
-      <p v-else class="fmd-empty">{{ t('fileManager.cannotEditBinary') }}</p>
+  <FormDialog v-model="visible" :title="name" :width="720">
+    <div class="fmd">
+      <img v-if="kind === 'image'" :src="url" :alt="name" class="fmd__image" />
+      <video v-else-if="kind === 'video'" :src="url" class="fmd__video" controls autoplay />
+      <audio v-else-if="kind === 'audio'" :src="url" class="fmd__audio" controls autoplay />
+      <p v-else class="fmd__empty">{{ t('fileManager.cannotEditBinary') }}</p>
     </div>
 
-    <template #footer>
-      <a class="fm-btn" :href="url" :download="name" target="_blank" rel="noopener">
-        <el-icon><IconDownload /></el-icon>{{ t('fileManager.download') }}
-      </a>
-      <button type="button" class="fm-btn fm-btn--primary" @click="visible = false">
+    <template #footer="{ close }">
+      <UButton color="neutral" variant="soft" icon="i-lucide-download" @click="download">
+        {{ t('fileManager.download') }}
+      </UButton>
+      <UButton color="primary" @click="close">
         {{ t('system.common.confirm') }}
-      </button>
+      </UButton>
     </template>
-  </FileDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import FileDialog from './FileDialog.vue'
-import { IconDownload } from './icons'
-import type { FilePreviewKind } from '@/utils/file'
+import { downloadFileFromUrl, type FilePreviewKind } from '@/utils/file'
 
 const props = defineProps<{
   modelValue: boolean
@@ -39,33 +38,35 @@ const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+
+const download = () => downloadFileFromUrl(props.url, props.name)
 </script>
 
 <style scoped>
-.fmd-stage {
+.fmd {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 240px;
   max-height: 64vh;
-  background: var(--fm-subtle);
-  border-radius: var(--fm-radius-sm);
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius-sm);
   overflow: auto;
 }
-.fmd-image {
+.fmd__image {
   max-width: 100%;
   max-height: 64vh;
   object-fit: contain;
 }
-.fmd-video {
+.fmd__video {
   max-width: 100%;
   max-height: 64vh;
 }
-.fmd-audio {
+.fmd__audio {
   width: 80%;
 }
-.fmd-empty {
-  color: var(--fm-text-3);
-  font-size: 13px;
+.fmd__empty {
+  color: var(--el-text-color-placeholder);
+  font-size: 0.8125rem;
 }
 </style>

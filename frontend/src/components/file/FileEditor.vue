@@ -1,9 +1,13 @@
+<!-- 文件编辑器（重写 · 新方案）：浮窗 Monaco 编辑器，自包含独立明暗主题（--fe-*，手动 auto/亮/暗，
+     不依赖全局 app 主题，也不用旧 file-module/fm-* 框架）。图标走 menuStore heroicons + 本地保存 SVG；
+     主题用分段切换（替代旧 FileMenu 下拉）；提示/确认走 useFeedback + 令牌 FormDialog（不用 EP ElMessage/ElMessageBox）。
+     Monaco 集成、窗口几何（拖拽/缩放/全屏/最小化）、打开/保存/重命名/删除/下载/EOL、目录树、移动端全部逻辑保留。 -->
 <template>
   <teleport to="body">
     <transition name="fe-fade">
       <div v-if="modelValue" class="fe-overlay">
         <div
-          class="file-module fe-window"
+          class="fe-window"
           :class="{
             'is-dark': resolvedDark,
             'is-fullscreen': fullscreen,
@@ -14,17 +18,12 @@
           <!-- 标题栏（可拖拽） -->
           <header class="fe-titlebar" @mousedown="startDrag" @dblclick="toggleFullscreen">
             <span class="fe-title">{{ t('fileManager.editTitle') }} - {{ activeName || '—' }}</span>
-            <div class="fe-title-actions" @mousedown.stop>
-              <button
-                type="button"
-                class="fm-icon-btn"
-                :title="t('fileManager.minimize')"
-                @click="toggleMinimize"
-              >
-                <el-icon><IconMinimize /></el-icon>
+            <div class="fe-titlebar__actions" @mousedown.stop>
+              <button type="button" class="fe-iconbtn" :title="t('fileManager.minimize')" @click="toggleMinimize">
+                <component :is="ic('HOutline:MinusIcon')" />
               </button>
-              <button type="button" class="fm-icon-btn" :title="t('common.close')" @click="close">
-                <el-icon><IconClose /></el-icon>
+              <button type="button" class="fe-iconbtn" :title="t('common.close')" @click="close">
+                <component :is="ic('HOutline:XMarkIcon')" />
               </button>
             </div>
           </header>
@@ -32,50 +31,45 @@
           <template v-if="!minimized">
             <!-- 工具栏 -->
             <div class="fe-toolbar">
-              <button
-                type="button"
-                class="fm-btn fm-btn--primary"
-                :disabled="!dirty || saving || isBinary"
-                @click="save"
-              >
-                <el-icon :class="{ 'is-spinning': saving }"><IconSave /></el-icon
-                >{{ t('common.save') }}
+              <button type="button" class="fe-btn fe-btn--primary" :disabled="!dirty || saving || isBinary" @click="save">
+                <component :is="IconSave" :class="{ 'is-spin': saving }" />{{ t('common.save') }}
               </button>
-              <button type="button" class="fm-btn" :disabled="!activePath" @click="refresh">
-                <el-icon><IconRefresh /></el-icon>{{ t('fileManager.refresh') }}
+              <button type="button" class="fe-btn" :disabled="!activePath" @click="refresh">
+                <component :is="ic('HOutline:ArrowPathIcon')" />{{ t('fileManager.refresh') }}
               </button>
-              <button type="button" class="fm-btn" :disabled="!activePath" @click="download">
-                <el-icon><IconDownload /></el-icon>{{ t('fileManager.download') }}
+              <button type="button" class="fe-btn" :disabled="!activePath" @click="download">
+                <component :is="ic('HOutline:ArrowDownTrayIcon')" />{{ t('fileManager.download') }}
               </button>
-              <button type="button" class="fm-btn" :disabled="!activePath" @click="openRename">
-                <el-icon><IconRename /></el-icon>{{ t('fileManager.rename') }}
+              <button type="button" class="fe-btn" :disabled="!activePath" @click="openRename">
+                <component :is="ic('HOutline:PencilSquareIcon')" />{{ t('fileManager.rename') }}
               </button>
-              <button
-                type="button"
-                class="fm-btn fm-btn--danger"
-                :disabled="!activePath"
-                @click="remove"
-              >
-                <el-icon><IconDelete /></el-icon>{{ t('fileManager.delete') }}
+              <button type="button" class="fe-btn fe-btn--danger" :disabled="!activePath" @click="remove">
+                <component :is="ic('HOutline:TrashIcon')" />{{ t('fileManager.delete') }}
               </button>
 
-              <div class="fe-toolbar-spacer"></div>
+              <div class="fe-toolbar__spacer"></div>
 
-              <FileMenu :items="themeItems" :dark="resolvedDark" @select="setThemeMode">
-                <button type="button" class="fm-btn">
-                  <el-icon><component :is="themeIcon" /></el-icon>{{ t('fileManager.theme') }}
-                  <el-icon><IconChevronDown /></el-icon>
+              <!-- 主题分段（自动/亮/暗），替代旧 FileMenu 下拉 -->
+              <div class="fe-seg" role="group" :aria-label="t('fileManager.theme')">
+                <button
+                  v-for="mode in themeModes"
+                  :key="mode.key"
+                  type="button"
+                  class="fe-seg__btn"
+                  :class="{ 'is-active': themeMode === mode.key }"
+                  :title="mode.label"
+                  @click="setThemeMode(mode.key)"
+                >
+                  <component :is="ic(mode.icon)" />
                 </button>
-              </FileMenu>
+              </div>
               <button
                 type="button"
-                class="fm-icon-btn"
+                class="fe-iconbtn"
                 :title="fullscreen ? t('fileManager.exitFullscreen') : t('fileManager.fullscreen')"
                 @click="toggleFullscreen"
               >
-                <el-icon
-                  ><component :is="fullscreen ? IconExitFullscreen : IconFullscreen"
-                /></el-icon>
+                <component :is="ic(fullscreen ? 'HOutline:ArrowsPointingInIcon' : 'HOutline:ArrowsPointingOutIcon')" />
               </button>
             </div>
 
@@ -84,24 +78,16 @@
               <button type="button" class="fe-tree-toggle" @click="mobileTreeOpen = true">
                 {{ t('fileManager.fileTree') }}
               </button>
-              <div
-                v-if="mobileTreeOpen"
-                class="fe-tree-backdrop"
-                @click="mobileTreeOpen = false"
-              ></div>
+              <div v-if="mobileTreeOpen" class="fe-tree-backdrop" @click="mobileTreeOpen = false"></div>
 
-              <aside
-                class="fe-tree"
-                :class="{ 'is-mobile-open': mobileTreeOpen }"
-                :style="{ width: `${treeWidth}px` }"
-              >
-                <div class="fe-tree-head">
+              <aside class="fe-tree" :class="{ 'is-mobile-open': mobileTreeOpen }" :style="{ width: `${treeWidth}px` }">
+                <div class="fe-tree__head">
                   <span>{{ t('fileManager.fileTree') }}</span>
-                  <button type="button" class="fe-tree-close" @click="mobileTreeOpen = false">
-                    <el-icon><IconClose /></el-icon>
+                  <button type="button" class="fe-tree__close" @click="mobileTreeOpen = false">
+                    <component :is="ic('HOutline:XMarkIcon')" />
                   </button>
                 </div>
-                <div class="fe-tree-scroll">
+                <div class="fe-tree__scroll">
                   <FileTree
                     ref="treeRef"
                     :client="client"
@@ -117,28 +103,24 @@
               <div class="fe-main">
                 <div ref="monacoEl" class="fe-monaco"></div>
                 <div v-if="maskVisible" class="fe-mask">
-                  <el-icon class="fe-mask-icon"><IconWarning /></el-icon>
-                  <p>
-                    {{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}
-                  </p>
+                  <component :is="ic('HOutline:ExclamationTriangleIcon')" class="fe-mask__ico" />
+                  <p>{{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}</p>
                 </div>
               </div>
             </div>
 
             <!-- 状态栏 -->
             <footer class="fe-statusbar">
-              <span class="fe-status-path" :title="activePath">
+              <span class="fe-statusbar__path" :title="activePath">
                 {{ t('fileManager.filePath') }}: {{ activePath || '—' }}
               </span>
-              <span class="fe-status-spacer"></span>
-              <span class="fe-status-lang">{{ languageLabel }}</span>
-              <span class="fe-status-sep">{{ t('fileManager.encoding') }}: UTF-8</span>
-              <button type="button" class="fe-status-btn" @click="toggleEol">
+              <span class="fe-statusbar__spacer"></span>
+              <span class="fe-statusbar__lang">{{ languageLabel }}</span>
+              <span class="fe-statusbar__sep">{{ t('fileManager.encoding') }}: UTF-8</span>
+              <button type="button" class="fe-statusbar__btn" @click="toggleEol">
                 {{ t('fileManager.eol') }}: {{ eol }}
               </button>
-              <span class="fe-status-sep">{{
-                t('fileManager.lineCol', { line: cursor.line, col: cursor.col })
-              }}</span>
+              <span class="fe-statusbar__sep">{{ t('fileManager.lineCol', { line: cursor.line, col: cursor.col }) }}</span>
               <span>{{ t('fileManager.totalLines', { n: totalLines }) }}</span>
             </footer>
           </template>
@@ -163,12 +145,32 @@
       :confirming="renamePrompt.confirming"
       @confirm="onRenameConfirm"
     />
+
+    <!-- 通用确认（丢弃未保存 / 删除），令牌 FormDialog，替代 EP ElMessageBox -->
+    <FormDialog
+      v-model="confirmState.open"
+      :title="confirmState.title"
+      :width="420"
+      @close="resolveConfirm(false)"
+    >
+      <p class="fe-confirm">{{ confirmState.message }}</p>
+      <template #footer>
+        <UButton color="neutral" variant="soft" @click="resolveConfirm(false)">
+          {{ t('system.common.cancel') }}
+        </UButton>
+        <UButton :color="confirmState.danger ? 'error' : 'primary'" @click="resolveConfirm(true)">
+          {{ t('system.common.confirm') }}
+        </UButton>
+      </template>
+    </FormDialog>
   </teleport>
 </template>
 
 <script setup lang="ts">
+import { defineComponent, h } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showRequestError } from '@/utils/request'
+import { getRequestErrorMessage } from '@/utils/request'
+import { useFeedback } from '@/utils/feedback'
 import { useThemeStore } from '@/stores/theme'
 import { FileSortField } from '@/types/v1/file'
 import {
@@ -185,25 +187,8 @@ import {
 } from '@/utils/file'
 import { monaco } from './monaco'
 import FileTree from './FileTree.vue'
-import FileMenu, { type FileMenuItem } from './FileMenu.vue'
 import FilePromptDialog from './FilePromptDialog.vue'
 import type { FileClient } from './types'
-import {
-  IconSave,
-  IconRefresh,
-  IconDownload,
-  IconRename,
-  IconDelete,
-  IconAuto,
-  IconLight,
-  IconDark,
-  IconFullscreen,
-  IconExitFullscreen,
-  IconMinimize,
-  IconClose,
-  IconChevronDown,
-  IconWarning,
-} from './icons'
 import type { CSSProperties } from 'vue'
 
 const props = defineProps<{
@@ -222,6 +207,36 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const themeStore = useThemeStore()
+const menuStore = useMenuStore()
+const fb = useFeedback()
+
+const ic = (key: string) => menuStore.iconComponents[key]
+const notifyError = (error: unknown, fallback: string) => fb.error(getRequestErrorMessage(error, fallback))
+
+// 保存图标（软盘）：Heroicons 无软盘，用本地内联 SVG（非旧框架，纯 SVG 组件）。
+const IconSave = defineComponent({
+  name: 'IconSave',
+  render: () =>
+    h(
+      'svg',
+      {
+        viewBox: '0 0 24 24',
+        fill: 'none',
+        stroke: 'currentColor',
+        'stroke-width': 1.5,
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        'aria-hidden': 'true',
+      },
+      [
+        h('path', {
+          d: 'M4.5 5.25A1.75 1.75 0 0 1 6.25 3.5h9.19c.46 0 .91.19 1.24.51l2.81 2.82c.33.33.51.78.51 1.24v10.68a1.75 1.75 0 0 1-1.75 1.75H6.25A1.75 1.75 0 0 1 4.5 18.75z',
+        }),
+        h('path', { d: 'M8 3.5v4.25c0 .41.34.75.75.75h5a.75.75 0 0 0 .75-.75V3.5' }),
+        h('rect', { x: 7.5, y: 12, width: 9, height: 6, rx: 0.75 }),
+      ],
+    ),
+})
 
 // ---- 主题（自动/亮/暗，localStorage 持久；整窗 + Monaco 一起切） ----
 type ThemeMode = 'auto' | 'light' | 'dark'
@@ -230,16 +245,13 @@ const themeMode = ref<ThemeMode>((localStorage.getItem(THEME_KEY) as ThemeMode) 
 const resolvedDark = computed(() =>
   themeMode.value === 'auto' ? themeStore.isDarkTheme : themeMode.value === 'dark',
 )
-const themeIcon = computed(() =>
-  themeMode.value === 'auto' ? IconAuto : themeMode.value === 'light' ? IconLight : IconDark,
-)
-const themeItems = computed<FileMenuItem[]>(() => [
-  { key: 'auto', label: t('fileManager.editorThemeAuto'), icon: IconAuto },
-  { key: 'light', label: t('fileManager.editorThemeLight'), icon: IconLight },
-  { key: 'dark', label: t('fileManager.editorThemeDark'), icon: IconDark },
-])
-const setThemeMode = (mode: string) => {
-  themeMode.value = mode as ThemeMode
+const themeModes: { key: ThemeMode; label: string; icon: string }[] = [
+  { key: 'auto', label: t('fileManager.editorThemeAuto'), icon: 'HOutline:ComputerDesktopIcon' },
+  { key: 'light', label: t('fileManager.editorThemeLight'), icon: 'HOutline:SunIcon' },
+  { key: 'dark', label: t('fileManager.editorThemeDark'), icon: 'HOutline:MoonIcon' },
+]
+const setThemeMode = (mode: ThemeMode) => {
+  themeMode.value = mode
   localStorage.setItem(THEME_KEY, mode)
 }
 watch(resolvedDark, (dark) => monaco.editor.setTheme(dark ? 'vs-dark' : 'vs'))
@@ -411,12 +423,31 @@ const applyContent = (text: string) => {
   cursor.col = 1
 }
 
+// ---- 通用确认（丢弃未保存 / 删除）：令牌 FormDialog + Promise 门闸，替代 EP ElMessageBox ----
+const confirmState = reactive({ open: false, title: '', message: '', danger: false })
+let confirmResolve: ((value: boolean) => void) | null = null
+const askConfirm = (title: string, message: string, danger = false) =>
+  new Promise<boolean>((resolve) => {
+    confirmState.title = title
+    confirmState.message = message
+    confirmState.danger = danger
+    confirmState.open = true
+    confirmResolve = resolve
+  })
+const resolveConfirm = (value: boolean) => {
+  if (!confirmState.open && !confirmResolve) return
+  confirmState.open = false
+  const resolver = confirmResolve
+  confirmResolve = null
+  resolver?.(value)
+}
+
 // ---- 打开文件 ----
 const normalizePathForCompare = (path: string) => path.replace(/\\/g, '/').replace(/\/+$/, '')
 const isSamePath = (left: string, right: string) =>
   normalizePathForCompare(left).toLowerCase() === normalizePathForCompare(right).toLowerCase()
 const editorTooLargeMessage = () => t('fileManager.fileTooLargeForEditor')
-const warnEditorFileTooLarge = () => ElMessage.warning(editorTooLargeMessage())
+const warnEditorFileTooLarge = () => fb.warning(editorTooLargeMessage())
 
 const lookupFileSize = async (path: string, name: string): Promise<number | undefined> => {
   try {
@@ -444,16 +475,7 @@ const ensureEditorFileSizeAllowed = async (path: string, name: string): Promise<
 
 const confirmDiscardIfDirty = async (): Promise<boolean> => {
   if (!dirty.value) return true
-  try {
-    await ElMessageBox.confirm(t('fileManager.discardChangesConfirm'), t('fileManager.unsaved'), {
-      type: 'warning',
-      confirmButtonText: t('system.common.confirm'),
-      cancelButtonText: t('system.common.cancel'),
-    })
-    return true
-  } catch {
-    return false
-  }
+  return askConfirm(t('fileManager.unsaved'), t('fileManager.discardChangesConfirm'))
 }
 
 const openPath = async (path: string, name?: string) => {
@@ -496,7 +518,7 @@ const openPath = async (path: string, name?: string) => {
       warnEditorFileTooLarge()
       return
     }
-    showRequestError(error, t('fileManager.openFailed'))
+    notifyError(error, t('fileManager.openFailed'))
   }
 }
 
@@ -514,10 +536,10 @@ const save = async () => {
     await props.client.edit(activePath.value, value)
     originalContent.value = editorInstance.getValue()
     dirty.value = false
-    ElMessage.success(t('fileManager.fileSaveSuccess'))
+    fb.success(t('fileManager.fileSaveSuccess'))
     emit('saved')
   } catch (error) {
-    showRequestError(error, t('fileManager.fileSaveFailed'))
+    notifyError(error, t('fileManager.fileSaveFailed'))
   } finally {
     saving.value = false
   }
@@ -534,7 +556,7 @@ const download = async () => {
     const downloadPath = await props.client.preSignDownload(activePath.value)
     downloadFileFromUrl(resolvePreSignedFileUrl(downloadPath), activeName.value)
   } catch (error) {
-    showRequestError(error, t('fileManager.downloadFailed'))
+    notifyError(error, t('fileManager.downloadFailed'))
   }
 }
 
@@ -556,11 +578,11 @@ const onRenameConfirm = async (value: string) => {
       if (model) monaco.editor.setModelLanguage(model, language.value)
     }
     renamePrompt.open = false
-    ElMessage.success(t('fileManager.renameSuccess'))
+    fb.success(t('fileManager.renameSuccess'))
     treeRef.value?.reload()
     emit('renamed')
   } catch (error) {
-    showRequestError(error, t('fileManager.renameFailed'))
+    notifyError(error, t('fileManager.renameFailed'))
   } finally {
     renamePrompt.confirming = false
   }
@@ -568,22 +590,15 @@ const onRenameConfirm = async (value: string) => {
 
 const remove = async () => {
   if (!activePath.value) return
-  try {
-    await ElMessageBox.confirm(
-      t('fileManager.deleteOneConfirm', { name: activeName.value }),
-      t('fileManager.confirmDelete'),
-      {
-        type: 'warning',
-        confirmButtonText: t('system.common.confirm'),
-        cancelButtonText: t('system.common.cancel'),
-      },
-    )
-  } catch {
-    return
-  }
+  const ok = await askConfirm(
+    t('fileManager.confirmDelete'),
+    t('fileManager.deleteOneConfirm', { name: activeName.value }),
+    true,
+  )
+  if (!ok) return
   try {
     await props.client.remove([activePath.value])
-    ElMessage.success(t('fileManager.deleteSuccess'))
+    fb.success(t('fileManager.deleteSuccess'))
     activePath.value = ''
     activeName.value = ''
     isBinary.value = false
@@ -593,7 +608,7 @@ const remove = async () => {
     treeRef.value?.reload()
     emit('deleted')
   } catch (error) {
-    showRequestError(error, t('fileManager.deleteFailed'))
+    notifyError(error, t('fileManager.deleteFailed'))
   }
 }
 
@@ -655,6 +670,54 @@ onBeforeUnmount(disposeEditor)
 </script>
 
 <style scoped>
+/* 自包含独立主题令牌（浅色默认 + .is-dark 暗色），不依赖全局 app 主题、不用旧 fm-* 框架。 */
+.fe-window {
+  --fe-bg: #ffffff;
+  --fe-surface: #ffffff;
+  --fe-chrome: #f6f8f8;
+  --fe-hover: #f2f5f5;
+  --fe-active-bg: #e2f7f3;
+  --fe-border: #e4e8ee;
+  --fe-border-strong: #d4dae3;
+  --fe-fg: #1f2328;
+  --fe-fg-dim: #57606a;
+  --fe-fg-faint: #8c959f;
+  --fe-accent: #14b8a6;
+  --fe-accent-hover: #0d9488;
+  --fe-danger: #e5484d;
+  --fe-danger-soft: #fdeced;
+  --fe-folder: #e3a008;
+  --fe-radius: 12px;
+  --fe-radius-sm: 8px;
+  --fe-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+
+  /* 目录树令牌桥接：FileTreeNode 用 --ft-*，映射到编辑器独立主题，使内嵌树跟随编辑器明暗。 */
+  --ft-fg: var(--fe-fg-dim);
+  --ft-fg-dim: var(--fe-fg-faint);
+  --ft-hover: var(--fe-hover);
+  --ft-active-bg: var(--fe-active-bg);
+  --ft-active-fg: var(--fe-accent);
+  --ft-folder: var(--fe-folder);
+}
+.fe-window.is-dark {
+  --fe-bg: #1e1e1e;
+  --fe-surface: #252526;
+  --fe-chrome: #2d2d30;
+  --fe-hover: #2a2d2e;
+  --fe-active-bg: #103b38;
+  --fe-border: #3c3c3c;
+  --fe-border-strong: #4a4a4a;
+  --fe-fg: #e6e6e6;
+  --fe-fg-dim: #b8bcc2;
+  --fe-fg-faint: #8a9099;
+  --fe-accent: #2dd4bf;
+  --fe-accent-hover: #5eead4;
+  --fe-danger: #f87171;
+  --fe-danger-soft: #3a1d1f;
+  --fe-folder: #e3a008;
+  --fe-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
 .fe-overlay {
   position: fixed;
   inset: 0;
@@ -668,10 +731,11 @@ onBeforeUnmount(disposeEditor)
   flex-direction: column;
   min-width: 640px;
   min-height: 0;
-  background: var(--fm-bg);
-  border: 1px solid var(--fm-border);
-  border-radius: var(--fm-radius);
-  box-shadow: var(--fm-shadow);
+  color: var(--fe-fg);
+  background: var(--fe-bg);
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius);
+  box-shadow: var(--fe-shadow);
   overflow: hidden;
 }
 .fe-window.is-fullscreen {
@@ -684,6 +748,30 @@ onBeforeUnmount(disposeEditor)
   height: auto !important;
 }
 
+/* 图标按钮（标题栏/工具栏） */
+.fe-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--fe-radius-sm);
+  background: transparent;
+  color: var(--fe-fg-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.fe-iconbtn:hover {
+  background: var(--fe-hover);
+  color: var(--fe-fg);
+}
+.fe-iconbtn :deep(svg) {
+  width: 17px;
+  height: 17px;
+}
+
 /* 标题栏 */
 .fe-titlebar {
   display: flex;
@@ -692,46 +780,129 @@ onBeforeUnmount(disposeEditor)
   gap: 1rem;
   height: 40px;
   padding: 0 0.5rem 0 0.875rem;
-  background: var(--fm-header);
-  border-bottom: 1px solid var(--fm-border);
+  background: var(--fe-chrome);
+  border-bottom: 1px solid var(--fe-border);
   cursor: move;
   user-select: none;
 }
 .fe-title {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--fm-text);
+  color: var(--fe-fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.fe-title-actions {
+.fe-titlebar__actions {
   display: flex;
-  gap: 0.125rem;
+  gap: 2px;
 }
 
 /* 工具栏 */
 .fe-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--fm-border);
-  background: var(--fm-surface);
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--fe-border);
+  background: var(--fe-surface);
 }
-.fe-toolbar-spacer {
+.fe-toolbar__spacer {
   flex: 1;
 }
-.is-spinning {
+
+/* 令牌按钮（工具栏文字按钮） */
+.fe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  flex-shrink: 0;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius-sm);
+  background: var(--fe-surface);
+  color: var(--fe-fg-dim);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.fe-btn:hover:not(:disabled) {
+  border-color: var(--fe-border-strong);
+  color: var(--fe-fg);
+  background: var(--fe-hover);
+}
+.fe-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.fe-btn :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+.fe-btn--primary {
+  background: var(--fe-accent);
+  border-color: var(--fe-accent);
+  color: #fff;
+}
+.fe-btn--primary:hover:not(:disabled) {
+  background: var(--fe-accent-hover);
+  border-color: var(--fe-accent-hover);
+  color: #fff;
+}
+.fe-btn--danger {
+  color: var(--fe-danger);
+}
+.fe-btn--danger:hover:not(:disabled) {
+  background: var(--fe-danger-soft);
+  border-color: var(--fe-danger);
+  color: var(--fe-danger);
+}
+.is-spin {
   animation: fe-spin 0.8s linear infinite;
 }
 @keyframes fe-spin {
-  from {
-    transform: perspective(120px) rotateY(0deg);
-  }
   to {
-    transform: perspective(120px) rotateY(360deg);
+    transform: rotate(360deg);
   }
+}
+
+/* 主题分段 */
+.fe-seg {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--fe-border);
+  border-radius: var(--fe-radius-sm);
+  overflow: hidden;
+}
+.fe-seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--fe-surface);
+  color: var(--fe-fg-faint);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.fe-seg__btn + .fe-seg__btn {
+  border-left: 1px solid var(--fe-border);
+}
+.fe-seg__btn:hover {
+  color: var(--fe-fg);
+  background: var(--fe-hover);
+}
+.fe-seg__btn.is-active {
+  color: var(--fe-accent);
+  background: var(--fe-active-bg);
+}
+.fe-seg__btn :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
 /* 主体 */
@@ -742,7 +913,7 @@ onBeforeUnmount(disposeEditor)
   position: relative;
 }
 .fe-tree-toggle,
-.fe-tree-close,
+.fe-tree__close,
 .fe-tree-backdrop {
   display: none;
 }
@@ -751,21 +922,21 @@ onBeforeUnmount(disposeEditor)
   flex-direction: column;
   flex-shrink: 0;
   min-width: 0;
-  background: var(--fm-surface);
-  border-right: 1px solid var(--fm-border);
+  background: var(--fe-surface);
+  border-right: 1px solid var(--fe-border);
 }
-.fe-tree-head {
+.fe-tree__head {
   height: 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0.875rem;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--fm-text-3);
-  border-bottom: 1px solid var(--fm-border);
+  color: var(--fe-fg-faint);
+  border-bottom: 1px solid var(--fe-border);
 }
-.fe-tree-scroll {
+.fe-tree__scroll {
   flex: 1;
   overflow: auto;
 }
@@ -777,13 +948,13 @@ onBeforeUnmount(disposeEditor)
   transition: background 0.15s;
 }
 .fe-splitter:hover {
-  background: var(--fm-accent-soft);
+  background: var(--fe-active-bg);
 }
 .fe-main {
   position: relative;
   flex: 1;
   min-width: 0;
-  background: var(--fm-bg);
+  background: var(--fe-bg);
 }
 .fe-monaco {
   position: absolute;
@@ -796,14 +967,15 @@ onBeforeUnmount(disposeEditor)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: var(--fm-bg);
-  color: var(--fm-text-3);
-  font-size: 13px;
+  gap: 8px;
+  background: var(--fe-bg);
+  color: var(--fe-fg-faint);
+  font-size: 0.8125rem;
 }
-.fe-mask-icon {
-  font-size: 32px;
-  color: var(--fm-text-3);
+.fe-mask__ico {
+  width: 32px;
+  height: 32px;
+  color: var(--fe-fg-faint);
 }
 
 /* 状态栏 */
@@ -813,35 +985,44 @@ onBeforeUnmount(disposeEditor)
   gap: 1rem;
   height: 28px;
   padding: 0 0.875rem;
-  background: var(--fm-header);
-  border-top: 1px solid var(--fm-border);
-  font-size: 12px;
-  color: var(--fm-text-2);
+  background: var(--fe-chrome);
+  border-top: 1px solid var(--fe-border);
+  font-size: 0.75rem;
+  color: var(--fe-fg-dim);
   white-space: nowrap;
   overflow: hidden;
 }
-.fe-status-path {
+.fe-statusbar__path {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 40%;
 }
-.fe-status-spacer {
+.fe-statusbar__spacer {
   flex: 1;
 }
-.fe-status-lang {
-  color: var(--fm-accent);
+.fe-statusbar__lang {
+  color: var(--fe-accent);
   font-weight: 600;
 }
-.fe-status-btn {
+.fe-statusbar__btn {
   border: none;
   background: transparent;
-  color: var(--fm-text-2);
+  color: var(--fe-fg-dim);
   font: inherit;
   cursor: pointer;
   padding: 0;
 }
-.fe-status-btn:hover {
-  color: var(--fm-accent);
+.fe-statusbar__btn:hover {
+  color: var(--fe-accent);
+}
+
+/* 确认弹窗文案 */
+.fe-confirm {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
+  word-break: break-word;
 }
 
 /* 缩放手柄 */
@@ -855,9 +1036,9 @@ onBeforeUnmount(disposeEditor)
   background: linear-gradient(
     135deg,
     transparent 0 50%,
-    var(--fm-border-strong) 50% 60%,
+    var(--fe-border-strong) 50% 60%,
     transparent 60% 70%,
-    var(--fm-border-strong) 70% 80%,
+    var(--fe-border-strong) 70% 80%,
     transparent 80%
   );
 }
@@ -894,11 +1075,11 @@ onBeforeUnmount(disposeEditor)
   }
   .fe-toolbar {
     overflow-x: auto;
-    gap: 0.4rem;
-    padding: 0.45rem 0.6rem;
+    gap: 6px;
+    padding: 7px 10px;
   }
-  .fe-toolbar .fm-btn,
-  .fe-toolbar .fm-icon-btn {
+  .fe-toolbar .fe-btn,
+  .fe-toolbar .fe-iconbtn {
     flex-shrink: 0;
   }
   .fe-body {
@@ -915,12 +1096,12 @@ onBeforeUnmount(disposeEditor)
     width: 28px;
     height: 84px;
     padding: 0;
-    border: 1px solid var(--fm-border);
+    border: 1px solid var(--fe-border);
     border-left: none;
-    border-radius: 0 var(--fm-radius-sm) var(--fm-radius-sm) 0;
-    background: var(--fm-surface);
-    color: var(--fm-text-2);
-    font-size: 12px;
+    border-radius: 0 var(--fe-radius-sm) var(--fe-radius-sm) 0;
+    background: var(--fe-surface);
+    color: var(--fe-fg-dim);
+    font-size: 0.75rem;
     writing-mode: vertical-rl;
     transform: translateY(-50%);
   }
@@ -939,24 +1120,25 @@ onBeforeUnmount(disposeEditor)
     max-width: calc(100vw - 56px);
     transform: translateX(-100%);
     transition: transform 0.18s ease;
-    box-shadow: var(--fm-shadow);
+    box-shadow: var(--fe-shadow);
   }
   .fe-tree.is-mobile-open {
     transform: translateX(0);
   }
-  .fe-tree-close {
+  .fe-tree__close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 24px;
     height: 24px;
     border: none;
-    border-radius: var(--fm-radius-sm);
+    border-radius: var(--fe-radius-sm);
     background: transparent;
-    color: var(--fm-text-3);
+    color: var(--fe-fg-faint);
   }
-  .fe-tree-close .el-icon {
-    font-size: 16px;
+  .fe-tree__close :deep(svg) {
+    width: 16px;
+    height: 16px;
   }
   .fe-splitter {
     display: none;
@@ -969,11 +1151,11 @@ onBeforeUnmount(disposeEditor)
     height: 26px;
     padding: 0 0.6rem;
   }
-  .fe-status-path {
+  .fe-statusbar__path {
     max-width: 62%;
   }
-  .fe-status-sep,
-  .fe-status-btn,
+  .fe-statusbar__sep,
+  .fe-statusbar__btn,
   .fe-statusbar > span:last-child {
     display: none;
   }
