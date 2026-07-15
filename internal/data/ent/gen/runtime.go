@@ -23,6 +23,7 @@ import (
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -710,6 +711,37 @@ func init() {
 	sub2apiannouncementDescID := sub2apiannouncementFields[0].Descriptor()
 	// sub2apiannouncement.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	sub2apiannouncement.IDValidator = sub2apiannouncementDescID.Validators[0].(func(string) error)
+	sub2apigroupMixin := schema.Sub2APIGroup{}.Mixin()
+	sub2apigroupMixinFields0 := sub2apigroupMixin[0].Fields()
+	_ = sub2apigroupMixinFields0
+	sub2apigroupFields := schema.Sub2APIGroup{}.Fields()
+	_ = sub2apigroupFields
+	// sub2apigroupDescCreateTime is the schema descriptor for create_time field.
+	sub2apigroupDescCreateTime := sub2apigroupMixinFields0[0].Descriptor()
+	// sub2apigroup.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apigroup.DefaultCreateTime = sub2apigroupDescCreateTime.Default.(func() time.Time)
+	// sub2apigroupDescUpdateTime is the schema descriptor for update_time field.
+	sub2apigroupDescUpdateTime := sub2apigroupMixinFields0[1].Descriptor()
+	// sub2apigroup.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apigroup.DefaultUpdateTime = sub2apigroupDescUpdateTime.Default.(func() time.Time)
+	// sub2apigroup.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apigroup.UpdateDefaultUpdateTime = sub2apigroupDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apigroupDescName is the schema descriptor for name field.
+	sub2apigroupDescName := sub2apigroupFields[1].Descriptor()
+	// sub2apigroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	sub2apigroup.NameValidator = sub2apigroupDescName.Validators[0].(func(string) error)
+	// sub2apigroupDescPublicEnabled is the schema descriptor for public_enabled field.
+	sub2apigroupDescPublicEnabled := sub2apigroupFields[2].Descriptor()
+	// sub2apigroup.DefaultPublicEnabled holds the default value on creation for the public_enabled field.
+	sub2apigroup.DefaultPublicEnabled = sub2apigroupDescPublicEnabled.Default.(bool)
+	// sub2apigroupDescDeleted is the schema descriptor for deleted field.
+	sub2apigroupDescDeleted := sub2apigroupFields[3].Descriptor()
+	// sub2apigroup.DefaultDeleted holds the default value on creation for the deleted field.
+	sub2apigroup.DefaultDeleted = sub2apigroupDescDeleted.Default.(bool)
+	// sub2apigroupDescID is the schema descriptor for id field.
+	sub2apigroupDescID := sub2apigroupFields[0].Descriptor()
+	// sub2apigroup.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sub2apigroup.IDValidator = sub2apigroupDescID.Validators[0].(func(string) error)
 	sub2apitimelineitemMixin := schema.Sub2APITimelineItem{}.Mixin()
 	sub2apitimelineitemMixinFields0 := sub2apitimelineitemMixin[0].Fields()
 	_ = sub2apitimelineitemMixinFields0
@@ -749,35 +781,35 @@ func init() {
 	// sub2apiusagerecord.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	sub2apiusagerecord.UpdateDefaultUpdateTime = sub2apiusagerecordDescUpdateTime.UpdateDefault.(func() time.Time)
 	// sub2apiusagerecordDescSuccess is the schema descriptor for success field.
-	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[7].Descriptor()
+	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[9].Descriptor()
 	// sub2apiusagerecord.DefaultSuccess holds the default value on creation for the success field.
 	sub2apiusagerecord.DefaultSuccess = sub2apiusagerecordDescSuccess.Default.(bool)
 	// sub2apiusagerecordDescLatencyMs is the schema descriptor for latency_ms field.
-	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[8].Descriptor()
+	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[10].Descriptor()
 	// sub2apiusagerecord.DefaultLatencyMs holds the default value on creation for the latency_ms field.
 	sub2apiusagerecord.DefaultLatencyMs = sub2apiusagerecordDescLatencyMs.Default.(int64)
 	// sub2apiusagerecordDescTokenCount is the schema descriptor for token_count field.
-	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[9].Descriptor()
+	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[11].Descriptor()
 	// sub2apiusagerecord.DefaultTokenCount holds the default value on creation for the token_count field.
 	sub2apiusagerecord.DefaultTokenCount = sub2apiusagerecordDescTokenCount.Default.(int64)
 	// sub2apiusagerecordDescOutputTokens is the schema descriptor for output_tokens field.
-	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[10].Descriptor()
+	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[12].Descriptor()
 	// sub2apiusagerecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
 	sub2apiusagerecord.DefaultOutputTokens = sub2apiusagerecordDescOutputTokens.Default.(int64)
 	// sub2apiusagerecordDescTps is the schema descriptor for tps field.
-	sub2apiusagerecordDescTps := sub2apiusagerecordFields[11].Descriptor()
+	sub2apiusagerecordDescTps := sub2apiusagerecordFields[13].Descriptor()
 	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
 	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
 	// sub2apiusagerecordDescCost is the schema descriptor for cost field.
-	sub2apiusagerecordDescCost := sub2apiusagerecordFields[12].Descriptor()
+	sub2apiusagerecordDescCost := sub2apiusagerecordFields[14].Descriptor()
 	// sub2apiusagerecord.DefaultCost holds the default value on creation for the cost field.
 	sub2apiusagerecord.DefaultCost = sub2apiusagerecordDescCost.Default.(float64)
 	// sub2apiusagerecordDescFirstTokenMs is the schema descriptor for first_token_ms field.
-	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[13].Descriptor()
+	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[15].Descriptor()
 	// sub2apiusagerecord.DefaultFirstTokenMs holds the default value on creation for the first_token_ms field.
 	sub2apiusagerecord.DefaultFirstTokenMs = sub2apiusagerecordDescFirstTokenMs.Default.(int64)
 	// sub2apiusagerecordDescHTTPStatus is the schema descriptor for http_status field.
-	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[17].Descriptor()
+	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[19].Descriptor()
 	// sub2apiusagerecord.DefaultHTTPStatus holds the default value on creation for the http_status field.
 	sub2apiusagerecord.DefaultHTTPStatus = sub2apiusagerecordDescHTTPStatus.Default.(int)
 	// sub2apiusagerecordDescID is the schema descriptor for id field.

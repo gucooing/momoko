@@ -83,6 +83,12 @@ func (s *Service) Config(ctx context.Context) (*v1.Sub2APIConfig, error) {
 	return LoadConfig(ctx, s.config)
 }
 
+// ListGroups 返回本地分组（含是否公开）。
+func (s *Service) ListGroups(ctx context.Context) ([]*Group, error) {
+	return s.store.ListGroups(ctx)
+}
+
+
 func (s *Service) UpdateConfig(ctx context.Context, next *v1.Sub2APIConfig) (*v1.Sub2APIConfig, error) {
 	if next == nil {
 		next = DefaultConfig()
@@ -97,6 +103,10 @@ func (s *Service) UpdateConfig(ctx context.Context, next *v1.Sub2APIConfig) (*v1
 		return nil, err
 	}
 	if err = SaveConfig(ctx, s.config, next); err != nil {
+		return nil, err
+	}
+	// 公开分组启用状态落在分组表（非 KV）。
+	if err = s.store.SetPublicGroups(ctx, next.GetPublicGroups()); err != nil {
 		return nil, err
 	}
 	if old.BaseUrl != next.BaseUrl || old.AdminApiKey != next.AdminApiKey {
@@ -135,19 +145,26 @@ func (s *Service) Snapshot(ctx context.Context) (*v1.Sub2APIUsageSnapshot, error
 	if err != nil {
 		return nil, err
 	}
-	return BuildSnapshot(ctx, s.store, cfg, state)
+	return BuildSnapshot(ctx, s.store, cfg, state, false)
 }
 
-// PublicSnapshot 返回脱敏后的公开快照，带短时缓存以保护未鉴权接口。
+// PublicSnapshot 返回脱敏后的公开快照（按 public_groups 过滤），带短时缓存以保护未鉴权接口。
 func (s *Service) PublicSnapshot(ctx context.Context) (*v1.Sub2APIUsageSnapshot, error) {
 	if cached := s.cachedPublic(); cached != nil {
 		return cached, nil
 	}
-	snapshot, err := s.Snapshot(ctx)
+	cfg, err := LoadConfig(ctx, s.config)
 	if err != nil {
 		return nil, err
 	}
-	StripForPublic(snapshot)
+	state, err := LoadSyncState(ctx, s.config)
+	if err != nil {
+		return nil, err
+	}
+	snapshot, err := BuildPublicSnapshot(ctx, s.store, cfg, state)
+	if err != nil {
+		return nil, err
+	}
 	s.storePublic(snapshot)
 	return snapshot, nil
 }
@@ -172,6 +189,7 @@ func (s *Service) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub
 
 // RecentRequests 返回管理端最近请求的分页结果（按时间倒序，最新在前），并附区间总数。
 // 时间段归一化口径与 AdminStats 一致，确保翻页与概览覆盖相同区间。
+// start 为零表示不限制起点（全部记录）。
 func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
 	start, end = normalizeRange(start, end)
 	if page < 1 {
@@ -183,7 +201,11 @@ func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page
 	case pageSize > maxRecentPageSize:
 		pageSize = maxRecentPageSize
 	}
-	records, total, err := s.store.RecordsPage(ctx, &start, &end, (page-1)*pageSize, pageSize)
+	var startPtr *time.Time
+	if !start.IsZero() {
+		startPtr = &start
+	}
+	records, total, err := s.store.RecordsPage(ctx, startPtr, &end, (page-1)*pageSize, pageSize, false)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -124,8 +124,18 @@ message PublicSub2APIHomeResponse {
 
 message GetSub2APIConfigRequest {}
 
+message Sub2APIGroup {
+  string id = 1;
+  string name = 2;
+  bool public_enabled = 3;
+  // 上游是否已删除；设置页将多个已删除分组合并为「已删除分组」一项
+  bool deleted = 4;
+}
+
 message GetSub2APIConfigResponse {
   Sub2APIConfig config = 1;
+  // 本地已同步分组（含是否公开），配置页直接渲染勾选。
+  repeated Sub2APIGroup groups = 2;
 }
 
 message UpdateSub2APIConfigRequest {
@@ -171,7 +181,7 @@ message GetSub2APIStatsResponse {
 
 message GetSub2APIAdminStatsRequest {
   // 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
-  // start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+  // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
   int64 start_time = 1;
   int64 end_time = 2;
 }
@@ -182,6 +192,7 @@ message GetSub2APIAdminStatsResponse {
 
 message GetSub2APIRecentRequestsRequest {
   // 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+  // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
   int64 start_time = 1;
   int64 end_time = 2;
   // 页码（从 1 起）与每页条数。
@@ -207,9 +218,10 @@ message Sub2APIStats {
   double average_tps = 8;
   repeated Sub2APITrendPoint trend = 9;
   repeated Sub2APITopItem models = 10;
-  repeated Sub2APITopItem endpoints = 11;
   // UA（User-Agent）维度用量明细，按使用数量降序
   repeated Sub2APITopItem user_agents = 12;
+  // 分组维度用量明细，按使用数量降序
+  repeated Sub2APITopItem groups = 13;
 }
 
 // 仅包含连接与展示配置，公告/时间线为独立资源。
@@ -231,6 +243,9 @@ message Sub2APIConfig {
   bool image_enabled = 13;
   // 是否开启站点白名单校验
   bool src_host_whitelist_enabled = 14;
+  // 公开页参与统计的分组名称列表（写入分组表 public_enabled，非 KV）。
+  // 为空表示不勾选任何分组（公开页统计为空）；由前端勾选后提交。
+  repeated string public_groups = 15;
 }
 
 message Sub2APIHome {
@@ -350,7 +365,6 @@ message Sub2APIUsageSnapshot {
   google.protobuf.Timestamp generated_at = 20;
   repeated Sub2APITrendPoint trend = 21;
   repeated Sub2APITopItem model_usage = 22;
-  repeated Sub2APITopItem endpoint_usage = 23;
   repeated Sub2APIRecentRequest recent_requests = 24;
   // 最近滑动窗口内的真实吞吐（锚定最新记录时间，避免随墙钟衰减）
   double recent_tps = 25;
@@ -402,4 +416,5 @@ message Sub2APIRecentRequest {
   // 详情字段（失败/上游错误请求）
   string error_message = 13;   // 错误详情
   int32 http_status = 14;      // HTTP 状态码
+  string group_name = 15;      // Sub2API 分组名称
 }

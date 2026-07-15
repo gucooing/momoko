@@ -4,6 +4,7 @@ package gen
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"momoko/internal/data/ent/gen/predicate"
@@ -16,53 +17,53 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Sub2APIUsageRecordQuery is the builder for querying Sub2APIUsageRecord entities.
-type Sub2APIUsageRecordQuery struct {
+// Sub2APIGroupQuery is the builder for querying Sub2APIGroup entities.
+type Sub2APIGroupQuery struct {
 	config
-	ctx        *QueryContext
-	order      []sub2apiusagerecord.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Sub2APIUsageRecord
-	withGroup  *Sub2APIGroupQuery
+	ctx              *QueryContext
+	order            []sub2apigroup.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Sub2APIGroup
+	withUsageRecords *Sub2APIUsageRecordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the Sub2APIUsageRecordQuery builder.
-func (_q *Sub2APIUsageRecordQuery) Where(ps ...predicate.Sub2APIUsageRecord) *Sub2APIUsageRecordQuery {
+// Where adds a new predicate for the Sub2APIGroupQuery builder.
+func (_q *Sub2APIGroupQuery) Where(ps ...predicate.Sub2APIGroup) *Sub2APIGroupQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *Sub2APIUsageRecordQuery) Limit(limit int) *Sub2APIUsageRecordQuery {
+func (_q *Sub2APIGroupQuery) Limit(limit int) *Sub2APIGroupQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *Sub2APIUsageRecordQuery) Offset(offset int) *Sub2APIUsageRecordQuery {
+func (_q *Sub2APIGroupQuery) Offset(offset int) *Sub2APIGroupQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *Sub2APIUsageRecordQuery) Unique(unique bool) *Sub2APIUsageRecordQuery {
+func (_q *Sub2APIGroupQuery) Unique(unique bool) *Sub2APIGroupQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *Sub2APIUsageRecordQuery) Order(o ...sub2apiusagerecord.OrderOption) *Sub2APIUsageRecordQuery {
+func (_q *Sub2APIGroupQuery) Order(o ...sub2apigroup.OrderOption) *Sub2APIGroupQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryGroup chains the current query on the "group" edge.
-func (_q *Sub2APIUsageRecordQuery) QueryGroup() *Sub2APIGroupQuery {
-	query := (&Sub2APIGroupClient{config: _q.config}).Query()
+// QueryUsageRecords chains the current query on the "usage_records" edge.
+func (_q *Sub2APIGroupQuery) QueryUsageRecords() *Sub2APIUsageRecordQuery {
+	query := (&Sub2APIUsageRecordClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -72,9 +73,9 @@ func (_q *Sub2APIUsageRecordQuery) QueryGroup() *Sub2APIGroupQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID, selector),
-			sqlgraph.To(sub2apigroup.Table, sub2apigroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, sub2apiusagerecord.GroupTable, sub2apiusagerecord.GroupColumn),
+			sqlgraph.From(sub2apigroup.Table, sub2apigroup.FieldID, selector),
+			sqlgraph.To(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, sub2apigroup.UsageRecordsTable, sub2apigroup.UsageRecordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -82,21 +83,21 @@ func (_q *Sub2APIUsageRecordQuery) QueryGroup() *Sub2APIGroupQuery {
 	return query
 }
 
-// First returns the first Sub2APIUsageRecord entity from the query.
-// Returns a *NotFoundError when no Sub2APIUsageRecord was found.
-func (_q *Sub2APIUsageRecordQuery) First(ctx context.Context) (*Sub2APIUsageRecord, error) {
+// First returns the first Sub2APIGroup entity from the query.
+// Returns a *NotFoundError when no Sub2APIGroup was found.
+func (_q *Sub2APIGroupQuery) First(ctx context.Context) (*Sub2APIGroup, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{sub2apiusagerecord.Label}
+		return nil, &NotFoundError{sub2apigroup.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) FirstX(ctx context.Context) *Sub2APIUsageRecord {
+func (_q *Sub2APIGroupQuery) FirstX(ctx context.Context) *Sub2APIGroup {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -104,22 +105,22 @@ func (_q *Sub2APIUsageRecordQuery) FirstX(ctx context.Context) *Sub2APIUsageReco
 	return node
 }
 
-// FirstID returns the first Sub2APIUsageRecord ID from the query.
-// Returns a *NotFoundError when no Sub2APIUsageRecord ID was found.
-func (_q *Sub2APIUsageRecordQuery) FirstID(ctx context.Context) (id string, err error) {
+// FirstID returns the first Sub2APIGroup ID from the query.
+// Returns a *NotFoundError when no Sub2APIGroup ID was found.
+func (_q *Sub2APIGroupQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{sub2apiusagerecord.Label}
+		err = &NotFoundError{sub2apigroup.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) FirstIDX(ctx context.Context) string {
+func (_q *Sub2APIGroupQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -127,10 +128,10 @@ func (_q *Sub2APIUsageRecordQuery) FirstIDX(ctx context.Context) string {
 	return id
 }
 
-// Only returns a single Sub2APIUsageRecord entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Sub2APIUsageRecord entity is found.
-// Returns a *NotFoundError when no Sub2APIUsageRecord entities are found.
-func (_q *Sub2APIUsageRecordQuery) Only(ctx context.Context) (*Sub2APIUsageRecord, error) {
+// Only returns a single Sub2APIGroup entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Sub2APIGroup entity is found.
+// Returns a *NotFoundError when no Sub2APIGroup entities are found.
+func (_q *Sub2APIGroupQuery) Only(ctx context.Context) (*Sub2APIGroup, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -139,14 +140,14 @@ func (_q *Sub2APIUsageRecordQuery) Only(ctx context.Context) (*Sub2APIUsageRecor
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{sub2apiusagerecord.Label}
+		return nil, &NotFoundError{sub2apigroup.Label}
 	default:
-		return nil, &NotSingularError{sub2apiusagerecord.Label}
+		return nil, &NotSingularError{sub2apigroup.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) OnlyX(ctx context.Context) *Sub2APIUsageRecord {
+func (_q *Sub2APIGroupQuery) OnlyX(ctx context.Context) *Sub2APIGroup {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -154,10 +155,10 @@ func (_q *Sub2APIUsageRecordQuery) OnlyX(ctx context.Context) *Sub2APIUsageRecor
 	return node
 }
 
-// OnlyID is like Only, but returns the only Sub2APIUsageRecord ID in the query.
-// Returns a *NotSingularError when more than one Sub2APIUsageRecord ID is found.
+// OnlyID is like Only, but returns the only Sub2APIGroup ID in the query.
+// Returns a *NotSingularError when more than one Sub2APIGroup ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *Sub2APIUsageRecordQuery) OnlyID(ctx context.Context) (id string, err error) {
+func (_q *Sub2APIGroupQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -166,15 +167,15 @@ func (_q *Sub2APIUsageRecordQuery) OnlyID(ctx context.Context) (id string, err e
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{sub2apiusagerecord.Label}
+		err = &NotFoundError{sub2apigroup.Label}
 	default:
-		err = &NotSingularError{sub2apiusagerecord.Label}
+		err = &NotSingularError{sub2apigroup.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) OnlyIDX(ctx context.Context) string {
+func (_q *Sub2APIGroupQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -182,18 +183,18 @@ func (_q *Sub2APIUsageRecordQuery) OnlyIDX(ctx context.Context) string {
 	return id
 }
 
-// All executes the query and returns a list of Sub2APIUsageRecords.
-func (_q *Sub2APIUsageRecordQuery) All(ctx context.Context) ([]*Sub2APIUsageRecord, error) {
+// All executes the query and returns a list of Sub2APIGroups.
+func (_q *Sub2APIGroupQuery) All(ctx context.Context) ([]*Sub2APIGroup, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Sub2APIUsageRecord, *Sub2APIUsageRecordQuery]()
-	return withInterceptors[[]*Sub2APIUsageRecord](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Sub2APIGroup, *Sub2APIGroupQuery]()
+	return withInterceptors[[]*Sub2APIGroup](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) AllX(ctx context.Context) []*Sub2APIUsageRecord {
+func (_q *Sub2APIGroupQuery) AllX(ctx context.Context) []*Sub2APIGroup {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -201,20 +202,20 @@ func (_q *Sub2APIUsageRecordQuery) AllX(ctx context.Context) []*Sub2APIUsageReco
 	return nodes
 }
 
-// IDs executes the query and returns a list of Sub2APIUsageRecord IDs.
-func (_q *Sub2APIUsageRecordQuery) IDs(ctx context.Context) (ids []string, err error) {
+// IDs executes the query and returns a list of Sub2APIGroup IDs.
+func (_q *Sub2APIGroupQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(sub2apiusagerecord.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(sub2apigroup.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) IDsX(ctx context.Context) []string {
+func (_q *Sub2APIGroupQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -223,16 +224,16 @@ func (_q *Sub2APIUsageRecordQuery) IDsX(ctx context.Context) []string {
 }
 
 // Count returns the count of the given query.
-func (_q *Sub2APIUsageRecordQuery) Count(ctx context.Context) (int, error) {
+func (_q *Sub2APIGroupQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*Sub2APIUsageRecordQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*Sub2APIGroupQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) CountX(ctx context.Context) int {
+func (_q *Sub2APIGroupQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -241,7 +242,7 @@ func (_q *Sub2APIUsageRecordQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *Sub2APIUsageRecordQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *Sub2APIGroupQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -254,7 +255,7 @@ func (_q *Sub2APIUsageRecordQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *Sub2APIUsageRecordQuery) ExistX(ctx context.Context) bool {
+func (_q *Sub2APIGroupQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -262,33 +263,33 @@ func (_q *Sub2APIUsageRecordQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the Sub2APIUsageRecordQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the Sub2APIGroupQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *Sub2APIUsageRecordQuery) Clone() *Sub2APIUsageRecordQuery {
+func (_q *Sub2APIGroupQuery) Clone() *Sub2APIGroupQuery {
 	if _q == nil {
 		return nil
 	}
-	return &Sub2APIUsageRecordQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]sub2apiusagerecord.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Sub2APIUsageRecord{}, _q.predicates...),
-		withGroup:  _q.withGroup.Clone(),
+	return &Sub2APIGroupQuery{
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]sub2apigroup.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.Sub2APIGroup{}, _q.predicates...),
+		withUsageRecords: _q.withUsageRecords.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithGroup tells the query-builder to eager-load the nodes that are connected to
-// the "group" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *Sub2APIUsageRecordQuery) WithGroup(opts ...func(*Sub2APIGroupQuery)) *Sub2APIUsageRecordQuery {
-	query := (&Sub2APIGroupClient{config: _q.config}).Query()
+// WithUsageRecords tells the query-builder to eager-load the nodes that are connected to
+// the "usage_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *Sub2APIGroupQuery) WithUsageRecords(opts ...func(*Sub2APIUsageRecordQuery)) *Sub2APIGroupQuery {
+	query := (&Sub2APIUsageRecordClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withGroup = query
+	_q.withUsageRecords = query
 	return _q
 }
 
@@ -302,15 +303,15 @@ func (_q *Sub2APIUsageRecordQuery) WithGroup(opts ...func(*Sub2APIGroupQuery)) *
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Sub2APIUsageRecord.Query().
-//		GroupBy(sub2apiusagerecord.FieldCreateTime).
+//	client.Sub2APIGroup.Query().
+//		GroupBy(sub2apigroup.FieldCreateTime).
 //		Aggregate(gen.Count()).
 //		Scan(ctx, &v)
-func (_q *Sub2APIUsageRecordQuery) GroupBy(field string, fields ...string) *Sub2APIUsageRecordGroupBy {
+func (_q *Sub2APIGroupQuery) GroupBy(field string, fields ...string) *Sub2APIGroupGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &Sub2APIUsageRecordGroupBy{build: _q}
+	grbuild := &Sub2APIGroupGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = sub2apiusagerecord.Label
+	grbuild.label = sub2apigroup.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -324,23 +325,23 @@ func (_q *Sub2APIUsageRecordQuery) GroupBy(field string, fields ...string) *Sub2
 //		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
-//	client.Sub2APIUsageRecord.Query().
-//		Select(sub2apiusagerecord.FieldCreateTime).
+//	client.Sub2APIGroup.Query().
+//		Select(sub2apigroup.FieldCreateTime).
 //		Scan(ctx, &v)
-func (_q *Sub2APIUsageRecordQuery) Select(fields ...string) *Sub2APIUsageRecordSelect {
+func (_q *Sub2APIGroupQuery) Select(fields ...string) *Sub2APIGroupSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &Sub2APIUsageRecordSelect{Sub2APIUsageRecordQuery: _q}
-	sbuild.label = sub2apiusagerecord.Label
+	sbuild := &Sub2APIGroupSelect{Sub2APIGroupQuery: _q}
+	sbuild.label = sub2apigroup.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a Sub2APIUsageRecordSelect configured with the given aggregations.
-func (_q *Sub2APIUsageRecordQuery) Aggregate(fns ...AggregateFunc) *Sub2APIUsageRecordSelect {
+// Aggregate returns a Sub2APIGroupSelect configured with the given aggregations.
+func (_q *Sub2APIGroupQuery) Aggregate(fns ...AggregateFunc) *Sub2APIGroupSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *Sub2APIUsageRecordQuery) prepareQuery(ctx context.Context) error {
+func (_q *Sub2APIGroupQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("gen: uninitialized interceptor (forgotten import gen/runtime?)")
@@ -352,7 +353,7 @@ func (_q *Sub2APIUsageRecordQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !sub2apiusagerecord.ValidColumn(f) {
+		if !sub2apigroup.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("gen: invalid field %q for query", f)}
 		}
 	}
@@ -366,19 +367,19 @@ func (_q *Sub2APIUsageRecordQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *Sub2APIUsageRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sub2APIUsageRecord, error) {
+func (_q *Sub2APIGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sub2APIGroup, error) {
 	var (
-		nodes       = []*Sub2APIUsageRecord{}
+		nodes       = []*Sub2APIGroup{}
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			_q.withGroup != nil,
+			_q.withUsageRecords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Sub2APIUsageRecord).scanValues(nil, columns)
+		return (*Sub2APIGroup).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Sub2APIUsageRecord{config: _q.config}
+		node := &Sub2APIGroup{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -392,49 +393,51 @@ func (_q *Sub2APIUsageRecordQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withGroup; query != nil {
-		if err := _q.loadGroup(ctx, query, nodes, nil,
-			func(n *Sub2APIUsageRecord, e *Sub2APIGroup) { n.Edges.Group = e }); err != nil {
+	if query := _q.withUsageRecords; query != nil {
+		if err := _q.loadUsageRecords(ctx, query, nodes,
+			func(n *Sub2APIGroup) { n.Edges.UsageRecords = []*Sub2APIUsageRecord{} },
+			func(n *Sub2APIGroup, e *Sub2APIUsageRecord) { n.Edges.UsageRecords = append(n.Edges.UsageRecords, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *Sub2APIUsageRecordQuery) loadGroup(ctx context.Context, query *Sub2APIGroupQuery, nodes []*Sub2APIUsageRecord, init func(*Sub2APIUsageRecord), assign func(*Sub2APIUsageRecord, *Sub2APIGroup)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*Sub2APIUsageRecord)
+func (_q *Sub2APIGroupQuery) loadUsageRecords(ctx context.Context, query *Sub2APIUsageRecordQuery, nodes []*Sub2APIGroup, init func(*Sub2APIGroup), assign func(*Sub2APIGroup, *Sub2APIUsageRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Sub2APIGroup)
 	for i := range nodes {
-		if nodes[i].GroupID == nil {
-			continue
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		fk := *nodes[i].GroupID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(sub2apiusagerecord.FieldGroupID)
 	}
-	query.Where(sub2apigroup.IDIn(ids...))
+	query.Where(predicate.Sub2APIUsageRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(sub2apigroup.UsageRecordsColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.GroupID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "group_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "group_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
 
-func (_q *Sub2APIUsageRecordQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *Sub2APIGroupQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -443,8 +446,8 @@ func (_q *Sub2APIUsageRecordQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *Sub2APIUsageRecordQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(sub2apiusagerecord.Table, sub2apiusagerecord.Columns, sqlgraph.NewFieldSpec(sub2apiusagerecord.FieldID, field.TypeString))
+func (_q *Sub2APIGroupQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(sub2apigroup.Table, sub2apigroup.Columns, sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -453,14 +456,11 @@ func (_q *Sub2APIUsageRecordQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, sub2apiusagerecord.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, sub2apigroup.FieldID)
 		for i := range fields {
-			if fields[i] != sub2apiusagerecord.FieldID {
+			if fields[i] != sub2apigroup.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withGroup != nil {
-			_spec.Node.AddColumnOnce(sub2apiusagerecord.FieldGroupID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -486,12 +486,12 @@ func (_q *Sub2APIUsageRecordQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *Sub2APIUsageRecordQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *Sub2APIGroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(sub2apiusagerecord.Table)
+	t1 := builder.Table(sub2apigroup.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = sub2apiusagerecord.Columns
+		columns = sub2apigroup.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -518,28 +518,28 @@ func (_q *Sub2APIUsageRecordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// Sub2APIUsageRecordGroupBy is the group-by builder for Sub2APIUsageRecord entities.
-type Sub2APIUsageRecordGroupBy struct {
+// Sub2APIGroupGroupBy is the group-by builder for Sub2APIGroup entities.
+type Sub2APIGroupGroupBy struct {
 	selector
-	build *Sub2APIUsageRecordQuery
+	build *Sub2APIGroupQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *Sub2APIUsageRecordGroupBy) Aggregate(fns ...AggregateFunc) *Sub2APIUsageRecordGroupBy {
+func (_g *Sub2APIGroupGroupBy) Aggregate(fns ...AggregateFunc) *Sub2APIGroupGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *Sub2APIUsageRecordGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *Sub2APIGroupGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*Sub2APIUsageRecordQuery, *Sub2APIUsageRecordGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*Sub2APIGroupQuery, *Sub2APIGroupGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *Sub2APIUsageRecordGroupBy) sqlScan(ctx context.Context, root *Sub2APIUsageRecordQuery, v any) error {
+func (_g *Sub2APIGroupGroupBy) sqlScan(ctx context.Context, root *Sub2APIGroupQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -566,28 +566,28 @@ func (_g *Sub2APIUsageRecordGroupBy) sqlScan(ctx context.Context, root *Sub2APIU
 	return sql.ScanSlice(rows, v)
 }
 
-// Sub2APIUsageRecordSelect is the builder for selecting fields of Sub2APIUsageRecord entities.
-type Sub2APIUsageRecordSelect struct {
-	*Sub2APIUsageRecordQuery
+// Sub2APIGroupSelect is the builder for selecting fields of Sub2APIGroup entities.
+type Sub2APIGroupSelect struct {
+	*Sub2APIGroupQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *Sub2APIUsageRecordSelect) Aggregate(fns ...AggregateFunc) *Sub2APIUsageRecordSelect {
+func (_s *Sub2APIGroupSelect) Aggregate(fns ...AggregateFunc) *Sub2APIGroupSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *Sub2APIUsageRecordSelect) Scan(ctx context.Context, v any) error {
+func (_s *Sub2APIGroupSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*Sub2APIUsageRecordQuery, *Sub2APIUsageRecordSelect](ctx, _s.Sub2APIUsageRecordQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*Sub2APIGroupQuery, *Sub2APIGroupSelect](ctx, _s.Sub2APIGroupQuery, _s, _s.inters, v)
 }
 
-func (_s *Sub2APIUsageRecordSelect) sqlScan(ctx context.Context, root *Sub2APIUsageRecordQuery, v any) error {
+func (_s *Sub2APIGroupSelect) sqlScan(ctx context.Context, root *Sub2APIGroupQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

@@ -3446,7 +3446,9 @@ paths:
             parameters:
                 - name: startTime
                   in: query
-                  description: 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+                  description: |-
+                    统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
+                     start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
                   schema:
                     type: string
                 - name: endTime
@@ -3495,7 +3497,7 @@ paths:
                   in: query
                   description: |-
                     统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
-                     start_time <= 0 时按今日 0 点，end_time <= 0 时按当前时间。
+                     start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
                   schema:
                     type: string
                 - name: endTime
@@ -5234,14 +5236,14 @@ components:
         v1.CreateShareRequest:
             type: object
             properties:
-                paths:
+                items:
                     type: array
                     items:
-                        type: string
-                    description: 要分享的文件/文件夹路径
+                        $ref: '#/components/schemas/v1.ShareItem'
+                    description: 要分享的条目（可跨来源；仅需填 source_id + path，名称/类型/大小由服务端探测）
                 name:
                     type: string
-                    description: 展示名称，空=路径名
+                    description: 展示名称，空=首个条目名
                 code:
                     type: string
                     description: 提取码，空=公开
@@ -5255,9 +5257,6 @@ components:
                 enabled:
                     type: boolean
                     description: 是否启用
-                sourceId:
-                    type: string
-                    description: 文件来源id，空=本地磁盘
             description: 创建分享请求
         v1.CreateShareResponse:
             type: object
@@ -7344,6 +7343,11 @@ components:
             properties:
                 config:
                     $ref: '#/components/schemas/v1.Sub2APIConfig'
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APIGroup'
+                    description: 本地已同步分组（含是否公开），配置页直接渲染勾选。
         v1.GetSub2APIRecentRequestsResponse:
             type: object
             properties:
@@ -8973,11 +8977,11 @@ components:
                 name:
                     type: string
                     description: 展示名称
-                paths:
+                items:
                     type: array
                     items:
-                        type: string
-                    description: 被分享的真实路径
+                        $ref: '#/components/schemas/v1.ShareItem'
+                    description: 被分享的条目（可跨来源，含来源 id）
                 token:
                     type: string
                     description: 公开访问令牌
@@ -9005,10 +9009,28 @@ components:
                     type: string
                     description: 更新时间
                     format: date-time
+            description: 分享信息（仅创建者可见的管理视图，含提取码）
+        v1.ShareItem:
+            type: object
+            properties:
                 sourceId:
                     type: string
                     description: 文件来源id，空=本地磁盘
-            description: 分享信息（仅创建者可见的管理视图，含提取码）
+                path:
+                    type: string
+                    description: 来源内真实路径
+                name:
+                    type: string
+                    description: 展示名（缓存；创建/更新时服务端填充，请求时可留空）
+                isDir:
+                    type: boolean
+                    description: 是否目录（缓存；请求时可留空）
+                size:
+                    type: string
+                    description: 大小（缓存，字节；请求时可留空）
+            description: |-
+                分享条目（可跨来源）。请求时仅需填 source_id + path，名称/类型/大小由服务端创建时 Stat 探测并缓存；
+                 管理视图（ShareInfo）中回传全部字段（含来源 id）。公开访问端另用 ShareEntry，不含来源信息。
         v1.ShareSSHHostRequest:
             type: object
             properties:
@@ -9142,7 +9164,26 @@ components:
                 srcHostWhitelistEnabled:
                     type: boolean
                     description: 是否开启站点白名单校验
+                publicGroups:
+                    type: array
+                    items:
+                        type: string
+                    description: |-
+                        公开页参与统计的分组名称列表（写入分组表 public_enabled，非 KV）。
+                         为空表示不勾选任何分组（公开页统计为空）；由前端勾选后提交。
             description: 仅包含连接与展示配置，公告/时间线为独立资源。
+        v1.Sub2APIGroup:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                publicEnabled:
+                    type: boolean
+                deleted:
+                    type: boolean
+                    description: 上游是否已删除；设置页将多个已删除分组合并为「已删除分组」一项
         v1.Sub2APIHome:
             type: object
             properties:
@@ -9202,6 +9243,8 @@ components:
                 httpStatus:
                     type: integer
                     format: int32
+                groupName:
+                    type: string
         v1.Sub2APIStats:
             type: object
             properties:
@@ -9233,15 +9276,16 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITopItem'
-                endpoints:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.Sub2APITopItem'
                 userAgents:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITopItem'
                     description: UA（User-Agent）维度用量明细，按使用数量降序
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                    description: 分组维度用量明细，按使用数量降序
         v1.Sub2APITimePoint:
             type: object
             properties:
@@ -9364,10 +9408,6 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITrendPoint'
                 modelUsage:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.Sub2APITopItem'
-                endpointUsage:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITopItem'
@@ -10395,14 +10435,11 @@ components:
                 enabled:
                     type: boolean
                     description: 是否启用
-                paths:
+                items:
                     type: array
                     items:
-                        type: string
-                    description: 新的分享内容，空=不修改
-                sourceId:
-                    type: string
-                    description: 新内容的文件来源id（paths 非空时生效）
+                        $ref: '#/components/schemas/v1.ShareItem'
+                    description: 新的分享内容（可跨来源；仅需填 source_id + path），空=不修改
             description: 更新分享请求（全量覆盖可编辑字段）
         v1.UpdateShareResponse:
             type: object

@@ -54,6 +54,20 @@ func (m *Manager) ListUpstreamErrors(ctx context.Context, cfg ClientConfig, opts
 	return decodeUpstreamErrorList(body)
 }
 
+
+// ListGroups 拉取管理端全部活跃分组（不含已软删）。
+func (m *Manager) ListGroups(ctx context.Context, cfg ClientConfig) ([]*Group, error) {
+	endpoint, err := adminURL(cfg.BaseURL, DefaultAdminGroupsPath)
+	if err != nil {
+		return nil, err
+	}
+	body, err := m.doAdminGet(ctx, cfg, endpoint)
+	if err != nil {
+		return nil, err
+	}
+	return decodeGroupList(body)
+}
+
 func applyListQuery(endpoint *url.URL, opts UsageListOptions) {
 	if opts.Page <= 0 {
 		opts.Page = 1

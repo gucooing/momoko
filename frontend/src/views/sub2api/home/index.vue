@@ -109,12 +109,12 @@
             <el-card shadow="never" class="chart-card">
               <template #header
                 ><span class="card-title">{{
-                  t('sub2api.common.endpointRequestTop')
+                  t('sub2api.common.groupRequestTop')
                 }}</span></template
               >
               <VChart
                 class="chart sm"
-                :option="store.adminEndpointOption"
+                :option="store.adminGroupOption"
                 :update-options="chartUpdate"
                 autoresize
               />
@@ -144,6 +144,13 @@
                 show-overflow-tooltip
               >
                 <template #default="{ row }">{{ row.accountName || '-' }}</template>
+              </el-table-column>
+              <el-table-column
+                :label="t('sub2api.common.group')"
+                min-width="110"
+                show-overflow-tooltip
+              >
+                <template #default="{ row }">{{ row.groupName || '-' }}</template>
               </el-table-column>
               <el-table-column :label="t('sub2api.common.status')" width="100">
                 <template #default="{ row }">
@@ -183,6 +190,7 @@
                   }}</strong>
                   <small
                     >{{ row.accountName ? `${row.accountName} · ` : ''
+                    }}{{ row.groupName ? `${row.groupName} · ` : ''
                     }}{{ row.endpoint || '-' }}</small
                   >
                   <small
@@ -218,66 +226,6 @@
             </div>
           </el-card>
         </div>
-      </el-tab-pane>
-
-      <!-- 首页设置 -->
-      <el-tab-pane :label="t('sub2api.common.homeSettings')" name="settings">
-        <el-card shadow="never" class="form-card">
-          <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
-            <el-form-item :label="t('sub2api.admin.enablePublicHome')">
-              <el-switch v-model="form.homeEnabled" />
-              <span class="form-hint">{{ t('sub2api.admin.publicHomeHint') }}</span>
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.siteTitle')">
-              <el-input v-model="form.title" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.subtitleLabel')">
-              <el-input v-model="form.subtitle" />
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.introduction')">
-              <el-input v-model="form.introduction" type="textarea" :rows="3" />
-            </el-form-item>
-            <el-divider content-position="left">{{ t('sub2api.admin.imageGen') }}</el-divider>
-            <el-form-item :label="t('sub2api.admin.enableImageGen')">
-              <el-switch v-model="form.imageEnabled" />
-              <span class="form-hint">{{ t('sub2api.admin.imageGenHint') }}</span>
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.hostWhitelist')">
-              <el-switch v-model="form.srcHostWhitelistEnabled" />
-              <span class="form-hint">{{ t('sub2api.admin.hostWhitelistHint') }}</span>
-            </el-form-item>
-            <el-form-item :label="t('sub2api.admin.allowedHosts')">
-              <div class="host-tags">
-                <el-tag
-                  v-for="(host, i) in form.allowedSrcHosts"
-                  :key="i"
-                  :closable="canEdit"
-                  @close="canEdit && form.allowedSrcHosts.splice(i, 1)"
-                  >{{ host }}</el-tag
-                >
-                <el-input
-                  v-if="hostInputVisible"
-                  ref="hostInputRef"
-                  v-model="hostInputValue"
-                  size="small"
-                  class="host-input"
-                  @keyup.enter="addHost"
-                  @blur="addHost"
-                />
-                <el-button v-else-if="canEdit" size="small" @click="showHostInput">{{
-                  t('sub2api.admin.addHost')
-                }}</el-button>
-              </div>
-            </el-form-item>
-            <el-form-item>
-              <template v-if="canEdit">
-                <el-button type="primary" :loading="store.saving" @click="onSave">{{
-                  t('sub2api.common.saveConfig')
-                }}</el-button>
-              </template>
-            </el-form-item>
-          </el-form>
-        </el-card>
       </el-tab-pane>
 
       <!-- 公告 -->
@@ -545,6 +493,10 @@
           ><span class="v">{{ detailRow.accountName || '-' }}</span>
         </div>
         <div class="detail-row">
+          <span class="k">{{ t('sub2api.common.group') }}</span
+          ><span class="v">{{ detailRow.groupName || '-' }}</span>
+        </div>
+        <div class="detail-row">
           <span class="k">{{ t('sub2api.common.cost') }}</span
           ><span class="v">{{ store.formatCost(detailRow.cost) }}</span>
         </div>
@@ -612,7 +564,7 @@ defineOptions({ name: 'Sub2APIHome' })
 
 const store = useSub2APIStore()
 const router = useRouter()
-const { snapshot, configForm: form } = storeToRefs(store)
+const { snapshot } = storeToRefs(store)
 const { t } = useI18n()
 const canEdit = useButtonPermission([PERM.SUB2API_EDIT], [])
 
@@ -626,9 +578,10 @@ const rangeOptions = computed(() => [
   { label: t('sub2api.common.last24h'), value: '24h' },
   { label: t('sub2api.common.sevenDays'), value: '7d' },
   { label: t('sub2api.common.thirtyDays'), value: '30d' },
+  { label: t('sub2api.common.all'), value: 'all' },
   { label: t('sub2api.common.custom'), value: 'custom' },
 ])
-const rangeKey = ref<'today' | '24h' | '7d' | '30d' | 'custom'>('24h')
+const rangeKey = ref<'today' | '24h' | '7d' | '30d' | 'all' | 'custom'>('24h')
 // 自定义时间段：开始/结束两个单独的 datetime 选择器（精度到分钟）
 const customStart = ref<Date | null>(null)
 const customEnd = ref<Date | null>(null)
@@ -643,7 +596,7 @@ const startOfTodayMs = () => {
 }
 
 // 当前选择对应的时间段 [startTime, endTime]（Unix 毫秒，精度到分钟）。
-// 用函数而非 computed，避免缓存住 Date.now()，每次刷新都按当前时间重新锚定。
+// startTime=0 表示不限制起点（全部）。用函数而非 computed，避免缓存住 Date.now()。
 const resolveRange = (): { startTime: number; endTime: number } => {
   const end = floorMinute(Date.now())
   switch (rangeKey.value) {
@@ -655,6 +608,8 @@ const resolveRange = (): { startTime: number; endTime: number } => {
       return { startTime: end - 7 * 24 * HOUR, endTime: end }
     case '30d':
       return { startTime: end - 30 * 24 * HOUR, endTime: end }
+    case 'all':
+      return { startTime: 0, endTime: end }
     case 'custom':
       if (customStart.value && customEnd.value) {
         let s = floorMinute(customStart.value.getTime())
@@ -726,28 +681,6 @@ const onSync = async (full: boolean) => {
   }
 }
 
-const onSave = async () => {
-  if (!canEdit.value) return
-  const ok = await store.saveConfig()
-  if (ok) ElMessage.success(t('sub2api.common.saved'))
-}
-
-// 允许站点动态 tag 输入
-const hostInputVisible = ref(false)
-const hostInputValue = ref('')
-const hostInputRef = ref<{ focus: () => void } | null>(null)
-const showHostInput = () => {
-  if (!canEdit.value) return
-  hostInputVisible.value = true
-  nextTick(() => hostInputRef.value?.focus())
-}
-const addHost = () => {
-  if (!canEdit.value) return
-  const v = hostInputValue.value.trim().replace(/\/+$/, '')
-  if (v && !form.value.allowedSrcHosts.includes(v)) form.value.allowedSrcHosts.push(v)
-  hostInputVisible.value = false
-  hostInputValue.value = ''
-}
 
 // 公告
 const announcementDialog = ref(false)
@@ -999,17 +932,6 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-}
-
-.form-card {
-  max-width: 720px;
-  border-radius: 12px;
-}
-
-.form-hint {
-  margin-left: 10px;
-  color: var(--el-text-color-placeholder);
-  font-size: 12px;
 }
 
 .list-toolbar {
@@ -1357,51 +1279,6 @@ onMounted(() => {
     gap: 10px;
   }
 
-  .form-card {
-    max-width: none;
-    border-radius: 10px;
-  }
-
-  .form-card :deep(.el-card__body) {
-    padding: 12px;
-  }
-
-  .form-card :deep(.el-form-item) {
-    display: block;
-    margin-bottom: 13px;
-  }
-
-  .form-card :deep(.el-form-item__label) {
-    display: block;
-    width: auto !important;
-    height: auto;
-    margin-bottom: 5px;
-    padding: 0;
-    text-align: left;
-    line-height: 1.4;
-  }
-
-  .form-card :deep(.el-form-item__content) {
-    width: 100%;
-    margin-left: 0 !important;
-    line-height: 32px;
-  }
-
-  .form-card :deep(.el-input),
-  .form-card :deep(.el-textarea),
-  .form-card :deep(.el-input-number),
-  .form-card :deep(.el-date-editor),
-  .form-card :deep(.el-select) {
-    width: 100%;
-  }
-
-  .form-hint {
-    display: block;
-    width: 100%;
-    margin: 4px 0 0;
-    line-height: 1.45;
-  }
-
   .list-toolbar {
     margin-bottom: 8px;
 
@@ -1435,21 +1312,4 @@ onMounted(() => {
   }
 }
 
-/* 生图配置：允许站点动态 tag */
-.form-hint {
-  margin-left: 10px;
-  color: var(--el-text-color-placeholder);
-  font-size: 12px;
-}
-
-.host-tags {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.host-input {
-  width: 220px;
-}
 </style>

@@ -31,6 +31,7 @@ import (
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -91,6 +92,8 @@ type Client struct {
 	SSHHost *SSHHostClient
 	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
+	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
+	Sub2APIGroup *Sub2APIGroupClient
 	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
 	Sub2APITimelineItem *Sub2APITimelineItemClient
 	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
@@ -134,6 +137,7 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(c.config)
+	c.Sub2APIGroup = NewSub2APIGroupClient(c.config)
 	c.Sub2APITimelineItem = NewSub2APITimelineItemClient(c.config)
 	c.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
@@ -252,6 +256,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:                NewRoleClient(cfg),
 		SSHHost:             NewSSHHostClient(cfg),
 		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
+		Sub2APIGroup:        NewSub2APIGroupClient(cfg),
 		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
 		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
 		SystemConfig:        NewSystemConfigClient(cfg),
@@ -297,6 +302,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:                NewRoleClient(cfg),
 		SSHHost:             NewSSHHostClient(cfg),
 		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
+		Sub2APIGroup:        NewSub2APIGroupClient(cfg),
 		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
 		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
 		SystemConfig:        NewSystemConfigClient(cfg),
@@ -336,8 +342,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
 		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -351,8 +357,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
 		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APITimelineItem,
+		c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -401,6 +407,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHHost.mutate(ctx, m)
 	case *Sub2APIAnnouncementMutation:
 		return c.Sub2APIAnnouncement.mutate(ctx, m)
+	case *Sub2APIGroupMutation:
+		return c.Sub2APIGroup.mutate(ctx, m)
 	case *Sub2APITimelineItemMutation:
 		return c.Sub2APITimelineItem.mutate(ctx, m)
 	case *Sub2APIUsageRecordMutation:
@@ -3318,6 +3326,155 @@ func (c *Sub2APIAnnouncementClient) mutate(ctx context.Context, m *Sub2APIAnnoun
 	}
 }
 
+// Sub2APIGroupClient is a client for the Sub2APIGroup schema.
+type Sub2APIGroupClient struct {
+	config
+}
+
+// NewSub2APIGroupClient returns a client for the Sub2APIGroup from the given config.
+func NewSub2APIGroupClient(c config) *Sub2APIGroupClient {
+	return &Sub2APIGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sub2apigroup.Hooks(f(g(h())))`.
+func (c *Sub2APIGroupClient) Use(hooks ...Hook) {
+	c.hooks.Sub2APIGroup = append(c.hooks.Sub2APIGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sub2apigroup.Intercept(f(g(h())))`.
+func (c *Sub2APIGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Sub2APIGroup = append(c.inters.Sub2APIGroup, interceptors...)
+}
+
+// Create returns a builder for creating a Sub2APIGroup entity.
+func (c *Sub2APIGroupClient) Create() *Sub2APIGroupCreate {
+	mutation := newSub2APIGroupMutation(c.config, OpCreate)
+	return &Sub2APIGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Sub2APIGroup entities.
+func (c *Sub2APIGroupClient) CreateBulk(builders ...*Sub2APIGroupCreate) *Sub2APIGroupCreateBulk {
+	return &Sub2APIGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *Sub2APIGroupClient) MapCreateBulk(slice any, setFunc func(*Sub2APIGroupCreate, int)) *Sub2APIGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &Sub2APIGroupCreateBulk{err: fmt.Errorf("calling to Sub2APIGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*Sub2APIGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &Sub2APIGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Sub2APIGroup.
+func (c *Sub2APIGroupClient) Update() *Sub2APIGroupUpdate {
+	mutation := newSub2APIGroupMutation(c.config, OpUpdate)
+	return &Sub2APIGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *Sub2APIGroupClient) UpdateOne(_m *Sub2APIGroup) *Sub2APIGroupUpdateOne {
+	mutation := newSub2APIGroupMutation(c.config, OpUpdateOne, withSub2APIGroup(_m))
+	return &Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *Sub2APIGroupClient) UpdateOneID(id string) *Sub2APIGroupUpdateOne {
+	mutation := newSub2APIGroupMutation(c.config, OpUpdateOne, withSub2APIGroupID(id))
+	return &Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Sub2APIGroup.
+func (c *Sub2APIGroupClient) Delete() *Sub2APIGroupDelete {
+	mutation := newSub2APIGroupMutation(c.config, OpDelete)
+	return &Sub2APIGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *Sub2APIGroupClient) DeleteOne(_m *Sub2APIGroup) *Sub2APIGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *Sub2APIGroupClient) DeleteOneID(id string) *Sub2APIGroupDeleteOne {
+	builder := c.Delete().Where(sub2apigroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &Sub2APIGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for Sub2APIGroup.
+func (c *Sub2APIGroupClient) Query() *Sub2APIGroupQuery {
+	return &Sub2APIGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSub2APIGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Sub2APIGroup entity by its id.
+func (c *Sub2APIGroupClient) Get(ctx context.Context, id string) (*Sub2APIGroup, error) {
+	return c.Query().Where(sub2apigroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *Sub2APIGroupClient) GetX(ctx context.Context, id string) *Sub2APIGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsageRecords queries the usage_records edge of a Sub2APIGroup.
+func (c *Sub2APIGroupClient) QueryUsageRecords(_m *Sub2APIGroup) *Sub2APIUsageRecordQuery {
+	query := (&Sub2APIUsageRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(sub2apigroup.Table, sub2apigroup.FieldID, id),
+			sqlgraph.To(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, sub2apigroup.UsageRecordsTable, sub2apigroup.UsageRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *Sub2APIGroupClient) Hooks() []Hook {
+	return c.hooks.Sub2APIGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *Sub2APIGroupClient) Interceptors() []Interceptor {
+	return c.inters.Sub2APIGroup
+}
+
+func (c *Sub2APIGroupClient) mutate(ctx context.Context, m *Sub2APIGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&Sub2APIGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&Sub2APIGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&Sub2APIGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Sub2APIGroup mutation op: %q", m.Op())
+	}
+}
+
 // Sub2APITimelineItemClient is a client for the Sub2APITimelineItem schema.
 type Sub2APITimelineItemClient struct {
 	config
@@ -3557,6 +3714,22 @@ func (c *Sub2APIUsageRecordClient) GetX(ctx context.Context, id string) *Sub2API
 		panic(err)
 	}
 	return obj
+}
+
+// QueryGroup queries the group edge of a Sub2APIUsageRecord.
+func (c *Sub2APIUsageRecordClient) QueryGroup(_m *Sub2APIUsageRecord) *Sub2APIGroupQuery {
+	query := (&Sub2APIGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID, id),
+			sqlgraph.To(sub2apigroup.Table, sub2apigroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, sub2apiusagerecord.GroupTable, sub2apiusagerecord.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -4170,15 +4343,15 @@ type (
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
-		SystemConfig, Task, User, UserAPIKey []ent.Hook
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APITimelineItem,
+		Sub2APIUsageRecord, SystemConfig, Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APITimelineItem, Sub2APIUsageRecord,
-		SystemConfig, Task, User, UserAPIKey []ent.Interceptor
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APITimelineItem,
+		Sub2APIUsageRecord, SystemConfig, Task, User, UserAPIKey []ent.Interceptor
 	}
 )
 

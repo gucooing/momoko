@@ -22,14 +22,14 @@ const (
 )
 
 // BuildSnapshot 聚合本地使用记录，构造完整的用量快照（含派生指标）。
-// 整段只读取一次记录：全量统计、窗口趋势/排行、今日曲线与最近请求都在内存中算出，
-// 把原先一个首页数十次的聚合查询降到一次。
-func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, state SyncState) (*v1.Sub2APIUsageSnapshot, error) {
+// publicOnly=true 时由数据层在 SQL 侧仅返回公开启用分组的记录（公开页全局统一）。
+// 整段只读取一次记录：全量统计、窗口趋势/排行、今日曲线与最近请求都在内存中算出。
+func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, state SyncState, publicOnly bool) (*v1.Sub2APIUsageSnapshot, error) {
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	windowStart := todayStart.AddDate(0, 0, -int(cfg.HistoryDays)+1)
 
-	records, err := store.RecordsSince(ctx, nil)
+	records, err := store.RecordsSince(ctx, nil, publicOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,6 @@ func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig,
 		GeneratedAt:           timestamppb.New(now),
 		Trend:                 buildTrend(windowRecords, windowStart, cfg.HistoryDays),
 		ModelUsage:            buildTopItems(windowRecords, GroupByModel, topItemsLimit),
-		EndpointUsage:         buildTopItems(windowRecords, GroupByEndpoint, topItemsLimit),
 		RecentRequests:        buildRecentRequests(records),
 		RecentTps:             tps,
 		RecentQps:             0,
@@ -77,27 +76,38 @@ func BuildSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig,
 	}, nil
 }
 
+
+// BuildPublicSnapshot 公开页快照：DB 侧按 public_enabled 分组过滤后聚合，并脱敏。
+func BuildPublicSnapshot(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, state SyncState) (*v1.Sub2APIUsageSnapshot, error) {
+	snapshot, err := BuildSnapshot(ctx, store, cfg, state, true)
+	if err != nil {
+		return nil, err
+	}
+	StripForPublic(snapshot)
+	return snapshot, nil
+}
+
+
 // StripForPublic 移除公开首页不需要的明细，避免泄露逐条请求信息。
 func StripForPublic(snapshot *v1.Sub2APIUsageSnapshot) {
 	if snapshot == nil {
 		return
 	}
 	snapshot.RecentRequests = nil
-	snapshot.EndpointUsage = nil
 	for _, item := range snapshot.Trend {
 		item.AverageLatencyMs = 0
 	}
 }
 
-// BuildStats 聚合指定时间区间（今日/最近 N 天）的用量统计，按模型/接口拆分。
-// 区间记录只读取一次，汇总、趋势、模型/接口排行都在内存中算出。
+// BuildStats 聚合指定时间区间（今日/最近 N 天）的用量统计，按模型/分组/UA 拆分。
+// 区间记录只读取一次，汇总、趋势与排行都在内存中算出。
 func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, rangeDays int32) (*v1.Sub2APIStats, error) {
 	days := normalizeRangeDays(rangeDays, cfg.HistoryDays)
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	start := todayStart.AddDate(0, 0, -(int(days) - 1))
 
-	records, err := store.RecordsSince(ctx, &start)
+	records, err := store.RecordsSince(ctx, &start, true)
 	if err != nil {
 		return nil, err
 	}
@@ -122,19 +132,23 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		AverageTps:       totals.AverageTPS,
 		Trend:            trend,
 		Models:           buildTopItems(records, GroupByModel, 0),
-		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
 		UserAgents:       buildTopItems(records, GroupByUserAgent, 0),
+		Groups:           buildTopItems(records, GroupByGroup, 0),
 	}, nil
 }
 
-// normalizeRange 归一化管理端时间段：end 缺省/超前取“现在”，
-// start 缺省/越界取今日 0 点（必要时回退到 end 前 1 小时）。
+// normalizeRange 归一化管理端时间段：
+// end 缺省/超前取“现在”；start 为零表示不限制起点（全部）；
+// start 非零但 >= end 时回退到今日 0 点（必要时 end 前 1 小时）。
 func normalizeRange(start, end time.Time) (time.Time, time.Time) {
 	now := time.Now()
 	if end.IsZero() || end.After(now) {
 		end = now
 	}
-	if start.IsZero() || !start.Before(end) {
+	if start.IsZero() {
+		return start, end
+	}
+	if !start.Before(end) {
 		start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 		if !start.Before(end) {
 			start = end.Add(-time.Hour)
@@ -144,23 +158,40 @@ func normalizeRange(start, end time.Time) (time.Time, time.Time) {
 }
 
 // BuildRangeStats 聚合管理端用量概览：统计指定时间段 [start, end] 内的汇总指标、
-// 趋势、模型/接口排行。区间记录只读取一次，全部在内存中算出。
+// 趋势、模型/分组/UA 排行。区间记录只读取一次，全部在内存中算出。
 // 时间段精度到分钟；区间 <=24h 按日内分桶，否则按自然日分桶。
 // 最近请求改由 RecentRequests 分页返回，不在此聚合。
 func BuildRangeStats(ctx context.Context, store UsageStore, start, end time.Time) (*v1.Sub2APIStats, error) {
 	start, end = normalizeRange(start, end)
 	now := time.Now()
 
-	records, err := store.RecordsSince(ctx, &start)
+	var startPtr *time.Time
+	if !start.IsZero() {
+		startPtr = &start
+	}
+	records, err := store.RecordsSince(ctx, startPtr, false)
 	if err != nil {
 		return nil, err
 	}
 	records = recordsUntil(records, end)
 	totals := totalsFromRecords(records)
 
-	// 区间 <=24h 时按时间分桶展示日内趋势，否则按天展示，避免长区间点位过密。
+	// 无起点（全部）或跨度 >24h 按天分桶；短区间按日内分桶。
 	var trend []*v1.Sub2APITrendPoint
-	if end.Sub(start) <= time.Duration(minutesPerDay)*time.Minute {
+	if start.IsZero() {
+		if len(records) == 0 {
+			trend = nil
+		} else {
+			first := records[0].RequestTime
+			startDay := time.Date(first.Year(), first.Month(), first.Day(), 0, 0, 0, 0, first.Location())
+			endDay := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, end.Location())
+			days := int32(endDay.Sub(startDay).Hours()/24) + 1
+			if days < 1 {
+				days = 1
+			}
+			trend = buildTrend(records, startDay, days)
+		}
+	} else if end.Sub(start) <= time.Duration(minutesPerDay)*time.Minute {
 		trend = buildIntradayTrend(records)
 	} else {
 		startDay := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
@@ -179,8 +210,8 @@ func BuildRangeStats(ctx context.Context, store UsageStore, start, end time.Time
 		AverageTps:       totals.AverageTPS,
 		Trend:            trend,
 		Models:           buildTopItems(records, GroupByModel, 0),
-		Endpoints:        buildTopItems(records, GroupByEndpoint, 0),
 		UserAgents:       buildTopItems(records, GroupByUserAgent, 0),
+		Groups:           buildTopItems(records, GroupByGroup, 0),
 	}
 	return stats, nil
 }
@@ -194,8 +225,11 @@ func recordsUntil(records []*UsageRecord, end time.Time) []*UsageRecord {
 }
 
 // rangeStatsLabel 为时间段生成简洁中文标签：区间截止到“现在”时用相对描述（今日/近 N 小时/近 N 天），
-// 否则展示具体的日期区间。
+// 否则展示具体的日期区间。start 为零表示全部。
 func rangeStatsLabel(start, end, now time.Time) string {
+	if start.IsZero() {
+		return "全部"
+	}
 	if end.Before(now.Add(-2 * time.Minute)) {
 		return start.Format("01-02 15:04") + " ~ " + end.Format("01-02 15:04")
 	}
@@ -235,6 +269,8 @@ func rangeLabel(days int32) string {
 	}
 	return "最近 " + strconv.FormatInt(int64(days), 10) + " 天"
 }
+
+
 
 // recordsFrom 返回 records 中 RequestTime >= start 的尾部切片（records 已按时间升序）。
 func recordsFrom(records []*UsageRecord, start time.Time) []*UsageRecord {
@@ -338,10 +374,10 @@ func buildTopItems(records []*UsageRecord, field GroupField, limit int) []*v1.Su
 	for _, rec := range records {
 		name := rec.Model
 		switch field {
-		case GroupByEndpoint:
-			name = rec.Endpoint
 		case GroupByUserAgent:
 			name = rec.UserAgent
+		case GroupByGroup:
+			name = rec.GroupName
 		}
 		if name == "" {
 			continue // 排除分组维度为空的记录，避免上游错误等无模型记录污染统计
@@ -425,6 +461,7 @@ func toRecentRequest(record *UsageRecord) *v1.Sub2APIRecentRequest {
 		AccountName:     record.AccountName,
 		ErrorMessage:    record.ErrorMessage,
 		HttpStatus:      int32(record.HTTPStatus),
+		GroupName:       record.GroupName,
 	}
 }
 

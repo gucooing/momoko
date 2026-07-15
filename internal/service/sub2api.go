@@ -31,7 +31,23 @@ func (s *Sub2APIService) GetSub2APIConfig(ctx context.Context, _ *v1.GetSub2APIC
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetSub2APIConfigResponse{Config: config}, nil
+	groups, err := s.uc.ListGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.Sub2APIGroup, 0, len(groups))
+	for _, g := range groups {
+		if g == nil {
+			continue
+		}
+		out = append(out, &v1.Sub2APIGroup{
+			Id:            g.ID,
+			Name:          g.Name,
+			PublicEnabled: g.PublicEnabled,
+			Deleted:       g.Deleted,
+		})
+	}
+	return &v1.GetSub2APIConfigResponse{Config: config, Groups: out}, nil
 }
 
 func (s *Sub2APIService) UpdateSub2APIConfig(ctx context.Context, req *v1.UpdateSub2APIConfigRequest) (*v1.UpdateSub2APIConfigResponse, error) {

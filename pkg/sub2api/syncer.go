@@ -87,6 +87,15 @@ func (s *Syncer) Sync(ctx context.Context, cfg ClientConfig, store UsageStore, o
 		return result, err
 	}
 
+	// 同步分组：以管理端存活列表为准，本地多出的标 deleted。
+	live, gerr := s.manager.ListGroups(ctx, cfg)
+	if gerr != nil {
+		return result, gerr
+	}
+	if err := store.SyncGroups(ctx, live); err != nil {
+		return result, err
+	}
+
 	if result.LatestRecordTime == nil {
 		latest, err := store.LatestUsageRecordTime(ctx)
 		if err != nil {

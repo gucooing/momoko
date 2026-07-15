@@ -10,40 +10,133 @@
       </el-tag>
     </header>
 
-    <el-card shadow="never" class="form-card">
-      <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
-        <el-form-item :label="t('sub2api.admin.autoSync')">
-          <el-switch v-model="form.syncEnabled" />
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.baseUrl')">
-          <el-input v-model="form.baseUrl" placeholder="https://your-sub2api.example.com" />
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.adminApiKey')">
-          <el-input v-model="form.adminApiKey" type="password" show-password placeholder="sk-..." />
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.consoleUrl')">
-          <el-input v-model="form.consoleUrl" placeholder="https://your-sub2api.example.com" />
-          <span class="form-hint">{{ t('sub2api.admin.consoleUrlHint') }}</span>
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.syncInterval')">
-          <el-input-number v-model="form.syncIntervalMinutes" :min="1" :max="1440" />
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.historyDays')">
-          <el-input-number v-model="form.historyDays" :min="1" :max="365" />
-        </el-form-item>
-        <el-form-item :label="t('sub2api.admin.pageSize')">
-          <el-input-number v-model="form.pageSize" :min="50" :max="1000" :step="50" />
-        </el-form-item>
-        <el-form-item v-if="canEdit">
-          <el-button :loading="store.testing" @click="onTest">{{
-            t('sub2api.common.testConnection')
-          }}</el-button>
-          <el-button type="primary" :loading="store.saving" @click="onSave">{{
-            t('sub2api.common.saveConfig')
-          }}</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <el-tabs v-model="activeTab" class="config-tabs">
+      <!-- 连接配置 -->
+      <el-tab-pane :label="t('sub2api.common.connectionConfig')" name="connection">
+        <el-card shadow="never" class="form-card">
+          <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
+            <el-form-item :label="t('sub2api.admin.autoSync')">
+              <el-switch v-model="form.syncEnabled" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.baseUrl')">
+              <el-input v-model="form.baseUrl" placeholder="https://your-sub2api.example.com" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.adminApiKey')">
+              <el-input
+                v-model="form.adminApiKey"
+                type="password"
+                show-password
+                placeholder="sk-..."
+              />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.consoleUrl')">
+              <el-input v-model="form.consoleUrl" placeholder="https://your-sub2api.example.com" />
+              <span class="form-hint">{{ t('sub2api.admin.consoleUrlHint') }}</span>
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.syncInterval')">
+              <el-input-number v-model="form.syncIntervalMinutes" :min="1" :max="1440" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.historyDays')">
+              <el-input-number v-model="form.historyDays" :min="1" :max="365" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.pageSize')">
+              <el-input-number v-model="form.pageSize" :min="50" :max="1000" :step="50" />
+            </el-form-item>
+            <el-form-item v-if="canEdit">
+              <el-button :loading="store.testing" @click="onTest">{{
+                t('sub2api.common.testConnection')
+              }}</el-button>
+              <el-button type="primary" :loading="store.saving" @click="onSave">{{
+                t('sub2api.common.saveConfig')
+              }}</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-tab-pane>
+
+      <!-- 首页设置 -->
+      <el-tab-pane :label="t('sub2api.common.homeSettings')" name="home">
+        <el-card shadow="never" class="form-card">
+          <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
+            <el-form-item :label="t('sub2api.admin.enablePublicHome')">
+              <el-switch v-model="form.homeEnabled" />
+              <span class="form-hint">{{ t('sub2api.admin.publicHomeHint') }}</span>
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.siteTitle')">
+              <el-input v-model="form.title" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.subtitleLabel')">
+              <el-input v-model="form.subtitle" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.introduction')">
+              <el-input v-model="form.introduction" type="textarea" :rows="3" />
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.publicGroups')">
+              <div class="group-picker">
+                <el-checkbox-group v-model="form.publicGroups" class="group-checkboxes">
+                  <el-checkbox v-for="name in groupOptions" :key="name" :label="name">
+                    {{ groupLabel(name) }}
+                  </el-checkbox>
+                </el-checkbox-group>
+                <p v-if="!groupOptions.length" class="form-empty">
+                  {{ t('sub2api.admin.noSyncedGroups') }}
+                </p>
+                <span class="form-hint block">{{ t('sub2api.admin.publicGroupsHint') }}</span>
+              </div>
+            </el-form-item>
+            <el-form-item v-if="canEdit">
+              <el-button type="primary" :loading="store.saving" @click="onSave">{{
+                t('sub2api.common.saveConfig')
+              }}</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-tab-pane>
+
+      <!-- 生图设置 -->
+      <el-tab-pane :label="t('sub2api.common.imageSettings')" name="image">
+        <el-card shadow="never" class="form-card">
+          <el-form :model="form" label-width="130px" label-position="right" :disabled="!canEdit">
+            <el-form-item :label="t('sub2api.admin.enableImageGen')">
+              <el-switch v-model="form.imageEnabled" />
+              <span class="form-hint">{{ t('sub2api.admin.imageGenHint') }}</span>
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.hostWhitelist')">
+              <el-switch v-model="form.srcHostWhitelistEnabled" />
+              <span class="form-hint">{{ t('sub2api.admin.hostWhitelistHint') }}</span>
+            </el-form-item>
+            <el-form-item :label="t('sub2api.admin.allowedHosts')">
+              <div class="host-tags">
+                <el-tag
+                  v-for="(host, i) in form.allowedSrcHosts"
+                  :key="i"
+                  :closable="canEdit"
+                  @close="canEdit && form.allowedSrcHosts.splice(i, 1)"
+                  >{{ host }}</el-tag
+                >
+                <el-input
+                  v-if="hostInputVisible"
+                  ref="hostInputRef"
+                  v-model="hostInputValue"
+                  size="small"
+                  class="host-input"
+                  @keyup.enter="addHost"
+                  @blur="addHost"
+                />
+                <el-button v-else-if="canEdit" size="small" @click="showHostInput">{{
+                  t('sub2api.admin.addHost')
+                }}</el-button>
+              </div>
+            </el-form-item>
+            <el-form-item v-if="canEdit">
+              <el-button type="primary" :loading="store.saving" @click="onSave">{{
+                t('sub2api.common.saveConfig')
+              }}</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -57,9 +150,23 @@ import { useSub2APIStore } from '@/stores/sub2api'
 defineOptions({ name: 'Sub2APIConfig' })
 
 const store = useSub2APIStore()
-const { snapshot, configForm: form } = storeToRefs(store)
+const { snapshot, configForm: form, groups } = storeToRefs(store)
 const { t } = useI18n()
 const canEdit = useButtonPermission([PERM.SUB2API_EDIT], [])
+
+const activeTab = ref('connection')
+
+const DELETED_GROUP_KEY = '__deleted__'
+// 活跃分组逐项展示；已删除合并为单一选项
+const groupOptions = computed(() => {
+  const active = (groups.value || [])
+    .filter((g) => g && !g.deleted && g.name)
+    .map((g) => g.name)
+  const hasDeleted = (groups.value || []).some((g) => g?.deleted)
+  return hasDeleted ? [...active, DELETED_GROUP_KEY] : active
+})
+const groupLabel = (name: string) =>
+  name === DELETED_GROUP_KEY ? t('sub2api.admin.deletedGroups') : name
 
 const onTest = async () => {
   if (!canEdit.value) return
@@ -73,6 +180,23 @@ const onSave = async () => {
   if (!canEdit.value) return
   const ok = await store.saveConfig()
   if (ok) ElMessage.success(t('sub2api.common.saved'))
+}
+
+// 允许站点动态 tag 输入
+const hostInputVisible = ref(false)
+const hostInputValue = ref('')
+const hostInputRef = ref<{ focus: () => void } | null>(null)
+const showHostInput = () => {
+  if (!canEdit.value) return
+  hostInputVisible.value = true
+  nextTick(() => hostInputRef.value?.focus())
+}
+const addHost = () => {
+  if (!canEdit.value) return
+  const v = hostInputValue.value.trim().replace(/\/+$/, '')
+  if (v && !form.value.allowedSrcHosts.includes(v)) form.value.allowedSrcHosts.push(v)
+  hostInputVisible.value = false
+  hostInputValue.value = ''
 }
 
 onMounted(() => {
@@ -116,6 +240,40 @@ onMounted(() => {
   margin-left: 10px;
   color: var(--el-text-color-placeholder);
   font-size: 12px;
+
+  &.block {
+    display: block;
+    margin: 8px 0 0;
+    margin-left: 0;
+    line-height: 1.45;
+  }
+}
+
+.form-empty {
+  margin: 0;
+  color: var(--el-text-color-placeholder);
+  font-size: 12px;
+}
+
+.group-picker {
+  width: 100%;
+}
+
+.group-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.host-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.host-input {
+  width: 220px;
 }
 
 @media (max-width: 640px) {
@@ -153,6 +311,14 @@ onMounted(() => {
     display: block;
     width: 100%;
     margin: 4px 0 0;
+
+    &.block {
+      margin-top: 8px;
+    }
+  }
+
+  .host-input {
+    width: 100%;
   }
 }
 </style>

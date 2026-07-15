@@ -102,11 +102,11 @@
           </div>
         </article>
 
-        <article v-if="endpoints.length" class="panel">
-          <div class="panel-head"><h3>{{ t('sub2api.stats.endpointDetails') }}</h3></div>
-          <el-table class="desktop-table" :data="endpoints" :max-height="288" stripe>
+        <article v-if="groups.length" class="panel">
+          <div class="panel-head"><h3>{{ t('sub2api.stats.groupDetails') }}</h3></div>
+          <el-table class="desktop-table" :data="groups" :max-height="288" stripe>
             <el-table-column type="index" label="#" width="56" />
-            <el-table-column prop="name" :label="t('sub2api.common.endpoint')" min-width="220" show-overflow-tooltip />
+            <el-table-column prop="name" :label="t('sub2api.common.group')" min-width="220" show-overflow-tooltip />
             <el-table-column :label="t('sub2api.common.requestCount')" width="120">
               <template #default="{ row }">{{ store.formatNumber(row.requestCount) }}</template>
             </el-table-column>
@@ -118,18 +118,18 @@
             </el-table-column>
           </el-table>
           <div class="mobile-detail-list">
-            <article v-for="(row, i) in endpoints" :key="row.name || i" class="detail-rank-row">
+            <article v-for="(row, i) in groups" :key="row.name || i" class="detail-rank-row">
               <span class="detail-index">{{ i + 1 }}</span>
               <div class="detail-rank-body">
                 <div class="detail-rank-line">
-                  <strong>{{ row.name || t('sub2api.common.unknownEndpoint') }}</strong>
+                  <strong>{{ row.name || t('sub2api.common.unknownGroup') }}</strong>
                   <span
                     >{{ t('sub2api.common.countTimes', { count: store.formatNumber(row.requestCount) }) }} ·
                     {{ store.formatToken(row.tokenCount) }}</span
                   >
                 </div>
                 <div class="detail-bar">
-                  <i :style="{ width: endpointBarWidth(row.tokenCount) }" />
+                  <i :style="{ width: groupBarWidth(row.tokenCount) }" />
                 </div>
               </div>
               <span class="detail-rate"
@@ -221,8 +221,8 @@ const models = computed(() =>
     (a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0),
   ),
 )
-const endpoints = computed(() =>
-  [...(stats.value?.endpoints || [])].sort(
+const groups = computed(() =>
+  [...(stats.value?.groups || [])].sort(
     (a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0),
   ),
 )
@@ -239,16 +239,16 @@ const title = computed(() => store.home?.title || 'Sub2API')
 const maxModelToken = computed(() =>
   Math.max(...models.value.map((item) => Number(item.tokenCount) || 0), 1),
 )
-const maxEndpointToken = computed(() =>
-  Math.max(...endpoints.value.map((item) => Number(item.tokenCount) || 0), 1),
+const maxGroupToken = computed(() =>
+  Math.max(...groups.value.map((item) => Number(item.tokenCount) || 0), 1),
 )
 const maxUaCount = computed(() =>
   Math.max(...userAgents.value.map((item) => Number(item.requestCount) || 0), 1),
 )
 const modelBarWidth = (token: unknown) =>
   `${Math.max(((Number(token) || 0) / maxModelToken.value) * 100, 4)}%`
-const endpointBarWidth = (token: unknown) =>
-  `${Math.max(((Number(token) || 0) / maxEndpointToken.value) * 100, 4)}%`
+const groupBarWidth = (token: unknown) =>
+  `${Math.max(((Number(token) || 0) / maxGroupToken.value) * 100, 4)}%`
 const uaBarWidth = (count: unknown) =>
   `${Math.max(((Number(count) || 0) / maxUaCount.value) * 100, 4)}%`
 

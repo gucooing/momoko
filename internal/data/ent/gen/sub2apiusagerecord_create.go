@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"time"
 
@@ -87,6 +88,34 @@ func (_c *Sub2APIUsageRecordCreate) SetEndpoint(v string) *Sub2APIUsageRecordCre
 func (_c *Sub2APIUsageRecordCreate) SetNillableEndpoint(v *string) *Sub2APIUsageRecordCreate {
 	if v != nil {
 		_c.SetEndpoint(*v)
+	}
+	return _c
+}
+
+// SetGroupID sets the "group_id" field.
+func (_c *Sub2APIUsageRecordCreate) SetGroupID(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetGroupID(v)
+	return _c
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableGroupID(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetGroupID(*v)
+	}
+	return _c
+}
+
+// SetGroupName sets the "group_name" field.
+func (_c *Sub2APIUsageRecordCreate) SetGroupName(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetGroupName(v)
+	return _c
+}
+
+// SetNillableGroupName sets the "group_name" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableGroupName(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetGroupName(*v)
 	}
 	return _c
 }
@@ -279,6 +308,11 @@ func (_c *Sub2APIUsageRecordCreate) SetID(v string) *Sub2APIUsageRecordCreate {
 	return _c
 }
 
+// SetGroup sets the "group" edge to the Sub2APIGroup entity.
+func (_c *Sub2APIUsageRecordCreate) SetGroup(v *Sub2APIGroup) *Sub2APIUsageRecordCreate {
+	return _c.SetGroupID(v.ID)
+}
+
 // Mutation returns the Sub2APIUsageRecordMutation object of the builder.
 func (_c *Sub2APIUsageRecordCreate) Mutation() *Sub2APIUsageRecordMutation {
 	return _c.mutation
@@ -459,6 +493,10 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 		_spec.SetField(sub2apiusagerecord.FieldEndpoint, field.TypeString, value)
 		_node.Endpoint = value
 	}
+	if value, ok := _c.mutation.GroupName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldGroupName, field.TypeString, value)
+		_node.GroupName = value
+	}
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
 		_node.UserAgent = value
@@ -510,6 +548,23 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 	if value, ok := _c.mutation.HTTPStatus(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldHTTPStatus, field.TypeInt, value)
 		_node.HTTPStatus = value
+	}
+	if nodes := _c.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   sub2apiusagerecord.GroupTable,
+			Columns: []string{sub2apiusagerecord.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sub2apigroup.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.GroupID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -632,6 +687,42 @@ func (u *Sub2APIUsageRecordUpsert) UpdateEndpoint() *Sub2APIUsageRecordUpsert {
 // ClearEndpoint clears the value of the "endpoint" field.
 func (u *Sub2APIUsageRecordUpsert) ClearEndpoint() *Sub2APIUsageRecordUpsert {
 	u.SetNull(sub2apiusagerecord.FieldEndpoint)
+	return u
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *Sub2APIUsageRecordUpsert) SetGroupID(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldGroupID, v)
+	return u
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateGroupID() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldGroupID)
+	return u
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (u *Sub2APIUsageRecordUpsert) ClearGroupID() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldGroupID)
+	return u
+}
+
+// SetGroupName sets the "group_name" field.
+func (u *Sub2APIUsageRecordUpsert) SetGroupName(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldGroupName, v)
+	return u
+}
+
+// UpdateGroupName sets the "group_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateGroupName() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldGroupName)
+	return u
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (u *Sub2APIUsageRecordUpsert) ClearGroupName() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldGroupName)
 	return u
 }
 
@@ -995,6 +1086,48 @@ func (u *Sub2APIUsageRecordUpsertOne) UpdateEndpoint() *Sub2APIUsageRecordUpsert
 func (u *Sub2APIUsageRecordUpsertOne) ClearEndpoint() *Sub2APIUsageRecordUpsertOne {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearEndpoint()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetGroupID(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateGroupID() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateGroupID()
+	})
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearGroupID() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearGroupID()
+	})
+}
+
+// SetGroupName sets the "group_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetGroupName(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetGroupName(v)
+	})
+}
+
+// UpdateGroupName sets the "group_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateGroupName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateGroupName()
+	})
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearGroupName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearGroupName()
 	})
 }
 
@@ -1563,6 +1696,48 @@ func (u *Sub2APIUsageRecordUpsertBulk) UpdateEndpoint() *Sub2APIUsageRecordUpser
 func (u *Sub2APIUsageRecordUpsertBulk) ClearEndpoint() *Sub2APIUsageRecordUpsertBulk {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearEndpoint()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetGroupID(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateGroupID() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateGroupID()
+	})
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearGroupID() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearGroupID()
+	})
+}
+
+// SetGroupName sets the "group_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetGroupName(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetGroupName(v)
+	})
+}
+
+// UpdateGroupName sets the "group_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateGroupName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateGroupName()
+	})
+}
+
+// ClearGroupName clears the value of the "group_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearGroupName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearGroupName()
 	})
 }
 
