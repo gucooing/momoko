@@ -1,7 +1,12 @@
-<!-- 详细档案：只读 DescriptionList + 中性标签 chips -->
+<!-- 详细档案：顶栏横铺（horizontal）或侧栏单列；只读 DescriptionList + 标签 -->
 <template>
-  <AppPanel :title="t('user.detailArchive')" title-icon="HOutline:IdentificationIcon">
-    <DescriptionList :items="archiveItems" :columns="1" />
+  <AppPanel
+    :title="t('user.detailArchive')"
+    title-icon="HOutline:IdentificationIcon"
+    class="archive"
+    :class="{ 'archive--horizontal': horizontal }"
+  >
+    <DescriptionList :items="archiveItems" :columns="listColumns" />
 
     <div class="archive-tags">
       <div class="archive-tags__label">{{ t('user.personalTags') }}</div>
@@ -18,7 +23,16 @@ import dayjs from 'dayjs'
 import { UserStatus } from '@/types/v1/user'
 import { useI18n } from 'vue-i18n'
 
+const props = withDefaults(
+  defineProps<{
+    /** 顶栏横铺：多列；侧栏竖排：1 列 */
+    horizontal?: boolean
+  }>(),
+  { horizontal: false },
+)
+
 const userStore = useUserStore()
+const menuStore = useMenuStore()
 const { t } = useI18n()
 
 const createTimeText = computed(() => {
@@ -38,6 +52,13 @@ const archiveItems = computed(() => [
   { label: t('user.joinTime'), value: createTimeText.value },
 ])
 
+const listColumns = computed(() => {
+  if (!props.horizontal) return 1
+  // 横铺：宽屏 3～4 列，窄屏 1～2 列
+  if (menuStore.isMobile) return 1
+  return 3
+})
+
 const tagNames = computed(() => {
   const raw = userStore.userInfo?.tags?.trim()
   if (!raw) return [] as string[]
@@ -49,16 +70,23 @@ const tagNames = computed(() => {
 </script>
 
 <style scoped lang="scss">
+.archive {
+  width: 100%;
+  min-width: 0;
+}
+.archive--horizontal :deep(.app-panel__body) {
+  padding-bottom: 16px;
+}
 .archive-tags {
-  margin-top: 1rem;
-  padding-top: 0.85rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .archive-tags__label {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--el-text-color-secondary);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.4rem;
 }
 .archive-tags__list {
   display: flex;

@@ -1,76 +1,86 @@
-<!-- 登录日志：DataTable / 移动卡 + Pagination + 详情 FormDialog -->
+<!-- 登录日志：桌面 DataTable 紧凑行；移动同密度列表行（非大卡）。详情 FormDialog。 -->
 <template>
-  <AppPanel :title="t('user.tabs.logs')" title-icon="HOutline:ClockIcon">
-    <div class="logs-bar">
-      <span class="logs-bar__hint">
-        {{ t('system.common.total', { total: loginLogsPagination.total }) }}
-      </span>
+  <AppPanel :title="t('user.tabs.logs')" title-icon="HOutline:ClockIcon" :padded="false">
+    <template #actions>
+      <span class="logs-total">{{ t('system.common.total', { total: loginLogsPagination.total }) }}</span>
+    </template>
+
+    <!-- 桌面：表 -->
+    <div v-if="!menuStore.isMobile" class="logs-table-wrap">
+      <DataTable
+        :columns="columns"
+        :rows="(loginLogs as unknown as Record<string, unknown>[])"
+        :empty-text="t('user.loginLogsEmpty')"
+      >
+        <template #cell-success="{ row }">
+          <StatusPill
+            :variant="row.success ? 'success' : 'error'"
+            :label="row.success ? t('common.success') : t('common.failed')"
+          />
+        </template>
+        <template #cell-detail="{ row }">
+          <button
+            v-if="row.detail"
+            type="button"
+            class="logs-detail-link"
+            @click="openDetail(row as unknown as LoginLogItem)"
+          >
+            {{ summarizeDetail(String(row.detail)) }}
+          </button>
+          <span v-else class="text-dim">—</span>
+        </template>
+      </DataTable>
     </div>
 
-    <DataTable
-      v-if="!menuStore.isMobile"
-      :columns="columns"
-      :rows="(loginLogs as unknown as Record<string, unknown>[])"
-      :empty-text="t('user.loginLogsEmpty')"
-    >
-      <template #cell-success="{ row }">
-        <StatusPill
-          :variant="row.success ? 'success' : 'error'"
-          :label="row.success ? t('common.success') : t('common.failed')"
-        />
-      </template>
-      <template #cell-detail="{ row }">
-        <button
-          v-if="row.detail"
-          type="button"
-          class="logs-detail-link"
-          @click="openDetail(row as unknown as LoginLogItem)"
-        >
-          {{ summarizeDetail(String(row.detail)) }}
-        </button>
-        <span v-else class="text-dim">—</span>
-      </template>
-    </DataTable>
-
+    <!-- 移动：紧凑行（同设备列表密度） -->
     <template v-else>
       <EmptyState
         v-if="!loginLogs.length"
         icon="HOutline:ClockIcon"
         :title="t('user.loginLogsEmpty')"
+        class="logs-empty"
       />
-      <div v-else class="logs-cards">
-        <EntityCard
+      <ul v-else class="logs-list" role="list">
+        <li
           v-for="(row, idx) in loginLogs"
           :key="idx"
-          clickable
+          class="logs-row"
+          role="button"
+          tabindex="0"
           @click="openDetail(row)"
+          @keydown.enter="openDetail(row)"
         >
-          <template #title>
-            <span class="logs-ip">{{ row.ip || '—' }}</span>
-          </template>
-          <template #status>
-            <StatusPill
-              :variant="row.success ? 'success' : 'error'"
-              :label="row.success ? t('common.success') : t('common.failed')"
-            />
-          </template>
-          <template #meta>
-            <span>{{ row.operationTime || '—' }}</span>
-            <span class="logs-ua" :title="row.userAgent">{{ row.userAgent || '—' }}</span>
-            <span v-if="row.detail" class="logs-hint">{{ t('user.detailHint') }}</span>
-          </template>
-        </EntityCard>
-      </div>
+          <div class="logs-row__main">
+            <div class="logs-row__title">
+              <span class="logs-row__ip">{{ row.ip || '—' }}</span>
+              <StatusPill
+                :variant="row.success ? 'success' : 'error'"
+                :label="row.success ? t('common.success') : t('common.failed')"
+              />
+            </div>
+            <div class="logs-row__meta">
+              <span>{{ row.operationTime || '—' }}</span>
+              <span class="logs-row__sep">·</span>
+              <span class="logs-row__ua" :title="row.userAgent">{{ row.userAgent || '—' }}</span>
+            </div>
+          </div>
+          <component
+            :is="menuStore.iconComponents['HOutline:ChevronRightIcon']"
+            class="logs-row__chev"
+          />
+        </li>
+      </ul>
     </template>
 
-    <Pagination
-      v-if="loginLogsPagination.total > 0"
-      :page="loginLogsPagination.page"
-      :page-size="loginLogsPagination.pageSize"
-      :total="loginLogsPagination.total"
-      @update:page="onPage"
-      @update:page-size="onPageSize"
-    />
+    <div v-if="loginLogsPagination.total > 0" class="logs-pager">
+      <Pagination
+        :page="loginLogsPagination.page"
+        :page-size="loginLogsPagination.pageSize"
+        :total="loginLogsPagination.total"
+        @update:page="onPage"
+        @update:page-size="onPageSize"
+      />
+    </div>
 
     <FormDialog v-model="detailVisible" :title="t('user.loginDetail')" :width="560">
       <template #footer="{ close }">
@@ -94,18 +104,17 @@ const { loginLogs, loginLogsPagination } = storeToRefs(userProfileStore)
 const { t } = useI18n()
 
 const columns = computed(() => [
-  { key: 'ip', title: t('user.extra.ipAddress'), minWidth: 120 },
-  { key: 'userAgent', title: 'User Agent', minWidth: 220 },
-  { key: 'operationTime', title: t('user.operationTime'), width: 160 },
-  { key: 'success', title: t('user.result'), width: 90 },
-  { key: 'detail', title: t('user.detail'), minWidth: 160 },
+  { key: 'ip', title: t('user.extra.ipAddress'), minWidth: 110 },
+  { key: 'userAgent', title: 'User Agent', minWidth: 200 },
+  { key: 'operationTime', title: t('user.operationTime'), width: 150 },
+  { key: 'success', title: t('user.result'), width: 80 },
+  { key: 'detail', title: t('user.detail'), minWidth: 140 },
 ])
 
 const detailVisible = ref(false)
 const detailContent = ref('')
 const isDetailJson = ref(false)
 
-/** 列表策展：详情列只显示路径摘要，全量 JSON 进弹窗 */
 const summarizeDetail = (detail: string) => {
   try {
     const parsed = JSON.parse(detail) as { path?: string; operation?: string }
@@ -150,15 +159,21 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.logs-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-.logs-bar__hint {
+.logs-total {
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   font-variant-numeric: tabular-nums;
+}
+.logs-table-wrap {
+  min-width: 0;
+  /* flush 面板内表贴边，与设备行一致 */
+  :deep(.data-table__scroll) {
+    border: 0;
+    border-radius: 0;
+  }
+}
+.logs-empty {
+  padding: 1.25rem 1rem;
 }
 .logs-detail-link {
   display: block;
@@ -177,28 +192,77 @@ onMounted(() => {
 .text-dim {
   color: var(--el-text-color-placeholder);
 }
-.logs-cards {
+
+.logs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.logs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+  cursor: pointer;
+}
+.logs-row:last-child {
+  border-bottom: 0;
+}
+.logs-row:hover,
+.logs-row:active {
+  background: var(--el-fill-color-lighter);
+}
+.logs-row__main {
+  min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 2px;
 }
-.logs-ip {
+.logs-row__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.logs-row__ip {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--el-text-color-primary);
 }
-.logs-ua {
-  display: block;
-  max-width: 100%;
+.logs-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+.logs-row__sep {
+  color: var(--el-text-color-placeholder);
+}
+.logs-row__ua {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.75rem;
+  max-width: 100%;
   color: var(--el-text-color-placeholder);
 }
-.logs-hint {
-  font-size: 0.75rem;
-  color: var(--el-color-primary);
+.logs-row__chev {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--el-text-color-placeholder);
 }
+.logs-pager {
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--el-border-color-extra-light);
+}
+
 .detail-json {
   margin: 0;
   padding: 0.75rem 0.85rem;

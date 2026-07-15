@@ -1,12 +1,14 @@
-<!-- 个人中心 · 真·从零（06a P2 选项卡式）
-     结构：克制色条头部 → 桌面 左资料常驻 | 右 Tabs(消息/权限/设备/日志)；移动 头压缩 + Tab 横滑 + 编辑 FormDialog。
-     保留 useUserProfileStore 数据流；资料不在 Tab 内。 -->
+<!-- 个人中心 · 对齐 06a
+     ① 一体头部：克制色条 + 头像/名/角色/简介 + 详细档案（同一卡内，不拆第二张）+ 编辑/改密
+     ② 主体：全宽 Tabs（消息 / 权限 / 设备 / 日志）
+     ③ 编辑资料 / 改密 → FormDialog（不在页面内嵌长表单） -->
 <template>
   <div class="profile">
-    <!-- ① 克制头部：低饱和主色浅条 + 头像/名/角色/简介 + 关键操作 -->
+    <!-- ① 一体头部（头像区 + 档案字段，同一表面） -->
     <header class="profile-hero">
       <div class="profile-hero__wash" aria-hidden="true" />
-      <div class="profile-hero__inner">
+
+      <div class="profile-hero__top">
         <div class="profile-hero__identity">
           <AppAvatar
             :src="userStore.resolvedUserAvatar"
@@ -20,23 +22,10 @@
               <StatusPill variant="primary" :dot="false" :label="roleLabel" />
             </div>
             <p class="profile-hero__bio">{{ bioText }}</p>
-            <div v-if="locationText" class="profile-hero__loc">
-              <component
-                :is="menuStore.iconComponents['HOutline:MapPinIcon']"
-                class="profile-hero__loc-icon"
-              />
-              <span>{{ locationText }}</span>
-            </div>
           </div>
         </div>
         <div class="profile-hero__actions">
-          <UButton
-            color="neutral"
-            variant="soft"
-            size="sm"
-            icon="i-lucide-pencil"
-            @click="openEdit"
-          >
+          <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-pencil" @click="openEdit">
             {{ t('user.editProfile') }}
           </UButton>
           <UButton
@@ -50,68 +39,55 @@
           </UButton>
         </div>
       </div>
+
+      <!-- 详细档案：同一卡内，细线分隔，多列 DescriptionList -->
+      <div class="profile-hero__archive">
+        <div class="profile-hero__archive-label">{{ t('user.detailArchive') }}</div>
+        <DescriptionList :items="archiveItems" :columns="archiveColumns" />
+        <div v-if="tagNames.length" class="profile-hero__tags">
+          <span v-for="name in tagNames" :key="name" class="profile-hero__chip">{{ name }}</span>
+        </div>
+      </div>
     </header>
 
-    <!-- ② 主体：左资料 | 右 Tabs -->
-    <div class="profile-layout">
-      <!-- 左栏：只读档案（桌面常驻；移动在资料区上方） -->
-      <aside class="profile-side">
-        <ArchivesPanel />
-        <!-- 桌面：内嵌编辑表单；移动：只显示入口，编辑走全屏 FormDialog -->
-        <div v-if="!isCompact" class="profile-side__edit">
-          <PersonalInfoPanel />
-        </div>
-        <div v-else class="profile-side__mobile-edit">
-          <UButton
-            block
-            color="primary"
-            variant="soft"
-            icon="i-lucide-pencil"
-            @click="editOpen = true"
+    <!-- ② 全宽 Tabs -->
+    <section class="profile-main">
+      <div class="profile-tabs" role="tablist">
+        <button
+          v-for="tab in userProfileStore.menuTabs"
+          :key="tab.key"
+          type="button"
+          role="tab"
+          class="profile-tabs__btn"
+          :class="{ 'is-active': userProfileStore.currentTab === tab.key }"
+          :aria-selected="userProfileStore.currentTab === tab.key"
+          @click="userProfileStore.currentTab = tab.key as ProfileCurrentTab"
+        >
+          <component
+            :is="menuStore.iconComponents[tab.icon as string]"
+            v-if="tab.icon && typeof tab.icon === 'string'"
+            class="profile-tabs__icon"
+          />
+          <span>{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</span>
+          <span
+            v-if="tab.key === 'messages' && userProfileStore.unreadCount"
+            class="profile-tabs__badge"
           >
-            {{ t('user.editProfile') }}
-          </UButton>
-        </div>
-      </aside>
+            {{ userProfileStore.unreadCount }}
+          </span>
+        </button>
+      </div>
 
-      <section class="profile-main">
-        <div class="profile-tabs" role="tablist">
-          <button
-            v-for="tab in userProfileStore.menuTabs"
-            :key="tab.key"
-            type="button"
-            role="tab"
-            class="profile-tabs__btn"
-            :class="{ 'is-active': userProfileStore.currentTab === tab.key }"
-            :aria-selected="userProfileStore.currentTab === tab.key"
-            @click="userProfileStore.currentTab = tab.key as ProfileCurrentTab"
-          >
-            <component
-              :is="menuStore.iconComponents[tab.icon as string]"
-              v-if="tab.icon && typeof tab.icon === 'string'"
-              class="profile-tabs__icon"
-            />
-            <span>{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</span>
-            <span
-              v-if="tab.key === 'messages' && userProfileStore.unreadCount"
-              class="profile-tabs__badge"
-            >
-              {{ userProfileStore.unreadCount }}
-            </span>
-          </button>
-        </div>
+      <div class="profile-main__body">
+        <MyMessages v-if="userProfileStore.currentTab === 'messages'" />
+        <MyPermission v-else-if="userProfileStore.currentTab === 'permissions'" />
+        <LoginDevices v-else-if="userProfileStore.currentTab === 'devices'" />
+        <LoginLogs v-else-if="userProfileStore.currentTab === 'logs'" />
+        <MyMessages v-else />
+      </div>
+    </section>
 
-        <div class="profile-main__body">
-          <MyMessages v-if="userProfileStore.currentTab === 'messages'" />
-          <MyPermission v-else-if="userProfileStore.currentTab === 'permissions'" />
-          <LoginDevices v-else-if="userProfileStore.currentTab === 'devices'" />
-          <LoginLogs v-else-if="userProfileStore.currentTab === 'logs'" />
-          <MyMessages v-else />
-        </div>
-      </section>
-    </div>
-
-    <!-- 移动：全屏资料编辑 -->
+    <!-- ③ 编辑资料 FormDialog（桌面/移动统一） -->
     <FormDialog
       v-model="editOpen"
       :title="t('user.profileCenter')"
@@ -126,9 +102,10 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import { UserStatus } from '@/types/v1/user'
 import { useUserProfileStore } from '@/stores/user/profile'
 import type { ProfileCurrentTab } from '@/stores/user/types'
-import ArchivesPanel from '@/views/profile/archivesPanel.vue'
 import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
 import MyPermission from '@/views/profile/myPermission.vue'
 import MyMessages from '@/views/profile/myMessages.vue'
@@ -144,9 +121,7 @@ const userStore = useUserStore()
 const menuStore = useMenuStore()
 const userProfileStore = useUserProfileStore()
 
-/** 与 02 一致：结构级切换用 isMobile（项目现阈值 ~992，等同紧凑态） */
 const isCompact = computed(() => menuStore.isMobile)
-
 const updatePasswordRef = ref<{ showDialog: () => void }>()
 const editOpen = ref(false)
 
@@ -158,25 +133,45 @@ const bioText = computed(() => {
   const bio = userStore.userInfo?.bio?.trim()
   return bio || t('user.defaultBio')
 })
-const locationText = computed(() => {
-  const { country, region, city } = userProfileStore.address
-  return [country, region, city].filter(Boolean).join(' · ')
+
+const createTimeText = computed(() => {
+  if (!userStore.userInfo?.createTime) return ''
+  return dayjs(userStore.userInfo.createTime).format('YYYY-MM-DD HH:mm:ss')
+})
+
+const archiveItems = computed(() => [
+  { label: t('user.username'), value: userStore.userInfo?.username },
+  { label: t('user.email'), value: userStore.userInfo?.email || t('user.noEmail') },
+  { label: t('user.nickname'), value: userStore.userInfo?.name },
+  {
+    label: t('user.accountStatus'),
+    value:
+      userStore.userInfo?.status === UserStatus.Active ? t('common.enabled') : t('common.disabled'),
+  },
+  { label: t('user.joinTime'), value: createTimeText.value },
+])
+
+const archiveColumns = computed(() => {
+  if (menuStore.isMobile) return 1
+  return 3
+})
+
+const tagNames = computed(() => {
+  const raw = userStore.userInfo?.tags?.trim()
+  if (!raw) return [] as string[]
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 })
 
 const openPassword = () => updatePasswordRef.value?.showDialog()
 const openEdit = () => {
-  if (isCompact.value) {
-    editOpen.value = true
-    return
-  }
-  // 桌面：滚到左栏编辑区
-  document.querySelector('.profile-side__edit')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  editOpen.value = true
 }
 
 onMounted(() => {
-  void userProfileStore.ensureAddress()
-  // 旧会话可能仍是 personalInfo
-  if (!(userProfileStore.menuTabs as { key: string }[]).some((t) => t.key === userProfileStore.currentTab)) {
+  if (!(userProfileStore.menuTabs as { key: string }[]).some((tab) => tab.key === userProfileStore.currentTab)) {
     userProfileStore.currentTab = 'messages'
   }
 })
@@ -187,10 +182,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 1200px;
+  width: 100%;
+  min-width: 0;
 }
 
-/* —— 头部：克制浅主色条（01：唯一允许主色面积处，仍矮、淡）—— */
+/* —— 一体头部：色条 + 身份 + 档案同卡 —— */
 .profile-hero {
   position: relative;
   overflow: hidden;
@@ -201,7 +197,7 @@ onMounted(() => {
 .profile-hero__wash {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 88px;
+  height: 96px;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--el-color-primary) 18%, transparent) 0%,
@@ -218,14 +214,14 @@ html.dark .profile-hero__wash {
     transparent 100%
   );
 }
-.profile-hero__inner {
+.profile-hero__top {
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 20px 20px 18px;
+  padding: 20px 20px 0;
 }
 .profile-hero__identity {
   display: flex;
@@ -256,7 +252,7 @@ html.dark .profile-hero__wash {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: min(100%, 18rem);
+  max-width: min(100%, 22rem);
 }
 .profile-hero__bio {
   margin: 0;
@@ -268,51 +264,54 @@ html.dark .profile-hero__wash {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.profile-hero__loc {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  color: var(--el-text-color-placeholder);
-}
-.profile-hero__loc-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
 .profile-hero__actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  padding-bottom: 2px;
 }
 
-/* —— 双栏布局 —— */
-.profile-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  align-items: start;
+/* 档案区：同一卡内，hairline 上分界，靠排版分层（01） */
+.profile-hero__archive {
+  position: relative;
+  margin-top: 16px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
-@media (width >= 1024px) {
-  .profile-layout {
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  }
+.profile-hero__archive-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 0.65rem;
 }
-.profile-side {
+.profile-hero__tags {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+.profile-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color-extra-light);
 }
 
+/* —— Tabs —— */
 .profile-main {
   min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 .profile-tabs {
   display: flex;
   gap: 2px;
@@ -378,21 +377,25 @@ html.dark .profile-hero__wash {
 }
 .profile-main__body {
   min-width: 0;
+  width: 100%;
 }
 
 @media (width < 640px) {
-  .profile-hero__inner {
+  .profile-hero__top {
     align-items: flex-start;
-    padding: 16px;
+    padding: 16px 16px 0;
   }
   .profile-hero__wash {
-    height: 72px;
+    height: 80px;
   }
   .profile-hero__actions {
     width: 100%;
   }
   .profile-hero__actions :deep(button) {
     flex: 1;
+  }
+  .profile-hero__archive {
+    padding: 12px 16px 16px;
   }
 }
 </style>

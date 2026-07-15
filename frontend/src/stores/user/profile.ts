@@ -95,13 +95,6 @@ const createEmptyProfileForm = (): UserProfileFormValue => ({
 })
 
 export const useUserProfileStore = defineStore('user-profile', () => {
-  const address = ref({
-    country: '',
-    region: '',
-    city: '',
-  })
-  const addressLoaded = ref(false)
-
   const currentTab = ref<ProfileCurrentTab>('messages')
   const menuTabs = computed<ProfileTabsMenuItem[]>(createMenuTabs)
 
@@ -255,28 +248,6 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     return extraColumnWidthMap.value[key] || 160
   }
 
-  const ensureAddress = async () => {
-    if (addressLoaded.value) return
-
-    try {
-      const response = await fetch('https://ipapi.co/json/')
-      const data = await response.json()
-      address.value = {
-        country: data.country_name || '',
-        region: data.region || '',
-        city: data.city || '',
-      }
-    } catch {
-      address.value = {
-        country: '',
-        region: '',
-        city: '',
-      }
-    } finally {
-      addressLoaded.value = true
-    }
-  }
-
   const markAsRead = (id: string) => {
     const message = userMessages.value.find((msg) => msg.id === id)
     if (message) message.read = true
@@ -402,12 +373,6 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   }
 
   const clearProfileState = () => {
-    address.value = {
-      country: '',
-      region: '',
-      city: '',
-    }
-    addressLoaded.value = false
     currentTab.value = 'messages'
     activeMessageTab.value = 'all'
     messageDraft.value = ''
@@ -421,7 +386,6 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   }
 
   return {
-    address,
     currentTab,
     menuTabs,
     userMessages,
@@ -441,7 +405,6 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     deviceColumnWidth,
     ipColumnWidth,
     sessionIdColumnWidth,
-    ensureAddress,
     buildSkillTags,
     markAsRead,
     deleteMessage,

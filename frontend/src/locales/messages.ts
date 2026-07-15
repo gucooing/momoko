@@ -4853,6 +4853,8 @@ export const messages = {
       editProfile: '编辑资料',
       logoutDevice: '下线',
       thisSession: '当前会话',
+      deviceDetail: '设备详情',
+      deviceId: '设备 ID',
       tabs: {
         personalInfo: '我的资料',
         permissions: '我的权限',
@@ -5921,6 +5923,8 @@ export const messages = {
       editProfile: '編輯資料',
       logoutDevice: '下線',
       thisSession: '目前工作階段',
+      deviceDetail: '設備詳情',
+      deviceId: '設備 ID',
       tabs: {
         personalInfo: '我的資料',
         permissions: '我的權限',
@@ -6998,6 +7002,8 @@ export const messages = {
       editProfile: 'Edit profile',
       logoutDevice: 'Sign out',
       thisSession: 'This session',
+      deviceDetail: 'Device details',
+      deviceId: 'Device ID',
       tabs: {
         personalInfo: 'My Info',
         permissions: 'My Permissions',

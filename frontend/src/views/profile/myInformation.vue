@@ -1,21 +1,8 @@
-<!-- 兼容壳：资料已拆到左栏 ArchivesPanel + PersonalInfoPanel（06a）。
-     保留文件以免旧 import 断裂；不再作为独立 Tab 使用。 -->
+<!-- 兼容壳：档案已并入 profile 一体头部；编辑走 FormDialog(PersonalInfoPanel)。 -->
 <template>
-  <div class="info-compat">
-    <ArchivesPanel />
-    <PersonalInfoPanel />
-  </div>
+  <div class="info-compat" />
 </template>
 
 <script setup lang="ts">
-import ArchivesPanel from '@/views/profile/archivesPanel.vue'
-import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
+// 无 UI：资料只读区在 index 头部；编辑在 FormDialog。
 </script>
-
-<style scoped lang="scss">
-.info-compat {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

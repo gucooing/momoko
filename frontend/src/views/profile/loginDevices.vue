@@ -1,8 +1,7 @@
-<!-- 登录设备（06a）：EntityCard 流（桌面网格 + 移动单列）；下线用 AdaptiveConfirm -->
+<!-- 登录设备：紧凑行列表；点击行看详情；下线 AdaptiveConfirm（阻止冒泡）。 -->
 <template>
-  <AppPanel :title="t('user.loginDevices')" title-icon="HOutline:DevicePhoneMobileIcon">
+  <AppPanel :title="t('user.loginDevices')" title-icon="HOutline:DevicePhoneMobileIcon" :padded="false">
     <template #actions>
-      <!-- 头部只放总数；当前设备长串放到 body 提示，避免窄屏撑破面板头 -->
       <StatusPill
         variant="info"
         :dot="false"
@@ -10,83 +9,102 @@
       />
     </template>
 
-    <p
-      v-if="currentDeviceLabel && currentDeviceLabel !== '-'"
-      class="dev-current"
-      :title="currentDeviceLabel"
-    >
-      {{ t('user.currentDevice') }} · {{ shortDevice(currentDeviceLabel) }}
-    </p>
-
-    <div v-if="loading" class="dev-grid">
-      <div v-for="i in 4" :key="i" class="dev-skeleton" />
+    <div v-if="loading" class="dev-list">
+      <div v-for="i in 5" :key="i" class="dev-skel" />
     </div>
     <EmptyState
       v-else-if="!loginDevices.length"
       icon="HOutline:DevicePhoneMobileIcon"
       :title="t('user.noLoginDevices')"
+      class="dev-empty"
     />
-    <div v-else class="dev-grid">
-      <EntityCard v-for="row in loginDevices" :key="row.deviceId">
-        <template #title>
-          <span class="dev-name" :title="row.device || undefined">{{ row.device || '—' }}</span>
-        </template>
-        <template #status>
-          <StatusPill
-            v-if="isCurrentDevice(row)"
-            variant="success"
-            :dot="false"
-            :label="t('user.currentDevice')"
-          />
-        </template>
-        <template #meta>
-          <span class="dev-kv">
-            <em>{{ t('user.extra.ipAddress') }}</em>
-            {{ row.ip || '—' }}
-          </span>
-          <span class="dev-kv">
-            <em>{{ t('user.loginTime') }}</em>
-            {{ formatDateTime(row.loginTime) }}
-          </span>
-          <span class="dev-kv">
-            <em>{{ t('user.latestRefresh') }}</em>
-            {{ formatDateTime(row.updateTime) }}
-          </span>
-          <span class="dev-kv dev-kv--mono" :title="row.sessionId">
-            <em>{{ t('user.sessionId') }}</em>
-            {{ shortId(row.sessionId) }}
-          </span>
-        </template>
-        <template #footer>
-          <div class="dev-foot">
-            <span v-if="isCurrentDevice(row)" class="dev-foot__hint">{{ t('user.thisSession') }}</span>
-            <AdaptiveConfirm
-              v-else
-              :title="t('user.deleteDeviceConfirm')"
-              :disabled="isDeletingLoginDevice(row.deviceId)"
-              @confirm="handleDelete(row.deviceId)"
-            >
-              <template #reference>
-                <UButton
-                  color="error"
-                  variant="soft"
-                  size="sm"
-                  :loading="isDeletingLoginDevice(row.deviceId)"
-                >
-                  {{ t('user.logoutDevice') }}
-                </UButton>
-              </template>
-            </AdaptiveConfirm>
+    <ul v-else class="dev-list" role="list">
+      <li
+        v-for="row in loginDevices"
+        :key="row.deviceId"
+        class="dev-row"
+        :class="{ 'is-current': isCurrentDevice(row) }"
+        role="button"
+        tabindex="0"
+        @click="openDetail(row)"
+        @keydown.enter.prevent="openDetail(row)"
+      >
+        <div class="dev-row__main">
+          <div class="dev-row__title">
+            <span class="dev-row__name" :title="row.device || undefined">{{ row.device || '—' }}</span>
+            <StatusPill
+              v-if="isCurrentDevice(row)"
+              variant="success"
+              :dot="false"
+              :label="t('user.currentDevice')"
+            />
           </div>
-        </template>
-      </EntityCard>
-    </div>
+          <div class="dev-row__meta">
+            <span class="dev-row__mono">{{ row.ip || '—' }}</span>
+            <span class="dev-row__sep">·</span>
+            <span>{{ formatDateTime(row.loginTime) }}</span>
+            <span class="dev-row__sep">·</span>
+            <span class="dev-row__muted">{{ formatDateTime(row.updateTime) }}</span>
+          </div>
+        </div>
+        <div class="dev-row__action" @click.stop>
+          <span v-if="isCurrentDevice(row)" class="dev-row__hint">{{ t('user.thisSession') }}</span>
+          <AdaptiveConfirm
+            v-else
+            :title="t('user.deleteDeviceConfirm')"
+            :disabled="isDeletingLoginDevice(row.deviceId)"
+            @confirm="handleDelete(row.deviceId)"
+          >
+            <template #reference>
+              <UButton
+                color="error"
+                variant="ghost"
+                size="xs"
+                :loading="isDeletingLoginDevice(row.deviceId)"
+              >
+                {{ t('user.logoutDevice') }}
+              </UButton>
+            </template>
+          </AdaptiveConfirm>
+        </div>
+        <component
+          :is="menuStore.iconComponents['HOutline:ChevronRightIcon']"
+          class="dev-row__chev"
+          aria-hidden="true"
+        />
+      </li>
+    </ul>
+
+    <!-- 设备详情 -->
+    <FormDialog
+      v-model="detailOpen"
+      :title="t('user.deviceDetail')"
+      :width="480"
+      @confirm="detailOpen = false"
+    >
+      <template #footer="{ close }">
+        <UButton
+          v-if="detailRow && !isCurrentDevice(detailRow)"
+          color="error"
+          variant="soft"
+          :loading="detailRow ? isDeletingLoginDevice(detailRow.deviceId) : false"
+          @click="confirmLogoutFromDetail"
+        >
+          {{ t('user.logoutDevice') }}
+        </UButton>
+        <UButton color="primary" @click="close">{{ t('common.close') }}</UButton>
+      </template>
+
+      <DescriptionList v-if="detailItems.length" :items="detailItems" :columns="1" />
+      <p v-else class="dev-detail-empty">—</p>
+    </FormDialog>
   </AppPanel>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useUserProfileStore } from '@/stores/user/profile'
+import type { LoginDeviceRow } from '@/stores/user/types'
 import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
 
@@ -95,30 +113,70 @@ const menuStore = useMenuStore()
 const { t } = useI18n()
 const fb = useFeedback()
 
-const { loading, loginDevices, currentDeviceLabel } = storeToRefs(userProfileStore)
+const { loading, loginDevices, extraColumns } = storeToRefs(userProfileStore)
 const {
   formatDateTime,
+  formatCellValue,
+  getExtraColumnLabel,
   isCurrentDevice,
   isDeletingLoginDevice,
   getLoginDevices,
   deleteLoginDevice,
 } = userProfileStore
 
-const shortDevice = (label: string) => {
-  // 窄屏提示条：更短截断
-  const max = menuStore.isMobile ? 28 : 42
-  if (label.length <= max) return label
-  return `${label.slice(0, max - 1)}…`
-}
-const shortId = (id?: string) => {
-  if (!id) return '—'
-  if (id.length <= 14) return id
-  return `${id.slice(0, 8)}…${id.slice(-4)}`
+const detailOpen = ref(false)
+const detailRow = ref<LoginDeviceRow | null>(null)
+
+const detailItems = computed(() => {
+  const row = detailRow.value
+  if (!row) return [] as { label: string; value?: string | number | null }[]
+
+  const items: { label: string; value?: string | number | null }[] = [
+    { label: t('user.loginDevices'), value: row.device || '—' },
+    {
+      label: t('user.currentDevice'),
+      value: isCurrentDevice(row) ? t('common.yes') : t('common.no'),
+    },
+    { label: t('user.extra.ipAddress'), value: row.ip || '—' },
+    { label: t('user.loginTime'), value: formatDateTime(row.loginTime) },
+    { label: t('user.latestRefresh'), value: formatDateTime(row.updateTime) },
+    { label: t('user.sessionId'), value: row.sessionId || '—' },
+    { label: t('user.deviceId'), value: row.deviceId || '—' },
+  ]
+
+  // 额外字段（browser/os 等），策展展示有值的
+  for (const key of extraColumns.value) {
+    const raw = (row as Record<string, unknown>)[key]
+    if (raw === null || raw === undefined || raw === '') continue
+    items.push({
+      label: getExtraColumnLabel(key),
+      value: formatCellValue(raw),
+    })
+  }
+
+  return items
+})
+
+const openDetail = (row: LoginDeviceRow) => {
+  detailRow.value = row
+  detailOpen.value = true
 }
 
 const handleDelete = async (deviceId: string) => {
   const ok = await deleteLoginDevice(deviceId)
-  if (ok) fb.success(t('user.deviceDeleted'))
+  if (ok) {
+    fb.success(t('user.deviceDeleted'))
+    if (detailRow.value?.deviceId === deviceId) {
+      detailOpen.value = false
+      detailRow.value = null
+    }
+  }
+}
+
+const confirmLogoutFromDetail = async () => {
+  if (!detailRow.value) return
+  // 详情内二次确认仍走 AdaptiveConfirm 语义：这里直接删（用户已在详情主动点下线）
+  await handleDelete(detailRow.value.deviceId)
 }
 
 onMounted(() => {
@@ -127,34 +185,19 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.dev-current {
-  margin: 0 0 0.65rem;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.dev-empty {
+  padding: 1.25rem 1rem;
 }
-.dev-grid {
-  display: grid;
-  /* minmax(0,1fr)：避免 1fr 默认 min=auto 被长 UA 字符串撑破容器 */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+.dev-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   min-width: 0;
 }
-.dev-grid > * {
-  min-width: 0;
-  max-width: 100%;
-}
-@media (width >= 768px) {
-  .dev-grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  }
-}
-.dev-skeleton {
-  height: 148px;
-  border-radius: var(--app-radius);
+.dev-skel {
+  height: 44px;
+  margin: 0 12px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
   background: linear-gradient(
     90deg,
     var(--el-fill-color-light) 25%,
@@ -172,41 +215,91 @@ onMounted(() => {
     background-position: -200% 0;
   }
 }
-.dev-name {
-  display: block;
+
+.dev-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+  min-width: 0;
+  cursor: pointer;
+}
+.dev-row:last-child {
+  border-bottom: 0;
+}
+.dev-row:hover {
+  background: var(--el-fill-color-lighter);
+}
+.dev-row.is-current {
+  background: color-mix(in srgb, var(--el-color-primary) 5%, transparent);
+}
+.dev-row__main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dev-row__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.dev-row__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
-.dev-kv {
+.dev-row__meta {
   display: flex;
-  gap: 0.4rem;
-  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.35rem;
   font-size: 0.75rem;
-  color: var(--el-text-color-regular);
-  line-height: 1.4;
-  overflow: hidden;
-  em {
-    flex-shrink: 0;
-    font-style: normal;
-    color: var(--el-text-color-placeholder);
-    min-width: 4.5rem;
-  }
-}
-.dev-kv--mono {
+  color: var(--el-text-color-secondary);
   font-variant-numeric: tabular-nums;
-  overflow: hidden;
+  min-width: 0;
 }
-.dev-foot {
+.dev-row__mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.dev-row__muted {
+  color: var(--el-text-color-placeholder);
+}
+.dev-row__sep {
+  color: var(--el-text-color-placeholder);
+}
+.dev-row__action {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  min-height: 32px;
 }
-.dev-foot__hint {
+.dev-row__hint {
   font-size: 0.75rem;
   color: var(--el-text-color-placeholder);
+}
+.dev-row__chev {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--el-text-color-placeholder);
+}
+.dev-detail-empty {
+  margin: 0;
+  color: var(--el-text-color-placeholder);
+  font-size: 0.875rem;
+}
+
+@media (width < 640px) {
+  .dev-row {
+    padding: 10px 10px 10px 14px;
+  }
 }
 </style>
