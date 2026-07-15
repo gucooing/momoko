@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件模块 + **登录门面** 完成；余 个人中心/监控/Sub2API/initialize/public/异常 |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录 + **初始化** + **异常/redirect** 完成；余 个人中心/监控/Sub2API/public |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0 地基（Nuxt UI 接入+令牌）+ Phase 1 外壳 + Phase 2 **工作台 + 用户管理** + Phase 3 **系统管理模块 100% 完成**（角色 `system/role` / 菜单 `system/menu` 树表 / 操作日志 `system/operation` 只读 / 定时任务 `system/task` / OIDC 客户端 `system/oidc` / **系统设置 `system/settings` P3 双 Tab 配置页**）均已浏览器验证。**P1 列表/CRUD 范式已定稿**（PageHeader+FilterBar+批量条+卡/表切换+DataTable+Pagination+FormDialog）；额外产出 **`PermissionTree`**（三态勾选树）、`DataTable.rowSelectable`（逐行禁选）+ `tree`（树表）、**`AppSelect`**（圆角下拉，替代所有原生 `<select>`，泛型/`fit`/`searchable`，浮层 z-index 2300 可用于弹窗内）、**`AppSwitch`**（令牌开关，替代 el-switch）。**⚠️ 用户已两次反馈"密度"**：整套已做**紧凑化**（控件 32px、表行 ~43px、间距 12/10px、FilterBar 12px 无阴影），见 [[compact-density-appselect]] 记忆——续做页面**必须**沿用这套密度，勿回到大留白。系统管理模块已全部提交（`902082e` + `f67e374`）。**实例模块起步：应用列表 `instance/list`（旗舰 P1）已按范式重写并浏览器验证**（卡/表/编辑弹窗/移动/暗色），仍为工作区未提交改动。**⚠️ 用户第三次强调密度**：**列表页禁用大号 `MetricStrip` 总览带**（那是 P4 仪表盘专属），概览计数要**内联进工具条**（见 `instance/list` 的 `共 N 条 · ●运行中 X · ●已停止 Y`）——续做 Docker/Node/工具/文件 列表若带旧总览组件，一律照此压扁。**下一步 = 转 实例其余 + Docker/文件/工具 等 P1 列表**（直接套范式）。P3 设置页范式：PageHeader + 令牌 seg Tab 条 + `AppPanel`(flush) 设置组 + `.set-row` + 分区保存页脚 + FormDialog；**踩坑**：Vue 文本插值里写字面 `{{` 会触发解析错误 → 用脚本 helper 返回该串（见 `fieldToken`）。旧栈 EP/VXE 迁移期共存，未卸载。
+> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成：**系统管理 100%**、实例/Docker/Node/SSH/工具/文件模块、**登录门面**、**初始化向导**均已重写（多数已提交，initialize 本会话未提交）。**P1 列表范式**已定稿（PageHeader+FilterBar+批量条+卡/表+DataTable+Pagination+FormDialog）；**P7 独立门面范式**定稿为**居中 hairline 卡**（登录/初始化：冷灰页底+角标语言/主题/明暗，**不做半屏渐变品牌区**）。**密度铁律**：控件 32px、表行 ~43px、列表**禁大号 MetricStrip**（概览内联工具条）。横切：`useFeedback()` 封装 `useToast`（替代 ElMessage，file/login/initialize 已用）。旧栈 EP/VXE 迁移期共存。**下一步**：个人中心 `profile` / 监控 / Sub2API / public/* / 异常页；或 Phase 4 清 demo + 卸 EP。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -137,15 +137,15 @@
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
 | 登录/注册/找回 | login | P7 | ✅ | ✅ | ✅ | 🟡 居中卡重写完成；桌面/移动/暗色+登录链路已验；未提交 |
-| 初始化向导 | initialize | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 初始化向导 | initialize | P3 | ✅ | ✅ | ✅ | 🟡 居中卡三步向导去 EP；mock 全链路(库选/测试/管理员/确认/完成)验；桌面/移动/暗；未提交 |
 | 分享落地 | public/share/:token | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | OIDC 授权 | oidc/authorize | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Sub2API 门户 | public/sub2api/home | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Sub2API 统计 | public/sub2api/stats | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Sub2API 绘图 | public/sub2api/imagine | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 403 | exception/403 | P8 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 404 | exception/404 | P8 | ⬜ | ⬜ | ⬜ | ⬜ |
-| redirect | redirect | 工具 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 403 | exception/403 | P8 | ✅ | ✅ | ✅ | 🟡 去插画克制居中+回首页/上一页；桌面/移动/暗验；未提交 |
+| 404 | exception/404 | P8 | ✅ | ✅ | ✅ | 🟡 同 403 范式；桌面验；未提交 |
+| redirect | redirect | 工具 | ✅ | — | ✅ | 🟡 令牌页底+logo 脉冲占位；未提交 |
 
 ---
 
@@ -190,4 +190,6 @@
 | 2026-07-13 | **文件模块两页 P1 + 两条新铁律(用户点名)**：①**文件来源 `file/source`**（index + 新建 `create.vue`：FormDialog + 按类型动态字段 OSS/FTP/WebDAV + AppSelect/AppSwitch + 页脚测试连接；行内 测试/编辑/删除；内联启用/停用计数）。②**文件分享 `file/share`**（PageHeader+FilterBar+DataTable/移动卡+Pagination；有效/停用/过期/达上限 状态胶囊；复制链接/编辑/删除）+ **`ShareFormDialog` 从 EP BaseDialog 重写为 FormDialog**（令牌字段 + 原生 datetime-local + AppSwitch + 创建成功详情复制视图；保留 FilePicker 跨来源选择）。i18n 三语补 fileSource.title/pageDesc/keyword… + file.share.pageDesc/status*/content/itemsCount/selectedCount…。**用户中途两次点名的通病 → 提炼成 `01` 铁律 4「为使用者策展,不照搬 API」**：(a)**可变长内容有界化**——分享多文件不再逗号铺满/chips 无限堆叠,列表列改「`N 项 · 首名`(全清单走 title 悬浮)」、编辑弹窗改「已选 N 项 + 定高滚动列表 + 逐项移除」;(b)**去系统内置量**——`DataTable` 的 `seq` 序号列**全量下线**(14 个已重写列表页 sed 清除:docker×3/instance×2/node/ssh/system×4/tools×2/file×2)。踩坑:FormDialog 自定义 `#footer` 必须保留默认 `show-footer=true`(slot 在 `v-if="showFooter"` 内,设 false 会连按钮一起吞掉);`noUncheckedIndexedAccess` 下 `list[0]` 要先取局部变量再判空。浏览器全验(桌面/移动/暗+弹窗),vue-tsc+eslint 绿。**未提交。** | 主攻 `file/index` 文件管理大重写(用户点名);顺带 review 前两次提交(tunnel/port-forward + Docker) | 
 | 2026-07-12 | **Docker 全模块收口**：①**容器 `docker/container` P1 全量**——PageHeader+FilterBar+DataTable/移动卡+Pagination；创建/编辑 FormDialog 结构化控件（`AppCombobox` 镜像、重启策略 seg、内存/CPU chips+数字、`ContainerPort/Mount/EnvEditor`）；详情令牌壳；日志/终端复用 `TerminalConsole` 浮层；统计 FormDialog+echarts。②**配置 `docker/config` P3**——四 Tab（状态/连接/默认/仓库）+ AppPanel+AppSwitch。③新组件 `AppCombobox` + 三个 spec 编辑器。**反人类修复**：列表失败置 `dockerUnavailable`，创建弹窗不再二次请求镜像/网络选项（拦截器 500 会连弹 toast）。浏览器：桌面/移动/暗色+创建表单结构化行 OK；后端 docker 未启用。vue-tsc 绿。**待提交本批。** | 提交 Docker 批次后停（用户指定）；下一会话 工具 tunnel/port-forward 或 文件 share/source |
 | 2026-07-15 | **登录门面 `login` P7 重写（用户嫌半屏渐变难看 → 改居中卡）**：四文件去 EP——`index` 冷灰页底 + 居中 hairline 卡 + 角标(语言/主题配置/明暗)；`accountLogin/register/forgotPassword` 令牌 `.app-input` + 内联校验 + 密码眼睛内嵌 + `useFeedback` toast。**不做**半屏主色品牌区（空、廉价）。桌面 1440 / 移动 390 **均垂直居中**；暗色随 `themeStore`。登录 admin 链路 OK。i18n 补 slogan/copyright/toggleTheme/showPassword/hidePassword/passwordLabel（三语）。**未提交。** | 提交登录批次；下一页 `initialize` 或 个人中心/监控/Sub2API/public |
+| 2026-07-15 | **初始化向导 `initialize` P3 重写（对齐登录门面）**：单文件去 EP——冷灰页底 + 居中 hairline 卡 + 角标(语言/主题/明暗)；自建紧凑步骤条(完成√/当前主色)；`AppSelect` 库类型 + 令牌表单(远程库条件字段+密码眼睛) + 内联校验；确认摘要 DescriptionList 风 + 结果态(成功/失败/轮询旋转)；`useFeedback` toast；版权复用 `login.copyright`。业务契约保留(status/test/confirm + 重启轮询)。i18n 补 `pageTitle/pageDesc`(三语)。浏览器：mock 拦截 `code:200` 全链路(SQLite→管理员→确认→完成)、桌面/移动/暗色，vue-tsc+eslint 绿。**未提交。** | 提交 initialize；下一页 个人中心 `profile` / 异常 403·404 / public/share 或 Sub2API |
+| 2026-07-15 | **异常/工具页 P8**：`exception/403`/`404` 去掉 ~17KB 彩色插画 SVG，改为克制居中（大号码 + 标题 + 说明 + 回首页/上一页）；`redirect` 令牌页底 + logo 脉冲。i18n 补 forbiddenTitle/notFoundTitle/goHome/goBack（三语）。浏览器桌面/移动/暗色验，vue-tsc+eslint 绿。**未提交。** | 提交 initialize+exception 批次；下一页 个人中心 `profile` 或 public/share |
 | 2026-07-13 | **文件管理 `file/index` 真·从零重写 + 用户点名两条刚性标准**：全套文件组件除净老框架（EP-free）：`FileBrowser.vue`（外壳=来源 AppSelect/前进后退上级/面包屑/刷新 + 双栏 左树+右列表·网格 + 工具栏 UButton/AppDropdown更多/搜索/筛选/视图段 + 选择条 + 页脚 Pagination；全出血 `flex:1;min-height:0` 填满高度[修 278px 塌陷]；图标走 `menuStore.iconComponents['HOutline:*']`；删除确认=内联令牌 FormDialog）、`FileTree/FileTreeNode`（→ 可覆盖 `--ft-*` 局部变量+app 令牌兜底，heroicons）、`FilePromptDialog/FileMediaDialog/FileUploadDialog`（→ FormDialog+app 令牌+AppSelect）、**`FileEditor` 重写**（自包含 `--fe-*` 独立明暗主题[非旧 fm-*]、menuStore+本地保存 SVG、主题**分段**替代旧 FileMenu、`useFeedback`+Promise 门闸令牌确认）、`useFileUpload`（1 处 ElMessage→fb）。**新建 `src/utils/feedback.ts` = `useFeedback()` 封装 Nuxt UI `useToast`（全项目首个采用者，已浏览器实证渲染）**；`ElMessage`→`fb`、`showRequestError`→`fb.error(getRequestErrorMessage())`、`Dialog.confirm`→令牌 FormDialog。**删** orphaned `FileMenu.vue`；`icons.ts` 回退 HEAD（去 2 个没用的 view 图标）。**踩坑**：移动端表头 类型/时间 列 `.fb-thead .fb-col{display:flex}`(0,2,0) 盖过 `.fb-col--type{display:none}`(0,1,0)→ 表头列不隐藏挤压，改用 `.fb-thead .fb-col--type` 提特异性。**保留** `theme.css`(fm-*，薄荷)——仍服务未重写的 `FilePicker/FileViewerDialog/FileDialog/FilePager`(public/share 用，增量待迁)。**浏览器验证**：桌面浅/暗、网格、移动(tree 隐藏/单列/无横溢)、toast 渲染、全出血填高、新建文件夹 FormDialog；vue-tsc+eslint 绿。**未提交。** 记忆 [[rewritten-components-drop-all-legacy-framework]]。**浏览器 MCP 坑**：chrome-devtools 读默认 profile 的 DevToolsActivePort；用户 Chrome 无 debug 端口→ 另起隔离 debug Chrome `:9222`（`$TEMP\momoko-devtools-profile`）+ 把默认 profile 里陈旧 DevToolsActivePort 改指 9222。 | ①**用户重跑 Go 后端**以吃到 `pkg/file.Create` 吞错修复 ②提交本批文件管理重写 ③Monaco 自动化键入未通（保存 dirty 态未 E2E 到，手工点一下即可）④Docker 复查修复（容器网络列无界/Stats echarts 暗色/硬编码「连接」/engine-down 空态）⑤剩余页面 |

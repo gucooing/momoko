@@ -1,16 +1,16 @@
-<!-- 重定向路由(暂时注释掉，因为redirect路由会导致加载缓慢) -->
+<!-- 工具页：无业务 UI，仅短暂占位后 replace 到目标路径。 -->
 <template>
-  <div class="redirect-container">
-    <div class="redirect-loading">
-      <img src="@/assets/logo.png" alt="logo" class="loading-logo" />
-      <div class="loading-text">{{ t('utils.redirecting') }}</div>
-    </div>
+  <div class="redir-page" role="status" aria-live="polite">
+    <img :src="APP_CONFIG.logoSrc" alt="" class="redir-logo" />
+    <p class="redir-text">{{ t('utils.redirecting') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { APP_CONFIG } from '@/config/app.config'
 import { useI18n } from 'vue-i18n'
-defineOptions({ name: 'RedirectComponent' })
+
+defineOptions({ name: 'RedirectView' })
 
 const route = useRoute()
 const router = useRouter()
@@ -19,60 +19,54 @@ const { t } = useI18n()
 const { params, query, hash } = route
 const path = params.path as string
 
-// 延迟一下，确保路由已完全加载
 nextTick(() => {
   setTimeout(() => {
     router.replace({
-      path: '/' + path,
+      path: '/' + (path || ''),
       query,
       hash,
     })
-  }, 100)
+  }, 80)
 })
 </script>
 
-<style scoped>
-.redirect-container {
+<style scoped lang="scss">
+.redir-page {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
+  inset: 0;
   z-index: 9999;
-}
-
-.redirect-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
+  gap: 14px;
+  background: var(--el-bg-color-page);
 }
 
-.loading-logo {
-  width: 60px;
-  height: 60px;
-  animation: pulse 1.5s ease-in-out infinite;
+.redir-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  opacity: 0.9;
+  animation: redir-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes pulse {
+.redir-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+}
+
+@keyframes redir-pulse {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.95;
     transform: scale(1);
   }
   50% {
-    opacity: 0.7;
-    transform: scale(1.05);
+    opacity: 0.55;
+    transform: scale(1.04);
   }
-}
-
-.loading-text {
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
 }
 </style>

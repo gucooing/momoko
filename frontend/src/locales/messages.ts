@@ -4544,6 +4544,8 @@ export const messages = {
       comingSoon: '功能开发中',
     },
     initialize: {
+      pageTitle: '系统初始化',
+      pageDesc: '首次部署：配置数据库并创建超级管理员',
       steps: {
         database: '数据库配置',
         admin: '管理员账号',
@@ -4608,8 +4610,12 @@ export const messages = {
       databaseConnectFailed: '数据库连接失败',
     },
     exception: {
+      forbiddenTitle: '无权限访问',
       forbidden: '抱歉，您没有权限访问此页面',
+      notFoundTitle: '页面不存在',
       notFound: '抱歉，您访问的页面不存在',
+      goHome: '返回首页',
+      goBack: '返回上一页',
     },
     dashboard: {
       home: {
@@ -5603,6 +5609,8 @@ export const messages = {
       comingSoon: '功能開發中',
     },
     initialize: {
+      pageTitle: '系統初始化',
+      pageDesc: '首次部署：配置數據庫並創建超級管理員',
       steps: {
         database: '數據庫配置',
         admin: '管理員帳號',
@@ -5667,8 +5675,12 @@ export const messages = {
       databaseConnectFailed: '數據庫連接失敗',
     },
     exception: {
+      forbiddenTitle: '無權限訪問',
       forbidden: '抱歉，您沒有權限訪問此頁面',
+      notFoundTitle: '頁面不存在',
       notFound: '抱歉，您訪問的頁面不存在',
+      goHome: '返回首頁',
+      goBack: '返回上一頁',
     },
     dashboard: {
       home: {
@@ -6666,6 +6678,8 @@ export const messages = {
       comingSoon: 'Feature in development',
     },
     initialize: {
+      pageTitle: 'System setup',
+      pageDesc: 'First-run: configure the database and create a super admin',
       steps: {
         database: 'Database',
         admin: 'Admin Account',
@@ -6732,8 +6746,12 @@ export const messages = {
       databaseConnectFailed: 'Database connection failed',
     },
     exception: {
+      forbiddenTitle: 'Access denied',
       forbidden: 'Sorry, you do not have permission to access this page',
+      notFoundTitle: 'Page not found',
       notFound: 'Sorry, the page you visited does not exist',
+      goHome: 'Back to home',
+      goBack: 'Go back',
     },
     dashboard: {
       home: {
