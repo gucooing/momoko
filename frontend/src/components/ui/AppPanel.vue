@@ -49,6 +49,18 @@ const menuStore = useMenuStore()
   gap: 1rem;
   padding: 15px 20px;
   border-bottom: 1px solid var(--el-border-color-lighter);
+  min-width: 0;
+}
+@media (width < 640px) {
+  .app-panel__head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .app-panel__actions {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 .app-panel__title {
   display: flex;
@@ -76,7 +88,8 @@ const menuStore = useMenuStore()
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 .app-panel__body {
   padding: 20px;

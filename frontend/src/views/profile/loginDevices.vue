@@ -2,20 +2,21 @@
 <template>
   <AppPanel :title="t('user.loginDevices')" title-icon="HOutline:DevicePhoneMobileIcon">
     <template #actions>
-      <div class="dev-meta">
-        <StatusPill
-          variant="info"
-          :dot="false"
-          :label="t('user.totalCount', { count: loginDevices.length })"
-        />
-        <StatusPill
-          v-if="currentDeviceLabel && currentDeviceLabel !== '-'"
-          variant="primary"
-          :dot="false"
-          :label="`${t('user.currentDevice')} · ${shortDevice(currentDeviceLabel)}`"
-        />
-      </div>
+      <!-- 头部只放总数；当前设备长串放到 body 提示，避免窄屏撑破面板头 -->
+      <StatusPill
+        variant="info"
+        :dot="false"
+        :label="t('user.totalCount', { count: loginDevices.length })"
+      />
     </template>
+
+    <p
+      v-if="currentDeviceLabel && currentDeviceLabel !== '-'"
+      class="dev-current"
+      :title="currentDeviceLabel"
+    >
+      {{ t('user.currentDevice') }} · {{ shortDevice(currentDeviceLabel) }}
+    </p>
 
     <div v-if="loading" class="dev-grid">
       <div v-for="i in 4" :key="i" class="dev-skeleton" />
@@ -90,6 +91,7 @@ import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
 
 const userProfileStore = useUserProfileStore()
+const menuStore = useMenuStore()
 const { t } = useI18n()
 const fb = useFeedback()
 
@@ -103,8 +105,10 @@ const {
 } = userProfileStore
 
 const shortDevice = (label: string) => {
-  if (label.length <= 36) return label
-  return `${label.slice(0, 34)}…`
+  // 窄屏提示条：更短截断
+  const max = menuStore.isMobile ? 28 : 42
+  if (label.length <= max) return label
+  return `${label.slice(0, max - 1)}…`
 }
 const shortId = (id?: string) => {
   if (!id) return '—'
@@ -123,21 +127,29 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.dev-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
+.dev-current {
+  margin: 0 0 0.65rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .dev-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0,1fr)：避免 1fr 默认 min=auto 被长 UA 字符串撑破容器 */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
+  min-width: 0;
+}
+.dev-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 @media (width >= 768px) {
   .dev-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   }
 }
 .dev-skeleton {
@@ -170,9 +182,11 @@ onMounted(() => {
 .dev-kv {
   display: flex;
   gap: 0.4rem;
+  min-width: 0;
   font-size: 0.75rem;
   color: var(--el-text-color-regular);
   line-height: 1.4;
+  overflow: hidden;
   em {
     flex-shrink: 0;
     font-style: normal;

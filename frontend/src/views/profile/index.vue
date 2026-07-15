@@ -305,9 +305,6 @@ html.dark .profile-hero__wash {
   gap: 12px;
   min-width: 0;
 }
-.profile-side__mobile-edit {
-  /* 移动：档案下的编辑入口 */
-}
 
 .profile-main {
   min-width: 0;
@@ -320,11 +317,14 @@ html.dark .profile-hero__wash {
   display: flex;
   gap: 2px;
   padding: 3px;
+  max-width: 100%;
   background: var(--el-fill-color-light);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
   &::-webkit-scrollbar {
     display: none;
   }
