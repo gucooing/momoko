@@ -143,6 +143,53 @@ func (_u *Sub2APIUsageRecordUpdate) ClearGroupName() *Sub2APIUsageRecordUpdate {
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdate) SetUserID(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.ResetUserID()
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableUserID(v *int64) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdate) AddUserID(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearUserID() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearUserID()
+	return _u
+}
+
+// SetUserName sets the "user_name" field.
+func (_u *Sub2APIUsageRecordUpdate) SetUserName(v string) *Sub2APIUsageRecordUpdate {
+	_u.mutation.SetUserName(v)
+	return _u
+}
+
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableUserName(v *string) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetUserName(*v)
+	}
+	return _u
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (_u *Sub2APIUsageRecordUpdate) ClearUserName() *Sub2APIUsageRecordUpdate {
+	_u.mutation.ClearUserName()
+	return _u
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_u *Sub2APIUsageRecordUpdate) SetUserAgent(v string) *Sub2APIUsageRecordUpdate {
 	_u.mutation.SetUserAgent(v)
@@ -492,6 +539,21 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	if _u.mutation.GroupNameCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldGroupName, field.TypeString)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldUserID, field.TypeInt64, value)
+	}
+	if _u.mutation.UserIDCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.UserName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserName, field.TypeString, value)
+	}
+	if _u.mutation.UserNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserName, field.TypeString)
+	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
 	}
@@ -727,6 +789,53 @@ func (_u *Sub2APIUsageRecordUpdateOne) SetNillableGroupName(v *string) *Sub2APIU
 // ClearGroupName clears the value of the "group_name" field.
 func (_u *Sub2APIUsageRecordUpdateOne) ClearGroupName() *Sub2APIUsageRecordUpdateOne {
 	_u.mutation.ClearGroupName()
+	return _u
+}
+
+// SetUserID sets the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetUserID(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ResetUserID()
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableUserID(v *int64) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdateOne) AddUserID(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearUserID() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearUserID()
+	return _u
+}
+
+// SetUserName sets the "user_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetUserName(v string) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.SetUserName(v)
+	return _u
+}
+
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableUserName(v *string) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetUserName(*v)
+	}
+	return _u
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (_u *Sub2APIUsageRecordUpdateOne) ClearUserName() *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ClearUserName()
 	return _u
 }
 
@@ -1108,6 +1217,21 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	}
 	if _u.mutation.GroupNameCleared() {
 		_spec.ClearField(sub2apiusagerecord.FieldGroupName, field.TypeString)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldUserID, field.TypeInt64, value)
+	}
+	if _u.mutation.UserIDCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.UserName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserName, field.TypeString, value)
+	}
+	if _u.mutation.UserNameCleared() {
+		_spec.ClearField(sub2apiusagerecord.FieldUserName, field.TypeString)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)

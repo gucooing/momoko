@@ -19,6 +19,11 @@ import uiPlugin from '@nuxt/ui/vue-plugin' // Nuxt UI 运行时插件（虚拟�
 const initAppConfig = () => {
   document.title = APP_CONFIG.name
 
+  // public 页常被 HTTPS 父页 iframe 嵌入；开发态 favicon 是 http://localhost/...，会触发 Mixed Content
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/public/')) {
+    return
+  }
+
   let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement
   if (!faviconLink) {
     faviconLink = document.createElement('link')

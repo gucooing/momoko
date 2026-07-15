@@ -34,6 +34,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true },
   },
   {
+    path: '/public/sub2api/lottery',
+    name: 'Sub2APILottery',
+    component: () => import('@/views/public/sub2api/lottery/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
     path: '/public/share/:token',
     name: 'PublicShare',
     component: () => import('@/views/public/share/index.vue'),

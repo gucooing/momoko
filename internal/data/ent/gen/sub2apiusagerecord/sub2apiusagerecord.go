@@ -30,6 +30,10 @@ const (
 	FieldGroupID = "group_id"
 	// FieldGroupName holds the string denoting the group_name field in the database.
 	FieldGroupName = "group_name"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldUserName holds the string denoting the user_name field in the database.
+	FieldUserName = "user_name"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -80,6 +84,8 @@ var Columns = []string{
 	FieldEndpoint,
 	FieldGroupID,
 	FieldGroupName,
+	FieldUserID,
+	FieldUserName,
 	FieldUserAgent,
 	FieldStatus,
 	FieldSuccess,
@@ -178,6 +184,16 @@ func ByGroupID(opts ...sql.OrderTermOption) OrderOption {
 // ByGroupName orders the results by the group_name field.
 func ByGroupName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGroupName, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByUserName orders the results by the user_name field.
+func ByUserName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserName, opts...).ToFunc()
 }
 
 // ByUserAgent orders the results by the user_agent field.

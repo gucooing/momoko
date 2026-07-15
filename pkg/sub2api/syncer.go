@@ -60,7 +60,7 @@ func (s *Syncer) Sync(ctx context.Context, cfg ClientConfig, store UsageStore, o
 	}
 
 	result, err := s.syncPaged(ctx, store, usageCutoff, pageSize, func(page int) (*UsageListResult, error) {
-		return s.manager.ListUsage(ctx, cfg, UsageListOptions{
+		return s.manager.ListUsage(cfg, UsageListOptions{
 			Page:     page,
 			PageSize: pageSize,
 			SortBy:   "created_at",
@@ -73,7 +73,7 @@ func (s *Syncer) Sync(ctx context.Context, cfg ClientConfig, store UsageStore, o
 
 	upstreamEnd := time.Now()
 	upstreamResult, err := s.syncPaged(ctx, store, upstreamCutoff, pageSize, func(page int) (*UsageListResult, error) {
-		return s.manager.ListUpstreamErrors(ctx, cfg, UsageListOptions{
+		return s.manager.ListUpstreamErrors(cfg, UsageListOptions{
 			Page:      page,
 			PageSize:  pageSize,
 			SortBy:    "created_at",
@@ -88,7 +88,7 @@ func (s *Syncer) Sync(ctx context.Context, cfg ClientConfig, store UsageStore, o
 	}
 
 	// 同步分组：以管理端存活列表为准，本地多出的标 deleted。
-	live, gerr := s.manager.ListGroups(ctx, cfg)
+	live, gerr := s.manager.ListGroups(cfg)
 	if gerr != nil {
 		return result, gerr
 	}

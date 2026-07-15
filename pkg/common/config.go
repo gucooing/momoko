@@ -60,6 +60,14 @@ const (
 	// ConfigSub2APISrcHostWhitelistEnabled 是否开启站点白名单校验。
 	ConfigSub2APISrcHostWhitelistEnabled ConfigKey = "sub2api.src_host_whitelist_enabled"
 
+	// 每日抽奖活动配置（存 KV，不单独建表）。
+	ConfigSub2APILotteryEnabled     ConfigKey = "sub2api.lottery_enabled"      // 活动是否启用
+	ConfigSub2APILotteryPoolRatio   ConfigKey = "sub2api.lottery_pool_ratio"   // 奖池比例（默认 0.05）
+	ConfigSub2APILotteryThreshold   ConfigKey = "sub2api.lottery_threshold"    // 报名门槛金额（默认 2）
+	ConfigSub2APILotteryBaseWinners ConfigKey = "sub2api.lottery_base_winners" // 基准中奖人数（默认 10）
+	ConfigSub2APILotteryMaxWinners  ConfigKey = "sub2api.lottery_max_winners"  // 最大中奖人数（0=无限）
+	ConfigSub2APILotteryAutoPayout  ConfigKey = "sub2api.lottery_auto_payout"  // 是否自动发放
+
 	// frps（内网穿透）实例级配置（无统一 auth_token，见隧道逐条 credential）。
 	ConfigFrpsEnabled            ConfigKey = "frps.enabled"
 	ConfigFrpsBindAddr           ConfigKey = "frps.bind_addr"
@@ -124,6 +132,12 @@ var configDefaults = map[ConfigKey]string{
 	ConfigSub2APIAllowedSrcHosts:         "[]",
 	ConfigSub2APIImageEnabled:            "true",
 	ConfigSub2APISrcHostWhitelistEnabled: "false",
+	ConfigSub2APILotteryEnabled:          "false",
+	ConfigSub2APILotteryPoolRatio:        "0.05",
+	ConfigSub2APILotteryThreshold:        "2",
+	ConfigSub2APILotteryBaseWinners:      "10",
+	ConfigSub2APILotteryMaxWinners:       "0",
+	ConfigSub2APILotteryAutoPayout:       "true",
 
 	ConfigFrpsEnabled:            "false",
 	ConfigFrpsBindAddr:           "0.0.0.0",

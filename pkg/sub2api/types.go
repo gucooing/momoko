@@ -73,6 +73,8 @@ type UsageRecord struct {
 	Endpoint     string
 	GroupID      string // 关联本地 Sub2APIGroup.id
 	GroupName    string // Sub2API 分组名称
+	UserID       int64  // Sub2API 用户 ID（上游 int64，不转换）
+	UserName     string // Sub2API 用户名
 	UserAgent    string
 	Status       string
 	Success      bool

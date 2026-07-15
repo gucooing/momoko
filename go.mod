@@ -4,6 +4,7 @@ go 1.26.3
 
 require (
 	entgo.io/ent v0.14.5
+	github.com/aymanbagabas/go-pty v0.2.3
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.7.0
 	github.com/fatedier/frp v0.69.1
@@ -41,7 +42,6 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
-	github.com/aymanbagabas/go-pty v0.2.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

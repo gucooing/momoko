@@ -105,6 +105,16 @@ func GroupName(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldGroupName, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserName applies equality check predicate on the "user_name" field. It's identical to UserNameEQ.
+func UserName(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserName, v))
+}
+
 // UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
 func UserAgent(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserAgent, v))
@@ -653,6 +663,131 @@ func GroupNameEqualFold(v string) predicate.Sub2APIUsageRecord {
 // GroupNameContainsFold applies the ContainsFold predicate on the "group_name" field.
 func GroupNameContainsFold(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldGroupName, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldUserID, v))
+}
+
+// UserIDIsNil applies the IsNil predicate on the "user_id" field.
+func UserIDIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldUserID))
+}
+
+// UserIDNotNil applies the NotNil predicate on the "user_id" field.
+func UserIDNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldUserID))
+}
+
+// UserNameEQ applies the EQ predicate on the "user_name" field.
+func UserNameEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldUserName, v))
+}
+
+// UserNameNEQ applies the NEQ predicate on the "user_name" field.
+func UserNameNEQ(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldUserName, v))
+}
+
+// UserNameIn applies the In predicate on the "user_name" field.
+func UserNameIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldUserName, vs...))
+}
+
+// UserNameNotIn applies the NotIn predicate on the "user_name" field.
+func UserNameNotIn(vs ...string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldUserName, vs...))
+}
+
+// UserNameGT applies the GT predicate on the "user_name" field.
+func UserNameGT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldUserName, v))
+}
+
+// UserNameGTE applies the GTE predicate on the "user_name" field.
+func UserNameGTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldUserName, v))
+}
+
+// UserNameLT applies the LT predicate on the "user_name" field.
+func UserNameLT(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldUserName, v))
+}
+
+// UserNameLTE applies the LTE predicate on the "user_name" field.
+func UserNameLTE(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldUserName, v))
+}
+
+// UserNameContains applies the Contains predicate on the "user_name" field.
+func UserNameContains(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContains(FieldUserName, v))
+}
+
+// UserNameHasPrefix applies the HasPrefix predicate on the "user_name" field.
+func UserNameHasPrefix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasPrefix(FieldUserName, v))
+}
+
+// UserNameHasSuffix applies the HasSuffix predicate on the "user_name" field.
+func UserNameHasSuffix(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldHasSuffix(FieldUserName, v))
+}
+
+// UserNameIsNil applies the IsNil predicate on the "user_name" field.
+func UserNameIsNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIsNull(FieldUserName))
+}
+
+// UserNameNotNil applies the NotNil predicate on the "user_name" field.
+func UserNameNotNil() predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotNull(FieldUserName))
+}
+
+// UserNameEqualFold applies the EqualFold predicate on the "user_name" field.
+func UserNameEqualFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEqualFold(FieldUserName, v))
+}
+
+// UserNameContainsFold applies the ContainsFold predicate on the "user_name" field.
+func UserNameContainsFold(v string) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldUserName, v))
 }
 
 // UserAgentEQ applies the EQ predicate on the "user_agent" field.

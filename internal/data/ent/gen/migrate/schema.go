@@ -695,6 +695,92 @@ var (
 			},
 		},
 	}
+	// Sub2apiLotteryParticipantsColumns holds the columns for the "sub2api_lottery_participants" table.
+	Sub2apiLotteryParticipantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "round_id", Type: field.TypeString},
+		{Name: "sub2api_user_id", Type: field.TypeInt64},
+		{Name: "user_name", Type: field.TypeString, Nullable: true},
+		{Name: "spend_snapshot", Type: field.TypeFloat64, Default: 0},
+		{Name: "registered_time", Type: field.TypeTime},
+		{Name: "is_winner", Type: field.TypeBool, Default: false},
+		{Name: "prize_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "payout_status", Type: field.TypeEnum, Enums: []string{"none", "pending", "paid", "failed"}, Default: "none"},
+		{Name: "payout_idempotency_key", Type: field.TypeString, Nullable: true},
+		{Name: "payout_error", Type: field.TypeString, Nullable: true, Size: 2147483647},
+	}
+	// Sub2apiLotteryParticipantsTable holds the schema information for the "sub2api_lottery_participants" table.
+	Sub2apiLotteryParticipantsTable = &schema.Table{
+		Name:       "sub2api_lottery_participants",
+		Columns:    Sub2apiLotteryParticipantsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiLotteryParticipantsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apilotteryparticipant_round_id_sub2api_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{Sub2apiLotteryParticipantsColumns[3], Sub2apiLotteryParticipantsColumns[4]},
+			},
+			{
+				Name:    "sub2apilotteryparticipant_round_id_is_winner",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiLotteryParticipantsColumns[3], Sub2apiLotteryParticipantsColumns[8]},
+			},
+			{
+				Name:    "sub2apilotteryparticipant_sub2api_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiLotteryParticipantsColumns[4]},
+			},
+		},
+	}
+	// Sub2apiLotteryRoundsColumns holds the columns for the "sub2api_lottery_rounds" table.
+	Sub2apiLotteryRoundsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "source_date", Type: field.TypeString},
+		{Name: "settle_time", Type: field.TypeTime},
+		{Name: "draw_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"registering", "drawn"}, Default: "registering"},
+		{Name: "pool_ratio", Type: field.TypeFloat64},
+		{Name: "threshold", Type: field.TypeFloat64},
+		{Name: "base_winners", Type: field.TypeInt},
+		{Name: "max_winners", Type: field.TypeInt},
+		{Name: "group_spend_total", Type: field.TypeFloat64, Default: 0},
+		{Name: "carry_in", Type: field.TypeFloat64, Default: 0},
+		{Name: "pool_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "eligible_count", Type: field.TypeInt, Default: 0},
+		{Name: "registered_count", Type: field.TypeInt, Default: 0},
+		{Name: "winner_count", Type: field.TypeInt, Default: 0},
+		{Name: "per_winner_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "carry_out", Type: field.TypeFloat64, Default: 0},
+		{Name: "auto_payout", Type: field.TypeBool, Default: true},
+		{Name: "distributed", Type: field.TypeBool, Default: false},
+	}
+	// Sub2apiLotteryRoundsTable holds the schema information for the "sub2api_lottery_rounds" table.
+	Sub2apiLotteryRoundsTable = &schema.Table{
+		Name:       "sub2api_lottery_rounds",
+		Columns:    Sub2apiLotteryRoundsColumns,
+		PrimaryKey: []*schema.Column{Sub2apiLotteryRoundsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sub2apilotteryround_status",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiLotteryRoundsColumns[6]},
+			},
+			{
+				Name:    "sub2apilotteryround_draw_time",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiLotteryRoundsColumns[5]},
+			},
+			{
+				Name:    "sub2apilotteryround_source_date",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiLotteryRoundsColumns[3]},
+			},
+		},
+	}
 	// Sub2apiTimelineItemsColumns holds the columns for the "sub2api_timeline_items" table.
 	Sub2apiTimelineItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -728,6 +814,8 @@ var (
 		{Name: "model", Type: field.TypeString, Nullable: true},
 		{Name: "endpoint", Type: field.TypeString, Nullable: true},
 		{Name: "group_name", Type: field.TypeString, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_name", Type: field.TypeString, Nullable: true},
 		{Name: "user_agent", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "success", Type: field.TypeBool, Default: false},
@@ -751,7 +839,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sub2api_usage_records_sub2api_groups_usage_records",
-				Columns:    []*schema.Column{Sub2apiUsageRecordsColumns[21]},
+				Columns:    []*schema.Column{Sub2apiUsageRecordsColumns[23]},
 				RefColumns: []*schema.Column{Sub2apiGroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -770,12 +858,12 @@ var (
 			{
 				Name:    "sub2apiusagerecord_success",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[10]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[12]},
 			},
 			{
 				Name:    "sub2apiusagerecord_status",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[11]},
 			},
 			{
 				Name:    "sub2apiusagerecord_model",
@@ -790,7 +878,7 @@ var (
 			{
 				Name:    "sub2apiusagerecord_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[21]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[23]},
 			},
 			{
 				Name:    "sub2apiusagerecord_group_name",
@@ -800,7 +888,17 @@ var (
 			{
 				Name:    "sub2apiusagerecord_group_id_request_time",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[21], Sub2apiUsageRecordsColumns[3]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[23], Sub2apiUsageRecordsColumns[3]},
+			},
+			{
+				Name:    "sub2apiusagerecord_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
+			},
+			{
+				Name:    "sub2apiusagerecord_user_id_request_time",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8], Sub2apiUsageRecordsColumns[3]},
 			},
 		},
 	}
@@ -1008,6 +1106,8 @@ var (
 		SSHHostsTable,
 		Sub2apiAnnouncementsTable,
 		Sub2apiGroupsTable,
+		Sub2apiLotteryParticipantsTable,
+		Sub2apiLotteryRoundsTable,
 		Sub2apiTimelineItemsTable,
 		Sub2apiUsageRecordsTable,
 		ConfigsTable,

@@ -186,6 +186,8 @@ func (m *Manager) runOnce(ctx context.Context, t Task, rec *Record, rep *reporte
 }
 
 // runScheduled 按周期触发任务，直到取消/停止。
+// 不在启动时立即 Run：重启本身不做业务动作，等 Interval 真正到点再执行
+// （抽奖结算等依赖「定时器触发 + 墙钟条件」双重门槛）。
 func (m *Manager) runScheduled(ctx context.Context, t Task, rec *Record, rep *reporter) {
 	interval := time.Duration(rec.IntervalMS) * time.Millisecond
 	if interval <= 0 {

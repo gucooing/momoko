@@ -114,6 +114,75 @@ service Sub2APIManager {
       delete: "/api/v1/sub2api/timeline/{id}"
     };
   }
+
+  // ---------- 每日抽奖活动（管理端，需鉴权） ----------
+  // 三段概览（累计中 / 报名中 / 配置）
+  rpc GetLotteryOverview(GetLotteryOverviewRequest) returns (GetLotteryOverviewResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/lottery/overview"
+    };
+  }
+  // 更新抽奖配置
+  rpc UpdateLotterySettings(UpdateLotterySettingsRequest) returns (UpdateLotterySettingsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/sub2api/lottery/settings"
+      body: "*"
+    };
+  }
+  // 历史轮次分页
+  rpc ListLotteryRounds(ListLotteryRoundsRequest) returns (ListLotteryRoundsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/lottery/rounds"
+    };
+  }
+  // 某轮次详情（含中奖名单）
+  rpc GetLotteryRoundDetail(GetLotteryRoundDetailRequest) returns (GetLotteryRoundDetailResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/lottery/rounds/{id}"
+    };
+  }
+  // 手动发放某轮次奖金（autoPayout 关或重试失败时）
+  rpc DistributeLotteryRound(DistributeLotteryRoundRequest) returns (DistributeLotteryRoundResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/lottery/rounds/{id}/distribute"
+      body: "*"
+    };
+  }
+  // 手动立即结算（测试/补偿）
+  rpc TriggerLotterySettle(TriggerLotterySettleRequest) returns (TriggerLotterySettleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/lottery/settle"
+      body: "*"
+    };
+  }
+  // 手动立即开奖（测试/补偿）
+  rpc TriggerLotteryDraw(TriggerLotteryDrawRequest) returns (TriggerLotteryDrawResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/sub2api/lottery/draw"
+      body: "*"
+    };
+  }
+
+  // ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
+  // 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
+  rpc GetLotteryStatus(GetLotteryStatusRequest) returns (GetLotteryStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/lottery/status"
+    };
+  }
+  // 报名当前轮次
+  rpc RegisterLottery(RegisterLotteryRequest) returns (RegisterLotteryResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/public/sub2api/lottery/register"
+      body: "*"
+    };
+  }
+  // 用户端历史 + 本人参与情况
+  rpc ListLotteryHistoryPublic(ListLotteryHistoryPublicRequest) returns (ListLotteryHistoryPublicResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/lottery/history"
+    };
+  }
 }
 
 message PublicSub2APIHomeRequest {}
@@ -417,4 +486,211 @@ message Sub2APIRecentRequest {
   string error_message = 13;   // 错误详情
   int32 http_status = 14;      // HTTP 状态码
   string group_name = 15;      // Sub2API 分组名称
+}
+
+// ---------- 每日抽奖活动消息 ----------
+
+// 轮次状态
+enum LotteryRoundStatus {
+  LOTTERY_ROUND_STATUS_UNSPECIFIED = 0;
+  // 报名中（00:00 已结算，12:00 前）
+  LOTTERY_ROUND_STATUS_REGISTERING = 1;
+  // 已开奖
+  LOTTERY_ROUND_STATUS_DRAWN = 2;
+}
+
+// 派奖状态
+enum LotteryPayoutStatus {
+  LOTTERY_PAYOUT_STATUS_UNSPECIFIED = 0;
+  // 未中奖 / 无需发放
+  LOTTERY_PAYOUT_STATUS_NONE = 1;
+  // 待发放
+  LOTTERY_PAYOUT_STATUS_PENDING = 2;
+  // 已发放
+  LOTTERY_PAYOUT_STATUS_PAID = 3;
+  // 发放失败
+  LOTTERY_PAYOUT_STATUS_FAILED = 4;
+}
+
+// 用户在某轮的参与情况（用户端历史）
+enum LotteryMyStatus {
+  LOTTERY_MY_STATUS_UNSPECIFIED = 0;
+  // 未参加
+  LOTTERY_MY_STATUS_NONE = 1;
+  // 已参加未获得
+  LOTTERY_MY_STATUS_REGISTERED = 2;
+  // 已获得奖金
+  LOTTERY_MY_STATUS_WON = 3;
+}
+
+// 抽奖配置（存 KV）
+message LotterySettings {
+  bool enabled = 1;          // 活动是否启用
+  double pool_ratio = 2;     // 奖池比例（默认 0.05）
+  double threshold = 3;      // 报名门槛金额（默认 2）
+  int32 base_winners = 4;    // 基准中奖人数（默认 10）
+  int32 max_winners = 5;     // 最大中奖人数（0=无限）
+  bool auto_payout = 6;      // 是否自动发放
+}
+
+// 一期抽奖轮次
+message LotteryRound {
+  string id = 1;                              // 轮次日期 YYYY-MM-DD（报名/开奖当天）
+  string source_date = 2;                     // 扣费来源日期（前一天）
+  google.protobuf.Timestamp settle_time = 3;  // 结算时间
+  google.protobuf.Timestamp draw_time = 4;    // 开奖时间
+  LotteryRoundStatus status = 5;
+  double pool_ratio = 6;                      // 奖池比例快照
+  double threshold = 7;                       // 报名门槛快照
+  int32 base_winners = 8;
+  int32 max_winners = 9;
+  double group_spend_total = 10;              // 来源日展示分组扣费之和
+  double carry_in = 11;                       // 上一期结转
+  double pool_amount = 12;                    // 本轮奖池
+  int32 eligible_count = 13;                  // 资格人数
+  int32 registered_count = 14;                // 已报名人数
+  int32 winner_count = 15;                    // 实际中奖人数
+  double per_winner_amount = 16;              // 每位中奖者金额
+  double carry_out = 17;                      // 结转到次日
+  bool auto_payout = 18;
+  bool distributed = 19;                      // 是否已发放
+}
+
+// 参与者/中奖记录
+message LotteryParticipant {
+  int32 id = 1;
+  string round_id = 2;
+  int64 sub2api_user_id = 3;
+  string user_name = 4;
+  double spend_snapshot = 5;
+  google.protobuf.Timestamp registered_time = 6;
+  bool is_winner = 7;
+  double prize_amount = 8;
+  LotteryPayoutStatus payout_status = 9;
+  string payout_error = 10;
+}
+
+// 管理端概览
+message GetLotteryOverviewRequest {}
+
+message GetLotteryOverviewResponse {
+  LotterySettings settings = 1;
+  string accum_date = 2;                          // 当前累计日期
+  double accum_spend = 3;                         // 今日展示分组扣费
+  double accum_pool = 4;                          // 预估奖池 = 比例 × 今日扣费
+  int32 accum_eligible = 5;                       // 预估资格人数
+  google.protobuf.Timestamp next_settle_time = 6;
+  google.protobuf.Timestamp next_draw_time = 7;
+  LotteryRound current = 8;                       // 当前报名中轮次（无则为空）
+}
+
+message UpdateLotterySettingsRequest {
+  LotterySettings settings = 1;
+}
+
+message UpdateLotterySettingsResponse {
+  LotterySettings settings = 1;
+}
+
+message ListLotteryRoundsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListLotteryRoundsResponse {
+  repeated LotteryRound rounds = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetLotteryRoundDetailRequest {
+  string id = 1;
+}
+
+message GetLotteryRoundDetailResponse {
+  LotteryRound round = 1;
+  repeated LotteryParticipant winners = 2;
+}
+
+message DistributeLotteryRoundRequest {
+  string id = 1;
+}
+
+message DistributeLotteryRoundResponse {
+  LotteryRound round = 1;
+}
+
+message TriggerLotterySettleRequest {
+  // 为空则结算「今天」
+  string date = 1;
+}
+
+message TriggerLotterySettleResponse {
+  LotteryRound round = 1;
+}
+
+message TriggerLotteryDrawRequest {
+  // 为空则开奖「今天」
+  string date = 1;
+}
+
+message TriggerLotteryDrawResponse {
+  LotteryRound round = 1;
+}
+
+// 用户端状态
+message GetLotteryStatusRequest {}
+
+message GetLotteryStatusResponse {
+  bool enabled = 1;
+  bool authenticated = 2;
+  int64 user_id = 3;
+  string user_name = 4;
+  double accum_pool = 5;                          // 当期累计奖池
+  google.protobuf.Timestamp next_settle_time = 6;
+  google.protobuf.Timestamp next_draw_time = 7;
+  LotteryRound current = 8;                       // 已结算未开奖的轮次
+  bool eligible = 9;                              // 是否有资格报名
+  double user_spend = 10;                         // 本人来源日扣费
+  bool registered = 11;                           // 是否已报名
+}
+
+message RegisterLotteryRequest {}
+
+message RegisterLotteryResponse {
+  bool enabled = 1;
+  bool authenticated = 2;
+  int64 user_id = 3;
+  string user_name = 4;
+  double accum_pool = 5;
+  google.protobuf.Timestamp next_settle_time = 6;
+  google.protobuf.Timestamp next_draw_time = 7;
+  LotteryRound current = 8;
+  bool eligible = 9;
+  double user_spend = 10;
+  bool registered = 11;
+}
+
+message ListLotteryHistoryPublicRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// 用户端历史：轮次 + 本人参与情况 + 公开中奖名单（邮箱已打码）
+message LotteryHistoryItem {
+  LotteryRound round = 1;
+  LotteryMyStatus my_status = 2;
+  double my_prize = 3;
+  bool registered = 4;
+  bool is_winner = 5;
+  // 中奖名单（公开）；user_name 若为邮箱已脱敏，用户名原样。不含派奖错误等敏感字段语义依赖。
+  repeated LotteryParticipant winners = 6;
+}
+
+message ListLotteryHistoryPublicResponse {
+  repeated LotteryHistoryItem items = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
 }

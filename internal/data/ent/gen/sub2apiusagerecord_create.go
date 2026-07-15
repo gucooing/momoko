@@ -120,6 +120,34 @@ func (_c *Sub2APIUsageRecordCreate) SetNillableGroupName(v *string) *Sub2APIUsag
 	return _c
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *Sub2APIUsageRecordCreate) SetUserID(v int64) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableUserID(v *int64) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetUserID(*v)
+	}
+	return _c
+}
+
+// SetUserName sets the "user_name" field.
+func (_c *Sub2APIUsageRecordCreate) SetUserName(v string) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetUserName(v)
+	return _c
+}
+
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableUserName(v *string) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetUserName(*v)
+	}
+	return _c
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_c *Sub2APIUsageRecordCreate) SetUserAgent(v string) *Sub2APIUsageRecordCreate {
 	_c.mutation.SetUserAgent(v)
@@ -497,6 +525,14 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 		_spec.SetField(sub2apiusagerecord.FieldGroupName, field.TypeString, value)
 		_node.GroupName = value
 	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserID, field.TypeInt64, value)
+		_node.UserID = &value
+	}
+	if value, ok := _c.mutation.UserName(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldUserName, field.TypeString, value)
+		_node.UserName = value
+	}
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldUserAgent, field.TypeString, value)
 		_node.UserAgent = value
@@ -723,6 +759,48 @@ func (u *Sub2APIUsageRecordUpsert) UpdateGroupName() *Sub2APIUsageRecordUpsert {
 // ClearGroupName clears the value of the "group_name" field.
 func (u *Sub2APIUsageRecordUpsert) ClearGroupName() *Sub2APIUsageRecordUpsert {
 	u.SetNull(sub2apiusagerecord.FieldGroupName)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *Sub2APIUsageRecordUpsert) SetUserID(v int64) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateUserID() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldUserID)
+	return u
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *Sub2APIUsageRecordUpsert) AddUserID(v int64) *Sub2APIUsageRecordUpsert {
+	u.Add(sub2apiusagerecord.FieldUserID, v)
+	return u
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *Sub2APIUsageRecordUpsert) ClearUserID() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldUserID)
+	return u
+}
+
+// SetUserName sets the "user_name" field.
+func (u *Sub2APIUsageRecordUpsert) SetUserName(v string) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldUserName, v)
+	return u
+}
+
+// UpdateUserName sets the "user_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateUserName() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldUserName)
+	return u
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (u *Sub2APIUsageRecordUpsert) ClearUserName() *Sub2APIUsageRecordUpsert {
+	u.SetNull(sub2apiusagerecord.FieldUserName)
 	return u
 }
 
@@ -1128,6 +1206,55 @@ func (u *Sub2APIUsageRecordUpsertOne) UpdateGroupName() *Sub2APIUsageRecordUpser
 func (u *Sub2APIUsageRecordUpsertOne) ClearGroupName() *Sub2APIUsageRecordUpsertOne {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearGroupName()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetUserID(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertOne) AddUserID(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateUserID() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearUserID() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserID()
+	})
+}
+
+// SetUserName sets the "user_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetUserName(v string) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserName(v)
+	})
+}
+
+// UpdateUserName sets the "user_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateUserName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserName()
+	})
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (u *Sub2APIUsageRecordUpsertOne) ClearUserName() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserName()
 	})
 }
 
@@ -1738,6 +1865,55 @@ func (u *Sub2APIUsageRecordUpsertBulk) UpdateGroupName() *Sub2APIUsageRecordUpse
 func (u *Sub2APIUsageRecordUpsertBulk) ClearGroupName() *Sub2APIUsageRecordUpsertBulk {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.ClearGroupName()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetUserID(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertBulk) AddUserID(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateUserID() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearUserID() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserID()
+	})
+}
+
+// SetUserName sets the "user_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetUserName(v string) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetUserName(v)
+	})
+}
+
+// UpdateUserName sets the "user_name" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateUserName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateUserName()
+	})
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (u *Sub2APIUsageRecordUpsertBulk) ClearUserName() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.ClearUserName()
 	})
 }
 

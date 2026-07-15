@@ -8,13 +8,15 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	sub2apipkg "momoko/pkg/sub2api"
+	"momoko/pkg/task"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Sub2APIRepo 聚合使用记录存储（供 pkg 处理）与公告/时间线 CRUD。
+// Sub2APIRepo 聚合使用记录存储（供 pkg 处理）、抽奖存储与公告/时间线 CRUD。
 type Sub2APIRepo interface {
 	sub2apipkg.UsageStore
+	sub2apipkg.LotteryStore
 
 	ListAnnouncements(ctx context.Context) ([]*gen.Sub2APIAnnouncement, error)
 	CreateAnnouncement(ctx context.Context, req *v1.CreateSub2APIAnnouncementRequest) (*gen.Sub2APIAnnouncement, error)
@@ -30,13 +32,25 @@ type Sub2APIRepo interface {
 type Sub2APIUsecase struct {
 	repo    Sub2APIRepo
 	service *sub2apipkg.Service
+	lottery *sub2apipkg.LotteryService
+	tasks   *task.Manager
 }
 
-func NewSub2APIUsecase(config ConfigRepo, repo Sub2APIRepo) (*Sub2APIUsecase, func(), error) {
-	service := sub2apipkg.NewService(repo, config)
+func NewSub2APIUsecase(config ConfigRepo, repo Sub2APIRepo, tasks *task.Manager) (*Sub2APIUsecase, func(), error) {
+	// 全模块共用一个 Manager（内部 SharedHTTPClient），禁止各处 NewManager 另起连接池。
+	manager := sub2apipkg.NewManager()
+	service := sub2apipkg.NewService(repo, config, manager)
 	service.Start()
-	uc := &Sub2APIUsecase{repo: repo, service: service}
-	return uc, service.Stop, nil
+	lottery := sub2apipkg.NewLotteryService(repo, config, manager)
+	// 抽奖定时交给全局任务管理器（实现 task.Task 即可被 EnsureSingleton 托管）。
+	if tasks != nil {
+		_ = tasks.EnsureSingleton(context.Background(), sub2apipkg.NewLotteryTickTask(lottery))
+	}
+	uc := &Sub2APIUsecase{repo: repo, service: service, lottery: lottery, tasks: tasks}
+	cleanup := func() {
+		service.Stop()
+	}
+	return uc, cleanup, nil
 }
 
 // ---------- 配置与用量 ----------

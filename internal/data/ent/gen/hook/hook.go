@@ -260,6 +260,30 @@ func (f Sub2APIGroupFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIGroupMutation", m)
 }
 
+// The Sub2APILotteryParticipantFunc type is an adapter to allow the use of ordinary
+// function as Sub2APILotteryParticipant mutator.
+type Sub2APILotteryParticipantFunc func(context.Context, *gen.Sub2APILotteryParticipantMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Sub2APILotteryParticipantFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.Sub2APILotteryParticipantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APILotteryParticipantMutation", m)
+}
+
+// The Sub2APILotteryRoundFunc type is an adapter to allow the use of ordinary
+// function as Sub2APILotteryRound mutator.
+type Sub2APILotteryRoundFunc func(context.Context, *gen.Sub2APILotteryRoundMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Sub2APILotteryRoundFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.Sub2APILotteryRoundMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APILotteryRoundMutation", m)
+}
+
 // The Sub2APITimelineItemFunc type is an adapter to allow the use of ordinary
 // function as Sub2APITimelineItem mutator.
 type Sub2APITimelineItemFunc func(context.Context, *gen.Sub2APITimelineItemMutation) (gen.Value, error)

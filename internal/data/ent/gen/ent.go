@@ -27,6 +27,8 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
+	"momoko/internal/data/ent/gen/sub2apilotteryparticipant"
+	"momoko/internal/data/ent/gen/sub2apilotteryround"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -99,33 +101,35 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			auth.Table:                auth.ValidColumn,
-			emailtemplate.Table:       emailtemplate.ValidColumn,
-			fileshare.Table:           fileshare.ValidColumn,
-			filesource.Table:          filesource.ValidColumn,
-			fileupload.Table:          fileupload.ValidColumn,
-			fileuploadchunk.Table:     fileuploadchunk.ValidColumn,
-			frptunnel.Table:           frptunnel.ValidColumn,
-			frptunnelstat.Table:       frptunnelstat.ValidColumn,
-			imagegengeneration.Table:  imagegengeneration.ValidColumn,
-			imagegenimage.Table:       imagegenimage.ValidColumn,
-			instance.Table:            instance.ValidColumn,
-			instancetype.Table:        instancetype.ValidColumn,
-			menu.Table:                menu.ValidColumn,
-			oidcclient.Table:          oidcclient.ValidColumn,
-			operationlog.Table:        operationlog.ValidColumn,
-			portforward.Table:         portforward.ValidColumn,
-			portforwardstat.Table:     portforwardstat.ValidColumn,
-			role.Table:                role.ValidColumn,
-			sshhost.Table:             sshhost.ValidColumn,
-			sub2apiannouncement.Table: sub2apiannouncement.ValidColumn,
-			sub2apigroup.Table:        sub2apigroup.ValidColumn,
-			sub2apitimelineitem.Table: sub2apitimelineitem.ValidColumn,
-			sub2apiusagerecord.Table:  sub2apiusagerecord.ValidColumn,
-			systemconfig.Table:        systemconfig.ValidColumn,
-			task.Table:                task.ValidColumn,
-			user.Table:                user.ValidColumn,
-			userapikey.Table:          userapikey.ValidColumn,
+			auth.Table:                      auth.ValidColumn,
+			emailtemplate.Table:             emailtemplate.ValidColumn,
+			fileshare.Table:                 fileshare.ValidColumn,
+			filesource.Table:                filesource.ValidColumn,
+			fileupload.Table:                fileupload.ValidColumn,
+			fileuploadchunk.Table:           fileuploadchunk.ValidColumn,
+			frptunnel.Table:                 frptunnel.ValidColumn,
+			frptunnelstat.Table:             frptunnelstat.ValidColumn,
+			imagegengeneration.Table:        imagegengeneration.ValidColumn,
+			imagegenimage.Table:             imagegenimage.ValidColumn,
+			instance.Table:                  instance.ValidColumn,
+			instancetype.Table:              instancetype.ValidColumn,
+			menu.Table:                      menu.ValidColumn,
+			oidcclient.Table:                oidcclient.ValidColumn,
+			operationlog.Table:              operationlog.ValidColumn,
+			portforward.Table:               portforward.ValidColumn,
+			portforwardstat.Table:           portforwardstat.ValidColumn,
+			role.Table:                      role.ValidColumn,
+			sshhost.Table:                   sshhost.ValidColumn,
+			sub2apiannouncement.Table:       sub2apiannouncement.ValidColumn,
+			sub2apigroup.Table:              sub2apigroup.ValidColumn,
+			sub2apilotteryparticipant.Table: sub2apilotteryparticipant.ValidColumn,
+			sub2apilotteryround.Table:       sub2apilotteryround.ValidColumn,
+			sub2apitimelineitem.Table:       sub2apitimelineitem.ValidColumn,
+			sub2apiusagerecord.Table:        sub2apiusagerecord.ValidColumn,
+			systemconfig.Table:              systemconfig.ValidColumn,
+			task.Table:                      task.ValidColumn,
+			user.Table:                      user.ValidColumn,
+			userapikey.Table:                userapikey.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

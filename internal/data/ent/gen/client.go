@@ -32,6 +32,8 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
+	"momoko/internal/data/ent/gen/sub2apilotteryparticipant"
+	"momoko/internal/data/ent/gen/sub2apilotteryround"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -94,6 +96,10 @@ type Client struct {
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
 	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
 	Sub2APIGroup *Sub2APIGroupClient
+	// Sub2APILotteryParticipant is the client for interacting with the Sub2APILotteryParticipant builders.
+	Sub2APILotteryParticipant *Sub2APILotteryParticipantClient
+	// Sub2APILotteryRound is the client for interacting with the Sub2APILotteryRound builders.
+	Sub2APILotteryRound *Sub2APILotteryRoundClient
 	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
 	Sub2APITimelineItem *Sub2APITimelineItemClient
 	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
@@ -138,6 +144,8 @@ func (c *Client) init() {
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(c.config)
 	c.Sub2APIGroup = NewSub2APIGroupClient(c.config)
+	c.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(c.config)
+	c.Sub2APILotteryRound = NewSub2APILotteryRoundClient(c.config)
 	c.Sub2APITimelineItem = NewSub2APITimelineItemClient(c.config)
 	c.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
@@ -234,35 +242,37 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Auth:                NewAuthClient(cfg),
-		EmailTemplate:       NewEmailTemplateClient(cfg),
-		FileShare:           NewFileShareClient(cfg),
-		FileSource:          NewFileSourceClient(cfg),
-		FileUpload:          NewFileUploadClient(cfg),
-		FileUploadChunk:     NewFileUploadChunkClient(cfg),
-		FrpTunnel:           NewFrpTunnelClient(cfg),
-		FrpTunnelStat:       NewFrpTunnelStatClient(cfg),
-		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
-		ImageGenImage:       NewImageGenImageClient(cfg),
-		Instance:            NewInstanceClient(cfg),
-		InstanceType:        NewInstanceTypeClient(cfg),
-		Menu:                NewMenuClient(cfg),
-		OIDCClient:          NewOIDCClientClient(cfg),
-		OperationLog:        NewOperationLogClient(cfg),
-		PortForward:         NewPortForwardClient(cfg),
-		PortForwardStat:     NewPortForwardStatClient(cfg),
-		Role:                NewRoleClient(cfg),
-		SSHHost:             NewSSHHostClient(cfg),
-		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
-		Sub2APIGroup:        NewSub2APIGroupClient(cfg),
-		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
-		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
-		SystemConfig:        NewSystemConfigClient(cfg),
-		Task:                NewTaskClient(cfg),
-		User:                NewUserClient(cfg),
-		UserAPIKey:          NewUserAPIKeyClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Auth:                      NewAuthClient(cfg),
+		EmailTemplate:             NewEmailTemplateClient(cfg),
+		FileShare:                 NewFileShareClient(cfg),
+		FileSource:                NewFileSourceClient(cfg),
+		FileUpload:                NewFileUploadClient(cfg),
+		FileUploadChunk:           NewFileUploadChunkClient(cfg),
+		FrpTunnel:                 NewFrpTunnelClient(cfg),
+		FrpTunnelStat:             NewFrpTunnelStatClient(cfg),
+		ImageGenGeneration:        NewImageGenGenerationClient(cfg),
+		ImageGenImage:             NewImageGenImageClient(cfg),
+		Instance:                  NewInstanceClient(cfg),
+		InstanceType:              NewInstanceTypeClient(cfg),
+		Menu:                      NewMenuClient(cfg),
+		OIDCClient:                NewOIDCClientClient(cfg),
+		OperationLog:              NewOperationLogClient(cfg),
+		PortForward:               NewPortForwardClient(cfg),
+		PortForwardStat:           NewPortForwardStatClient(cfg),
+		Role:                      NewRoleClient(cfg),
+		SSHHost:                   NewSSHHostClient(cfg),
+		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
+		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
+		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
+		Sub2APILotteryRound:       NewSub2APILotteryRoundClient(cfg),
+		Sub2APITimelineItem:       NewSub2APITimelineItemClient(cfg),
+		Sub2APIUsageRecord:        NewSub2APIUsageRecordClient(cfg),
+		SystemConfig:              NewSystemConfigClient(cfg),
+		Task:                      NewTaskClient(cfg),
+		User:                      NewUserClient(cfg),
+		UserAPIKey:                NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -280,35 +290,37 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Auth:                NewAuthClient(cfg),
-		EmailTemplate:       NewEmailTemplateClient(cfg),
-		FileShare:           NewFileShareClient(cfg),
-		FileSource:          NewFileSourceClient(cfg),
-		FileUpload:          NewFileUploadClient(cfg),
-		FileUploadChunk:     NewFileUploadChunkClient(cfg),
-		FrpTunnel:           NewFrpTunnelClient(cfg),
-		FrpTunnelStat:       NewFrpTunnelStatClient(cfg),
-		ImageGenGeneration:  NewImageGenGenerationClient(cfg),
-		ImageGenImage:       NewImageGenImageClient(cfg),
-		Instance:            NewInstanceClient(cfg),
-		InstanceType:        NewInstanceTypeClient(cfg),
-		Menu:                NewMenuClient(cfg),
-		OIDCClient:          NewOIDCClientClient(cfg),
-		OperationLog:        NewOperationLogClient(cfg),
-		PortForward:         NewPortForwardClient(cfg),
-		PortForwardStat:     NewPortForwardStatClient(cfg),
-		Role:                NewRoleClient(cfg),
-		SSHHost:             NewSSHHostClient(cfg),
-		Sub2APIAnnouncement: NewSub2APIAnnouncementClient(cfg),
-		Sub2APIGroup:        NewSub2APIGroupClient(cfg),
-		Sub2APITimelineItem: NewSub2APITimelineItemClient(cfg),
-		Sub2APIUsageRecord:  NewSub2APIUsageRecordClient(cfg),
-		SystemConfig:        NewSystemConfigClient(cfg),
-		Task:                NewTaskClient(cfg),
-		User:                NewUserClient(cfg),
-		UserAPIKey:          NewUserAPIKeyClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Auth:                      NewAuthClient(cfg),
+		EmailTemplate:             NewEmailTemplateClient(cfg),
+		FileShare:                 NewFileShareClient(cfg),
+		FileSource:                NewFileSourceClient(cfg),
+		FileUpload:                NewFileUploadClient(cfg),
+		FileUploadChunk:           NewFileUploadChunkClient(cfg),
+		FrpTunnel:                 NewFrpTunnelClient(cfg),
+		FrpTunnelStat:             NewFrpTunnelStatClient(cfg),
+		ImageGenGeneration:        NewImageGenGenerationClient(cfg),
+		ImageGenImage:             NewImageGenImageClient(cfg),
+		Instance:                  NewInstanceClient(cfg),
+		InstanceType:              NewInstanceTypeClient(cfg),
+		Menu:                      NewMenuClient(cfg),
+		OIDCClient:                NewOIDCClientClient(cfg),
+		OperationLog:              NewOperationLogClient(cfg),
+		PortForward:               NewPortForwardClient(cfg),
+		PortForwardStat:           NewPortForwardStatClient(cfg),
+		Role:                      NewRoleClient(cfg),
+		SSHHost:                   NewSSHHostClient(cfg),
+		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
+		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
+		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
+		Sub2APILotteryRound:       NewSub2APILotteryRoundClient(cfg),
+		Sub2APITimelineItem:       NewSub2APITimelineItemClient(cfg),
+		Sub2APIUsageRecord:        NewSub2APIUsageRecordClient(cfg),
+		SystemConfig:              NewSystemConfigClient(cfg),
+		Task:                      NewTaskClient(cfg),
+		User:                      NewUserClient(cfg),
+		UserAPIKey:                NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -342,8 +354,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
 		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APITimelineItem,
-		c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
+		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -357,8 +370,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
 		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
 		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
-		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APITimelineItem,
-		c.Sub2APIUsageRecord, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
+		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -409,6 +423,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Sub2APIAnnouncement.mutate(ctx, m)
 	case *Sub2APIGroupMutation:
 		return c.Sub2APIGroup.mutate(ctx, m)
+	case *Sub2APILotteryParticipantMutation:
+		return c.Sub2APILotteryParticipant.mutate(ctx, m)
+	case *Sub2APILotteryRoundMutation:
+		return c.Sub2APILotteryRound.mutate(ctx, m)
 	case *Sub2APITimelineItemMutation:
 		return c.Sub2APITimelineItem.mutate(ctx, m)
 	case *Sub2APIUsageRecordMutation:
@@ -3475,6 +3493,272 @@ func (c *Sub2APIGroupClient) mutate(ctx context.Context, m *Sub2APIGroupMutation
 	}
 }
 
+// Sub2APILotteryParticipantClient is a client for the Sub2APILotteryParticipant schema.
+type Sub2APILotteryParticipantClient struct {
+	config
+}
+
+// NewSub2APILotteryParticipantClient returns a client for the Sub2APILotteryParticipant from the given config.
+func NewSub2APILotteryParticipantClient(c config) *Sub2APILotteryParticipantClient {
+	return &Sub2APILotteryParticipantClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sub2apilotteryparticipant.Hooks(f(g(h())))`.
+func (c *Sub2APILotteryParticipantClient) Use(hooks ...Hook) {
+	c.hooks.Sub2APILotteryParticipant = append(c.hooks.Sub2APILotteryParticipant, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sub2apilotteryparticipant.Intercept(f(g(h())))`.
+func (c *Sub2APILotteryParticipantClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Sub2APILotteryParticipant = append(c.inters.Sub2APILotteryParticipant, interceptors...)
+}
+
+// Create returns a builder for creating a Sub2APILotteryParticipant entity.
+func (c *Sub2APILotteryParticipantClient) Create() *Sub2APILotteryParticipantCreate {
+	mutation := newSub2APILotteryParticipantMutation(c.config, OpCreate)
+	return &Sub2APILotteryParticipantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Sub2APILotteryParticipant entities.
+func (c *Sub2APILotteryParticipantClient) CreateBulk(builders ...*Sub2APILotteryParticipantCreate) *Sub2APILotteryParticipantCreateBulk {
+	return &Sub2APILotteryParticipantCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *Sub2APILotteryParticipantClient) MapCreateBulk(slice any, setFunc func(*Sub2APILotteryParticipantCreate, int)) *Sub2APILotteryParticipantCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &Sub2APILotteryParticipantCreateBulk{err: fmt.Errorf("calling to Sub2APILotteryParticipantClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*Sub2APILotteryParticipantCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &Sub2APILotteryParticipantCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Sub2APILotteryParticipant.
+func (c *Sub2APILotteryParticipantClient) Update() *Sub2APILotteryParticipantUpdate {
+	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdate)
+	return &Sub2APILotteryParticipantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *Sub2APILotteryParticipantClient) UpdateOne(_m *Sub2APILotteryParticipant) *Sub2APILotteryParticipantUpdateOne {
+	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdateOne, withSub2APILotteryParticipant(_m))
+	return &Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *Sub2APILotteryParticipantClient) UpdateOneID(id int) *Sub2APILotteryParticipantUpdateOne {
+	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdateOne, withSub2APILotteryParticipantID(id))
+	return &Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Sub2APILotteryParticipant.
+func (c *Sub2APILotteryParticipantClient) Delete() *Sub2APILotteryParticipantDelete {
+	mutation := newSub2APILotteryParticipantMutation(c.config, OpDelete)
+	return &Sub2APILotteryParticipantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *Sub2APILotteryParticipantClient) DeleteOne(_m *Sub2APILotteryParticipant) *Sub2APILotteryParticipantDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *Sub2APILotteryParticipantClient) DeleteOneID(id int) *Sub2APILotteryParticipantDeleteOne {
+	builder := c.Delete().Where(sub2apilotteryparticipant.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &Sub2APILotteryParticipantDeleteOne{builder}
+}
+
+// Query returns a query builder for Sub2APILotteryParticipant.
+func (c *Sub2APILotteryParticipantClient) Query() *Sub2APILotteryParticipantQuery {
+	return &Sub2APILotteryParticipantQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSub2APILotteryParticipant},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Sub2APILotteryParticipant entity by its id.
+func (c *Sub2APILotteryParticipantClient) Get(ctx context.Context, id int) (*Sub2APILotteryParticipant, error) {
+	return c.Query().Where(sub2apilotteryparticipant.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *Sub2APILotteryParticipantClient) GetX(ctx context.Context, id int) *Sub2APILotteryParticipant {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *Sub2APILotteryParticipantClient) Hooks() []Hook {
+	return c.hooks.Sub2APILotteryParticipant
+}
+
+// Interceptors returns the client interceptors.
+func (c *Sub2APILotteryParticipantClient) Interceptors() []Interceptor {
+	return c.inters.Sub2APILotteryParticipant
+}
+
+func (c *Sub2APILotteryParticipantClient) mutate(ctx context.Context, m *Sub2APILotteryParticipantMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&Sub2APILotteryParticipantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&Sub2APILotteryParticipantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&Sub2APILotteryParticipantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Sub2APILotteryParticipant mutation op: %q", m.Op())
+	}
+}
+
+// Sub2APILotteryRoundClient is a client for the Sub2APILotteryRound schema.
+type Sub2APILotteryRoundClient struct {
+	config
+}
+
+// NewSub2APILotteryRoundClient returns a client for the Sub2APILotteryRound from the given config.
+func NewSub2APILotteryRoundClient(c config) *Sub2APILotteryRoundClient {
+	return &Sub2APILotteryRoundClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sub2apilotteryround.Hooks(f(g(h())))`.
+func (c *Sub2APILotteryRoundClient) Use(hooks ...Hook) {
+	c.hooks.Sub2APILotteryRound = append(c.hooks.Sub2APILotteryRound, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sub2apilotteryround.Intercept(f(g(h())))`.
+func (c *Sub2APILotteryRoundClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Sub2APILotteryRound = append(c.inters.Sub2APILotteryRound, interceptors...)
+}
+
+// Create returns a builder for creating a Sub2APILotteryRound entity.
+func (c *Sub2APILotteryRoundClient) Create() *Sub2APILotteryRoundCreate {
+	mutation := newSub2APILotteryRoundMutation(c.config, OpCreate)
+	return &Sub2APILotteryRoundCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Sub2APILotteryRound entities.
+func (c *Sub2APILotteryRoundClient) CreateBulk(builders ...*Sub2APILotteryRoundCreate) *Sub2APILotteryRoundCreateBulk {
+	return &Sub2APILotteryRoundCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *Sub2APILotteryRoundClient) MapCreateBulk(slice any, setFunc func(*Sub2APILotteryRoundCreate, int)) *Sub2APILotteryRoundCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &Sub2APILotteryRoundCreateBulk{err: fmt.Errorf("calling to Sub2APILotteryRoundClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*Sub2APILotteryRoundCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &Sub2APILotteryRoundCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Sub2APILotteryRound.
+func (c *Sub2APILotteryRoundClient) Update() *Sub2APILotteryRoundUpdate {
+	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdate)
+	return &Sub2APILotteryRoundUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *Sub2APILotteryRoundClient) UpdateOne(_m *Sub2APILotteryRound) *Sub2APILotteryRoundUpdateOne {
+	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdateOne, withSub2APILotteryRound(_m))
+	return &Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *Sub2APILotteryRoundClient) UpdateOneID(id string) *Sub2APILotteryRoundUpdateOne {
+	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdateOne, withSub2APILotteryRoundID(id))
+	return &Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Sub2APILotteryRound.
+func (c *Sub2APILotteryRoundClient) Delete() *Sub2APILotteryRoundDelete {
+	mutation := newSub2APILotteryRoundMutation(c.config, OpDelete)
+	return &Sub2APILotteryRoundDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *Sub2APILotteryRoundClient) DeleteOne(_m *Sub2APILotteryRound) *Sub2APILotteryRoundDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *Sub2APILotteryRoundClient) DeleteOneID(id string) *Sub2APILotteryRoundDeleteOne {
+	builder := c.Delete().Where(sub2apilotteryround.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &Sub2APILotteryRoundDeleteOne{builder}
+}
+
+// Query returns a query builder for Sub2APILotteryRound.
+func (c *Sub2APILotteryRoundClient) Query() *Sub2APILotteryRoundQuery {
+	return &Sub2APILotteryRoundQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSub2APILotteryRound},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Sub2APILotteryRound entity by its id.
+func (c *Sub2APILotteryRoundClient) Get(ctx context.Context, id string) (*Sub2APILotteryRound, error) {
+	return c.Query().Where(sub2apilotteryround.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *Sub2APILotteryRoundClient) GetX(ctx context.Context, id string) *Sub2APILotteryRound {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *Sub2APILotteryRoundClient) Hooks() []Hook {
+	return c.hooks.Sub2APILotteryRound
+}
+
+// Interceptors returns the client interceptors.
+func (c *Sub2APILotteryRoundClient) Interceptors() []Interceptor {
+	return c.inters.Sub2APILotteryRound
+}
+
+func (c *Sub2APILotteryRoundClient) mutate(ctx context.Context, m *Sub2APILotteryRoundMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&Sub2APILotteryRoundCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&Sub2APILotteryRoundUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&Sub2APILotteryRoundDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Sub2APILotteryRound mutation op: %q", m.Op())
+	}
+}
+
 // Sub2APITimelineItemClient is a client for the Sub2APITimelineItem schema.
 type Sub2APITimelineItemClient struct {
 	config
@@ -4343,15 +4627,17 @@ type (
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APITimelineItem,
-		Sub2APIUsageRecord, SystemConfig, Task, User, UserAPIKey []ent.Hook
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
+		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
+		Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
 		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
 		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APITimelineItem,
-		Sub2APIUsageRecord, SystemConfig, Task, User, UserAPIKey []ent.Interceptor
+		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
+		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
+		Task, User, UserAPIKey []ent.Interceptor
 	}
 )
 

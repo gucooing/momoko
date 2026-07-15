@@ -21,6 +21,8 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 		field.String("endpoint").Optional().Comment("接口/通道"),
 		field.String("group_id").Optional().Nillable().Comment("关联 Sub2APIGroup.id"),
 		field.String("group_name").Optional().Comment("Sub2API 分组名称（冗余展示）"),
+		field.Int64("user_id").Optional().Nillable().Comment("Sub2API 用户 ID（上游 int64）"),
+		field.String("user_name").Optional().Comment("Sub2API 用户名（冗余展示）"),
 		field.String("user_agent").Optional().Comment("客户端 User-Agent（用于 UA 维度统计）"),
 		field.String("status").Optional().Comment("状态"),
 		field.Bool("success").Default(false).Comment("是否成功"),
@@ -59,6 +61,9 @@ func (Sub2APIUsageRecord) Indexes() []ent.Index {
 		index.Fields("group_name"),
 		// 公开页按分组过滤 + 时间范围扫描
 		index.Fields("group_id", "request_time"),
+		// 抽奖：按用户 + 时间/分组扫描扣费
+		index.Fields("user_id"),
+		index.Fields("user_id", "request_time"),
 	}
 }
 

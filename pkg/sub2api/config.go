@@ -112,6 +112,15 @@ func getInt32(ctx context.Context, store ConfigStore, key common.ConfigKey) (int
 	return int32(parsed), nil
 }
 
+func getFloat(ctx context.Context, store ConfigStore, key common.ConfigKey) (float64, error) {
+	value, err := store.Get(ctx, key)
+	if err != nil {
+		return 0, err
+	}
+	parsed, _ := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	return parsed, nil
+}
+
 // NormalizeConfig 清洗字段并将数值约束在合理范围内。
 func NormalizeConfig(cfg *v1.Sub2APIConfig) {
 	if cfg == nil {

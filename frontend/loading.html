@@ -1,6 +1,6 @@
 <div id="__app-loading__" class="app-loading">
   <div class="app-loading-content">
-    <img src="/logo.png" alt="logo" class="loading-logo" />
+    <!-- logo 由下方脚本按需注入：public 路由 / 安全上下文下不请求 /logo.png，避免 Mixed Content -->
     <div class="loading-text">Momoko</div>
   </div>
 </div>
@@ -12,6 +12,16 @@
 
     if (isPublicRoute && loadingEl) {
       loadingEl.classList.add('hidden')
+    } else if (loadingEl) {
+      // 非 public 才挂 logo（相对路径随页面协议）
+      const content = loadingEl.querySelector('.app-loading-content')
+      if (content && !content.querySelector('img.loading-logo')) {
+        const img = document.createElement('img')
+        img.className = 'loading-logo'
+        img.alt = 'logo'
+        img.src = '/logo.png'
+        content.insertBefore(img, content.firstChild)
+      }
     }
 
     const root = document.documentElement

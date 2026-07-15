@@ -28,6 +28,8 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
+	"momoko/internal/data/ent/gen/sub2apilotteryparticipant"
+	"momoko/internal/data/ent/gen/sub2apilotteryround"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -51,33 +53,35 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAuth                = "Auth"
-	TypeEmailTemplate       = "EmailTemplate"
-	TypeFileShare           = "FileShare"
-	TypeFileSource          = "FileSource"
-	TypeFileUpload          = "FileUpload"
-	TypeFileUploadChunk     = "FileUploadChunk"
-	TypeFrpTunnel           = "FrpTunnel"
-	TypeFrpTunnelStat       = "FrpTunnelStat"
-	TypeImageGenGeneration  = "ImageGenGeneration"
-	TypeImageGenImage       = "ImageGenImage"
-	TypeInstance            = "Instance"
-	TypeInstanceType        = "InstanceType"
-	TypeMenu                = "Menu"
-	TypeOIDCClient          = "OIDCClient"
-	TypeOperationLog        = "OperationLog"
-	TypePortForward         = "PortForward"
-	TypePortForwardStat     = "PortForwardStat"
-	TypeRole                = "Role"
-	TypeSSHHost             = "SSHHost"
-	TypeSub2APIAnnouncement = "Sub2APIAnnouncement"
-	TypeSub2APIGroup        = "Sub2APIGroup"
-	TypeSub2APITimelineItem = "Sub2APITimelineItem"
-	TypeSub2APIUsageRecord  = "Sub2APIUsageRecord"
-	TypeSystemConfig        = "SystemConfig"
-	TypeTask                = "Task"
-	TypeUser                = "User"
-	TypeUserAPIKey          = "UserAPIKey"
+	TypeAuth                      = "Auth"
+	TypeEmailTemplate             = "EmailTemplate"
+	TypeFileShare                 = "FileShare"
+	TypeFileSource                = "FileSource"
+	TypeFileUpload                = "FileUpload"
+	TypeFileUploadChunk           = "FileUploadChunk"
+	TypeFrpTunnel                 = "FrpTunnel"
+	TypeFrpTunnelStat             = "FrpTunnelStat"
+	TypeImageGenGeneration        = "ImageGenGeneration"
+	TypeImageGenImage             = "ImageGenImage"
+	TypeInstance                  = "Instance"
+	TypeInstanceType              = "InstanceType"
+	TypeMenu                      = "Menu"
+	TypeOIDCClient                = "OIDCClient"
+	TypeOperationLog              = "OperationLog"
+	TypePortForward               = "PortForward"
+	TypePortForwardStat           = "PortForwardStat"
+	TypeRole                      = "Role"
+	TypeSSHHost                   = "SSHHost"
+	TypeSub2APIAnnouncement       = "Sub2APIAnnouncement"
+	TypeSub2APIGroup              = "Sub2APIGroup"
+	TypeSub2APILotteryParticipant = "Sub2APILotteryParticipant"
+	TypeSub2APILotteryRound       = "Sub2APILotteryRound"
+	TypeSub2APITimelineItem       = "Sub2APITimelineItem"
+	TypeSub2APIUsageRecord        = "Sub2APIUsageRecord"
+	TypeSystemConfig              = "SystemConfig"
+	TypeTask                      = "Task"
+	TypeUser                      = "User"
+	TypeUserAPIKey                = "UserAPIKey"
 )
 
 // AuthMutation represents an operation that mutates the Auth nodes in the graph.
@@ -18863,6 +18867,2845 @@ func (m *Sub2APIGroupMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Sub2APIGroup edge %s", name)
 }
 
+// Sub2APILotteryParticipantMutation represents an operation that mutates the Sub2APILotteryParticipant nodes in the graph.
+type Sub2APILotteryParticipantMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *int
+	create_time            *time.Time
+	update_time            *time.Time
+	round_id               *string
+	sub2api_user_id        *int64
+	addsub2api_user_id     *int64
+	user_name              *string
+	spend_snapshot         *float64
+	addspend_snapshot      *float64
+	registered_time        *time.Time
+	is_winner              *bool
+	prize_amount           *float64
+	addprize_amount        *float64
+	payout_status          *sub2apilotteryparticipant.PayoutStatus
+	payout_idempotency_key *string
+	payout_error           *string
+	clearedFields          map[string]struct{}
+	done                   bool
+	oldValue               func(context.Context) (*Sub2APILotteryParticipant, error)
+	predicates             []predicate.Sub2APILotteryParticipant
+}
+
+var _ ent.Mutation = (*Sub2APILotteryParticipantMutation)(nil)
+
+// sub2apilotteryparticipantOption allows management of the mutation configuration using functional options.
+type sub2apilotteryparticipantOption func(*Sub2APILotteryParticipantMutation)
+
+// newSub2APILotteryParticipantMutation creates new mutation for the Sub2APILotteryParticipant entity.
+func newSub2APILotteryParticipantMutation(c config, op Op, opts ...sub2apilotteryparticipantOption) *Sub2APILotteryParticipantMutation {
+	m := &Sub2APILotteryParticipantMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APILotteryParticipant,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APILotteryParticipantID sets the ID field of the mutation.
+func withSub2APILotteryParticipantID(id int) sub2apilotteryparticipantOption {
+	return func(m *Sub2APILotteryParticipantMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APILotteryParticipant
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APILotteryParticipant, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APILotteryParticipant.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APILotteryParticipant sets the old Sub2APILotteryParticipant of the mutation.
+func withSub2APILotteryParticipant(node *Sub2APILotteryParticipant) sub2apilotteryparticipantOption {
+	return func(m *Sub2APILotteryParticipantMutation) {
+		m.oldValue = func(context.Context) (*Sub2APILotteryParticipant, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APILotteryParticipantMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APILotteryParticipantMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APILotteryParticipantMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APILotteryParticipantMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APILotteryParticipant.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APILotteryParticipantMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APILotteryParticipantMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APILotteryParticipantMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APILotteryParticipantMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetRoundID sets the "round_id" field.
+func (m *Sub2APILotteryParticipantMutation) SetRoundID(s string) {
+	m.round_id = &s
+}
+
+// RoundID returns the value of the "round_id" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) RoundID() (r string, exists bool) {
+	v := m.round_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoundID returns the old "round_id" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldRoundID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoundID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoundID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoundID: %w", err)
+	}
+	return oldValue.RoundID, nil
+}
+
+// ResetRoundID resets all changes to the "round_id" field.
+func (m *Sub2APILotteryParticipantMutation) ResetRoundID() {
+	m.round_id = nil
+}
+
+// SetSub2apiUserID sets the "sub2api_user_id" field.
+func (m *Sub2APILotteryParticipantMutation) SetSub2apiUserID(i int64) {
+	m.sub2api_user_id = &i
+	m.addsub2api_user_id = nil
+}
+
+// Sub2apiUserID returns the value of the "sub2api_user_id" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) Sub2apiUserID() (r int64, exists bool) {
+	v := m.sub2api_user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSub2apiUserID returns the old "sub2api_user_id" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldSub2apiUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSub2apiUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSub2apiUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSub2apiUserID: %w", err)
+	}
+	return oldValue.Sub2apiUserID, nil
+}
+
+// AddSub2apiUserID adds i to the "sub2api_user_id" field.
+func (m *Sub2APILotteryParticipantMutation) AddSub2apiUserID(i int64) {
+	if m.addsub2api_user_id != nil {
+		*m.addsub2api_user_id += i
+	} else {
+		m.addsub2api_user_id = &i
+	}
+}
+
+// AddedSub2apiUserID returns the value that was added to the "sub2api_user_id" field in this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedSub2apiUserID() (r int64, exists bool) {
+	v := m.addsub2api_user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSub2apiUserID resets all changes to the "sub2api_user_id" field.
+func (m *Sub2APILotteryParticipantMutation) ResetSub2apiUserID() {
+	m.sub2api_user_id = nil
+	m.addsub2api_user_id = nil
+}
+
+// SetUserName sets the "user_name" field.
+func (m *Sub2APILotteryParticipantMutation) SetUserName(s string) {
+	m.user_name = &s
+}
+
+// UserName returns the value of the "user_name" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) UserName() (r string, exists bool) {
+	v := m.user_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserName returns the old "user_name" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldUserName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserName: %w", err)
+	}
+	return oldValue.UserName, nil
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (m *Sub2APILotteryParticipantMutation) ClearUserName() {
+	m.user_name = nil
+	m.clearedFields[sub2apilotteryparticipant.FieldUserName] = struct{}{}
+}
+
+// UserNameCleared returns if the "user_name" field was cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) UserNameCleared() bool {
+	_, ok := m.clearedFields[sub2apilotteryparticipant.FieldUserName]
+	return ok
+}
+
+// ResetUserName resets all changes to the "user_name" field.
+func (m *Sub2APILotteryParticipantMutation) ResetUserName() {
+	m.user_name = nil
+	delete(m.clearedFields, sub2apilotteryparticipant.FieldUserName)
+}
+
+// SetSpendSnapshot sets the "spend_snapshot" field.
+func (m *Sub2APILotteryParticipantMutation) SetSpendSnapshot(f float64) {
+	m.spend_snapshot = &f
+	m.addspend_snapshot = nil
+}
+
+// SpendSnapshot returns the value of the "spend_snapshot" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) SpendSnapshot() (r float64, exists bool) {
+	v := m.spend_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpendSnapshot returns the old "spend_snapshot" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldSpendSnapshot(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpendSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpendSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpendSnapshot: %w", err)
+	}
+	return oldValue.SpendSnapshot, nil
+}
+
+// AddSpendSnapshot adds f to the "spend_snapshot" field.
+func (m *Sub2APILotteryParticipantMutation) AddSpendSnapshot(f float64) {
+	if m.addspend_snapshot != nil {
+		*m.addspend_snapshot += f
+	} else {
+		m.addspend_snapshot = &f
+	}
+}
+
+// AddedSpendSnapshot returns the value that was added to the "spend_snapshot" field in this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedSpendSnapshot() (r float64, exists bool) {
+	v := m.addspend_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSpendSnapshot resets all changes to the "spend_snapshot" field.
+func (m *Sub2APILotteryParticipantMutation) ResetSpendSnapshot() {
+	m.spend_snapshot = nil
+	m.addspend_snapshot = nil
+}
+
+// SetRegisteredTime sets the "registered_time" field.
+func (m *Sub2APILotteryParticipantMutation) SetRegisteredTime(t time.Time) {
+	m.registered_time = &t
+}
+
+// RegisteredTime returns the value of the "registered_time" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) RegisteredTime() (r time.Time, exists bool) {
+	v := m.registered_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegisteredTime returns the old "registered_time" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldRegisteredTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegisteredTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegisteredTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegisteredTime: %w", err)
+	}
+	return oldValue.RegisteredTime, nil
+}
+
+// ResetRegisteredTime resets all changes to the "registered_time" field.
+func (m *Sub2APILotteryParticipantMutation) ResetRegisteredTime() {
+	m.registered_time = nil
+}
+
+// SetIsWinner sets the "is_winner" field.
+func (m *Sub2APILotteryParticipantMutation) SetIsWinner(b bool) {
+	m.is_winner = &b
+}
+
+// IsWinner returns the value of the "is_winner" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) IsWinner() (r bool, exists bool) {
+	v := m.is_winner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsWinner returns the old "is_winner" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldIsWinner(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsWinner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsWinner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsWinner: %w", err)
+	}
+	return oldValue.IsWinner, nil
+}
+
+// ResetIsWinner resets all changes to the "is_winner" field.
+func (m *Sub2APILotteryParticipantMutation) ResetIsWinner() {
+	m.is_winner = nil
+}
+
+// SetPrizeAmount sets the "prize_amount" field.
+func (m *Sub2APILotteryParticipantMutation) SetPrizeAmount(f float64) {
+	m.prize_amount = &f
+	m.addprize_amount = nil
+}
+
+// PrizeAmount returns the value of the "prize_amount" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) PrizeAmount() (r float64, exists bool) {
+	v := m.prize_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrizeAmount returns the old "prize_amount" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldPrizeAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrizeAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrizeAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrizeAmount: %w", err)
+	}
+	return oldValue.PrizeAmount, nil
+}
+
+// AddPrizeAmount adds f to the "prize_amount" field.
+func (m *Sub2APILotteryParticipantMutation) AddPrizeAmount(f float64) {
+	if m.addprize_amount != nil {
+		*m.addprize_amount += f
+	} else {
+		m.addprize_amount = &f
+	}
+}
+
+// AddedPrizeAmount returns the value that was added to the "prize_amount" field in this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedPrizeAmount() (r float64, exists bool) {
+	v := m.addprize_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPrizeAmount resets all changes to the "prize_amount" field.
+func (m *Sub2APILotteryParticipantMutation) ResetPrizeAmount() {
+	m.prize_amount = nil
+	m.addprize_amount = nil
+}
+
+// SetPayoutStatus sets the "payout_status" field.
+func (m *Sub2APILotteryParticipantMutation) SetPayoutStatus(ss sub2apilotteryparticipant.PayoutStatus) {
+	m.payout_status = &ss
+}
+
+// PayoutStatus returns the value of the "payout_status" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) PayoutStatus() (r sub2apilotteryparticipant.PayoutStatus, exists bool) {
+	v := m.payout_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayoutStatus returns the old "payout_status" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldPayoutStatus(ctx context.Context) (v sub2apilotteryparticipant.PayoutStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayoutStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayoutStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayoutStatus: %w", err)
+	}
+	return oldValue.PayoutStatus, nil
+}
+
+// ResetPayoutStatus resets all changes to the "payout_status" field.
+func (m *Sub2APILotteryParticipantMutation) ResetPayoutStatus() {
+	m.payout_status = nil
+}
+
+// SetPayoutIdempotencyKey sets the "payout_idempotency_key" field.
+func (m *Sub2APILotteryParticipantMutation) SetPayoutIdempotencyKey(s string) {
+	m.payout_idempotency_key = &s
+}
+
+// PayoutIdempotencyKey returns the value of the "payout_idempotency_key" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) PayoutIdempotencyKey() (r string, exists bool) {
+	v := m.payout_idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayoutIdempotencyKey returns the old "payout_idempotency_key" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldPayoutIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayoutIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayoutIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayoutIdempotencyKey: %w", err)
+	}
+	return oldValue.PayoutIdempotencyKey, nil
+}
+
+// ClearPayoutIdempotencyKey clears the value of the "payout_idempotency_key" field.
+func (m *Sub2APILotteryParticipantMutation) ClearPayoutIdempotencyKey() {
+	m.payout_idempotency_key = nil
+	m.clearedFields[sub2apilotteryparticipant.FieldPayoutIdempotencyKey] = struct{}{}
+}
+
+// PayoutIdempotencyKeyCleared returns if the "payout_idempotency_key" field was cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) PayoutIdempotencyKeyCleared() bool {
+	_, ok := m.clearedFields[sub2apilotteryparticipant.FieldPayoutIdempotencyKey]
+	return ok
+}
+
+// ResetPayoutIdempotencyKey resets all changes to the "payout_idempotency_key" field.
+func (m *Sub2APILotteryParticipantMutation) ResetPayoutIdempotencyKey() {
+	m.payout_idempotency_key = nil
+	delete(m.clearedFields, sub2apilotteryparticipant.FieldPayoutIdempotencyKey)
+}
+
+// SetPayoutError sets the "payout_error" field.
+func (m *Sub2APILotteryParticipantMutation) SetPayoutError(s string) {
+	m.payout_error = &s
+}
+
+// PayoutError returns the value of the "payout_error" field in the mutation.
+func (m *Sub2APILotteryParticipantMutation) PayoutError() (r string, exists bool) {
+	v := m.payout_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayoutError returns the old "payout_error" field's value of the Sub2APILotteryParticipant entity.
+// If the Sub2APILotteryParticipant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryParticipantMutation) OldPayoutError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayoutError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayoutError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayoutError: %w", err)
+	}
+	return oldValue.PayoutError, nil
+}
+
+// ClearPayoutError clears the value of the "payout_error" field.
+func (m *Sub2APILotteryParticipantMutation) ClearPayoutError() {
+	m.payout_error = nil
+	m.clearedFields[sub2apilotteryparticipant.FieldPayoutError] = struct{}{}
+}
+
+// PayoutErrorCleared returns if the "payout_error" field was cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) PayoutErrorCleared() bool {
+	_, ok := m.clearedFields[sub2apilotteryparticipant.FieldPayoutError]
+	return ok
+}
+
+// ResetPayoutError resets all changes to the "payout_error" field.
+func (m *Sub2APILotteryParticipantMutation) ResetPayoutError() {
+	m.payout_error = nil
+	delete(m.clearedFields, sub2apilotteryparticipant.FieldPayoutError)
+}
+
+// Where appends a list predicates to the Sub2APILotteryParticipantMutation builder.
+func (m *Sub2APILotteryParticipantMutation) Where(ps ...predicate.Sub2APILotteryParticipant) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APILotteryParticipantMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APILotteryParticipantMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APILotteryParticipant, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APILotteryParticipantMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APILotteryParticipantMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APILotteryParticipant).
+func (m *Sub2APILotteryParticipantMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APILotteryParticipantMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.create_time != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldUpdateTime)
+	}
+	if m.round_id != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldRoundID)
+	}
+	if m.sub2api_user_id != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldSub2apiUserID)
+	}
+	if m.user_name != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldUserName)
+	}
+	if m.spend_snapshot != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldSpendSnapshot)
+	}
+	if m.registered_time != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldRegisteredTime)
+	}
+	if m.is_winner != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldIsWinner)
+	}
+	if m.prize_amount != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldPrizeAmount)
+	}
+	if m.payout_status != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldPayoutStatus)
+	}
+	if m.payout_idempotency_key != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldPayoutIdempotencyKey)
+	}
+	if m.payout_error != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldPayoutError)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APILotteryParticipantMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apilotteryparticipant.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apilotteryparticipant.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apilotteryparticipant.FieldRoundID:
+		return m.RoundID()
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		return m.Sub2apiUserID()
+	case sub2apilotteryparticipant.FieldUserName:
+		return m.UserName()
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		return m.SpendSnapshot()
+	case sub2apilotteryparticipant.FieldRegisteredTime:
+		return m.RegisteredTime()
+	case sub2apilotteryparticipant.FieldIsWinner:
+		return m.IsWinner()
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		return m.PrizeAmount()
+	case sub2apilotteryparticipant.FieldPayoutStatus:
+		return m.PayoutStatus()
+	case sub2apilotteryparticipant.FieldPayoutIdempotencyKey:
+		return m.PayoutIdempotencyKey()
+	case sub2apilotteryparticipant.FieldPayoutError:
+		return m.PayoutError()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APILotteryParticipantMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apilotteryparticipant.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apilotteryparticipant.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apilotteryparticipant.FieldRoundID:
+		return m.OldRoundID(ctx)
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		return m.OldSub2apiUserID(ctx)
+	case sub2apilotteryparticipant.FieldUserName:
+		return m.OldUserName(ctx)
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		return m.OldSpendSnapshot(ctx)
+	case sub2apilotteryparticipant.FieldRegisteredTime:
+		return m.OldRegisteredTime(ctx)
+	case sub2apilotteryparticipant.FieldIsWinner:
+		return m.OldIsWinner(ctx)
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		return m.OldPrizeAmount(ctx)
+	case sub2apilotteryparticipant.FieldPayoutStatus:
+		return m.OldPayoutStatus(ctx)
+	case sub2apilotteryparticipant.FieldPayoutIdempotencyKey:
+		return m.OldPayoutIdempotencyKey(ctx)
+	case sub2apilotteryparticipant.FieldPayoutError:
+		return m.OldPayoutError(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APILotteryParticipant field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APILotteryParticipantMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apilotteryparticipant.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apilotteryparticipant.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apilotteryparticipant.FieldRoundID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoundID(v)
+		return nil
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSub2apiUserID(v)
+		return nil
+	case sub2apilotteryparticipant.FieldUserName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserName(v)
+		return nil
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpendSnapshot(v)
+		return nil
+	case sub2apilotteryparticipant.FieldRegisteredTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegisteredTime(v)
+		return nil
+	case sub2apilotteryparticipant.FieldIsWinner:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsWinner(v)
+		return nil
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrizeAmount(v)
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutStatus:
+		v, ok := value.(sub2apilotteryparticipant.PayoutStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayoutStatus(v)
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayoutIdempotencyKey(v)
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayoutError(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryParticipant field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedFields() []string {
+	var fields []string
+	if m.addsub2api_user_id != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldSub2apiUserID)
+	}
+	if m.addspend_snapshot != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldSpendSnapshot)
+	}
+	if m.addprize_amount != nil {
+		fields = append(fields, sub2apilotteryparticipant.FieldPrizeAmount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APILotteryParticipantMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		return m.AddedSub2apiUserID()
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		return m.AddedSpendSnapshot()
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		return m.AddedPrizeAmount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APILotteryParticipantMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSub2apiUserID(v)
+		return nil
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSpendSnapshot(v)
+		return nil
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPrizeAmount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryParticipant numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APILotteryParticipantMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sub2apilotteryparticipant.FieldUserName) {
+		fields = append(fields, sub2apilotteryparticipant.FieldUserName)
+	}
+	if m.FieldCleared(sub2apilotteryparticipant.FieldPayoutIdempotencyKey) {
+		fields = append(fields, sub2apilotteryparticipant.FieldPayoutIdempotencyKey)
+	}
+	if m.FieldCleared(sub2apilotteryparticipant.FieldPayoutError) {
+		fields = append(fields, sub2apilotteryparticipant.FieldPayoutError)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APILotteryParticipantMutation) ClearField(name string) error {
+	switch name {
+	case sub2apilotteryparticipant.FieldUserName:
+		m.ClearUserName()
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutIdempotencyKey:
+		m.ClearPayoutIdempotencyKey()
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutError:
+		m.ClearPayoutError()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryParticipant nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APILotteryParticipantMutation) ResetField(name string) error {
+	switch name {
+	case sub2apilotteryparticipant.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apilotteryparticipant.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apilotteryparticipant.FieldRoundID:
+		m.ResetRoundID()
+		return nil
+	case sub2apilotteryparticipant.FieldSub2apiUserID:
+		m.ResetSub2apiUserID()
+		return nil
+	case sub2apilotteryparticipant.FieldUserName:
+		m.ResetUserName()
+		return nil
+	case sub2apilotteryparticipant.FieldSpendSnapshot:
+		m.ResetSpendSnapshot()
+		return nil
+	case sub2apilotteryparticipant.FieldRegisteredTime:
+		m.ResetRegisteredTime()
+		return nil
+	case sub2apilotteryparticipant.FieldIsWinner:
+		m.ResetIsWinner()
+		return nil
+	case sub2apilotteryparticipant.FieldPrizeAmount:
+		m.ResetPrizeAmount()
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutStatus:
+		m.ResetPayoutStatus()
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutIdempotencyKey:
+		m.ResetPayoutIdempotencyKey()
+		return nil
+	case sub2apilotteryparticipant.FieldPayoutError:
+		m.ResetPayoutError()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryParticipant field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APILotteryParticipantMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APILotteryParticipantMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APILotteryParticipantMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APILotteryParticipantMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APILotteryParticipantMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APILotteryParticipant unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APILotteryParticipantMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APILotteryParticipant edge %s", name)
+}
+
+// Sub2APILotteryRoundMutation represents an operation that mutates the Sub2APILotteryRound nodes in the graph.
+type Sub2APILotteryRoundMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *string
+	create_time          *time.Time
+	update_time          *time.Time
+	source_date          *string
+	settle_time          *time.Time
+	draw_time            *time.Time
+	status               *sub2apilotteryround.Status
+	pool_ratio           *float64
+	addpool_ratio        *float64
+	threshold            *float64
+	addthreshold         *float64
+	base_winners         *int
+	addbase_winners      *int
+	max_winners          *int
+	addmax_winners       *int
+	group_spend_total    *float64
+	addgroup_spend_total *float64
+	carry_in             *float64
+	addcarry_in          *float64
+	pool_amount          *float64
+	addpool_amount       *float64
+	eligible_count       *int
+	addeligible_count    *int
+	registered_count     *int
+	addregistered_count  *int
+	winner_count         *int
+	addwinner_count      *int
+	per_winner_amount    *float64
+	addper_winner_amount *float64
+	carry_out            *float64
+	addcarry_out         *float64
+	auto_payout          *bool
+	distributed          *bool
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*Sub2APILotteryRound, error)
+	predicates           []predicate.Sub2APILotteryRound
+}
+
+var _ ent.Mutation = (*Sub2APILotteryRoundMutation)(nil)
+
+// sub2apilotteryroundOption allows management of the mutation configuration using functional options.
+type sub2apilotteryroundOption func(*Sub2APILotteryRoundMutation)
+
+// newSub2APILotteryRoundMutation creates new mutation for the Sub2APILotteryRound entity.
+func newSub2APILotteryRoundMutation(c config, op Op, opts ...sub2apilotteryroundOption) *Sub2APILotteryRoundMutation {
+	m := &Sub2APILotteryRoundMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSub2APILotteryRound,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSub2APILotteryRoundID sets the ID field of the mutation.
+func withSub2APILotteryRoundID(id string) sub2apilotteryroundOption {
+	return func(m *Sub2APILotteryRoundMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Sub2APILotteryRound
+		)
+		m.oldValue = func(ctx context.Context) (*Sub2APILotteryRound, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Sub2APILotteryRound.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSub2APILotteryRound sets the old Sub2APILotteryRound of the mutation.
+func withSub2APILotteryRound(node *Sub2APILotteryRound) sub2apilotteryroundOption {
+	return func(m *Sub2APILotteryRoundMutation) {
+		m.oldValue = func(context.Context) (*Sub2APILotteryRound, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m Sub2APILotteryRoundMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m Sub2APILotteryRoundMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Sub2APILotteryRound entities.
+func (m *Sub2APILotteryRoundMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *Sub2APILotteryRoundMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *Sub2APILotteryRoundMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Sub2APILotteryRound.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *Sub2APILotteryRoundMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *Sub2APILotteryRoundMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *Sub2APILotteryRoundMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *Sub2APILotteryRoundMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetSourceDate sets the "source_date" field.
+func (m *Sub2APILotteryRoundMutation) SetSourceDate(s string) {
+	m.source_date = &s
+}
+
+// SourceDate returns the value of the "source_date" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) SourceDate() (r string, exists bool) {
+	v := m.source_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceDate returns the old "source_date" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldSourceDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceDate: %w", err)
+	}
+	return oldValue.SourceDate, nil
+}
+
+// ResetSourceDate resets all changes to the "source_date" field.
+func (m *Sub2APILotteryRoundMutation) ResetSourceDate() {
+	m.source_date = nil
+}
+
+// SetSettleTime sets the "settle_time" field.
+func (m *Sub2APILotteryRoundMutation) SetSettleTime(t time.Time) {
+	m.settle_time = &t
+}
+
+// SettleTime returns the value of the "settle_time" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) SettleTime() (r time.Time, exists bool) {
+	v := m.settle_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettleTime returns the old "settle_time" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldSettleTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettleTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettleTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettleTime: %w", err)
+	}
+	return oldValue.SettleTime, nil
+}
+
+// ResetSettleTime resets all changes to the "settle_time" field.
+func (m *Sub2APILotteryRoundMutation) ResetSettleTime() {
+	m.settle_time = nil
+}
+
+// SetDrawTime sets the "draw_time" field.
+func (m *Sub2APILotteryRoundMutation) SetDrawTime(t time.Time) {
+	m.draw_time = &t
+}
+
+// DrawTime returns the value of the "draw_time" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) DrawTime() (r time.Time, exists bool) {
+	v := m.draw_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDrawTime returns the old "draw_time" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldDrawTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDrawTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDrawTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDrawTime: %w", err)
+	}
+	return oldValue.DrawTime, nil
+}
+
+// ResetDrawTime resets all changes to the "draw_time" field.
+func (m *Sub2APILotteryRoundMutation) ResetDrawTime() {
+	m.draw_time = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *Sub2APILotteryRoundMutation) SetStatus(s sub2apilotteryround.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) Status() (r sub2apilotteryround.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldStatus(ctx context.Context) (v sub2apilotteryround.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *Sub2APILotteryRoundMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPoolRatio sets the "pool_ratio" field.
+func (m *Sub2APILotteryRoundMutation) SetPoolRatio(f float64) {
+	m.pool_ratio = &f
+	m.addpool_ratio = nil
+}
+
+// PoolRatio returns the value of the "pool_ratio" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) PoolRatio() (r float64, exists bool) {
+	v := m.pool_ratio
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPoolRatio returns the old "pool_ratio" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldPoolRatio(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPoolRatio is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPoolRatio requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPoolRatio: %w", err)
+	}
+	return oldValue.PoolRatio, nil
+}
+
+// AddPoolRatio adds f to the "pool_ratio" field.
+func (m *Sub2APILotteryRoundMutation) AddPoolRatio(f float64) {
+	if m.addpool_ratio != nil {
+		*m.addpool_ratio += f
+	} else {
+		m.addpool_ratio = &f
+	}
+}
+
+// AddedPoolRatio returns the value that was added to the "pool_ratio" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedPoolRatio() (r float64, exists bool) {
+	v := m.addpool_ratio
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPoolRatio resets all changes to the "pool_ratio" field.
+func (m *Sub2APILotteryRoundMutation) ResetPoolRatio() {
+	m.pool_ratio = nil
+	m.addpool_ratio = nil
+}
+
+// SetThreshold sets the "threshold" field.
+func (m *Sub2APILotteryRoundMutation) SetThreshold(f float64) {
+	m.threshold = &f
+	m.addthreshold = nil
+}
+
+// Threshold returns the value of the "threshold" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) Threshold() (r float64, exists bool) {
+	v := m.threshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldThreshold returns the old "threshold" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldThreshold(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldThreshold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldThreshold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldThreshold: %w", err)
+	}
+	return oldValue.Threshold, nil
+}
+
+// AddThreshold adds f to the "threshold" field.
+func (m *Sub2APILotteryRoundMutation) AddThreshold(f float64) {
+	if m.addthreshold != nil {
+		*m.addthreshold += f
+	} else {
+		m.addthreshold = &f
+	}
+}
+
+// AddedThreshold returns the value that was added to the "threshold" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedThreshold() (r float64, exists bool) {
+	v := m.addthreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetThreshold resets all changes to the "threshold" field.
+func (m *Sub2APILotteryRoundMutation) ResetThreshold() {
+	m.threshold = nil
+	m.addthreshold = nil
+}
+
+// SetBaseWinners sets the "base_winners" field.
+func (m *Sub2APILotteryRoundMutation) SetBaseWinners(i int) {
+	m.base_winners = &i
+	m.addbase_winners = nil
+}
+
+// BaseWinners returns the value of the "base_winners" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) BaseWinners() (r int, exists bool) {
+	v := m.base_winners
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseWinners returns the old "base_winners" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldBaseWinners(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseWinners is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseWinners requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseWinners: %w", err)
+	}
+	return oldValue.BaseWinners, nil
+}
+
+// AddBaseWinners adds i to the "base_winners" field.
+func (m *Sub2APILotteryRoundMutation) AddBaseWinners(i int) {
+	if m.addbase_winners != nil {
+		*m.addbase_winners += i
+	} else {
+		m.addbase_winners = &i
+	}
+}
+
+// AddedBaseWinners returns the value that was added to the "base_winners" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedBaseWinners() (r int, exists bool) {
+	v := m.addbase_winners
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBaseWinners resets all changes to the "base_winners" field.
+func (m *Sub2APILotteryRoundMutation) ResetBaseWinners() {
+	m.base_winners = nil
+	m.addbase_winners = nil
+}
+
+// SetMaxWinners sets the "max_winners" field.
+func (m *Sub2APILotteryRoundMutation) SetMaxWinners(i int) {
+	m.max_winners = &i
+	m.addmax_winners = nil
+}
+
+// MaxWinners returns the value of the "max_winners" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) MaxWinners() (r int, exists bool) {
+	v := m.max_winners
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxWinners returns the old "max_winners" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldMaxWinners(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxWinners is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxWinners requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxWinners: %w", err)
+	}
+	return oldValue.MaxWinners, nil
+}
+
+// AddMaxWinners adds i to the "max_winners" field.
+func (m *Sub2APILotteryRoundMutation) AddMaxWinners(i int) {
+	if m.addmax_winners != nil {
+		*m.addmax_winners += i
+	} else {
+		m.addmax_winners = &i
+	}
+}
+
+// AddedMaxWinners returns the value that was added to the "max_winners" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedMaxWinners() (r int, exists bool) {
+	v := m.addmax_winners
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxWinners resets all changes to the "max_winners" field.
+func (m *Sub2APILotteryRoundMutation) ResetMaxWinners() {
+	m.max_winners = nil
+	m.addmax_winners = nil
+}
+
+// SetGroupSpendTotal sets the "group_spend_total" field.
+func (m *Sub2APILotteryRoundMutation) SetGroupSpendTotal(f float64) {
+	m.group_spend_total = &f
+	m.addgroup_spend_total = nil
+}
+
+// GroupSpendTotal returns the value of the "group_spend_total" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) GroupSpendTotal() (r float64, exists bool) {
+	v := m.group_spend_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupSpendTotal returns the old "group_spend_total" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldGroupSpendTotal(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupSpendTotal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupSpendTotal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupSpendTotal: %w", err)
+	}
+	return oldValue.GroupSpendTotal, nil
+}
+
+// AddGroupSpendTotal adds f to the "group_spend_total" field.
+func (m *Sub2APILotteryRoundMutation) AddGroupSpendTotal(f float64) {
+	if m.addgroup_spend_total != nil {
+		*m.addgroup_spend_total += f
+	} else {
+		m.addgroup_spend_total = &f
+	}
+}
+
+// AddedGroupSpendTotal returns the value that was added to the "group_spend_total" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedGroupSpendTotal() (r float64, exists bool) {
+	v := m.addgroup_spend_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGroupSpendTotal resets all changes to the "group_spend_total" field.
+func (m *Sub2APILotteryRoundMutation) ResetGroupSpendTotal() {
+	m.group_spend_total = nil
+	m.addgroup_spend_total = nil
+}
+
+// SetCarryIn sets the "carry_in" field.
+func (m *Sub2APILotteryRoundMutation) SetCarryIn(f float64) {
+	m.carry_in = &f
+	m.addcarry_in = nil
+}
+
+// CarryIn returns the value of the "carry_in" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) CarryIn() (r float64, exists bool) {
+	v := m.carry_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCarryIn returns the old "carry_in" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldCarryIn(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCarryIn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCarryIn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCarryIn: %w", err)
+	}
+	return oldValue.CarryIn, nil
+}
+
+// AddCarryIn adds f to the "carry_in" field.
+func (m *Sub2APILotteryRoundMutation) AddCarryIn(f float64) {
+	if m.addcarry_in != nil {
+		*m.addcarry_in += f
+	} else {
+		m.addcarry_in = &f
+	}
+}
+
+// AddedCarryIn returns the value that was added to the "carry_in" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedCarryIn() (r float64, exists bool) {
+	v := m.addcarry_in
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCarryIn resets all changes to the "carry_in" field.
+func (m *Sub2APILotteryRoundMutation) ResetCarryIn() {
+	m.carry_in = nil
+	m.addcarry_in = nil
+}
+
+// SetPoolAmount sets the "pool_amount" field.
+func (m *Sub2APILotteryRoundMutation) SetPoolAmount(f float64) {
+	m.pool_amount = &f
+	m.addpool_amount = nil
+}
+
+// PoolAmount returns the value of the "pool_amount" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) PoolAmount() (r float64, exists bool) {
+	v := m.pool_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPoolAmount returns the old "pool_amount" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldPoolAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPoolAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPoolAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPoolAmount: %w", err)
+	}
+	return oldValue.PoolAmount, nil
+}
+
+// AddPoolAmount adds f to the "pool_amount" field.
+func (m *Sub2APILotteryRoundMutation) AddPoolAmount(f float64) {
+	if m.addpool_amount != nil {
+		*m.addpool_amount += f
+	} else {
+		m.addpool_amount = &f
+	}
+}
+
+// AddedPoolAmount returns the value that was added to the "pool_amount" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedPoolAmount() (r float64, exists bool) {
+	v := m.addpool_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPoolAmount resets all changes to the "pool_amount" field.
+func (m *Sub2APILotteryRoundMutation) ResetPoolAmount() {
+	m.pool_amount = nil
+	m.addpool_amount = nil
+}
+
+// SetEligibleCount sets the "eligible_count" field.
+func (m *Sub2APILotteryRoundMutation) SetEligibleCount(i int) {
+	m.eligible_count = &i
+	m.addeligible_count = nil
+}
+
+// EligibleCount returns the value of the "eligible_count" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) EligibleCount() (r int, exists bool) {
+	v := m.eligible_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEligibleCount returns the old "eligible_count" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldEligibleCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEligibleCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEligibleCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEligibleCount: %w", err)
+	}
+	return oldValue.EligibleCount, nil
+}
+
+// AddEligibleCount adds i to the "eligible_count" field.
+func (m *Sub2APILotteryRoundMutation) AddEligibleCount(i int) {
+	if m.addeligible_count != nil {
+		*m.addeligible_count += i
+	} else {
+		m.addeligible_count = &i
+	}
+}
+
+// AddedEligibleCount returns the value that was added to the "eligible_count" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedEligibleCount() (r int, exists bool) {
+	v := m.addeligible_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEligibleCount resets all changes to the "eligible_count" field.
+func (m *Sub2APILotteryRoundMutation) ResetEligibleCount() {
+	m.eligible_count = nil
+	m.addeligible_count = nil
+}
+
+// SetRegisteredCount sets the "registered_count" field.
+func (m *Sub2APILotteryRoundMutation) SetRegisteredCount(i int) {
+	m.registered_count = &i
+	m.addregistered_count = nil
+}
+
+// RegisteredCount returns the value of the "registered_count" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) RegisteredCount() (r int, exists bool) {
+	v := m.registered_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegisteredCount returns the old "registered_count" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldRegisteredCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegisteredCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegisteredCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegisteredCount: %w", err)
+	}
+	return oldValue.RegisteredCount, nil
+}
+
+// AddRegisteredCount adds i to the "registered_count" field.
+func (m *Sub2APILotteryRoundMutation) AddRegisteredCount(i int) {
+	if m.addregistered_count != nil {
+		*m.addregistered_count += i
+	} else {
+		m.addregistered_count = &i
+	}
+}
+
+// AddedRegisteredCount returns the value that was added to the "registered_count" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedRegisteredCount() (r int, exists bool) {
+	v := m.addregistered_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRegisteredCount resets all changes to the "registered_count" field.
+func (m *Sub2APILotteryRoundMutation) ResetRegisteredCount() {
+	m.registered_count = nil
+	m.addregistered_count = nil
+}
+
+// SetWinnerCount sets the "winner_count" field.
+func (m *Sub2APILotteryRoundMutation) SetWinnerCount(i int) {
+	m.winner_count = &i
+	m.addwinner_count = nil
+}
+
+// WinnerCount returns the value of the "winner_count" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) WinnerCount() (r int, exists bool) {
+	v := m.winner_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWinnerCount returns the old "winner_count" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldWinnerCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWinnerCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWinnerCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWinnerCount: %w", err)
+	}
+	return oldValue.WinnerCount, nil
+}
+
+// AddWinnerCount adds i to the "winner_count" field.
+func (m *Sub2APILotteryRoundMutation) AddWinnerCount(i int) {
+	if m.addwinner_count != nil {
+		*m.addwinner_count += i
+	} else {
+		m.addwinner_count = &i
+	}
+}
+
+// AddedWinnerCount returns the value that was added to the "winner_count" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedWinnerCount() (r int, exists bool) {
+	v := m.addwinner_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWinnerCount resets all changes to the "winner_count" field.
+func (m *Sub2APILotteryRoundMutation) ResetWinnerCount() {
+	m.winner_count = nil
+	m.addwinner_count = nil
+}
+
+// SetPerWinnerAmount sets the "per_winner_amount" field.
+func (m *Sub2APILotteryRoundMutation) SetPerWinnerAmount(f float64) {
+	m.per_winner_amount = &f
+	m.addper_winner_amount = nil
+}
+
+// PerWinnerAmount returns the value of the "per_winner_amount" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) PerWinnerAmount() (r float64, exists bool) {
+	v := m.per_winner_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPerWinnerAmount returns the old "per_winner_amount" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldPerWinnerAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPerWinnerAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPerWinnerAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPerWinnerAmount: %w", err)
+	}
+	return oldValue.PerWinnerAmount, nil
+}
+
+// AddPerWinnerAmount adds f to the "per_winner_amount" field.
+func (m *Sub2APILotteryRoundMutation) AddPerWinnerAmount(f float64) {
+	if m.addper_winner_amount != nil {
+		*m.addper_winner_amount += f
+	} else {
+		m.addper_winner_amount = &f
+	}
+}
+
+// AddedPerWinnerAmount returns the value that was added to the "per_winner_amount" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedPerWinnerAmount() (r float64, exists bool) {
+	v := m.addper_winner_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPerWinnerAmount resets all changes to the "per_winner_amount" field.
+func (m *Sub2APILotteryRoundMutation) ResetPerWinnerAmount() {
+	m.per_winner_amount = nil
+	m.addper_winner_amount = nil
+}
+
+// SetCarryOut sets the "carry_out" field.
+func (m *Sub2APILotteryRoundMutation) SetCarryOut(f float64) {
+	m.carry_out = &f
+	m.addcarry_out = nil
+}
+
+// CarryOut returns the value of the "carry_out" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) CarryOut() (r float64, exists bool) {
+	v := m.carry_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCarryOut returns the old "carry_out" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldCarryOut(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCarryOut is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCarryOut requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCarryOut: %w", err)
+	}
+	return oldValue.CarryOut, nil
+}
+
+// AddCarryOut adds f to the "carry_out" field.
+func (m *Sub2APILotteryRoundMutation) AddCarryOut(f float64) {
+	if m.addcarry_out != nil {
+		*m.addcarry_out += f
+	} else {
+		m.addcarry_out = &f
+	}
+}
+
+// AddedCarryOut returns the value that was added to the "carry_out" field in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedCarryOut() (r float64, exists bool) {
+	v := m.addcarry_out
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCarryOut resets all changes to the "carry_out" field.
+func (m *Sub2APILotteryRoundMutation) ResetCarryOut() {
+	m.carry_out = nil
+	m.addcarry_out = nil
+}
+
+// SetAutoPayout sets the "auto_payout" field.
+func (m *Sub2APILotteryRoundMutation) SetAutoPayout(b bool) {
+	m.auto_payout = &b
+}
+
+// AutoPayout returns the value of the "auto_payout" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) AutoPayout() (r bool, exists bool) {
+	v := m.auto_payout
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoPayout returns the old "auto_payout" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldAutoPayout(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoPayout is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoPayout requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoPayout: %w", err)
+	}
+	return oldValue.AutoPayout, nil
+}
+
+// ResetAutoPayout resets all changes to the "auto_payout" field.
+func (m *Sub2APILotteryRoundMutation) ResetAutoPayout() {
+	m.auto_payout = nil
+}
+
+// SetDistributed sets the "distributed" field.
+func (m *Sub2APILotteryRoundMutation) SetDistributed(b bool) {
+	m.distributed = &b
+}
+
+// Distributed returns the value of the "distributed" field in the mutation.
+func (m *Sub2APILotteryRoundMutation) Distributed() (r bool, exists bool) {
+	v := m.distributed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDistributed returns the old "distributed" field's value of the Sub2APILotteryRound entity.
+// If the Sub2APILotteryRound object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APILotteryRoundMutation) OldDistributed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDistributed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDistributed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDistributed: %w", err)
+	}
+	return oldValue.Distributed, nil
+}
+
+// ResetDistributed resets all changes to the "distributed" field.
+func (m *Sub2APILotteryRoundMutation) ResetDistributed() {
+	m.distributed = nil
+}
+
+// Where appends a list predicates to the Sub2APILotteryRoundMutation builder.
+func (m *Sub2APILotteryRoundMutation) Where(ps ...predicate.Sub2APILotteryRound) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the Sub2APILotteryRoundMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *Sub2APILotteryRoundMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Sub2APILotteryRound, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *Sub2APILotteryRoundMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *Sub2APILotteryRoundMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Sub2APILotteryRound).
+func (m *Sub2APILotteryRoundMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *Sub2APILotteryRoundMutation) Fields() []string {
+	fields := make([]string, 0, 20)
+	if m.create_time != nil {
+		fields = append(fields, sub2apilotteryround.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, sub2apilotteryround.FieldUpdateTime)
+	}
+	if m.source_date != nil {
+		fields = append(fields, sub2apilotteryround.FieldSourceDate)
+	}
+	if m.settle_time != nil {
+		fields = append(fields, sub2apilotteryround.FieldSettleTime)
+	}
+	if m.draw_time != nil {
+		fields = append(fields, sub2apilotteryround.FieldDrawTime)
+	}
+	if m.status != nil {
+		fields = append(fields, sub2apilotteryround.FieldStatus)
+	}
+	if m.pool_ratio != nil {
+		fields = append(fields, sub2apilotteryround.FieldPoolRatio)
+	}
+	if m.threshold != nil {
+		fields = append(fields, sub2apilotteryround.FieldThreshold)
+	}
+	if m.base_winners != nil {
+		fields = append(fields, sub2apilotteryround.FieldBaseWinners)
+	}
+	if m.max_winners != nil {
+		fields = append(fields, sub2apilotteryround.FieldMaxWinners)
+	}
+	if m.group_spend_total != nil {
+		fields = append(fields, sub2apilotteryround.FieldGroupSpendTotal)
+	}
+	if m.carry_in != nil {
+		fields = append(fields, sub2apilotteryround.FieldCarryIn)
+	}
+	if m.pool_amount != nil {
+		fields = append(fields, sub2apilotteryround.FieldPoolAmount)
+	}
+	if m.eligible_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldEligibleCount)
+	}
+	if m.registered_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldRegisteredCount)
+	}
+	if m.winner_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldWinnerCount)
+	}
+	if m.per_winner_amount != nil {
+		fields = append(fields, sub2apilotteryround.FieldPerWinnerAmount)
+	}
+	if m.carry_out != nil {
+		fields = append(fields, sub2apilotteryround.FieldCarryOut)
+	}
+	if m.auto_payout != nil {
+		fields = append(fields, sub2apilotteryround.FieldAutoPayout)
+	}
+	if m.distributed != nil {
+		fields = append(fields, sub2apilotteryround.FieldDistributed)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *Sub2APILotteryRoundMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apilotteryround.FieldCreateTime:
+		return m.CreateTime()
+	case sub2apilotteryround.FieldUpdateTime:
+		return m.UpdateTime()
+	case sub2apilotteryround.FieldSourceDate:
+		return m.SourceDate()
+	case sub2apilotteryround.FieldSettleTime:
+		return m.SettleTime()
+	case sub2apilotteryround.FieldDrawTime:
+		return m.DrawTime()
+	case sub2apilotteryround.FieldStatus:
+		return m.Status()
+	case sub2apilotteryround.FieldPoolRatio:
+		return m.PoolRatio()
+	case sub2apilotteryround.FieldThreshold:
+		return m.Threshold()
+	case sub2apilotteryround.FieldBaseWinners:
+		return m.BaseWinners()
+	case sub2apilotteryround.FieldMaxWinners:
+		return m.MaxWinners()
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		return m.GroupSpendTotal()
+	case sub2apilotteryround.FieldCarryIn:
+		return m.CarryIn()
+	case sub2apilotteryround.FieldPoolAmount:
+		return m.PoolAmount()
+	case sub2apilotteryround.FieldEligibleCount:
+		return m.EligibleCount()
+	case sub2apilotteryround.FieldRegisteredCount:
+		return m.RegisteredCount()
+	case sub2apilotteryround.FieldWinnerCount:
+		return m.WinnerCount()
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		return m.PerWinnerAmount()
+	case sub2apilotteryround.FieldCarryOut:
+		return m.CarryOut()
+	case sub2apilotteryround.FieldAutoPayout:
+		return m.AutoPayout()
+	case sub2apilotteryround.FieldDistributed:
+		return m.Distributed()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *Sub2APILotteryRoundMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sub2apilotteryround.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case sub2apilotteryround.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case sub2apilotteryround.FieldSourceDate:
+		return m.OldSourceDate(ctx)
+	case sub2apilotteryround.FieldSettleTime:
+		return m.OldSettleTime(ctx)
+	case sub2apilotteryround.FieldDrawTime:
+		return m.OldDrawTime(ctx)
+	case sub2apilotteryround.FieldStatus:
+		return m.OldStatus(ctx)
+	case sub2apilotteryround.FieldPoolRatio:
+		return m.OldPoolRatio(ctx)
+	case sub2apilotteryround.FieldThreshold:
+		return m.OldThreshold(ctx)
+	case sub2apilotteryround.FieldBaseWinners:
+		return m.OldBaseWinners(ctx)
+	case sub2apilotteryround.FieldMaxWinners:
+		return m.OldMaxWinners(ctx)
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		return m.OldGroupSpendTotal(ctx)
+	case sub2apilotteryround.FieldCarryIn:
+		return m.OldCarryIn(ctx)
+	case sub2apilotteryround.FieldPoolAmount:
+		return m.OldPoolAmount(ctx)
+	case sub2apilotteryround.FieldEligibleCount:
+		return m.OldEligibleCount(ctx)
+	case sub2apilotteryround.FieldRegisteredCount:
+		return m.OldRegisteredCount(ctx)
+	case sub2apilotteryround.FieldWinnerCount:
+		return m.OldWinnerCount(ctx)
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		return m.OldPerWinnerAmount(ctx)
+	case sub2apilotteryround.FieldCarryOut:
+		return m.OldCarryOut(ctx)
+	case sub2apilotteryround.FieldAutoPayout:
+		return m.OldAutoPayout(ctx)
+	case sub2apilotteryround.FieldDistributed:
+		return m.OldDistributed(ctx)
+	}
+	return nil, fmt.Errorf("unknown Sub2APILotteryRound field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APILotteryRoundMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sub2apilotteryround.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case sub2apilotteryround.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case sub2apilotteryround.FieldSourceDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceDate(v)
+		return nil
+	case sub2apilotteryround.FieldSettleTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettleTime(v)
+		return nil
+	case sub2apilotteryround.FieldDrawTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDrawTime(v)
+		return nil
+	case sub2apilotteryround.FieldStatus:
+		v, ok := value.(sub2apilotteryround.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case sub2apilotteryround.FieldPoolRatio:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPoolRatio(v)
+		return nil
+	case sub2apilotteryround.FieldThreshold:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetThreshold(v)
+		return nil
+	case sub2apilotteryround.FieldBaseWinners:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseWinners(v)
+		return nil
+	case sub2apilotteryround.FieldMaxWinners:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxWinners(v)
+		return nil
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupSpendTotal(v)
+		return nil
+	case sub2apilotteryround.FieldCarryIn:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCarryIn(v)
+		return nil
+	case sub2apilotteryround.FieldPoolAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPoolAmount(v)
+		return nil
+	case sub2apilotteryround.FieldEligibleCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEligibleCount(v)
+		return nil
+	case sub2apilotteryround.FieldRegisteredCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegisteredCount(v)
+		return nil
+	case sub2apilotteryround.FieldWinnerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWinnerCount(v)
+		return nil
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPerWinnerAmount(v)
+		return nil
+	case sub2apilotteryround.FieldCarryOut:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCarryOut(v)
+		return nil
+	case sub2apilotteryround.FieldAutoPayout:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoPayout(v)
+		return nil
+	case sub2apilotteryround.FieldDistributed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDistributed(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryRound field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedFields() []string {
+	var fields []string
+	if m.addpool_ratio != nil {
+		fields = append(fields, sub2apilotteryround.FieldPoolRatio)
+	}
+	if m.addthreshold != nil {
+		fields = append(fields, sub2apilotteryround.FieldThreshold)
+	}
+	if m.addbase_winners != nil {
+		fields = append(fields, sub2apilotteryround.FieldBaseWinners)
+	}
+	if m.addmax_winners != nil {
+		fields = append(fields, sub2apilotteryround.FieldMaxWinners)
+	}
+	if m.addgroup_spend_total != nil {
+		fields = append(fields, sub2apilotteryround.FieldGroupSpendTotal)
+	}
+	if m.addcarry_in != nil {
+		fields = append(fields, sub2apilotteryround.FieldCarryIn)
+	}
+	if m.addpool_amount != nil {
+		fields = append(fields, sub2apilotteryround.FieldPoolAmount)
+	}
+	if m.addeligible_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldEligibleCount)
+	}
+	if m.addregistered_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldRegisteredCount)
+	}
+	if m.addwinner_count != nil {
+		fields = append(fields, sub2apilotteryround.FieldWinnerCount)
+	}
+	if m.addper_winner_amount != nil {
+		fields = append(fields, sub2apilotteryround.FieldPerWinnerAmount)
+	}
+	if m.addcarry_out != nil {
+		fields = append(fields, sub2apilotteryround.FieldCarryOut)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *Sub2APILotteryRoundMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sub2apilotteryround.FieldPoolRatio:
+		return m.AddedPoolRatio()
+	case sub2apilotteryround.FieldThreshold:
+		return m.AddedThreshold()
+	case sub2apilotteryround.FieldBaseWinners:
+		return m.AddedBaseWinners()
+	case sub2apilotteryround.FieldMaxWinners:
+		return m.AddedMaxWinners()
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		return m.AddedGroupSpendTotal()
+	case sub2apilotteryround.FieldCarryIn:
+		return m.AddedCarryIn()
+	case sub2apilotteryround.FieldPoolAmount:
+		return m.AddedPoolAmount()
+	case sub2apilotteryround.FieldEligibleCount:
+		return m.AddedEligibleCount()
+	case sub2apilotteryround.FieldRegisteredCount:
+		return m.AddedRegisteredCount()
+	case sub2apilotteryround.FieldWinnerCount:
+		return m.AddedWinnerCount()
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		return m.AddedPerWinnerAmount()
+	case sub2apilotteryround.FieldCarryOut:
+		return m.AddedCarryOut()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *Sub2APILotteryRoundMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sub2apilotteryround.FieldPoolRatio:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPoolRatio(v)
+		return nil
+	case sub2apilotteryround.FieldThreshold:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddThreshold(v)
+		return nil
+	case sub2apilotteryround.FieldBaseWinners:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBaseWinners(v)
+		return nil
+	case sub2apilotteryround.FieldMaxWinners:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxWinners(v)
+		return nil
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGroupSpendTotal(v)
+		return nil
+	case sub2apilotteryround.FieldCarryIn:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCarryIn(v)
+		return nil
+	case sub2apilotteryround.FieldPoolAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPoolAmount(v)
+		return nil
+	case sub2apilotteryround.FieldEligibleCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEligibleCount(v)
+		return nil
+	case sub2apilotteryround.FieldRegisteredCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRegisteredCount(v)
+		return nil
+	case sub2apilotteryround.FieldWinnerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWinnerCount(v)
+		return nil
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPerWinnerAmount(v)
+		return nil
+	case sub2apilotteryround.FieldCarryOut:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCarryOut(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryRound numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *Sub2APILotteryRoundMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *Sub2APILotteryRoundMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *Sub2APILotteryRoundMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Sub2APILotteryRound nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *Sub2APILotteryRoundMutation) ResetField(name string) error {
+	switch name {
+	case sub2apilotteryround.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case sub2apilotteryround.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case sub2apilotteryround.FieldSourceDate:
+		m.ResetSourceDate()
+		return nil
+	case sub2apilotteryround.FieldSettleTime:
+		m.ResetSettleTime()
+		return nil
+	case sub2apilotteryround.FieldDrawTime:
+		m.ResetDrawTime()
+		return nil
+	case sub2apilotteryround.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case sub2apilotteryround.FieldPoolRatio:
+		m.ResetPoolRatio()
+		return nil
+	case sub2apilotteryround.FieldThreshold:
+		m.ResetThreshold()
+		return nil
+	case sub2apilotteryround.FieldBaseWinners:
+		m.ResetBaseWinners()
+		return nil
+	case sub2apilotteryround.FieldMaxWinners:
+		m.ResetMaxWinners()
+		return nil
+	case sub2apilotteryround.FieldGroupSpendTotal:
+		m.ResetGroupSpendTotal()
+		return nil
+	case sub2apilotteryround.FieldCarryIn:
+		m.ResetCarryIn()
+		return nil
+	case sub2apilotteryround.FieldPoolAmount:
+		m.ResetPoolAmount()
+		return nil
+	case sub2apilotteryround.FieldEligibleCount:
+		m.ResetEligibleCount()
+		return nil
+	case sub2apilotteryround.FieldRegisteredCount:
+		m.ResetRegisteredCount()
+		return nil
+	case sub2apilotteryround.FieldWinnerCount:
+		m.ResetWinnerCount()
+		return nil
+	case sub2apilotteryround.FieldPerWinnerAmount:
+		m.ResetPerWinnerAmount()
+		return nil
+	case sub2apilotteryround.FieldCarryOut:
+		m.ResetCarryOut()
+		return nil
+	case sub2apilotteryround.FieldAutoPayout:
+		m.ResetAutoPayout()
+		return nil
+	case sub2apilotteryround.FieldDistributed:
+		m.ResetDistributed()
+		return nil
+	}
+	return fmt.Errorf("unknown Sub2APILotteryRound field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *Sub2APILotteryRoundMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *Sub2APILotteryRoundMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *Sub2APILotteryRoundMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *Sub2APILotteryRoundMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *Sub2APILotteryRoundMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *Sub2APILotteryRoundMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APILotteryRound unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *Sub2APILotteryRoundMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Sub2APILotteryRound edge %s", name)
+}
+
 // Sub2APITimelineItemMutation represents an operation that mutates the Sub2APITimelineItem nodes in the graph.
 type Sub2APITimelineItemMutation struct {
 	config
@@ -19538,6 +22381,9 @@ type Sub2APIUsageRecordMutation struct {
 	model             *string
 	endpoint          *string
 	group_name        *string
+	user_id           *int64
+	adduser_id        *int64
+	user_name         *string
 	user_agent        *string
 	status            *string
 	success           *bool
@@ -20008,6 +22854,125 @@ func (m *Sub2APIUsageRecordMutation) GroupNameCleared() bool {
 func (m *Sub2APIUsageRecordMutation) ResetGroupName() {
 	m.group_name = nil
 	delete(m.clearedFields, sub2apiusagerecord.FieldGroupName)
+}
+
+// SetUserID sets the "user_id" field.
+func (m *Sub2APIUsageRecordMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldUserID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *Sub2APIUsageRecordMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *Sub2APIUsageRecordMutation) ClearUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+	m.clearedFields[sub2apiusagerecord.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *Sub2APIUsageRecordMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldUserID)
+}
+
+// SetUserName sets the "user_name" field.
+func (m *Sub2APIUsageRecordMutation) SetUserName(s string) {
+	m.user_name = &s
+}
+
+// UserName returns the value of the "user_name" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) UserName() (r string, exists bool) {
+	v := m.user_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserName returns the old "user_name" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldUserName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserName: %w", err)
+	}
+	return oldValue.UserName, nil
+}
+
+// ClearUserName clears the value of the "user_name" field.
+func (m *Sub2APIUsageRecordMutation) ClearUserName() {
+	m.user_name = nil
+	m.clearedFields[sub2apiusagerecord.FieldUserName] = struct{}{}
+}
+
+// UserNameCleared returns if the "user_name" field was cleared in this mutation.
+func (m *Sub2APIUsageRecordMutation) UserNameCleared() bool {
+	_, ok := m.clearedFields[sub2apiusagerecord.FieldUserName]
+	return ok
+}
+
+// ResetUserName resets all changes to the "user_name" field.
+func (m *Sub2APIUsageRecordMutation) ResetUserName() {
+	m.user_name = nil
+	delete(m.clearedFields, sub2apiusagerecord.FieldUserName)
 }
 
 // SetUserAgent sets the "user_agent" field.
@@ -20744,7 +23709,7 @@ func (m *Sub2APIUsageRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *Sub2APIUsageRecordMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 23)
 	if m.create_time != nil {
 		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
 	}
@@ -20768,6 +23733,12 @@ func (m *Sub2APIUsageRecordMutation) Fields() []string {
 	}
 	if m.group_name != nil {
 		fields = append(fields, sub2apiusagerecord.FieldGroupName)
+	}
+	if m.user_id != nil {
+		fields = append(fields, sub2apiusagerecord.FieldUserID)
+	}
+	if m.user_name != nil {
+		fields = append(fields, sub2apiusagerecord.FieldUserName)
 	}
 	if m.user_agent != nil {
 		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
@@ -20832,6 +23803,10 @@ func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case sub2apiusagerecord.FieldGroupName:
 		return m.GroupName()
+	case sub2apiusagerecord.FieldUserID:
+		return m.UserID()
+	case sub2apiusagerecord.FieldUserName:
+		return m.UserName()
 	case sub2apiusagerecord.FieldUserAgent:
 		return m.UserAgent()
 	case sub2apiusagerecord.FieldStatus:
@@ -20883,6 +23858,10 @@ func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldGroupID(ctx)
 	case sub2apiusagerecord.FieldGroupName:
 		return m.OldGroupName(ctx)
+	case sub2apiusagerecord.FieldUserID:
+		return m.OldUserID(ctx)
+	case sub2apiusagerecord.FieldUserName:
+		return m.OldUserName(ctx)
 	case sub2apiusagerecord.FieldUserAgent:
 		return m.OldUserAgent(ctx)
 	case sub2apiusagerecord.FieldStatus:
@@ -20973,6 +23952,20 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGroupName(v)
+		return nil
+	case sub2apiusagerecord.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case sub2apiusagerecord.FieldUserName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserName(v)
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		v, ok := value.(string)
@@ -21073,6 +24066,9 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 // this mutation.
 func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
 	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, sub2apiusagerecord.FieldUserID)
+	}
 	if m.addlatency_ms != nil {
 		fields = append(fields, sub2apiusagerecord.FieldLatencyMs)
 	}
@@ -21102,6 +24098,8 @@ func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case sub2apiusagerecord.FieldUserID:
+		return m.AddedUserID()
 	case sub2apiusagerecord.FieldLatencyMs:
 		return m.AddedLatencyMs()
 	case sub2apiusagerecord.FieldTokenCount:
@@ -21125,6 +24123,13 @@ func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *Sub2APIUsageRecordMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case sub2apiusagerecord.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	case sub2apiusagerecord.FieldLatencyMs:
 		v, ok := value.(int64)
 		if !ok {
@@ -21194,6 +24199,12 @@ func (m *Sub2APIUsageRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(sub2apiusagerecord.FieldGroupName) {
 		fields = append(fields, sub2apiusagerecord.FieldGroupName)
 	}
+	if m.FieldCleared(sub2apiusagerecord.FieldUserID) {
+		fields = append(fields, sub2apiusagerecord.FieldUserID)
+	}
+	if m.FieldCleared(sub2apiusagerecord.FieldUserName) {
+		fields = append(fields, sub2apiusagerecord.FieldUserName)
+	}
 	if m.FieldCleared(sub2apiusagerecord.FieldUserAgent) {
 		fields = append(fields, sub2apiusagerecord.FieldUserAgent)
 	}
@@ -21234,6 +24245,12 @@ func (m *Sub2APIUsageRecordMutation) ClearField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldGroupName:
 		m.ClearGroupName()
+		return nil
+	case sub2apiusagerecord.FieldUserID:
+		m.ClearUserID()
+		return nil
+	case sub2apiusagerecord.FieldUserName:
+		m.ClearUserName()
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		m.ClearUserAgent()
@@ -21281,6 +24298,12 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldGroupName:
 		m.ResetGroupName()
+		return nil
+	case sub2apiusagerecord.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case sub2apiusagerecord.FieldUserName:
+		m.ResetUserName()
 		return nil
 	case sub2apiusagerecord.FieldUserAgent:
 		m.ResetUserAgent()

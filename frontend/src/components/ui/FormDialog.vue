@@ -41,7 +41,8 @@ const props = withDefaults(
   defineProps<{
     modelValue: boolean
     title?: string
-    width?: number
+    /** 面板最大宽度（px）。模板里请写 :width="440"；字符串会在运行时 Number() 一下兜底。 */
+    width?: number | string
     loading?: boolean
     showFooter?: boolean
     closeOnOverlay?: boolean
@@ -55,7 +56,15 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; confirm: []; close: [] }>()
 
 const { t } = useI18n()
-const panelWidth = computed(() => `${props.width}px`)
+const panelWidth = computed(() => {
+  const raw = props.width
+  if (typeof raw === 'number') {
+    return `${Number.isFinite(raw) && raw > 0 ? raw : 600}px`
+  }
+  // 兼容 width="440" / width="640px"
+  const n = Number(String(raw ?? '').replace(/px$/i, '').trim())
+  return `${Number.isFinite(n) && n > 0 ? n : 600}px`
+})
 
 const close = () => {
   emit('update:modelValue', false)

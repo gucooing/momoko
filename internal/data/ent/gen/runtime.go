@@ -24,6 +24,8 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
+	"momoko/internal/data/ent/gen/sub2apilotteryparticipant"
+	"momoko/internal/data/ent/gen/sub2apilotteryround"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
 	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
@@ -742,6 +744,96 @@ func init() {
 	sub2apigroupDescID := sub2apigroupFields[0].Descriptor()
 	// sub2apigroup.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	sub2apigroup.IDValidator = sub2apigroupDescID.Validators[0].(func(string) error)
+	sub2apilotteryparticipantMixin := schema.Sub2APILotteryParticipant{}.Mixin()
+	sub2apilotteryparticipantMixinFields0 := sub2apilotteryparticipantMixin[0].Fields()
+	_ = sub2apilotteryparticipantMixinFields0
+	sub2apilotteryparticipantFields := schema.Sub2APILotteryParticipant{}.Fields()
+	_ = sub2apilotteryparticipantFields
+	// sub2apilotteryparticipantDescCreateTime is the schema descriptor for create_time field.
+	sub2apilotteryparticipantDescCreateTime := sub2apilotteryparticipantMixinFields0[0].Descriptor()
+	// sub2apilotteryparticipant.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apilotteryparticipant.DefaultCreateTime = sub2apilotteryparticipantDescCreateTime.Default.(func() time.Time)
+	// sub2apilotteryparticipantDescUpdateTime is the schema descriptor for update_time field.
+	sub2apilotteryparticipantDescUpdateTime := sub2apilotteryparticipantMixinFields0[1].Descriptor()
+	// sub2apilotteryparticipant.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apilotteryparticipant.DefaultUpdateTime = sub2apilotteryparticipantDescUpdateTime.Default.(func() time.Time)
+	// sub2apilotteryparticipant.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apilotteryparticipant.UpdateDefaultUpdateTime = sub2apilotteryparticipantDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apilotteryparticipantDescRoundID is the schema descriptor for round_id field.
+	sub2apilotteryparticipantDescRoundID := sub2apilotteryparticipantFields[0].Descriptor()
+	// sub2apilotteryparticipant.RoundIDValidator is a validator for the "round_id" field. It is called by the builders before save.
+	sub2apilotteryparticipant.RoundIDValidator = sub2apilotteryparticipantDescRoundID.Validators[0].(func(string) error)
+	// sub2apilotteryparticipantDescSpendSnapshot is the schema descriptor for spend_snapshot field.
+	sub2apilotteryparticipantDescSpendSnapshot := sub2apilotteryparticipantFields[3].Descriptor()
+	// sub2apilotteryparticipant.DefaultSpendSnapshot holds the default value on creation for the spend_snapshot field.
+	sub2apilotteryparticipant.DefaultSpendSnapshot = sub2apilotteryparticipantDescSpendSnapshot.Default.(float64)
+	// sub2apilotteryparticipantDescIsWinner is the schema descriptor for is_winner field.
+	sub2apilotteryparticipantDescIsWinner := sub2apilotteryparticipantFields[5].Descriptor()
+	// sub2apilotteryparticipant.DefaultIsWinner holds the default value on creation for the is_winner field.
+	sub2apilotteryparticipant.DefaultIsWinner = sub2apilotteryparticipantDescIsWinner.Default.(bool)
+	// sub2apilotteryparticipantDescPrizeAmount is the schema descriptor for prize_amount field.
+	sub2apilotteryparticipantDescPrizeAmount := sub2apilotteryparticipantFields[6].Descriptor()
+	// sub2apilotteryparticipant.DefaultPrizeAmount holds the default value on creation for the prize_amount field.
+	sub2apilotteryparticipant.DefaultPrizeAmount = sub2apilotteryparticipantDescPrizeAmount.Default.(float64)
+	sub2apilotteryroundMixin := schema.Sub2APILotteryRound{}.Mixin()
+	sub2apilotteryroundMixinFields0 := sub2apilotteryroundMixin[0].Fields()
+	_ = sub2apilotteryroundMixinFields0
+	sub2apilotteryroundFields := schema.Sub2APILotteryRound{}.Fields()
+	_ = sub2apilotteryroundFields
+	// sub2apilotteryroundDescCreateTime is the schema descriptor for create_time field.
+	sub2apilotteryroundDescCreateTime := sub2apilotteryroundMixinFields0[0].Descriptor()
+	// sub2apilotteryround.DefaultCreateTime holds the default value on creation for the create_time field.
+	sub2apilotteryround.DefaultCreateTime = sub2apilotteryroundDescCreateTime.Default.(func() time.Time)
+	// sub2apilotteryroundDescUpdateTime is the schema descriptor for update_time field.
+	sub2apilotteryroundDescUpdateTime := sub2apilotteryroundMixinFields0[1].Descriptor()
+	// sub2apilotteryround.DefaultUpdateTime holds the default value on creation for the update_time field.
+	sub2apilotteryround.DefaultUpdateTime = sub2apilotteryroundDescUpdateTime.Default.(func() time.Time)
+	// sub2apilotteryround.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	sub2apilotteryround.UpdateDefaultUpdateTime = sub2apilotteryroundDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apilotteryroundDescGroupSpendTotal is the schema descriptor for group_spend_total field.
+	sub2apilotteryroundDescGroupSpendTotal := sub2apilotteryroundFields[9].Descriptor()
+	// sub2apilotteryround.DefaultGroupSpendTotal holds the default value on creation for the group_spend_total field.
+	sub2apilotteryround.DefaultGroupSpendTotal = sub2apilotteryroundDescGroupSpendTotal.Default.(float64)
+	// sub2apilotteryroundDescCarryIn is the schema descriptor for carry_in field.
+	sub2apilotteryroundDescCarryIn := sub2apilotteryroundFields[10].Descriptor()
+	// sub2apilotteryround.DefaultCarryIn holds the default value on creation for the carry_in field.
+	sub2apilotteryround.DefaultCarryIn = sub2apilotteryroundDescCarryIn.Default.(float64)
+	// sub2apilotteryroundDescPoolAmount is the schema descriptor for pool_amount field.
+	sub2apilotteryroundDescPoolAmount := sub2apilotteryroundFields[11].Descriptor()
+	// sub2apilotteryround.DefaultPoolAmount holds the default value on creation for the pool_amount field.
+	sub2apilotteryround.DefaultPoolAmount = sub2apilotteryroundDescPoolAmount.Default.(float64)
+	// sub2apilotteryroundDescEligibleCount is the schema descriptor for eligible_count field.
+	sub2apilotteryroundDescEligibleCount := sub2apilotteryroundFields[12].Descriptor()
+	// sub2apilotteryround.DefaultEligibleCount holds the default value on creation for the eligible_count field.
+	sub2apilotteryround.DefaultEligibleCount = sub2apilotteryroundDescEligibleCount.Default.(int)
+	// sub2apilotteryroundDescRegisteredCount is the schema descriptor for registered_count field.
+	sub2apilotteryroundDescRegisteredCount := sub2apilotteryroundFields[13].Descriptor()
+	// sub2apilotteryround.DefaultRegisteredCount holds the default value on creation for the registered_count field.
+	sub2apilotteryround.DefaultRegisteredCount = sub2apilotteryroundDescRegisteredCount.Default.(int)
+	// sub2apilotteryroundDescWinnerCount is the schema descriptor for winner_count field.
+	sub2apilotteryroundDescWinnerCount := sub2apilotteryroundFields[14].Descriptor()
+	// sub2apilotteryround.DefaultWinnerCount holds the default value on creation for the winner_count field.
+	sub2apilotteryround.DefaultWinnerCount = sub2apilotteryroundDescWinnerCount.Default.(int)
+	// sub2apilotteryroundDescPerWinnerAmount is the schema descriptor for per_winner_amount field.
+	sub2apilotteryroundDescPerWinnerAmount := sub2apilotteryroundFields[15].Descriptor()
+	// sub2apilotteryround.DefaultPerWinnerAmount holds the default value on creation for the per_winner_amount field.
+	sub2apilotteryround.DefaultPerWinnerAmount = sub2apilotteryroundDescPerWinnerAmount.Default.(float64)
+	// sub2apilotteryroundDescCarryOut is the schema descriptor for carry_out field.
+	sub2apilotteryroundDescCarryOut := sub2apilotteryroundFields[16].Descriptor()
+	// sub2apilotteryround.DefaultCarryOut holds the default value on creation for the carry_out field.
+	sub2apilotteryround.DefaultCarryOut = sub2apilotteryroundDescCarryOut.Default.(float64)
+	// sub2apilotteryroundDescAutoPayout is the schema descriptor for auto_payout field.
+	sub2apilotteryroundDescAutoPayout := sub2apilotteryroundFields[17].Descriptor()
+	// sub2apilotteryround.DefaultAutoPayout holds the default value on creation for the auto_payout field.
+	sub2apilotteryround.DefaultAutoPayout = sub2apilotteryroundDescAutoPayout.Default.(bool)
+	// sub2apilotteryroundDescDistributed is the schema descriptor for distributed field.
+	sub2apilotteryroundDescDistributed := sub2apilotteryroundFields[18].Descriptor()
+	// sub2apilotteryround.DefaultDistributed holds the default value on creation for the distributed field.
+	sub2apilotteryround.DefaultDistributed = sub2apilotteryroundDescDistributed.Default.(bool)
+	// sub2apilotteryroundDescID is the schema descriptor for id field.
+	sub2apilotteryroundDescID := sub2apilotteryroundFields[0].Descriptor()
+	// sub2apilotteryround.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sub2apilotteryround.IDValidator = sub2apilotteryroundDescID.Validators[0].(func(string) error)
 	sub2apitimelineitemMixin := schema.Sub2APITimelineItem{}.Mixin()
 	sub2apitimelineitemMixinFields0 := sub2apitimelineitemMixin[0].Fields()
 	_ = sub2apitimelineitemMixinFields0
@@ -781,35 +873,35 @@ func init() {
 	// sub2apiusagerecord.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	sub2apiusagerecord.UpdateDefaultUpdateTime = sub2apiusagerecordDescUpdateTime.UpdateDefault.(func() time.Time)
 	// sub2apiusagerecordDescSuccess is the schema descriptor for success field.
-	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[9].Descriptor()
+	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[11].Descriptor()
 	// sub2apiusagerecord.DefaultSuccess holds the default value on creation for the success field.
 	sub2apiusagerecord.DefaultSuccess = sub2apiusagerecordDescSuccess.Default.(bool)
 	// sub2apiusagerecordDescLatencyMs is the schema descriptor for latency_ms field.
-	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[10].Descriptor()
+	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[12].Descriptor()
 	// sub2apiusagerecord.DefaultLatencyMs holds the default value on creation for the latency_ms field.
 	sub2apiusagerecord.DefaultLatencyMs = sub2apiusagerecordDescLatencyMs.Default.(int64)
 	// sub2apiusagerecordDescTokenCount is the schema descriptor for token_count field.
-	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[11].Descriptor()
+	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[13].Descriptor()
 	// sub2apiusagerecord.DefaultTokenCount holds the default value on creation for the token_count field.
 	sub2apiusagerecord.DefaultTokenCount = sub2apiusagerecordDescTokenCount.Default.(int64)
 	// sub2apiusagerecordDescOutputTokens is the schema descriptor for output_tokens field.
-	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[12].Descriptor()
+	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[14].Descriptor()
 	// sub2apiusagerecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
 	sub2apiusagerecord.DefaultOutputTokens = sub2apiusagerecordDescOutputTokens.Default.(int64)
 	// sub2apiusagerecordDescTps is the schema descriptor for tps field.
-	sub2apiusagerecordDescTps := sub2apiusagerecordFields[13].Descriptor()
+	sub2apiusagerecordDescTps := sub2apiusagerecordFields[15].Descriptor()
 	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
 	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
 	// sub2apiusagerecordDescCost is the schema descriptor for cost field.
-	sub2apiusagerecordDescCost := sub2apiusagerecordFields[14].Descriptor()
+	sub2apiusagerecordDescCost := sub2apiusagerecordFields[16].Descriptor()
 	// sub2apiusagerecord.DefaultCost holds the default value on creation for the cost field.
 	sub2apiusagerecord.DefaultCost = sub2apiusagerecordDescCost.Default.(float64)
 	// sub2apiusagerecordDescFirstTokenMs is the schema descriptor for first_token_ms field.
-	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[15].Descriptor()
+	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[17].Descriptor()
 	// sub2apiusagerecord.DefaultFirstTokenMs holds the default value on creation for the first_token_ms field.
 	sub2apiusagerecord.DefaultFirstTokenMs = sub2apiusagerecordDescFirstTokenMs.Default.(int64)
 	// sub2apiusagerecordDescHTTPStatus is the schema descriptor for http_status field.
-	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[19].Descriptor()
+	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[21].Descriptor()
 	// sub2apiusagerecord.DefaultHTTPStatus holds the default value on creation for the http_status field.
 	sub2apiusagerecord.DefaultHTTPStatus = sub2apiusagerecordDescHTTPStatus.Default.(int)
 	// sub2apiusagerecordDescID is the schema descriptor for id field.

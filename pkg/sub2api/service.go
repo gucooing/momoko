@@ -19,7 +19,6 @@ var (
 const (
 	publicSnapshotTTL     = 30 * time.Second
 	stateWriteTimeout     = 30 * time.Second
-	testConnectionTimeout = 30 * time.Second
 	autoSyncStartDelay    = 5 * time.Second
 
 	// 最近请求分页边界。
@@ -46,8 +45,11 @@ type Service struct {
 	publicCacheT time.Time
 }
 
-func NewService(store UsageStore, config ConfigStore) *Service {
-	manager := NewManager()
+// NewService 构造用量同步服务。manager 为 nil 时使用共享 NewManager()。
+func NewService(store UsageStore, config ConfigStore, manager *Manager) *Service {
+	if manager == nil {
+		manager = NewManager()
+	}
 	return &Service{
 		store:   store,
 		config:  config,
@@ -121,15 +123,13 @@ func (s *Service) UpdateConfig(ctx context.Context, next *v1.Sub2APIConfig) (*v1
 	return next, nil
 }
 
-// TestConnection 主动访问 Sub2API，使用独立的后台上下文，避免受 HTTP 请求超时影响。
+// TestConnection 主动访问 Sub2API；出站不接框架 ctx，由共享 Client 超时兜底。
 func (s *Service) TestConnection(_ context.Context, cfg *v1.Sub2APIConfig) (bool, string) {
 	client := ClientConfigFromConfig(cfg)
 	if !client.Configured() {
 		return false, ErrConfigRequired.Error()
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), testConnectionTimeout)
-	defer cancel()
-	if err := s.manager.Test(ctx, client); err != nil {
+	if err := s.manager.Test(client); err != nil {
 		return false, err.Error()
 	}
 	return true, "连接成功"

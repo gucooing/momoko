@@ -1,9 +1,7 @@
 package sub2api
 
 import (
-	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,61 +9,139 @@ import (
 	"time"
 )
 
-const requestTimeout = 30 * time.Second
+// Sub2API 管理端路径。
+const (
+	DefaultUserProfilePath  = "/api/v1/user/profile"
+	adminUserBalancePathFmt = "/api/v1/admin/users/%d/balance"
+)
 
-// Manager 负责与 Sub2API 管理端 HTTP 接口交互。
-type Manager struct {
-	client *http.Client
+// Manager 管理端 API 门面：出站一律走包级泛型 Get/Post/DoEnvelope，不自建 Request/Client。
+type Manager struct{}
+
+func NewManager() *Manager { return &Manager{} }
+
+// NewManagerWithClient 保留签名以兼容旧调用；client 参数忽略（统一 SharedHTTPClient）。
+func NewManagerWithClient(_ *http.Client) *Manager { return &Manager{} }
+
+func adminHeaders(cfg ClientConfig) map[string]string {
+	return map[string]string{"x-api-key": cfg.AdminAPIKey}
 }
 
-func NewManager() *Manager {
-	return &Manager{client: &http.Client{Timeout: requestTimeout}}
+func bearerHeaders(token string) map[string]string {
+	return map[string]string{"Authorization": "Bearer " + token}
 }
 
-// Test 通过拉取一条记录验证连接与密钥是否可用。
-func (m *Manager) Test(ctx context.Context, cfg ClientConfig) error {
-	_, err := m.ListUsage(ctx, cfg, UsageListOptions{Page: 1, PageSize: 1})
+// Test 通过拉取一条记录验证连接与密钥。
+func (m *Manager) Test(cfg ClientConfig) error {
+	_, err := m.ListUsage(cfg, UsageListOptions{Page: 1, PageSize: 1})
 	return err
 }
 
-func (m *Manager) ListUsage(ctx context.Context, cfg ClientConfig, opts UsageListOptions) (*UsageListResult, error) {
+func (m *Manager) ListUsage(cfg ClientConfig, opts UsageListOptions) (*UsageListResult, error) {
 	endpoint, err := adminURL(cfg.BaseURL, DefaultAdminUsagePath)
 	if err != nil {
 		return nil, err
 	}
 	applyListQuery(endpoint, opts)
-	body, err := m.doAdminGet(ctx, cfg, endpoint)
+	// 分页列表解码逻辑在 decodeUsageList（保留历史字段兼容），因此用 DoBytes。
+	body, status, err := DoBytes(http.MethodGet, endpoint.String(), adminHeaders(cfg), nil)
 	if err != nil {
 		return nil, err
+	}
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("Sub2API 返回 HTTP %d", status)
 	}
 	return decodeUsageList(body)
 }
 
-func (m *Manager) ListUpstreamErrors(ctx context.Context, cfg ClientConfig, opts UsageListOptions) (*UsageListResult, error) {
+func (m *Manager) ListUpstreamErrors(cfg ClientConfig, opts UsageListOptions) (*UsageListResult, error) {
 	endpoint, err := adminURL(cfg.BaseURL, DefaultAdminUpstreamErrorsPath)
 	if err != nil {
 		return nil, err
 	}
 	applyListQuery(endpoint, opts)
-	body, err := m.doAdminGet(ctx, cfg, endpoint)
+	body, status, err := DoBytes(http.MethodGet, endpoint.String(), adminHeaders(cfg), nil)
 	if err != nil {
 		return nil, err
+	}
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("Sub2API 返回 HTTP %d", status)
 	}
 	return decodeUpstreamErrorList(body)
 }
 
-
-// ListGroups 拉取管理端全部活跃分组（不含已软删）。
-func (m *Manager) ListGroups(ctx context.Context, cfg ClientConfig) ([]*Group, error) {
+// ListGroups 拉取管理端全部活跃分组。
+func (m *Manager) ListGroups(cfg ClientConfig) ([]*Group, error) {
 	endpoint, err := adminURL(cfg.BaseURL, DefaultAdminGroupsPath)
 	if err != nil {
 		return nil, err
 	}
-	body, err := m.doAdminGet(ctx, cfg, endpoint)
+	body, status, err := DoBytes(http.MethodGet, endpoint.String(), adminHeaders(cfg), nil)
 	if err != nil {
 		return nil, err
 	}
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("Sub2API 返回 HTTP %d", status)
+	}
 	return decodeGroupList(body)
+}
+
+// userProfileDTO 对齐 GET /user/profile 的 data。
+type userProfileDTO struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+}
+
+// ValidateUserToken 用用户 JWT 拉 profile，返回上游 int64 user_id。
+func (m *Manager) ValidateUserToken(cfg ClientConfig, jwt string) (userID int64, userName string, err error) {
+	jwt = strings.TrimSpace(jwt)
+	if jwt == "" {
+		return 0, "", fmt.Errorf("缺少用户令牌")
+	}
+	endpoint, err := adminURL(cfg.BaseURL, DefaultUserProfilePath)
+	if err != nil {
+		return 0, "", err
+	}
+	profile, err := GetEnvelope[userProfileDTO](endpoint.String(), bearerHeaders(jwt))
+	if err != nil {
+		return 0, "", fmt.Errorf("令牌无效")
+	}
+	if profile.ID <= 0 {
+		return 0, "", fmt.Errorf("令牌无效")
+	}
+	return profile.ID, strings.TrimSpace(profile.Username), nil
+}
+
+// balanceAdjustBody 对齐 POST /admin/users/:id/balance。
+type balanceAdjustBody struct {
+	Balance   float64 `json:"balance"`
+	Operation string  `json:"operation"`
+	Notes     string  `json:"notes"`
+}
+
+// AddUserBalance 给用户加余额（派奖）。
+func (m *Manager) AddUserBalance(cfg ClientConfig, userID int64, amount float64, notes, idemKey string) error {
+	if userID <= 0 {
+		return fmt.Errorf("用户 ID 不能为空")
+	}
+	endpoint, err := adminURL(cfg.BaseURL, fmt.Sprintf(adminUserBalancePathFmt, userID))
+	if err != nil {
+		return err
+	}
+	headers := adminHeaders(cfg)
+	if idemKey != "" {
+		headers["Idempotency-Key"] = idemKey
+	}
+	// 响应 data 可忽略，只关心是否成功（信封 code）。
+	_, err = PostEnvelope[map[string]any](endpoint.String(), headers, balanceAdjustBody{
+		Balance:   amount,
+		Operation: "add",
+		Notes:     notes,
+	})
+	if err != nil {
+		return fmt.Errorf("派奖失败：%w", err)
+	}
+	return nil
 }
 
 func applyListQuery(endpoint *url.URL, opts UsageListOptions) {
@@ -94,30 +170,6 @@ func applyListQuery(endpoint *url.URL, opts UsageListOptions) {
 		q.Set("end_time", opts.EndTime.UTC().Format(time.RFC3339Nano))
 	}
 	endpoint.RawQuery = q.Encode()
-}
-
-func (m *Manager) doAdminGet(ctx context.Context, cfg ClientConfig, endpoint *url.URL) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("x-api-key", cfg.AdminAPIKey)
-
-	resp, err := m.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("Sub2API 返回 HTTP %d", resp.StatusCode)
-	}
-	return body, nil
 }
 
 func adminURL(baseURL, path string) (*url.URL, error) {

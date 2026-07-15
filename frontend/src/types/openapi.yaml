@@ -3176,6 +3176,64 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListImageGenModelsResponse'
+    /api/v1/public/sub2api/lottery/history:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 用户端历史 + 本人参与情况
+            operationId: Sub2APIManager_ListLotteryHistoryPublic
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListLotteryHistoryPublicResponse'
+    /api/v1/public/sub2api/lottery/register:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 报名当前轮次
+            operationId: Sub2APIManager_RegisterLottery
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RegisterLotteryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RegisterLotteryResponse'
+    /api/v1/public/sub2api/lottery/status:
+        get:
+            tags:
+                - Sub2APIManager
+            description: |-
+                ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
+                 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
+            operationId: Sub2APIManager_GetLotteryStatus
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetLotteryStatusResponse'
     /api/v1/public/sub2api/stats:
         get:
             tags:
@@ -3437,6 +3495,146 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TestSub2APIConnectionResponse'
+    /api/v1/sub2api/lottery/draw:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 手动立即开奖（测试/补偿）
+            operationId: Sub2APIManager_TriggerLotteryDraw
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TriggerLotteryDrawRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TriggerLotteryDrawResponse'
+    /api/v1/sub2api/lottery/overview:
+        get:
+            tags:
+                - Sub2APIManager
+            description: |-
+                ---------- 每日抽奖活动（管理端，需鉴权） ----------
+                 三段概览（累计中 / 报名中 / 配置）
+            operationId: Sub2APIManager_GetLotteryOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetLotteryOverviewResponse'
+    /api/v1/sub2api/lottery/rounds:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 历史轮次分页
+            operationId: Sub2APIManager_ListLotteryRounds
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListLotteryRoundsResponse'
+    /api/v1/sub2api/lottery/rounds/{id}:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 某轮次详情（含中奖名单）
+            operationId: Sub2APIManager_GetLotteryRoundDetail
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetLotteryRoundDetailResponse'
+    /api/v1/sub2api/lottery/rounds/{id}/distribute:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 手动发放某轮次奖金（autoPayout 关或重试失败时）
+            operationId: Sub2APIManager_DistributeLotteryRound
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DistributeLotteryRoundRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DistributeLotteryRoundResponse'
+    /api/v1/sub2api/lottery/settings:
+        put:
+            tags:
+                - Sub2APIManager
+            description: 更新抽奖配置
+            operationId: Sub2APIManager_UpdateLotterySettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateLotterySettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateLotterySettingsResponse'
+    /api/v1/sub2api/lottery/settle:
+        post:
+            tags:
+                - Sub2APIManager
+            description: 手动立即结算（测试/补偿）
+            operationId: Sub2APIManager_TriggerLotterySettle
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TriggerLotterySettleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TriggerLotterySettleResponse'
     /api/v1/sub2api/recent-requests:
         get:
             tags:
@@ -5676,6 +5874,16 @@ components:
                     type: string
                     description: 磁盘IO统计错误信息
             description: 磁盘实时状态
+        v1.DistributeLotteryRoundRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.DistributeLotteryRoundResponse:
+            type: object
+            properties:
+                round:
+                    $ref: '#/components/schemas/v1.LotteryRound'
         v1.DockerBlkioEntry:
             type: object
             properties:
@@ -7258,6 +7466,68 @@ components:
                         $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 列表
             description: 获取实例列表响应
+        v1.GetLotteryOverviewResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.LotterySettings'
+                accumDate:
+                    type: string
+                accumSpend:
+                    type: number
+                    format: double
+                accumPool:
+                    type: number
+                    format: double
+                accumEligible:
+                    type: integer
+                    format: int32
+                nextSettleTime:
+                    type: string
+                    format: date-time
+                nextDrawTime:
+                    type: string
+                    format: date-time
+                current:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+        v1.GetLotteryRoundDetailResponse:
+            type: object
+            properties:
+                round:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+                winners:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.LotteryParticipant'
+        v1.GetLotteryStatusResponse:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                authenticated:
+                    type: boolean
+                userId:
+                    type: string
+                userName:
+                    type: string
+                accumPool:
+                    type: number
+                    format: double
+                nextSettleTime:
+                    type: string
+                    format: date-time
+                nextDrawTime:
+                    type: string
+                    format: date-time
+                current:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+                eligible:
+                    type: boolean
+                userSpend:
+                    type: number
+                    format: double
+                registered:
+                    type: boolean
         v1.GetPortForwardResponse:
             type: object
             properties:
@@ -7750,6 +8020,36 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.ImageGenModel'
+        v1.ListLotteryHistoryPublicResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.LotteryHistoryItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        v1.ListLotteryRoundsResponse:
+            type: object
+            properties:
+                rounds:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.LotteryRound'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         v1.ListOIDCClientsResponse:
             type: object
             properties:
@@ -8001,6 +8301,133 @@ components:
             type: object
             properties: {}
             description: 退出登录响应
+        v1.LotteryHistoryItem:
+            type: object
+            properties:
+                round:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+                myStatus:
+                    type: integer
+                    format: enum
+                myPrize:
+                    type: number
+                    format: double
+                registered:
+                    type: boolean
+                isWinner:
+                    type: boolean
+                winners:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.LotteryParticipant'
+                    description: 中奖名单（公开）；user_name 若为邮箱已脱敏，用户名原样。不含派奖错误等敏感字段语义依赖。
+            description: 用户端历史：轮次 + 本人参与情况 + 公开中奖名单（邮箱已打码）
+        v1.LotteryParticipant:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                roundId:
+                    type: string
+                sub2apiUserId:
+                    type: string
+                userName:
+                    type: string
+                spendSnapshot:
+                    type: number
+                    format: double
+                registeredTime:
+                    type: string
+                    format: date-time
+                isWinner:
+                    type: boolean
+                prizeAmount:
+                    type: number
+                    format: double
+                payoutStatus:
+                    type: integer
+                    format: enum
+                payoutError:
+                    type: string
+            description: 参与者/中奖记录
+        v1.LotteryRound:
+            type: object
+            properties:
+                id:
+                    type: string
+                sourceDate:
+                    type: string
+                settleTime:
+                    type: string
+                    format: date-time
+                drawTime:
+                    type: string
+                    format: date-time
+                status:
+                    type: integer
+                    format: enum
+                poolRatio:
+                    type: number
+                    format: double
+                threshold:
+                    type: number
+                    format: double
+                baseWinners:
+                    type: integer
+                    format: int32
+                maxWinners:
+                    type: integer
+                    format: int32
+                groupSpendTotal:
+                    type: number
+                    format: double
+                carryIn:
+                    type: number
+                    format: double
+                poolAmount:
+                    type: number
+                    format: double
+                eligibleCount:
+                    type: integer
+                    format: int32
+                registeredCount:
+                    type: integer
+                    format: int32
+                winnerCount:
+                    type: integer
+                    format: int32
+                perWinnerAmount:
+                    type: number
+                    format: double
+                carryOut:
+                    type: number
+                    format: double
+                autoPayout:
+                    type: boolean
+                distributed:
+                    type: boolean
+            description: 一期抽奖轮次
+        v1.LotterySettings:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                poolRatio:
+                    type: number
+                    format: double
+                threshold:
+                    type: number
+                    format: double
+                baseWinners:
+                    type: integer
+                    format: int32
+                maxWinners:
+                    type: integer
+                    format: int32
+                autoPayout:
+                    type: boolean
+            description: 抽奖配置（存 KV）
         v1.MeInfoResponse:
             type: object
             properties:
@@ -8693,6 +9120,38 @@ components:
                     type: string
                     description: token 有效时间
             description: 刷新token响应
+        v1.RegisterLotteryRequest:
+            type: object
+            properties: {}
+        v1.RegisterLotteryResponse:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                authenticated:
+                    type: boolean
+                userId:
+                    type: string
+                userName:
+                    type: string
+                accumPool:
+                    type: number
+                    format: double
+                nextSettleTime:
+                    type: string
+                    format: date-time
+                nextDrawTime:
+                    type: string
+                    format: date-time
+                current:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+                eligible:
+                    type: boolean
+                userSpend:
+                    type: number
+                    format: double
+                registered:
+                    type: boolean
         v1.RegisterRequest:
             type: object
             properties:
@@ -9718,6 +10177,28 @@ components:
                     type: boolean
                 message:
                     type: string
+        v1.TriggerLotteryDrawRequest:
+            type: object
+            properties:
+                date:
+                    type: string
+                    description: 为空则开奖「今天」
+        v1.TriggerLotteryDrawResponse:
+            type: object
+            properties:
+                round:
+                    $ref: '#/components/schemas/v1.LotteryRound'
+        v1.TriggerLotterySettleRequest:
+            type: object
+            properties:
+                date:
+                    type: string
+                    description: 为空则结算「今天」
+        v1.TriggerLotterySettleResponse:
+            type: object
+            properties:
+                round:
+                    $ref: '#/components/schemas/v1.LotteryRound'
         v1.TunnelInfo:
             type: object
             properties:
@@ -10226,6 +10707,16 @@ components:
                         - $ref: '#/components/schemas/v1.LoginConfig'
                     description: 登录配置
             description: 更新登录配置响应
+        v1.UpdateLotterySettingsRequest:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.LotterySettings'
+        v1.UpdateLotterySettingsResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.LotterySettings'
         v1.UpdateMeRequest:
             type: object
             properties:

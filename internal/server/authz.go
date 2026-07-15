@@ -66,6 +66,11 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSub2APIManagerCreateSub2APITimelineItem: constant.Sub2APIEdit,
 	v1.OperationSub2APIManagerUpdateSub2APITimelineItem: constant.Sub2APIEdit,
 	v1.OperationSub2APIManagerDeleteSub2APITimelineItem: constant.Sub2APIEdit,
+	// 抽奖活动写操作
+	v1.OperationSub2APIManagerUpdateLotterySettings:  constant.Sub2APIEdit,
+	v1.OperationSub2APIManagerDistributeLotteryRound: constant.Sub2APIEdit,
+	v1.OperationSub2APIManagerTriggerLotterySettle:   constant.Sub2APIEdit,
+	v1.OperationSub2APIManagerTriggerLotteryDraw:     constant.Sub2APIEdit,
 
 	// —— 用户管理 ——
 	v1.OperationUserServiceListUser:   constant.UserView,

@@ -69,6 +69,12 @@ type Sub2APIAnnouncement func(*sql.Selector)
 // Sub2APIGroup is the predicate function for sub2apigroup builders.
 type Sub2APIGroup func(*sql.Selector)
 
+// Sub2APILotteryParticipant is the predicate function for sub2apilotteryparticipant builders.
+type Sub2APILotteryParticipant func(*sql.Selector)
+
+// Sub2APILotteryRound is the predicate function for sub2apilotteryround builders.
+type Sub2APILotteryRound func(*sql.Selector)
+
 // Sub2APITimelineItem is the predicate function for sub2apitimelineitem builders.
 type Sub2APITimelineItem func(*sql.Selector)
 

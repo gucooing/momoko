@@ -54,6 +54,7 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetModel(record.Model).
 				SetEndpoint(record.Endpoint).
 				SetGroupName(groupName).
+				SetUserName(strings.TrimSpace(record.UserName)).
 				SetUserAgent(record.UserAgent).
 				SetStatus(record.Status).
 				SetSuccess(record.Success).
@@ -69,6 +70,9 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetHTTPStatus(record.HTTPStatus)
 			if groupID != "" {
 				b = b.SetGroupID(groupID)
+			}
+			if record.UserID > 0 {
+				b = b.SetUserID(record.UserID)
 			}
 			builders = append(builders, b)
 		}
@@ -218,6 +222,10 @@ func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 	if record.GroupID != nil {
 		groupID = *record.GroupID
 	}
+	var userID int64
+	if record.UserID != nil {
+		userID = *record.UserID
+	}
 	return &sub2apipkg.UsageRecord{
 		ID:              record.ID,
 		RequestTime:     record.RequestTime,
@@ -226,6 +234,8 @@ func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 		Endpoint:        record.Endpoint,
 		GroupID:         groupID,
 		GroupName:       record.GroupName,
+		UserID:          userID,
+		UserName:        record.UserName,
 		UserAgent:       record.UserAgent,
 		Status:          record.Status,
 		Success:         record.Success,

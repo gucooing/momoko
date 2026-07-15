@@ -35,6 +35,10 @@ type Sub2APIUsageRecord struct {
 	GroupID *string `json:"group_id,omitempty"`
 	// Sub2API 分组名称（冗余展示）
 	GroupName string `json:"group_name,omitempty"`
+	// Sub2API 用户 ID（上游 int64）
+	UserID *int64 `json:"user_id,omitempty"`
+	// Sub2API 用户名（冗余展示）
+	UserName string `json:"user_name,omitempty"`
 	// 客户端 User-Agent（用于 UA 维度统计）
 	UserAgent string `json:"user_agent,omitempty"`
 	// 状态
@@ -96,9 +100,9 @@ func (*Sub2APIUsageRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case sub2apiusagerecord.FieldTps, sub2apiusagerecord.FieldCost:
 			values[i] = new(sql.NullFloat64)
-		case sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
+		case sub2apiusagerecord.FieldUserID, sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
 			values[i] = new(sql.NullInt64)
-		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldGroupID, sub2apiusagerecord.FieldGroupName, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
+		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldGroupID, sub2apiusagerecord.FieldGroupName, sub2apiusagerecord.FieldUserName, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case sub2apiusagerecord.FieldCreateTime, sub2apiusagerecord.FieldUpdateTime, sub2apiusagerecord.FieldRequestTime:
 			values[i] = new(sql.NullTime)
@@ -171,6 +175,19 @@ func (_m *Sub2APIUsageRecord) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field group_name", values[i])
 			} else if value.Valid {
 				_m.GroupName = value.String
+			}
+		case sub2apiusagerecord.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				_m.UserID = new(int64)
+				*_m.UserID = value.Int64
+			}
+		case sub2apiusagerecord.FieldUserName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_name", values[i])
+			} else if value.Valid {
+				_m.UserName = value.String
 			}
 		case sub2apiusagerecord.FieldUserAgent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -316,6 +333,14 @@ func (_m *Sub2APIUsageRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("group_name=")
 	builder.WriteString(_m.GroupName)
+	builder.WriteString(", ")
+	if v := _m.UserID; v != nil {
+		builder.WriteString("user_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("user_name=")
+	builder.WriteString(_m.UserName)
 	builder.WriteString(", ")
 	builder.WriteString("user_agent=")
 	builder.WriteString(_m.UserAgent)

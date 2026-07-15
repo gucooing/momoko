@@ -1,32 +1,25 @@
 package sub2api
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 )
 
-const imagineRequestTimeout = 180 * time.Second // 生图耗时较高，留足余量
-
 // ImagineClient 调用 sub2api 的密钥/模型/生图接口。
-// - ListKeys 使用 sub2api JWT（Bearer）校验 token 并取可信 user_id。
-// - ListModels / GenerateAndSave / EditAndSave 使用 apikey（Bearer）。
-type ImagineClient struct {
-	client *http.Client
-}
+// 出站统一走包级 Get/Post/DoBytes（SharedHTTPClient），不自建 Request/Client。
+type ImagineClient struct{}
 
-func NewImagineClient() *ImagineClient {
-	return &ImagineClient{client: &http.Client{Timeout: imagineRequestTimeout}}
-}
+func NewImagineClient() *ImagineClient { return &ImagineClient{} }
+
+// NewImagineClientWithClient 保留兼容；忽略 client，统一共享出站。
+func NewImagineClientWithClient(_ *http.Client) *ImagineClient { return &ImagineClient{} }
 
 // ImagineKey 完整缓存项（含原文 key，仅服务端持有）。
 type ImagineKey struct {
@@ -39,7 +32,7 @@ type ImagineKey struct {
 }
 
 // ListKeys 用 sub2api JWT 拉取用户 apikey 列表；返回 (keys, trustedUserID, error)。
-func (c *ImagineClient) ListKeys(ctx context.Context, srcHost, jwt string) ([]ImagineKey, string, error) {
+func (c *ImagineClient) ListKeys(_ context.Context, srcHost, jwt string) ([]ImagineKey, string, error) {
 	endpoint, err := joinURL(srcHost, imagineKeysPath)
 	if err != nil {
 		return nil, "", err
@@ -49,9 +42,14 @@ func (c *ImagineClient) ListKeys(ctx context.Context, srcHost, jwt string) ([]Im
 	q.Set("page_size", "100")
 	endpoint.RawQuery = q.Encode()
 
-	body, _, err := c.doRequest(ctx, http.MethodGet, endpoint.String(), "Bearer "+jwt, nil)
+	body, status, err := DoBytes(http.MethodGet, endpoint.String(), map[string]string{
+		"Authorization": "Bearer " + jwt,
+	}, nil)
 	if err != nil {
 		return nil, "", err
+	}
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, "", decodeImageError(body, status)
 	}
 	var resp imagineKeysResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
@@ -96,14 +94,19 @@ func FindKey(keys []ImagineKey, id string) (ImagineKey, bool) {
 }
 
 // ListModels 用 apikey 拉取可用模型列表。
-func (c *ImagineClient) ListModels(ctx context.Context, srcHost, apiKey string) ([]imagineModelDTO, error) {
+func (c *ImagineClient) ListModels(_ context.Context, srcHost, apiKey string) ([]imagineModelDTO, error) {
 	endpoint, err := joinURL(srcHost, imagineModelsPath)
 	if err != nil {
 		return nil, err
 	}
-	body, _, err := c.doRequest(ctx, http.MethodGet, endpoint.String(), "Bearer "+apiKey, nil)
+	body, status, err := DoBytes(http.MethodGet, endpoint.String(), map[string]string{
+		"Authorization": "Bearer " + apiKey,
+	}, nil)
 	if err != nil {
 		return nil, err
+	}
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, decodeImageError(body, status)
 	}
 	var resp imagineModelsResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
@@ -112,18 +115,19 @@ func (c *ImagineClient) ListModels(ctx context.Context, srcHost, apiKey string) 
 	return resp.Data, nil
 }
 
-func (c *ImagineClient) doImage(ctx context.Context, srcHost, apiKey, path string, req *imagineImageRequest) (*imagineImageResponse, error) {
+func (c *ImagineClient) doImage(_ context.Context, srcHost, apiKey, path string, req *imagineImageRequest) (*imagineImageResponse, error) {
 	endpoint, err := joinURL(srcHost, path)
 	if err != nil {
 		return nil, err
 	}
-	payload, err := json.Marshal(req)
+	body, status, err := DoBytes(http.MethodPost, endpoint.String(), map[string]string{
+		"Authorization": "Bearer " + apiKey,
+	}, req)
 	if err != nil {
 		return nil, err
 	}
-	body, _, err := c.doRequest(ctx, http.MethodPost, endpoint.String(), "Bearer "+apiKey, payload)
-	if err != nil {
-		return nil, err
+	if status < http.StatusOK || status >= http.StatusMultipleChoices {
+		return nil, decodeImageError(body, status)
 	}
 	var resp imagineImageResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
@@ -132,42 +136,7 @@ func (c *ImagineClient) doImage(ctx context.Context, srcHost, apiKey, path strin
 	return &resp, nil
 }
 
-// doRequest 执行 HTTP 请求并返回响应体与状态码；非 2xx 由 decodeImageError 映射为 ImagineRequestError。
-func (c *ImagineClient) doRequest(ctx context.Context, method, urlStr, auth string, body []byte) ([]byte, int, error) {
-	var bodyReader io.Reader
-	if body != nil {
-		bodyReader = bytes.NewReader(body)
-	}
-	req, err := http.NewRequestWithContext(ctx, method, urlStr, bodyReader)
-	if err != nil {
-		return nil, 0, err
-	}
-	if auth != "" {
-		req.Header.Set("Authorization", auth)
-	}
-	req.Header.Set("Accept", "application/json")
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, 0, err
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(io.LimitReader(resp.Body, imagineImageMaxBytes))
-	if err != nil {
-		return nil, resp.StatusCode, err
-	}
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return nil, resp.StatusCode, decodeImageError(data, resp.StatusCode)
-	}
-	return data, resp.StatusCode, nil
-}
-
-// decodeImageError 将 sub2api 网关错误（OpenAI 形）解析为带详情的 ImagineRequestError，
-// 语义归类交由 ClassifyImagineError 完成。
+// decodeImageError 将 sub2api 网关错误（OpenAI 形）解析为带详情的 ImagineRequestError。
 func decodeImageError(body []byte, status int) error {
 	var env openAIErrorEnvelope
 	if err := json.Unmarshal(body, &env); err == nil && env.Error.Message != "" {
@@ -192,7 +161,6 @@ func ClassifyImagineError(err error) error {
 	}
 	switch {
 	case e.Code == "INVALID_API_KEY" || e.Code == "API_KEY_DISABLED" || e.HTTPStatus == http.StatusUnauthorized:
-		// 401 既可能是 token 也可能是 apikey，调用方按场景判断
 		return e
 	case e.Code == "API_KEY_EXPIRED" || e.Code == "INSUFFICIENT_BALANCE" || e.HTTPStatus == http.StatusForbidden:
 		return ErrImagineApiKeyForbidden
@@ -210,7 +178,6 @@ func DecodeB64Image(s string) ([]byte, error) {
 		return nil, nil
 	}
 	if strings.HasPrefix(s, "data:") {
-		// data:image/png;base64,xxxx
 		if i := strings.Index(s, ","); i >= 0 {
 			s = s[i+1:]
 		}

@@ -56,6 +56,10 @@ type Tx struct {
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
 	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
 	Sub2APIGroup *Sub2APIGroupClient
+	// Sub2APILotteryParticipant is the client for interacting with the Sub2APILotteryParticipant builders.
+	Sub2APILotteryParticipant *Sub2APILotteryParticipantClient
+	// Sub2APILotteryRound is the client for interacting with the Sub2APILotteryRound builders.
+	Sub2APILotteryRound *Sub2APILotteryRoundClient
 	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
 	Sub2APITimelineItem *Sub2APITimelineItemClient
 	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
@@ -220,6 +224,8 @@ func (tx *Tx) init() {
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(tx.config)
 	tx.Sub2APIGroup = NewSub2APIGroupClient(tx.config)
+	tx.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(tx.config)
+	tx.Sub2APILotteryRound = NewSub2APILotteryRoundClient(tx.config)
 	tx.Sub2APITimelineItem = NewSub2APITimelineItemClient(tx.config)
 	tx.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)

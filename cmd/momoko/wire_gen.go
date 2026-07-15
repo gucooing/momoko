@@ -102,7 +102,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	}
 	dockerService := service.NewDockerService(dockerUsecase)
 	sub2APIRepo := data.NewSub2APIRepo(dataData)
-	sub2APIUsecase, cleanup6, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo)
+	sub2APIUsecase, cleanup6, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo, taskManager)
 	if err != nil {
 		cleanup5()
 		cleanup4()

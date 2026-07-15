@@ -44,6 +44,9 @@ type adminUsageLog struct {
 	GroupID *int64      `json:"group_id"`
 	Group   *adminGroup `json:"group,omitempty"`
 
+	UserID int64             `json:"user_id"`
+	User   *adminUserSummary `json:"user,omitempty"`
+
 	InputTokens           int `json:"input_tokens"`
 	OutputTokens          int `json:"output_tokens"`
 	CacheCreationTokens   int `json:"cache_creation_tokens"`
@@ -72,6 +75,11 @@ type adminGroup struct {
 type adminAccountSummary struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
+}
+
+type adminUserSummary struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
 }
 
 // opsErrorLog 对齐 sub2api OpsErrorLog JSON（上游错误列表项）。
@@ -204,6 +212,10 @@ func usageLogToRecord(item adminUsageLog) *UsageRecord {
 	}
 
 	groupID, groupName := groupFromUsage(item.Group, item.GroupID)
+	userName := ""
+	if item.User != nil {
+		userName = strings.TrimSpace(item.User.Username)
+	}
 	return &UsageRecord{
 		ID:              id,
 		RequestTime:     requestTime,
@@ -212,6 +224,8 @@ func usageLogToRecord(item adminUsageLog) *UsageRecord {
 		Endpoint:        endpoint,
 		GroupID:         groupID,
 		GroupName:       groupName,
+		UserID:          item.UserID,
+		UserName:        userName,
 		UserAgent:       derefString(item.UserAgent),
 		Status:          "success",
 		Success:         true,
