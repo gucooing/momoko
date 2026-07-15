@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录 + **初始化** + **异常/redirect** 完成；余 个人中心/监控/Sub2API/public |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + **个人中心** 完成；余 监控/Sub2API/public |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成：**系统管理 100%**、实例/Docker/Node/SSH/工具/文件模块、**登录门面**、**初始化向导**均已重写（多数已提交，initialize 本会话未提交）。**P1 列表范式**已定稿（PageHeader+FilterBar+批量条+卡/表+DataTable+Pagination+FormDialog）；**P7 独立门面范式**定稿为**居中 hairline 卡**（登录/初始化：冷灰页底+角标语言/主题/明暗，**不做半屏渐变品牌区**）。**密度铁律**：控件 32px、表行 ~43px、列表**禁大号 MetricStrip**（概览内联工具条）。横切：`useFeedback()` 封装 `useToast`（替代 ElMessage，file/login/initialize 已用）。旧栈 EP/VXE 迁移期共存。**下一步**：个人中心 `profile` / 监控 / Sub2API / public/* / 异常页；或 Phase 4 清 demo + 卸 EP。
+> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成：**系统管理 100%**、实例/Docker/Node/SSH/工具/文件、**登录/初始化/异常**、**个人中心 profile** 均已重写（多数已提交）。**P1 列表范式**已定稿；**P7 居中 hairline 卡**（登录/初始化）；**P2 profile**＝克制头部+令牌 Tab+AppPanel 分区（资料/权限树表/消息/设备/日志）。**密度铁律**：控件 32px、表行 ~43px、列表禁大号 MetricStrip。横切：`useFeedback()`；改密弹窗已换 `FormDialog`。旧栈 EP/VXE 迁移期共存（`SelectAvatarDialog` 仍 EP）。**下一步**：监控 `dashboard/monitor` / Sub2API / public/*；或 Phase 4 清 demo + 卸 EP。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -94,7 +94,7 @@
 | 工作台 | dashboard/home | P4 | ✅ | ✅ | ✅ | 🟡 待用户确认方向 |
 | 分析页(待决) | dashboard/analysis | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 监控页 | dashboard/monitor | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 个人中心 | profile | P2 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 个人中心 | profile | P2 | ✅ | ✅ | ✅ | 🟡 克制头+Tab 五面板去 EP；UpdatePassword→FormDialog；桌面/移动/暗+详情弹窗验；未提交 |
 
 ### 实例/基建(`06b`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -191,5 +191,6 @@
 | 2026-07-12 | **Docker 全模块收口**：①**容器 `docker/container` P1 全量**——PageHeader+FilterBar+DataTable/移动卡+Pagination；创建/编辑 FormDialog 结构化控件（`AppCombobox` 镜像、重启策略 seg、内存/CPU chips+数字、`ContainerPort/Mount/EnvEditor`）；详情令牌壳；日志/终端复用 `TerminalConsole` 浮层；统计 FormDialog+echarts。②**配置 `docker/config` P3**——四 Tab（状态/连接/默认/仓库）+ AppPanel+AppSwitch。③新组件 `AppCombobox` + 三个 spec 编辑器。**反人类修复**：列表失败置 `dockerUnavailable`，创建弹窗不再二次请求镜像/网络选项（拦截器 500 会连弹 toast）。浏览器：桌面/移动/暗色+创建表单结构化行 OK；后端 docker 未启用。vue-tsc 绿。**待提交本批。** | 提交 Docker 批次后停（用户指定）；下一会话 工具 tunnel/port-forward 或 文件 share/source |
 | 2026-07-15 | **登录门面 `login` P7 重写（用户嫌半屏渐变难看 → 改居中卡）**：四文件去 EP——`index` 冷灰页底 + 居中 hairline 卡 + 角标(语言/主题配置/明暗)；`accountLogin/register/forgotPassword` 令牌 `.app-input` + 内联校验 + 密码眼睛内嵌 + `useFeedback` toast。**不做**半屏主色品牌区（空、廉价）。桌面 1440 / 移动 390 **均垂直居中**；暗色随 `themeStore`。登录 admin 链路 OK。i18n 补 slogan/copyright/toggleTheme/showPassword/hidePassword/passwordLabel（三语）。**未提交。** | 提交登录批次；下一页 `initialize` 或 个人中心/监控/Sub2API/public |
 | 2026-07-15 | **初始化向导 `initialize` P3 重写（对齐登录门面）**：单文件去 EP——冷灰页底 + 居中 hairline 卡 + 角标(语言/主题/明暗)；自建紧凑步骤条(完成√/当前主色)；`AppSelect` 库类型 + 令牌表单(远程库条件字段+密码眼睛) + 内联校验；确认摘要 DescriptionList 风 + 结果态(成功/失败/轮询旋转)；`useFeedback` toast；版权复用 `login.copyright`。业务契约保留(status/test/confirm + 重启轮询)。i18n 补 `pageTitle/pageDesc`(三语)。浏览器：mock 拦截 `code:200` 全链路(SQLite→管理员→确认→完成)、桌面/移动/暗色，vue-tsc+eslint 绿。**未提交。** | 提交 initialize；下一页 个人中心 `profile` / 异常 403·404 / public/share 或 Sub2API |
-| 2026-07-15 | **异常/工具页 P8**：`exception/403`/`404` 去掉 ~17KB 彩色插画 SVG，改为克制居中（大号码 + 标题 + 说明 + 回首页/上一页）；`redirect` 令牌页底 + logo 脉冲。i18n 补 forbiddenTitle/notFoundTitle/goHome/goBack（三语）。浏览器桌面/移动/暗色验，vue-tsc+eslint 绿。**未提交。** | 提交 initialize+exception 批次；下一页 个人中心 `profile` 或 public/share |
+| 2026-07-15 | **异常/工具页 P8**：`exception/403`/`404` 去掉 ~17KB 彩色插画 SVG，改为克制居中（大号码 + 标题 + 说明 + 回首页/上一页）；`redirect` 令牌页底 + logo 脉冲。i18n 补 forbiddenTitle/notFoundTitle/goHome/goBack（三语）。浏览器桌面/移动/暗色验，vue-tsc+eslint 绿。**已提交 `8f54c27`（与 initialize 同批）。** | 个人中心 `profile` |
+| 2026-07-15 | **个人中心 `profile` P2 全量重写**：去大 banner/EP 表/卡——克制头部(AppAvatar+名/角色/简介)+令牌 Tab 条(未读徽标)+五面板：资料(档案 DescriptionList+表单+改密入口+危险区)、权限(DataTable 树/移动卡+内联统计)、消息(假数据流+FormDialog 确认)、设备(DataTable/卡+下线确认)、日志(DataTable+Pagination+JSON 详情 FormDialog)。**`UpdatePassword`→FormDialog+内联校验+useFeedback**（侧栏菜单共用）。保留 `useUserProfileStore` 契约；`SelectAvatarDialog` 仍 EP 迁移期。浏览器：桌面各 Tab+改密弹窗+日志详情、移动 390 卡流、暗色；vue-tsc+eslint 绿。**未提交。** | 提交 profile；下一页 监控/Sub2API/public |
 | 2026-07-13 | **文件管理 `file/index` 真·从零重写 + 用户点名两条刚性标准**：全套文件组件除净老框架（EP-free）：`FileBrowser.vue`（外壳=来源 AppSelect/前进后退上级/面包屑/刷新 + 双栏 左树+右列表·网格 + 工具栏 UButton/AppDropdown更多/搜索/筛选/视图段 + 选择条 + 页脚 Pagination；全出血 `flex:1;min-height:0` 填满高度[修 278px 塌陷]；图标走 `menuStore.iconComponents['HOutline:*']`；删除确认=内联令牌 FormDialog）、`FileTree/FileTreeNode`（→ 可覆盖 `--ft-*` 局部变量+app 令牌兜底，heroicons）、`FilePromptDialog/FileMediaDialog/FileUploadDialog`（→ FormDialog+app 令牌+AppSelect）、**`FileEditor` 重写**（自包含 `--fe-*` 独立明暗主题[非旧 fm-*]、menuStore+本地保存 SVG、主题**分段**替代旧 FileMenu、`useFeedback`+Promise 门闸令牌确认）、`useFileUpload`（1 处 ElMessage→fb）。**新建 `src/utils/feedback.ts` = `useFeedback()` 封装 Nuxt UI `useToast`（全项目首个采用者，已浏览器实证渲染）**；`ElMessage`→`fb`、`showRequestError`→`fb.error(getRequestErrorMessage())`、`Dialog.confirm`→令牌 FormDialog。**删** orphaned `FileMenu.vue`；`icons.ts` 回退 HEAD（去 2 个没用的 view 图标）。**踩坑**：移动端表头 类型/时间 列 `.fb-thead .fb-col{display:flex}`(0,2,0) 盖过 `.fb-col--type{display:none}`(0,1,0)→ 表头列不隐藏挤压，改用 `.fb-thead .fb-col--type` 提特异性。**保留** `theme.css`(fm-*，薄荷)——仍服务未重写的 `FilePicker/FileViewerDialog/FileDialog/FilePager`(public/share 用，增量待迁)。**浏览器验证**：桌面浅/暗、网格、移动(tree 隐藏/单列/无横溢)、toast 渲染、全出血填高、新建文件夹 FormDialog；vue-tsc+eslint 绿。**未提交。** 记忆 [[rewritten-components-drop-all-legacy-framework]]。**浏览器 MCP 坑**：chrome-devtools 读默认 profile 的 DevToolsActivePort；用户 Chrome 无 debug 端口→ 另起隔离 debug Chrome `:9222`（`$TEMP\momoko-devtools-profile`）+ 把默认 profile 里陈旧 DevToolsActivePort 改指 9222。 | ①**用户重跑 Go 后端**以吃到 `pkg/file.Create` 吞错修复 ②提交本批文件管理重写 ③Monaco 自动化键入未通（保存 dirty 态未 E2E 到，手工点一下即可）④Docker 复查修复（容器网络列无界/Stats echarts 暗色/硬编码「连接」/engine-down 空态）⑤剩余页面 |

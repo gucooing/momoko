@@ -1,53 +1,24 @@
-<!-- 详细档案 -->
+<!-- 详细档案：只读 DescriptionList + 中性标签 chips -->
 <template>
-  <BaseCard :title="t('user.detailArchive')" title-icon="HOutline:IdentificationIcon">
-    <div>
-      <div class="info-cell">
-        <label>{{ t('user.username') }}</label>
-        <span>{{ userStore.userInfo?.username }}</span>
-      </div>
-      <div class="info-cell">
-        <label>{{ t('user.email') }}</label>
-        <span>{{ userStore.userInfo?.email || t('user.noEmail') }}</span>
-      </div>
-      <div class="info-cell">
-        <label>{{ t('user.nickname') }}</label>
-        <span>{{ userStore.userInfo?.name }}</span>
-      </div>
-      <div class="info-cell">
-        <label>{{ t('user.accountStatus') }}</label>
-        <span>{{ userStore.userInfo?.status === UserStatus.Active ? t('common.enabled') : t('common.disabled') }}</span>
-      </div>
-      <div class="info-cell">
-        <label>{{ t('user.joinTime') }}</label>
-        <span>{{ createTimeText }}</span>
-      </div>
-      <el-divider />
+  <AppPanel :title="t('user.detailArchive')" title-icon="HOutline:IdentificationIcon">
+    <DescriptionList :items="archiveItems" :columns="1" />
 
-      <div>
-        <div class="text-sm font-bold text-(--el-text-color-secondary) mb-2">{{ t('user.personalTags') }}</div>
-        <div class="flex flex-wrap gap-2" v-if="skills.length">
-          <BaseTag
-            v-for="skill in skills"
-            :key="skill.name"
-            :type="skill.type"
-            :text="skill.name"
-          />
-        </div>
-        <div class="text-sm" v-else>{{ t('user.noTags') }}</div>
+    <div class="archive-tags">
+      <div class="archive-tags__label">{{ t('user.personalTags') }}</div>
+      <div v-if="tagNames.length" class="archive-tags__list">
+        <span v-for="name in tagNames" :key="name" class="archive-chip">{{ name }}</span>
       </div>
+      <div v-else class="archive-tags__empty">{{ t('user.noTags') }}</div>
     </div>
-  </BaseCard>
+  </AppPanel>
 </template>
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { UserStatus } from '@/types/v1/user'
-import { useUserProfileStore } from '@/stores/user/profile'
 import { useI18n } from 'vue-i18n'
 
 const userStore = useUserStore()
-const userProfileStore = useUserProfileStore()
 const { t } = useI18n()
 
 const createTimeText = computed(() => {
@@ -55,26 +26,58 @@ const createTimeText = computed(() => {
   return dayjs(userStore.userInfo.createTime).format('YYYY-MM-DD HH:mm:ss')
 })
 
-const skills = computed(() => {
-  return userProfileStore.buildSkillTags(userStore.userInfo?.tags)
+const archiveItems = computed(() => [
+  { label: t('user.username'), value: userStore.userInfo?.username },
+  { label: t('user.email'), value: userStore.userInfo?.email || t('user.noEmail') },
+  { label: t('user.nickname'), value: userStore.userInfo?.name },
+  {
+    label: t('user.accountStatus'),
+    value:
+      userStore.userInfo?.status === UserStatus.Active ? t('common.enabled') : t('common.disabled'),
+  },
+  { label: t('user.joinTime'), value: createTimeText.value },
+])
+
+const tagNames = computed(() => {
+  const raw = userStore.userInfo?.tags?.trim()
+  if (!raw) return [] as string[]
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 })
 </script>
 
 <style scoped lang="scss">
-.info-cell {
-  margin-bottom: 1.25rem;
-  label {
-    display: block;
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 0.25rem;
-  }
-  span {
-    font-size: 14px;
-    font-weight: 600;
-  }
-  &:last-child {
-    margin-bottom: 0;
-  }
+.archive-tags {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.archive-tags__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 0.45rem;
+}
+.archive-tags__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.archive-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color-extra-light);
+}
+.archive-tags__empty {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-placeholder);
 }
 </style>
