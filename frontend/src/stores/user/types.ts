@@ -2,12 +2,8 @@ import type { Component } from 'vue'
 import type { LoginDevice, UpdatePasswordRequest } from '@/types/v1/auth'
 import type { UpdateMeRequest } from '@/types/v1/user'
 
-export type ProfileCurrentTab =
-  | 'personalInfo'
-  | 'permissions'
-  | 'messages'
-  | 'logs'
-  | 'devices'
+/** 右侧内容 Tab（资料不在 Tab 内，左栏常驻 — 06a） */
+export type ProfileCurrentTab = 'messages' | 'permissions' | 'devices' | 'logs'
 
 export interface ProfileTabsMenuItem {
   key: string

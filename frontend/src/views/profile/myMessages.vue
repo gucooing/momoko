@@ -1,7 +1,6 @@
-<!-- 我的消息：本地演示消息流（store 假数据）；发帖 + 已读/清空 -->
+<!-- 我的消息：发布 + 列表（store 本地消息流）；确认用 AdaptiveConfirm / FormDialog -->
 <template>
-  <div class="msg-page">
-    <!-- 发布 -->
+  <div class="msg">
     <AppPanel>
       <div class="msg-compose">
         <AppAvatar :src="userStore.resolvedUserAvatar" :name="displayName" :size="32" />
@@ -15,21 +14,15 @@
       />
       <div class="msg-compose__foot">
         <span class="msg-compose__hint">{{ t('user.messagePushHint') }}</span>
-        <UButton
-          color="primary"
-          size="sm"
-          :disabled="!messageDraft.trim()"
-          @click="sendMessage"
-        >
+        <UButton color="primary" size="sm" :disabled="!messageDraft.trim()" @click="sendMessage">
           {{ t('user.publishMessage') }}
         </UButton>
       </div>
     </AppPanel>
 
-    <!-- 列表 -->
     <AppPanel>
       <template #header>
-        <div class="msg-list-head">
+        <div class="msg-head">
           <div class="msg-seg" role="tablist">
             <button
               v-for="tab in messageTabs"
@@ -44,7 +37,7 @@
               <span v-if="tab.badge" class="msg-seg__badge">{{ tab.badge }}</span>
             </button>
           </div>
-          <div class="msg-list-head__actions">
+          <div class="msg-head__ops">
             <UButton
               color="neutral"
               variant="ghost"
@@ -54,15 +47,17 @@
             >
               {{ t('user.markAllRead') }}
             </UButton>
-            <UButton
-              color="error"
-              variant="ghost"
-              size="sm"
+            <AdaptiveConfirm
+              :title="t('user.clearMessagesContent')"
               :disabled="!userMessages.length"
-              @click="clearConfirmOpen = true"
+              @confirm="doClearAll"
             >
-              {{ t('user.clearAll') }}
-            </UButton>
+              <template #reference>
+                <UButton color="error" variant="ghost" size="sm" :disabled="!userMessages.length">
+                  {{ t('user.clearAll') }}
+                </UButton>
+              </template>
+            </AdaptiveConfirm>
           </div>
         </div>
       </template>
@@ -73,16 +68,14 @@
         :title="activeMessageTab === 'unread' ? t('user.noUnreadMessages') : t('layout.noMessages')"
       />
       <div v-else class="msg-list">
-        <div v-for="message in messageList" :key="message.id" class="msg-item">
+        <article v-for="message in messageList" :key="message.id" class="msg-item">
           <div class="msg-item__avatar">
             <AppAvatar :src="message.avatar" :name="resolveMessageTitle(message)" :size="40" />
             <span v-if="!message.read" class="msg-item__dot" />
           </div>
           <div class="msg-item__body">
             <div class="msg-item__top">
-              <span class="msg-item__title" :title="resolveMessageTitle(message)">
-                {{ resolveMessageTitle(message) }}
-              </span>
+              <span class="msg-item__title">{{ resolveMessageTitle(message) }}</span>
               <div class="msg-item__ops">
                 <button
                   v-if="!message.read"
@@ -93,43 +86,24 @@
                 >
                   <component :is="menuStore.iconComponents['HOutline:CheckIcon']" />
                 </button>
-                <button
-                  type="button"
-                  class="msg-item__op msg-item__op--danger"
-                  :title="t('common.delete')"
-                  @click="confirmDeleteMessage(message.id)"
+                <AdaptiveConfirm
+                  :title="t('user.deleteMessageConfirm')"
+                  @confirm="doDeleteMessage(message.id)"
                 >
-                  <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />
-                </button>
+                  <template #reference>
+                    <button type="button" class="msg-item__op msg-item__op--danger" :title="t('common.delete')">
+                      <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />
+                    </button>
+                  </template>
+                </AdaptiveConfirm>
               </div>
             </div>
             <p class="msg-item__content">{{ resolveMessageContent(message) }}</p>
             <div class="msg-item__time">{{ message.time }}</div>
           </div>
-        </div>
+        </article>
       </div>
     </AppPanel>
-
-    <FormDialog
-      v-model="clearConfirmOpen"
-      :title="t('user.clearMessagesTitle')"
-      :width="420"
-      :confirm-text="t('common.delete')"
-      :loading="clearing"
-      @confirm="doClearAll"
-    >
-      <p class="confirm-text">{{ t('user.clearMessagesContent') }}</p>
-    </FormDialog>
-
-    <FormDialog
-      v-model="deleteConfirmOpen"
-      :title="t('user.deleteMessageConfirm')"
-      :width="400"
-      :confirm-text="t('common.delete')"
-      @confirm="doDeleteMessage"
-    >
-      <p class="confirm-text">{{ t('user.deleteMessageConfirm') }}</p>
-    </FormDialog>
   </div>
 </template>
 
@@ -166,38 +140,19 @@ const sendMessage = () => {
   fb.success(t('user.messageSendSuccess'))
 }
 
-const clearConfirmOpen = ref(false)
-const clearing = ref(false)
-const doClearAll = async () => {
-  clearing.value = true
-  try {
-    await new Promise((r) => setTimeout(r, 400))
-    userProfileStore.deleteAllMessages()
-    clearConfirmOpen.value = false
-    fb.success(t('user.clearMessagesDone'))
-  } finally {
-    clearing.value = false
-  }
+const doClearAll = () => {
+  userProfileStore.deleteAllMessages()
+  fb.success(t('user.clearMessagesDone'))
 }
 
-const deleteConfirmOpen = ref(false)
-const pendingDeleteId = ref('')
-const confirmDeleteMessage = (id: string) => {
-  pendingDeleteId.value = id
-  deleteConfirmOpen.value = true
-}
-const doDeleteMessage = () => {
-  if (pendingDeleteId.value) {
-    userProfileStore.deleteMessage(pendingDeleteId.value)
-    fb.success(t('user.messageDeleted'))
-  }
-  deleteConfirmOpen.value = false
-  pendingDeleteId.value = ''
+const doDeleteMessage = (id: string) => {
+  userProfileStore.deleteMessage(id)
+  fb.success(t('user.messageDeleted'))
 }
 </script>
 
 <style scoped lang="scss">
-.msg-page {
+.msg {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -228,8 +183,7 @@ const doDeleteMessage = () => {
   font-size: 0.75rem;
   color: var(--el-text-color-placeholder);
 }
-
-.msg-list-head {
+.msg-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -237,10 +191,10 @@ const doDeleteMessage = () => {
   width: 100%;
   flex-wrap: wrap;
 }
-.msg-list-head__actions {
+.msg-head__ops {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 .msg-seg {
   display: inline-flex;
@@ -283,7 +237,6 @@ const doDeleteMessage = () => {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-
 .msg-list {
   display: flex;
   flex-direction: column;
@@ -295,11 +248,9 @@ const doDeleteMessage = () => {
   padding: 0.75rem;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius);
-  transition: border-color 0.15s, background 0.15s;
 }
 .msg-item:hover {
   border-color: var(--el-border-color);
-  background: var(--el-fill-color-blank, transparent);
 }
 .msg-item__avatar {
   position: relative;
@@ -336,9 +287,8 @@ const doDeleteMessage = () => {
 .msg-item__ops {
   display: flex;
   align-items: center;
-  gap: 0.15rem;
-  opacity: 0.55;
-  transition: opacity 0.15s;
+  gap: 0.1rem;
+  opacity: 0.65;
 }
 .msg-item:hover .msg-item__ops {
   opacity: 1;
@@ -347,8 +297,8 @@ const doDeleteMessage = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -380,13 +330,6 @@ const doDeleteMessage = () => {
   color: var(--el-text-color-placeholder);
   font-variant-numeric: tabular-nums;
 }
-.confirm-text {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--el-text-color-regular);
-}
-
 @media (width < 640px) {
   .msg-item__ops {
     opacity: 1;

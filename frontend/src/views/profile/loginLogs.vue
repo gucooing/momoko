@@ -7,7 +7,6 @@
       </span>
     </div>
 
-    <!-- 桌面 -->
     <DataTable
       v-if="!menuStore.isMobile"
       :columns="columns"
@@ -27,13 +26,12 @@
           class="logs-detail-link"
           @click="openDetail(row as unknown as LoginLogItem)"
         >
-          {{ row.detail }}
+          {{ summarizeDetail(String(row.detail)) }}
         </button>
         <span v-else class="text-dim">—</span>
       </template>
     </DataTable>
 
-    <!-- 移动 -->
     <template v-else>
       <EmptyState
         v-if="!loginLogs.length"
@@ -48,7 +46,7 @@
           @click="openDetail(row)"
         >
           <template #title>
-            <span class="logs-ip">{{ row.ip || '-' }}</span>
+            <span class="logs-ip">{{ row.ip || '—' }}</span>
           </template>
           <template #status>
             <StatusPill
@@ -57,8 +55,8 @@
             />
           </template>
           <template #meta>
-            <span>{{ row.operationTime || '-' }}</span>
-            <span class="logs-ua" :title="row.userAgent">{{ row.userAgent || '-' }}</span>
+            <span>{{ row.operationTime || '—' }}</span>
+            <span class="logs-ua" :title="row.userAgent">{{ row.userAgent || '—' }}</span>
             <span v-if="row.detail" class="logs-hint">{{ t('user.detailHint') }}</span>
           </template>
         </EntityCard>
@@ -74,12 +72,7 @@
       @update:page-size="onPageSize"
     />
 
-    <FormDialog
-      v-model="detailVisible"
-      :title="t('user.loginDetail')"
-      :width="560"
-      @confirm="detailVisible = false"
-    >
+    <FormDialog v-model="detailVisible" :title="t('user.loginDetail')" :width="560">
       <template #footer="{ close }">
         <UButton color="primary" @click="close">{{ t('common.close') }}</UButton>
       </template>
@@ -101,8 +94,8 @@ const { loginLogs, loginLogsPagination } = storeToRefs(userProfileStore)
 const { t } = useI18n()
 
 const columns = computed(() => [
-  { key: 'ip', title: t('user.extra.ipAddress'), minWidth: 130 },
-  { key: 'userAgent', title: 'User Agent', minWidth: 240 },
+  { key: 'ip', title: t('user.extra.ipAddress'), minWidth: 120 },
+  { key: 'userAgent', title: 'User Agent', minWidth: 220 },
   { key: 'operationTime', title: t('user.operationTime'), width: 160 },
   { key: 'success', title: t('user.result'), width: 90 },
   { key: 'detail', title: t('user.detail'), minWidth: 160 },
@@ -112,10 +105,20 @@ const detailVisible = ref(false)
 const detailContent = ref('')
 const isDetailJson = ref(false)
 
+/** 列表策展：详情列只显示路径摘要，全量 JSON 进弹窗 */
+const summarizeDetail = (detail: string) => {
+  try {
+    const parsed = JSON.parse(detail) as { path?: string; operation?: string }
+    return parsed.path || parsed.operation || detail.slice(0, 48)
+  } catch {
+    return detail.length > 48 ? `${detail.slice(0, 46)}…` : detail
+  }
+}
+
 const openDetail = (row: LoginLogItem) => {
   const detail = row.detail
   if (!detail) {
-    detailContent.value = '-'
+    detailContent.value = '—'
     isDetailJson.value = false
     detailVisible.value = true
     return
@@ -202,7 +205,7 @@ onMounted(() => {
   background: var(--el-fill-color-light);
   border-radius: var(--app-radius);
   font-size: 0.8rem;
-  font-family: ui-monospace, 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Fira Code', monospace;
   line-height: 1.55;
   color: var(--el-text-color-primary);
   overflow-x: auto;

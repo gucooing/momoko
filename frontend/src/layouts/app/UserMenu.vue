@@ -117,7 +117,8 @@ const canCheckUpdate = computed(() => menuStore.hasButtonPermission('system:upda
 const currentVersion = computed(() => menuStore.currentVersion || 'dev')
 
 const goProfile = (close: () => void) => {
-  userProfileStore.currentTab = 'personalInfo'
+  // 资料在左栏常驻，进入页默认消息 Tab（06a）
+  userProfileStore.currentTab = 'messages'
   router.push('/profile')
   close()
 }

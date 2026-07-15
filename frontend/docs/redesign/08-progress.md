@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成：**系统管理 100%**、实例/Docker/Node/SSH/工具/文件、**登录/初始化/异常**、**个人中心 profile** 均已重写（多数已提交）。**P1 列表范式**已定稿；**P7 居中 hairline 卡**（登录/初始化）；**P2 profile**＝克制头部+令牌 Tab+AppPanel 分区（资料/权限树表/消息/设备/日志）。**密度铁律**：控件 32px、表行 ~43px、列表禁大号 MetricStrip。横切：`useFeedback()`；改密弹窗已换 `FormDialog`。旧栈 EP/VXE 迁移期共存（`SelectAvatarDialog` 仍 EP）。**下一步**：监控 `dashboard/monitor` / Sub2API / public/*；或 Phase 4 清 demo + 卸 EP。
+> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成。**个人中心已按 `06a` 真重写**：色条头 + **左资料常驻 / 右 Tabs(消息·权限·设备·日志)**，非五 Tab 平铺；设备 EntityCard+AdaptiveConfirm；移动编辑 FormDialog。横切 `useFeedback`；改密 FormDialog。`SelectAvatarDialog` 仍 EP。**下一步**：提交 profile 批次 → 监控 / Sub2API / public/*；或 Phase 4 清 demo + 卸 EP。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -94,7 +94,7 @@
 | 工作台 | dashboard/home | P4 | ✅ | ✅ | ✅ | 🟡 待用户确认方向 |
 | 分析页(待决) | dashboard/analysis | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 监控页 | dashboard/monitor | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 个人中心 | profile | P2 | ✅ | ✅ | ✅ | 🟡 克制头+Tab 五面板去 EP；UpdatePassword→FormDialog；桌面/移动/暗+详情弹窗验；未提交 |
+| 个人中心 | profile | P2 | ✅ | ✅ | ✅ | 🟡 **按 06a 真重写**：色条头 + 左资料常驻/右 Tabs(消息·权限·设备·日志)；设备 EntityCard+AdaptiveConfirm；移动编辑 FormDialog；vue-tsc/eslint+浏览器验；待提交 |
 
 ### 实例/基建(`06b`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -192,5 +192,6 @@
 | 2026-07-15 | **登录门面 `login` P7 重写（用户嫌半屏渐变难看 → 改居中卡）**：四文件去 EP——`index` 冷灰页底 + 居中 hairline 卡 + 角标(语言/主题配置/明暗)；`accountLogin/register/forgotPassword` 令牌 `.app-input` + 内联校验 + 密码眼睛内嵌 + `useFeedback` toast。**不做**半屏主色品牌区（空、廉价）。桌面 1440 / 移动 390 **均垂直居中**；暗色随 `themeStore`。登录 admin 链路 OK。i18n 补 slogan/copyright/toggleTheme/showPassword/hidePassword/passwordLabel（三语）。**未提交。** | 提交登录批次；下一页 `initialize` 或 个人中心/监控/Sub2API/public |
 | 2026-07-15 | **初始化向导 `initialize` P3 重写（对齐登录门面）**：单文件去 EP——冷灰页底 + 居中 hairline 卡 + 角标(语言/主题/明暗)；自建紧凑步骤条(完成√/当前主色)；`AppSelect` 库类型 + 令牌表单(远程库条件字段+密码眼睛) + 内联校验；确认摘要 DescriptionList 风 + 结果态(成功/失败/轮询旋转)；`useFeedback` toast；版权复用 `login.copyright`。业务契约保留(status/test/confirm + 重启轮询)。i18n 补 `pageTitle/pageDesc`(三语)。浏览器：mock 拦截 `code:200` 全链路(SQLite→管理员→确认→完成)、桌面/移动/暗色，vue-tsc+eslint 绿。**未提交。** | 提交 initialize；下一页 个人中心 `profile` / 异常 403·404 / public/share 或 Sub2API |
 | 2026-07-15 | **异常/工具页 P8**：`exception/403`/`404` 去掉 ~17KB 彩色插画 SVG，改为克制居中（大号码 + 标题 + 说明 + 回首页/上一页）；`redirect` 令牌页底 + logo 脉冲。i18n 补 forbiddenTitle/notFoundTitle/goHome/goBack（三语）。浏览器桌面/移动/暗色验，vue-tsc+eslint 绿。**已提交 `8f54c27`（与 initialize 同批）。** | 个人中心 `profile` |
-| 2026-07-15 | **个人中心 `profile` P2 全量重写**：去大 banner/EP 表/卡——克制头部(AppAvatar+名/角色/简介)+令牌 Tab 条(未读徽标)+五面板：资料(档案 DescriptionList+表单+改密入口+危险区)、权限(DataTable 树/移动卡+内联统计)、消息(假数据流+FormDialog 确认)、设备(DataTable/卡+下线确认)、日志(DataTable+Pagination+JSON 详情 FormDialog)。**`UpdatePassword`→FormDialog+内联校验+useFeedback**（侧栏菜单共用）。保留 `useUserProfileStore` 契约；`SelectAvatarDialog` 仍 EP 迁移期。浏览器：桌面各 Tab+改密弹窗+日志详情、移动 390 卡流、暗色；vue-tsc+eslint 绿。**未提交。** | 提交 profile；下一页 监控/Sub2API/public |
+| 2026-07-15 | **个人中心 `profile` 第一次换壳**（五 Tab 平铺，未对齐 06a）→ 用户点名返工。 | 按 06a 真重写 |
+| 2026-07-15 | **个人中心 `profile` 按 06a 真·从零**：①克制浅主色条头部+编辑资料/改密 ②**左栏常驻**档案 DescriptionList + 桌面内嵌编辑；**右栏 Tabs** 仅 消息→权限→设备→日志（`personalInfo` 移出 store tabs） ③设备 **EntityCard 网格** + AdaptiveConfirm 下线 ④消息/设备危险操作用 AdaptiveConfirm ⑤移动：头压缩、Tab 横滑、列表转卡、**编辑 FormDialog 近全屏** ⑥改密 FormDialog+内联校验；去掉未实现危险区注销。i18n 补 editProfile/logoutDevice/thisSession。浏览器：桌面双栏+设备卡+移动编辑弹窗；vue-tsc+eslint 绿。**待提交。** | 提交 profile；下一页 监控/Sub2API/public |
 | 2026-07-13 | **文件管理 `file/index` 真·从零重写 + 用户点名两条刚性标准**：全套文件组件除净老框架（EP-free）：`FileBrowser.vue`（外壳=来源 AppSelect/前进后退上级/面包屑/刷新 + 双栏 左树+右列表·网格 + 工具栏 UButton/AppDropdown更多/搜索/筛选/视图段 + 选择条 + 页脚 Pagination；全出血 `flex:1;min-height:0` 填满高度[修 278px 塌陷]；图标走 `menuStore.iconComponents['HOutline:*']`；删除确认=内联令牌 FormDialog）、`FileTree/FileTreeNode`（→ 可覆盖 `--ft-*` 局部变量+app 令牌兜底，heroicons）、`FilePromptDialog/FileMediaDialog/FileUploadDialog`（→ FormDialog+app 令牌+AppSelect）、**`FileEditor` 重写**（自包含 `--fe-*` 独立明暗主题[非旧 fm-*]、menuStore+本地保存 SVG、主题**分段**替代旧 FileMenu、`useFeedback`+Promise 门闸令牌确认）、`useFileUpload`（1 处 ElMessage→fb）。**新建 `src/utils/feedback.ts` = `useFeedback()` 封装 Nuxt UI `useToast`（全项目首个采用者，已浏览器实证渲染）**；`ElMessage`→`fb`、`showRequestError`→`fb.error(getRequestErrorMessage())`、`Dialog.confirm`→令牌 FormDialog。**删** orphaned `FileMenu.vue`；`icons.ts` 回退 HEAD（去 2 个没用的 view 图标）。**踩坑**：移动端表头 类型/时间 列 `.fb-thead .fb-col{display:flex}`(0,2,0) 盖过 `.fb-col--type{display:none}`(0,1,0)→ 表头列不隐藏挤压，改用 `.fb-thead .fb-col--type` 提特异性。**保留** `theme.css`(fm-*，薄荷)——仍服务未重写的 `FilePicker/FileViewerDialog/FileDialog/FilePager`(public/share 用，增量待迁)。**浏览器验证**：桌面浅/暗、网格、移动(tree 隐藏/单列/无横溢)、toast 渲染、全出血填高、新建文件夹 FormDialog；vue-tsc+eslint 绿。**未提交。** 记忆 [[rewritten-components-drop-all-legacy-framework]]。**浏览器 MCP 坑**：chrome-devtools 读默认 profile 的 DevToolsActivePort；用户 Chrome 无 debug 端口→ 另起隔离 debug Chrome `:9222`（`$TEMP\momoko-devtools-profile`）+ 把默认 profile 里陈旧 DevToolsActivePort 改指 9222。 | ①**用户重跑 Go 后端**以吃到 `pkg/file.Create` 吞错修复 ②提交本批文件管理重写 ③Monaco 自动化键入未通（保存 dirty 态未 E2E 到，手工点一下即可）④Docker 复查修复（容器网络列无界/Stats echarts 暗色/硬编码「连接」/engine-down 空态）⑤剩余页面 |

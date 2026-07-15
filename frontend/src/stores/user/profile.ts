@@ -18,12 +18,12 @@ const COLUMN_WIDTH_MIN = 150
 const COLUMN_WIDTH_MAX = 420
 const fixedColumns = new Set(['device', 'ip', 'loginTime', 'updateTime', 'sessionId', 'deviceId'])
 
+/** 右栏 Tabs 顺序对齐 06a：消息 → 权限 → 设备 → 日志（资料在左栏，不进 Tab） */
 const createMenuTabs = (): ProfileTabsMenuItem[] => [
-  { key: 'personalInfo', labelKey: 'user.tabs.personalInfo', icon: 'HOutline:UserIcon' },
-  { key: 'permissions', labelKey: 'user.tabs.permissions', icon: 'HOutline:ShieldCheckIcon' },
   { key: 'messages', labelKey: 'user.tabs.messages', icon: 'HOutline:BellAlertIcon' },
-  { key: 'logs', labelKey: 'user.tabs.logs', icon: 'HOutline:ClockIcon' },
+  { key: 'permissions', labelKey: 'user.tabs.permissions', icon: 'HOutline:ShieldCheckIcon' },
   { key: 'devices', labelKey: 'user.tabs.devices', icon: 'HOutline:DevicePhoneMobileIcon' },
+  { key: 'logs', labelKey: 'user.tabs.logs', icon: 'HOutline:ClockIcon' },
 ]
 
 const createDefaultMessages = (): UserMessageItem[] => [
@@ -102,7 +102,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   })
   const addressLoaded = ref(false)
 
-  const currentTab = ref<ProfileCurrentTab>('personalInfo')
+  const currentTab = ref<ProfileCurrentTab>('messages')
   const menuTabs = computed<ProfileTabsMenuItem[]>(createMenuTabs)
 
   const userMessages = ref<UserMessageItem[]>(createDefaultMessages())
@@ -408,7 +408,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
       city: '',
     }
     addressLoaded.value = false
-    currentTab.value = 'personalInfo'
+    currentTab.value = 'messages'
     activeMessageTab.value = 'all'
     messageDraft.value = ''
     userMessages.value = createDefaultMessages()

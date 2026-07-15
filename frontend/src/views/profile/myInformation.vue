@@ -1,32 +1,21 @@
-<!-- 我的资料：左档案摘要 + 右编辑表单 -->
+<!-- 兼容壳：资料已拆到左栏 ArchivesPanel + PersonalInfoPanel（06a）。
+     保留文件以免旧 import 断裂；不再作为独立 Tab 使用。 -->
 <template>
-  <div class="info-layout">
-    <ArchivesPanel class="info-layout__side" />
-    <PersonalInfoPanel ref="formRef" class="info-layout__main" />
+  <div class="info-compat">
+    <ArchivesPanel />
+    <PersonalInfoPanel />
   </div>
 </template>
 
 <script setup lang="ts">
 import ArchivesPanel from '@/views/profile/archivesPanel.vue'
 import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
-
-const formRef = ref<{ save: () => void } | null>(null)
-
-defineExpose({
-  save: () => formRef.value?.save(),
-})
 </script>
 
 <style scoped lang="scss">
-.info-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+.info-compat {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-}
-@media (width >= 1024px) {
-  .info-layout {
-    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-    align-items: start;
-  }
 }
 </style>

@@ -1,15 +1,19 @@
-<!-- 个人资料中心：令牌表单 + 改密入口 + 危险区提示（注销未实现） -->
+<!-- 资料编辑：桌面嵌左栏；移动由父级 FormDialog 全屏承载（embedded）。
+     不含危险区「注销账户」（06a 未要求，且功能未实现）。 -->
 <template>
-  <AppPanel :title="t('user.profileCenter')" title-icon="HOutline:UserIcon">
-    <template #actions>
-      <UButton color="primary" size="sm" icon="i-lucide-save" :loading="saving" @click="save">
+  <AppPanel
+    :title="embedded ? undefined : t('user.profileCenter')"
+    :title-icon="embedded ? undefined : 'HOutline:UserIcon'"
+    :class="{ 'pi-panel--embedded': embedded }"
+  >
+    <template v-if="!embedded" #actions>
+      <UButton color="primary" size="sm" icon="i-lucide-save" :loading="saving" @click="requestSave">
         {{ t('user.saveAllChanges') }}
       </UButton>
     </template>
 
-    <!-- 头像 -->
     <div class="avatar-block">
-      <AppAvatar :src="previewAvatar" :name="profileForm.name || profileForm.username" :size="72" />
+      <AppAvatar :src="previewAvatar" :name="profileForm.name || profileForm.username" :size="64" />
       <div class="avatar-block__meta">
         <div class="avatar-block__title">{{ t('user.avatarTitle') }}</div>
         <p class="avatar-block__desc">{{ t('user.avatarDescription') }}</p>
@@ -21,8 +25,7 @@
 
     <div class="form-divider" />
 
-    <!-- 字段 -->
-    <div class="form-grid">
+    <div class="form-stack">
       <div class="app-field">
         <label class="app-label" for="pf-username">{{ t('user.username') }}</label>
         <input
@@ -43,7 +46,7 @@
           autocomplete="name"
         />
       </div>
-      <div class="app-field form-grid__full">
+      <div class="app-field">
         <label class="app-label" for="pf-email">{{ t('user.email') }}</label>
         <input
           id="pf-email"
@@ -54,7 +57,7 @@
           autocomplete="email"
         />
       </div>
-      <div class="app-field form-grid__full">
+      <div class="app-field">
         <label class="app-label" for="pf-bio">{{ t('user.bioLabel') }}</label>
         <textarea
           id="pf-bio"
@@ -64,7 +67,7 @@
           :placeholder="t('user.bioPlaceholder')"
         />
       </div>
-      <div class="app-field form-grid__full">
+      <div class="app-field">
         <label class="app-label" for="pf-tags">{{ t('user.tagsLabel') }}</label>
         <textarea
           id="pf-tags"
@@ -78,7 +81,6 @@
 
     <div class="form-divider" />
 
-    <!-- 改密 -->
     <div class="action-row">
       <div class="action-row__icon">
         <component :is="menuStore.iconComponents['HOutline:KeyIcon']" />
@@ -92,24 +94,15 @@
       </UButton>
     </div>
 
-    <div class="form-divider" />
-
-    <!-- 危险区 -->
-    <div class="danger-row">
-      <div class="danger-row__body">
-        <div class="danger-row__title">{{ t('user.dangerZone') }}</div>
-        <div class="danger-row__sub">{{ t('user.deleteAccount') }}</div>
-        <div class="danger-row__desc">{{ t('user.deleteAccountDescription') }}</div>
-      </div>
-      <UButton color="error" variant="soft" size="sm" @click="deleteUser">
-        {{ t('user.deleteNow') }}
+    <div v-if="embedded" class="pi-embedded-foot">
+      <UButton color="primary" block :loading="saving" icon="i-lucide-save" @click="requestSave">
+        {{ t('user.saveAllChanges') }}
       </UButton>
     </div>
 
     <SelectAvatarDialog ref="selectAvatarDialogRef" @get-avatar="userProfileStore.setProfileAvatar" />
     <UpdatePassword ref="updatePasswordRef" />
 
-    <!-- 保存确认 -->
     <FormDialog
       v-model="saveConfirmOpen"
       :title="t('user.saveProfileTitle')"
@@ -134,6 +127,15 @@ import UpdatePassword from '@/components/dialog/UpdatePassword.vue'
 import SelectAvatarDialog from '@/components/dialog/SelectAvatarDialog.vue'
 import { useI18n } from 'vue-i18n'
 
+const props = withDefaults(
+  defineProps<{
+    /** 嵌在 FormDialog 内时隐藏面板外壳动作、显示底栏保存 */
+    embedded?: boolean
+  }>(),
+  { embedded: false },
+)
+const emit = defineEmits<{ saved: [] }>()
+
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
@@ -147,7 +149,7 @@ const updatePasswordRef = useTemplateRef('updatePasswordRef')
 const saving = ref(false)
 const saveConfirmOpen = ref(false)
 
-const save = () => {
+const requestSave = () => {
   saveConfirmOpen.value = true
 }
 
@@ -156,15 +158,12 @@ const doSave = async () => {
   try {
     await userStore.updateUserProfile(profileForm.value)
     saveConfirmOpen.value = false
+    emit('saved')
   } catch (error) {
     fb.error(getRequestErrorMessage(error, t('user.profileUpdateFailed')))
   } finally {
     saving.value = false
   }
-}
-
-const deleteUser = () => {
-  fb.info(t('user.deleteAccountNotImplemented'))
 }
 
 watch(
@@ -175,20 +174,24 @@ watch(
   { immediate: true },
 )
 
-defineExpose({ save })
+defineExpose({ save: requestSave })
+void props
 </script>
 
 <style scoped lang="scss">
+.pi-panel--embedded :deep(.app-panel__head) {
+  display: none;
+}
 .avatar-block {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .avatar-block__meta {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 .avatar-block__title {
   font-size: 0.875rem;
@@ -196,45 +199,33 @@ defineExpose({ save })
   color: var(--el-text-color-primary);
 }
 .avatar-block__desc {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.25rem;
   font-size: 0.75rem;
   line-height: 1.45;
   color: var(--el-text-color-secondary);
 }
-
 .form-divider {
   height: 1px;
-  margin: 1rem 0;
+  margin: 0.9rem 0;
   background: var(--el-border-color-lighter);
 }
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem 1rem;
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
-@media (width >= 640px) {
-  .form-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .form-grid__full {
-    grid-column: 1 / -1;
-  }
-}
-
 .action-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
+  gap: 0.65rem;
+  padding: 0.6rem 0.7rem;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius);
-  background: var(--el-fill-color-blank, var(--el-bg-color));
 }
 .action-row__icon {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,8 +233,8 @@ defineExpose({ save })
   background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
   color: var(--el-color-primary);
   :deep(svg) {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 .action-row__body {
@@ -256,54 +247,25 @@ defineExpose({ save })
   color: var(--el-text-color-primary);
 }
 .action-row__desc {
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   line-height: 1.4;
 }
-
-.danger-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px dashed color-mix(in srgb, var(--el-color-danger) 35%, var(--el-border-color));
-  border-radius: var(--app-radius);
-  background: color-mix(in srgb, var(--el-color-danger) 5%, transparent);
+.pi-embedded-foot {
+  margin-top: 1rem;
 }
-.danger-row__title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--el-color-danger);
-  margin-bottom: 0.2rem;
-}
-.danger-row__sub {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-.danger-row__desc {
-  margin-top: 0.15rem;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-  line-height: 1.4;
-}
-
 .confirm-text {
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--el-text-color-regular);
 }
-
 @media (width < 480px) {
-  .action-row,
-  .danger-row {
+  .action-row {
     flex-wrap: wrap;
   }
-  .action-row > :last-child,
-  .danger-row > :last-child {
+  .action-row > :last-child {
     width: 100%;
   }
 }

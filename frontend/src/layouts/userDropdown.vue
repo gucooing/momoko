@@ -131,7 +131,7 @@ const showLogoutConfirm = () => {
 const handleCommand = (command: string) => {
   switch (command) {
     case 'profile':
-      userProfileStore.currentTab = 'personalInfo'
+      userProfileStore.currentTab = 'messages'
       router.push('/profile')
       break
     case 'docs':

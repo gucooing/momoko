@@ -1,80 +1,125 @@
-<!-- 个人中心（重写 · P2 选项卡）：克制头部（头像+名/角色/简介+操作）+ 令牌 Tab 条 + 各 Tab 面板。
-     保留 useUserProfileStore 契约与业务流；去 EP 大 banner / BaseCard / BadgeTabsMenu（06a）。 -->
+<!-- 个人中心 · 真·从零（06a P2 选项卡式）
+     结构：克制色条头部 → 桌面 左资料常驻 | 右 Tabs(消息/权限/设备/日志)；移动 头压缩 + Tab 横滑 + 编辑 FormDialog。
+     保留 useUserProfileStore 数据流；资料不在 Tab 内。 -->
 <template>
-  <div class="profile-page">
-    <!-- 头部：安静，非花哨渐变大图 -->
+  <div class="profile">
+    <!-- ① 克制头部：低饱和主色浅条 + 头像/名/角色/简介 + 关键操作 -->
     <header class="profile-hero">
-      <div class="profile-hero__main">
-        <AppAvatar
-          :src="userStore.resolvedUserAvatar"
-          :name="displayName"
-          :size="menuStore.isMobile ? 64 : 80"
-          online
-        />
-        <div class="profile-hero__meta">
-          <div class="profile-hero__name-row">
-            <h1 class="profile-hero__name" :title="displayName">{{ displayName }}</h1>
-            <StatusPill variant="primary" :dot="false" :label="roleLabel" />
-          </div>
-          <p class="profile-hero__bio">{{ bioText }}</p>
-          <div v-if="locationText" class="profile-hero__loc">
-            <component :is="menuStore.iconComponents['HOutline:MapPinIcon']" class="profile-hero__loc-icon" />
-            <span>{{ locationText }}</span>
+      <div class="profile-hero__wash" aria-hidden="true" />
+      <div class="profile-hero__inner">
+        <div class="profile-hero__identity">
+          <AppAvatar
+            :src="userStore.resolvedUserAvatar"
+            :name="displayName"
+            :size="isCompact ? 56 : 72"
+            online
+          />
+          <div class="profile-hero__text">
+            <div class="profile-hero__title-row">
+              <h1 class="profile-hero__name" :title="displayName">{{ displayName }}</h1>
+              <StatusPill variant="primary" :dot="false" :label="roleLabel" />
+            </div>
+            <p class="profile-hero__bio">{{ bioText }}</p>
+            <div v-if="locationText" class="profile-hero__loc">
+              <component
+                :is="menuStore.iconComponents['HOutline:MapPinIcon']"
+                class="profile-hero__loc-icon"
+              />
+              <span>{{ locationText }}</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="profile-hero__actions">
-        <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-key-round" @click="openPassword">
-          {{ t('user.passwordCardTitle') }}
-        </UButton>
-        <UButton
-          v-if="userProfileStore.currentTab === 'personalInfo'"
-          color="primary"
-          size="sm"
-          icon="i-lucide-save"
-          @click="saveFromHeader"
-        >
-          {{ t('user.saveAllChanges') }}
-        </UButton>
+        <div class="profile-hero__actions">
+          <UButton
+            color="neutral"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-pencil"
+            @click="openEdit"
+          >
+            {{ t('user.editProfile') }}
+          </UButton>
+          <UButton
+            color="primary"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-key-round"
+            @click="openPassword"
+          >
+            {{ t('user.passwordCardTitle') }}
+          </UButton>
+        </div>
       </div>
     </header>
 
-    <!-- Tab 条 -->
-    <div class="profile-tabs" role="tablist">
-      <button
-        v-for="tab in userProfileStore.menuTabs"
-        :key="tab.key"
-        type="button"
-        role="tab"
-        class="profile-tabs__btn"
-        :class="{ 'is-active': userProfileStore.currentTab === tab.key }"
-        :aria-selected="userProfileStore.currentTab === tab.key"
-        @click="userProfileStore.currentTab = tab.key as ProfileCurrentTab"
-      >
-        <component
-          :is="menuStore.iconComponents[tab.icon as string]"
-          v-if="tab.icon && typeof tab.icon === 'string'"
-          class="profile-tabs__icon"
-        />
-        <span class="profile-tabs__label">{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</span>
-        <span
-          v-if="tab.key === 'messages' && userProfileStore.unreadCount"
-          class="profile-tabs__badge"
-        >
-          {{ userProfileStore.unreadCount }}
-        </span>
-      </button>
+    <!-- ② 主体：左资料 | 右 Tabs -->
+    <div class="profile-layout">
+      <!-- 左栏：只读档案（桌面常驻；移动在资料区上方） -->
+      <aside class="profile-side">
+        <ArchivesPanel />
+        <!-- 桌面：内嵌编辑表单；移动：只显示入口，编辑走全屏 FormDialog -->
+        <div v-if="!isCompact" class="profile-side__edit">
+          <PersonalInfoPanel />
+        </div>
+        <div v-else class="profile-side__mobile-edit">
+          <UButton
+            block
+            color="primary"
+            variant="soft"
+            icon="i-lucide-pencil"
+            @click="editOpen = true"
+          >
+            {{ t('user.editProfile') }}
+          </UButton>
+        </div>
+      </aside>
+
+      <section class="profile-main">
+        <div class="profile-tabs" role="tablist">
+          <button
+            v-for="tab in userProfileStore.menuTabs"
+            :key="tab.key"
+            type="button"
+            role="tab"
+            class="profile-tabs__btn"
+            :class="{ 'is-active': userProfileStore.currentTab === tab.key }"
+            :aria-selected="userProfileStore.currentTab === tab.key"
+            @click="userProfileStore.currentTab = tab.key as ProfileCurrentTab"
+          >
+            <component
+              :is="menuStore.iconComponents[tab.icon as string]"
+              v-if="tab.icon && typeof tab.icon === 'string'"
+              class="profile-tabs__icon"
+            />
+            <span>{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</span>
+            <span
+              v-if="tab.key === 'messages' && userProfileStore.unreadCount"
+              class="profile-tabs__badge"
+            >
+              {{ userProfileStore.unreadCount }}
+            </span>
+          </button>
+        </div>
+
+        <div class="profile-main__body">
+          <MyMessages v-if="userProfileStore.currentTab === 'messages'" />
+          <MyPermission v-else-if="userProfileStore.currentTab === 'permissions'" />
+          <LoginDevices v-else-if="userProfileStore.currentTab === 'devices'" />
+          <LoginLogs v-else-if="userProfileStore.currentTab === 'logs'" />
+          <MyMessages v-else />
+        </div>
+      </section>
     </div>
 
-    <!-- Tab 内容 -->
-    <div class="profile-body">
-      <MyInformation v-if="userProfileStore.currentTab === 'personalInfo'" ref="infoRef" />
-      <MyPermission v-else-if="userProfileStore.currentTab === 'permissions'" />
-      <MyMessages v-else-if="userProfileStore.currentTab === 'messages'" />
-      <LoginLogs v-else-if="userProfileStore.currentTab === 'logs'" />
-      <LoginDevices v-else-if="userProfileStore.currentTab === 'devices'" />
-      <MyInformation v-else ref="infoRef" />
-    </div>
+    <!-- 移动：全屏资料编辑 -->
+    <FormDialog
+      v-model="editOpen"
+      :title="t('user.profileCenter')"
+      :width="560"
+      :show-footer="false"
+    >
+      <PersonalInfoPanel embedded @saved="editOpen = false" />
+    </FormDialog>
 
     <UpdatePassword ref="updatePasswordRef" />
   </div>
@@ -83,7 +128,8 @@
 <script setup lang="ts">
 import { useUserProfileStore } from '@/stores/user/profile'
 import type { ProfileCurrentTab } from '@/stores/user/types'
-import MyInformation from '@/views/profile/myInformation.vue'
+import ArchivesPanel from '@/views/profile/archivesPanel.vue'
+import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
 import MyPermission from '@/views/profile/myPermission.vue'
 import MyMessages from '@/views/profile/myMessages.vue'
 import LoginLogs from '@/views/profile/loginLogs.vue'
@@ -98,8 +144,11 @@ const userStore = useUserStore()
 const menuStore = useMenuStore()
 const userProfileStore = useUserProfileStore()
 
+/** 与 02 一致：结构级切换用 isMobile（项目现阈值 ~992，等同紧凑态） */
+const isCompact = computed(() => menuStore.isMobile)
+
 const updatePasswordRef = ref<{ showDialog: () => void }>()
-const infoRef = ref<{ save: () => void } | null>(null)
+const editOpen = ref(false)
 
 const displayName = computed(
   () => userStore.userInfo?.name || userStore.userInfo?.username || t('user.messages.unknownUser'),
@@ -111,48 +160,87 @@ const bioText = computed(() => {
 })
 const locationText = computed(() => {
   const { country, region, city } = userProfileStore.address
-  const parts = [country, region, city].filter(Boolean)
-  return parts.join(' · ')
+  return [country, region, city].filter(Boolean).join(' · ')
 })
 
 const openPassword = () => updatePasswordRef.value?.showDialog()
-const saveFromHeader = () => infoRef.value?.save()
+const openEdit = () => {
+  if (isCompact.value) {
+    editOpen.value = true
+    return
+  }
+  // 桌面：滚到左栏编辑区
+  document.querySelector('.profile-side__edit')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 onMounted(() => {
   void userProfileStore.ensureAddress()
+  // 旧会话可能仍是 personalInfo
+  if (!(userProfileStore.menuTabs as { key: string }[]).some((t) => t.key === userProfileStore.currentTab)) {
+    userProfileStore.currentTab = 'messages'
+  }
 })
 </script>
 
 <style scoped lang="scss">
-.profile-page {
+.profile {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 1100px;
+  gap: 16px;
+  max-width: 1200px;
 }
 
+/* —— 头部：克制浅主色条（01：唯一允许主色面积处，仍矮、淡）—— */
 .profile-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+}
+.profile-hero__wash {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 88px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--el-color-primary) 18%, transparent) 0%,
+    color-mix(in srgb, var(--el-color-primary) 6%, transparent) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+html.dark .profile-hero__wash {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--el-color-primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--el-color-primary) 8%, transparent) 50%,
+    transparent 100%
+  );
+}
+.profile-hero__inner {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  padding: 4px 0 2px;
   flex-wrap: wrap;
+  padding: 20px 20px 18px;
 }
-.profile-hero__main {
+.profile-hero__identity {
   display: flex;
   align-items: center;
   gap: 1rem;
   min-width: 0;
   flex: 1;
 }
-.profile-hero__meta {
+.profile-hero__text {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
-.profile-hero__name-row {
+.profile-hero__title-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -168,7 +256,7 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: min(100%, 20rem);
+  max-width: min(100%, 18rem);
 }
 .profile-hero__bio {
   margin: 0;
@@ -197,6 +285,35 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+/* —— 双栏布局 —— */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (width >= 1024px) {
+  .profile-layout {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  }
+}
+.profile-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.profile-side__mobile-edit {
+  /* 移动：档案下的编辑入口 */
+}
+
+.profile-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .profile-tabs {
@@ -259,23 +376,23 @@ onMounted(() => {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-
-.profile-body {
+.profile-main__body {
   min-width: 0;
 }
 
 @media (width < 640px) {
-  .profile-hero__main {
+  .profile-hero__inner {
     align-items: flex-start;
+    padding: 16px;
+  }
+  .profile-hero__wash {
+    height: 72px;
   }
   .profile-hero__actions {
     width: 100%;
   }
   .profile-hero__actions :deep(button) {
     flex: 1;
-  }
-  .profile-tabs__label {
-    /* 移动保留文字（比仅图标更清晰）；窄屏可横滑 */
   }
 }
 </style>

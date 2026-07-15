@@ -1,4 +1,4 @@
-<!-- 我的权限：只读树表 / 移动缩进卡；统计用内联数字 -->
+<!-- 我的权限：角色 + 菜单/按钮权限分组只读（桌面树表 / 移动缩进卡） -->
 <template>
   <AppPanel :title="t('user.permissionTitle')" title-icon="HOutline:ShieldCheckIcon">
     <template #actions>
@@ -20,7 +20,6 @@
       <span>{{ t('user.permissionDescription') }}</span>
     </p>
 
-    <!-- 桌面：树表 -->
     <DataTable
       v-if="!menuStore.isMobile"
       :columns="columns"
@@ -48,7 +47,6 @@
       </template>
     </DataTable>
 
-    <!-- 移动：缩进卡 -->
     <template v-else>
       <EmptyState
         v-if="!flatList.length"
@@ -59,7 +57,6 @@
         <EntityCard
           v-for="row in flatList"
           :key="row.id"
-          class="perm-card"
           :style="{ marginInlineStart: `${row._depth * 14}px` }"
         >
           <template #title>
@@ -196,6 +193,5 @@ const flatList = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 </style>
