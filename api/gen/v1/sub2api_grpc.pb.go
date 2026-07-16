@@ -40,6 +40,8 @@ const (
 	Sub2APIManager_UpdateLotterySettings_FullMethodName     = "/v1.Sub2APIManager/UpdateLotterySettings"
 	Sub2APIManager_ListLotteryRounds_FullMethodName         = "/v1.Sub2APIManager/ListLotteryRounds"
 	Sub2APIManager_GetLotteryRoundDetail_FullMethodName     = "/v1.Sub2APIManager/GetLotteryRoundDetail"
+	Sub2APIManager_ListLotteryRegistrants_FullMethodName    = "/v1.Sub2APIManager/ListLotteryRegistrants"
+	Sub2APIManager_GetSub2APIUser_FullMethodName            = "/v1.Sub2APIManager/GetSub2APIUser"
 	Sub2APIManager_DistributeLotteryRound_FullMethodName    = "/v1.Sub2APIManager/DistributeLotteryRound"
 	Sub2APIManager_TriggerLotterySettle_FullMethodName      = "/v1.Sub2APIManager/TriggerLotterySettle"
 	Sub2APIManager_TriggerLotteryDraw_FullMethodName        = "/v1.Sub2APIManager/TriggerLotteryDraw"
@@ -91,6 +93,10 @@ type Sub2APIManagerClient interface {
 	ListLotteryRounds(ctx context.Context, in *ListLotteryRoundsRequest, opts ...grpc.CallOption) (*ListLotteryRoundsResponse, error)
 	// 某轮次详情（含中奖名单）
 	GetLotteryRoundDetail(ctx context.Context, in *GetLotteryRoundDetailRequest, opts ...grpc.CallOption) (*GetLotteryRoundDetailResponse, error)
+	// 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+	ListLotteryRegistrants(ctx context.Context, in *ListLotteryRegistrantsRequest, opts ...grpc.CallOption) (*ListLotteryRegistrantsResponse, error)
+	// 单个 Sub2API 用户详情（点击报名者时实时拉取）
+	GetSub2APIUser(ctx context.Context, in *GetSub2APIUserRequest, opts ...grpc.CallOption) (*GetSub2APIUserResponse, error)
 	// 手动发放某轮次奖金（autoPayout 关或重试失败时）
 	DistributeLotteryRound(ctx context.Context, in *DistributeLotteryRoundRequest, opts ...grpc.CallOption) (*DistributeLotteryRoundResponse, error)
 	// 手动立即结算（测试/补偿）
@@ -324,6 +330,26 @@ func (c *sub2APIManagerClient) GetLotteryRoundDetail(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *sub2APIManagerClient) ListLotteryRegistrants(ctx context.Context, in *ListLotteryRegistrantsRequest, opts ...grpc.CallOption) (*ListLotteryRegistrantsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLotteryRegistrantsResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_ListLotteryRegistrants_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sub2APIManagerClient) GetSub2APIUser(ctx context.Context, in *GetSub2APIUserRequest, opts ...grpc.CallOption) (*GetSub2APIUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSub2APIUserResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_GetSub2APIUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *sub2APIManagerClient) DistributeLotteryRound(ctx context.Context, in *DistributeLotteryRoundRequest, opts ...grpc.CallOption) (*DistributeLotteryRoundResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DistributeLotteryRoundResponse)
@@ -427,6 +453,10 @@ type Sub2APIManagerServer interface {
 	ListLotteryRounds(context.Context, *ListLotteryRoundsRequest) (*ListLotteryRoundsResponse, error)
 	// 某轮次详情（含中奖名单）
 	GetLotteryRoundDetail(context.Context, *GetLotteryRoundDetailRequest) (*GetLotteryRoundDetailResponse, error)
+	// 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+	ListLotteryRegistrants(context.Context, *ListLotteryRegistrantsRequest) (*ListLotteryRegistrantsResponse, error)
+	// 单个 Sub2API 用户详情（点击报名者时实时拉取）
+	GetSub2APIUser(context.Context, *GetSub2APIUserRequest) (*GetSub2APIUserResponse, error)
 	// 手动发放某轮次奖金（autoPayout 关或重试失败时）
 	DistributeLotteryRound(context.Context, *DistributeLotteryRoundRequest) (*DistributeLotteryRoundResponse, error)
 	// 手动立即结算（测试/补偿）
@@ -512,6 +542,12 @@ func (UnimplementedSub2APIManagerServer) ListLotteryRounds(context.Context, *Lis
 }
 func (UnimplementedSub2APIManagerServer) GetLotteryRoundDetail(context.Context, *GetLotteryRoundDetailRequest) (*GetLotteryRoundDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLotteryRoundDetail not implemented")
+}
+func (UnimplementedSub2APIManagerServer) ListLotteryRegistrants(context.Context, *ListLotteryRegistrantsRequest) (*ListLotteryRegistrantsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLotteryRegistrants not implemented")
+}
+func (UnimplementedSub2APIManagerServer) GetSub2APIUser(context.Context, *GetSub2APIUserRequest) (*GetSub2APIUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSub2APIUser not implemented")
 }
 func (UnimplementedSub2APIManagerServer) DistributeLotteryRound(context.Context, *DistributeLotteryRoundRequest) (*DistributeLotteryRoundResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DistributeLotteryRound not implemented")
@@ -930,6 +966,42 @@ func _Sub2APIManager_GetLotteryRoundDetail_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Sub2APIManager_ListLotteryRegistrants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLotteryRegistrantsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).ListLotteryRegistrants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_ListLotteryRegistrants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).ListLotteryRegistrants(ctx, req.(*ListLotteryRegistrantsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sub2APIManager_GetSub2APIUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSub2APIUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).GetSub2APIUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_GetSub2APIUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).GetSub2APIUser(ctx, req.(*GetSub2APIUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Sub2APIManager_DistributeLotteryRound_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DistributeLotteryRoundRequest)
 	if err := dec(in); err != nil {
@@ -1128,6 +1200,14 @@ var Sub2APIManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLotteryRoundDetail",
 			Handler:    _Sub2APIManager_GetLotteryRoundDetail_Handler,
+		},
+		{
+			MethodName: "ListLotteryRegistrants",
+			Handler:    _Sub2APIManager_ListLotteryRegistrants_Handler,
+		},
+		{
+			MethodName: "GetSub2APIUser",
+			Handler:    _Sub2APIManager_GetSub2APIUser_Handler,
 		},
 		{
 			MethodName: "DistributeLotteryRound",

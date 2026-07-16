@@ -59,6 +59,25 @@ func (s *Sub2APIService) GetLotteryRoundDetail(ctx context.Context, req *v1.GetL
 	return &v1.GetLotteryRoundDetailResponse{Round: round, Winners: winners}, nil
 }
 
+func (s *Sub2APIService) ListLotteryRegistrants(ctx context.Context, req *v1.ListLotteryRegistrantsRequest) (*v1.ListLotteryRegistrantsResponse, error) {
+	regs, err := s.uc.LotteryRoundRegistrants(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListLotteryRegistrantsResponse{
+		Registrants: regs,
+		Total:       int32(len(regs)),
+	}, nil
+}
+
+func (s *Sub2APIService) GetSub2APIUser(ctx context.Context, req *v1.GetSub2APIUserRequest) (*v1.GetSub2APIUserResponse, error) {
+	user, err := s.uc.GetSub2APIUserInfo(ctx, req.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSub2APIUserResponse{User: user}, nil
+}
+
 func (s *Sub2APIService) DistributeLotteryRound(ctx context.Context, req *v1.DistributeLotteryRoundRequest) (*v1.DistributeLotteryRoundResponse, error) {
 	round, err := s.uc.DistributeLotteryRound(ctx, req.GetId())
 	if err != nil {

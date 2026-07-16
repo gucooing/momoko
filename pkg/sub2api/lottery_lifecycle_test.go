@@ -16,6 +16,7 @@ type memLotteryStore struct {
 	round      map[string]*LotteryRound
 	parts      map[string][]*LotteryParticipant
 	spendByDay map[string]float64
+	userSpend  float64 // UserSpendInRange 的返回值（本人区间扣费）
 }
 
 func newMemStore() *memLotteryStore {
@@ -50,7 +51,9 @@ func (m *memLotteryStore) CountEligibleUsersInRange(context.Context, time.Time, 
 	return 0, nil
 }
 func (m *memLotteryStore) UserSpendInRange(context.Context, int64, time.Time, time.Time) (float64, error) {
-	return 0, nil
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.userSpend, nil
 }
 func (m *memLotteryStore) GetLotteryRound(_ context.Context, id string) (*LotteryRound, error) {
 	m.mu.Lock()
@@ -314,6 +317,60 @@ func TestHistory_DrawnOnly(t *testing.T) {
 	}
 	if total != 1 || len(list) != 1 || list[0].ID != "2026-07-14" {
 		t.Fatalf("history=%+v total=%d", list, total)
+	}
+}
+
+// 用户端状态：当期累计（今日）字段——期号取次日、达标按门槛判定、实时按用户聚合。
+func TestUserStatus_AccumFields(t *testing.T) {
+	setClock(t, cst(2026, 7, 16, 9, 0)) // 报名窗内，当期累计=7/16
+	store := newMemStore()
+	store.spendByDay["2026-07-16"] = 40 // 今日组扣费 → accumPool = 0.05*40
+	store.userSpend = 3                 // 本人今日扣费 3 ≥ 门槛 2 → 达标
+	svc := NewLotteryService(store, newEnabledConfig(), nil)
+	settings, err := LoadLotterySettings(context.Background(), svc.config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := svc.userStatus(context.Background(), settings, 42, "alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.AccumRoundDate != "2026-07-17" { // 当期累计对应次日轮次
+		t.Fatalf("accumRoundDate=%q want 2026-07-17", st.AccumRoundDate)
+	}
+	if st.Threshold != 2 {
+		t.Fatalf("threshold=%v want 2", st.Threshold)
+	}
+	if st.AccumUserSpend != 3 {
+		t.Fatalf("accumUserSpend=%v want 3", st.AccumUserSpend)
+	}
+	if !st.AccumEligible {
+		t.Fatal("accumEligible want true (3 ≥ 2)")
+	}
+
+	// 未达门槛 → 未达标（同一 svc 复用，验证按用户实时聚合、非缓存快照）
+	store.mu.Lock()
+	store.userSpend = 1
+	store.mu.Unlock()
+	st2, err := svc.userStatus(context.Background(), settings, 42, "alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st2.AccumEligible {
+		t.Fatal("accumEligible want false (1 < 2)")
+	}
+
+	// 未鉴权（userID=0）：不做本人聚合，但门槛/期号仍给出
+	st3, err := svc.userStatus(context.Background(), settings, 0, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st3.AccumEligible || st3.AccumUserSpend != 0 {
+		t.Fatalf("未鉴权不应达标, got eligible=%v spend=%v", st3.AccumEligible, st3.AccumUserSpend)
+	}
+	if st3.Threshold != 2 || st3.AccumRoundDate != "2026-07-17" {
+		t.Fatalf("未鉴权仍应给门槛/期号, got threshold=%v date=%q", st3.Threshold, st3.AccumRoundDate)
 	}
 }
 

@@ -32,7 +32,9 @@ const OperationSub2APIManagerGetSub2APIConfig = "/v1.Sub2APIManager/GetSub2APICo
 const OperationSub2APIManagerGetSub2APIRecentRequests = "/v1.Sub2APIManager/GetSub2APIRecentRequests"
 const OperationSub2APIManagerGetSub2APISnapshot = "/v1.Sub2APIManager/GetSub2APISnapshot"
 const OperationSub2APIManagerGetSub2APIStats = "/v1.Sub2APIManager/GetSub2APIStats"
+const OperationSub2APIManagerGetSub2APIUser = "/v1.Sub2APIManager/GetSub2APIUser"
 const OperationSub2APIManagerListLotteryHistoryPublic = "/v1.Sub2APIManager/ListLotteryHistoryPublic"
+const OperationSub2APIManagerListLotteryRegistrants = "/v1.Sub2APIManager/ListLotteryRegistrants"
 const OperationSub2APIManagerListLotteryRounds = "/v1.Sub2APIManager/ListLotteryRounds"
 const OperationSub2APIManagerListSub2APIAnnouncements = "/v1.Sub2APIManager/ListSub2APIAnnouncements"
 const OperationSub2APIManagerListSub2APITimeline = "/v1.Sub2APIManager/ListSub2APITimeline"
@@ -72,8 +74,12 @@ type Sub2APIManagerHTTPServer interface {
 	GetSub2APISnapshot(context.Context, *GetSub2APISnapshotRequest) (*GetSub2APISnapshotResponse, error)
 	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
 	GetSub2APIStats(context.Context, *GetSub2APIAdminStatsRequest) (*GetSub2APIAdminStatsResponse, error)
+	// GetSub2APIUser 单个 Sub2API 用户详情（点击报名者时实时拉取）
+	GetSub2APIUser(context.Context, *GetSub2APIUserRequest) (*GetSub2APIUserResponse, error)
 	// ListLotteryHistoryPublic 用户端历史 + 本人参与情况
 	ListLotteryHistoryPublic(context.Context, *ListLotteryHistoryPublicRequest) (*ListLotteryHistoryPublicResponse, error)
+	// ListLotteryRegistrants 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+	ListLotteryRegistrants(context.Context, *ListLotteryRegistrantsRequest) (*ListLotteryRegistrantsResponse, error)
 	// ListLotteryRounds 历史轮次分页
 	ListLotteryRounds(context.Context, *ListLotteryRoundsRequest) (*ListLotteryRoundsResponse, error)
 	// ListSub2APIAnnouncements 公告管理
@@ -123,6 +129,8 @@ func RegisterSub2APIManagerHTTPServer(s *http.Server, srv Sub2APIManagerHTTPServ
 	r.PUT("/api/v1/sub2api/lottery/settings", _Sub2APIManager_UpdateLotterySettings0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/lottery/rounds", _Sub2APIManager_ListLotteryRounds0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/lottery/rounds/{id}", _Sub2APIManager_GetLotteryRoundDetail0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/lottery/rounds/{id}/registrants", _Sub2APIManager_ListLotteryRegistrants0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/users/{user_id}", _Sub2APIManager_GetSub2APIUser0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/lottery/rounds/{id}/distribute", _Sub2APIManager_DistributeLotteryRound0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/lottery/settle", _Sub2APIManager_TriggerLotterySettle0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/lottery/draw", _Sub2APIManager_TriggerLotteryDraw0_HTTP_Handler(srv))
@@ -569,6 +577,50 @@ func _Sub2APIManager_GetLotteryRoundDetail0_HTTP_Handler(srv Sub2APIManagerHTTPS
 	}
 }
 
+func _Sub2APIManager_ListLotteryRegistrants0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListLotteryRegistrantsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerListLotteryRegistrants)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListLotteryRegistrants(ctx, req.(*ListLotteryRegistrantsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListLotteryRegistrantsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetSub2APIUser0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSub2APIUserRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIUser)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSub2APIUser(ctx, req.(*GetSub2APIUserRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSub2APIUserResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Sub2APIManager_DistributeLotteryRound0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DistributeLotteryRoundRequest
@@ -723,8 +775,12 @@ type Sub2APIManagerHTTPClient interface {
 	GetSub2APISnapshot(ctx context.Context, req *GetSub2APISnapshotRequest, opts ...http.CallOption) (rsp *GetSub2APISnapshotResponse, err error)
 	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
 	GetSub2APIStats(ctx context.Context, req *GetSub2APIAdminStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminStatsResponse, err error)
+	// GetSub2APIUser 单个 Sub2API 用户详情（点击报名者时实时拉取）
+	GetSub2APIUser(ctx context.Context, req *GetSub2APIUserRequest, opts ...http.CallOption) (rsp *GetSub2APIUserResponse, err error)
 	// ListLotteryHistoryPublic 用户端历史 + 本人参与情况
 	ListLotteryHistoryPublic(ctx context.Context, req *ListLotteryHistoryPublicRequest, opts ...http.CallOption) (rsp *ListLotteryHistoryPublicResponse, err error)
+	// ListLotteryRegistrants 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+	ListLotteryRegistrants(ctx context.Context, req *ListLotteryRegistrantsRequest, opts ...http.CallOption) (rsp *ListLotteryRegistrantsResponse, err error)
 	// ListLotteryRounds 历史轮次分页
 	ListLotteryRounds(ctx context.Context, req *ListLotteryRoundsRequest, opts ...http.CallOption) (rsp *ListLotteryRoundsResponse, err error)
 	// ListSub2APIAnnouncements 公告管理
@@ -939,12 +995,40 @@ func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIStats(ctx context.Context, in *
 	return &out, nil
 }
 
+// GetSub2APIUser 单个 Sub2API 用户详情（点击报名者时实时拉取）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIUser(ctx context.Context, in *GetSub2APIUserRequest, opts ...http.CallOption) (*GetSub2APIUserResponse, error) {
+	var out GetSub2APIUserResponse
+	pattern := "/api/v1/sub2api/users/{user_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListLotteryHistoryPublic 用户端历史 + 本人参与情况
 func (c *Sub2APIManagerHTTPClientImpl) ListLotteryHistoryPublic(ctx context.Context, in *ListLotteryHistoryPublicRequest, opts ...http.CallOption) (*ListLotteryHistoryPublicResponse, error) {
 	var out ListLotteryHistoryPublicResponse
 	pattern := "/api/v1/public/sub2api/lottery/history"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSub2APIManagerListLotteryHistoryPublic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListLotteryRegistrants 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+func (c *Sub2APIManagerHTTPClientImpl) ListLotteryRegistrants(ctx context.Context, in *ListLotteryRegistrantsRequest, opts ...http.CallOption) (*ListLotteryRegistrantsResponse, error) {
+	var out ListLotteryRegistrantsResponse
+	pattern := "/api/v1/sub2api/lottery/rounds/{id}/registrants"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerListLotteryRegistrants))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

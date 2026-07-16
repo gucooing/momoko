@@ -13,7 +13,19 @@ import (
 const (
 	DefaultUserProfilePath  = "/api/v1/user/profile"
 	adminUserBalancePathFmt = "/api/v1/admin/users/%d/balance"
+	adminUserByIDPathFmt    = "/api/v1/admin/users/%d"
 )
+
+// Sub2APIUserInfo 管理端用户信息（抽奖报名者详情展示用）。
+type Sub2APIUserInfo struct {
+	ID        int64
+	Username  string
+	Email     string
+	Role      string
+	Balance   float64
+	Status    string
+	CreatedAt time.Time
+}
 
 // Manager 管理端 API 门面：出站一律走包级泛型 Get/Post/DoEnvelope，不自建 Request/Client。
 type Manager struct{}
@@ -110,6 +122,41 @@ func (m *Manager) ValidateUserToken(cfg ClientConfig, jwt string) (userID int64,
 		return 0, "", fmt.Errorf("令牌无效")
 	}
 	return profile.ID, strings.TrimSpace(profile.Username), nil
+}
+
+// adminUserDTO 对齐 GET /admin/users/:id 的 data（仅取报名者展示所需字段）。
+type adminUserDTO struct {
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	Balance   float64   `json:"balance"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// GetUserByID 用管理密钥拉取单个用户信息（抽奖报名者详情）。
+func (m *Manager) GetUserByID(cfg ClientConfig, userID int64) (*Sub2APIUserInfo, error) {
+	if userID <= 0 {
+		return nil, fmt.Errorf("用户 ID 不能为空")
+	}
+	endpoint, err := adminURL(cfg.BaseURL, fmt.Sprintf(adminUserByIDPathFmt, userID))
+	if err != nil {
+		return nil, err
+	}
+	u, err := GetEnvelope[adminUserDTO](endpoint.String(), adminHeaders(cfg))
+	if err != nil {
+		return nil, err
+	}
+	return &Sub2APIUserInfo{
+		ID:        u.ID,
+		Username:  strings.TrimSpace(u.Username),
+		Email:     strings.TrimSpace(u.Email),
+		Role:      u.Role,
+		Balance:   u.Balance,
+		Status:    u.Status,
+		CreatedAt: u.CreatedAt,
+	}, nil
 }
 
 // balanceAdjustBody 对齐 POST /admin/users/:id/balance。

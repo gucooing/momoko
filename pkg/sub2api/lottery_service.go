@@ -468,6 +468,30 @@ func (s *LotteryService) RoundWinners(ctx context.Context, roundID string) (*Lot
 	return round, winners, nil
 }
 
+// RoundRegistrants 某轮报名者名单（仅本地快照：用户id/用户名/消费额）。不做任何外部调用。
+func (s *LotteryService) RoundRegistrants(ctx context.Context, roundID string) ([]*LotteryParticipant, error) {
+	round, err := s.store.GetLotteryRound(ctx, roundID)
+	if err != nil {
+		return nil, err
+	}
+	if round == nil {
+		return nil, ErrLotteryRoundNotFound
+	}
+	return s.store.ListParticipants(ctx, roundID)
+}
+
+// UserInfo 按 user_id 实时拉取单个 Sub2API 用户详情（点击报名者时用）。
+func (s *LotteryService) UserInfo(ctx context.Context, userID int64) (*Sub2APIUserInfo, error) {
+	if userID <= 0 {
+		return nil, fmt.Errorf("用户 ID 不能为空")
+	}
+	cfg, err := s.clientConfig(ctx)
+	if err != nil || !cfg.Configured() || s.manager == nil {
+		return nil, fmt.Errorf("Sub2API 连接未配置")
+	}
+	return s.manager.GetUserByID(cfg, userID)
+}
+
 func (s *LotteryService) UpdateSettings(ctx context.Context, next LotterySettings) (LotterySettings, error) {
 	if err := SaveLotterySettings(ctx, s.config, next); err != nil {
 		return LotterySettings{}, err
@@ -556,6 +580,17 @@ func (s *LotteryService) userStatus(ctx context.Context, settings LotterySetting
 		AccumPool:      settings.PoolRatio * accum.spend,
 		NextSettleTime: NextBoundary(now, LotterySettleHour),
 		NextDrawTime:   NextBoundary(now, LotteryDrawHour),
+		Threshold:      settings.Threshold,
+	}
+	// 当期累计（今日）对应下一次结算生成的轮次（次日），作为期号展示。
+	st.AccumRoundDate = LotteryDateStr(st.NextSettleTime)
+	// 本人当期累计扣费 = 今日 [00:00, now)，与展示分组奖池同口径；达标即锁定次日轮次资格。
+	if userID > 0 {
+		if dayStart, e := LotteryDayStart(LotteryDateStr(now)); e == nil {
+			spend, _ := s.store.UserSpendInRange(ctx, userID, dayStart, now)
+			st.AccumUserSpend = spend
+			st.AccumEligible = spend >= settings.Threshold
+		}
 	}
 	round, err := s.currentOpenRound(ctx, now)
 	if err != nil {
@@ -662,6 +697,13 @@ type LotteryOverview struct {
 	Current        *LotteryRound
 }
 
+// LotteryRegistrant 报名者本地快照 + 实时 Sub2API 用户信息（拉取失败 User=nil，原因见 UserError）。
+type LotteryRegistrant struct {
+	Participant *LotteryParticipant
+	User        *Sub2APIUserInfo
+	UserError   string
+}
+
 type LotteryUserStatus struct {
 	Enabled        bool
 	Authenticated  bool
@@ -674,6 +716,10 @@ type LotteryUserStatus struct {
 	Eligible       bool
 	UserSpend      float64
 	Registered     bool
+	Threshold      float64 // 参与门槛（统一快照）
+	AccumRoundDate string  // 当期累计对应轮次日期（次日）
+	AccumUserSpend float64 // 本人当期累计扣费（今日实时）
+	AccumEligible  bool    // 本人是否达到当期参与条件
 }
 
 // secureShuffle 密码学乱序；rand 失败则中止（禁止半截洗牌导致中奖偏置）。

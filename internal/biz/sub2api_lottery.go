@@ -59,6 +59,22 @@ func (s *Sub2APIUsecase) GetLotteryRoundDetail(ctx context.Context, id string) (
 	return toV1LotteryRound(round), toV1LotteryParticipants(winners), nil
 }
 
+func (s *Sub2APIUsecase) LotteryRoundRegistrants(ctx context.Context, roundID string) ([]*v1.LotteryParticipant, error) {
+	regs, err := s.lottery.RoundRegistrants(ctx, roundID)
+	if err != nil {
+		return nil, mapLotteryError(err)
+	}
+	return toV1LotteryParticipants(regs), nil
+}
+
+func (s *Sub2APIUsecase) GetSub2APIUserInfo(ctx context.Context, userID int64) (*v1.Sub2APIUserInfo, error) {
+	u, err := s.lottery.UserInfo(ctx, userID)
+	if err != nil {
+		return nil, mapLotteryError(err)
+	}
+	return toV1Sub2APIUserInfo(u), nil
+}
+
 func (s *Sub2APIUsecase) DistributeLotteryRound(ctx context.Context, id string) (*v1.LotteryRound, error) {
 	round, err := s.lottery.DistributeRound(id)
 	if err != nil {
@@ -118,6 +134,10 @@ func (s *Sub2APIUsecase) RegisterLottery(ctx context.Context, jwt string) (*v1.R
 		Eligible:       base.GetEligible(),
 		UserSpend:      base.GetUserSpend(),
 		Registered:     base.GetRegistered(),
+		Threshold:      base.GetThreshold(),
+		AccumRoundDate: base.GetAccumRoundDate(),
+		AccumUserSpend: base.GetAccumUserSpend(),
+		AccumEligible:  base.GetAccumEligible(),
 	}, nil
 }
 
@@ -272,6 +292,24 @@ func toV1LotteryParticipant(p *sub2apipkg.LotteryParticipant) *v1.LotteryPartici
 	return out
 }
 
+func toV1Sub2APIUserInfo(u *sub2apipkg.Sub2APIUserInfo) *v1.Sub2APIUserInfo {
+	if u == nil {
+		return nil
+	}
+	out := &v1.Sub2APIUserInfo{
+		Id:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Role:     u.Role,
+		Balance:  u.Balance,
+		Status:   u.Status,
+	}
+	if !u.CreatedAt.IsZero() {
+		out.CreatedAt = timestamppb.New(u.CreatedAt)
+	}
+	return out
+}
+
 func toV1LotteryParticipants(list []*sub2apipkg.LotteryParticipant) []*v1.LotteryParticipant {
 	out := make([]*v1.LotteryParticipant, 0, len(list))
 	for _, p := range list {
@@ -285,15 +323,19 @@ func toV1LotteryUserStatus(st *sub2apipkg.LotteryUserStatus) *v1.GetLotteryStatu
 		return &v1.GetLotteryStatusResponse{}
 	}
 	out := &v1.GetLotteryStatusResponse{
-		Enabled:       st.Enabled,
-		Authenticated: st.Authenticated,
-		UserId:        st.UserID,
-		UserName:      st.UserName,
-		AccumPool:     st.AccumPool,
-		Current:       toV1LotteryRound(st.Current),
-		Eligible:      st.Eligible,
-		UserSpend:     st.UserSpend,
-		Registered:    st.Registered,
+		Enabled:        st.Enabled,
+		Authenticated:  st.Authenticated,
+		UserId:         st.UserID,
+		UserName:       st.UserName,
+		AccumPool:      st.AccumPool,
+		Current:        toV1LotteryRound(st.Current),
+		Eligible:       st.Eligible,
+		UserSpend:      st.UserSpend,
+		Registered:     st.Registered,
+		Threshold:      st.Threshold,
+		AccumRoundDate: st.AccumRoundDate,
+		AccumUserSpend: st.AccumUserSpend,
+		AccumEligible:  st.AccumEligible,
 	}
 	if !st.NextSettleTime.IsZero() {
 		out.NextSettleTime = timestamppb.New(st.NextSettleTime)

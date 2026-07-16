@@ -492,6 +492,36 @@ export interface GetLotteryRoundDetailResponse {
   winners: LotteryParticipant[];
 }
 
+export interface ListLotteryRegistrantsRequest {
+  /** 轮次日期 */
+  id: string;
+}
+
+/** 报名者名单：仅本地快照（用户id / 用户名 / 消费额），不做任何外部调用 */
+export interface ListLotteryRegistrantsResponse {
+  registrants: LotteryParticipant[];
+  total: number;
+}
+
+/** Sub2API 用户信息（点击某个报名者时按 user_id 实时拉取单个） */
+export interface Sub2APIUserInfo {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  balance: number;
+  status: string;
+  createdAt: Date | undefined;
+}
+
+export interface GetSub2APIUserRequest {
+  userId: number;
+}
+
+export interface GetSub2APIUserResponse {
+  user: Sub2APIUserInfo | undefined;
+}
+
 export interface DistributeLotteryRoundRequest {
   id: string;
 }
@@ -537,12 +567,20 @@ export interface GetLotteryStatusResponse {
   current:
     | LotteryRound
     | undefined;
-  /** 是否有资格报名 */
+  /** 是否有资格报名（报名中/昨日） */
   eligible: boolean;
-  /** 本人来源日扣费 */
+  /** 本人来源日扣费（昨日） */
   userSpend: number;
   /** 是否已报名 */
   registered: boolean;
+  /** 参与门槛金额（统一） */
+  threshold: number;
+  /** 当期累计对应轮次日期（次日，作期号） */
+  accumRoundDate: string;
+  /** 本人当期累计扣费（今日，实时） */
+  accumUserSpend: number;
+  /** 本人是否达到当期参与条件 */
+  accumEligible: boolean;
 }
 
 export interface RegisterLotteryRequest {
@@ -560,6 +598,10 @@ export interface RegisterLotteryResponse {
   eligible: boolean;
   userSpend: number;
   registered: boolean;
+  threshold: number;
+  accumRoundDate: string;
+  accumUserSpend: number;
+  accumEligible: boolean;
 }
 
 export interface ListLotteryHistoryPublicRequest {

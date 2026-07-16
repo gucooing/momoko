@@ -3597,6 +3597,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DistributeLotteryRoundResponse'
+    /api/v1/sub2api/lottery/rounds/{id}/registrants:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+            operationId: Sub2APIManager_ListLotteryRegistrants
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListLotteryRegistrantsResponse'
     /api/v1/sub2api/lottery/settings:
         put:
             tags:
@@ -3799,6 +3818,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DeleteSub2APITimelineItemResponse'
+    /api/v1/sub2api/users/{userId}:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 单个 Sub2API 用户详情（点击报名者时实时拉取）
+            operationId: Sub2APIManager_GetSub2APIUser
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIUserResponse'
     /api/v1/system/email-config:
         get:
             tags:
@@ -7528,6 +7566,16 @@ components:
                     format: double
                 registered:
                     type: boolean
+                threshold:
+                    type: number
+                    format: double
+                accumRoundDate:
+                    type: string
+                accumUserSpend:
+                    type: number
+                    format: double
+                accumEligible:
+                    type: boolean
         v1.GetPortForwardResponse:
             type: object
             properties:
@@ -7643,6 +7691,11 @@ components:
             properties:
                 stats:
                     $ref: '#/components/schemas/v1.Sub2APIStats'
+        v1.GetSub2APIUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1.Sub2APIUserInfo'
         v1.GetTaskResponse:
             type: object
             properties:
@@ -8035,6 +8088,17 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        v1.ListLotteryRegistrantsResponse:
+            type: object
+            properties:
+                registrants:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.LotteryParticipant'
+                total:
+                    type: integer
+                    format: int32
+            description: 报名者名单：仅本地快照（用户id / 用户名 / 消费额），不做任何外部调用
         v1.ListLotteryRoundsResponse:
             type: object
             properties:
@@ -9152,6 +9216,16 @@ components:
                     format: double
                 registered:
                     type: boolean
+                threshold:
+                    type: number
+                    format: double
+                accumRoundDate:
+                    type: string
+                accumUserSpend:
+                    type: number
+                    format: double
+                accumEligible:
+                    type: boolean
         v1.RegisterRequest:
             type: object
             properties:
@@ -9889,6 +9963,26 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITimePoint'
                     description: 当日按时间分桶的成功率/生成速度序列（用于首页随时间移动的曲线）
+        v1.Sub2APIUserInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                email:
+                    type: string
+                role:
+                    type: string
+                balance:
+                    type: number
+                    format: double
+                status:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+            description: Sub2API 用户信息（点击某个报名者时按 user_id 实时拉取单个）
         v1.SyncSub2APIUsageRequest:
             type: object
             properties:

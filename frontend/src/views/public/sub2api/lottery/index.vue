@@ -40,8 +40,27 @@
 
       <template v-else-if="store.status">
         <div class="card hero">
-          <div class="hero__label">{{ t('sub2api.activity.accumPool') }}</div>
+          <div class="hero__head">
+            <div class="hero__label">{{ t('sub2api.activity.accumPool') }}</div>
+            <span v-if="store.status.accumRoundDate" class="period-tag">
+              {{ t('sub2api.activity.periodLabel') }} {{ store.status.accumRoundDate }}
+            </span>
+          </div>
           <div class="hero__value">{{ fmtMoney(store.status?.accumPool) }}</div>
+          <!-- 是否达到当期参与条件（当期＝今日累计，整天有效） -->
+          <div class="elig">
+            <StatusPill
+              v-if="store.status.authenticated"
+              :variant="store.status.accumEligible ? 'success' : 'neutral'"
+              :label="store.status.accumEligible ? t('sub2api.activity.eligPassed') : t('sub2api.activity.eligNotPassed')"
+            />
+            <div class="elig__text">
+              <span class="elig__cond">{{ t('sub2api.activity.accumCondition', { amount: fmtMoney(store.status.threshold) }) }}</span>
+              <span v-if="store.status.authenticated" class="elig__spent">
+                {{ t('sub2api.activity.accumSpent', { amount: fmtMoney(store.status.accumUserSpend) }) }}
+              </span>
+            </div>
+          </div>
           <div class="hero__count">
             <div>
               <div class="hero__sub">{{ t('sub2api.activity.countdownSettle') }}</div>
@@ -55,31 +74,34 @@
         </div>
 
         <div v-if="store.status?.current" class="card">
-          <div class="card__title">{{ t('sub2api.activity.tabRegistering') }}</div>
+          <div class="card__head">
+            <div class="card__title">{{ t('sub2api.activity.tabRegistering') }}</div>
+            <span class="period-tag">{{ t('sub2api.activity.periodLabel') }} {{ store.status.current.id }}</span>
+          </div>
           <div class="kv">
             <div class="kv__row"><span>{{ t('sub2api.activity.poolAmount') }}</span><b>{{ fmtMoney(store.status.current.poolAmount) }}</b></div>
-            <div class="kv__row"><span>{{ t('sub2api.activity.registered') }}</span><b>{{ store.status.current.registeredCount }}</b></div>
-            <div class="kv__row"><span>{{ t('sub2api.activity.eligible') }}</span><b>{{ store.status.current.eligibleCount }}</b></div>
+            <div class="kv__row"><span>{{ t('sub2api.activity.registeredCount') }}</span><b>{{ store.status.current.registeredCount }}</b></div>
             <div class="kv__row"><span>{{ t('sub2api.activity.mySpend') }}</span><b>{{ fmtMoney(store.status.userSpend) }}</b></div>
           </div>
-          <div class="actions">
-            <UButton
+          <!-- 三态：已参与抽奖 / 可参与→参与抽奖 / 当前不可参与 -->
+          <div class="reg-state">
+            <StatusPill
               v-if="store.status.registered"
-              color="neutral"
-              variant="soft"
-              disabled
-            >
-              {{ t('sub2api.activity.registeredBtn') }}
-            </UButton>
+              variant="success"
+              :label="t('sub2api.activity.joinedBtn')"
+            />
             <UButton
               v-else-if="store.status.eligible"
               color="primary"
               :loading="store.registering"
               @click="onRegister"
             >
-              {{ t('sub2api.activity.registerBtn') }}
+              {{ t('sub2api.activity.joinBtn') }}
             </UButton>
-            <div v-else class="warn">{{ t('sub2api.activity.notEligible') }}</div>
+            <template v-else>
+              <StatusPill variant="neutral" :label="t('sub2api.activity.cannotJoin')" />
+              <span class="reg-cond">{{ t('sub2api.activity.regCondition', { amount: fmtMoney(store.status.current.threshold) }) }}</span>
+            </template>
           </div>
         </div>
 
@@ -461,6 +483,63 @@ onUnmounted(() => {
 .warn {
   font-size: 0.8125rem;
   color: var(--el-color-warning);
+}
+.hero__head,
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card__head {
+  margin-bottom: 12px;
+}
+.card__head .card__title {
+  margin-bottom: 0;
+}
+.period-tag {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius-sm);
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.elig {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.elig__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.elig__cond {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-regular);
+}
+.elig__spent {
+  font-size: 0.75rem;
+  color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+}
+.reg-state {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.reg-cond {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 .hist {
   display: flex;

@@ -141,6 +141,18 @@ service Sub2APIManager {
       get: "/api/v1/sub2api/lottery/rounds/{id}"
     };
   }
+  // 某轮次报名者名单（仅本地快照：用户id/用户名/消费额）
+  rpc ListLotteryRegistrants(ListLotteryRegistrantsRequest) returns (ListLotteryRegistrantsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/lottery/rounds/{id}/registrants"
+    };
+  }
+  // 单个 Sub2API 用户详情（点击报名者时实时拉取）
+  rpc GetSub2APIUser(GetSub2APIUserRequest) returns (GetSub2APIUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/users/{user_id}"
+    };
+  }
   // 手动发放某轮次奖金（autoPayout 关或重试失败时）
   rpc DistributeLotteryRound(DistributeLotteryRoundRequest) returns (DistributeLotteryRoundResponse) {
     option (google.api.http) = {
@@ -613,6 +625,35 @@ message GetLotteryRoundDetailResponse {
   repeated LotteryParticipant winners = 2;
 }
 
+message ListLotteryRegistrantsRequest {
+  string id = 1; // 轮次日期
+}
+
+// 报名者名单：仅本地快照（用户id / 用户名 / 消费额），不做任何外部调用
+message ListLotteryRegistrantsResponse {
+  repeated LotteryParticipant registrants = 1;
+  int32 total = 2;
+}
+
+// Sub2API 用户信息（点击某个报名者时按 user_id 实时拉取单个）
+message Sub2APIUserInfo {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string role = 4;
+  double balance = 5;
+  string status = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message GetSub2APIUserRequest {
+  int64 user_id = 1;
+}
+
+message GetSub2APIUserResponse {
+  Sub2APIUserInfo user = 1;
+}
+
 message DistributeLotteryRoundRequest {
   string id = 1;
 }
@@ -651,9 +692,13 @@ message GetLotteryStatusResponse {
   google.protobuf.Timestamp next_settle_time = 6;
   google.protobuf.Timestamp next_draw_time = 7;
   LotteryRound current = 8;                       // 已结算未开奖的轮次
-  bool eligible = 9;                              // 是否有资格报名
-  double user_spend = 10;                         // 本人来源日扣费
+  bool eligible = 9;                              // 是否有资格报名（报名中/昨日）
+  double user_spend = 10;                         // 本人来源日扣费（昨日）
   bool registered = 11;                           // 是否已报名
+  double threshold = 12;                          // 参与门槛金额（统一）
+  string accum_round_date = 13;                   // 当期累计对应轮次日期（次日，作期号）
+  double accum_user_spend = 14;                   // 本人当期累计扣费（今日，实时）
+  bool accum_eligible = 15;                       // 本人是否达到当期参与条件
 }
 
 message RegisterLotteryRequest {}
@@ -670,6 +715,10 @@ message RegisterLotteryResponse {
   bool eligible = 9;
   double user_spend = 10;
   bool registered = 11;
+  double threshold = 12;
+  string accum_round_date = 13;
+  double accum_user_spend = 14;
+  bool accum_eligible = 15;
 }
 
 message ListLotteryHistoryPublicRequest {

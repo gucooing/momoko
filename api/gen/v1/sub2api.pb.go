@@ -3851,6 +3851,284 @@ func (x *GetLotteryRoundDetailResponse) GetWinners() []*LotteryParticipant {
 	return nil
 }
 
+type ListLotteryRegistrantsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // 轮次日期
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLotteryRegistrantsRequest) Reset() {
+	*x = ListLotteryRegistrantsRequest{}
+	mi := &file_v1_sub2api_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLotteryRegistrantsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLotteryRegistrantsRequest) ProtoMessage() {}
+
+func (x *ListLotteryRegistrantsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLotteryRegistrantsRequest.ProtoReflect.Descriptor instead.
+func (*ListLotteryRegistrantsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListLotteryRegistrantsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// 报名者名单：仅本地快照（用户id / 用户名 / 消费额），不做任何外部调用
+type ListLotteryRegistrantsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Registrants   []*LotteryParticipant  `protobuf:"bytes,1,rep,name=registrants,proto3" json:"registrants,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLotteryRegistrantsResponse) Reset() {
+	*x = ListLotteryRegistrantsResponse{}
+	mi := &file_v1_sub2api_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLotteryRegistrantsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLotteryRegistrantsResponse) ProtoMessage() {}
+
+func (x *ListLotteryRegistrantsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLotteryRegistrantsResponse.ProtoReflect.Descriptor instead.
+func (*ListLotteryRegistrantsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *ListLotteryRegistrantsResponse) GetRegistrants() []*LotteryParticipant {
+	if x != nil {
+		return x.Registrants
+	}
+	return nil
+}
+
+func (x *ListLotteryRegistrantsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+// Sub2API 用户信息（点击某个报名者时按 user_id 实时拉取单个）
+type Sub2APIUserInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Balance       float64                `protobuf:"fixed64,5,opt,name=balance,proto3" json:"balance,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Sub2APIUserInfo) Reset() {
+	*x = Sub2APIUserInfo{}
+	mi := &file_v1_sub2api_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Sub2APIUserInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Sub2APIUserInfo) ProtoMessage() {}
+
+func (x *Sub2APIUserInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Sub2APIUserInfo.ProtoReflect.Descriptor instead.
+func (*Sub2APIUserInfo) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *Sub2APIUserInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Sub2APIUserInfo) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *Sub2APIUserInfo) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Sub2APIUserInfo) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *Sub2APIUserInfo) GetBalance() float64 {
+	if x != nil {
+		return x.Balance
+	}
+	return 0
+}
+
+func (x *Sub2APIUserInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Sub2APIUserInfo) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type GetSub2APIUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSub2APIUserRequest) Reset() {
+	*x = GetSub2APIUserRequest{}
+	mi := &file_v1_sub2api_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIUserRequest) ProtoMessage() {}
+
+func (x *GetSub2APIUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIUserRequest.ProtoReflect.Descriptor instead.
+func (*GetSub2APIUserRequest) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *GetSub2APIUserRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type GetSub2APIUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *Sub2APIUserInfo       `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSub2APIUserResponse) Reset() {
+	*x = GetSub2APIUserResponse{}
+	mi := &file_v1_sub2api_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSub2APIUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSub2APIUserResponse) ProtoMessage() {}
+
+func (x *GetSub2APIUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSub2APIUserResponse.ProtoReflect.Descriptor instead.
+func (*GetSub2APIUserResponse) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *GetSub2APIUserResponse) GetUser() *Sub2APIUserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type DistributeLotteryRoundRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -3860,7 +4138,7 @@ type DistributeLotteryRoundRequest struct {
 
 func (x *DistributeLotteryRoundRequest) Reset() {
 	*x = DistributeLotteryRoundRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[54]
+	mi := &file_v1_sub2api_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3872,7 +4150,7 @@ func (x *DistributeLotteryRoundRequest) String() string {
 func (*DistributeLotteryRoundRequest) ProtoMessage() {}
 
 func (x *DistributeLotteryRoundRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[54]
+	mi := &file_v1_sub2api_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3885,7 +4163,7 @@ func (x *DistributeLotteryRoundRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DistributeLotteryRoundRequest.ProtoReflect.Descriptor instead.
 func (*DistributeLotteryRoundRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{54}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *DistributeLotteryRoundRequest) GetId() string {
@@ -3904,7 +4182,7 @@ type DistributeLotteryRoundResponse struct {
 
 func (x *DistributeLotteryRoundResponse) Reset() {
 	*x = DistributeLotteryRoundResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[55]
+	mi := &file_v1_sub2api_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3916,7 +4194,7 @@ func (x *DistributeLotteryRoundResponse) String() string {
 func (*DistributeLotteryRoundResponse) ProtoMessage() {}
 
 func (x *DistributeLotteryRoundResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[55]
+	mi := &file_v1_sub2api_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3929,7 +4207,7 @@ func (x *DistributeLotteryRoundResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DistributeLotteryRoundResponse.ProtoReflect.Descriptor instead.
 func (*DistributeLotteryRoundResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{55}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *DistributeLotteryRoundResponse) GetRound() *LotteryRound {
@@ -3949,7 +4227,7 @@ type TriggerLotterySettleRequest struct {
 
 func (x *TriggerLotterySettleRequest) Reset() {
 	*x = TriggerLotterySettleRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[56]
+	mi := &file_v1_sub2api_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3961,7 +4239,7 @@ func (x *TriggerLotterySettleRequest) String() string {
 func (*TriggerLotterySettleRequest) ProtoMessage() {}
 
 func (x *TriggerLotterySettleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[56]
+	mi := &file_v1_sub2api_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3974,7 +4252,7 @@ func (x *TriggerLotterySettleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotterySettleRequest.ProtoReflect.Descriptor instead.
 func (*TriggerLotterySettleRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{56}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *TriggerLotterySettleRequest) GetDate() string {
@@ -3993,7 +4271,7 @@ type TriggerLotterySettleResponse struct {
 
 func (x *TriggerLotterySettleResponse) Reset() {
 	*x = TriggerLotterySettleResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[57]
+	mi := &file_v1_sub2api_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4005,7 +4283,7 @@ func (x *TriggerLotterySettleResponse) String() string {
 func (*TriggerLotterySettleResponse) ProtoMessage() {}
 
 func (x *TriggerLotterySettleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[57]
+	mi := &file_v1_sub2api_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4018,7 +4296,7 @@ func (x *TriggerLotterySettleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotterySettleResponse.ProtoReflect.Descriptor instead.
 func (*TriggerLotterySettleResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{57}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *TriggerLotterySettleResponse) GetRound() *LotteryRound {
@@ -4038,7 +4316,7 @@ type TriggerLotteryDrawRequest struct {
 
 func (x *TriggerLotteryDrawRequest) Reset() {
 	*x = TriggerLotteryDrawRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[58]
+	mi := &file_v1_sub2api_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4050,7 +4328,7 @@ func (x *TriggerLotteryDrawRequest) String() string {
 func (*TriggerLotteryDrawRequest) ProtoMessage() {}
 
 func (x *TriggerLotteryDrawRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[58]
+	mi := &file_v1_sub2api_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4063,7 +4341,7 @@ func (x *TriggerLotteryDrawRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotteryDrawRequest.ProtoReflect.Descriptor instead.
 func (*TriggerLotteryDrawRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{58}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *TriggerLotteryDrawRequest) GetDate() string {
@@ -4082,7 +4360,7 @@ type TriggerLotteryDrawResponse struct {
 
 func (x *TriggerLotteryDrawResponse) Reset() {
 	*x = TriggerLotteryDrawResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[59]
+	mi := &file_v1_sub2api_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4094,7 +4372,7 @@ func (x *TriggerLotteryDrawResponse) String() string {
 func (*TriggerLotteryDrawResponse) ProtoMessage() {}
 
 func (x *TriggerLotteryDrawResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[59]
+	mi := &file_v1_sub2api_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4107,7 +4385,7 @@ func (x *TriggerLotteryDrawResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotteryDrawResponse.ProtoReflect.Descriptor instead.
 func (*TriggerLotteryDrawResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{59}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *TriggerLotteryDrawResponse) GetRound() *LotteryRound {
@@ -4126,7 +4404,7 @@ type GetLotteryStatusRequest struct {
 
 func (x *GetLotteryStatusRequest) Reset() {
 	*x = GetLotteryStatusRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[60]
+	mi := &file_v1_sub2api_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4138,7 +4416,7 @@ func (x *GetLotteryStatusRequest) String() string {
 func (*GetLotteryStatusRequest) ProtoMessage() {}
 
 func (x *GetLotteryStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[60]
+	mi := &file_v1_sub2api_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4151,7 +4429,7 @@ func (x *GetLotteryStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetLotteryStatusRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{60}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{65}
 }
 
 type GetLotteryStatusResponse struct {
@@ -4163,17 +4441,21 @@ type GetLotteryStatusResponse struct {
 	AccumPool      float64                `protobuf:"fixed64,5,opt,name=accum_pool,json=accumPool,proto3" json:"accum_pool,omitempty"` // 当期累计奖池
 	NextSettleTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=next_settle_time,json=nextSettleTime,proto3" json:"next_settle_time,omitempty"`
 	NextDrawTime   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=next_draw_time,json=nextDrawTime,proto3" json:"next_draw_time,omitempty"`
-	Current        *LotteryRound          `protobuf:"bytes,8,opt,name=current,proto3" json:"current,omitempty"`                         // 已结算未开奖的轮次
-	Eligible       bool                   `protobuf:"varint,9,opt,name=eligible,proto3" json:"eligible,omitempty"`                      // 是否有资格报名
-	UserSpend      float64                `protobuf:"fixed64,10,opt,name=user_spend,json=userSpend,proto3" json:"user_spend,omitempty"` // 本人来源日扣费
-	Registered     bool                   `protobuf:"varint,11,opt,name=registered,proto3" json:"registered,omitempty"`                 // 是否已报名
+	Current        *LotteryRound          `protobuf:"bytes,8,opt,name=current,proto3" json:"current,omitempty"`                                          // 已结算未开奖的轮次
+	Eligible       bool                   `protobuf:"varint,9,opt,name=eligible,proto3" json:"eligible,omitempty"`                                       // 是否有资格报名（报名中/昨日）
+	UserSpend      float64                `protobuf:"fixed64,10,opt,name=user_spend,json=userSpend,proto3" json:"user_spend,omitempty"`                  // 本人来源日扣费（昨日）
+	Registered     bool                   `protobuf:"varint,11,opt,name=registered,proto3" json:"registered,omitempty"`                                  // 是否已报名
+	Threshold      float64                `protobuf:"fixed64,12,opt,name=threshold,proto3" json:"threshold,omitempty"`                                   // 参与门槛金额（统一）
+	AccumRoundDate string                 `protobuf:"bytes,13,opt,name=accum_round_date,json=accumRoundDate,proto3" json:"accum_round_date,omitempty"`   // 当期累计对应轮次日期（次日，作期号）
+	AccumUserSpend float64                `protobuf:"fixed64,14,opt,name=accum_user_spend,json=accumUserSpend,proto3" json:"accum_user_spend,omitempty"` // 本人当期累计扣费（今日，实时）
+	AccumEligible  bool                   `protobuf:"varint,15,opt,name=accum_eligible,json=accumEligible,proto3" json:"accum_eligible,omitempty"`       // 本人是否达到当期参与条件
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetLotteryStatusResponse) Reset() {
 	*x = GetLotteryStatusResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[61]
+	mi := &file_v1_sub2api_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4185,7 +4467,7 @@ func (x *GetLotteryStatusResponse) String() string {
 func (*GetLotteryStatusResponse) ProtoMessage() {}
 
 func (x *GetLotteryStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[61]
+	mi := &file_v1_sub2api_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4198,7 +4480,7 @@ func (x *GetLotteryStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetLotteryStatusResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{61}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *GetLotteryStatusResponse) GetEnabled() bool {
@@ -4278,6 +4560,34 @@ func (x *GetLotteryStatusResponse) GetRegistered() bool {
 	return false
 }
 
+func (x *GetLotteryStatusResponse) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *GetLotteryStatusResponse) GetAccumRoundDate() string {
+	if x != nil {
+		return x.AccumRoundDate
+	}
+	return ""
+}
+
+func (x *GetLotteryStatusResponse) GetAccumUserSpend() float64 {
+	if x != nil {
+		return x.AccumUserSpend
+	}
+	return 0
+}
+
+func (x *GetLotteryStatusResponse) GetAccumEligible() bool {
+	if x != nil {
+		return x.AccumEligible
+	}
+	return false
+}
+
 type RegisterLotteryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -4286,7 +4596,7 @@ type RegisterLotteryRequest struct {
 
 func (x *RegisterLotteryRequest) Reset() {
 	*x = RegisterLotteryRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[62]
+	mi := &file_v1_sub2api_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4298,7 +4608,7 @@ func (x *RegisterLotteryRequest) String() string {
 func (*RegisterLotteryRequest) ProtoMessage() {}
 
 func (x *RegisterLotteryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[62]
+	mi := &file_v1_sub2api_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4311,7 +4621,7 @@ func (x *RegisterLotteryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterLotteryRequest.ProtoReflect.Descriptor instead.
 func (*RegisterLotteryRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{62}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{67}
 }
 
 type RegisterLotteryResponse struct {
@@ -4327,13 +4637,17 @@ type RegisterLotteryResponse struct {
 	Eligible       bool                   `protobuf:"varint,9,opt,name=eligible,proto3" json:"eligible,omitempty"`
 	UserSpend      float64                `protobuf:"fixed64,10,opt,name=user_spend,json=userSpend,proto3" json:"user_spend,omitempty"`
 	Registered     bool                   `protobuf:"varint,11,opt,name=registered,proto3" json:"registered,omitempty"`
+	Threshold      float64                `protobuf:"fixed64,12,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	AccumRoundDate string                 `protobuf:"bytes,13,opt,name=accum_round_date,json=accumRoundDate,proto3" json:"accum_round_date,omitempty"`
+	AccumUserSpend float64                `protobuf:"fixed64,14,opt,name=accum_user_spend,json=accumUserSpend,proto3" json:"accum_user_spend,omitempty"`
+	AccumEligible  bool                   `protobuf:"varint,15,opt,name=accum_eligible,json=accumEligible,proto3" json:"accum_eligible,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RegisterLotteryResponse) Reset() {
 	*x = RegisterLotteryResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[63]
+	mi := &file_v1_sub2api_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4345,7 +4659,7 @@ func (x *RegisterLotteryResponse) String() string {
 func (*RegisterLotteryResponse) ProtoMessage() {}
 
 func (x *RegisterLotteryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[63]
+	mi := &file_v1_sub2api_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4358,7 +4672,7 @@ func (x *RegisterLotteryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterLotteryResponse.ProtoReflect.Descriptor instead.
 func (*RegisterLotteryResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{63}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *RegisterLotteryResponse) GetEnabled() bool {
@@ -4438,6 +4752,34 @@ func (x *RegisterLotteryResponse) GetRegistered() bool {
 	return false
 }
 
+func (x *RegisterLotteryResponse) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *RegisterLotteryResponse) GetAccumRoundDate() string {
+	if x != nil {
+		return x.AccumRoundDate
+	}
+	return ""
+}
+
+func (x *RegisterLotteryResponse) GetAccumUserSpend() float64 {
+	if x != nil {
+		return x.AccumUserSpend
+	}
+	return 0
+}
+
+func (x *RegisterLotteryResponse) GetAccumEligible() bool {
+	if x != nil {
+		return x.AccumEligible
+	}
+	return false
+}
+
 type ListLotteryHistoryPublicRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -4448,7 +4790,7 @@ type ListLotteryHistoryPublicRequest struct {
 
 func (x *ListLotteryHistoryPublicRequest) Reset() {
 	*x = ListLotteryHistoryPublicRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[64]
+	mi := &file_v1_sub2api_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4460,7 +4802,7 @@ func (x *ListLotteryHistoryPublicRequest) String() string {
 func (*ListLotteryHistoryPublicRequest) ProtoMessage() {}
 
 func (x *ListLotteryHistoryPublicRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[64]
+	mi := &file_v1_sub2api_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4473,7 +4815,7 @@ func (x *ListLotteryHistoryPublicRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryHistoryPublicRequest.ProtoReflect.Descriptor instead.
 func (*ListLotteryHistoryPublicRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{64}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListLotteryHistoryPublicRequest) GetPage() int32 {
@@ -4506,7 +4848,7 @@ type LotteryHistoryItem struct {
 
 func (x *LotteryHistoryItem) Reset() {
 	*x = LotteryHistoryItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[65]
+	mi := &file_v1_sub2api_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4518,7 +4860,7 @@ func (x *LotteryHistoryItem) String() string {
 func (*LotteryHistoryItem) ProtoMessage() {}
 
 func (x *LotteryHistoryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[65]
+	mi := &file_v1_sub2api_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4531,7 +4873,7 @@ func (x *LotteryHistoryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotteryHistoryItem.ProtoReflect.Descriptor instead.
 func (*LotteryHistoryItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{65}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *LotteryHistoryItem) GetRound() *LotteryRound {
@@ -4588,7 +4930,7 @@ type ListLotteryHistoryPublicResponse struct {
 
 func (x *ListLotteryHistoryPublicResponse) Reset() {
 	*x = ListLotteryHistoryPublicResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[66]
+	mi := &file_v1_sub2api_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4600,7 +4942,7 @@ func (x *ListLotteryHistoryPublicResponse) String() string {
 func (*ListLotteryHistoryPublicResponse) ProtoMessage() {}
 
 func (x *ListLotteryHistoryPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[66]
+	mi := &file_v1_sub2api_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4613,7 +4955,7 @@ func (x *ListLotteryHistoryPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryHistoryPublicResponse.ProtoReflect.Descriptor instead.
 func (*ListLotteryHistoryPublicResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{66}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ListLotteryHistoryPublicResponse) GetItems() []*LotteryHistoryItem {
@@ -4956,6 +5298,24 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x1dGetLotteryRoundDetailResponse\x12&\n" +
 	"\x05round\x18\x01 \x01(\v2\x10.v1.LotteryRoundR\x05round\x120\n" +
 	"\awinners\x18\x02 \x03(\v2\x16.v1.LotteryParticipantR\awinners\"/\n" +
+	"\x1dListLotteryRegistrantsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"p\n" +
+	"\x1eListLotteryRegistrantsResponse\x128\n" +
+	"\vregistrants\x18\x01 \x03(\v2\x16.v1.LotteryParticipantR\vregistrants\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"\xd4\x01\n" +
+	"\x0fSub2APIUserInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
+	"\x04role\x18\x04 \x01(\tR\x04role\x12\x18\n" +
+	"\abalance\x18\x05 \x01(\x01R\abalance\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"0\n" +
+	"\x15GetSub2APIUserRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"A\n" +
+	"\x16GetSub2APIUserResponse\x12'\n" +
+	"\x04user\x18\x01 \x01(\v2\x13.v1.Sub2APIUserInfoR\x04user\"/\n" +
 	"\x1dDistributeLotteryRoundRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"H\n" +
 	"\x1eDistributeLotteryRoundResponse\x12&\n" +
@@ -4968,7 +5328,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x04date\x18\x01 \x01(\tR\x04date\"D\n" +
 	"\x1aTriggerLotteryDrawResponse\x12&\n" +
 	"\x05round\x18\x01 \x01(\v2\x10.v1.LotteryRoundR\x05round\"\x19\n" +
-	"\x17GetLotteryStatusRequest\"\xbe\x03\n" +
+	"\x17GetLotteryStatusRequest\"\xd7\x04\n" +
 	"\x18GetLotteryStatusResponse\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12$\n" +
 	"\rauthenticated\x18\x02 \x01(\bR\rauthenticated\x12\x17\n" +
@@ -4985,8 +5345,12 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	" \x01(\x01R\tuserSpend\x12\x1e\n" +
 	"\n" +
 	"registered\x18\v \x01(\bR\n" +
-	"registered\"\x18\n" +
-	"\x16RegisterLotteryRequest\"\xbd\x03\n" +
+	"registered\x12\x1c\n" +
+	"\tthreshold\x18\f \x01(\x01R\tthreshold\x12(\n" +
+	"\x10accum_round_date\x18\r \x01(\tR\x0eaccumRoundDate\x12(\n" +
+	"\x10accum_user_spend\x18\x0e \x01(\x01R\x0eaccumUserSpend\x12%\n" +
+	"\x0eaccum_eligible\x18\x0f \x01(\bR\raccumEligible\"\x18\n" +
+	"\x16RegisterLotteryRequest\"\xd6\x04\n" +
 	"\x17RegisterLotteryResponse\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12$\n" +
 	"\rauthenticated\x18\x02 \x01(\bR\rauthenticated\x12\x17\n" +
@@ -5003,7 +5367,11 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	" \x01(\x01R\tuserSpend\x12\x1e\n" +
 	"\n" +
 	"registered\x18\v \x01(\bR\n" +
-	"registered\"R\n" +
+	"registered\x12\x1c\n" +
+	"\tthreshold\x18\f \x01(\x01R\tthreshold\x12(\n" +
+	"\x10accum_round_date\x18\r \x01(\tR\x0eaccumRoundDate\x12(\n" +
+	"\x10accum_user_spend\x18\x0e \x01(\x01R\x0eaccumUserSpend\x12%\n" +
+	"\x0eaccum_eligible\x18\x0f \x01(\bR\raccumEligible\"R\n" +
 	"\x1fListLotteryHistoryPublicRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xf8\x01\n" +
@@ -5035,7 +5403,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x1dLOTTERY_MY_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16LOTTERY_MY_STATUS_NONE\x10\x01\x12 \n" +
 	"\x1cLOTTERY_MY_STATUS_REGISTERED\x10\x02\x12\x19\n" +
-	"\x15LOTTERY_MY_STATUS_WON\x10\x032\x94\x1c\n" +
+	"\x15LOTTERY_MY_STATUS_WON\x10\x032\xa1\x1e\n" +
 	"\x0eSub2APIManager\x12u\n" +
 	"\x11PublicSub2APIHome\x12\x1c.v1.PublicSub2APIHomeRequest\x1a\x1d.v1.PublicSub2APIHomeResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/public/sub2api/home\x12m\n" +
 	"\x10GetSub2APIConfig\x12\x1b.v1.GetSub2APIConfigRequest\x1a\x1c.v1.GetSub2APIConfigResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/sub2api/config\x12y\n" +
@@ -5057,7 +5425,9 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x12GetLotteryOverview\x12\x1d.v1.GetLotteryOverviewRequest\x1a\x1e.v1.GetLotteryOverviewResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /api/v1/sub2api/lottery/overview\x12\x89\x01\n" +
 	"\x15UpdateLotterySettings\x12 .v1.UpdateLotterySettingsRequest\x1a!.v1.UpdateLotterySettingsResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/sub2api/lottery/settings\x12x\n" +
 	"\x11ListLotteryRounds\x12\x1c.v1.ListLotteryRoundsRequest\x1a\x1d.v1.ListLotteryRoundsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/sub2api/lottery/rounds\x12\x89\x01\n" +
-	"\x15GetLotteryRoundDetail\x12 .v1.GetLotteryRoundDetailRequest\x1a!.v1.GetLotteryRoundDetailResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/sub2api/lottery/rounds/{id}\x12\x9a\x01\n" +
+	"\x15GetLotteryRoundDetail\x12 .v1.GetLotteryRoundDetailRequest\x1a!.v1.GetLotteryRoundDetailResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/sub2api/lottery/rounds/{id}\x12\x98\x01\n" +
+	"\x16ListLotteryRegistrants\x12!.v1.ListLotteryRegistrantsRequest\x1a\".v1.ListLotteryRegistrantsResponse\"7\x82\xd3\xe4\x93\x021\x12//api/v1/sub2api/lottery/rounds/{id}/registrants\x12p\n" +
+	"\x0eGetSub2APIUser\x12\x19.v1.GetSub2APIUserRequest\x1a\x1a.v1.GetSub2APIUserResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/sub2api/users/{user_id}\x12\x9a\x01\n" +
 	"\x16DistributeLotteryRound\x12!.v1.DistributeLotteryRoundRequest\x1a\".v1.DistributeLotteryRoundResponse\"9\x82\xd3\xe4\x93\x023:\x01*\"./api/v1/sub2api/lottery/rounds/{id}/distribute\x12\x84\x01\n" +
 	"\x14TriggerLotterySettle\x12\x1f.v1.TriggerLotterySettleRequest\x1a .v1.TriggerLotterySettleResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/sub2api/lottery/settle\x12|\n" +
 	"\x12TriggerLotteryDraw\x12\x1d.v1.TriggerLotteryDrawRequest\x1a\x1e.v1.TriggerLotteryDrawResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/sub2api/lottery/draw\x12|\n" +
@@ -5078,7 +5448,7 @@ func file_v1_sub2api_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_sub2api_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 67)
+var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
 var file_v1_sub2api_proto_goTypes = []any{
 	(LotteryRoundStatus)(0),                   // 0: v1.LotteryRoundStatus
 	(LotteryPayoutStatus)(0),                  // 1: v1.LotteryPayoutStatus
@@ -5137,20 +5507,25 @@ var file_v1_sub2api_proto_goTypes = []any{
 	(*ListLotteryRoundsResponse)(nil),         // 54: v1.ListLotteryRoundsResponse
 	(*GetLotteryRoundDetailRequest)(nil),      // 55: v1.GetLotteryRoundDetailRequest
 	(*GetLotteryRoundDetailResponse)(nil),     // 56: v1.GetLotteryRoundDetailResponse
-	(*DistributeLotteryRoundRequest)(nil),     // 57: v1.DistributeLotteryRoundRequest
-	(*DistributeLotteryRoundResponse)(nil),    // 58: v1.DistributeLotteryRoundResponse
-	(*TriggerLotterySettleRequest)(nil),       // 59: v1.TriggerLotterySettleRequest
-	(*TriggerLotterySettleResponse)(nil),      // 60: v1.TriggerLotterySettleResponse
-	(*TriggerLotteryDrawRequest)(nil),         // 61: v1.TriggerLotteryDrawRequest
-	(*TriggerLotteryDrawResponse)(nil),        // 62: v1.TriggerLotteryDrawResponse
-	(*GetLotteryStatusRequest)(nil),           // 63: v1.GetLotteryStatusRequest
-	(*GetLotteryStatusResponse)(nil),          // 64: v1.GetLotteryStatusResponse
-	(*RegisterLotteryRequest)(nil),            // 65: v1.RegisterLotteryRequest
-	(*RegisterLotteryResponse)(nil),           // 66: v1.RegisterLotteryResponse
-	(*ListLotteryHistoryPublicRequest)(nil),   // 67: v1.ListLotteryHistoryPublicRequest
-	(*LotteryHistoryItem)(nil),                // 68: v1.LotteryHistoryItem
-	(*ListLotteryHistoryPublicResponse)(nil),  // 69: v1.ListLotteryHistoryPublicResponse
-	(*timestamppb.Timestamp)(nil),             // 70: google.protobuf.Timestamp
+	(*ListLotteryRegistrantsRequest)(nil),     // 57: v1.ListLotteryRegistrantsRequest
+	(*ListLotteryRegistrantsResponse)(nil),    // 58: v1.ListLotteryRegistrantsResponse
+	(*Sub2APIUserInfo)(nil),                   // 59: v1.Sub2APIUserInfo
+	(*GetSub2APIUserRequest)(nil),             // 60: v1.GetSub2APIUserRequest
+	(*GetSub2APIUserResponse)(nil),            // 61: v1.GetSub2APIUserResponse
+	(*DistributeLotteryRoundRequest)(nil),     // 62: v1.DistributeLotteryRoundRequest
+	(*DistributeLotteryRoundResponse)(nil),    // 63: v1.DistributeLotteryRoundResponse
+	(*TriggerLotterySettleRequest)(nil),       // 64: v1.TriggerLotterySettleRequest
+	(*TriggerLotterySettleResponse)(nil),      // 65: v1.TriggerLotterySettleResponse
+	(*TriggerLotteryDrawRequest)(nil),         // 66: v1.TriggerLotteryDrawRequest
+	(*TriggerLotteryDrawResponse)(nil),        // 67: v1.TriggerLotteryDrawResponse
+	(*GetLotteryStatusRequest)(nil),           // 68: v1.GetLotteryStatusRequest
+	(*GetLotteryStatusResponse)(nil),          // 69: v1.GetLotteryStatusResponse
+	(*RegisterLotteryRequest)(nil),            // 70: v1.RegisterLotteryRequest
+	(*RegisterLotteryResponse)(nil),           // 71: v1.RegisterLotteryResponse
+	(*ListLotteryHistoryPublicRequest)(nil),   // 72: v1.ListLotteryHistoryPublicRequest
+	(*LotteryHistoryItem)(nil),                // 73: v1.LotteryHistoryItem
+	(*ListLotteryHistoryPublicResponse)(nil),  // 74: v1.ListLotteryHistoryPublicResponse
+	(*timestamppb.Timestamp)(nil),             // 75: google.protobuf.Timestamp
 }
 var file_v1_sub2api_proto_depIdxs = []int32{
 	24, // 0: v1.PublicSub2APIHomeResponse.home:type_name -> v1.Sub2APIHome
@@ -5171,112 +5546,119 @@ var file_v1_sub2api_proto_depIdxs = []int32{
 	41, // 15: v1.Sub2APIHome.snapshot:type_name -> v1.Sub2APIUsageSnapshot
 	25, // 16: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
 	26, // 17: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
-	70, // 18: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
-	70, // 19: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
+	75, // 18: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
+	75, // 19: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
 	25, // 20: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
-	70, // 21: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	70, // 22: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	75, // 21: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	75, // 22: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
 	25, // 23: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
 	26, // 24: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
-	70, // 25: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	70, // 26: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	75, // 25: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	75, // 26: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
 	26, // 27: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
-	70, // 28: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
-	70, // 29: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
-	70, // 30: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
-	70, // 31: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
+	75, // 28: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
+	75, // 29: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
+	75, // 30: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
+	75, // 31: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
 	43, // 32: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
 	44, // 33: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
 	45, // 34: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
 	42, // 35: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
-	70, // 36: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
-	70, // 37: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
-	70, // 38: v1.LotteryRound.settle_time:type_name -> google.protobuf.Timestamp
-	70, // 39: v1.LotteryRound.draw_time:type_name -> google.protobuf.Timestamp
+	75, // 36: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
+	75, // 37: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
+	75, // 38: v1.LotteryRound.settle_time:type_name -> google.protobuf.Timestamp
+	75, // 39: v1.LotteryRound.draw_time:type_name -> google.protobuf.Timestamp
 	0,  // 40: v1.LotteryRound.status:type_name -> v1.LotteryRoundStatus
-	70, // 41: v1.LotteryParticipant.registered_time:type_name -> google.protobuf.Timestamp
+	75, // 41: v1.LotteryParticipant.registered_time:type_name -> google.protobuf.Timestamp
 	1,  // 42: v1.LotteryParticipant.payout_status:type_name -> v1.LotteryPayoutStatus
 	46, // 43: v1.GetLotteryOverviewResponse.settings:type_name -> v1.LotterySettings
-	70, // 44: v1.GetLotteryOverviewResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	70, // 45: v1.GetLotteryOverviewResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	75, // 44: v1.GetLotteryOverviewResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	75, // 45: v1.GetLotteryOverviewResponse.next_draw_time:type_name -> google.protobuf.Timestamp
 	47, // 46: v1.GetLotteryOverviewResponse.current:type_name -> v1.LotteryRound
 	46, // 47: v1.UpdateLotterySettingsRequest.settings:type_name -> v1.LotterySettings
 	46, // 48: v1.UpdateLotterySettingsResponse.settings:type_name -> v1.LotterySettings
 	47, // 49: v1.ListLotteryRoundsResponse.rounds:type_name -> v1.LotteryRound
 	47, // 50: v1.GetLotteryRoundDetailResponse.round:type_name -> v1.LotteryRound
 	48, // 51: v1.GetLotteryRoundDetailResponse.winners:type_name -> v1.LotteryParticipant
-	47, // 52: v1.DistributeLotteryRoundResponse.round:type_name -> v1.LotteryRound
-	47, // 53: v1.TriggerLotterySettleResponse.round:type_name -> v1.LotteryRound
-	47, // 54: v1.TriggerLotteryDrawResponse.round:type_name -> v1.LotteryRound
-	70, // 55: v1.GetLotteryStatusResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	70, // 56: v1.GetLotteryStatusResponse.next_draw_time:type_name -> google.protobuf.Timestamp
-	47, // 57: v1.GetLotteryStatusResponse.current:type_name -> v1.LotteryRound
-	70, // 58: v1.RegisterLotteryResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	70, // 59: v1.RegisterLotteryResponse.next_draw_time:type_name -> google.protobuf.Timestamp
-	47, // 60: v1.RegisterLotteryResponse.current:type_name -> v1.LotteryRound
-	47, // 61: v1.LotteryHistoryItem.round:type_name -> v1.LotteryRound
-	2,  // 62: v1.LotteryHistoryItem.my_status:type_name -> v1.LotteryMyStatus
-	48, // 63: v1.LotteryHistoryItem.winners:type_name -> v1.LotteryParticipant
-	68, // 64: v1.ListLotteryHistoryPublicResponse.items:type_name -> v1.LotteryHistoryItem
-	3,  // 65: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
-	5,  // 66: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
-	8,  // 67: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
-	10, // 68: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
-	12, // 69: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
-	14, // 70: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
-	16, // 71: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
-	18, // 72: v1.Sub2APIManager.GetSub2APIStats:input_type -> v1.GetSub2APIAdminStatsRequest
-	20, // 73: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
-	27, // 74: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
-	29, // 75: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
-	30, // 76: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
-	32, // 77: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
-	34, // 78: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
-	36, // 79: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
-	37, // 80: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
-	39, // 81: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
-	49, // 82: v1.Sub2APIManager.GetLotteryOverview:input_type -> v1.GetLotteryOverviewRequest
-	51, // 83: v1.Sub2APIManager.UpdateLotterySettings:input_type -> v1.UpdateLotterySettingsRequest
-	53, // 84: v1.Sub2APIManager.ListLotteryRounds:input_type -> v1.ListLotteryRoundsRequest
-	55, // 85: v1.Sub2APIManager.GetLotteryRoundDetail:input_type -> v1.GetLotteryRoundDetailRequest
-	57, // 86: v1.Sub2APIManager.DistributeLotteryRound:input_type -> v1.DistributeLotteryRoundRequest
-	59, // 87: v1.Sub2APIManager.TriggerLotterySettle:input_type -> v1.TriggerLotterySettleRequest
-	61, // 88: v1.Sub2APIManager.TriggerLotteryDraw:input_type -> v1.TriggerLotteryDrawRequest
-	63, // 89: v1.Sub2APIManager.GetLotteryStatus:input_type -> v1.GetLotteryStatusRequest
-	65, // 90: v1.Sub2APIManager.RegisterLottery:input_type -> v1.RegisterLotteryRequest
-	67, // 91: v1.Sub2APIManager.ListLotteryHistoryPublic:input_type -> v1.ListLotteryHistoryPublicRequest
-	4,  // 92: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
-	7,  // 93: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
-	9,  // 94: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
-	11, // 95: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
-	13, // 96: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
-	15, // 97: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
-	17, // 98: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
-	19, // 99: v1.Sub2APIManager.GetSub2APIStats:output_type -> v1.GetSub2APIAdminStatsResponse
-	21, // 100: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
-	28, // 101: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
-	31, // 102: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	31, // 103: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	33, // 104: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
-	35, // 105: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
-	38, // 106: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	38, // 107: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	40, // 108: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
-	50, // 109: v1.Sub2APIManager.GetLotteryOverview:output_type -> v1.GetLotteryOverviewResponse
-	52, // 110: v1.Sub2APIManager.UpdateLotterySettings:output_type -> v1.UpdateLotterySettingsResponse
-	54, // 111: v1.Sub2APIManager.ListLotteryRounds:output_type -> v1.ListLotteryRoundsResponse
-	56, // 112: v1.Sub2APIManager.GetLotteryRoundDetail:output_type -> v1.GetLotteryRoundDetailResponse
-	58, // 113: v1.Sub2APIManager.DistributeLotteryRound:output_type -> v1.DistributeLotteryRoundResponse
-	60, // 114: v1.Sub2APIManager.TriggerLotterySettle:output_type -> v1.TriggerLotterySettleResponse
-	62, // 115: v1.Sub2APIManager.TriggerLotteryDraw:output_type -> v1.TriggerLotteryDrawResponse
-	64, // 116: v1.Sub2APIManager.GetLotteryStatus:output_type -> v1.GetLotteryStatusResponse
-	66, // 117: v1.Sub2APIManager.RegisterLottery:output_type -> v1.RegisterLotteryResponse
-	69, // 118: v1.Sub2APIManager.ListLotteryHistoryPublic:output_type -> v1.ListLotteryHistoryPublicResponse
-	92, // [92:119] is the sub-list for method output_type
-	65, // [65:92] is the sub-list for method input_type
-	65, // [65:65] is the sub-list for extension type_name
-	65, // [65:65] is the sub-list for extension extendee
-	0,  // [0:65] is the sub-list for field type_name
+	48, // 52: v1.ListLotteryRegistrantsResponse.registrants:type_name -> v1.LotteryParticipant
+	75, // 53: v1.Sub2APIUserInfo.created_at:type_name -> google.protobuf.Timestamp
+	59, // 54: v1.GetSub2APIUserResponse.user:type_name -> v1.Sub2APIUserInfo
+	47, // 55: v1.DistributeLotteryRoundResponse.round:type_name -> v1.LotteryRound
+	47, // 56: v1.TriggerLotterySettleResponse.round:type_name -> v1.LotteryRound
+	47, // 57: v1.TriggerLotteryDrawResponse.round:type_name -> v1.LotteryRound
+	75, // 58: v1.GetLotteryStatusResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	75, // 59: v1.GetLotteryStatusResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	47, // 60: v1.GetLotteryStatusResponse.current:type_name -> v1.LotteryRound
+	75, // 61: v1.RegisterLotteryResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	75, // 62: v1.RegisterLotteryResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	47, // 63: v1.RegisterLotteryResponse.current:type_name -> v1.LotteryRound
+	47, // 64: v1.LotteryHistoryItem.round:type_name -> v1.LotteryRound
+	2,  // 65: v1.LotteryHistoryItem.my_status:type_name -> v1.LotteryMyStatus
+	48, // 66: v1.LotteryHistoryItem.winners:type_name -> v1.LotteryParticipant
+	73, // 67: v1.ListLotteryHistoryPublicResponse.items:type_name -> v1.LotteryHistoryItem
+	3,  // 68: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
+	5,  // 69: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
+	8,  // 70: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
+	10, // 71: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
+	12, // 72: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
+	14, // 73: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
+	16, // 74: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
+	18, // 75: v1.Sub2APIManager.GetSub2APIStats:input_type -> v1.GetSub2APIAdminStatsRequest
+	20, // 76: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
+	27, // 77: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
+	29, // 78: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
+	30, // 79: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
+	32, // 80: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
+	34, // 81: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
+	36, // 82: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
+	37, // 83: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
+	39, // 84: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
+	49, // 85: v1.Sub2APIManager.GetLotteryOverview:input_type -> v1.GetLotteryOverviewRequest
+	51, // 86: v1.Sub2APIManager.UpdateLotterySettings:input_type -> v1.UpdateLotterySettingsRequest
+	53, // 87: v1.Sub2APIManager.ListLotteryRounds:input_type -> v1.ListLotteryRoundsRequest
+	55, // 88: v1.Sub2APIManager.GetLotteryRoundDetail:input_type -> v1.GetLotteryRoundDetailRequest
+	57, // 89: v1.Sub2APIManager.ListLotteryRegistrants:input_type -> v1.ListLotteryRegistrantsRequest
+	60, // 90: v1.Sub2APIManager.GetSub2APIUser:input_type -> v1.GetSub2APIUserRequest
+	62, // 91: v1.Sub2APIManager.DistributeLotteryRound:input_type -> v1.DistributeLotteryRoundRequest
+	64, // 92: v1.Sub2APIManager.TriggerLotterySettle:input_type -> v1.TriggerLotterySettleRequest
+	66, // 93: v1.Sub2APIManager.TriggerLotteryDraw:input_type -> v1.TriggerLotteryDrawRequest
+	68, // 94: v1.Sub2APIManager.GetLotteryStatus:input_type -> v1.GetLotteryStatusRequest
+	70, // 95: v1.Sub2APIManager.RegisterLottery:input_type -> v1.RegisterLotteryRequest
+	72, // 96: v1.Sub2APIManager.ListLotteryHistoryPublic:input_type -> v1.ListLotteryHistoryPublicRequest
+	4,  // 97: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
+	7,  // 98: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
+	9,  // 99: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
+	11, // 100: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
+	13, // 101: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
+	15, // 102: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
+	17, // 103: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
+	19, // 104: v1.Sub2APIManager.GetSub2APIStats:output_type -> v1.GetSub2APIAdminStatsResponse
+	21, // 105: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
+	28, // 106: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
+	31, // 107: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	31, // 108: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	33, // 109: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
+	35, // 110: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
+	38, // 111: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	38, // 112: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	40, // 113: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
+	50, // 114: v1.Sub2APIManager.GetLotteryOverview:output_type -> v1.GetLotteryOverviewResponse
+	52, // 115: v1.Sub2APIManager.UpdateLotterySettings:output_type -> v1.UpdateLotterySettingsResponse
+	54, // 116: v1.Sub2APIManager.ListLotteryRounds:output_type -> v1.ListLotteryRoundsResponse
+	56, // 117: v1.Sub2APIManager.GetLotteryRoundDetail:output_type -> v1.GetLotteryRoundDetailResponse
+	58, // 118: v1.Sub2APIManager.ListLotteryRegistrants:output_type -> v1.ListLotteryRegistrantsResponse
+	61, // 119: v1.Sub2APIManager.GetSub2APIUser:output_type -> v1.GetSub2APIUserResponse
+	63, // 120: v1.Sub2APIManager.DistributeLotteryRound:output_type -> v1.DistributeLotteryRoundResponse
+	65, // 121: v1.Sub2APIManager.TriggerLotterySettle:output_type -> v1.TriggerLotterySettleResponse
+	67, // 122: v1.Sub2APIManager.TriggerLotteryDraw:output_type -> v1.TriggerLotteryDrawResponse
+	69, // 123: v1.Sub2APIManager.GetLotteryStatus:output_type -> v1.GetLotteryStatusResponse
+	71, // 124: v1.Sub2APIManager.RegisterLottery:output_type -> v1.RegisterLotteryResponse
+	74, // 125: v1.Sub2APIManager.ListLotteryHistoryPublic:output_type -> v1.ListLotteryHistoryPublicResponse
+	97, // [97:126] is the sub-list for method output_type
+	68, // [68:97] is the sub-list for method input_type
+	68, // [68:68] is the sub-list for extension type_name
+	68, // [68:68] is the sub-list for extension extendee
+	0,  // [0:68] is the sub-list for field type_name
 }
 
 func init() { file_v1_sub2api_proto_init() }
@@ -5290,7 +5672,7 @@ func file_v1_sub2api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_sub2api_proto_rawDesc), len(file_v1_sub2api_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   67,
+			NumMessages:   72,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
