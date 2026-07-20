@@ -139,7 +139,7 @@ type UsageListResult struct {
 	Total   int
 }
 
-// Totals 区间/全量聚合结果（由 BuildSnapshot/BuildStats 读取记录后在内存中算出）。
+// Totals 区间/全量聚合结果（由数据层在 DB 侧 Count/Sum/Mean 算出）。
 type Totals struct {
 	TotalCount       int64
 	RequestCount     int64
@@ -149,22 +149,74 @@ type Totals struct {
 	AverageTPS       float64
 }
 
-// UsageStore 数据层需实现的持久化与读取接口（仅做 ent CRUD/读取）。
-// 统计聚合改为读取记录后在内存中计算，数据层只需提供一次性读取入口，
-// 避免一个页面触发数十次聚合查询。
-//
+// MinTPSOutputTokens 生成速度统计的最小输出 token 阈值：输出过短的请求速率无统计意义，
+// 输出 token 少于该值的请求不计入平均生成速度（DB 侧 WHERE 过滤）。
+const MinTPSOutputTokens = 20
+
+// StatsWindow 聚合查询的时间窗口与可见性过滤。
+// Start 为 nil 表示不限起点；End 为 nil 表示不限终点；PublicOnly 仅统计公开启用分组的记录。
+type StatsWindow struct {
+	Start      *time.Time
+	End        *time.Time
+	PublicOnly bool
+}
+
+// TopStat 单维度（模型/接口/分组）用量聚合（数据层 GroupBy 结果）。
+type TopStat struct {
+	Name    string
+	Request int64   // 计费请求数
+	Token   int64   // 计费请求 token 之和
+	Success int64   // 成功请求数
+	AvgTPS  float64 // 达标请求平均生成速度
+}
+
+// DayStat 单日聚合（数据层 GroupBy(request_date) 结果）。
+type DayStat struct {
+	Date         string
+	Request      int64
+	Success      int64
+	Token        int64
+	AvgLatencyMS float64
+}
+
+// BucketStat 15 分钟桶聚合（数据层 GroupBy(bucket15m) 结果）。
+type BucketStat struct {
+	Bucket       time.Time
+	Total        int64 // 全部记录数
+	Request      int64 // 计费请求数
+	Success      int64
+	Token        int64
+	AvgLatencyMS float64
+	AvgTPS       float64
+}
+
+// RecordFilter 最近请求多维度筛选；指针字段为 nil 表示该维度不参与过滤。
+type RecordFilter struct {
+	Model       *string // 精确匹配
+	GroupName   *string // 精确匹配
+	AccountName *string // 子串（不区分大小写）
+	Outcome     *string // "success" | "failed"
+}
+
+// UsageStore 数据层需实现的持久化与聚合接口。
+// 统计聚合全部下沉到数据库侧（ent Count/Sum/Mean/GroupBy），不在内存中遍历记录聚合；
 // 公开页读路径必须在数据库侧按 public_enabled 分组过滤，保证全局一致。
 type UsageStore interface {
 	SaveUsageRecords(ctx context.Context, records []*UsageRecord) error
 	ClearUsageRecords(ctx context.Context) error
 	LatestUsageRecordTime(ctx context.Context) (*time.Time, error)
 	LatestUpstreamErrorRecordTime(ctx context.Context) (*time.Time, error)
-	// RecordsSince 按时间升序返回 start（含）之后的记录；start 为 nil 时返回全部记录。
-	// publicOnly=true 时仅返回「关联分组 public_enabled=true」的记录（DB 过滤）。
-	RecordsSince(ctx context.Context, start *time.Time, publicOnly bool) ([]*UsageRecord, error)
-	// RecordsPage 按时间倒序（最新在前）返回 [start, end] 区间内分页的记录及区间总数。
-	// publicOnly 语义同 RecordsSince。
-	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool) ([]*UsageRecord, int, error)
+	// RecordsPage 按时间倒序（最新在前）返回 [start, end] 区间内分页的记录及区间总数，
+	// 支持多维度筛选（RecordFilter）。publicOnly=true 仅返回公开启用分组的记录。
+	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool, filter RecordFilter) ([]*UsageRecord, int, error)
+	// AggregateTotals 汇总窗口内标量指标（DB 侧 Count/Sum/Mean，含 TPS 达标过滤）。
+	AggregateTotals(ctx context.Context, w StatsWindow) (Totals, error)
+	// TopItems 按维度分组的用量排行（DB 侧 GroupBy），按 token 降序；limit<=0 返回全部。
+	TopItems(ctx context.Context, w StatsWindow, field GroupField, limit int) ([]TopStat, error)
+	// DailyTrend 按自然日聚合（DB 侧 GroupBy(request_date)），按日期升序。
+	DailyTrend(ctx context.Context, w StatsWindow) ([]DayStat, error)
+	// IntradaySeries 按 15 分钟桶聚合（DB 侧 GroupBy(bucket15m)），按桶升序。
+	IntradaySeries(ctx context.Context, w StatsWindow) ([]BucketStat, error)
 	// ListGroups 返回本地分组列表（活跃在前，按名称排序）。
 	ListGroups(ctx context.Context) ([]*Group, error)
 	// SyncGroups 用上游存活分组 ID 集合刷新本地：命中的标未删除并更新名；本地多出的标 deleted。

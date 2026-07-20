@@ -8,10 +8,12 @@ import {
   deleteSub2APITimelineItem,
   getPublicSub2APIHome,
   getPublicSub2APIStats,
+  getSub2APIAdminTop,
+  getSub2APIAdminTotals,
+  getSub2APIAdminTrend,
   getSub2APIConfig,
   getSub2APIRecentRequests,
   getSub2APISnapshot,
-  getSub2APIStats,
   listSub2APIAnnouncements,
   listSub2APITimeline,
   syncSub2APIUsage,
@@ -26,6 +28,7 @@ import { showRequestError } from '@/utils/request'
 import type {
   CreateSub2APIAnnouncementRequest,
   CreateSub2APITimelineItemRequest,
+  GetSub2APIAdminTotalsResponse,
   Sub2APIAnnouncement,
   Sub2APIConfig,
   Sub2APIGroup,
@@ -49,6 +52,14 @@ export interface Sub2APIMetricCard {
   detail: string
   icon: string
   tone: 'green' | 'blue' | 'amber' | 'red'
+}
+
+// 最近请求多维度筛选：字段缺省 = 该维度不参与过滤（对应后端 proto3 optional）
+export interface Sub2APIRecentFilter {
+  model?: string
+  groupName?: string
+  accountName?: string
+  outcome?: string
 }
 
 const createDefaultConfig = (): Sub2APIConfig => ({
@@ -92,9 +103,12 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const snapshot = ref<Sub2APIUsageSnapshot>()
   const home = ref<Sub2APIHome>()
   const stats = ref<Sub2APIStats>()
-  // 管理端概览：按所选时间区间聚合（与公开首页/统计页的 stats 区分开）
-  const adminStats = ref<Sub2APIStats>()
-  // 最近请求：按时间区间分页（独立于概览统计，翻页只刷新本列表）
+  // 管理端概览：三个面板独立拉取（totals/trend/top），各自 loading（禁单请求大聚合）
+  const adminTotals = ref<GetSub2APIAdminTotalsResponse>()
+  const adminTrend = ref<Sub2APITrendPoint[]>([])
+  const adminModels = ref<Sub2APITopItem[]>([])
+  const adminGroups = ref<Sub2APITopItem[]>([])
+  // 最近请求：按时间区间分页 + 多维度筛选（独立于概览统计，翻页只刷新本列表）
   const adminRecent = ref<Sub2APIRecentRequest[]>([])
   const adminRecentTotal = ref(0)
   const recentPage = ref(1)
@@ -106,7 +120,9 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const snapshotLoading = ref(false)
   const publicLoading = ref(false)
   const statsLoading = ref(false)
-  const adminStatsLoading = ref(false)
+  const adminTotalsLoading = ref(false)
+  const adminTrendLoading = ref(false)
+  const adminTopLoading = ref(false)
   const recentLoading = ref(false)
   const saving = ref(false)
   const testing = ref(false)
@@ -183,22 +199,55 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  // 管理端用量概览：统计 [startTime, endTime] 时间段（Unix 毫秒，精度到分钟）
-  const loadAdminStats = async (startTime: number, endTime: number) => {
-    adminStatsLoading.value = true
+  // 管理端概览按模块拆分：totals / trend / top 各自独立请求 + loading（时间段 Unix 毫秒，精度到分钟）
+  const loadAdminTotals = async (startTime: number, endTime: number) => {
+    adminTotalsLoading.value = true
     try {
-      const { data } = await getSub2APIStats({ startTime, endTime })
-      adminStats.value = data?.stats
-      return adminStats.value
+      const { data } = await getSub2APIAdminTotals({ startTime, endTime })
+      adminTotals.value = data
+      return data
     } catch (error) {
       showRequestError(error, t('sub2api.store.loadAdminStatsFailed'))
     } finally {
-      adminStatsLoading.value = false
+      adminTotalsLoading.value = false
     }
   }
 
-  // 管理端最近请求：按时间区间分页加载（page 从 1 起）
-  const loadAdminRecent = async (startTime: number, endTime: number, page = recentPage.value) => {
+  const loadAdminTrend = async (startTime: number, endTime: number) => {
+    adminTrendLoading.value = true
+    try {
+      const { data } = await getSub2APIAdminTrend({ startTime, endTime })
+      adminTrend.value = data?.trend || []
+      return adminTrend.value
+    } catch (error) {
+      showRequestError(error, t('sub2api.store.loadAdminStatsFailed'))
+    } finally {
+      adminTrendLoading.value = false
+    }
+  }
+
+  // limit<=0 返回全部维度行（DB 侧 GroupBy，行数受不同模型/分组数约束）；图表侧再截 TopN。
+  const loadAdminTop = async (startTime: number, endTime: number, limit = 0) => {
+    adminTopLoading.value = true
+    try {
+      const { data } = await getSub2APIAdminTop({ startTime, endTime, limit })
+      adminModels.value = data?.models || []
+      adminGroups.value = data?.groups || []
+      return data
+    } catch (error) {
+      showRequestError(error, t('sub2api.store.loadAdminStatsFailed'))
+    } finally {
+      adminTopLoading.value = false
+    }
+  }
+
+  // 管理端最近请求：按时间区间分页 + 多维度筛选（page 从 1 起；filter 指针字段缺省=该维度不过滤）
+  const loadAdminRecent = async (
+    startTime: number,
+    endTime: number,
+    page = recentPage.value,
+    filter: Sub2APIRecentFilter = {},
+  ) => {
     recentLoading.value = true
     try {
       const { data } = await getSub2APIRecentRequests({
@@ -206,6 +255,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
         endTime,
         page,
         pageSize: recentPageSize.value,
+        ...filter,
       })
       adminRecent.value = data?.recentRequests || []
       adminRecentTotal.value = Number(data?.total || 0)
@@ -550,7 +600,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const topOption = (items: Sub2APITopItem[] = [], title = t('sub2api.common.requestCount')) => {
+  // Top 图表按 token 用量呈现（轴/tooltip 用 K/M/B 紧凑格式；数据已由后端按 token 降序）
+  const topOption = (items: Sub2APITopItem[] = [], title: string) => {
     if (!items.length) return emptyChartOption()
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
@@ -558,14 +609,19 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     const chartItems = [...items].reverse()
     return {
       color: ['#6366f1'],
-      tooltip: { trigger: 'axis', confine: true },
+      tooltip: {
+        trigger: 'axis',
+        confine: true,
+        formatter: (params: ChartTooltipParam | ChartTooltipParam[]) =>
+          formatAxisTooltip(params, (_name, raw) => formatToken(raw)),
+      },
       grid: { left: compact ? 72 : 96, right: compact ? 8 : 18, top: 16, bottom: 20 },
       xAxis: {
         type: 'value',
         axisLabel: {
           color: axisColor,
           fontSize: 11,
-          formatter: (val: number) => formatCompactCount(val),
+          formatter: (val: number) => formatToken(val),
         },
         splitLine: { lineStyle: { color: isDark ? '#1f2937' : '#eef2f7' } },
       },
@@ -580,15 +636,21 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           type: 'bar',
           barMaxWidth: 16,
           itemStyle: { borderRadius: [0, 4, 4, 0] },
-          data: chartItems.map((item) => item.requestCount),
+          data: chartItems.map((item) => item.tokenCount),
         },
       ],
     }
   }
 
-  const adminTrendOption = computed(() => trendOption(adminStats.value?.trend))
-  const adminModelOption = computed(() => topOption(adminStats.value?.models, t('sub2api.common.modelRequestTop')))
-  const adminGroupOption = computed(() => topOption(adminStats.value?.groups, t('sub2api.common.groupRequestTop')))
+  // 概览 Top 图表只展示前 N 项（筛选下拉用全量枚举 adminModels/adminGroups）
+  const TOP_CHART_LIMIT = 10
+  const adminTrendOption = computed(() => trendOption(adminTrend.value))
+  const adminModelOption = computed(() =>
+    topOption(adminModels.value.slice(0, TOP_CHART_LIMIT), t('sub2api.common.modelTokenTop')),
+  )
+  const adminGroupOption = computed(() =>
+    topOption(adminGroups.value.slice(0, TOP_CHART_LIMIT), t('sub2api.common.groupTokenTop')),
+  )
   const publicTrendOption = computed(() => trendOption(home.value?.snapshot?.trend))
   const statsTrendOption = computed(() => trendOption(stats.value?.trend))
 
@@ -690,7 +752,17 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   })
 
-  const buildStatsCards = (s?: Sub2APIStats): Sub2APIMetricCard[] => [
+  // 汇总指标卡：公开 stats 与管理端 totals 结构上共享这组标量字段
+  type StatsCardSource = {
+    requestCount?: number
+    successCount?: number
+    successRate?: number
+    tokenCount?: number
+    averageLatencyMs?: number
+    averageTps?: number
+    rangeLabel?: string
+  }
+  const buildStatsCards = (s?: StatsCardSource): Sub2APIMetricCard[] => [
     {
       label: t('sub2api.common.requestCount'),
       value: formatNumber(s?.requestCount),
@@ -729,7 +801,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   ]
 
   const statsMetricCards = computed(() => buildStatsCards(stats.value))
-  const adminStatsMetricCards = computed(() => buildStatsCards(adminStats.value))
+  const adminStatsMetricCards = computed(() => buildStatsCards(adminTotals.value))
 
   return {
     config,
@@ -738,7 +810,10 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     snapshot,
     home,
     stats,
-    adminStats,
+    adminTotals,
+    adminTrend,
+    adminModels,
+    adminGroups,
     adminRecent,
     adminRecentTotal,
     recentPage,
@@ -749,7 +824,9 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     snapshotLoading,
     publicLoading,
     statsLoading,
-    adminStatsLoading,
+    adminTotalsLoading,
+    adminTrendLoading,
+    adminTopLoading,
     recentLoading,
     saving,
     testing,
@@ -768,7 +845,9 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     loadSnapshot,
     loadPublicHome,
     loadStats,
-    loadAdminStats,
+    loadAdminTotals,
+    loadAdminTrend,
+    loadAdminTop,
     loadAdminRecent,
     loadAdmin,
     saveConfig,

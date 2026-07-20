@@ -28,10 +28,12 @@ const OperationSub2APIManagerGetLotteryOverview = "/v1.Sub2APIManager/GetLottery
 const OperationSub2APIManagerGetLotteryRoundDetail = "/v1.Sub2APIManager/GetLotteryRoundDetail"
 const OperationSub2APIManagerGetLotteryStatus = "/v1.Sub2APIManager/GetLotteryStatus"
 const OperationSub2APIManagerGetPublicSub2APIStats = "/v1.Sub2APIManager/GetPublicSub2APIStats"
+const OperationSub2APIManagerGetSub2APIAdminTop = "/v1.Sub2APIManager/GetSub2APIAdminTop"
+const OperationSub2APIManagerGetSub2APIAdminTotals = "/v1.Sub2APIManager/GetSub2APIAdminTotals"
+const OperationSub2APIManagerGetSub2APIAdminTrend = "/v1.Sub2APIManager/GetSub2APIAdminTrend"
 const OperationSub2APIManagerGetSub2APIConfig = "/v1.Sub2APIManager/GetSub2APIConfig"
 const OperationSub2APIManagerGetSub2APIRecentRequests = "/v1.Sub2APIManager/GetSub2APIRecentRequests"
 const OperationSub2APIManagerGetSub2APISnapshot = "/v1.Sub2APIManager/GetSub2APISnapshot"
-const OperationSub2APIManagerGetSub2APIStats = "/v1.Sub2APIManager/GetSub2APIStats"
 const OperationSub2APIManagerGetSub2APIUser = "/v1.Sub2APIManager/GetSub2APIUser"
 const OperationSub2APIManagerListLotteryHistoryPublic = "/v1.Sub2APIManager/ListLotteryHistoryPublic"
 const OperationSub2APIManagerListLotteryRegistrants = "/v1.Sub2APIManager/ListLotteryRegistrants"
@@ -66,14 +68,18 @@ type Sub2APIManagerHTTPServer interface {
 	GetLotteryStatus(context.Context, *GetLotteryStatusRequest) (*GetLotteryStatusResponse, error)
 	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
+	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+	GetSub2APIAdminTop(context.Context, *GetSub2APIAdminTopRequest) (*GetSub2APIAdminTopResponse, error)
+	// GetSub2APIAdminTotals 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+	GetSub2APIAdminTotals(context.Context, *GetSub2APIAdminTotalsRequest) (*GetSub2APIAdminTotalsResponse, error)
+	// GetSub2APIAdminTrend 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
+	GetSub2APIAdminTrend(context.Context, *GetSub2APIAdminTrendRequest) (*GetSub2APIAdminTrendResponse, error)
 	// GetSub2APIConfig 获取 Sub2API 配置
 	GetSub2APIConfig(context.Context, *GetSub2APIConfigRequest) (*GetSub2APIConfigResponse, error)
 	// GetSub2APIRecentRequests 获取管理端最近请求（按时间区间分页，需鉴权）
 	GetSub2APIRecentRequests(context.Context, *GetSub2APIRecentRequestsRequest) (*GetSub2APIRecentRequestsResponse, error)
 	// GetSub2APISnapshot 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(context.Context, *GetSub2APISnapshotRequest) (*GetSub2APISnapshotResponse, error)
-	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
-	GetSub2APIStats(context.Context, *GetSub2APIAdminStatsRequest) (*GetSub2APIAdminStatsResponse, error)
 	// GetSub2APIUser 单个 Sub2API 用户详情（点击报名者时实时拉取）
 	GetSub2APIUser(context.Context, *GetSub2APIUserRequest) (*GetSub2APIUserResponse, error)
 	// ListLotteryHistoryPublic 用户端历史 + 本人参与情况
@@ -115,7 +121,9 @@ func RegisterSub2APIManagerHTTPServer(s *http.Server, srv Sub2APIManagerHTTPServ
 	r.POST("/api/v1/sub2api/sync", _Sub2APIManager_SyncSub2APIUsage0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/snapshot", _Sub2APIManager_GetSub2APISnapshot0_HTTP_Handler(srv))
 	r.GET("/api/v1/public/sub2api/stats", _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv))
-	r.GET("/api/v1/sub2api/stats", _Sub2APIManager_GetSub2APIStats0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/stats/totals", _Sub2APIManager_GetSub2APIAdminTotals0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/stats/trend", _Sub2APIManager_GetSub2APIAdminTrend0_HTTP_Handler(srv))
+	r.GET("/api/v1/sub2api/stats/top", _Sub2APIManager_GetSub2APIAdminTop0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/recent-requests", _Sub2APIManager_GetSub2APIRecentRequests0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/announcements", _Sub2APIManager_ListSub2APIAnnouncements0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/announcements", _Sub2APIManager_CreateSub2APIAnnouncement0_HTTP_Handler(srv))
@@ -281,21 +289,59 @@ func _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv Sub2APIManagerHTTPS
 	}
 }
 
-func _Sub2APIManager_GetSub2APIStats0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+func _Sub2APIManager_GetSub2APIAdminTotals0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetSub2APIAdminStatsRequest
+		var in GetSub2APIAdminTotalsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIStats)
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIAdminTotals)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetSub2APIStats(ctx, req.(*GetSub2APIAdminStatsRequest))
+			return srv.GetSub2APIAdminTotals(ctx, req.(*GetSub2APIAdminTotalsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetSub2APIAdminStatsResponse)
+		reply := out.(*GetSub2APIAdminTotalsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetSub2APIAdminTrend0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSub2APIAdminTrendRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIAdminTrend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSub2APIAdminTrend(ctx, req.(*GetSub2APIAdminTrendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSub2APIAdminTrendResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetSub2APIAdminTop0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetSub2APIAdminTopRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetSub2APIAdminTop)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSub2APIAdminTop(ctx, req.(*GetSub2APIAdminTopRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetSub2APIAdminTopResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -767,14 +813,18 @@ type Sub2APIManagerHTTPClient interface {
 	GetLotteryStatus(ctx context.Context, req *GetLotteryStatusRequest, opts ...http.CallOption) (rsp *GetLotteryStatusResponse, err error)
 	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(ctx context.Context, req *GetSub2APIStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIStatsResponse, err error)
+	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+	GetSub2APIAdminTop(ctx context.Context, req *GetSub2APIAdminTopRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminTopResponse, err error)
+	// GetSub2APIAdminTotals 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+	GetSub2APIAdminTotals(ctx context.Context, req *GetSub2APIAdminTotalsRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminTotalsResponse, err error)
+	// GetSub2APIAdminTrend 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
+	GetSub2APIAdminTrend(ctx context.Context, req *GetSub2APIAdminTrendRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminTrendResponse, err error)
 	// GetSub2APIConfig 获取 Sub2API 配置
 	GetSub2APIConfig(ctx context.Context, req *GetSub2APIConfigRequest, opts ...http.CallOption) (rsp *GetSub2APIConfigResponse, err error)
 	// GetSub2APIRecentRequests 获取管理端最近请求（按时间区间分页，需鉴权）
 	GetSub2APIRecentRequests(ctx context.Context, req *GetSub2APIRecentRequestsRequest, opts ...http.CallOption) (rsp *GetSub2APIRecentRequestsResponse, err error)
 	// GetSub2APISnapshot 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(ctx context.Context, req *GetSub2APISnapshotRequest, opts ...http.CallOption) (rsp *GetSub2APISnapshotResponse, err error)
-	// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
-	GetSub2APIStats(ctx context.Context, req *GetSub2APIAdminStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminStatsResponse, err error)
 	// GetSub2APIUser 单个 Sub2API 用户详情（点击报名者时实时拉取）
 	GetSub2APIUser(ctx context.Context, req *GetSub2APIUserRequest, opts ...http.CallOption) (rsp *GetSub2APIUserResponse, err error)
 	// ListLotteryHistoryPublic 用户端历史 + 本人参与情况
@@ -939,6 +989,48 @@ func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIStats(ctx context.Context
 	return &out, nil
 }
 
+// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIAdminTop(ctx context.Context, in *GetSub2APIAdminTopRequest, opts ...http.CallOption) (*GetSub2APIAdminTopResponse, error) {
+	var out GetSub2APIAdminTopResponse
+	pattern := "/api/v1/sub2api/stats/top"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIAdminTop))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSub2APIAdminTotals 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIAdminTotals(ctx context.Context, in *GetSub2APIAdminTotalsRequest, opts ...http.CallOption) (*GetSub2APIAdminTotalsResponse, error) {
+	var out GetSub2APIAdminTotalsResponse
+	pattern := "/api/v1/sub2api/stats/totals"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIAdminTotals))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSub2APIAdminTrend 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
+func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIAdminTrend(ctx context.Context, in *GetSub2APIAdminTrendRequest, opts ...http.CallOption) (*GetSub2APIAdminTrendResponse, error) {
+	var out GetSub2APIAdminTrendResponse
+	pattern := "/api/v1/sub2api/stats/trend"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIAdminTrend))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSub2APIConfig 获取 Sub2API 配置
 func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIConfig(ctx context.Context, in *GetSub2APIConfigRequest, opts ...http.CallOption) (*GetSub2APIConfigResponse, error) {
 	var out GetSub2APIConfigResponse
@@ -973,20 +1065,6 @@ func (c *Sub2APIManagerHTTPClientImpl) GetSub2APISnapshot(ctx context.Context, i
 	pattern := "/api/v1/sub2api/snapshot"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APISnapshot))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetSub2APIStats 获取管理端用量概览（按时间区间统计，需鉴权）
-func (c *Sub2APIManagerHTTPClientImpl) GetSub2APIStats(ctx context.Context, in *GetSub2APIAdminStatsRequest, opts ...http.CallOption) (*GetSub2APIAdminStatsResponse, error) {
-	var out GetSub2APIAdminStatsResponse
-	pattern := "/api/v1/sub2api/stats"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationSub2APIManagerGetSub2APIStats))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

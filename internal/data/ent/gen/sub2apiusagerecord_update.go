@@ -63,6 +63,27 @@ func (_u *Sub2APIUsageRecordUpdate) SetNillableRequestDate(v *string) *Sub2APIUs
 	return _u
 }
 
+// SetBucket15m sets the "bucket15m" field.
+func (_u *Sub2APIUsageRecordUpdate) SetBucket15m(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.ResetBucket15m()
+	_u.mutation.SetBucket15m(v)
+	return _u
+}
+
+// SetNillableBucket15m sets the "bucket15m" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdate) SetNillableBucket15m(v *int64) *Sub2APIUsageRecordUpdate {
+	if v != nil {
+		_u.SetBucket15m(*v)
+	}
+	return _u
+}
+
+// AddBucket15m adds value to the "bucket15m" field.
+func (_u *Sub2APIUsageRecordUpdate) AddBucket15m(v int64) *Sub2APIUsageRecordUpdate {
+	_u.mutation.AddBucket15m(v)
+	return _u
+}
+
 // SetModel sets the "model" field.
 func (_u *Sub2APIUsageRecordUpdate) SetModel(v string) *Sub2APIUsageRecordUpdate {
 	_u.mutation.SetModel(v)
@@ -521,6 +542,12 @@ func (_u *Sub2APIUsageRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	if value, ok := _u.mutation.RequestDate(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldRequestDate, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Bucket15m(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldBucket15m, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedBucket15m(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldBucket15m, field.TypeInt64, value)
+	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldModel, field.TypeString, value)
 	}
@@ -709,6 +736,27 @@ func (_u *Sub2APIUsageRecordUpdateOne) SetNillableRequestDate(v *string) *Sub2AP
 	if v != nil {
 		_u.SetRequestDate(*v)
 	}
+	return _u
+}
+
+// SetBucket15m sets the "bucket15m" field.
+func (_u *Sub2APIUsageRecordUpdateOne) SetBucket15m(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.ResetBucket15m()
+	_u.mutation.SetBucket15m(v)
+	return _u
+}
+
+// SetNillableBucket15m sets the "bucket15m" field if the given value is not nil.
+func (_u *Sub2APIUsageRecordUpdateOne) SetNillableBucket15m(v *int64) *Sub2APIUsageRecordUpdateOne {
+	if v != nil {
+		_u.SetBucket15m(*v)
+	}
+	return _u
+}
+
+// AddBucket15m adds value to the "bucket15m" field.
+func (_u *Sub2APIUsageRecordUpdateOne) AddBucket15m(v int64) *Sub2APIUsageRecordUpdateOne {
+	_u.mutation.AddBucket15m(v)
 	return _u
 }
 
@@ -1199,6 +1247,12 @@ func (_u *Sub2APIUsageRecordUpdateOne) sqlSave(ctx context.Context) (_node *Sub2
 	}
 	if value, ok := _u.mutation.RequestDate(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldRequestDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Bucket15m(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldBucket15m, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedBucket15m(); ok {
+		_spec.AddField(sub2apiusagerecord.FieldBucket15m, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldModel, field.TypeString, value)

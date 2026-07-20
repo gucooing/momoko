@@ -872,36 +872,40 @@ func init() {
 	sub2apiusagerecord.DefaultUpdateTime = sub2apiusagerecordDescUpdateTime.Default.(func() time.Time)
 	// sub2apiusagerecord.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	sub2apiusagerecord.UpdateDefaultUpdateTime = sub2apiusagerecordDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sub2apiusagerecordDescBucket15m is the schema descriptor for bucket15m field.
+	sub2apiusagerecordDescBucket15m := sub2apiusagerecordFields[3].Descriptor()
+	// sub2apiusagerecord.DefaultBucket15m holds the default value on creation for the bucket15m field.
+	sub2apiusagerecord.DefaultBucket15m = sub2apiusagerecordDescBucket15m.Default.(int64)
 	// sub2apiusagerecordDescSuccess is the schema descriptor for success field.
-	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[11].Descriptor()
+	sub2apiusagerecordDescSuccess := sub2apiusagerecordFields[12].Descriptor()
 	// sub2apiusagerecord.DefaultSuccess holds the default value on creation for the success field.
 	sub2apiusagerecord.DefaultSuccess = sub2apiusagerecordDescSuccess.Default.(bool)
 	// sub2apiusagerecordDescLatencyMs is the schema descriptor for latency_ms field.
-	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[12].Descriptor()
+	sub2apiusagerecordDescLatencyMs := sub2apiusagerecordFields[13].Descriptor()
 	// sub2apiusagerecord.DefaultLatencyMs holds the default value on creation for the latency_ms field.
 	sub2apiusagerecord.DefaultLatencyMs = sub2apiusagerecordDescLatencyMs.Default.(int64)
 	// sub2apiusagerecordDescTokenCount is the schema descriptor for token_count field.
-	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[13].Descriptor()
+	sub2apiusagerecordDescTokenCount := sub2apiusagerecordFields[14].Descriptor()
 	// sub2apiusagerecord.DefaultTokenCount holds the default value on creation for the token_count field.
 	sub2apiusagerecord.DefaultTokenCount = sub2apiusagerecordDescTokenCount.Default.(int64)
 	// sub2apiusagerecordDescOutputTokens is the schema descriptor for output_tokens field.
-	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[14].Descriptor()
+	sub2apiusagerecordDescOutputTokens := sub2apiusagerecordFields[15].Descriptor()
 	// sub2apiusagerecord.DefaultOutputTokens holds the default value on creation for the output_tokens field.
 	sub2apiusagerecord.DefaultOutputTokens = sub2apiusagerecordDescOutputTokens.Default.(int64)
 	// sub2apiusagerecordDescTps is the schema descriptor for tps field.
-	sub2apiusagerecordDescTps := sub2apiusagerecordFields[15].Descriptor()
+	sub2apiusagerecordDescTps := sub2apiusagerecordFields[16].Descriptor()
 	// sub2apiusagerecord.DefaultTps holds the default value on creation for the tps field.
 	sub2apiusagerecord.DefaultTps = sub2apiusagerecordDescTps.Default.(float64)
 	// sub2apiusagerecordDescCost is the schema descriptor for cost field.
-	sub2apiusagerecordDescCost := sub2apiusagerecordFields[16].Descriptor()
+	sub2apiusagerecordDescCost := sub2apiusagerecordFields[17].Descriptor()
 	// sub2apiusagerecord.DefaultCost holds the default value on creation for the cost field.
 	sub2apiusagerecord.DefaultCost = sub2apiusagerecordDescCost.Default.(float64)
 	// sub2apiusagerecordDescFirstTokenMs is the schema descriptor for first_token_ms field.
-	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[17].Descriptor()
+	sub2apiusagerecordDescFirstTokenMs := sub2apiusagerecordFields[18].Descriptor()
 	// sub2apiusagerecord.DefaultFirstTokenMs holds the default value on creation for the first_token_ms field.
 	sub2apiusagerecord.DefaultFirstTokenMs = sub2apiusagerecordDescFirstTokenMs.Default.(int64)
 	// sub2apiusagerecordDescHTTPStatus is the schema descriptor for http_status field.
-	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[21].Descriptor()
+	sub2apiusagerecordDescHTTPStatus := sub2apiusagerecordFields[22].Descriptor()
 	// sub2apiusagerecord.DefaultHTTPStatus holds the default value on creation for the http_status field.
 	sub2apiusagerecord.DefaultHTTPStatus = sub2apiusagerecordDescHTTPStatus.Default.(int)
 	// sub2apiusagerecordDescID is the schema descriptor for id field.

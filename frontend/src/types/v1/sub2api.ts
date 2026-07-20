@@ -112,17 +112,47 @@ export interface GetSub2APIStatsResponse {
   stats: Sub2APIStats | undefined;
 }
 
-export interface GetSub2APIAdminStatsRequest {
-  /**
-   * 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
-   * start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
-   */
+/**
+ * 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
+ * start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
+ */
+export interface GetSub2APIAdminTotalsRequest {
   startTime: number;
   endTime: number;
 }
 
-export interface GetSub2APIAdminStatsResponse {
-  stats: Sub2APIStats | undefined;
+/** 用量汇总标量指标 + 区间标签（概览指标带独立拉取） */
+export interface GetSub2APIAdminTotalsResponse {
+  rangeLabel: string;
+  requestCount: number;
+  successCount: number;
+  successRate: number;
+  tokenCount: number;
+  averageLatencyMs: number;
+  averageTps: number;
+}
+
+export interface GetSub2APIAdminTrendRequest {
+  startTime: number;
+  endTime: number;
+}
+
+/** 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐） */
+export interface GetSub2APIAdminTrendResponse {
+  trend: Sub2APITrendPoint[];
+}
+
+export interface GetSub2APIAdminTopRequest {
+  startTime: number;
+  endTime: number;
+  /** 每个维度返回的最大条数；<=0 返回全部。 */
+  limit: number;
+}
+
+/** 模型 + 分组用量排行（均按 token 降序，一次请求返回） */
+export interface GetSub2APIAdminTopResponse {
+  models: Sub2APITopItem[];
+  groups: Sub2APITopItem[];
 }
 
 export interface GetSub2APIRecentRequestsRequest {
@@ -135,6 +165,20 @@ export interface GetSub2APIRecentRequestsRequest {
   /** 页码（从 1 起）与每页条数。 */
   page: number;
   pageSize: number;
+  /** 多维度筛选（可选：字段缺省 = 该维度不参与过滤）。服务端 WHERE 过滤，翻页与总数随之收敛。 */
+  model?:
+    | string
+    | undefined;
+  /** 分组名（精确匹配） */
+  groupName?:
+    | string
+    | undefined;
+  /** 账号名（子串，不区分大小写） */
+  accountName?:
+    | string
+    | undefined;
+  /** 结果："success"=成功 / "failed"=失败 */
+  outcome?: string | undefined;
 }
 
 export interface GetSub2APIRecentRequestsResponse {

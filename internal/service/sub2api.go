@@ -6,6 +6,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
+	sub2apipkg "momoko/pkg/sub2api"
 )
 
 type Sub2APIService struct {
@@ -86,18 +87,31 @@ func (s *Sub2APIService) GetPublicSub2APIStats(ctx context.Context, req *v1.GetS
 	return &v1.GetSub2APIStatsResponse{Stats: stats}, nil
 }
 
-func (s *Sub2APIService) GetSub2APIStats(ctx context.Context, req *v1.GetSub2APIAdminStatsRequest) (*v1.GetSub2APIAdminStatsResponse, error) {
+func (s *Sub2APIService) GetSub2APIAdminTotals(ctx context.Context, req *v1.GetSub2APIAdminTotalsRequest) (*v1.GetSub2APIAdminTotalsResponse, error) {
 	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
-	stats, err := s.uc.AdminStats(ctx, start, end)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GetSub2APIAdminStatsResponse{Stats: stats}, nil
+	return s.uc.AdminTotals(ctx, start, end)
+}
+
+func (s *Sub2APIService) GetSub2APIAdminTrend(ctx context.Context, req *v1.GetSub2APIAdminTrendRequest) (*v1.GetSub2APIAdminTrendResponse, error) {
+	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
+	return s.uc.AdminTrend(ctx, start, end)
+}
+
+func (s *Sub2APIService) GetSub2APIAdminTop(ctx context.Context, req *v1.GetSub2APIAdminTopRequest) (*v1.GetSub2APIAdminTopResponse, error) {
+	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
+	return s.uc.AdminTop(ctx, start, end, int(req.GetLimit()))
 }
 
 func (s *Sub2APIService) GetSub2APIRecentRequests(ctx context.Context, req *v1.GetSub2APIRecentRequestsRequest) (*v1.GetSub2APIRecentRequestsResponse, error) {
 	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
-	list, total, err := s.uc.RecentRequests(ctx, start, end, int(req.GetPage()), int(req.GetPageSize()))
+	// 多维度筛选：proto3 optional → 指针；nil 表示该维度不参与过滤（区分「筛选空值」与「不筛选」）。
+	filter := sub2apipkg.RecordFilter{
+		Model:       req.Model,
+		GroupName:   req.GroupName,
+		AccountName: req.AccountName,
+		Outcome:     req.Outcome,
+	}
+	list, total, err := s.uc.RecentRequests(ctx, start, end, int(req.GetPage()), int(req.GetPageSize()), filter)
 	if err != nil {
 		return nil, err
 	}

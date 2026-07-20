@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
 	"momoko/internal/data/ent/gen/sub2apitimelineitem"
@@ -51,6 +53,7 @@ func (r *sub2APIRepo) SaveUsageRecords(ctx context.Context, records []*sub2apipk
 				SetID(record.ID).
 				SetRequestTime(record.RequestTime).
 				SetRequestDate(requestDate).
+				SetBucket15m(record.RequestTime.Truncate(15 * time.Minute).Unix()).
 				SetModel(record.Model).
 				SetEndpoint(record.Endpoint).
 				SetGroupName(groupName).
@@ -158,29 +161,375 @@ func (r *sub2APIRepo) LatestUpstreamErrorRecordTime(ctx context.Context) (*time.
 	return &record.RequestTime, nil
 }
 
-// RecordsSince 按时间升序读取 start（含）之后的记录。
-// publicOnly 时仅返回关联分组 public_enabled=true 的记录（数据库过滤）。
-func (r *sub2APIRepo) RecordsSince(ctx context.Context, start *time.Time, publicOnly bool) ([]*sub2apipkg.UsageRecord, error) {
-	query := r.data.db.Sub2APIUsageRecord.Query()
-	if start != nil {
-		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
+// ---------- DB 侧聚合：统计全部由 ent 计算，不落内存遍历 ----------
+
+// windowQuery 构造带时间窗口 + 公开过滤的基础查询。
+func (r *sub2APIRepo) windowQuery(w sub2apipkg.StatsWindow) *gen.Sub2APIUsageRecordQuery {
+	q := r.data.db.Sub2APIUsageRecord.Query()
+	if w.Start != nil {
+		q = q.Where(sub2apiusagerecord.RequestTimeGTE(*w.Start))
 	}
-	if publicOnly {
-		query = query.Where(sub2apiusagerecord.HasGroupWith(sub2apigroup.PublicEnabledEQ(true)))
+	if w.End != nil {
+		q = q.Where(sub2apiusagerecord.RequestTimeLTE(*w.End))
 	}
-	records, err := query.Order(gen.Asc(sub2apiusagerecord.FieldRequestTime)).All(ctx)
+	if w.PublicOnly {
+		q = q.Where(sub2apiusagerecord.HasGroupWith(sub2apigroup.PublicEnabledEQ(true)))
+	}
+	return q
+}
+
+// rateEligiblePred 计费请求谓词：成功 或 上游错误。
+func rateEligiblePred() predicate.Sub2APIUsageRecord {
+	return sub2apiusagerecord.Or(
+		sub2apiusagerecord.Success(true),
+		sub2apiusagerecord.StatusEQ(sub2apipkg.StatusUpstreamError),
+	)
+}
+
+// tpsEligiblePred 生成速度达标谓词：tps>0 且 输出 token>=阈值（输出过短的速率无统计意义）。
+func tpsEligiblePred() predicate.Sub2APIUsageRecord {
+	return sub2apiusagerecord.And(
+		sub2apiusagerecord.TpsGT(0),
+		sub2apiusagerecord.OutputTokensGTE(sub2apipkg.MinTPSOutputTokens),
+	)
+}
+
+// scalarFloat 取单个聚合标量（NULL/空结果按 0）。
+func scalarFloat(ctx context.Context, sel *gen.Sub2APIUsageRecordSelect) (float64, error) {
+	var rows []struct {
+		V *float64 `json:"v"`
+	}
+	if err := sel.Scan(ctx, &rows); err != nil {
+		return 0, err
+	}
+	if len(rows) == 0 || rows[0].V == nil {
+		return 0, nil
+	}
+	return *rows[0].V, nil
+}
+
+// AggregateTotals 汇总窗口内标量指标（Count/Sum/Mean 全部 DB 侧计算）。
+func (r *sub2APIRepo) AggregateTotals(ctx context.Context, w sub2apipkg.StatsWindow) (sub2apipkg.Totals, error) {
+	var totals sub2apipkg.Totals
+
+	total, err := r.windowQuery(w).Count(ctx)
 	if err != nil {
+		return totals, err
+	}
+	totals.TotalCount = int64(total)
+
+	req, err := r.windowQuery(w).Where(rateEligiblePred()).Count(ctx)
+	if err != nil {
+		return totals, err
+	}
+	totals.RequestCount = int64(req)
+
+	succ, err := r.windowQuery(w).Where(sub2apiusagerecord.Success(true)).Count(ctx)
+	if err != nil {
+		return totals, err
+	}
+	totals.SuccessCount = int64(succ)
+
+	// Token 计入全部记录
+	tokenSum, err := scalarFloat(ctx, r.windowQuery(w).Aggregate(gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "v")))
+	if err != nil {
+		return totals, err
+	}
+	totals.TokenCount = int64(tokenSum)
+
+	// 平均延迟仅统计成功请求
+	totals.AverageLatencyMS, err = scalarFloat(ctx,
+		r.windowQuery(w).Where(sub2apiusagerecord.Success(true)).Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldLatencyMs), "v")))
+	if err != nil {
+		return totals, err
+	}
+
+	// 平均生成速度仅统计达标请求
+	totals.AverageTPS, err = scalarFloat(ctx,
+		r.windowQuery(w).Where(tpsEligiblePred()).Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "v")))
+	if err != nil {
+		return totals, err
+	}
+	return totals, nil
+}
+
+// groupColumn / groupNotEmptyPred 将维度映射到 ent 列与「非空」谓词。
+func groupColumn(field sub2apipkg.GroupField) string {
+	switch field {
+	case sub2apipkg.GroupByGroup:
+		return sub2apiusagerecord.FieldGroupName
+	case sub2apipkg.GroupByUserAgent:
+		return sub2apiusagerecord.FieldUserAgent
+	default:
+		return sub2apiusagerecord.FieldModel
+	}
+}
+
+func groupNotEmptyPred(field sub2apipkg.GroupField) predicate.Sub2APIUsageRecord {
+	switch field {
+	case sub2apipkg.GroupByGroup:
+		return sub2apiusagerecord.GroupNameNEQ("")
+	case sub2apipkg.GroupByUserAgent:
+		return sub2apiusagerecord.UserAgentNEQ("")
+	default:
+		return sub2apiusagerecord.ModelNEQ("")
+	}
+}
+
+// groupRow 承载 GroupBy 结果：三种维度列各一（GroupBy 只选其一，其余留零），按维度取 key。
+type groupRow struct {
+	Model     string   `json:"model"`
+	GroupName string   `json:"group_name"`
+	UserAgent string   `json:"user_agent"`
+	Cnt       int64    `json:"cnt"`
+	Tok       *float64 `json:"tok"`
+	Tps       *float64 `json:"tps"`
+}
+
+func (row groupRow) key(field sub2apipkg.GroupField) string {
+	switch field {
+	case sub2apipkg.GroupByGroup:
+		return row.GroupName
+	case sub2apipkg.GroupByUserAgent:
+		return row.UserAgent
+	default:
+		return row.Model
+	}
+}
+
+// TopItems 按维度分组的用量排行（DB 侧 GroupBy），按 token 降序；不同 WHERE 的分组结果按 key 合并。
+func (r *sub2APIRepo) TopItems(ctx context.Context, w sub2apipkg.StatsWindow, field sub2apipkg.GroupField, limit int) ([]sub2apipkg.TopStat, error) {
+	col := groupColumn(field)
+	stats := map[string]*sub2apipkg.TopStat{}
+	order := make([]string, 0)
+	get := func(key string) *sub2apipkg.TopStat {
+		if s := stats[key]; s != nil {
+			return s
+		}
+		s := &sub2apipkg.TopStat{Name: key}
+		stats[key] = s
+		order = append(order, key)
+		return s
+	}
+
+	// 计费请求：请求数 + token 之和
+	var reqRows []groupRow
+	if err := r.windowQuery(w).Where(rateEligiblePred(), groupNotEmptyPred(field)).
+		GroupBy(col).
+		Aggregate(gen.As(gen.Count(), "cnt"), gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "tok")).
+		Scan(ctx, &reqRows); err != nil {
 		return nil, err
 	}
-	result := make([]*sub2apipkg.UsageRecord, 0, len(records))
-	for _, record := range records {
-		result = append(result, toUsageRecord(record))
+	for _, row := range reqRows {
+		s := get(row.key(field))
+		s.Request = row.Cnt
+		if row.Tok != nil {
+			s.Token = int64(*row.Tok)
+		}
+	}
+
+	// 成功数
+	var succRows []groupRow
+	if err := r.windowQuery(w).Where(sub2apiusagerecord.Success(true), groupNotEmptyPred(field)).
+		GroupBy(col).
+		Aggregate(gen.As(gen.Count(), "cnt")).
+		Scan(ctx, &succRows); err != nil {
+		return nil, err
+	}
+	for _, row := range succRows {
+		if s := stats[row.key(field)]; s != nil {
+			s.Success = row.Cnt
+		}
+	}
+
+	// 达标请求平均生成速度
+	var tpsRows []groupRow
+	if err := r.windowQuery(w).Where(tpsEligiblePred(), groupNotEmptyPred(field)).
+		GroupBy(col).
+		Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "tps")).
+		Scan(ctx, &tpsRows); err != nil {
+		return nil, err
+	}
+	for _, row := range tpsRows {
+		if s := stats[row.key(field)]; s != nil && row.Tps != nil {
+			s.AvgTPS = *row.Tps
+		}
+	}
+
+	// 仅保留有计费请求的分组，按 token 降序（并列比请求数、名称）
+	result := make([]sub2apipkg.TopStat, 0, len(order))
+	for _, key := range order {
+		if s := stats[key]; s != nil && s.Request > 0 {
+			result = append(result, *s)
+		}
+	}
+	sort.SliceStable(result, func(i, j int) bool {
+		if result[i].Token != result[j].Token {
+			return result[i].Token > result[j].Token
+		}
+		if result[i].Request != result[j].Request {
+			return result[i].Request > result[j].Request
+		}
+		return result[i].Name < result[j].Name
+	})
+	if limit > 0 && len(result) > limit {
+		result = result[:limit]
 	}
 	return result, nil
 }
 
-// RecordsPage 按时间倒序分页读取 [start, end] 区间内的记录。
-func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool) ([]*sub2apipkg.UsageRecord, int, error) {
+// dayRow 承载按 request_date 分组的结果。
+type dayRow struct {
+	Date string   `json:"request_date"`
+	Cnt  int64    `json:"cnt"`
+	Tok  *float64 `json:"tok"`
+	Lat  *float64 `json:"lat"`
+}
+
+// DailyTrend 按自然日聚合（DB 侧 GroupBy(request_date)），仅返回有数据的日期（缺口由上层补齐）。
+func (r *sub2APIRepo) DailyTrend(ctx context.Context, w sub2apipkg.StatsWindow) ([]sub2apipkg.DayStat, error) {
+	stats := map[string]*sub2apipkg.DayStat{}
+	order := make([]string, 0)
+	get := func(date string) *sub2apipkg.DayStat {
+		if s := stats[date]; s != nil {
+			return s
+		}
+		s := &sub2apipkg.DayStat{Date: date}
+		stats[date] = s
+		order = append(order, date)
+		return s
+	}
+
+	var reqRows []dayRow
+	if err := r.windowQuery(w).Where(rateEligiblePred()).
+		GroupBy(sub2apiusagerecord.FieldRequestDate).
+		Aggregate(gen.As(gen.Count(), "cnt"), gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "tok")).
+		Scan(ctx, &reqRows); err != nil {
+		return nil, err
+	}
+	for _, row := range reqRows {
+		s := get(row.Date)
+		s.Request = row.Cnt
+		if row.Tok != nil {
+			s.Token = int64(*row.Tok)
+		}
+	}
+
+	var succRows []dayRow
+	if err := r.windowQuery(w).Where(sub2apiusagerecord.Success(true)).
+		GroupBy(sub2apiusagerecord.FieldRequestDate).
+		Aggregate(gen.As(gen.Count(), "cnt"), gen.As(gen.Mean(sub2apiusagerecord.FieldLatencyMs), "lat")).
+		Scan(ctx, &succRows); err != nil {
+		return nil, err
+	}
+	for _, row := range succRows {
+		s := get(row.Date)
+		s.Success = row.Cnt
+		if row.Lat != nil {
+			s.AvgLatencyMS = *row.Lat
+		}
+	}
+
+	sort.Slice(order, func(i, j int) bool { return order[i] < order[j] })
+	result := make([]sub2apipkg.DayStat, 0, len(order))
+	for _, date := range order {
+		result = append(result, *stats[date])
+	}
+	return result, nil
+}
+
+// bucketRow 承载按 bucket15m 分组的结果。
+type bucketRow struct {
+	Bucket int64    `json:"bucket15m"`
+	Cnt    int64    `json:"cnt"`
+	Tok    *float64 `json:"tok"`
+	Lat    *float64 `json:"lat"`
+	Tps    *float64 `json:"tps"`
+}
+
+// IntradaySeries 按 15 分钟桶聚合（DB 侧 GroupBy(bucket15m)），按桶升序。
+func (r *sub2APIRepo) IntradaySeries(ctx context.Context, w sub2apipkg.StatsWindow) ([]sub2apipkg.BucketStat, error) {
+	stats := map[int64]*sub2apipkg.BucketStat{}
+	order := make([]int64, 0)
+	get := func(bucket int64) *sub2apipkg.BucketStat {
+		if s := stats[bucket]; s != nil {
+			return s
+		}
+		s := &sub2apipkg.BucketStat{Bucket: time.Unix(bucket, 0)}
+		stats[bucket] = s
+		order = append(order, bucket)
+		return s
+	}
+
+	// 全部记录数
+	var totalRows []bucketRow
+	if err := r.windowQuery(w).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(gen.As(gen.Count(), "cnt")).
+		Scan(ctx, &totalRows); err != nil {
+		return nil, err
+	}
+	for _, row := range totalRows {
+		get(row.Bucket).Total = row.Cnt
+	}
+
+	// 计费请求 + token
+	var reqRows []bucketRow
+	if err := r.windowQuery(w).Where(rateEligiblePred()).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(gen.As(gen.Count(), "cnt"), gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "tok")).
+		Scan(ctx, &reqRows); err != nil {
+		return nil, err
+	}
+	for _, row := range reqRows {
+		s := get(row.Bucket)
+		s.Request = row.Cnt
+		if row.Tok != nil {
+			s.Token = int64(*row.Tok)
+		}
+	}
+
+	// 成功数 + 平均延迟
+	var succRows []bucketRow
+	if err := r.windowQuery(w).Where(sub2apiusagerecord.Success(true)).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(gen.As(gen.Count(), "cnt"), gen.As(gen.Mean(sub2apiusagerecord.FieldLatencyMs), "lat")).
+		Scan(ctx, &succRows); err != nil {
+		return nil, err
+	}
+	for _, row := range succRows {
+		s := get(row.Bucket)
+		s.Success = row.Cnt
+		if row.Lat != nil {
+			s.AvgLatencyMS = *row.Lat
+		}
+	}
+
+	// 达标请求平均生成速度
+	var tpsRows []bucketRow
+	if err := r.windowQuery(w).Where(tpsEligiblePred()).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "tps")).
+		Scan(ctx, &tpsRows); err != nil {
+		return nil, err
+	}
+	for _, row := range tpsRows {
+		s := get(row.Bucket)
+		if row.Tps != nil {
+			s.AvgTPS = *row.Tps
+		}
+	}
+
+	sort.Slice(order, func(i, j int) bool { return order[i] < order[j] })
+	result := make([]sub2apipkg.BucketStat, 0, len(order))
+	for _, bucket := range order {
+		result = append(result, *stats[bucket])
+	}
+	return result, nil
+}
+
+// RecordsPage 按时间倒序分页读取 [start, end] 区间内的记录，支持多维度筛选。
+func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool, filter sub2apipkg.RecordFilter) ([]*sub2apipkg.UsageRecord, int, error) {
 	query := r.data.db.Sub2APIUsageRecord.Query()
 	if start != nil {
 		query = query.Where(sub2apiusagerecord.RequestTimeGTE(*start))
@@ -190,6 +539,24 @@ func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, of
 	}
 	if publicOnly {
 		query = query.Where(sub2apiusagerecord.HasGroupWith(sub2apigroup.PublicEnabledEQ(true)))
+	}
+	// 多维度筛选：指针非 nil 才参与过滤（区分「不筛选」与「筛选空值」）
+	if filter.Model != nil {
+		query = query.Where(sub2apiusagerecord.ModelEQ(*filter.Model))
+	}
+	if filter.GroupName != nil {
+		query = query.Where(sub2apiusagerecord.GroupNameEQ(*filter.GroupName))
+	}
+	if filter.AccountName != nil {
+		query = query.Where(sub2apiusagerecord.AccountNameContainsFold(*filter.AccountName))
+	}
+	if filter.Outcome != nil {
+		switch *filter.Outcome {
+		case "success":
+			query = query.Where(sub2apiusagerecord.Success(true))
+		case "failed":
+			query = query.Where(sub2apiusagerecord.Success(false))
+		}
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {

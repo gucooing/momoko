@@ -811,6 +811,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "request_time", Type: field.TypeTime},
 		{Name: "request_date", Type: field.TypeString},
+		{Name: "bucket15m", Type: field.TypeInt64, Default: 0},
 		{Name: "model", Type: field.TypeString, Nullable: true},
 		{Name: "endpoint", Type: field.TypeString, Nullable: true},
 		{Name: "group_name", Type: field.TypeString, Nullable: true},
@@ -839,7 +840,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sub2api_usage_records_sub2api_groups_usage_records",
-				Columns:    []*schema.Column{Sub2apiUsageRecordsColumns[23]},
+				Columns:    []*schema.Column{Sub2apiUsageRecordsColumns[24]},
 				RefColumns: []*schema.Column{Sub2apiGroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -856,49 +857,54 @@ var (
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[4]},
 			},
 			{
-				Name:    "sub2apiusagerecord_success",
-				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[12]},
-			},
-			{
-				Name:    "sub2apiusagerecord_status",
-				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[11]},
-			},
-			{
-				Name:    "sub2apiusagerecord_model",
+				Name:    "sub2apiusagerecord_bucket15m",
 				Unique:  false,
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[5]},
 			},
 			{
-				Name:    "sub2apiusagerecord_endpoint",
+				Name:    "sub2apiusagerecord_success",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[13]},
+			},
+			{
+				Name:    "sub2apiusagerecord_status",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[12]},
+			},
+			{
+				Name:    "sub2apiusagerecord_model",
 				Unique:  false,
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[6]},
 			},
 			{
-				Name:    "sub2apiusagerecord_group_id",
-				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[23]},
-			},
-			{
-				Name:    "sub2apiusagerecord_group_name",
+				Name:    "sub2apiusagerecord_endpoint",
 				Unique:  false,
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[7]},
 			},
 			{
-				Name:    "sub2apiusagerecord_group_id_request_time",
+				Name:    "sub2apiusagerecord_group_id",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[23], Sub2apiUsageRecordsColumns[3]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[24]},
 			},
 			{
-				Name:    "sub2apiusagerecord_user_id",
+				Name:    "sub2apiusagerecord_group_name",
 				Unique:  false,
 				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8]},
 			},
 			{
+				Name:    "sub2apiusagerecord_group_id_request_time",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[24], Sub2apiUsageRecordsColumns[3]},
+			},
+			{
+				Name:    "sub2apiusagerecord_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9]},
+			},
+			{
 				Name:    "sub2apiusagerecord_user_id_request_time",
 				Unique:  false,
-				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[8], Sub2apiUsageRecordsColumns[3]},
+				Columns: []*schema.Column{Sub2apiUsageRecordsColumns[9], Sub2apiUsageRecordsColumns[3]},
 			},
 		},
 	}

@@ -3683,6 +3683,23 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: model
+                  in: query
+                  description: 多维度筛选（可选：字段缺省 = 该维度不参与过滤）。服务端 WHERE 过滤，翻页与总数随之收敛。
+                  schema:
+                    type: string
+                - name: groupName
+                  in: query
+                  schema:
+                    type: string
+                - name: accountName
+                  in: query
+                  schema:
+                    type: string
+                - name: outcome
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -3703,18 +3720,43 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetSub2APISnapshotResponse'
-    /api/v1/sub2api/stats:
+    /api/v1/sub2api/stats/top:
         get:
             tags:
                 - Sub2APIManager
-            description: 获取管理端用量概览（按时间区间统计，需鉴权）
-            operationId: Sub2APIManager_GetSub2APIStats
+            description: 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+            operationId: Sub2APIManager_GetSub2APIAdminTop
             parameters:
                 - name: startTime
                   in: query
-                  description: |-
-                    统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
-                     start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 每个维度返回的最大条数；<=0 返回全部。
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIAdminTopResponse'
+    /api/v1/sub2api/stats/totals:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+            operationId: Sub2APIManager_GetSub2APIAdminTotals
+            parameters:
+                - name: startTime
+                  in: query
                   schema:
                     type: string
                 - name: endTime
@@ -3727,7 +3769,29 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1.GetSub2APIAdminStatsResponse'
+                                $ref: '#/components/schemas/v1.GetSub2APIAdminTotalsResponse'
+    /api/v1/sub2api/stats/trend:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
+            operationId: Sub2APIManager_GetSub2APIAdminTrend
+            parameters:
+                - name: startTime
+                  in: query
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetSub2APIAdminTrendResponse'
     /api/v1/sub2api/sync:
         post:
             tags:
@@ -7651,11 +7715,47 @@ components:
                     type: string
                     description: 分享者头像（公开展示）
             description: 获取分享元信息响应（公开，不含提取码本身）
-        v1.GetSub2APIAdminStatsResponse:
+        v1.GetSub2APIAdminTopResponse:
             type: object
             properties:
-                stats:
-                    $ref: '#/components/schemas/v1.Sub2APIStats'
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
+            description: 模型 + 分组用量排行（均按 token 降序，一次请求返回）
+        v1.GetSub2APIAdminTotalsResponse:
+            type: object
+            properties:
+                rangeLabel:
+                    type: string
+                requestCount:
+                    type: string
+                successCount:
+                    type: string
+                successRate:
+                    type: number
+                    format: double
+                tokenCount:
+                    type: string
+                averageLatencyMs:
+                    type: number
+                    format: double
+                averageTps:
+                    type: number
+                    format: double
+            description: 用量汇总标量指标 + 区间标签（概览指标带独立拉取）
+        v1.GetSub2APIAdminTrendResponse:
+            type: object
+            properties:
+                trend:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITrendPoint'
+            description: 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐）
         v1.GetSub2APIConfigResponse:
             type: object
             properties:

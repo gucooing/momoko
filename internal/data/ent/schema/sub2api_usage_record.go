@@ -17,6 +17,7 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 		field.String("id").NotEmpty().Unique().Comment("记录唯一标识（来源记录ID或内容哈希）"),
 		field.Time("request_time").Comment("请求时间"),
 		field.String("request_date").Comment("请求日期（本地时区 YYYY-MM-DD，用于按日聚合）"),
+		field.Int64("bucket15m").Default(0).Comment("请求时间按 15 分钟截断的桶（Unix 秒，用于日内曲线 ent GroupBy 聚合）"),
 		field.String("model").Optional().Comment("模型名称"),
 		field.String("endpoint").Optional().Comment("接口/通道"),
 		field.String("group_id").Optional().Nillable().Comment("关联 Sub2APIGroup.id"),
@@ -53,6 +54,7 @@ func (Sub2APIUsageRecord) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("request_time"),
 		index.Fields("request_date"),
+		index.Fields("bucket15m"),
 		index.Fields("success"),
 		index.Fields("status"),
 		index.Fields("model"),

@@ -14,8 +14,12 @@ import type {
   GetSub2APISnapshotResponse,
   GetSub2APIStatsRequest,
   GetSub2APIStatsResponse,
-  GetSub2APIAdminStatsRequest,
-  GetSub2APIAdminStatsResponse,
+  GetSub2APIAdminTotalsRequest,
+  GetSub2APIAdminTotalsResponse,
+  GetSub2APIAdminTrendRequest,
+  GetSub2APIAdminTrendResponse,
+  GetSub2APIAdminTopRequest,
+  GetSub2APIAdminTopResponse,
   GetSub2APIRecentRequestsRequest,
   GetSub2APIRecentRequestsResponse,
   ListSub2APIAnnouncementsResponse,
@@ -61,9 +65,19 @@ export const getPublicSub2APIStats = (params: GetSub2APIStatsRequest) => {
   return request.get<GetSub2APIStatsResponse>('/public/sub2api/stats', { params })
 }
 
-// 管理端用量概览（按时间区间统计，需鉴权）
-export const getSub2APIStats = (params: GetSub2APIAdminStatsRequest) => {
-  return request.get<GetSub2APIAdminStatsResponse>('/sub2api/stats', { params })
+// 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+export const getSub2APIAdminTotals = (params: GetSub2APIAdminTotalsRequest) => {
+  return request.get<GetSub2APIAdminTotalsResponse>('/sub2api/stats/totals', { params })
+}
+
+// 管理端用量趋势（按区间日内分桶/按天，需鉴权）
+export const getSub2APIAdminTrend = (params: GetSub2APIAdminTrendRequest) => {
+  return request.get<GetSub2APIAdminTrendResponse>('/sub2api/stats/trend', { params })
+}
+
+// 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+export const getSub2APIAdminTop = (params: GetSub2APIAdminTopRequest) => {
+  return request.get<GetSub2APIAdminTopResponse>('/sub2api/stats/top', { params })
 }
 
 // 管理端最近请求（按时间区间分页，需鉴权）

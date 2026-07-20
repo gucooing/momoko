@@ -22378,6 +22378,8 @@ type Sub2APIUsageRecordMutation struct {
 	update_time       *time.Time
 	request_time      *time.Time
 	request_date      *string
+	bucket15m         *int64
+	addbucket15m      *int64
 	model             *string
 	endpoint          *string
 	group_name        *string
@@ -22658,6 +22660,62 @@ func (m *Sub2APIUsageRecordMutation) OldRequestDate(ctx context.Context) (v stri
 // ResetRequestDate resets all changes to the "request_date" field.
 func (m *Sub2APIUsageRecordMutation) ResetRequestDate() {
 	m.request_date = nil
+}
+
+// SetBucket15m sets the "bucket15m" field.
+func (m *Sub2APIUsageRecordMutation) SetBucket15m(i int64) {
+	m.bucket15m = &i
+	m.addbucket15m = nil
+}
+
+// Bucket15m returns the value of the "bucket15m" field in the mutation.
+func (m *Sub2APIUsageRecordMutation) Bucket15m() (r int64, exists bool) {
+	v := m.bucket15m
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBucket15m returns the old "bucket15m" field's value of the Sub2APIUsageRecord entity.
+// If the Sub2APIUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *Sub2APIUsageRecordMutation) OldBucket15m(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBucket15m is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBucket15m requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBucket15m: %w", err)
+	}
+	return oldValue.Bucket15m, nil
+}
+
+// AddBucket15m adds i to the "bucket15m" field.
+func (m *Sub2APIUsageRecordMutation) AddBucket15m(i int64) {
+	if m.addbucket15m != nil {
+		*m.addbucket15m += i
+	} else {
+		m.addbucket15m = &i
+	}
+}
+
+// AddedBucket15m returns the value that was added to the "bucket15m" field in this mutation.
+func (m *Sub2APIUsageRecordMutation) AddedBucket15m() (r int64, exists bool) {
+	v := m.addbucket15m
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBucket15m resets all changes to the "bucket15m" field.
+func (m *Sub2APIUsageRecordMutation) ResetBucket15m() {
+	m.bucket15m = nil
+	m.addbucket15m = nil
 }
 
 // SetModel sets the "model" field.
@@ -23709,7 +23767,7 @@ func (m *Sub2APIUsageRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *Sub2APIUsageRecordMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
 	if m.create_time != nil {
 		fields = append(fields, sub2apiusagerecord.FieldCreateTime)
 	}
@@ -23721,6 +23779,9 @@ func (m *Sub2APIUsageRecordMutation) Fields() []string {
 	}
 	if m.request_date != nil {
 		fields = append(fields, sub2apiusagerecord.FieldRequestDate)
+	}
+	if m.bucket15m != nil {
+		fields = append(fields, sub2apiusagerecord.FieldBucket15m)
 	}
 	if m.model != nil {
 		fields = append(fields, sub2apiusagerecord.FieldModel)
@@ -23795,6 +23856,8 @@ func (m *Sub2APIUsageRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.RequestTime()
 	case sub2apiusagerecord.FieldRequestDate:
 		return m.RequestDate()
+	case sub2apiusagerecord.FieldBucket15m:
+		return m.Bucket15m()
 	case sub2apiusagerecord.FieldModel:
 		return m.Model()
 	case sub2apiusagerecord.FieldEndpoint:
@@ -23850,6 +23913,8 @@ func (m *Sub2APIUsageRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldRequestTime(ctx)
 	case sub2apiusagerecord.FieldRequestDate:
 		return m.OldRequestDate(ctx)
+	case sub2apiusagerecord.FieldBucket15m:
+		return m.OldBucket15m(ctx)
 	case sub2apiusagerecord.FieldModel:
 		return m.OldModel(ctx)
 	case sub2apiusagerecord.FieldEndpoint:
@@ -23924,6 +23989,13 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRequestDate(v)
+		return nil
+	case sub2apiusagerecord.FieldBucket15m:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBucket15m(v)
 		return nil
 	case sub2apiusagerecord.FieldModel:
 		v, ok := value.(string)
@@ -24066,6 +24138,9 @@ func (m *Sub2APIUsageRecordMutation) SetField(name string, value ent.Value) erro
 // this mutation.
 func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
 	var fields []string
+	if m.addbucket15m != nil {
+		fields = append(fields, sub2apiusagerecord.FieldBucket15m)
+	}
 	if m.adduser_id != nil {
 		fields = append(fields, sub2apiusagerecord.FieldUserID)
 	}
@@ -24098,6 +24173,8 @@ func (m *Sub2APIUsageRecordMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case sub2apiusagerecord.FieldBucket15m:
+		return m.AddedBucket15m()
 	case sub2apiusagerecord.FieldUserID:
 		return m.AddedUserID()
 	case sub2apiusagerecord.FieldLatencyMs:
@@ -24123,6 +24200,13 @@ func (m *Sub2APIUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *Sub2APIUsageRecordMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case sub2apiusagerecord.FieldBucket15m:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBucket15m(v)
+		return nil
 	case sub2apiusagerecord.FieldUserID:
 		v, ok := value.(int64)
 		if !ok {
@@ -24286,6 +24370,9 @@ func (m *Sub2APIUsageRecordMutation) ResetField(name string) error {
 		return nil
 	case sub2apiusagerecord.FieldRequestDate:
 		m.ResetRequestDate()
+		return nil
+	case sub2apiusagerecord.FieldBucket15m:
+		m.ResetBucket15m()
 		return nil
 	case sub2apiusagerecord.FieldModel:
 		m.ResetModel()

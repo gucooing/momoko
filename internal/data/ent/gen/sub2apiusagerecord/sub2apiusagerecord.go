@@ -22,6 +22,8 @@ const (
 	FieldRequestTime = "request_time"
 	// FieldRequestDate holds the string denoting the request_date field in the database.
 	FieldRequestDate = "request_date"
+	// FieldBucket15m holds the string denoting the bucket15m field in the database.
+	FieldBucket15m = "bucket15m"
 	// FieldModel holds the string denoting the model field in the database.
 	FieldModel = "model"
 	// FieldEndpoint holds the string denoting the endpoint field in the database.
@@ -80,6 +82,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldRequestTime,
 	FieldRequestDate,
+	FieldBucket15m,
 	FieldModel,
 	FieldEndpoint,
 	FieldGroupID,
@@ -118,6 +121,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// DefaultBucket15m holds the default value on creation for the "bucket15m" field.
+	DefaultBucket15m int64
 	// DefaultSuccess holds the default value on creation for the "success" field.
 	DefaultSuccess bool
 	// DefaultLatencyMs holds the default value on creation for the "latency_ms" field.
@@ -164,6 +169,11 @@ func ByRequestTime(opts ...sql.OrderTermOption) OrderOption {
 // ByRequestDate orders the results by the request_date field.
 func ByRequestDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequestDate, opts...).ToFunc()
+}
+
+// ByBucket15m orders the results by the bucket15m field.
+func ByBucket15m(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBucket15m, opts...).ToFunc()
 }
 
 // ByModel orders the results by the model field.

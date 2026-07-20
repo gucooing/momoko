@@ -54,10 +54,22 @@ service Sub2APIManager {
       get: "/api/v1/public/sub2api/stats"
     };
   }
-  // 获取管理端用量概览（按时间区间统计，需鉴权）
-  rpc GetSub2APIStats(GetSub2APIAdminStatsRequest) returns (GetSub2APIAdminStatsResponse) {
+  // 管理端用量汇总（标量指标 + 区间标签，需鉴权）
+  rpc GetSub2APIAdminTotals(GetSub2APIAdminTotalsRequest) returns (GetSub2APIAdminTotalsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/sub2api/stats"
+      get: "/api/v1/sub2api/stats/totals"
+    };
+  }
+  // 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
+  rpc GetSub2APIAdminTrend(GetSub2APIAdminTrendRequest) returns (GetSub2APIAdminTrendResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/stats/trend"
+    };
+  }
+  // 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
+  rpc GetSub2APIAdminTop(GetSub2APIAdminTopRequest) returns (GetSub2APIAdminTopResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/sub2api/stats/top"
     };
   }
   // 获取管理端最近请求（按时间区间分页，需鉴权）
@@ -260,15 +272,45 @@ message GetSub2APIStatsResponse {
   Sub2APIStats stats = 1;
 }
 
-message GetSub2APIAdminStatsRequest {
-  // 统计时间段（Unix 毫秒，精度到分钟）：start_time 起、end_time 止。
-  // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
+// 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
+// start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
+message GetSub2APIAdminTotalsRequest {
   int64 start_time = 1;
   int64 end_time = 2;
 }
 
-message GetSub2APIAdminStatsResponse {
-  Sub2APIStats stats = 1;
+// 用量汇总标量指标 + 区间标签（概览指标带独立拉取）
+message GetSub2APIAdminTotalsResponse {
+  string range_label = 1;
+  int64 request_count = 2;
+  int64 success_count = 3;
+  double success_rate = 4;
+  int64 token_count = 5;
+  double average_latency_ms = 6;
+  double average_tps = 7;
+}
+
+message GetSub2APIAdminTrendRequest {
+  int64 start_time = 1;
+  int64 end_time = 2;
+}
+
+// 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐）
+message GetSub2APIAdminTrendResponse {
+  repeated Sub2APITrendPoint trend = 1;
+}
+
+message GetSub2APIAdminTopRequest {
+  int64 start_time = 1;
+  int64 end_time = 2;
+  // 每个维度返回的最大条数；<=0 返回全部。
+  int32 limit = 3;
+}
+
+// 模型 + 分组用量排行（均按 token 降序，一次请求返回）
+message GetSub2APIAdminTopResponse {
+  repeated Sub2APITopItem models = 1;
+  repeated Sub2APITopItem groups = 2;
 }
 
 message GetSub2APIRecentRequestsRequest {
@@ -279,6 +321,11 @@ message GetSub2APIRecentRequestsRequest {
   // 页码（从 1 起）与每页条数。
   int32 page = 3;
   int32 page_size = 4;
+  // 多维度筛选（可选：字段缺省 = 该维度不参与过滤）。服务端 WHERE 过滤，翻页与总数随之收敛。
+  optional string model = 5;         // 模型名（精确匹配）
+  optional string group_name = 6;    // 分组名（精确匹配）
+  optional string account_name = 7;  // 账号名（子串，不区分大小写）
+  optional string outcome = 8;       // 结果："success"=成功 / "failed"=失败
 }
 
 message GetSub2APIRecentRequestsResponse {

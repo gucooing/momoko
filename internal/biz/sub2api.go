@@ -145,18 +145,36 @@ func (s *Sub2APIUsecase) PublicStats(ctx context.Context, rangeDays int32) (*v1.
 	return stats, nil
 }
 
-// AdminStats 管理端用量概览（按时间段统计）。最近请求改由 RecentRequests 分页返回。
-func (s *Sub2APIUsecase) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub2APIStats, error) {
-	stats, err := s.service.AdminStats(ctx, start, end)
+// AdminTotals 管理端用量汇总（标量指标 + 区间标签），概览指标带独立拉取。
+func (s *Sub2APIUsecase) AdminTotals(ctx context.Context, start, end time.Time) (*v1.GetSub2APIAdminTotalsResponse, error) {
+	resp, err := s.service.AdminTotals(ctx, start, end)
 	if err != nil {
 		return nil, mapSub2APIError(err)
 	}
-	return stats, nil
+	return resp, nil
 }
 
-// RecentRequests 管理端最近请求分页（按时间段，倒序）。
-func (s *Sub2APIUsecase) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
-	list, total, err := s.service.RecentRequests(ctx, start, end, page, pageSize)
+// AdminTrend 管理端用量趋势（按区间跨度日内分桶/按天补齐）。
+func (s *Sub2APIUsecase) AdminTrend(ctx context.Context, start, end time.Time) (*v1.GetSub2APIAdminTrendResponse, error) {
+	resp, err := s.service.AdminTrend(ctx, start, end)
+	if err != nil {
+		return nil, mapSub2APIError(err)
+	}
+	return resp, nil
+}
+
+// AdminTop 管理端用量排行（模型 + 分组，按 token 降序）。
+func (s *Sub2APIUsecase) AdminTop(ctx context.Context, start, end time.Time, limit int) (*v1.GetSub2APIAdminTopResponse, error) {
+	resp, err := s.service.AdminTop(ctx, start, end, limit)
+	if err != nil {
+		return nil, mapSub2APIError(err)
+	}
+	return resp, nil
+}
+
+// RecentRequests 管理端最近请求分页（按时间段，倒序，支持多维度筛选）。
+func (s *Sub2APIUsecase) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int, filter sub2apipkg.RecordFilter) ([]*v1.Sub2APIRecentRequest, int, error) {
+	list, total, err := s.service.RecentRequests(ctx, start, end, page, pageSize, filter)
 	if err != nil {
 		return nil, 0, mapSub2APIError(err)
 	}

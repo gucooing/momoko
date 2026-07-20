@@ -181,16 +181,76 @@ func (s *Service) PublicStats(ctx context.Context, rangeDays int32) (*v1.Sub2API
 	return BuildStats(ctx, s.store, cfg, rangeDays)
 }
 
-// AdminStats 返回管理端指定时间段聚合的用量概览，不受公开首页开关影响。
-// 最近请求改由 RecentRequests 分页返回。
-func (s *Service) AdminStats(ctx context.Context, start, end time.Time) (*v1.Sub2APIStats, error) {
-	return BuildRangeStats(ctx, s.store, start, end)
+// adminWindow 由归一化后的时间段构造聚合窗口（管理端不受公开开关影响）。
+// start 为零表示不限起点。
+func adminWindow(start, end time.Time) StatsWindow {
+	w := StatsWindow{End: &end}
+	if !start.IsZero() {
+		w.Start = &start
+	}
+	return w
+}
+
+// AdminTotals 管理端用量汇总（标量指标 + 区间标签），概览指标带独立拉取。
+func (s *Service) AdminTotals(ctx context.Context, start, end time.Time) (*v1.GetSub2APIAdminTotalsResponse, error) {
+	start, end = normalizeRange(start, end)
+	now := time.Now()
+	totals, err := s.store.AggregateTotals(ctx, adminWindow(start, end))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSub2APIAdminTotalsResponse{
+		RangeLabel:       rangeStatsLabel(start, end, now),
+		RequestCount:     totals.RequestCount,
+		SuccessCount:     totals.SuccessCount,
+		SuccessRate:      percent(totals.SuccessCount, totals.RequestCount),
+		TokenCount:       totals.TokenCount,
+		AverageLatencyMs: totals.AverageLatencyMS,
+		AverageTps:       totals.AverageTPS,
+	}, nil
+}
+
+// AdminTrend 管理端用量趋势：区间 <=24h 且有明确起点按 15 分钟桶展示日内曲线，否则按天补齐缺口。
+func (s *Service) AdminTrend(ctx context.Context, start, end time.Time) (*v1.GetSub2APIAdminTrendResponse, error) {
+	start, end = normalizeRange(start, end)
+	window := adminWindow(start, end)
+	if !start.IsZero() && end.Sub(start) <= time.Duration(minutesPerDay)*time.Minute {
+		series, err := s.store.IntradaySeries(ctx, window)
+		if err != nil {
+			return nil, err
+		}
+		return &v1.GetSub2APIAdminTrendResponse{Trend: intradayTrendPoints(series)}, nil
+	}
+	daily, err := s.store.DailyTrend(ctx, window)
+	if err != nil {
+		return nil, err
+	}
+	startDay, days := trendDayRange(start, end, daily)
+	return &v1.GetSub2APIAdminTrendResponse{Trend: dailyTrendPoints(daily, startDay, days)}, nil
+}
+
+// AdminTop 管理端用量排行：模型 + 分组，均按 token 降序，一次请求返回。
+func (s *Service) AdminTop(ctx context.Context, start, end time.Time, limit int) (*v1.GetSub2APIAdminTopResponse, error) {
+	start, end = normalizeRange(start, end)
+	window := adminWindow(start, end)
+	models, err := s.store.TopItems(ctx, window, GroupByModel, limit)
+	if err != nil {
+		return nil, err
+	}
+	groups, err := s.store.TopItems(ctx, window, GroupByGroup, limit)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSub2APIAdminTopResponse{
+		Models: mapTopItems(models),
+		Groups: mapTopItems(groups),
+	}, nil
 }
 
 // RecentRequests 返回管理端最近请求的分页结果（按时间倒序，最新在前），并附区间总数。
-// 时间段归一化口径与 AdminStats 一致，确保翻页与概览覆盖相同区间。
+// 时间段归一化口径与概览各接口一致，确保翻页与概览覆盖相同区间；filter 承载多维度筛选。
 // start 为零表示不限制起点（全部记录）。
-func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int) ([]*v1.Sub2APIRecentRequest, int, error) {
+func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page, pageSize int, filter RecordFilter) ([]*v1.Sub2APIRecentRequest, int, error) {
 	start, end = normalizeRange(start, end)
 	if page < 1 {
 		page = 1
@@ -205,7 +265,7 @@ func (s *Service) RecentRequests(ctx context.Context, start, end time.Time, page
 	if !start.IsZero() {
 		startPtr = &start
 	}
-	records, total, err := s.store.RecordsPage(ctx, startPtr, &end, (page-1)*pageSize, pageSize, false)
+	records, total, err := s.store.RecordsPage(ctx, startPtr, &end, (page-1)*pageSize, pageSize, false, filter)
 	if err != nil {
 		return nil, 0, err
 	}

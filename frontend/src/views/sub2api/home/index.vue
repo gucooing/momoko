@@ -1,7 +1,8 @@
 <!-- Sub2API 管理首页（重写 · P4/P2 去 EP）：PageHeader(#actions StatusPill+同步) + 令牌三 Tab(概览/公告/时间线)。
      概览=令牌 range seg + 自定义 datetime-local + MetricStrip(单色) + AppPanel 图表(保留 ECharts) + 最近请求 DataTable/卡 + Pagination + 详情 FormDialog。
      公告/时间线=DataTable/卡 + ActionMenu + FormDialog CRUD。toast=useFeedback；删除确认=Dialog.confirm(迁移期)。
-     保留全部 store 契约(loadAdmin/loadAdminStats/loadAdminRecent/syncUsage/save*/remove* + PERM.SUB2API_EDIT)。 -->
+     概览按模块拆接口独立拉取(loadAdminTotals/loadAdminTrend/loadAdminTop 各自 loading) + 最近请求 FilterBar 多维筛选。
+     保留 store 契约(loadAdmin/loadAdminRecent/syncUsage/save*/remove* + PERM.SUB2API_EDIT)。 -->
 <template>
   <div class="s2a-home">
     <PageHeader :title="t('sub2api.admin.title')" :description="t('sub2api.admin.subtitle')">
@@ -57,7 +58,8 @@
           <span class="ov-sep">~</span>
           <input v-model="customEnd" type="datetime-local" class="app-input ov-dt" @change="onCustomChange" />
         </template>
-        <span class="ov-current">{{ store.adminStats?.rangeLabel }}</span>
+        <span v-if="overviewLoading" class="ov-spin" aria-hidden="true" />
+        <span class="ov-current">{{ store.adminTotals?.rangeLabel }}</span>
       </div>
 
       <!-- 同步元信息 -->
@@ -68,8 +70,8 @@
         <span>{{ t('sub2api.common.dataRange', { range: snapshot?.dataRange || '-' }) }}</span>
       </div>
 
-      <div class="ov-body" :class="{ 'is-loading': store.adminStatsLoading }">
-        <!-- 指标带（单色，禁彩色边框） -->
+      <div class="ov-body">
+        <!-- 指标带（单色，禁彩色边框）：概览三面板独立拉取，加载态用范围区旁的轻 spinner 提示，不整块闪 -->
         <MetricStrip :columns="5">
           <MetricItem
             v-for="card in store.adminStatsMetricCards"
@@ -87,15 +89,28 @@
 
         <!-- Top 图表 -->
         <div class="chart-grid">
-          <AppPanel :title="t('sub2api.common.modelRequestTop')">
+          <AppPanel :title="t('sub2api.common.modelTokenTop')">
             <VChart class="chart chart--sm" :option="store.adminModelOption" :update-options="chartUpdate" autoresize />
           </AppPanel>
-          <AppPanel :title="t('sub2api.common.groupRequestTop')">
+          <AppPanel :title="t('sub2api.common.groupTokenTop')">
             <VChart class="chart chart--sm" :option="store.adminGroupOption" :update-options="chartUpdate" autoresize />
           </AppPanel>
         </div>
 
-        <!-- 最近请求 -->
+        <!-- 最近请求：多维度筛选（selects 即时应用 + account 关键字回车/搜索）+ 分页表格/卡 -->
+        <FilterBar class="recent-filter" @search="applyRecentFilter" @reset="resetRecentFilter">
+          <template #fields>
+            <AppSelect v-model="filterModel" :options="modelOptions" @update:model-value="applyRecentFilter" />
+            <AppSelect v-model="filterGroup" :options="groupOptions" @update:model-value="applyRecentFilter" />
+            <AppSelect v-model="filterOutcome" :options="outcomeOptions" @update:model-value="applyRecentFilter" />
+            <input
+              v-model="filterAccount"
+              class="app-input"
+              :placeholder="t('sub2api.common.filterAccount')"
+              @keyup.enter="applyRecentFilter"
+            />
+          </template>
+        </FilterBar>
         <AppPanel :title="t('sub2api.common.recentRequests')" :padded="false">
           <div class="dt-desk">
             <DataTable
@@ -348,6 +363,7 @@ import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { useSub2APIStore } from '@/stores/sub2api'
+import type { Sub2APIRecentFilter } from '@/stores/sub2api'
 import { useFeedback } from '@/utils/feedback'
 import { Dialog } from '@/utils/dialog'
 import type {
@@ -378,6 +394,11 @@ const activeTab = ref<'overview' | 'announcements' | 'timeline'>('overview')
 const STATUS_VARIANT = { warning: 'warning', success: 'success', danger: 'error', info: 'info' } as const
 const statusVariant = computed(
   () => STATUS_VARIANT[store.statusType(snapshot.value?.status) as keyof typeof STATUS_VARIANT] ?? 'neutral',
+)
+
+// 概览三面板任一在加载 → 范围区旁显示轻 spinner（替代整块 dim 闪烁）
+const overviewLoading = computed(
+  () => store.adminTotalsLoading || store.adminTrendLoading || store.adminTopLoading,
 )
 
 // —— 用量概览时间区间：默认近 24h ——
@@ -440,15 +461,62 @@ const resolveRange = (): { startTime: number; endTime: number } => {
   }
 }
 
+// —— 最近请求多维度筛选（选项取自已加载的 Top 全量枚举） ——
+const filterModel = ref('')
+const filterGroup = ref('')
+const filterAccount = ref('')
+const filterOutcome = ref('')
+const modelOptions = computed(() => [
+  { label: t('sub2api.common.allModels'), value: '' },
+  ...store.adminModels
+    .map((m) => ({ label: m.name || t('sub2api.common.unlabeled'), value: m.name || '' }))
+    .filter((o) => o.value),
+])
+const groupOptions = computed(() => [
+  { label: t('sub2api.common.allGroups'), value: '' },
+  ...store.adminGroups
+    .map((g) => ({ label: g.name || t('sub2api.common.unlabeled'), value: g.name || '' }))
+    .filter((o) => o.value),
+])
+const outcomeOptions = computed(() => [
+  { label: t('sub2api.common.allOutcomes'), value: '' },
+  { label: t('sub2api.common.success'), value: 'success' },
+  { label: t('sub2api.common.failed'), value: 'failed' },
+])
+// 指针语义：仅非空维度进入筛选（对应后端 proto3 optional / !=nil）
+const buildRecentQuery = (): Sub2APIRecentFilter => {
+  const q: Sub2APIRecentFilter = {}
+  if (filterModel.value) q.model = filterModel.value
+  if (filterGroup.value) q.groupName = filterGroup.value
+  const acct = filterAccount.value.trim()
+  if (acct) q.accountName = acct
+  if (filterOutcome.value) q.outcome = filterOutcome.value
+  return q
+}
+
 const lastRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
 const reloadStats = () => {
   const range = resolveRange()
   lastRange.value = range
-  store.loadAdminStats(range.startTime, range.endTime)
-  store.loadAdminRecent(range.startTime, range.endTime, 1)
+  // 概览三面板 + 最近请求各自独立拉取（禁单请求大聚合）
+  store.loadAdminTotals(range.startTime, range.endTime)
+  store.loadAdminTrend(range.startTime, range.endTime)
+  store.loadAdminTop(range.startTime, range.endTime)
+  store.loadAdminRecent(range.startTime, range.endTime, 1, buildRecentQuery())
+}
+// 筛选变更即回第 1 页；翻页沿用当前筛选
+const applyRecentFilter = () => {
+  store.loadAdminRecent(lastRange.value.startTime, lastRange.value.endTime, 1, buildRecentQuery())
+}
+const resetRecentFilter = () => {
+  filterModel.value = ''
+  filterGroup.value = ''
+  filterAccount.value = ''
+  filterOutcome.value = ''
+  applyRecentFilter()
 }
 const onRecentPageChange = (page: number) => {
-  store.loadAdminRecent(lastRange.value.startTime, lastRange.value.endTime, page)
+  store.loadAdminRecent(lastRange.value.startTime, lastRange.value.endTime, page, buildRecentQuery())
 }
 const selectRange = (v: RangeKey) => {
   rangeKey.value = v
@@ -779,11 +847,28 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: opacity 0.15s;
 }
-.ov-body.is-loading {
-  opacity: 0.6;
-  pointer-events: none;
+/* 概览加载 spinner：范围区右侧，轻量、不改布局、不整块闪 */
+.ov-spin {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--el-border-color);
+  border-top-color: var(--el-color-primary);
+  border-radius: 50%;
+  opacity: 0;
+  /* 旋转 + 延迟 220ms 淡入：快请求不显示，只有慢请求才现 spinner */
+  animation: ov-spin 0.7s linear infinite, ov-spin-in 0.2s ease 0.22s forwards;
+}
+@keyframes ov-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ov-spin-in {
+  to {
+    opacity: 1;
+  }
 }
 
 .chart {

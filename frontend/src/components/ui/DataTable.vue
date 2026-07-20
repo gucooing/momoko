@@ -28,8 +28,8 @@
       </thead>
 
       <tbody>
-        <!-- 加载骨架 -->
-        <template v-if="loading">
+        <!-- 加载骨架：仅首次加载（无数据时）显示；重载（翻页/筛选）保留旧行，避免整表闪烁 -->
+        <template v-if="loading && !displayRows.length">
           <tr v-for="i in 5" :key="`sk-${i}`" class="data-table__skeleton-row">
             <td v-if="selectable"><span class="data-table__skeleton" /></td>
             <td v-if="seq"><span class="data-table__skeleton" /></td>
@@ -102,6 +102,10 @@
         </template>
       </tbody>
     </table>
+    <!-- 重载遮罩：保留旧数据可见，仅叠加轻微蒙层 + spinner（不替换内容、不改布局） -->
+    <div v-if="loading && displayRows.length" class="data-table__veil">
+      <span class="data-table__spinner" />
+    </div>
   </div>
 </template>
 
@@ -258,10 +262,41 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 
 <style scoped lang="scss">
 .data-table__scroll {
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius);
   background: var(--el-bg-color);
+}
+/* 重载遮罩：轻蒙层 + 居中 spinner，保留旧数据可见、不改布局，替代整表骨架替换的闪烁。
+   延迟 220ms 淡入：快请求（翻页秒回）根本不显示遮罩，只有慢请求才淡入，杜绝闪一下。 */
+.data-table__veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--el-bg-color) 55%, transparent);
+  border-radius: var(--app-radius);
+  opacity: 0;
+  animation: dt-veil-in 0.2s ease 0.22s forwards;
+}
+@keyframes dt-veil-in {
+  to {
+    opacity: 1;
+  }
+}
+.data-table__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--el-border-color);
+  border-top-color: var(--el-color-primary);
+  border-radius: 50%;
+  animation: dt-spin 0.7s linear infinite;
+}
+@keyframes dt-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .data-table {
   width: 100%;

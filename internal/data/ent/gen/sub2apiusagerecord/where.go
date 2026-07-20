@@ -85,6 +85,11 @@ func RequestDate(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldRequestDate, v))
 }
 
+// Bucket15m applies equality check predicate on the "bucket15m" field. It's identical to Bucket15mEQ.
+func Bucket15m(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldBucket15m, v))
+}
+
 // Model applies equality check predicate on the "model" field. It's identical to ModelEQ.
 func Model(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldModel, v))
@@ -363,6 +368,46 @@ func RequestDateEqualFold(v string) predicate.Sub2APIUsageRecord {
 // RequestDateContainsFold applies the ContainsFold predicate on the "request_date" field.
 func RequestDateContainsFold(v string) predicate.Sub2APIUsageRecord {
 	return predicate.Sub2APIUsageRecord(sql.FieldContainsFold(FieldRequestDate, v))
+}
+
+// Bucket15mEQ applies the EQ predicate on the "bucket15m" field.
+func Bucket15mEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldEQ(FieldBucket15m, v))
+}
+
+// Bucket15mNEQ applies the NEQ predicate on the "bucket15m" field.
+func Bucket15mNEQ(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNEQ(FieldBucket15m, v))
+}
+
+// Bucket15mIn applies the In predicate on the "bucket15m" field.
+func Bucket15mIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldIn(FieldBucket15m, vs...))
+}
+
+// Bucket15mNotIn applies the NotIn predicate on the "bucket15m" field.
+func Bucket15mNotIn(vs ...int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldNotIn(FieldBucket15m, vs...))
+}
+
+// Bucket15mGT applies the GT predicate on the "bucket15m" field.
+func Bucket15mGT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGT(FieldBucket15m, v))
+}
+
+// Bucket15mGTE applies the GTE predicate on the "bucket15m" field.
+func Bucket15mGTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldGTE(FieldBucket15m, v))
+}
+
+// Bucket15mLT applies the LT predicate on the "bucket15m" field.
+func Bucket15mLT(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLT(FieldBucket15m, v))
+}
+
+// Bucket15mLTE applies the LTE predicate on the "bucket15m" field.
+func Bucket15mLTE(v int64) predicate.Sub2APIUsageRecord {
+	return predicate.Sub2APIUsageRecord(sql.FieldLTE(FieldBucket15m, v))
 }
 
 // ModelEQ applies the EQ predicate on the "model" field.

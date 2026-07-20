@@ -64,6 +64,20 @@ func (_c *Sub2APIUsageRecordCreate) SetRequestDate(v string) *Sub2APIUsageRecord
 	return _c
 }
 
+// SetBucket15m sets the "bucket15m" field.
+func (_c *Sub2APIUsageRecordCreate) SetBucket15m(v int64) *Sub2APIUsageRecordCreate {
+	_c.mutation.SetBucket15m(v)
+	return _c
+}
+
+// SetNillableBucket15m sets the "bucket15m" field if the given value is not nil.
+func (_c *Sub2APIUsageRecordCreate) SetNillableBucket15m(v *int64) *Sub2APIUsageRecordCreate {
+	if v != nil {
+		_c.SetBucket15m(*v)
+	}
+	return _c
+}
+
 // SetModel sets the "model" field.
 func (_c *Sub2APIUsageRecordCreate) SetModel(v string) *Sub2APIUsageRecordCreate {
 	_c.mutation.SetModel(v)
@@ -384,6 +398,10 @@ func (_c *Sub2APIUsageRecordCreate) defaults() {
 		v := sub2apiusagerecord.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
+	if _, ok := _c.mutation.Bucket15m(); !ok {
+		v := sub2apiusagerecord.DefaultBucket15m
+		_c.mutation.SetBucket15m(v)
+	}
 	if _, ok := _c.mutation.Success(); !ok {
 		v := sub2apiusagerecord.DefaultSuccess
 		_c.mutation.SetSuccess(v)
@@ -431,6 +449,9 @@ func (_c *Sub2APIUsageRecordCreate) check() error {
 	}
 	if _, ok := _c.mutation.RequestDate(); !ok {
 		return &ValidationError{Name: "request_date", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.request_date"`)}
+	}
+	if _, ok := _c.mutation.Bucket15m(); !ok {
+		return &ValidationError{Name: "bucket15m", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.bucket15m"`)}
 	}
 	if _, ok := _c.mutation.Success(); !ok {
 		return &ValidationError{Name: "success", err: errors.New(`gen: missing required field "Sub2APIUsageRecord.success"`)}
@@ -512,6 +533,10 @@ func (_c *Sub2APIUsageRecordCreate) createSpec() (*Sub2APIUsageRecord, *sqlgraph
 	if value, ok := _c.mutation.RequestDate(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldRequestDate, field.TypeString, value)
 		_node.RequestDate = value
+	}
+	if value, ok := _c.mutation.Bucket15m(); ok {
+		_spec.SetField(sub2apiusagerecord.FieldBucket15m, field.TypeInt64, value)
+		_node.Bucket15m = value
 	}
 	if value, ok := _c.mutation.Model(); ok {
 		_spec.SetField(sub2apiusagerecord.FieldModel, field.TypeString, value)
@@ -687,6 +712,24 @@ func (u *Sub2APIUsageRecordUpsert) SetRequestDate(v string) *Sub2APIUsageRecordU
 // UpdateRequestDate sets the "request_date" field to the value that was provided on create.
 func (u *Sub2APIUsageRecordUpsert) UpdateRequestDate() *Sub2APIUsageRecordUpsert {
 	u.SetExcluded(sub2apiusagerecord.FieldRequestDate)
+	return u
+}
+
+// SetBucket15m sets the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsert) SetBucket15m(v int64) *Sub2APIUsageRecordUpsert {
+	u.Set(sub2apiusagerecord.FieldBucket15m, v)
+	return u
+}
+
+// UpdateBucket15m sets the "bucket15m" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsert) UpdateBucket15m() *Sub2APIUsageRecordUpsert {
+	u.SetExcluded(sub2apiusagerecord.FieldBucket15m)
+	return u
+}
+
+// AddBucket15m adds v to the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsert) AddBucket15m(v int64) *Sub2APIUsageRecordUpsert {
+	u.Add(sub2apiusagerecord.FieldBucket15m, v)
 	return u
 }
 
@@ -1122,6 +1165,27 @@ func (u *Sub2APIUsageRecordUpsertOne) SetRequestDate(v string) *Sub2APIUsageReco
 func (u *Sub2APIUsageRecordUpsertOne) UpdateRequestDate() *Sub2APIUsageRecordUpsertOne {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.UpdateRequestDate()
+	})
+}
+
+// SetBucket15m sets the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsertOne) SetBucket15m(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetBucket15m(v)
+	})
+}
+
+// AddBucket15m adds v to the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsertOne) AddBucket15m(v int64) *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddBucket15m(v)
+	})
+}
+
+// UpdateBucket15m sets the "bucket15m" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertOne) UpdateBucket15m() *Sub2APIUsageRecordUpsertOne {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateBucket15m()
 	})
 }
 
@@ -1781,6 +1845,27 @@ func (u *Sub2APIUsageRecordUpsertBulk) SetRequestDate(v string) *Sub2APIUsageRec
 func (u *Sub2APIUsageRecordUpsertBulk) UpdateRequestDate() *Sub2APIUsageRecordUpsertBulk {
 	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
 		s.UpdateRequestDate()
+	})
+}
+
+// SetBucket15m sets the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsertBulk) SetBucket15m(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.SetBucket15m(v)
+	})
+}
+
+// AddBucket15m adds v to the "bucket15m" field.
+func (u *Sub2APIUsageRecordUpsertBulk) AddBucket15m(v int64) *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.AddBucket15m(v)
+	})
+}
+
+// UpdateBucket15m sets the "bucket15m" field to the value that was provided on create.
+func (u *Sub2APIUsageRecordUpsertBulk) UpdateBucket15m() *Sub2APIUsageRecordUpsertBulk {
+	return u.Update(func(s *Sub2APIUsageRecordUpsert) {
+		s.UpdateBucket15m()
 	})
 }
 

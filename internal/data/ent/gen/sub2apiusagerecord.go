@@ -27,6 +27,8 @@ type Sub2APIUsageRecord struct {
 	RequestTime time.Time `json:"request_time,omitempty"`
 	// 请求日期（本地时区 YYYY-MM-DD，用于按日聚合）
 	RequestDate string `json:"request_date,omitempty"`
+	// 请求时间按 15 分钟截断的桶（Unix 秒，用于日内曲线 ent GroupBy 聚合）
+	Bucket15m int64 `json:"bucket15m,omitempty"`
 	// 模型名称
 	Model string `json:"model,omitempty"`
 	// 接口/通道
@@ -100,7 +102,7 @@ func (*Sub2APIUsageRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case sub2apiusagerecord.FieldTps, sub2apiusagerecord.FieldCost:
 			values[i] = new(sql.NullFloat64)
-		case sub2apiusagerecord.FieldUserID, sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
+		case sub2apiusagerecord.FieldBucket15m, sub2apiusagerecord.FieldUserID, sub2apiusagerecord.FieldLatencyMs, sub2apiusagerecord.FieldTokenCount, sub2apiusagerecord.FieldOutputTokens, sub2apiusagerecord.FieldFirstTokenMs, sub2apiusagerecord.FieldHTTPStatus:
 			values[i] = new(sql.NullInt64)
 		case sub2apiusagerecord.FieldID, sub2apiusagerecord.FieldRequestDate, sub2apiusagerecord.FieldModel, sub2apiusagerecord.FieldEndpoint, sub2apiusagerecord.FieldGroupID, sub2apiusagerecord.FieldGroupName, sub2apiusagerecord.FieldUserName, sub2apiusagerecord.FieldUserAgent, sub2apiusagerecord.FieldStatus, sub2apiusagerecord.FieldReasoningEffort, sub2apiusagerecord.FieldAccountName, sub2apiusagerecord.FieldErrorMessage:
 			values[i] = new(sql.NullString)
@@ -150,6 +152,12 @@ func (_m *Sub2APIUsageRecord) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field request_date", values[i])
 			} else if value.Valid {
 				_m.RequestDate = value.String
+			}
+		case sub2apiusagerecord.FieldBucket15m:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field bucket15m", values[i])
+			} else if value.Valid {
+				_m.Bucket15m = value.Int64
 			}
 		case sub2apiusagerecord.FieldModel:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -319,6 +327,9 @@ func (_m *Sub2APIUsageRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("request_date=")
 	builder.WriteString(_m.RequestDate)
+	builder.WriteString(", ")
+	builder.WriteString("bucket15m=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Bucket15m))
 	builder.WriteString(", ")
 	builder.WriteString("model=")
 	builder.WriteString(_m.Model)
