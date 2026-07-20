@@ -51,7 +51,11 @@
           <tr
             v-for="(entry, index) in displayRows"
             :key="rowId(entry.row)"
-            :class="{ 'is-selected': selectedSet.has(rowId(entry.row)) }"
+            :class="{
+              'is-selected': selectedSet.has(rowId(entry.row)),
+              'is-clickable': rowClickable,
+            }"
+            @click="onRowClick($event, entry.row)"
           >
             <td v-if="selectable" class="data-table__check">
               <input
@@ -140,10 +144,27 @@ const props = withDefaults(
     treeColumnKey?: string
     treeIndent?: number
     defaultExpandAll?: boolean
+    /** 行可点：true 时加 pointer 样式；监听 row-click 时自动为 true。 */
+    rowClickable?: boolean
   }>(),
   { rowKey: 'id', modelValue: () => [], childrenKey: 'children', treeIndent: 20, defaultExpandAll: true },
 )
-const emit = defineEmits<{ 'update:modelValue': [value: string[]] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string[]]
+  'row-click': [row: Record<string, unknown>, event: MouseEvent]
+}>()
+const attrs = useAttrs()
+/** 显式 prop 或已监听 row-click 时视为可点（父级 @row-click 会落入 attrs）。 */
+const rowClickable = computed(
+  () => props.rowClickable === true || typeof attrs.onRowClick === 'function',
+)
+const onRowClick = (event: MouseEvent, row: Record<string, unknown>) => {
+  if (!rowClickable.value) return
+  const target = event.target as HTMLElement | null
+  // 行内交互控件自己处理，不冒成整行点击
+  if (target?.closest('button, a, input, select, textarea, label, [role="button"]')) return
+  emit('row-click', row, event)
+}
 
 const { t } = useI18n()
 const menuStore = useMenuStore()
@@ -346,6 +367,9 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 }
 .data-table tbody tr.is-selected {
   background: color-mix(in srgb, var(--el-color-primary) 5%, var(--el-bg-color));
+}
+.data-table tbody tr.is-clickable {
+  cursor: pointer;
 }
 .data-table td.is-ellipsis {
   max-width: 260px;

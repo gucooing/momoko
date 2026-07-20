@@ -63,6 +63,19 @@
 - **桌面**:整页 `AppPanel` 分区 `UForm`(渠道/密钥/模型映射/限流…);分组用 `SectionHeader`;敏感字段打码 + 显隐。
 - **移动**(M-3):全宽表单,吸底保存。
 
+### Sub2API 活动 `sub2api/activity` · P2/P4(概览 + 历史表) · 优先级:中
+- **文件**:`views/sub2api/activity/index.vue`;`api/sub2api-lottery`。
+- **数据**:抽奖 overview / settings / rounds / registrants / winners / settle·draw·distribute。**保留接口与 PERM.SUB2API_EDIT**。
+- **桌面**(去 EP):
+  1. `PageHeader`(+ 刷新)。
+  2. **令牌 Tab 条** `s2a-tabs`(与 config/home 同款;当前仅「每日抽奖」,后续活动追加 tab)。
+  3. **累计中** `AppPanel`:`seg-head`(标签+期号+说明) + `#actions` **设置**按钮 + 单色 `MetricStrip`(预估奖池/今日扣费/下次结算)。设置内容走 `FormDialog` + P3 `set-row`/`AppSwitch`/`.app-input`(启用/自动发放/比例/门槛/人数)+ 立即结算/保存。
+  4. **报名中** `AppPanel`:同上头 + 有轮次时 MetricStrip(奖池/可点报名人数/开奖时间)+ round-meta(来源日/门槛/结转);空=`EmptyState`;页脚「立即开奖」(编辑权限)。
+  5. **历史轮次** `AppPanel`:**页底常驻 `DataTable`**(非按钮弹窗);`row-clickable` 整行点开详情 `FormDialog`(轮次元信息 + 中奖名单);操作列仅「发放」(未发放且已开奖)。`Pagination`。
+  6. 报名名单仍 `FormDialog`(点报名人数);报名者可展开实时拉 Sub2API 用户详情。
+- **移动**(M-1/M-4):Tab 撑满;指标带堆叠;设置弹窗控件全宽;历史表横向滚动(窄屏不强行转卡——列少且需跨行比金额)。
+- **铁律**:禁 `el-tabs`/`el-*`;MetricStrip **单色**;toast=`useFeedback`;历史**不做**按钮弹整表。
+
 ---
 
 ## 本组验收要点

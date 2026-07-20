@@ -106,7 +106,7 @@
         </div>
 
         <div class="card">
-          <div class="card__title">{{ t('sub2api.activity.myHistory') }}</div>
+          <div class="card__title">{{ t('sub2api.activity.lotteryHistory') }}</div>
           <EmptyState
             v-if="!store.history.length"
             :title="t('sub2api.activity.emptyHistory')"
@@ -118,7 +118,7 @@
                   <span class="hist__date">{{ item.round?.id }}</span>
                   <span class="hist__pool">{{ fmtMoney(item.round?.poolAmount) }}</span>
                 </div>
-                <StatusPill :variant="myVariant(item.myStatus)" :label="myLabel(item)" />
+                <StatusPill :variant="myVariant(item)" :label="myLabel(item)" />
               </div>
               <!-- 中奖名单：userName 后端已对邮箱打码，用户名原样 -->
               <div v-if="item.winners?.length" class="hist__winners">
@@ -222,20 +222,24 @@ const fmtCd = (target?: Date | string | null) => {
 const settleCd = computed(() => fmtCd(store.status?.nextSettleTime))
 const drawCd = computed(() => fmtCd(store.status?.nextDrawTime))
 
+// 本人状态：已发放 → 已获得；中奖但未发放 → 已开奖；已报名未中 → 已参加未获得；否则未参加。
 const myLabel = (item: LotteryHistoryItem) => {
-  switch (item.myStatus) {
-    case LotteryMyStatus.LOTTERY_MY_STATUS_WON:
-      return t('sub2api.activity.myWon', { amount: fmtMoney(item.myPrize) })
-    case LotteryMyStatus.LOTTERY_MY_STATUS_REGISTERED:
-      return t('sub2api.activity.myRegistered')
-    default:
-      return t('sub2api.activity.myNone')
+  if (item.myStatus === LotteryMyStatus.LOTTERY_MY_STATUS_WON) {
+    return t('sub2api.activity.myWon', { amount: fmtMoney(item.myPrize) })
   }
+  if (item.isWinner) {
+    return t('sub2api.activity.statusDrawn')
+  }
+  if (item.myStatus === LotteryMyStatus.LOTTERY_MY_STATUS_REGISTERED || item.registered) {
+    return t('sub2api.activity.myRegistered')
+  }
+  return t('sub2api.activity.myNone')
 }
 
-const myVariant = (s: LotteryMyStatus): 'success' | 'primary' | 'neutral' => {
-  if (s === LotteryMyStatus.LOTTERY_MY_STATUS_WON) return 'success'
-  if (s === LotteryMyStatus.LOTTERY_MY_STATUS_REGISTERED) return 'primary'
+const myVariant = (item: LotteryHistoryItem): 'success' | 'primary' | 'neutral' => {
+  if (item.myStatus === LotteryMyStatus.LOTTERY_MY_STATUS_WON) return 'success'
+  if (item.isWinner) return 'primary'
+  if (item.myStatus === LotteryMyStatus.LOTTERY_MY_STATUS_REGISTERED || item.registered) return 'primary'
   return 'neutral'
 }
 

@@ -149,15 +149,16 @@ func (s *Sub2APIUsecase) LotteryHistoryPublic(ctx context.Context, jwt string, p
 	items := make([]*v1.LotteryHistoryItem, 0, len(rounds))
 	for _, r := range rounds {
 		item := &v1.LotteryHistoryItem{
-			Round:      toV1LotteryRound(r),
-			MyStatus:   v1.LotteryMyStatus_LOTTERY_MY_STATUS_NONE,
-			Winners:    toV1LotteryParticipants(winnersByRound[r.ID]),
+			Round:    toV1LotteryRound(r),
+			MyStatus: v1.LotteryMyStatus_LOTTERY_MY_STATUS_NONE,
+			Winners:  toV1LotteryParticipants(winnersByRound[r.ID]),
 		}
 		if p, ok := mine[r.ID]; ok && p != nil {
 			item.Registered = true
 			item.IsWinner = p.IsWinner
 			item.MyPrize = p.PrizeAmount
-			if p.IsWinner {
+			// 中奖视角：只有实际发放到账才算「已获得」；已开奖未发放仍为 REGISTERED，前端据 is_winner 显示「已开奖」。
+			if p.IsWinner && p.PayoutStatus == sub2apipkg.PayoutPaid {
 				item.MyStatus = v1.LotteryMyStatus_LOTTERY_MY_STATUS_WON
 			} else {
 				item.MyStatus = v1.LotteryMyStatus_LOTTERY_MY_STATUS_REGISTERED
@@ -167,7 +168,6 @@ func (s *Sub2APIUsecase) LotteryHistoryPublic(ctx context.Context, jwt string, p
 	}
 	return items, total, nil
 }
-
 // ---------- 映射 ----------
 
 func mapLotteryError(err error) error {
