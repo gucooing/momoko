@@ -1,44 +1,50 @@
+<!-- Sub2API 公开绘图（P7 去 EP）：
+     顶栏 AppSelect(Key/Model) + AppIconButton(主题)；任务网格；底栏 composer（令牌 seg + textarea）；
+     参数 / 任务详情 / 删除确认 / 图片预览 全部 FormDialog；禁 el-* / BaseDialog / v-loading。 -->
 <template>
-  <main class="s2a-imagine" :class="{ 'is-dark': isDark }" v-loading="loading">
+  <main class="s2a-imagine" :class="{ 'is-dark': isDark }">
     <div class="bg-accent" aria-hidden />
 
-    <!-- 顶栏 -->
     <header class="topbar">
       <div class="topbar-inner">
         <div class="brand">
           <span class="brand-dot" />
-          {{ title }}
+          <span class="brand-title">{{ title }}</span>
           <span v-if="store.srcHost" class="brand-host" :title="store.srcHost">{{ store.srcHost }}</span>
           <span class="status-chip" :class="`tone-${status.tone}`">
             <span class="dot" />{{ status.text }}
           </span>
         </div>
         <div class="topbar-actions">
-          <el-select v-model="store.apiKeyId" class="sel-key" :placeholder="t('sub2api.imagine.selectApiKey')" @change="store.selectApiKey">
-            <el-option v-for="k in store.apiKeys" :key="k.id" :value="k.id" :label="k.name || k.id">
-              <span class="opt-name">{{ k.name || k.id }}</span>
-            </el-option>
-          </el-select>
-          <el-select
+          <AppSelect
+            v-model="apiKeyIdModel"
+            class="sel-key"
+            :options="apiKeyOptions"
+            :placeholder="t('sub2api.imagine.selectApiKey')"
+          />
+          <AppSelect
             v-model="store.modelId"
             class="sel-model"
+            :options="modelOptions"
             :placeholder="t('sub2api.imagine.selectModel')"
             :disabled="!store.models.length"
-          >
-            <el-option v-for="m in store.models" :key="m.id" :value="m.id" :label="m.displayName || m.id">
-              <span class="opt-name">{{ m.displayName || m.id }}</span>
-            </el-option>
-          </el-select>
-          <button class="icon-btn" type="button" :title="isDark ? t('sub2api.imagine.light') : t('sub2api.imagine.dark')" @click="toggleTheme">
-            <el-icon><component :is="isDark ? Sunny : Moon" /></el-icon>
-          </button>
+          />
+          <AppIconButton
+            :icon="isDark ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+            :label="isDark ? t('sub2api.imagine.light') : t('sub2api.imagine.dark')"
+            :box="34"
+            @click="toggleTheme"
+          />
         </div>
       </div>
     </header>
 
-    <!-- 任务列表 -->
     <section class="tasks">
-      <div v-if="store.generations.length" class="task-grid">
+      <div v-if="loading && !store.generations.length" class="loading-block" role="status">
+        <span class="spin" aria-hidden="true" />
+        <p>{{ t('sub2api.imagine.generating') }}</p>
+      </div>
+      <div v-else-if="store.generations.length" class="task-grid">
         <article
           v-for="g in store.generations"
           :key="g.id"
@@ -55,7 +61,7 @@
             />
             <div v-else-if="g.status === 'pending'" class="task-skeleton" />
             <div v-else class="task-thumb-empty">
-              <el-icon><Picture /></el-icon>
+              <component :is="menuStore.iconComponents['HOutline:PhotoIcon']" />
             </div>
             <span class="task-mode" :class="g.mode">{{ modeLabel(g.mode) }}</span>
           </div>
@@ -65,19 +71,33 @@
               <span>{{ g.size }}</span>
               <span>·</span>
               <span>{{ t('sub2api.imagine.imageCount', { count: g.n }) }}</span>
-              <span
+              <StatusPill
                 v-if="g.status === 'pending'"
-                class="status-chip sm tone-blue"
-              ><span class="dot" />{{ t('sub2api.imagine.generating') }}</span>
-              <span v-else-if="g.status === 'failed'" class="status-chip sm tone-red">{{ t('sub2api.imagine.failed') }}</span>
-              <span v-else class="status-chip sm tone-green">{{ t('sub2api.imagine.imageCount', { count: g.resultCount }) }}</span>
+                class="task-status"
+                variant="primary"
+                :label="t('sub2api.imagine.generating')"
+              />
+              <StatusPill
+                v-else-if="g.status === 'failed'"
+                class="task-status"
+                variant="error"
+                :label="t('sub2api.imagine.failed')"
+              />
+              <StatusPill
+                v-else
+                class="task-status"
+                variant="success"
+                :label="t('sub2api.imagine.imageCount', { count: g.resultCount })"
+              />
             </div>
           </div>
         </article>
       </div>
       <div v-else class="empty-hero">
-        <h3><span class="grad">{{ t('sub2api.imagine.firstWorkTitle') }}</span></h3>
-        <p>{{ t('sub2api.imagine.firstWorkDesc') }}</p>
+        <EmptyState
+          :title="t('sub2api.imagine.firstWorkTitle')"
+          :description="t('sub2api.imagine.firstWorkDesc')"
+        />
       </div>
     </section>
 
@@ -90,46 +110,91 @@
         @dragleave="onDragLeave"
         @drop.prevent="onDrop"
       >
-        <el-radio-group v-model="store.mode" size="small" class="mode-toggle">
-          <el-radio-button value="text2image">{{ t('sub2api.imagine.text2image') }}</el-radio-button>
-          <el-radio-button value="image2image">{{ t('sub2api.imagine.image2image') }}</el-radio-button>
-        </el-radio-group>
-        <!-- 图生图源图：紧挨模式切换，支持点击上传 / 拖入图片 -->
+        <div class="mode-seg" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            class="mode-seg__btn"
+            :class="{ 'is-active': store.mode === 'text2image' }"
+            :aria-selected="store.mode === 'text2image'"
+            @click="store.mode = 'text2image'"
+          >
+            {{ t('sub2api.imagine.text2image') }}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="mode-seg__btn"
+            :class="{ 'is-active': store.mode === 'image2image' }"
+            :aria-selected="store.mode === 'image2image'"
+            @click="store.mode = 'image2image'"
+          >
+            {{ t('sub2api.imagine.image2image') }}
+          </button>
+        </div>
+
         <template v-if="store.mode === 'image2image'">
-          <div v-if="store.sourceImage" class="src-thumb" :title="t('sub2api.imagine.changeSource')" @click="pickSource">
+          <div
+            v-if="store.sourceImage"
+            class="src-thumb"
+            :title="t('sub2api.imagine.changeSource')"
+            @click="pickSource"
+          >
             <img :src="store.sourceImage" :alt="t('sub2api.imagine.sourceImage')" />
-            <button class="src-clear" type="button" :title="t('sub2api.imagine.removeSource')" @click.stop="store.clearSource">
-              <el-icon><Close /></el-icon>
+            <button
+              class="src-clear"
+              type="button"
+              :title="t('sub2api.imagine.removeSource')"
+              @click.stop="store.clearSource"
+            >
+              <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
             </button>
           </div>
-          <button v-else class="src-add" type="button" :title="t('sub2api.imagine.uploadSource')" @click="pickSource">
-            <el-icon><Upload /></el-icon>
+          <button
+            v-else
+            class="src-add"
+            type="button"
+            :title="t('sub2api.imagine.uploadSource')"
+            @click="pickSource"
+          >
+            <component :is="menuStore.iconComponents['HOutline:ArrowUpTrayIcon']" />
           </button>
         </template>
-        <el-input
+
+        <textarea
           v-model="store.prompt"
-          type="textarea"
-          :autosize="{ minRows: 1, maxRows: 5 }"
-          :placeholder="store.mode === 'image2image' ? t('sub2api.imagine.promptImage2Image') : t('sub2api.imagine.promptText2Image')"
-          resize="none"
           class="prompt-input"
-          @keydown.ctrl.enter="store.submitGeneration"
+          rows="1"
+          :placeholder="
+            store.mode === 'image2image'
+              ? t('sub2api.imagine.promptImage2Image')
+              : t('sub2api.imagine.promptText2Image')
+          "
+          @input="autoResize"
+          @keydown.ctrl.enter.prevent="store.submitGeneration"
         />
+
         <div class="bar-actions">
-          <button class="set-btn" type="button" :title="t('sub2api.imagine.settings')" @click="settingsOpen = true">
-            <el-icon><Setting /></el-icon>
+          <button
+            class="set-btn"
+            type="button"
+            :title="t('sub2api.imagine.settings')"
+            @click="settingsOpen = true"
+          >
+            <component :is="menuStore.iconComponents['HOutline:Cog6ToothIcon']" />
             <span class="size-badge">{{ store.resolveSize() }}</span>
           </button>
           <button
             class="send-btn"
             type="button"
-            :disabled="!canSubmit"
+            :disabled="!canSubmit || store.busy"
             :title="t('sub2api.imagine.generate')"
             @click="store.submitGeneration"
           >
-            <el-icon><Promotion /></el-icon>
+            <component :is="menuStore.iconComponents['HOutline:PaperAirplaneIcon']" />
           </button>
         </div>
+
         <div v-if="dragging" class="drop-hint">{{ t('sub2api.imagine.dropHint') }}</div>
         <input
           ref="fileInput"
@@ -141,122 +206,155 @@
       </div>
     </div>
 
-    <!-- 参数设置弹窗 -->
-    <BaseDialog
+    <!-- 参数设置 -->
+    <FormDialog
       v-model="settingsOpen"
       :title="t('sub2api.imagine.paramsTitle')"
-      width="480px"
+      :width="480"
       :confirm-text="t('sub2api.imagine.apply')"
       :cancel-text="t('sub2api.common.cancel')"
-      @close="onSettingsClose"
       @confirm="onSettingsConfirm"
     >
       <div class="settings">
         <div class="set-row">
-          <label>{{ t('sub2api.imagine.shape') }}</label>
-          <el-radio-group v-model="draftParams.shape" size="small">
-            <el-radio-button value="1:1">1:1</el-radio-button>
-            <el-radio-button value="4:3">4:3</el-radio-button>
-            <el-radio-button value="3:4">3:4</el-radio-button>
-            <el-radio-button value="16:9">16:9</el-radio-button>
-            <el-radio-button value="9:16">9:16</el-radio-button>
-            <el-radio-button value="3:2">3:2</el-radio-button>
-            <el-radio-button value="2:3">2:3</el-radio-button>
-            <el-radio-button value="auto">{{ t('sub2api.imagine.auto') }}</el-radio-button>
-            <el-radio-button value="custom">{{ t('sub2api.imagine.custom') }}</el-radio-button>
-          </el-radio-group>
-        </div>
-        <div v-if="draftParams.shape !== 'auto' && draftParams.shape !== 'custom'" class="set-row">
-          <label>{{ t('sub2api.imagine.scale') }}</label>
-          <el-radio-group v-model="draftParams.scale" size="small">
-            <el-radio-button value="1K">1K</el-radio-button>
-            <el-radio-button value="2K">2K</el-radio-button>
-            <el-radio-button value="4K">4K</el-radio-button>
-          </el-radio-group>
-        </div>
-        <div v-if="draftParams.shape === 'custom'" class="set-row">
-          <label>{{ t('sub2api.imagine.size') }}</label>
-          <div class="custom-size">
-            <el-input-number v-model="draftParams.customW" :min="256" :max="4096" :step="64" size="small" controls-position="right" />
-            <span class="x">×</span>
-            <el-input-number v-model="draftParams.customH" :min="256" :max="4096" :step="64" size="small" controls-position="right" />
+          <label class="set-label">{{ t('sub2api.imagine.shape') }}</label>
+          <div class="chip-group">
+            <button
+              v-for="s in SHAPE_VALUES"
+              :key="s"
+              type="button"
+              class="chip"
+              :class="{ 'is-active': draftParams.shape === s }"
+              @click="draftParams.shape = s"
+            >
+              {{ shapeLabel(s) }}
+            </button>
           </div>
         </div>
-        <div class="set-row">
-          <label>{{ t('sub2api.imagine.count') }}</label>
-          <el-input-number v-model="draftParams.n" :min="1" :max="4" size="small" controls-position="right" />
+        <div v-if="draftParams.shape !== 'auto' && draftParams.shape !== 'custom'" class="set-row">
+          <label class="set-label">{{ t('sub2api.imagine.scale') }}</label>
+          <div class="chip-group">
+            <button
+              v-for="sc in SCALES"
+              :key="sc"
+              type="button"
+              class="chip"
+              :class="{ 'is-active': draftParams.scale === sc }"
+              @click="draftParams.scale = sc"
+            >
+              {{ sc }}
+            </button>
+          </div>
         </div>
-        <div class="set-row">
-          <label>{{ t('sub2api.imagine.quality') }}</label>
-          <el-select v-model="draftParams.quality" size="small" class="sel-sm">
-            <el-option value="auto" label="auto" />
-            <el-option value="low" label="low" />
-            <el-option value="medium" label="medium" />
-            <el-option value="high" label="high" />
-          </el-select>
+        <div v-if="draftParams.shape === 'custom'" class="set-row">
+          <label class="set-label">{{ t('sub2api.imagine.size') }}</label>
+          <div class="custom-size">
+            <input
+              v-model.number="draftParams.customW"
+              class="app-input size-num"
+              type="number"
+              min="256"
+              max="4096"
+              step="64"
+            />
+            <span class="x">×</span>
+            <input
+              v-model.number="draftParams.customH"
+              class="app-input size-num"
+              type="number"
+              min="256"
+              max="4096"
+              step="64"
+            />
+          </div>
         </div>
-        <div class="set-row">
-          <label>{{ t('sub2api.imagine.format') }}</label>
-          <el-select v-model="draftParams.outputFormat" size="small" class="sel-sm">
-            <el-option value="png" label="PNG" />
-            <el-option value="jpeg" label="JPEG" />
-            <el-option value="webp" label="WebP" />
-          </el-select>
+        <div class="set-row set-row--inline">
+          <label class="set-label">{{ t('sub2api.imagine.count') }}</label>
+          <input
+            v-model.number="draftParams.n"
+            class="app-input size-num"
+            type="number"
+            min="1"
+            max="4"
+            step="1"
+          />
+        </div>
+        <div class="set-row set-row--inline">
+          <label class="set-label">{{ t('sub2api.imagine.quality') }}</label>
+          <AppSelect v-model="draftParams.quality" :options="qualityOptions" fit />
+        </div>
+        <div class="set-row set-row--inline">
+          <label class="set-label">{{ t('sub2api.imagine.format') }}</label>
+          <AppSelect v-model="draftParams.outputFormat" :options="formatOptions" fit />
         </div>
         <div class="set-summary">
           {{ t('sub2api.imagine.resolvedSize') }}<b>{{ draftResolvedSize }}</b>
         </div>
       </div>
-    </BaseDialog>
+    </FormDialog>
 
-    <!-- 任务详情弹窗 -->
-    <BaseDialog
+    <!-- 任务详情 -->
+    <FormDialog
       v-model="detailOpen"
       :title="detailTitle"
-      width="780px"
+      :width="780"
       :show-footer="false"
-      fullscreen-button
     >
       <div v-if="store.current" class="detail">
         <div class="detail-head">
           <span class="gen-mode" :class="store.current.mode">{{ modeLabel(store.current.mode) }}</span>
           <span class="detail-meta">{{ store.current.model }}</span>
-          <span class="detail-meta">{{ store.current.size }} · {{ t('sub2api.imagine.imageCount', { count: store.current.n }) }}</span>
-          <span v-if="store.current.status === 'pending'" class="status-chip tone-blue"
-            ><span class="dot" />{{ t('sub2api.imagine.generating') }}</span
+          <span class="detail-meta"
+            >{{ store.current.size }} ·
+            {{ t('sub2api.imagine.imageCount', { count: store.current.n }) }}</span
           >
-          <span v-else-if="store.current.status === 'failed'" class="status-chip tone-red">{{ t('sub2api.imagine.failed') }}</span>
-          <span v-else class="status-chip tone-green">{{ t('sub2api.imagine.completed') }}</span>
-          <el-button
+          <StatusPill
+            v-if="store.current.status === 'pending'"
+            variant="primary"
+            :label="t('sub2api.imagine.generating')"
+          />
+          <StatusPill
+            v-else-if="store.current.status === 'failed'"
+            variant="error"
+            :label="t('sub2api.imagine.failed')"
+          />
+          <StatusPill v-else variant="success" :label="t('sub2api.imagine.completed')" />
+          <UButton
             class="detail-del"
-            text
-            type="danger"
-            size="small"
-            @click="deleteCurrent"
-          >{{ t('sub2api.imagine.deleteTask') }}</el-button>
+            color="error"
+            variant="ghost"
+            size="sm"
+            @click="deleteConfirmOpen = true"
+          >
+            {{ t('sub2api.imagine.deleteTask') }}
+          </UButton>
         </div>
         <p class="detail-prompt">{{ store.current.prompt }}</p>
         <p v-if="store.current.errorMessage" class="gen-error">{{ store.current.errorMessage }}</p>
 
         <div v-if="store.current.images?.length" class="img-grid">
           <div v-for="(im, idx) in store.current.images" :key="im.id" class="img-card">
-            <el-image
-              :src="imageUrl(im.id)"
-              :preview-src-list="store.current.images.map((x) => imageUrl(x.id))"
-              :initial-index="idx"
-              fit="contain"
-              preview-teleported
-              hide-on-click-modal
-              class="img-el"
-            />
+            <button type="button" class="img-open" @click="openPreview(idx)">
+              <img :src="imageUrl(im.id)" :alt="im.filename || store.current.prompt" loading="lazy" />
+            </button>
             <div class="img-overlay">
               <span class="img-tip">{{ t('sub2api.imagine.zoomImage') }}</span>
               <div class="img-acts">
-                <button class="img-act" :title="t('sub2api.imagine.modifyImage')" @click="onModify(im.id)">
-                  <el-icon><EditPen /></el-icon>
+                <button
+                  type="button"
+                  class="img-act"
+                  :title="t('sub2api.imagine.modifyImage')"
+                  @click="onModify(im.id)"
+                >
+                  <component :is="menuStore.iconComponents['HOutline:PencilSquareIcon']" />
                 </button>
-                <a class="img-act" :href="imageUrl(im.id)" :download="im.filename" :title="t('sub2api.imagine.download')">
-                  <el-icon><Download /></el-icon>
+                <a
+                  class="img-act"
+                  :href="imageUrl(im.id)"
+                  :download="im.filename"
+                  :title="t('sub2api.imagine.download')"
+                >
+                  <component :is="menuStore.iconComponents['HOutline:ArrowDownTrayIcon']" />
                 </a>
               </div>
             </div>
@@ -265,62 +363,142 @@
         <div v-else-if="store.current.status === 'pending'" class="img-grid">
           <div v-for="i in store.current.n" :key="i" class="img-skeleton" />
         </div>
-        <div v-else class="empty">{{ t('sub2api.imagine.noImage') }}</div>
+        <EmptyState v-else :title="t('sub2api.imagine.noImage')" />
       </div>
-    </BaseDialog>
+      <div v-else class="loading-block is-inline" role="status">
+        <span class="spin" aria-hidden="true" />
+      </div>
+    </FormDialog>
+
+    <!-- 删除确认 -->
+    <FormDialog
+      v-model="deleteConfirmOpen"
+      :title="t('sub2api.imagine.confirmDeleteTitle')"
+      :width="420"
+      :confirm-text="t('sub2api.imagine.confirmDeleteText')"
+      :cancel-text="t('sub2api.common.cancel')"
+      :loading="deleting"
+      @confirm="confirmDelete"
+    >
+      <p class="confirm-text">{{ t('sub2api.imagine.confirmDeleteContent') }}</p>
+    </FormDialog>
+
+    <!-- 图片预览 lightbox -->
+    <Teleport to="body">
+      <Transition name="lightbox">
+        <div
+          v-if="previewOpen"
+          class="lightbox"
+          role="dialog"
+          aria-modal="true"
+          @click.self="previewOpen = false"
+        >
+          <button type="button" class="lightbox__close" :aria-label="t('system.common.close')" @click="previewOpen = false">
+            <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
+          </button>
+          <button
+            v-if="previewList.length > 1"
+            type="button"
+            class="lightbox__nav lightbox__nav--prev"
+            @click="previewIndex = (previewIndex - 1 + previewList.length) % previewList.length"
+          >
+            <component :is="menuStore.iconComponents['HOutline:ChevronLeftIcon']" />
+          </button>
+          <img class="lightbox__img" :src="previewList[previewIndex]" alt="" />
+          <button
+            v-if="previewList.length > 1"
+            type="button"
+            class="lightbox__nav lightbox__nav--next"
+            @click="previewIndex = (previewIndex + 1) % previewList.length"
+          >
+            <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" />
+          </button>
+        </div>
+      </Transition>
+    </Teleport>
   </main>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Close, Download, EditPen, Moon, Picture, Promotion, Setting, Sunny, Upload } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import { computeSize, useImagineStore } from '@/stores/sub2api/imagine'
+import { computeSize, useImagineStore, type Params } from '@/stores/sub2api/imagine'
 import { useThemeStore } from '@/stores/theme'
 import { imageGenImageUrl } from '@/api/sub2api-imagine'
-import { Dialog } from '@/utils/dialog'
 
 defineOptions({ name: 'Sub2APIImageGen' })
 
 const route = useRoute()
 const store = useImagineStore()
 const themeStore = useThemeStore()
+const menuStore = useMenuStore()
 const { t } = useI18n()
 const isDark = computed(() => themeStore.isDarkTheme)
 const toggleTheme = () => themeStore.toggleThemeMode(isDark.value ? 'light' : 'dark')
 
 const loading = ref(false)
 const settingsOpen = ref(false)
+const deleteConfirmOpen = ref(false)
+const deleting = ref(false)
 const title = 'Imagine'
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragging = ref(false)
 
-// 参数设置草稿：编辑时暂存，点“应用”才写回 store；点“取消”丢弃。
-const draftParams = ref({ ...store.params })
+const SHAPE_VALUES = ['1:1', '4:3', '3:4', '16:9', '9:16', '3:2', '2:3', 'auto', 'custom'] as const
+const SCALES = ['1K', '2K', '4K'] as const
+const shapeLabel = (value: string) => {
+  if (value === 'auto') return t('sub2api.imagine.auto')
+  if (value === 'custom') return t('sub2api.imagine.custom')
+  return value
+}
 
-// 监听弹窗打开，重置草稿为当前 store 值
+const qualityOptions = [
+  { label: 'auto', value: 'auto' },
+  { label: 'low', value: 'low' },
+  { label: 'medium', value: 'medium' },
+  { label: 'high', value: 'high' },
+]
+const formatOptions = [
+  { label: 'PNG', value: 'png' },
+  { label: 'JPEG', value: 'jpeg' },
+  { label: 'WebP', value: 'webp' },
+]
+
+const draftParams = ref<Params>({ ...store.params })
+
 watch(settingsOpen, (open) => {
   if (open) draftParams.value = { ...store.params }
 })
 
 const imageUrl = (id: string) => imageGenImageUrl(id)
 
-// 选择本地图片作为图生图源图
+const apiKeyOptions = computed(() =>
+  store.apiKeys.map((k) => ({ label: k.name || k.id, value: k.id })),
+)
+const modelOptions = computed(() =>
+  store.models.map((m) => ({ label: m.displayName || m.id, value: m.id })),
+)
+
+// AppSelect 无 @change：用 v-model 代理触发 selectApiKey
+const apiKeyIdModel = computed({
+  get: () => store.apiKeyId,
+  set: (id: string) => {
+    if (id !== store.apiKeyId) void store.selectApiKey(id)
+  },
+})
+
 const pickSource = () => fileInput.value?.click()
 const onFilePicked = async (e: Event) => {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (file) await store.setCustomSource(file)
-  input.value = '' // 允许重复选择同一文件
+  input.value = ''
 }
 
-// 拖入图片作为源图：dragenter/over 时高亮，drop 时取第一张图片（自动切到图生图）
 const onDragOver = (e: DragEvent) => {
   if (e.dataTransfer?.types.includes('Files')) dragging.value = true
 }
 const onDragLeave = (e: DragEvent) => {
-  // 仅当离开 composer-bar 边界时取消高亮，避免子元素间移动误触发
   if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
     dragging.value = false
   }
@@ -331,7 +509,6 @@ const onDrop = async (e: DragEvent) => {
   if (file) await store.setCustomSource(file)
 }
 
-// 详情弹窗开关：跟随 currentId
 const detailOpen = computed({
   get: () => !!store.currentId,
   set: (v: boolean) => {
@@ -354,20 +531,14 @@ const status = computed(() => {
   return { tone: 'green', text: t('sub2api.imagine.ready') }
 })
 
-const modeLabel = (m: string) => (m === 'image2image' ? t('sub2api.imagine.image2image') : t('sub2api.imagine.text2image'))
+const modeLabel = (m: string) =>
+  m === 'image2image' ? t('sub2api.imagine.image2image') : t('sub2api.imagine.text2image')
 
-// 草稿解析分辨率（实时预览），与 store 共用 computeSize 实现
 const draftResolvedSize = computed(() => computeSize(draftParams.value))
 
-// 应用本次设置
-const onSettingsConfirm = async () => {
+const onSettingsConfirm = () => {
   store.params = { ...draftParams.value }
   settingsOpen.value = false
-}
-
-// 取消：丢弃草稿（关闭即丢弃，无需额外操作）
-const onSettingsClose = () => {
-  // 草稿会在下次打开时重置
 }
 
 const detailTitle = computed(() => {
@@ -380,20 +551,33 @@ const onModify = async (imageId: string) => {
   if (await store.modifyImage(imageId)) detailOpen.value = false
 }
 
-const deleteCurrent = async () => {
+const confirmDelete = async () => {
   if (!store.currentId) return
+  deleting.value = true
   try {
-    await Dialog.confirm({
-      title: t('sub2api.imagine.confirmDeleteTitle'),
-      content: t('sub2api.imagine.confirmDeleteContent'),
-      confirmText: t('sub2api.imagine.confirmDeleteText'),
-      cancelText: t('sub2api.common.cancel'),
-    })
-  } catch {
-    return
+    await store.removeGeneration(store.currentId)
+    deleteConfirmOpen.value = false
+    detailOpen.value = false
+  } finally {
+    deleting.value = false
   }
-  await store.removeGeneration(store.currentId)
-  detailOpen.value = false
+}
+
+// lightbox
+const previewOpen = ref(false)
+const previewIndex = ref(0)
+const previewList = computed(() =>
+  (store.current?.images || []).map((im) => imageUrl(im.id)),
+)
+const openPreview = (idx: number) => {
+  previewIndex.value = idx
+  previewOpen.value = true
+}
+
+const autoResize = (e: Event) => {
+  const el = e.target as HTMLTextAreaElement
+  el.style.height = 'auto'
+  el.style.height = `${Math.min(el.scrollHeight, 120)}px`
 }
 
 onMounted(async () => {
@@ -404,7 +588,6 @@ onMounted(async () => {
     await store.loadApiKeys()
     await store.loadModels()
     await store.loadGenerations()
-    // 刷新页面后若仍有生成中任务，自动恢复轮询
     if (store.hasPending) store.startPolling()
   } finally {
     loading.value = false
@@ -449,7 +632,6 @@ onUnmounted(() => store.dispose())
   opacity: 0.18;
 }
 
-/* topbar：固定不随滚动 */
 .topbar {
   flex: none;
   z-index: 20;
@@ -467,7 +649,7 @@ onUnmounted(() => store.dispose())
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .brand {
@@ -475,18 +657,25 @@ onUnmounted(() => store.dispose())
   align-items: center;
   gap: 9px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   min-width: 0;
+  flex: 0 1 auto;
 }
-
+.brand-title {
+  white-space: nowrap;
+}
 .brand-host {
   font-size: 12px;
   font-weight: 500;
   color: var(--el-text-color-secondary);
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
 }
-
 .brand-dot {
+  flex: none;
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -497,80 +686,26 @@ onUnmounted(() => store.dispose())
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  :deep(.el-input__wrapper) {
-    border-radius: 10px;
-  }
+  min-width: 0;
+  flex: 0 1 auto;
 }
-
 .sel-key {
   width: 160px;
+  min-width: 0;
 }
 .sel-model {
   width: 180px;
+  min-width: 0;
 }
 
-.opt-name {
-  margin-right: 8px;
-}
-
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 9px;
-  background: var(--el-bg-color-overlay);
-  color: var(--el-text-color-primary);
-  font-size: 16px;
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
-  &:hover {
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
-  }
-}
-
-/* 参数设置按钮：自宽，图标 + 分辨率徽标并排 */
-.set-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 11px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 9px;
-  background: var(--el-bg-color-overlay);
-  color: var(--el-text-color-primary);
-  font-size: 16px;
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
-  &:hover {
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
-  }
-  .size-badge {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--el-color-primary);
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-}
-
-/* status：纯文字+颜色，无胶囊框、无大圆 */
 .status-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--chip);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  white-space: nowrap;
   --chip: var(--el-color-primary);
   &.tone-green {
     --chip: #10b981;
@@ -584,9 +719,6 @@ onUnmounted(() => store.dispose())
   &.tone-blue {
     --chip: #3b82f6;
   }
-  &.sm {
-    font-size: 11px;
-  }
   .dot {
     width: 6px;
     height: 6px;
@@ -596,7 +728,36 @@ onUnmounted(() => store.dispose())
   }
 }
 
-/* tasks：唯一可滚动区 */
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 20px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  &.is-inline {
+    padding: 40px;
+  }
+  p {
+    margin: 0;
+  }
+}
+.spin {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--el-border-color-light);
+  border-top-color: var(--el-color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .tasks {
   position: relative;
   z-index: 1;
@@ -616,7 +777,7 @@ onUnmounted(() => store.dispose())
 
 .task-card {
   border: 1px solid var(--el-border-color-light);
-  border-radius: 14px;
+  border-radius: var(--app-radius-lg, 16px);
   background: var(--el-bg-color-overlay);
   overflow: hidden;
   cursor: pointer;
@@ -662,7 +823,12 @@ onUnmounted(() => store.dispose())
   }
   .task-thumb-empty {
     color: var(--el-text-color-placeholder);
-    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    :deep(svg) {
+      width: 100%;
+      height: 100%;
+    }
   }
   .task-mode {
     position: absolute;
@@ -699,34 +865,17 @@ onUnmounted(() => store.dispose())
     gap: 6px;
     font-size: 11px;
     color: var(--el-text-color-secondary);
-    .status-chip {
+    flex-wrap: wrap;
+    .task-status {
       margin-left: auto;
     }
   }
 }
 
 .empty-hero {
-  text-align: center;
-  padding: 60px 20px;
-  h3 {
-    margin: 0 0 8px;
-    font-size: 22px;
-    font-weight: 800;
-    .grad {
-      background: linear-gradient(90deg, var(--el-color-primary), #22d3ee 60%, #8b5cf6);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-  }
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--el-text-color-secondary);
-  }
+  padding: 48px 20px;
 }
 
-/* composer bar：固定在底部，不随任务列表滚动 */
 .bar-wrap {
   position: relative;
   z-index: 15;
@@ -748,68 +897,139 @@ onUnmounted(() => store.dispose())
   gap: 8px;
   padding: 8px 12px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 14px;
+  border-radius: var(--app-radius-lg, 16px);
   background: var(--el-bg-color-overlay);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: var(--app-shadow-md, 0 4px 8px -4px rgba(16, 24, 40, 0.08));
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   &.is-dragging {
     border-color: var(--el-color-primary);
     border-style: dashed;
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--el-color-primary) 22%, transparent);
   }
-  .mode-toggle {
-    flex: none;
+}
+
+.mode-seg {
+  flex: none;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--el-fill-color-light);
+  gap: 2px;
+}
+.mode-seg__btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  &.is-active {
+    background: var(--el-bg-color-overlay);
+    color: var(--el-color-primary);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
   }
-  .prompt-input {
-    flex: 1;
-    min-width: 0;
-    :deep(.el-textarea__inner) {
-      box-shadow: none;
-      background: transparent;
-      padding: 6px 4px;
-      font-size: 14px;
-      border-radius: 10px;
-    }
+}
+
+.prompt-input {
+  flex: 1;
+  min-width: 0;
+  max-height: 120px;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 6px 4px;
+  &::placeholder {
+    color: var(--el-text-color-placeholder);
   }
-  .bar-actions {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 2px;
+}
+
+.bar-actions {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 2px;
+}
+
+.set-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-sm, 8px);
+  background: var(--el-bg-color-overlay);
+  color: var(--el-text-color-primary);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+  :deep(svg) {
+    width: 16px;
+    height: 16px;
   }
-  .send-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border: 0;
-    border-radius: 9px;
-    background: var(--el-color-primary);
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    &:hover:not(:disabled) {
-      opacity: 0.9;
-    }
-    &:active:not(:disabled) {
-      transform: scale(0.95);
-    }
-    &:disabled {
-      background: var(--el-fill-color);
-      color: var(--el-text-color-placeholder);
-      cursor: not-allowed;
-    }
+  &:hover {
+    border-color: var(--el-color-primary);
+    color: var(--el-color-primary);
+  }
+  .size-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--el-color-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+}
+
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: var(--app-radius-sm, 8px);
+  background: var(--el-color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+  :deep(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  &:disabled {
+    background: var(--el-fill-color);
+    color: var(--el-text-color-placeholder);
+    cursor: not-allowed;
   }
 }
 
 .src-file {
   display: none;
 }
-
-/* 源图控件：紧挨模式切换，与发送按钮等高 */
 .src-add {
   flex: none;
   display: inline-flex;
@@ -818,14 +1038,17 @@ onUnmounted(() => store.dispose())
   width: 34px;
   height: 34px;
   border: 1px dashed var(--el-border-color);
-  border-radius: 9px;
+  border-radius: var(--app-radius-sm, 8px);
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 16px;
   cursor: pointer;
   transition:
     border-color 0.15s,
     color 0.15s;
+  :deep(svg) {
+    width: 16px;
+    height: 16px;
+  }
   &:hover {
     border-color: var(--el-color-primary);
     color: var(--el-color-primary);
@@ -842,7 +1065,7 @@ onUnmounted(() => store.dispose())
     width: 34px;
     height: 34px;
     object-fit: cover;
-    border-radius: 9px;
+    border-radius: var(--app-radius-sm, 8px);
     border: 1px solid var(--el-border-color-light);
   }
   .src-clear {
@@ -858,19 +1081,22 @@ onUnmounted(() => store.dispose())
     border-radius: 50%;
     background: var(--el-color-danger);
     color: #fff;
-    font-size: 11px;
     cursor: pointer;
+    padding: 0;
+    :deep(svg) {
+      width: 12px;
+      height: 12px;
+    }
   }
 }
 
-/* 拖拽提示：覆盖在输入栏上 */
 .drop-hint {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: var(--app-radius-lg, 16px);
   background: color-mix(in srgb, var(--el-color-primary) 12%, var(--el-bg-color-overlay));
   color: var(--el-color-primary);
   font-size: 13px;
@@ -878,44 +1104,66 @@ onUnmounted(() => store.dispose())
   pointer-events: none;
 }
 
-/* settings dialog */
+/* settings */
 .settings {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 4px 0 8px;
-  /* 统一 Element 输入控件圆角，避免 4px 硬角与柔和面板不协调 */
-  :deep(.el-input__wrapper),
-  :deep(.el-select .el-input__wrapper),
-  :deep(.el-input-number .el-input__wrapper) {
-    border-radius: 10px;
-  }
-  :deep(.el-input-number) {
-    border-radius: 10px;
-  }
 }
 .set-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  label {
-    flex: none;
-    width: 48px;
-    font-size: 13px;
-    color: var(--el-text-color-secondary);
-  }
-  .custom-size {
-    display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  &.set-row--inline {
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    .x {
-      color: var(--el-text-color-placeholder);
+    flex-wrap: wrap;
+    .set-label {
+      width: 48px;
+      flex: none;
     }
   }
 }
-.sel-sm {
-  width: 120px;
+.set-label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 999px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+  &.is-active {
+    border-color: var(--el-color-primary);
+    color: var(--el-color-primary);
+    background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
+  }
+}
+.custom-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  .x {
+    color: var(--el-text-color-placeholder);
+  }
+}
+.size-num {
+  width: 100px;
 }
 .set-summary {
   margin-top: 4px;
@@ -929,7 +1177,7 @@ onUnmounted(() => store.dispose())
   }
 }
 
-/* detail dialog */
+/* detail */
 .detail {
   display: flex;
   flex-direction: column;
@@ -956,7 +1204,7 @@ onUnmounted(() => store.dispose())
   color: var(--el-text-color-regular);
   padding: 10px 12px;
   background: var(--el-fill-color-lighter);
-  border-radius: 10px;
+  border-radius: var(--app-radius-sm, 8px);
 }
 .gen-error {
   margin: 0;
@@ -976,35 +1224,30 @@ onUnmounted(() => store.dispose())
   }
 }
 
-/* image grid (detail) */
 .img-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
 }
-
 .img-card {
   position: relative;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
   overflow: hidden;
   background: var(--el-fill-color-lighter);
-  .img-el {
+  .img-open {
     display: block;
     width: 100%;
-    height: auto;
-    max-height: 70vh;
+    padding: 0;
+    border: 0;
+    background: transparent;
     cursor: zoom-in;
-    :deep(img) {
+    img {
       display: block;
       width: 100%;
       height: auto;
+      max-height: 70vh;
       object-fit: contain;
-    }
-    :deep(.el-image__wrapper),
-    :deep(.el-image__inner) {
-      width: 100%;
-      height: auto;
     }
   }
   .img-overlay {
@@ -1018,6 +1261,7 @@ onUnmounted(() => store.dispose())
     padding: 7px 9px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.42));
     color: #fff;
+    pointer-events: none;
     .img-tip {
       font-size: 11px;
       opacity: 0.8;
@@ -1025,6 +1269,7 @@ onUnmounted(() => store.dispose())
     .img-acts {
       display: inline-flex;
       gap: 4px;
+      pointer-events: auto;
     }
     .img-act {
       display: inline-flex;
@@ -1036,9 +1281,13 @@ onUnmounted(() => store.dispose())
       border-radius: 7px;
       background: rgba(255, 255, 255, 0.16);
       color: #fff;
-      font-size: 14px;
       cursor: pointer;
+      text-decoration: none;
       transition: background 0.15s;
+      :deep(svg) {
+        width: 14px;
+        height: 14px;
+      }
       &:hover {
         background: rgba(255, 255, 255, 0.3);
       }
@@ -1067,34 +1316,113 @@ onUnmounted(() => store.dispose())
   }
 }
 
-.empty {
+.confirm-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--el-text-color-regular);
+}
+
+/* lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
   padding: 24px;
-  text-align: center;
-  color: var(--el-text-color-placeholder);
-  font-size: 13px;
+}
+.lightbox__img {
+  max-width: min(96vw, 1200px);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+.lightbox__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  :deep(svg) {
+    width: 20px;
+    height: 20px;
+  }
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  :deep(svg) {
+    width: 20px;
+    height: 20px;
+  }
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+  &--prev {
+    left: 16px;
+  }
+  &--next {
+    right: 16px;
+  }
+}
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.18s ease;
+}
+.lightbox-enter-from,
+.lightbox-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 720px) {
   .topbar-inner {
     padding: 8px 12px;
-    height: auto;
     min-height: 52px;
     flex-wrap: wrap;
   }
   .topbar-actions {
     flex: 1 1 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow: hidden;
   }
   .brand {
     font-size: 14px;
     flex: 1 1 auto;
-    min-width: 0;
+  }
+  .brand-host,
+  .status-chip {
+    display: none;
   }
   .sel-key,
   .sel-model {
-    flex: 1 1 120px;
+    flex: 1 1 0;
     width: auto;
-    min-width: 0;
   }
   .tasks {
     padding: 12px;
@@ -1105,16 +1433,18 @@ onUnmounted(() => store.dispose())
   }
   .composer-bar {
     flex-wrap: wrap;
-    .mode-toggle {
+    .mode-seg {
       order: -1;
       width: 100%;
+      .mode-seg__btn {
+        flex: 1;
+      }
     }
     .prompt-input {
       order: 0;
       width: 100%;
       flex: 1 1 100%;
     }
-    /* 源图控件与操作按钮同处末行，避免单独占一行卡在模式切换与输入框之间 */
     .src-add,
     .src-thumb {
       order: 1;
@@ -1123,9 +1453,6 @@ onUnmounted(() => store.dispose())
       order: 2;
       margin-left: auto;
     }
-  }
-  .set-row label {
-    width: auto;
   }
 }
 </style>

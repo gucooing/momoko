@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状（换设备从这里接）**：Phase 0–2 + Phase 3 大半完成。**Sub2API 管理端 `c8d08f2` + 公开门户 `ea7c1d4` 已提交**（home 拆接口/渐进填数 + stats 去 EP + MetricItem 图标 + AppDropdown 视口钳制 + 移动顶栏单行）。本地若 ahead origin 可按需 push。监控假数据→Phase 4。**下一步**：`public/sub2api/imagine` → lottery → `sub2api/activity`；`public/share`/`oidc` 仍 EP。
+> **一句话现状（换设备从这里接）**：Phase 0–2 + Phase 3 大半完成。**公开门户 `home/stats`(`ea7c1d4`) + `imagine` 去 EP + `lottery` 顶栏对齐已完成（本会话未提交）**；`activity` 去 EP 已提交 `24fa5e7`。监控假数据→Phase 4。**下一步**：提交 imagine/lottery 批次 → `public/share` / `oidc` 仍 EP → Phase 4 卸 EP。
 
 ### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
 > 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。
@@ -53,12 +53,26 @@
 
 **验收**：桌面 1440 暗/浅 + 移动 360/390 + 语言菜单不越界 + 区间 7→1 + ep=0 + home/stats/overview 200；vue-tsc/eslint 绿。
 
+### ✅ 本会话：`public/sub2api/imagine` 去 EP + `lottery` 顶栏对齐（2026-07-20，未提交）
+> 规格补入 `06e`。
+
+**imagine**
+- 去尽 EP：`el-select/radio/input/image/button/icon/v-loading/BaseDialog` → `AppSelect` + 令牌 `mode-seg` + 原生 textarea + chip 参数 + `FormDialog`×3（参数/详情/删除）+ 自建 lightbox 预览。
+- 顶栏 `AppIconButton` 主题；空=`EmptyState`；状态 `StatusPill`；Heroicons 全量。
+- 保留 `useImagineStore` 全契约（bootstrap/token、轮询、图生图拖入、modifyImage）。
+- **浏览器验**：桌面 1440 暗/浅 + 参数弹窗 + 移动 390（顶栏换行、composer 堆叠、图生图上传按钮）；`vue-tsc`/`eslint` 绿。假 token 时 API 500 属预期（无真实 key）。
+
+**lottery**
+- 顶栏手写 `icon-btn`+`UIcon` → `AppIconButton`（规则 + 主题），与 home/stats/imagine 一致。
+- 桌面暗色 + 真实后端奖池/历史 + 规则 FormDialog 已验；无 console error。
+
 **下一会话**
-1. 继续：`public/sub2api/imagine` → lottery → `sub2api/activity`。
-2. 若远端未更：`git push`（`ea7c1d4`）。
+1. 提交本批（imagine + lottery + 06e/08 docs）。
+2. `public/share` / `oidc/authorize` 去 EP；或 Phase 4 清 demo + 卸 EP。
+3. activity 若需补移动/明暗截图再验一次。
 
 ### 如何启动 / 可视化验证
-- 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
+- 前端 dev：`cd frontend && pnpm dev`（`:3007`，占用则提示端口）。登录 `admin / admin`；后端 API `:22633`。
 - 浏览器 MCP `chrome-devtools`（local，autoConnect）：`navigate_page` / `take_screenshot` / `resize_page` / `evaluate_script`。**每页验收：桌面 1440×900 + 移动 390×844，明+暗。** 截图落 `.browser-tmp/shots/`（gitignored）。
 - ⚠️ `.app-content` 是**内部滚动容器**（非 window）：截"整页底部"要 `document.querySelector('.app-content').scrollTop = ...`，`fullPage` 只截到视口。
 
@@ -150,7 +164,7 @@
 | 文件来源 | file/source | P1 | ✅ | ✅ | ✅ | ✅ 桌面/创建弹窗(动态 OSS/FTP/WebDAV 字段+AppSelect 浮层)验;移动暗沿用已验范式 |
 | Sub2API 首页 | sub2api/home | P4 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Sub2API 配置 | sub2api/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 三 Tab(连接/首页/生图)去 EP：`AppPanel`+`set-row`+`AppSwitch`+展示分组 toggle-chip+可移除站点 chip；`PageHeader#actions` 同步状态 `StatusPill`；`useFeedback`。桌面1440/移动390(emulate)/明暗+真实后端(已连接)验；`configPageTitle` 三语；未提交 |
-| Sub2API 活动 | sub2api/activity | P2/P4 | 🟡 | ⬜ | ⬜ | 🟡 去 EP 布局重写：令牌 `s2a-tabs` + 累计中(#actions 设置) + 报名中 + **页底历史表行点详情**；`DataTable.row-click`；规格补入 `06c`；浏览器验收待做 |
+| Sub2API 活动 | sub2api/activity | P2/P4 | ✅ | ⬜ | ✅ | 🟡 去 EP + 历史按发放口径；**`24fa5e7`**；移动截图可再补 |
 
 ### 系统管理(`06d`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -172,7 +186,8 @@
 | OIDC 授权 | oidc/authorize | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | Sub2API 门户 | public/sub2api/home | P7 | ✅ | ✅ | ✅ | 🟡 拆接口+去 EP+渐进渲染；顶栏仅语言/主题/公告；移动单行；**`ea7c1d4`** |
 | Sub2API 统计 | public/sub2api/stats | P7 | ✅ | ✅ | ✅ | 🟡 去 EP + Metric 图标 + 明确 loading + stagger；360 语言菜单不越界；**`ea7c1d4`** |
-| Sub2API 绘图 | public/sub2api/imagine | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
+| Sub2API 绘图 | public/sub2api/imagine | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 全量（AppSelect/FormDialog/lightbox/StatusPill/EmptyState）；桌面1440暗浅+移动390+参数弹窗验；**未提交** |
+| Sub2API 抽奖 | public/sub2api/lottery | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 主体已有 + 顶栏改 AppIconButton；桌面暗+真实后端验；**未提交** |
 | 403 | exception/403 | P8 | ✅ | ✅ | ✅ | 🟡 去插画克制居中+回首页/上一页；桌面/移动/暗验；未提交 |
 | 404 | exception/404 | P8 | ✅ | ✅ | ✅ | 🟡 同 403 范式；桌面验；未提交 |
 | redirect | redirect | 工具 | ✅ | — | ✅ | 🟡 令牌页底+logo 脉冲占位；未提交 |
@@ -230,4 +245,5 @@
 | 2026-07-20 | **Sub2API 后端聚合重写全链路修好（构建断裂→全绿）**：①`snapshot.go` 去内存聚合、`BuildSnapshot/BuildStats` 改调 ent 聚合方法（`AggregateTotals/DailyTrend/TopItems/IntradaySeries/RecordsPage`）+映射助手（`mapTopItems/dailyTrendPoints/intradayTrendPoints/todaySeriesPoints/trendDayRange/dayStart`），删 `BuildRangeStats/totalsFromRecords/build*/records*/isRateEligible/tpsEligible`+`sort` import。②proto 删 admin `GetSub2APIStats`、加 `GetSub2APIAdminTotals/Trend/Top`（`/stats/totals\|trend\|top`），`make api`。③`pkg/service.go` 加 `adminWindow`+`AdminTotals/Trend/Top`、`RecentRequests(...,filter)`。④biz+service 3 handler + `RecordFilter{req.Model/GroupName/AccountName/Outcome(*string)}`。⑤前端 `api` 加 3 fn、`store` 拆 `adminTotals/adminTrend/adminModels/adminGroups`+`loadAdmin{Totals,Trend,Top}`（各自 loading）+`loadAdminRecent(...,filter)`+`buildStatsCards` 放宽 `StatsCardSource`、Top 图 `slice(0,10)`、下拉用全量枚举、`home` 三面板 `panel-loading`+最近请求 `FilterBar`(model/group/outcome 即时 + account 回车，改 filter 回第 1 页)+i18n `allModels/allGroups/allOutcomes/filterAccount` 三语。**`go build`/`vet`/`test`+`vue-tsc`/`eslint` 全绿；LSP "is not a type" 系 proto 重生后 gopls 陈旧误报（build/vet=0 证伪）。未提交。** | 用户重跑 Go + 全量重同步回填 `bucket15m` → 浏览器全验（三面板独立 loading/趋势桶/token Top/四维筛选链路/tps 口径）→ 提交本批 |
 | 2026-07-20 | **Sub2API 后端重写浏览器实测通过 + 全局列表闪屏修复（用户点名）**：用户已重跑 Go+全量重同步；curl+浏览器实测新端点全对。**用户反馈整页闪** → 修共享 `DataTable`：骨架仅首屏，重载保留旧行+延迟 220ms veil；管理 home 概览改轻 spinner。已随 `c8d08f2` 提交。 | 公开门户 |
 | 2026-07-20 | **公开门户 home+stats 提交 `ea7c1d4`**：home 拆 `snapshot`+`GetPublicSub2APIOverview`+三请求渐进；stats 去 EP（Metric 图标/明确 loading/stagger/LanguageMenu）；`AppDropdown` 视口钳制；移动顶栏单行；home 顶栏去重复 CTA、hero「用量详情」；完整浏览器验收后提交。 | `public/sub2api/imagine` → lottery → activity |
-| 2026-07-20 | **Sub2API 活动 `activity` 按重写文档去 EP 重写布局**：用户点名历史勿按钮弹窗、设置进累计中。实现：`el-tabs`→令牌 `s2a-tabs`；累计中 `#actions` 设置 FormDialog(P3 set-row)；报名中 AppPanel；**页底历史 DataTable 行点详情**；`DataTable` 加 `row-click`/`rowClickable`；规格补入 `06c`。**浏览器验收待做**。 | 浏览器 1440/390×明暗验 activity；或继续 public imagine/lottery |
+| 2026-07-20 | **Sub2API 活动 `activity` 按重写文档去 EP 重写布局**：用户点名历史勿按钮弹窗、设置进累计中。实现：`el-tabs`→令牌 `s2a-tabs`；累计中 `#actions` 设置 FormDialog(P3 set-row)；报名中 AppPanel；**页底历史 DataTable 行点详情**；`DataTable` 加 `row-click`/`rowClickable`；规格补入 `06c`。已提交 **`24fa5e7`**（含抽奖历史状态按发放口径）。 | public imagine/lottery |
+| 2026-07-20 | **公开绘图 `public/sub2api/imagine` 去 EP 全量重写 + lottery 顶栏对齐**：①imagine：`el-*`/`BaseDialog`/`v-loading` → AppSelect(Key/Model)+AppIconButton 主题 + EmptyState/StatusPill + 令牌 mode-seg composer + FormDialog(参数 chip/详情/删除) + 自建 lightbox(替 el-image)；store 契约不动。②lottery 顶栏 `UIcon` icon-btn → AppIconButton。③规格补 `06e`。浏览器：imagine 1440 暗/浅+参数弹窗+390 移动(含图生图)；lottery 桌面暗真实奖池/历史/规则弹窗；vue-tsc/eslint 绿。**未提交。** | 提交本批；`public/share` / `oidc` 或 Phase 4 |

@@ -41,11 +41,19 @@
 - **结构**:居中授权卡:应用信息 + 请求的 scope 列表(清晰可读)+ 账号 + `授权/拒绝`。移动全宽。
 - **保留** 授权流与回调逻辑。
 
-### Sub2API Public:`public/sub2api/home` `.../stats` `.../imagine` · P7 · 优先级:中
+### Sub2API Public:`public/sub2api/home` `.../stats` `.../imagine` `.../lottery` · P7 · 优先级:中
 - **文件**:对应 `views/public/sub2api/*`;`stores/sub2api/*`。
-- **说明**:面向终端用户的 Sub2API 门户/统计/绘图。**可被 iframe 嵌入**(`ui_mode=embedded`,父级下发主题)——**保留** `stores/theme` 里的 embedded 主题读取与 postMessage 逻辑。
-- **结构**:轻量独立外壳(顶部小标题 + 内容);home=入口/说明,stats=用量图表 + 指标带,imagine=绘图交互。移动优先单列。
-- **注意**:嵌入态主题跟随父级,不写 localStorage;保留该分支。
+- **说明**:面向终端用户的 Sub2API 门户/统计/绘图/抽奖。**可被 iframe 嵌入**(`ui_mode=embedded`,父级下发主题)——**保留** bootstrap query(`token`/`src_host`/`theme`/`ui_mode`)与 theme 分支。
+- **结构**:轻量独立外壳;home=入口/说明(拆接口渐进),stats=MetricStrip+图表(明确 loading),imagine=任务网格+底栏 composer,lottery=奖池/报名/历史。
+- **imagine(去 EP)**:
+  - 顶栏:`AppSelect`(API Key / Model)+ `AppIconButton` 主题;状态 chip 单色点。
+  - 任务网格:缩略图 + `StatusPill`;空=`EmptyState`;首屏 loading 区(非 `v-loading`)。
+  - 底栏 composer:令牌 `mode-seg`(文生图/图生图)+ 源图上传/拖入 + 原生 `textarea` + 设置/发送。
+  - 参数 `FormDialog`:`chip` 形状/清晰度 + `.app-input` 自定义尺寸/数量 + `AppSelect` 质量/格式。
+  - 详情 `FormDialog`:`StatusPill` + 图片网格;预览=自建 lightbox(替 `el-image`);删除=二次 `FormDialog` 确认。
+  - 禁 `el-*` / `BaseDialog` / EP icons。
+- **lottery(去 EP)**:顶栏 `AppIconButton`;`StatusPill`+`EmptyState`+`FormDialog` 规则;`useFeedback` toast。
+- **注意**:嵌入态主题跟随父级,不写 localStorage;保留该分支。移动顶栏尽量单行 nowrap。
 
 ---
 

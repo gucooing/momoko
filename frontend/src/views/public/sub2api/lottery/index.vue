@@ -6,24 +6,24 @@
     <header class="topbar">
       <div class="topbar-inner">
         <div class="topbar-left">
-          <button
-            class="icon-btn"
-            type="button"
-            :title="t('sub2api.activity.rulesTitle')"
-            :aria-label="t('sub2api.activity.rulesTitle')"
+          <AppIconButton
+            icon="HOutline:QuestionMarkCircleIcon"
+            :label="t('sub2api.activity.rulesTitle')"
+            :box="34"
             @click="rulesOpen = true"
-          >
-            <UIcon name="i-lucide-circle-help" />
-          </button>
+          />
           <div class="brand">
             <span class="brand-dot" />
             {{ t('sub2api.activity.brand') }}
             <span v-if="store.srcHost" class="brand-host" :title="store.srcHost">{{ store.srcHost }}</span>
           </div>
         </div>
-        <button class="icon-btn" type="button" @click="toggleTheme">
-          <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" />
-        </button>
+        <AppIconButton
+          :icon="isDark ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+          :label="t('login.toggleTheme')"
+          :box="34"
+          @click="toggleTheme"
+        />
       </div>
     </header>
 
@@ -349,23 +349,6 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.icon-btn {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-sm);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex: none;
-}
-.icon-btn:hover {
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
 }
 .body {
   flex: 1;
