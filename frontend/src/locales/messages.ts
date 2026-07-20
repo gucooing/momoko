@@ -3283,6 +3283,7 @@ const sub2apiMessages = {
     admin: {
       title: 'Sub2API 管理',
       subtitle: '配置统一网关连接、查看用量看板，并维护公开首页的公告与时间线。',
+      configPageTitle: 'Sub2API 配置',
       configSubtitle: '配置统一网关的后端连接与同步参数。',
       enablePublicHome: '开启公开首页',
       publicHomeHint: '开启后访客可访问 /sub2api 公共首页',
@@ -3646,6 +3647,7 @@ const sub2apiMessages = {
     admin: {
       title: 'Sub2API 管理',
       subtitle: '配置統一網關連接、查看用量看板，並維護公開首頁的公告與時間線。',
+      configPageTitle: 'Sub2API 配置',
       configSubtitle: '配置統一網關的後端連接與同步參數。',
       enablePublicHome: '開啟公開首頁',
       publicHomeHint: '開啟後訪客可訪問 /sub2api 公共首頁',
@@ -4010,6 +4012,7 @@ const sub2apiMessages = {
       title: 'Sub2API Admin',
       subtitle:
         'Configure unified gateway connections, inspect usage, and maintain public announcements and timeline.',
+      configPageTitle: 'Sub2API Settings',
       configSubtitle: 'Configure the gateway backend connection and sync parameters.',
       enablePublicHome: 'Enable Public Home',
       publicHomeHint: 'Visitors can access /sub2api public home when enabled',

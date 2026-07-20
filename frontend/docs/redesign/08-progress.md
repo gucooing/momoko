@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + **个人中心** 完成；余 监控/Sub2API/public |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + 个人中心 + **Sub2API 配置** 完成；余 Sub2API 首页/活动 + public/*；监控=假数据(Phase 4 待决) |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成。**个人中心已按 `06a` 真重写**：色条头 + **左资料常驻 / 右 Tabs(消息·权限·设备·日志)**，非五 Tab 平铺；设备 EntityCard+AdaptiveConfirm；移动编辑 FormDialog。横切 `useFeedback`；改密 FormDialog。`SelectAvatarDialog` 仍 EP。**下一步**：提交 profile 批次 → 监控 / Sub2API / public/*；或 Phase 4 清 demo + 卸 EP。
+> **一句话现状**：Phase 0–2 样板 + Phase 3 大半已完成。**Sub2API 配置已按 `06c` P3 重写**(去 EP：三 Tab 令牌分段 + `AppPanel`/`set-row` + `AppSwitch` + 展示分组 toggle-chip + 可移除站点 chip + `PageHeader#actions` 同步状态 `StatusPill` + `useFeedback`)，浏览器全验(桌面1440 / 移动390 emulate / 明+暗 / 真实后端已连接数据)，`configPageTitle` 补三语。**⚠️ 监控页 `dashboard/monitor` = 100% `Math.random` 假数据(核对 `stores/dashboard/monitor.ts` 属实)→ Phase 4 待决,勿在其上精修**。**下一步**：Sub2API 首页 `sub2api/home`(P4,1315 行大页,218 EP) / public/*(share·oidc·sub2api home/stats/imagine);或 Phase 4 清 demo + 卸 EP。**注**：`sub2api/activity`+`public/sub2api/lottery` 系近期抽奖功能新增页(未纳入本 06c 表)，仍带 EP,待后续统一。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -120,7 +120,7 @@
 | 文件分享 | file/share | P1 | ✅ | ✅ | ✅ | ✅ 桌面/移动/暗+创建/编辑弹窗全验;**有界内容**(列 `N 项·首名`+title 全清单;弹窗"已选N项+定高滚动+逐项移除")、**无序号** |
 | 文件来源 | file/source | P1 | ✅ | ✅ | ✅ | ✅ 桌面/创建弹窗(动态 OSS/FTP/WebDAV 字段+AppSelect 浮层)验;移动暗沿用已验范式 |
 | Sub2API 首页 | sub2api/home | P4 | ⬜ | ⬜ | ⬜ | ⬜ |
-| Sub2API 配置 | sub2api/config | P3 | ⬜ | ⬜ | ⬜ | ⬜ |
+| Sub2API 配置 | sub2api/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 三 Tab(连接/首页/生图)去 EP：`AppPanel`+`set-row`+`AppSwitch`+展示分组 toggle-chip+可移除站点 chip；`PageHeader#actions` 同步状态 `StatusPill`；`useFeedback`。桌面1440/移动390(emulate)/明暗+真实后端(已连接)验；`configPageTitle` 三语；未提交 |
 
 ### 系统管理(`06d`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -195,3 +195,4 @@
 | 2026-07-15 | **个人中心 `profile` 第一次换壳**（五 Tab 平铺，未对齐 06a）→ 用户点名返工。 | 按 06a 真重写 |
 | 2026-07-15 | **个人中心 `profile` 按 06a 真·从零**：①克制浅主色条头部+编辑资料/改密 ②**左栏常驻**档案 DescriptionList + 桌面内嵌编辑；**右栏 Tabs** 仅 消息→权限→设备→日志（`personalInfo` 移出 store tabs） ③设备 **EntityCard 网格** + AdaptiveConfirm 下线 ④消息/设备危险操作用 AdaptiveConfirm ⑤移动：头压缩、Tab 横滑、列表转卡、**编辑 FormDialog 近全屏** ⑥改密 FormDialog+内联校验；去掉未实现危险区注销。i18n 补 editProfile/logoutDevice/thisSession。**完整浏览器验收**（用户要求后补做）：桌面1440 保存确认/一键已读/发消息/改密校验/下线确认/日志详情；移动390 编辑弹窗+设备卡+日志卡+移动下线 Dialog；768 单列无横溢；修 `dev-grid` `minmax(0,1fr)` 与 AppPanel 窄屏 head wrap。vue-tsc+eslint 绿。 | 下一页 监控/Sub2API/public |
 | 2026-07-13 | **文件管理 `file/index` 真·从零重写 + 用户点名两条刚性标准**：全套文件组件除净老框架（EP-free）：`FileBrowser.vue`（外壳=来源 AppSelect/前进后退上级/面包屑/刷新 + 双栏 左树+右列表·网格 + 工具栏 UButton/AppDropdown更多/搜索/筛选/视图段 + 选择条 + 页脚 Pagination；全出血 `flex:1;min-height:0` 填满高度[修 278px 塌陷]；图标走 `menuStore.iconComponents['HOutline:*']`；删除确认=内联令牌 FormDialog）、`FileTree/FileTreeNode`（→ 可覆盖 `--ft-*` 局部变量+app 令牌兜底，heroicons）、`FilePromptDialog/FileMediaDialog/FileUploadDialog`（→ FormDialog+app 令牌+AppSelect）、**`FileEditor` 重写**（自包含 `--fe-*` 独立明暗主题[非旧 fm-*]、menuStore+本地保存 SVG、主题**分段**替代旧 FileMenu、`useFeedback`+Promise 门闸令牌确认）、`useFileUpload`（1 处 ElMessage→fb）。**新建 `src/utils/feedback.ts` = `useFeedback()` 封装 Nuxt UI `useToast`（全项目首个采用者，已浏览器实证渲染）**；`ElMessage`→`fb`、`showRequestError`→`fb.error(getRequestErrorMessage())`、`Dialog.confirm`→令牌 FormDialog。**删** orphaned `FileMenu.vue`；`icons.ts` 回退 HEAD（去 2 个没用的 view 图标）。**踩坑**：移动端表头 类型/时间 列 `.fb-thead .fb-col{display:flex}`(0,2,0) 盖过 `.fb-col--type{display:none}`(0,1,0)→ 表头列不隐藏挤压，改用 `.fb-thead .fb-col--type` 提特异性。**保留** `theme.css`(fm-*，薄荷)——仍服务未重写的 `FilePicker/FileViewerDialog/FileDialog/FilePager`(public/share 用，增量待迁)。**浏览器验证**：桌面浅/暗、网格、移动(tree 隐藏/单列/无横溢)、toast 渲染、全出血填高、新建文件夹 FormDialog；vue-tsc+eslint 绿。**未提交。** 记忆 [[rewritten-components-drop-all-legacy-framework]]。**浏览器 MCP 坑**：chrome-devtools 读默认 profile 的 DevToolsActivePort；用户 Chrome 无 debug 端口→ 另起隔离 debug Chrome `:9222`（`$TEMP\momoko-devtools-profile`）+ 把默认 profile 里陈旧 DevToolsActivePort 改指 9222。 | ①**用户重跑 Go 后端**以吃到 `pkg/file.Create` 吞错修复 ②提交本批文件管理重写 ③Monaco 自动化键入未通（保存 dirty 态未 E2E 到，手工点一下即可）④Docker 复查修复（容器网络列无界/Stats echarts 暗色/硬编码「连接」/engine-down 空态）⑤剩余页面 |
+| 2026-07-20 | **Sub2API 配置 `sub2api/config`（P3，去 EP 全量重写）**：`el-tabs/el-card/el-form/el-switch/el-input(-number)/el-checkbox-group/el-tag/ElMessage/v-loading` → 令牌三 Tab 分段(连接/首页/生图·`menuStore` 图标) + `PageHeader`(`#actions` 挂同步状态 `StatusPill`，`store.statusType` 的 `danger`→`error` 映射) + `AppPanel`(flush)+`set-row`(label+desc) + `AppSwitch` + 令牌 `.app-input/.app-textarea` + adminApiKey 眼睛显隐(`AppIconButton`) + **展示分组 toggle-chip 多选**(选中 teal 描边+淡底+勾) + **允许站点可移除 chip + 行内追加输入**。toast 用 `useFeedback`。保留全部逻辑/接口(`useSub2APIStore.loadAdmin/testConfig/saveConfig`、`configForm`、`groups`、`PERM.SUB2API_EDIT`、`__deleted__` 分组合并)。`configPageTitle` 补三语(原页标题误用「连接配置」)。**浏览器全验**：桌面1440(连接/首页/生图) + 移动390 emulate(连接/首页) + 明+暗 + 真实后端(已连接、正常状态、真实分组回填) + 追加/移除站点交互；vue-tsc + eslint 绿。**⚠️ 核对 `stores/dashboard/monitor.ts`：监控页 100% `Math.random` 假数据 → 登记 Phase 4 待决(勿精修)**。**未提交。** | Sub2API 首页 `sub2api/home`(P4 大页) / public/*；或 Phase 4 清 demo + 卸 EP |
