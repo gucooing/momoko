@@ -27,6 +27,7 @@ const OperationSub2APIManagerDistributeLotteryRound = "/v1.Sub2APIManager/Distri
 const OperationSub2APIManagerGetLotteryOverview = "/v1.Sub2APIManager/GetLotteryOverview"
 const OperationSub2APIManagerGetLotteryRoundDetail = "/v1.Sub2APIManager/GetLotteryRoundDetail"
 const OperationSub2APIManagerGetLotteryStatus = "/v1.Sub2APIManager/GetLotteryStatus"
+const OperationSub2APIManagerGetPublicSub2APIOverview = "/v1.Sub2APIManager/GetPublicSub2APIOverview"
 const OperationSub2APIManagerGetPublicSub2APIStats = "/v1.Sub2APIManager/GetPublicSub2APIStats"
 const OperationSub2APIManagerGetSub2APIAdminTop = "/v1.Sub2APIManager/GetSub2APIAdminTop"
 const OperationSub2APIManagerGetSub2APIAdminTotals = "/v1.Sub2APIManager/GetSub2APIAdminTotals"
@@ -66,6 +67,8 @@ type Sub2APIManagerHTTPServer interface {
 	// GetLotteryStatus ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
 	// 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
 	GetLotteryStatus(context.Context, *GetLotteryStatusRequest) (*GetLotteryStatusResponse, error)
+	// GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+	GetPublicSub2APIOverview(context.Context, *GetPublicSub2APIOverviewRequest) (*GetPublicSub2APIOverviewResponse, error)
 	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
 	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
@@ -92,7 +95,7 @@ type Sub2APIManagerHTTPServer interface {
 	ListSub2APIAnnouncements(context.Context, *ListSub2APIAnnouncementsRequest) (*ListSub2APIAnnouncementsResponse, error)
 	// ListSub2APITimeline 时间线管理
 	ListSub2APITimeline(context.Context, *ListSub2APITimelineRequest) (*ListSub2APITimelineResponse, error)
-	// PublicSub2APIHome 获取 Sub2API 公开首页数据（无需鉴权）
+	// PublicSub2APIHome 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
 	PublicSub2APIHome(context.Context, *PublicSub2APIHomeRequest) (*PublicSub2APIHomeResponse, error)
 	// RegisterLottery 报名当前轮次
 	RegisterLottery(context.Context, *RegisterLotteryRequest) (*RegisterLotteryResponse, error)
@@ -115,6 +118,7 @@ type Sub2APIManagerHTTPServer interface {
 func RegisterSub2APIManagerHTTPServer(s *http.Server, srv Sub2APIManagerHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/public/sub2api/home", _Sub2APIManager_PublicSub2APIHome0_HTTP_Handler(srv))
+	r.GET("/api/v1/public/sub2api/overview", _Sub2APIManager_GetPublicSub2APIOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/config", _Sub2APIManager_GetSub2APIConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/sub2api/config", _Sub2APIManager_UpdateSub2APIConfig0_HTTP_Handler(srv))
 	r.POST("/api/v1/sub2api/config/test", _Sub2APIManager_TestSub2APIConnection0_HTTP_Handler(srv))
@@ -162,6 +166,25 @@ func _Sub2APIManager_PublicSub2APIHome0_HTTP_Handler(srv Sub2APIManagerHTTPServe
 			return err
 		}
 		reply := out.(*PublicSub2APIHomeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetPublicSub2APIOverview0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPublicSub2APIOverviewRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetPublicSub2APIOverview)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPublicSub2APIOverview(ctx, req.(*GetPublicSub2APIOverviewRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetPublicSub2APIOverviewResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -811,6 +834,8 @@ type Sub2APIManagerHTTPClient interface {
 	// GetLotteryStatus ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
 	// 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
 	GetLotteryStatus(ctx context.Context, req *GetLotteryStatusRequest, opts ...http.CallOption) (rsp *GetLotteryStatusResponse, err error)
+	// GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+	GetPublicSub2APIOverview(ctx context.Context, req *GetPublicSub2APIOverviewRequest, opts ...http.CallOption) (rsp *GetPublicSub2APIOverviewResponse, err error)
 	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
 	GetPublicSub2APIStats(ctx context.Context, req *GetSub2APIStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIStatsResponse, err error)
 	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
@@ -837,7 +862,7 @@ type Sub2APIManagerHTTPClient interface {
 	ListSub2APIAnnouncements(ctx context.Context, req *ListSub2APIAnnouncementsRequest, opts ...http.CallOption) (rsp *ListSub2APIAnnouncementsResponse, err error)
 	// ListSub2APITimeline 时间线管理
 	ListSub2APITimeline(ctx context.Context, req *ListSub2APITimelineRequest, opts ...http.CallOption) (rsp *ListSub2APITimelineResponse, err error)
-	// PublicSub2APIHome 获取 Sub2API 公开首页数据（无需鉴权）
+	// PublicSub2APIHome 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
 	PublicSub2APIHome(ctx context.Context, req *PublicSub2APIHomeRequest, opts ...http.CallOption) (rsp *PublicSub2APIHomeResponse, err error)
 	// RegisterLottery 报名当前轮次
 	RegisterLottery(ctx context.Context, req *RegisterLotteryRequest, opts ...http.CallOption) (rsp *RegisterLotteryResponse, err error)
@@ -967,6 +992,20 @@ func (c *Sub2APIManagerHTTPClientImpl) GetLotteryStatus(ctx context.Context, in 
 	pattern := "/api/v1/public/sub2api/lottery/status"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSub2APIManagerGetLotteryStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIOverview(ctx context.Context, in *GetPublicSub2APIOverviewRequest, opts ...http.CallOption) (*GetPublicSub2APIOverviewResponse, error) {
+	var out GetPublicSub2APIOverviewResponse
+	pattern := "/api/v1/public/sub2api/overview"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetPublicSub2APIOverview))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1157,7 +1196,7 @@ func (c *Sub2APIManagerHTTPClientImpl) ListSub2APITimeline(ctx context.Context, 
 	return &out, nil
 }
 
-// PublicSub2APIHome 获取 Sub2API 公开首页数据（无需鉴权）
+// PublicSub2APIHome 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
 func (c *Sub2APIManagerHTTPClientImpl) PublicSub2APIHome(ctx context.Context, in *PublicSub2APIHomeRequest, opts ...http.CallOption) (*PublicSub2APIHomeResponse, error) {
 	var out PublicSub2APIHomeResponse
 	pattern := "/api/v1/public/sub2api/home"

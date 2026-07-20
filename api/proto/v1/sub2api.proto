@@ -9,10 +9,16 @@ import "google/protobuf/timestamp.proto";
 
 // Sub2API 公共首页与管理
 service Sub2APIManager {
-  // 获取 Sub2API 公开首页数据（无需鉴权）
+  // 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
   rpc PublicSub2APIHome(PublicSub2APIHomeRequest) returns (PublicSub2APIHomeResponse) {
     option (google.api.http) = {
       get: "/api/v1/public/sub2api/home"
+    };
+  }
+  // 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+  rpc GetPublicSub2APIOverview(GetPublicSub2APIOverviewRequest) returns (GetPublicSub2APIOverviewResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/overview"
     };
   }
   // 获取 Sub2API 配置
@@ -376,15 +382,28 @@ message Sub2APIConfig {
   repeated string public_groups = 15;
 }
 
+// 公开首页元信息（不含用量快照；用量走 GetPublicSub2APIOverview，前端渐进渲染）
 message Sub2APIHome {
   bool enabled = 1;
   string console_url = 2;
   string title = 3;
   string subtitle = 4;
   string introduction = 5;
-  Sub2APIUsageSnapshot snapshot = 6;
-  repeated Sub2APIAnnouncement announcements = 7;
-  repeated Sub2APITimelineItem timeline = 8;
+  repeated Sub2APIAnnouncement announcements = 6;
+  repeated Sub2APITimelineItem timeline = 7;
+}
+
+message GetPublicSub2APIOverviewRequest {}
+
+// 公开首页今日概览：仅首页 hero/曲线所需字段（远小于完整快照）
+message GetPublicSub2APIOverviewResponse {
+  string status = 1;
+  int64 today_request_count = 2;
+  int64 today_success_count = 3;
+  double today_success_rate = 4;
+  int64 today_token_count = 5;
+  double recent_tps = 6;
+  repeated Sub2APITimePoint today_series = 7;
 }
 
 message Sub2APIAnnouncement {

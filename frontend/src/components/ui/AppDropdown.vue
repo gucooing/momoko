@@ -45,18 +45,51 @@ const panelStyle = ref<Record<string, string>>({})
 
 const position = () => {
   const el = triggerRef.value
+  const panel = panelRef.value
   if (!el) return
   const r = el.getBoundingClientRect()
   const gap = 8
+  const pad = 8
+  // 用 visualViewport 兼容移动端地址栏/缩放，避免 fixed 面板飞出可视区
+  const vv = window.visualViewport
+  const vw = Math.round(vv?.width ?? window.innerWidth)
+  const vh = Math.round(vv?.height ?? window.innerHeight)
+  const vLeft = Math.round(vv?.offsetLeft ?? 0)
+  const vTop = Math.round(vv?.offsetTop ?? 0)
+
+  const panelW = Math.min(
+    props.width || panel?.offsetWidth || 180,
+    vw - pad * 2,
+  )
+  // 对齐触发器：end=右缘对齐，start=左缘对齐；再钳进视口
+  let left =
+    props.align === 'end' ? Math.round(r.right - panelW) : Math.round(r.left)
+  left = Math.min(Math.max(left, vLeft + pad), vLeft + vw - panelW - pad)
+
   const style: Record<string, string> = {
     position: 'fixed',
     zIndex: '2100',
+    left: `${left}px`,
+    width: `${panelW}px`,
+    // 不用 right，避免 DPR/visualViewport 下 right 算出界
   }
-  if (props.side === 'top') style.bottom = `${Math.round(window.innerHeight - r.top + gap)}px`
-  else style.top = `${Math.round(r.bottom + gap)}px`
-  if (props.align === 'end') style.right = `${Math.round(window.innerWidth - r.right)}px`
-  else style.left = `${Math.round(r.left)}px`
-  if (props.width) style.width = `${props.width}px`
+
+  const panelH = panel?.offsetHeight || 160
+  if (props.side === 'top') {
+    // 优先贴触发器上方；空间不足则翻到下方
+    if (r.top - vTop >= panelH + gap + pad) {
+      style.top = `${Math.round(r.top - gap - panelH)}px`
+    } else {
+      style.top = `${Math.round(r.bottom + gap)}px`
+    }
+  } else {
+    let top = Math.round(r.bottom + gap)
+    if (top + panelH > vTop + vh - pad) {
+      top = Math.max(vTop + pad, Math.round(r.top - gap - panelH))
+    }
+    style.top = `${top}px`
+  }
+
   panelStyle.value = style
 }
 
@@ -64,6 +97,8 @@ const open = async () => {
   isOpen.value = true
   await nextTick()
   position()
+  // 内容渲染后复测一次高度（语言菜单等）
+  requestAnimationFrame(() => position())
 }
 const close = () => {
   isOpen.value = false

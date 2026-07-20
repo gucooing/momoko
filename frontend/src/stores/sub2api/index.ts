@@ -7,6 +7,7 @@ import {
   deleteSub2APIAnnouncement,
   deleteSub2APITimelineItem,
   getPublicSub2APIHome,
+  getPublicSub2APIOverview,
   getPublicSub2APIStats,
   getSub2APIAdminTop,
   getSub2APIAdminTotals,
@@ -28,6 +29,7 @@ import { showRequestError } from '@/utils/request'
 import type {
   CreateSub2APIAnnouncementRequest,
   CreateSub2APITimelineItemRequest,
+  GetPublicSub2APIOverviewResponse,
   GetSub2APIAdminTotalsResponse,
   Sub2APIAnnouncement,
   Sub2APIConfig,
@@ -102,6 +104,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const groups = ref<Sub2APIGroup[]>([])
   const snapshot = ref<Sub2APIUsageSnapshot>()
   const home = ref<Sub2APIHome>()
+  // 公开首页今日概览：独立于 home 元信息，前端并行拉取、渐进填充
+  const publicOverview = ref<GetPublicSub2APIOverviewResponse>()
   const stats = ref<Sub2APIStats>()
   // 管理端概览：三个面板独立拉取（totals/trend/top），各自 loading（禁单请求大聚合）
   const adminTotals = ref<GetSub2APIAdminTotalsResponse>()
@@ -119,6 +123,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const configLoading = ref(false)
   const snapshotLoading = ref(false)
   const publicLoading = ref(false)
+  const publicOverviewLoading = ref(false)
   const statsLoading = ref(false)
   const adminTotalsLoading = ref(false)
   const adminTrendLoading = ref(false)
@@ -183,6 +188,20 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       showRequestError(error, t('sub2api.store.loadHomeFailed'))
     } finally {
       publicLoading.value = false
+    }
+  }
+
+  // 公开首页今日概览：状态 + 今日标量 + 今日曲线（独立请求，供页面并行渐进渲染）
+  const loadPublicOverview = async () => {
+    publicOverviewLoading.value = true
+    try {
+      const { data } = await getPublicSub2APIOverview({})
+      publicOverview.value = data
+      return data
+    } catch (error) {
+      showRequestError(error, t('sub2api.store.loadOverviewFailed'))
+    } finally {
+      publicOverviewLoading.value = false
     }
   }
 
@@ -481,37 +500,6 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     }
   }
 
-  const buildMetricCards = (data?: Sub2APIUsageSnapshot): Sub2APIMetricCard[] => {
-    return [
-      {
-        label: t('sub2api.store.tokenSpeed'),
-        value: `${formatThroughput(data?.recentTps)} token/s`,
-        detail: t('sub2api.store.requestAverageNoCache'),
-        icon: 'HOutline:BoltIcon',
-        tone: 'blue',
-      },
-      {
-        label: t('sub2api.store.averageLatency'),
-        value: formatLatency(data?.todayAverageLatencyMs),
-        detail: t('sub2api.store.allLatency', { latency: formatLatency(data?.averageLatencyMs) }),
-        icon: 'HOutline:ClockIcon',
-        tone: 'amber',
-      },
-      {
-        label: t('sub2api.store.todaySuccessRate'),
-        value: formatPercent(data?.todaySuccessRate),
-        detail: t('sub2api.store.successTotal', {
-          success: formatNumber(data?.todaySuccessCount),
-          total: formatNumber(data?.todayRequestCount),
-        }),
-        icon: 'HOutline:CheckCircleIcon',
-        tone: 'green',
-      },
-    ]
-  }
-
-  const publicMetricCards = computed(() => buildMetricCards(home.value?.snapshot))
-
   const trendOption = (trend: Sub2APITrendPoint[] = []) => {
     if (!trend.length) return emptyChartOption()
     const isDark = themeStore.isDarkTheme
@@ -651,12 +639,11 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const adminGroupOption = computed(() =>
     topOption(adminGroups.value.slice(0, TOP_CHART_LIMIT), t('sub2api.common.groupTokenTop')),
   )
-  const publicTrendOption = computed(() => trendOption(home.value?.snapshot?.trend))
   const statsTrendOption = computed(() => trendOption(stats.value?.trend))
 
-  // 当日“成功率 + 生成速度”随时间移动曲线（time 轴，短时段也能铺满）
+  // 当日“成功率 + 生成速度”随时间移动曲线（time 轴，短时段也能铺满）；数据来自公开概览接口
   const todaySeriesOption = computed(() => {
-    const series = home.value?.snapshot?.todaySeries || []
+    const series = publicOverview.value?.todaySeries || []
     if (!series.length) return emptyChartOption(t('sub2api.store.todayNoData'))
     const isDark = themeStore.isDarkTheme
     const axisColor = isDark ? '#94a3b8' : '#64748b'
@@ -820,9 +807,11 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     recentPageSize,
     announcements,
     timeline,
+    publicOverview,
     configLoading,
     snapshotLoading,
     publicLoading,
+    publicOverviewLoading,
     statsLoading,
     adminTotalsLoading,
     adminTrendLoading,
@@ -832,18 +821,17 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     testing,
     syncing,
     listLoading,
-    publicMetricCards,
     statsMetricCards,
     adminStatsMetricCards,
     adminTrendOption,
     adminModelOption,
     adminGroupOption,
-    publicTrendOption,
     statsTrendOption,
     todaySeriesOption,
     loadConfig,
     loadSnapshot,
     loadPublicHome,
+    loadPublicOverview,
     loadStats,
     loadAdminTotals,
     loadAdminTrend,

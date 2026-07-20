@@ -2,6 +2,8 @@ import request from '@/utils/request'
 import type {
   PublicSub2APIHomeRequest,
   PublicSub2APIHomeResponse,
+  GetPublicSub2APIOverviewRequest,
+  GetPublicSub2APIOverviewResponse,
   GetSub2APIConfigRequest,
   GetSub2APIConfigResponse,
   UpdateSub2APIConfigRequest,
@@ -34,9 +36,14 @@ import type {
   DeleteSub2APITimelineItemResponse,
 } from '@/types/v1/sub2api'
 
-// 公开首页（无需鉴权）
+// 公开首页元信息（无需鉴权）
 export const getPublicSub2APIHome = (params: PublicSub2APIHomeRequest = {}) => {
   return request.get<PublicSub2APIHomeResponse>('/public/sub2api/home', { params })
+}
+
+// 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线
+export const getPublicSub2APIOverview = (params: GetPublicSub2APIOverviewRequest = {}) => {
+  return request.get<GetPublicSub2APIOverviewResponse>('/public/sub2api/overview', { params })
 }
 
 // 配置

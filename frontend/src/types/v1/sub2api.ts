@@ -231,15 +231,29 @@ export interface Sub2APIConfig {
   publicGroups: string[];
 }
 
+/** 公开首页元信息（不含用量快照；用量走 GetPublicSub2APIOverview，前端渐进渲染） */
 export interface Sub2APIHome {
   enabled: boolean;
   consoleUrl: string;
   title: string;
   subtitle: string;
   introduction: string;
-  snapshot: Sub2APIUsageSnapshot | undefined;
   announcements: Sub2APIAnnouncement[];
   timeline: Sub2APITimelineItem[];
+}
+
+export interface GetPublicSub2APIOverviewRequest {
+}
+
+/** 公开首页今日概览：仅首页 hero/曲线所需字段（远小于完整快照） */
+export interface GetPublicSub2APIOverviewResponse {
+  status: string;
+  todayRequestCount: number;
+  todaySuccessCount: number;
+  todaySuccessRate: number;
+  todayTokenCount: number;
+  recentTps: number;
+  todaySeries: Sub2APITimePoint[];
 }
 
 export interface Sub2APIAnnouncement {

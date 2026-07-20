@@ -3061,7 +3061,7 @@ paths:
         get:
             tags:
                 - Sub2APIManager
-            description: 获取 Sub2API 公开首页数据（无需鉴权）
+            description: 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
             operationId: Sub2APIManager_PublicSub2APIHome
             responses:
                 "200":
@@ -3234,6 +3234,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetLotteryStatusResponse'
+    /api/v1/public/sub2api/overview:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+            operationId: Sub2APIManager_GetPublicSub2APIOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetPublicSub2APIOverviewResponse'
     /api/v1/public/sub2api/stats:
         get:
             tags:
@@ -7662,6 +7675,28 @@ components:
                 sampleIntervalSeconds:
                     type: string
                     description: 采样间隔(秒)
+        v1.GetPublicSub2APIOverviewResponse:
+            type: object
+            properties:
+                status:
+                    type: string
+                todayRequestCount:
+                    type: string
+                todaySuccessCount:
+                    type: string
+                todaySuccessRate:
+                    type: number
+                    format: double
+                todayTokenCount:
+                    type: string
+                recentTps:
+                    type: number
+                    format: double
+                todaySeries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITimePoint'
+            description: 公开首页今日概览：仅首页 hero/曲线所需字段（远小于完整快照）
         v1.GetSSHHostInfoResponse:
             type: object
             properties:
@@ -9830,8 +9865,6 @@ components:
                     type: string
                 introduction:
                     type: string
-                snapshot:
-                    $ref: '#/components/schemas/v1.Sub2APIUsageSnapshot'
                 announcements:
                     type: array
                     items:
@@ -9840,6 +9873,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITimelineItem'
+            description: 公开首页元信息（不含用量快照；用量走 GetPublicSub2APIOverview，前端渐进渲染）
         v1.Sub2APIRecentRequest:
             type: object
             properties:

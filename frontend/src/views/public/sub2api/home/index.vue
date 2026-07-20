@@ -1,6 +1,7 @@
 <template>
-  <main class="s2a-home" :class="{ 'is-dark': isDark }" v-loading="store.publicLoading">
-    <template v-if="home?.enabled">
+  <main class="s2a-home" :class="{ 'is-dark': isDark }">
+    <!-- 乐观渲染：元信息到达前先出骨架外壳，各区块数据到达后各自填充；仅明确「已禁用」才显示禁用态 -->
+    <template v-if="!home || home.enabled">
       <div class="bg-accent" aria-hidden />
 
       <!-- 顶栏 -->
@@ -8,20 +9,25 @@
         <div class="topbar-inner">
           <button class="brand" type="button" @click="scrollTo('top')">
             <span class="brand-dot" />
-            {{ home.title || 'Sub2API' }}
+            {{ home?.title || 'Sub2API' }}
           </button>
           <div class="topbar-actions">
-            <button class="icon-btn" type="button" @click="toggleTheme">
-              <el-icon><component :is="isDark ? Sunny : Moon" /></el-icon>
-            </button>
-            <button class="icon-btn" type="button" :title="t('sub2api.common.announcements')" @click="openAnnouncements">
-              <span v-if="announcements.length" class="badge-dot" />
-              <el-icon><Bell /></el-icon>
-            </button>
-            <el-button round @click="goStats()">{{ t('sub2api.home.usageDetails') }}</el-button>
-            <el-button v-if="dashboardUrl" type="primary" round @click="openConsole"
-              >{{ t('sub2api.home.goConsole') }}</el-button
-            >
+            <LanguageMenu />
+            <AppIconButton
+              :icon="isDark ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+              :label="t('login.toggleTheme')"
+              :box="36"
+              @click="toggleTheme"
+            />
+            <span class="bell-wrap">
+              <AppIconButton
+                icon="HOutline:BellIcon"
+                :label="t('sub2api.common.announcements')"
+                :box="36"
+                @click="openAnnouncements"
+              />
+              <span v-if="announcements.length" class="badge-dot" aria-hidden="true" />
+            </span>
           </div>
         </div>
       </header>
@@ -37,10 +43,11 @@
         </h1>
         <p class="hero-sub">{{ heroSubtitle }}</p>
         <div class="hero-cta">
-          <el-button v-if="dashboardUrl" type="primary" size="large" round @click="openConsole">
-            {{ t('sub2api.home.goConsole') }}<el-icon class="ml"><ArrowRight /></el-icon>
-          </el-button>
-          <el-button size="large" round @click="scrollTo('usage')">{{ t('sub2api.home.viewUsage') }}</el-button>
+          <button v-if="dashboardUrl" class="btn btn--primary btn--lg" type="button" @click="openConsole">
+            {{ t('sub2api.home.goConsole') }}
+            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" class="btn-ico" />
+          </button>
+          <button class="btn btn--ghost btn--lg" type="button" @click="goStats()">{{ t('sub2api.home.usageDetails') }}</button>
         </div>
 
         <div class="stat-strip">
@@ -75,7 +82,7 @@
           <article class="panel rank-panel">
             <div class="panel-head">
               <h3>{{ t('sub2api.home.todayHotModels') }}</h3>
-              <el-button text type="primary" @click="goStats(7)">{{ t('sub2api.home.detailArrow') }}</el-button>
+              <button class="btn btn--text" type="button" @click="goStats(7)">{{ t('sub2api.home.detailArrow') }}</button>
             </div>
             <div v-if="models.length" class="rank-list">
               <div v-for="(item, i) in models" :key="item.name || i" class="rank-row">
@@ -114,9 +121,7 @@
               >
                 <div class="notice-head">
                   <b>{{ item.title || t('sub2api.common.announcements') }}</b>
-                  <el-tag v-if="item.pinned" size="small" type="warning" effect="light"
-                    >{{ t('sub2api.common.pinned') }}</el-tag
-                  >
+                  <StatusPill v-if="item.pinned" variant="warning" :dot="false" :label="t('sub2api.common.pinned')" />
                 </div>
                 <p>{{ item.content }}</p>
                 <time v-if="item.publishedAt">{{ store.formatDateTime(item.publishedAt) }}</time>
@@ -144,12 +149,12 @@
       </section>
 
       <footer class="footer">
-        <span>© {{ year }} {{ home.title || 'Sub2API' }}</span>
+        <span>© {{ year }} {{ home?.title || 'Sub2API' }}</span>
         <a v-if="dashboardUrl" :href="dashboardUrl" target="_top">{{ t('sub2api.home.goConsole') }}</a>
       </footer>
 
       <!-- 公告入口弹窗 -->
-      <BaseDialog v-model="announcementVisible" :title="t('sub2api.home.platformAnnouncements')" width="520px" :show-footer="false">
+      <FormDialog v-model="announcementVisible" :title="t('sub2api.home.platformAnnouncements')" :width="520" :show-footer="false">
         <div v-if="announcements.length" class="notice-list">
           <div
             v-for="item in announcements"
@@ -159,14 +164,14 @@
           >
             <div class="notice-head">
               <b>{{ item.title || t('sub2api.common.announcements') }}</b>
-              <el-tag v-if="item.pinned" size="small" type="warning" effect="light">{{ t('sub2api.common.pinned') }}</el-tag>
+              <StatusPill v-if="item.pinned" variant="warning" :dot="false" :label="t('sub2api.common.pinned')" />
             </div>
             <p>{{ item.content }}</p>
             <time v-if="item.publishedAt">{{ store.formatDateTime(item.publishedAt) }}</time>
           </div>
         </div>
-        <el-empty v-else :description="t('sub2api.home.noAnnouncements')" />
-      </BaseDialog>
+        <EmptyState v-else :title="t('sub2api.home.noAnnouncements')" />
+      </FormDialog>
     </template>
 
     <section v-else class="disabled">
@@ -178,10 +183,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ArrowRight, Bell, Moon, Sunny } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import VChart from '@/components/chart/VChart.vue'
+import LanguageMenu from '@/layouts/app/LanguageMenu.vue'
 import { useSub2APIStore } from '@/stores/sub2api'
 import { useThemeStore } from '@/stores/theme'
 
@@ -189,6 +193,7 @@ defineOptions({ name: 'Sub2APIPublicHome' })
 
 const store = useSub2APIStore()
 const themeStore = useThemeStore()
+const menuStore = useMenuStore()
 const router = useRouter()
 const { home } = storeToRefs(store)
 const { t } = useI18n()
@@ -235,7 +240,8 @@ const maybePopAnnouncements = () => {
 }
 
 const year = dayjs().year()
-const snapshot = computed(() => home.value?.snapshot)
+// 今日概览来自独立的公开概览接口（状态 + 今日标量 + 今日曲线）
+const snapshot = computed(() => store.publicOverview)
 const announcements = computed(() => home.value?.announcements || [])
 const timeline = computed(() => home.value?.timeline || [])
 // 首页只看今日：模型排行取今日区间
@@ -284,11 +290,20 @@ const status = computed(() => {
 
 const heroStats = computed(() => {
   const s = snapshot.value
+  // 概览未到达前显示占位「—」，到达后填充真实数据（渐进渲染，不显示整页 loading）
+  if (!s) {
+    return [
+      { label: t('sub2api.home.todayRequests'), value: '—' },
+      { label: t('sub2api.home.todayToken'), value: '—' },
+      { label: t('sub2api.home.todaySuccessRate'), value: '—' },
+      { label: t('sub2api.home.tokenSpeed'), value: '—' },
+    ]
+  }
   return [
-    { label: t('sub2api.home.todayRequests'), value: store.formatNumber(s?.todayRequestCount) },
-    { label: t('sub2api.home.todayToken'), value: store.formatToken(s?.todayTokenCount) },
-    { label: t('sub2api.home.todaySuccessRate'), value: store.formatPercent(s?.todaySuccessRate) },
-    { label: t('sub2api.home.tokenSpeed'), value: `${store.formatThroughput(s?.recentTps)} t/s` },
+    { label: t('sub2api.home.todayRequests'), value: store.formatNumber(s.todayRequestCount) },
+    { label: t('sub2api.home.todayToken'), value: store.formatToken(s.todayTokenCount) },
+    { label: t('sub2api.home.todaySuccessRate'), value: store.formatPercent(s.todaySuccessRate) },
+    { label: t('sub2api.home.tokenSpeed'), value: `${store.formatThroughput(s.recentTps)} t/s` },
   ]
 })
 
@@ -298,10 +313,11 @@ const barWidth = (token: unknown) =>
 
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
-onMounted(async () => {
-  await store.loadPublicHome()
+onMounted(() => {
+  // 三模块并行拉取、各自渲染，避免单个大请求阻塞整页；公告在元信息到达后再判断是否弹出
+  store.loadPublicHome().then(() => maybePopAnnouncements())
+  store.loadPublicOverview()
   store.loadStats(1)
-  maybePopAnnouncements()
 })
 </script>
 
@@ -394,34 +410,89 @@ onMounted(async () => {
   align-items: center;
   justify-content: flex-end;
   min-width: 0;
-  gap: 8px;
+  gap: 4px;
 
-  :deep(.el-button) {
+  .btn {
     flex: none;
-    margin-left: 0;
+    margin-left: 4px;
   }
 }
 
-.icon-btn {
+.bell-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.badge-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--el-color-danger, #ef4444);
+  box-shadow: 0 0 0 2px var(--el-bg-color-page);
+  pointer-events: none;
+}
+.btn-ico {
+  width: 16px;
+  height: 16px;
+}
+
+/* 令牌按钮（替代 el-button：圆角胶囊、默认/主色/大号/文本四态） */
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
+  gap: 6px;
   height: 36px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 9px;
+  padding: 0 18px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 999px;
   background: var(--el-bg-color-overlay);
   color: var(--el-text-color-primary);
-  font-size: 17px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
   cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
-
-  &:hover {
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
-  }
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.08s;
+}
+.btn:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+.btn--primary {
+  border-color: transparent;
+  background: var(--el-color-primary);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: color-mix(in srgb, var(--el-color-primary) 88%, #000);
+  color: #fff;
+}
+.btn--lg {
+  height: 44px;
+  padding: 0 26px;
+  font-size: 15px;
+}
+.btn--text {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--el-color-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+.btn--text:hover {
+  background: transparent;
+  color: color-mix(in srgb, var(--el-color-primary) 78%, #000);
 }
 
 /* hero */
@@ -887,27 +958,29 @@ onMounted(async () => {
     width: min(1180px, calc(100% - 24px));
   }
 
+  /* 单行顶栏：禁止 wrap 导致按钮「位移」到第二行 */
   .topbar-inner {
-    height: auto;
-    min-height: 64px;
-    flex-wrap: wrap;
-    align-content: center;
-    row-gap: 8px;
-    padding: 8px 0;
+    height: 56px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 0;
+    overflow: hidden;
   }
 
   .brand {
-    flex: 1 1 72px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
   }
 
   .topbar-actions {
-    flex: 1 1 auto;
-    flex-wrap: wrap;
-    gap: 6px;
-
-    :deep(.el-button) {
-      padding: 0 12px;
-    }
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 2px;
+    max-width: none;
   }
 
   .usage,

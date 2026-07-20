@@ -116,12 +116,7 @@ func (s *Sub2APIUsecase) PublicHome(ctx context.Context) (*v1.Sub2APIHome, error
 	if !cfg.HomeEnabled {
 		return home, nil
 	}
-	snapshot, err := s.service.PublicSnapshot(ctx)
-	if err != nil {
-		return nil, mapSub2APIError(err)
-	}
-	home.Snapshot = snapshot
-
+	// 仅元信息 + 公告/时间线（用量拆到 PublicOverview，前端渐进渲染，避免首页巨包）
 	announcements, err := s.repo.ListAnnouncements(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -134,6 +129,31 @@ func (s *Sub2APIUsecase) PublicHome(ctx context.Context) (*v1.Sub2APIHome, error
 	}
 	home.Timeline = toV1Timeline(timeline)
 	return home, nil
+}
+
+// PublicOverview 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线。
+// 复用带短时缓存的公开快照，仅回传首页 hero/曲线所需字段（远小于完整快照）。
+func (s *Sub2APIUsecase) PublicOverview(ctx context.Context) (*v1.GetPublicSub2APIOverviewResponse, error) {
+	cfg, err := s.service.Config(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if !cfg.HomeEnabled {
+		return &v1.GetPublicSub2APIOverviewResponse{}, nil
+	}
+	snapshot, err := s.service.PublicSnapshot(ctx)
+	if err != nil {
+		return nil, mapSub2APIError(err)
+	}
+	return &v1.GetPublicSub2APIOverviewResponse{
+		Status:            snapshot.Status,
+		TodayRequestCount: snapshot.TodayRequestCount,
+		TodaySuccessCount: snapshot.TodaySuccessCount,
+		TodaySuccessRate:  snapshot.TodaySuccessRate,
+		TodayTokenCount:   snapshot.TodayTokenCount,
+		RecentTps:         snapshot.RecentTps,
+		TodaySeries:       snapshot.TodaySeries,
+	}, nil
 }
 
 // PublicStats 指定区间的公开用量统计（无需鉴权）。

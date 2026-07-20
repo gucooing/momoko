@@ -27,6 +27,10 @@ func (s *Sub2APIService) PublicSub2APIHome(ctx context.Context, _ *v1.PublicSub2
 	return &v1.PublicSub2APIHomeResponse{Home: home}, nil
 }
 
+func (s *Sub2APIService) GetPublicSub2APIOverview(ctx context.Context, _ *v1.GetPublicSub2APIOverviewRequest) (*v1.GetPublicSub2APIOverviewResponse, error) {
+	return s.uc.PublicOverview(ctx)
+}
+
 func (s *Sub2APIService) GetSub2APIConfig(ctx context.Context, _ *v1.GetSub2APIConfigRequest) (*v1.GetSub2APIConfigResponse, error) {
 	config, err := s.uc.Config(ctx)
 	if err != nil {

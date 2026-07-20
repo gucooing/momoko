@@ -26,34 +26,20 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状**：Phase 0–2 + Phase 3 大半完成。**Sub2API `config`(P3) 与 `home`(P4/P2 管理端) 已去 EP 重写并提交**（`bad6ce4`、`2fb1fe0`；均桌面1440+移动390 emulate+明暗+真实后端全验）。**✅ Sub2API 后端聚合重写（ent 下沉 + 接口按模块拆分）代码已完成，`go build ./...`+`go vet`+`go test` 全绿、`vue-tsc`+`eslint` 全绿（见 🚧 区块，构建已修好，未提交）——待用户重跑 Go 后端 + 全量重新同步回填 `bucket15m` 后做浏览器验收。** 监控页 `dashboard/monitor`=100% `Math.random` 假数据→ Phase 4 待决勿精修。余：public/*(share·oidc·sub2api home/stats/imagine，仍 EP)、`sub2api/activity`+`public/sub2api/lottery`（抽奖新增页，仍 EP，未纳入 06c 表）。
+> **一句话现状（换设备从这里接）**：Phase 0–2 + Phase 3 大半完成。**Sub2API 管理端主线已提交 `c8d08f2`**。**✅ 工作树未提交（公开门户两页）**：① `public/sub2api/home` 拆接口+去 EP+渐进渲染；② **`public/sub2api/stats` 去 EP 全量重写**（MetricStrip 单色 + 令牌 seg + 桌面语义表/移动 rank + 轻 spinner，无整页 loading）。监控假数据→Phase 4。**下一步**：`public/sub2api/imagine` → lottery → `sub2api/activity`；`public/share`/`oidc` 仍 EP。
 
-### ✅ 已完成（未提交）：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分」（2026-07-20，**构建已修好，全绿**）
-> 用户在 `home` 提了 3 个诉求，牵出一次后端大重构。**铁律见记忆 [[sub2api-backend-rewrite-mandates]]**：破坏性重写不留兼容；筛选用 proto `optional`(指针/可空)+`!=nil` 判空；聚合全部 ent DB 侧（**禁 SQL、禁内存聚合**）；页面不许一个大请求→按模块拆接口；tps 统计剔除 output_tokens<20；Top 图表按 **token** 展示且按 token 排序；日内 15 分钟桶靠新增 `bucket15m` 列 GroupBy（**需全量重新同步回填**）。
->
-> **本会话收尾（剩余步骤 1–6 全部完成，构建绿；未提交）**：
-> - ①`snapshot.go` 重写：`BuildSnapshot`/`BuildStats` 改调 `store.AggregateTotals/DailyTrend/TopItems/IntradaySeries/RecordsPage`；删 `totalsFromRecords/buildTrend/buildTopItems/buildTodaySeries/buildIntradayTrend/buildRecentRequests/recordsFrom/recordsUntil/isRateEligible/tpsEligible/minTPSOutputTokens/BuildRangeStats`；加映射助手 `dayStart/mapTopItems/dailyTrendPoints/intradayTrendPoints/todaySeriesPoints/trendDayRange`；去 `sort` import。
-> - ②proto 拆管理端：删 `GetSub2APIStats`(admin) + `GetSub2APIAdminStatsRequest/Response`；加 `GetSub2APIAdminTotals`(`/sub2api/stats/totals`，标量+range_label) / `GetSub2APIAdminTrend`(`/stats/trend`，`repeated Sub2APITrendPoint`) / `GetSub2APIAdminTop`(`/stats/top`，`models+groups` 一次返回，`limit`)。**`make api` 回**（Go+ts+openapi 均更新）。保留公开 `GetPublicSub2APIStats`。
-> - ③`pkg/service.go`：删 `AdminStats`；加 `adminWindow` 助手 + `AdminTotals/AdminTrend/AdminTop`（`normalizeRange` 后调 store；trend 按 `!start.IsZero() && span≤24h`→IntradaySeries+intradayTrendPoints，否则 DailyTrend+`trendDayRange`+dailyTrendPoints 补齐）；`RecentRequests` 加 `filter RecordFilter` 参并透传 `RecordsPage`。
-> - ④`internal/biz`+`internal/service`：biz 删 `AdminStats`、加 3 拆分方法(直接返回 `*v1.GetSub2APIAdmin*Response`)+`RecentRequests(...,filter)`；service 加 3 handler + `GetSub2APIRecentRequests` 由 `req.Model/GroupName/AccountName/Outcome`(*string) 构 `RecordFilter`。
-> - ⑤`go build ./...`+`go vet`+`go test ./pkg/sub2api/...` 全绿（LSP 一度报的 "is not a type" 是 proto 重生后 gopls 陈旧误报，已实证 build/vet=0 证伪）。
-> - ⑥前端：`api/sub2api.ts` 删 `getSub2APIStats`、加 `getSub2APIAdminTotals/Trend/Top`；`stores/sub2api` 把 `adminStats`/`loadAdminStats` 拆成 `adminTotals/adminTrend/adminModels/adminGroups` + `loadAdminTotals/loadAdminTrend/loadAdminTop`(各自 loading `adminTotalsLoading/adminTrendLoading/adminTopLoading`)+`loadAdminRecent(...,filter)`；`buildStatsCards` 参数放宽为结构化 `StatsCardSource`；Top 图表 computed 客户端 `slice(0,10)`（下拉筛选用全量枚举，`loadAdminTop(limit=0)`）；`home` 概览三面板独立 `panel-loading` 骨架、最近请求加 `FilterBar`(model/group/outcome `AppSelect` 即时应用 + account 关键字回车/搜索，改 filter 即回第 1 页)；i18n 补 `allModels/allGroups/allOutcomes/filterAccount` 三语。`vue-tsc`+`eslint` 全绿。
+### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
+> 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。
 
-**已完成（未提交，散落工作树）**：
-- 前端 `home`：Top 图表改 token（store `topOption` 去 metric 参数、只用 tokenCount+formatToken；删无用 i18n `modelRequestTop/groupRequestTop`，加 `modelTokenTop/groupTokenTop` 三语）；`recent` 已接 `RecordsPage` 多维筛选（后端）。
-- proto `GetSub2APIRecentRequestsRequest` 加 `optional model/group_name/account_name/outcome`（已 `make api` 回；含前端 ts 类型）。
-- ent schema `Sub2APIUsageRecord` 加 `bucket15m int64`+index，已 `go generate`；`SaveUsageRecords` 写入 `RequestTime.Truncate(15m).Unix()`。
-- `pkg/sub2api/types.go`：加 `MinTPSOutputTokens=20`、`StatsWindow`、`TopStat`、`DayStat`、`BucketStat`、`RecordFilter`（指针）；`UsageStore` 接口**删 `RecordsSince`**、`RecordsPage` 加 `filter` 参、新增 `AggregateTotals/TopItems/DailyTrend/IntradaySeries`。
-- `internal/data/sub2api.go`：**已实现全部上述 ent 聚合方法**（windowQuery + rateEligiblePred + tpsEligiblePred + scalarFloat + GroupBy 合并；`RecordsPage` 已接 filter 的 ent WHERE：ModelEQ/GroupNameEQ/AccountNameContainsFold/Success）。
-- `internal/data/sub2api.go` + `pkg/sub2api/types.go`：ent 聚合方法 + 接口/类型（`AggregateTotals/TopItems/DailyTrend/IntradaySeries`、`RecordsPage(...,filter)`、`StatsWindow/TopStat/DayStat/BucketStat/RecordFilter`）已实现。
-- **步骤 ①–⑥ 本会话全部完成**（见上「本会话收尾」）：`snapshot.go` 重写 / proto 拆分+`make api` / `pkg/service.go` / biz+service / 前端 store+api+home+FilterBar+i18n。`go build`/`vet`/`test` + `vue-tsc`/`eslint` 全绿。
+### ✅ 未提交：公开门户 home 拆接口 + 去 EP + 渐进渲染（2026-07-20）
+> 用户点名 home 包太大 + 禁止整页等请求。`Sub2APIHome` 删 `snapshot`；新 `GetPublicSub2APIOverview`；前端三请求并行 + 乐观外壳。桌面已验。
 
-**✅ 已用户重跑 Go + 全量重同步 + 浏览器实测通过（2026-07-20 同会话）**：
-- 后端新端点全部 200：`/stats/totals`（req 173377/succ 169700/**97.88%**，剔 output<20 的 tps=32.7）、`/stats/trend`（今日 28 个 15min 桶✓、7天 07-13~07-20 按天✓，intraday↔daily 切换正确）、`/stats/top`（token 降序 9.77B>4.2B>2.67B✓）、`/recent-requests`（outcome=failed→total 3677、model/group/account 筛选✓）；旧 `/stats` 404（破坏性移除生效）。
-- 首页概览三面板独立拉取渲染正常；FilterBar 四维筛选实测（选「失败」→全表 429/401、页码回 1、总页 8371→263）；range 切换 24h↔7天 平滑。
-- **⚠️ 已知（非阻断）**：`AggregateTotals` 多条 Count/Sum/Mean 独立查询，**在全量同步的批量写入期间**读到不同快照 → 曾瞬时 successCount>requestCount（成功率 100.3%），同步结束即自愈（97.88%）。彻底修需给聚合读包只读事务（SQLite WAL 快照），代价是再跑一次 Go；当前判为可接受的同步期瞬态，未做。
+### ✅ 本阶段完成（未提交）：`public/sub2api/stats` 去 EP + 补齐规范（2026-07-20）
+> 对齐公开 home 壳；**禁彩色 metric 边框** → `MetricStrip`+`MetricItem` 单色 + **Heroicons 指标图标**（`MetricItem` 新增 `icon` prop，读 store `card.icon`）；`el-*` 全清；顶栏 **`LanguageMenu` + `AppIconButton`（禁 EP 图标）**；区块 **stagger 入场**（`.reveal` fade+translateY 220ms，`--d` 0–300ms，`prefers-reduced-motion` 关闭）；渐进填 `—`/轻 spinner。公开 **home 顶栏同步**：LanguageMenu + AppIconButton 主题/公告。桌面 1440 暗/EN 切换 + 移动 390 rank + 语言菜单；vue-tsc/eslint 绿；零 console；DOM 验：`metric__icon`×5 SVG、`epIcons=0`、reveal delay 0/60/120/180/240/300ms。
 
-**仍剩**：提交本批（后端聚合重写 + 前端拆分 + 下方闪屏修复，散落工作树未提交，用户未要求提交前勿提交）。
+**下一会话**
+1. 工作树未 commit（公开 home 拆分 + stats 去 EP + MetricItem 图标）——换设备请带工作树或先 commit。
+2. 继续：`public/sub2api/imagine` → lottery → `sub2api/activity`。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（本次会话 :3007 被占用→实际跑在 **:3008**，新会话按提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -167,8 +153,8 @@
 | 初始化向导 | initialize | P3 | ✅ | ✅ | ✅ | 🟡 居中卡三步向导去 EP；mock 全链路(库选/测试/管理员/确认/完成)验；桌面/移动/暗；未提交 |
 | 分享落地 | public/share/:token | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | OIDC 授权 | oidc/authorize | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
-| Sub2API 门户 | public/sub2api/home | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
-| Sub2API 统计 | public/sub2api/stats | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
+| Sub2API 门户 | public/sub2api/home | P7 | ✅ | ⬜ | 🟡 | 🟡 去 EP+拆接口+渐进渲染（桌面已验；移动/全明暗待抽；**未提交**） |
+| Sub2API 统计 | public/sub2api/stats | P7 | ✅ | ✅ | ✅ | 🟡 **完整验收 2026-07-20**：桌面1440 暗/浅 + 移动390 EN + 语言/主题/返回首页 + 区间7→1 + Metric 5 SVG 图标 + stagger + loading 区 + ep=0 + home/stats 200；vue-tsc/eslint 绿；**未提交** |
 | Sub2API 绘图 | public/sub2api/imagine | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
 | 403 | exception/403 | P8 | ✅ | ✅ | ✅ | 🟡 去插画克制居中+回首页/上一页；桌面/移动/暗验；未提交 |
 | 404 | exception/404 | P8 | ✅ | ✅ | ✅ | 🟡 同 403 范式；桌面验；未提交 |
@@ -225,4 +211,7 @@
 | 2026-07-20 | **Sub2API 配置 `sub2api/config`（P3，去 EP 全量重写）**：`el-tabs/el-card/el-form/el-switch/el-input(-number)/el-checkbox-group/el-tag/ElMessage/v-loading` → 令牌三 Tab 分段(连接/首页/生图·`menuStore` 图标) + `PageHeader`(`#actions` 挂同步状态 `StatusPill`，`store.statusType` 的 `danger`→`error` 映射) + `AppPanel`(flush)+`set-row`(label+desc) + `AppSwitch` + 令牌 `.app-input/.app-textarea` + adminApiKey 眼睛显隐(`AppIconButton`) + **展示分组 toggle-chip 多选**(选中 teal 描边+淡底+勾) + **允许站点可移除 chip + 行内追加输入**。toast 用 `useFeedback`。保留全部逻辑/接口(`useSub2APIStore.loadAdmin/testConfig/saveConfig`、`configForm`、`groups`、`PERM.SUB2API_EDIT`、`__deleted__` 分组合并)。`configPageTitle` 补三语(原页标题误用「连接配置」)。**浏览器全验**：桌面1440(连接/首页/生图) + 移动390 emulate(连接/首页) + 明+暗 + 真实后端(已连接、正常状态、真实分组回填) + 追加/移除站点交互；vue-tsc + eslint 绿。**⚠️ 核对 `stores/dashboard/monitor.ts`：监控页 100% `Math.random` 假数据 → 登记 Phase 4 待决(勿精修)**。**未提交。** | Sub2API 首页 `sub2api/home`(P4 大页) / public/*；或 Phase 4 清 demo + 卸 EP |
 | 2026-07-20 | **Sub2API 管理首页 `home` 去 EP 重写并提交（`2fb1fe0`）**：PageHeader(#actions StatusPill+同步)+令牌三 Tab(概览/公告/时间线)；概览=range seg+datetime-local+**MetricStrip 单色(修原彩色边框违规)**+AppPanel 图表(保留 ECharts)+最近请求 DataTable/移动卡+Pagination+详情 FormDialog(KV)；公告/时间线=DataTable/卡+ActionMenu+FormDialog CRUD。桌面/移动/明暗+真实后端全验。**随后用户提 3 诉求→牵出后端大重构（见上 🚧 区块）**：Top 图表改 token 且按 token 排序、最近请求多维筛选、tps 剔除 output<20、**全部聚合下沉 ent(禁 SQL/禁内存)、页面按模块拆接口**。已落：前端 token-Top+recent 筛选前端侧、proto optional 筛选字段(regen)、ent `bucket15m` 列(regen)+写入、`pkg/types` 接口重设计、`internal/data` 全部 ent 聚合方法实现、snapshot.go 排序改 token。**⚠️ 未完成：snapshot.go 仍调已删的 `RecordsSince` → 构建断裂；proto 管理端接口未拆；前端未拆 loadAdmin* + 未加 FilterBar。记忆 [[sub2api-backend-rewrite-mandates]]。** | **先修构建**：按 🚧「剩余步骤」1–7 完成后端拆分+前端拆分+FilterBar，用户重跑 Go+全量重同步回填 bucket15m，再全验 |
 | 2026-07-20 | **Sub2API 后端聚合重写全链路修好（构建断裂→全绿）**：①`snapshot.go` 去内存聚合、`BuildSnapshot/BuildStats` 改调 ent 聚合方法（`AggregateTotals/DailyTrend/TopItems/IntradaySeries/RecordsPage`）+映射助手（`mapTopItems/dailyTrendPoints/intradayTrendPoints/todaySeriesPoints/trendDayRange/dayStart`），删 `BuildRangeStats/totalsFromRecords/build*/records*/isRateEligible/tpsEligible`+`sort` import。②proto 删 admin `GetSub2APIStats`、加 `GetSub2APIAdminTotals/Trend/Top`（`/stats/totals\|trend\|top`），`make api`。③`pkg/service.go` 加 `adminWindow`+`AdminTotals/Trend/Top`、`RecentRequests(...,filter)`。④biz+service 3 handler + `RecordFilter{req.Model/GroupName/AccountName/Outcome(*string)}`。⑤前端 `api` 加 3 fn、`store` 拆 `adminTotals/adminTrend/adminModels/adminGroups`+`loadAdmin{Totals,Trend,Top}`（各自 loading）+`loadAdminRecent(...,filter)`+`buildStatsCards` 放宽 `StatsCardSource`、Top 图 `slice(0,10)`、下拉用全量枚举、`home` 三面板 `panel-loading`+最近请求 `FilterBar`(model/group/outcome 即时 + account 回车，改 filter 回第 1 页)+i18n `allModels/allGroups/allOutcomes/filterAccount` 三语。**`go build`/`vet`/`test`+`vue-tsc`/`eslint` 全绿；LSP "is not a type" 系 proto 重生后 gopls 陈旧误报（build/vet=0 证伪）。未提交。** | 用户重跑 Go + 全量重同步回填 `bucket15m` → 浏览器全验（三面板独立 loading/趋势桶/token Top/四维筛选链路/tps 口径）→ 提交本批 |
-| 2026-07-20 | **Sub2API 后端重写浏览器实测通过 + 全局列表闪屏修复（用户点名）**：用户已重跑 Go+全量重同步；curl+浏览器实测新端点全对（totals 97.88%、trend 今日 15min 桶/7天按天、top token 降序、recent outcome/model 筛选、旧 /stats 404）。**用户反馈两处强烈影响体验的「整页闪」：①表格翻页整页闪（全部表单）②任何更新/切换都闪。根因＝共享 `DataTable` 的 `v-if="loading"` 每次重载都把 `<tbody>` 整体替换成 5 行骨架（内容消失→shimmer→回来）＋本会话新加的 `panel-loading` 概览三面板同时 dim 0.55。** 修：`DataTable` 骨架仅首屏（`loading && !displayRows.length`）显示，重载保留旧行 + 叠加轻蒙层 spinner（`.data-table__veil`，**延迟 220ms 淡入**→快请求根本不显、只有慢请求才现，杜绝闪一下）；`home` 概览删 `panel-loading` dim，改范围区旁 14px `ov-spin`（同 220ms 延迟淡入）。**DOM 探针实证**：翻页全程 `maxSkel=0`+`minDataRows=10`（骨架永不出现、旧行不消失）；range 切换 `minPanelOpacity=1`（面板不再变暗）。`vue-tsc`/`eslint` 绿。未提交。 | 提交本批（用户确认后）；`AggregateTotals` 同步期瞬态一致性（只读事务）待决 |
+| 2026-07-20 | **Sub2API 后端重写浏览器实测通过 + 全局列表闪屏修复（用户点名）**：用户已重跑 Go+全量重同步；curl+浏览器实测新端点全对。**用户反馈整页闪** → 修共享 `DataTable`：骨架仅首屏，重载保留旧行+延迟 220ms veil；管理 home 概览改轻 spinner。已随 `c8d08f2` 提交。 | 公开门户 |
+| 2026-07-20 | **公开门户 `public/sub2api/home` 阶段完成（未提交）**：用户点名 home 包太大 + 禁止整页等请求。**破坏性**：`Sub2APIHome` 删 `snapshot`；新 `GetPublicSub2APIOverview`(`/public/sub2api/overview`)；`PublicHome` 只元信息+公告/时间线。前端去 EP（令牌 btn/heroicons/StatusPill/EmptyState/FormDialog）；store 并行 `loadPublicHome`+`loadPublicOverview`+`loadStats(1)`，乐观外壳+hero 占位 `—`。实测：三请求 200、home≈251B、overview 填今日指标/曲线、stats 热门模型、公告弹窗、零 console。`go build`+`vue-tsc`+`eslint` 绿。 | `public/sub2api/stats` 去 EP；imagine/lottery/activity |
+| 2026-07-20 | **公开统计 `public/sub2api/stats` 去 EP 全量重写（未提交）**：对齐 home 顶栏/令牌 btn/heroicons；`el-segmented`→令牌 `seg`；`el-table/el-empty/v-loading`→语义 table + 移动 rank + `EmptyState` + 轻 spinner；**MetricStrip 单色**（去 rainbow tone 顶边）；指标/列表渐进填 `—`，**禁止整页 loading**。保留 `loadStats`+range query。浏览器：桌面1440 暗（7 天 68k 请求/趋势/模型/分组/UA 表）+ 移动390 rank + 区间切今日 + 明暗切换；vue-tsc/eslint 绿、零 console。 | `public/sub2api/imagine` → lottery → activity |
+| 2026-07-20 | **stats 返工补齐（用户点名）**：①`MetricItem` 加 `icon`（Heroicons 单色）+ stats 绑 store.icon；②区块 stagger 入场 `.reveal`；③顶栏改 `LanguageMenu`+`AppIconButton`（禁 EP）；④home 顶栏同步语言/主题/公告。浏览器再验：5 指标 SVG、语言 EN 切换、移动 rank、ep=0、零 console。 | imagine → lottery → activity |

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Sub2APIManager_PublicSub2APIHome_FullMethodName         = "/v1.Sub2APIManager/PublicSub2APIHome"
+	Sub2APIManager_GetPublicSub2APIOverview_FullMethodName  = "/v1.Sub2APIManager/GetPublicSub2APIOverview"
 	Sub2APIManager_GetSub2APIConfig_FullMethodName          = "/v1.Sub2APIManager/GetSub2APIConfig"
 	Sub2APIManager_UpdateSub2APIConfig_FullMethodName       = "/v1.Sub2APIManager/UpdateSub2APIConfig"
 	Sub2APIManager_TestSub2APIConnection_FullMethodName     = "/v1.Sub2APIManager/TestSub2APIConnection"
@@ -58,8 +59,10 @@ const (
 //
 // Sub2API 公共首页与管理
 type Sub2APIManagerClient interface {
-	// 获取 Sub2API 公开首页数据（无需鉴权）
+	// 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
 	PublicSub2APIHome(ctx context.Context, in *PublicSub2APIHomeRequest, opts ...grpc.CallOption) (*PublicSub2APIHomeResponse, error)
+	// 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+	GetPublicSub2APIOverview(ctx context.Context, in *GetPublicSub2APIOverviewRequest, opts ...grpc.CallOption) (*GetPublicSub2APIOverviewResponse, error)
 	// 获取 Sub2API 配置
 	GetSub2APIConfig(ctx context.Context, in *GetSub2APIConfigRequest, opts ...grpc.CallOption) (*GetSub2APIConfigResponse, error)
 	// 更新 Sub2API 配置
@@ -130,6 +133,16 @@ func (c *sub2APIManagerClient) PublicSub2APIHome(ctx context.Context, in *Public
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PublicSub2APIHomeResponse)
 	err := c.cc.Invoke(ctx, Sub2APIManager_PublicSub2APIHome_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sub2APIManagerClient) GetPublicSub2APIOverview(ctx context.Context, in *GetPublicSub2APIOverviewRequest, opts ...grpc.CallOption) (*GetPublicSub2APIOverviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicSub2APIOverviewResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_GetPublicSub2APIOverview_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -442,8 +455,10 @@ func (c *sub2APIManagerClient) ListLotteryHistoryPublic(ctx context.Context, in 
 //
 // Sub2API 公共首页与管理
 type Sub2APIManagerServer interface {
-	// 获取 Sub2API 公开首页数据（无需鉴权）
+	// 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
 	PublicSub2APIHome(context.Context, *PublicSub2APIHomeRequest) (*PublicSub2APIHomeResponse, error)
+	// 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
+	GetPublicSub2APIOverview(context.Context, *GetPublicSub2APIOverviewRequest) (*GetPublicSub2APIOverviewResponse, error)
 	// 获取 Sub2API 配置
 	GetSub2APIConfig(context.Context, *GetSub2APIConfigRequest) (*GetSub2APIConfigResponse, error)
 	// 更新 Sub2API 配置
@@ -512,6 +527,9 @@ type UnimplementedSub2APIManagerServer struct{}
 
 func (UnimplementedSub2APIManagerServer) PublicSub2APIHome(context.Context, *PublicSub2APIHomeRequest) (*PublicSub2APIHomeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PublicSub2APIHome not implemented")
+}
+func (UnimplementedSub2APIManagerServer) GetPublicSub2APIOverview(context.Context, *GetPublicSub2APIOverviewRequest) (*GetPublicSub2APIOverviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicSub2APIOverview not implemented")
 }
 func (UnimplementedSub2APIManagerServer) GetSub2APIConfig(context.Context, *GetSub2APIConfigRequest) (*GetSub2APIConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSub2APIConfig not implemented")
@@ -638,6 +656,24 @@ func _Sub2APIManager_PublicSub2APIHome_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Sub2APIManagerServer).PublicSub2APIHome(ctx, req.(*PublicSub2APIHomeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sub2APIManager_GetPublicSub2APIOverview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicSub2APIOverviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).GetPublicSub2APIOverview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_GetPublicSub2APIOverview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).GetPublicSub2APIOverview(ctx, req.(*GetPublicSub2APIOverviewRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1192,6 +1228,10 @@ var Sub2APIManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PublicSub2APIHome",
 			Handler:    _Sub2APIManager_PublicSub2APIHome_Handler,
+		},
+		{
+			MethodName: "GetPublicSub2APIOverview",
+			Handler:    _Sub2APIManager_GetPublicSub2APIOverview_Handler,
 		},
 		{
 			MethodName: "GetSub2APIConfig",
