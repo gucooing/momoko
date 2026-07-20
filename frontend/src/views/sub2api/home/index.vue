@@ -1,558 +1,354 @@
+<!-- Sub2API 管理首页（重写 · P4/P2 去 EP）：PageHeader(#actions StatusPill+同步) + 令牌三 Tab(概览/公告/时间线)。
+     概览=令牌 range seg + 自定义 datetime-local + MetricStrip(单色) + AppPanel 图表(保留 ECharts) + 最近请求 DataTable/卡 + Pagination + 详情 FormDialog。
+     公告/时间线=DataTable/卡 + ActionMenu + FormDialog CRUD。toast=useFeedback；删除确认=Dialog.confirm(迁移期)。
+     保留全部 store 契约(loadAdmin/loadAdminStats/loadAdminRecent/syncUsage/save*/remove* + PERM.SUB2API_EDIT)。 -->
 <template>
-  <div class="sub2api-admin" v-loading="store.configLoading">
-    <header class="page-head">
-      <div>
-        <h1>{{ t('sub2api.admin.title') }}</h1>
-        <p>{{ t('sub2api.admin.subtitle') }}</p>
-      </div>
-      <div class="head-actions">
-        <el-tag :type="store.statusType(snapshot?.status)" effect="light" round>
-          {{ store.statusText(snapshot?.status) }}
-        </el-tag>
-        <el-button @click="openPublicHome">
-          <el-icon class="btn-icon"><Link /></el-icon>{{ t('sub2api.common.publicHome') }}
-        </el-button>
-        <el-button v-if="canEdit" :loading="store.syncing" @click="onSync(false)">{{
-          t('sub2api.common.incrementalSync')
-        }}</el-button>
-        <el-button v-if="canEdit" type="primary" :loading="store.syncing" @click="onSync(true)">{{
-          t('sub2api.common.fullSync')
-        }}</el-button>
-      </div>
-    </header>
+  <div class="s2a-home">
+    <PageHeader :title="t('sub2api.admin.title')" :description="t('sub2api.admin.subtitle')">
+      <template #actions>
+        <StatusPill :variant="statusVariant" :label="store.statusText(snapshot?.status)" />
+        <UButton icon="i-lucide-external-link" color="neutral" variant="ghost" @click="openPublicHome">
+          {{ t('sub2api.common.publicHome') }}
+        </UButton>
+        <UButton v-if="canEdit" color="neutral" variant="soft" :loading="store.syncing" @click="onSync(false)">
+          {{ t('sub2api.common.incrementalSync') }}
+        </UButton>
+        <UButton v-if="canEdit" color="primary" :loading="store.syncing" @click="onSync(true)">
+          {{ t('sub2api.common.fullSync') }}
+        </UButton>
+      </template>
+    </PageHeader>
 
-    <el-tabs v-model="activeTab" class="admin-tabs">
-      <!-- 概览 -->
-      <el-tab-pane :label="t('sub2api.common.usageOverview')" name="overview">
-        <div class="range-bar">
-          <el-segmented v-model="rangeKey" :options="rangeOptions" @change="onRangeChange" />
-          <!-- 自定义：开始/结束各用单个 datetime 选择器，仅弹单月日历，移动端不溢出 -->
-          <template v-if="rangeKey === 'custom'">
-            <el-date-picker
-              v-model="customStart"
-              type="datetime"
-              format="YYYY-MM-DD HH:mm"
-              :placeholder="t('sub2api.common.startTime')"
-              size="small"
-              :clearable="false"
-              class="custom-dt"
-              @change="onCustomChange"
-            />
-            <span class="custom-sep">~</span>
-            <el-date-picker
-              v-model="customEnd"
-              type="datetime"
-              format="YYYY-MM-DD HH:mm"
-              :placeholder="t('sub2api.common.endTime')"
-              size="small"
-              :clearable="false"
-              class="custom-dt"
-              @change="onCustomChange"
+    <!-- Tab 条 -->
+    <div class="s2a-tabs" role="tablist">
+      <button
+        v-for="tab in TABS"
+        :key="tab.name"
+        type="button"
+        role="tab"
+        class="s2a-tabs__btn"
+        :class="{ 'is-active': activeTab === tab.name }"
+        :aria-selected="activeTab === tab.name"
+        @click="activeTab = tab.name"
+      >
+        <component :is="menuStore.iconComponents[tab.icon]" />
+        {{ t(tab.labelKey) }}
+      </button>
+    </div>
+
+    <!-- ========== 概览 ========== -->
+    <div v-show="activeTab === 'overview'" class="s2a-tab">
+      <!-- 时间区间 -->
+      <div class="ov-range">
+        <div class="seg" role="tablist">
+          <button
+            v-for="opt in rangeOptions"
+            :key="opt.value"
+            type="button"
+            class="seg__btn"
+            :class="{ 'is-active': rangeKey === opt.value }"
+            @click="selectRange(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+        <template v-if="rangeKey === 'custom'">
+          <input v-model="customStart" type="datetime-local" class="app-input ov-dt" @change="onCustomChange" />
+          <span class="ov-sep">~</span>
+          <input v-model="customEnd" type="datetime-local" class="app-input ov-dt" @change="onCustomChange" />
+        </template>
+        <span class="ov-current">{{ store.adminStats?.rangeLabel }}</span>
+      </div>
+
+      <!-- 同步元信息 -->
+      <div class="ov-meta">
+        <span>{{ t('sub2api.common.lastSync', { time: store.formatDateTime(snapshot?.lastSyncTime) }) }}</span>
+        <span>{{ t('sub2api.common.nextSync', { time: store.formatDateTime(snapshot?.nextSyncTime) }) }}</span>
+        <span>{{ t('sub2api.common.latestRecord', { time: store.formatDateTime(snapshot?.latestRecordTime) }) }}</span>
+        <span>{{ t('sub2api.common.dataRange', { range: snapshot?.dataRange || '-' }) }}</span>
+      </div>
+
+      <div class="ov-body" :class="{ 'is-loading': store.adminStatsLoading }">
+        <!-- 指标带（单色，禁彩色边框） -->
+        <MetricStrip :columns="5">
+          <MetricItem
+            v-for="card in store.adminStatsMetricCards"
+            :key="card.label"
+            :label="card.label"
+            :value="card.value"
+            :caption="card.detail"
+          />
+        </MetricStrip>
+
+        <!-- 趋势图 -->
+        <AppPanel :title="t('sub2api.common.usageTrend')">
+          <VChart class="chart" :option="store.adminTrendOption" :update-options="chartUpdate" autoresize />
+        </AppPanel>
+
+        <!-- Top 图表 -->
+        <div class="chart-grid">
+          <AppPanel :title="t('sub2api.common.modelRequestTop')">
+            <VChart class="chart chart--sm" :option="store.adminModelOption" :update-options="chartUpdate" autoresize />
+          </AppPanel>
+          <AppPanel :title="t('sub2api.common.groupRequestTop')">
+            <VChart class="chart chart--sm" :option="store.adminGroupOption" :update-options="chartUpdate" autoresize />
+          </AppPanel>
+        </div>
+
+        <!-- 最近请求 -->
+        <AppPanel :title="t('sub2api.common.recentRequests')" :padded="false">
+          <div class="dt-desk">
+            <DataTable
+              :columns="recentColumns"
+              :rows="recentRows"
+              row-key="_rk"
+              :loading="store.recentLoading"
+              :empty-text="t('sub2api.common.noRequestRecords')"
+            >
+              <template #cell-status="{ row }">
+                <StatusPill :variant="rec(row).success ? 'success' : 'error'" :label="statusLabel(rec(row))" />
+              </template>
+              <template #cell-latencyMs="{ row }">{{ store.formatLatency(rec(row).latencyMs) }}</template>
+              <template #cell-tokenCount="{ row }">{{ store.formatToken(rec(row).tokenCount) }}</template>
+              <template #cell-requestTime="{ row }">{{ store.formatDateTime(rec(row).requestTime) }}</template>
+              <template #cell-_act="{ row }">
+                <UButton color="primary" variant="link" size="xs" @click="openDetail(rec(row))">
+                  {{ t('sub2api.common.detail') }}
+                </UButton>
+              </template>
+            </DataTable>
+          </div>
+          <div class="dt-mob">
+            <article
+              v-for="row in recentRows"
+              :key="row._rk"
+              class="req-card"
+              @click="openDetail(row)"
+            >
+              <div class="req-card__main">
+                <strong>{{ row.model || t('sub2api.common.unknownModel') }}</strong>
+                <small>{{ recentSub(row) }}</small>
+                <small>{{ store.formatLatency(row.latencyMs) }} · {{ store.formatToken(row.tokenCount) }} · {{ store.formatDateTime(row.requestTime) }}</small>
+              </div>
+              <div class="req-card__side">
+                <StatusPill :variant="row.success ? 'success' : 'error'" :label="statusLabel(row)" />
+                <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" class="req-card__chevron" />
+              </div>
+            </article>
+            <EmptyState v-if="!recentRows.length && !store.recentLoading" :title="t('sub2api.common.noRequestRecords')" />
+          </div>
+          <template v-if="store.adminRecentTotal > store.recentPageSize" #footer>
+            <Pagination
+              :page="store.recentPage"
+              :page-size="store.recentPageSize"
+              :total="store.adminRecentTotal"
+              @update:page="onRecentPageChange"
             />
           </template>
-          <span class="range-current">{{ store.adminStats?.rangeLabel }}</span>
-        </div>
+        </AppPanel>
+      </div>
+    </div>
 
-        <div class="sync-meta">
-          <span>{{
-            t('sub2api.common.lastSync', { time: store.formatDateTime(snapshot?.lastSyncTime) })
-          }}</span>
-          <span>{{
-            t('sub2api.common.nextSync', { time: store.formatDateTime(snapshot?.nextSyncTime) })
-          }}</span>
-          <span>{{
-            t('sub2api.common.latestRecord', {
-              time: store.formatDateTime(snapshot?.latestRecordTime),
-            })
-          }}</span>
-          <span>{{ t('sub2api.common.dataRange', { range: snapshot?.dataRange || '-' }) }}</span>
-        </div>
-
-        <div v-loading="store.adminStatsLoading" class="overview-body">
-          <div class="metric-row">
-            <div
-              v-for="card in store.adminStatsMetricCards"
-              :key="card.label"
-              class="metric-card"
-              :class="`tone-${card.tone}`"
-            >
-              <span class="metric-label">{{ card.label }}</span>
-              <strong class="metric-value">{{ card.value }}</strong>
-              <small class="metric-detail">{{ card.detail }}</small>
-            </div>
-          </div>
-
-          <el-card shadow="never" class="chart-card">
-            <template #header
-              ><span class="card-title">{{ t('sub2api.common.usageTrend') }}</span></template
-            >
-            <VChart
-              class="chart"
-              :option="store.adminTrendOption"
-              :update-options="chartUpdate"
-              autoresize
-            />
-          </el-card>
-
-          <div class="chart-grid">
-            <el-card shadow="never" class="chart-card">
-              <template #header
-                ><span class="card-title">{{ t('sub2api.common.modelRequestTop') }}</span></template
-              >
-              <VChart
-                class="chart sm"
-                :option="store.adminModelOption"
-                :update-options="chartUpdate"
-                autoresize
-              />
-            </el-card>
-            <el-card shadow="never" class="chart-card">
-              <template #header
-                ><span class="card-title">{{
-                  t('sub2api.common.groupRequestTop')
-                }}</span></template
-              >
-              <VChart
-                class="chart sm"
-                :option="store.adminGroupOption"
-                :update-options="chartUpdate"
-                autoresize
-              />
-            </el-card>
-          </div>
-
-          <el-card shadow="never" class="chart-card" v-loading="store.recentLoading">
-            <template #header
-              ><span class="card-title">{{ t('sub2api.common.recentRequests') }}</span></template
-            >
-            <el-table class="desktop-table" :data="store.adminRecent" size="small" stripe>
-              <el-table-column
-                prop="model"
-                :label="t('sub2api.common.model')"
-                min-width="140"
-                show-overflow-tooltip
-              />
-              <el-table-column
-                prop="endpoint"
-                :label="t('sub2api.common.endpoint')"
-                min-width="130"
-                show-overflow-tooltip
-              />
-              <el-table-column
-                :label="t('sub2api.common.account')"
-                min-width="110"
-                show-overflow-tooltip
-              >
-                <template #default="{ row }">{{ row.accountName || '-' }}</template>
-              </el-table-column>
-              <el-table-column
-                :label="t('sub2api.common.group')"
-                min-width="110"
-                show-overflow-tooltip
-              >
-                <template #default="{ row }">{{ row.groupName || '-' }}</template>
-              </el-table-column>
-              <el-table-column :label="t('sub2api.common.status')" width="100">
-                <template #default="{ row }">
-                  <el-tag size="small" :type="row.success ? 'success' : 'danger'" effect="light">
-                    {{ statusLabel(row) }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column :label="t('sub2api.common.latency')" width="92">
-                <template #default="{ row }">{{ store.formatLatency(row.latencyMs) }}</template>
-              </el-table-column>
-              <el-table-column label="Token" width="92">
-                <template #default="{ row }">{{ store.formatToken(row.tokenCount) }}</template>
-              </el-table-column>
-              <el-table-column :label="t('sub2api.common.time')" min-width="160">
-                <template #default="{ row }">{{ store.formatDateTime(row.requestTime) }}</template>
-              </el-table-column>
-              <el-table-column :label="t('sub2api.common.operation')" width="76" fixed="right">
-                <template #default="{ row }">
-                  <el-button link type="primary" @click="openDetail(row)">{{
-                    t('sub2api.common.detail')
-                  }}</el-button>
-                </template>
-              </el-table-column>
-              <template #empty>{{ t('sub2api.common.noRequestRecords') }}</template>
-            </el-table>
-            <div class="mobile-list request-list">
-              <article
-                v-for="row in store.adminRecent"
-                :key="`${row.requestId}-${row.requestTime}`"
-                class="mobile-row request-row"
-                @click="openDetail(row)"
-              >
-                <div class="row-main">
-                  <strong class="row-title">{{
-                    row.model || t('sub2api.common.unknownModel')
-                  }}</strong>
-                  <small
-                    >{{ row.accountName ? `${row.accountName} · ` : ''
-                    }}{{ row.groupName ? `${row.groupName} · ` : ''
-                    }}{{ row.endpoint || '-' }}</small
-                  >
-                  <small
-                    >{{ store.formatLatency(row.latencyMs) }} ·
-                    {{ store.formatToken(row.tokenCount) }} ·
-                    {{ store.formatDateTime(row.requestTime) }}</small
-                  >
-                </div>
-                <span class="row-status">
-                  <el-tag size="small" :type="row.success ? 'success' : 'danger'" effect="light">
-                    {{ statusLabel(row) }}
-                  </el-tag>
-                  <el-icon class="row-chevron"><ArrowRight /></el-icon>
-                </span>
-              </article>
-              <el-empty
-                v-if="!store.adminRecent.length"
-                :description="t('sub2api.common.noRequestRecords')"
-              />
-            </div>
-            <div class="recent-pager">
-              <el-pagination
-                layout="prev, pager, next"
-                :total="store.adminRecentTotal"
-                :page-size="store.recentPageSize"
-                :current-page="store.recentPage"
-                :pager-count="5"
-                small
-                background
-                hide-on-single-page
-                @current-change="onRecentPageChange"
-              />
-            </div>
-          </el-card>
-        </div>
-      </el-tab-pane>
-
-      <!-- 公告 -->
-      <el-tab-pane :label="t('sub2api.common.announcements')" name="announcements">
-        <div class="list-toolbar">
-          <span>{{ t('sub2api.common.totalItems', { count: store.announcements.length }) }}</span>
-          <el-button v-if="canEdit" type="primary" @click="openAnnouncement()">{{
-            t('sub2api.admin.addAnnouncement')
-          }}</el-button>
-        </div>
-        <el-table
-          class="desktop-table"
-          :data="store.announcements"
-          v-loading="store.listLoading"
-          stripe
-        >
-          <el-table-column
-            prop="title"
-            :label="t('sub2api.common.title')"
-            min-width="160"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="content"
-            :label="t('sub2api.common.content')"
-            min-width="220"
-            show-overflow-tooltip
-          />
-          <el-table-column :label="t('sub2api.common.level')" width="100">
-            <template #default="{ row }">
-              <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
-                levelText(row.level)
-              }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('sub2api.common.pinned')" width="80">
-            <template #default="{ row }"
-              ><el-tag v-if="row.pinned" size="small" type="warning">{{
-                t('sub2api.common.pinned')
-              }}</el-tag></template
-            >
-          </el-table-column>
-          <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
-            <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
-          </el-table-column>
-          <el-table-column
-            v-if="canEdit"
-            :label="t('sub2api.common.operation')"
-            width="140"
-            fixed="right"
+    <!-- ========== 公告 ========== -->
+    <div v-show="activeTab === 'announcements'" class="s2a-tab">
+      <div class="list-toolbar">
+        <span class="list-toolbar__count">{{ t('sub2api.common.totalItems', { count: store.announcements.length }) }}</span>
+        <UButton v-if="canEdit" color="primary" icon="i-lucide-plus" @click="openAnnouncement()">
+          {{ t('sub2api.admin.addAnnouncement') }}
+        </UButton>
+      </div>
+      <AppPanel :padded="false">
+        <div class="dt-desk">
+          <DataTable
+            :columns="annColumns"
+            :rows="store.announcements"
+            :loading="store.listLoading"
+            :empty-text="t('sub2api.home.noAnnouncements')"
           >
-            <template #default="{ row }">
-              <el-button link type="primary" @click="openAnnouncement(row)">{{
-                t('sub2api.common.edit')
-              }}</el-button>
-              <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{
-                t('sub2api.common.delete')
-              }}</el-button>
+            <template #cell-level="{ row }">
+              <StatusPill :variant="levelVariant(ann(row).level)" :label="levelText(ann(row).level)" />
             </template>
-          </el-table-column>
-          <template #empty>{{ t('sub2api.home.noAnnouncements') }}</template>
-        </el-table>
-        <div class="mobile-list edit-list" v-loading="store.listLoading">
+            <template #cell-pinned="{ row }">
+              <StatusPill v-if="ann(row).pinned" variant="warning" :dot="false" :label="t('sub2api.common.pinned')" />
+              <span v-else class="muted">—</span>
+            </template>
+            <template #cell-publishedAt="{ row }">{{ store.formatDateTime(ann(row).publishedAt) }}</template>
+            <template #cell-_act="{ row }">
+              <ActionMenu :items="annActions" @select="(key) => onAnnAction(key, ann(row))" />
+            </template>
+          </DataTable>
+        </div>
+        <div class="dt-mob">
           <article v-for="row in store.announcements" :key="row.id" class="edit-card">
-            <div class="edit-card-head">
+            <div class="edit-card__head">
               <strong>{{ row.title || t('sub2api.common.announcements') }}</strong>
-              <span>
-                <el-tag size="small" :type="levelTagType(row.level)" effect="light">{{
-                  levelText(row.level)
-                }}</el-tag>
-                <el-tag v-if="row.pinned" size="small" type="warning" effect="light">{{
-                  t('sub2api.common.pinned')
-                }}</el-tag>
+              <span class="edit-card__pills">
+                <StatusPill :variant="levelVariant(row.level)" :label="levelText(row.level)" />
+                <StatusPill v-if="row.pinned" variant="warning" :dot="false" :label="t('sub2api.common.pinned')" />
               </span>
             </div>
             <p>{{ row.content || '-' }}</p>
-            <div class="edit-card-foot">
+            <div class="edit-card__foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
-              <span v-if="canEdit">
-                <el-button link type="primary" @click="openAnnouncement(row)">{{
-                  t('sub2api.common.edit')
-                }}</el-button>
-                <el-button link type="danger" @click="onDeleteAnnouncement(row)">{{
-                  t('sub2api.common.delete')
-                }}</el-button>
+              <span v-if="canEdit" class="edit-card__acts">
+                <UButton color="primary" variant="link" size="xs" @click="openAnnouncement(row)">{{ t('sub2api.common.edit') }}</UButton>
+                <UButton color="error" variant="link" size="xs" @click="onDeleteAnnouncement(row)">{{ t('sub2api.common.delete') }}</UButton>
               </span>
             </div>
           </article>
-          <el-empty
-            v-if="!store.announcements.length"
-            :description="t('sub2api.home.noAnnouncements')"
-          />
+          <EmptyState v-if="!store.announcements.length && !store.listLoading" :title="t('sub2api.home.noAnnouncements')" />
         </div>
-      </el-tab-pane>
+      </AppPanel>
+    </div>
 
-      <!-- 时间线 -->
-      <el-tab-pane :label="t('sub2api.common.timeline')" name="timeline">
-        <div class="list-toolbar">
-          <span>{{ t('sub2api.common.totalItems', { count: store.timeline.length }) }}</span>
-          <el-button v-if="canEdit" type="primary" @click="openTimeline()">{{
-            t('sub2api.admin.addTimeline')
-          }}</el-button>
-        </div>
-        <el-table class="desktop-table" :data="store.timeline" v-loading="store.listLoading" stripe>
-          <el-table-column
-            prop="title"
-            :label="t('sub2api.common.title')"
-            min-width="160"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="content"
-            :label="t('sub2api.common.content')"
-            min-width="220"
-            show-overflow-tooltip
-          />
-          <el-table-column prop="category" :label="t('sub2api.common.category')" width="120" />
-          <el-table-column :label="t('sub2api.common.publishTime')" min-width="170">
-            <template #default="{ row }">{{ store.formatDateTime(row.publishedAt) }}</template>
-          </el-table-column>
-          <el-table-column
-            v-if="canEdit"
-            :label="t('sub2api.common.operation')"
-            width="140"
-            fixed="right"
+    <!-- ========== 时间线 ========== -->
+    <div v-show="activeTab === 'timeline'" class="s2a-tab">
+      <div class="list-toolbar">
+        <span class="list-toolbar__count">{{ t('sub2api.common.totalItems', { count: store.timeline.length }) }}</span>
+        <UButton v-if="canEdit" color="primary" icon="i-lucide-plus" @click="openTimeline()">
+          {{ t('sub2api.admin.addTimeline') }}
+        </UButton>
+      </div>
+      <AppPanel :padded="false">
+        <div class="dt-desk">
+          <DataTable
+            :columns="tlColumns"
+            :rows="store.timeline"
+            :loading="store.listLoading"
+            :empty-text="t('sub2api.common.noData')"
           >
-            <template #default="{ row }">
-              <el-button link type="primary" @click="openTimeline(row)">{{
-                t('sub2api.common.edit')
-              }}</el-button>
-              <el-button link type="danger" @click="onDeleteTimeline(row)">{{
-                t('sub2api.common.delete')
-              }}</el-button>
+            <template #cell-publishedAt="{ row }">{{ store.formatDateTime(tl(row).publishedAt) }}</template>
+            <template #cell-_act="{ row }">
+              <ActionMenu :items="tlActions" @select="(key) => onTlAction(key, tl(row))" />
             </template>
-          </el-table-column>
-          <template #empty>{{ t('sub2api.common.noData') }}</template>
-        </el-table>
-        <div class="mobile-list edit-list" v-loading="store.listLoading">
+          </DataTable>
+        </div>
+        <div class="dt-mob">
           <article v-for="row in store.timeline" :key="row.id" class="edit-card">
-            <div class="edit-card-head">
+            <div class="edit-card__head">
               <strong>{{ row.title || t('sub2api.common.update') }}</strong>
-              <el-tag size="small" effect="light">{{
-                row.category || t('sub2api.common.update')
-              }}</el-tag>
+              <StatusPill :variant="'info'" :dot="false" :label="row.category || t('sub2api.common.update')" />
             </div>
             <p>{{ row.content || '-' }}</p>
-            <div class="edit-card-foot">
+            <div class="edit-card__foot">
               <time>{{ store.formatDateTime(row.publishedAt) }}</time>
-              <span v-if="canEdit">
-                <el-button link type="primary" @click="openTimeline(row)">{{
-                  t('sub2api.common.edit')
-                }}</el-button>
-                <el-button link type="danger" @click="onDeleteTimeline(row)">{{
-                  t('sub2api.common.delete')
-                }}</el-button>
+              <span v-if="canEdit" class="edit-card__acts">
+                <UButton color="primary" variant="link" size="xs" @click="openTimeline(row)">{{ t('sub2api.common.edit') }}</UButton>
+                <UButton color="error" variant="link" size="xs" @click="onDeleteTimeline(row)">{{ t('sub2api.common.delete') }}</UButton>
               </span>
             </div>
           </article>
-          <el-empty v-if="!store.timeline.length" :description="t('sub2api.common.noData')" />
+          <EmptyState v-if="!store.timeline.length && !store.listLoading" :title="t('sub2api.common.noData')" />
         </div>
-      </el-tab-pane>
-    </el-tabs>
+      </AppPanel>
+    </div>
 
     <!-- 公告弹窗 -->
-    <BaseDialog
-      v-model="announcementDialog"
-      :title="annForm.id ? t('sub2api.admin.editAnnouncement') : t('sub2api.admin.addAnnouncement')"
-      width="520px"
-    >
-      <el-form :model="annForm" label-width="90px" :disabled="!canEdit">
-        <el-form-item :label="t('sub2api.common.title')"
-          ><el-input v-model="annForm.title"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.content')"
-          ><el-input v-model="annForm.content" type="textarea" :rows="4"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.level')">
-          <el-select v-model="annForm.level">
-            <el-option :label="t('sub2api.common.info')" value="info" />
-            <el-option :label="t('sub2api.common.success')" value="success" />
-            <el-option :label="t('sub2api.common.warning')" value="warning" />
-            <el-option :label="t('sub2api.common.danger')" value="danger" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('sub2api.common.pinned')"
-          ><el-switch v-model="annForm.pinned"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.publishTime')">
-          <el-date-picker
-            v-model="annForm.publishedAt"
-            type="datetime"
-            :placeholder="t('sub2api.common.defaultNow')"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="announcementDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
-        <el-button
-          v-if="canEdit"
-          type="primary"
-          :loading="store.listLoading"
-          @click="submitAnnouncement"
-          >{{ t('sub2api.common.save') }}</el-button
-        >
-      </template>
-    </BaseDialog>
-
-    <!-- 时间线弹窗 -->
-    <BaseDialog
-      v-model="timelineDialog"
-      :title="tlForm.id ? t('sub2api.admin.editTimeline') : t('sub2api.admin.addTimeline')"
-      width="520px"
-    >
-      <el-form :model="tlForm" label-width="90px" :disabled="!canEdit">
-        <el-form-item :label="t('sub2api.common.title')"
-          ><el-input v-model="tlForm.title"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.content')"
-          ><el-input v-model="tlForm.content" type="textarea" :rows="4"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.category')"
-          ><el-input v-model="tlForm.category" :placeholder="t('sub2api.common.update')"
-        /></el-form-item>
-        <el-form-item :label="t('sub2api.common.publishTime')">
-          <el-date-picker
-            v-model="tlForm.publishedAt"
-            type="datetime"
-            :placeholder="t('sub2api.common.defaultNow')"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="timelineDialog = false">{{ t('sub2api.common.cancel') }}</el-button>
-        <el-button
-          v-if="canEdit"
-          type="primary"
-          :loading="store.listLoading"
-          @click="submitTimeline"
-          >{{ t('sub2api.common.save') }}</el-button
-        >
-      </template>
-    </BaseDialog>
-
-    <!-- 最近请求详情 -->
-    <BaseDialog v-model="detailDialog" :title="t('sub2api.common.requestDetail')" width="520px">
-      <div v-if="detailRow" class="req-detail">
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.status') }}</span>
-          <span class="v">
-            <el-tag size="small" :type="detailRow.success ? 'success' : 'danger'" effect="light">{{
-              statusLabel(detailRow)
-            }}</el-tag>
-          </span>
+    <FormDialog v-model="announcementDialog" :title="annForm.id ? t('sub2api.admin.editAnnouncement') : t('sub2api.admin.addAnnouncement')" :width="520">
+      <div class="dlg-form">
+        <div class="app-field">
+          <label class="app-label">{{ t('sub2api.common.title') }}</label>
+          <input v-model="annForm.title" class="app-input" :disabled="!canEdit" />
         </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.model') }}</span
-          ><span class="v">{{ detailRow.model || '-' }}</span>
+        <div class="app-field">
+          <label class="app-label">{{ t('sub2api.common.content') }}</label>
+          <textarea v-model="annForm.content" class="app-textarea" rows="4" :disabled="!canEdit" />
         </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.endpoint') }}</span
-          ><span class="v">{{ detailRow.endpoint || '-' }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.accountName') }}</span
-          ><span class="v">{{ detailRow.accountName || '-' }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.group') }}</span
-          ><span class="v">{{ detailRow.groupName || '-' }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.cost') }}</span
-          ><span class="v">{{ store.formatCost(detailRow.cost) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.token') }}</span
-          ><span class="v">{{ store.formatToken(detailRow.tokenCount) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.duration') }}</span
-          ><span class="v">{{ store.formatLatency(detailRow.latencyMs) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.firstToken') }}</span
-          ><span class="v">{{ firstTokenText(detailRow.firstTokenMs) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.reasoningEffort') }}</span
-          ><span class="v">{{ detailRow.reasoningEffort || '-' }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="k">{{ t('sub2api.common.time') }}</span
-          ><span class="v">{{ store.formatDateTime(detailRow.requestTime) }}</span>
-        </div>
-        <template v-if="!detailRow.success">
-          <div class="detail-row">
-            <span class="k">{{ t('sub2api.common.httpCode') }}</span
-            ><span class="v">{{ detailRow.httpStatus || '-' }}</span>
+        <div class="dlg-form__grid">
+          <div class="app-field">
+            <label class="app-label">{{ t('sub2api.common.level') }}</label>
+            <AppSelect v-model="annForm.level" :options="levelOptions" :disabled="!canEdit" />
           </div>
-          <div class="detail-row detail-row--block">
-            <span class="k">{{ t('sub2api.common.errorDetail') }}</span>
-            <span class="v err">{{ detailRow.errorMessage || '-' }}</span>
+          <div class="app-field app-field--row">
+            <label class="app-label">{{ t('sub2api.common.pinned') }}</label>
+            <AppSwitch v-model="annForm.pinned" :disabled="!canEdit" />
           </div>
-        </template>
-        <div class="detail-row detail-row--block">
-          <span class="k">{{ t('sub2api.common.requestId') }}</span
-          ><span class="v mono">{{ detailRow.requestId || '-' }}</span>
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('sub2api.common.publishTime') }}</label>
+          <input v-model="annForm.publishedAt" type="datetime-local" class="app-input" :disabled="!canEdit" />
+          <span class="app-hint">{{ t('sub2api.common.defaultNow') }}</span>
         </div>
       </div>
-      <template #footer>
-        <el-button type="primary" @click="detailDialog = false">{{
-          t('sub2api.common.close')
-        }}</el-button>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('sub2api.common.cancel') }}</UButton>
+        <UButton v-if="canEdit" color="primary" :loading="store.listLoading" @click="submitAnnouncement">{{ t('sub2api.common.save') }}</UButton>
       </template>
-    </BaseDialog>
+    </FormDialog>
+
+    <!-- 时间线弹窗 -->
+    <FormDialog v-model="timelineDialog" :title="tlForm.id ? t('sub2api.admin.editTimeline') : t('sub2api.admin.addTimeline')" :width="520">
+      <div class="dlg-form">
+        <div class="app-field">
+          <label class="app-label">{{ t('sub2api.common.title') }}</label>
+          <input v-model="tlForm.title" class="app-input" :disabled="!canEdit" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('sub2api.common.content') }}</label>
+          <textarea v-model="tlForm.content" class="app-textarea" rows="4" :disabled="!canEdit" />
+        </div>
+        <div class="dlg-form__grid">
+          <div class="app-field">
+            <label class="app-label">{{ t('sub2api.common.category') }}</label>
+            <input v-model="tlForm.category" class="app-input" :placeholder="t('sub2api.common.update')" :disabled="!canEdit" />
+          </div>
+          <div class="app-field">
+            <label class="app-label">{{ t('sub2api.common.publishTime') }}</label>
+            <input v-model="tlForm.publishedAt" type="datetime-local" class="app-input" :disabled="!canEdit" />
+          </div>
+        </div>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('sub2api.common.cancel') }}</UButton>
+        <UButton v-if="canEdit" color="primary" :loading="store.listLoading" @click="submitTimeline">{{ t('sub2api.common.save') }}</UButton>
+      </template>
+    </FormDialog>
+
+    <!-- 最近请求详情 -->
+    <FormDialog v-model="detailDialog" :title="t('sub2api.common.requestDetail')" :width="540">
+      <div v-if="detailRow" class="kv">
+        <div class="kv__row">
+          <span class="kv__k">{{ t('sub2api.common.status') }}</span>
+          <span class="kv__v"><StatusPill :variant="detailRow.success ? 'success' : 'error'" :label="statusLabel(detailRow)" /></span>
+        </div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.model') }}</span><span class="kv__v">{{ detailRow.model || '-' }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.endpoint') }}</span><span class="kv__v">{{ detailRow.endpoint || '-' }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.accountName') }}</span><span class="kv__v">{{ detailRow.accountName || '-' }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.group') }}</span><span class="kv__v">{{ detailRow.groupName || '-' }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.cost') }}</span><span class="kv__v">{{ store.formatCost(detailRow.cost) }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.token') }}</span><span class="kv__v">{{ store.formatToken(detailRow.tokenCount) }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.duration') }}</span><span class="kv__v">{{ store.formatLatency(detailRow.latencyMs) }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.firstToken') }}</span><span class="kv__v">{{ firstTokenText(detailRow.firstTokenMs) }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.reasoningEffort') }}</span><span class="kv__v">{{ detailRow.reasoningEffort || '-' }}</span></div>
+        <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.time') }}</span><span class="kv__v">{{ store.formatDateTime(detailRow.requestTime) }}</span></div>
+        <template v-if="!detailRow.success">
+          <div class="kv__row"><span class="kv__k">{{ t('sub2api.common.httpCode') }}</span><span class="kv__v">{{ detailRow.httpStatus || '-' }}</span></div>
+          <div class="kv__row kv__row--block">
+            <span class="kv__k">{{ t('sub2api.common.errorDetail') }}</span>
+            <span class="kv__v kv__v--err">{{ detailRow.errorMessage || '-' }}</span>
+          </div>
+        </template>
+        <div class="kv__row kv__row--block">
+          <span class="kv__k">{{ t('sub2api.common.requestId') }}</span>
+          <span class="kv__v kv__v--mono">{{ detailRow.requestId || '-' }}</span>
+        </div>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('sub2api.common.close') }}</UButton>
+      </template>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
-import { ArrowRight, Link } from '@element-plus/icons-vue'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import VChart from '@/components/chart/VChart.vue'
+import type { DataTableColumn } from '@/components/ui/DataTable.vue'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { useSub2APIStore } from '@/stores/sub2api'
+import { useFeedback } from '@/utils/feedback'
 import { Dialog } from '@/utils/dialog'
 import type {
   Sub2APIAnnouncement,
@@ -564,27 +360,40 @@ defineOptions({ name: 'Sub2APIHome' })
 
 const store = useSub2APIStore()
 const router = useRouter()
+const menuStore = useMenuStore()
 const { snapshot } = storeToRefs(store)
 const { t } = useI18n()
+const fb = useFeedback()
 const canEdit = useButtonPermission([PERM.SUB2API_EDIT], [])
 
 const chartUpdate = { notMerge: true }
 
-const activeTab = ref('overview')
+const TABS = [
+  { name: 'overview', labelKey: 'sub2api.common.usageOverview', icon: 'HOutline:ChartBarIcon' },
+  { name: 'announcements', labelKey: 'sub2api.common.announcements', icon: 'HOutline:MegaphoneIcon' },
+  { name: 'timeline', labelKey: 'sub2api.common.timeline', icon: 'HOutline:ClockIcon' },
+] as const
+const activeTab = ref<'overview' | 'announcements' | 'timeline'>('overview')
 
-// 用量概览时间区间：默认近 24h，整页数据随之切换
+const STATUS_VARIANT = { warning: 'warning', success: 'success', danger: 'error', info: 'info' } as const
+const statusVariant = computed(
+  () => STATUS_VARIANT[store.statusType(snapshot.value?.status) as keyof typeof STATUS_VARIANT] ?? 'neutral',
+)
+
+// —— 用量概览时间区间：默认近 24h ——
 const rangeOptions = computed(() => [
-  { label: t('sub2api.common.today'), value: 'today' },
-  { label: t('sub2api.common.last24h'), value: '24h' },
-  { label: t('sub2api.common.sevenDays'), value: '7d' },
-  { label: t('sub2api.common.thirtyDays'), value: '30d' },
-  { label: t('sub2api.common.all'), value: 'all' },
-  { label: t('sub2api.common.custom'), value: 'custom' },
+  { label: t('sub2api.common.today'), value: 'today' as const },
+  { label: t('sub2api.common.last24h'), value: '24h' as const },
+  { label: t('sub2api.common.sevenDays'), value: '7d' as const },
+  { label: t('sub2api.common.thirtyDays'), value: '30d' as const },
+  { label: t('sub2api.common.all'), value: 'all' as const },
+  { label: t('sub2api.common.custom'), value: 'custom' as const },
 ])
-const rangeKey = ref<'today' | '24h' | '7d' | '30d' | 'all' | 'custom'>('24h')
-// 自定义时间段：开始/结束两个单独的 datetime 选择器（精度到分钟）
-const customStart = ref<Date | null>(null)
-const customEnd = ref<Date | null>(null)
+type RangeKey = 'today' | '24h' | '7d' | '30d' | 'all' | 'custom'
+const rangeKey = ref<RangeKey>('24h')
+// 自定义时间段：datetime-local 字符串（精度到分钟）
+const customStart = ref('')
+const customEnd = ref('')
 
 const HOUR = 3_600_000
 const MINUTE = 60_000
@@ -594,9 +403,16 @@ const startOfTodayMs = () => {
   d.setHours(0, 0, 0, 0)
   return d.getTime()
 }
+// 本地 datetime-local 字符串 <-> 时间戳
+const toLocalInput = (v?: string | number | Date | null) => {
+  if (!v) return ''
+  const d = new Date(v)
+  if (Number.isNaN(d.getTime())) return ''
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
 
-// 当前选择对应的时间段 [startTime, endTime]（Unix 毫秒，精度到分钟）。
-// startTime=0 表示不限制起点（全部）。用函数而非 computed，避免缓存住 Date.now()。
+// 当前选择对应的 [startTime, endTime]（Unix 毫秒，精度到分钟）；startTime=0=不限起点。
 const resolveRange = (): { startTime: number; endTime: number } => {
   const end = floorMinute(Date.now())
   switch (rangeKey.value) {
@@ -612,9 +428,10 @@ const resolveRange = (): { startTime: number; endTime: number } => {
       return { startTime: 0, endTime: end }
     case 'custom':
       if (customStart.value && customEnd.value) {
-        let s = floorMinute(customStart.value.getTime())
-        let e = floorMinute(customEnd.value.getTime())
-        if (s > e) [s, e] = [e, s] // 起止反选时自动纠正
+        let s = floorMinute(new Date(customStart.value).getTime())
+        let e = floorMinute(new Date(customEnd.value).getTime())
+        if (Number.isNaN(s) || Number.isNaN(e)) return { startTime: end - 24 * HOUR, endTime: end }
+        if (s > e) [s, e] = [e, s]
         return { startTime: s, endTime: e }
       }
       return { startTime: end - 24 * HOUR, endTime: end }
@@ -623,30 +440,61 @@ const resolveRange = (): { startTime: number; endTime: number } => {
   }
 }
 
-// 记录当前生效的时间段，供最近请求翻页时复用同一区间（避免相对区间随墙钟漂移）
 const lastRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
-
 const reloadStats = () => {
   const range = resolveRange()
   lastRange.value = range
   store.loadAdminStats(range.startTime, range.endTime)
   store.loadAdminRecent(range.startTime, range.endTime, 1)
 }
-
 const onRecentPageChange = (page: number) => {
   store.loadAdminRecent(lastRange.value.startTime, lastRange.value.endTime, page)
 }
+const selectRange = (v: RangeKey) => {
+  rangeKey.value = v
+  if (v === 'custom' && (!customStart.value || !customEnd.value)) {
+    const now = new Date()
+    customStart.value = toLocalInput(new Date(now.getTime() - 24 * HOUR))
+    customEnd.value = toLocalInput(now)
+  }
+  reloadStats()
+}
+const onCustomChange = () => {
+  if (customStart.value && customEnd.value) reloadStats()
+}
 
-// 最近请求：状态标签（失败时附带 HTTP 码）与首 token 文案
+// —— 最近请求 ——
+const recentColumns = computed<DataTableColumn[]>(() => [
+  { key: 'model', title: t('sub2api.common.model'), minWidth: 140 },
+  { key: 'endpoint', title: t('sub2api.common.endpoint'), minWidth: 130 },
+  { key: 'accountName', title: t('sub2api.common.account'), minWidth: 110 },
+  { key: 'groupName', title: t('sub2api.common.group'), minWidth: 110 },
+  { key: 'status', title: t('sub2api.common.status'), width: 112 },
+  { key: 'latencyMs', title: t('sub2api.common.latency'), width: 92, align: 'right' },
+  { key: 'tokenCount', title: 'Token', width: 92, align: 'right' },
+  { key: 'requestTime', title: t('sub2api.common.time'), minWidth: 160 },
+  { key: '_act', title: t('sub2api.common.operation'), width: 72, align: 'right' },
+])
+// DataTable 需要稳定 rowKey：requestId 可能为空/重复 → 合成 _rk
+const recentRows = computed(() =>
+  store.adminRecent.map((r, i) => ({ ...r, _rk: `${r.requestId || ''}-${r.requestTime || ''}-${i}` })),
+)
+// DataTable 单元格插槽的 row 为 Record<string, unknown>，按列语义收窄
+const rec = (r: Record<string, unknown>) => r as unknown as Sub2APIRecentRequest
+const ann = (r: Record<string, unknown>) => r as unknown as Sub2APIAnnouncement
+const tl = (r: Record<string, unknown>) => r as unknown as Sub2APITimelineItem
+
 const statusLabel = (row: Sub2APIRecentRequest) => {
   if (row.success) return t('sub2api.common.success')
   return row.httpStatus
     ? t('sub2api.common.failedWithCode', { code: row.httpStatus })
     : t('sub2api.common.failed')
 }
+const recentSub = (row: Sub2APIRecentRequest) =>
+  [row.accountName, row.groupName, row.endpoint || '-'].filter(Boolean).join(' · ')
 const firstTokenText = (ms?: number) => (ms && ms > 0 ? store.formatLatency(ms) : '-')
 
-// 最近请求详情弹窗
+// 详情
 const detailDialog = ref(false)
 const detailRow = ref<Sub2APIRecentRequest>()
 const openDetail = (row: Sub2APIRecentRequest) => {
@@ -654,68 +502,91 @@ const openDetail = (row: Sub2APIRecentRequest) => {
   detailDialog.value = true
 }
 
-const onRangeChange = () => {
-  // 首次切到自定义时给个默认区间（近 24h），避免空选择
-  if (rangeKey.value === 'custom' && (!customStart.value || !customEnd.value)) {
-    const now = new Date()
-    customStart.value = new Date(now.getTime() - 24 * HOUR)
-    customEnd.value = now
-  }
-  reloadStats()
-}
-
-const onCustomChange = () => {
-  if (customStart.value && customEnd.value) reloadStats()
-}
-
 const openPublicHome = () => {
   window.open(router.resolve('/public/sub2api/home').href, '_blank')
 }
-
 const onSync = async (full: boolean) => {
   if (!canEdit.value) return
   const ok = await store.syncUsage(full)
   if (ok) {
-    ElMessage.success(t('sub2api.common.synced'))
+    fb.success(t('sub2api.common.synced'))
     reloadStats()
   }
 }
 
+// —— 级别（公告） ——
+const levelOptions = computed<{ label: string; value: string }[]>(() => [
+  { label: t('sub2api.common.info'), value: 'info' },
+  { label: t('sub2api.common.success'), value: 'success' },
+  { label: t('sub2api.common.warning'), value: 'warning' },
+  { label: t('sub2api.common.danger'), value: 'danger' },
+])
+const levelText = (level: string) =>
+  ({
+    info: t('sub2api.common.info'),
+    success: t('sub2api.common.success'),
+    warning: t('sub2api.common.warning'),
+    danger: t('sub2api.common.danger'),
+  })[level] || t('sub2api.common.info')
+const levelVariant = (level: string): 'info' | 'success' | 'warning' | 'error' =>
+  (({ info: 'info', success: 'success', warning: 'warning', danger: 'error' }) as const)[
+    level as 'info' | 'success' | 'warning' | 'danger'
+  ] || 'info'
 
-// 公告
+// —— 公告 CRUD ——
+const annColumns = computed<DataTableColumn[]>(() => {
+  const cols: DataTableColumn[] = [
+    { key: 'title', title: t('sub2api.common.title'), minWidth: 160 },
+    { key: 'content', title: t('sub2api.common.content'), minWidth: 220 },
+    { key: 'level', title: t('sub2api.common.level'), width: 110 },
+    { key: 'pinned', title: t('sub2api.common.pinned'), width: 90 },
+    { key: 'publishedAt', title: t('sub2api.common.publishTime'), width: 180 },
+  ]
+  if (canEdit.value) cols.push({ key: '_act', title: t('sub2api.common.operation'), width: 70, align: 'right' })
+  return cols
+})
+const annActions = computed<ActionMenuItem[]>(() => [
+  { key: 'edit', label: t('sub2api.common.edit'), icon: 'i-lucide-pencil' },
+  { key: 'delete', label: t('sub2api.common.delete'), icon: 'i-lucide-trash-2', danger: true },
+])
+const onAnnAction = (key: string, row: Sub2APIAnnouncement) => {
+  if (key === 'edit') openAnnouncement(row)
+  else if (key === 'delete') onDeleteAnnouncement(row)
+}
+
 const announcementDialog = ref(false)
-const annForm = reactive<{
-  id?: string
-  title: string
-  content: string
-  level: string
-  pinned: boolean
-  publishedAt: Date | undefined
-}>({
+const annForm = reactive<{ id?: string; title: string; content: string; level: string; pinned: boolean; publishedAt: string }>({
   title: '',
   content: '',
   level: 'info',
   pinned: false,
-  publishedAt: undefined,
+  publishedAt: '',
 })
 const openAnnouncement = (row?: Sub2APIAnnouncement) => {
   if (!canEdit.value) return
-  announcementDialog.value = true
   Object.assign(annForm, {
     id: row?.id,
     title: row?.title || '',
     content: row?.content || '',
     level: row?.level || 'info',
     pinned: row?.pinned || false,
-    publishedAt: row?.publishedAt ? new Date(row.publishedAt) : undefined,
+    publishedAt: toLocalInput(row?.publishedAt),
   })
+  announcementDialog.value = true
 }
 const submitAnnouncement = async () => {
   if (!canEdit.value) return
-  const ok = await store.saveAnnouncement({ ...annForm })
+  const ok = await store.saveAnnouncement({
+    id: annForm.id,
+    title: annForm.title,
+    content: annForm.content,
+    level: annForm.level,
+    pinned: annForm.pinned,
+    publishedAt: annForm.publishedAt ? new Date(annForm.publishedAt) : undefined,
+  })
   if (ok) {
     announcementDialog.value = false
-    ElMessage.success(t('sub2api.common.saved'))
+    fb.success(t('sub2api.common.saved'))
   }
 }
 const onDeleteAnnouncement = (row: Sub2APIAnnouncement) => {
@@ -724,42 +595,61 @@ const onDeleteAnnouncement = (row: Sub2APIAnnouncement) => {
     title: t('sub2api.common.tip'),
     content: t('sub2api.admin.confirmDeleteAnnouncement'),
     onConfirm: async () => {
-      if (await store.removeAnnouncement(row.id)) ElMessage.success(t('sub2api.common.deleted'))
+      if (await store.removeAnnouncement(row.id)) fb.success(t('sub2api.common.deleted'))
     },
   }).catch(() => undefined)
 }
 
-// 时间线
+// —— 时间线 CRUD ——
+const tlColumns = computed<DataTableColumn[]>(() => {
+  const cols: DataTableColumn[] = [
+    { key: 'title', title: t('sub2api.common.title'), minWidth: 160 },
+    { key: 'content', title: t('sub2api.common.content'), minWidth: 220 },
+    { key: 'category', title: t('sub2api.common.category'), width: 130 },
+    { key: 'publishedAt', title: t('sub2api.common.publishTime'), width: 180 },
+  ]
+  if (canEdit.value) cols.push({ key: '_act', title: t('sub2api.common.operation'), width: 70, align: 'right' })
+  return cols
+})
+const tlActions = computed<ActionMenuItem[]>(() => [
+  { key: 'edit', label: t('sub2api.common.edit'), icon: 'i-lucide-pencil' },
+  { key: 'delete', label: t('sub2api.common.delete'), icon: 'i-lucide-trash-2', danger: true },
+])
+const onTlAction = (key: string, row: Sub2APITimelineItem) => {
+  if (key === 'edit') openTimeline(row)
+  else if (key === 'delete') onDeleteTimeline(row)
+}
+
 const timelineDialog = ref(false)
-const tlForm = reactive<{
-  id?: string
-  title: string
-  content: string
-  category: string
-  publishedAt: Date | undefined
-}>({
+const tlForm = reactive<{ id?: string; title: string; content: string; category: string; publishedAt: string }>({
   title: '',
   content: '',
   category: t('sub2api.common.update'),
-  publishedAt: undefined,
+  publishedAt: '',
 })
 const openTimeline = (row?: Sub2APITimelineItem) => {
   if (!canEdit.value) return
-  timelineDialog.value = true
   Object.assign(tlForm, {
     id: row?.id,
     title: row?.title || '',
     content: row?.content || '',
     category: row?.category || t('sub2api.common.update'),
-    publishedAt: row?.publishedAt ? new Date(row.publishedAt) : undefined,
+    publishedAt: toLocalInput(row?.publishedAt),
   })
+  timelineDialog.value = true
 }
 const submitTimeline = async () => {
   if (!canEdit.value) return
-  const ok = await store.saveTimelineItem({ ...tlForm })
+  const ok = await store.saveTimelineItem({
+    id: tlForm.id,
+    title: tlForm.title,
+    content: tlForm.content,
+    category: tlForm.category,
+    publishedAt: tlForm.publishedAt ? new Date(tlForm.publishedAt) : undefined,
+  })
   if (ok) {
     timelineDialog.value = false
-    ElMessage.success(t('sub2api.common.saved'))
+    fb.success(t('sub2api.common.saved'))
   }
 }
 const onDeleteTimeline = (row: Sub2APITimelineItem) => {
@@ -768,22 +658,10 @@ const onDeleteTimeline = (row: Sub2APITimelineItem) => {
     title: t('sub2api.common.tip'),
     content: t('sub2api.admin.confirmDeleteTimeline'),
     onConfirm: async () => {
-      if (await store.removeTimelineItem(row.id)) ElMessage.success(t('sub2api.common.deleted'))
+      if (await store.removeTimelineItem(row.id)) fb.success(t('sub2api.common.deleted'))
     },
   }).catch(() => undefined)
 }
-
-const levelText = (level: string) =>
-  ({
-    info: t('sub2api.common.info'),
-    success: t('sub2api.common.success'),
-    warning: t('sub2api.common.warning'),
-    danger: t('sub2api.common.danger'),
-  })[level] || t('sub2api.common.info')
-const levelTagType = (level: string): 'info' | 'success' | 'warning' | 'danger' =>
-  (({ info: 'info', success: 'success', warning: 'warning', danger: 'danger' }) as const)[
-    level as 'info' | 'success' | 'warning' | 'danger'
-  ] || 'info'
 
 onMounted(() => {
   store.loadAdmin()
@@ -792,524 +670,365 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.sub2api-admin {
-  padding: 16px;
-}
-
-.page-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-
-  h1 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--el-text-color-primary);
-  }
-
-  p {
-    margin: 6px 0 0;
-    color: var(--el-text-color-secondary);
-    font-size: 13px;
-  }
-}
-
-.head-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-
-  :deep(.el-button + .el-button) {
-    margin-left: 0;
-  }
-}
-
-.range-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.custom-dt {
-  width: 184px;
-}
-
-.custom-sep {
-  color: var(--el-text-color-secondary);
-}
-
-.range-current {
-  margin-left: auto;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
-
-.btn-icon {
-  margin-right: 4px;
-}
-
-.metric-row {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.metric-card {
+.s2a-home {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+/* Tab 条（与 config 一致） */
+.s2a-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
+}
+.s2a-tabs__btn {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  padding: 16px 18px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 12px;
-  background: var(--el-bg-color-overlay);
-  border-left: 3px solid var(--el-color-primary);
-
-  &.tone-green {
-    border-left-color: var(--el-color-success);
-  }
-  &.tone-amber {
-    border-left-color: var(--el-color-warning);
-  }
-  &.tone-red {
-    border-left-color: var(--el-color-danger);
-  }
-}
-
-.metric-label {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.s2a-tabs__btn :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+.s2a-tabs__btn.is-active {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
 }
 
-.metric-value {
+.s2a-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* range 区间 */
+.ov-range {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--app-radius);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.seg::-webkit-scrollbar {
+  display: none;
+}
+.seg__btn {
+  flex: none;
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--app-radius-sm);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.seg__btn.is-active {
+  background: var(--el-bg-color);
   color: var(--el-text-color-primary);
-  font-size: 22px;
-  font-weight: 700;
+  box-shadow: var(--app-shadow-sm);
+}
+.ov-dt {
+  width: 190px;
+}
+.ov-sep {
+  color: var(--el-text-color-secondary);
+}
+.ov-current {
+  margin-left: auto;
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+}
+
+/* 同步元信息 */
+.ov-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  color: var(--el-text-color-secondary);
+  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
 }
 
-.metric-detail {
-  color: var(--el-text-color-placeholder);
-  font-size: 12px;
-}
-
-.sync-meta {
+.ov-body {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 22px;
-  margin-bottom: 14px;
-  color: var(--el-text-color-secondary);
-  font-size: 12.5px;
+  flex-direction: column;
+  gap: 14px;
+  transition: opacity 0.15s;
 }
-
-.chart-card {
-  margin-bottom: 14px;
-  border-radius: 12px;
-  min-width: 0;
-}
-
-.card-title {
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+.ov-body.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .chart {
   width: 100%;
   height: 320px;
 }
-
-.chart.sm {
+.chart--sm {
   height: 280px;
 }
-
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
+/* 列表工具条 */
 .list-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 12px;
+}
+.list-toolbar__count {
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
-.mobile-list {
+/* 表格 / 卡片切换 */
+.dt-desk {
+  display: block;
+}
+.dt-mob {
   display: none;
 }
 
-.mobile-list-head,
-.mobile-row {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr) 70px;
+/* 最近请求卡 */
+.req-card {
+  display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.mobile-list-head {
-  min-height: 32px;
-  padding: 0 0 6px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
   border-bottom: 1px solid var(--el-border-color-lighter);
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  transition: background 0.12s;
 }
-
-.mobile-row {
-  min-height: 38px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  font-size: 12.5px;
-}
-
-.mobile-row:last-child {
+.req-card:last-child {
   border-bottom: 0;
 }
-
-.row-title,
-.row-content {
+.req-card:hover {
+  background: var(--el-fill-color-light);
+}
+.req-card__main {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.row-title {
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-
-.row-content {
-  display: block;
-  color: var(--el-text-color-regular);
-}
-
-.row-main {
-  min-width: 0;
-}
-
-.row-main small {
-  display: block;
-  margin-top: 2px;
-  color: var(--el-text-color-secondary);
-  font-size: 11.5px;
-  line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.row-status,
-.row-actions {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.request-list .mobile-row {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.request-row {
-  cursor: pointer;
-}
-
-.row-chevron {
-  color: var(--el-text-color-placeholder);
-  font-size: 13px;
-}
-
-.recent-pager {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
-
-// 请求详情：标签 + 值的两列布局，移动端自动堆叠
-.req-detail {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  font-size: 13px;
+.req-card__main strong {
+  color: var(--el-text-color-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.req-card__main small {
+  color: var(--el-text-color-secondary);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.req-card__side {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.req-card__chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--el-text-color-placeholder);
 }
 
-.detail-row:last-child {
+/* 公告 / 时间线 卡 */
+.edit-card {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.edit-card:last-child {
   border-bottom: 0;
 }
-
-.detail-row .k {
-  color: var(--el-text-color-secondary);
-}
-
-.detail-row .v {
-  min-width: 0;
-  color: var(--el-text-color-primary);
-  overflow-wrap: anywhere;
-}
-
-.detail-row--block {
-  grid-template-columns: 1fr;
-  gap: 4px;
-}
-
-.detail-row .v.err {
-  color: var(--el-color-danger);
-  white-space: pre-wrap;
-}
-
-.detail-row .v.mono {
-  font-family: var(--el-font-family-mono, monospace);
-  font-size: 12px;
-  color: var(--el-text-color-regular);
-}
-
-.row-actions :deep(.el-button + .el-button) {
-  margin-left: 0;
-}
-
-.edit-list {
-  gap: 8px;
-}
-
-.edit-card {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 10px;
-  background: var(--el-bg-color-overlay);
-  padding: 10px 12px;
-}
-
-.edit-card-head,
-.edit-card-foot {
+.edit-card__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
-
-.edit-card-head strong {
+.edit-card__head strong {
   min-width: 0;
   color: var(--el-text-color-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
-
-.edit-card-head > span,
-.edit-card-foot > span {
+.edit-card__pills {
   display: inline-flex;
   flex: none;
-  align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
-
 .edit-card p {
   margin: 7px 0;
   color: var(--el-text-color-regular);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-
-.edit-card time {
+.edit-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.edit-card__foot time {
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
+}
+.edit-card__acts {
+  display: inline-flex;
+  gap: 4px;
 }
 
-.edit-card-foot :deep(.el-button + .el-button) {
-  margin-left: 0;
+.muted {
+  color: var(--el-text-color-placeholder);
 }
 
-@media (max-width: 900px) {
-  .metric-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+/* 弹窗表单 */
+.dlg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dlg-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.app-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.app-field--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-hint {
+  color: var(--el-text-color-placeholder);
+  font-size: 0.72rem;
+}
+
+/* 详情 KV */
+.kv {
+  display: flex;
+  flex-direction: column;
+}
+.kv__row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 0.8125rem;
+}
+.kv__row:last-child {
+  border-bottom: 0;
+}
+.kv__k {
+  color: var(--el-text-color-secondary);
+}
+.kv__v {
+  min-width: 0;
+  color: var(--el-text-color-primary);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.kv__row--block {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.kv__v--err {
+  color: var(--el-color-danger);
+  white-space: pre-wrap;
+}
+.kv__v--mono {
+  font-family: var(--el-font-family-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--el-text-color-regular);
+}
+
+@media (width <= 1024px) {
   .chart-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .sub2api-admin {
-    padding: 10px;
+@media (width <= 768px) {
+  .s2a-tabs {
+    align-self: stretch;
+    display: flex;
   }
-
-  .page-head {
-    gap: 10px;
-    margin-bottom: 8px;
-
-    h1 {
-      font-size: 19px;
-    }
-
-    p {
-      margin-top: 4px;
-      font-size: 12.5px;
-      line-height: 1.45;
-    }
+  .s2a-tabs__btn {
+    flex: 1;
+    justify-content: center;
   }
-
-  .head-actions {
-    gap: 8px;
-    flex-wrap: wrap;
-
-    :deep(.el-button) {
-      padding: 8px 14px;
-    }
-  }
-
-  .range-bar {
-    gap: 8px;
-  }
-
-  // 分段控件可横向滚动，避免 5 个选项撑破屏幕
-  .range-bar :deep(.el-segmented) {
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .range-bar :deep(.el-segmented::-webkit-scrollbar) {
+  .dt-desk {
     display: none;
   }
-
-  // 自定义起止选择器在移动端各占满整行，单月日历弹层自动收进视口
-  .range-bar :deep(.el-date-editor) {
+  .dt-mob {
+    display: flex;
+    flex-direction: column;
+  }
+  .ov-dt {
     width: 100%;
   }
-
-  // 两个选择器各占一行后，中间的 ~ 分隔符无意义，隐藏
-  .custom-sep {
+  .ov-sep {
     display: none;
   }
-
-  .range-current {
+  .ov-current {
     width: 100%;
     margin-left: 0;
   }
-
-  .admin-tabs {
-    :deep(.el-tabs__header) {
-      margin-bottom: 10px;
-    }
-
-    :deep(.el-tabs__item) {
-      height: 36px;
-      padding: 0 14px;
-      font-size: 14px;
-    }
-  }
-
-  .metric-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .metric-card {
-    gap: 4px;
-    min-width: 0;
-    padding: 10px 12px;
-    border-radius: 9px;
-  }
-
-  .metric-label {
-    font-size: 12px;
-  }
-
-  .metric-value {
-    font-size: 18px;
-    line-height: 1.25;
-    overflow-wrap: anywhere;
-  }
-
-  .metric-detail {
-    font-size: 11.5px;
-    line-height: 1.35;
-  }
-
-  .sync-meta {
-    gap: 4px 12px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    line-height: 1.45;
-  }
-
-  .chart-card {
-    margin-bottom: 10px;
-    border-radius: 10px;
-  }
-
-  .chart-card :deep(.el-card__header) {
-    padding: 10px 12px;
-  }
-
-  .chart-card :deep(.el-card__body) {
-    padding: 10px 12px;
-  }
-
   .chart {
     height: 240px;
   }
-
-  .chart.sm {
-    height: 210px;
+  .chart--sm {
+    height: 220px;
   }
-
-  .chart-grid {
-    gap: 10px;
-  }
-
-  .list-toolbar {
-    margin-bottom: 8px;
-
-    :deep(.el-button) {
-      padding: 8px 14px;
-    }
-  }
-
-  .recent-pager {
-    justify-content: center;
-  }
-
-  .desktop-table {
-    display: none;
-  }
-
-  .mobile-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .edit-list {
-    gap: 8px;
-  }
-}
-
-@media (max-width: 380px) {
-  .metric-row {
+  .dlg-form__grid {
     grid-template-columns: 1fr;
   }
 }
-
 </style>
