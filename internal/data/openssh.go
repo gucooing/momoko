@@ -304,4 +304,3 @@ func toDataSSHAuthType(authType v1.SSHAuthType) string {
 		return ""
 	}
 }
-

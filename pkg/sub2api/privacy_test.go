@@ -7,7 +7,7 @@ func TestMaskPublicDisplayName(t *testing.T) {
 		in, want string
 	}{
 		{"", ""},
-		{"  alice  ", "alice"},          // 用户名不打码
+		{"  alice  ", "alice"}, // 用户名不打码
 		{"中文用户", "中文用户"},
 		{"user_01", "user_01"},
 		{"a@b.com", "a***@b.com"},

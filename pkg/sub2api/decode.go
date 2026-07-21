@@ -309,7 +309,6 @@ func groupFromError(groupID *int64, groupName string) (id, name string) {
 	return id, strings.TrimSpace(groupName)
 }
 
-
 func accountNameFrom(a *adminAccountSummary) string {
 	if a == nil {
 		return ""

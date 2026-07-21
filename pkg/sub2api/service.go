@@ -17,9 +17,9 @@ var (
 )
 
 const (
-	publicSnapshotTTL     = 30 * time.Second
-	stateWriteTimeout     = 30 * time.Second
-	autoSyncStartDelay    = 5 * time.Second
+	publicSnapshotTTL  = 30 * time.Second
+	stateWriteTimeout  = 30 * time.Second
+	autoSyncStartDelay = 5 * time.Second
 
 	// 最近请求分页边界。
 	defaultRecentPageSize = 10
@@ -89,7 +89,6 @@ func (s *Service) Config(ctx context.Context) (*v1.Sub2APIConfig, error) {
 func (s *Service) ListGroups(ctx context.Context) ([]*Group, error) {
 	return s.store.ListGroups(ctx)
 }
-
 
 func (s *Service) UpdateConfig(ctx context.Context, next *v1.Sub2APIConfig) (*v1.Sub2APIConfig, error) {
 	if next == nil {

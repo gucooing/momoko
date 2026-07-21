@@ -168,6 +168,7 @@ func (s *Sub2APIUsecase) LotteryHistoryPublic(ctx context.Context, jwt string, p
 	}
 	return items, total, nil
 }
+
 // ---------- 映射 ----------
 
 func mapLotteryError(err error) error {
@@ -345,4 +346,3 @@ func toV1LotteryUserStatus(st *sub2apipkg.LotteryUserStatus) *v1.GetLotteryStatu
 	}
 	return out
 }
-

@@ -152,7 +152,7 @@ func NormalizeConfig(cfg *v1.Sub2APIConfig) {
 		seen[h] = struct{}{}
 		hosts = append(hosts, h)
 	}
-		cfg.AllowedSrcHosts = hosts
+	cfg.AllowedSrcHosts = hosts
 }
 
 // getStringList 从 KV 读取 JSON 字符串数组配置。

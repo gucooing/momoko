@@ -583,7 +583,6 @@ func (r *sub2APIRepo) RecordsPage(ctx context.Context, start, end *time.Time, of
 	return result, total, nil
 }
 
-
 func toUsageRecord(record *gen.Sub2APIUsageRecord) *sub2apipkg.UsageRecord {
 	groupID := ""
 	if record.GroupID != nil {
