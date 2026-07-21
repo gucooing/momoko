@@ -612,7 +612,6 @@ var (
 		{Name: "fingerprint", Type: field.TypeString, Nullable: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true},
 		{Name: "tags", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"unknown", "online", "offline"}, Default: "unknown"},
 		{Name: "ssh_host_owner", Type: field.TypeString},
 	}
 	// SSHHostsTable holds the schema information for the "ssh_hosts" table.
@@ -623,7 +622,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ssh_hosts_users_owner",
-				Columns:    []*schema.Column{SSHHostsColumns[14]},
+				Columns:    []*schema.Column{SSHHostsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

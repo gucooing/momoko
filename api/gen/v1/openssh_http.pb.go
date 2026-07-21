@@ -19,7 +19,6 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationOpenSSHManagerBatchTestSSHHosts = "/v1.OpenSSHManager/BatchTestSSHHosts"
 const OperationOpenSSHManagerCreateSSHHost = "/v1.OpenSSHManager/CreateSSHHost"
 const OperationOpenSSHManagerDeleteSSHHost = "/v1.OpenSSHManager/DeleteSSHHost"
 const OperationOpenSSHManagerGetSSHHostInfo = "/v1.OpenSSHManager/GetSSHHostInfo"
@@ -29,8 +28,6 @@ const OperationOpenSSHManagerTestSSHHost = "/v1.OpenSSHManager/TestSSHHost"
 const OperationOpenSSHManagerUpdateSSHHost = "/v1.OpenSSHManager/UpdateSSHHost"
 
 type OpenSSHManagerHTTPServer interface {
-	// BatchTestSSHHosts 批量测试 SSH 服务端连接
-	BatchTestSSHHosts(context.Context, *BatchTestSSHHostsRequest) (*BatchTestSSHHostsResponse, error)
 	// CreateSSHHost 创建 SSH 服务端
 	CreateSSHHost(context.Context, *CreateSSHHostRequest) (*CreateSSHHostResponse, error)
 	// DeleteSSHHost 删除 SSH 服务端
@@ -41,7 +38,9 @@ type OpenSSHManagerHTTPServer interface {
 	GetSSHHosts(context.Context, *GetSSHHostsRequest) (*GetSSHHostsResponse, error)
 	// ShareSSHHost 分享 SSH 服务端
 	ShareSSHHost(context.Context, *ShareSSHHostRequest) (*ShareSSHHostResponse, error)
-	// TestSSHHost 测试 SSH 服务端连接
+	// TestSSHHost 测试 SSH 配置连通性（不写库状态）：
+	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
+	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(context.Context, *TestSSHHostRequest) (*TestSSHHostResponse, error)
 	// UpdateSSHHost 更新 SSH 服务端
 	UpdateSSHHost(context.Context, *UpdateSSHHostRequest) (*UpdateSSHHostResponse, error)
@@ -55,8 +54,7 @@ func RegisterOpenSSHManagerHTTPServer(s *http.Server, srv OpenSSHManagerHTTPServ
 	r.PUT("/api/v1/openssh/host/{id}", _OpenSSHManager_UpdateSSHHost0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/openssh/host/{id}", _OpenSSHManager_DeleteSSHHost0_HTTP_Handler(srv))
 	r.POST("/api/v1/openssh/host/{id}/share", _OpenSSHManager_ShareSSHHost0_HTTP_Handler(srv))
-	r.POST("/api/v1/openssh/host/{id}/test", _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv))
-	r.POST("/api/v1/openssh/host/batch-test", _OpenSSHManager_BatchTestSSHHosts0_HTTP_Handler(srv))
+	r.POST("/api/v1/openssh/host/test", _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv))
 }
 
 func _OpenSSHManager_GetSSHHosts0_HTTP_Handler(srv OpenSSHManagerHTTPServer) func(ctx http.Context) error {
@@ -203,9 +201,6 @@ func _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv OpenSSHManagerHTTPServer) fun
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
 		http.SetOperation(ctx, OperationOpenSSHManagerTestSSHHost)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.TestSSHHost(ctx, req.(*TestSSHHostRequest))
@@ -219,31 +214,7 @@ func _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv OpenSSHManagerHTTPServer) fun
 	}
 }
 
-func _OpenSSHManager_BatchTestSSHHosts0_HTTP_Handler(srv OpenSSHManagerHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in BatchTestSSHHostsRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOpenSSHManagerBatchTestSSHHosts)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.BatchTestSSHHosts(ctx, req.(*BatchTestSSHHostsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*BatchTestSSHHostsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 type OpenSSHManagerHTTPClient interface {
-	// BatchTestSSHHosts 批量测试 SSH 服务端连接
-	BatchTestSSHHosts(ctx context.Context, req *BatchTestSSHHostsRequest, opts ...http.CallOption) (rsp *BatchTestSSHHostsResponse, err error)
 	// CreateSSHHost 创建 SSH 服务端
 	CreateSSHHost(ctx context.Context, req *CreateSSHHostRequest, opts ...http.CallOption) (rsp *CreateSSHHostResponse, err error)
 	// DeleteSSHHost 删除 SSH 服务端
@@ -254,7 +225,9 @@ type OpenSSHManagerHTTPClient interface {
 	GetSSHHosts(ctx context.Context, req *GetSSHHostsRequest, opts ...http.CallOption) (rsp *GetSSHHostsResponse, err error)
 	// ShareSSHHost 分享 SSH 服务端
 	ShareSSHHost(ctx context.Context, req *ShareSSHHostRequest, opts ...http.CallOption) (rsp *ShareSSHHostResponse, err error)
-	// TestSSHHost 测试 SSH 服务端连接
+	// TestSSHHost 测试 SSH 配置连通性（不写库状态）：
+	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
+	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(ctx context.Context, req *TestSSHHostRequest, opts ...http.CallOption) (rsp *TestSSHHostResponse, err error)
 	// UpdateSSHHost 更新 SSH 服务端
 	UpdateSSHHost(ctx context.Context, req *UpdateSSHHostRequest, opts ...http.CallOption) (rsp *UpdateSSHHostResponse, err error)
@@ -266,20 +239,6 @@ type OpenSSHManagerHTTPClientImpl struct {
 
 func NewOpenSSHManagerHTTPClient(client *http.Client) OpenSSHManagerHTTPClient {
 	return &OpenSSHManagerHTTPClientImpl{client}
-}
-
-// BatchTestSSHHosts 批量测试 SSH 服务端连接
-func (c *OpenSSHManagerHTTPClientImpl) BatchTestSSHHosts(ctx context.Context, in *BatchTestSSHHostsRequest, opts ...http.CallOption) (*BatchTestSSHHostsResponse, error) {
-	var out BatchTestSSHHostsResponse
-	pattern := "/api/v1/openssh/host/batch-test"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationOpenSSHManagerBatchTestSSHHosts))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
 }
 
 // CreateSSHHost 创建 SSH 服务端
@@ -352,10 +311,12 @@ func (c *OpenSSHManagerHTTPClientImpl) ShareSSHHost(ctx context.Context, in *Sha
 	return &out, nil
 }
 
-// TestSSHHost 测试 SSH 服务端连接
+// TestSSHHost 测试 SSH 配置连通性（不写库状态）：
+// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
+// - 无 id：纯草稿（新建弹窗）
 func (c *OpenSSHManagerHTTPClientImpl) TestSSHHost(ctx context.Context, in *TestSSHHostRequest, opts ...http.CallOption) (*TestSSHHostResponse, error) {
 	var out TestSSHHostResponse
-	pattern := "/api/v1/openssh/host/{id}/test"
+	pattern := "/api/v1/openssh/host/test"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationOpenSSHManagerTestSSHHost))
 	opts = append(opts, http.PathTemplate(pattern))

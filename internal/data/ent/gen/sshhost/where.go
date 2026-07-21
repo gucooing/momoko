@@ -820,26 +820,6 @@ func TagsContainsFold(v string) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldContainsFold(FieldTags, v))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.SSHHost {
-	return predicate.SSHHost(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.SSHHost {
-	return predicate.SSHHost(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.SSHHost {
-	return predicate.SSHHost(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.SSHHost {
-	return predicate.SSHHost(sql.FieldNotIn(FieldStatus, vs...))
-}
-
 // HasOwner applies the HasEdge predicate on the "owner" edge.
 func HasOwner() predicate.SSHHost {
 	return predicate.SSHHost(func(s *sql.Selector) {

@@ -152,20 +152,6 @@ func (_c *SSHHostCreate) SetNillableTags(v *string) *SSHHostCreate {
 	return _c
 }
 
-// SetStatus sets the "status" field.
-func (_c *SSHHostCreate) SetStatus(v sshhost.Status) *SSHHostCreate {
-	_c.mutation.SetStatus(v)
-	return _c
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_c *SSHHostCreate) SetNillableStatus(v *sshhost.Status) *SSHHostCreate {
-	if v != nil {
-		_c.SetStatus(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *SSHHostCreate) SetID(v string) *SSHHostCreate {
 	_c.mutation.SetID(v)
@@ -245,10 +231,6 @@ func (_c *SSHHostCreate) defaults() {
 		v := sshhost.DefaultPort
 		_c.mutation.SetPort(v)
 	}
-	if _, ok := _c.mutation.Status(); !ok {
-		v := sshhost.DefaultStatus
-		_c.mutation.SetStatus(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -301,14 +283,6 @@ func (_c *SSHHostCreate) check() error {
 	}
 	if _, ok := _c.mutation.Credential(); !ok {
 		return &ValidationError{Name: "credential", err: errors.New(`gen: missing required field "SSHHost.credential"`)}
-	}
-	if _, ok := _c.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "SSHHost.status"`)}
-	}
-	if v, ok := _c.mutation.Status(); ok {
-		if err := sshhost.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "SSHHost.status": %w`, err)}
-		}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := sshhost.IDValidator(v); err != nil {
@@ -401,10 +375,6 @@ func (_c *SSHHostCreate) createSpec() (*SSHHost, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Tags(); ok {
 		_spec.SetField(sshhost.FieldTags, field.TypeString, value)
 		_node.Tags = value
-	}
-	if value, ok := _c.mutation.Status(); ok {
-		_spec.SetField(sshhost.FieldStatus, field.TypeEnum, value)
-		_node.Status = value
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -653,18 +623,6 @@ func (u *SSHHostUpsert) ClearTags() *SSHHostUpsert {
 	return u
 }
 
-// SetStatus sets the "status" field.
-func (u *SSHHostUpsert) SetStatus(v sshhost.Status) *SSHHostUpsert {
-	u.Set(sshhost.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *SSHHostUpsert) UpdateStatus() *SSHHostUpsert {
-	u.SetExcluded(sshhost.FieldStatus)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -902,20 +860,6 @@ func (u *SSHHostUpsertOne) UpdateTags() *SSHHostUpsertOne {
 func (u *SSHHostUpsertOne) ClearTags() *SSHHostUpsertOne {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearTags()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *SSHHostUpsertOne) SetStatus(v sshhost.Status) *SSHHostUpsertOne {
-	return u.Update(func(s *SSHHostUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *SSHHostUpsertOne) UpdateStatus() *SSHHostUpsertOne {
-	return u.Update(func(s *SSHHostUpsert) {
-		s.UpdateStatus()
 	})
 }
 
@@ -1323,20 +1267,6 @@ func (u *SSHHostUpsertBulk) UpdateTags() *SSHHostUpsertBulk {
 func (u *SSHHostUpsertBulk) ClearTags() *SSHHostUpsertBulk {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearTags()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *SSHHostUpsertBulk) SetStatus(v sshhost.Status) *SSHHostUpsertBulk {
-	return u.Update(func(s *SSHHostUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *SSHHostUpsertBulk) UpdateStatus() *SSHHostUpsertBulk {
-	return u.Update(func(s *SSHHostUpsert) {
-		s.UpdateStatus()
 	})
 }
 

@@ -43,8 +43,6 @@ type SSHHost struct {
 	Remark string `json:"remark,omitempty"`
 	// 标签
 	Tags string `json:"tags,omitempty"`
-	// 连接状态
-	Status sshhost.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SSHHostQuery when eager-loading is set.
 	Edges          SSHHostEdges `json:"edges"`
@@ -90,7 +88,7 @@ func (*SSHHost) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case sshhost.FieldPort:
 			values[i] = new(sql.NullInt64)
-		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags, sshhost.FieldStatus:
+		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags:
 			values[i] = new(sql.NullString)
 		case sshhost.FieldCreateTime, sshhost.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -189,12 +187,6 @@ func (_m *SSHHost) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Tags = value.String
 			}
-		case sshhost.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				_m.Status = sshhost.Status(value.String)
-			}
 		case sshhost.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ssh_host_owner", values[i])
@@ -281,9 +273,6 @@ func (_m *SSHHost) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
 	builder.WriteString(_m.Tags)
-	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

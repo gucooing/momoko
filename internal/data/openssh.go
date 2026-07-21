@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -18,14 +19,15 @@ import (
 
 type openSSHRepo struct {
 	data *Data
-	box  *secretbox.Box
 }
 
 func NewOpenSSHRepo(data *Data) biz.OpenSSHRepo {
-	return &openSSHRepo{
-		data: data,
-		box:  secretbox.New(authpkg.AuthSecretKey),
-	}
+	return &openSSHRepo{data: data}
+}
+
+// box 每次按当前 auth.AuthSecretKey 现建，避免 wire 构造时密钥尚未从配置写入导致快照到默认密钥。
+func (o *openSSHRepo) box() *secretbox.Box {
+	return secretbox.New(authpkg.AuthSecretKey)
 }
 
 func (o *openSSHRepo) GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, keywords, host *string) ([]*gen.SSHHost, int64, error) {
@@ -82,11 +84,11 @@ func (o *openSSHRepo) GetSSHHostByOwnerID(ctx context.Context, ownerID, hostID s
 
 func (o *openSSHRepo) CreateSSHHost(ctx context.Context, req *v1.CreateSSHHostRequest, ownerID string, sharedUserIDs []string) (*gen.SSHHost, error) {
 	authType, credentialText := createSSHCredential(req)
-	credential, err := o.box.Encrypt(credentialText)
+	credential, err := o.box().Encrypt(credentialText)
 	if err != nil {
 		return nil, err
 	}
-	passphrase, err := o.box.Encrypt(req.Passphrase)
+	passphrase, err := o.box().Encrypt(req.Passphrase)
 	if err != nil {
 		return nil, err
 	}
@@ -165,14 +167,12 @@ func (o *openSSHRepo) UpdateSSHHost(ctx context.Context, req *v1.UpdateSSHHostRe
 			return nil, biz.ErrSSHHostInvalid
 		}
 		update.SetHost(*req.Host)
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.Port != nil {
 		if *req.Port < 1 || *req.Port > 65535 {
 			return nil, biz.ErrSSHHostInvalid
 		}
 		update.SetPort(int(*req.Port))
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.Username != nil {
 		*req.Username = strings.TrimSpace(*req.Username)
@@ -180,32 +180,27 @@ func (o *openSSHRepo) UpdateSSHHost(ctx context.Context, req *v1.UpdateSSHHostRe
 			return nil, biz.ErrSSHHostInvalid
 		}
 		update.SetUsername(*req.Username)
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.AuthType != nil {
 		update.SetAuthType(sshhost.AuthType(nextAuthType))
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if credentialText != nil {
-		credential, err := o.box.Encrypt(*credentialText)
+		credential, err := o.box().Encrypt(*credentialText)
 		if err != nil {
 			return nil, err
 		}
 		update.SetCredential(credential)
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.Passphrase != nil {
-		passphrase, err := o.box.Encrypt(*req.Passphrase)
+		passphrase, err := o.box().Encrypt(*req.Passphrase)
 		if err != nil {
 			return nil, err
 		}
 		update.SetPassphrase(passphrase)
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.Fingerprint != nil {
 		*req.Fingerprint = strings.TrimSpace(*req.Fingerprint)
 		update.SetFingerprint(*req.Fingerprint)
-		update.SetStatus(sshhost.StatusUnknown)
 	}
 	if req.Remark != nil {
 		update.SetRemark(*req.Remark)
@@ -237,46 +232,18 @@ func (o *openSSHRepo) ShareSSHHost(ctx context.Context, ownerID, hostID string, 
 	return o.GetSSHHostByOwnerID(ctx, ownerID, hostID)
 }
 
-func (o *openSSHRepo) UpdateSSHHostStatus(
-	ctx context.Context,
-	userID string,
-	hostID string,
-	status v1.SSHHostStatus,
-	fingerprint string,
-) error {
-	entStatus := toDataSSHHostStatus(status)
-	if entStatus == "" {
-		return biz.ErrSSHHostInvalid
-	}
-
-	update := o.data.db.SSHHost.UpdateOneID(hostID).
-		Where(
-			sshhost.Or(
-				sshhost.HasOwnerWith(user.IDEQ(userID)),
-				sshhost.HasSharedUsersWith(user.IDEQ(userID)),
-			),
-		).
-		SetStatus(sshhost.Status(entStatus))
-
-	fingerprint = strings.TrimSpace(fingerprint)
-	if fingerprint != "" {
-		update.SetFingerprint(fingerprint)
-	}
-	return update.Exec(ctx)
-}
-
 func (o *openSSHRepo) GetSSHHostConfigByUserID(ctx context.Context, userID, hostID string) (sshcore.Config, error) {
 	item, err := o.GetSSHHostByUserID(ctx, userID, hostID)
 	if err != nil {
 		return sshcore.Config{}, err
 	}
-	credential, err := o.box.Decrypt(item.Credential)
+	credential, err := o.box().Decrypt(item.Credential)
 	if err != nil {
-		return sshcore.Config{}, err
+		return sshcore.Config{}, fmt.Errorf("decrypt ssh credential: %w", err)
 	}
-	passphrase, err := o.box.Decrypt(item.Passphrase)
+	passphrase, err := o.box().Decrypt(item.Passphrase)
 	if err != nil {
-		return sshcore.Config{}, err
+		return sshcore.Config{}, fmt.Errorf("decrypt ssh passphrase: %w", err)
 	}
 	return sshcore.Config{
 		Host:        item.Host,
@@ -338,15 +305,3 @@ func toDataSSHAuthType(authType v1.SSHAuthType) string {
 	}
 }
 
-func toDataSSHHostStatus(status v1.SSHHostStatus) string {
-	switch status {
-	case v1.SSHHostStatus_SSH_HOST_STATUS_UNKNOWN:
-		return "unknown"
-	case v1.SSHHostStatus_SSH_HOST_STATUS_ONLINE:
-		return "online"
-	case v1.SSHHostStatus_SSH_HOST_STATUS_OFFLINE:
-		return "offline"
-	default:
-		return ""
-	}
-}

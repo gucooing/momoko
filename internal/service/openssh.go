@@ -106,15 +106,7 @@ func (o *OpenSSHService) TestSSHHost(ctx context.Context, req *v1.TestSSHHostReq
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	return o.uc.TestSSHHost(ctx, authCtx.UserID, req.Id)
-}
-
-func (o *OpenSSHService) BatchTestSSHHosts(ctx context.Context, req *v1.BatchTestSSHHostsRequest) (*v1.BatchTestSSHHostsResponse, error) {
-	authCtx, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	return o.uc.BatchTestSSHHosts(ctx, authCtx.UserID, req.Ids)
+	return o.uc.TestSSHHost(ctx, authCtx.UserID, req)
 }
 
 func (o *OpenSSHService) RunSSHWsConn(conn *websocket.Conn) {

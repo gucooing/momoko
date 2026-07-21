@@ -7,7 +7,6 @@
     :width="680"
     :loading="loading"
     @close="close"
-    @confirm="confirm"
   >
     <div class="ssh-form">
       <div class="app-field ssh-form__full">
@@ -142,13 +141,30 @@
         <textarea v-model="form.remark" class="app-textarea" rows="2" :placeholder="t('ssh.common.remarkPlaceholder')" />
       </div>
     </div>
+
+    <template #footer="{ close: closeDialog }">
+      <UButton color="neutral" variant="soft" :disabled="loading || testing" @click="closeDialog()">
+        {{ t('ssh.common.cancel') }}
+      </UButton>
+      <UButton color="neutral" variant="soft" :loading="testing" :disabled="loading" @click="testDraft">
+        {{ t('ssh.common.testConnection') }}
+      </UButton>
+      <UButton color="primary" :loading="loading" :disabled="testing" @click="confirm">
+        {{ t('ssh.common.confirm') }}
+      </UButton>
+    </template>
   </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { createSshHost, updateSshHost } from '@/api/openssh'
-import { SSHAuthType, type SSHHostInfo, type UpdateSSHHostRequest } from '@/types/v1/openssh'
+import { createSshHost, updateSshHost, testSshHost } from '@/api/openssh'
+import {
+  SSHAuthType,
+  type SSHHostInfo,
+  type TestSSHHostRequest,
+  type UpdateSSHHostRequest,
+} from '@/types/v1/openssh'
 
 defineOptions({ name: 'SshConnectionCreate' })
 
@@ -157,6 +173,7 @@ const { t } = useI18n()
 
 const open = ref(false)
 const loading = ref(false)
+const testing = ref(false)
 const editingId = ref('')
 const showPassword = ref(false)
 const showPassphrase = ref(false)
@@ -183,11 +200,65 @@ const originalForm = ref(defaultForm())
 const close = () => {
   open.value = false
   loading.value = false
+  testing.value = false
   editingId.value = ''
   errors.value = {}
   showPassword.value = false
   showPassphrase.value = false
   form.value = defaultForm()
+}
+
+// 用当前表单草稿测连通性；编辑时空凭据走库中已存配置
+const testDraft = async () => {
+  if (!form.value.host.trim() || !form.value.username.trim()) {
+    feedback.warning(t('ssh.common.testNeedHostUser'))
+    return
+  }
+  if (!editingId.value) {
+    if (form.value.authType === 'SSH_AUTH_TYPE_PASSWORD' && !form.value.password.trim()) {
+      feedback.warning(t('ssh.common.passwordPlaceholder'))
+      return
+    }
+    if (form.value.authType === 'SSH_AUTH_TYPE_KEY' && !form.value.privateKey.trim()) {
+      feedback.warning(t('ssh.common.privateKeyRequired'))
+      return
+    }
+  }
+
+  testing.value = true
+  try {
+    const payload: TestSSHHostRequest = {
+      host: form.value.host.trim(),
+      port: form.value.port,
+      username: form.value.username.trim(),
+      authType: form.value.authType as SSHAuthType,
+      fingerprint: form.value.fingerprint || undefined,
+    }
+    if (editingId.value) payload.id = editingId.value
+    if (form.value.password.trim()) payload.password = form.value.password
+    if (form.value.privateKey.trim()) {
+      payload.privateKey = form.value.privateKey
+      if (form.value.passphrase) payload.passphrase = form.value.passphrase
+    }
+
+    const { data } = await testSshHost(payload)
+    if (data?.ok) {
+      if (data.fingerprint && !form.value.fingerprint) {
+        form.value.fingerprint = data.fingerprint
+      }
+      feedback.success(
+        t('ssh.common.connectionSuccess', { message: data.message || t('ssh.common.online') }),
+      )
+    } else {
+      feedback.warning(
+        t('ssh.common.connectionFailedWithMessage', {
+          message: data?.message || t('ssh.common.offline'),
+        }),
+      )
+    }
+  } finally {
+    testing.value = false
+  }
 }
 
 const validate = () => {

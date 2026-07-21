@@ -28,16 +28,6 @@ export enum SSHHostAccessRole {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
-export enum SSHHostStatus {
-  /** SSH_HOST_STATUS_UNKNOWN - 未检测 */
-  SSH_HOST_STATUS_UNKNOWN = "SSH_HOST_STATUS_UNKNOWN",
-  /** SSH_HOST_STATUS_ONLINE - 在线 */
-  SSH_HOST_STATUS_ONLINE = "SSH_HOST_STATUS_ONLINE",
-  /** SSH_HOST_STATUS_OFFLINE - 离线 */
-  SSH_HOST_STATUS_OFFLINE = "SSH_HOST_STATUS_OFFLINE",
-  UNRECOGNIZED = "UNRECOGNIZED",
-}
-
 export interface GetSSHHostsRequest {
   /** page */
   page: number;
@@ -176,38 +166,54 @@ export interface ShareSSHHostResponse {
   info: SSHHostInfo | undefined;
 }
 
+/**
+ * 连通性测试请求（不持久化状态）。
+ * 编辑弹窗：传 id + 当前表单草稿字段（空凭据表示沿用库中已存凭据）。
+ * 新建弹窗：不传 id，必须带齐 host/username/凭据。
+ */
 export interface TestSSHHostRequest {
-  /** SSH 服务端 id */
-  id: string;
+  /** 已有主机 id（可选；编辑弹窗带上以便空凭据时回落到库中配置） */
+  id?:
+    | string
+    | undefined;
+  /** 主机地址 */
+  host?:
+    | string
+    | undefined;
+  /** 端口 */
+  port?:
+    | number
+    | undefined;
+  /** 用户名 */
+  username?:
+    | string
+    | undefined;
+  /** 认证方式 */
+  authType?:
+    | SSHAuthType
+    | undefined;
+  /** 密码（密码认证；空=沿用已存） */
+  password?:
+    | string
+    | undefined;
+  /** 私钥（密钥认证；空=沿用已存） */
+  privateKey?:
+    | string
+    | undefined;
+  /** 私钥口令 */
+  passphrase?:
+    | string
+    | undefined;
+  /** 主机指纹（空=沿用已存） */
+  fingerprint?: string | undefined;
 }
 
 export interface TestSSHHostResponse {
-  /** 连接状态 */
-  status: SSHHostStatus;
-  /** 测试结果 */
+  /** 是否连通 */
+  ok: boolean;
+  /** 测试结果说明 */
   message: string;
-  /** 服务端主机指纹 */
-  fingerprint: string;
-}
-
-export interface BatchTestSSHHostsRequest {
-  /** SSH 服务端 id */
-  ids: string[];
-}
-
-export interface BatchTestSSHHostsResponse {
-  /** 检测结果 */
-  results: SSHHostTestResult[];
-}
-
-export interface SSHHostTestResult {
-  /** SSH 服务端 id */
-  id: string;
-  /** 连接状态 */
-  status: SSHHostStatus;
-  /** 测试结果 */
-  message: string;
-  /** 服务端主机指纹 */
+  /** 探测到的服务端主机指纹（成功时可能有） */
   fingerprint: string;
 }
 
@@ -236,8 +242,6 @@ export interface SSHHostInfo {
   sharedUsers: SSHHostSharedUser[];
   /** 当前用户访问身份 */
   accessRole: SSHHostAccessRole;
-  /** 连接状态 */
-  status: SSHHostStatus;
   /** WebSocket 路径 */
   wsPath: string;
   /** 创建时间 */

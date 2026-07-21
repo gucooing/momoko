@@ -16282,7 +16282,6 @@ type SSHHostMutation struct {
 	fingerprint         *string
 	remark              *string
 	tags                *string
-	status              *sshhost.Status
 	clearedFields       map[string]struct{}
 	owner               *string
 	clearedowner        bool
@@ -16902,42 +16901,6 @@ func (m *SSHHostMutation) ResetTags() {
 	delete(m.clearedFields, sshhost.FieldTags)
 }
 
-// SetStatus sets the "status" field.
-func (m *SSHHostMutation) SetStatus(s sshhost.Status) {
-	m.status = &s
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *SSHHostMutation) Status() (r sshhost.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the SSHHost entity.
-// If the SSHHost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SSHHostMutation) OldStatus(ctx context.Context) (v sshhost.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *SSHHostMutation) ResetStatus() {
-	m.status = nil
-}
-
 // SetOwnerID sets the "owner" edge to the User entity by id.
 func (m *SSHHostMutation) SetOwnerID(id string) {
 	m.owner = &id
@@ -17065,7 +17028,7 @@ func (m *SSHHostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SSHHostMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 12)
 	if m.create_time != nil {
 		fields = append(fields, sshhost.FieldCreateTime)
 	}
@@ -17102,9 +17065,6 @@ func (m *SSHHostMutation) Fields() []string {
 	if m.tags != nil {
 		fields = append(fields, sshhost.FieldTags)
 	}
-	if m.status != nil {
-		fields = append(fields, sshhost.FieldStatus)
-	}
 	return fields
 }
 
@@ -17137,8 +17097,6 @@ func (m *SSHHostMutation) Field(name string) (ent.Value, bool) {
 		return m.Remark()
 	case sshhost.FieldTags:
 		return m.Tags()
-	case sshhost.FieldStatus:
-		return m.Status()
 	}
 	return nil, false
 }
@@ -17172,8 +17130,6 @@ func (m *SSHHostMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldRemark(ctx)
 	case sshhost.FieldTags:
 		return m.OldTags(ctx)
-	case sshhost.FieldStatus:
-		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown SSHHost field %s", name)
 }
@@ -17266,13 +17222,6 @@ func (m *SSHHostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTags(v)
-		return nil
-	case sshhost.FieldStatus:
-		v, ok := value.(sshhost.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown SSHHost field %s", name)
@@ -17400,9 +17349,6 @@ func (m *SSHHostMutation) ResetField(name string) error {
 		return nil
 	case sshhost.FieldTags:
 		m.ResetTags()
-		return nil
-	case sshhost.FieldStatus:
-		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown SSHHost field %s", name)

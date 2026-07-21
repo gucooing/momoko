@@ -48,17 +48,12 @@ service OpenSSHManager {
       body: "*"
     };
   }
-  // 测试 SSH 服务端连接
+  // 测试 SSH 配置连通性（不写库状态）：
+  // - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
+  // - 无 id：纯草稿（新建弹窗）
   rpc TestSSHHost(TestSSHHostRequest) returns (TestSSHHostResponse) {
     option (google.api.http) = {
-      post: "/api/v1/openssh/host/{id}/test"
-      body: "*"
-    };
-  }
-  // 批量测试 SSH 服务端连接
-  rpc BatchTestSSHHosts(BatchTestSSHHostsRequest) returns (BatchTestSSHHostsResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/openssh/host/batch-test"
+      post: "/api/v1/openssh/host/test"
       body: "*"
     };
   }
@@ -179,39 +174,37 @@ message ShareSSHHostResponse {
   SSHHostInfo info = 1;
 }
 
+// 连通性测试请求（不持久化状态）。
+// 编辑弹窗：传 id + 当前表单草稿字段（空凭据表示沿用库中已存凭据）。
+// 新建弹窗：不传 id，必须带齐 host/username/凭据。
 message TestSSHHostRequest {
-  // SSH 服务端 id
-  string id = 1;
+  // 已有主机 id（可选；编辑弹窗带上以便空凭据时回落到库中配置）
+  optional string id = 1;
+  // 主机地址
+  optional string host = 2;
+  // 端口
+  optional int32 port = 3;
+  // 用户名
+  optional string username = 4;
+  // 认证方式
+  optional SSHAuthType auth_type = 5;
+  // 密码（密码认证；空=沿用已存）
+  optional string password = 6;
+  // 私钥（密钥认证；空=沿用已存）
+  optional string private_key = 7;
+  // 私钥口令
+  optional string passphrase = 8;
+  // 主机指纹（空=沿用已存）
+  optional string fingerprint = 9;
 }
 
 message TestSSHHostResponse {
-  // 连接状态
-  SSHHostStatus status = 1;
-  // 测试结果
+  // 是否连通
+  bool ok = 1;
+  // 测试结果说明
   string message = 2;
-  // 服务端主机指纹
+  // 探测到的服务端主机指纹（成功时可能有）
   string fingerprint = 3;
-}
-
-message BatchTestSSHHostsRequest {
-  // SSH 服务端 id
-  repeated string ids = 1;
-}
-
-message BatchTestSSHHostsResponse {
-  // 检测结果
-  repeated SSHHostTestResult results = 1;
-}
-
-message SSHHostTestResult {
-  // SSH 服务端 id
-  string id = 1;
-  // 连接状态
-  SSHHostStatus status = 2;
-  // 测试结果
-  string message = 3;
-  // 服务端主机指纹
-  string fingerprint = 4;
 }
 
 message SSHHostInfo {
@@ -239,14 +232,12 @@ message SSHHostInfo {
   repeated SSHHostSharedUser shared_users = 11;
   // 当前用户访问身份
   SSHHostAccessRole access_role = 12;
-  // 连接状态
-  SSHHostStatus status = 13;
   // WebSocket 路径
-  string ws_path = 14;
+  string ws_path = 13;
   // 创建时间
-  google.protobuf.Timestamp create_time = 15;
+  google.protobuf.Timestamp create_time = 14;
   // 更新时间
-  google.protobuf.Timestamp update_time = 16;
+  google.protobuf.Timestamp update_time = 15;
 }
 
 message SSHHostSharedUser {
@@ -272,13 +263,4 @@ enum SSHHostAccessRole {
   SSH_HOST_ACCESS_ROLE_OWNER = 1;
   // 被分享者
   SSH_HOST_ACCESS_ROLE_SHARED = 2;
-}
-
-enum SSHHostStatus {
-  // 未检测
-  SSH_HOST_STATUS_UNKNOWN = 0;
-  // 在线
-  SSH_HOST_STATUS_ONLINE = 1;
-  // 离线
-  SSH_HOST_STATUS_OFFLINE = 2;
 }

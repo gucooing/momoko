@@ -39,8 +39,6 @@ const (
 	FieldRemark = "remark"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeSharedUsers holds the string denoting the shared_users edge name in mutations.
@@ -76,7 +74,6 @@ var Columns = []string{
 	FieldFingerprint,
 	FieldRemark,
 	FieldTags,
-	FieldStatus,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "ssh_hosts"
@@ -150,33 +147,6 @@ func AuthTypeValidator(at AuthType) error {
 	}
 }
 
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusUnknown is the default value of the Status enum.
-const DefaultStatus = StatusUnknown
-
-// Status values.
-const (
-	StatusUnknown Status = "unknown"
-	StatusOnline  Status = "online"
-	StatusOffline Status = "offline"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusUnknown, StatusOnline, StatusOffline:
-		return nil
-	default:
-		return fmt.Errorf("sshhost: invalid enum value for status field: %q", s)
-	}
-}
-
 // OrderOption defines the ordering options for the SSHHost queries.
 type OrderOption func(*sql.Selector)
 
@@ -243,11 +213,6 @@ func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 // ByTags orders the results by the tags field.
 func ByTags(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTags, opts...).ToFunc()
-}
-
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

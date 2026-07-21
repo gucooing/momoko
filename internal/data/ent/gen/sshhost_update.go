@@ -206,20 +206,6 @@ func (_u *SSHHostUpdate) ClearTags() *SSHHostUpdate {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *SSHHostUpdate) SetStatus(v sshhost.Status) *SSHHostUpdate {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *SSHHostUpdate) SetNillableStatus(v *sshhost.Status) *SSHHostUpdate {
-	if v != nil {
-		_u.SetStatus(*v)
-	}
-	return _u
-}
-
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdate) SetOwnerID(id string) *SSHHostUpdate {
 	_u.mutation.SetOwnerID(id)
@@ -341,11 +327,6 @@ func (_u *SSHHostUpdate) check() error {
 			return &ValidationError{Name: "auth_type", err: fmt.Errorf(`gen: validator failed for field "SSHHost.auth_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := sshhost.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "SSHHost.status": %w`, err)}
-		}
-	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`gen: clearing a required unique edge "SSHHost.owner"`)
 	}
@@ -411,9 +392,6 @@ func (_u *SSHHostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(sshhost.FieldTags, field.TypeString)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(sshhost.FieldStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -686,20 +664,6 @@ func (_u *SSHHostUpdateOne) ClearTags() *SSHHostUpdateOne {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *SSHHostUpdateOne) SetStatus(v sshhost.Status) *SSHHostUpdateOne {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *SSHHostUpdateOne) SetNillableStatus(v *sshhost.Status) *SSHHostUpdateOne {
-	if v != nil {
-		_u.SetStatus(*v)
-	}
-	return _u
-}
-
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdateOne) SetOwnerID(id string) *SSHHostUpdateOne {
 	_u.mutation.SetOwnerID(id)
@@ -834,11 +798,6 @@ func (_u *SSHHostUpdateOne) check() error {
 			return &ValidationError{Name: "auth_type", err: fmt.Errorf(`gen: validator failed for field "SSHHost.auth_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := sshhost.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "SSHHost.status": %w`, err)}
-		}
-	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`gen: clearing a required unique edge "SSHHost.owner"`)
 	}
@@ -921,9 +880,6 @@ func (_u *SSHHostUpdateOne) sqlSave(ctx context.Context) (_node *SSHHost, err er
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(sshhost.FieldTags, field.TypeString)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(sshhost.FieldStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -1,7 +1,5 @@
 import request from '@/utils/request'
 import type {
-  BatchTestSSHHostsRequest,
-  BatchTestSSHHostsResponse,
   CreateSSHHostRequest,
   CreateSSHHostResponse,
   DeleteSSHHostRequest,
@@ -42,10 +40,7 @@ export const shareSshHost = (data: ShareSSHHostRequest) => {
   return request.post<ShareSSHHostResponse>(`/openssh/host/${data.id}/share`, data)
 }
 
-export const testSshHost = (params: TestSSHHostRequest) => {
-  return request.post<TestSSHHostResponse>(`/openssh/host/${params.id}/test`,params)
-}
-
-export const batchTestSshHosts = (data: BatchTestSSHHostsRequest) => {
-  return request.post<BatchTestSSHHostsResponse>('/openssh/host/batch-test', data)
+// 测试当前表单草稿连通性（不写库状态）
+export const testSshHost = (data: TestSSHHostRequest) => {
+  return request.post<TestSSHHostResponse>('/openssh/host/test', data)
 }

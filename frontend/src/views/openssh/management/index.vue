@@ -1,6 +1,4 @@
-<!-- SSH 管理（重写 · P1 列表）：PageHeader + FilterBar(名称/主机) + 批量条(测试/删除) + DataTable(可选) / 移动卡 + Pagination。
-     行内 连接/测试（全部）+ 编辑/分享/删除（仅创建者）走 ActionMenu；分享走 FormDialog + UserPicker。
-     保留 getSshHosts/delete/share/test/batchTest 契约。 -->
+<!-- SSH 管理：列表不展示连接状态；连接为高频操作放外侧；测试仅在编辑弹窗测草稿。 -->
 <template>
   <div class="ssh-page">
     <PageHeader :title="t('ssh.common.title')" :description="t('ssh.common.pageDesc')">
@@ -37,20 +35,10 @@
       </template>
     </FilterBar>
 
-    <!-- 批量条 -->
+    <!-- 批量条：仅删除 -->
     <div v-if="selectedIds.length" class="ssh-page__batch">
       <span class="ssh-page__batch-count">{{ t('ssh.common.selectedCount', { count: selectedIds.length }) }}</span>
       <div class="ssh-page__batch-actions">
-        <UButton
-          color="primary"
-          variant="soft"
-          size="sm"
-          icon="i-lucide-activity"
-          :loading="batchTesting"
-          @click="batchTest"
-        >
-          {{ t('ssh.common.batchTest') }}
-        </UButton>
         <UButton color="error" variant="soft" size="sm" icon="i-lucide-trash-2" @click="batchDelete">
           {{ t('ssh.common.batchDelete') }}
         </UButton>
@@ -91,9 +79,6 @@
             :label="row.authType === 'SSH_AUTH_TYPE_KEY' ? t('ssh.common.key') : t('ssh.common.passwordAuth')"
           />
         </template>
-        <template #cell-status="{ row }">
-          <StatusPill :variant="statusVariant(row.status)" :label="statusText(row.status)" />
-        </template>
         <template #cell-accessRole="{ row }">
           <StatusPill
             :variant="isOwner(row) ? 'primary' : 'info'"
@@ -102,7 +87,17 @@
         </template>
         <template #cell-createTime="{ row }">{{ formatTime(row.createTime) }}</template>
         <template #cell-operation="{ row }">
-          <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+          <div class="ssh-ops">
+            <UButton
+              color="primary"
+              size="sm"
+              icon="i-lucide-terminal"
+              @click="connectSsh(findRow(String(row.id))!)"
+            >
+              {{ t('ssh.common.connect') }}
+            </UButton>
+            <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+          </div>
         </template>
       </DataTable>
 
@@ -130,9 +125,6 @@
                 <span class="ssh-card__name">{{ row.name }}</span>
               </label>
             </template>
-            <template #status>
-              <StatusPill :variant="statusVariant(row.status)" :label="statusText(row.status)" />
-            </template>
             <template #meta>
               <span class="ssh-card__full">{{ row.host }}:{{ row.port }} · {{ row.username }}</span>
               <StatusPill
@@ -146,7 +138,12 @@
             </template>
             <template #footer>
               <span>{{ formatTime(row.createTime) }}</span>
-              <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+              <div class="ssh-ops">
+                <UButton color="primary" size="sm" icon="i-lucide-terminal" @click="connectSsh(row)">
+                  {{ t('ssh.common.connect') }}
+                </UButton>
+                <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+              </div>
             </template>
           </EntityCard>
         </div>
@@ -181,8 +178,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import SshConnectionCreate from '@/views/openssh/management/create.vue'
-import { getSshHosts, deleteSshHost, shareSshHost, testSshHost, batchTestSshHosts } from '@/api/openssh'
-import { SSHHostStatus, type SSHHostInfo } from '@/types/v1/openssh'
+import { getSshHosts, deleteSshHost, shareSshHost } from '@/api/openssh'
+import type { SSHHostInfo } from '@/types/v1/openssh'
 import { Dialog } from '@/utils/dialog'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
@@ -200,12 +197,12 @@ const loading = ref(false)
 const list = ref<SSHHostInfo[]>([])
 const selectedIds = ref<string[]>([])
 const selectedIdSet = computed(() => new Set(selectedIds.value))
-const batchTesting = ref(false)
 
 const queryForm = ref({ keywords: '', host: '' })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
-const isOwner = (row: Record<string, unknown>) => row.accessRole === OWNER_ROLE
+const isOwner = (row: Record<string, unknown> | SSHHostInfo) =>
+  (row as SSHHostInfo).accessRole === OWNER_ROLE
 
 const formatTime = (value: unknown): string => {
   if (!value) return '—'
@@ -215,32 +212,20 @@ const formatTime = (value: unknown): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const statusVariant = (status: unknown) =>
-  status === SSHHostStatus.SSH_HOST_STATUS_ONLINE ? 'success'
-    : status === SSHHostStatus.SSH_HOST_STATUS_OFFLINE ? 'error'
-    : 'neutral'
-const statusText = (status: unknown) =>
-  status === SSHHostStatus.SSH_HOST_STATUS_ONLINE ? t('ssh.common.online')
-    : status === SSHHostStatus.SSH_HOST_STATUS_OFFLINE ? t('ssh.common.offline')
-    : t('ssh.common.unchecked')
-
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'name', title: t('ssh.common.name'), minWidth: 140 },
   { key: 'host', title: t('ssh.common.host'), minWidth: 170 },
   { key: 'username', title: t('ssh.common.username'), minWidth: 110 },
   { key: 'authType', title: t('ssh.common.authType'), width: 100 },
-  { key: 'status', title: t('ssh.common.status'), width: 90 },
   { key: 'accessRole', title: t('ssh.common.permission'), width: 100 },
   { key: 'remark', title: t('ssh.common.remark'), minWidth: 150 },
   { key: 'createTime', title: t('ssh.common.createTime'), width: 170 },
-  { key: 'operation', title: t('ssh.common.operation'), width: 80, align: 'center' },
+  { key: 'operation', title: t('ssh.common.operation'), width: 140, align: 'center' },
 ])
 
-const rowActionsFor = (row: Record<string, unknown>): ActionMenuItem[] => {
+const rowActionsFor = (row: Record<string, unknown> | SSHHostInfo): ActionMenuItem[] => {
   const owner = isOwner(row)
   return [
-    { key: 'connect', label: t('ssh.common.connect'), icon: 'HOutline:GlobeAltIcon' },
-    { key: 'test', label: t('ssh.common.test'), icon: 'HOutline:SignalIcon' },
     { key: 'edit', label: t('ssh.common.edit'), icon: 'HOutline:PencilSquareIcon', hidden: !owner },
     { key: 'share', label: t('ssh.common.share'), icon: 'HOutline:ShareIcon', hidden: !owner },
     { key: 'delete', label: t('ssh.common.delete'), icon: 'HOutline:TrashIcon', danger: true, hidden: !owner },
@@ -252,9 +237,7 @@ const findRow = (id: string) => list.value.find((x) => x.id === id)
 const onRowAction = (key: string, row: Record<string, unknown>) => {
   const record = findRow(String(row.id))
   if (!record) return
-  if (key === 'connect') connectSsh(record)
-  else if (key === 'test') testConnect(record)
-  else if (key === 'edit') createRef.value?.showDialog(record)
+  if (key === 'edit') createRef.value?.showDialog(record)
   else if (key === 'share') openShareDialog(record)
   else if (key === 'delete') confirmDelete(record)
 }
@@ -285,7 +268,6 @@ const resetFilter = () => {
   getList()
 }
 
-// —— 移动端选择 ——
 const isAllSelected = computed(() => list.value.length > 0 && list.value.every((r) => selectedIdSet.value.has(r.id)))
 const toggleSelect = (id: string) => {
   selectedIds.value = selectedIdSet.value.has(id)
@@ -302,16 +284,6 @@ const connectSsh = (row: SSHHostInfo) => {
   router.push({ path: '/openssh/terminal', query: { id: row.id } })
 }
 
-const testConnect = async (row: SSHHostInfo) => {
-  const { data } = await testSshHost({ id: row.id })
-  if (data?.status === SSHHostStatus.SSH_HOST_STATUS_ONLINE) {
-    feedback.success(t('ssh.common.connectionSuccess', { message: data.message || t('ssh.common.online') }))
-  } else {
-    feedback.warning(t('ssh.common.connectionFailedWithMessage', { message: data?.message || t('ssh.common.offline') }))
-  }
-  getList()
-}
-
 const confirmDelete = (row: SSHHostInfo) => {
   Dialog.confirm({
     title: t('ssh.common.confirmDeleteTitle'),
@@ -325,23 +297,6 @@ const confirmDelete = (row: SSHHostInfo) => {
       getList()
     },
   })
-}
-
-const batchTest = async () => {
-  if (!selectedIds.value.length) return
-  batchTesting.value = true
-  try {
-    const { data } = await batchTestSshHosts({ ids: selectedIds.value })
-    if (data?.results) {
-      for (const result of data.results) {
-        const row = list.value.find((item) => item.id === result.id)
-        if (row) row.status = result.status
-      }
-    }
-    feedback.success(t('ssh.common.batchTestDone'))
-  } finally {
-    batchTesting.value = false
-  }
 }
 
 const batchDelete = () => {
@@ -365,7 +320,6 @@ const refresh = (type: 'create' | 'update') => {
   getList()
 }
 
-// —— 分享 ——
 const shareDialogOpen = ref(false)
 const shareLoading = ref(false)
 const shareHostId = ref('')
@@ -401,7 +355,6 @@ onMounted(() => {
   gap: 12px;
 }
 
-/* 批量条 */
 .ssh-page__batch {
   display: flex;
   align-items: center;
@@ -450,7 +403,13 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* 移动卡片 */
+.ssh-ops {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 .ssh-cards {
   display: flex;
   flex-direction: column;

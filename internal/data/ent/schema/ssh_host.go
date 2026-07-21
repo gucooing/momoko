@@ -24,7 +24,6 @@ func (SSHHost) Fields() []ent.Field {
 		field.String("fingerprint").Optional().Comment("SSH主机指纹"),
 		field.String("remark").Optional().Comment("备注"),
 		field.String("tags").Optional().Comment("标签"),
-		field.Enum("status").Values("unknown", "online", "offline").Default("unknown").Comment("连接状态"),
 	}
 }
 

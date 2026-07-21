@@ -3,7 +3,7 @@ package biz
 import (
 	"context"
 	"momoko/pkg/utils"
-	"sync"
+	"strings"
 
 	"golang.org/x/net/websocket"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,8 +16,6 @@ import (
 
 const OpenSSHWSPath = "/api/v1/openssh/ws"
 
-const batchTestSSHHostLimit = 5
-
 type OpenSSHRepo interface {
 	GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, keywords, host *string) ([]*gen.SSHHost, int64, error)
 	GetSSHHostByUserID(ctx context.Context, userID, hostID string) (*gen.SSHHost, error)
@@ -26,7 +24,6 @@ type OpenSSHRepo interface {
 	UpdateSSHHost(ctx context.Context, req *v1.UpdateSSHHostRequest, ownerID string) (*gen.SSHHost, error)
 	DeleteSSHHost(ctx context.Context, ownerID, hostID string) error
 	ShareSSHHost(ctx context.Context, ownerID, hostID string, userIDs []string) (*gen.SSHHost, error)
-	UpdateSSHHostStatus(ctx context.Context, userID, hostID string, status v1.SSHHostStatus, fingerprint string) error
 	GetSSHHostConfigByUserID(ctx context.Context, userID, hostID string) (sshcore.Config, error)
 }
 
@@ -103,86 +100,100 @@ func (o *OpenSSHUsecase) ShareSSHHost(ctx context.Context, req *v1.ShareSSHHostR
 	return o.toSSHHostInfo(item, userID), nil
 }
 
-func (o *OpenSSHUsecase) TestSSHHost(ctx context.Context, userID, hostID string) (*v1.TestSSHHostResponse, error) {
-	result, err := o.testSSHHost(ctx, userID, hostID)
+// TestSSHHost 用请求体草稿测连通性，不写库。
+// - 有 id：以库中配置为底，请求体字段覆盖；空凭据沿用库中凭据
+// - 无 id：纯草稿，必须带齐 host/username/凭据
+func (o *OpenSSHUsecase) TestSSHHost(ctx context.Context, userID string, req *v1.TestSSHHostRequest) (*v1.TestSSHHostResponse, error) {
+	cfg, err := o.resolveTestConfig(ctx, userID, req)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TestSSHHostResponse{
-		Status:      result.Status,
-		Message:     result.Message,
-		Fingerprint: result.Fingerprint,
-	}, nil
-}
-
-func (o *OpenSSHUsecase) BatchTestSSHHosts(ctx context.Context, userID string, ids []string) (*v1.BatchTestSSHHostsResponse, error) {
-	ids = utils.UniqueNonEmpty(ids, "")
-	results := make([]*v1.SSHHostTestResult, len(ids))
-
-	jobs := make(chan int)
-	var wg sync.WaitGroup
-	workerCount := min(len(ids), batchTestSSHHostLimit)
-	for range workerCount {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := range jobs {
-				result, err := o.testSSHHost(ctx, userID, ids[i])
-				if err != nil {
-					results[i] = &v1.SSHHostTestResult{
-						Id:      ids[i],
-						Status:  v1.SSHHostStatus_SSH_HOST_STATUS_OFFLINE,
-						Message: err.Error(),
-					}
-					continue
-				}
-				results[i] = result
-			}
-		}()
-	}
-
-	for i := range ids {
-		select {
-		case <-ctx.Done():
-			close(jobs)
-			wg.Wait()
-			return nil, ctx.Err()
-		case jobs <- i:
-		}
-	}
-	close(jobs)
-	wg.Wait()
-
-	return &v1.BatchTestSSHHostsResponse{Results: results}, nil
-}
-
-func (o *OpenSSHUsecase) testSSHHost(ctx context.Context, userID, hostID string) (*v1.SSHHostTestResult, error) {
-	cfg, err := o.repo.GetSSHHostConfigByUserID(ctx, userID, hostID)
-	if err != nil {
-		return nil, o.wrapSSHRepoErr(err)
-	}
 	result, err := sshcore.Test(ctx, cfg)
 	if err != nil {
-		status := v1.SSHHostStatus_SSH_HOST_STATUS_OFFLINE
-		if updateErr := o.repo.UpdateSSHHostStatus(ctx, userID, hostID, status, ""); updateErr != nil {
-			return nil, o.wrapSSHRepoErr(updateErr)
-		}
-		return &v1.SSHHostTestResult{
-			Id:      hostID,
-			Status:  v1.SSHHostStatus_SSH_HOST_STATUS_OFFLINE,
+		return &v1.TestSSHHostResponse{
+			Ok:      false,
 			Message: err.Error(),
 		}, nil
 	}
-	status := v1.SSHHostStatus_SSH_HOST_STATUS_ONLINE
-	if err := o.repo.UpdateSSHHostStatus(ctx, userID, hostID, status, result.Fingerprint); err != nil {
-		return nil, o.wrapSSHRepoErr(err)
-	}
-	return &v1.SSHHostTestResult{
-		Id:          hostID,
-		Status:      status,
+	return &v1.TestSSHHostResponse{
+		Ok:          true,
 		Message:     "ok",
 		Fingerprint: result.Fingerprint,
 	}, nil
+}
+
+func (o *OpenSSHUsecase) resolveTestConfig(ctx context.Context, userID string, req *v1.TestSSHHostRequest) (sshcore.Config, error) {
+	var base sshcore.Config
+	// 请求是否自带可用明文凭据（编辑页重填密码/密钥时优先走明文，不再依赖库中密文）
+	hasInlineCred := (req.Password != nil && strings.TrimSpace(*req.Password) != "") ||
+		(req.PrivateKey != nil && strings.TrimSpace(*req.PrivateKey) != "")
+
+	if req.Id != nil && strings.TrimSpace(*req.Id) != "" {
+		if hasInlineCred {
+			// 有明文凭据时，库中只取 host/user/auth 等元数据意义不大；直接跳过解密，避免旧密文坏钥拖垮测试。
+			// 仍允许下面用请求体字段组装完整草稿。
+		} else {
+			cfg, err := o.repo.GetSSHHostConfigByUserID(ctx, userID, strings.TrimSpace(*req.Id))
+			if err != nil {
+				// 编辑页空凭据 + 库中密文无法解密：给可操作提示，而不是笼统 500 cipher 错误
+				if strings.Contains(err.Error(), "message authentication failed") ||
+					strings.Contains(err.Error(), "decrypt ssh") {
+					return sshcore.Config{}, ErrSSHStoredCredentialBroken
+				}
+				return sshcore.Config{}, o.wrapSSHRepoErr(err)
+			}
+			base = cfg
+		}
+	}
+
+	if req.Host != nil {
+		base.Host = strings.TrimSpace(*req.Host)
+	}
+	if req.Port != nil {
+		base.Port = int(*req.Port)
+	}
+	if req.Username != nil {
+		base.Username = strings.TrimSpace(*req.Username)
+	}
+	if req.Fingerprint != nil {
+		base.Fingerprint = strings.TrimSpace(*req.Fingerprint)
+	}
+	if req.AuthType != nil {
+		switch *req.AuthType {
+		case v1.SSHAuthType_SSH_AUTH_TYPE_PASSWORD:
+			base.AuthType = sshcore.AuthPassword
+		case v1.SSHAuthType_SSH_AUTH_TYPE_KEY:
+			base.AuthType = sshcore.AuthKey
+		default:
+			return sshcore.Config{}, ErrSSHAuthInvalid
+		}
+	}
+	// 凭据：仅当请求显式传了非空值才覆盖；编辑弹窗空凭据沿用 base（已存）
+	if req.Password != nil && strings.TrimSpace(*req.Password) != "" {
+		base.AuthType = sshcore.AuthPassword
+		base.Credential = *req.Password
+	}
+	if req.PrivateKey != nil && strings.TrimSpace(*req.PrivateKey) != "" {
+		base.AuthType = sshcore.AuthKey
+		base.Credential = *req.PrivateKey
+	}
+	if req.Passphrase != nil {
+		base.Passphrase = *req.Passphrase
+	}
+
+	if base.Port == 0 {
+		base.Port = 22
+	}
+	if base.Host == "" || base.Username == "" {
+		return sshcore.Config{}, ErrSSHHostInvalid
+	}
+	if base.AuthType == "" {
+		return sshcore.Config{}, ErrSSHAuthInvalid
+	}
+	if strings.TrimSpace(base.Credential) == "" {
+		return sshcore.Config{}, ErrSSHCredentialInvalid
+	}
+	return base, nil
 }
 
 func (o *OpenSSHUsecase) StartSSHWebSocket(ctx context.Context, conn *websocket.Conn, userID, hostID string) error {
@@ -231,17 +242,6 @@ func toV1SSHAuthType(authType sshhost.AuthType) v1.SSHAuthType {
 	}
 }
 
-func toV1SSHHostStatus(status sshhost.Status) v1.SSHHostStatus {
-	switch status {
-	case sshhost.StatusOnline:
-		return v1.SSHHostStatus_SSH_HOST_STATUS_ONLINE
-	case sshhost.StatusOffline:
-		return v1.SSHHostStatus_SSH_HOST_STATUS_OFFLINE
-	default:
-		return v1.SSHHostStatus_SSH_HOST_STATUS_UNKNOWN
-	}
-}
-
 func (o *OpenSSHUsecase) toSSHHostInfo(item *gen.SSHHost, userID string) *v1.SSHHostInfo {
 	info := &v1.SSHHostInfo{
 		Id:          item.ID,
@@ -253,7 +253,6 @@ func (o *OpenSSHUsecase) toSSHHostInfo(item *gen.SSHHost, userID string) *v1.SSH
 		Fingerprint: item.Fingerprint,
 		Remark:      item.Remark,
 		Tags:        item.Tags,
-		Status:      toV1SSHHostStatus(item.Status),
 		WsPath:      OpenSSHWSPath,
 		CreateTime:  timestamppb.New(item.CreateTime),
 		UpdateTime:  timestamppb.New(item.UpdateTime),

@@ -39,6 +39,7 @@ var (
 	ErrSSHHostInvalid             = response.BadRequest(500, "SSH服务端参数无效")
 	ErrSSHAuthInvalid             = response.BadRequest(500, "SSH认证方式无效")
 	ErrSSHCredentialInvalid       = response.BadRequest(500, "SSH凭据不能为空")
+	ErrSSHStoredCredentialBroken  = response.BadRequest(400, "已存凭据无法解密（密钥变更或数据损坏）。请在编辑页重新填写密码/私钥后再测试并保存。")
 	ErrSSHHostAccess              = response.BadRequest(500, "您没有该SSH服务端权限")
 	ErrAPIKeyNameEmpty            = response.BadRequest(500, "API Key名称不能为空")
 	ErrAPIKeyNotFound             = response.BadRequest(500, "API Key不存在")
