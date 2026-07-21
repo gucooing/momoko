@@ -133,12 +133,12 @@ const chartOverview = computed(() => {
 const displayName = computed(() => userStore.userInfo?.name || userStore.userInfo?.username || '')
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 6) return '凌晨好'
-  if (h < 9) return '早上好'
-  if (h < 12) return '上午好'
-  if (h < 14) return '中午好'
-  if (h < 18) return '下午好'
-  return '晚上好'
+  if (h < 6) return t('dashboard.home.greeting.lateNight')
+  if (h < 9) return t('dashboard.home.greeting.morning')
+  if (h < 12) return t('dashboard.home.greeting.forenoon')
+  if (h < 14) return t('dashboard.home.greeting.noon')
+  if (h < 18) return t('dashboard.home.greeting.afternoon')
+  return t('dashboard.home.greeting.evening')
 })
 
 const fmtPercent = (v?: number) => `${(v ?? 0).toFixed(1)}%`

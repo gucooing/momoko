@@ -1,5 +1,5 @@
 <template>
-  <AppPanel title="实时监控" title-icon="HOutline:ChartBarSquareIcon">
+  <AppPanel :title="t('dashboard.home.realtimeMonitor')" title-icon="HOutline:ChartBarSquareIcon">
     <template #actions>
       <div class="rt-interval" role="group">
         <button

@@ -3,7 +3,7 @@
   <AppPanel :title="t('dashboard.home.runningInstances')" title-icon="HOutline:ServerStackIcon">
     <template #actions>
       <button type="button" class="ri__all" @click="router.push('/instance/list')">
-        查看全部
+        {{ t('dashboard.home.viewAll') }}
         <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" />
       </button>
     </template>
@@ -16,7 +16,7 @@
       v-else-if="!runningInstances.length"
       icon="HOutline:ServerStackIcon"
       :title="t('dashboard.home.noRunningInstances')"
-      description="前往应用列表创建并启动一个实例"
+      :description="t('dashboard.home.noRunningInstancesDesc')"
     >
       <template #action>
         <UButton color="primary" variant="soft" size="sm" @click="router.push('/instance/list')">
@@ -34,7 +34,7 @@
       >
         <template #title>{{ instance.name }}</template>
         <template #status>
-          <StatusPill variant="success" label="运行中" />
+          <StatusPill variant="success" :label="t('dashboard.home.running')" />
         </template>
         <template #meta>
           <span class="ri__type">{{ instance.type || '—' }}</span>

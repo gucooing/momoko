@@ -128,7 +128,7 @@
             </div>
             <div class="pf-card__foot" @click.stop>
               <span class="pf-card__meta">
-                {{ Number(row.activeConnections || 0) }} 连接 · ↓{{ formatBytes(row.bytesIn) }} ↑{{ formatBytes(row.bytesOut) }}
+                {{ Number(row.activeConnections || 0) }} {{ t('common.connectionsUnit') }} · ↓{{ formatBytes(row.bytesIn) }} ↑{{ formatBytes(row.bytesOut) }}
               </span>
               <AppSwitch :model-value="row.isEnable" @update:model-value="(v) => toggleEnable(row as unknown as Record<string, unknown>, v)" />
               <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row as unknown as Record<string, unknown>)" />

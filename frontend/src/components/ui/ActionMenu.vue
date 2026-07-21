@@ -43,12 +43,13 @@ export interface ActionMenuItem {
   hidden?: boolean
 }
 
-const props = withDefaults(defineProps<{ items: ActionMenuItem[]; label?: string }>(), {
-  label: '操作',
-})
+const props = defineProps<{ items: ActionMenuItem[]; label?: string }>()
 const emit = defineEmits<{ select: [key: string] }>()
 
 const menuStore = useMenuStore()
+const { t } = useI18n()
+// 默认 aria 走 common.operation，避免 en-US 下仍显示硬编码「操作」
+const label = computed(() => props.label || t('common.operation'))
 const visibleItems = computed(() => props.items.filter((i) => !i.hidden))
 const isLucide = (icon: string) => icon.startsWith('i-')
 
