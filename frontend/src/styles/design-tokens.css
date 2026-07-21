@@ -18,8 +18,9 @@
   --el-text-color-primary: #1b2333; /* 近板岩黑 */
   --el-text-color-regular: #434c60;
   --el-text-color-secondary: #6b7384;
-  --el-text-color-placeholder: #97a0b0;
-  --el-text-color-disabled: #b8bfca;
+  /* placeholder 略加深，贴近 secondary，改善空态/辅助文案对比度 */
+  --el-text-color-placeholder: #7a8494;
+  --el-text-color-disabled: #a8b0bd;
 
   --el-border-color: #e2e7ee; /* 强 */
   --el-border-color-light: #e9edf3;
@@ -80,8 +81,8 @@ html.dark {
   --el-text-color-primary: #e8ebf1;
   --el-text-color-regular: #bcc3d0;
   --el-text-color-secondary: #8b93a3;
-  --el-text-color-placeholder: #626b7b;
-  --el-text-color-disabled: #4a5261;
+  --el-text-color-placeholder: #7a8496;
+  --el-text-color-disabled: #5a6374;
 
   --el-border-color: #2b323d;
   --el-border-color-light: #262c36;
@@ -210,6 +211,39 @@ html.dark .app-select {
   font-size: 0.75rem;
   line-height: 1.3;
   color: var(--el-color-danger, #ef4444);
+}
+
+/* ---------- 键盘焦点环 (a11y · :focus-visible) ----------
+   自建按钮/可点控件统一主色 3px 环；与 .app-input:focus 同配方。
+   鼠标点击不显示环（:focus-visible 语义）。 */
+:root {
+  --app-focus-ring: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent);
+}
+button:focus-visible,
+[role='button']:focus-visible,
+a:focus-visible,
+.app-icon-btn:focus-visible,
+.action-menu__trigger:focus-visible,
+.action-menu__item:focus-visible,
+.seg__btn:focus-visible,
+.term-shell__act:focus-visible,
+.term-shell__ctrl:focus-visible,
+.term-shell__key:focus-visible,
+.fb-ico:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring);
+}
+
+/* 触控命中盒：粗指针设备上图标按钮至少 40px（视觉可仍紧凑，靠 min） */
+@media (pointer: coarse) {
+  .app-icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .action-menu__trigger {
+    min-width: 40px;
+    min-height: 40px;
+  }
 }
 
 /* ---------- 细滚动条 (01 §7 通透) ---------- */

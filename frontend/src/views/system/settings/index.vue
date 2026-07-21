@@ -793,7 +793,8 @@ onMounted(() => {
   height: 420px;
   border: 1px solid var(--el-border-color);
   border-radius: var(--app-radius-sm);
-  background: #fff;
+  /* 邮件 HTML 本身多为浅底；外壳跟面板色，避免暗色下整块死白闪 */
+  background: var(--el-bg-color);
 }
 
 @media (width <= 768px) {

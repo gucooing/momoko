@@ -71,8 +71,8 @@ defineProps<{ title?: string; description?: string }>()
     overflow: hidden;
   }
   .page-header__actions :deep(button) {
-    min-height: 28px;
-    height: 28px;
+    min-height: 36px;
+    height: 36px;
   }
 }
 </style>

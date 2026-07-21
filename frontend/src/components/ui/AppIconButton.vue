@@ -53,11 +53,15 @@ const menuStore = useMenuStore()
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .app-icon-btn:hover {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
+}
+.app-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .app-icon-btn--active {
   color: var(--el-color-primary);

@@ -71,11 +71,21 @@ const onSelect = (item: ActionMenuItem, close: () => void) => {
   background: transparent;
   color: var(--el-text-color-secondary);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .action-menu__trigger:hover {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
+}
+.action-menu__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
+}
+@media (pointer: coarse) {
+  .action-menu__trigger {
+    width: 40px;
+    height: 40px;
+  }
 }
 .action-menu__trigger-ico {
   width: 18px;
@@ -97,7 +107,11 @@ const onSelect = (item: ActionMenuItem, close: () => void) => {
   font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.action-menu__item:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .action-menu__ico,
 .action-menu__item :deep(svg) {
