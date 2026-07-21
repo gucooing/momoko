@@ -112,15 +112,25 @@ const place = () => {
   if (!el) return
   const r = el.getBoundingClientRect()
   const vh = window.innerHeight
-  const below = vh - r.bottom
-  const openUp = below < 240 && r.top > below
+  // 面板最高 260；预留上下边距，避免贴边裁切
+  const maxPanel = 260
+  const below = vh - r.bottom - 8
+  const above = r.top - 8
+  const openUp = below < 160 && above > below
+  const available = Math.max(120, openUp ? above : below)
+  const panelMax = Math.min(maxPanel, available)
+  // 搜索行约 36px；选项区吃掉剩余高度，否则 maxHeight 只在 panel 上、opts 无法滚动
+  const searchH = props.searchable ? 36 : 0
+  const optsMax = Math.max(80, panelMax - searchH - 8)
   const style: Record<string, string> = {
     position: 'fixed',
     left: `${r.left}px`,
     zIndex: '2300',
     minWidth: `${r.width}px`,
     width: props.fit ? 'auto' : `${r.width}px`,
-    maxHeight: '260px',
+    maxHeight: `${panelMax}px`,
+    // 传给样式：选项区上限
+    ['--app-sel-opts-max' as string]: `${optsMax}px`,
   }
   if (openUp) style.bottom = `${vh - r.top + 4}px`
   else style.top = `${r.bottom + 4}px`
@@ -132,7 +142,17 @@ const onOutside = (e: MouseEvent) => {
   if (rootRef.value?.contains(t) || panelRef.value?.contains(t)) return
   close()
 }
-const onScrollResize = () => close()
+// 面板内滚轮/滚动不关；外层容器滚动或窗口缩放时关闭。
+// 用 capture scroll 时，panel 内 .app-sel__opts 的 scroll 也会冒泡到 window，必须过滤。
+const onScrollResize = (e: Event) => {
+  if (e.type === 'resize') {
+    close()
+    return
+  }
+  const t = e.target
+  if (t instanceof Node && panelRef.value?.contains(t)) return
+  close()
+}
 
 const openPanel = () => {
   if (props.disabled) return
@@ -141,7 +161,9 @@ const openPanel = () => {
   open.value = true
   highlight.value = props.options.findIndex((o) => o.value === props.modelValue)
   nextTick(() => {
+    place() // 打开后再算一次（search 行渲染后高度更准）
     document.addEventListener('mousedown', onOutside, true)
+    // 不在 capture 上拦 wheel；只监听外层 scroll/resize
     window.addEventListener('scroll', onScrollResize, true)
     window.addEventListener('resize', onScrollResize)
     if (props.searchable) searchRef.value?.focus()
@@ -336,7 +358,10 @@ onBeforeUnmount(close)
   flex-direction: column;
   gap: 1px;
   min-height: 0;
+  /* 关键高度上限，否则 panel maxHeight 不会约束内部 flex 子项，导致列表无法滚动 */
+  max-height: var(--app-sel-opts-max, 220px);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .app-sel__opt {
   display: flex;
