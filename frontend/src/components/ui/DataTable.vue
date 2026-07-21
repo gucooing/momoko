@@ -384,6 +384,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   min-width: 0;
 }
 .data-table__tree-caret {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -395,10 +396,19 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   border-radius: var(--app-radius-xs);
   color: var(--el-text-color-secondary);
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.data-table__tree-caret::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
 }
 .data-table__tree-caret:hover {
   background: var(--el-fill-color);
+}
+.data-table__tree-caret:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .data-table__tree-caret :deep(svg) {
   width: 14px;
@@ -412,6 +422,9 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 }
 .data-table__tree-caret--leaf:hover {
   background: transparent;
+}
+.data-table__tree-caret--leaf::before {
+  display: none;
 }
 .data-table__tree-label {
   overflow: hidden;
@@ -432,6 +445,21 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   accent-color: var(--el-color-primary);
   cursor: pointer;
   vertical-align: middle;
+}
+.data-table__checkbox:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
+  border-radius: 3px;
+}
+/* 列已 44px 宽；粗指针下放大视觉勾选，便于点按 */
+@media (pointer: coarse) {
+  .data-table__checkbox {
+    width: 18px;
+    height: 18px;
+  }
+  .data-table__check {
+    width: 48px;
+  }
 }
 .data-table__empty-row td {
   padding: 0;

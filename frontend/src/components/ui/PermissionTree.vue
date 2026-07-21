@@ -208,14 +208,19 @@ const visibleRows = computed(() => {
 .perm-tree__link {
   border: none;
   background: transparent;
-  padding: 0;
+  padding: 4px 2px;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--el-color-primary);
   cursor: pointer;
+  border-radius: var(--app-radius-xs);
 }
 .perm-tree__link:hover {
   text-decoration: underline;
+}
+.perm-tree__link:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .perm-tree__sep {
   width: 1px;
@@ -235,6 +240,7 @@ const visibleRows = computed(() => {
   min-height: 30px;
 }
 .perm-tree__caret {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -246,10 +252,20 @@ const visibleRows = computed(() => {
   border-radius: var(--app-radius-xs);
   color: var(--el-text-color-secondary);
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+/* 扩大可点区，视觉仍保持 18px 图标 */
+.perm-tree__caret::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 .perm-tree__caret:hover {
   background: var(--el-fill-color);
+}
+.perm-tree__caret:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .perm-tree__caret :deep(svg) {
   width: 14px;
@@ -264,7 +280,11 @@ const visibleRows = computed(() => {
 .perm-tree__caret--leaf:hover {
   background: transparent;
 }
+.perm-tree__caret--leaf::before {
+  display: none;
+}
 .perm-tree__box {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -274,9 +294,14 @@ const visibleRows = computed(() => {
   border: 1.5px solid var(--el-border-color);
   border-radius: var(--app-radius-xs);
   background: var(--el-bg-color);
-  color: #fff;
+  color: var(--ui-text-inverted, #fff);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.perm-tree__box::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
 }
 .perm-tree__box :deep(svg) {
   width: 12px;
@@ -289,6 +314,15 @@ const visibleRows = computed(() => {
 }
 .perm-tree__box.is-indeterminate {
   border-color: var(--el-color-primary);
+}
+.perm-tree__box:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
+}
+@media (pointer: coarse) {
+  .perm-tree__row {
+    min-height: 40px;
+  }
 }
 .perm-tree__dash {
   width: 9px;

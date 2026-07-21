@@ -221,6 +221,8 @@ html.dark .app-select {
 }
 button:focus-visible,
 [role='button']:focus-visible,
+[role='checkbox']:focus-visible,
+[role='tab']:focus-visible,
 a:focus-visible,
 .app-icon-btn:focus-visible,
 .action-menu__trigger:focus-visible,

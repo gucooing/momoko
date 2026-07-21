@@ -931,12 +931,23 @@ onUnmounted(() => store.dispose())
   white-space: nowrap;
   transition:
     background 0.15s,
-    color 0.15s;
+    color 0.15s,
+    box-shadow 0.15s;
   &.is-active {
     background: var(--el-bg-color-overlay);
     color: var(--el-color-primary);
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
   }
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
+  }
+}
+
+/* 输入外壳 focus：textarea 本身 outline:none，环画在 composer-bar 上 */
+.composer-bar:focus-within:not(.is-dragging) {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 18%, transparent);
 }
 
 .prompt-input {
@@ -1438,6 +1449,8 @@ onUnmounted(() => store.dispose())
       width: 100%;
       .mode-seg__btn {
         flex: 1;
+        min-height: 36px;
+        height: 36px;
       }
     }
     .prompt-input {

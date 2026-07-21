@@ -96,6 +96,7 @@ onMounted(loadUsers)
   border-radius: 999px;
 }
 .user-picker__chip-x {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -107,11 +108,21 @@ onMounted(loadUsers)
   cursor: pointer;
   border-radius: 999px;
   opacity: 0.7;
-  transition: opacity 0.15s, background 0.15s;
+  transition: opacity 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.user-picker__chip-x::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
 }
 .user-picker__chip-x:hover {
   opacity: 1;
   background: color-mix(in srgb, var(--el-color-primary) 20%, transparent);
+}
+.user-picker__chip-x:focus-visible {
+  outline: none;
+  opacity: 1;
+  box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .user-picker__chip-x :deep(svg) {
   width: 12px;
