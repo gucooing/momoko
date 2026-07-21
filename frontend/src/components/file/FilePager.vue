@@ -6,7 +6,7 @@
     <div ref="sizeRef" class="fp-size">
       <button type="button" class="fp-size-trigger" @click="sizeOpen = !sizeOpen">
         <span>{{ t('fileManager.perPage', { size: pageSize }) }}</span>
-        <el-icon class="fp-caret" :class="{ 'is-open': sizeOpen }"><IconChevronDown /></el-icon>
+        <IconChevronDown class="fp-caret" :class="{ 'is-open': sizeOpen }" />
       </button>
       <transition name="fp-fade">
         <ul v-if="sizeOpen" class="fp-size-menu">
@@ -26,7 +26,7 @@
     <!-- 页码 -->
     <nav class="fp-pages">
       <button type="button" class="fp-page-btn" :disabled="page <= 1" @click="goto(page - 1)">
-        <el-icon><IconChevronLeft /></el-icon>
+        <IconChevronLeft />
       </button>
       <template v-for="(item, index) in pageItems" :key="`${item}-${index}`">
         <span v-if="item === '...'" class="fp-ellipsis">…</span>
@@ -46,7 +46,7 @@
         :disabled="page >= pageCount"
         @click="goto(page + 1)"
       >
-        <el-icon><IconChevronRight /></el-icon>
+        <IconChevronRight />
       </button>
     </nav>
 
@@ -176,8 +176,13 @@ const applyJump = () => {
   border-color: var(--fm-border-strong);
 }
 .fp-caret {
-  font-size: 14px;
+  width: 14px;
+  height: 14px;
   transition: transform 0.15s;
+}
+.fp-page-btn svg {
+  width: 16px;
+  height: 16px;
 }
 .fp-caret.is-open {
   transform: rotate(180deg);

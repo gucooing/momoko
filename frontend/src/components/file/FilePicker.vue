@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog
+  <FileDialog
     v-model="visible"
     :title="title || t('fileManager.selectFile')"
     :width="pickerWidth"
@@ -37,18 +37,22 @@
           }}:
         </span>
         <div v-if="multiple" class="fpk-selected-tags">
-          <el-tag
-            v-for="item in selectedList"
-            :key="itemKey(item)"
-            class="fpk-selected-tag"
-            closable
-            @close="removeSelected(item)"
-          >
-            <span v-if="sourceLabel(item.sourceId)" class="fpk-selected-source">{{
-              sourceLabel(item.sourceId)
-            }}</span
-            >{{ item.path }}
-          </el-tag>
+          <span v-for="item in selectedList" :key="itemKey(item)" class="fpk-selected-tag">
+            <span class="fpk-tag-text">
+              <span v-if="sourceLabel(item.sourceId)" class="fpk-selected-source">{{
+                sourceLabel(item.sourceId)
+              }}</span
+              >{{ item.path }}
+            </span>
+            <button
+              type="button"
+              class="fpk-tag-close"
+              :aria-label="t('system.common.cancel')"
+              @click="removeSelected(item)"
+            >
+              <IconClose />
+            </button>
+          </span>
           <span v-if="!selectedList.length" class="fpk-selected-empty">—</span>
         </div>
         <span v-else class="fpk-selected-path" :title="single?.path">
@@ -64,21 +68,27 @@
     </div>
 
     <template #footer>
-      <el-button @click="visible = false">
+      <button type="button" class="fm-btn" @click="visible = false">
         {{ t('system.common.cancel') }}
-      </el-button>
-      <el-button type="primary" :disabled="!canConfirm" @click="confirm">
+      </button>
+      <button
+        type="button"
+        class="fm-btn fm-btn--primary"
+        :disabled="!canConfirm"
+        @click="confirm"
+      >
         {{ t('system.common.confirm') }}
-      </el-button>
+      </button>
     </template>
-  </BaseDialog>
+  </FileDialog>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/stores/theme'
-import BaseDialog from '@/components/dialog/BaseDialog.vue'
+import FileDialog from './FileDialog.vue'
 import FileTree from './FileTree.vue'
+import { IconClose } from './icons'
 import { createFileClient } from './fileClient'
 import { listFileSourcesRequest } from '@/api/fileSource'
 import type { FileSourceInfo } from '@/types/v1/file'
@@ -284,7 +294,43 @@ watch(visible, (open) => {
   overflow: auto;
 }
 .fpk-selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   max-width: 100%;
+  padding: 0.15rem 0.3rem 0.15rem 0.5rem;
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-sm);
+  background: var(--fm-subtle);
+  color: var(--fm-text);
+  line-height: 1.4;
+}
+.fpk-tag-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fpk-tag-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: var(--fm-radius-sm);
+  background: transparent;
+  color: var(--fm-text-3);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.fpk-tag-close:hover {
+  color: var(--fm-danger);
+}
+.fpk-tag-close svg {
+  width: 13px;
+  height: 13px;
 }
 .fpk-selected-source {
   color: var(--fm-text-3);
