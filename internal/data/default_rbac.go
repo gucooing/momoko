@@ -54,8 +54,6 @@ var (
 	builtinDefaultMenus         = []defaultMenu{
 		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "主页", "HOutline:HomeIcon", nil, 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_1_1", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", new("menu_1"), 0, "", entmenu.StatusActive),
-		newDefaultMenu("menu_1_2", entmenu.TypeMenu, "/dashboard/analysis", "分析页", "HOutline:ChartBarIcon", new("menu_1"), 1, "", entmenu.StatusInactive),
-		newDefaultMenu("menu_1_3", entmenu.TypeMenu, "/dashboard/monitor", "监控页", "HOutline:EyeIcon", new("menu_1"), 2, "", entmenu.StatusInactive),
 
 		// 实例
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用", "HOutline:ServerStackIcon", nil, 1, "", entmenu.StatusActive),
@@ -115,17 +113,6 @@ var (
 		newDefaultMenu("menu_12_6", entmenu.TypeMenu, "/system/task", "任务管理", "HOutline:QueueListIcon", new("menu_12"), 5, constant.TaskManage, entmenu.StatusActive),
 		newDefaultMenu("menu_12_7", entmenu.TypeMenu, "/system/oidc", "OIDC", "HOutline:KeyIcon", new("menu_12"), 6, constant.OIDCView, entmenu.StatusActive),
 		newDefaultMenu("menu_12_7_button_1", entmenu.TypeButton, "", "编辑 OIDC", "", new("menu_12_7"), 0, constant.OIDCEdit, entmenu.StatusActive),
-
-		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "扩展组件", "HOutline:PuzzlePieceIcon", nil, 11, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/extended/button", "按钮", "HOutline:HandRaisedIcon", new("menu_13"), 0, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/extended/dialog", "对话框", "HOutline:WindowIcon", new("menu_13"), 1, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/extended/iconSelector", "图标选择器", "HOutline:SwatchIcon", new("menu_13"), 2, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_4", entmenu.TypeMenu, "/extended/textEllipsis", "文本省略器", "HOutline:EllipsisHorizontalIcon", new("menu_13"), 3, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_5", entmenu.TypeMenu, "/extended/hoverAnimation", "Hover动画组件", "HOutline:CursorArrowRaysIcon", new("menu_13"), 4, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_6", entmenu.TypeMenu, "/extended/transitionAnimation", "Transition内置动画", "HOutline:SparklesIcon", new("menu_13"), 5, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_7", entmenu.TypeMenu, "/demo/vxeTable", "VXE Table", "HOutline:TableCellsIcon", new("menu_13"), 6, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_8", entmenu.TypeMenu, "/exception/403", "403页面", "HOutline:NoSymbolIcon", new("menu_15"), 7, constant.Dev, entmenu.StatusInactive),
-		newDefaultMenu("menu_13_9", entmenu.TypeMenu, "/exception/404", "404页面", "HOutline:QuestionMarkCircleIcon", new("menu_15"), 8, constant.Dev, entmenu.StatusInactive),
 	}
 	builtinDefaultRoles = []defaultRole{
 		{
