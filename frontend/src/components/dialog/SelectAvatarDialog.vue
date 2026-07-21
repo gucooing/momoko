@@ -134,7 +134,6 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
 import type { UploadFile } from 'element-plus'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import { useI18n } from 'vue-i18n'
@@ -215,7 +214,7 @@ const uploadFile = (uploadFile: UploadFile) => {
   // 验证文件大小（2MB）
   const maxSize = 2 * 1024 * 1024
   if (file.size > maxSize) {
-    ElMessage.warning(t('avatar.imageSizeLimit'))
+    feedback.warning(t('avatar.imageSizeLimit'))
     return
   }
 

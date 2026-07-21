@@ -330,7 +330,7 @@ const openCreate = () => {
 }
 const submitCreate = async () => {
   const name = createForm.name.trim()
-  if (!name) { ElMessage.error(t('docker.network.enterName')); return }
+  if (!name) { feedback.error(t('docker.network.enterName')); return }
   createSubmitting.value = true
   try {
     const ipamConfig = createForm.subnet.trim() ? [{ subnet: createForm.subnet.trim(), gateway: createForm.gateway.trim(), ipRange: '', auxAddress: {} }] : []
@@ -343,7 +343,7 @@ const submitCreate = async () => {
         options: {}, labels: {},
       },
     })
-    ElMessage.success(t('docker.network.createSuccess'))
+    feedback.success(t('docker.network.createSuccess'))
     createVisible.value = false
     await getList()
   } catch (e) { showRequestError(e, t('docker.network.createFailed')) }
@@ -360,7 +360,7 @@ const handleDelete = (row: DockerNetworkInfo) => {
     onConfirm: async () => {
       try {
         await deleteDockerNetwork({ id: row.id })
-        ElMessage.success(t('docker.common.deletedName', { name: row.name }))
+        feedback.success(t('docker.common.deletedName', { name: row.name }))
         await getList()
       } catch (e) { showRequestError(e, t('docker.network.deleteFailed')) }
     },
@@ -390,7 +390,7 @@ const handleDisconnect = (network: DockerNetworkInfo, containerId: string) => {
     onConfirm: async () => {
       try {
         await disconnectDockerNetwork({ networkId: network.id, containerId, force: false })
-        ElMessage.success(t('docker.network.disconnectSuccess'))
+        feedback.success(t('docker.network.disconnectSuccess'))
         const { data } = await getDockerNetwork({ id: network.id })
         detail.value = data?.info || null
         await getList()
@@ -450,7 +450,7 @@ const submitEdit = async () => {
     } else {
       await updateDockerNetwork({ id: editId.value, labels: parseLabels(editLabelsText.value), force: false, options: undefined })
     }
-    ElMessage.success(editRecreate.value ? t('docker.network.recreateTaskCreated') : t('docker.network.updateSuccess'))
+    feedback.success(editRecreate.value ? t('docker.network.recreateTaskCreated') : t('docker.network.updateSuccess'))
     editVisible.value = false
     if (!editRecreate.value) await getList()
   } catch (e) { showRequestError(e, t('docker.network.updateFailed')) }

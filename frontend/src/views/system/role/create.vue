@@ -117,7 +117,7 @@ const confirm = async () => {
     } else {
       await createRole({ name, description, status, menuIds })
     }
-    ElMessage.success(roleId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
+    feedback.success(roleId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
     emits('refresh', roleId ? 'update' : 'create')
     close()
   } finally {

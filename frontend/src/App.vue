@@ -1,8 +1,10 @@
 <template>
   <UApp>
-    <el-config-provider :locale="elementLocale">
-      <RouterView />
-    </el-config-provider>
+    <FeedbackBridge>
+      <el-config-provider :locale="elementLocale">
+        <RouterView />
+      </el-config-provider>
+    </FeedbackBridge>
   </UApp>
 </template>
 

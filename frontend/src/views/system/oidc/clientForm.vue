@@ -106,7 +106,7 @@ const confirm = async () => {
     const { data } = form.value.id
       ? await updateOIDCClient({ id: form.value.id, ...payload })
       : await createOIDCClient(payload)
-    ElMessage.success(form.value.id ? '编辑成功' : '生成成功')
+    feedback.success(form.value.id ? '编辑成功' : '生成成功')
     emit('refresh')
     // 新建/刷新会带完整 secret（不含掩码 *），交父级弹配置展示
     if (data?.client?.clientSecret && !data.client.clientSecret.includes('*')) {

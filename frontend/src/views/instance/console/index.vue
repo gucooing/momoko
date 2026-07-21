@@ -203,7 +203,7 @@ const handleClear = async () => {
 const openFileManager = () => {
   const instanceId = getRouteInstanceId()
   if (!instanceId) {
-    ElMessage.warning(t('instance.missingInstanceIdFile'))
+    feedback.warning(t('instance.missingInstanceIdFile'))
     return
   }
   router.push({
@@ -222,7 +222,7 @@ const openFileManager = () => {
 const openInstanceEditor = async () => {
   const instanceId = getRouteInstanceId()
   if (!instanceId) {
-    ElMessage.warning(t('instance.missingInstanceIdSetting'))
+    feedback.warning(t('instance.missingInstanceIdSetting'))
     return
   }
   try {
@@ -242,7 +242,7 @@ const handleFeature = (key: string) => {
     void openInstanceEditor()
     return
   }
-  ElMessage.info(t('instance.featureNotImplemented'))
+  feedback.info(t('instance.featureNotImplemented'))
 }
 
 const handleEditorClose = () => closeInstanceEditor()
@@ -252,7 +252,7 @@ const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
   try {
     instanceEditorForm.value = { ...form }
     await submitInstanceEditor()
-    ElMessage.success(t('instance.configSaveSuccess'))
+    feedback.success(t('instance.configSaveSuccess'))
     if (instanceId) await refreshCurrentInfo()
   } catch (error) {
     showRequestError(error, t('instance.configSaveFailed'))

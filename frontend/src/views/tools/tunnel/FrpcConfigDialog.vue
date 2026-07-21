@@ -92,9 +92,9 @@ const content = computed(() => {
 const copy = async () => {
   try {
     await navigator.clipboard.writeText(content.value)
-    ElMessage.success(t('tools.tunnel.frpc.copied'))
+    feedback.success(t('tools.tunnel.frpc.copied'))
   } catch {
-    ElMessage.error(t('tools.tunnel.frpc.copyFailed'))
+    feedback.error(t('tools.tunnel.frpc.copyFailed'))
   }
 }
 

@@ -322,7 +322,7 @@ const confirmDelete = (ids: string[]) => {
     onConfirm: async () => {
       await deleteUser({ userIds: ids })
       selectedIds.value = selectedIds.value.filter((id) => !ids.includes(id))
-      ElMessage.success(t('system.common.deleteSuccess'))
+      feedback.success(t('system.common.deleteSuccess'))
       getUserList()
     },
   })

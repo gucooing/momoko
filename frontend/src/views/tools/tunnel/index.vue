@@ -339,7 +339,7 @@ const toggleEnable = async (row: Record<string, unknown>, val: boolean) => {
     if (data?.info) {
       record.isEnable = data.info.isEnable
       record.status = data.info.status
-      ElMessage.success(data.info.isEnable ? t('tools.tunnel.enabled') : t('tools.tunnel.disabled'))
+      feedback.success(data.info.isEnable ? t('tools.tunnel.enabled') : t('tools.tunnel.disabled'))
     }
   } catch {
     /* interceptor */
@@ -354,7 +354,7 @@ const confirmDelete = (row: TunnelInfo) => {
     cancelText: t('tools.tunnel.cancel'),
     onConfirm: async () => {
       await deleteTunnel({ id: row.id })
-      ElMessage.success(t('tools.tunnel.deleteSuccess'))
+      feedback.success(t('tools.tunnel.deleteSuccess'))
       selectedIds.value = selectedIds.value.filter((d) => d !== row.id)
       getList()
     },
@@ -370,7 +370,7 @@ const batchDelete = () => {
     cancelText: t('tools.tunnel.cancel'),
     onConfirm: async () => {
       await Promise.all(selectedIds.value.map((id) => deleteTunnel({ id })))
-      ElMessage.success(t('tools.tunnel.batchDeleteSuccess'))
+      feedback.success(t('tools.tunnel.batchDeleteSuccess'))
       selectedIds.value = []
       getList()
     },

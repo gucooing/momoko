@@ -189,7 +189,7 @@ const confirmDelete = (item: InstanceTypeInfo) => {
     cancelText: t('common.cancel'),
     onConfirm: async () => {
       await deleteTypeById(item.id)
-      ElMessage.success(t('common.deleteSuccess'))
+      feedback.success(t('common.deleteSuccess'))
     },
   })
 }

@@ -268,7 +268,7 @@ const confirm = async () => {
       }
       await adminAddPermissions(payload)
     }
-    ElMessage.success(isEdit.value ? t('system.common.editSuccess') : t('system.common.addSuccess'))
+    feedback.success(isEdit.value ? t('system.common.editSuccess') : t('system.common.addSuccess'))
     emits('refresh')
     close()
   } finally {

@@ -211,7 +211,7 @@ const openRefresh = (row: APIKeyInfo) => {
     cancelText: t('node.key.cancel'),
     onConfirm: async () => {
       await refreshAPIKey({ id: row.id })
-      ElMessage.success(t('node.key.refreshSuccess'))
+      feedback.success(t('node.key.refreshSuccess'))
       getList()
     },
   })
@@ -219,7 +219,7 @@ const openRefresh = (row: APIKeyInfo) => {
 
 const doCopy = async () => {
   await navigator.clipboard.writeText(copyKeyValue.value)
-  ElMessage.success(t('node.key.copied'))
+  feedback.success(t('node.key.copied'))
 }
 
 const onFormRefresh = (type: 'create' | 'update') => {

@@ -109,7 +109,7 @@ const confirm = async () => {
         expiresAt: expiresDate,
       })
     }
-    ElMessage.success(submitForm.value.id ? t('node.key.editSuccess') : t('node.key.addSuccess'))
+    feedback.success(submitForm.value.id ? t('node.key.editSuccess') : t('node.key.addSuccess'))
     emits('refresh', submitForm.value.id ? 'update' : 'create')
     close()
   } finally {

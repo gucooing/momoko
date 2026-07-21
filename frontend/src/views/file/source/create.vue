@@ -277,7 +277,7 @@ const confirm = async () => {
         redirect302: form.value.redirect302,
         config: buildPayloadConfig(),
       })
-      ElMessage.success(t('fileSource.updateSuccess'))
+      feedback.success(t('fileSource.updateSuccess'))
       emits('refresh', 'update')
     } else {
       await createFileSourceRequest({
@@ -287,7 +287,7 @@ const confirm = async () => {
         redirect302: form.value.redirect302,
         config: buildPayloadConfig(),
       })
-      ElMessage.success(t('fileSource.createSuccess'))
+      feedback.success(t('fileSource.createSuccess'))
       emits('refresh', 'create')
     }
     close()
@@ -304,8 +304,8 @@ const testForm = async () => {
       type: form.value.type,
       config: buildPayloadConfig(),
     })
-    if (data.ok) ElMessage.success(data.message || t('fileSource.testOk'))
-    else ElMessage.error(data.message || t('fileSource.testFailed'))
+    if (data.ok) feedback.success(data.message || t('fileSource.testOk'))
+    else feedback.error(data.message || t('fileSource.testFailed'))
   } finally {
     testing.value = false
   }

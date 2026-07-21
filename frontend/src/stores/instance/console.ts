@@ -7,7 +7,6 @@ import {
   startInstanceRequest,
   stopInstanceRequest,
 } from '@/api/instance'
-import { ElMessage } from 'element-plus'
 import { createConsoleSession } from '@/stores/instance/consoleSession'
 import type {
   ConsoleFeatureItem,
@@ -228,7 +227,7 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
 
     return deleteInstanceLogRequest({ id: currentInstanceId }).then(() => {
       session.clearScreen()
-      ElMessage.success(translate('instance.consoleCleared'))
+      feedback.success(translate('instance.consoleCleared'))
     })
   }
 

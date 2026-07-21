@@ -255,7 +255,7 @@ const confirmDelete = (client: OIDCClientInfo) => {
     cancelText: '取消',
     onConfirm: async () => {
       await deleteOIDCClient({ id: client.id })
-      ElMessage.success('删除成功')
+      feedback.success('删除成功')
       loadClients()
     },
   })
@@ -296,7 +296,7 @@ const openReveal = (client: OIDCClientInfo) => {
 
 const copyText = async (value: string) => {
   await navigator.clipboard.writeText(value)
-  ElMessage.success('已复制')
+  feedback.success('已复制')
 }
 
 const loadConfig = async () => {

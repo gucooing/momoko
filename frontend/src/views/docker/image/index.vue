@@ -317,11 +317,11 @@ const pullForm = reactive({ reference: '', platform: '' })
 const openPull = () => { pullForm.reference = ''; pullForm.platform = ''; pullVisible.value = true }
 const submitPull = async () => {
   const reference = pullForm.reference.trim()
-  if (!reference) { ElMessage.error(t('docker.image.enterReference')); return }
+  if (!reference) { feedback.error(t('docker.image.enterReference')); return }
   pullSubmitting.value = true
   try {
     const { data } = await pullDockerImage({ reference, platform: pullForm.platform.trim(), registryAuth: undefined })
-    ElMessage.success(t('docker.image.pullTaskCreated'))
+    feedback.success(t('docker.image.pullTaskCreated'))
     openTask(data?.task)
     pullVisible.value = false
   } catch (e) { showRequestError(e, t('docker.image.pullFailed')) }
@@ -336,11 +336,11 @@ const tagId = ref('')
 const openTag = (row: DockerImageSummary) => { tagId.value = row.id; tagTarget.value = ''; tagVisible.value = true }
 const submitTag = async () => {
   const target = tagTarget.value.trim()
-  if (!target) { ElMessage.error(t('docker.image.enterNewTag')); return }
+  if (!target) { feedback.error(t('docker.image.enterNewTag')); return }
   tagSubmitting.value = true
   try {
     await tagDockerImage({ id: tagId.value, target })
-    ElMessage.success(t('docker.image.tagSuccess'))
+    feedback.success(t('docker.image.tagSuccess'))
     tagVisible.value = false
     await getList()
   } catch (e) { showRequestError(e, t('docker.image.tagFailed')) }
@@ -358,7 +358,7 @@ const handleDelete = (row: DockerImageSummary) => {
     onConfirm: async () => {
       try {
         await deleteDockerImage({ id: row.id, force: false, pruneChildren: false })
-        ElMessage.success(t('docker.common.deletedName', { name }))
+        feedback.success(t('docker.common.deletedName', { name }))
         await getList()
       } catch (e) { showRequestError(e, t('docker.image.deleteFailed')) }
     },
@@ -412,11 +412,11 @@ const openEdit = (row: DockerImageSummary) => {
 const submitEdit = async () => {
   const addTags = editAddTagsText.value.trim().split('\n').filter(Boolean)
   const deleteTags = editDelTagsText.value.trim().split('\n').filter(Boolean)
-  if (!addTags.length && !deleteTags.length) { ElMessage.error(t('docker.image.enterTagsToEdit')); return }
+  if (!addTags.length && !deleteTags.length) { feedback.error(t('docker.image.enterTagsToEdit')); return }
   editSubmitting.value = true
   try {
     await updateDockerImageTags({ imageId: editImageId.value, addTags, deleteTags, forceDelete: false })
-    ElMessage.success(t('docker.image.tagUpdateSuccess'))
+    feedback.success(t('docker.image.tagUpdateSuccess'))
     editVisible.value = false
     await getList()
   } catch (e) { showRequestError(e, t('docker.image.tagUpdateFailed')) }

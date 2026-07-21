@@ -237,8 +237,8 @@ const confirm = async () => {
       })
       info = data?.info
     }
-    if (info?.error) ElMessage.error(info.error)
-    else ElMessage.success(editingId.value ? t('tools.portForward.editSuccess') : t('tools.portForward.addSuccess'))
+    if (info?.error) feedback.error(info.error)
+    else feedback.success(editingId.value ? t('tools.portForward.editSuccess') : t('tools.portForward.addSuccess'))
     emits('refresh', editingId.value ? 'update' : 'create')
     close()
   } finally {

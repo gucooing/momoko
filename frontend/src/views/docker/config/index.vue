@@ -310,7 +310,7 @@ const handleSaveConfig = async () => {
   configSaving.value = true
   try {
     await updateDockerConfig({ config: { ...configForm } })
-    ElMessage.success(t('docker.config.saveSuccess'))
+    feedback.success(t('docker.config.saveSuccess'))
   } catch (e) {
     showRequestError(e, t('docker.config.saveFailed'))
   } finally {
@@ -322,8 +322,8 @@ const handleTestConfig = async () => {
   configTesting.value = true
   try {
     const { data } = await testDockerConfig({ config: { ...configForm } })
-    if (data?.status?.connected) ElMessage.success(t('docker.config.testSuccess'))
-    else ElMessage.error(data?.status?.error || t('docker.common.connectionFailed'))
+    if (data?.status?.connected) feedback.success(t('docker.config.testSuccess'))
+    else feedback.error(data?.status?.error || t('docker.common.connectionFailed'))
   } catch (e) {
     showRequestError(e, t('docker.config.testFailed'))
   } finally {

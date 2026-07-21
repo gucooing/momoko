@@ -288,8 +288,8 @@ const toggleEnable = async (row: Record<string, unknown>, val: boolean) => {
     if (data?.info) {
       record.isEnable = data.info.isEnable
       record.error = data.info.error
-      if (data.info.error) ElMessage.error(data.info.error)
-      else ElMessage.success(data.info.isEnable ? t('tools.portForward.enabled') : t('tools.portForward.disabled'))
+      if (data.info.error) feedback.error(data.info.error)
+      else feedback.success(data.info.isEnable ? t('tools.portForward.enabled') : t('tools.portForward.disabled'))
     }
   } catch {
     /* interceptor */
@@ -304,7 +304,7 @@ const confirmDelete = (row: PortForwardInfo) => {
     cancelText: t('tools.portForward.cancel'),
     onConfirm: async () => {
       await deletePortForward({ id: row.id })
-      ElMessage.success(t('tools.portForward.deleteSuccess'))
+      feedback.success(t('tools.portForward.deleteSuccess'))
       selectedIds.value = selectedIds.value.filter((d) => d !== row.id)
       getList()
     },
@@ -320,7 +320,7 @@ const batchDelete = () => {
     cancelText: t('tools.portForward.cancel'),
     onConfirm: async () => {
       await Promise.all(selectedIds.value.map((id) => deletePortForward({ id })))
-      ElMessage.success(t('tools.portForward.batchDeleteSuccess'))
+      feedback.success(t('tools.portForward.batchDeleteSuccess'))
       selectedIds.value = []
       getList()
     },

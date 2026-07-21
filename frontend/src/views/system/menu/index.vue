@@ -304,7 +304,7 @@ const confirmDelete = (row: Record<string, unknown>) => {
     cancelText: t('system.common.cancel'),
     onConfirm: async () => {
       await adminDeletePermissions({ menuId: String(row.id) })
-      ElMessage.success(t('system.common.deleteSuccess'))
+      feedback.success(t('system.common.deleteSuccess'))
       getMenuList()
     },
   })

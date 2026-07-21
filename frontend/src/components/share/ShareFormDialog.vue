@@ -197,9 +197,9 @@ const formatTime = (v: unknown) => (v ? new Date(v as string).toLocaleString() :
 const copy = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
-    ElMessage.success(t('file.share.copied'))
+    feedback.success(t('file.share.copied'))
   } catch {
-    ElMessage.error(t('file.share.copyFailed'))
+    feedback.error(t('file.share.copyFailed'))
   }
 }
 
@@ -233,7 +233,7 @@ const toRequestItems = () =>
 const save = async () => {
   if (!form.items.length) {
     pathError.value = true
-    ElMessage.warning(t('file.share.pathRequired'))
+    feedback.warning(t('file.share.pathRequired'))
     return
   }
   saving.value = true
@@ -249,7 +249,7 @@ const save = async () => {
         enabled: form.enabled,
         items: toRequestItems(),
       })
-      ElMessage.success(t('system.common.editSuccess'))
+      feedback.success(t('system.common.editSuccess'))
       visible.value = false
       emit('saved')
     } else {

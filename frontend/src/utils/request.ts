@@ -5,7 +5,7 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { ElMessage } from 'element-plus'
+import { feedback } from './feedback'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
 import { translate as t } from '@/locales'
@@ -79,14 +79,14 @@ export const getRequestErrorMessage = (error: unknown, fallback = t('utils.reque
 
 export const showRequestError = (error: unknown, fallback = t('utils.request.failed')) => {
   if (isRequestErrorHandled(error)) return
-  ElMessage.error(getRequestErrorMessage(error, fallback))
+  feedback.error(getRequestErrorMessage(error, fallback))
 }
 
 const handleAuthExpired = (message = t('utils.request.authExpired')) => {
   if (isHandlingAuthExpired) return
 
   isHandlingAuthExpired = true
-  ElMessage.error(message)
+  feedback.error(message)
   useUserStore().logoutLocal({
     forceReload: true,
     redirectPath: router.currentRoute.value.fullPath,
@@ -198,7 +198,7 @@ service.interceptors.response.use(
 
     if (code === 500) {
       const errorMessage = message || t('utils.request.serverError')
-      ElMessage.error(errorMessage)
+      feedback.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
 
@@ -211,7 +211,7 @@ service.interceptors.response.use(
 
       if (isPublicPath(originalRequest.url)) {
         const errorMessage = message || t('utils.request.unauthorized')
-        ElMessage.error(errorMessage)
+        feedback.error(errorMessage)
         return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
       }
 
@@ -231,7 +231,7 @@ service.interceptors.response.use(
 
     if (code !== undefined && code !== 200) {
       const errorMessage = message || t('utils.request.failed')
-      ElMessage.error(errorMessage)
+      feedback.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
 
@@ -289,7 +289,7 @@ service.interceptors.response.use(
       errorMessage = error.message || t('utils.request.failed')
     }
 
-    ElMessage.error(errorMessage)
+    feedback.error(errorMessage)
     return Promise.reject(
       createRequestError(errorMessage, {
         handled: true,

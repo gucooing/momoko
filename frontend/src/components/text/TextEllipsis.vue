@@ -155,9 +155,9 @@ const handleClick = () => {
 const handleCopy = async () => {
   try {
     await copy(textStr.value)
-    ElMessage.success(t('common.copySuccess'))
+    feedback.success(t('common.copySuccess'))
   } catch {
-    ElMessage.error(t('common.copyFailed'))
+    feedback.error(t('common.copyFailed'))
   }
 }
 

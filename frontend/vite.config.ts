@@ -126,7 +126,7 @@ export default defineConfig(({ mode }) => {
         colorMode: false,
         ui: { colors: { primary: 'teal', neutral: 'slate' } },
         autoImport: {
-          imports: ['vue', 'vue-router', 'pinia'],
+          imports: ['vue', 'vue-router', 'pinia', { '@/utils/feedback': ['feedback', 'useFeedback'] }],
           dirs: ['src/stores', 'src/stores/**'],
           resolvers: [ElementPlusResolver()],
         },

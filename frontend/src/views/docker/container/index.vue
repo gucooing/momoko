@@ -487,7 +487,7 @@ const handleAction = async (row: DockerContainerSummary, action: LifecycleAction
   const run = async () => {
     try {
       await def.fn(row.id)
-      ElMessage.success(t('docker.container.actionSuccess', { action: actionLabel }))
+      feedback.success(t('docker.container.actionSuccess', { action: actionLabel }))
       await getList()
     } catch (e) { showRequestError(e, t('docker.container.actionFailed', { action: actionLabel })) }
   }
@@ -595,7 +595,7 @@ const buildEnv = (rows: EnvRow[]) =>
   rows.filter((item) => item.key.trim()).map((item) => `${item.key.trim()}=${item.value}`)
 const submitCreate = async () => {
   const image = createForm.image.trim()
-  if (!image) { ElMessage.error(t('docker.container.enterImage')); return }
+  if (!image) { feedback.error(t('docker.container.enterImage')); return }
   createSubmitting.value = true
   try {
     await createDockerContainer({
@@ -613,7 +613,7 @@ const submitCreate = async () => {
         memory: 0, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0, nanoCpus: 0, platform: '',
       },
     })
-    ElMessage.success(t('docker.container.createSuccess'))
+    feedback.success(t('docker.container.createSuccess'))
     createVisible.value = false
     await getList()
   } catch (e) { showRequestError(e, t('docker.container.createFailed')) }
@@ -686,7 +686,7 @@ const openDetail = async (row: DockerContainerSummary) => {
   catch (e) { showRequestError(e, t('docker.container.getDetailFailed')) }
 }
 const openDetailLogs = () => {
-  if (!detail.value?.logsWsPath) { ElMessage.warning(t('docker.container.missingLogsWsPath')); return }
+  if (!detail.value?.logsWsPath) { feedback.warning(t('docker.container.missingLogsWsPath')); return }
   logsContainerId.value = detail.value.id
   logsContainerName.value = detail.value.name || detail.value.id
   logsWsPath.value = detail.value.logsWsPath
@@ -699,7 +699,7 @@ const openDetailStats = () => {
   statsVisible.value = true
 }
 const openDetailExec = () => {
-  if (!detail.value?.execWsPath) { ElMessage.warning(t('docker.container.missingExecWsPath')); return }
+  if (!detail.value?.execWsPath) { feedback.warning(t('docker.container.missingExecWsPath')); return }
   execContainerId.value = detail.value.id
   execContainerName.value = detail.value.name || detail.value.id
   execWsPath.value = detail.value.execWsPath
@@ -715,7 +715,7 @@ const openLogs = async (row: DockerContainerSummary) => {
   try {
     const { data } = await getDockerContainer({ id: row.id })
     const info = data?.info
-    if (!info?.logsWsPath) { ElMessage.warning(t('docker.container.missingLogsWsPath')); return }
+    if (!info?.logsWsPath) { feedback.warning(t('docker.container.missingLogsWsPath')); return }
     logsContainerId.value = info.id || row.id
     logsContainerName.value = info.name || displayNames(row as unknown as Record<string, unknown>)
     logsWsPath.value = info.logsWsPath
@@ -738,7 +738,7 @@ const openExec = async (row: DockerContainerSummary) => {
   try {
     const { data } = await getDockerContainer({ id: row.id })
     const info = data?.info
-    if (!info?.execWsPath) { ElMessage.warning(t('docker.container.missingExecWsPath')); return }
+    if (!info?.execWsPath) { feedback.warning(t('docker.container.missingExecWsPath')); return }
     execContainerId.value = info.id || row.id
     execContainerName.value = info.name || displayNames(row as unknown as Record<string, unknown>)
     execWsPath.value = info.execWsPath
@@ -833,7 +833,7 @@ const submitEdit = async () => {
   editSubmitting.value = true
   try {
     if (editForm.recreate) {
-      if (!editForm.image.trim()) { ElMessage.error(t('docker.container.enterImage')); editSubmitting.value = false; return }
+      if (!editForm.image.trim()) { feedback.error(t('docker.container.enterImage')); editSubmitting.value = false; return }
       const { data } = await updateDockerContainer({
         id: editId.value, name: editForm.name.trim(), restartPolicy: editForm.restartPolicy,
         memory: editForm.memoryMB * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
@@ -857,7 +857,7 @@ const submitEdit = async () => {
         nanoCpus: Math.round(editForm.nanoCpuCores * 1e9), recreate: false, force: false, removeVolumes: false, options: undefined,
       })
     }
-    ElMessage.success(editForm.recreate ? t('docker.container.recreateTaskCreated') : t('docker.container.updateSuccess'))
+    feedback.success(editForm.recreate ? t('docker.container.recreateTaskCreated') : t('docker.container.updateSuccess'))
     editVisible.value = false
     if (!editForm.recreate) await getList()
   } catch (e) { showRequestError(e, t('docker.container.updateFailed')) }

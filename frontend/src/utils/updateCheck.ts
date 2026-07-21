@@ -1,5 +1,4 @@
 import { h } from 'vue'
-import { ElMessage } from 'element-plus'
 import UpdateReleaseContent from '@/components/update/UpdateReleaseContent.vue'
 import { checkUpdateRequest } from '@/api/login'
 import { translate } from '@/locales'
@@ -42,7 +41,7 @@ export const checkForUpdate = async (options: CheckForUpdateOptions = {}) => {
   }
 
   if (!options.silentNoUpdate) {
-    ElMessage.success(
+    feedback.success(
       translate('layout.updateUpToDate', { version: data?.currentVersion || 'dev' }),
     )
   }

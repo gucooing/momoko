@@ -399,7 +399,7 @@ const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
   try {
     instanceEditorForm.value = { ...form }
     await submitInstanceEditor()
-    ElMessage.success(mode === 'create' ? t('instance.createSuccess') : t('instance.configSaveSuccess'))
+    feedback.success(mode === 'create' ? t('instance.createSuccess') : t('instance.configSaveSuccess'))
   } catch (error) {
     showRequestError(error, mode === 'create' ? t('instance.createFailed') : t('instance.configSaveFailed'))
   }
@@ -407,7 +407,7 @@ const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
 
 const handleRefreshStatus = async () => {
   await refreshStatus()
-  ElMessage.success(t('instance.statusRefreshed'))
+  feedback.success(t('instance.statusRefreshed'))
 }
 
 // —— 批量 / 单条 状态与删除 ——
@@ -421,7 +421,7 @@ const executeBatchChangeStatus = async (
   if (!selectedIds.value.length) return
   const { successCount, failedCount } = await batchChangeStatus(targetStatus)
   if (!successCount && failedCount) return
-  ElMessage.success(
+  feedback.success(
     targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING
       ? t('instance.batchStartSuccess', { success: successCount, failed: failedSuffix(failedCount) })
       : t('instance.batchStopSuccess', { success: successCount, failed: failedSuffix(failedCount) }),
@@ -455,7 +455,7 @@ const executeChangeInstanceStatus = async (
 ) => {
   const success = await changeInstanceStatus(id, targetStatus)
   if (!success) return
-  ElMessage.success(
+  feedback.success(
     targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING ? t('instance.instanceStarted') : t('instance.instanceStopped'),
   )
 }
@@ -490,7 +490,7 @@ const handleBatchDelete = async () => {
     onConfirm: async () => {
       const { successCount, failedCount } = await batchDeleteInstances()
       if (!successCount && failedCount) return
-      ElMessage.success(t('instance.batchDeleteSuccess', { success: successCount, failed: failedSuffix(failedCount) }))
+      feedback.success(t('instance.batchDeleteSuccess', { success: successCount, failed: failedSuffix(failedCount) }))
     },
   })
 }
@@ -508,7 +508,7 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
       onConfirm: async () => {
         const success = await restartInstance(id)
         if (!success) return
-        ElMessage.success(t('instance.forceRestarting'))
+        feedback.success(t('instance.forceRestarting'))
       },
     })
     return
@@ -524,7 +524,7 @@ const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 
       onConfirm: async () => {
         const { successCount, failedCount } = await deleteInstances([id])
         if (!successCount && failedCount) return
-        ElMessage.success(t('instance.instanceDeleted', { name: current.name, failed: failedSuffix(failedCount) }))
+        feedback.success(t('instance.instanceDeleted', { name: current.name, failed: failedSuffix(failedCount) }))
       },
     })
     return

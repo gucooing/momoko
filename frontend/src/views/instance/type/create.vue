@@ -81,7 +81,7 @@ const confirm = async () => {
     } else {
       await createInstanceType(payload)
     }
-    ElMessage.success(submitForm.value.id ? t('instance.editSuccess') : t('instance.addSuccess'))
+    feedback.success(submitForm.value.id ? t('instance.editSuccess') : t('instance.addSuccess'))
     emits('refresh')
     close()
   } finally {

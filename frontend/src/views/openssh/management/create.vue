@@ -245,7 +245,7 @@ const confirm = async () => {
         sharedUserIds: form.value.sharedUserIds,
       })
     }
-    ElMessage.success(editingId.value ? t('ssh.common.editSuccess') : t('ssh.common.addSuccess'))
+    feedback.success(editingId.value ? t('ssh.common.editSuccess') : t('ssh.common.addSuccess'))
     emits('refresh', editingId.value ? 'update' : 'create')
     close()
   } finally {

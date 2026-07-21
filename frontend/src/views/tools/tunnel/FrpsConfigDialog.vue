@@ -110,7 +110,7 @@ const save = async () => {
   saving.value = true
   try {
     const { data } = await updateFrpsConfig({ config: form.value })
-    ElMessage.success(t('tools.tunnel.frps.saveSuccess'))
+    feedback.success(t('tools.tunnel.frps.saveSuccess'))
     if (data?.config) emit('saved', data.config)
     visible.value = false
   } finally {

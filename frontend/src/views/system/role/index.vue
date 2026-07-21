@@ -333,7 +333,7 @@ const confirmDelete = (ids: string[]) => {
     onConfirm: async () => {
       await deleteRole({ roleIds: deletable })
       selectedIds.value = selectedIds.value.filter((id) => !deletable.includes(id))
-      ElMessage.success(t('system.common.deleteSuccess'))
+      feedback.success(t('system.common.deleteSuccess'))
       getRoleList()
     },
   })

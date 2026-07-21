@@ -305,9 +305,9 @@ const connectSsh = (row: SSHHostInfo) => {
 const testConnect = async (row: SSHHostInfo) => {
   const { data } = await testSshHost({ id: row.id })
   if (data?.status === SSHHostStatus.SSH_HOST_STATUS_ONLINE) {
-    ElMessage.success(t('ssh.common.connectionSuccess', { message: data.message || t('ssh.common.online') }))
+    feedback.success(t('ssh.common.connectionSuccess', { message: data.message || t('ssh.common.online') }))
   } else {
-    ElMessage.warning(t('ssh.common.connectionFailedWithMessage', { message: data?.message || t('ssh.common.offline') }))
+    feedback.warning(t('ssh.common.connectionFailedWithMessage', { message: data?.message || t('ssh.common.offline') }))
   }
   getList()
 }
@@ -320,7 +320,7 @@ const confirmDelete = (row: SSHHostInfo) => {
     cancelText: t('ssh.common.cancel'),
     onConfirm: async () => {
       await deleteSshHost({ id: row.id })
-      ElMessage.success(t('ssh.common.deleteSuccess'))
+      feedback.success(t('ssh.common.deleteSuccess'))
       selectedIds.value = selectedIds.value.filter((d) => d !== row.id)
       getList()
     },
@@ -338,7 +338,7 @@ const batchTest = async () => {
         if (row) row.status = result.status
       }
     }
-    ElMessage.success(t('ssh.common.batchTestDone'))
+    feedback.success(t('ssh.common.batchTestDone'))
   } finally {
     batchTesting.value = false
   }
@@ -353,7 +353,7 @@ const batchDelete = () => {
     cancelText: t('ssh.common.cancel'),
     onConfirm: async () => {
       await Promise.all(selectedIds.value.map((id) => deleteSshHost({ id })))
-      ElMessage.success(t('ssh.common.batchDeleteSuccess'))
+      feedback.success(t('ssh.common.batchDeleteSuccess'))
       selectedIds.value = []
       getList()
     },
@@ -381,7 +381,7 @@ const confirmShare = async () => {
   shareLoading.value = true
   try {
     await shareSshHost({ id: shareHostId.value, userIds: shareUserIds.value })
-    ElMessage.success(shareUserIds.value.length ? t('ssh.common.shareSuccess') : t('ssh.common.shareAllCancelled'))
+    feedback.success(shareUserIds.value.length ? t('ssh.common.shareSuccess') : t('ssh.common.shareAllCancelled'))
     shareDialogOpen.value = false
     getList()
   } finally {

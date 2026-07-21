@@ -433,7 +433,7 @@ const handleTemplateSave = async () => {
       subject: templateForm.subject,
       template: templateForm.template,
     })
-    ElMessage.success(t('system.common.saveSuccess'))
+    feedback.success(t('system.common.saveSuccess'))
   } finally {
     templateSaving.value = false
   }
@@ -466,10 +466,10 @@ const handleTemplateTest = async () => {
       },
       Data: data,
     })
-    ElMessage.success(t('system.settings.emailTestSuccess'))
+    feedback.success(t('system.settings.emailTestSuccess'))
     templateTestDialogVisible.value = false
   } catch {
-    ElMessage.error(t('system.settings.emailTestFailed'))
+    feedback.error(t('system.settings.emailTestFailed'))
   } finally {
     templateTesting.value = false
   }
@@ -502,7 +502,7 @@ const loadLoginConfig = async () => {
       loginForm.registerEmailVerificationRequired = data.config.registerEmailVerificationRequired
     }
   } catch {
-    ElMessage.error(t('system.settings.getLoginConfigFailed'))
+    feedback.error(t('system.settings.getLoginConfigFailed'))
   }
 }
 
@@ -522,7 +522,7 @@ const loadEmailConfig = async () => {
       emailForm.ccsN = data.config.ccsN
     }
   } catch {
-    ElMessage.error(t('system.settings.getEmailConfigFailed'))
+    feedback.error(t('system.settings.getEmailConfigFailed'))
   }
 }
 
@@ -535,7 +535,7 @@ const handleLoginSave = async () => {
       emailLoginEnabled: loginForm.emailLoginEnabled,
       registerEmailVerificationRequired: loginForm.registerEmailVerificationRequired,
     })
-    ElMessage.success(t('system.common.saveSuccess'))
+    feedback.success(t('system.common.saveSuccess'))
   } finally {
     loginSaving.value = false
   }
@@ -556,7 +556,7 @@ const handleEmailSave = async () => {
       timeoutSeconds: emailForm.timeoutSeconds,
       ccsN: emailForm.ccsN,
     })
-    ElMessage.success(t('system.common.saveSuccess'))
+    feedback.success(t('system.common.saveSuccess'))
   } finally {
     emailSaving.value = false
   }
@@ -581,11 +581,11 @@ const handleEmailTest = async () => {
       },
       Data: {}, // 使用全局邮件模板测试发送
     })
-    ElMessage.success(t('system.settings.emailTestSuccess'))
+    feedback.success(t('system.settings.emailTestSuccess'))
     testDialogVisible.value = false
     testRecipient.value = ''
   } catch {
-    ElMessage.error(t('system.settings.emailTestFailed'))
+    feedback.error(t('system.settings.emailTestFailed'))
   } finally {
     emailTesting.value = false
   }

@@ -333,9 +333,9 @@ const showDetailDialog = (detail: string) => {
 const copyDetail = async () => {
   try {
     await copy(detailContent.value)
-    ElMessage.success(t('system.operation.copied'))
+    feedback.success(t('system.operation.copied'))
   } catch {
-    ElMessage.error(t('system.operation.copyFailed'))
+    feedback.error(t('system.operation.copyFailed'))
   }
 }
 

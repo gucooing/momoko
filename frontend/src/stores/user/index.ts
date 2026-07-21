@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { ElMessage } from 'element-plus'
 import { logoutRequest, userMeInfoRequest } from '@/api/login'
 import { updateMeRequest, updatePasswordRequest } from '@/api/user'
 import defaultAvatarSvg from '@/assets/defaultAvatar.svg'
@@ -98,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
 
   const updateUserProfile = async (data: UserProfileFormValue) => {
     await updateCurrentUser(data)
-    ElMessage.success(translate('user.profileUpdateSuccess'))
+    feedback.success(translate('user.profileUpdateSuccess'))
   }
 
   const logoutLocal = (options?: { forceReload?: boolean; redirectPath?: string }) => {
@@ -118,7 +117,7 @@ export const useUserStore = defineStore('user', () => {
       oldPassword: data.oldPassword,
       newPassword: data.newPassword,
     })
-    ElMessage.success(translate('user.passwordUpdateSuccessRelogin'))
+    feedback.success(translate('user.passwordUpdateSuccessRelogin'))
     setTimeout(logoutLocal, 1000)
   }
 

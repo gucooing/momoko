@@ -160,7 +160,7 @@ const save = async () => {
       setForm(data.config)
       emit('saved', data.config)
     }
-    ElMessage.success('保存成功')
+    feedback.success('保存成功')
     open.value = false
   } finally {
     saving.value = false
@@ -169,7 +169,7 @@ const save = async () => {
 
 const copyText = async (value: string) => {
   await navigator.clipboard.writeText(value)
-  ElMessage.success('已复制')
+  feedback.success('已复制')
 }
 
 const showDialog = async () => {

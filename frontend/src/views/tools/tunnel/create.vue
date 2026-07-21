@@ -269,7 +269,7 @@ const confirm = async () => {
         maxActiveConns: form.value.maxActiveConns,
         isEnable: form.value.isEnable,
       })
-      ElMessage.success(t('tools.tunnel.editSuccess'))
+      feedback.success(t('tools.tunnel.editSuccess'))
     } else {
       await createTunnel({
         name: form.value.name,
@@ -284,7 +284,7 @@ const confirm = async () => {
         maxActiveConns: form.value.maxActiveConns,
         isEnable: form.value.isEnable,
       })
-      ElMessage.success(t('tools.tunnel.addSuccess'))
+      feedback.success(t('tools.tunnel.addSuccess'))
     }
     emits('refresh', editingId.value ? 'update' : 'create')
     close()

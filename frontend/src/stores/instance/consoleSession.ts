@@ -1,4 +1,3 @@
-import { ElMessage } from 'element-plus'
 import type { ConsoleFeatureItem, ConsoleSocketStatus } from '@/stores/instance/types'
 import type { InstanceInfo } from '@/types/v1/instance'
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
@@ -347,7 +346,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
 
     if (!hasRequiredContext()) {
       if (options.contextIdLabel) {
-        ElMessage.warning(translate('instance.missingContextAction', {
+        feedback.warning(translate('instance.missingContextAction', {
           context: options.contextIdLabel,
           action: getActionLabel(action),
           entity: options.entityLabel,
@@ -374,7 +373,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       )
 
       if (actionSucceeded && isActiveRequest(token)) {
-        ElMessage.success(translate('instance.actionSuccess', { action: getActionLabel(action) }))
+        feedback.success(translate('instance.actionSuccess', { action: getActionLabel(action) }))
       }
     } finally {
       if (isActiveRequest(token)) {

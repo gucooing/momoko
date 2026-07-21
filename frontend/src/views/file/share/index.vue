@@ -263,9 +263,9 @@ const toggleEnabled = async (row: Record<string, unknown>) => {
 const copyLink = async (row: ShareInfo) => {
   try {
     await copyTextToClipboard(buildShareLink(row.token))
-    ElMessage.success(t('file.share.copied'))
+    feedback.success(t('file.share.copied'))
   } catch {
-    ElMessage.error(t('file.share.copyFailed'))
+    feedback.error(t('file.share.copyFailed'))
   }
 }
 
@@ -274,7 +274,7 @@ const remove = (row: ShareInfo) => {
     content: t('file.share.confirmDelete'),
     onConfirm: async () => {
       await deleteShareRequest(row.id)
-      ElMessage.success(t('system.common.deleteSuccess'))
+      feedback.success(t('system.common.deleteSuccess'))
       loadList()
     },
   })

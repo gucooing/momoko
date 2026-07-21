@@ -93,7 +93,7 @@ const buildWsUrl = () => {
 
 const connect = async () => {
   if (!connId.value) {
-    ElMessage.warning(t('ssh.common.missingParams'))
+    feedback.warning(t('ssh.common.missingParams'))
     return
   }
 
@@ -120,7 +120,7 @@ const connect = async () => {
   const url = buildWsUrl()
   if (!url) {
     socketStatus.value = 'disconnected'
-    ElMessage.warning(t('ssh.common.missingParams'))
+    feedback.warning(t('ssh.common.missingParams'))
     return
   }
 

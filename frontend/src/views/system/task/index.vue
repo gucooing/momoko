@@ -311,7 +311,7 @@ const reset = () => {
 const cancel = async (id: string) => {
   try {
     await cancelTask(id)
-    ElMessage.success(t('taskManager.cancelSuccess'))
+    feedback.success(t('taskManager.cancelSuccess'))
     getList(true)
   } catch (error) {
     showRequestError(error, t('taskManager.actionFailed'))
@@ -321,7 +321,7 @@ const cancel = async (id: string) => {
 const retry = async (id: string) => {
   try {
     await retryTask(id)
-    ElMessage.success(t('taskManager.retrySuccess'))
+    feedback.success(t('taskManager.retrySuccess'))
     getList(true)
   } catch (error) {
     showRequestError(error, t('taskManager.actionFailed'))
@@ -337,7 +337,7 @@ const confirmDelete = (id: string) => {
     onConfirm: async () => {
       try {
         await deleteTask(id)
-        ElMessage.success(t('taskManager.deleteSuccess'))
+        feedback.success(t('taskManager.deleteSuccess'))
         getList(true)
       } catch (error) {
         showRequestError(error, t('taskManager.actionFailed'))

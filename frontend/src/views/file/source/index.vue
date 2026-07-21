@@ -215,8 +215,8 @@ const openEdit = (row: FileSourceInfo) => createRef.value?.showDialog(row)
 const testExisting = async (row: FileSourceInfo) => {
   try {
     const { data } = await testFileSourceRequest({ id: row.id, type: '', config: undefined })
-    if (data.ok) ElMessage.success(data.message || t('fileSource.testOk'))
-    else ElMessage.error(data.message || t('fileSource.testFailed'))
+    if (data.ok) feedback.success(data.message || t('fileSource.testOk'))
+    else feedback.error(data.message || t('fileSource.testFailed'))
   } catch {
     /* interceptor */
   }
@@ -234,7 +234,7 @@ const toggleEnabled = async (row: Record<string, unknown>, enabled: boolean) => 
       config: { ...emptyConfig(), ...(record.config ?? {}), secretKey: '', password: '' },
     })
     record.enabled = enabled
-    ElMessage.success(t('fileSource.updateSuccess'))
+    feedback.success(t('fileSource.updateSuccess'))
   } catch {
     /* interceptor */
   }
@@ -245,7 +245,7 @@ const confirmDelete = (row: FileSourceInfo) => {
     content: t('fileSource.confirmDelete', { name: row.name }),
     onConfirm: async () => {
       await deleteFileSourceRequest(row.id)
-      ElMessage.success(t('fileSource.deleteSuccess'))
+      feedback.success(t('fileSource.deleteSuccess'))
       getList()
     },
   })

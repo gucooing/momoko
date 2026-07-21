@@ -211,7 +211,7 @@ const confirm = async () => {
       })
     }
 
-    ElMessage.success(f.userId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
+    feedback.success(f.userId ? t('system.common.editSuccess') : t('system.common.addSuccess'))
     emits('refresh', f.userId ? 'update' : 'create')
     open.value = false
     onClose()
