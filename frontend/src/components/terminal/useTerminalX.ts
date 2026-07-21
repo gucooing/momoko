@@ -62,6 +62,27 @@ const LIGHT_THEME: ITheme = {
 export const terminalThemeFor = (mode: TerminalThemeMode): ITheme =>
   mode === 'light' ? LIGHT_THEME : DARK_THEME
 
+const FONT_SIZE_MIN = 10
+const FONT_SIZE_MAX = 22
+const FONT_SIZE_DEFAULT = 13
+const FONT_SIZE_STORAGE_KEY = 'momoko.terminalFontSize'
+
+const clampFontSize = (n: number) => Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(n)))
+
+const readStoredFontSize = (): number => {
+  try {
+    const raw = localStorage.getItem(FONT_SIZE_STORAGE_KEY)
+    if (!raw) return FONT_SIZE_DEFAULT
+    const n = Number(raw)
+    return Number.isFinite(n) ? clampFontSize(n) : FONT_SIZE_DEFAULT
+  } catch {
+    return FONT_SIZE_DEFAULT
+  }
+}
+
+// 模块级共享：两处终端页字号一致
+const sharedFontSize = ref(readStoredFontSize())
+
 interface UseTerminalXOptions {
   /** 手动主题 ref（来自 useTerminalTheme） */
   theme: Ref<TerminalThemeMode>
@@ -71,6 +92,7 @@ interface UseTerminalXOptions {
   onBinary?: (data: Uint8Array) => void
   /** 尺寸变化回调（用于向后端发送 resize） */
   onResize?: (size: { cols: number; rows: number }) => void
+  /** 覆盖默认字号；缺省读 localStorage 共享值 */
   fontSize?: number
 }
 
@@ -78,6 +100,7 @@ export function useTerminalX(options: UseTerminalXOptions) {
   const containerRef = ref<HTMLElement>()
   const cols = ref(0)
   const rows = ref(0)
+  const fontSize = sharedFontSize
 
   let terminal: Terminal | null = null
   let fitAddon: FitAddon | null = null
@@ -96,14 +119,30 @@ export function useTerminalX(options: UseTerminalXOptions) {
     options.onResize?.({ cols: terminal.cols, rows: terminal.rows })
   }
 
+  const applyFontSize = (size: number) => {
+    const next = clampFontSize(size)
+    fontSize.value = next
+    try {
+      localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(next))
+    } catch {
+      /* ignore quota/private-mode */
+    }
+    if (terminal) {
+      terminal.options.fontSize = next
+      applyFit()
+    }
+  }
+
   const mount = () => {
     if (terminal || !containerRef.value) return
+
+    if (options.fontSize != null) applyFontSize(options.fontSize)
 
     terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
       fontFamily: FONT_FAMILY,
-      fontSize: options.fontSize ?? 13,
+      fontSize: fontSize.value,
       lineHeight: 1.2,
       scrollback: 5000,
       theme: terminalThemeFor(options.theme.value),
@@ -134,6 +173,8 @@ export function useTerminalX(options: UseTerminalXOptions) {
   const clear = () => terminal?.clear()
   const reset = () => terminal?.reset()
   const focus = () => terminal?.focus()
+  const setFontSize = (size: number) => applyFontSize(size)
+  const bumpFontSize = (delta: number) => applyFontSize(fontSize.value + delta)
 
   watch(
     () => options.theme.value,
@@ -141,6 +182,14 @@ export function useTerminalX(options: UseTerminalXOptions) {
       if (terminal) terminal.options.theme = terminalThemeFor(mode)
     },
   )
+
+  // 另一终端实例改字号时同步
+  watch(fontSize, (size) => {
+    if (terminal && terminal.options.fontSize !== size) {
+      terminal.options.fontSize = size
+      applyFit()
+    }
+  })
 
   onBeforeUnmount(() => {
     window.removeEventListener('resize', applyFit)
@@ -151,5 +200,19 @@ export function useTerminalX(options: UseTerminalXOptions) {
     fitAddon = null
   })
 
-  return { containerRef, cols, rows, mount, write, writeln, clear, reset, focus, fit: applyFit }
+  return {
+    containerRef,
+    cols,
+    rows,
+    fontSize,
+    mount,
+    write,
+    writeln,
+    clear,
+    reset,
+    focus,
+    fit: applyFit,
+    setFontSize,
+    bumpFontSize,
+  }
 }

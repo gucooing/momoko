@@ -16,8 +16,11 @@
     :busy="busy"
     :cols="cols"
     :rows="rows"
+    :font-size="fontSize"
     @toggle-theme="toggleTheme"
     @action="(key) => emit('action', key)"
+    @soft-key="onSoftKey"
+    @font-bump="onFontBump"
   >
     <div ref="containerRef" class="term-screen" />
 
@@ -56,12 +59,36 @@ const emit = defineEmits<{
 }>()
 
 const { theme, toggleTheme } = useTerminalTheme()
-const { containerRef, cols, rows, mount, write, writeln, clear, reset, focus, fit } = useTerminalX({
+const {
+  containerRef,
+  cols,
+  rows,
+  fontSize,
+  mount,
+  write,
+  writeln,
+  clear,
+  reset,
+  focus,
+  fit,
+  bumpFontSize,
+} = useTerminalX({
   theme,
   onData: (data) => emit('data', data),
   onBinary: (data) => emit('data', data),
   onResize: (size) => emit('resize', size),
 })
+
+// 软键盘键：序列原样注入传输层（与实体键盘 onData 同路径）
+const onSoftKey = (data: string) => {
+  emit('data', data)
+  focus()
+}
+
+const onFontBump = (delta: number) => {
+  bumpFontSize(delta)
+  focus()
+}
 
 onMounted(mount)
 

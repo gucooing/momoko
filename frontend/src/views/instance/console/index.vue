@@ -206,6 +206,7 @@ const openFileManager = () => {
     feedback.warning(t('instance.missingInstanceIdFile'))
     return
   }
+  // 实例文件 API 以实例目录为根，不传 host 侧 instancePath 当 workdir
   router.push({
     path: `/instance/files/${instanceId}`,
     query: {
@@ -214,7 +215,6 @@ const openFileManager = () => {
       }),
       from: 'instance',
       status: terminalInfo.value?.status,
-      workdir: terminalInfo.value?.instancePath,
     },
   })
 }

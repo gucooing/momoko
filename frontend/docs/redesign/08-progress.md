@@ -15,8 +15,8 @@
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
 | Phase 3 | 全量推广(见下逐页) | ✅ 业务页重写完成；假数据页 analysis/monitor + demo/extended **已删除**；终端/实例文件等见 Phase 3.5 |
-| Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
-| Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ✅ **EP/VXE 卸载完成**（`c289196`+后续）：死代码/demo/假仪表盘已删；BaseDialog 令牌化；ElMessage→`feedback` 单例；package 无 `element-plus`/`vxe-*`；模板 `<el-` / 运行时 `ElMessage` / node_modules 清零。仍保留自建 CSS 变量名 `--el-*`（非 EP 依赖，可选日后改名 `--app-*`）。**余量**：暗色/可访问性/i18n 全量核对；终端移动浅色；实例文件页 |
+| Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | ✅ 前后端完成并实机验证；**移动软键盘 + 字号 A± + 浅色**已浏览器验（390 暗/浅、桌面无软键盘、底栏 `cols×rows · Npx`） |
+| Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ✅ **EP/VXE 卸载完成**；实例文件页已验收。**余量**：暗色/可访问性/i18n 全量核对；可选 `--el-*`→`--app-*` |
 
 > **🔓 后端破坏性修改授权(2026-07-12,用户明确)**：若前端重写需要,**允许破坏性修改后端、不必考虑兼容性**(协议/RPC/表结构随意改)。后端从 GoLand 运行,改 Go 后需用户手动重跑。
 >
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状（换设备从这里接）**：**前端从零重写 + EP/VXE 卸载已收口**。业务页已去 EP；`element-plus`/`@element-plus/icons-vue`/`vxe-*` 已卸包；demo/extended/假 analysis·monitor/旧布局壳已删；SSH 列表无持久 status（测试在编辑弹窗草稿探测，连接外侧按钮，`a8122d4`）；toast 压过弹窗 `z-index:10000`（`f2d30e9`）。关键提交：`7ae41db` share/oidc · `c6a5c29` 文件模块 · `6398d24`/`1dbebed` 死代码+菜单 · `f0376a1` BaseDialog · `2fbd154` feedback · `c289196` 卸包 · `a8122d4` SSH · `7b98516` AppSelect/CommandSearch · `f2d30e9` toast 层级。**下一步**：暗色/a11y/i18n 全量核对；终端移动浅色；实例文件页；可选 `--el-*`→`--app-*`。⚠️ 改 Go 后需用户在 GoLand 重跑后端。
+> **一句话现状（换设备从这里接）**：**前端从零重写 + EP/VXE 卸载已收口**；终端 M-2 软键盘/字号/浅色 + 实例文件页已验收。业务页已去 EP；SSH 列表无持久 status（`a8122d4`）；toast `z-index:10000`（`f2d30e9`）。**本会话**：`TerminalShell` 移动软键盘（Ctrl/Alt/Esc/Tab/C/D/Z/L/方向/Home/End/PgUp/PgDn）+ A± 字号（localStorage 共享）+ 浅色令牌验过；实例文件 `useFullBleed` + **修 workdir 误传**（实例 API 以实例目录为根，勿再塞 `instancePath`/`./servers/…`，否则 500）。**下一步**：暗色/a11y/i18n 全量核对；可选 `--el-*`→`--app-*`；提交本批终端+实例文件。⚠️ 改 Go 后需用户在 GoLand 重跑后端。
 
 ### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
 > 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。
@@ -86,8 +86,9 @@
 - 校验多为内联函数；toast 统一 `feedback`（`FeedbackBridge` 注入，层级高于弹窗）。
 
 ### 下一步（重写收口后）
-- 暗色 / 可访问性 / i18n 全量核对；终端页移动+浅色；实例文件 `instance/files/:id` 若仍需。
+- 暗色 / 可访问性 / i18n 全量核对。
 - 可选：`--el-*` CSS 变量改名 `--app-*`；`FilterSheet`；valibot schemas。
+- **提交本批**：终端软键盘/字号 + 实例文件 fullBleed + workdir 修正（未提交）。
 
 ---
 
@@ -127,8 +128,8 @@
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
 | 应用列表 | instance/list | P1 | ✅ | ✅ | ✅ | ✅ |
-| 实例控制台 | instance/console/:id | P6 | 🟡 | ⬜ | 🟡 | 🟡 PTY 直连已实机验证(键入/回显/ws 抓包);移动+浅色待验 |
-| 实例文件 | instance/files/:id | P6 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 实例控制台 | instance/console/:id | P6 | ✅ | ✅ | ✅ | ✅ PTY + 移动软键盘/字号/浅色（TerminalShell 共享） |
+| 实例文件 | instance/files/:id | P6 | ✅ | ✅ | ✅ | ✅ FileBrowser scope=instance + fullBleed；修 workdir 误传；桌面/移动 390 验 |
 | 实例类型 | instance/type | P1 | ✅ | ✅ | ✅ | ✅ |
 | Docker 容器 | docker/container | P1 | ✅ | ✅ | ✅ | 🟡 全量重写(列表+创建/编辑结构化表单+详情+TerminalConsole 日志/终端+Stats FormDialog)；浏览器桌面/移动/暗色验证；后端 docker 未启用，数据流未跑 |
 | Docker 镜像 | docker/image | P1 | ✅ | ✅ | ✅ | 🟡 结构+弹窗验证（后端无 Docker 守护，数据流未跑） |
@@ -136,7 +137,7 @@
 | Docker 配置 | docker/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 四 Tab(状态/连接/默认/仓库) + AppPanel；浏览器验证；docker 未启用时状态正确显示 |
 | API Key | node/key | P1 | ✅ | ✅ | ✅ | ✅ |
 | SSH 管理 | openssh/management | P1 | ✅ | ✅ | ✅ | ✅ 列表无持久 status；连接外侧按钮；测试在编辑弹窗草稿探测（`a8122d4`） |
-| SSH 终端 | openssh/terminal | P6 | 🟡 | ⬜ | 🟡 | 🟡 重写完成,htop+鼠标滚轮+初始 resize 实测通过;移动+浅色待验 |
+| SSH 终端 | openssh/terminal | P6 | ✅ | ✅ | ✅ | ✅ 与控制台共享 TerminalConsole（软键盘/字号/主题）；htop+滚轮+resize 已验 |
 
 ### 工具/文件/Sub2API(`06c`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
@@ -233,3 +234,4 @@
 | 2026-07-21 | **Phase 4 Slice2：BaseDialog 去 EP 重写为令牌模态（`f0376a1`）**。`el-dialog/el-button/IconButton`→Teleport 令牌模态（遮罩+头/体/脚，AppIconButton 关闭，UButton 页脚，与 FormDialog/FileDialog 同套）；**保留命令式契约**：`attrs.onConfirm`(异步+确认按钮 loading)、emit close/update:modelValue、`#header/#default/#footer`、showClose/Footer/Cancel/Confirm、width+移动端自适应；**去掉**模板遗留全屏/拖拽/缩放/before-close（无消费者用）。`utils/dialog.ts` 去 `ElIcon`，类型图标直接渲染 heroicon+style 定尺寸。**透传去 EP**：`Dialog.confirm/info`(24 文件) + 直接消费者 UpdatePassword/SelectAvatarDialog/IconSelectorDialog/DockerTaskDialogs 一并脱离 EP 模态。浏览器验：IconSelectorDialog(声明式 800px)+file/share 删除 Dialog.confirm(命令式,图标/取消/关闭)桌面正常；vue-tsc+eslint 绿。**既有噪声**：Dialog.confirm 取消时 `utils/dialog.ts` `reject('cancel')` 的未捕获 promise（本次未改该逻辑，属既有契约，后续统一调用方口径时处理）。 | Slice3 ElMessage→useFeedback 单例 |
 | 2026-07-21 | **Phase 4 Slice3–5：EP/VXE 卸载收口**：①Slice3 `ElMessage`→`feedback` 单例（`FeedbackBridge`+`utils/feedback` 代理+`request` 拦截器+41 文件迁移，`2fbd154`）。②Slice4 删死组件（IconButton/LoadingButton/BadgeTabsMenu/TablePagination/BaseCard/RunningInstanceCard/TextEllipsis/BaseTag）+ 重写 live：ThemeConfig 令牌抽屉、AppShell 移动抽屉、AdaptiveConfirm 统一 Dialog.confirm、IconSelectorDialog/SelectAvatarDialog 去 EP 控件、DockerTaskDialogs 去 el-button/empty/v-loading、UpdateReleaseContent→EmptyState、App.vue 去 el-config-provider。③Slice5 卸包 `element-plus/@element-plus/icons-vue/vxe-*`；iconRegistry 仅 Heroicons（Element: 兼容映射）；vite 去 ElementPlusResolver；tsconfig 去 element-plus/global；main 去 EP dark css；菜单种子 Element:→Hero。**验证**：vue-tsc/eslint/go build 绿；浏览器工作台+主题抽屉；grep 模板 el-/运行时 ElMessage/node_modules EP·VXE 全 0。 | 暗色/a11y/i18n 全量核对；可选 --el-* 重命名 |
 | 2026-07-21 | **文档/代码一致化收口**：08 里程碑/交接/逐页清单去掉陈旧「未提交」「待决」；analysis/monitor/demo/extended 标已删除；EP/VXE 卸载与 SSH 改造写清；06a/06e/03 同步。代码侧无新增业务变更。 | 暗色/a11y/i18n 全量核对；终端移动浅色；实例文件页 |
+| 2026-07-21 | **终端 M-2 + 实例文件收口**：①`TerminalShell` 移动软键盘（≤768：Ctrl/Alt 修饰 + Esc/Tab/C/D/Z/L/方向/Home/End/PgUp/PgDn，序列注入 `@data`）+ 顶栏 A± 字号 + 底栏 `· Npx`；`useTerminalX` 字号 localStorage 共享热更；浅色 `--term-*` 验过。②实例文件页 `useFullBleed`；**修** 列表/控制台把 `instancePath`（如 `./servers/mc`）当 `workdir` 导致实例 API 500——实例文件根即实例目录，不再透传。浏览器：files 桌面1440/移动390 列表正常；console 390 暗/浅软键盘+字号 13→14、桌面无软键盘。vue-tsc/eslint 绿。**未提交。** | 提交本批；暗色/a11y/i18n 全量核对 |

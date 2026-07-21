@@ -366,13 +366,13 @@ const openInstanceConsole = (item: InstanceRecord) => {
 const openInstanceFileManager = (
   item: Pick<InstanceRecord, 'id' | 'name' | 'status' | 'instancePath'>,
 ) => {
+  // 实例文件 API 以实例目录为根，不能再把 instancePath 当地址（会 500「路径不存在」）
   router.push({
     path: `/instance/files/${item.id}`,
     query: {
       tabTitle: t('instance.instanceFileTab', { name: item.name }),
       from: 'instance',
       status: item.status,
-      workdir: item.instancePath,
     },
   })
 }

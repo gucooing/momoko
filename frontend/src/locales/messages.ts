@@ -5322,6 +5322,13 @@ export const messages = {
     node: nodeMessages['zh-CN'],
     utils: utilityMessages['zh-CN'],
     sub2api: sub2apiMessages['zh-CN'],
+    terminal: {
+      softKeys: '终端软键盘',
+      keyCtrl: 'Ctrl 修饰（点按后点字母）',
+      keyAlt: 'Alt 修饰（点按后点字母）',
+      fontSmaller: '减小字号',
+      fontLarger: '增大字号',
+    },
   },
   'zh-HK': {
     common: {
@@ -6409,6 +6416,13 @@ export const messages = {
     node: nodeMessages['zh-HK'],
     utils: utilityMessages['zh-HK'],
     sub2api: sub2apiMessages['zh-HK'],
+    terminal: {
+      softKeys: '終端軟鍵盤',
+      keyCtrl: 'Ctrl 修飾（點按後點字母）',
+      keyAlt: 'Alt 修飾（點按後點字母）',
+      fontSmaller: '減小字號',
+      fontLarger: '增大字號',
+    },
   },
   'en-US': {
     common: {
@@ -7512,6 +7526,13 @@ export const messages = {
     node: nodeMessages['en-US'],
     utils: utilityMessages['en-US'],
     sub2api: sub2apiMessages['en-US'],
+    terminal: {
+      softKeys: 'Terminal soft keyboard',
+      keyCtrl: 'Ctrl modifier (tap then a letter)',
+      keyAlt: 'Alt modifier (tap then a letter)',
+      fontSmaller: 'Decrease font size',
+      fontLarger: 'Increase font size',
+    },
   },
 } as const
 
