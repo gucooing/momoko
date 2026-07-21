@@ -1,12 +1,12 @@
 <!-- OIDC 客户端（重写 · P1 列表/CRUD）：PageHeader(OIDC配置 + 生成客户端) + FilterBar + DataTable / 移动卡片 + Pagination。
      子弹窗：configDialog(服务端配置) / clientForm(创建编辑) / 内联「客户端配置」只读展示（完整 secret 仅一次）。
-     行内 编辑/刷新密钥/删除（Dialog.info 确认）。保留 list/delete/refreshSecret 契约、PERM.OIDC_EDIT 权限。文案硬编码中文（Phase 4 统一 i18n）。 -->
+     行内 编辑/刷新密钥/删除（Dialog.info 确认）。文案走 system.oidc.*。 -->
 <template>
   <div class="oidc-page">
-    <PageHeader title="OIDC 客户端" description="管理 OIDC 服务端配置与接入客户端（Client ID / Secret / 回调）">
+    <PageHeader :title="t('system.oidc.title')" :description="t('system.oidc.pageDesc')">
       <template #actions>
         <UButton color="neutral" variant="soft" icon="i-lucide-settings" @click="openConfig">
-          OIDC 配置
+          {{ t('system.oidc.openConfig') }}
         </UButton>
         <UButton
           v-permission="[PERM.OIDC_EDIT]"
@@ -14,7 +14,7 @@
           icon="i-lucide-plus"
           @click="openClient()"
         >
-          生成客户端配置
+          {{ t('system.oidc.createClient') }}
         </UButton>
       </template>
     </PageHeader>
@@ -22,11 +22,11 @@
     <FilterBar @search="reload" @reset="reset">
       <template #fields>
         <div class="app-field">
-          <label class="app-label">客户端名称</label>
+          <label class="app-label">{{ t('system.oidc.clientName') }}</label>
           <input
             v-model="queryForm.keywords"
             class="app-input"
-            placeholder="客户端名称"
+            :placeholder="t('system.oidc.clientNamePlaceholder')"
             @keyup.enter="reload"
           />
         </div>
@@ -52,7 +52,7 @@
         <template #cell-active="{ row }">
           <StatusPill
             :variant="row.active ? 'success' : 'neutral'"
-            :label="row.active ? '启用' : '停用'"
+            :label="row.active ? t('system.common.enabled') : t('system.common.inactive')"
           />
         </template>
         <template #cell-redirectUris="{ row }">{{ joinArr(row.redirectUris, ', ') }}</template>
@@ -71,8 +71,8 @@
         <EmptyState
           v-else-if="!clients.length"
           icon="HOutline:KeyIcon"
-          title="暂无 OIDC 客户端"
-          description="点击右上角「生成客户端配置」创建"
+          :title="t('system.oidc.emptyTitle')"
+          :description="t('system.oidc.emptyDesc')"
         />
         <div v-else class="oidc-cards">
           <EntityCard v-for="row in clients" :key="row.id">
@@ -80,12 +80,12 @@
             <template #status>
               <StatusPill
                 :variant="row.active ? 'success' : 'neutral'"
-                :label="row.active ? '启用' : '停用'"
+                :label="row.active ? t('system.common.enabled') : t('system.common.inactive')"
               />
             </template>
             <template #meta>
               <span class="oidc-card__full oidc-mono">{{ row.clientId }}</span>
-              <span class="oidc-card__full">Scopes: {{ row.scopes.join(' ') }}</span>
+              <span class="oidc-card__full">{{ t('system.oidc.colScopes') }}: {{ row.scopes.join(' ') }}</span>
               <span class="oidc-card__full oidc-card__uris">{{ row.redirectUris.join(', ') }}</span>
             </template>
             <template #footer>
@@ -109,10 +109,10 @@
     <OIDCClientForm ref="clientFormRef" @refresh="loadClients" @reveal="openReveal" />
 
     <!-- 客户端配置（完整 secret 仅一次） -->
-    <FormDialog v-model="revealVisible" title="OIDC 客户端配置" :width="720">
+    <FormDialog v-model="revealVisible" :title="t('system.oidc.revealTitle')" :width="720">
       <div class="oidc-reveal">
         <div class="oidc-reveal__warn">
-          Client Secret 只会完整显示一次，请在关闭前复制保存
+          {{ t('system.oidc.secretOnceWarn') }}
         </div>
         <div class="oidc-reveal__grid">
           <div v-for="item in clientConfigItems" :key="item.label" class="app-field">
@@ -128,7 +128,7 @@
               <input v-else class="app-input" :value="item.value" readonly />
               <AppIconButton
                 icon="HOutline:ClipboardDocumentIcon"
-                label="复制"
+                :label="t('common.copy')"
                 :box="32"
                 @click="copyText(item.value)"
               />
@@ -137,9 +137,9 @@
         </div>
       </div>
       <template #footer="{ close }">
-        <UButton color="neutral" variant="soft" @click="close">关闭</UButton>
+        <UButton color="neutral" variant="soft" @click="close">{{ t('common.close') }}</UButton>
         <UButton color="primary" icon="i-lucide-copy" @click="copyText(clientConfigText)">
-          复制全部
+          {{ t('system.oidc.copyAll') }}
         </UButton>
       </template>
     </FormDialog>
@@ -175,19 +175,19 @@ const queryForm = ref({ keywords: '' })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: 'Provider 名称', minWidth: 140 },
-  { key: 'clientId', title: 'Client ID', minWidth: 220 },
-  { key: 'clientSecret', title: 'Client Secret', minWidth: 160 },
-  { key: 'active', title: '状态', width: 90 },
-  { key: 'redirectUris', title: '回调地址', minWidth: 220 },
-  { key: 'scopes', title: 'Scopes', minWidth: 150 },
-  { key: 'operation', title: '操作', width: 70, align: 'center' },
+  { key: 'name', title: t('system.oidc.colName'), minWidth: 140 },
+  { key: 'clientId', title: t('system.oidc.colClientId'), minWidth: 220 },
+  { key: 'clientSecret', title: t('system.oidc.colClientSecret'), minWidth: 160 },
+  { key: 'active', title: t('system.common.status'), width: 90 },
+  { key: 'redirectUris', title: t('system.oidc.colRedirectUris'), minWidth: 220 },
+  { key: 'scopes', title: t('system.oidc.colScopes'), minWidth: 150 },
+  { key: 'operation', title: t('system.common.operation'), width: 70, align: 'center' },
 ])
 
 const rowActions = computed<ActionMenuItem[]>(() => [
-  { key: 'edit', label: '编辑', icon: 'HOutline:PencilSquareIcon' },
-  { key: 'refresh', label: '刷新密钥', icon: 'HOutline:ArrowPathIcon' },
-  { key: 'delete', label: '删除', icon: 'HOutline:TrashIcon', danger: true },
+  { key: 'edit', label: t('system.common.edit'), icon: 'HOutline:PencilSquareIcon' },
+  { key: 'refresh', label: t('system.oidc.refreshSecret'), icon: 'HOutline:ArrowPathIcon' },
+  { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
 ])
 
 const joinArr = (v: unknown, sep: string) => (Array.isArray(v) ? v.join(sep) : '')
@@ -236,9 +236,9 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
 const refreshSecret = (client: OIDCClientInfo) => {
   Dialog.info({
     showCancelButton: true,
-    content: '刷新后旧 Client Secret 将立即失效，确定刷新？',
-    confirmText: '刷新',
-    cancelText: '取消',
+    content: t('system.oidc.refreshSecretConfirm'),
+    confirmText: t('system.oidc.refresh'),
+    cancelText: t('common.cancel'),
     onConfirm: async () => {
       const { data } = await refreshOIDCClientSecret({ id: client.id })
       if (data?.client) openReveal(data.client)
@@ -250,12 +250,12 @@ const refreshSecret = (client: OIDCClientInfo) => {
 const confirmDelete = (client: OIDCClientInfo) => {
   Dialog.info({
     showCancelButton: true,
-    content: `确定删除客户端「${client.name}」吗？`,
-    confirmText: '删除',
-    cancelText: '取消',
+    content: t('system.oidc.deleteConfirm', { name: client.name }),
+    confirmText: t('common.delete'),
+    cancelText: t('common.cancel'),
     onConfirm: async () => {
       await deleteOIDCClient({ id: client.id })
-      feedback.success('删除成功')
+      feedback.success(t('common.deleteSuccess'))
       loadClients()
     },
   })
@@ -270,19 +270,19 @@ const clientConfigItems = computed<{ label: string; value: string; multiline?: b
   if (!client) return []
   const e = config.value?.endpoints
   return [
-    { label: 'Provider 名称', value: client.name },
-    { label: 'Client ID', value: client.clientId },
-    { label: 'Client Secret', value: client.clientSecret },
-    { label: '回调地址', value: client.redirectUris.join('\n'), multiline: true },
-    { label: 'Scopes', value: client.scopes.join(' ') },
-    { label: 'Issuer URL', value: e?.issuerUrl || '' },
-    { label: 'Discovery URL', value: e?.discoveryUrl || '' },
-    { label: 'Authorize URL', value: e?.authorizeUrl || '' },
-    { label: 'Token URL', value: e?.tokenUrl || '' },
-    { label: 'UserInfo URL', value: e?.userinfoUrl || '' },
-    { label: 'JWKS URL', value: e?.jwksUrl || '' },
-    { label: 'Token 鉴权方式', value: e?.tokenEndpointAuthMethod || 'client_secret_post' },
-    { label: '允许的签名算法', value: e?.allowedIdTokenSigningAlgs || 'RS256,ES256,PS256' },
+    { label: t('system.oidc.colName'), value: client.name },
+    { label: t('system.oidc.colClientId'), value: client.clientId },
+    { label: t('system.oidc.colClientSecret'), value: client.clientSecret },
+    { label: t('system.oidc.colRedirectUris'), value: client.redirectUris.join('\n'), multiline: true },
+    { label: t('system.oidc.colScopes'), value: client.scopes.join(' ') },
+    { label: t('system.oidc.issuerUrl'), value: e?.issuerUrl || '' },
+    { label: t('system.oidc.discoveryUrl'), value: e?.discoveryUrl || '' },
+    { label: t('system.oidc.authorizeUrl'), value: e?.authorizeUrl || '' },
+    { label: t('system.oidc.tokenUrl'), value: e?.tokenUrl || '' },
+    { label: t('system.oidc.userinfoUrl'), value: e?.userinfoUrl || '' },
+    { label: t('system.oidc.jwksUrl'), value: e?.jwksUrl || '' },
+    { label: t('system.oidc.tokenAuthMethod'), value: e?.tokenEndpointAuthMethod || 'client_secret_post' },
+    { label: t('system.oidc.signingAlgs'), value: e?.allowedIdTokenSigningAlgs || 'RS256,ES256,PS256' },
   ].filter((item) => item.value)
 })
 const clientConfigText = computed(() =>
@@ -296,7 +296,7 @@ const openReveal = (client: OIDCClientInfo) => {
 
 const copyText = async (value: string) => {
   await navigator.clipboard.writeText(value)
-  feedback.success('已复制')
+  feedback.success(t('system.oidc.copied'))
 }
 
 const loadConfig = async () => {

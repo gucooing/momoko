@@ -1,10 +1,9 @@
-<!-- OIDC 客户端 创建/编辑弹窗（重写 · P1）：FormDialog + 令牌字段 + 内联校验。
-     保存后：新建/刷新会返回完整 Client Secret → 通过 reveal 事件交父级弹「客户端配置」展示；同时 refresh 列表。
-     文案沿用原页面硬编码中文（i18n 全量核对属 Phase 4）。 -->
+<!-- OIDC 客户端 创建/编辑弹窗（P1）：FormDialog + 令牌字段 + 内联校验。
+     保存后：新建会返回完整 Client Secret → 通过 reveal 事件交父级展示；同时 refresh 列表。 -->
 <template>
   <FormDialog
     v-model="open"
-    :title="form.id ? '编辑 OIDC 客户端' : '生成 OIDC 客户端配置'"
+    :title="form.id ? t('system.oidc.editTitle') : t('system.oidc.createTitle')"
     :width="560"
     :loading="saving"
     @confirm="confirm"
@@ -12,39 +11,39 @@
   >
     <div class="oidc-form">
       <div class="app-field">
-        <label class="app-label app-label--required">Provider 名称</label>
+        <label class="app-label app-label--required">{{ t('system.oidc.providerName') }}</label>
         <input
           v-model="form.name"
           class="app-input"
           :class="{ 'is-error': errors.name }"
-          placeholder="OIDC"
+          :placeholder="t('system.oidc.providerNamePlaceholder')"
         />
         <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
       </div>
 
       <div class="app-field">
-        <label class="app-label app-label--required">回调地址</label>
+        <label class="app-label app-label--required">{{ t('system.oidc.redirectUris') }}</label>
         <textarea
           v-model="form.redirectUrisText"
           class="app-textarea"
           :class="{ 'is-error': errors.redirectUris }"
           rows="4"
-          placeholder="每行一个 Redirect URI"
+          :placeholder="t('system.oidc.redirectUrisPlaceholder')"
         />
         <span v-if="errors.redirectUris" class="app-field__error">{{ errors.redirectUris }}</span>
       </div>
 
       <div class="app-field">
-        <label class="app-label">Scopes</label>
+        <label class="app-label">{{ t('system.oidc.scopes') }}</label>
         <input v-model="form.scopesText" class="app-input" placeholder="openid email profile" />
-        <span class="oidc-form__hint">留空默认 openid email profile；必须包含 openid</span>
+        <span class="oidc-form__hint">{{ t('system.oidc.scopesHint') }}</span>
       </div>
 
       <div class="app-field">
-        <label class="app-label">状态</label>
+        <label class="app-label">{{ t('system.common.status') }}</label>
         <div class="oidc-form__switch">
           <AppSwitch v-model="form.active" />
-          <span>{{ form.active ? '启用' : '停用' }}</span>
+          <span>{{ form.active ? t('system.common.enabled') : t('system.common.inactive') }}</span>
         </div>
       </div>
     </div>
@@ -52,12 +51,14 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { createOIDCClient, updateOIDCClient } from '@/api/oidc'
 import type { OIDCClientInfo } from '@/types/v1/oidc'
 
 defineOptions({ name: 'OIDCClientForm' })
 
 const emit = defineEmits<{ refresh: []; reveal: [client: OIDCClientInfo] }>()
+const { t } = useI18n()
 
 const open = ref(false)
 const saving = ref(false)
@@ -87,8 +88,8 @@ const close = () => {
 
 const validate = (): boolean => {
   const e: Record<string, string> = {}
-  if (!form.value.name.trim()) e.name = '请输入 Provider 名称'
-  if (!splitLines(form.value.redirectUrisText).length) e.redirectUris = '请至少填写一个回调地址'
+  if (!form.value.name.trim()) e.name = t('system.oidc.providerNameRequired')
+  if (!splitLines(form.value.redirectUrisText).length) e.redirectUris = t('system.oidc.redirectUrisRequired')
   errors.value = e
   return Object.keys(e).length === 0
 }
@@ -106,7 +107,7 @@ const confirm = async () => {
     const { data } = form.value.id
       ? await updateOIDCClient({ id: form.value.id, ...payload })
       : await createOIDCClient(payload)
-    feedback.success(form.value.id ? '编辑成功' : '生成成功')
+    feedback.success(form.value.id ? t('system.oidc.editSuccess') : t('system.oidc.createSuccess'))
     emit('refresh')
     // 新建/刷新会带完整 secret（不含掩码 *），交父级弹配置展示
     if (data?.client?.clientSecret && !data.client.clientSecret.includes('*')) {

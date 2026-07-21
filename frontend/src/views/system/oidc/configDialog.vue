@@ -1,12 +1,12 @@
-<!-- OIDC 服务端配置弹窗（重写 · P1）：FormDialog + 令牌字段（AppSwitch/输入/数字）+ 只读端点复制区。
-     打开时拉取配置回填；保存后 emit saved(config) 供父级更新缓存（客户端配置展示需要端点）。文案硬编码中文（Phase 4 统一 i18n）。 -->
+<!-- OIDC 服务端配置弹窗（P1）：FormDialog + 令牌字段（AppSwitch/输入/数字）+ 只读端点复制区。
+     打开时拉取配置回填；保存后 emit saved(config) 供父级更新缓存。 -->
 <template>
   <FormDialog
     v-model="open"
-    title="OIDC 配置"
+    :title="t('system.oidc.configTitle')"
     :width="720"
     :loading="saving"
-    confirm-text="保存配置"
+    :confirm-text="t('system.oidc.saveConfig')"
     @confirm="save"
     @close="open = false"
   >
@@ -14,17 +14,15 @@
       <!-- 启用开关 -->
       <div class="oidc-config__row">
         <div class="oidc-config__info">
-          <span class="oidc-config__label">启用 OIDC 服务端</span>
-          <span class="oidc-config__desc">
-            开启后可通过 Discovery、Authorize、Token、UserInfo、JWKS 端点接入第三方系统
-          </span>
+          <span class="oidc-config__label">{{ t('system.oidc.enableServer') }}</span>
+          <span class="oidc-config__desc">{{ t('system.oidc.enableServerDesc') }}</span>
         </div>
         <AppSwitch v-model="form.enabled" :disabled="!canEdit" />
       </div>
 
       <!-- Issuer URL -->
       <div class="app-field">
-        <label class="app-label">Issuer URL</label>
+        <label class="app-label">{{ t('system.oidc.issuerUrl') }}</label>
         <div class="oidc-config__inline">
           <input
             v-model="form.issuerUrl"
@@ -33,7 +31,7 @@
             placeholder="https://example.com"
           />
           <UButton color="neutral" variant="soft" :disabled="!canEdit" @click="useCurrentOrigin">
-            当前域名
+            {{ t('system.oidc.useCurrentOrigin') }}
           </UButton>
         </div>
       </div>
@@ -41,7 +39,7 @@
       <!-- TTL -->
       <div class="oidc-config__ttl">
         <div class="app-field">
-          <label class="app-label">Access Token 有效期（秒）</label>
+          <label class="app-label">{{ t('system.oidc.accessTokenTtl') }}</label>
           <input
             v-model.number="form.accessTokenTtlSeconds"
             type="number"
@@ -52,7 +50,7 @@
           />
         </div>
         <div class="app-field">
-          <label class="app-label">ID Token 有效期（秒）</label>
+          <label class="app-label">{{ t('system.oidc.idTokenTtl') }}</label>
           <input
             v-model.number="form.idTokenTtlSeconds"
             type="number"
@@ -63,7 +61,7 @@
           />
         </div>
         <div class="app-field">
-          <label class="app-label">授权码有效期（秒）</label>
+          <label class="app-label">{{ t('system.oidc.authCodeTtl') }}</label>
           <input
             v-model.number="form.authorizationCodeTtlSeconds"
             type="number"
@@ -83,7 +81,7 @@
             <input class="app-input" :value="item.value" readonly />
             <AppIconButton
               icon="HOutline:ClipboardDocumentIcon"
-              label="复制"
+              :label="t('common.copy')"
               :box="32"
               @click="copyText(item.value)"
             />
@@ -95,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { getOIDCConfig, updateOIDCConfig } from '@/api/oidc'
 import type { OIDCConfig } from '@/types/v1/oidc'
 
@@ -102,6 +101,7 @@ defineOptions({ name: 'OIDCConfigDialog' })
 
 defineProps<{ canEdit: boolean }>()
 const emit = defineEmits<{ saved: [config: OIDCConfig] }>()
+const { t } = useI18n()
 
 const open = ref(false)
 const saving = ref(false)
@@ -119,15 +119,15 @@ const endpointItems = computed(() => {
   const e = config.value?.endpoints
   if (!e) return []
   return [
-    { label: 'Issuer URL', value: e.issuerUrl },
-    { label: 'Discovery URL', value: e.discoveryUrl },
-    { label: 'Authorize URL', value: e.authorizeUrl },
-    { label: 'Token URL', value: e.tokenUrl },
-    { label: 'UserInfo URL', value: e.userinfoUrl },
-    { label: 'JWKS URL', value: e.jwksUrl },
-    { label: 'Scopes', value: e.scopes },
-    { label: 'Token 鉴权方式', value: e.tokenEndpointAuthMethod },
-    { label: '允许的签名算法', value: e.allowedIdTokenSigningAlgs },
+    { label: t('system.oidc.issuerUrl'), value: e.issuerUrl },
+    { label: t('system.oidc.discoveryUrl'), value: e.discoveryUrl },
+    { label: t('system.oidc.authorizeUrl'), value: e.authorizeUrl },
+    { label: t('system.oidc.tokenUrl'), value: e.tokenUrl },
+    { label: t('system.oidc.userinfoUrl'), value: e.userinfoUrl },
+    { label: t('system.oidc.jwksUrl'), value: e.jwksUrl },
+    { label: t('system.oidc.scopes'), value: e.scopes },
+    { label: t('system.oidc.tokenAuthMethod'), value: e.tokenEndpointAuthMethod },
+    { label: t('system.oidc.signingAlgs'), value: e.allowedIdTokenSigningAlgs },
   ].filter((item) => item.value)
 })
 
@@ -160,7 +160,7 @@ const save = async () => {
       setForm(data.config)
       emit('saved', data.config)
     }
-    feedback.success('保存成功')
+    feedback.success(t('system.oidc.saveSuccess'))
     open.value = false
   } finally {
     saving.value = false
@@ -169,7 +169,7 @@ const save = async () => {
 
 const copyText = async (value: string) => {
   await navigator.clipboard.writeText(value)
-  feedback.success('已复制')
+  feedback.success(t('system.oidc.copied'))
 }
 
 const showDialog = async () => {
