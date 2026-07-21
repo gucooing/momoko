@@ -16,7 +16,7 @@
                 <slot name="title">{{ title }}</slot>
               </h3>
               <button type="button" class="fd-close" :aria-label="t('common.close')" @click="close">
-                <el-icon><IconClose /></el-icon>
+                <IconClose class="fd-close-icon" />
               </button>
             </header>
 
@@ -148,8 +148,9 @@ onBeforeUnmount(() => {
   background: var(--fm-hover);
   color: var(--fm-text);
 }
-.fd-close .el-icon {
-  font-size: 18px;
+.fd-close-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .fd-body {

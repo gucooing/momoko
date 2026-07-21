@@ -6,7 +6,7 @@
       <audio v-else-if="kind === 'audio'" :src="previewUrl" class="fv-audio" controls autoplay />
       <div v-else-if="loading" class="fv-state">{{ t('file.share.loading') }}</div>
       <div v-else-if="unpreviewable" class="fv-state">
-        <el-icon class="fv-state-icon"><IconWarning /></el-icon>
+        <IconWarning class="fv-state-icon" />
         <p>{{ t('fileManager.cannotEditBinary') }}</p>
       </div>
       <div v-else ref="monacoEl" class="fv-monaco"></div>
@@ -15,7 +15,7 @@
     <template #footer>
       <span class="fv-lang">{{ statusText }}</span>
       <a class="fm-btn" :href="downloadUrl" :download="name" target="_blank" rel="noopener">
-        <el-icon><IconDownload /></el-icon>{{ t('fileManager.download') }}
+        <IconDownload />{{ t('fileManager.download') }}
       </a>
       <button type="button" class="fm-btn fm-btn--primary" @click="visible = false">
         {{ t('system.common.confirm') }}
@@ -172,7 +172,8 @@ onBeforeUnmount(disposeEditor)
   font-size: 13px;
 }
 .fv-state-icon {
-  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 .fv-lang {
   flex: 1;

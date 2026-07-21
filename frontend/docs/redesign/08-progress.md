@@ -14,7 +14,7 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + 个人中心 + **Sub2API 配置** 完成；余 Sub2API 首页/活动 + public/*；监控=假数据(Phase 4 待决) |
+| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + 个人中心 + Sub2API(配置/首页/活动) + **公开门户全部(home/stats/imagine/lottery/share) + OIDC 授权** 去 EP 完成；仅余监控=假数据(Phase 4 待决) |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
 | Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ⬜ |
 
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状（换设备从这里接）**：Phase 0–2 + Phase 3 大半完成。**公开门户 `home/stats`(`ea7c1d4`) + `imagine` 去 EP + `lottery` 顶栏对齐已完成（本会话未提交）**；`activity` 去 EP 已提交 `24fa5e7`。监控假数据→Phase 4。**下一步**：提交 imagine/lottery 批次 → `public/share` / `oidc` 仍 EP → Phase 4 卸 EP。
+> **一句话现状（换设备从这里接）**：Phase 0–2 + Phase 3 基本完成。公开门户全部去 EP：`home/stats`(`ea7c1d4`)、`imagine`+`lottery`(`9c963f8`)、`activity`(`24fa5e7`)；**本会话 `public/share`（el-icon 去净、留 fm-* 文件主题）+ `oidc/authorize`（全量重写）去 EP 完成并全验，未提交**。监控假数据→Phase 4。**下一步**：提交本批 → Phase 4（卸 EP/VXE + 清 demo + 暗色/可访问性/i18n 全量核对）。
 
 ### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
 > 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。
@@ -182,8 +182,8 @@
 |---|---|---|---|---|---|---|
 | 登录/注册/找回 | login | P7 | ✅ | ✅ | ✅ | 🟡 居中卡重写完成；桌面/移动/暗色+登录链路已验；未提交 |
 | 初始化向导 | initialize | P3 | ✅ | ✅ | ✅ | 🟡 居中卡三步向导去 EP；mock 全链路(库选/测试/管理员/确认/完成)验；桌面/移动/暗；未提交 |
-| 分享落地 | public/share/:token | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
-| OIDC 授权 | oidc/authorize | P7 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 分享落地 | public/share/:token | P7 | ✅ | ✅ | ✅ | 🟡 去 EP（`el-icon`×9 移除→裸 heroicon svg，**保留 fm-* 文件模块自有主题**）；桌面暗/浅+移动390 真实分享(Lolo) 根/子目录面包屑/README 预览(FileViewerDialog+Monaco) 全验；登录按钮 i18n；未提交 |
+| OIDC 授权 | oidc/authorize | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 全量重写（居中令牌卡+角标语言/明暗+AppAvatar+scope 友好列表+redirect 提示+UButton+EmptyState 无效态+useFeedback）；桌面/移动×明暗 happy path(真实 client)+无效请求错误态(真实后端报错) 全验；`oidc.authorize.*` 三语；未提交 |
 | Sub2API 门户 | public/sub2api/home | P7 | ✅ | ✅ | ✅ | 🟡 拆接口+去 EP+渐进渲染；顶栏仅语言/主题/公告；移动单行；**`ea7c1d4`** |
 | Sub2API 统计 | public/sub2api/stats | P7 | ✅ | ✅ | ✅ | 🟡 去 EP + Metric 图标 + 明确 loading + stagger；360 语言菜单不越界；**`ea7c1d4`** |
 | Sub2API 绘图 | public/sub2api/imagine | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 全量（AppSelect/FormDialog/lightbox/StatusPill/EmptyState）；桌面1440暗浅+移动390+参数弹窗验；**未提交** |
@@ -246,4 +246,5 @@
 | 2026-07-20 | **Sub2API 后端重写浏览器实测通过 + 全局列表闪屏修复（用户点名）**：用户已重跑 Go+全量重同步；curl+浏览器实测新端点全对。**用户反馈整页闪** → 修共享 `DataTable`：骨架仅首屏，重载保留旧行+延迟 220ms veil；管理 home 概览改轻 spinner。已随 `c8d08f2` 提交。 | 公开门户 |
 | 2026-07-20 | **公开门户 home+stats 提交 `ea7c1d4`**：home 拆 `snapshot`+`GetPublicSub2APIOverview`+三请求渐进；stats 去 EP（Metric 图标/明确 loading/stagger/LanguageMenu）；`AppDropdown` 视口钳制；移动顶栏单行；home 顶栏去重复 CTA、hero「用量详情」；完整浏览器验收后提交。 | `public/sub2api/imagine` → lottery → activity |
 | 2026-07-20 | **Sub2API 活动 `activity` 按重写文档去 EP 重写布局**：用户点名历史勿按钮弹窗、设置进累计中。实现：`el-tabs`→令牌 `s2a-tabs`；累计中 `#actions` 设置 FormDialog(P3 set-row)；报名中 AppPanel；**页底历史 DataTable 行点详情**；`DataTable` 加 `row-click`/`rowClickable`；规格补入 `06c`。已提交 **`24fa5e7`**（含抽奖历史状态按发放口径）。 | public imagine/lottery |
-| 2026-07-20 | **公开绘图 `public/sub2api/imagine` 去 EP 全量重写 + lottery 顶栏对齐**：①imagine：`el-*`/`BaseDialog`/`v-loading` → AppSelect(Key/Model)+AppIconButton 主题 + EmptyState/StatusPill + 令牌 mode-seg composer + FormDialog(参数 chip/详情/删除) + 自建 lightbox(替 el-image)；store 契约不动。②lottery 顶栏 `UIcon` icon-btn → AppIconButton。③规格补 `06e`。浏览器：imagine 1440 暗/浅+参数弹窗+390 移动(含图生图)；lottery 桌面暗真实奖池/历史/规则弹窗；vue-tsc/eslint 绿。**未提交。** | 提交本批；`public/share` / `oidc` 或 Phase 4 |
+| 2026-07-20 | **公开绘图 `public/sub2api/imagine` 去 EP 全量重写 + lottery 顶栏对齐**：①imagine：`el-*`/`BaseDialog`/`v-loading` → AppSelect(Key/Model)+AppIconButton 主题 + EmptyState/StatusPill + 令牌 mode-seg composer + FormDialog(参数 chip/详情/删除) + 自建 lightbox(替 el-image)；store 契约不动。②lottery 顶栏 `UIcon` icon-btn → AppIconButton。③规格补 `06e`。浏览器：imagine 1440 暗/浅+参数弹窗+390 移动(含图生图)；lottery 桌面暗真实奖池/历史/规则弹窗；vue-tsc/eslint 绿。**已提交 `9c963f8`。** | `public/share` / `oidc/authorize` 去 EP 或 Phase 4 |
+| 2026-07-21 | **公开分享落地 `public/share` + OIDC 授权 `oidc/authorize` 去 EP**：①**share 链路**（`views/public/share/index.vue`+`components/file/FileViewerDialog.vue`+`FileDialog.vue`）移除 `el-icon`×9 → 裸 heroicon svg（`sp-*`/`fv-*`/`fd-*` 图标类 `font-size`→`width/height`；`theme.css .fm-btn svg` 已含尺寸，无需改）；登录按钮硬编码中文→`file.share.login` 三语。**保留 fm-* 文件模块自有主题**（自成体系薄荷主题，非 EP，随文件模块增量待迁）。②**oidc/authorize 全量重写**：EP（`el-avatar`/`el-icon`/`el-alert`/`v-loading`/`el-button`+`@element-plus/icons-vue`+`--el-*` 布局+硬编码中文）→ 居中令牌卡，**对齐 login 门面**（冷灰页底+hairline 卡+角标 `LanguageMenu`+明暗 `AppIconButton`）；shield 头 + `AppAvatar` 账户条 + **scope 友好列表**（`SCOPE_META` 映射 openid/profile/email/offline_access/phone/address→图标+三语文案，未知 scope 原样）+ redirect host 安全提示 + `UButton` 授权/拒绝（移动 column-reverse 主按钮置顶）+ `EmptyState` 无效请求态 + `useFeedback`+`getRequestErrorMessage`（**弃用 EP 的 `showRequestError`**）；保留全部授权流（authorize-info/authorize-code/deny access_denied/PKCE 透传）。`oidc.authorize.*` 顶层命名空间三语。**浏览器全验**（隔离 headless Chrome `:9222` + 手写 `DevToolsActivePort` bridge 到默认 profile 供 MCP autoConnect）：oidc 桌面1440/移动390(emulate 真 390，`resize_page` 触底 500px)×明暗 happy path（临时建真实 client 验后删）+ 无效请求错误态（真实后端「OIDC 客户端无效」）；share 桌面/移动×明暗 真实分享(Lolo) 根/子目录（面包屑 chevron 分隔）/README 预览(FileViewerDialog+Monaco markdown 高亮+关闭/下载图标)；零控制台报错，vue-tsc+eslint 绿。**未提交。** | 提交本批 → Phase 4（卸 EP/VXE + 清 demo + 暗色/可访问性/i18n 全量核对） |

@@ -5,7 +5,7 @@
         <img :src="APP_CONFIG.logoSrc" :alt="APP_CONFIG.name" class="sp-site-logo" />
         <span class="sp-site-name">{{ APP_CONFIG.name }}</span>
       </div>
-      <a class="sp-login-button" :href="loginHref">登录</a>
+      <a class="sp-login-button" :href="loginHref">{{ t('file.share.login') }}</a>
     </header>
 
     <div class="sp-card">
@@ -14,13 +14,13 @@
 
       <!-- 不存在 / 失效 -->
       <div v-else-if="notFound" class="sp-state">
-        <el-icon class="sp-state-icon"><IconWarning /></el-icon>
+        <IconWarning class="sp-state-icon" />
         <p>{{ t('file.share.notFound') }}</p>
       </div>
 
       <!-- 已关闭/过期/超次数 -->
       <div v-else-if="meta && !meta.available" class="sp-state">
-        <el-icon class="sp-state-icon"><IconWarning /></el-icon>
+        <IconWarning class="sp-state-icon" />
         <p>{{ t('file.share.unavailable') }}</p>
       </div>
 
@@ -65,7 +65,7 @@
                   {{ t('file.share.root') }}
                 </button>
                 <template v-for="(seg, index) in subSegments" :key="seg.path">
-                  <el-icon class="sp-crumb-sep"><IconChevronRight /></el-icon>
+                  <IconChevronRight class="sp-crumb-sep" />
                   <button type="button" class="sp-crumb" @click="goTo(seg.path)">
                     {{ seg.name }}
                   </button>
@@ -73,7 +73,7 @@
                 </template>
               </div>
               <a class="fm-btn" :href="downloadUrl(subPath)" target="_blank" rel="noopener">
-                <el-icon><IconDownload /></el-icon>{{ t('file.share.downloadZip') }}
+                <IconDownload />{{ t('file.share.downloadZip') }}
               </a>
             </div>
 
@@ -82,9 +82,11 @@
             <ul v-else class="sp-list">
               <li v-for="entry in entries" :key="entry.relPath" class="sp-entry">
                 <button type="button" class="sp-entry-main" @click="onEntry(entry)">
-                  <el-icon class="sp-entry-icon" :class="entry.isDir ? 'is-folder' : 'is-file'">
-                    <component :is="entry.isDir ? IconFolder : IconFile" />
-                  </el-icon>
+                  <component
+                    :is="entry.isDir ? IconFolder : IconFile"
+                    class="sp-entry-icon"
+                    :class="entry.isDir ? 'is-folder' : 'is-file'"
+                  />
                   <span class="sp-entry-name">{{ entry.name }}</span>
                 </button>
                 <div class="sp-entry-meta-row">
@@ -347,7 +349,8 @@ onMounted(fetchMeta)
   font-size: 14px;
 }
 .sp-state-icon {
-  font-size: 34px;
+  width: 34px;
+  height: 34px;
   color: var(--fm-folder);
 }
 .sp-header {
@@ -430,7 +433,8 @@ onMounted(fetchMeta)
   color: var(--fm-accent);
 }
 .sp-crumb-sep {
-  font-size: 13px;
+  width: 13px;
+  height: 13px;
   color: var(--fm-text-3);
 }
 .sp-list {
@@ -463,7 +467,8 @@ onMounted(fetchMeta)
   text-align: left;
 }
 .sp-entry-icon {
-  font-size: 18px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 .sp-entry-icon.is-folder {
