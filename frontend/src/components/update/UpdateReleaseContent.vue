@@ -12,7 +12,11 @@
     <section class="release-section">
       <div class="release-heading">{{ t('layout.updateReleaseContent') }}</div>
       <div v-if="hasReleaseBody" class="release-markdown" v-html="renderedReleaseBody"></div>
-      <el-empty v-else :description="t('layout.updateReleaseEmpty')" :image-size="80" />
+      <EmptyState
+        v-else
+        icon="HOutline:DocumentTextIcon"
+        :title="t('layout.updateReleaseEmpty')"
+      />
     </section>
   </div>
 </template>

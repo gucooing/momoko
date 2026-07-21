@@ -67,7 +67,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-.file-module .fm-btn .el-icon,
 .file-module .fm-btn svg {
   font-size: 16px;
   width: 16px;
@@ -128,7 +127,6 @@
   background: var(--fm-danger-soft);
   color: var(--fm-danger);
 }
-.file-module .fm-icon-btn .el-icon,
 .file-module .fm-icon-btn svg {
   font-size: 17px;
   width: 17px;

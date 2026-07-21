@@ -1,7 +1,4 @@
 import { createI18n } from 'vue-i18n'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import zhTw from 'element-plus/es/locale/lang/zh-tw'
-import en from 'element-plus/es/locale/lang/en'
 import { APP_LOCALES, type AppLocale } from '@/locales/types'
 import { knownTextMessages, messages } from '@/locales/messages'
 
@@ -64,12 +61,6 @@ export const languageOptions: Array<{ code: AppLocale; shortLabel: string; label
   { code: 'zh-HK', shortLabel: 'HK', labelKey: 'language.traditionalChinese' },
   { code: 'en-US', shortLabel: 'EN', labelKey: 'language.english' },
 ]
-
-export const elementPlusLocales = {
-  'zh-CN': zhCn,
-  'zh-HK': zhTw,
-  'en-US': en,
-} satisfies Record<AppLocale, typeof zhCn>
 
 export const getCurrentLocale = () => i18n.global.locale.value as AppLocale
 

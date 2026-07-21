@@ -1,27 +1,10 @@
+<!-- 自适应确认：桌面/移动统一走令牌 Dialog.confirm（去 el-popconfirm）。
+     触发器仍是默认/reference 插槽；点击后弹确认。 -->
 <template>
-  <el-popconfirm
-    v-if="!menuStore.isMobile"
-    v-bind="attrs"
-    :title="title"
-    :placement="placement"
-    :width="width"
-    :disabled="disabled"
-    :confirm-button-text="resolvedConfirmButtonText"
-    :cancel-button-text="resolvedCancelButtonText"
-    :show-after="showAfter"
-    @confirm="handleConfirm"
-  >
-    <template #reference>
-      <slot name="reference">
-        <slot />
-      </slot>
-    </template>
-  </el-popconfirm>
   <span
-    v-else
     class="adaptive-confirm__reference"
     :class="{ 'is-disabled': disabled }"
-    @click="handleMobileTriggerClick"
+    @click="handleTriggerClick"
   >
     <slot name="reference">
       <slot />
@@ -30,14 +13,11 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance, useAttrs } from 'vue'
-import { useMenuStore } from '@/stores/menu'
+import { getCurrentInstance } from 'vue'
 import { Dialog } from '@/utils/dialog'
 import { useI18n } from 'vue-i18n'
 
-defineOptions({
-  inheritAttrs: false,
-})
+defineOptions({ inheritAttrs: false })
 
 interface Props {
   title?: string
@@ -50,9 +30,7 @@ interface Props {
   showAfter?: number
 }
 
-defineEmits<{
-  confirm: []
-}>()
+defineEmits<{ confirm: [] }>()
 
 const props = withDefaults(defineProps<Props>(), {
   title: '',
@@ -62,9 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   showAfter: 0,
 })
 
-const attrs = useAttrs()
 const instance = getCurrentInstance()
-const menuStore = useMenuStore()
 const { t } = useI18n()
 const resolvedDialogTitle = computed(() => props.dialogTitle || t('dialog.title.confirm'))
 const resolvedConfirmButtonText = computed(() => props.confirmButtonText || t('common.confirm'))
@@ -77,7 +53,6 @@ const resolveConfirmListeners = (): ConfirmListener[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is ConfirmListener => typeof item === 'function')
   }
-
   return typeof value === 'function' ? [value as ConfirmListener] : []
 }
 
@@ -87,15 +62,16 @@ const handleConfirm = async () => {
   }
 }
 
-const handleMobileTriggerClick = () => {
+const handleTriggerClick = () => {
   if (props.disabled) return
-
   Dialog.confirm({
     title: resolvedDialogTitle.value,
     content: props.title,
     confirmText: resolvedConfirmButtonText.value,
     cancelText: resolvedCancelButtonText.value,
     onConfirm: handleConfirm,
+  }).catch(() => {
+    // 取消时 Dialog.confirm reject('cancel')，此处吞掉避免未捕获 promise
   })
 }
 </script>
@@ -104,9 +80,11 @@ const handleMobileTriggerClick = () => {
 .adaptive-confirm__reference {
   display: inline-flex;
   max-width: 100%;
+  cursor: pointer;
 }
-
 .adaptive-confirm__reference.is-disabled {
   cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
 }
 </style>

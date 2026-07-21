@@ -2,29 +2,45 @@
   <BaseDialog v-model="visible" :title="t('docker.task.title')" width="760" :show-footer="false" @open="loadTasks">
     <div class="task-dialog">
       <div class="task-toolbar">
-        <el-button size="small" :icon="menuStore.iconComponents.Refresh" :loading="listLoading" @click="loadTasks">
+        <UButton
+          color="neutral"
+          variant="soft"
+          size="sm"
+          :loading="listLoading"
+          @click="loadTasks"
+        >
+          <template #leading>
+            <component :is="menuStore.iconComponents['HOutline:ArrowPathIcon']" class="task-refresh-icon" />
+          </template>
           {{ t('docker.common.refresh') }}
-        </el-button>
+        </UButton>
       </div>
 
-      <div v-loading="listLoading" class="task-list">
-        <div
-          v-for="item in tasks"
-          :key="item.id"
-          class="task-list-item"
-          @click="openLog(item)"
-        >
-          <div class="task-list-item__main">
-            <span class="task-list-item__title">{{ displayTaskTitle(item) }}</span>
-            <BaseTag :text="statusLabel(item.status)" :type="statusTagType(item.status)" />
+      <div class="task-list" :class="{ 'is-loading': listLoading }">
+        <div v-if="listLoading" class="task-list__loading">{{ t('system.common.loading') }}</div>
+        <template v-else>
+          <div
+            v-for="item in tasks"
+            :key="item.id"
+            class="task-list-item"
+            @click="openLog(item)"
+          >
+            <div class="task-list-item__main">
+              <span class="task-list-item__title">{{ displayTaskTitle(item) }}</span>
+              <StatusPill :variant="statusPillVariant(item.status)" :label="statusLabel(item.status)" />
+            </div>
+            <div class="task-list-item__meta">
+              <span>{{ taskTimeRange(item) }}</span>
+              <span v-if="item.message">{{ item.message }}</span>
+              <span v-else-if="item.error" class="task-error">{{ item.error }}</span>
+            </div>
           </div>
-          <div class="task-list-item__meta">
-            <span>{{ taskTimeRange(item) }}</span>
-            <span v-if="item.message">{{ item.message }}</span>
-            <span v-else-if="item.error" class="task-error">{{ item.error }}</span>
-          </div>
-        </div>
-        <el-empty v-if="!listLoading && !tasks.length" :description="t('docker.task.noTasks')" />
+          <EmptyState
+            v-if="!tasks.length"
+            icon="HOutline:InboxIcon"
+            :title="t('docker.task.noTasks')"
+          />
+        </template>
       </div>
     </div>
   </BaseDialog>
@@ -50,7 +66,6 @@ import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 import { listDockerTasks } from '@/api/docker'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import BaseTag from '@/components/tag/BaseTag.vue'
 import { showRequestError } from '@/utils/request'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
 import { DockerTaskStatus, DockerTaskType } from '@/types/v1/docker'
@@ -86,12 +101,14 @@ let fitAddon: FitAddon | null = null
 let resizeObserver: ResizeObserver | null = null
 let manualSocketClose = false
 
-const STATUS_TAG_MAP: Partial<Record<DockerTaskStatus, 'success' | 'info' | 'warning' | 'danger'>> = {
+const STATUS_PILL_MAP: Partial<
+  Record<DockerTaskStatus, 'success' | 'info' | 'warning' | 'error' | 'neutral'>
+> = {
   [DockerTaskStatus.DOCKER_TASK_STATUS_PENDING]: 'info',
   [DockerTaskStatus.DOCKER_TASK_STATUS_RUNNING]: 'warning',
   [DockerTaskStatus.DOCKER_TASK_STATUS_SUCCESS]: 'success',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_FAILED]: 'danger',
-  [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: 'info',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_FAILED]: 'error',
+  [DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED]: 'neutral',
 }
 
 const TASK_TYPE_KEY_MAP: Partial<Record<DockerTaskType, string>> = {
@@ -110,7 +127,7 @@ const statusLabel = (status: DockerTaskStatus) => {
   if (status === DockerTaskStatus.DOCKER_TASK_STATUS_CANCELED) return t('docker.task.status.canceled')
   return '-'
 }
-const statusTagType = (status: DockerTaskStatus) => STATUS_TAG_MAP[status] || 'info'
+const statusPillVariant = (status: DockerTaskStatus) => STATUS_PILL_MAP[status] || 'info'
 const displayTaskTitle = (task: DockerTaskInfo) => task.title || (TASK_TYPE_KEY_MAP[task.type] ? t(TASK_TYPE_KEY_MAP[task.type] as string) : task.id)
 
 const toDateValue = (value: unknown): Date | undefined => {
@@ -290,7 +307,16 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .task-dialog { min-height: 420px; }
 .task-toolbar { display: flex; justify-content: flex-end; margin-bottom: 0.5rem; }
+.task-refresh-icon { width: 14px; height: 14px; }
 .task-list { min-height: 340px; max-height: 62vh; overflow: auto; border: 1px solid var(--el-border-color-lighter); border-radius: 6px; }
+.task-list__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+}
 .task-list-item { padding: 0.55rem 0.65rem; border-bottom: 1px solid var(--el-border-color-extra-light); cursor: pointer; }
 .task-list-item:last-child { border-bottom: 0; }
 .task-list-item:hover { background: var(--el-fill-color-light); }

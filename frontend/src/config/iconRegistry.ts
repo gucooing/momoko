@@ -1,21 +1,8 @@
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  Check,
-  Delete,
-  Edit,
-  House,
-  Monitor,
-  Orange,
-  Plus,
-  Refresh,
-  Search,
-  Top,
-} from '@element-plus/icons-vue'
+// 图标注册表：仅 Heroicons outline/solid。Element Plus 图标包已卸载；
+// 历史 Element: 前缀统一映射到 Heroicons 等价物，避免菜单/旧数据断裂。
 import {
   AdjustmentsHorizontalIcon,
+  ArchiveBoxIcon,
   ArrowDownTrayIcon,
   ArrowPathIcon,
   ArrowPathRoundedSquareIcon,
@@ -42,6 +29,8 @@ import {
   ClockIcon,
   Cog6ToothIcon,
   CommandLineIcon,
+  ComputerDesktopIcon,
+  CubeIcon,
   DevicePhoneMobileIcon,
   DocumentTextIcon,
   EllipsisHorizontalIcon,
@@ -50,6 +39,7 @@ import {
   FolderIcon,
   GlobeAltIcon,
   HandRaisedIcon,
+  HomeIcon,
   IdentificationIcon,
   KeyIcon,
   LinkIcon,
@@ -59,6 +49,7 @@ import {
   NoSymbolIcon,
   PlayIcon,
   PlusCircleIcon,
+  PlusIcon,
   PrinterIcon,
   QuestionMarkCircleIcon,
   ServerStackIcon,
@@ -71,6 +62,7 @@ import {
   UserCircleIcon,
   UserGroupIcon,
   UserIcon,
+  WindowIcon,
   WrenchScrewdriverIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/outline'
@@ -104,28 +96,53 @@ type IconModule = Record<string, Component>
 
 const fallbackIcon = markRaw(QuestionMarkCircleIcon)
 
+// 历史 Element: 名称 → Heroicons 组件（覆盖菜单种子与旧库数据）
+const ELEMENT_TO_HERO: Record<string, Component> = {
+  ArrowLeft: ChevronLeftIcon,
+  ArrowRight: ChevronRightIcon,
+  Calendar: CalendarIcon,
+  Check: CheckCircleIcon,
+  Delete: TrashIcon,
+  Edit: DocumentTextIcon,
+  House: HomeIcon,
+  Monitor: ComputerDesktopIcon,
+  Orange: SparklesIcon,
+  Plus: PlusIcon,
+  Refresh: ArrowPathIcon,
+  Search: MagnifyingGlassIcon,
+  Top: ArrowTrendingUpIcon,
+  MessageBox: WindowIcon,
+  Folder: FolderIcon,
+  Box: CubeIcon,
+  Archive: ArchiveBoxIcon,
+}
+
 const iconRegistry = markRaw<Record<string, Component>>({
-  Search: Search,
-  Refresh: Refresh,
-  Plus: Plus,
-  Delete: Delete,
-  Edit: Edit,
-  Check: Check,
-  'Element:ArrowDown': ArrowDown,
-  'Element:ArrowLeft': ArrowLeft,
-  'Element:ArrowRight': ArrowRight,
-  'Element:Calendar': Calendar,
-  'Element:Check': Check,
-  'Element:Delete': Delete,
-  'Element:Edit': Edit,
-  'Element:House': House,
-  'Element:Monitor': Monitor,
-  'Element:Orange': Orange,
-  'Element:Plus': Plus,
-  'Element:Refresh': Refresh,
-  'Element:Search': Search,
-  'Element:Top': Top,
+  Search: MagnifyingGlassIcon,
+  Refresh: ArrowPathIcon,
+  Plus: PlusIcon,
+  Delete: TrashIcon,
+  Edit: DocumentTextIcon,
+  Check: CheckCircleIcon,
+  'Element:ArrowLeft': ChevronLeftIcon,
+  'Element:ArrowRight': ChevronRightIcon,
+  'Element:Calendar': CalendarIcon,
+  'Element:Check': CheckCircleIcon,
+  'Element:Delete': TrashIcon,
+  'Element:Edit': DocumentTextIcon,
+  'Element:House': HomeIcon,
+  'Element:Monitor': ComputerDesktopIcon,
+  'Element:Orange': SparklesIcon,
+  'Element:Plus': PlusIcon,
+  'Element:Refresh': ArrowPathIcon,
+  'Element:Search': MagnifyingGlassIcon,
+  'Element:Top': ArrowTrendingUpIcon,
+  'Element:MessageBox': WindowIcon,
+  'Element:Folder': FolderIcon,
+  'Element:Box': CubeIcon,
+  'Element:Archive': ArchiveBoxIcon,
   'HOutline:AdjustmentsHorizontalIcon': AdjustmentsHorizontalIcon,
+  'HOutline:ArchiveBoxIcon': ArchiveBoxIcon,
   'HOutline:ArrowDownTrayIcon': ArrowDownTrayIcon,
   'HOutline:ArrowPathIcon': ArrowPathIcon,
   'HOutline:ArrowPathRoundedSquareIcon': ArrowPathRoundedSquareIcon,
@@ -152,6 +169,8 @@ const iconRegistry = markRaw<Record<string, Component>>({
   'HOutline:ClockIcon': ClockIcon,
   'HOutline:Cog6ToothIcon': Cog6ToothIcon,
   'HOutline:CommandLineIcon': CommandLineIcon,
+  'HOutline:ComputerDesktopIcon': ComputerDesktopIcon,
+  'HOutline:CubeIcon': CubeIcon,
   'HOutline:DevicePhoneMobileIcon': DevicePhoneMobileIcon,
   'HOutline:DocumentTextIcon': DocumentTextIcon,
   'HOutline:EllipsisHorizontalIcon': EllipsisHorizontalIcon,
@@ -160,6 +179,7 @@ const iconRegistry = markRaw<Record<string, Component>>({
   'HOutline:FolderIcon': FolderIcon,
   'HOutline:GlobeAltIcon': GlobeAltIcon,
   'HOutline:HandRaisedIcon': HandRaisedIcon,
+  'HOutline:HomeIcon': HomeIcon,
   'HOutline:IdentificationIcon': IdentificationIcon,
   'HOutline:KeyIcon': KeyIcon,
   'HOutline:LinkIcon': LinkIcon,
@@ -169,6 +189,7 @@ const iconRegistry = markRaw<Record<string, Component>>({
   'HOutline:NoSymbolIcon': NoSymbolIcon,
   'HOutline:PlayIcon': PlayIcon,
   'HOutline:PlusCircleIcon': PlusCircleIcon,
+  'HOutline:PlusIcon': PlusIcon,
   'HOutline:PrinterIcon': PrinterIcon,
   'HOutline:QuestionMarkCircleIcon': QuestionMarkCircleIcon,
   'HOutline:ServerStackIcon': ServerStackIcon,
@@ -181,6 +202,7 @@ const iconRegistry = markRaw<Record<string, Component>>({
   'HOutline:UserCircleIcon': UserCircleIcon,
   'HOutline:UserGroupIcon': UserGroupIcon,
   'HOutline:UserIcon': UserIcon,
+  'HOutline:WindowIcon': WindowIcon,
   'HOutline:WrenchScrewdriverIcon': WrenchScrewdriverIcon,
   'HOutline:XMarkIcon': XMarkIcon,
   'HSolid:BanknotesIcon': BanknotesIcon,
@@ -208,13 +230,12 @@ const loadIconPack = (prefix: IconPrefix) => {
 
   iconPackCache[prefix] = (() => {
     if (prefix === ELEMENT_PREFIX) {
-      return import('@element-plus/icons-vue').then((module) => module as unknown as IconModule)
+      // 不再加载 @element-plus/icons-vue；Element: 走 ELEMENT_TO_HERO / 预注册表
+      return Promise.resolve(ELEMENT_TO_HERO as IconModule)
     }
-
     if (prefix === HERO_OUTLINE_PREFIX) {
       return import('@heroicons/vue/24/outline').then((module) => module as unknown as IconModule)
     }
-
     return import('@heroicons/vue/24/solid').then((module) => module as unknown as IconModule)
   })()
 
@@ -225,7 +246,6 @@ const parseIconName = (key: string, prefix: IconPrefix) => {
   if (prefix === ELEMENT_PREFIX) {
     return key.startsWith(ELEMENT_PREFIX) ? key.slice(ELEMENT_PREFIX.length) : key
   }
-
   return key.slice(prefix.length)
 }
 
@@ -234,18 +254,17 @@ const resolveIconPrefix = (key: string): IconPrefix | undefined => {
   if (key.startsWith(HERO_OUTLINE_PREFIX)) return HERO_OUTLINE_PREFIX
   if (key.startsWith(HERO_SOLID_PREFIX)) return HERO_SOLID_PREFIX
   if (key in iconRegistry) return undefined
-  return ELEMENT_PREFIX
+  // 未前缀名：优先当 Hero outline 动态名，不再默认 Element
+  return HERO_OUTLINE_PREFIX
 }
 
 const cacheLoadedIcon = (prefix: IconPrefix, iconName: string, component: Component) => {
   const rawComponent = markRaw(component)
   const prefixedName = `${prefix}${iconName}`
-
   iconRegistry[prefixedName] = rawComponent
   if (prefix === ELEMENT_PREFIX) {
     iconRegistry[iconName] = rawComponent
   }
-
   return rawComponent
 }
 
@@ -266,9 +285,7 @@ const ensureDynamicIcon = (key: string) => {
     const iconName = parseIconName(key, prefix)
     const iconModule = await loadIconPack(prefix)
     const resolvedIcon = iconModule[iconName]
-
     if (!resolvedIcon) return fallbackIcon
-
     return cacheLoadedIcon(prefix, iconName, resolvedIcon)
   })
 
@@ -277,32 +294,24 @@ const ensureDynamicIcon = (key: string) => {
 }
 
 export const iconComponents = new Proxy(iconRegistry, {
-  get(target, key) {
-    if (typeof key !== 'string') return Reflect.get(target, key)
-    return target[key] || ensureDynamicIcon(key)
+  get(target, prop) {
+    if (typeof prop !== 'string') return Reflect.get(target, prop)
+    if (prop in target) return target[prop]
+    return ensureDynamicIcon(prop)
   },
-  ownKeys(target) {
-    return Reflect.ownKeys(target)
-  },
-  getOwnPropertyDescriptor() {
-    return {
-      enumerable: true,
-      configurable: true,
-    }
-  },
-}) as Record<string, Component>
+})
 
-export const loadIconCatalog = async (prefix: IconPrefix) => {
+/** 图标选择器目录：Element 目录返回兼容映射名；Hero 目录动态列包内导出。 */
+export const loadIconCatalog = async (prefix: IconPrefix): Promise<string[]> => {
+  if (prefix === ELEMENT_PREFIX) {
+    return Object.keys(ELEMENT_TO_HERO)
+      .sort()
+      .map((name) => `${ELEMENT_PREFIX}${name}`)
+  }
+
   const iconModule = await loadIconPack(prefix)
-
   return Object.keys(iconModule)
-    .filter((name) => name !== 'default')
+    .filter((name) => /^[A-Z]/.test(name) && name.endsWith('Icon'))
     .sort()
-    .map((name) => {
-      const iconComponent = iconModule[name]
-      if (iconComponent && !iconRegistry[`${prefix}${name}`]) {
-        cacheLoadedIcon(prefix, name, iconComponent)
-      }
-      return `${prefix}${name}`
-    })
+    .map((name) => `${prefix}${name}`)
 }

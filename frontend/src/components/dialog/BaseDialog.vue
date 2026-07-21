@@ -91,6 +91,10 @@ const props = withDefaults(defineProps<IProps>(), {
 const emits = defineEmits<{
   'update:modelValue': [value: boolean]
   close: []
+  /** 打开时同步触发（兼容旧 el-dialog @open） */
+  open: []
+  /** 打开后下一帧触发（兼容旧 el-dialog @opened，便于量测 DOM） */
+  opened: []
 }>()
 
 const { t } = useI18n()
@@ -139,8 +143,13 @@ const onKeydown = (e: KeyboardEvent) => {
 
 watch(
   () => props.modelValue,
-  (open) => {
+  async (open) => {
     document.documentElement.style.overflow = open ? 'hidden' : ''
+    if (open) {
+      emits('open')
+      await nextTick()
+      emits('opened')
+    }
   },
 )
 

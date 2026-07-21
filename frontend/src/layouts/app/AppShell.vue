@@ -1,4 +1,4 @@
-<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。移动端(<lg)侧栏改为抽屉承载。 -->
+<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。移动端(<lg)侧栏改为令牌抽屉承载。 -->
 <template>
   <div class="app-shell">
     <AppSidebar v-if="!menuStore.isMobile" :collapsed="menuStore.isCollapse" />
@@ -9,16 +9,19 @@
       <AppContent />
     </div>
 
-    <el-drawer
-      v-if="menuStore.isMobile"
-      v-model="menuStore.isMobileMenuOpen"
-      direction="ltr"
-      :with-header="false"
-      :size="264"
-      class="app-shell__drawer"
-    >
-      <AppSidebar :collapsed="false" mobile />
-    </el-drawer>
+    <Teleport to="body">
+      <Transition name="shell-drawer">
+        <div
+          v-if="menuStore.isMobile && menuStore.isMobileMenuOpen"
+          class="app-shell__drawer-overlay"
+          @mousedown.self="menuStore.isMobileMenuOpen = false"
+        >
+          <aside class="app-shell__drawer" role="dialog" aria-modal="true">
+            <AppSidebar :collapsed="false" mobile />
+          </aside>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -33,9 +36,15 @@ defineOptions({ name: 'AppShell' })
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && menuStore.isMobileMenuOpen) menuStore.isMobileMenuOpen = false
+}
+
 onMounted(() => {
   if (!userStore.userInfo) void userStore.getUserInfo()
+  window.addEventListener('keydown', onKeydown)
 })
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped lang="scss">
@@ -53,11 +62,37 @@ onMounted(() => {
   min-width: 0;
   overflow: hidden;
 }
-</style>
-
-<style lang="scss">
-.app-shell__drawer .el-drawer__body {
-  padding: 0;
+.app-shell__drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  background: color-mix(in srgb, #0b1220 42%, transparent);
+  backdrop-filter: blur(2px);
+}
+.app-shell__drawer {
+  width: 264px;
+  height: 100%;
   overflow: hidden;
+  background: var(--el-bg-color);
+  border-right: 1px solid var(--el-border-color-light);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.shell-drawer-enter-active,
+.shell-drawer-leave-active {
+  transition: opacity 0.18s ease;
+}
+.shell-drawer-enter-active .app-shell__drawer,
+.shell-drawer-leave-active .app-shell__drawer {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.shell-drawer-enter-from,
+.shell-drawer-leave-to {
+  opacity: 0;
+}
+.shell-drawer-enter-from .app-shell__drawer,
+.shell-drawer-leave-to .app-shell__drawer {
+  transform: translateX(-12px);
 }
 </style>

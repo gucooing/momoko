@@ -3,7 +3,6 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AppLoading from 'vite-plugin-app-loading'
 import ui from '@nuxt/ui/vite'
 
@@ -43,18 +42,10 @@ const resolveManualChunks = (id: string) => {
     return 'vendor-vue'
   }
 
-  if (isPkg(id, '@element-plus/icons-vue')) {
-    return 'vendor-element-icons'
-  }
-
   if (isPkg(id, '@heroicons/vue')) {
     const p = nm(id)
     if (p.includes('/24/solid/')) return 'vendor-hero-solid'
     return 'vendor-hero-outline'
-  }
-
-  if (isPkg(id, 'element-plus') || isPkg(id, '@element-plus')) {
-    return 'vendor-element'
   }
 
   if (isPkg(id, 'echarts') || isPkg(id, 'vue-echarts')) {
@@ -63,18 +54,6 @@ const resolveManualChunks = (id: string) => {
 
   if (isPkg(id, 'zrender')) {
     return 'vendor-zrender'
-  }
-
-  if (isPkg(id, 'vxe-table')) {
-    return 'vendor-vxe-table'
-  }
-
-  if (isPkg(id, 'vxe-pc-ui')) {
-    return 'vendor-vxe-ui'
-  }
-
-  if (isPkg(id, '@vxe-ui')) {
-    return 'vendor-vxe-core'
   }
 
   if (isPkg(id, 'xlsx')) {
@@ -119,19 +98,17 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       // Nuxt UI v4（Reka UI + Tailwind v4）。colorMode:false —— 明暗仍由 themeStore 的 useDark() 独占 .dark。
       // 主色 primary=teal（teal-500 = #14b8a6 薄荷青），中性 neutral=slate。
-      // 自建 auto-import/components 各写独立 dts，避免与项目现有 unplugin 实例互相覆盖。
       // Nuxt UI 只允许单个 unplugin-auto-import / unplugin-vue-components 实例，
       // 故把项目原有配置并入这里（defu 合并：数组与 Nuxt UI 默认项拼接，二者共存）。
+      // ElementPlusResolver 已移除（EP 已卸载）。
       ui({
         colorMode: false,
         ui: { colors: { primary: 'teal', neutral: 'slate' } },
         autoImport: {
           imports: ['vue', 'vue-router', 'pinia', { '@/utils/feedback': ['feedback', 'useFeedback'] }],
           dirs: ['src/stores', 'src/stores/**'],
-          resolvers: [ElementPlusResolver()],
         },
         components: {
-          resolvers: [ElementPlusResolver()],
           dirs: ['src/components'], // src/components 下组件自动全局注册（PascalCase）
         },
       }),
@@ -149,10 +126,6 @@ export default defineConfig(({ mode }) => {
           manualChunks: resolveManualChunks,
         },
       },
-    },
-    optimizeDeps: {
-      // Pre-bundle Element Plus deep style imports to avoid runtime re-optimization reloads.
-      include: ['element-plus/es/components/*/style/css'],
     },
     server: {
       host: '0.0.0.0',

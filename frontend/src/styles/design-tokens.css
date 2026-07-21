@@ -2,11 +2,11 @@
    Momoko Console · 设计令牌 (Design Tokens)
    —— 唯一事实来源见 docs/redesign/01-design-language.md
    本文件把 01 的数值映射到三套载体：
-     · Element Plus 的 --el-*（迁移期 EP 组件与旧样式仍在用）
+     · 自建语义色 --el-*（历史命名保留，已不依赖 Element Plus）
      · Nuxt UI v4 的 --ui-*（U* 组件读取）
      · 自建 --app-*（圆角/阴影/hairline）
    浅色写在 :root，深色写在 html.dark。
-   本文件在 main.ts 中于 EP 暗色变量之后最后导入，确保覆盖生效。
+   本文件在 main.ts 中于公共样式之后导入；深色用 html.dark 自给。
    ============================================================ */
 
 :root {
@@ -70,7 +70,7 @@
 
 /* ============================================================
    深色 —— 干净的深板岩，忌死黑 (01 §1.2)
-   用 html.dark 提升特异性，覆盖 EP dark css-vars 的 html.dark
+   用 html.dark 提升特异性
    ============================================================ */
 html.dark {
   --el-bg-color-page: #0e1116;

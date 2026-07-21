@@ -1,20 +1,13 @@
 <template>
   <UApp>
     <FeedbackBridge>
-      <el-config-provider :locale="elementLocale">
-        <RouterView />
-      </el-config-provider>
+      <RouterView />
     </FeedbackBridge>
   </UApp>
 </template>
 
 <script setup lang="ts">
-import { elementPlusLocales } from '@/locales'
-import { useI18n } from 'vue-i18n'
-
-const { locale } = useI18n()
-
-const elementLocale = computed(() => elementPlusLocales[locale.value as keyof typeof elementPlusLocales])
+// EP el-config-provider 已下线；i18n 仍由 vue-i18n 接管，Nuxt UI 随 UApp。
 </script>
 
 <style></style>

@@ -1,6 +1,5 @@
 import '@/styles/index.css' // 公共样式
-import 'element-plus/theme-chalk/dark/css-vars.css' // Element Plus 深色模式样式
-import '@/styles/design-tokens.css' // 设计令牌（在 EP 暗色变量之后导入，确保覆盖生效）
+import '@/styles/design-tokens.css' // 设计令牌（含 --el-* 语义色，已自给自足，不再依赖 EP 暗色 css）
 import 'nprogress/nprogress.css' // NProgress 样式
 import '@/components/file/theme.css' // 文件模块自成体系的浅/暗设计令牌（全局，供 teleport 弹层共享）
 import { APP_CONFIG } from '@/config/app.config' // 全局应用配置

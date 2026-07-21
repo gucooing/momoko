@@ -58,10 +58,10 @@ var (
 		// 实例
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用", "HOutline:ServerStackIcon", nil, 1, "", entmenu.StatusActive),
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:CubeIcon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
-		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "Element:MessageBox", new("menu_2"), 1, "", entmenu.StatusActive),
+		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "HOutline:CubeIcon", new("menu_2"), 1, "", entmenu.StatusActive),
 
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, "", entmenu.StatusActive),
-		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "Element:Folder", new("menu_3"), 0, constant.Terminal, entmenu.StatusActive),
+		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "HOutline:FolderIcon", new("menu_3"), 0, constant.Terminal, entmenu.StatusActive),
 		newDefaultMenu("menu_3_2", entmenu.TypeMenu, "/file/share", "分享管理", "HOutline:ShareIcon", new("menu_3"), 1, constant.FileShare, entmenu.StatusActive),
 		newDefaultMenu("menu_3_3", entmenu.TypeMenu, "/file/source", "文件源管理", "HOutline:CircleStackIcon", new("menu_3"), 2, constant.FileSource, entmenu.StatusActive),
 
@@ -78,7 +78,7 @@ var (
 		newDefaultMenu("menu_5_5", entmenu.TypeMenu, "/docker/config", "配置", "HOutline:Cog6ToothIcon", new("menu_5"), 4, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_5_button_0", entmenu.TypeButton, "", "编辑Docker配置", "", new("menu_5_5"), 0, constant.DockerConfigEdit, entmenu.StatusActive),
 
-		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "Element:Box", nil, 5, "", entmenu.StatusActive),
+		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "HOutline:WrenchScrewdriverIcon", nil, 5, "", entmenu.StatusActive),
 		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 1, constant.Network, entmenu.StatusActive),
 		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 2, constant.Tunnel, entmenu.StatusActive),
 		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_6"), 3, "", entmenu.StatusActive),
