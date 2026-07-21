@@ -1,6 +1,5 @@
 import { h, render, isVNode, type Component } from 'vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
-import { ElIcon } from 'element-plus'
 import { useMenuStore } from '@/stores/menu'
 import { translate } from '@/locales'
 import { getAppContext } from '@/utils/appContext'
@@ -152,23 +151,17 @@ const createDialog = (options: IDialogCallOptions): Promise<void> => {
       return String(content ?? '')
     }
 
+    // 类型图标：从 menuStore 或直传组件取，直接渲染并用 style 令牌上色/定尺寸（替代 EP ElIcon 包裹）。
+    const pickIcon = (): Component => {
+      if (typeof options.icon === 'string') return menuStore.iconComponents[options.icon] as Component
+      if (options.icon) return options.icon as Component
+      return IconComponent
+    }
     slots.default = () =>
       h('div', { style: 'display: flex;align-items: flex-start;gap: 0.75rem;min-height: 2.5rem;line-height: 1.6' }, [
-        h(
-          ElIcon,
-          { size: '1.5rem', style: `color: ${config.color};flex-shrink: 0;margin-top: 0.125rem` },
-          {
-            default: () => {
-              if (typeof options.icon === 'string') {
-                return h(menuStore.iconComponents[options.icon] as Component)
-              }
-              if (options.icon && typeof options.icon !== 'string') {
-                return h(options.icon as Component)
-              }
-              return h(IconComponent)
-            },
-          },
-        ),
+        h(pickIcon(), {
+          style: `width: 1.5rem;height: 1.5rem;flex-shrink: 0;margin-top: 0.125rem;color: ${config.color}`,
+        }),
         h('div', { style: 'flex: 1;min-width: 0;word-break: break-word' }, renderContent(options.content)),
       ])
   }

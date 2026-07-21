@@ -1,288 +1,238 @@
+<!-- 弹窗外壳（令牌驱动，替代 el-dialog）：Teleport + 遮罩 + 头/体/脚。
+     保留命令式 Dialog.* 契约：attrs.onConfirm（异步 + 确认按钮 loading）、emit close/update:modelValue、
+     #header/#default/#footer 插槽、showClose/showFooter/showCancel/showConfirm、width + 移动端自适应。
+     去掉模板遗留的 全屏/拖拽/缩放（新设计克制，统一固定居中卡，与 FormDialog/FileDialog 一致）。 -->
 <template>
-  <el-dialog
-    :model-value="modelValue"
-    :width="computedWidth"
-    :show-close="false"
-    :fullscreen="fullscreenValue"
-    :draggable="draggable"
-    class="base-dialog"
-    :class="{ 'is-resizable': resizable }"
-    v-bind="attrs"
-    @update:model-value="handleDialogUpdate"
-  >
-    <template #header>
-      <div class="base-dialog-header">
-        <div class="base-dialog-header-title">
-          <slot name="header">
-            {{ title }}
-          </slot>
-        </div>
-        <div class="base-dialog-header-buttons">
-          <template v-if="showFullscreenButton">
-            <!-- 自己的项目中使用可更换为自己项目的图标 -->
-            <IconButton
-              :icon="fullscreenIcon"
-              :iconSize="fullscreenIconSize"
-              @click="fullscreenValue = true"
-              v-if="!fullscreenValue"
+  <Teleport to="body">
+    <Transition name="base-dialog">
+      <div v-if="modelValue" class="base-dialog-overlay" @mousedown.self="onOverlay">
+        <div
+          class="base-dialog-panel"
+          :style="{ maxWidth: panelWidth }"
+          role="dialog"
+          aria-modal="true"
+        >
+          <header class="base-dialog-head">
+            <div class="base-dialog-title">
+              <slot name="header">{{ title }}</slot>
+            </div>
+            <AppIconButton
+              v-if="showClose"
+              icon="HOutline:XMarkIcon"
+              :label="t('common.close')"
+              :size="18"
+              @click="close"
             />
-            <IconButton
-              :icon="exitFullscreenIcon"
-              :iconSize="exitFullscreenIconSize"
-              @click="fullscreenValue = false"
-              v-else
-            />
-          </template>
-          <IconButton :icon="closeIcon" :iconSize="closeIconSize" @click="close" v-if="showClose" />
+          </header>
+
+          <div class="base-dialog-body"><slot /></div>
+
+          <footer v-if="hasFooter" class="base-dialog-foot">
+            <slot name="footer">
+              <UButton v-if="showCancelButton" color="neutral" variant="soft" @click="close">
+                {{ resolvedCancelText }}
+              </UButton>
+              <UButton
+                v-if="showConfirmButton"
+                color="primary"
+                :loading="showConfirmLoading ? confirmLoading : false"
+                @click="confirm"
+              >
+                {{ resolvedConfirmText }}
+              </UButton>
+            </slot>
+          </footer>
         </div>
       </div>
-    </template>
-
-    <slot> </slot>
-
-    <template #footer>
-      <slot name="footer">
-        <template v-if="showFooter">
-          <el-button @click="close" v-if="showCancelButton">{{ resolvedCancelText }}</el-button>
-          <el-button
-            type="primary"
-            :loading="showConfirmLoading ? confirmLoading : false"
-            @click="confirm"
-            v-if="showConfirmButton"
-            >{{ resolvedConfirmText }}</el-button
-          >
-        </template>
-      </slot>
-    </template>
-  </el-dialog>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { useAttrs } from 'vue'
 import { useWindowSize } from '@vueuse/core'
-import IconButton from '@/components/button/IconButton.vue'
 import { useI18n } from 'vue-i18n'
 
-// 禁用自动属性继承，手动控制属性透传
-defineOptions({
-  inheritAttrs: false,
-})
+// 命令式 Dialog.* 透传 onConfirm 需从 attrs 读取，禁用自动继承避免落到 DOM。
+defineOptions({ inheritAttrs: false })
 
-// 组件属性类型
 interface IProps {
-  // 是否打开
   modelValue: boolean
-  // 标题
   title?: string
-  // 是否全屏展示
-  fullscreen?: boolean
-  // 是否显示切换全屏按钮
-  showFullscreenButton?: boolean
-  // 是否显示关闭按钮
   showClose?: boolean
-  // 是否显示footer的取消按钮(默认显示)
   showCancelButton?: boolean
-  // 是否显示footer的确定按钮(默认显示)
   showConfirmButton?: boolean
-  // 是否显示footer
   showFooter?: boolean
-  // 取消按钮文本
   cancelText?: string
-  // 确定按钮文本
   confirmText?: string
-  // 是否可拉伸
-  resizable?: boolean
-  // 关闭按钮图标（可以是字符串（从 menuStore.iconComponents 中获取）或直接传入图标组件）
-  closeIcon?: string | Component
-  // 关闭按钮图标尺寸
-  closeIconSize?: string
-  // 全屏按钮图标（可以是字符串（从 menuStore.iconComponents 中获取）或直接传入图标组件）
-  fullscreenIcon?: string | Component
-  // 全屏按钮图标尺寸
-  fullscreenIconSize?: string
-  // 退出全屏按钮图标（可以是字符串（从 menuStore.iconComponents 中获取）或直接传入图标组件）
-  exitFullscreenIcon?: string | Component
-  // 退出全屏按钮图标尺寸
-  exitFullscreenIconSize?: string
-  // 是否显示确认按钮加载状态
+  // 确认按钮加载态（配合 attrs.onConfirm 的 Promise）
   showConfirmLoading?: boolean
-  // 宽度
   width?: string | number
-  // 是否支持移动端适配（默认：true）
+  closeOnOverlay?: boolean
+  // 移动端自适应宽度
   mobileAdaptive?: boolean
-  // 移动端对话框宽度（默认：'90%'）
   mobileWidth?: string | number
-  // 移动端断点（默认：992，单位：px）
   mobileBreakpoint?: number
-  // 拖拽功能
-  draggable?: boolean
-}
-
-// 组件事件类型
-interface IEmits {
-  // 更新模型值
-  (e: 'update:modelValue', value: boolean): void
-  // 关闭按钮点击事件
-  (e: 'close'): void
-  // 确定按钮点击事件
-  //   (e: 'confirm'): void
 }
 
 const props = withDefaults(defineProps<IProps>(), {
-  fullscreen: false,
-  showFullscreenButton: true,
   showClose: true,
   showFooter: true,
-  resizable: true,
-  closeIcon: 'HOutline:XMarkIcon',
-  closeIconSize: '1.5rem',
-  fullscreenIcon: 'HOutline:ArrowsPointingOutIcon',
-  fullscreenIconSize: '1.25rem',
-  exitFullscreenIcon: 'HOutline:ArrowsPointingInIcon',
-  exitFullscreenIconSize: '1.25rem',
-  showConfirmLoading: true,
-  mobileAdaptive: true,
-  mobileWidth: '90%',
-  mobileBreakpoint: 992,
-  draggable: true,
   showCancelButton: true,
   showConfirmButton: true,
+  showConfirmLoading: true,
+  width: 460,
+  closeOnOverlay: true,
+  mobileAdaptive: true,
+  mobileWidth: '90%',
+  mobileBreakpoint: 768,
 })
 
-const emits = defineEmits<IEmits>()
-const { t } = useI18n()
+const emits = defineEmits<{
+  'update:modelValue': [value: boolean]
+  close: []
+}>()
 
-// 组件属性（未被props和emits定义的属性）
+const { t } = useI18n()
 const attrs = useAttrs()
-// 确定按钮加载状态
+const slots = useSlots()
+
 const confirmLoading = ref(false)
-// 内部维护全屏状态
-const fullscreenValue = ref(false)
 const resolvedCancelText = computed(() => props.cancelText || t('common.cancel'))
 const resolvedConfirmText = computed(() => props.confirmText || t('common.confirm'))
+const hasFooter = computed(() => !!slots.footer || props.showFooter)
 
-watchEffect(() => {
-  fullscreenValue.value = props.fullscreen ?? false
-})
-
-// 响应式监听窗口宽度
 const { width: windowWidth } = useWindowSize()
-// 是否为移动端
-const isMobile = computed(() => windowWidth.value < props.mobileBreakpoint)
+const isMobile = computed(() => windowWidth.value < (props.mobileBreakpoint ?? 768))
 
-// 计算宽度
-const computedWidth = computed(() => {
-  if (props.mobileAdaptive && isMobile.value) {
-    return props.mobileWidth
-  }
-  return props.width
+const panelWidth = computed(() => {
+  const raw = props.mobileAdaptive && isMobile.value ? props.mobileWidth : props.width
+  if (typeof raw === 'number') return `${raw}px`
+  const s = String(raw ?? '').trim()
+  // '440' → '440px'；'90%' / 'calc(...)' / '640px' 原样
+  return /^\d+$/.test(s) ? `${s}px` : s
 })
 
-// 获取 before-close 函数（从 attrs 中获取，支持 kebab-case 和 camelCase）
-// 注意：before-close 会通过 attrs 传递给 el-dialog，让 el-dialog 处理 ESC 和点击遮罩层的情况
-const beforeClose = computed(() => {
-  return (attrs.beforeClose || attrs['before-close']) as ((done: () => void) => void) | undefined
-})
-
-// 处理关闭逻辑，支持 before-close
-// 用于自定义关闭按钮（header 中的 X 按钮和 footer 中的取消按钮）
 const close = () => {
-  const doClose = () => {
-    emits('update:modelValue', false)
-    emits('close')
-  }
-
-  // 如果存在 before-close 函数，则调用它
-  if (beforeClose.value) {
-    beforeClose.value(doClose)
-  } else {
-    // 否则直接关闭
-    doClose()
-  }
+  emits('update:modelValue', false)
+  emits('close')
 }
 
-// 处理对话框更新事件(用于监听esc和点击遮罩层关闭)
-// 注意：当 el-dialog 通过 ESC 或点击遮罩层关闭时，如果存在 before-close，
-// el-dialog 会先调用 before-close，只有 before-close 调用 done() 后才会触发此事件
-const handleDialogUpdate = (value: boolean) => {
-  // 如果值没有变化，不处理（防止重复触发）
-  if (props.modelValue === value) return
-  // 更新值到外部
-  emits('update:modelValue', value)
-  // 当对话框关闭时，也触发外部 close 事件
-  if (!value) emits('close')
+const onOverlay = () => {
+  if (props.closeOnOverlay) close()
 }
 
-/**
- * 确定按钮点击事件(自带加载状态)
- * 利用attrs拿到onConfirm事件，并执行
- * 不能用emit，因为emit是组件内部事件，并且不是同步执行的
- */
+// 确认：读取命令式/声明式透传的 onConfirm，带加载态等待其完成（不自动关闭，交由调用方）。
 const confirm = async () => {
-  // 只有当 showConfirmLoading 不为 false 时才显示 loading
   if (props.showConfirmLoading) confirmLoading.value = true
   try {
-    const onConfirm = attrs.onConfirm as (() => Promise<void>) | undefined
+    const onConfirm = attrs.onConfirm as (() => Promise<void> | void) | undefined
     if (onConfirm) await onConfirm()
   } finally {
     if (props.showConfirmLoading) confirmLoading.value = false
   }
 }
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.modelValue) close()
+}
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    document.documentElement.style.overflow = open ? 'hidden' : ''
+  },
+)
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.documentElement.style.overflow = ''
+})
 </script>
 
 <style scoped lang="scss">
-.base-dialog-header {
+.base-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  user-select: none;
-
-  .base-dialog-header-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--el-text-color-primary);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .base-dialog-header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 16px;
-    flex-shrink: 0;
-  }
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, #0b1220 45%, transparent);
+  backdrop-filter: blur(2px);
 }
-</style>
 
-<style>
-.base-dialog {
-  min-height: 10rem;
-  min-width: min(20rem, calc(100vw - 24px));
-  max-width: calc(100vw - 24px);
-  overflow: hidden;
+.base-dialog-panel {
   display: flex;
   flex-direction: column;
-  .el-dialog__body {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-lg);
+  overflow: hidden;
+}
+
+.base-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 16px 16px 16px 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.base-dialog-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.base-dialog-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.base-dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+@media (width <= 768px) {
+  .base-dialog-overlay {
+    padding: 0;
+    align-items: flex-end;
   }
-  .el-dialog__footer {
-    flex-shrink: 0;
+  .base-dialog-panel {
+    max-width: none !important;
+    max-height: 92vh;
+    border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0;
   }
 }
 
-/* 开启拖拽调整大小 */
-.base-dialog.is-resizable {
-  resize: both;
+.base-dialog-enter-active,
+.base-dialog-leave-active {
+  transition: opacity 0.18s ease;
 }
-
-.base-dialog.is-fullscreen {
-  resize: none;
-  width: 100vw !important;
-  height: 100vh !important;
+.base-dialog-enter-active .base-dialog-panel,
+.base-dialog-leave-active .base-dialog-panel {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.base-dialog-enter-from,
+.base-dialog-leave-to {
+  opacity: 0;
+}
+.base-dialog-enter-from .base-dialog-panel,
+.base-dialog-leave-to .base-dialog-panel {
+  transform: translateY(8px) scale(0.98);
 }
 </style>
