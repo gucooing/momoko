@@ -76,7 +76,7 @@
   - `cardTitleKey?`、`cardMetaKeys?`:移动端卡片如何取主标题/元信息(不传则用 `primary` 列 + 前 N 列)
 - slots:`cell-<key>`(单元格)、`card`(完全自定义移动卡)、`empty`、`toolbar`、`expand?`
 - emits:`update:page`、`update:pageSize`、`selection-change`、`sort-change`、`row-click`
-- 行为:`≥ lg` 渲染表格(底层可继续用 VXE/el-table);`< lg` 自动渲染 `EntityCard` 列表(用 `cell-<key>`/`card` 复用渲染)。
+- 行为:`≥ lg` 渲染令牌 `DataTable`;`< lg` 自动渲染 `EntityCard` 列表(用 `cell-<key>`/`card` 复用渲染)。
 - 用于:强列型/可比较型数据(操作日志、任务、菜单)。实体型数据优先 `EntityCard` 流(见下)。
 
 ### `EntityCard` `[建]`
@@ -142,7 +142,7 @@
 ---
 
 ## F. 反馈(Feedback)
-- 轻提示:`ElMessage`;确认:`ElMessageBox`/`AdaptiveConfirm`;加载:`v-loading` / `Skeleton`。
+- 轻提示:`feedback` / `useFeedback()`(Nuxt UI toast,`z-index` 高于弹窗);确认:`Dialog.confirm` / `AdaptiveConfirm`;加载:骨架 / 按钮 loading / 轻 veil。
 - 统一封装 `utils/feedback`(可选):`toast.success/error`、`confirmDanger()`。
 
 ---

@@ -124,15 +124,10 @@
 
 ---
 
-## 6. 当前代码现状(重写起点,务必知悉)
+## 6. 代码现状(重写已推进,务必以 `08-progress.md` 为准)
 
-- **探索期改动已全部撤回到干净基线**(应用户要求),便于严格按本任务书从零推进。撤回内容:
-  `design-tokens.css`、`components/ui/*`、`main.ts`、`stores/theme`、`layouts/menu.vue`、
-  `dashboard/home/welcomePanel.vue`、`systemOverviewCards.vue` —— 均恢复原样/删除。
-  这些探索基于旧 EP 假设,已作废;数值与决策已固化进本任务书(`01`/`03`/`03b`)。
-- **仍在旧栈**:代码库当前仍是 Element Plus + VXE;换库(Nuxt UI)在 Phase 0 执行,见 `03b`。
-- **基建保留**:`.browser-tmp/`(浏览器 MCP 驱动脚本,已 gitignore)、`.claude` 权限、
-  `~/.claude.json` 里的 `chrome-devtools` MCP(local 作用域,`--autoConnect`)。
-
-> 结论:除本 `docs/redesign/` 任务书与 `.gitignore`(新增 `.browser-tmp/`)外,业务代码 = 原始基线。
-> 一切以任务书为准,从 Phase 0 开始。
+- **栈**:Vue 3 + Vite + **Nuxt UI v4** + 令牌 `components/ui/*`;**Element Plus / VXE 已卸载**。
+- **外壳**:`layouts/app/*`(`AppShell` 等);旧 `menu/leftMode/topMode/...` 已删。
+- **反馈**:`feedback` / `useFeedback()` + `FeedbackBridge`;toast `z-index` 高于弹窗。
+- **活进度 / 交接**:每次会话先读 **`08-progress.md`** 的「一句话现状」。
+- **基建**:`.browser-tmp/`(gitignored)、chrome-devtools MCP(`--autoConnect`)。

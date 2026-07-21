@@ -23,23 +23,17 @@
 
 ---
 
-## 分析页 `dashboard/analysis` · P5 · 优先级:低 · **待决**
+## 分析页 `dashboard/analysis` · **已删除**
 
-- **文件**:`index.vue` + `channelSales/goalsAndTodayStart/marketShare/operationalEvent/overviewHeader/revenueProfitAnalysis/topCategories`。
-- **现状**:**DFAN 模板遗留的假数据分析页**(销售额/渠道/市场份额…),与 Momoko 业务无关。
-- **决策(默认)**:**Phase 4 删除**(连同菜单项),除非用户要求改造为真实业务分析(如实例/流量/API 用量分析)。
-  在 `08` 记入"待决"。删除前确认后端菜单是否仍下发该路由。
-- 若保留改造:P5 图表面板网格,数据接真实接口,配色遵循 `01`(单一强调色 + 中性,图表色板另见 `dataviz` 规范)。
+- DFAN 模板假数据页;与 Momoko 业务无关。
+- **已删除** 视图 + store + 菜单种子(`6398d24` / `1dbebed`)。若未来要真实业务分析,另开规格,勿复活模板页。
 
 ---
 
-## 监控页 `dashboard/monitor` · P5 · 优先级:中
+## 监控页 `dashboard/monitor` · **已删除**
 
-- **文件**:`index.vue` + `logsPanel/resourcePanel/throughputPanel`;`stores/dashboard/monitor`。
-- **数据**:资源占用、吞吐、日志流。**保留数据逻辑**,判断是真实接口还是模板假数据(实现时核对 `stores/dashboard/monitor.ts`);假数据部分并入"待决"。
-- **桌面**:`PageHeader` + 面板网格:`resourcePanel`(资源指标+曲线)、`throughputPanel`(吞吐曲线)、`logsPanel`(滚动日志,等宽字体、可筛选级别)。
-- **移动**:单列堆叠;日志面板可全屏查看;图表降采样。
-- **状态**:日志空/错;图表加载骨架。
+- 原为 `Math.random` 假数据面板。
+- **已删除** 视图 + store + 菜单种子。工作台 `dashboard/home` 已含真实资源实时曲线;独立监控页不再提供。
 
 ---
 

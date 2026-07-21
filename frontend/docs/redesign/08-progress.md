@@ -14,9 +14,9 @@
 | Phase 0 | Nuxt UI 接入 + 令牌 + 横切设施 + `components/ui/*` | ✅ 已跑通并浏览器验证 |
 | Phase 1 | 外壳(侧栏/顶栏/标签/内容,桌面+移动) | ✅ 样板已建+验证(见下务实取舍) |
 | Phase 2 | 样板页:工作台 + 用户管理(定方向) | ✅ 工作台 + 用户管理(卡/表/CRUD/移动/明暗)已完成并浏览器验证 |
-| Phase 3 | 全量推广(见下逐页) | 🟡 系统管理 100% + 实例/Docker/工具/文件 + 登录/初始化/异常 + 个人中心 + Sub2API(配置/首页/活动) + **公开门户全部(home/stats/imagine/lottery/share) + OIDC 授权** 去 EP 完成；仅余监控=假数据(Phase 4 待决) |
+| Phase 3 | 全量推广(见下逐页) | ✅ 业务页重写完成；假数据页 analysis/monitor + demo/extended **已删除**；终端/实例文件等见 Phase 3.5 |
 | Phase 3.5 | **伪终端重写(实例控制台 + SSH 终端 → 真 xterm.js + 后端真 PTY)** | 🟡 前后端完成并实机验证:codex TUI 直连键入/回显/resize、SSH htop 鼠标滚轮(ws 抓包证实);Win10 宿主 ConPTY 无鼠标属 OS 限制(OpenConsole 集成经用户裁决**不做**);移动+浅色待验 |
-| Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | 🟡 **Slice1–5 主体完成**：死代码清理 + BaseDialog 令牌化 + ElMessage→feedback 单例 + 剩余共享组件去 EP + **package 卸载 element-plus / @element-plus/icons-vue / vxe-***；模板 `<el-` / 运行时 ElMessage / node_modules 全清零。仍保留自建语义 CSS 变量名 `--el-*`（非 EP 依赖）。待：暗色/可访问性/i18n 全量核对 + 个别死 CSS 收口 |
+| Phase 4 | 清理待决 + 暗色/可访问性/i18n 全量核对 + **EP/VXE 彻底卸载** | ✅ **EP/VXE 卸载完成**（`c289196`+后续）：死代码/demo/假仪表盘已删；BaseDialog 令牌化；ElMessage→`feedback` 单例；package 无 `element-plus`/`vxe-*`；模板 `<el-` / 运行时 `ElMessage` / node_modules 清零。仍保留自建 CSS 变量名 `--el-*`（非 EP 依赖，可选日后改名 `--app-*`）。**余量**：暗色/可访问性/i18n 全量核对；终端移动浅色；实例文件页 |
 
 > **🔓 后端破坏性修改授权(2026-07-12,用户明确)**：若前端重写需要,**允许破坏性修改后端、不必考虑兼容性**(协议/RPC/表结构随意改)。后端从 GoLand 运行,改 Go 后需用户手动重跑。
 >
@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状（换设备从这里接）**：Phase 0–3 完成；**Phase 4 EP/VXE 卸载主体完成**。`element-plus` / `@element-plus/icons-vue` / `vxe-table` / `vxe-pc-ui` 已从 package 移除；模板 `<el-`=0、运行时 `ElMessage`=0、node_modules 无 EP/VXE。关键提交：公开门户 share/oidc(`7ae41db`)；文件模块收尾(`c6a5c29`)；Slice1 死代码+菜单裁剪(`6398d24`/`1dbebed`)；Slice2 BaseDialog(`f0376a1`)；Slice3 feedback 单例(`2fbd154`)；Slice4+5 本会话合批（ThemeConfig/AppShell/IconSelector/SelectAvatar/AdaptiveConfirm/DockerTask/UpdateRelease + iconRegistry 去 EP 图标包 + vite/tsconfig/main 卸包）。**下一步**：暗色/可访问性/i18n 全量核对；可选把 CSS `--el-*` 变量重命名为 `--app-*`（非阻塞）。⚠️ 后端菜单裁剪 + Element:→Hero 图标种子需用户重跑 Go 生效。
+> **一句话现状（换设备从这里接）**：**前端从零重写 + EP/VXE 卸载已收口**。业务页已去 EP；`element-plus`/`@element-plus/icons-vue`/`vxe-*` 已卸包；demo/extended/假 analysis·monitor/旧布局壳已删；SSH 列表无持久 status（测试在编辑弹窗草稿探测，连接外侧按钮，`a8122d4`）；toast 压过弹窗 `z-index:10000`（`f2d30e9`）。关键提交：`7ae41db` share/oidc · `c6a5c29` 文件模块 · `6398d24`/`1dbebed` 死代码+菜单 · `f0376a1` BaseDialog · `2fbd154` feedback · `c289196` 卸包 · `a8122d4` SSH · `7b98516` AppSelect/CommandSearch · `f2d30e9` toast 层级。**下一步**：暗色/a11y/i18n 全量核对；终端移动浅色；实例文件页；可选 `--el-*`→`--app-*`。⚠️ 改 Go 后需用户在 GoLand 重跑后端。
 
 ### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
 > 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。
@@ -53,23 +53,8 @@
 
 **验收**：桌面 1440 暗/浅 + 移动 360/390 + 语言菜单不越界 + 区间 7→1 + ep=0 + home/stats/overview 200；vue-tsc/eslint 绿。
 
-### ✅ 本会话：`public/sub2api/imagine` 去 EP + `lottery` 顶栏对齐（2026-07-20，未提交）
-> 规格补入 `06e`。
-
-**imagine**
-- 去尽 EP：`el-select/radio/input/image/button/icon/v-loading/BaseDialog` → `AppSelect` + 令牌 `mode-seg` + 原生 textarea + chip 参数 + `FormDialog`×3（参数/详情/删除）+ 自建 lightbox 预览。
-- 顶栏 `AppIconButton` 主题；空=`EmptyState`；状态 `StatusPill`；Heroicons 全量。
-- 保留 `useImagineStore` 全契约（bootstrap/token、轮询、图生图拖入、modifyImage）。
-- **浏览器验**：桌面 1440 暗/浅 + 参数弹窗 + 移动 390（顶栏换行、composer 堆叠、图生图上传按钮）；`vue-tsc`/`eslint` 绿。假 token 时 API 500 属预期（无真实 key）。
-
-**lottery**
-- 顶栏手写 `icon-btn`+`UIcon` → `AppIconButton`（规则 + 主题），与 home/stats/imagine 一致。
-- 桌面暗色 + 真实后端奖池/历史 + 规则 FormDialog 已验；无 console error。
-
-**下一会话**
-1. 提交本批（imagine + lottery + 06e/08 docs）。
-2. `public/share` / `oidc/authorize` 去 EP；或 Phase 4 清 demo + 卸 EP。
-3. activity 若需补移动/明暗截图再验一次。
+### ✅ 已提交 `9c963f8`：`public/sub2api/imagine` 去 EP + `lottery` 顶栏对齐
+> 规格见 `06e`。后续 public share/oidc、EP 卸包、SSH 等见会话日志与上方「一句话现状」。
 
 ### 如何启动 / 可视化验证
 - 前端 dev：`cd frontend && pnpm dev`（`:3007`，占用则提示端口）。登录 `admin / admin`；后端 API `:22633`。
@@ -80,30 +65,29 @@
 - **地基**：`vite.config.ts`（`@nuxt/ui/vite` `ui()`，auto-import/components 并入其中）、`src/main.ts`（导入 `design-tokens.css` + `@nuxt/ui/vue-plugin`）、`src/App.vue`（`<UApp>` 包裹）、`src/styles/index.css`（`@import '@nuxt/ui'`）、`src/styles/design-tokens.css`（**令牌核心**）、`src/stores/theme/index.ts`（默认色 `#14B8A6`）
 - **外壳**：`src/layouts/index.vue`（渲染 `AppShell`+`ThemeConfig`）、`src/layouts/app/*` = `AppShell/AppSidebar/AppNav/AppNavItem/AppTopbar/AppTabs/AppContent/CommandSearch/LanguageMenu/NotificationMenu/UserMenu`
 - **基础组件**：`src/components/ui/*` = `AppPanel/SectionHeader/StatusPill/AppAvatar/AppIconButton/MetricStrip/MetricItem/EntityCard/EmptyState/DescriptionList/AppDropdown`（全令牌驱动、自动全局注册）
-- **工作台**：`src/views/dashboard/home/*` = `index.vue`（编排+问候+MetricStrip）、`runningInstanceSection.vue`、`shortcutSection.vue`、`systemRealtimeCharts.vue`（仅重写壳、保留 ECharts）。`welcomePanel.vue`/`systemOverviewCards.vue` 已弃用可删。
+- **工作台**：`src/views/dashboard/home/*` = `index.vue` + `runningInstanceSection` + `shortcutSection` + `systemRealtimeCharts`（ECharts 逻辑保留）。`welcomePanel`/`systemOverviewCards` **已删除**。
+- **反馈**：`src/utils/feedback.ts` + `components/FeedbackBridge.vue`；`App.vue` 上 toaster `z-[10000]`。
 
 ### 接手要点 / 已踩坑（务必先看）
-1. **单实例 unplugin**：Nuxt UI 只允许一个 `unplugin-auto-import`/`unplugin-vue-components`，配置**并入 `ui({autoImport,components})`**（defu 合并、数组拼接），**别再加独立实例**（否则启动报 "Multiple instances"）。
-2. **暗色**：`ui({colorMode:false})`，`.dark` 由 `themeStore`（`useDark()`）独占。`design-tokens.css` 必须在 `main.ts` 里**于 EP 暗色 css 之后**导入才能覆盖；暗色块用 `html.dark` 提特异性。teal-500 == 薄荷 `#14B8A6`。
-3. **命名避让**：自建组件勿与既有全局组件撞名（已踩 `IconButton`→改 `AppIconButton`）。新建前先 grep `components/**`。
-4. **多根 class 不透传**：`AppDropdown` 含 `Teleport` 属多根，外部 `class` 不落到触发器 → 响应式隐藏要包**普通 div**（见 `AppTopbar .app-topbar__desktop`）。
-5. **内容区无 keep-alive**：复刻原语义——导航即重挂载，`:key = tabsStore.getRouteRenderKey(fullPath)`；页面轮询靠 `onBeforeUnmount` 停（勿包 `<keep-alive>`）。
-6. **store 契约不改**：`menuStore/tabsStore/themeStore/userStore/userProfileStore/useDashboardHomeStore` 全部复用，只换壳。图标经 `menuStore.iconComponents['HOutline:XxxIcon']`（Heroicons，Proxy 按需）。
+1. **单实例 unplugin**：配置**并入 `ui({autoImport,components})`**，**别再加独立实例**。
+2. **暗色**：`ui({colorMode:false})`，`.dark` 由 `themeStore` 独占；`design-tokens.css` 在 `main.ts` 导入（已无 EP 暗色 css）。teal-500 == 薄荷 `#14B8A6`。
+3. **命名避让**：自建组件勿与全局撞名；图标按钮用 `AppIconButton`。
+4. **多根 class 不透传**：`AppDropdown` 含 `Teleport` → 响应式隐藏包普通 div。
+5. **内容区无 keep-alive**：`:key = tabsStore.getRouteRenderKey(fullPath)`；轮询 `onBeforeUnmount` 停。
+6. **store 契约不改**：只换壳。图标 `menuStore.iconComponents['HOutline:XxxIcon']`；`Element:` 仅兼容映射。
+7. **SSH 测试**：只测编辑弹窗草稿；列表无 status；连接外侧按钮。
 
 ### P1 列表/CRUD 范式（已定稿 · `system/user` 样板 2026-07-11）
-**页结构**（`views/system/user/index.vue`）：`PageHeader`(标题+描述+`新增用户`) → `FilterBar`(用户名/状态+搜索/重置) → 批量条(选中出现，`PERM.USER_DELETE`) → 卡/表切换分段控件(桌面；移动强制卡) → `EntityCard` 卡片流 / `DataTable` 表视图 → `Pagination` → `FormDialog`(create.vue)。删除走 `Dialog.info` 确认，toast 用 `ElMessage`(迁移期)。
-**新增 `components/ui/`**：`PageHeader`、`FilterBar`(移动折叠)、`Pagination`(移动简化)、`DataTable`(令牌驱动语义表格：选择/sticky 表头/hover/空/加载/序号)、`ActionMenu`(基于 `AppDropdown` 的行内⋯)、`FormDialog`(令牌驱动模态外壳)。表单控件用 `design-tokens.css` 里的全局 `.app-input/.app-select/.app-textarea/.app-label`。
-**务实取舍**（延续 Phase 1 自建令牌驱动路线，见下表）：
-- `DataTable` **自建令牌表格**（非 `UTable`/TanStack 封装）——完全掌控观感、免 UTable API 试错、与卡片流一致。桌面渲染，移动由页面切卡片。
-- 表单字段用**原生令牌化控件**（非 `UInput`/`USelect`）——免 U* 表单主题不齐；`UButton` 仍用于按钮，`i-lucide-*` 图标(iconify)。
-- 校验**内联函数**（非 valibot schema）——移植原 rules；`schemas/*`+valibot 留待后续。
-- 删除确认复用 `Dialog.info`、toast 复用 `ElMessage`（迁移期共存，全局横切后续统一换）。
+**页结构**（`views/system/user/index.vue`）：`PageHeader`(标题+描述+`新增用户`) → `FilterBar`(用户名/状态+搜索/重置) → 批量条(选中出现，`PERM.USER_DELETE`) → 卡/表切换分段控件(桌面；移动强制卡) → `EntityCard` 卡片流 / `DataTable` 表视图 → `Pagination` → `FormDialog`(create.vue)。删除走 `Dialog.confirm`；toast 用 `feedback`/`useFeedback()`。
+**新增 `components/ui/`**：`PageHeader`、`FilterBar`(移动折叠)、`Pagination`(移动简化)、`DataTable`(令牌驱动语义表格：选择/sticky 表头/hover/空/加载)、`ActionMenu`(基于 `AppDropdown` 的行内⋯)、`FormDialog`(令牌驱动模态外壳)。表单控件用 `design-tokens.css` 里的全局 `.app-input/.app-select/.app-textarea/.app-label` + `AppSelect`/`AppSwitch`。
+**定稿取舍**：
+- `DataTable` **自建令牌表格**（非 `UTable`/TanStack）——完全掌控观感；桌面表 / 移动卡。
+- 表单字段用**原生令牌化控件** + `AppSelect`；`UButton` + `i-lucide-*`。
+- 校验多为内联函数；toast 统一 `feedback`（`FeedbackBridge` 注入，层级高于弹窗）。
 
-### 下一步：Phase 3 全量推广（系统管理列表页已全部完成 → 接 `system/settings` 或 实例/文件/Docker 模块）
-- 复用上面这套 P1 范式推平系统管理其余页（菜单/OIDC/任务/操作日志）与实例/文件等模块。
-- ✅ **角色管理 `system/role` 已完成并浏览器验证**（2026-07-11）：新增自建 `components/ui/PermissionTree.vue`（令牌驱动三态勾选树，替代 `el-tree`；v-model=扁平 menuIds=全选∪半选，与后端语义一致）；`DataTable` 加 `rowSelectable` 逐行禁选（内置角色不可选/编辑/删除，用锁图标）；create.vue 用 FormDialog+PermissionTree。**踩坑**：后端 `role.go` 的 `description` 是 `NotEmpty()`，原表单未校验会 500——本次改为**必填**（内联校验 + `descriptionRequired` i18n）。
-- 菜单/任务/操作日志是**表格主型**，直接用 `DataTable`（操作日志详情走弹窗，勿塞单元格）；菜单管理也可复用 `PermissionTree` 思路或树表。
-- 待补：`FilterSheet`(移动底部 sheet，当前用内联折叠代替)、`schemas/*`+valibot、`utils/feedback.ts`(toast 收口)。
+### 下一步（重写收口后）
+- 暗色 / 可访问性 / i18n 全量核对；终端页移动+浅色；实例文件 `instance/files/:id` 若仍需。
+- 可选：`--el-*` CSS 变量改名 `--app-*`；`FilterSheet`；valibot schemas。
 
 ---
 
@@ -134,9 +118,9 @@
 ### 仪表盘/个人中心(`06a`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
-| 工作台 | dashboard/home | P4 | ✅ | ✅ | ✅ | 🟡 待用户确认方向 |
-| 分析页(待决) | dashboard/analysis | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
-| 监控页 | dashboard/monitor | P5 | ⬜ | ⬜ | ⬜ | ⬜ |
+| 工作台 | dashboard/home | P4 | ✅ | ✅ | ✅ | ✅ |
+| 分析页 | dashboard/analysis | — | — | — | — | ✅ **已删除**（假数据 + 菜单种子裁剪 `6398d24`/`1dbebed`） |
+| 监控页 | dashboard/monitor | — | — | — | — | ✅ **已删除**（假数据 + 菜单种子裁剪） |
 | 个人中心 | profile | P2 | ✅ | ✅ | ✅ | ✅ **06a 真重写+完整浏览器验收**：桌面1440 双栏/操作链路；移动390 emulate 编辑弹窗/设备卡/日志卡/下线确认；768 单列；修设备网格 minmax(0,1fr) 横溢 + 面板头窄屏；已提交 |
 
 ### 实例/基建(`06b`)
@@ -151,19 +135,19 @@
 | Docker 网络 | docker/network | P1 | ✅ | ✅ | ✅ | 🟡 结构+弹窗验证（后端无 Docker 守护，数据流未跑） |
 | Docker 配置 | docker/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 四 Tab(状态/连接/默认/仓库) + AppPanel；浏览器验证；docker 未启用时状态正确显示 |
 | API Key | node/key | P1 | ✅ | ✅ | ✅ | ✅ |
-| SSH 管理 | openssh/management | P1 | ✅ | ✅ | ✅ | ✅ |
+| SSH 管理 | openssh/management | P1 | ✅ | ✅ | ✅ | ✅ 列表无持久 status；连接外侧按钮；测试在编辑弹窗草稿探测（`a8122d4`） |
 | SSH 终端 | openssh/terminal | P6 | 🟡 | ⬜ | 🟡 | 🟡 重写完成,htop+鼠标滚轮+初始 resize 实测通过;移动+浅色待验 |
 
 ### 工具/文件/Sub2API(`06c`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
-| 内网穿透 | tools/tunnel | P1 | ✅ | ✅ | ✅ | 🟡 全量重写(列表+创建/frps/frpc/统计)；浏览器桌面/移动/暗色验证；**未提交，待用户检查** |
-| 端口转发 | tools/port-forward | P1 | ✅ | ✅ | ✅ | 🟡 全量重写(列表+创建/统计)；浏览器桌面/移动/暗色验证；**未提交，待用户检查** |
-| 文件管理 | file/index | P6 | ✅ | ✅ | ✅ | 🟡 真·从零重写完成；浏览器验：桌面/暗/网格/移动、toast、FormDialog、**FileEditor 创建即打开/重命名弹窗/主题分段/删除确认+删除成功**；修 joinPath 盘符根、AppDropdown 双 toggle、移动表头列；后端 `pkg/file.Create` 吞错已改**需用户重跑 Go**；未提交 |
-| 文件分享 | file/share | P1 | ✅ | ✅ | ✅ | ✅ 桌面/移动/暗+创建/编辑弹窗全验;**有界内容**(列 `N 项·首名`+title 全清单;弹窗"已选N项+定高滚动+逐项移除")、**无序号** |
+| 内网穿透 | tools/tunnel | P1 | ✅ | ✅ | ✅ | ✅ 全量重写(列表+创建/frps/frpc/统计) |
+| 端口转发 | tools/port-forward | P1 | ✅ | ✅ | ✅ | ✅ 全量重写(列表+创建/统计) |
+| 文件管理 | file/index | P6 | ✅ | ✅ | ✅ | ✅ 真·从零重写；FileEditor/FormDialog/useFeedback；`c6a5c29` 等 |
+| 文件分享 | file/share | P1 | ✅ | ✅ | ✅ | ✅ 桌面/移动/暗+创建/编辑弹窗全验;**有界内容**、**无序号** |
 | 文件来源 | file/source | P1 | ✅ | ✅ | ✅ | ✅ 桌面/创建弹窗(动态 OSS/FTP/WebDAV 字段+AppSelect 浮层)验;移动暗沿用已验范式 |
-| Sub2API 首页 | sub2api/home | P4 | ⬜ | ⬜ | ⬜ | ⬜ |
-| Sub2API 配置 | sub2api/config | P3 | ✅ | ✅ | ✅ | 🟡 P3 三 Tab(连接/首页/生图)去 EP：`AppPanel`+`set-row`+`AppSwitch`+展示分组 toggle-chip+可移除站点 chip；`PageHeader#actions` 同步状态 `StatusPill`；`useFeedback`。桌面1440/移动390(emulate)/明暗+真实后端(已连接)验；`configPageTitle` 三语；未提交 |
+| Sub2API 首页 | sub2api/home | P4 | ✅ | ✅ | ✅ | ✅ 管理端去 EP + 模块拆接口（`2fb1fe0`/`c8d08f2` 等） |
+| Sub2API 配置 | sub2api/config | P3 | ✅ | ✅ | ✅ | ✅ P3 三 Tab 去 EP；`useFeedback` |
 | Sub2API 活动 | sub2api/activity | P2/P4 | ✅ | ⬜ | ✅ | 🟡 去 EP + 历史按发放口径；**`24fa5e7`**；移动截图可再补 |
 
 ### 系统管理(`06d`)
@@ -180,41 +164,37 @@
 ### 认证/独立(`06e`)
 | 页面 | 路由 | 页型 | 桌面 | 移动 | 暗 | 验 |
 |---|---|---|---|---|---|---|
-| 登录/注册/找回 | login | P7 | ✅ | ✅ | ✅ | 🟡 居中卡重写完成；桌面/移动/暗色+登录链路已验；未提交 |
-| 初始化向导 | initialize | P3 | ✅ | ✅ | ✅ | 🟡 居中卡三步向导去 EP；mock 全链路(库选/测试/管理员/确认/完成)验；桌面/移动/暗；未提交 |
-| 分享落地 | public/share/:token | P7 | ✅ | ✅ | ✅ | 🟡 去 EP（`el-icon`×9 移除→裸 heroicon svg，**保留 fm-* 文件模块自有主题**）；桌面暗/浅+移动390 真实分享(Lolo) 根/子目录面包屑/README 预览(FileViewerDialog+Monaco) 全验；登录按钮 i18n；**`7ae41db`** |
-| OIDC 授权 | oidc/authorize | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 全量重写（居中令牌卡+角标语言/明暗+AppAvatar+scope 友好列表+redirect 提示+UButton+EmptyState 无效态+useFeedback）；桌面/移动×明暗 happy path(真实 client)+无效请求错误态(真实后端报错) 全验；`oidc.authorize.*` 三语；**`7ae41db`** |
-| Sub2API 门户 | public/sub2api/home | P7 | ✅ | ✅ | ✅ | 🟡 拆接口+去 EP+渐进渲染；顶栏仅语言/主题/公告；移动单行；**`ea7c1d4`** |
-| Sub2API 统计 | public/sub2api/stats | P7 | ✅ | ✅ | ✅ | 🟡 去 EP + Metric 图标 + 明确 loading + stagger；360 语言菜单不越界；**`ea7c1d4`** |
-| Sub2API 绘图 | public/sub2api/imagine | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 全量（AppSelect/FormDialog/lightbox/StatusPill/EmptyState）；桌面1440暗浅+移动390+参数弹窗验；**未提交** |
-| Sub2API 抽奖 | public/sub2api/lottery | P7 | ✅ | ✅ | ✅ | 🟡 去 EP 主体已有 + 顶栏改 AppIconButton；桌面暗+真实后端验；**未提交** |
-| 403 | exception/403 | P8 | ✅ | ✅ | ✅ | 🟡 去插画克制居中+回首页/上一页；桌面/移动/暗验；未提交 |
-| 404 | exception/404 | P8 | ✅ | ✅ | ✅ | 🟡 同 403 范式；桌面验；未提交 |
-| redirect | redirect | 工具 | ✅ | — | ✅ | 🟡 令牌页底+logo 脉冲占位；未提交 |
+| 登录/注册/找回 | login | P7 | ✅ | ✅ | ✅ | ✅ 居中卡重写 |
+| 初始化向导 | initialize | P3 | ✅ | ✅ | ✅ | ✅ 居中卡三步向导去 EP |
+| 分享落地 | public/share/:token | P7 | ✅ | ✅ | ✅ | ✅ 去 EP；**`7ae41db`** |
+| OIDC 授权 | oidc/authorize | P7 | ✅ | ✅ | ✅ | ✅ 去 EP 全量重写；**`7ae41db`** |
+| Sub2API 门户 | public/sub2api/home | P7 | ✅ | ✅ | ✅ | ✅ 拆接口+去 EP；**`ea7c1d4`** |
+| Sub2API 统计 | public/sub2api/stats | P7 | ✅ | ✅ | ✅ | ✅ 去 EP；**`ea7c1d4`** |
+| Sub2API 绘图 | public/sub2api/imagine | P7 | ✅ | ✅ | ✅ | ✅ 去 EP 全量；**`9c963f8`** |
+| Sub2API 抽奖 | public/sub2api/lottery | P7 | ✅ | ✅ | ✅ | ✅ 去 EP + 顶栏 AppIconButton；**`9c963f8`** |
+| 403 | exception/403 | P8 | ✅ | ✅ | ✅ | ✅ 克制居中 |
+| 404 | exception/404 | P8 | ✅ | ✅ | ✅ | ✅ |
+| redirect | redirect | 工具 | ✅ | — | ✅ | ✅ 令牌页底+logo 脉冲 |
 
 ---
 
-## 待决(与用户确认后处理,Phase 4)
-- ⬜ `dashboard/analysis` 假数据页:删除 or 改造真实分析?
-- ⬜ `dashboard/monitor` 是否含假数据面板(核对 `stores/dashboard/monitor`)
-- ⬜ `views/demo/*`(VXE 演示)——随 VXE 下线删除
-- ⬜ `views/extended/*`(组件演示)——删除
-- ⬜ 顶部导航布局(topMode)是否保留;ThemeConfig 是否精简
-- ⬜ 表格默认视图(卡/表)与是否提供切换的最终口径
-- ⬜ EP/VXE 彻底卸载 + 全仓 grep(`el-`/`El*`/`ElMessage`/`v-loading`/`vxe`/`@element-plus`)清零
+## 已关闭的待决 / 清理项（代码与菜单已对齐）
+- ✅ `dashboard/analysis` / `dashboard/monitor` 假数据页 **已删除**（`6398d24`），菜单种子裁剪（`1dbebed`）
+- ✅ `views/demo/*` / `views/extended/*` **已删除**
+- ✅ 旧布局壳 `layouts/{menu,leftMode,topMode,tabsView,header,...}` **已删除**（仅 `layouts/app/*`）
+- ✅ EP/VXE 彻底卸载 + 全仓运行时引用清零（`c289196`）；历史操作日志文案键 `sshHostBatchTest` 可保留（仅展示旧日志）
+- 可选：ThemeConfig 的 topMode 预览（新外壳下为空操作）；CSS `--el-*` 日后改名 `--app-*`；表格默认卡/表口径维持现状（桌面表+切换 / 移动强制卡）
 
 ---
 
-## 本次样板的务实取舍(待与用户确认，确认后回填/修订计划)
-> 目标是"最快看到真实设计方向"，故对少数非视觉项做了务实取舍。方向确认后可按需回正：
-- **图标**：暂**复用现有 `iconComponents`(Heroicons，Proxy 按需加载)**，未做 `iconMap.ts` + `UIcon` 迁移。设计主图标本就是 Heroicons outline，视觉一致；iconify 迁移留待正式 Phase 0 收尾。
-- **下拉弹层**：自建**令牌驱动 `AppDropdown`**(onClickOutside+Teleport)承载 语言/通知/用户/命令搜索，未用 `UDropdownMenu`/`UPopover`(避免库 API 试错、完全掌控观感)。可后续替换为 U* 或保留。
-- **移动抽屉**：复用现有 **EP `el-drawer`** 承载侧栏(可靠、迁移期共存)；正式可换 `USlideover`。
-- **实时图表**：`systemRealtimeCharts` **仅重写 template(AppPanel+令牌化分段/原生 select)+样式，保留全部 ECharts 逻辑**；控件由 EP 换为原生+令牌。
-- **ThemeConfig**：暂**原样复用**(EP 抽屉，齿轮打开)；`layout` 的 topMode 选项在新外壳下暂为空操作(任务书允许移除 topMode)。
-- **i18n**：`搜索菜单…` 等 2~3 处样板文案用中文字面量(zh-CN)，未入 `messages.ts`；`theme.colors.teal` 选项键未加。正式需补 `messages.ts`。
-- **主色**：默认改薄荷青 `#14B8A6`(Nuxt UI `colors.primary:'teal'`=teal-500 同值)；`themeStore` 仅改默认值，未把主色切换同步给 Nuxt UI 全阶(切色时 U* 组件仍为 teal)。
-- **命名冲突**：`components/ui/IconButton.vue` 与既有 `components/button/IconButton.vue` 撞名，已改名 `AppIconButton`。后续新自建组件注意避让既有全局组件名。
+## 定稿的架构取舍（已落地，非待确认）
+- **图标**：`iconRegistry` + Heroicons Proxy；`Element:` 仅兼容映射到 Hero（菜单旧数据）
+- **下拉**：自建 `AppDropdown` / `AppSelect` / `CommandSearch`（同框输入+结果面板）
+- **移动抽屉**：令牌 Teleport 侧栏（非 EP drawer）
+- **实时图表**：ECharts 逻辑保留；壳+控件令牌化
+- **ThemeConfig**：令牌侧栏；toast `z-index:10000` 压过弹窗
+- **主色**：默认薄荷 `#14B8A6`（Nuxt UI primary=teal）
+- **命名**：`AppIconButton`（避开旧 IconButton，旧文件已删）
 
 ## 会话日志(每次追加一行)
 | 日期 | 会话做了什么 | 下一步 |
@@ -252,3 +232,4 @@
 | 2026-07-21 | **Phase 4 Slice1：删 demo/extended/假分析监控/旧布局壳（`6398d24` 37 文件 8842 删行）+ 后端菜单裁剪（`1dbebed`）**。用户授权「所有旧内容旧代码旧框架全部删除」。删：`views/demo/*`、`views/extended/*`、`views/dashboard/{analysis,monitor}/*`+对应 store、旧布局壳 `layouts/{menu,menuItem,leftMode,topMode,tabsView,header,userDropdown,i18nDropdown,notificationDropdown,breadcrumb}.vue`（已被 `layouts/app/*` 取代、自成死岛）、`dashboard/home/systemOverviewCards.vue`、`plugins/vxeGrid.ts`+`styles/vxeGrid.css`（孤儿）；`stores/dashboard/home.ts` 去 analysis/monitor 快捷入口。`<el-` 47→18 文件、VXE 前端清零。后端 `default_rbac.go` 菜单种子删 menu_1_2/1_3(分析/监控)+整个「扩展组件」dev 目录（`syncDefaultRBAC` 每启动全量同步会 prune 库中旧菜单行，`go build ./...` 通过，**需重跑 Go 生效**）。浏览器验工作台/新外壳正常、零控制台报错。**踩坑**：gopls 对 `new("menu_X")`(局部 new 遮蔽内建) 报 `NotAType` 假阳性，`go build`=0 证伪。 | Slice2 BaseDialog |
 | 2026-07-21 | **Phase 4 Slice2：BaseDialog 去 EP 重写为令牌模态（`f0376a1`）**。`el-dialog/el-button/IconButton`→Teleport 令牌模态（遮罩+头/体/脚，AppIconButton 关闭，UButton 页脚，与 FormDialog/FileDialog 同套）；**保留命令式契约**：`attrs.onConfirm`(异步+确认按钮 loading)、emit close/update:modelValue、`#header/#default/#footer`、showClose/Footer/Cancel/Confirm、width+移动端自适应；**去掉**模板遗留全屏/拖拽/缩放/before-close（无消费者用）。`utils/dialog.ts` 去 `ElIcon`，类型图标直接渲染 heroicon+style 定尺寸。**透传去 EP**：`Dialog.confirm/info`(24 文件) + 直接消费者 UpdatePassword/SelectAvatarDialog/IconSelectorDialog/DockerTaskDialogs 一并脱离 EP 模态。浏览器验：IconSelectorDialog(声明式 800px)+file/share 删除 Dialog.confirm(命令式,图标/取消/关闭)桌面正常；vue-tsc+eslint 绿。**既有噪声**：Dialog.confirm 取消时 `utils/dialog.ts` `reject('cancel')` 的未捕获 promise（本次未改该逻辑，属既有契约，后续统一调用方口径时处理）。 | Slice3 ElMessage→useFeedback 单例 |
 | 2026-07-21 | **Phase 4 Slice3–5：EP/VXE 卸载收口**：①Slice3 `ElMessage`→`feedback` 单例（`FeedbackBridge`+`utils/feedback` 代理+`request` 拦截器+41 文件迁移，`2fbd154`）。②Slice4 删死组件（IconButton/LoadingButton/BadgeTabsMenu/TablePagination/BaseCard/RunningInstanceCard/TextEllipsis/BaseTag）+ 重写 live：ThemeConfig 令牌抽屉、AppShell 移动抽屉、AdaptiveConfirm 统一 Dialog.confirm、IconSelectorDialog/SelectAvatarDialog 去 EP 控件、DockerTaskDialogs 去 el-button/empty/v-loading、UpdateReleaseContent→EmptyState、App.vue 去 el-config-provider。③Slice5 卸包 `element-plus/@element-plus/icons-vue/vxe-*`；iconRegistry 仅 Heroicons（Element: 兼容映射）；vite 去 ElementPlusResolver；tsconfig 去 element-plus/global；main 去 EP dark css；菜单种子 Element:→Hero。**验证**：vue-tsc/eslint/go build 绿；浏览器工作台+主题抽屉；grep 模板 el-/运行时 ElMessage/node_modules EP·VXE 全 0。 | 暗色/a11y/i18n 全量核对；可选 --el-* 重命名 |
+| 2026-07-21 | **文档/代码一致化收口**：08 里程碑/交接/逐页清单去掉陈旧「未提交」「待决」；analysis/monitor/demo/extended 标已删除；EP/VXE 卸载与 SSH 改造写清；06a/06e/03 同步。代码侧无新增业务变更。 | 暗色/a11y/i18n 全量核对；终端移动浅色；实例文件页 |

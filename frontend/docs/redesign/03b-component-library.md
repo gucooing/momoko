@@ -131,7 +131,7 @@
 
 ## 8. 下线清单(package.json / 代码)
 
-- 卸载依赖:`element-plus`、`@element-plus/icons-vue`、`vxe-table`、`vxe-pc-ui`、`@vxe-ui/*`、`@heroicons/vue`(改 iconify)。
+- 卸载依赖:**已完成** — `element-plus`、`@element-plus/icons-vue`、`vxe-table`、`vxe-pc-ui` 已从 package 移除;图标仍用 `@heroicons/vue`(非 iconify 全量迁移)。
 - 删除:`plugins/vxeGrid.ts`、`styles/vxeGrid.css`、`config/elementConfig.ts`、`config/iconRegistry.ts`、`main.ts` 的 EP 导入、`vite.config` 的 `ElementPlusResolver`、`optimizeDeps` 里 EP 项。
 - 全仓 grep 清零:`el-`、`El` 命名式组件、`ElMessage`、`ElMessageBox`、`v-loading`、`VxeGrid`、`@element-plus`、`vxe`。
 - **迁移期策略**:按模块推进;某模块迁完即删该模块的 EP 引用。**允许迁移期短暂共存**(EP 仍在 deps),

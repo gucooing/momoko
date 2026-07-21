@@ -1,5 +1,5 @@
 <!-- 图标按钮：安静方形，quiet；hover 淡填充；可选角标。用于顶栏动作/触发器。
-     命名 AppIconButton 以避开项目已存在的 components/button/IconButton.vue。 -->
+     命名 AppIconButton（全局图标按钮）。 -->
 <template>
   <button
     type="button"

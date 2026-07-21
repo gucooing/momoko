@@ -74,7 +74,7 @@
 
 ### SSH 管理 `openssh/management` · P1 · 优先级:中
 - **文件**:`index.vue` + `create.vue`;`api/openssh`。
-- **桌面**:`PageHeader`(+ `新增主机`)+ `FilterBar`(名称/主机/标签)+ 卡片流 `EntityCard`:主机名 + 连接状态胶囊 + `user@host:port` + 认证方式(密码/密钥)+ 备注;操作:`连接终端`(跳 `openssh/terminal`)、编辑、删除、测试。
+- **桌面**:`PageHeader`(+ `新增主机`)+ `FilterBar`(名称/主机)+ 表/卡:`user@host:port` + 认证方式 + 权限 + 备注;**不展示**持久连接状态。行内**连接**(外侧主按钮,跳 `openssh/terminal`)+ ActionMenu(编辑/分享/删除,仅所有者)。**测试连接**仅在新建/编辑 `FormDialog` 页脚,测当前表单草稿(可带 id 回落库中凭据);不写库 status。
 - **弹窗**:`create.vue` → `FormDialog`(主机/端口/用户/认证/密钥,schema)。
 - **移动**(M-1)转卡;连接为主操作。
 
