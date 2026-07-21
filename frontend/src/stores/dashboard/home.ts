@@ -48,8 +48,6 @@ export interface DiskPoint {
 }
 
 const createHomeShortcuts = (): DashboardShortcutItem[] => [
-  { labelKey: 'dashboard.home.shortcuts.analysis', icon: 'HOutline:ChartBarIcon', color: '#ef4444', routePath: '/dashboard/analysis' },
-  { labelKey: 'dashboard.home.shortcuts.monitor', icon: 'HOutline:EyeIcon', color: '#4f46e5', routePath: '/dashboard/monitor' },
   { labelKey: 'dashboard.home.shortcuts.users', icon: 'HOutline:UserGroupIcon', color: '#f59e0b', routePath: '/system/user' },
   { labelKey: 'dashboard.home.shortcuts.roles', icon: 'HOutline:IdentificationIcon', color: '#10b981', routePath: '/system/role' },
   { labelKey: 'dashboard.home.shortcuts.apps', icon: 'HOutline:Squares2X2Icon', color: '#ec4899', routePath: '/instance/list' },
