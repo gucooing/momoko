@@ -2,7 +2,7 @@
 <template>
   <AppDropdown align="end" :width="180">
     <template #trigger>
-      <AppIconButton icon="HOutline:GlobeAltIcon" label="语言 / Language" />
+      <AppIconButton icon="HOutline:GlobeAltIcon" :label="t('language.tooltip')" />
     </template>
     <template #default="{ close }">
       <div class="lang-menu">

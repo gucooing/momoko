@@ -4,7 +4,7 @@
     <div class="app-topbar__left">
       <AppIconButton
         :icon="menuStore.isMobile ? 'HOutline:Bars3Icon' : collapseIcon"
-        :label="menuStore.isMobile ? '菜单' : '折叠侧栏'"
+        :label="menuToggleLabel"
         @click="onToggle"
       />
       <h1 class="app-topbar__title">{{ pageTitle }}</h1>
@@ -14,11 +14,15 @@
       <!-- 桌面专属动作：包在普通 div 里，用作用域样式可靠隐藏（子组件多根无法透传 class） -->
       <div class="app-topbar__desktop">
         <CommandSearch />
-        <AppIconButton icon="HOutline:Cog6ToothIcon" label="主题设置" @click="openThemeConfig" />
+        <AppIconButton
+          icon="HOutline:Cog6ToothIcon"
+          :label="t('layout.themeConfig')"
+          @click="openThemeConfig"
+        />
         <LanguageMenu />
         <AppIconButton
           :icon="isFullscreen ? 'HOutline:ArrowsPointingInIcon' : 'HOutline:ArrowsPointingOutIcon'"
-          label="全屏"
+          :label="isFullscreen ? t('layout.exitFullscreen') : t('layout.fullscreen')"
           @click="toggleFullscreen"
         />
         <span class="app-topbar__divider" />
@@ -34,15 +38,24 @@ import LanguageMenu from './LanguageMenu.vue'
 import NotificationMenu from './NotificationMenu.vue'
 import { translateKnownText } from '@/locales'
 import { useFullscreen } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const menuStore = useMenuStore()
 const themeStore = useThemeStore()
+const { t } = useI18n()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 
 const pageTitle = computed(() => translateKnownText((route.meta?.title as string) || ''))
 const collapseIcon = computed(() =>
   menuStore.isCollapse ? 'HOutline:Bars3BottomRightIcon' : 'HOutline:Bars3BottomLeftIcon',
+)
+const menuToggleLabel = computed(() =>
+  menuStore.isMobile
+    ? t('layout.openMenu')
+    : menuStore.isCollapse
+      ? t('layout.expandSidebar')
+      : t('layout.collapseSidebar'),
 )
 
 const onToggle = () => {

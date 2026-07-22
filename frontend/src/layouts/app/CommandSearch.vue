@@ -75,8 +75,7 @@ const focused = ref(false)
 const highlight = ref(0)
 const panelStyle = ref<Record<string, string>>({})
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
-// 样板占位文案；正式接入时并入 messages.ts 的 layout.searchPlaceholder
-const searchPlaceholder = '搜索菜单…'
+const searchPlaceholder = computed(() => t('layout.searchPlaceholder'))
 
 interface FlatItem {
   title: string

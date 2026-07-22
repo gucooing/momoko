@@ -4,7 +4,7 @@
     <template #trigger>
       <AppIconButton
         icon="HOutline:BellIcon"
-        label="通知"
+        :label="t('layout.notificationTitle')"
         :badge="unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined"
       />
     </template>

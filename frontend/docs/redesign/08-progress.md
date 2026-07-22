@@ -26,7 +26,7 @@
 
 ## ⭐ 交接手册（新会话从这里接手）
 
-> **一句话现状（换设备从这里接）**：**前端从零重写 + EP/VXE 卸载已收口**。本会话收口：终端 M-2/实例文件（`18834f1`）→ a11y 焦点环+status 键（`11bf254`）→ 工作台/docker/sub2api i18n（`6414649`）→ OIDC 全量三语（`6b5269e`）→ 树/表/UserPicker 触控命中 + imagine prompt 焦点（`c55f81a`）。**下一步**：可选 `--el-*`→`--app-*`；更深 i18n 扫（布局壳/零星硬编码）；后端 API 需用户 GoLand 重跑后再做浏览器验。
+> **一句话现状（换设备从这里接）**：**前端从零重写 + EP/VXE 卸载已收口**。本会话：i18n 全量审计（`scripts/i18n-audit.mjs`）— 补 `taskManager.status`/`sub2api.activity.status`；壳层硬编码接入 layout.*；删死文案 `dashboard.analysis/monitor` + 旧 home 卡字段 + 旧 layout 标签栏键；frpc 配置注释三语化。**下一步**：可选 `--el-*`→`--app-*`；余量 unused≈197（多在 fileManager/instance/docker 重写残留，可按模块继续 prune）；后端 API 需用户 GoLand 重跑后再做浏览器验。
 
 ### ✅ 已提交 `c8d08f2`：Sub2API 后端「统计聚合全下沉 ent + 接口按模块拆分 + 列表去闪」
 > 铁律见记忆 [[sub2api-backend-rewrite-mandates]]。管理端：`GetSub2APIAdminTotals/Trend/Top` + recent `RecordFilter`；ent 聚合；tps≥20；token Top；`bucket15m`；DataTable 重载不换骨架。浏览器已验。

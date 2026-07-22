@@ -18,7 +18,7 @@
       <AppIconButton
         v-if="!mobile"
         :icon="collapsed ? 'HOutline:ChevronDoubleRightIcon' : 'HOutline:ChevronDoubleLeftIcon'"
-        :label="collapsed ? '展开侧栏' : '收起侧栏'"
+        :label="sidebarToggleLabel"
         @click="menuStore.toggleCollapse()"
       />
     </div>
@@ -29,11 +29,16 @@
 import AppNav from './AppNav.vue'
 import UserMenu from './UserMenu.vue'
 import { APP_CONFIG } from '@/config/app.config'
+import { useI18n } from 'vue-i18n'
 
-defineProps<{ collapsed?: boolean; mobile?: boolean }>()
+const props = defineProps<{ collapsed?: boolean; mobile?: boolean }>()
 const menuStore = useMenuStore()
+const { t } = useI18n()
 const appName = APP_CONFIG.name
 const logoSrc = APP_CONFIG.logoSrc
+const sidebarToggleLabel = computed(() =>
+  props.collapsed ? t('layout.expandSidebar') : t('layout.collapseSidebar'),
+)
 </script>
 
 <style scoped lang="scss">

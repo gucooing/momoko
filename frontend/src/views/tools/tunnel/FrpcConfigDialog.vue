@@ -50,12 +50,12 @@ const content = computed(() => {
   const type = typeString(row.type)
 
   const lines = [
-    '# momoko 内网穿透 frpc 配置',
-    `# 隧道：${row.name}`,
+    t('tools.tunnel.frpc.commentHeader'),
+    t('tools.tunnel.frpc.commentTunnel', { name: row.name }),
     `serverAddr = "${serverAddr}"`,
     `serverPort = ${serverPort}`,
     '',
-    '# 每隧道独立凭证，momoko 鉴权插件据此放行',
+    t('tools.tunnel.frpc.commentCredential'),
     `metadatas.name = "${row.name}"`,
     `metadatas.credential = "${row.credential}"`,
     '',
@@ -82,7 +82,7 @@ const content = computed(() => {
   }
 
   if (row.maxBandwidth) {
-    lines.push('', '# 服务端限速策略（不满足将被拒绝连接）')
+    lines.push('', t('tools.tunnel.frpc.commentBandwidth'))
     lines.push(`transport.bandwidthLimit = "${row.maxBandwidth}"`)
   }
 
