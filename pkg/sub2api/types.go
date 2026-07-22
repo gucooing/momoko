@@ -81,10 +81,10 @@ type UsageRecord struct {
 	LatencyMS    int64
 	TokenCount   int64
 	OutputTokens int64
-	TPS          float64
+	TPS          float64 // 吐出速度(token/s)：output_tokens*1000/(duration_ms-first_token_ms)，时间按 ms
 	// 详情字段：供最近请求详情展示
 	Cost            float64 // 费用（USD）
-	FirstTokenMS    int64   // 首 token 延迟（毫秒）
+	FirstTokenMS    int64   // 首 token / 首字节延迟（毫秒）
 	ReasoningEffort string  // 推理强度
 	AccountName     string  // 账号名称
 	ErrorMessage    string  // 错误详情（失败/上游错误请求）

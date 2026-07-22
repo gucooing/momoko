@@ -31,16 +31,6 @@ function extractObjectLiteral(name) {
   return null
 }
 
-function evalObject(name) {
-  const lit = extractObjectLiteral(name)
-  if (!lit) throw new Error(`cannot extract ${name}`)
-  try {
-    return new Function(`return (${lit})`)()
-  } catch (e) {
-    throw new Error(`eval ${name}: ${e.message}`)
-  }
-}
-
 function flatten(obj, prefix = '', out = new Set()) {
   if (obj == null || typeof obj !== 'object') return out
   for (const [k, v] of Object.entries(obj)) {
@@ -109,9 +99,6 @@ const files = walk(root).filter((f) => !f.includes(`${path.sep}locales${path.sep
 const usedKeys = new Set()
 const dynamicPrefixes = new Set()
 const usedKeyLocations = new Map() // key -> [file:line]
-
-const keyCallRe =
-  /\b(?:t|translate|te|tm)\s*\(\s*(['"`])([^'"`]+)\1|\bi18n\.global\.t\s*\(\s*(['"`])([^'"`]+)\3/g
 
 // also labelKey: 'language.xxx' style string props that look like keys
 const labelKeyRe = /\b(?:labelKey|titleKey|placeholderKey|messageKey|i18nKey)\s*:\s*['"]([a-zA-Z][\w.]+)['"]/g
@@ -238,7 +225,6 @@ for (const loc of locales) {
 // --- hardcoded Chinese in templates/script (user-visible heuristics) ---
 // Match Chinese runs of 2+ chars in .vue template and string literals in script
 const CJK = /[一-鿿㐀-䶿]/
-const cjkRun = /[一-鿿㐀-䶿]{2,}/g
 
 // exclude: comments, console, import paths, already-i18n messages file
 const hardcodes = []

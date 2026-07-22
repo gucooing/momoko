@@ -74,6 +74,13 @@ func TestDecodeUsageList_TypedEnvelope(t *testing.T) {
 	if rec.LatencyMS != 1200 {
 		t.Errorf("latency=%d", rec.LatencyMS)
 	}
+	if rec.FirstTokenMS != 200 {
+		t.Errorf("firstToken=%d", rec.FirstTokenMS)
+	}
+	// TPS = 50 / ((1200-200)/1000) = 50
+	if rec.TPS != 50 {
+		t.Errorf("tps=%v want 50", rec.TPS)
+	}
 	if rec.Cost != 0.01 {
 		t.Errorf("cost=%v", rec.Cost)
 	}
@@ -153,6 +160,29 @@ func TestDecodeUpstreamErrorList_TypedEnvelope(t *testing.T) {
 	}
 	if rec.LatencyMS != 800 {
 		t.Errorf("latency=%d", rec.LatencyMS)
+	}
+}
+
+func TestPerRequestTPS(t *testing.T) {
+	cases := []struct {
+		name                 string
+		output, dur, firstMS int64
+		want                 float64
+	}{
+		{name: "gen = duration - first", output: 50, dur: 1200, firstMS: 200, want: 50},
+		{name: "no first token falls back to full duration", output: 100, dur: 2000, firstMS: 0, want: 50},
+		{name: "first >= duration", output: 100, dur: 500, firstMS: 500, want: 0},
+		{name: "first > duration", output: 100, dur: 400, firstMS: 500, want: 0},
+		{name: "zero output", output: 0, dur: 1000, firstMS: 100, want: 0},
+		{name: "zero duration", output: 100, dur: 0, firstMS: 0, want: 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := perRequestTPS(tc.output, tc.dur, tc.firstMS)
+			if got != tc.want {
+				t.Fatalf("got %v want %v", got, tc.want)
+			}
+		})
 	}
 }
 

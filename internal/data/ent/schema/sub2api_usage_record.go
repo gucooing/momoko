@@ -30,10 +30,10 @@ func (Sub2APIUsageRecord) Fields() []ent.Field {
 		field.Int64("latency_ms").Default(0).Comment("延迟（毫秒）"),
 		field.Int64("token_count").Default(0).Comment("Token 总数（含输入/输出/缓存，用于用量统计）"),
 		field.Int64("output_tokens").Default(0).Comment("输出 token 数（不含输入与缓存）"),
-		field.Float("tps").Default(0).Comment("单请求 token 生成速度（输出token/秒，按请求计，不含缓存）"),
+		field.Float("tps").Default(0).Comment("单请求 token 吐出速度（输出token/秒；生成时长=duration-首字节，不含缓存）"),
 		// 详情字段：供最近请求详情展示
 		field.Float("cost").Default(0).Comment("费用（USD，total_cost）"),
-		field.Int64("first_token_ms").Default(0).Comment("首 token 延迟（毫秒）"),
+		field.Int64("first_token_ms").Default(0).Comment("首 token/首字节延迟（毫秒）"),
 		field.String("reasoning_effort").Optional().Comment("推理强度"),
 		field.String("account_name").Optional().Comment("账号名称"),
 		field.Text("error_message").Optional().Comment("错误详情（失败/上游错误请求）"),

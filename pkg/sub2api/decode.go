@@ -195,6 +195,7 @@ func usageLogToRecord(item adminUsageLog) *UsageRecord {
 	}
 
 	latency := int64FromPtr(item.DurationMs)
+	firstTokenMS := int64FromPtr(item.FirstTokenMs)
 	output := int64(item.OutputTokens)
 	if output == 0 && item.ImageOutputTokens > 0 {
 		output = int64(item.ImageOutputTokens)
@@ -232,9 +233,9 @@ func usageLogToRecord(item adminUsageLog) *UsageRecord {
 		LatencyMS:       latency,
 		TokenCount:      tokenCount,
 		OutputTokens:    output,
-		TPS:             perRequestTPS(output, latency),
+		TPS:             perRequestTPS(output, latency, firstTokenMS),
 		Cost:            cost,
-		FirstTokenMS:    int64FromPtr(item.FirstTokenMs),
+		FirstTokenMS:    firstTokenMS,
 		ReasoningEffort: derefString(item.ReasoningEffort),
 		AccountName:     accountNameFrom(item.Account),
 		HTTPStatus:      http.StatusOK,
@@ -356,12 +357,19 @@ func truncateError(msg string) string {
 	return msg[:maxErrorMessageLen] + "…"
 }
 
-// perRequestTPS 计算单请求 token 生成速度（输出token/秒）。无输出或无耗时则为 0。
-func perRequestTPS(outputTokens, latencyMS int64) float64 {
-	if outputTokens <= 0 || latencyMS <= 0 {
+// perRequestTPS 计算单请求 token 吐出速度（输出 token/秒）。
+// 时间全程按毫秒：生成时长 gen_ms = duration_ms − first_token_ms（完整响应 − 首字节）。
+// tps = output_tokens * 1000 / gen_ms，不在后端把 ms 先换成 s，避免中间除法放大浮点误差。
+// 展示由前端格式化为 token/s（保留 2 位小数）。无输出或无有效生成时长则为 0。
+func perRequestTPS(outputTokens, durationMS, firstTokenMS int64) float64 {
+	if outputTokens <= 0 || durationMS <= 0 {
 		return 0
 	}
-	return float64(outputTokens) / (float64(latencyMS) / 1000)
+	genMS := durationMS - firstTokenMS
+	if genMS <= 0 {
+		return 0
+	}
+	return float64(outputTokens) * 1000 / float64(genMS)
 }
 
 // adminGroupListItem 对齐 /admin/groups/all 的 AdminGroup JSON（只用 id/name）。

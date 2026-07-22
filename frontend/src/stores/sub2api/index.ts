@@ -412,10 +412,11 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   // ---------- 格式化 ----------
   const formatNumber = (value: unknown) => new Intl.NumberFormat(getCurrentLocale()).format(toNumber(value))
   const formatPercent = (value: unknown) => `${toNumber(value).toFixed(1)}%`
+  // 后端存 ms；展示统一换算为 s，保留 2 位小数
   const formatLatency = (value: unknown) => {
     const ms = toNumber(value)
-    if (ms >= 1000) return `${(ms / 1000).toFixed(2)} s`
-    return `${Math.round(ms)} ms`
+    if (!Number.isFinite(ms) || ms <= 0) return '0.00 s'
+    return `${(ms / 1000).toFixed(2)} s`
   }
   const formatToken = (value: unknown) => {
     const count = toNumber(value)
@@ -450,16 +451,17 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     })
     return [title, ...lines].join('<br/>')
   }
+  // TPS 后端按 ms 算出 token/s；展示保留 2 位小数（极大值用 compact 仍最多 2 位）
   const formatThroughput = (value: unknown) => {
     const tps = toNumber(value)
+    if (!Number.isFinite(tps) || tps <= 0) return '0.00'
     if (tps >= 10000) {
       return new Intl.NumberFormat(getCurrentLocale(), {
         notation: 'compact',
-        maximumFractionDigits: 1,
+        maximumFractionDigits: 2,
       }).format(tps)
     }
-    if (tps >= 100) return `${Math.round(tps)}`
-    return tps.toFixed(1)
+    return tps.toFixed(2)
   }
   // 费用展示（USD）：金额越小保留越多位，避免小额请求显示为 $0
   const formatCost = (value: unknown) => {
@@ -725,7 +727,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
           yAxisIndex: 0,
           smooth: true,
           symbol: 'none',
-          data: series.map((p) => [toMs(p.time), Number(toNumber(p.avgTps).toFixed(1))]),
+          data: series.map((p) => [toMs(p.time), Number(toNumber(p.avgTps).toFixed(2))]),
         },
         {
           name: t('sub2api.common.requestCount'),
