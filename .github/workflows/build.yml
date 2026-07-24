@@ -30,7 +30,7 @@ env:
   GHCR_IMAGE: ghcr.io/gucooing/momoko
   GO_VERSION: "1.26.3"
   NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  PNPM_VERSION: "11.13.1"
 
 jobs:
   prepare:

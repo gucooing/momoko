@@ -120,13 +120,13 @@ export const useUserProfileStore = defineStore('user-profile', () => {
 
   const loading = ref(false)
   const loginDevices = ref<LoginDeviceRow[]>([])
-  const currentDeviceId = ref('')
+  const currentSessionId = ref('')
   const deletingDeviceIds = ref<string[]>([])
   const loginLogs = ref<LoginLogItem[]>([])
 
   const currentDeviceLabel = computed(() => {
-    if (!currentDeviceId.value) return '-'
-    return loginDevices.value.find((item) => item.deviceId === currentDeviceId.value)?.device || '-'
+    if (!currentSessionId.value) return '-'
+    return loginDevices.value.find((item) => item.sessionId === currentSessionId.value)?.device || '-'
   })
 
   const extraLabelMap: Record<string, string> = {
@@ -300,17 +300,17 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   }
 
   const isCurrentDevice = (device: LoginDeviceRow) => {
-    return Boolean(currentDeviceId.value) && device.deviceId === currentDeviceId.value
+    return Boolean(currentSessionId.value) && device.sessionId === currentSessionId.value
   }
 
-  const sortDevicesByCurrent = (devices: LoginDeviceRow[], deviceId: string) => {
-    if (!deviceId) return devices
+  const sortDevicesByCurrent = (devices: LoginDeviceRow[], sessionId: string) => {
+    if (!sessionId) return devices
 
     const currentDevices: LoginDeviceRow[] = []
     const otherDevices: LoginDeviceRow[] = []
 
     devices.forEach((item) => {
-      if (item.deviceId === deviceId) currentDevices.push(item)
+      if (item.sessionId === sessionId) currentDevices.push(item)
       else otherDevices.push(item)
     })
 
@@ -344,13 +344,13 @@ export const useUserProfileStore = defineStore('user-profile', () => {
 
       if (!devicesRes) {
         loginDevices.value = []
-        currentDeviceId.value = ''
+        currentSessionId.value = ''
         return
       }
 
-      currentDeviceId.value = devicesRes.deviceId || ''
+      currentSessionId.value = devicesRes.sessionId || ''
       const deviceList = (devicesRes.devices || []) as LoginDeviceRow[]
-      loginDevices.value = sortDevicesByCurrent(deviceList, currentDeviceId.value)
+      loginDevices.value = sortDevicesByCurrent(deviceList, currentSessionId.value)
     } finally {
       loading.value = false
     }
@@ -380,7 +380,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     profileForm.value = createEmptyProfileForm()
     loading.value = false
     loginDevices.value = []
-    currentDeviceId.value = ''
+    currentSessionId.value = ''
     deletingDeviceIds.value = []
     loginLogs.value = []
   }

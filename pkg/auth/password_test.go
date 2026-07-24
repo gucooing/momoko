@@ -68,10 +68,10 @@ func TestTokenRoundTripWithNoise(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	session := &gen.Auth{
+	session := &gen.Session{
+		ID:           "s1",
 		UserID:       "u1",
 		DeviceID:     "d1",
-		SessionID:    "s1",
 		AccessNoise:  accessNoise,
 		RefreshNoise: refreshNoise,
 	}

@@ -188,7 +188,6 @@ const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeAuthRegister]: 'system.operation.types.authRegister',
   [OperationType.OperationTypeAuthLogout]: 'system.operation.types.authLogout',
   [OperationType.OperationTypeAuthUpdatePassword]: 'system.operation.types.authUpdatePassword',
-  [OperationType.OperationTypeAuthDeviceDelete]: 'system.operation.types.authDeviceDelete',
   [OperationType.OperationTypeAuthRegisterEmailCode]: 'system.operation.types.authRegisterEmailCode',
   [OperationType.OperationTypeAuthLoginEmailCode]: 'system.operation.types.authLoginEmailCode',
   [OperationType.OperationTypeUserUpdateMe]: 'system.operation.types.userUpdateMe',
