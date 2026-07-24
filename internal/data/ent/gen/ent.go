@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/filesource"
@@ -24,6 +23,7 @@ import (
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/session"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
@@ -101,7 +101,6 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			auth.Table:                      auth.ValidColumn,
 			emailtemplate.Table:             emailtemplate.ValidColumn,
 			fileshare.Table:                 fileshare.ValidColumn,
 			filesource.Table:                filesource.ValidColumn,
@@ -120,6 +119,7 @@ func checkColumn(t, c string) error {
 			portforwardstat.Table:           portforwardstat.ValidColumn,
 			role.Table:                      role.ValidColumn,
 			sshhost.Table:                   sshhost.ValidColumn,
+			session.Table:                   session.ValidColumn,
 			sub2apiannouncement.Table:       sub2apiannouncement.ValidColumn,
 			sub2apigroup.Table:              sub2apigroup.ValidColumn,
 			sub2apilotteryparticipant.Table: sub2apilotteryparticipant.ValidColumn,

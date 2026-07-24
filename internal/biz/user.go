@@ -171,7 +171,7 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 		}
 		return nil, ErrSystem(err)
 	}
-	if ok, _ := auth.VerifyPassword(oldPassword, userDb.Password); !ok {
+	if !auth.VerifyPassword(oldPassword, userDb.Password) {
 		return nil, ErrInvalidPassword
 	}
 	if err = u.auth.DeleteAuth(ctx, userId, nil); err != nil {

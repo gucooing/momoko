@@ -8,10 +8,8 @@ import (
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
-	auth2 "momoko/internal/data/ent/gen/auth"
 	genuser "momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
-	"momoko/pkg/response"
 )
 
 type AuthService struct {
@@ -53,24 +51,24 @@ func (s *AuthService) Login(ctx context.Context, req *v1.LoginRequest) (*v1.Logi
 		}
 		user, err = s.uc.LoginByEmail(ctx, req.GetEmail(), req.GetCode())
 	default:
-		return nil, response.BadRequest(400, "请选择登录方式")
+		return nil, biz.ErrNotLoginType
 	}
 	if err != nil {
 		return nil, err
 	}
-	access, err := s.uc.NewAccessToken(ctx, user.ID, req)
+	if req.GetDeviceId() == "" {
+		return nil, biz.ErrNotDeviceID
+	}
+
+	session, err := s.uc.NewSession(ctx, user.ID, req)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.uc.NewRefreshToken(ctx, user.ID, req)
+	accessToken, err := auth.GenerateAccessToken(session)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := auth.GenerateToken(access)
-	if err != nil {
-		return nil, err
-	}
-	refreshToken, err := auth.GenerateToken(refresh)
+	refreshToken, err := auth.GenerateRefreshToken(session)
 	if err != nil {
 		return nil, err
 	}
@@ -161,23 +159,22 @@ func (s *AuthService) SendLoginEmailCode(ctx context.Context, req *v1.SendLoginE
 }
 
 func (s *AuthService) Refresh(ctx context.Context, req *v1.RefreshRequest) (*v1.RefreshResponse, error) {
-	refreshAuth, err := auth.ParseToken(req.RefreshToken)
+	refreshClaims, err := auth.ParseToken(req.RefreshToken)
 	if err != nil {
 		return nil, biz.ErrTokenInvalid
 	}
-	if !s.uc.VerifyToken(ctx, refreshAuth, auth2.TypeRefreshToken) {
+	if !s.uc.VerifyToken(ctx, refreshClaims, auth.TokenKindRefresh) {
 		return nil, biz.ErrTokenInvalid
 	}
-	// 更新token
-	access, refresh, err := s.uc.RefreshToken(ctx, refreshAuth.UserID, refreshAuth.DeviceId)
+	session, err := s.uc.RefreshToken(ctx, refreshClaims.SessionID)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := auth.GenerateToken(access)
+	accessToken, err := auth.GenerateAccessToken(session)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := auth.GenerateToken(refresh)
+	refreshToken, err := auth.GenerateRefreshToken(session)
 	if err != nil {
 		return nil, err
 	}
@@ -199,8 +196,8 @@ func (s *AuthService) Devices(ctx context.Context, req *v1.DevicesRequest) (*v1.
 		return nil, err
 	}
 	return &v1.DevicesResponse{
-		Devices:  list,
-		DeviceId: authInfo.DeviceId,
+		Devices:   list,
+		SessionId: authInfo.ID,
 	}, nil
 }
 
@@ -221,21 +218,9 @@ func (s *AuthService) Logout(ctx context.Context, req *v1.LogoutRequest) (*v1.Lo
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	err := s.uc.Logout(ctx, authInfo.UserID, authInfo.DeviceId)
+	err := s.uc.Logout(ctx, authInfo.UserID, req.SessionId)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.LogoutResponse{}, nil
-}
-
-func (s *AuthService) DelLogin(ctx context.Context, req *v1.DelLoginRequest) (*v1.DelLoginResponse, error) {
-	authInfo, ok := auth.FromContext(ctx)
-	if !ok {
-		return nil, biz.ErrTokenInvalid
-	}
-	err := s.uc.Logout(ctx, authInfo.UserID, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.DelLoginResponse{}, nil
 }

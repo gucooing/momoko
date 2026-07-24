@@ -21,7 +21,7 @@
     <ul v-else class="dev-list" role="list">
       <li
         v-for="row in loginDevices"
-        :key="row.deviceId"
+        :key="row.sessionId || row.deviceId"
         class="dev-row"
         :class="{ 'is-current': isCurrentDevice(row) }"
         role="button"
@@ -52,15 +52,15 @@
           <AdaptiveConfirm
             v-else
             :title="t('user.deleteDeviceConfirm')"
-            :disabled="isDeletingLoginDevice(row.deviceId)"
-            @confirm="handleDelete(row.deviceId)"
+            :disabled="isDeletingLoginDevice(row.sessionId)"
+            @confirm="handleDelete(row.sessionId)"
           >
             <template #reference>
               <UButton
                 color="error"
                 variant="ghost"
                 size="xs"
-                :loading="isDeletingLoginDevice(row.deviceId)"
+                :loading="isDeletingLoginDevice(row.sessionId)"
               >
                 {{ t('user.logoutDevice') }}
               </UButton>
@@ -87,7 +87,7 @@
           v-if="detailRow && !isCurrentDevice(detailRow)"
           color="error"
           variant="soft"
-          :loading="detailRow ? isDeletingLoginDevice(detailRow.deviceId) : false"
+          :loading="detailRow ? isDeletingLoginDevice(detailRow.sessionId) : false"
           @click="confirmLogoutFromDetail"
         >
           {{ t('user.logoutDevice') }}
@@ -162,11 +162,12 @@ const openDetail = (row: LoginDeviceRow) => {
   detailOpen.value = true
 }
 
-const handleDelete = async (deviceId: string) => {
-  const ok = await deleteLoginDevice(deviceId)
+const handleDelete = async (sessionId: string) => {
+  if (!sessionId) return
+  const ok = await deleteLoginDevice(sessionId)
   if (ok) {
     fb.success(t('user.deviceDeleted'))
-    if (detailRow.value?.deviceId === deviceId) {
+    if (detailRow.value?.sessionId === sessionId) {
       detailOpen.value = false
       detailRow.value = null
     }
@@ -174,9 +175,9 @@ const handleDelete = async (deviceId: string) => {
 }
 
 const confirmLogoutFromDetail = async () => {
-  if (!detailRow.value) return
-  // 详情内二次确认仍走 AdaptiveConfirm 语义：这里直接删（用户已在详情主动点下线）
-  await handleDelete(detailRow.value.deviceId)
+  if (!detailRow.value?.sessionId) return
+  // 详情内下线：按 sessionId 调用 logout（后端已取消 DELETE devices）。
+  await handleDelete(detailRow.value.sessionId)
 }
 
 onMounted(() => {

@@ -1,8 +1,6 @@
 import request from '@/utils/request'
 import { sortMenuTreeByOrder } from '@/utils/menu'
 import type {
-  DelLoginRequest,
-  DelLoginResponse,
   DevicesRequest,
   DevicesResponse,
   LoginRequest,
@@ -75,8 +73,9 @@ export const devicesRequest = (params: DevicesRequest = {}) => {
   return request.get<DevicesResponse>('/auth/devices', { params })
 }
 
-export const deleteLoginDeviceRequest = (params: DelLoginRequest) => {
-  return request.delete<DelLoginResponse>(`/auth/devices/${params.id}`)
+/** 下线指定会话：走 logout，body 带 sessionId（后端已移除 DELETE /auth/devices/{id}）。 */
+export const deleteLoginDeviceRequest = (params: { sessionId: string }) => {
+  return logoutRequest({ sessionId: params.sessionId })
 }
 
 export const userMeInfoRequest = (params: MeInfoRequest = {}) => {

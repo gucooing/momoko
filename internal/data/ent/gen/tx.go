@@ -14,8 +14,6 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// Auth is the client for interacting with the Auth builders.
-	Auth *AuthClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
@@ -52,6 +50,8 @@ type Tx struct {
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
 	SSHHost *SSHHostClient
+	// Session is the client for interacting with the Session builders.
+	Session *SessionClient
 	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
 	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
@@ -203,7 +203,6 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.Auth = NewAuthClient(tx.config)
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileShare = NewFileShareClient(tx.config)
 	tx.FileSource = NewFileSourceClient(tx.config)
@@ -222,6 +221,7 @@ func (tx *Tx) init() {
 	tx.PortForwardStat = NewPortForwardStatClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
+	tx.Session = NewSessionClient(tx.config)
 	tx.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(tx.config)
 	tx.Sub2APIGroup = NewSub2APIGroupClient(tx.config)
 	tx.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(tx.config)
@@ -241,7 +241,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Auth.QueryXXX(), the query will be executed
+// applies a query, for example: EmailTemplate.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -4,11 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
-
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
-	entauth "momoko/internal/data/ent/gen/auth"
+	entauth "momoko/internal/data/ent/gen/session"
 	tokenauth "momoko/pkg/auth"
 	"momoko/pkg/cache"
 )
@@ -16,140 +14,83 @@ import (
 type authRepo struct {
 	data *Data
 
-	cacheToken *cache.Cache[string, *gen.Auth]
+	cacheToken *cache.Cache[string, *gen.Session]
 }
 
 func NewAuthRepo(data *Data) biz.AuthRepo {
 	return &authRepo{
 		data:       data,
-		cacheToken: cache.New[string, *gen.Auth](5 * time.Minute),
+		cacheToken: cache.New[string, *gen.Session](5 * time.Minute),
 	}
 }
 
-func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Auth, error) {
+func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Session, error) {
 	now := time.Now()
-	err := ar.data.db.Auth.
+	err := ar.data.db.Session.
 		Create().
-		SetSessionID(authInfo.SessionID).
+		SetID(authInfo.SessionID).
 		SetUserID(authInfo.UserID).
 		SetDeviceID(authInfo.DeviceID).
 		SetDevice(authInfo.Device).
 		SetIP(authInfo.IP).
-		SetType(authInfo.Type).
-		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(authInfo.Type))).
-		OnConflictColumns(entauth.FieldDeviceID, entauth.FieldType).
+		SetAccessNoise(authInfo.AccessNoise).
+		SetRefreshNoise(authInfo.RefreshNoise).
+		SetExpiresAt(now.Add(tokenauth.RefreshTokenExpiresIn)).
+		OnConflictColumns(entauth.FieldDeviceID).
 		UpdateNewValues().
 		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
-	authData, err := ar.data.db.Auth.
+	authData, err := ar.data.db.Session.
 		Query().
-		Where(
-			entauth.DeviceIDEQ(authInfo.DeviceID),
-			entauth.TypeEQ(authInfo.Type),
-		).
+		Where(entauth.IDEQ(authInfo.SessionID)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if authInfo.Type == entauth.TypeToken {
-		ar.cacheToken.Set(authInfo.DeviceID, authData)
-	}
+	ar.cacheToken.Set(authInfo.SessionID, authData)
 	return authData, nil
 }
 
-func (ar *authRepo) Refresh(ctx context.Context, userId, deviceId string) (*gen.Auth, *gen.Auth, error) {
-	rows, err := ar.data.db.Auth.Query().
-		Where(
-			entauth.UserIDEQ(userId),
-			entauth.DeviceIDEQ(deviceId),
-		).All(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var (
-		accessAuth  *gen.Auth
-		refreshAuth *gen.Auth
-	)
-	for _, row := range rows {
-		switch row.Type {
-		case entauth.TypeToken:
-			accessAuth = row
-		case entauth.TypeRefreshToken:
-			refreshAuth = row
-		}
-	}
-
-	if accessAuth == nil || refreshAuth == nil {
-		return nil, nil, biz.ErrTokenInvalid
-	}
-
-	now := time.Now()
-	sessionID := uuid.NewString()
-	access, err := ar.data.db.Auth.UpdateOneID(accessAuth.ID).
-		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(entauth.TypeToken))).
-		SetSessionID(sessionID).
+// Refresh 续签同一会话行：只更新 noise 与 expires_at（now+有效期），不换 session_id。
+func (ar *authRepo) Refresh(ctx context.Context, sessionID, accessNoise, refreshNoise string) (*gen.Session, error) {
+	updated, err := ar.data.db.Session.UpdateOneID(sessionID).
+		SetAccessNoise(accessNoise).
+		SetRefreshNoise(refreshNoise).
+		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenExpiresIn)).
 		Save(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	refresh, err := ar.data.db.Auth.UpdateOneID(refreshAuth.ID).
-		SetExpiresAt(now.Add(tokenauth.TokenExpiresIn(entauth.TypeRefreshToken))).
-		SetSessionID(sessionID).
-		Save(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	ar.cacheToken.Set(access.DeviceID, access)
-
-	return access, refresh, nil
+	ar.cacheToken.Set(sessionID, updated)
+	return updated, nil
 }
 
-func (ar *authRepo) GetAuth(ctx context.Context, sessionID string, tokenType entauth.Type) (*gen.Auth, error) {
-	return ar.data.db.Auth.Query().
-		Where(
-			entauth.SessionIDEQ(sessionID),
-			entauth.TypeEQ(tokenType),
-		).First(ctx)
+func (ar *authRepo) GetAuth(ctx context.Context, sessionID string) (*gen.Session, error) {
+	if info, ok := ar.cacheToken.Get(sessionID); ok {
+		return info, nil
+	}
+	return ar.data.db.Session.Query().
+		Where(entauth.IDEQ(sessionID)).
+		Only(ctx)
 }
 
-func (ar *authRepo) ListAuth(ctx context.Context, tokenType *entauth.Type, userId string) ([]*gen.Auth, error) {
-	query := ar.data.db.Auth.Query().
-		Where(entauth.UserIDEQ(userId))
-
-	if tokenType != nil {
-		query.Where(entauth.TypeEQ(*tokenType))
-	}
-
-	return query.All(ctx)
+func (ar *authRepo) ListAuth(ctx context.Context, userId string) ([]*gen.Session, error) {
+	return ar.data.db.Session.Query().
+		Where(entauth.UserIDEQ(userId)).
+		All(ctx)
 }
 
-func (ar *authRepo) GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType entauth.Type) (*gen.Auth, error) {
-	add := func() (*gen.Auth, error) {
-		return ar.data.db.Auth.Query().
-			Where(
-				entauth.DeviceIDEQ(deviceID),
-				entauth.TypeEQ(tokenType),
-			).First(ctx)
-	}
-	if tokenType == entauth.TypeToken {
-		authData, ok := ar.cacheToken.GetByAdd(deviceID, add)
-		if !ok {
-			return nil, biz.ErrTokenInvalid
-		}
-		return authData, nil
-	}
-	return add()
-}
-
-func (ar *authRepo) DeleteAuth(ctx context.Context, userID string, deviceID *string) error {
-	del := ar.data.db.Auth.Delete().
+func (ar *authRepo) DeleteAuth(ctx context.Context, userID string, sessionID *string) error {
+	del := ar.data.db.Session.Delete().
 		Where(entauth.UserIDEQ(userID))
 
-	if deviceID != nil {
-		del = del.Where(entauth.DeviceIDEQ(*deviceID))
+	if sessionID != nil {
+		del = del.Where(entauth.IDEQ(*sessionID))
+		ar.cacheToken.Del(*sessionID)
+	} else {
+		ar.cacheToken.Clear()
 	}
 
 	_, err := del.Exec(ctx)

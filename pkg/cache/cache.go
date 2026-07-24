@@ -117,3 +117,10 @@ func (c *Cache[K, V]) Del(k K) {
 func (c *Cache[K, V]) Clear() {
 	c.dict = sync.Map{}
 }
+
+func (c *Cache[K, V]) Range(f func(key K, value V) bool) {
+	c.dict.Range(func(k, v any) bool {
+		ojb := v.(*valueInterface)
+		return f(K(k), ojb.v)
+	})
+}

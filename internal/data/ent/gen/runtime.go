@@ -3,7 +3,6 @@
 package gen
 
 import (
-	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/filesource"
@@ -21,6 +20,7 @@ import (
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/session"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
@@ -40,37 +40,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	authMixin := schema.Auth{}.Mixin()
-	authMixinFields0 := authMixin[0].Fields()
-	_ = authMixinFields0
-	authFields := schema.Auth{}.Fields()
-	_ = authFields
-	// authDescCreateTime is the schema descriptor for create_time field.
-	authDescCreateTime := authMixinFields0[0].Descriptor()
-	// auth.DefaultCreateTime holds the default value on creation for the create_time field.
-	auth.DefaultCreateTime = authDescCreateTime.Default.(func() time.Time)
-	// authDescUpdateTime is the schema descriptor for update_time field.
-	authDescUpdateTime := authMixinFields0[1].Descriptor()
-	// auth.DefaultUpdateTime holds the default value on creation for the update_time field.
-	auth.DefaultUpdateTime = authDescUpdateTime.Default.(func() time.Time)
-	// auth.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	auth.UpdateDefaultUpdateTime = authDescUpdateTime.UpdateDefault.(func() time.Time)
-	// authDescSessionID is the schema descriptor for session_id field.
-	authDescSessionID := authFields[0].Descriptor()
-	// auth.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
-	auth.SessionIDValidator = authDescSessionID.Validators[0].(func(string) error)
-	// authDescDeviceID is the schema descriptor for device_id field.
-	authDescDeviceID := authFields[1].Descriptor()
-	// auth.DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
-	auth.DeviceIDValidator = authDescDeviceID.Validators[0].(func(string) error)
-	// authDescDevice is the schema descriptor for device field.
-	authDescDevice := authFields[2].Descriptor()
-	// auth.DeviceValidator is a validator for the "device" field. It is called by the builders before save.
-	auth.DeviceValidator = authDescDevice.Validators[0].(func(string) error)
-	// authDescUserID is the schema descriptor for user_id field.
-	authDescUserID := authFields[3].Descriptor()
-	// auth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	auth.UserIDValidator = authDescUserID.Validators[0].(func(string) error)
 	emailtemplateMixin := schema.EmailTemplate{}.Mixin()
 	emailtemplateMixinFields0 := emailtemplateMixin[0].Fields()
 	_ = emailtemplateMixinFields0
@@ -686,6 +655,45 @@ func init() {
 	sshhostDescID := sshhostFields[0].Descriptor()
 	// sshhost.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	sshhost.IDValidator = sshhostDescID.Validators[0].(func(string) error)
+	sessionMixin := schema.Session{}.Mixin()
+	sessionMixinFields0 := sessionMixin[0].Fields()
+	_ = sessionMixinFields0
+	sessionFields := schema.Session{}.Fields()
+	_ = sessionFields
+	// sessionDescCreateTime is the schema descriptor for create_time field.
+	sessionDescCreateTime := sessionMixinFields0[0].Descriptor()
+	// session.DefaultCreateTime holds the default value on creation for the create_time field.
+	session.DefaultCreateTime = sessionDescCreateTime.Default.(func() time.Time)
+	// sessionDescUpdateTime is the schema descriptor for update_time field.
+	sessionDescUpdateTime := sessionMixinFields0[1].Descriptor()
+	// session.DefaultUpdateTime holds the default value on creation for the update_time field.
+	session.DefaultUpdateTime = sessionDescUpdateTime.Default.(func() time.Time)
+	// session.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	session.UpdateDefaultUpdateTime = sessionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// sessionDescDeviceID is the schema descriptor for device_id field.
+	sessionDescDeviceID := sessionFields[1].Descriptor()
+	// session.DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
+	session.DeviceIDValidator = sessionDescDeviceID.Validators[0].(func(string) error)
+	// sessionDescDevice is the schema descriptor for device field.
+	sessionDescDevice := sessionFields[2].Descriptor()
+	// session.DeviceValidator is a validator for the "device" field. It is called by the builders before save.
+	session.DeviceValidator = sessionDescDevice.Validators[0].(func(string) error)
+	// sessionDescUserID is the schema descriptor for user_id field.
+	sessionDescUserID := sessionFields[3].Descriptor()
+	// session.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	session.UserIDValidator = sessionDescUserID.Validators[0].(func(string) error)
+	// sessionDescAccessNoise is the schema descriptor for access_noise field.
+	sessionDescAccessNoise := sessionFields[5].Descriptor()
+	// session.AccessNoiseValidator is a validator for the "access_noise" field. It is called by the builders before save.
+	session.AccessNoiseValidator = sessionDescAccessNoise.Validators[0].(func(string) error)
+	// sessionDescRefreshNoise is the schema descriptor for refresh_noise field.
+	sessionDescRefreshNoise := sessionFields[6].Descriptor()
+	// session.RefreshNoiseValidator is a validator for the "refresh_noise" field. It is called by the builders before save.
+	session.RefreshNoiseValidator = sessionDescRefreshNoise.Validators[0].(func(string) error)
+	// sessionDescID is the schema descriptor for id field.
+	sessionDescID := sessionFields[0].Descriptor()
+	// session.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	session.IDValidator = sessionDescID.Validators[0].(func(string) error)
 	sub2apiannouncementMixin := schema.Sub2APIAnnouncement{}.Mixin()
 	sub2apiannouncementMixinFields0 := sub2apiannouncementMixin[0].Fields()
 	_ = sub2apiannouncementMixinFields0

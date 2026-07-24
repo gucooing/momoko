@@ -6,8 +6,9 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/predicate"
+	"momoko/internal/data/ent/gen/session"
+	"momoko/internal/data/ent/gen/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -15,64 +16,87 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// AuthQuery is the builder for querying Auth entities.
-type AuthQuery struct {
+// SessionQuery is the builder for querying Session entities.
+type SessionQuery struct {
 	config
 	ctx        *QueryContext
-	order      []auth.OrderOption
+	order      []session.OrderOption
 	inters     []Interceptor
-	predicates []predicate.Auth
+	predicates []predicate.Session
+	withUser   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the AuthQuery builder.
-func (_q *AuthQuery) Where(ps ...predicate.Auth) *AuthQuery {
+// Where adds a new predicate for the SessionQuery builder.
+func (_q *SessionQuery) Where(ps ...predicate.Session) *SessionQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *AuthQuery) Limit(limit int) *AuthQuery {
+func (_q *SessionQuery) Limit(limit int) *SessionQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *AuthQuery) Offset(offset int) *AuthQuery {
+func (_q *SessionQuery) Offset(offset int) *SessionQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *AuthQuery) Unique(unique bool) *AuthQuery {
+func (_q *SessionQuery) Unique(unique bool) *SessionQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *AuthQuery) Order(o ...auth.OrderOption) *AuthQuery {
+func (_q *SessionQuery) Order(o ...session.OrderOption) *SessionQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// First returns the first Auth entity from the query.
-// Returns a *NotFoundError when no Auth was found.
-func (_q *AuthQuery) First(ctx context.Context) (*Auth, error) {
+// QueryUser chains the current query on the "user" edge.
+func (_q *SessionQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, session.UserTable, session.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// First returns the first Session entity from the query.
+// Returns a *NotFoundError when no Session was found.
+func (_q *SessionQuery) First(ctx context.Context) (*Session, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{auth.Label}
+		return nil, &NotFoundError{session.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *AuthQuery) FirstX(ctx context.Context) *Auth {
+func (_q *SessionQuery) FirstX(ctx context.Context) *Session {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -80,22 +104,22 @@ func (_q *AuthQuery) FirstX(ctx context.Context) *Auth {
 	return node
 }
 
-// FirstID returns the first Auth ID from the query.
-// Returns a *NotFoundError when no Auth ID was found.
-func (_q *AuthQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+// FirstID returns the first Session ID from the query.
+// Returns a *NotFoundError when no Session ID was found.
+func (_q *SessionQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{auth.Label}
+		err = &NotFoundError{session.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *AuthQuery) FirstIDX(ctx context.Context) int {
+func (_q *SessionQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -103,10 +127,10 @@ func (_q *AuthQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single Auth entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Auth entity is found.
-// Returns a *NotFoundError when no Auth entities are found.
-func (_q *AuthQuery) Only(ctx context.Context) (*Auth, error) {
+// Only returns a single Session entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Session entity is found.
+// Returns a *NotFoundError when no Session entities are found.
+func (_q *SessionQuery) Only(ctx context.Context) (*Session, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -115,14 +139,14 @@ func (_q *AuthQuery) Only(ctx context.Context) (*Auth, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{auth.Label}
+		return nil, &NotFoundError{session.Label}
 	default:
-		return nil, &NotSingularError{auth.Label}
+		return nil, &NotSingularError{session.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *AuthQuery) OnlyX(ctx context.Context) *Auth {
+func (_q *SessionQuery) OnlyX(ctx context.Context) *Session {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -130,11 +154,11 @@ func (_q *AuthQuery) OnlyX(ctx context.Context) *Auth {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Auth ID in the query.
-// Returns a *NotSingularError when more than one Auth ID is found.
+// OnlyID is like Only, but returns the only Session ID in the query.
+// Returns a *NotSingularError when more than one Session ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *AuthQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *SessionQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -142,15 +166,15 @@ func (_q *AuthQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{auth.Label}
+		err = &NotFoundError{session.Label}
 	default:
-		err = &NotSingularError{auth.Label}
+		err = &NotSingularError{session.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *AuthQuery) OnlyIDX(ctx context.Context) int {
+func (_q *SessionQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -158,18 +182,18 @@ func (_q *AuthQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of Auths.
-func (_q *AuthQuery) All(ctx context.Context) ([]*Auth, error) {
+// All executes the query and returns a list of Sessions.
+func (_q *SessionQuery) All(ctx context.Context) ([]*Session, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Auth, *AuthQuery]()
-	return withInterceptors[[]*Auth](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Session, *SessionQuery]()
+	return withInterceptors[[]*Session](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *AuthQuery) AllX(ctx context.Context) []*Auth {
+func (_q *SessionQuery) AllX(ctx context.Context) []*Session {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -177,20 +201,20 @@ func (_q *AuthQuery) AllX(ctx context.Context) []*Auth {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Auth IDs.
-func (_q *AuthQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of Session IDs.
+func (_q *SessionQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(auth.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(session.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *AuthQuery) IDsX(ctx context.Context) []int {
+func (_q *SessionQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -199,16 +223,16 @@ func (_q *AuthQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *AuthQuery) Count(ctx context.Context) (int, error) {
+func (_q *SessionQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*AuthQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*SessionQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *AuthQuery) CountX(ctx context.Context) int {
+func (_q *SessionQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -217,7 +241,7 @@ func (_q *AuthQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *AuthQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *SessionQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -230,7 +254,7 @@ func (_q *AuthQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *AuthQuery) ExistX(ctx context.Context) bool {
+func (_q *SessionQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -238,22 +262,34 @@ func (_q *AuthQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the AuthQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the SessionQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *AuthQuery) Clone() *AuthQuery {
+func (_q *SessionQuery) Clone() *SessionQuery {
 	if _q == nil {
 		return nil
 	}
-	return &AuthQuery{
+	return &SessionQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]auth.OrderOption{}, _q.order...),
+		order:      append([]session.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Auth{}, _q.predicates...),
+		predicates: append([]predicate.Session{}, _q.predicates...),
+		withUser:   _q.withUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SessionQuery) WithUser(opts ...func(*UserQuery)) *SessionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUser = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -266,15 +302,15 @@ func (_q *AuthQuery) Clone() *AuthQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Auth.Query().
-//		GroupBy(auth.FieldCreateTime).
+//	client.Session.Query().
+//		GroupBy(session.FieldCreateTime).
 //		Aggregate(gen.Count()).
 //		Scan(ctx, &v)
-func (_q *AuthQuery) GroupBy(field string, fields ...string) *AuthGroupBy {
+func (_q *SessionQuery) GroupBy(field string, fields ...string) *SessionGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &AuthGroupBy{build: _q}
+	grbuild := &SessionGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = auth.Label
+	grbuild.label = session.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -288,23 +324,23 @@ func (_q *AuthQuery) GroupBy(field string, fields ...string) *AuthGroupBy {
 //		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
-//	client.Auth.Query().
-//		Select(auth.FieldCreateTime).
+//	client.Session.Query().
+//		Select(session.FieldCreateTime).
 //		Scan(ctx, &v)
-func (_q *AuthQuery) Select(fields ...string) *AuthSelect {
+func (_q *SessionQuery) Select(fields ...string) *SessionSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &AuthSelect{AuthQuery: _q}
-	sbuild.label = auth.Label
+	sbuild := &SessionSelect{SessionQuery: _q}
+	sbuild.label = session.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a AuthSelect configured with the given aggregations.
-func (_q *AuthQuery) Aggregate(fns ...AggregateFunc) *AuthSelect {
+// Aggregate returns a SessionSelect configured with the given aggregations.
+func (_q *SessionQuery) Aggregate(fns ...AggregateFunc) *SessionSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *AuthQuery) prepareQuery(ctx context.Context) error {
+func (_q *SessionQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("gen: uninitialized interceptor (forgotten import gen/runtime?)")
@@ -316,7 +352,7 @@ func (_q *AuthQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !auth.ValidColumn(f) {
+		if !session.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("gen: invalid field %q for query", f)}
 		}
 	}
@@ -330,17 +366,21 @@ func (_q *AuthQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *AuthQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Auth, error) {
+func (_q *SessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Session, error) {
 	var (
-		nodes = []*Auth{}
-		_spec = _q.querySpec()
+		nodes       = []*Session{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withUser != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Auth).scanValues(nil, columns)
+		return (*Session).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Auth{config: _q.config}
+		node := &Session{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,10 +392,46 @@ func (_q *AuthQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Auth, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withUser; query != nil {
+		if err := _q.loadUser(ctx, query, nodes, nil,
+			func(n *Session, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (_q *AuthQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Session, init func(*Session), assign func(*Session, *User)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Session)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+
+func (_q *SessionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -364,8 +440,8 @@ func (_q *AuthQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *AuthQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(auth.Table, auth.Columns, sqlgraph.NewFieldSpec(auth.FieldID, field.TypeInt))
+func (_q *SessionQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -374,11 +450,14 @@ func (_q *AuthQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, auth.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, session.FieldID)
 		for i := range fields {
-			if fields[i] != auth.FieldID {
+			if fields[i] != session.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withUser != nil {
+			_spec.Node.AddColumnOnce(session.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -404,12 +483,12 @@ func (_q *AuthQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *AuthQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *SessionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(auth.Table)
+	t1 := builder.Table(session.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = auth.Columns
+		columns = session.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -436,28 +515,28 @@ func (_q *AuthQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// AuthGroupBy is the group-by builder for Auth entities.
-type AuthGroupBy struct {
+// SessionGroupBy is the group-by builder for Session entities.
+type SessionGroupBy struct {
 	selector
-	build *AuthQuery
+	build *SessionQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *AuthGroupBy) Aggregate(fns ...AggregateFunc) *AuthGroupBy {
+func (_g *SessionGroupBy) Aggregate(fns ...AggregateFunc) *SessionGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *AuthGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *SessionGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*AuthQuery, *AuthGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*SessionQuery, *SessionGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *AuthGroupBy) sqlScan(ctx context.Context, root *AuthQuery, v any) error {
+func (_g *SessionGroupBy) sqlScan(ctx context.Context, root *SessionQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -484,28 +563,28 @@ func (_g *AuthGroupBy) sqlScan(ctx context.Context, root *AuthQuery, v any) erro
 	return sql.ScanSlice(rows, v)
 }
 
-// AuthSelect is the builder for selecting fields of Auth entities.
-type AuthSelect struct {
-	*AuthQuery
+// SessionSelect is the builder for selecting fields of Session entities.
+type SessionSelect struct {
+	*SessionQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *AuthSelect) Aggregate(fns ...AggregateFunc) *AuthSelect {
+func (_s *SessionSelect) Aggregate(fns ...AggregateFunc) *SessionSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *AuthSelect) Scan(ctx context.Context, v any) error {
+func (_s *SessionSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*AuthQuery, *AuthSelect](ctx, _s.AuthQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*SessionQuery, *SessionSelect](ctx, _s.SessionQuery, _s, _s.inters, v)
 }
 
-func (_s *AuthSelect) sqlScan(ctx context.Context, root *AuthQuery, v any) error {
+func (_s *SessionSelect) sqlScan(ctx context.Context, root *SessionQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

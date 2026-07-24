@@ -6,9 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Auth is the predicate function for auth builders.
-type Auth func(*sql.Selector)
-
 // EmailTemplate is the predicate function for emailtemplate builders.
 type EmailTemplate func(*sql.Selector)
 
@@ -62,6 +59,9 @@ type Role func(*sql.Selector)
 
 // SSHHost is the predicate function for sshhost builders.
 type SSHHost func(*sql.Selector)
+
+// Session is the predicate function for session builders.
+type Session func(*sql.Selector)
 
 // Sub2APIAnnouncement is the predicate function for sub2apiannouncement builders.
 type Sub2APIAnnouncement func(*sql.Selector)

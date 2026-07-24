@@ -930,8 +930,6 @@ enum OperationType {
   OperationTypeAuthLogout = 2;
   // 修改密码
   OperationTypeAuthUpdatePassword = 3;
-  // 登录设备删除
-  OperationTypeAuthDeviceDelete = 4;
   // 个人信息更新
   OperationTypeUserUpdateMe = 5;
   // 用户新增

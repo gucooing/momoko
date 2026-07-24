@@ -19,26 +19,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DevicesResponse'
-    /api/v1/auth/devices/{id}:
-        delete:
-            tags:
-                - AuthService
-            description: 删除已登录的设备
-            operationId: AuthService_DelLogin
-            parameters:
-                - name: id
-                  in: path
-                  description: 设备id
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DelLoginResponse'
     /api/v1/auth/login:
         post:
             tags:
@@ -5698,10 +5678,6 @@ components:
             type: object
             properties: {}
             description: 删除实例类型响应
-        v1.DelLoginResponse:
-            type: object
-            properties: {}
-            description: 删除已登录的设备响应
         v1.DeleteDockerContainerResponse:
             type: object
             properties: {}
@@ -5778,9 +5754,9 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.LoginDevice'
                     description: 设备列表
-                deviceId:
+                sessionId:
                     type: string
-                    description: 当前设备id
+                    description: 当前会话id
             description: 获取登录设备响应
         v1.DisconnectDockerNetworkRequest:
             type: object
@@ -8455,7 +8431,10 @@ components:
             description: 账号登录响应
         v1.LogoutRequest:
             type: object
-            properties: {}
+            properties:
+                sessionId:
+                    type: string
+                    description: 是否指定会话
             description: 退出登录请求
         v1.LogoutResponse:
             type: object

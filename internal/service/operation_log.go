@@ -119,7 +119,6 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationAuthServiceSendLoginEmailCode:            v1.OperationType_OperationTypeAuthLoginEmailCode,
 	v1.OperationAuthServiceLogout:                        v1.OperationType_OperationTypeAuthLogout,
 	v1.OperationAuthServiceUpdatePassword:                v1.OperationType_OperationTypeAuthUpdatePassword,
-	v1.OperationAuthServiceDelLogin:                      v1.OperationType_OperationTypeAuthDeviceDelete,
 	v1.OperationUserServiceUpdateMe:                      v1.OperationType_OperationTypeUserUpdateMe,
 	v1.OperationUserServiceAddUser:                       v1.OperationType_OperationTypeUserCreate,
 	v1.OperationUserServiceEditUser:                      v1.OperationType_OperationTypeUserUpdate,

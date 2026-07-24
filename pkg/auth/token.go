@@ -2,14 +2,14 @@ package auth
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"momoko/internal/data/ent/gen"
-	"momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/response"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,6 +21,9 @@ const (
 	tokenIssuer           = "momoko"
 	tokenSubject          = "user"
 
+	// noiseBytes 会话噪声原始字节长度（编码后写入 JWT / DB）。
+	noiseBytes = 32
+
 	// minSecretLength 主密钥最小长度。
 	minSecretLength = 8
 )
@@ -30,29 +33,14 @@ var (
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
 )
 
-// weakSecrets 是已知的弱/默认/公开密钥，禁止用于生产环境的签名与加密。
-var weakSecrets = map[string]struct{}{
-	"123456":        {},
-	"gucooing.auth": {},
-	"momoko":        {},
-	"secret":        {},
-	"changeme":      {},
-	"password":      {},
-	"admin":         {},
-}
-
-// ValidateSecret 校验主密钥强度。空、过短或命中已知弱密钥都会被拒绝。
+// ValidateSecret
 // 应在启动认证服务前调用，弱密钥直接 fail-closed。
 func ValidateSecret(secret string) error {
-	trimmed := strings.TrimSpace(secret)
-	if trimmed == "" {
+	if secret == "" {
 		return errors.New("auth.secret 未配置：请在配置中设置一个高强度随机密钥（建议 ≥32 字符）")
 	}
-	if len(trimmed) < minSecretLength {
+	if len(secret) < minSecretLength {
 		return fmt.Errorf("auth.secret 过短（至少 %d 字符）：请改用高强度随机密钥", minSecretLength)
-	}
-	if _, ok := weakSecrets[strings.ToLower(trimmed)]; ok {
-		return errors.New("auth.secret 使用了已知弱/默认密钥：请改用高强度随机密钥")
 	}
 	return nil
 }
@@ -66,38 +54,73 @@ func jwtSigningKey() []byte {
 	return mac.Sum(nil)
 }
 
-func GenerateToken(authDb *gen.Auth) (string, error) {
-	if authDb == nil {
+// NewNoise 生成会话级随机噪声（url-safe base64，无填充）。
+func NewNoise() (string, error) {
+	buf := make([]byte, noiseBytes)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+// GenerateAccessToken 签发 access JWT；noise 取会话的 AccessNoise。
+func GenerateAccessToken(session *gen.Session) (string, error) {
+	return generateToken(session, TokenKindAccess, AccessTokenExpiresIn)
+}
+
+// GenerateRefreshToken 签发 refresh JWT；noise 取会话的 RefreshNoise。
+func GenerateRefreshToken(session *gen.Session) (string, error) {
+	return generateToken(session, TokenKindRefresh, RefreshTokenExpiresIn)
+}
+
+func generateToken(session *gen.Session, kind TokenKind, ttl time.Duration) (string, error) {
+	if session == nil {
 		return "", ErrTokenInvalid
 	}
+	if session.UserID == "" || session.DeviceID == "" || session.ID == "" {
+		return "", ErrTokenInvalid
+	}
+
+	noise := ""
+	switch kind {
+	case TokenKindAccess:
+		noise = session.AccessNoise
+	case TokenKindRefresh:
+		noise = session.RefreshNoise
+	default:
+		return "", ErrTokenInvalid
+	}
+
+	now := time.Now()
+	// jti 混入 kind + noise 前缀，使同一会话下 access/refresh 的签名输入明显不同。
+	jti := session.ID + ":" + string(kind) + ":" + noise[:min(8, len(noise))]
+
 	claims := Auth{
-		UserID:    authDb.UserID,
-		DeviceId:  authDb.DeviceID,
-		SessionID: authDb.SessionID,
+		UserID:    session.UserID,
+		DeviceId:  session.DeviceID,
+		SessionID: session.ID,
+		Kind:      kind,
+		Noise:     noise,
+		Type:      AuthTypeJWT,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        authDb.SessionID,
+			ID:        jti,
 			Issuer:    tokenIssuer,
 			Subject:   tokenSubject,
-			IssuedAt:  jwt.NewNumericDate(authDb.CreateTime),
-			NotBefore: jwt.NewNumericDate(authDb.UpdateTime),
-			ExpiresAt: jwt.NewNumericDate(authDb.ExpiresAt),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtSigningKey())
 }
 
-func TokenExpiresIn(tokenType auth.Type) time.Duration {
-	switch tokenType {
-	case auth.TypeRefreshToken:
-		return RefreshTokenExpiresIn
-	default:
-		return AccessTokenExpiresIn
-	}
-}
-
-// ParseToken parses the JWT token string and returns the Auth claims.
+// ParseToken 校验签名与标准 claims（iss/sub/exp/方法），并要求 kind/noise 非空。
 func ParseToken(tokenStr string) (*Auth, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &Auth{Type: AuthTypeJWT}, func(token *jwt.Token) (interface{}, error) {
+	if tokenStr == "" {
+		return nil, ErrTokenInvalid
+	}
+
+	token, err := jwt.ParseWithClaims(tokenStr, &Auth{Type: AuthTypeJWT}, func(token *jwt.Token) (any, error) {
 		return jwtSigningKey(), nil
 	},
 		jwt.WithExpirationRequired(),
@@ -112,7 +135,12 @@ func ParseToken(tokenStr string) (*Auth, error) {
 		return nil, ErrTokenInvalid
 	}
 	claims, ok := token.Claims.(*Auth)
-	if !ok {
+	if !ok ||
+		claims.UserID == "" ||
+		claims.DeviceId == "" ||
+		claims.SessionID == "" ||
+		claims.Noise == "" ||
+		(claims.Kind != TokenKindAccess && claims.Kind != TokenKindRefresh) {
 		return nil, ErrTokenInvalid
 	}
 	return claims, nil

@@ -8,18 +8,6 @@ import (
 	"momoko/internal/data/ent/gen"
 )
 
-// The AuthFunc type is an adapter to allow the use of ordinary
-// function as Auth mutator.
-type AuthFunc func(context.Context, *gen.AuthMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AuthFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.AuthMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AuthMutation", m)
-}
-
 // The EmailTemplateFunc type is an adapter to allow the use of ordinary
 // function as EmailTemplate mutator.
 type EmailTemplateFunc func(context.Context, *gen.EmailTemplateMutation) (gen.Value, error)
@@ -234,6 +222,18 @@ func (f SSHHostFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SSHHostMutation", m)
+}
+
+// The SessionFunc type is an adapter to allow the use of ordinary
+// function as Session mutator.
+type SessionFunc func(context.Context, *gen.SessionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.SessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SessionMutation", m)
 }
 
 // The Sub2APIAnnouncementFunc type is an adapter to allow the use of ordinary

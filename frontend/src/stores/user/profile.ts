@@ -356,19 +356,19 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     }
   }
 
-  const isDeletingLoginDevice = (deviceId: string) => deletingDeviceIds.value.includes(deviceId)
+  const isDeletingLoginDevice = (sessionId: string) => deletingDeviceIds.value.includes(sessionId)
 
-  const deleteLoginDevice = async (deviceId: string) => {
-    if (!deviceId || isDeletingLoginDevice(deviceId)) return false
+  const deleteLoginDevice = async (sessionId: string) => {
+    if (!sessionId || isDeletingLoginDevice(sessionId)) return false
 
-    deletingDeviceIds.value.push(deviceId)
+    deletingDeviceIds.value.push(sessionId)
 
     try {
-      await deleteLoginDeviceRequest({ id: deviceId })
-      loginDevices.value = loginDevices.value.filter((item) => item.deviceId !== deviceId)
+      await deleteLoginDeviceRequest({ sessionId })
+      loginDevices.value = loginDevices.value.filter((item) => item.sessionId !== sessionId)
       return true
     } finally {
-      deletingDeviceIds.value = deletingDeviceIds.value.filter((id) => id !== deviceId)
+      deletingDeviceIds.value = deletingDeviceIds.value.filter((id) => id !== sessionId)
     }
   }
 

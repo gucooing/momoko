@@ -14,20 +14,21 @@ import (
 
 	"momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
-	"momoko/internal/data/ent/gen/auth"
 	auth2 "momoko/pkg/auth"
 	"momoko/pkg/cache"
 )
 
 const emailCodeLength = 6
 
+// Auth 创建/轮换会话时的输入。
 type Auth struct {
-	UserID    string
-	DeviceID  string
-	Device    string
-	SessionID string
-	IP        string
-	Type      auth.Type
+	UserID       string
+	DeviceID     string
+	Device       string
+	SessionID    string
+	IP           string
+	AccessNoise  string
+	RefreshNoise string
 }
 
 type EmailCodeType string
@@ -38,12 +39,11 @@ const (
 )
 
 type AuthRepo interface {
-	CreateAuth(context.Context, *Auth) (*gen.Auth, error)
-	Refresh(ctx context.Context, userId, deviceId string) (*gen.Auth, *gen.Auth, error)
-	ListAuth(ctx context.Context, tokenType *auth.Type, userId string) ([]*gen.Auth, error)
-	GetAuth(ctx context.Context, sessionID string, tokenType auth.Type) (*gen.Auth, error)
-	GetAuthByDeviceID(ctx context.Context, deviceID string, tokenType auth.Type) (*gen.Auth, error)
-	DeleteAuth(ctx context.Context, userID string, deviceID *string) error
+	CreateAuth(context.Context, *Auth) (*gen.Session, error)
+	Refresh(ctx context.Context, sessionID, accessNoise, refreshNoise string) (*gen.Session, error)
+	ListAuth(ctx context.Context, userId string) ([]*gen.Session, error)
+	GetAuth(ctx context.Context, sessionID string) (*gen.Session, error)
+	DeleteAuth(ctx context.Context, userID string, sessionID *string) error
 }
 
 type AuthUsecase struct {
@@ -68,18 +68,11 @@ func (a *AuthUsecase) LoginByUsername(ctx context.Context, username, password st
 		}
 		return nil, ErrSystem(err)
 	}
-	ok, needsUpgrade := auth2.VerifyPassword(password, userInfo.Password)
-	if !ok {
+	if !auth2.VerifyPassword(password, userInfo.Password) {
 		return nil, ErrInvalidPassword
 	}
 	if userInfo.Status != user.StatusActive {
 		return nil, ErrUserInactive
-	}
-	// 历史无盐 MD5 口令在校验通过后透明升级为 bcrypt。
-	if needsUpgrade {
-		if newHash, err := auth2.HashPassword(password); err == nil {
-			_, _ = a.user.UpdatePassword(ctx, userInfo.ID, newHash)
-		}
 	}
 	return userInfo, nil
 }
@@ -173,14 +166,24 @@ func (a *AuthUsecase) VerifyEmailCode(email string, code string, codeType EmailC
 	return nil
 }
 
-func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1.LoginRequest) (*gen.Auth, error) {
+// NewSession 为设备创建/覆盖一行登录会话（含两份随机噪声）。
+func (a *AuthUsecase) NewSession(ctx context.Context, userId string, req *v1.LoginRequest) (*gen.Session, error) {
+	accessNoise, err := auth2.NewNoise()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	refreshNoise, err := auth2.NewNoise()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
 	info := &Auth{
-		UserID:    userId,
-		DeviceID:  req.DeviceId,
-		IP:        utils.ClientIPFromContext(ctx),
-		Device:    req.Device,
-		SessionID: uuid.NewString(),
-		Type:      auth.TypeToken,
+		UserID:       userId,
+		DeviceID:     req.DeviceId,
+		IP:           utils.ClientIPFromContext(ctx),
+		Device:       req.Device,
+		SessionID:    uuid.NewString(),
+		AccessNoise:  accessNoise,
+		RefreshNoise: refreshNoise,
 	}
 	ea, err := a.auth.CreateAuth(ctx, info)
 	if err != nil {
@@ -189,44 +192,53 @@ func (a *AuthUsecase) NewAccessToken(ctx context.Context, userId string, req *v1
 	return ea, nil
 }
 
-func (a *AuthUsecase) NewRefreshToken(ctx context.Context, userId string, req *v1.LoginRequest) (*gen.Auth, error) {
-	info := &Auth{
-		UserID:    userId,
-		DeviceID:  req.DeviceId,
-		IP:        utils.ClientIPFromContext(ctx),
-		Device:    req.Device,
-		SessionID: uuid.NewString(),
-		Type:      auth.TypeRefreshToken,
+// VerifyToken 校验 JWT claims 与库内会话一致，并匹配对应 kind 的噪声。
+func (a *AuthUsecase) VerifyToken(ctx context.Context, claims *auth2.Auth, kind auth2.TokenKind) bool {
+	if claims == nil || claims.Kind != kind {
+		return false
 	}
-	ea, err := a.auth.CreateAuth(ctx, info)
+	info, err := a.auth.GetAuth(ctx, claims.SessionID)
+	if err != nil {
+		return false
+	}
+	if info.DeviceID != claims.DeviceId ||
+		info.UserID != claims.UserID ||
+		info.ID != claims.SessionID {
+		return false
+	}
+	switch kind {
+	case auth2.TokenKindAccess:
+		return info.AccessNoise != "" && info.AccessNoise == claims.Noise
+	case auth2.TokenKindRefresh:
+		if info.ExpiresAt.Before(time.Now()) {
+			return false
+		}
+		return info.RefreshNoise != "" && info.RefreshNoise == claims.Noise
+	default:
+		return false
+	}
+}
+
+// RefreshToken 续签同一会话：固定 expires_at = now+有效期，更新两份 noise，不换 session_id。
+// 旧 token/rt 因 noise 变更立即失效；随后用同一 session 重新签发 access + refresh。
+func (a *AuthUsecase) RefreshToken(ctx context.Context, sessionID string) (*gen.Session, error) {
+	accessNoise, err := auth2.NewNoise()
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return ea, nil
-}
-
-func (a *AuthUsecase) VerifyToken(ctx context.Context, auth *auth2.Auth, tokenType auth.Type) bool {
-	info, err := a.auth.GetAuth(ctx, auth.SessionID, tokenType)
+	refreshNoise, err := auth2.NewNoise()
 	if err != nil {
-		return false
+		return nil, ErrSystem(err)
 	}
-	if info.DeviceID != auth.DeviceId ||
-		auth.SessionID != info.SessionID {
-		return false
-	}
-	return true
-}
-
-func (a *AuthUsecase) RefreshToken(ctx context.Context, userId, deviceId string) (*gen.Auth, *gen.Auth, error) {
-	access, refresh, err := a.auth.Refresh(ctx, userId, deviceId)
+	session, err := a.auth.Refresh(ctx, sessionID, accessNoise, refreshNoise)
 	if err != nil {
-		return nil, nil, ErrSystem(err)
+		return nil, ErrSystem(err)
 	}
-	return access, refresh, nil
+	return session, nil
 }
 
 func (a *AuthUsecase) ListLoginDevice(ctx context.Context, userId string) ([]*v1.LoginDevice, error) {
-	auths, err := a.auth.ListAuth(ctx, new(auth.TypeRefreshToken), userId)
+	auths, err := a.auth.ListAuth(ctx, userId)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -237,15 +249,15 @@ func (a *AuthUsecase) ListLoginDevice(ctx context.Context, userId string) ([]*v1
 			Device:     authInfo.Device,
 			Ip:         authInfo.IP,
 			DeviceId:   authInfo.DeviceID,
-			SessionId:  authInfo.SessionID,
+			SessionId:  authInfo.ID,
 			UpdateTime: timestamppb.New(authInfo.UpdateTime),
 		})
 	}
 	return list, nil
 }
 
-func (a *AuthUsecase) Logout(ctx context.Context, userID string, deviceID string) error {
-	err := a.auth.DeleteAuth(ctx, userID, &deviceID)
+func (a *AuthUsecase) Logout(ctx context.Context, userID string, sessionID *string) error {
+	err := a.auth.DeleteAuth(ctx, userID, sessionID)
 	if err != nil {
 		return ErrSystem(err)
 	}

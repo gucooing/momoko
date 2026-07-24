@@ -53,11 +53,11 @@ type Sub2APIUsageRecord struct {
 	TokenCount int64 `json:"token_count,omitempty"`
 	// 输出 token 数（不含输入与缓存）
 	OutputTokens int64 `json:"output_tokens,omitempty"`
-	// 单请求 token 生成速度（输出token/秒，按请求计，不含缓存）
+	// 单请求 token 吐出速度（输出token/秒；生成时长=duration-首字节，不含缓存）
 	Tps float64 `json:"tps,omitempty"`
 	// 费用（USD，total_cost）
 	Cost float64 `json:"cost,omitempty"`
-	// 首 token 延迟（毫秒）
+	// 首 token/首字节延迟（毫秒）
 	FirstTokenMs int64 `json:"first_token_ms,omitempty"`
 	// 推理强度
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`

@@ -9,6 +9,7 @@ import (
 	"math"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/session"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/user"
 
@@ -27,6 +28,7 @@ type UserQuery struct {
 	predicates         []predicate.User
 	withRole           *RoleQuery
 	withSharedSSHHosts *SSHHostQuery
+	withSessions       *SessionQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -101,6 +103,28 @@ func (_q *UserQuery) QuerySharedSSHHosts() *SSHHostQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(sshhost.Table, sshhost.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.SharedSSHHostsTable, user.SharedSSHHostsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessions chains the current query on the "sessions" edge.
+func (_q *UserQuery) QuerySessions() *SessionQuery {
+	query := (&SessionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.SessionsTable, user.SessionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -302,6 +326,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		predicates:         append([]predicate.User{}, _q.predicates...),
 		withRole:           _q.withRole.Clone(),
 		withSharedSSHHosts: _q.withSharedSSHHosts.Clone(),
+		withSessions:       _q.withSessions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -327,6 +352,17 @@ func (_q *UserQuery) WithSharedSSHHosts(opts ...func(*SSHHostQuery)) *UserQuery 
 		opt(query)
 	}
 	_q.withSharedSSHHosts = query
+	return _q
+}
+
+// WithSessions tells the query-builder to eager-load the nodes that are connected to
+// the "sessions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithSessions(opts ...func(*SessionQuery)) *UserQuery {
+	query := (&SessionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSessions = query
 	return _q
 }
 
@@ -409,9 +445,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withRole != nil,
 			_q.withSharedSSHHosts != nil,
+			_q.withSessions != nil,
 		}
 	)
 	if _q.withRole != nil {
@@ -448,6 +485,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadSharedSSHHosts(ctx, query, nodes,
 			func(n *User) { n.Edges.SharedSSHHosts = []*SSHHost{} },
 			func(n *User, e *SSHHost) { n.Edges.SharedSSHHosts = append(n.Edges.SharedSSHHosts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSessions; query != nil {
+		if err := _q.loadSessions(ctx, query, nodes,
+			func(n *User) { n.Edges.Sessions = []*Session{} },
+			func(n *User, e *Session) { n.Edges.Sessions = append(n.Edges.Sessions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -544,6 +588,36 @@ func (_q *UserQuery) loadSharedSSHHosts(ctx context.Context, query *SSHHostQuery
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, nodes []*User, init func(*User), assign func(*User, *Session)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(session.FieldUserID)
+	}
+	query.Where(predicate.Session(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.SessionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -14,7 +13,6 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"momoko/internal/biz"
-	auth2 "momoko/internal/data/ent/gen/auth"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
 )
@@ -110,17 +108,20 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				response.WriteError(w, r, ErrTokenInvalid)
 				return
 			}
-			if authInfo.ExpiresAt.Before(time.Now()) {
+			// access JWT 必须：kind=access，且会话噪声匹配。
+			if authInfo.Kind != auth.TokenKindAccess {
 				response.WriteError(w, r, ErrTokenInvalid)
 				return
 			}
-			authData, err := a.ar.GetAuthByDeviceID(r.Context(), authInfo.DeviceId, auth2.TypeToken)
+			authData, err := a.ar.GetAuth(r.Context(), authInfo.SessionID)
 			if err != nil {
 				response.WriteError(w, r, ErrTokenInvalid)
 				return
 			}
-			if authData.SessionID != authInfo.SessionID ||
-				authData.UserID != authInfo.UserID {
+			if authData.DeviceID != authInfo.DeviceId ||
+				authData.UserID != authInfo.UserID ||
+				authData.AccessNoise == "" ||
+				authData.AccessNoise != authInfo.Noise {
 				response.WriteError(w, r, ErrTokenInvalid)
 				return
 			}

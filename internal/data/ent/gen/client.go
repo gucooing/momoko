@@ -11,7 +11,6 @@ import (
 
 	"momoko/internal/data/ent/gen/migrate"
 
-	"momoko/internal/data/ent/gen/auth"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/filesource"
@@ -29,6 +28,7 @@ import (
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/session"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/sub2apiannouncement"
 	"momoko/internal/data/ent/gen/sub2apigroup"
@@ -54,8 +54,6 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Auth is the client for interacting with the Auth builders.
-	Auth *AuthClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
@@ -92,6 +90,8 @@ type Client struct {
 	Role *RoleClient
 	// SSHHost is the client for interacting with the SSHHost builders.
 	SSHHost *SSHHostClient
+	// Session is the client for interacting with the Session builders.
+	Session *SessionClient
 	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
 	Sub2APIAnnouncement *Sub2APIAnnouncementClient
 	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
@@ -123,7 +123,6 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Auth = NewAuthClient(c.config)
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileShare = NewFileShareClient(c.config)
 	c.FileSource = NewFileSourceClient(c.config)
@@ -142,6 +141,7 @@ func (c *Client) init() {
 	c.PortForwardStat = NewPortForwardStatClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
+	c.Session = NewSessionClient(c.config)
 	c.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(c.config)
 	c.Sub2APIGroup = NewSub2APIGroupClient(c.config)
 	c.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(c.config)
@@ -244,7 +244,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                       ctx,
 		config:                    cfg,
-		Auth:                      NewAuthClient(cfg),
 		EmailTemplate:             NewEmailTemplateClient(cfg),
 		FileShare:                 NewFileShareClient(cfg),
 		FileSource:                NewFileSourceClient(cfg),
@@ -263,6 +262,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PortForwardStat:           NewPortForwardStatClient(cfg),
 		Role:                      NewRoleClient(cfg),
 		SSHHost:                   NewSSHHostClient(cfg),
+		Session:                   NewSessionClient(cfg),
 		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
 		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
 		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
@@ -292,7 +292,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                       ctx,
 		config:                    cfg,
-		Auth:                      NewAuthClient(cfg),
 		EmailTemplate:             NewEmailTemplateClient(cfg),
 		FileShare:                 NewFileShareClient(cfg),
 		FileSource:                NewFileSourceClient(cfg),
@@ -311,6 +310,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PortForwardStat:           NewPortForwardStatClient(cfg),
 		Role:                      NewRoleClient(cfg),
 		SSHHost:                   NewSSHHostClient(cfg),
+		Session:                   NewSessionClient(cfg),
 		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
 		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
 		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
@@ -327,7 +327,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Auth.
+//		EmailTemplate.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -350,10 +350,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
-		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
+		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
+		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
+		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
 		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
 		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
@@ -366,10 +366,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Auth, c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload,
-		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration,
-		c.ImageGenImage, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost,
+		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
+		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
+		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
 		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
 		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
@@ -381,8 +381,6 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *AuthMutation:
-		return c.Auth.mutate(ctx, m)
 	case *EmailTemplateMutation:
 		return c.EmailTemplate.mutate(ctx, m)
 	case *FileShareMutation:
@@ -419,6 +417,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *SSHHostMutation:
 		return c.SSHHost.mutate(ctx, m)
+	case *SessionMutation:
+		return c.Session.mutate(ctx, m)
 	case *Sub2APIAnnouncementMutation:
 		return c.Sub2APIAnnouncement.mutate(ctx, m)
 	case *Sub2APIGroupMutation:
@@ -441,139 +441,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserAPIKey.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("gen: unknown mutation type %T", m)
-	}
-}
-
-// AuthClient is a client for the Auth schema.
-type AuthClient struct {
-	config
-}
-
-// NewAuthClient returns a client for the Auth from the given config.
-func NewAuthClient(c config) *AuthClient {
-	return &AuthClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `auth.Hooks(f(g(h())))`.
-func (c *AuthClient) Use(hooks ...Hook) {
-	c.hooks.Auth = append(c.hooks.Auth, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `auth.Intercept(f(g(h())))`.
-func (c *AuthClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Auth = append(c.inters.Auth, interceptors...)
-}
-
-// Create returns a builder for creating a Auth entity.
-func (c *AuthClient) Create() *AuthCreate {
-	mutation := newAuthMutation(c.config, OpCreate)
-	return &AuthCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Auth entities.
-func (c *AuthClient) CreateBulk(builders ...*AuthCreate) *AuthCreateBulk {
-	return &AuthCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *AuthClient) MapCreateBulk(slice any, setFunc func(*AuthCreate, int)) *AuthCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &AuthCreateBulk{err: fmt.Errorf("calling to AuthClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*AuthCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &AuthCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Auth.
-func (c *AuthClient) Update() *AuthUpdate {
-	mutation := newAuthMutation(c.config, OpUpdate)
-	return &AuthUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AuthClient) UpdateOne(_m *Auth) *AuthUpdateOne {
-	mutation := newAuthMutation(c.config, OpUpdateOne, withAuth(_m))
-	return &AuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AuthClient) UpdateOneID(id int) *AuthUpdateOne {
-	mutation := newAuthMutation(c.config, OpUpdateOne, withAuthID(id))
-	return &AuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Auth.
-func (c *AuthClient) Delete() *AuthDelete {
-	mutation := newAuthMutation(c.config, OpDelete)
-	return &AuthDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AuthClient) DeleteOne(_m *Auth) *AuthDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AuthClient) DeleteOneID(id int) *AuthDeleteOne {
-	builder := c.Delete().Where(auth.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AuthDeleteOne{builder}
-}
-
-// Query returns a query builder for Auth.
-func (c *AuthClient) Query() *AuthQuery {
-	return &AuthQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAuth},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Auth entity by its id.
-func (c *AuthClient) Get(ctx context.Context, id int) (*Auth, error) {
-	return c.Query().Where(auth.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AuthClient) GetX(ctx context.Context, id int) *Auth {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *AuthClient) Hooks() []Hook {
-	return c.hooks.Auth
-}
-
-// Interceptors returns the client interceptors.
-func (c *AuthClient) Interceptors() []Interceptor {
-	return c.inters.Auth
-}
-
-func (c *AuthClient) mutate(ctx context.Context, m *AuthMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AuthCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AuthUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Auth mutation op: %q", m.Op())
 	}
 }
 
@@ -3211,6 +3078,155 @@ func (c *SSHHostClient) mutate(ctx context.Context, m *SSHHostMutation) (Value, 
 	}
 }
 
+// SessionClient is a client for the Session schema.
+type SessionClient struct {
+	config
+}
+
+// NewSessionClient returns a client for the Session from the given config.
+func NewSessionClient(c config) *SessionClient {
+	return &SessionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `session.Hooks(f(g(h())))`.
+func (c *SessionClient) Use(hooks ...Hook) {
+	c.hooks.Session = append(c.hooks.Session, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `session.Intercept(f(g(h())))`.
+func (c *SessionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Session = append(c.inters.Session, interceptors...)
+}
+
+// Create returns a builder for creating a Session entity.
+func (c *SessionClient) Create() *SessionCreate {
+	mutation := newSessionMutation(c.config, OpCreate)
+	return &SessionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Session entities.
+func (c *SessionClient) CreateBulk(builders ...*SessionCreate) *SessionCreateBulk {
+	return &SessionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SessionClient) MapCreateBulk(slice any, setFunc func(*SessionCreate, int)) *SessionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SessionCreateBulk{err: fmt.Errorf("calling to SessionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SessionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SessionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Session.
+func (c *SessionClient) Update() *SessionUpdate {
+	mutation := newSessionMutation(c.config, OpUpdate)
+	return &SessionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SessionClient) UpdateOne(_m *Session) *SessionUpdateOne {
+	mutation := newSessionMutation(c.config, OpUpdateOne, withSession(_m))
+	return &SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SessionClient) UpdateOneID(id string) *SessionUpdateOne {
+	mutation := newSessionMutation(c.config, OpUpdateOne, withSessionID(id))
+	return &SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Session.
+func (c *SessionClient) Delete() *SessionDelete {
+	mutation := newSessionMutation(c.config, OpDelete)
+	return &SessionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SessionClient) DeleteOne(_m *Session) *SessionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SessionClient) DeleteOneID(id string) *SessionDeleteOne {
+	builder := c.Delete().Where(session.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SessionDeleteOne{builder}
+}
+
+// Query returns a query builder for Session.
+func (c *SessionClient) Query() *SessionQuery {
+	return &SessionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSession},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Session entity by its id.
+func (c *SessionClient) Get(ctx context.Context, id string) (*Session, error) {
+	return c.Query().Where(session.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SessionClient) GetX(ctx context.Context, id string) *Session {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Session.
+func (c *SessionClient) QueryUser(_m *Session) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, session.UserTable, session.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SessionClient) Hooks() []Hook {
+	return c.hooks.Session
+}
+
+// Interceptors returns the client interceptors.
+func (c *SessionClient) Interceptors() []Interceptor {
+	return c.inters.Session
+}
+
+func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SessionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SessionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Session mutation op: %q", m.Op())
+	}
+}
+
 // Sub2APIAnnouncementClient is a client for the Sub2APIAnnouncement schema.
 type Sub2APIAnnouncementClient struct {
 	config
@@ -4447,6 +4463,22 @@ func (c *UserClient) QuerySharedSSHHosts(_m *User) *SSHHostQuery {
 	return query
 }
 
+// QuerySessions queries the sessions edge of a User.
+func (c *UserClient) QuerySessions(_m *User) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.SessionsTable, user.SessionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -4624,18 +4656,18 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
-		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
-		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
+		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
+		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
+		OIDCClient, OperationLog, PortForward, PortForwardStat, Role, SSHHost, Session,
+		Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
 		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
 		Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
-		Auth, EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk,
-		FrpTunnel, FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance,
-		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SSHHost, Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
+		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
+		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
+		OIDCClient, OperationLog, PortForward, PortForwardStat, Role, SSHHost, Session,
+		Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
 		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
 		Task, User, UserAPIKey []ent.Interceptor
 	}

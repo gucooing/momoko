@@ -9,52 +9,6 @@ import (
 )
 
 var (
-	// AuthsColumns holds the columns for the "auths" table.
-	AuthsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "session_id", Type: field.TypeString},
-		{Name: "device_id", Type: field.TypeString},
-		{Name: "device", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeString},
-		{Name: "ip", Type: field.TypeString},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"token", "refresh_token"}},
-		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
-	}
-	// AuthsTable holds the schema information for the "auths" table.
-	AuthsTable = &schema.Table{
-		Name:       "auths",
-		Columns:    AuthsColumns,
-		PrimaryKey: []*schema.Column{AuthsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "auth_session_id",
-				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[3]},
-			},
-			{
-				Name:    "auth_device_id",
-				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[4]},
-			},
-			{
-				Name:    "auth_user_id",
-				Unique:  false,
-				Columns: []*schema.Column{AuthsColumns[6]},
-			},
-			{
-				Name:    "auth_session_id_type",
-				Unique:  true,
-				Columns: []*schema.Column{AuthsColumns[3], AuthsColumns[8]},
-			},
-			{
-				Name:    "auth_device_id_type",
-				Unique:  true,
-				Columns: []*schema.Column{AuthsColumns[4], AuthsColumns[8]},
-			},
-		},
-	}
 	// EmailTemplatesColumns holds the columns for the "email_templates" table.
 	EmailTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -628,6 +582,45 @@ var (
 			},
 		},
 	}
+	// SessionsColumns holds the columns for the "sessions" table.
+	SessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "device_id", Type: field.TypeString, Unique: true},
+		{Name: "device", Type: field.TypeString},
+		{Name: "ip", Type: field.TypeString},
+		{Name: "access_noise", Type: field.TypeString},
+		{Name: "refresh_noise", Type: field.TypeString},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// SessionsTable holds the schema information for the "sessions" table.
+	SessionsTable = &schema.Table{
+		Name:       "sessions",
+		Columns:    SessionsColumns,
+		PrimaryKey: []*schema.Column{SessionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sessions_users_user",
+				Columns:    []*schema.Column{SessionsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "session_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{SessionsColumns[9]},
+			},
+			{
+				Name:    "session_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{SessionsColumns[8]},
+			},
+		},
+	}
 	// Sub2apiAnnouncementsColumns holds the columns for the "sub2api_announcements" table.
 	Sub2apiAnnouncementsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -1090,7 +1083,6 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AuthsTable,
 		EmailTemplatesTable,
 		FileSharesTable,
 		FileSourcesTable,
@@ -1109,6 +1101,7 @@ var (
 		PortForwardStatsTable,
 		RolesTable,
 		SSHHostsTable,
+		SessionsTable,
 		Sub2apiAnnouncementsTable,
 		Sub2apiGroupsTable,
 		Sub2apiLotteryParticipantsTable,
@@ -1138,6 +1131,7 @@ func init() {
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable
 	PortForwardsTable.ForeignKeys[0].RefTable = UsersTable
 	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
+	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	Sub2apiUsageRecordsTable.ForeignKeys[0].RefTable = Sub2apiGroupsTable
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",
