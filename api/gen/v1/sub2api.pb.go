@@ -871,6 +871,104 @@ func (x *GetSub2APIStatsResponse) GetStats() *Sub2APIStats {
 	return nil
 }
 
+type GetPublicSub2APIModelsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 统计区间天数：<=1 表示今日，否则为最近 N 天
+	RangeDays int32 `protobuf:"varint,1,opt,name=range_days,json=rangeDays,proto3" json:"range_days,omitempty"`
+	// 返回条数；<=0 返回全部（详情页）；首页传 8
+	Limit         int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicSub2APIModelsRequest) Reset() {
+	*x = GetPublicSub2APIModelsRequest{}
+	mi := &file_v1_sub2api_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicSub2APIModelsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicSub2APIModelsRequest) ProtoMessage() {}
+
+func (x *GetPublicSub2APIModelsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicSub2APIModelsRequest.ProtoReflect.Descriptor instead.
+func (*GetPublicSub2APIModelsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetPublicSub2APIModelsRequest) GetRangeDays() int32 {
+	if x != nil {
+		return x.RangeDays
+	}
+	return 0
+}
+
+func (x *GetPublicSub2APIModelsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type GetPublicSub2APIModelsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Models        []*Sub2APITopItem      `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicSub2APIModelsResponse) Reset() {
+	*x = GetPublicSub2APIModelsResponse{}
+	mi := &file_v1_sub2api_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicSub2APIModelsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicSub2APIModelsResponse) ProtoMessage() {}
+
+func (x *GetPublicSub2APIModelsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_sub2api_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicSub2APIModelsResponse.ProtoReflect.Descriptor instead.
+func (*GetPublicSub2APIModelsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetPublicSub2APIModelsResponse) GetModels() []*Sub2APITopItem {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
 // 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
 // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
 type GetSub2APIAdminTotalsRequest struct {
@@ -883,7 +981,7 @@ type GetSub2APIAdminTotalsRequest struct {
 
 func (x *GetSub2APIAdminTotalsRequest) Reset() {
 	*x = GetSub2APIAdminTotalsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[15]
+	mi := &file_v1_sub2api_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -895,7 +993,7 @@ func (x *GetSub2APIAdminTotalsRequest) String() string {
 func (*GetSub2APIAdminTotalsRequest) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTotalsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[15]
+	mi := &file_v1_sub2api_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -908,7 +1006,7 @@ func (x *GetSub2APIAdminTotalsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTotalsRequest.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTotalsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{15}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetSub2APIAdminTotalsRequest) GetStartTime() int64 {
@@ -941,7 +1039,7 @@ type GetSub2APIAdminTotalsResponse struct {
 
 func (x *GetSub2APIAdminTotalsResponse) Reset() {
 	*x = GetSub2APIAdminTotalsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[16]
+	mi := &file_v1_sub2api_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -953,7 +1051,7 @@ func (x *GetSub2APIAdminTotalsResponse) String() string {
 func (*GetSub2APIAdminTotalsResponse) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTotalsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[16]
+	mi := &file_v1_sub2api_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -966,7 +1064,7 @@ func (x *GetSub2APIAdminTotalsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTotalsResponse.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTotalsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{16}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetSub2APIAdminTotalsResponse) GetRangeLabel() string {
@@ -1028,7 +1126,7 @@ type GetSub2APIAdminTrendRequest struct {
 
 func (x *GetSub2APIAdminTrendRequest) Reset() {
 	*x = GetSub2APIAdminTrendRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[17]
+	mi := &file_v1_sub2api_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1040,7 +1138,7 @@ func (x *GetSub2APIAdminTrendRequest) String() string {
 func (*GetSub2APIAdminTrendRequest) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTrendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[17]
+	mi := &file_v1_sub2api_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1053,7 +1151,7 @@ func (x *GetSub2APIAdminTrendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTrendRequest.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTrendRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{17}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetSub2APIAdminTrendRequest) GetStartTime() int64 {
@@ -1080,7 +1178,7 @@ type GetSub2APIAdminTrendResponse struct {
 
 func (x *GetSub2APIAdminTrendResponse) Reset() {
 	*x = GetSub2APIAdminTrendResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[18]
+	mi := &file_v1_sub2api_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1092,7 +1190,7 @@ func (x *GetSub2APIAdminTrendResponse) String() string {
 func (*GetSub2APIAdminTrendResponse) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTrendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[18]
+	mi := &file_v1_sub2api_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1105,7 +1203,7 @@ func (x *GetSub2APIAdminTrendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTrendResponse.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTrendResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{18}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetSub2APIAdminTrendResponse) GetTrend() []*Sub2APITrendPoint {
@@ -1127,7 +1225,7 @@ type GetSub2APIAdminTopRequest struct {
 
 func (x *GetSub2APIAdminTopRequest) Reset() {
 	*x = GetSub2APIAdminTopRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[19]
+	mi := &file_v1_sub2api_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1139,7 +1237,7 @@ func (x *GetSub2APIAdminTopRequest) String() string {
 func (*GetSub2APIAdminTopRequest) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[19]
+	mi := &file_v1_sub2api_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1152,7 +1250,7 @@ func (x *GetSub2APIAdminTopRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTopRequest.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTopRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{19}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetSub2APIAdminTopRequest) GetStartTime() int64 {
@@ -1187,7 +1285,7 @@ type GetSub2APIAdminTopResponse struct {
 
 func (x *GetSub2APIAdminTopResponse) Reset() {
 	*x = GetSub2APIAdminTopResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[20]
+	mi := &file_v1_sub2api_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1199,7 +1297,7 @@ func (x *GetSub2APIAdminTopResponse) String() string {
 func (*GetSub2APIAdminTopResponse) ProtoMessage() {}
 
 func (x *GetSub2APIAdminTopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[20]
+	mi := &file_v1_sub2api_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,7 +1310,7 @@ func (x *GetSub2APIAdminTopResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIAdminTopResponse.ProtoReflect.Descriptor instead.
 func (*GetSub2APIAdminTopResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{20}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetSub2APIAdminTopResponse) GetModels() []*Sub2APITopItem {
@@ -1249,7 +1347,7 @@ type GetSub2APIRecentRequestsRequest struct {
 
 func (x *GetSub2APIRecentRequestsRequest) Reset() {
 	*x = GetSub2APIRecentRequestsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[21]
+	mi := &file_v1_sub2api_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1261,7 +1359,7 @@ func (x *GetSub2APIRecentRequestsRequest) String() string {
 func (*GetSub2APIRecentRequestsRequest) ProtoMessage() {}
 
 func (x *GetSub2APIRecentRequestsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[21]
+	mi := &file_v1_sub2api_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1372,7 @@ func (x *GetSub2APIRecentRequestsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIRecentRequestsRequest.ProtoReflect.Descriptor instead.
 func (*GetSub2APIRecentRequestsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{21}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetSub2APIRecentRequestsRequest) GetStartTime() int64 {
@@ -1345,7 +1443,7 @@ type GetSub2APIRecentRequestsResponse struct {
 
 func (x *GetSub2APIRecentRequestsResponse) Reset() {
 	*x = GetSub2APIRecentRequestsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[22]
+	mi := &file_v1_sub2api_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1357,7 +1455,7 @@ func (x *GetSub2APIRecentRequestsResponse) String() string {
 func (*GetSub2APIRecentRequestsResponse) ProtoMessage() {}
 
 func (x *GetSub2APIRecentRequestsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[22]
+	mi := &file_v1_sub2api_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1370,7 +1468,7 @@ func (x *GetSub2APIRecentRequestsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIRecentRequestsResponse.ProtoReflect.Descriptor instead.
 func (*GetSub2APIRecentRequestsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{22}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetSub2APIRecentRequestsResponse) GetRecentRequests() []*Sub2APIRecentRequest {
@@ -1412,7 +1510,6 @@ type Sub2APIStats struct {
 	AverageLatencyMs float64                `protobuf:"fixed64,7,opt,name=average_latency_ms,json=averageLatencyMs,proto3" json:"average_latency_ms,omitempty"`
 	AverageTps       float64                `protobuf:"fixed64,8,opt,name=average_tps,json=averageTps,proto3" json:"average_tps,omitempty"`
 	Trend            []*Sub2APITrendPoint   `protobuf:"bytes,9,rep,name=trend,proto3" json:"trend,omitempty"`
-	Models           []*Sub2APITopItem      `protobuf:"bytes,10,rep,name=models,proto3" json:"models,omitempty"`
 	// UA（User-Agent）维度用量明细，按使用数量降序
 	UserAgents []*Sub2APITopItem `protobuf:"bytes,12,rep,name=user_agents,json=userAgents,proto3" json:"user_agents,omitempty"`
 	// 分组维度用量明细，按使用数量降序
@@ -1423,7 +1520,7 @@ type Sub2APIStats struct {
 
 func (x *Sub2APIStats) Reset() {
 	*x = Sub2APIStats{}
-	mi := &file_v1_sub2api_proto_msgTypes[23]
+	mi := &file_v1_sub2api_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1435,7 +1532,7 @@ func (x *Sub2APIStats) String() string {
 func (*Sub2APIStats) ProtoMessage() {}
 
 func (x *Sub2APIStats) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[23]
+	mi := &file_v1_sub2api_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1448,7 +1545,7 @@ func (x *Sub2APIStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIStats.ProtoReflect.Descriptor instead.
 func (*Sub2APIStats) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{23}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Sub2APIStats) GetRangeDays() int32 {
@@ -1514,13 +1611,6 @@ func (x *Sub2APIStats) GetTrend() []*Sub2APITrendPoint {
 	return nil
 }
 
-func (x *Sub2APIStats) GetModels() []*Sub2APITopItem {
-	if x != nil {
-		return x.Models
-	}
-	return nil
-}
-
 func (x *Sub2APIStats) GetUserAgents() []*Sub2APITopItem {
 	if x != nil {
 		return x.UserAgents
@@ -1564,7 +1654,7 @@ type Sub2APIConfig struct {
 
 func (x *Sub2APIConfig) Reset() {
 	*x = Sub2APIConfig{}
-	mi := &file_v1_sub2api_proto_msgTypes[24]
+	mi := &file_v1_sub2api_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1576,7 +1666,7 @@ func (x *Sub2APIConfig) String() string {
 func (*Sub2APIConfig) ProtoMessage() {}
 
 func (x *Sub2APIConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[24]
+	mi := &file_v1_sub2api_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +1679,7 @@ func (x *Sub2APIConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIConfig.ProtoReflect.Descriptor instead.
 func (*Sub2APIConfig) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{24}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Sub2APIConfig) GetHomeEnabled() bool {
@@ -1713,7 +1803,7 @@ type Sub2APIHome struct {
 
 func (x *Sub2APIHome) Reset() {
 	*x = Sub2APIHome{}
-	mi := &file_v1_sub2api_proto_msgTypes[25]
+	mi := &file_v1_sub2api_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1725,7 +1815,7 @@ func (x *Sub2APIHome) String() string {
 func (*Sub2APIHome) ProtoMessage() {}
 
 func (x *Sub2APIHome) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[25]
+	mi := &file_v1_sub2api_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1738,7 +1828,7 @@ func (x *Sub2APIHome) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIHome.ProtoReflect.Descriptor instead.
 func (*Sub2APIHome) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{25}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Sub2APIHome) GetEnabled() bool {
@@ -1798,7 +1888,7 @@ type GetPublicSub2APIOverviewRequest struct {
 
 func (x *GetPublicSub2APIOverviewRequest) Reset() {
 	*x = GetPublicSub2APIOverviewRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[26]
+	mi := &file_v1_sub2api_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1810,7 +1900,7 @@ func (x *GetPublicSub2APIOverviewRequest) String() string {
 func (*GetPublicSub2APIOverviewRequest) ProtoMessage() {}
 
 func (x *GetPublicSub2APIOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[26]
+	mi := &file_v1_sub2api_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1823,7 +1913,7 @@ func (x *GetPublicSub2APIOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPublicSub2APIOverviewRequest.ProtoReflect.Descriptor instead.
 func (*GetPublicSub2APIOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{26}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{28}
 }
 
 // 公开首页今日概览：仅首页 hero/曲线所需字段（远小于完整快照）
@@ -1842,7 +1932,7 @@ type GetPublicSub2APIOverviewResponse struct {
 
 func (x *GetPublicSub2APIOverviewResponse) Reset() {
 	*x = GetPublicSub2APIOverviewResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[27]
+	mi := &file_v1_sub2api_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1854,7 +1944,7 @@ func (x *GetPublicSub2APIOverviewResponse) String() string {
 func (*GetPublicSub2APIOverviewResponse) ProtoMessage() {}
 
 func (x *GetPublicSub2APIOverviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[27]
+	mi := &file_v1_sub2api_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1867,7 +1957,7 @@ func (x *GetPublicSub2APIOverviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPublicSub2APIOverviewResponse.ProtoReflect.Descriptor instead.
 func (*GetPublicSub2APIOverviewResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{27}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetPublicSub2APIOverviewResponse) GetStatus() string {
@@ -1933,7 +2023,7 @@ type Sub2APIAnnouncement struct {
 
 func (x *Sub2APIAnnouncement) Reset() {
 	*x = Sub2APIAnnouncement{}
-	mi := &file_v1_sub2api_proto_msgTypes[28]
+	mi := &file_v1_sub2api_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1945,7 +2035,7 @@ func (x *Sub2APIAnnouncement) String() string {
 func (*Sub2APIAnnouncement) ProtoMessage() {}
 
 func (x *Sub2APIAnnouncement) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[28]
+	mi := &file_v1_sub2api_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1958,7 +2048,7 @@ func (x *Sub2APIAnnouncement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIAnnouncement.ProtoReflect.Descriptor instead.
 func (*Sub2APIAnnouncement) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{28}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Sub2APIAnnouncement) GetId() string {
@@ -2016,7 +2106,7 @@ type Sub2APITimelineItem struct {
 
 func (x *Sub2APITimelineItem) Reset() {
 	*x = Sub2APITimelineItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[29]
+	mi := &file_v1_sub2api_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2028,7 +2118,7 @@ func (x *Sub2APITimelineItem) String() string {
 func (*Sub2APITimelineItem) ProtoMessage() {}
 
 func (x *Sub2APITimelineItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[29]
+	mi := &file_v1_sub2api_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2041,7 +2131,7 @@ func (x *Sub2APITimelineItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimelineItem.ProtoReflect.Descriptor instead.
 func (*Sub2APITimelineItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{29}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Sub2APITimelineItem) GetId() string {
@@ -2088,7 +2178,7 @@ type ListSub2APIAnnouncementsRequest struct {
 
 func (x *ListSub2APIAnnouncementsRequest) Reset() {
 	*x = ListSub2APIAnnouncementsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[30]
+	mi := &file_v1_sub2api_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2100,7 +2190,7 @@ func (x *ListSub2APIAnnouncementsRequest) String() string {
 func (*ListSub2APIAnnouncementsRequest) ProtoMessage() {}
 
 func (x *ListSub2APIAnnouncementsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[30]
+	mi := &file_v1_sub2api_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2113,7 +2203,7 @@ func (x *ListSub2APIAnnouncementsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APIAnnouncementsRequest.ProtoReflect.Descriptor instead.
 func (*ListSub2APIAnnouncementsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{30}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{32}
 }
 
 type ListSub2APIAnnouncementsResponse struct {
@@ -2125,7 +2215,7 @@ type ListSub2APIAnnouncementsResponse struct {
 
 func (x *ListSub2APIAnnouncementsResponse) Reset() {
 	*x = ListSub2APIAnnouncementsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[31]
+	mi := &file_v1_sub2api_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2137,7 +2227,7 @@ func (x *ListSub2APIAnnouncementsResponse) String() string {
 func (*ListSub2APIAnnouncementsResponse) ProtoMessage() {}
 
 func (x *ListSub2APIAnnouncementsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[31]
+	mi := &file_v1_sub2api_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2150,7 +2240,7 @@ func (x *ListSub2APIAnnouncementsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APIAnnouncementsResponse.ProtoReflect.Descriptor instead.
 func (*ListSub2APIAnnouncementsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{31}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListSub2APIAnnouncementsResponse) GetAnnouncements() []*Sub2APIAnnouncement {
@@ -2173,7 +2263,7 @@ type CreateSub2APIAnnouncementRequest struct {
 
 func (x *CreateSub2APIAnnouncementRequest) Reset() {
 	*x = CreateSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[32]
+	mi := &file_v1_sub2api_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2185,7 +2275,7 @@ func (x *CreateSub2APIAnnouncementRequest) String() string {
 func (*CreateSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *CreateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[32]
+	mi := &file_v1_sub2api_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2198,7 +2288,7 @@ func (x *CreateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*CreateSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{32}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *CreateSub2APIAnnouncementRequest) GetTitle() string {
@@ -2250,7 +2340,7 @@ type UpdateSub2APIAnnouncementRequest struct {
 
 func (x *UpdateSub2APIAnnouncementRequest) Reset() {
 	*x = UpdateSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[33]
+	mi := &file_v1_sub2api_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2262,7 +2352,7 @@ func (x *UpdateSub2APIAnnouncementRequest) String() string {
 func (*UpdateSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *UpdateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[33]
+	mi := &file_v1_sub2api_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2275,7 +2365,7 @@ func (x *UpdateSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{33}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UpdateSub2APIAnnouncementRequest) GetId() string {
@@ -2329,7 +2419,7 @@ type Sub2APIAnnouncementResponse struct {
 
 func (x *Sub2APIAnnouncementResponse) Reset() {
 	*x = Sub2APIAnnouncementResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[34]
+	mi := &file_v1_sub2api_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2341,7 +2431,7 @@ func (x *Sub2APIAnnouncementResponse) String() string {
 func (*Sub2APIAnnouncementResponse) ProtoMessage() {}
 
 func (x *Sub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[34]
+	mi := &file_v1_sub2api_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2354,7 +2444,7 @@ func (x *Sub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIAnnouncementResponse.ProtoReflect.Descriptor instead.
 func (*Sub2APIAnnouncementResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{34}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *Sub2APIAnnouncementResponse) GetAnnouncement() *Sub2APIAnnouncement {
@@ -2373,7 +2463,7 @@ type DeleteSub2APIAnnouncementRequest struct {
 
 func (x *DeleteSub2APIAnnouncementRequest) Reset() {
 	*x = DeleteSub2APIAnnouncementRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[35]
+	mi := &file_v1_sub2api_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2385,7 +2475,7 @@ func (x *DeleteSub2APIAnnouncementRequest) String() string {
 func (*DeleteSub2APIAnnouncementRequest) ProtoMessage() {}
 
 func (x *DeleteSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[35]
+	mi := &file_v1_sub2api_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2398,7 +2488,7 @@ func (x *DeleteSub2APIAnnouncementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSub2APIAnnouncementRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APIAnnouncementRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{35}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DeleteSub2APIAnnouncementRequest) GetId() string {
@@ -2416,7 +2506,7 @@ type DeleteSub2APIAnnouncementResponse struct {
 
 func (x *DeleteSub2APIAnnouncementResponse) Reset() {
 	*x = DeleteSub2APIAnnouncementResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[36]
+	mi := &file_v1_sub2api_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2428,7 +2518,7 @@ func (x *DeleteSub2APIAnnouncementResponse) String() string {
 func (*DeleteSub2APIAnnouncementResponse) ProtoMessage() {}
 
 func (x *DeleteSub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[36]
+	mi := &file_v1_sub2api_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2441,7 +2531,7 @@ func (x *DeleteSub2APIAnnouncementResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteSub2APIAnnouncementResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APIAnnouncementResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{36}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{38}
 }
 
 // 时间线管理消息
@@ -2453,7 +2543,7 @@ type ListSub2APITimelineRequest struct {
 
 func (x *ListSub2APITimelineRequest) Reset() {
 	*x = ListSub2APITimelineRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[37]
+	mi := &file_v1_sub2api_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2465,7 +2555,7 @@ func (x *ListSub2APITimelineRequest) String() string {
 func (*ListSub2APITimelineRequest) ProtoMessage() {}
 
 func (x *ListSub2APITimelineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[37]
+	mi := &file_v1_sub2api_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2478,7 +2568,7 @@ func (x *ListSub2APITimelineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APITimelineRequest.ProtoReflect.Descriptor instead.
 func (*ListSub2APITimelineRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{37}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{39}
 }
 
 type ListSub2APITimelineResponse struct {
@@ -2490,7 +2580,7 @@ type ListSub2APITimelineResponse struct {
 
 func (x *ListSub2APITimelineResponse) Reset() {
 	*x = ListSub2APITimelineResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[38]
+	mi := &file_v1_sub2api_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2502,7 +2592,7 @@ func (x *ListSub2APITimelineResponse) String() string {
 func (*ListSub2APITimelineResponse) ProtoMessage() {}
 
 func (x *ListSub2APITimelineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[38]
+	mi := &file_v1_sub2api_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2515,7 +2605,7 @@ func (x *ListSub2APITimelineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSub2APITimelineResponse.ProtoReflect.Descriptor instead.
 func (*ListSub2APITimelineResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{38}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListSub2APITimelineResponse) GetTimeline() []*Sub2APITimelineItem {
@@ -2537,7 +2627,7 @@ type CreateSub2APITimelineItemRequest struct {
 
 func (x *CreateSub2APITimelineItemRequest) Reset() {
 	*x = CreateSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[39]
+	mi := &file_v1_sub2api_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2549,7 +2639,7 @@ func (x *CreateSub2APITimelineItemRequest) String() string {
 func (*CreateSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *CreateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[39]
+	mi := &file_v1_sub2api_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2562,7 +2652,7 @@ func (x *CreateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*CreateSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{39}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CreateSub2APITimelineItemRequest) GetTitle() string {
@@ -2606,7 +2696,7 @@ type UpdateSub2APITimelineItemRequest struct {
 
 func (x *UpdateSub2APITimelineItemRequest) Reset() {
 	*x = UpdateSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[40]
+	mi := &file_v1_sub2api_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2618,7 +2708,7 @@ func (x *UpdateSub2APITimelineItemRequest) String() string {
 func (*UpdateSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *UpdateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[40]
+	mi := &file_v1_sub2api_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2631,7 +2721,7 @@ func (x *UpdateSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{40}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *UpdateSub2APITimelineItemRequest) GetId() string {
@@ -2678,7 +2768,7 @@ type Sub2APITimelineItemResponse struct {
 
 func (x *Sub2APITimelineItemResponse) Reset() {
 	*x = Sub2APITimelineItemResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[41]
+	mi := &file_v1_sub2api_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2690,7 +2780,7 @@ func (x *Sub2APITimelineItemResponse) String() string {
 func (*Sub2APITimelineItemResponse) ProtoMessage() {}
 
 func (x *Sub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[41]
+	mi := &file_v1_sub2api_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2703,7 +2793,7 @@ func (x *Sub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimelineItemResponse.ProtoReflect.Descriptor instead.
 func (*Sub2APITimelineItemResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{41}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *Sub2APITimelineItemResponse) GetItem() *Sub2APITimelineItem {
@@ -2722,7 +2812,7 @@ type DeleteSub2APITimelineItemRequest struct {
 
 func (x *DeleteSub2APITimelineItemRequest) Reset() {
 	*x = DeleteSub2APITimelineItemRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[42]
+	mi := &file_v1_sub2api_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2734,7 +2824,7 @@ func (x *DeleteSub2APITimelineItemRequest) String() string {
 func (*DeleteSub2APITimelineItemRequest) ProtoMessage() {}
 
 func (x *DeleteSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[42]
+	mi := &file_v1_sub2api_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2747,7 +2837,7 @@ func (x *DeleteSub2APITimelineItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSub2APITimelineItemRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APITimelineItemRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{42}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *DeleteSub2APITimelineItemRequest) GetId() string {
@@ -2765,7 +2855,7 @@ type DeleteSub2APITimelineItemResponse struct {
 
 func (x *DeleteSub2APITimelineItemResponse) Reset() {
 	*x = DeleteSub2APITimelineItemResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[43]
+	mi := &file_v1_sub2api_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2777,7 +2867,7 @@ func (x *DeleteSub2APITimelineItemResponse) String() string {
 func (*DeleteSub2APITimelineItemResponse) ProtoMessage() {}
 
 func (x *DeleteSub2APITimelineItemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[43]
+	mi := &file_v1_sub2api_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2790,7 +2880,7 @@ func (x *DeleteSub2APITimelineItemResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteSub2APITimelineItemResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSub2APITimelineItemResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{43}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{45}
 }
 
 type Sub2APIUsageSnapshot struct {
@@ -2830,7 +2920,7 @@ type Sub2APIUsageSnapshot struct {
 
 func (x *Sub2APIUsageSnapshot) Reset() {
 	*x = Sub2APIUsageSnapshot{}
-	mi := &file_v1_sub2api_proto_msgTypes[44]
+	mi := &file_v1_sub2api_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2842,7 +2932,7 @@ func (x *Sub2APIUsageSnapshot) String() string {
 func (*Sub2APIUsageSnapshot) ProtoMessage() {}
 
 func (x *Sub2APIUsageSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[44]
+	mi := &file_v1_sub2api_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2855,7 +2945,7 @@ func (x *Sub2APIUsageSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIUsageSnapshot.ProtoReflect.Descriptor instead.
 func (*Sub2APIUsageSnapshot) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{44}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *Sub2APIUsageSnapshot) GetConfigured() bool {
@@ -3059,7 +3149,7 @@ type Sub2APITimePoint struct {
 
 func (x *Sub2APITimePoint) Reset() {
 	*x = Sub2APITimePoint{}
-	mi := &file_v1_sub2api_proto_msgTypes[45]
+	mi := &file_v1_sub2api_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3071,7 +3161,7 @@ func (x *Sub2APITimePoint) String() string {
 func (*Sub2APITimePoint) ProtoMessage() {}
 
 func (x *Sub2APITimePoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[45]
+	mi := &file_v1_sub2api_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3084,7 +3174,7 @@ func (x *Sub2APITimePoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITimePoint.ProtoReflect.Descriptor instead.
 func (*Sub2APITimePoint) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{45}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *Sub2APITimePoint) GetTime() *timestamppb.Timestamp {
@@ -3129,7 +3219,7 @@ type Sub2APITrendPoint struct {
 
 func (x *Sub2APITrendPoint) Reset() {
 	*x = Sub2APITrendPoint{}
-	mi := &file_v1_sub2api_proto_msgTypes[46]
+	mi := &file_v1_sub2api_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3141,7 +3231,7 @@ func (x *Sub2APITrendPoint) String() string {
 func (*Sub2APITrendPoint) ProtoMessage() {}
 
 func (x *Sub2APITrendPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[46]
+	mi := &file_v1_sub2api_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3154,7 +3244,7 @@ func (x *Sub2APITrendPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITrendPoint.ProtoReflect.Descriptor instead.
 func (*Sub2APITrendPoint) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{46}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *Sub2APITrendPoint) GetDate() string {
@@ -3213,7 +3303,7 @@ type Sub2APITopItem struct {
 
 func (x *Sub2APITopItem) Reset() {
 	*x = Sub2APITopItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[47]
+	mi := &file_v1_sub2api_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3225,7 +3315,7 @@ func (x *Sub2APITopItem) String() string {
 func (*Sub2APITopItem) ProtoMessage() {}
 
 func (x *Sub2APITopItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[47]
+	mi := &file_v1_sub2api_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3238,7 +3328,7 @@ func (x *Sub2APITopItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APITopItem.ProtoReflect.Descriptor instead.
 func (*Sub2APITopItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{47}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *Sub2APITopItem) GetName() string {
@@ -3301,7 +3391,7 @@ type Sub2APIRecentRequest struct {
 
 func (x *Sub2APIRecentRequest) Reset() {
 	*x = Sub2APIRecentRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[48]
+	mi := &file_v1_sub2api_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3313,7 +3403,7 @@ func (x *Sub2APIRecentRequest) String() string {
 func (*Sub2APIRecentRequest) ProtoMessage() {}
 
 func (x *Sub2APIRecentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[48]
+	mi := &file_v1_sub2api_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3326,7 +3416,7 @@ func (x *Sub2APIRecentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIRecentRequest.ProtoReflect.Descriptor instead.
 func (*Sub2APIRecentRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{48}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *Sub2APIRecentRequest) GetRequestId() string {
@@ -3449,7 +3539,7 @@ type LotterySettings struct {
 
 func (x *LotterySettings) Reset() {
 	*x = LotterySettings{}
-	mi := &file_v1_sub2api_proto_msgTypes[49]
+	mi := &file_v1_sub2api_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3461,7 +3551,7 @@ func (x *LotterySettings) String() string {
 func (*LotterySettings) ProtoMessage() {}
 
 func (x *LotterySettings) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[49]
+	mi := &file_v1_sub2api_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3474,7 +3564,7 @@ func (x *LotterySettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotterySettings.ProtoReflect.Descriptor instead.
 func (*LotterySettings) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{49}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *LotterySettings) GetEnabled() bool {
@@ -3547,7 +3637,7 @@ type LotteryRound struct {
 
 func (x *LotteryRound) Reset() {
 	*x = LotteryRound{}
-	mi := &file_v1_sub2api_proto_msgTypes[50]
+	mi := &file_v1_sub2api_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3559,7 +3649,7 @@ func (x *LotteryRound) String() string {
 func (*LotteryRound) ProtoMessage() {}
 
 func (x *LotteryRound) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[50]
+	mi := &file_v1_sub2api_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3572,7 +3662,7 @@ func (x *LotteryRound) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotteryRound.ProtoReflect.Descriptor instead.
 func (*LotteryRound) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{50}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *LotteryRound) GetId() string {
@@ -3727,7 +3817,7 @@ type LotteryParticipant struct {
 
 func (x *LotteryParticipant) Reset() {
 	*x = LotteryParticipant{}
-	mi := &file_v1_sub2api_proto_msgTypes[51]
+	mi := &file_v1_sub2api_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3739,7 +3829,7 @@ func (x *LotteryParticipant) String() string {
 func (*LotteryParticipant) ProtoMessage() {}
 
 func (x *LotteryParticipant) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[51]
+	mi := &file_v1_sub2api_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3752,7 +3842,7 @@ func (x *LotteryParticipant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotteryParticipant.ProtoReflect.Descriptor instead.
 func (*LotteryParticipant) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{51}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *LotteryParticipant) GetId() int32 {
@@ -3834,7 +3924,7 @@ type GetLotteryOverviewRequest struct {
 
 func (x *GetLotteryOverviewRequest) Reset() {
 	*x = GetLotteryOverviewRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[52]
+	mi := &file_v1_sub2api_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3846,7 +3936,7 @@ func (x *GetLotteryOverviewRequest) String() string {
 func (*GetLotteryOverviewRequest) ProtoMessage() {}
 
 func (x *GetLotteryOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[52]
+	mi := &file_v1_sub2api_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3859,7 +3949,7 @@ func (x *GetLotteryOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryOverviewRequest.ProtoReflect.Descriptor instead.
 func (*GetLotteryOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{52}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{54}
 }
 
 type GetLotteryOverviewResponse struct {
@@ -3878,7 +3968,7 @@ type GetLotteryOverviewResponse struct {
 
 func (x *GetLotteryOverviewResponse) Reset() {
 	*x = GetLotteryOverviewResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[53]
+	mi := &file_v1_sub2api_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3890,7 +3980,7 @@ func (x *GetLotteryOverviewResponse) String() string {
 func (*GetLotteryOverviewResponse) ProtoMessage() {}
 
 func (x *GetLotteryOverviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[53]
+	mi := &file_v1_sub2api_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3903,7 +3993,7 @@ func (x *GetLotteryOverviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryOverviewResponse.ProtoReflect.Descriptor instead.
 func (*GetLotteryOverviewResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{53}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GetLotteryOverviewResponse) GetSettings() *LotterySettings {
@@ -3971,7 +4061,7 @@ type UpdateLotterySettingsRequest struct {
 
 func (x *UpdateLotterySettingsRequest) Reset() {
 	*x = UpdateLotterySettingsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[54]
+	mi := &file_v1_sub2api_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3983,7 +4073,7 @@ func (x *UpdateLotterySettingsRequest) String() string {
 func (*UpdateLotterySettingsRequest) ProtoMessage() {}
 
 func (x *UpdateLotterySettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[54]
+	mi := &file_v1_sub2api_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3996,7 +4086,7 @@ func (x *UpdateLotterySettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLotterySettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateLotterySettingsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{54}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UpdateLotterySettingsRequest) GetSettings() *LotterySettings {
@@ -4015,7 +4105,7 @@ type UpdateLotterySettingsResponse struct {
 
 func (x *UpdateLotterySettingsResponse) Reset() {
 	*x = UpdateLotterySettingsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[55]
+	mi := &file_v1_sub2api_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4027,7 +4117,7 @@ func (x *UpdateLotterySettingsResponse) String() string {
 func (*UpdateLotterySettingsResponse) ProtoMessage() {}
 
 func (x *UpdateLotterySettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[55]
+	mi := &file_v1_sub2api_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4040,7 +4130,7 @@ func (x *UpdateLotterySettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLotterySettingsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateLotterySettingsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{55}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *UpdateLotterySettingsResponse) GetSettings() *LotterySettings {
@@ -4060,7 +4150,7 @@ type ListLotteryRoundsRequest struct {
 
 func (x *ListLotteryRoundsRequest) Reset() {
 	*x = ListLotteryRoundsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[56]
+	mi := &file_v1_sub2api_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4072,7 +4162,7 @@ func (x *ListLotteryRoundsRequest) String() string {
 func (*ListLotteryRoundsRequest) ProtoMessage() {}
 
 func (x *ListLotteryRoundsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[56]
+	mi := &file_v1_sub2api_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4085,7 +4175,7 @@ func (x *ListLotteryRoundsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryRoundsRequest.ProtoReflect.Descriptor instead.
 func (*ListLotteryRoundsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{56}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListLotteryRoundsRequest) GetPage() int32 {
@@ -4114,7 +4204,7 @@ type ListLotteryRoundsResponse struct {
 
 func (x *ListLotteryRoundsResponse) Reset() {
 	*x = ListLotteryRoundsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[57]
+	mi := &file_v1_sub2api_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4126,7 +4216,7 @@ func (x *ListLotteryRoundsResponse) String() string {
 func (*ListLotteryRoundsResponse) ProtoMessage() {}
 
 func (x *ListLotteryRoundsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[57]
+	mi := &file_v1_sub2api_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4139,7 +4229,7 @@ func (x *ListLotteryRoundsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryRoundsResponse.ProtoReflect.Descriptor instead.
 func (*ListLotteryRoundsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{57}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ListLotteryRoundsResponse) GetRounds() []*LotteryRound {
@@ -4179,7 +4269,7 @@ type GetLotteryRoundDetailRequest struct {
 
 func (x *GetLotteryRoundDetailRequest) Reset() {
 	*x = GetLotteryRoundDetailRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[58]
+	mi := &file_v1_sub2api_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4191,7 +4281,7 @@ func (x *GetLotteryRoundDetailRequest) String() string {
 func (*GetLotteryRoundDetailRequest) ProtoMessage() {}
 
 func (x *GetLotteryRoundDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[58]
+	mi := &file_v1_sub2api_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4204,7 +4294,7 @@ func (x *GetLotteryRoundDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryRoundDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetLotteryRoundDetailRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{58}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetLotteryRoundDetailRequest) GetId() string {
@@ -4224,7 +4314,7 @@ type GetLotteryRoundDetailResponse struct {
 
 func (x *GetLotteryRoundDetailResponse) Reset() {
 	*x = GetLotteryRoundDetailResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[59]
+	mi := &file_v1_sub2api_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4236,7 +4326,7 @@ func (x *GetLotteryRoundDetailResponse) String() string {
 func (*GetLotteryRoundDetailResponse) ProtoMessage() {}
 
 func (x *GetLotteryRoundDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[59]
+	mi := &file_v1_sub2api_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4249,7 +4339,7 @@ func (x *GetLotteryRoundDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryRoundDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetLotteryRoundDetailResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{59}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetLotteryRoundDetailResponse) GetRound() *LotteryRound {
@@ -4275,7 +4365,7 @@ type ListLotteryRegistrantsRequest struct {
 
 func (x *ListLotteryRegistrantsRequest) Reset() {
 	*x = ListLotteryRegistrantsRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[60]
+	mi := &file_v1_sub2api_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4377,7 @@ func (x *ListLotteryRegistrantsRequest) String() string {
 func (*ListLotteryRegistrantsRequest) ProtoMessage() {}
 
 func (x *ListLotteryRegistrantsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[60]
+	mi := &file_v1_sub2api_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4390,7 @@ func (x *ListLotteryRegistrantsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryRegistrantsRequest.ProtoReflect.Descriptor instead.
 func (*ListLotteryRegistrantsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{60}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListLotteryRegistrantsRequest) GetId() string {
@@ -4321,7 +4411,7 @@ type ListLotteryRegistrantsResponse struct {
 
 func (x *ListLotteryRegistrantsResponse) Reset() {
 	*x = ListLotteryRegistrantsResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[61]
+	mi := &file_v1_sub2api_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4333,7 +4423,7 @@ func (x *ListLotteryRegistrantsResponse) String() string {
 func (*ListLotteryRegistrantsResponse) ProtoMessage() {}
 
 func (x *ListLotteryRegistrantsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[61]
+	mi := &file_v1_sub2api_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4346,7 +4436,7 @@ func (x *ListLotteryRegistrantsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryRegistrantsResponse.ProtoReflect.Descriptor instead.
 func (*ListLotteryRegistrantsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{61}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListLotteryRegistrantsResponse) GetRegistrants() []*LotteryParticipant {
@@ -4379,7 +4469,7 @@ type Sub2APIUserInfo struct {
 
 func (x *Sub2APIUserInfo) Reset() {
 	*x = Sub2APIUserInfo{}
-	mi := &file_v1_sub2api_proto_msgTypes[62]
+	mi := &file_v1_sub2api_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4391,7 +4481,7 @@ func (x *Sub2APIUserInfo) String() string {
 func (*Sub2APIUserInfo) ProtoMessage() {}
 
 func (x *Sub2APIUserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[62]
+	mi := &file_v1_sub2api_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4404,7 +4494,7 @@ func (x *Sub2APIUserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sub2APIUserInfo.ProtoReflect.Descriptor instead.
 func (*Sub2APIUserInfo) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{62}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *Sub2APIUserInfo) GetId() int64 {
@@ -4465,7 +4555,7 @@ type GetSub2APIUserRequest struct {
 
 func (x *GetSub2APIUserRequest) Reset() {
 	*x = GetSub2APIUserRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[63]
+	mi := &file_v1_sub2api_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4477,7 +4567,7 @@ func (x *GetSub2APIUserRequest) String() string {
 func (*GetSub2APIUserRequest) ProtoMessage() {}
 
 func (x *GetSub2APIUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[63]
+	mi := &file_v1_sub2api_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4490,7 +4580,7 @@ func (x *GetSub2APIUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIUserRequest.ProtoReflect.Descriptor instead.
 func (*GetSub2APIUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{63}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GetSub2APIUserRequest) GetUserId() int64 {
@@ -4509,7 +4599,7 @@ type GetSub2APIUserResponse struct {
 
 func (x *GetSub2APIUserResponse) Reset() {
 	*x = GetSub2APIUserResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[64]
+	mi := &file_v1_sub2api_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4521,7 +4611,7 @@ func (x *GetSub2APIUserResponse) String() string {
 func (*GetSub2APIUserResponse) ProtoMessage() {}
 
 func (x *GetSub2APIUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[64]
+	mi := &file_v1_sub2api_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4534,7 +4624,7 @@ func (x *GetSub2APIUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSub2APIUserResponse.ProtoReflect.Descriptor instead.
 func (*GetSub2APIUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{64}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *GetSub2APIUserResponse) GetUser() *Sub2APIUserInfo {
@@ -4553,7 +4643,7 @@ type DistributeLotteryRoundRequest struct {
 
 func (x *DistributeLotteryRoundRequest) Reset() {
 	*x = DistributeLotteryRoundRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[65]
+	mi := &file_v1_sub2api_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4565,7 +4655,7 @@ func (x *DistributeLotteryRoundRequest) String() string {
 func (*DistributeLotteryRoundRequest) ProtoMessage() {}
 
 func (x *DistributeLotteryRoundRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[65]
+	mi := &file_v1_sub2api_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4578,7 +4668,7 @@ func (x *DistributeLotteryRoundRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DistributeLotteryRoundRequest.ProtoReflect.Descriptor instead.
 func (*DistributeLotteryRoundRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{65}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *DistributeLotteryRoundRequest) GetId() string {
@@ -4597,7 +4687,7 @@ type DistributeLotteryRoundResponse struct {
 
 func (x *DistributeLotteryRoundResponse) Reset() {
 	*x = DistributeLotteryRoundResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[66]
+	mi := &file_v1_sub2api_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4609,7 +4699,7 @@ func (x *DistributeLotteryRoundResponse) String() string {
 func (*DistributeLotteryRoundResponse) ProtoMessage() {}
 
 func (x *DistributeLotteryRoundResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[66]
+	mi := &file_v1_sub2api_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4622,7 +4712,7 @@ func (x *DistributeLotteryRoundResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DistributeLotteryRoundResponse.ProtoReflect.Descriptor instead.
 func (*DistributeLotteryRoundResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{66}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *DistributeLotteryRoundResponse) GetRound() *LotteryRound {
@@ -4642,7 +4732,7 @@ type TriggerLotterySettleRequest struct {
 
 func (x *TriggerLotterySettleRequest) Reset() {
 	*x = TriggerLotterySettleRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[67]
+	mi := &file_v1_sub2api_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4654,7 +4744,7 @@ func (x *TriggerLotterySettleRequest) String() string {
 func (*TriggerLotterySettleRequest) ProtoMessage() {}
 
 func (x *TriggerLotterySettleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[67]
+	mi := &file_v1_sub2api_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4667,7 +4757,7 @@ func (x *TriggerLotterySettleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotterySettleRequest.ProtoReflect.Descriptor instead.
 func (*TriggerLotterySettleRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{67}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *TriggerLotterySettleRequest) GetDate() string {
@@ -4686,7 +4776,7 @@ type TriggerLotterySettleResponse struct {
 
 func (x *TriggerLotterySettleResponse) Reset() {
 	*x = TriggerLotterySettleResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[68]
+	mi := &file_v1_sub2api_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4698,7 +4788,7 @@ func (x *TriggerLotterySettleResponse) String() string {
 func (*TriggerLotterySettleResponse) ProtoMessage() {}
 
 func (x *TriggerLotterySettleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[68]
+	mi := &file_v1_sub2api_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4711,7 +4801,7 @@ func (x *TriggerLotterySettleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotterySettleResponse.ProtoReflect.Descriptor instead.
 func (*TriggerLotterySettleResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{68}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *TriggerLotterySettleResponse) GetRound() *LotteryRound {
@@ -4731,7 +4821,7 @@ type TriggerLotteryDrawRequest struct {
 
 func (x *TriggerLotteryDrawRequest) Reset() {
 	*x = TriggerLotteryDrawRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[69]
+	mi := &file_v1_sub2api_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4743,7 +4833,7 @@ func (x *TriggerLotteryDrawRequest) String() string {
 func (*TriggerLotteryDrawRequest) ProtoMessage() {}
 
 func (x *TriggerLotteryDrawRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[69]
+	mi := &file_v1_sub2api_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4756,7 +4846,7 @@ func (x *TriggerLotteryDrawRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotteryDrawRequest.ProtoReflect.Descriptor instead.
 func (*TriggerLotteryDrawRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{69}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *TriggerLotteryDrawRequest) GetDate() string {
@@ -4775,7 +4865,7 @@ type TriggerLotteryDrawResponse struct {
 
 func (x *TriggerLotteryDrawResponse) Reset() {
 	*x = TriggerLotteryDrawResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[70]
+	mi := &file_v1_sub2api_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4787,7 +4877,7 @@ func (x *TriggerLotteryDrawResponse) String() string {
 func (*TriggerLotteryDrawResponse) ProtoMessage() {}
 
 func (x *TriggerLotteryDrawResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[70]
+	mi := &file_v1_sub2api_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4800,7 +4890,7 @@ func (x *TriggerLotteryDrawResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerLotteryDrawResponse.ProtoReflect.Descriptor instead.
 func (*TriggerLotteryDrawResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{70}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *TriggerLotteryDrawResponse) GetRound() *LotteryRound {
@@ -4819,7 +4909,7 @@ type GetLotteryStatusRequest struct {
 
 func (x *GetLotteryStatusRequest) Reset() {
 	*x = GetLotteryStatusRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[71]
+	mi := &file_v1_sub2api_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4831,7 +4921,7 @@ func (x *GetLotteryStatusRequest) String() string {
 func (*GetLotteryStatusRequest) ProtoMessage() {}
 
 func (x *GetLotteryStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[71]
+	mi := &file_v1_sub2api_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4844,7 +4934,7 @@ func (x *GetLotteryStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetLotteryStatusRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{71}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{73}
 }
 
 type GetLotteryStatusResponse struct {
@@ -4870,7 +4960,7 @@ type GetLotteryStatusResponse struct {
 
 func (x *GetLotteryStatusResponse) Reset() {
 	*x = GetLotteryStatusResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[72]
+	mi := &file_v1_sub2api_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4882,7 +4972,7 @@ func (x *GetLotteryStatusResponse) String() string {
 func (*GetLotteryStatusResponse) ProtoMessage() {}
 
 func (x *GetLotteryStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[72]
+	mi := &file_v1_sub2api_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4895,7 +4985,7 @@ func (x *GetLotteryStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLotteryStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetLotteryStatusResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{72}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GetLotteryStatusResponse) GetEnabled() bool {
@@ -5011,7 +5101,7 @@ type RegisterLotteryRequest struct {
 
 func (x *RegisterLotteryRequest) Reset() {
 	*x = RegisterLotteryRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[73]
+	mi := &file_v1_sub2api_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5023,7 +5113,7 @@ func (x *RegisterLotteryRequest) String() string {
 func (*RegisterLotteryRequest) ProtoMessage() {}
 
 func (x *RegisterLotteryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[73]
+	mi := &file_v1_sub2api_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5036,7 +5126,7 @@ func (x *RegisterLotteryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterLotteryRequest.ProtoReflect.Descriptor instead.
 func (*RegisterLotteryRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{73}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{75}
 }
 
 type RegisterLotteryResponse struct {
@@ -5062,7 +5152,7 @@ type RegisterLotteryResponse struct {
 
 func (x *RegisterLotteryResponse) Reset() {
 	*x = RegisterLotteryResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[74]
+	mi := &file_v1_sub2api_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5074,7 +5164,7 @@ func (x *RegisterLotteryResponse) String() string {
 func (*RegisterLotteryResponse) ProtoMessage() {}
 
 func (x *RegisterLotteryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[74]
+	mi := &file_v1_sub2api_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5087,7 +5177,7 @@ func (x *RegisterLotteryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterLotteryResponse.ProtoReflect.Descriptor instead.
 func (*RegisterLotteryResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{74}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *RegisterLotteryResponse) GetEnabled() bool {
@@ -5205,7 +5295,7 @@ type ListLotteryHistoryPublicRequest struct {
 
 func (x *ListLotteryHistoryPublicRequest) Reset() {
 	*x = ListLotteryHistoryPublicRequest{}
-	mi := &file_v1_sub2api_proto_msgTypes[75]
+	mi := &file_v1_sub2api_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5217,7 +5307,7 @@ func (x *ListLotteryHistoryPublicRequest) String() string {
 func (*ListLotteryHistoryPublicRequest) ProtoMessage() {}
 
 func (x *ListLotteryHistoryPublicRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[75]
+	mi := &file_v1_sub2api_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5230,7 +5320,7 @@ func (x *ListLotteryHistoryPublicRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryHistoryPublicRequest.ProtoReflect.Descriptor instead.
 func (*ListLotteryHistoryPublicRequest) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{75}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ListLotteryHistoryPublicRequest) GetPage() int32 {
@@ -5263,7 +5353,7 @@ type LotteryHistoryItem struct {
 
 func (x *LotteryHistoryItem) Reset() {
 	*x = LotteryHistoryItem{}
-	mi := &file_v1_sub2api_proto_msgTypes[76]
+	mi := &file_v1_sub2api_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5275,7 +5365,7 @@ func (x *LotteryHistoryItem) String() string {
 func (*LotteryHistoryItem) ProtoMessage() {}
 
 func (x *LotteryHistoryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[76]
+	mi := &file_v1_sub2api_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5288,7 +5378,7 @@ func (x *LotteryHistoryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LotteryHistoryItem.ProtoReflect.Descriptor instead.
 func (*LotteryHistoryItem) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{76}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *LotteryHistoryItem) GetRound() *LotteryRound {
@@ -5345,7 +5435,7 @@ type ListLotteryHistoryPublicResponse struct {
 
 func (x *ListLotteryHistoryPublicResponse) Reset() {
 	*x = ListLotteryHistoryPublicResponse{}
-	mi := &file_v1_sub2api_proto_msgTypes[77]
+	mi := &file_v1_sub2api_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5357,7 +5447,7 @@ func (x *ListLotteryHistoryPublicResponse) String() string {
 func (*ListLotteryHistoryPublicResponse) ProtoMessage() {}
 
 func (x *ListLotteryHistoryPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_sub2api_proto_msgTypes[77]
+	mi := &file_v1_sub2api_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5370,7 +5460,7 @@ func (x *ListLotteryHistoryPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLotteryHistoryPublicResponse.ProtoReflect.Descriptor instead.
 func (*ListLotteryHistoryPublicResponse) Descriptor() ([]byte, []int) {
-	return file_v1_sub2api_proto_rawDescGZIP(), []int{77}
+	return file_v1_sub2api_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListLotteryHistoryPublicResponse) GetItems() []*LotteryHistoryItem {
@@ -5438,7 +5528,13 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\n" +
 	"range_days\x18\x01 \x01(\x05R\trangeDays\"A\n" +
 	"\x17GetSub2APIStatsResponse\x12&\n" +
-	"\x05stats\x18\x01 \x01(\v2\x10.v1.Sub2APIStatsR\x05stats\"X\n" +
+	"\x05stats\x18\x01 \x01(\v2\x10.v1.Sub2APIStatsR\x05stats\"T\n" +
+	"\x1dGetPublicSub2APIModelsRequest\x12\x1d\n" +
+	"\n" +
+	"range_days\x18\x01 \x01(\x05R\trangeDays\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"L\n" +
+	"\x1eGetPublicSub2APIModelsResponse\x12*\n" +
+	"\x06models\x18\x01 \x03(\v2\x12.v1.Sub2APITopItemR\x06models\"X\n" +
 	"\x1cGetSub2APIAdminTotalsRequest\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x01 \x01(\x03R\tstartTime\x12\x19\n" +
@@ -5488,7 +5584,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x0frecent_requests\x18\x01 \x03(\v2\x18.v1.Sub2APIRecentRequestR\x0erecentRequests\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xe5\x03\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xb9\x03\n" +
 	"\fSub2APIStats\x12\x1d\n" +
 	"\n" +
 	"range_days\x18\x01 \x01(\x05R\trangeDays\x12\x1f\n" +
@@ -5502,9 +5598,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x12average_latency_ms\x18\a \x01(\x01R\x10averageLatencyMs\x12\x1f\n" +
 	"\vaverage_tps\x18\b \x01(\x01R\n" +
 	"averageTps\x12+\n" +
-	"\x05trend\x18\t \x03(\v2\x15.v1.Sub2APITrendPointR\x05trend\x12*\n" +
-	"\x06models\x18\n" +
-	" \x03(\v2\x12.v1.Sub2APITopItemR\x06models\x123\n" +
+	"\x05trend\x18\t \x03(\v2\x15.v1.Sub2APITrendPointR\x05trend\x123\n" +
 	"\vuser_agents\x18\f \x03(\v2\x12.v1.Sub2APITopItemR\n" +
 	"userAgents\x12*\n" +
 	"\x06groups\x18\r \x03(\v2\x12.v1.Sub2APITopItemR\x06groups\"\xb2\x04\n" +
@@ -5860,7 +5954,7 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x1dLOTTERY_MY_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16LOTTERY_MY_STATUS_NONE\x10\x01\x12 \n" +
 	"\x1cLOTTERY_MY_STATUS_REGISTERED\x10\x02\x12\x19\n" +
-	"\x15LOTTERY_MY_STATUS_WON\x10\x032\xba!\n" +
+	"\x15LOTTERY_MY_STATUS_WON\x10\x032\xc3\"\n" +
 	"\x0eSub2APIManager\x12u\n" +
 	"\x11PublicSub2APIHome\x12\x1c.v1.PublicSub2APIHomeRequest\x1a\x1d.v1.PublicSub2APIHomeResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/public/sub2api/home\x12\x8e\x01\n" +
 	"\x18GetPublicSub2APIOverview\x12#.v1.GetPublicSub2APIOverviewRequest\x1a$.v1.GetPublicSub2APIOverviewResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/public/sub2api/overview\x12m\n" +
@@ -5869,7 +5963,8 @@ const file_v1_sub2api_proto_rawDesc = "" +
 	"\x15TestSub2APIConnection\x12 .v1.TestSub2APIConnectionRequest\x1a!.v1.TestSub2APIConnectionResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/sub2api/config/test\x12n\n" +
 	"\x10SyncSub2APIUsage\x12\x1b.v1.SyncSub2APIUsageRequest\x1a\x1c.v1.SyncSub2APIUsageResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/sub2api/sync\x12u\n" +
 	"\x12GetSub2APISnapshot\x12\x1d.v1.GetSub2APISnapshotRequest\x1a\x1e.v1.GetSub2APISnapshotResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/sub2api/snapshot\x12v\n" +
-	"\x15GetPublicSub2APIStats\x12\x1a.v1.GetSub2APIStatsRequest\x1a\x1b.v1.GetSub2APIStatsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/public/sub2api/stats\x12\x82\x01\n" +
+	"\x15GetPublicSub2APIStats\x12\x1a.v1.GetSub2APIStatsRequest\x1a\x1b.v1.GetSub2APIStatsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/public/sub2api/stats\x12\x86\x01\n" +
+	"\x16GetPublicSub2APIModels\x12!.v1.GetPublicSub2APIModelsRequest\x1a\".v1.GetPublicSub2APIModelsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/public/sub2api/models\x12\x82\x01\n" +
 	"\x15GetSub2APIAdminTotals\x12 .v1.GetSub2APIAdminTotalsRequest\x1a!.v1.GetSub2APIAdminTotalsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/sub2api/stats/totals\x12~\n" +
 	"\x14GetSub2APIAdminTrend\x12\x1f.v1.GetSub2APIAdminTrendRequest\x1a .v1.GetSub2APIAdminTrendResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/sub2api/stats/trend\x12v\n" +
 	"\x12GetSub2APIAdminTop\x12\x1d.v1.GetSub2APIAdminTopRequest\x1a\x1e.v1.GetSub2APIAdminTopResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/sub2api/stats/top\x12\x8e\x01\n" +
@@ -5908,7 +6003,7 @@ func file_v1_sub2api_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_sub2api_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 78)
+var file_v1_sub2api_proto_msgTypes = make([]protoimpl.MessageInfo, 80)
 var file_v1_sub2api_proto_goTypes = []any{
 	(LotteryRoundStatus)(0),                   // 0: v1.LotteryRoundStatus
 	(LotteryPayoutStatus)(0),                  // 1: v1.LotteryPayoutStatus
@@ -5928,208 +6023,212 @@ var file_v1_sub2api_proto_goTypes = []any{
 	(*GetSub2APISnapshotResponse)(nil),        // 15: v1.GetSub2APISnapshotResponse
 	(*GetSub2APIStatsRequest)(nil),            // 16: v1.GetSub2APIStatsRequest
 	(*GetSub2APIStatsResponse)(nil),           // 17: v1.GetSub2APIStatsResponse
-	(*GetSub2APIAdminTotalsRequest)(nil),      // 18: v1.GetSub2APIAdminTotalsRequest
-	(*GetSub2APIAdminTotalsResponse)(nil),     // 19: v1.GetSub2APIAdminTotalsResponse
-	(*GetSub2APIAdminTrendRequest)(nil),       // 20: v1.GetSub2APIAdminTrendRequest
-	(*GetSub2APIAdminTrendResponse)(nil),      // 21: v1.GetSub2APIAdminTrendResponse
-	(*GetSub2APIAdminTopRequest)(nil),         // 22: v1.GetSub2APIAdminTopRequest
-	(*GetSub2APIAdminTopResponse)(nil),        // 23: v1.GetSub2APIAdminTopResponse
-	(*GetSub2APIRecentRequestsRequest)(nil),   // 24: v1.GetSub2APIRecentRequestsRequest
-	(*GetSub2APIRecentRequestsResponse)(nil),  // 25: v1.GetSub2APIRecentRequestsResponse
-	(*Sub2APIStats)(nil),                      // 26: v1.Sub2APIStats
-	(*Sub2APIConfig)(nil),                     // 27: v1.Sub2APIConfig
-	(*Sub2APIHome)(nil),                       // 28: v1.Sub2APIHome
-	(*GetPublicSub2APIOverviewRequest)(nil),   // 29: v1.GetPublicSub2APIOverviewRequest
-	(*GetPublicSub2APIOverviewResponse)(nil),  // 30: v1.GetPublicSub2APIOverviewResponse
-	(*Sub2APIAnnouncement)(nil),               // 31: v1.Sub2APIAnnouncement
-	(*Sub2APITimelineItem)(nil),               // 32: v1.Sub2APITimelineItem
-	(*ListSub2APIAnnouncementsRequest)(nil),   // 33: v1.ListSub2APIAnnouncementsRequest
-	(*ListSub2APIAnnouncementsResponse)(nil),  // 34: v1.ListSub2APIAnnouncementsResponse
-	(*CreateSub2APIAnnouncementRequest)(nil),  // 35: v1.CreateSub2APIAnnouncementRequest
-	(*UpdateSub2APIAnnouncementRequest)(nil),  // 36: v1.UpdateSub2APIAnnouncementRequest
-	(*Sub2APIAnnouncementResponse)(nil),       // 37: v1.Sub2APIAnnouncementResponse
-	(*DeleteSub2APIAnnouncementRequest)(nil),  // 38: v1.DeleteSub2APIAnnouncementRequest
-	(*DeleteSub2APIAnnouncementResponse)(nil), // 39: v1.DeleteSub2APIAnnouncementResponse
-	(*ListSub2APITimelineRequest)(nil),        // 40: v1.ListSub2APITimelineRequest
-	(*ListSub2APITimelineResponse)(nil),       // 41: v1.ListSub2APITimelineResponse
-	(*CreateSub2APITimelineItemRequest)(nil),  // 42: v1.CreateSub2APITimelineItemRequest
-	(*UpdateSub2APITimelineItemRequest)(nil),  // 43: v1.UpdateSub2APITimelineItemRequest
-	(*Sub2APITimelineItemResponse)(nil),       // 44: v1.Sub2APITimelineItemResponse
-	(*DeleteSub2APITimelineItemRequest)(nil),  // 45: v1.DeleteSub2APITimelineItemRequest
-	(*DeleteSub2APITimelineItemResponse)(nil), // 46: v1.DeleteSub2APITimelineItemResponse
-	(*Sub2APIUsageSnapshot)(nil),              // 47: v1.Sub2APIUsageSnapshot
-	(*Sub2APITimePoint)(nil),                  // 48: v1.Sub2APITimePoint
-	(*Sub2APITrendPoint)(nil),                 // 49: v1.Sub2APITrendPoint
-	(*Sub2APITopItem)(nil),                    // 50: v1.Sub2APITopItem
-	(*Sub2APIRecentRequest)(nil),              // 51: v1.Sub2APIRecentRequest
-	(*LotterySettings)(nil),                   // 52: v1.LotterySettings
-	(*LotteryRound)(nil),                      // 53: v1.LotteryRound
-	(*LotteryParticipant)(nil),                // 54: v1.LotteryParticipant
-	(*GetLotteryOverviewRequest)(nil),         // 55: v1.GetLotteryOverviewRequest
-	(*GetLotteryOverviewResponse)(nil),        // 56: v1.GetLotteryOverviewResponse
-	(*UpdateLotterySettingsRequest)(nil),      // 57: v1.UpdateLotterySettingsRequest
-	(*UpdateLotterySettingsResponse)(nil),     // 58: v1.UpdateLotterySettingsResponse
-	(*ListLotteryRoundsRequest)(nil),          // 59: v1.ListLotteryRoundsRequest
-	(*ListLotteryRoundsResponse)(nil),         // 60: v1.ListLotteryRoundsResponse
-	(*GetLotteryRoundDetailRequest)(nil),      // 61: v1.GetLotteryRoundDetailRequest
-	(*GetLotteryRoundDetailResponse)(nil),     // 62: v1.GetLotteryRoundDetailResponse
-	(*ListLotteryRegistrantsRequest)(nil),     // 63: v1.ListLotteryRegistrantsRequest
-	(*ListLotteryRegistrantsResponse)(nil),    // 64: v1.ListLotteryRegistrantsResponse
-	(*Sub2APIUserInfo)(nil),                   // 65: v1.Sub2APIUserInfo
-	(*GetSub2APIUserRequest)(nil),             // 66: v1.GetSub2APIUserRequest
-	(*GetSub2APIUserResponse)(nil),            // 67: v1.GetSub2APIUserResponse
-	(*DistributeLotteryRoundRequest)(nil),     // 68: v1.DistributeLotteryRoundRequest
-	(*DistributeLotteryRoundResponse)(nil),    // 69: v1.DistributeLotteryRoundResponse
-	(*TriggerLotterySettleRequest)(nil),       // 70: v1.TriggerLotterySettleRequest
-	(*TriggerLotterySettleResponse)(nil),      // 71: v1.TriggerLotterySettleResponse
-	(*TriggerLotteryDrawRequest)(nil),         // 72: v1.TriggerLotteryDrawRequest
-	(*TriggerLotteryDrawResponse)(nil),        // 73: v1.TriggerLotteryDrawResponse
-	(*GetLotteryStatusRequest)(nil),           // 74: v1.GetLotteryStatusRequest
-	(*GetLotteryStatusResponse)(nil),          // 75: v1.GetLotteryStatusResponse
-	(*RegisterLotteryRequest)(nil),            // 76: v1.RegisterLotteryRequest
-	(*RegisterLotteryResponse)(nil),           // 77: v1.RegisterLotteryResponse
-	(*ListLotteryHistoryPublicRequest)(nil),   // 78: v1.ListLotteryHistoryPublicRequest
-	(*LotteryHistoryItem)(nil),                // 79: v1.LotteryHistoryItem
-	(*ListLotteryHistoryPublicResponse)(nil),  // 80: v1.ListLotteryHistoryPublicResponse
-	(*timestamppb.Timestamp)(nil),             // 81: google.protobuf.Timestamp
+	(*GetPublicSub2APIModelsRequest)(nil),     // 18: v1.GetPublicSub2APIModelsRequest
+	(*GetPublicSub2APIModelsResponse)(nil),    // 19: v1.GetPublicSub2APIModelsResponse
+	(*GetSub2APIAdminTotalsRequest)(nil),      // 20: v1.GetSub2APIAdminTotalsRequest
+	(*GetSub2APIAdminTotalsResponse)(nil),     // 21: v1.GetSub2APIAdminTotalsResponse
+	(*GetSub2APIAdminTrendRequest)(nil),       // 22: v1.GetSub2APIAdminTrendRequest
+	(*GetSub2APIAdminTrendResponse)(nil),      // 23: v1.GetSub2APIAdminTrendResponse
+	(*GetSub2APIAdminTopRequest)(nil),         // 24: v1.GetSub2APIAdminTopRequest
+	(*GetSub2APIAdminTopResponse)(nil),        // 25: v1.GetSub2APIAdminTopResponse
+	(*GetSub2APIRecentRequestsRequest)(nil),   // 26: v1.GetSub2APIRecentRequestsRequest
+	(*GetSub2APIRecentRequestsResponse)(nil),  // 27: v1.GetSub2APIRecentRequestsResponse
+	(*Sub2APIStats)(nil),                      // 28: v1.Sub2APIStats
+	(*Sub2APIConfig)(nil),                     // 29: v1.Sub2APIConfig
+	(*Sub2APIHome)(nil),                       // 30: v1.Sub2APIHome
+	(*GetPublicSub2APIOverviewRequest)(nil),   // 31: v1.GetPublicSub2APIOverviewRequest
+	(*GetPublicSub2APIOverviewResponse)(nil),  // 32: v1.GetPublicSub2APIOverviewResponse
+	(*Sub2APIAnnouncement)(nil),               // 33: v1.Sub2APIAnnouncement
+	(*Sub2APITimelineItem)(nil),               // 34: v1.Sub2APITimelineItem
+	(*ListSub2APIAnnouncementsRequest)(nil),   // 35: v1.ListSub2APIAnnouncementsRequest
+	(*ListSub2APIAnnouncementsResponse)(nil),  // 36: v1.ListSub2APIAnnouncementsResponse
+	(*CreateSub2APIAnnouncementRequest)(nil),  // 37: v1.CreateSub2APIAnnouncementRequest
+	(*UpdateSub2APIAnnouncementRequest)(nil),  // 38: v1.UpdateSub2APIAnnouncementRequest
+	(*Sub2APIAnnouncementResponse)(nil),       // 39: v1.Sub2APIAnnouncementResponse
+	(*DeleteSub2APIAnnouncementRequest)(nil),  // 40: v1.DeleteSub2APIAnnouncementRequest
+	(*DeleteSub2APIAnnouncementResponse)(nil), // 41: v1.DeleteSub2APIAnnouncementResponse
+	(*ListSub2APITimelineRequest)(nil),        // 42: v1.ListSub2APITimelineRequest
+	(*ListSub2APITimelineResponse)(nil),       // 43: v1.ListSub2APITimelineResponse
+	(*CreateSub2APITimelineItemRequest)(nil),  // 44: v1.CreateSub2APITimelineItemRequest
+	(*UpdateSub2APITimelineItemRequest)(nil),  // 45: v1.UpdateSub2APITimelineItemRequest
+	(*Sub2APITimelineItemResponse)(nil),       // 46: v1.Sub2APITimelineItemResponse
+	(*DeleteSub2APITimelineItemRequest)(nil),  // 47: v1.DeleteSub2APITimelineItemRequest
+	(*DeleteSub2APITimelineItemResponse)(nil), // 48: v1.DeleteSub2APITimelineItemResponse
+	(*Sub2APIUsageSnapshot)(nil),              // 49: v1.Sub2APIUsageSnapshot
+	(*Sub2APITimePoint)(nil),                  // 50: v1.Sub2APITimePoint
+	(*Sub2APITrendPoint)(nil),                 // 51: v1.Sub2APITrendPoint
+	(*Sub2APITopItem)(nil),                    // 52: v1.Sub2APITopItem
+	(*Sub2APIRecentRequest)(nil),              // 53: v1.Sub2APIRecentRequest
+	(*LotterySettings)(nil),                   // 54: v1.LotterySettings
+	(*LotteryRound)(nil),                      // 55: v1.LotteryRound
+	(*LotteryParticipant)(nil),                // 56: v1.LotteryParticipant
+	(*GetLotteryOverviewRequest)(nil),         // 57: v1.GetLotteryOverviewRequest
+	(*GetLotteryOverviewResponse)(nil),        // 58: v1.GetLotteryOverviewResponse
+	(*UpdateLotterySettingsRequest)(nil),      // 59: v1.UpdateLotterySettingsRequest
+	(*UpdateLotterySettingsResponse)(nil),     // 60: v1.UpdateLotterySettingsResponse
+	(*ListLotteryRoundsRequest)(nil),          // 61: v1.ListLotteryRoundsRequest
+	(*ListLotteryRoundsResponse)(nil),         // 62: v1.ListLotteryRoundsResponse
+	(*GetLotteryRoundDetailRequest)(nil),      // 63: v1.GetLotteryRoundDetailRequest
+	(*GetLotteryRoundDetailResponse)(nil),     // 64: v1.GetLotteryRoundDetailResponse
+	(*ListLotteryRegistrantsRequest)(nil),     // 65: v1.ListLotteryRegistrantsRequest
+	(*ListLotteryRegistrantsResponse)(nil),    // 66: v1.ListLotteryRegistrantsResponse
+	(*Sub2APIUserInfo)(nil),                   // 67: v1.Sub2APIUserInfo
+	(*GetSub2APIUserRequest)(nil),             // 68: v1.GetSub2APIUserRequest
+	(*GetSub2APIUserResponse)(nil),            // 69: v1.GetSub2APIUserResponse
+	(*DistributeLotteryRoundRequest)(nil),     // 70: v1.DistributeLotteryRoundRequest
+	(*DistributeLotteryRoundResponse)(nil),    // 71: v1.DistributeLotteryRoundResponse
+	(*TriggerLotterySettleRequest)(nil),       // 72: v1.TriggerLotterySettleRequest
+	(*TriggerLotterySettleResponse)(nil),      // 73: v1.TriggerLotterySettleResponse
+	(*TriggerLotteryDrawRequest)(nil),         // 74: v1.TriggerLotteryDrawRequest
+	(*TriggerLotteryDrawResponse)(nil),        // 75: v1.TriggerLotteryDrawResponse
+	(*GetLotteryStatusRequest)(nil),           // 76: v1.GetLotteryStatusRequest
+	(*GetLotteryStatusResponse)(nil),          // 77: v1.GetLotteryStatusResponse
+	(*RegisterLotteryRequest)(nil),            // 78: v1.RegisterLotteryRequest
+	(*RegisterLotteryResponse)(nil),           // 79: v1.RegisterLotteryResponse
+	(*ListLotteryHistoryPublicRequest)(nil),   // 80: v1.ListLotteryHistoryPublicRequest
+	(*LotteryHistoryItem)(nil),                // 81: v1.LotteryHistoryItem
+	(*ListLotteryHistoryPublicResponse)(nil),  // 82: v1.ListLotteryHistoryPublicResponse
+	(*timestamppb.Timestamp)(nil),             // 83: google.protobuf.Timestamp
 }
 var file_v1_sub2api_proto_depIdxs = []int32{
-	28,  // 0: v1.PublicSub2APIHomeResponse.home:type_name -> v1.Sub2APIHome
-	27,  // 1: v1.GetSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
+	30,  // 0: v1.PublicSub2APIHomeResponse.home:type_name -> v1.Sub2APIHome
+	29,  // 1: v1.GetSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
 	6,   // 2: v1.GetSub2APIConfigResponse.groups:type_name -> v1.Sub2APIGroup
-	27,  // 3: v1.UpdateSub2APIConfigRequest.config:type_name -> v1.Sub2APIConfig
-	27,  // 4: v1.UpdateSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
-	27,  // 5: v1.TestSub2APIConnectionRequest.config:type_name -> v1.Sub2APIConfig
-	47,  // 6: v1.SyncSub2APIUsageResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	47,  // 7: v1.GetSub2APISnapshotResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
-	26,  // 8: v1.GetSub2APIStatsResponse.stats:type_name -> v1.Sub2APIStats
-	49,  // 9: v1.GetSub2APIAdminTrendResponse.trend:type_name -> v1.Sub2APITrendPoint
-	50,  // 10: v1.GetSub2APIAdminTopResponse.models:type_name -> v1.Sub2APITopItem
-	50,  // 11: v1.GetSub2APIAdminTopResponse.groups:type_name -> v1.Sub2APITopItem
-	51,  // 12: v1.GetSub2APIRecentRequestsResponse.recent_requests:type_name -> v1.Sub2APIRecentRequest
-	49,  // 13: v1.Sub2APIStats.trend:type_name -> v1.Sub2APITrendPoint
-	50,  // 14: v1.Sub2APIStats.models:type_name -> v1.Sub2APITopItem
-	50,  // 15: v1.Sub2APIStats.user_agents:type_name -> v1.Sub2APITopItem
-	50,  // 16: v1.Sub2APIStats.groups:type_name -> v1.Sub2APITopItem
-	31,  // 17: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
-	32,  // 18: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
-	48,  // 19: v1.GetPublicSub2APIOverviewResponse.today_series:type_name -> v1.Sub2APITimePoint
-	81,  // 20: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
-	81,  // 21: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
-	31,  // 22: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
-	81,  // 23: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	81,  // 24: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
-	31,  // 25: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
-	32,  // 26: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
-	81,  // 27: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	81,  // 28: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
-	32,  // 29: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
-	81,  // 30: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
-	81,  // 31: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
-	81,  // 32: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
-	81,  // 33: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
-	49,  // 34: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
-	50,  // 35: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
-	51,  // 36: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
-	48,  // 37: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
-	81,  // 38: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
-	81,  // 39: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
-	81,  // 40: v1.LotteryRound.settle_time:type_name -> google.protobuf.Timestamp
-	81,  // 41: v1.LotteryRound.draw_time:type_name -> google.protobuf.Timestamp
+	29,  // 3: v1.UpdateSub2APIConfigRequest.config:type_name -> v1.Sub2APIConfig
+	29,  // 4: v1.UpdateSub2APIConfigResponse.config:type_name -> v1.Sub2APIConfig
+	29,  // 5: v1.TestSub2APIConnectionRequest.config:type_name -> v1.Sub2APIConfig
+	49,  // 6: v1.SyncSub2APIUsageResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	49,  // 7: v1.GetSub2APISnapshotResponse.snapshot:type_name -> v1.Sub2APIUsageSnapshot
+	28,  // 8: v1.GetSub2APIStatsResponse.stats:type_name -> v1.Sub2APIStats
+	52,  // 9: v1.GetPublicSub2APIModelsResponse.models:type_name -> v1.Sub2APITopItem
+	51,  // 10: v1.GetSub2APIAdminTrendResponse.trend:type_name -> v1.Sub2APITrendPoint
+	52,  // 11: v1.GetSub2APIAdminTopResponse.models:type_name -> v1.Sub2APITopItem
+	52,  // 12: v1.GetSub2APIAdminTopResponse.groups:type_name -> v1.Sub2APITopItem
+	53,  // 13: v1.GetSub2APIRecentRequestsResponse.recent_requests:type_name -> v1.Sub2APIRecentRequest
+	51,  // 14: v1.Sub2APIStats.trend:type_name -> v1.Sub2APITrendPoint
+	52,  // 15: v1.Sub2APIStats.user_agents:type_name -> v1.Sub2APITopItem
+	52,  // 16: v1.Sub2APIStats.groups:type_name -> v1.Sub2APITopItem
+	33,  // 17: v1.Sub2APIHome.announcements:type_name -> v1.Sub2APIAnnouncement
+	34,  // 18: v1.Sub2APIHome.timeline:type_name -> v1.Sub2APITimelineItem
+	50,  // 19: v1.GetPublicSub2APIOverviewResponse.today_series:type_name -> v1.Sub2APITimePoint
+	83,  // 20: v1.Sub2APIAnnouncement.published_at:type_name -> google.protobuf.Timestamp
+	83,  // 21: v1.Sub2APITimelineItem.published_at:type_name -> google.protobuf.Timestamp
+	33,  // 22: v1.ListSub2APIAnnouncementsResponse.announcements:type_name -> v1.Sub2APIAnnouncement
+	83,  // 23: v1.CreateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	83,  // 24: v1.UpdateSub2APIAnnouncementRequest.published_at:type_name -> google.protobuf.Timestamp
+	33,  // 25: v1.Sub2APIAnnouncementResponse.announcement:type_name -> v1.Sub2APIAnnouncement
+	34,  // 26: v1.ListSub2APITimelineResponse.timeline:type_name -> v1.Sub2APITimelineItem
+	83,  // 27: v1.CreateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	83,  // 28: v1.UpdateSub2APITimelineItemRequest.published_at:type_name -> google.protobuf.Timestamp
+	34,  // 29: v1.Sub2APITimelineItemResponse.item:type_name -> v1.Sub2APITimelineItem
+	83,  // 30: v1.Sub2APIUsageSnapshot.last_sync_time:type_name -> google.protobuf.Timestamp
+	83,  // 31: v1.Sub2APIUsageSnapshot.next_sync_time:type_name -> google.protobuf.Timestamp
+	83,  // 32: v1.Sub2APIUsageSnapshot.latest_record_time:type_name -> google.protobuf.Timestamp
+	83,  // 33: v1.Sub2APIUsageSnapshot.generated_at:type_name -> google.protobuf.Timestamp
+	51,  // 34: v1.Sub2APIUsageSnapshot.trend:type_name -> v1.Sub2APITrendPoint
+	52,  // 35: v1.Sub2APIUsageSnapshot.model_usage:type_name -> v1.Sub2APITopItem
+	53,  // 36: v1.Sub2APIUsageSnapshot.recent_requests:type_name -> v1.Sub2APIRecentRequest
+	50,  // 37: v1.Sub2APIUsageSnapshot.today_series:type_name -> v1.Sub2APITimePoint
+	83,  // 38: v1.Sub2APITimePoint.time:type_name -> google.protobuf.Timestamp
+	83,  // 39: v1.Sub2APIRecentRequest.request_time:type_name -> google.protobuf.Timestamp
+	83,  // 40: v1.LotteryRound.settle_time:type_name -> google.protobuf.Timestamp
+	83,  // 41: v1.LotteryRound.draw_time:type_name -> google.protobuf.Timestamp
 	0,   // 42: v1.LotteryRound.status:type_name -> v1.LotteryRoundStatus
-	81,  // 43: v1.LotteryParticipant.registered_time:type_name -> google.protobuf.Timestamp
+	83,  // 43: v1.LotteryParticipant.registered_time:type_name -> google.protobuf.Timestamp
 	1,   // 44: v1.LotteryParticipant.payout_status:type_name -> v1.LotteryPayoutStatus
-	52,  // 45: v1.GetLotteryOverviewResponse.settings:type_name -> v1.LotterySettings
-	81,  // 46: v1.GetLotteryOverviewResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	81,  // 47: v1.GetLotteryOverviewResponse.next_draw_time:type_name -> google.protobuf.Timestamp
-	53,  // 48: v1.GetLotteryOverviewResponse.current:type_name -> v1.LotteryRound
-	52,  // 49: v1.UpdateLotterySettingsRequest.settings:type_name -> v1.LotterySettings
-	52,  // 50: v1.UpdateLotterySettingsResponse.settings:type_name -> v1.LotterySettings
-	53,  // 51: v1.ListLotteryRoundsResponse.rounds:type_name -> v1.LotteryRound
-	53,  // 52: v1.GetLotteryRoundDetailResponse.round:type_name -> v1.LotteryRound
-	54,  // 53: v1.GetLotteryRoundDetailResponse.winners:type_name -> v1.LotteryParticipant
-	54,  // 54: v1.ListLotteryRegistrantsResponse.registrants:type_name -> v1.LotteryParticipant
-	81,  // 55: v1.Sub2APIUserInfo.created_at:type_name -> google.protobuf.Timestamp
-	65,  // 56: v1.GetSub2APIUserResponse.user:type_name -> v1.Sub2APIUserInfo
-	53,  // 57: v1.DistributeLotteryRoundResponse.round:type_name -> v1.LotteryRound
-	53,  // 58: v1.TriggerLotterySettleResponse.round:type_name -> v1.LotteryRound
-	53,  // 59: v1.TriggerLotteryDrawResponse.round:type_name -> v1.LotteryRound
-	81,  // 60: v1.GetLotteryStatusResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	81,  // 61: v1.GetLotteryStatusResponse.next_draw_time:type_name -> google.protobuf.Timestamp
-	53,  // 62: v1.GetLotteryStatusResponse.current:type_name -> v1.LotteryRound
-	81,  // 63: v1.RegisterLotteryResponse.next_settle_time:type_name -> google.protobuf.Timestamp
-	81,  // 64: v1.RegisterLotteryResponse.next_draw_time:type_name -> google.protobuf.Timestamp
-	53,  // 65: v1.RegisterLotteryResponse.current:type_name -> v1.LotteryRound
-	53,  // 66: v1.LotteryHistoryItem.round:type_name -> v1.LotteryRound
+	54,  // 45: v1.GetLotteryOverviewResponse.settings:type_name -> v1.LotterySettings
+	83,  // 46: v1.GetLotteryOverviewResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	83,  // 47: v1.GetLotteryOverviewResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	55,  // 48: v1.GetLotteryOverviewResponse.current:type_name -> v1.LotteryRound
+	54,  // 49: v1.UpdateLotterySettingsRequest.settings:type_name -> v1.LotterySettings
+	54,  // 50: v1.UpdateLotterySettingsResponse.settings:type_name -> v1.LotterySettings
+	55,  // 51: v1.ListLotteryRoundsResponse.rounds:type_name -> v1.LotteryRound
+	55,  // 52: v1.GetLotteryRoundDetailResponse.round:type_name -> v1.LotteryRound
+	56,  // 53: v1.GetLotteryRoundDetailResponse.winners:type_name -> v1.LotteryParticipant
+	56,  // 54: v1.ListLotteryRegistrantsResponse.registrants:type_name -> v1.LotteryParticipant
+	83,  // 55: v1.Sub2APIUserInfo.created_at:type_name -> google.protobuf.Timestamp
+	67,  // 56: v1.GetSub2APIUserResponse.user:type_name -> v1.Sub2APIUserInfo
+	55,  // 57: v1.DistributeLotteryRoundResponse.round:type_name -> v1.LotteryRound
+	55,  // 58: v1.TriggerLotterySettleResponse.round:type_name -> v1.LotteryRound
+	55,  // 59: v1.TriggerLotteryDrawResponse.round:type_name -> v1.LotteryRound
+	83,  // 60: v1.GetLotteryStatusResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	83,  // 61: v1.GetLotteryStatusResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	55,  // 62: v1.GetLotteryStatusResponse.current:type_name -> v1.LotteryRound
+	83,  // 63: v1.RegisterLotteryResponse.next_settle_time:type_name -> google.protobuf.Timestamp
+	83,  // 64: v1.RegisterLotteryResponse.next_draw_time:type_name -> google.protobuf.Timestamp
+	55,  // 65: v1.RegisterLotteryResponse.current:type_name -> v1.LotteryRound
+	55,  // 66: v1.LotteryHistoryItem.round:type_name -> v1.LotteryRound
 	2,   // 67: v1.LotteryHistoryItem.my_status:type_name -> v1.LotteryMyStatus
-	54,  // 68: v1.LotteryHistoryItem.winners:type_name -> v1.LotteryParticipant
-	79,  // 69: v1.ListLotteryHistoryPublicResponse.items:type_name -> v1.LotteryHistoryItem
+	56,  // 68: v1.LotteryHistoryItem.winners:type_name -> v1.LotteryParticipant
+	81,  // 69: v1.ListLotteryHistoryPublicResponse.items:type_name -> v1.LotteryHistoryItem
 	3,   // 70: v1.Sub2APIManager.PublicSub2APIHome:input_type -> v1.PublicSub2APIHomeRequest
-	29,  // 71: v1.Sub2APIManager.GetPublicSub2APIOverview:input_type -> v1.GetPublicSub2APIOverviewRequest
+	31,  // 71: v1.Sub2APIManager.GetPublicSub2APIOverview:input_type -> v1.GetPublicSub2APIOverviewRequest
 	5,   // 72: v1.Sub2APIManager.GetSub2APIConfig:input_type -> v1.GetSub2APIConfigRequest
 	8,   // 73: v1.Sub2APIManager.UpdateSub2APIConfig:input_type -> v1.UpdateSub2APIConfigRequest
 	10,  // 74: v1.Sub2APIManager.TestSub2APIConnection:input_type -> v1.TestSub2APIConnectionRequest
 	12,  // 75: v1.Sub2APIManager.SyncSub2APIUsage:input_type -> v1.SyncSub2APIUsageRequest
 	14,  // 76: v1.Sub2APIManager.GetSub2APISnapshot:input_type -> v1.GetSub2APISnapshotRequest
 	16,  // 77: v1.Sub2APIManager.GetPublicSub2APIStats:input_type -> v1.GetSub2APIStatsRequest
-	18,  // 78: v1.Sub2APIManager.GetSub2APIAdminTotals:input_type -> v1.GetSub2APIAdminTotalsRequest
-	20,  // 79: v1.Sub2APIManager.GetSub2APIAdminTrend:input_type -> v1.GetSub2APIAdminTrendRequest
-	22,  // 80: v1.Sub2APIManager.GetSub2APIAdminTop:input_type -> v1.GetSub2APIAdminTopRequest
-	24,  // 81: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
-	33,  // 82: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
-	35,  // 83: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
-	36,  // 84: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
-	38,  // 85: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
-	40,  // 86: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
-	42,  // 87: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
-	43,  // 88: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
-	45,  // 89: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
-	55,  // 90: v1.Sub2APIManager.GetLotteryOverview:input_type -> v1.GetLotteryOverviewRequest
-	57,  // 91: v1.Sub2APIManager.UpdateLotterySettings:input_type -> v1.UpdateLotterySettingsRequest
-	59,  // 92: v1.Sub2APIManager.ListLotteryRounds:input_type -> v1.ListLotteryRoundsRequest
-	61,  // 93: v1.Sub2APIManager.GetLotteryRoundDetail:input_type -> v1.GetLotteryRoundDetailRequest
-	63,  // 94: v1.Sub2APIManager.ListLotteryRegistrants:input_type -> v1.ListLotteryRegistrantsRequest
-	66,  // 95: v1.Sub2APIManager.GetSub2APIUser:input_type -> v1.GetSub2APIUserRequest
-	68,  // 96: v1.Sub2APIManager.DistributeLotteryRound:input_type -> v1.DistributeLotteryRoundRequest
-	70,  // 97: v1.Sub2APIManager.TriggerLotterySettle:input_type -> v1.TriggerLotterySettleRequest
-	72,  // 98: v1.Sub2APIManager.TriggerLotteryDraw:input_type -> v1.TriggerLotteryDrawRequest
-	74,  // 99: v1.Sub2APIManager.GetLotteryStatus:input_type -> v1.GetLotteryStatusRequest
-	76,  // 100: v1.Sub2APIManager.RegisterLottery:input_type -> v1.RegisterLotteryRequest
-	78,  // 101: v1.Sub2APIManager.ListLotteryHistoryPublic:input_type -> v1.ListLotteryHistoryPublicRequest
-	4,   // 102: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
-	30,  // 103: v1.Sub2APIManager.GetPublicSub2APIOverview:output_type -> v1.GetPublicSub2APIOverviewResponse
-	7,   // 104: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
-	9,   // 105: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
-	11,  // 106: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
-	13,  // 107: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
-	15,  // 108: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
-	17,  // 109: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
-	19,  // 110: v1.Sub2APIManager.GetSub2APIAdminTotals:output_type -> v1.GetSub2APIAdminTotalsResponse
-	21,  // 111: v1.Sub2APIManager.GetSub2APIAdminTrend:output_type -> v1.GetSub2APIAdminTrendResponse
-	23,  // 112: v1.Sub2APIManager.GetSub2APIAdminTop:output_type -> v1.GetSub2APIAdminTopResponse
-	25,  // 113: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
-	34,  // 114: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
-	37,  // 115: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	37,  // 116: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
-	39,  // 117: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
-	41,  // 118: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
-	44,  // 119: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	44,  // 120: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
-	46,  // 121: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
-	56,  // 122: v1.Sub2APIManager.GetLotteryOverview:output_type -> v1.GetLotteryOverviewResponse
-	58,  // 123: v1.Sub2APIManager.UpdateLotterySettings:output_type -> v1.UpdateLotterySettingsResponse
-	60,  // 124: v1.Sub2APIManager.ListLotteryRounds:output_type -> v1.ListLotteryRoundsResponse
-	62,  // 125: v1.Sub2APIManager.GetLotteryRoundDetail:output_type -> v1.GetLotteryRoundDetailResponse
-	64,  // 126: v1.Sub2APIManager.ListLotteryRegistrants:output_type -> v1.ListLotteryRegistrantsResponse
-	67,  // 127: v1.Sub2APIManager.GetSub2APIUser:output_type -> v1.GetSub2APIUserResponse
-	69,  // 128: v1.Sub2APIManager.DistributeLotteryRound:output_type -> v1.DistributeLotteryRoundResponse
-	71,  // 129: v1.Sub2APIManager.TriggerLotterySettle:output_type -> v1.TriggerLotterySettleResponse
-	73,  // 130: v1.Sub2APIManager.TriggerLotteryDraw:output_type -> v1.TriggerLotteryDrawResponse
-	75,  // 131: v1.Sub2APIManager.GetLotteryStatus:output_type -> v1.GetLotteryStatusResponse
-	77,  // 132: v1.Sub2APIManager.RegisterLottery:output_type -> v1.RegisterLotteryResponse
-	80,  // 133: v1.Sub2APIManager.ListLotteryHistoryPublic:output_type -> v1.ListLotteryHistoryPublicResponse
-	102, // [102:134] is the sub-list for method output_type
-	70,  // [70:102] is the sub-list for method input_type
+	18,  // 78: v1.Sub2APIManager.GetPublicSub2APIModels:input_type -> v1.GetPublicSub2APIModelsRequest
+	20,  // 79: v1.Sub2APIManager.GetSub2APIAdminTotals:input_type -> v1.GetSub2APIAdminTotalsRequest
+	22,  // 80: v1.Sub2APIManager.GetSub2APIAdminTrend:input_type -> v1.GetSub2APIAdminTrendRequest
+	24,  // 81: v1.Sub2APIManager.GetSub2APIAdminTop:input_type -> v1.GetSub2APIAdminTopRequest
+	26,  // 82: v1.Sub2APIManager.GetSub2APIRecentRequests:input_type -> v1.GetSub2APIRecentRequestsRequest
+	35,  // 83: v1.Sub2APIManager.ListSub2APIAnnouncements:input_type -> v1.ListSub2APIAnnouncementsRequest
+	37,  // 84: v1.Sub2APIManager.CreateSub2APIAnnouncement:input_type -> v1.CreateSub2APIAnnouncementRequest
+	38,  // 85: v1.Sub2APIManager.UpdateSub2APIAnnouncement:input_type -> v1.UpdateSub2APIAnnouncementRequest
+	40,  // 86: v1.Sub2APIManager.DeleteSub2APIAnnouncement:input_type -> v1.DeleteSub2APIAnnouncementRequest
+	42,  // 87: v1.Sub2APIManager.ListSub2APITimeline:input_type -> v1.ListSub2APITimelineRequest
+	44,  // 88: v1.Sub2APIManager.CreateSub2APITimelineItem:input_type -> v1.CreateSub2APITimelineItemRequest
+	45,  // 89: v1.Sub2APIManager.UpdateSub2APITimelineItem:input_type -> v1.UpdateSub2APITimelineItemRequest
+	47,  // 90: v1.Sub2APIManager.DeleteSub2APITimelineItem:input_type -> v1.DeleteSub2APITimelineItemRequest
+	57,  // 91: v1.Sub2APIManager.GetLotteryOverview:input_type -> v1.GetLotteryOverviewRequest
+	59,  // 92: v1.Sub2APIManager.UpdateLotterySettings:input_type -> v1.UpdateLotterySettingsRequest
+	61,  // 93: v1.Sub2APIManager.ListLotteryRounds:input_type -> v1.ListLotteryRoundsRequest
+	63,  // 94: v1.Sub2APIManager.GetLotteryRoundDetail:input_type -> v1.GetLotteryRoundDetailRequest
+	65,  // 95: v1.Sub2APIManager.ListLotteryRegistrants:input_type -> v1.ListLotteryRegistrantsRequest
+	68,  // 96: v1.Sub2APIManager.GetSub2APIUser:input_type -> v1.GetSub2APIUserRequest
+	70,  // 97: v1.Sub2APIManager.DistributeLotteryRound:input_type -> v1.DistributeLotteryRoundRequest
+	72,  // 98: v1.Sub2APIManager.TriggerLotterySettle:input_type -> v1.TriggerLotterySettleRequest
+	74,  // 99: v1.Sub2APIManager.TriggerLotteryDraw:input_type -> v1.TriggerLotteryDrawRequest
+	76,  // 100: v1.Sub2APIManager.GetLotteryStatus:input_type -> v1.GetLotteryStatusRequest
+	78,  // 101: v1.Sub2APIManager.RegisterLottery:input_type -> v1.RegisterLotteryRequest
+	80,  // 102: v1.Sub2APIManager.ListLotteryHistoryPublic:input_type -> v1.ListLotteryHistoryPublicRequest
+	4,   // 103: v1.Sub2APIManager.PublicSub2APIHome:output_type -> v1.PublicSub2APIHomeResponse
+	32,  // 104: v1.Sub2APIManager.GetPublicSub2APIOverview:output_type -> v1.GetPublicSub2APIOverviewResponse
+	7,   // 105: v1.Sub2APIManager.GetSub2APIConfig:output_type -> v1.GetSub2APIConfigResponse
+	9,   // 106: v1.Sub2APIManager.UpdateSub2APIConfig:output_type -> v1.UpdateSub2APIConfigResponse
+	11,  // 107: v1.Sub2APIManager.TestSub2APIConnection:output_type -> v1.TestSub2APIConnectionResponse
+	13,  // 108: v1.Sub2APIManager.SyncSub2APIUsage:output_type -> v1.SyncSub2APIUsageResponse
+	15,  // 109: v1.Sub2APIManager.GetSub2APISnapshot:output_type -> v1.GetSub2APISnapshotResponse
+	17,  // 110: v1.Sub2APIManager.GetPublicSub2APIStats:output_type -> v1.GetSub2APIStatsResponse
+	19,  // 111: v1.Sub2APIManager.GetPublicSub2APIModels:output_type -> v1.GetPublicSub2APIModelsResponse
+	21,  // 112: v1.Sub2APIManager.GetSub2APIAdminTotals:output_type -> v1.GetSub2APIAdminTotalsResponse
+	23,  // 113: v1.Sub2APIManager.GetSub2APIAdminTrend:output_type -> v1.GetSub2APIAdminTrendResponse
+	25,  // 114: v1.Sub2APIManager.GetSub2APIAdminTop:output_type -> v1.GetSub2APIAdminTopResponse
+	27,  // 115: v1.Sub2APIManager.GetSub2APIRecentRequests:output_type -> v1.GetSub2APIRecentRequestsResponse
+	36,  // 116: v1.Sub2APIManager.ListSub2APIAnnouncements:output_type -> v1.ListSub2APIAnnouncementsResponse
+	39,  // 117: v1.Sub2APIManager.CreateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	39,  // 118: v1.Sub2APIManager.UpdateSub2APIAnnouncement:output_type -> v1.Sub2APIAnnouncementResponse
+	41,  // 119: v1.Sub2APIManager.DeleteSub2APIAnnouncement:output_type -> v1.DeleteSub2APIAnnouncementResponse
+	43,  // 120: v1.Sub2APIManager.ListSub2APITimeline:output_type -> v1.ListSub2APITimelineResponse
+	46,  // 121: v1.Sub2APIManager.CreateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	46,  // 122: v1.Sub2APIManager.UpdateSub2APITimelineItem:output_type -> v1.Sub2APITimelineItemResponse
+	48,  // 123: v1.Sub2APIManager.DeleteSub2APITimelineItem:output_type -> v1.DeleteSub2APITimelineItemResponse
+	58,  // 124: v1.Sub2APIManager.GetLotteryOverview:output_type -> v1.GetLotteryOverviewResponse
+	60,  // 125: v1.Sub2APIManager.UpdateLotterySettings:output_type -> v1.UpdateLotterySettingsResponse
+	62,  // 126: v1.Sub2APIManager.ListLotteryRounds:output_type -> v1.ListLotteryRoundsResponse
+	64,  // 127: v1.Sub2APIManager.GetLotteryRoundDetail:output_type -> v1.GetLotteryRoundDetailResponse
+	66,  // 128: v1.Sub2APIManager.ListLotteryRegistrants:output_type -> v1.ListLotteryRegistrantsResponse
+	69,  // 129: v1.Sub2APIManager.GetSub2APIUser:output_type -> v1.GetSub2APIUserResponse
+	71,  // 130: v1.Sub2APIManager.DistributeLotteryRound:output_type -> v1.DistributeLotteryRoundResponse
+	73,  // 131: v1.Sub2APIManager.TriggerLotterySettle:output_type -> v1.TriggerLotterySettleResponse
+	75,  // 132: v1.Sub2APIManager.TriggerLotteryDraw:output_type -> v1.TriggerLotteryDrawResponse
+	77,  // 133: v1.Sub2APIManager.GetLotteryStatus:output_type -> v1.GetLotteryStatusResponse
+	79,  // 134: v1.Sub2APIManager.RegisterLottery:output_type -> v1.RegisterLotteryResponse
+	82,  // 135: v1.Sub2APIManager.ListLotteryHistoryPublic:output_type -> v1.ListLotteryHistoryPublicResponse
+	103, // [103:136] is the sub-list for method output_type
+	70,  // [70:103] is the sub-list for method input_type
 	70,  // [70:70] is the sub-list for extension type_name
 	70,  // [70:70] is the sub-list for extension extendee
 	0,   // [0:70] is the sub-list for field type_name
@@ -6140,14 +6239,14 @@ func file_v1_sub2api_proto_init() {
 	if File_v1_sub2api_proto != nil {
 		return
 	}
-	file_v1_sub2api_proto_msgTypes[21].OneofWrappers = []any{}
+	file_v1_sub2api_proto_msgTypes[23].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_sub2api_proto_rawDesc), len(file_v1_sub2api_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   78,
+			NumMessages:   80,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

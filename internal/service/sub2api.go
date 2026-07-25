@@ -91,6 +91,14 @@ func (s *Sub2APIService) GetPublicSub2APIStats(ctx context.Context, req *v1.GetS
 	return &v1.GetSub2APIStatsResponse{Stats: stats}, nil
 }
 
+func (s *Sub2APIService) GetPublicSub2APIModels(ctx context.Context, req *v1.GetPublicSub2APIModelsRequest) (*v1.GetPublicSub2APIModelsResponse, error) {
+	models, err := s.uc.PublicModels(ctx, req.GetRangeDays(), req.GetLimit())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetPublicSub2APIModelsResponse{Models: models}, nil
+}
+
 func (s *Sub2APIService) GetSub2APIAdminTotals(ctx context.Context, req *v1.GetSub2APIAdminTotalsRequest) (*v1.GetSub2APIAdminTotalsResponse, error) {
 	start, end := rangeFromMillis(req.GetStartTime(), req.GetEndTime())
 	return s.uc.AdminTotals(ctx, start, end)

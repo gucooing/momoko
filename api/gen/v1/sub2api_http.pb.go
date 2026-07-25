@@ -27,6 +27,7 @@ const OperationSub2APIManagerDistributeLotteryRound = "/v1.Sub2APIManager/Distri
 const OperationSub2APIManagerGetLotteryOverview = "/v1.Sub2APIManager/GetLotteryOverview"
 const OperationSub2APIManagerGetLotteryRoundDetail = "/v1.Sub2APIManager/GetLotteryRoundDetail"
 const OperationSub2APIManagerGetLotteryStatus = "/v1.Sub2APIManager/GetLotteryStatus"
+const OperationSub2APIManagerGetPublicSub2APIModels = "/v1.Sub2APIManager/GetPublicSub2APIModels"
 const OperationSub2APIManagerGetPublicSub2APIOverview = "/v1.Sub2APIManager/GetPublicSub2APIOverview"
 const OperationSub2APIManagerGetPublicSub2APIStats = "/v1.Sub2APIManager/GetPublicSub2APIStats"
 const OperationSub2APIManagerGetSub2APIAdminTop = "/v1.Sub2APIManager/GetSub2APIAdminTop"
@@ -67,9 +68,11 @@ type Sub2APIManagerHTTPServer interface {
 	// GetLotteryStatus ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
 	// 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
 	GetLotteryStatus(context.Context, *GetLotteryStatusRequest) (*GetLotteryStatusResponse, error)
+	// GetPublicSub2APIModels 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+	GetPublicSub2APIModels(context.Context, *GetPublicSub2APIModelsRequest) (*GetPublicSub2APIModelsResponse, error)
 	// GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
 	GetPublicSub2APIOverview(context.Context, *GetPublicSub2APIOverviewRequest) (*GetPublicSub2APIOverviewResponse, error)
-	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
+	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
 	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
 	GetSub2APIAdminTop(context.Context, *GetSub2APIAdminTopRequest) (*GetSub2APIAdminTopResponse, error)
@@ -125,6 +128,7 @@ func RegisterSub2APIManagerHTTPServer(s *http.Server, srv Sub2APIManagerHTTPServ
 	r.POST("/api/v1/sub2api/sync", _Sub2APIManager_SyncSub2APIUsage0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/snapshot", _Sub2APIManager_GetSub2APISnapshot0_HTTP_Handler(srv))
 	r.GET("/api/v1/public/sub2api/stats", _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv))
+	r.GET("/api/v1/public/sub2api/models", _Sub2APIManager_GetPublicSub2APIModels0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/stats/totals", _Sub2APIManager_GetSub2APIAdminTotals0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/stats/trend", _Sub2APIManager_GetSub2APIAdminTrend0_HTTP_Handler(srv))
 	r.GET("/api/v1/sub2api/stats/top", _Sub2APIManager_GetSub2APIAdminTop0_HTTP_Handler(srv))
@@ -308,6 +312,25 @@ func _Sub2APIManager_GetPublicSub2APIStats0_HTTP_Handler(srv Sub2APIManagerHTTPS
 			return err
 		}
 		reply := out.(*GetSub2APIStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Sub2APIManager_GetPublicSub2APIModels0_HTTP_Handler(srv Sub2APIManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPublicSub2APIModelsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSub2APIManagerGetPublicSub2APIModels)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPublicSub2APIModels(ctx, req.(*GetPublicSub2APIModelsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetPublicSub2APIModelsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -834,9 +857,11 @@ type Sub2APIManagerHTTPClient interface {
 	// GetLotteryStatus ---------- 每日抽奖活动（用户端，内嵌 sub2api，X-Sub2API-Token 鉴权） ----------
 	// 用户端状态（累计奖池 + 倒计时 + 报名中轮次 + 本人资格/是否已报名）
 	GetLotteryStatus(ctx context.Context, req *GetLotteryStatusRequest, opts ...http.CallOption) (rsp *GetLotteryStatusResponse, err error)
+	// GetPublicSub2APIModels 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+	GetPublicSub2APIModels(ctx context.Context, req *GetPublicSub2APIModelsRequest, opts ...http.CallOption) (rsp *GetPublicSub2APIModelsResponse, err error)
 	// GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
 	GetPublicSub2APIOverview(ctx context.Context, req *GetPublicSub2APIOverviewRequest, opts ...http.CallOption) (rsp *GetPublicSub2APIOverviewResponse, err error)
-	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
+	// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
 	GetPublicSub2APIStats(ctx context.Context, req *GetSub2APIStatsRequest, opts ...http.CallOption) (rsp *GetSub2APIStatsResponse, err error)
 	// GetSub2APIAdminTop 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
 	GetSub2APIAdminTop(ctx context.Context, req *GetSub2APIAdminTopRequest, opts ...http.CallOption) (rsp *GetSub2APIAdminTopResponse, err error)
@@ -1000,6 +1025,20 @@ func (c *Sub2APIManagerHTTPClientImpl) GetLotteryStatus(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetPublicSub2APIModels 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIModels(ctx context.Context, in *GetPublicSub2APIModelsRequest, opts ...http.CallOption) (*GetPublicSub2APIModelsResponse, error) {
+	var out GetPublicSub2APIModelsResponse
+	pattern := "/api/v1/public/sub2api/models"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSub2APIManagerGetPublicSub2APIModels))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetPublicSub2APIOverview 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
 func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIOverview(ctx context.Context, in *GetPublicSub2APIOverviewRequest, opts ...http.CallOption) (*GetPublicSub2APIOverviewResponse, error) {
 	var out GetPublicSub2APIOverviewResponse
@@ -1014,7 +1053,7 @@ func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIOverview(ctx context.Cont
 	return &out, nil
 }
 
-// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）
+// GetPublicSub2APIStats 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
 func (c *Sub2APIManagerHTTPClientImpl) GetPublicSub2APIStats(ctx context.Context, in *GetSub2APIStatsRequest, opts ...http.CallOption) (*GetSub2APIStatsResponse, error) {
 	var out GetSub2APIStatsResponse
 	pattern := "/api/v1/public/sub2api/stats"

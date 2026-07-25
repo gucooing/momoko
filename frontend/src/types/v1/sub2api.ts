@@ -112,6 +112,17 @@ export interface GetSub2APIStatsResponse {
   stats: Sub2APIStats | undefined;
 }
 
+export interface GetPublicSub2APIModelsRequest {
+  /** 统计区间天数：<=1 表示今日，否则为最近 N 天 */
+  rangeDays: number;
+  /** 返回条数；<=0 返回全部（详情页）；首页传 8 */
+  limit: number;
+}
+
+export interface GetPublicSub2APIModelsResponse {
+  models: Sub2APITopItem[];
+}
+
 /**
  * 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
  * start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
@@ -198,7 +209,6 @@ export interface Sub2APIStats {
   averageLatencyMs: number;
   averageTps: number;
   trend: Sub2APITrendPoint[];
-  models: Sub2APITopItem[];
   /** UA（User-Agent）维度用量明细，按使用数量降序 */
   userAgents: Sub2APITopItem[];
   /** 分组维度用量明细，按使用数量降序 */

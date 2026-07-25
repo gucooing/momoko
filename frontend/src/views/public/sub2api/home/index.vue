@@ -244,12 +244,8 @@ const year = dayjs().year()
 const snapshot = computed(() => store.publicOverview)
 const announcements = computed(() => home.value?.announcements || [])
 const timeline = computed(() => home.value?.timeline || [])
-// 首页只看今日：模型排行取今日区间
-const models = computed(() =>
-  [...(store.stats?.models || [])]
-    .sort((a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0))
-    .slice(0, 8),
-)
+// 首页只看今日：模型排行走专用 /public/sub2api/models 接口
+const models = computed(() => store.publicModels || [])
 
 const dashboardUrl = computed(() => {
   const base = home.value?.consoleUrl?.trim()
@@ -262,17 +258,13 @@ const openConsole = () => {
   if (dashboardUrl.value) (window.top ?? window).location.href = dashboardUrl.value
 }
 
-const heroLead = computed(() => t('sub2api.home.heroLead'))
+// 标题首行用后端副标题；原「统一接入，洞察用量」挪到 hero-sub 位置
+const heroLead = computed(() => home.value?.subtitle?.trim() || '')
 const heroHighlight = computed(() => {
   const title = home.value?.title?.trim()
   return title && title !== 'Sub2API' ? title : t('sub2api.home.heroHighlight')
 })
-const heroSubtitle = computed(
-  () =>
-    home.value?.introduction?.trim() ||
-    home.value?.subtitle?.trim() ||
-    t('sub2api.home.heroSubtitle'),
-)
+const heroSubtitle = computed(() => t('sub2api.home.heroLead'))
 
 const status = computed(() => {
   switch (snapshot.value?.status) {
@@ -314,10 +306,10 @@ const barWidth = (token: unknown) =>
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
 onMounted(() => {
-  // 三模块并行拉取、各自渲染，避免单个大请求阻塞整页；公告在元信息到达后再判断是否弹出
+  // 元信息 / 概览 / 热门模型 并行拉取，各自渲染；公告在元信息到达后再判断是否弹出
   store.loadPublicHome().then(() => maybePopAnnouncements())
   store.loadPublicOverview()
-  store.loadStats(1)
+  store.loadPublicModels(1, 8)
 })
 </script>
 

@@ -211,6 +211,9 @@ type UsageStore interface {
 	RecordsPage(ctx context.Context, start, end *time.Time, offset, limit int, publicOnly bool, filter RecordFilter) ([]*UsageRecord, int, error)
 	// AggregateTotals 汇总窗口内标量指标（DB 侧 Count/Sum/Mean，含 TPS 达标过滤）。
 	AggregateTotals(ctx context.Context, w StatsWindow) (Totals, error)
+	// PublicOverview 公开首页今日概览：严格 2 次 ent GroupBy（桶请求/token + 桶成功/TPS），
+	// 总量由桶结果汇总；不走完整快照、不扫明细行。
+	PublicOverview(ctx context.Context, w StatsWindow) (Totals, []BucketStat, error)
 	// TopItems 按维度分组的用量排行（DB 侧 GroupBy），按 token 降序；limit<=0 返回全部。
 	TopItems(ctx context.Context, w StatsWindow, field GroupField, limit int) ([]TopStat, error)
 	// DailyTrend 按自然日聚合（DB 侧 GroupBy(request_date)），按日期升序。

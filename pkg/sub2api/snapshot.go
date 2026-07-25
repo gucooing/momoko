@@ -111,7 +111,8 @@ func StripForPublic(snapshot *v1.Sub2APIUsageSnapshot) {
 	}
 }
 
-// BuildStats 聚合指定区间（今日/最近 N 天）的公开用量统计，按模型/分组/UA 拆分。
+// BuildStats 聚合指定区间（今日/最近 N 天）的公开用量统计：标量 + 趋势 + 分组/UA。
+// 模型排行拆到 BuildPublicModels，不在此接口返回。
 // 全部聚合在数据层 DB 侧完成；单日按 15 分钟桶、多日按自然日展示趋势。
 func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, rangeDays int32) (*v1.Sub2APIStats, error) {
 	days := normalizeRangeDays(rangeDays, cfg.HistoryDays)
@@ -140,10 +141,6 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		trend = dailyTrendPoints(daily, start, days)
 	}
 
-	models, err := store.TopItems(ctx, window, GroupByModel, 0)
-	if err != nil {
-		return nil, err
-	}
 	userAgents, err := store.TopItems(ctx, window, GroupByUserAgent, 0)
 	if err != nil {
 		return nil, err
@@ -163,10 +160,23 @@ func BuildStats(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, ra
 		AverageLatencyMs: totals.AverageLatencyMS,
 		AverageTps:       totals.AverageTPS,
 		Trend:            trend,
-		Models:           mapTopItems(models),
 		UserAgents:       mapTopItems(userAgents),
 		Groups:           mapTopItems(groups),
 	}, nil
+}
+
+// BuildPublicModels 公开热门模型：数据层 TopItems(GroupByModel) 直出。
+// limit<=0 返回全部；首页传 8，详情页传 0。
+func BuildPublicModels(ctx context.Context, store UsageStore, cfg *v1.Sub2APIConfig, rangeDays, limit int32) ([]*v1.Sub2APITopItem, error) {
+	days := normalizeRangeDays(rangeDays, cfg.HistoryDays)
+	todayStart := dayStart(time.Now())
+	start := todayStart.AddDate(0, 0, -(int(days) - 1))
+	window := StatsWindow{Start: &start, PublicOnly: true}
+	models, err := store.TopItems(ctx, window, GroupByModel, int(limit))
+	if err != nil {
+		return nil, err
+	}
+	return mapTopItems(models), nil
 }
 
 // ---------- 管理端时间段归一化与标签 ----------

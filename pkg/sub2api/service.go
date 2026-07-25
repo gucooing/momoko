@@ -168,7 +168,41 @@ func (s *Service) PublicSnapshot(ctx context.Context) (*v1.Sub2APIUsageSnapshot,
 	return snapshot, nil
 }
 
-// PublicStats 返回指定区间的公开用量统计（无需鉴权）。
+// PublicOverview 公开首页今日概览：仅状态 + 今日标量 + 今日曲线。
+// 数据层严格 2 次 ent GroupBy，不走完整快照。
+func (s *Service) PublicOverview(ctx context.Context) (*v1.GetPublicSub2APIOverviewResponse, error) {
+	cfg, err := LoadConfig(ctx, s.config)
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.HomeEnabled {
+		return &v1.GetPublicSub2APIOverviewResponse{}, nil
+	}
+	state, err := LoadSyncState(ctx, s.config)
+	if err != nil {
+		return nil, err
+	}
+	todayStart := dayStart(time.Now())
+	totals, series, err := s.store.PublicOverview(ctx, StatsWindow{Start: &todayStart, PublicOnly: true})
+	if err != nil {
+		return nil, err
+	}
+	status := state.Status
+	if status == "" {
+		status = SyncStatusIdle
+	}
+	return &v1.GetPublicSub2APIOverviewResponse{
+		Status:            status,
+		TodayRequestCount: totals.RequestCount,
+		TodaySuccessCount: totals.SuccessCount,
+		TodaySuccessRate:  percent(totals.SuccessCount, totals.RequestCount),
+		TodayTokenCount:   totals.TokenCount,
+		RecentTps:         totals.AverageTPS,
+		TodaySeries:       todaySeriesPoints(series),
+	}, nil
+}
+
+// PublicStats 返回指定区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA。
 func (s *Service) PublicStats(ctx context.Context, rangeDays int32) (*v1.Sub2APIStats, error) {
 	cfg, err := LoadConfig(ctx, s.config)
 	if err != nil {
@@ -178,6 +212,18 @@ func (s *Service) PublicStats(ctx context.Context, rangeDays int32) (*v1.Sub2API
 		return &v1.Sub2APIStats{RangeDays: normalizeRangeDays(rangeDays, cfg.HistoryDays)}, nil
 	}
 	return BuildStats(ctx, s.store, cfg, rangeDays)
+}
+
+// PublicModels 公开热门模型排行（无需鉴权）：单次 TopItems 直出。
+func (s *Service) PublicModels(ctx context.Context, rangeDays, limit int32) ([]*v1.Sub2APITopItem, error) {
+	cfg, err := LoadConfig(ctx, s.config)
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.HomeEnabled {
+		return nil, nil
+	}
+	return BuildPublicModels(ctx, s.store, cfg, rangeDays, limit)
 }
 
 // adminWindow 由归一化后的时间段构造聚合窗口（管理端不受公开开关影响）。

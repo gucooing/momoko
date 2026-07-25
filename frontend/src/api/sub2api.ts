@@ -16,6 +16,8 @@ import type {
   GetSub2APISnapshotResponse,
   GetSub2APIStatsRequest,
   GetSub2APIStatsResponse,
+  GetPublicSub2APIModelsRequest,
+  GetPublicSub2APIModelsResponse,
   GetSub2APIAdminTotalsRequest,
   GetSub2APIAdminTotalsResponse,
   GetSub2APIAdminTrendRequest,
@@ -70,6 +72,11 @@ export const getSub2APISnapshot = (params: GetSub2APISnapshotRequest = {}) => {
 
 export const getPublicSub2APIStats = (params: GetSub2APIStatsRequest) => {
   return request.get<GetSub2APIStatsResponse>('/public/sub2api/stats', { params })
+}
+
+// 公开热门模型（无需鉴权）：首页/详情页独立拉取，不走 stats
+export const getPublicSub2APIModels = (params: GetPublicSub2APIModelsRequest) => {
+  return request.get<GetPublicSub2APIModelsResponse>('/public/sub2api/models', { params })
 }
 
 // 管理端用量汇总（标量指标 + 区间标签，需鉴权）

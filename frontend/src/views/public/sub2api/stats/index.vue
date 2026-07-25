@@ -254,8 +254,9 @@ const parseRange = (value: unknown) => {
 const range = ref(parseRange(route.query.range))
 
 const stats = computed(() => store.stats)
+// 模型排行走专用接口，不再嵌在 stats 里
 const models = computed(() =>
-  [...(stats.value?.models || [])].sort(
+  [...(store.publicModels || [])].sort(
     (a, b) => (Number(b.tokenCount) || 0) - (Number(a.tokenCount) || 0),
   ),
 )
@@ -295,6 +296,7 @@ const onRange = (days: number) => {
   range.value = days
   router.replace({ query: { ...route.query, range: String(days) } })
   store.loadStats(days)
+  store.loadPublicModels(days, 0)
 }
 
 const goHome = () => router.push('/public/sub2api/home')
@@ -302,6 +304,7 @@ const goHome = () => router.push('/public/sub2api/home')
 onMounted(() => {
   if (!store.home) store.loadPublicHome()
   store.loadStats(range.value)
+  store.loadPublicModels(range.value, 0)
 })
 </script>
 

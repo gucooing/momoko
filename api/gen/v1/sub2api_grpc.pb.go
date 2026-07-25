@@ -27,6 +27,7 @@ const (
 	Sub2APIManager_SyncSub2APIUsage_FullMethodName          = "/v1.Sub2APIManager/SyncSub2APIUsage"
 	Sub2APIManager_GetSub2APISnapshot_FullMethodName        = "/v1.Sub2APIManager/GetSub2APISnapshot"
 	Sub2APIManager_GetPublicSub2APIStats_FullMethodName     = "/v1.Sub2APIManager/GetPublicSub2APIStats"
+	Sub2APIManager_GetPublicSub2APIModels_FullMethodName    = "/v1.Sub2APIManager/GetPublicSub2APIModels"
 	Sub2APIManager_GetSub2APIAdminTotals_FullMethodName     = "/v1.Sub2APIManager/GetSub2APIAdminTotals"
 	Sub2APIManager_GetSub2APIAdminTrend_FullMethodName      = "/v1.Sub2APIManager/GetSub2APIAdminTrend"
 	Sub2APIManager_GetSub2APIAdminTop_FullMethodName        = "/v1.Sub2APIManager/GetSub2APIAdminTop"
@@ -73,8 +74,10 @@ type Sub2APIManagerClient interface {
 	SyncSub2APIUsage(ctx context.Context, in *SyncSub2APIUsageRequest, opts ...grpc.CallOption) (*SyncSub2APIUsageResponse, error)
 	// 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(ctx context.Context, in *GetSub2APISnapshotRequest, opts ...grpc.CallOption) (*GetSub2APISnapshotResponse, error)
-	// 获取指定时间区间的公开用量统计（无需鉴权）
+	// 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
 	GetPublicSub2APIStats(ctx context.Context, in *GetSub2APIStatsRequest, opts ...grpc.CallOption) (*GetSub2APIStatsResponse, error)
+	// 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+	GetPublicSub2APIModels(ctx context.Context, in *GetPublicSub2APIModelsRequest, opts ...grpc.CallOption) (*GetPublicSub2APIModelsResponse, error)
 	// 管理端用量汇总（标量指标 + 区间标签，需鉴权）
 	GetSub2APIAdminTotals(ctx context.Context, in *GetSub2APIAdminTotalsRequest, opts ...grpc.CallOption) (*GetSub2APIAdminTotalsResponse, error)
 	// 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
@@ -203,6 +206,16 @@ func (c *sub2APIManagerClient) GetPublicSub2APIStats(ctx context.Context, in *Ge
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSub2APIStatsResponse)
 	err := c.cc.Invoke(ctx, Sub2APIManager_GetPublicSub2APIStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sub2APIManagerClient) GetPublicSub2APIModels(ctx context.Context, in *GetPublicSub2APIModelsRequest, opts ...grpc.CallOption) (*GetPublicSub2APIModelsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicSub2APIModelsResponse)
+	err := c.cc.Invoke(ctx, Sub2APIManager_GetPublicSub2APIModels_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -469,8 +482,10 @@ type Sub2APIManagerServer interface {
 	SyncSub2APIUsage(context.Context, *SyncSub2APIUsageRequest) (*SyncSub2APIUsageResponse, error)
 	// 获取 Sub2API 当前聚合快照
 	GetSub2APISnapshot(context.Context, *GetSub2APISnapshotRequest) (*GetSub2APISnapshotResponse, error)
-	// 获取指定时间区间的公开用量统计（无需鉴权）
+	// 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
 	GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error)
+	// 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+	GetPublicSub2APIModels(context.Context, *GetPublicSub2APIModelsRequest) (*GetPublicSub2APIModelsResponse, error)
 	// 管理端用量汇总（标量指标 + 区间标签，需鉴权）
 	GetSub2APIAdminTotals(context.Context, *GetSub2APIAdminTotalsRequest) (*GetSub2APIAdminTotalsResponse, error)
 	// 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
@@ -548,6 +563,9 @@ func (UnimplementedSub2APIManagerServer) GetSub2APISnapshot(context.Context, *Ge
 }
 func (UnimplementedSub2APIManagerServer) GetPublicSub2APIStats(context.Context, *GetSub2APIStatsRequest) (*GetSub2APIStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPublicSub2APIStats not implemented")
+}
+func (UnimplementedSub2APIManagerServer) GetPublicSub2APIModels(context.Context, *GetPublicSub2APIModelsRequest) (*GetPublicSub2APIModelsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicSub2APIModels not implemented")
 }
 func (UnimplementedSub2APIManagerServer) GetSub2APIAdminTotals(context.Context, *GetSub2APIAdminTotalsRequest) (*GetSub2APIAdminTotalsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSub2APIAdminTotals not implemented")
@@ -782,6 +800,24 @@ func _Sub2APIManager_GetPublicSub2APIStats_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Sub2APIManagerServer).GetPublicSub2APIStats(ctx, req.(*GetSub2APIStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sub2APIManager_GetPublicSub2APIModels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicSub2APIModelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Sub2APIManagerServer).GetPublicSub2APIModels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sub2APIManager_GetPublicSub2APIModels_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Sub2APIManagerServer).GetPublicSub2APIModels(ctx, req.(*GetPublicSub2APIModelsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1256,6 +1292,10 @@ var Sub2APIManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublicSub2APIStats",
 			Handler:    _Sub2APIManager_GetPublicSub2APIStats_Handler,
+		},
+		{
+			MethodName: "GetPublicSub2APIModels",
+			Handler:    _Sub2APIManager_GetPublicSub2APIModels_Handler,
 		},
 		{
 			MethodName: "GetSub2APIAdminTotals",

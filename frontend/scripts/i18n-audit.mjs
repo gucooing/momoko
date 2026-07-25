@@ -98,7 +98,7 @@ const files = walk(root).filter((f) => !f.includes(`${path.sep}locales${path.sep
 // Dynamic: t(`foo.${x}`) — mark as dynamic prefix
 const usedKeys = new Set()
 const dynamicPrefixes = new Set()
-const usedKeyLocations = new Map() // key -> [file:line]
+const usedKeyLocations = new Map() // key -> locations (path + line)
 
 // also labelKey: 'language.xxx' style string props that look like keys
 const labelKeyRe = /\b(?:labelKey|titleKey|placeholderKey|messageKey|i18nKey)\s*:\s*['"]([a-zA-Z][\w.]+)['"]/g

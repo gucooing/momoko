@@ -3191,6 +3191,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetLotteryStatusResponse'
+    /api/v1/public/sub2api/models:
+        get:
+            tags:
+                - Sub2APIManager
+            description: 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+            operationId: Sub2APIManager_GetPublicSub2APIModels
+            parameters:
+                - name: rangeDays
+                  in: query
+                  description: 统计区间天数：<=1 表示今日，否则为最近 N 天
+                  schema:
+                    type: integer
+                    format: int32
+                - name: limit
+                  in: query
+                  description: 返回条数；<=0 返回全部（详情页）；首页传 8
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetPublicSub2APIModelsResponse'
     /api/v1/public/sub2api/overview:
         get:
             tags:
@@ -3208,7 +3234,7 @@ paths:
         get:
             tags:
                 - Sub2APIManager
-            description: 获取指定时间区间的公开用量统计（无需鉴权）
+            description: 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
             operationId: Sub2APIManager_GetPublicSub2APIStats
             parameters:
                 - name: rangeDays
@@ -7612,6 +7638,13 @@ components:
                 sampleIntervalSeconds:
                     type: string
                     description: 采样间隔(秒)
+        v1.GetPublicSub2APIModelsResponse:
+            type: object
+            properties:
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.Sub2APITopItem'
         v1.GetPublicSub2APIOverviewResponse:
             type: object
             properties:
@@ -9859,10 +9892,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.Sub2APITrendPoint'
-                models:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.Sub2APITopItem'
                 userAgents:
                     type: array
                     items:

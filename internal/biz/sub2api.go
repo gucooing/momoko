@@ -132,28 +132,13 @@ func (s *Sub2APIUsecase) PublicHome(ctx context.Context) (*v1.Sub2APIHome, error
 }
 
 // PublicOverview 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线。
-// 复用带短时缓存的公开快照，仅回传首页 hero/曲线所需字段（远小于完整快照）。
+// 数据层严格 2 次 ent GroupBy 直出，不走完整快照。
 func (s *Sub2APIUsecase) PublicOverview(ctx context.Context) (*v1.GetPublicSub2APIOverviewResponse, error) {
-	cfg, err := s.service.Config(ctx)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if !cfg.HomeEnabled {
-		return &v1.GetPublicSub2APIOverviewResponse{}, nil
-	}
-	snapshot, err := s.service.PublicSnapshot(ctx)
+	resp, err := s.service.PublicOverview(ctx)
 	if err != nil {
 		return nil, mapSub2APIError(err)
 	}
-	return &v1.GetPublicSub2APIOverviewResponse{
-		Status:            snapshot.Status,
-		TodayRequestCount: snapshot.TodayRequestCount,
-		TodaySuccessCount: snapshot.TodaySuccessCount,
-		TodaySuccessRate:  snapshot.TodaySuccessRate,
-		TodayTokenCount:   snapshot.TodayTokenCount,
-		RecentTps:         snapshot.RecentTps,
-		TodaySeries:       snapshot.TodaySeries,
-	}, nil
+	return resp, nil
 }
 
 // PublicStats 指定区间的公开用量统计（无需鉴权）。
@@ -163,6 +148,15 @@ func (s *Sub2APIUsecase) PublicStats(ctx context.Context, rangeDays int32) (*v1.
 		return nil, mapSub2APIError(err)
 	}
 	return stats, nil
+}
+
+// PublicModels 公开热门模型排行（无需鉴权）。
+func (s *Sub2APIUsecase) PublicModels(ctx context.Context, rangeDays, limit int32) ([]*v1.Sub2APITopItem, error) {
+	models, err := s.service.PublicModels(ctx, rangeDays, limit)
+	if err != nil {
+		return nil, mapSub2APIError(err)
+	}
+	return models, nil
 }
 
 // AdminTotals 管理端用量汇总（标量指标 + 区间标签），概览指标带独立拉取。

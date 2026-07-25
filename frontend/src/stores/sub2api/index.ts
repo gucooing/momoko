@@ -7,6 +7,7 @@ import {
   deleteSub2APIAnnouncement,
   deleteSub2APITimelineItem,
   getPublicSub2APIHome,
+  getPublicSub2APIModels,
   getPublicSub2APIOverview,
   getPublicSub2APIStats,
   getSub2APIAdminTop,
@@ -107,6 +108,8 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   // 公开首页今日概览：独立于 home 元信息，前端并行拉取、渐进填充
   const publicOverview = ref<GetPublicSub2APIOverviewResponse>()
   const stats = ref<Sub2APIStats>()
+  // 公开热门模型：独立于 stats，首页/详情页共用专用接口
+  const publicModels = ref<Sub2APITopItem[]>([])
   // 管理端概览：三个面板独立拉取（totals/trend/top），各自 loading（禁单请求大聚合）
   const adminTotals = ref<GetSub2APIAdminTotalsResponse>()
   const adminTrend = ref<Sub2APITrendPoint[]>([])
@@ -124,6 +127,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
   const snapshotLoading = ref(false)
   const publicLoading = ref(false)
   const publicOverviewLoading = ref(false)
+  const publicModelsLoading = ref(false)
   const statsLoading = ref(false)
   const adminTotalsLoading = ref(false)
   const adminTrendLoading = ref(false)
@@ -215,6 +219,20 @@ export const useSub2APIStore = defineStore('sub2api', () => {
       showRequestError(error, t('sub2api.store.loadStatsFailed'))
     } finally {
       statsLoading.value = false
+    }
+  }
+
+  // 公开热门模型：专用接口，limit<=0 返回全部；首页传 8
+  const loadPublicModels = async (rangeDays: number, limit = 0) => {
+    publicModelsLoading.value = true
+    try {
+      const { data } = await getPublicSub2APIModels({ rangeDays, limit })
+      publicModels.value = data?.models || []
+      return publicModels.value
+    } catch (error) {
+      showRequestError(error, t('sub2api.store.loadStatsFailed'))
+    } finally {
+      publicModelsLoading.value = false
     }
   }
 
@@ -799,6 +817,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     snapshot,
     home,
     stats,
+    publicModels,
     adminTotals,
     adminTrend,
     adminModels,
@@ -814,6 +833,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     snapshotLoading,
     publicLoading,
     publicOverviewLoading,
+    publicModelsLoading,
     statsLoading,
     adminTotalsLoading,
     adminTrendLoading,
@@ -834,6 +854,7 @@ export const useSub2APIStore = defineStore('sub2api', () => {
     loadSnapshot,
     loadPublicHome,
     loadPublicOverview,
+    loadPublicModels,
     loadStats,
     loadAdminTotals,
     loadAdminTrend,

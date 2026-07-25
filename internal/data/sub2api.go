@@ -253,6 +253,87 @@ func (r *sub2APIRepo) AggregateTotals(ctx context.Context, w sub2apipkg.StatsWin
 	return totals, nil
 }
 
+// PublicOverview 公开首页今日概览：严格 2 次 ent GroupBy。
+//  1. 计费请求按 15 分钟桶：Count + Sum(token)
+//  2. 成功请求按 15 分钟桶：Count + Mean(tps)
+//
+// 总量由桶结果汇总（最多 96 个点），不扫明细、不写自定义 SQL。
+func (r *sub2APIRepo) PublicOverview(ctx context.Context, w sub2apipkg.StatsWindow) (sub2apipkg.Totals, []sub2apipkg.BucketStat, error) {
+	var totals sub2apipkg.Totals
+	stats := map[int64]*sub2apipkg.BucketStat{}
+	order := make([]int64, 0)
+	get := func(bucket int64) *sub2apipkg.BucketStat {
+		if s := stats[bucket]; s != nil {
+			return s
+		}
+		s := &sub2apipkg.BucketStat{Bucket: time.Unix(bucket, 0)}
+		stats[bucket] = s
+		order = append(order, bucket)
+		return s
+	}
+
+	// 查询 1：计费请求数 + token（按桶）
+	var reqRows []bucketRow
+	if err := r.windowQuery(w).Where(rateEligiblePred()).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(
+			gen.As(gen.Count(), "cnt"),
+			gen.As(gen.Sum(sub2apiusagerecord.FieldTokenCount), "tok"),
+		).
+		Scan(ctx, &reqRows); err != nil {
+		return totals, nil, err
+	}
+	for _, row := range reqRows {
+		s := get(row.Bucket)
+		s.Request = row.Cnt
+		s.Total = row.Cnt // 首页曲线 request_count 用计费请求数
+		if row.Tok != nil {
+			s.Token = int64(*row.Tok)
+		}
+	}
+
+	// 查询 2：成功数 + 成功请求平均 TPS（按桶）
+	var succRows []bucketRow
+	if err := r.windowQuery(w).Where(sub2apiusagerecord.Success(true)).
+		GroupBy(sub2apiusagerecord.FieldBucket15m).
+		Aggregate(
+			gen.As(gen.Count(), "cnt"),
+			gen.As(gen.Mean(sub2apiusagerecord.FieldTps), "tps"),
+		).
+		Scan(ctx, &succRows); err != nil {
+		return totals, nil, err
+	}
+	for _, row := range succRows {
+		s := get(row.Bucket)
+		s.Success = row.Cnt
+		if row.Tps != nil {
+			s.AvgTPS = *row.Tps
+		}
+	}
+
+	sort.Slice(order, func(i, j int) bool { return order[i] < order[j] })
+	series := make([]sub2apipkg.BucketStat, 0, len(order))
+	var tpsWeightSum float64
+	var tpsWeight int64
+	for _, bucket := range order {
+		s := *stats[bucket]
+		series = append(series, s)
+		totals.RequestCount += s.Request
+		totals.SuccessCount += s.Success
+		totals.TokenCount += s.Token
+		// 全局均 TPS：按成功数加权的桶均 TPS
+		if s.Success > 0 && s.AvgTPS > 0 {
+			tpsWeightSum += s.AvgTPS * float64(s.Success)
+			tpsWeight += s.Success
+		}
+	}
+	totals.TotalCount = totals.RequestCount
+	if tpsWeight > 0 {
+		totals.AverageTPS = tpsWeightSum / float64(tpsWeight)
+	}
+	return totals, series, nil
+}
+
 // groupColumn / groupNotEmptyPred 将维度映射到 ent 列与「非空」谓词。
 func groupColumn(field sub2apipkg.GroupField) string {
 	switch field {
@@ -297,7 +378,7 @@ func (row groupRow) key(field sub2apipkg.GroupField) string {
 	}
 }
 
-// TopItems 按维度分组的用量排行（DB 侧 GroupBy），按 token 降序；不同 WHERE 的分组结果按 key 合并。
+// TopItems 按维度分组的用量排行（ent GroupBy + Count/Sum/Mean），按 token 降序；limit<=0 返回全部。
 func (r *sub2APIRepo) TopItems(ctx context.Context, w sub2apipkg.StatsWindow, field sub2apipkg.GroupField, limit int) ([]sub2apipkg.TopStat, error) {
 	col := groupColumn(field)
 	stats := map[string]*sub2apipkg.TopStat{}

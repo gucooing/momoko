@@ -54,10 +54,16 @@ service Sub2APIManager {
       get: "/api/v1/sub2api/snapshot"
     };
   }
-  // 获取指定时间区间的公开用量统计（无需鉴权）
+  // 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
   rpc GetPublicSub2APIStats(GetSub2APIStatsRequest) returns (GetSub2APIStatsResponse) {
     option (google.api.http) = {
       get: "/api/v1/public/sub2api/stats"
+    };
+  }
+  // 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
+  rpc GetPublicSub2APIModels(GetPublicSub2APIModelsRequest) returns (GetPublicSub2APIModelsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/models"
     };
   }
   // 管理端用量汇总（标量指标 + 区间标签，需鉴权）
@@ -278,6 +284,17 @@ message GetSub2APIStatsResponse {
   Sub2APIStats stats = 1;
 }
 
+message GetPublicSub2APIModelsRequest {
+  // 统计区间天数：<=1 表示今日，否则为最近 N 天
+  int32 range_days = 1;
+  // 返回条数；<=0 返回全部（详情页）；首页传 8
+  int32 limit = 2;
+}
+
+message GetPublicSub2APIModelsResponse {
+  repeated Sub2APITopItem models = 1;
+}
+
 // 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
 // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
 message GetSub2APIAdminTotalsRequest {
@@ -351,7 +368,6 @@ message Sub2APIStats {
   double average_latency_ms = 7;
   double average_tps = 8;
   repeated Sub2APITrendPoint trend = 9;
-  repeated Sub2APITopItem models = 10;
   // UA（User-Agent）维度用量明细，按使用数量降序
   repeated Sub2APITopItem user_agents = 12;
   // 分组维度用量明细，按使用数量降序
