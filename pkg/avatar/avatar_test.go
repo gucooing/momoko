@@ -3,14 +3,22 @@ package avatar
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
+
+func newTestManager(t *testing.T) *Manager {
+	t.Helper()
+	m, err := NewManagerWithRoot(t.TempDir())
+	if err != nil {
+		t.Fatalf("创建头像管理器失败: %v", err)
+	}
+	return m
+}
 
 const tinyPNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Z0r8AAAAASUVORK5CYII="
 
 func TestPrepareDataURLStoresByUserID(t *testing.T) {
-	manager := NewManagerWithRoot(t.TempDir())
+	manager := newTestManager(t)
 
 	value, commit, rollback, err := manager.Prepare("user:test", tinyPNG)
 	if err != nil {
@@ -26,17 +34,17 @@ func TestPrepareDataURLStoresByUserID(t *testing.T) {
 		t.Fatalf("提交头像失败: %v", err)
 	}
 
-	filePath, ok := manager.requestedFilePath(value)
+	name, ok := manager.requestedFileName(value)
 	if !ok {
-		t.Fatalf("头像路径无法转换为本地文件路径: %s", value)
+		t.Fatalf("头像路径无法转换为本地文件名: %s", value)
 	}
-	if _, err := os.Stat(filePath); err != nil {
-		t.Fatalf("头像文件未保存成功: %v", err)
+	if !manager.view.Exists(name) {
+		t.Fatalf("头像文件未保存成功: %s", name)
 	}
 }
 
 func TestPrepareRejectsTraversalPath(t *testing.T) {
-	manager := NewManagerWithRoot(t.TempDir())
+	manager := newTestManager(t)
 
 	if _, _, _, err := manager.Prepare("user:test", PublicPath+"../secret.txt"); err == nil {
 		t.Fatal("越权路径应被拒绝")
@@ -44,7 +52,7 @@ func TestPrepareRejectsTraversalPath(t *testing.T) {
 }
 
 func TestFilterRejectsTraversalPath(t *testing.T) {
-	manager := NewManagerWithRoot(t.TempDir())
+	manager := newTestManager(t)
 	handler := manager.Filter()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 	}))

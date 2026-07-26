@@ -51,26 +51,24 @@ func newOSSStore(cfg Config) (Store, error) {
 	return &ossStore{
 		client: client,
 		bucket: cfg.Bucket,
-		root:   strings.Trim(strings.ReplaceAll(cfg.Prefix, "\\", "/"), "/"),
+		root:   remoteBase(cfg.Prefix),
 	}, nil
 }
 
-// key 把逻辑路径转为对象 key。
+// key 把逻辑路径转为对象 key。越界输入返回必然失败的 key（fail-closed）；
+// 正常调用路径上各导出方法已在入口用 guard 拦下。
 func (s *ossStore) key(logical string) string {
-	p := strings.Trim(strings.ReplaceAll(logical, "\\", "/"), "/")
-	if s.root == "" {
-		return p
+	k, err := remoteKey(s.root, logical)
+	if err != nil {
+		return invalidRemotePath
 	}
-	if p == "" {
-		return s.root
-	}
-	return s.root + "/" + p
+	return k
 }
 
 // logical 把对象 key 转回逻辑路径（相对 root）。
+// 按路径边界剥前缀：裸 TrimPrefix 会让 root="a" 时的兄弟前缀 "ab/c" 被误算成 "b/c"。
 func (s *ossStore) logical(key string) string {
-	rel := strings.TrimPrefix(key, s.root)
-	return strings.Trim(rel, "/")
+	return remoteLogical(s.root, key)
 }
 
 // listPrefix 返回列举某目录所需的前缀（带尾斜杠，桶/根目录则为空或 root/）。
@@ -83,6 +81,9 @@ func (s *ossStore) listPrefix(dir string) string {
 }
 
 func (s *ossStore) List(ctx context.Context, dir string, _ v1.FileSortField, _ bool) ([]*v1.FileEntryInfo, error) {
+	if err := guard(dir); err != nil {
+		return nil, err
+	}
 	prefix := s.listPrefix(dir)
 	items := make([]*v1.FileEntryInfo, 0)
 	for obj := range s.client.ListObjects(ctx, s.bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: false}) {
@@ -155,6 +156,9 @@ func (s *ossStore) DirInfo(ctx context.Context, dir string) (*v1.FileDirectoryIn
 }
 
 func (s *ossStore) Stat(ctx context.Context, p string) (*v1.FileEntryInfo, error) {
+	if err := guard(p); err != nil {
+		return nil, err
+	}
 	key := s.key(p)
 	info, err := s.client.StatObject(ctx, s.bucket, key, minio.StatObjectOptions{})
 	if err == nil {
@@ -176,6 +180,9 @@ func (s *ossStore) Stat(ctx context.Context, p string) (*v1.FileEntryInfo, error
 }
 
 func (s *ossStore) Open(ctx context.Context, p string) (io.ReadCloser, *v1.FileEntryInfo, error) {
+	if err := guard(p); err != nil {
+		return nil, nil, err
+	}
 	key := s.key(p)
 	obj, err := s.client.GetObject(ctx, s.bucket, key, minio.GetObjectOptions{})
 	if err != nil {
@@ -195,24 +202,21 @@ func (s *ossStore) Open(ctx context.Context, p string) (io.ReadCloser, *v1.FileE
 	return obj, entry, nil // *minio.Object 同时实现 io.Seeker，调用方可支持 Range
 }
 
-func (s *ossStore) Read(ctx context.Context, p string, max int64) ([]byte, error) {
-	if max <= 0 {
-		max = MaxLoadFileSize
-	}
-	obj, err := s.client.GetObject(ctx, s.bucket, s.key(p), minio.GetObjectOptions{})
-	if err != nil {
-		return nil, err
-	}
-	defer obj.Close()
-	return io.ReadAll(io.LimitReader(obj, max))
-}
-
 func (s *ossStore) Write(ctx context.Context, p string, r io.Reader) error {
+	if err := guard(p); err != nil {
+		return err
+	}
 	_, err := s.client.PutObject(ctx, s.bucket, s.key(p), r, -1, minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	return err
 }
 
 func (s *ossStore) Create(ctx context.Context, item *v1.FileCreateItem) error {
+	if item == nil {
+		return errors.New("缺少创建参数")
+	}
+	if err := guard(item.Path); err != nil {
+		return err
+	}
 	key := s.key(item.Path)
 	if item.IsDir {
 		_, err := s.client.PutObject(ctx, s.bucket, key+"/", bytes.NewReader(nil), 0, minio.PutObjectOptions{})
@@ -223,9 +227,18 @@ func (s *ossStore) Create(ctx context.Context, item *v1.FileCreateItem) error {
 }
 
 func (s *ossStore) Delete(ctx context.Context, paths []string) []*v1.FileOperationResult {
+	if err := guard(paths...); err != nil {
+		return errResults(paths, err)
+	}
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	for _, p := range paths {
 		result := &v1.FileOperationResult{Path: p}
+		// 空路径会让 key 落在配置的 Prefix 上，随后的递归删除即清空整个来源——必须挡住。
+		if rel, _ := remoteRel(p); rel == "" {
+			result.Message = "不允许删除来源根目录"
+			results = append(results, result)
+			continue
+		}
 		key := s.key(p)
 		var failed error
 		// 删除目录前缀下的所有对象。
@@ -253,19 +266,21 @@ func (s *ossStore) Delete(ctx context.Context, paths []string) []*v1.FileOperati
 }
 
 func (s *ossStore) Rename(ctx context.Context, p, newName string) (string, error) {
-	if strings.ContainsAny(newName, `/\`) {
-		return "", errors.New("新名称不能包含路径")
-	}
-	srcKey := s.key(p)
-	dstLogical := path.Join(path.Dir(strings.Trim(p, "/")), newName)
-	if err := s.copyTree(ctx, srcKey, s.key(dstLogical)); err != nil {
+	srcLogical, dstLogical, err := remoteRename(p, newName)
+	if err != nil {
 		return "", err
 	}
-	s.Delete(ctx, []string{p})
+	if err := s.copyTree(ctx, s.key(srcLogical), s.key(dstLogical)); err != nil {
+		return "", err
+	}
+	s.Delete(ctx, []string{srcLogical})
 	return dstLogical, nil
 }
 
 func (s *ossStore) CopyToDir(ctx context.Context, paths []string, targetDir string) []*v1.FileOperationResult {
+	if err := guard(append([]string{targetDir}, paths...)...); err != nil {
+		return errResults(paths, err)
+	}
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	for _, p := range paths {
 		result := &v1.FileOperationResult{Path: p}
@@ -321,6 +336,9 @@ func (s *ossStore) copyTree(ctx context.Context, srcKey, dstKey string) error {
 }
 
 func (s *ossStore) Presign(ctx context.Context, p string, inline bool, ttl time.Duration) (string, error) {
+	if err := guard(p); err != nil {
+		return "", err
+	}
 	reqParams := make(url.Values)
 	disposition := "attachment"
 	if inline {
@@ -345,11 +363,14 @@ func (s *ossStore) core() minio.Core { return minio.Core{Client: s.client} }
 // PrepareUpload 初始化（或复用）来源侧 multipart，按需建立续传句柄并逐片生成预签名直传 URL；
 // 已传分片以来源 ListObjectParts 为准（合并进 u.Uploaded）。
 func (s *ossStore) PrepareUpload(ctx context.Context, u *Upload) error {
-	if u.TotalParts == 0 { // 空文件无分片：收尾时直接写空对象，无需 multipart
+	if u.Spec.Parts == 0 { // 空文件无分片：收尾时直接写空对象，无需 multipart
 		u.PartURLs = map[uint64]string{}
 		return nil
 	}
-	objectPath := path.Join(u.Path, u.FileName)
+	objectPath := u.TargetPath()
+	if err := guard(objectPath); err != nil {
+		return err
+	}
 	// 幂等建立来源侧 multipart uploadID（并发竞态由 SaveRef 收敛，败者中止自己的残留）。
 	if u.Ref == "" {
 		candidate, err := s.initMultipart(ctx, objectPath)
@@ -370,8 +391,8 @@ func (s *ossStore) PrepareUpload(ctx context.Context, u *Upload) error {
 		}
 		u.Ref = ref
 	}
-	partURLs := make(map[uint64]string, u.TotalParts)
-	for i := uint64(1); i <= u.TotalParts; i++ {
+	partURLs := make(map[uint64]string, u.Spec.Parts)
+	for i := uint64(1); i <= u.Spec.Parts; i++ {
 		url, err := s.presignPart(ctx, objectPath, u.Ref, i)
 		if err != nil {
 			return err
@@ -390,7 +411,10 @@ func (s *ossStore) PrepareUpload(ctx context.Context, u *Upload) error {
 
 // CompleteUpload 合并分片完成上传（空文件直接写空对象）。
 func (s *ossStore) CompleteUpload(ctx context.Context, u *Upload) error {
-	objectPath := path.Join(u.Path, u.FileName)
+	objectPath := u.TargetPath()
+	if err := guard(objectPath); err != nil {
+		return err
+	}
 	if u.Ref == "" { // 无 multipart 句柄（空文件）→ 写空对象
 		return s.Write(ctx, objectPath, bytes.NewReader(nil))
 	}
@@ -419,7 +443,11 @@ func (s *ossStore) CancelUpload(ctx context.Context, u *Upload) error {
 	if u.Ref == "" {
 		return nil
 	}
-	return s.abortMultipart(ctx, path.Join(u.Path, u.FileName), u.Ref)
+	objectPath := u.TargetPath()
+	if err := guard(objectPath); err != nil {
+		return err
+	}
+	return s.abortMultipart(ctx, objectPath, u.Ref)
 }
 
 func (s *ossStore) initMultipart(ctx context.Context, objectPath string) (string, error) {

@@ -10,6 +10,11 @@ var (
 	ErrSystem = func(err error) error {
 		return response.BadRequest(500, fmt.Sprintf("系统错误:%v", err))
 	}
+	// ErrPathInvalid 回报路径/名称类拒绝（越界、非法名、受保护、超限）。
+	// localfs 给出的文案本身就不含真实路径，可以安全直接回显，便于用户自查。
+	ErrPathInvalid = func(err error) error {
+		return response.BadRequest(500, err.Error())
+	}
 	ErrAdminNotFound              = response.BadRequest(500, "用户不存在")
 	ErrInvalidPassword            = response.BadRequest(500, "密码错误")
 	ErrTokenInvalid               = response.BadRequest(401, "token invalid")
@@ -57,6 +62,8 @@ var (
 	ErrUploadPartInvalid          = response.BadRequest(500, "上传分片参数无效")
 	ErrUploadIncomplete           = response.BadRequest(500, "文件分片尚未全部上传完成")
 	ErrUploadCompleted            = response.BadRequest(500, "上传已完成")
+	ErrUploadNotFound             = response.BadRequest(500, "上传会话不存在或无权访问")
+	ErrUploadClosed               = response.BadRequest(500, "上传会话已完成或已取消")
 	ErrInitializeDone             = response.BadRequest(500, "系统已初始化")
 	ErrInitializeDatabaseEmpty    = response.BadRequest(500, "数据库配置不能为空")
 	ErrInitializeAdminEmpty       = response.BadRequest(500, "超级管理员不能为空")

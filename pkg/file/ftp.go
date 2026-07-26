@@ -38,7 +38,7 @@ func newFTPStore(cfg Config) (Store, error) {
 		addr: fmt.Sprintf("%s:%d", cfg.Host, port),
 		user: cfg.Username,
 		pass: cfg.Password,
-		base: strings.Trim(strings.ReplaceAll(cfg.BasePath, "\\", "/"), "/"),
+		base: remoteBase(cfg.BasePath),
 		tls:  cfg.TLS,
 	}, nil
 }
@@ -59,12 +59,20 @@ func (s *ftpStore) conn() (*ftp.ServerConn, error) {
 	return c, nil
 }
 
-// p 把逻辑路径转为远端绝对路径。
+// p 把逻辑路径转为远端绝对路径。越界输入返回必然失败的路径（fail-closed）；
+// 正常调用路径上各导出方法已在入口用 guard 拦下。
 func (s *ftpStore) p(logical string) string {
-	return path.Clean("/" + path.Join(s.base, strings.Trim(strings.ReplaceAll(logical, "\\", "/"), "/")))
+	abs, err := remoteAbs(s.base, logical)
+	if err != nil {
+		return invalidRemotePath
+	}
+	return abs
 }
 
 func (s *ftpStore) List(_ context.Context, dir string, _ v1.FileSortField, _ bool) ([]*v1.FileEntryInfo, error) {
+	if err := guard(dir); err != nil {
+		return nil, err
+	}
 	c, err := s.conn()
 	if err != nil {
 		return nil, err
@@ -129,6 +137,9 @@ func (s *ftpStore) DirInfo(ctx context.Context, dir string) (*v1.FileDirectoryIn
 }
 
 func (s *ftpStore) Stat(ctx context.Context, p string) (*v1.FileEntryInfo, error) {
+	if err := guard(p); err != nil {
+		return nil, err
+	}
 	parent := path.Dir(strings.Trim(p, "/"))
 	name := path.Base(strings.Trim(p, "/"))
 	entries, err := s.List(ctx, parent, 0, false)
@@ -144,6 +155,9 @@ func (s *ftpStore) Stat(ctx context.Context, p string) (*v1.FileEntryInfo, error
 }
 
 func (s *ftpStore) Open(_ context.Context, p string) (io.ReadCloser, *v1.FileEntryInfo, error) {
+	if err := guard(p); err != nil {
+		return nil, nil, err
+	}
 	c, err := s.conn()
 	if err != nil {
 		return nil, nil, err
@@ -159,19 +173,10 @@ func (s *ftpStore) Open(_ context.Context, p string) (io.ReadCloser, *v1.FileEnt
 	return &ftpReadCloser{r: resp, c: c}, entry, nil
 }
 
-func (s *ftpStore) Read(ctx context.Context, p string, max int64) ([]byte, error) {
-	rc, _, err := s.Open(ctx, p)
-	if err != nil {
-		return nil, err
-	}
-	defer rc.Close()
-	if max <= 0 {
-		max = MaxLoadFileSize
-	}
-	return io.ReadAll(io.LimitReader(rc, max))
-}
-
 func (s *ftpStore) Write(_ context.Context, p string, r io.Reader) error {
+	if err := guard(p); err != nil {
+		return err
+	}
 	c, err := s.conn()
 	if err != nil {
 		return err
@@ -181,6 +186,12 @@ func (s *ftpStore) Write(_ context.Context, p string, r io.Reader) error {
 }
 
 func (s *ftpStore) Create(_ context.Context, item *v1.FileCreateItem) error {
+	if item == nil {
+		return errors.New("缺少创建参数")
+	}
+	if err := guard(item.Path); err != nil {
+		return err
+	}
 	c, err := s.conn()
 	if err != nil {
 		return err
@@ -193,6 +204,9 @@ func (s *ftpStore) Create(_ context.Context, item *v1.FileCreateItem) error {
 }
 
 func (s *ftpStore) Delete(_ context.Context, paths []string) []*v1.FileOperationResult {
+	if err := guard(paths...); err != nil {
+		return errResults(paths, err)
+	}
 	c, err := s.conn()
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	if err != nil {
@@ -219,22 +233,25 @@ func (s *ftpStore) Delete(_ context.Context, paths []string) []*v1.FileOperation
 }
 
 func (s *ftpStore) Rename(_ context.Context, p, newName string) (string, error) {
-	if strings.ContainsAny(newName, `/\`) {
-		return "", errors.New("新名称不能包含路径")
+	srcLogical, dstLogical, err := remoteRename(p, newName)
+	if err != nil {
+		return "", err
 	}
 	c, err := s.conn()
 	if err != nil {
 		return "", err
 	}
 	defer c.Quit()
-	dstLogical := path.Join(path.Dir(strings.Trim(p, "/")), newName)
-	if err := c.Rename(s.p(p), s.p(dstLogical)); err != nil {
+	if err := c.Rename(s.p(srcLogical), s.p(dstLogical)); err != nil {
 		return "", err
 	}
 	return dstLogical, nil
 }
 
 func (s *ftpStore) MoveToDir(_ context.Context, paths []string, targetDir string) []*v1.FileOperationResult {
+	if err := guard(append([]string{targetDir}, paths...)...); err != nil {
+		return errResults(paths, err)
+	}
 	c, err := s.conn()
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	if err != nil {

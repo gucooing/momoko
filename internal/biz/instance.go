@@ -10,7 +10,6 @@ import (
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
 	"momoko/pkg/utils"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -465,8 +464,11 @@ func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *gen.In
 	return info
 }
 
-// instanceStore 返回实例工作目录对应的本地 Store 及其根路径（实例文件统一走 Store 接口）。
-func (i *InstanceUsecase) instanceStore(ctx context.Context, userID, instanceID string) (file.Store, string, error) {
+// instanceStore 返回锁死在实例工作目录内的本地 Store 及其根路径。
+//
+// 用受限视图而非整机视图：实例文件管理只应看得见该实例自己的目录，
+// 任何越界（".."、绝对路径、经符号链接/junction 的迂回）都在 os.Root 层被拒。
+func (i *InstanceUsecase) instanceStore(ctx context.Context, userID, instanceID string) (*file.LocalStore, string, error) {
 	item, err := i.repo.GetInstanceByUserID(ctx, userID, instanceID)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -474,7 +476,7 @@ func (i *InstanceUsecase) instanceStore(ctx context.Context, userID, instanceID 
 		}
 		return nil, "", ErrSystem(err)
 	}
-	store, err := file.NewLocalStore(item.Path)
+	store, err := file.NewScopedStore(item.Path, file.ScopedStoreOptions()...)
 	if err != nil {
 		return nil, "", ErrSystem(err)
 	}
@@ -577,12 +579,8 @@ func (i *InstanceUsecase) CopyFile(ctx context.Context, userID string, req *v1.C
 	if err != nil {
 		return nil, err
 	}
-	copier, ok := store.(file.Copier)
-	if !ok {
-		return nil, ErrFileSourceUnsupported
-	}
 	payload := file.TransferPayload{BasePath: basePath, Paths: req.Paths, Target: req.TargetPath}
-	t := file.NewCopyTask(task.Meta{UserID: userID, Title: transferTitle("复制", req.Paths)}, copier, payload)
+	t := file.NewCopyTask(task.Meta{UserID: userID, Title: transferTitle("复制", req.Paths)}, store, payload)
 	info, err := submitTransfer(ctx, i.tasks, t)
 	if err != nil {
 		return nil, err
@@ -595,12 +593,8 @@ func (i *InstanceUsecase) CutFile(ctx context.Context, userID string, req *v1.Cu
 	if err != nil {
 		return nil, err
 	}
-	mover, ok := store.(file.Mover)
-	if !ok {
-		return nil, ErrFileSourceUnsupported
-	}
 	payload := file.TransferPayload{BasePath: basePath, Paths: req.Paths, Target: req.TargetPath}
-	t := file.NewMoveTask(task.Meta{UserID: userID, Title: transferTitle("移动", req.Paths)}, mover, payload)
+	t := file.NewMoveTask(task.Meta{UserID: userID, Title: transferTitle("移动", req.Paths)}, store, payload)
 	info, err := submitTransfer(ctx, i.tasks, t)
 	if err != nil {
 		return nil, err
@@ -622,13 +616,9 @@ func (i *InstanceUsecase) BatchCompressFile(ctx context.Context, userID string, 
 	if err != nil {
 		return nil, err
 	}
-	archiver, ok := store.(file.Archiver)
-	if !ok {
-		return nil, ErrFileSourceUnsupported
-	}
-	outputPath, err := archiver.Compress(ctx, req.Paths, req.GetTargetPath())
+	outputPath, err := store.Compress(ctx, req.Paths, req.GetTargetPath())
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, ErrPathInvalid(err)
 	}
 	return &v1.BatchCompressInstanceFileResponse{OutputPath: outputPath}, nil
 }
@@ -638,13 +628,9 @@ func (i *InstanceUsecase) UnzipFile(ctx context.Context, userID string, req *v1.
 	if err != nil {
 		return nil, err
 	}
-	archiver, ok := store.(file.Archiver)
-	if !ok {
-		return nil, ErrFileSourceUnsupported
-	}
-	outputPath, err := archiver.Unzip(ctx, req.Path, req.GetTargetPath())
+	outputPath, err := store.Unzip(ctx, req.Path, req.GetTargetPath())
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, ErrPathInvalid(err)
 	}
 	return &v1.UnzipInstanceFileResponse{OutputPath: outputPath}, nil
 }
@@ -654,28 +640,29 @@ func (i *InstanceUsecase) EditFile(ctx context.Context, userID string, req *v1.E
 	if err != nil {
 		return nil, err
 	}
-	if len(req.Content) > file.MaxLoadFileSize {
+	// 受限视图内部还会再限一次；这里先挡一道，省得把超大内容读进来才发现。
+	if len(req.Content) > file.MaxEditSize {
 		return nil, ErrSystem(fmt.Errorf("文件太大"))
 	}
 	if err = store.Write(ctx, req.Path, bytes.NewReader(req.Content)); err != nil {
-		return nil, ErrSystem(err)
+		return nil, ErrPathInvalid(err)
 	}
 	return &v1.EditInstanceFileResponse{}, nil
 }
 
 func (i *InstanceUsecase) FilePreSign(ctx context.Context, userID string, req *v1.InstanceFilePreSignRequest) (*v1.InstanceFilePreSignResponse, error) {
-	_, basePath, err := i.instanceStore(ctx, userID, req.Id)
+	store, basePath, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	realPath, err := file.ResolveLocalPath(basePath, req.Path)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if info, err := os.Stat(realPath); err != nil || info.IsDir() {
+	entry, err := store.FS().Stat(req.Path)
+	if err != nil || entry.IsDir {
 		return nil, ErrFileNotExist
 	}
-	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), realPath, userID, 24*time.Hour)
+	// 签名里带上实例根：取件时据此重建同一个受限视图再解析一次路径，
+	// 使「签发」与「取件」两侧的边界一致，而不是取件端凭一个绝对路径直接开文件。
+	preInfo := pre.NewFileSignInfo(utils.GenerateRandomString(10), req.Path, userID, 24*time.Hour)
+	preInfo.BasePath = basePath
 	sign, err := preInfo.Sign()
 	if err != nil {
 		return nil, ErrSign
@@ -687,15 +674,21 @@ func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 	if req.FileSize > math.MaxInt64 {
 		return nil, ErrUploadRequestInvalid
 	}
-	store, basePath, err := i.instanceStore(ctx, userID, req.Id)
+	store, _, err := i.instanceStore(ctx, userID, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	realPath, err := file.ResolveLocalPath(basePath, req.Path)
+	// 目标目录固化为真实路径（收尾时同卷原子 rename），解析过程即完成越界校验。
+	realDir, err := store.FS().RealPath(req.Path)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, ErrPathInvalid(err)
 	}
-	seed := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize)
+	// NewUploadSeed 校验目标文件名——它曾被直接 Join 进目标路径，
+	// "../../x" 即可越出实例目录写到磁盘任意位置。
+	seed, err := file.NewUploadSeed(req.Hash, realDir, req.FileName, req.FileSize, "")
+	if err != nil {
+		return nil, ErrPathInvalid(err)
+	}
 	row, err := i.fileRepo.GetOrCreate(ctx, userID, seed)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -703,7 +696,8 @@ func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 	if row.Completed {
 		return toUploadInfo(row, &file.Upload{}), nil
 	}
-	u, err := buildUpload(i.fileRepo, userID, row)
+	// 实例文件是本地来源：缓冲与目标同目录，收尾即同卷 rename（缓冲文件对列表不可见）。
+	u, err := buildUpload(i.fileRepo, store, store.FS(), userID, row)
 	if err != nil {
 		return nil, err
 	}
@@ -711,6 +705,5 @@ func (i *InstanceUsecase) FilePreSignUpload(ctx context.Context, userID string, 
 	if err := store.PrepareUpload(ctx, u); err != nil {
 		return nil, ErrSystem(err)
 	}
-	uploadCache.Set(row.ID, &file.ChunkedUpload{FileUpload: row})
 	return toUploadInfo(row, u), nil
 }

@@ -30,6 +30,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/file"
+	"momoko/pkg/localfs"
 )
 
 // shareServeTTL 是公开分享 302 直链的有效期。
@@ -134,10 +135,8 @@ func baseName(p string) string {
 	return path.Base(strings.ReplaceAll(strings.TrimRight(p, "/\\"), "\\", "/"))
 }
 
-// resolveItem 将公开端的虚拟子路径映射到某个被分享条目及其来源内真实路径：
-// 首段按缓存展示名匹配某条目（与列根目录一致），其余段原样拼到该条目真实路径之后。
-// 匹配不到（越界/不存在）返回 ok=false。公开端只见虚拟路径与展示名，真实来源路径与来源 id 不出本包。
-func resolveItem(s *gen.FileShare, sub string) (sharetype.Item, string, bool) {
+// matchItem 按虚拟子路径的首段匹配某个被分享条目，返回该条目与其余子路径段。
+func matchItem(s *gen.FileShare, sub string) (sharetype.Item, string, bool) {
 	sub = normalizeSub(sub)
 	if sub == "" {
 		return sharetype.Item{}, "", false
@@ -147,12 +146,42 @@ func resolveItem(s *gen.FileShare, sub string) (sharetype.Item, string, bool) {
 		if it.Name != first {
 			continue
 		}
-		if rest == "" {
-			return it, it.Path, true
-		}
-		return it, strings.TrimRight(it.Path, "/\\") + "/" + rest, true
+		return it, rest, true
 	}
 	return sharetype.Item{}, "", false
+}
+
+// resolveItem 把公开端的虚拟子路径映射为「一个已限定到该条目的来源 + 来源内路径」。
+//
+// 本地目录条目会被收窄成锁死在该条目内的只读来源：公开分享是外部可达面，
+// 不该让「首段匹配 + 其余段拼接」这层字符串逻辑成为唯一的边界。
+// 收窄之后，即便 normalizeSub 将来出现纰漏，也只能在被分享的那个目录里打转。
+//
+// 远端来源无法收窄，其边界由来源自身的路径归一化把关（remoteRel 拒绝一切 ".."）。
+func resolveItem(ctx context.Context, resolve StoreResolver, s *gen.FileShare, sub string) (sharetype.Item, file.Store, *gen.FileSource, string, error) {
+	it, rest, ok := matchItem(s, sub)
+	if !ok {
+		return it, nil, nil, "", errors.New("路径不存在")
+	}
+	store, src, err := resolve(ctx, it.SourceID)
+	if err != nil {
+		return it, nil, nil, "", err
+	}
+	if local, ok := store.(*file.LocalStore); ok && it.IsDir {
+		scoped, err := local.Sub(it.Path, localfs.ReadOnly())
+		if err != nil {
+			return it, nil, nil, "", errors.New("路径不存在")
+		}
+		// 收窄后 rest 就是来源内的完整路径；空表示条目根自身。
+		if rest == "" {
+			rest = "."
+		}
+		return it, scoped, src, rest, nil
+	}
+	if rest == "" {
+		return it, store, src, it.Path, nil
+	}
+	return it, store, src, strings.TrimRight(it.Path, "/\\") + "/" + rest, nil
 }
 
 func joinSlash(base, name string) string {
@@ -196,12 +225,8 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 		return items, sub, nil
 	}
 
-	// 子目录：定位条目 → 解析其来源 → 列真实目录。
-	it, real, ok := resolveItem(s, sub)
-	if !ok {
-		return nil, "", errors.New("路径不存在")
-	}
-	store, _, err := resolve(ctx, it.SourceID)
+	// 子目录：定位条目 → 解析出限定到该条目的来源 → 列目录。
+	_, store, _, real, err := resolveItem(ctx, resolve, s, sub)
 	if err != nil {
 		return nil, "", err
 	}
@@ -233,11 +258,7 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 	if sub == "" {
 		return streamZipItems(ctx, resolve, s.Items, s.Name, w)
 	}
-	it, real, ok := resolveItem(s, sub)
-	if !ok {
-		return errors.New("文件不存在")
-	}
-	store, src, err := resolve(ctx, it.SourceID)
+	it, store, src, real, err := resolveItem(ctx, resolve, s, sub)
 	if err != nil {
 		return errors.New("文件不存在")
 	}
@@ -247,7 +268,11 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 	}
 	// 子路径指向目录：实时打包为 zip。
 	if entry.IsDir {
-		return streamZipRoot(ctx, store, real, entry.Name, w)
+		name := entry.Name
+		if real == "." { // 收窄来源的根：用分享里展示的条目名，而不是磁盘上的目录名
+			name = it.Name
+		}
+		return streamZipRoot(ctx, store, real, name, w)
 	}
 	// 该条目来源开启 302 且支持预签名（OSS）→ 跳转到公开域名预签名直链，外部访客直连来源、momoko 不代理。
 	if src != nil && src.Redirect302 {
@@ -301,6 +326,7 @@ func zipHeader(w http.ResponseWriter, name string) {
 }
 
 // streamZipItems 将多个（可跨来源）条目实时打包为 zip 写入 w：逐条目解析其来源后写入。
+// 与浏览一致：本地目录条目先收窄成独立来源，打包遍历不可能爬出被分享的目录。
 func streamZipItems(ctx context.Context, resolve StoreResolver, items []sharetype.Item, name string, w http.ResponseWriter) error {
 	zipHeader(w, name)
 	zw := zip.NewWriter(w)
@@ -310,7 +336,15 @@ func streamZipItems(ctx context.Context, resolve StoreResolver, items []sharetyp
 		if err != nil {
 			return err
 		}
-		if err := zipRoot(ctx, store, it.Path, zw); err != nil {
+		root := it.Path
+		if local, ok := store.(*file.LocalStore); ok && it.IsDir {
+			scoped, err := local.Sub(it.Path, localfs.ReadOnly())
+			if err != nil {
+				return err
+			}
+			store, root = scoped, "."
+		}
+		if err := zipRootNamed(ctx, store, root, it.Name, zw); err != nil {
 			return err
 		}
 	}
@@ -322,16 +356,20 @@ func streamZipRoot(ctx context.Context, store file.Store, root, name string, w h
 	zipHeader(w, name)
 	zw := zip.NewWriter(w)
 	defer zw.Close()
-	return zipRoot(ctx, store, root, zw)
+	return zipRootNamed(ctx, store, root, name, zw)
 }
 
-// zipRoot 把某来源内一个根（文件或目录）写入 zw：目录递归遍历（以其名为顶层），文件直接写入根层。
-func zipRoot(ctx context.Context, store file.Store, root string, zw *zip.Writer) error {
+// zipRootNamed 把某来源内一个根（文件或目录）写入 zw：目录递归遍历（以其名为顶层），文件直接写入根层。
+// name 为空时取 Stat 得到的名字；收窄来源后根目录的磁盘名未必等于分享里展示的条目名，故允许显式指定。
+func zipRootNamed(ctx context.Context, store file.Store, root, name string, zw *zip.Writer) error {
 	entry, err := store.Stat(ctx, root)
 	if err != nil {
 		return err
 	}
-	base := entry.Name
+	base := name
+	if base == "" {
+		base = entry.Name
+	}
 	if base == "" {
 		base = baseName(root)
 	}

@@ -16,6 +16,7 @@ import (
 	kerrors "github.com/go-kratos/kratos/v2/errors"
 	httpm "github.com/go-kratos/kratos/v2/transport/http"
 
+	"momoko/pkg/localfs"
 	"momoko/pkg/response"
 )
 
@@ -37,8 +38,10 @@ var (
 )
 
 // Manager 负责头像文件的保存、删除和 HTTP 访问。
+// 所有磁盘操作都经由锁死在头像目录内的 localfs 视图，因此文件名即便被构造得再离奇也出不了这个目录。
 type Manager struct {
 	rootDir string
+	view    *localfs.FS
 }
 
 func NewManager() (*Manager, error) {
@@ -46,11 +49,16 @@ func NewManager() (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("获取工作目录失败: %w", err)
 	}
-	return NewManagerWithRoot(filepath.Join(workDir, defaultDir)), nil
+	return NewManagerWithRoot(filepath.Join(workDir, defaultDir))
 }
 
-func NewManagerWithRoot(rootDir string) *Manager {
-	return &Manager{rootDir: filepath.Clean(rootDir)}
+// NewManagerWithRoot 打开（必要时创建）头像目录并返回管理器。
+func NewManagerWithRoot(rootDir string) (*Manager, error) {
+	view, err := localfs.OpenDir(rootDir, localfs.WithMaxFileSize(maxFileSize))
+	if err != nil {
+		return nil, fmt.Errorf("初始化头像目录失败: %w", err)
+	}
+	return &Manager{rootDir: filepath.Clean(rootDir), view: view}, nil
 }
 
 // Filter 处理 /api/v1/avatar/ 下的头像访问请求。
@@ -102,55 +110,14 @@ func (m *Manager) Prepare(userID, raw string) (value string, commit func() error
 		return "", nil, nil, err
 	}
 
-	if err := os.MkdirAll(m.rootDir, 0o755); err != nil {
-		return "", nil, nil, fmt.Errorf("创建头像目录失败: %w", err)
-	}
-
-	safeID := sanitizePathSegment(userID)
-	pattern := safeID + ".*." + ext + ".tmp"
-	tempFile, err := os.CreateTemp(m.rootDir, pattern)
-	if err != nil {
-		return "", nil, nil, fmt.Errorf("创建头像临时文件失败: %w", err)
-	}
-
-	tempPath := tempFile.Name()
-	if _, err := tempFile.Write(data); err != nil {
-		_ = tempFile.Close()
-		_ = os.Remove(tempPath)
-		return "", nil, nil, fmt.Errorf("写入头像临时文件失败: %w", err)
-	}
-	if err := tempFile.Close(); err != nil {
-		_ = os.Remove(tempPath)
-		return "", nil, nil, fmt.Errorf("关闭头像临时文件失败: %w", err)
-	}
-
-	rollback = func() {
-		_ = os.Remove(tempPath)
-	}
-
+	// 落盘推迟到 commit：localfs.WriteFile 本身就是「写临时文件再改名」的原子写，
+	// 于是既不需要手工备份/回滚，也不会在数据库写失败时留下 .tmp / .bak 残渣。
+	rollback = func() {}
 	commit = func() error {
-		finalPath := m.filePath(userID, ext)
-		backupPath := finalPath + ".bak"
-
-		_ = os.Remove(backupPath)
-		if err := os.Rename(finalPath, backupPath); err != nil && !os.IsNotExist(err) {
-			_ = os.Remove(tempPath)
-			return fmt.Errorf("备份旧头像失败: %w", err)
-		}
-
-		if err := os.Rename(tempPath, finalPath); err != nil {
-			_ = os.Remove(tempPath)
-			if _, statErr := os.Stat(backupPath); statErr == nil {
-				_ = os.Rename(backupPath, finalPath)
-			}
+		if _, err := m.view.WriteFile(m.fileName(userID, ext), bytes.NewReader(data)); err != nil {
 			return fmt.Errorf("保存头像文件失败: %w", err)
 		}
-
-		_ = os.Remove(backupPath)
-		if err := m.deleteOtherFormats(userID, ext); err != nil {
-			return err
-		}
-		return nil
+		return m.deleteOtherFormats(userID, ext)
 	}
 
 	return managedValue, commit, rollback, nil
@@ -170,13 +137,16 @@ func (m *Manager) Delete(raw string) error {
 
 // DeleteByUserID 删除指定用户的所有本地头像文件。
 func (m *Manager) DeleteByUserID(userID string) error {
-	var firstErr error
+	names := make([]string, 0, len(allowedExts))
 	for _, ext := range allowedExts {
-		if err := os.Remove(m.filePath(userID, ext)); err != nil && !os.IsNotExist(err) && firstErr == nil {
-			firstErr = fmt.Errorf("删除头像文件失败: %w", err)
+		names = append(names, m.fileName(userID, ext))
+	}
+	for _, res := range m.view.Remove(names) {
+		if !res.OK {
+			return fmt.Errorf("删除头像文件失败: %s", res.Message)
 		}
 	}
-	return firstErr
+	return nil
 }
 
 func (m *Manager) IsManaged(raw string) bool {
@@ -189,29 +159,32 @@ func (m *Manager) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath, ok := m.requestedFilePath(r.URL.Path)
+	name, ok := m.requestedFileName(r.URL.Path)
 	if !ok {
 		response.WriteError(w, r, kerrors.NotFound("AVATAR_NOT_FOUND", "Avatar Not Found"))
 		return
 	}
-
-	if _, err := os.Stat(filePath); err != nil {
+	// 经受限视图打开而不是 http.ServeFile(绝对路径)：读取同样被锁在头像目录内，
+	// 且不会顺着符号链接把目录外的文件吐出去。
+	f, entry, err := m.view.OpenRead(name)
+	if err != nil {
 		response.WriteError(w, r, kerrors.NotFound("AVATAR_NOT_FOUND", "Avatar Not Found"))
 		return
 	}
-	http.ServeFile(w, r, filePath)
+	defer f.Close()
+	http.ServeContent(w, r, entry.Name, entry.ModTime, f)
 }
 
-func (m *Manager) requestedFilePath(raw string) (string, bool) {
+// requestedFileName 把请求路径映射为头像目录内的文件名（挑第一个真实存在的扩展名）。
+func (m *Manager) requestedFileName(raw string) (string, bool) {
 	userID, ok := m.requestedUserID(raw)
 	if !ok {
 		return "", false
 	}
-
 	for _, ext := range allowedExts {
-		filePath := m.filePath(userID, ext)
-		if _, err := os.Stat(filePath); err == nil {
-			return filePath, true
+		name := m.fileName(userID, ext)
+		if m.view.Exists(name) {
+			return name, true
 		}
 	}
 	return "", false
@@ -244,21 +217,25 @@ func (m *Manager) requestedUserID(raw string) (string, bool) {
 	return cleanRelPath, true
 }
 
-func (m *Manager) filePath(userID, ext string) string {
-	return filepath.Join(m.rootDir, sanitizePathSegment(userID)+"."+ext)
+// fileName 返回头像在受限视图内的文件名（单层，不含任何路径成分）。
+func (m *Manager) fileName(userID, ext string) string {
+	return sanitizePathSegment(userID) + "." + ext
 }
 
 func (m *Manager) deleteOtherFormats(userID, keepExt string) error {
-	var firstErr error
+	names := make([]string, 0, len(allowedExts))
 	for _, ext := range allowedExts {
 		if ext == keepExt {
 			continue
 		}
-		if err := os.Remove(m.filePath(userID, ext)); err != nil && !os.IsNotExist(err) && firstErr == nil {
-			firstErr = fmt.Errorf("删除旧头像文件失败: %w", err)
+		names = append(names, m.fileName(userID, ext))
+	}
+	for _, res := range m.view.Remove(names) {
+		if !res.OK {
+			return fmt.Errorf("删除旧头像文件失败: %s", res.Message)
 		}
 	}
-	return firstErr
+	return nil
 }
 
 func decodeDataURL(raw string) ([]byte, error) {

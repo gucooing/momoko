@@ -47,6 +47,9 @@ type FileSignInfo struct {
 	SourceID       string        `json:"source_id,omitempty"` // 文件来源id，空=本地
 	Inline         bool          `json:"inline,omitempty"`    // 预览(inline) 还是 下载(attachment)
 	ShareID        string        `json:"share_id,omitempty"`  // 分享会话签名所属分享id
+	// BasePath 是本地受限根（如实例工作目录）。非空时取件端会重建同一个受限视图再解析 Path，
+	// 使签发与取件两侧的边界一致；为空则按整机视图（仅受保护清单约束）解析。
+	BasePath string `json:"base_path,omitempty"`
 }
 
 func newSalt() []byte {
