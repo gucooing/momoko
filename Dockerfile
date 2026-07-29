@@ -5,7 +5,7 @@ WORKDIR /src/frontend
 RUN npm install -g pnpm@11.12.0
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 COPY frontend/ ./
 RUN pnpm build

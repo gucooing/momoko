@@ -14,7 +14,7 @@ type Session struct {
 func (Session) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").NotEmpty().Unique().Comment("会话id"),
-		field.String("device_id").NotEmpty().Unique().Comment("设备id"),
+		field.String("device_id").NotEmpty().Comment("设备id"),
 		field.String("device").NotEmpty().Comment("登录设备"),
 		field.String("user_id").NotEmpty().Comment("所属用户id"),
 		field.String("ip").Comment("登录ip"),

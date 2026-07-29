@@ -25,8 +25,7 @@ func NewAuthRepo(data *Data) biz.AuthRepo {
 }
 
 func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Session, error) {
-	now := time.Now()
-	err := ar.data.db.Session.
+	authData, err := ar.data.db.Session.
 		Create().
 		SetID(authInfo.SessionID).
 		SetUserID(authInfo.UserID).
@@ -35,17 +34,8 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Se
 		SetIP(authInfo.IP).
 		SetAccessNoise(authInfo.AccessNoise).
 		SetRefreshNoise(authInfo.RefreshNoise).
-		SetExpiresAt(now.Add(tokenauth.RefreshTokenExpiresIn)).
-		OnConflictColumns(entauth.FieldDeviceID).
-		UpdateNewValues().
-		Exec(ctx)
-	if err != nil {
-		return nil, err
-	}
-	authData, err := ar.data.db.Session.
-		Query().
-		Where(entauth.IDEQ(authInfo.SessionID)).
-		Only(ctx)
+		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenExpiresIn)).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}

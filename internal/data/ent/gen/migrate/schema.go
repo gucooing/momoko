@@ -587,7 +587,7 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "device_id", Type: field.TypeString, Unique: true},
+		{Name: "device_id", Type: field.TypeString},
 		{Name: "device", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "access_noise", Type: field.TypeString},
