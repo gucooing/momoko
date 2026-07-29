@@ -28,23 +28,15 @@ func NewFileRepo(data *Data) biz.FileRepo {
 	}
 }
 
-// GetOrCreate 复用同一目标上未完成的上传会话，没有则新建一条。
-// seed 已由 pkg/file 校验过（目标文件名合法、分片布局自洽），这里只负责落库。
-//
-// 命中既有会话时还要比对文件名：hash+path 相同但文件名不同，说明客户端换了目标，
-// 直接复用会把分片写进另一个文件名的会话里。
-func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, seed *file.UploadSeed) (*gen.FileUpload, error) {
+func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*gen.FileUpload, error) {
 	var uInfo *gen.FileUpload
 	err := utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
 		existing, err := tx.FileUpload.
 			Query().
 			Where(
-				fileupload.HashEQ(seed.Hash),
-				fileupload.PathEQ(seed.Dir),
-				fileupload.FileNameEQ(seed.Name),
-				fileupload.FileSizeEQ(seed.Size),
-				fileupload.SourceIDEQ(seed.SourceID),
-				fileupload.UserIDEQ(userId),
+				fileupload.HashEQ(info.Hash),
+				fileupload.PathEQ(info.Path),
+				fileupload.SourceIDEQ(info.SourceID),
 				fileupload.CompletedEQ(false),
 				fileupload.CancelEQ(false),
 			).
@@ -56,13 +48,13 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, seed *file.Up
 		}
 		uInfo, err = tx.FileUpload.Create().
 			SetID(uuid.NewString()).
-			SetHash(seed.Hash).
-			SetPath(seed.Dir).
-			SetFileName(seed.Name).
-			SetFileSize(seed.Size).
-			SetChunkSize(seed.PartSize).
-			SetTotalChunks(seed.Parts).
-			SetSourceID(seed.SourceID).
+			SetHash(info.Hash).
+			SetPath(info.Path).
+			SetFileName(info.FileName).
+			SetFileSize(info.FileSize).
+			SetChunkSize(info.ChunkSize).
+			SetTotalChunks(info.TotalChunks).
+			SetSourceID(info.SourceID).
 			SetUserID(userId).Save(ctx)
 		if err != nil {
 			return err

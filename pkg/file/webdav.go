@@ -28,28 +28,15 @@ func newWebDAVStore(cfg Config) (Store, error) {
 	c := gowebdav.NewClient(cfg.URL, cfg.Username, cfg.Password)
 	return &webdavStore{
 		client: c,
-		base:   remoteBase(cfg.BasePath),
+		base:   strings.Trim(strings.ReplaceAll(cfg.BasePath, "\\", "/"), "/"),
 	}, nil
 }
 
-// p 把逻辑路径转为远端绝对路径。越界输入返回必然失败的路径（fail-closed）；
-// 正常调用路径上各导出方法已在入口用 guard 拦下。
-//
-// 旧实现是 "/" + path.Join(base, logical)：path.Join 会把 ".." 折叠掉，
-// 于是 "../x" 先吃掉 base，多余的 ".." 还会原样留在结果里交给服务端解释，
-// 等于把整个 URL 前缀之上的空间都暴露出去。
 func (s *webdavStore) p(logical string) string {
-	abs, err := remoteAbs(s.base, logical)
-	if err != nil {
-		return invalidRemotePath
-	}
-	return abs
+	return "/" + path.Join(s.base, strings.Trim(strings.ReplaceAll(logical, "\\", "/"), "/"))
 }
 
 func (s *webdavStore) List(_ context.Context, dir string, _ v1.FileSortField, _ bool) ([]*v1.FileEntryInfo, error) {
-	if err := guard(dir); err != nil {
-		return nil, err
-	}
 	infos, err := s.client.ReadDir(s.p(dir))
 	if err != nil {
 		return nil, err
@@ -105,9 +92,6 @@ func (s *webdavStore) DirInfo(ctx context.Context, dir string) (*v1.FileDirector
 }
 
 func (s *webdavStore) Stat(_ context.Context, p string) (*v1.FileEntryInfo, error) {
-	if err := guard(p); err != nil {
-		return nil, err
-	}
 	info, err := s.client.Stat(s.p(p))
 	if err != nil {
 		return nil, errors.New("文件不存在")
@@ -116,9 +100,6 @@ func (s *webdavStore) Stat(_ context.Context, p string) (*v1.FileEntryInfo, erro
 }
 
 func (s *webdavStore) Open(_ context.Context, p string) (io.ReadCloser, *v1.FileEntryInfo, error) {
-	if err := guard(p); err != nil {
-		return nil, nil, err
-	}
 	info, err := s.client.Stat(s.p(p))
 	if err != nil {
 		return nil, nil, errors.New("文件不存在")
@@ -130,21 +111,24 @@ func (s *webdavStore) Open(_ context.Context, p string) (io.ReadCloser, *v1.File
 	return rc, webdavEntry(info, strings.Trim(p, "/")), nil
 }
 
-func (s *webdavStore) Write(_ context.Context, p string, r io.Reader) error {
-	if err := guard(p); err != nil {
-		return err
+func (s *webdavStore) Read(ctx context.Context, p string, max int64) ([]byte, error) {
+	rc, _, err := s.Open(ctx, p)
+	if err != nil {
+		return nil, err
 	}
+	defer rc.Close()
+	if max <= 0 {
+		max = MaxLoadFileSize
+	}
+	return io.ReadAll(io.LimitReader(rc, max))
+}
+
+func (s *webdavStore) Write(_ context.Context, p string, r io.Reader) error {
 	_ = s.client.MkdirAll(path.Dir(s.p(p)), 0o755)
 	return s.client.WriteStream(s.p(p), r, 0o644)
 }
 
 func (s *webdavStore) Create(_ context.Context, item *v1.FileCreateItem) error {
-	if item == nil {
-		return errors.New("缺少创建参数")
-	}
-	if err := guard(item.Path); err != nil {
-		return err
-	}
 	if item.IsDir {
 		return s.client.MkdirAll(s.p(item.Path), 0o755)
 	}
@@ -153,9 +137,6 @@ func (s *webdavStore) Create(_ context.Context, item *v1.FileCreateItem) error {
 }
 
 func (s *webdavStore) Delete(_ context.Context, paths []string) []*v1.FileOperationResult {
-	if err := guard(paths...); err != nil {
-		return errResults(paths, err)
-	}
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	for _, p := range paths {
 		result := &v1.FileOperationResult{Path: p}
@@ -170,20 +151,17 @@ func (s *webdavStore) Delete(_ context.Context, paths []string) []*v1.FileOperat
 }
 
 func (s *webdavStore) Rename(_ context.Context, p, newName string) (string, error) {
-	srcLogical, dstLogical, err := remoteRename(p, newName)
-	if err != nil {
-		return "", err
+	if strings.ContainsAny(newName, `/\`) {
+		return "", errors.New("新名称不能包含路径")
 	}
-	if err := s.client.Rename(s.p(srcLogical), s.p(dstLogical), false); err != nil {
+	dstLogical := path.Join(path.Dir(strings.Trim(p, "/")), newName)
+	if err := s.client.Rename(s.p(p), s.p(dstLogical), false); err != nil {
 		return "", err
 	}
 	return dstLogical, nil
 }
 
 func (s *webdavStore) CopyToDir(_ context.Context, paths []string, targetDir string) []*v1.FileOperationResult {
-	if err := guard(append([]string{targetDir}, paths...)...); err != nil {
-		return errResults(paths, err)
-	}
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	for _, p := range paths {
 		result := &v1.FileOperationResult{Path: p}
@@ -200,9 +178,6 @@ func (s *webdavStore) CopyToDir(_ context.Context, paths []string, targetDir str
 }
 
 func (s *webdavStore) MoveToDir(_ context.Context, paths []string, targetDir string) []*v1.FileOperationResult {
-	if err := guard(append([]string{targetDir}, paths...)...); err != nil {
-		return errResults(paths, err)
-	}
 	results := make([]*v1.FileOperationResult, 0, len(paths))
 	for _, p := range paths {
 		result := &v1.FileOperationResult{Path: p}

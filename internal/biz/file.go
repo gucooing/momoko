@@ -10,6 +10,7 @@ import (
 	"math"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -21,8 +22,8 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/auth"
+	"momoko/pkg/cache"
 	"momoko/pkg/file"
-	"momoko/pkg/localfs"
 	"momoko/pkg/pre"
 	"momoko/pkg/secretbox"
 	"momoko/pkg/share"
@@ -44,8 +45,10 @@ const (
 	fileServeTTL = 5 * time.Minute
 )
 
+var uploadCache = cache.New[string, *file.ChunkedUpload](UploadPeriod) // 全局上传缓存
+
 type FileRepo interface {
-	GetOrCreate(ctx context.Context, userId string, seed *file.UploadSeed) (*gen.FileUpload, error)
+	GetOrCreate(ctx context.Context, userId string, info *file.ChunkedUpload) (*gen.FileUpload, error)
 	WithTx(ctx context.Context, fn func(tx *gen.Tx) error) error
 	Query(ctx context.Context, uid string) (*gen.FileUpload, error)
 	QueryByUserID(ctx context.Context, userID, id string) (*gen.FileUpload, error)
@@ -74,34 +77,28 @@ type FileUsecase struct {
 	repo  FileRepo
 	box   *secretbox.Box
 	tasks *task.Manager
-	// buffer 是缓冲型远端来源(FTP/WebDAV)的分片缓冲视图（锁死在 file.UploadTempDir 内）。
-	buffer *localfs.FS
 }
 
 // NewFileUsecase 创建文件操作用例。
-func NewFileUsecase(repo FileRepo, tasks *task.Manager) (*FileUsecase, error) {
-	if _, err := localfs.OpenDir(file.ServersPath); err != nil {
-		return nil, fmt.Errorf("初始化实例目录失败: %w", err)
+func NewFileUsecase(repo FileRepo, tasks *task.Manager) *FileUsecase {
+	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
+		os.MkdirAll(file.ServersPath, 0755)
 	}
-	// 缓冲型远端来源(FTP/WebDAV)的分片缓冲目录。本地来源不用它——
-	// 本地缓冲必须与目标同目录，收尾才是同卷 rename。
-	buffer, err := file.UploadTemp()
-	if err != nil {
-		return nil, fmt.Errorf("初始化上传缓冲目录失败: %w", err)
-	}
+	// 远端来源上传的本地分片缓冲目录。
+	os.MkdirAll(file.UploadBufferDir, 0755)
 	uc := &FileUsecase{
-		repo:   repo,
-		box:    secretbox.New(auth.AuthSecretKey),
-		tasks:  tasks,
-		buffer: buffer,
+		repo:  repo,
+		box:   secretbox.New(auth.AuthSecretKey),
+		tasks: tasks,
 	}
 	// 注册文件传输/收尾任务工厂（开机/重试时按 payload 重建对应来源的 Copier/Mover/收尾会话）。
 	uc.registerTaskFactories()
 	// 恢复本域未完成的一次性任务：复制/剪切=不可重入(重启即标失败)，远端上传收尾=可重入(重启续做)。
 	_ = tasks.Resume(context.Background(), file.TaskTypeCopy, file.TaskTypeMove, file.TaskTypeUploadFinalize)
 	// 上传会话清理改为定时单例任务（开机随任务管理器启动），清理时一并中止 OSS 残留 multipart。
-	_ = tasks.EnsureSingleton(context.Background(), newUploadGCTask(repo, uploadGCInterval, 2*UploadPeriod, uc.cancelStaleUpload))
-	return uc, nil
+	gcTask := file.NewUploadGCTask(repo, uploadGCInterval, 2*UploadPeriod, uc.cancelStaleUpload)
+	_ = tasks.EnsureSingleton(context.Background(), gcTask)
+	return uc
 }
 
 // cancelStaleUpload 在清理残留上传会话时经来源中止其机制（删本地缓冲 / 中止 OSS multipart）。
@@ -110,11 +107,7 @@ func (f *FileUsecase) cancelStaleUpload(ctx context.Context, row *gen.FileUpload
 	if err != nil {
 		return
 	}
-	u, err := f.uploadFromRow(store, row)
-	if err != nil {
-		return
-	}
-	_ = store.CancelUpload(ctx, u)
+	_ = store.CancelUpload(ctx, uploadFromRow(row))
 }
 
 // registerTaskFactories 注册文件传输任务的重建工厂；store 解析（含解密/实例本地根）留在 biz。
@@ -154,25 +147,18 @@ func (f *FileUsecase) registerTaskFactories() {
 		if err != nil {
 			return nil, err
 		}
-		u, err := f.uploadFromRow(store, row)
-		if err != nil {
-			return nil, err
-		}
-		return file.NewFinalizeTask(metaFromRecord(rec), store, u, f.repo), nil
+		return file.NewFinalizeTask(metaFromRecord(rec), store, uploadFromRow(row), f.repo), nil
 	})
 }
 
 // uploadGCInterval 是清理废弃上传会话的周期。
 const uploadGCInterval = 30 * time.Minute
 
-// storeFor 按来源 id 解析存储后端：空/"local" 为本地磁盘（整机视图，含 Windows 盘符虚拟根），
+// storeFor 按来源 id 解析存储后端：空/"local" 为本地磁盘（系统级，含 Windows 盘符虚拟根），
 // 否则从 file_source 表读取并解密配置后构造对应来源。第二返回值在远端来源时为来源记录。
-//
-// 本地视图带上 file.SystemStoreOptions()：整机可浏览，但 momoko 自身的 data/ 与 configs/
-// （SQLite 库、auth.secret）落在保护清单内，任何读写都会被拒。
 func (f *FileUsecase) storeFor(ctx context.Context, sourceID string) (file.Store, *gen.FileSource, error) {
-	if sourceID == "" || sourceID == file.TypeLocal {
-		s, err := file.NewSystemStore(file.SystemStoreOptions()...)
+	if sourceID == "" || sourceID == "local" {
+		s, err := file.NewLocalStore(file.SystemPath)
 		if err != nil {
 			return nil, nil, ErrSystem(err)
 		}
@@ -194,22 +180,6 @@ func (f *FileUsecase) storeFor(ctx context.Context, sourceID string) (file.Store
 		return nil, rec, ErrSystem(err)
 	}
 	return s, rec, nil
-}
-
-// storeForSign 按预签名信息解析来源：签名里带了本地受限根（如实例工作目录）时重建同一个受限视图，
-// 使取件端的边界与签发端一致；否则退回按来源 id 解析。
-//
-// 签名本身是加密并带 HMAC 的、不可伪造，但取件端仍按边界复解析一次：
-// 这样万一将来某处签发了越界路径，取件端也不会照单全收。
-func (f *FileUsecase) storeForSign(ctx context.Context, info *pre.FileSignInfo) (file.Store, *gen.FileSource, error) {
-	if info.BasePath != "" {
-		s, err := file.NewScopedStore(info.BasePath, file.ScopedStoreOptions()...)
-		if err != nil {
-			return nil, nil, ErrSystem(err)
-		}
-		return s, nil, nil
-	}
-	return f.storeFor(ctx, info.SourceID)
 }
 
 // GetFileSystemList 获取文件列表（按来源）。
@@ -411,10 +381,10 @@ func submitTransfer(ctx context.Context, mgr *task.Manager, t task.Task) (*v1.Fi
 	return toFileTaskInfo(info), nil
 }
 
-// storeForPayload 按传输任务的 payload 解析目标 Store：受限本地根优先，否则按系统来源 id。
+// storeForPayload 按传输任务的 payload 解析目标 Store：实例本地根优先，否则按系统来源 id。
 func (f *FileUsecase) storeForPayload(ctx context.Context, p file.TransferPayload) (file.Store, error) {
 	if p.BasePath != "" {
-		s, err := file.NewScopedStore(p.BasePath, file.ScopedStoreOptions()...)
+		s, err := file.NewLocalStore(p.BasePath)
 		if err != nil {
 			return nil, ErrSystem(err)
 		}
@@ -512,12 +482,11 @@ func (f *FileUsecase) EditFileSystemFile(ctx context.Context, req *v1.EditFileSy
 	if err != nil {
 		return nil, err
 	}
-	// 来源内部还会再限一次；这里先挡一道，省得把超大内容读进来才发现。
-	if len(req.Content) > file.MaxEditSize {
+	if len(req.Content) > file.MaxLoadFileSize {
 		return nil, ErrSystem(fmt.Errorf("文件太大"))
 	}
 	if err = store.Write(ctx, req.Path, bytes.NewReader(req.Content)); err != nil {
-		return nil, ErrPathInvalid(err)
+		return nil, ErrSystem(err)
 	}
 	return &v1.EditFileSystemFileResponse{}, nil
 }
@@ -553,7 +522,7 @@ func (f *FileUsecase) FileSystemPreSign(ctx context.Context, userID string, req 
 // FileServe 校验签名后服务文件：可直链(302)的来源且开启 redirect_302 时跳转到来源预签名 URL，
 // 否则由后端代理串流（支持 Range，inline 预览 / attachment 下载）。
 func (f *FileUsecase) FileServe(ctx context.Context, info *pre.FileSignInfo, w http.ResponseWriter, r *http.Request) {
-	store, src, err := f.storeForSign(ctx, info)
+	store, src, err := f.storeFor(ctx, info.SourceID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -610,20 +579,15 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 	if err != nil {
 		return nil, err
 	}
-	// 本地来源把目标目录固化为真实路径（收尾时同卷原子 rename），顺带完成越界与保护清单校验；
-	// 远端来源用逻辑路径（来源在接口内自行归一化并校验）。
-	targetDir := req.Path
-	if local, ok := store.(*file.LocalStore); ok {
-		if targetDir, err = local.FS().RealPath(req.Path); err != nil {
-			return nil, ErrPathInvalid(err)
+	// 本地来源落地到真实路径（便于原子 rename）；远端来源用逻辑路径（来源在接口内自行处理）。
+	targetPath := req.Path
+	if req.SourceId == "" {
+		if targetPath, err = file.ResolveLocalPath(file.SystemPath, req.Path); err != nil {
+			return nil, ErrSystem(err)
 		}
 	}
-	// NewUploadSeed 校验目标文件名。这是历史上最危险的一处输入：
-	// 旧实现把它原样 Join 进目标路径，于是 "../../x" 就能写到磁盘任意位置。
-	seed, err := file.NewUploadSeed(req.Hash, targetDir, req.FileName, req.FileSize, req.SourceId)
-	if err != nil {
-		return nil, ErrPathInvalid(err)
-	}
+	seed := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize)
+	seed.SourceID = req.SourceId
 	row, err := f.repo.GetOrCreate(ctx, userID, seed)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -631,7 +595,7 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 	if row.Completed {
 		return toUploadInfo(row, &file.Upload{}), nil
 	}
-	u, err := f.buildUpload(store, userID, row)
+	u, err := buildUpload(f.repo, userID, row)
 	if err != nil {
 		return nil, err
 	}
@@ -640,72 +604,37 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 		return nil, ErrSystem(err)
 	}
 	row.ProviderRef = u.Ref // 来源可能在 Prepare 内建立并持久化续传句柄，回写以保持内存行一致
+	uploadCache.Set(row.ID, &file.ChunkedUpload{FileUpload: row})
 	return toUploadInfo(row, u), nil
 }
 
 // uploadFromRow 由数据库行构造通用上传载体（不含签名/续传闭包，供取消/收尾的盲调用）。
-//
-// 每次都对落库的行重新校验一遍布局：库里的文件名是很久以前写进去的，
-// 收尾时若不复验，一条来自旧版本或被旁路写入的记录就能重新变成任意写入。
-func (f *FileUsecase) uploadFromRow(store file.Store, row *gen.FileUpload) (*file.Upload, error) {
-	return uploadFromRow(store, f.bufferFor(store), row)
-}
-
-// bufferFor 返回某来源的分片缓冲视图：本地来源用其自身视图（缓冲与目标同目录，收尾即同卷 rename），
-// 缓冲型远端来源用专用缓冲目录；对象存储直传不落本地缓冲，返回值不会被用到。
-func (f *FileUsecase) bufferFor(store file.Store) *localfs.FS {
-	if local, ok := store.(*file.LocalStore); ok {
-		return local.FS()
-	}
-	return f.buffer
-}
-
-// uploadFromRow 见 [FileUsecase.uploadFromRow]；buffer 为分片缓冲所在的本地视图。
-func uploadFromRow(store file.Store, buffer *localfs.FS, row *gen.FileUpload) (*file.Upload, error) {
-	spec := localfs.Upload{
-		ID:       row.ID,
-		Dir:      row.Path, // 本地来源：缓冲与目标同目录，收尾即 rename
-		Name:     row.FileName,
-		Size:     row.FileSize,
-		PartSize: row.ChunkSize,
-		Parts:    row.TotalChunks,
-	}
-	if _, isLocal := store.(*file.LocalStore); !isLocal {
-		spec.Dir = "" // 缓冲型远端来源：缓冲落在专用缓冲目录的根下
-	}
-	if err := spec.Validate(); err != nil {
-		return nil, ErrPathInvalid(err)
-	}
+func uploadFromRow(row *gen.FileUpload) *file.Upload {
 	u := &file.Upload{
-		Target:   row.Path,
-		Spec:     spec,
-		Buffer:   buffer,
-		UserID:   row.UserID,
-		Ref:      row.ProviderRef,
-		Uploaded: map[uint64]string{},
+		ID:         row.ID,
+		UserID:     row.UserID,
+		Path:       row.Path,
+		FileName:   row.FileName,
+		FileSize:   row.FileSize,
+		PartSize:   row.ChunkSize,
+		TotalParts: row.TotalChunks,
+		Ref:        row.ProviderRef,
+		Uploaded:   map[uint64]string{},
 	}
 	for _, c := range row.Edges.Chunks {
 		u.Uploaded[c.Chunk] = c.Hash
 	}
-	return u, nil
+	return u
 }
 
 // buildUpload 在 uploadFromRow 基础上注入分片签名端点与续传句柄持久化闭包（供准备/状态/收尾）。
 // SignPart 返回 momoko 签名 PUT URL（缓冲型来源用）；SaveRef 幂等持久化来源句柄并返回竞态胜出者。
-func (f *FileUsecase) buildUpload(store file.Store, userID string, row *gen.FileUpload) (*file.Upload, error) {
-	return buildUpload(f.repo, store, f.bufferFor(store), userID, row)
-}
-
-// buildUpload 见 [FileUsecase.buildUpload]；实例文件管理复用同一套逻辑（其 buffer 即实例受限视图）。
-func buildUpload(repo FileRepo, store file.Store, buffer *localfs.FS, userID string, row *gen.FileUpload) (*file.Upload, error) {
+func buildUpload(repo FileRepo, userID string, row *gen.FileUpload) (*file.Upload, error) {
 	sign, err := pre.NewFileSignInfo(row.ID, row.Path, userID, UploadPeriod).Sign()
 	if err != nil {
 		return nil, ErrSign
 	}
-	u, err := uploadFromRow(store, buffer, row)
-	if err != nil {
-		return nil, err
-	}
+	u := uploadFromRow(row)
 	u.UserID = userID
 	u.SignPart = func(part uint64) string {
 		return fmt.Sprintf("%s?sign=%s&chunk=%d", PreFileUpload, sign, part)
@@ -727,6 +656,21 @@ func buildUpload(repo FileRepo, store file.Store, buffer *localfs.FS, userID str
 	return u, nil
 }
 
+// getChunkedUpload 获取 momoko 缓冲型上传会话（供分片接收端点 PreFileUpload 写缓冲）。
+// 缓存未命中（如服务重启）时从数据库重建，使断点续传不依赖进程内缓存。
+func (f *FileUsecase) getChunkedUpload(ctx context.Context, uploadID, userID string) (*file.ChunkedUpload, error) {
+	if upload, ok := uploadCache.Get(uploadID); ok {
+		return upload, nil
+	}
+	info, err := f.repo.QueryByUserID(ctx, userID, uploadID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	upload := &file.ChunkedUpload{FileUpload: info}
+	uploadCache.Set(uploadID, upload)
+	return upload, nil
+}
+
 // GetFileUploadStatus 返回上传会话的已传分片与分片直传地址（前端据此补传缺片）。
 // 盲调用 PrepareUpload：来源在接口内刷新 u.Uploaded（OSS 以来源为准，其余以本地分片表为准）。
 func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID string) (*v1.UploadInfo, error) {
@@ -734,24 +678,17 @@ func (f *FileUsecase) GetFileUploadStatus(ctx context.Context, userID, uploadID 
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	// 来源已停用/删除时仍返回会话状态：否则用户连自己这条上传都看不到、取消不掉。
-	store, _, err := f.storeFor(ctx, row.SourceID)
-	if err != nil {
-		return toUploadInfo(row, &file.Upload{}), nil
-	}
 	if row.Completed || row.Cancel {
-		u, err := f.uploadFromRow(store, row)
-		if err != nil {
-			return toUploadInfo(row, &file.Upload{}), nil
-		}
-		return toUploadInfo(row, u), nil
+		return toUploadInfo(row, uploadFromRow(row)), nil
 	}
-	u, err := f.buildUpload(store, userID, row)
+	u, err := buildUpload(f.repo, userID, row)
 	if err != nil {
 		return nil, err
 	}
-	_ = store.PrepareUpload(ctx, u)
-	row.ProviderRef = u.Ref
+	if store, _, err := f.storeFor(ctx, row.SourceID); err == nil {
+		_ = store.PrepareUpload(ctx, u)
+		row.ProviderRef = u.Ref
+	}
 	return toUploadInfo(row, u), nil
 }
 
@@ -769,23 +706,20 @@ func (f *FileUsecase) CompleteFileUpload(ctx context.Context, userID, uploadID s
 	if err != nil {
 		return nil, err
 	}
-	u, err := f.uploadFromRow(store, row)
-	if err != nil {
-		return nil, err
-	}
-	// 收尾较慢的来源（缓冲型远端，需把缓冲整流推送到远端）→ 放进任务管理器用不超时 ctx 执行，
-	// 前端轮询任务。本地来源收尾是同卷 rename，瞬时完成，同步返回即可。
+	// 收尾较慢的来源（缓冲型远端）→ 放进任务管理器用不超时 ctx 执行，前端轮询任务。
 	if fa, ok := store.(file.AsyncFinalizer); ok && fa.AsyncFinalize() {
 		meta := task.Meta{UserID: userID, Title: "上传收尾「" + row.FileName + "」"}
-		return submitTransfer(ctx, f.tasks, file.NewFinalizeTask(meta, store, u, f.repo))
+		t := file.NewFinalizeTask(meta, store, uploadFromRow(row), f.repo)
+		return submitTransfer(ctx, f.tasks, t)
 	}
 	// 瞬时收尾（本地 rename / OSS 合并分片）：同步完成。
-	if err := store.CompleteUpload(ctx, u); err != nil {
+	if err := store.CompleteUpload(ctx, uploadFromRow(row)); err != nil {
 		return nil, ErrSystem(err)
 	}
 	if err := f.repo.SetUploadCompleted(ctx, uploadID); err != nil {
 		return nil, ErrSystem(err)
 	}
+	uploadCache.Del(uploadID)
 	return nil, nil
 }
 
@@ -796,9 +730,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 		return ErrSystem(err)
 	}
 	if store, _, err := f.storeFor(ctx, row.SourceID); err == nil {
-		if u, err := f.uploadFromRow(store, row); err == nil {
-			_ = store.CancelUpload(ctx, u)
-		}
+		_ = store.CancelUpload(ctx, uploadFromRow(row))
 	}
 	if err := f.repo.WithTx(ctx, func(tx *gen.Tx) error {
 		_, e := tx.FileUpload.UpdateOneID(uploadID).SetCancel(true).Save(ctx)
@@ -806,44 +738,23 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 	}); err != nil {
 		return ErrSystem(err)
 	}
+	uploadCache.Del(uploadID)
 	return nil
 }
 
-// PreFileUpload 接收一个分片并写入本地缓冲（缓冲型来源用）。
-// 签名里的 Creator 是唯一的身份来源，因此每次都按 (会话 id, 用户) 回库取记录：
-// 旧实现先查进程内缓存、缓存命中就跳过了按用户过滤的那次查询，等于绕开归属校验。
 func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr *pre.FileSignInfo) error {
-	ctx := r.Context()
+	ctx := context.Background()
 	chunk, err := strconv.ParseUint(r.URL.Query().Get("chunk"), 10, 64)
 	if err != nil {
-		return ErrUploadRequestInvalid
-	}
-	row, err := f.repo.QueryByUserID(ctx, pr.Creator, pr.UploadId)
-	if err != nil {
-		return ErrUploadNotFound
-	}
-	if row.Completed || row.Cancel {
-		return ErrUploadClosed
-	}
-	store, _, err := f.storeFor(ctx, row.SourceID)
-	if err != nil {
 		return err
 	}
-	// 直传型来源（对象存储）的分片由前端直接 PUT 到来源，不经 momoko。
-	// 若在此放行，写出的缓冲文件既不会被收尾读取、也不会被取消清理，等于一条占盘通道。
-	if _, direct := store.(file.Presigner); direct {
-		return ErrFileSourceUnsupported
+	info, err := f.getChunkedUpload(ctx, pr.UploadId, pr.Creator)
+	if err != nil {
+		return ErrSystem(err)
 	}
-	u, err := f.uploadFromRow(store, row)
+	size, hash, err := info.UploadFilePart(r.Body, chunk)
 	if err != nil {
 		return err
-	}
-	if u.Buffer == nil {
-		return ErrFileSourceUnsupported
-	}
-	size, hash, err := u.Buffer.WriteUploadPart(u.Spec, chunk, r.Body)
-	if err != nil {
-		return ErrPathInvalid(err)
 	}
 	// 写入hash
 	if err = f.repo.SaveChunkRecord(ctx, pr.UploadId, chunk, hash, size); err != nil {
@@ -853,6 +764,10 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 }
 
 // ---- 文件来源（OSS/FTP/WebDAV，全局/管理员维护）----
+
+func validSourceType(typ string) bool {
+	return typ == "oss" || typ == "ftp" || typ == "webdav"
+}
 
 // parseStoredConfig 解析数据库中存储的配置 JSON（密钥字段仍为加密态）。
 func (f *FileUsecase) parseStoredConfig(rec *gen.FileSource) (file.Config, error) {
@@ -1012,7 +927,7 @@ func (f *FileUsecase) ListFileSources(ctx context.Context, req *v1.ListFileSourc
 }
 
 func (f *FileUsecase) CreateFileSource(ctx context.Context, userID string, req *v1.CreateFileSourceRequest) (*v1.FileSourceInfo, error) {
-	if !file.ValidType(req.Type) {
+	if !validSourceType(req.Type) {
 		return nil, ErrFileSourceType
 	}
 	cfgJSON, err := f.buildStoredConfig(req.Type, req.Config, nil)
@@ -1069,7 +984,7 @@ func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSource
 			return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
 		}
 	} else {
-		if !file.ValidType(req.Type) {
+		if !validSourceType(req.Type) {
 			return &v1.TestFileSourceResponse{Ok: false, Message: "类型不合法"}, nil
 		}
 		cfg = requestToConfig(req.Type, req.Config)

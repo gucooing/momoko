@@ -51,12 +51,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	fileRepo := data.NewFileRepo(dataData)
 	store := data.NewTaskRepo(dataData)
 	taskManager, cleanup2 := biz.NewTaskManager(store)
-	fileUsecase, err := biz.NewFileUsecase(fileRepo, taskManager)
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
+	fileUsecase := biz.NewFileUsecase(fileRepo, taskManager)
 	fileService := service.NewFileService(fileUsecase)
 	userService := service.NewUserService(userUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
