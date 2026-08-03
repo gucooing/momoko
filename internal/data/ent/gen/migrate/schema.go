@@ -619,6 +619,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{SessionsColumns[8]},
 			},
+			{
+				Name:    "session_device_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{SessionsColumns[3], SessionsColumns[9]},
+			},
 		},
 	}
 	// Sub2apiAnnouncementsColumns holds the columns for the "sub2api_announcements" table.

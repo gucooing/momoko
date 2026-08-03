@@ -36,8 +36,3 @@ func ClientIPFromContext(ctx context.Context) string {
 	}
 	return ClientIP(httpReq)
 }
-
-func UserAgent(r *http.Request) string {
-	userAgent := r.UserAgent()
-	return userAgent
-}

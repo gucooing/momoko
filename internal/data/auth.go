@@ -25,6 +25,12 @@ func NewAuthRepo(data *Data) biz.AuthRepo {
 }
 
 func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Session, error) {
+	ar.data.db.Session.Delete().Where(
+		entauth.And(
+			entauth.UserIDEQ(authInfo.UserID),
+			entauth.DeviceIDEQ(authInfo.DeviceID),
+		)).Exec(ctx) // 将可能存在的旧会话移除掉
+
 	authData, err := ar.data.db.Session.
 		Create().
 		SetID(authInfo.SessionID).

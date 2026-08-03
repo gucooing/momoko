@@ -38,6 +38,7 @@ func (Session) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("user_id"),
 		index.Fields("expires_at"),
+		index.Fields("device_id", "user_id").Unique(), // 同一个用户在同一个设备上只能有一条登录记录
 	}
 }
 
