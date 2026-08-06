@@ -6,21 +6,10 @@ option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
-// Sub2API 公共首页与管理
+// Sub2API 管理
 service Sub2APIManager {
-  // 获取 Sub2API 公开首页元信息（无需鉴权）：仅配置/公告/时间线，用量另拆接口，页面渐进渲染
-  rpc PublicSub2APIHome(PublicSub2APIHomeRequest) returns (PublicSub2APIHomeResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/public/sub2api/home"
-    };
-  }
-  // 获取 Sub2API 公开首页今日概览（无需鉴权）：状态 + 今日标量 + 今日曲线，独立于首页元信息
-  rpc GetPublicSub2APIOverview(GetPublicSub2APIOverviewRequest) returns (GetPublicSub2APIOverviewResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/public/sub2api/overview"
-    };
-  }
   // 获取 Sub2API 配置
   rpc GetSub2APIConfig(GetSub2APIConfigRequest) returns (GetSub2APIConfigResponse) {
     option (google.api.http) = {
@@ -48,94 +37,27 @@ service Sub2APIManager {
       body: "*"
     };
   }
-  // 获取 Sub2API 当前聚合快照
-  rpc GetSub2APISnapshot(GetSub2APISnapshotRequest) returns (GetSub2APISnapshotResponse) {
+  // 获取当前Sub2API的同步状态
+  rpc GetSyncSub2APIStatus(GetSyncSub2APIStatusRequest) returns (GetSyncSub2APIStatusResponse) {
     option (google.api.http) = {
-      get: "/api/v1/sub2api/snapshot"
+      get: "/api/v1/sub2api/sync/status"
     };
   }
-  // 获取指定时间区间的公开用量统计（无需鉴权）：标量 + 趋势 + 分组/UA；模型排行另走独立接口
-  rpc GetPublicSub2APIStats(GetSub2APIStatsRequest) returns (GetSub2APIStatsResponse) {
+  // 获取获取指定时间范围的 Sub2API 状态
+  rpc GetSub2APIStatus(GetSub2APIStatusRequest) returns (GetSub2APIStatusResponse) {
     option (google.api.http) = {
-      get: "/api/v1/public/sub2api/stats"
+      get: "/api/v1/sub2api/status"
     };
   }
-  // 获取公开热门模型排行（无需鉴权）：单次 DB GroupBy 直出，首页/详情页共用
-  rpc GetPublicSub2APIModels(GetPublicSub2APIModelsRequest) returns (GetPublicSub2APIModelsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/public/sub2api/models"
-    };
-  }
-  // 管理端用量汇总（标量指标 + 区间标签，需鉴权）
-  rpc GetSub2APIAdminTotals(GetSub2APIAdminTotalsRequest) returns (GetSub2APIAdminTotalsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/sub2api/stats/totals"
-    };
-  }
-  // 管理端用量趋势（按区间跨度日内分桶/按天，需鉴权）
   rpc GetSub2APIAdminTrend(GetSub2APIAdminTrendRequest) returns (GetSub2APIAdminTrendResponse) {
     option (google.api.http) = {
-      get: "/api/v1/sub2api/stats/trend"
+      get: "/api/v1/sub2api/trend"
     };
   }
-  // 管理端用量排行（模型 + 分组，按 token 降序，需鉴权）
-  rpc GetSub2APIAdminTop(GetSub2APIAdminTopRequest) returns (GetSub2APIAdminTopResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/sub2api/stats/top"
-    };
-  }
-  // 获取管理端最近请求（按时间区间分页，需鉴权）
+  // 获取管理端请求日志
   rpc GetSub2APIRecentRequests(GetSub2APIRecentRequestsRequest) returns (GetSub2APIRecentRequestsResponse) {
     option (google.api.http) = {
       get: "/api/v1/sub2api/recent-requests"
-    };
-  }
-
-  // 公告管理
-  rpc ListSub2APIAnnouncements(ListSub2APIAnnouncementsRequest) returns (ListSub2APIAnnouncementsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/sub2api/announcements"
-    };
-  }
-  rpc CreateSub2APIAnnouncement(CreateSub2APIAnnouncementRequest) returns (Sub2APIAnnouncementResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/sub2api/announcements"
-      body: "*"
-    };
-  }
-  rpc UpdateSub2APIAnnouncement(UpdateSub2APIAnnouncementRequest) returns (Sub2APIAnnouncementResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/sub2api/announcements/{id}"
-      body: "*"
-    };
-  }
-  rpc DeleteSub2APIAnnouncement(DeleteSub2APIAnnouncementRequest) returns (DeleteSub2APIAnnouncementResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1/sub2api/announcements/{id}"
-    };
-  }
-
-  // 时间线管理
-  rpc ListSub2APITimeline(ListSub2APITimelineRequest) returns (ListSub2APITimelineResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/sub2api/timeline"
-    };
-  }
-  rpc CreateSub2APITimelineItem(CreateSub2APITimelineItemRequest) returns (Sub2APITimelineItemResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/sub2api/timeline"
-      body: "*"
-    };
-  }
-  rpc UpdateSub2APITimelineItem(UpdateSub2APITimelineItemRequest) returns (Sub2APITimelineItemResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/sub2api/timeline/{id}"
-      body: "*"
-    };
-  }
-  rpc DeleteSub2APITimelineItem(DeleteSub2APITimelineItemRequest) returns (DeleteSub2APITimelineItemResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1/sub2api/timeline/{id}"
     };
   }
 
@@ -221,171 +143,52 @@ service Sub2APIManager {
   }
 }
 
-message PublicSub2APIHomeRequest {}
-
-message PublicSub2APIHomeResponse {
-  Sub2APIHome home = 1;
-}
-
+// 获取 Sub2API 配置请求
 message GetSub2APIConfigRequest {}
 
+// 已同步的 Sub2API 分组
 message Sub2APIGroup {
+  // 上游分组 ID
   string id = 1;
+  // 分组名称
   string name = 2;
+  // 是否纳入公开页统计
   bool public_enabled = 3;
   // 上游是否已删除；设置页将多个已删除分组合并为「已删除分组」一项
   bool deleted = 4;
 }
 
+// 获取 Sub2API 配置响应
 message GetSub2APIConfigResponse {
+  // 当前配置
   Sub2APIConfig config = 1;
   // 本地已同步分组（含是否公开），配置页直接渲染勾选。
   repeated Sub2APIGroup groups = 2;
 }
 
-message UpdateSub2APIConfigRequest {
-  Sub2APIConfig config = 1;
-}
-
-message UpdateSub2APIConfigResponse {
-  Sub2APIConfig config = 1;
-}
-
-message TestSub2APIConnectionRequest {
-  Sub2APIConfig config = 1;
-}
-
-message TestSub2APIConnectionResponse {
-  bool connected = 1;
-  string message = 2;
-}
-
-message SyncSub2APIUsageRequest {
-  // 是否强制全量同步
-  bool full = 1;
-}
-
-message SyncSub2APIUsageResponse {
-  Sub2APIUsageSnapshot snapshot = 1;
-}
-
-message GetSub2APISnapshotRequest {}
-
-message GetSub2APISnapshotResponse {
-  Sub2APIUsageSnapshot snapshot = 1;
-}
-
-message GetSub2APIStatsRequest {
-  // 统计区间天数：<=1 表示今日，否则为最近 N 天
-  int32 range_days = 1;
-}
-
-message GetSub2APIStatsResponse {
-  Sub2APIStats stats = 1;
-}
-
-message GetPublicSub2APIModelsRequest {
-  // 统计区间天数：<=1 表示今日，否则为最近 N 天
-  int32 range_days = 1;
-  // 返回条数；<=0 返回全部（详情页）；首页传 8
-  int32 limit = 2;
-}
-
-message GetPublicSub2APIModelsResponse {
-  repeated Sub2APITopItem models = 1;
-}
-
-// 管理端统计时间段（Unix 毫秒，精度到分钟）：三个拆分接口共用同一语义。
-// start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
-message GetSub2APIAdminTotalsRequest {
-  int64 start_time = 1;
-  int64 end_time = 2;
-}
-
-// 用量汇总标量指标 + 区间标签（概览指标带独立拉取）
-message GetSub2APIAdminTotalsResponse {
-  string range_label = 1;
-  int64 request_count = 2;
-  int64 success_count = 3;
-  double success_rate = 4;
-  int64 token_count = 5;
-  double average_latency_ms = 6;
-  double average_tps = 7;
-}
-
-message GetSub2APIAdminTrendRequest {
-  int64 start_time = 1;
-  int64 end_time = 2;
-}
-
-// 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐）
-message GetSub2APIAdminTrendResponse {
-  repeated Sub2APITrendPoint trend = 1;
-}
-
-message GetSub2APIAdminTopRequest {
-  int64 start_time = 1;
-  int64 end_time = 2;
-  // 每个维度返回的最大条数；<=0 返回全部。
-  int32 limit = 3;
-}
-
-// 模型 + 分组用量排行（均按 token 降序，一次请求返回）
-message GetSub2APIAdminTopResponse {
-  repeated Sub2APITopItem models = 1;
-  repeated Sub2APITopItem groups = 2;
-}
-
-message GetSub2APIRecentRequestsRequest {
-  // 统计时间段（Unix 毫秒，精度到分钟）：与管理端用量概览一致。
-  // start_time <= 0 表示不限制起点（全部记录）；end_time <= 0 时按当前时间。
-  int64 start_time = 1;
-  int64 end_time = 2;
-  // 页码（从 1 起）与每页条数。
-  int32 page = 3;
-  int32 page_size = 4;
-  // 多维度筛选（可选：字段缺省 = 该维度不参与过滤）。服务端 WHERE 过滤，翻页与总数随之收敛。
-  optional string model = 5;         // 模型名（精确匹配）
-  optional string group_name = 6;    // 分组名（精确匹配）
-  optional string account_name = 7;  // 账号名（子串，不区分大小写）
-  optional string outcome = 8;       // 结果："success"=成功 / "failed"=失败
-}
-
-message GetSub2APIRecentRequestsResponse {
-  repeated Sub2APIRecentRequest recent_requests = 1;
-  int64 total = 2;
-  int32 page = 3;
-  int32 page_size = 4;
-}
-
-message Sub2APIStats {
-  int32 range_days = 1;
-  string range_label = 2;
-  int64 request_count = 3;
-  int64 success_count = 4;
-  double success_rate = 5;
-  int64 token_count = 6;
-  double average_latency_ms = 7;
-  double average_tps = 8;
-  repeated Sub2APITrendPoint trend = 9;
-  // UA（User-Agent）维度用量明细，按使用数量降序
-  repeated Sub2APITopItem user_agents = 12;
-  // 分组维度用量明细，按使用数量降序
-  repeated Sub2APITopItem groups = 13;
-}
-
 // 仅包含连接与展示配置，公告/时间线为独立资源。
 message Sub2APIConfig {
+  // 是否启用公开首页
   bool home_enabled = 1;
+  // 是否启用定时用量同步
   bool sync_enabled = 2;
+  // Sub2API 服务基础地址
   string base_url = 3;
+  // Sub2API 管理员 API 密钥
   string admin_api_key = 4;
+  // Sub2API 控制台地址
   string console_url = 5;
+  // 公开首页标题
   string title = 6;
+  // 公开首页副标题
   string subtitle = 7;
+  // 公开首页介绍文案
   string introduction = 8;
+  // 定时同步间隔（分钟）
   int32 sync_interval_minutes = 9;
+  // 本地保留使用记录的天数
   int32 history_days = 10;
+  // 默认分页大小
   int32 page_size = 11;
   // 允许调用 momoko 生图的 sub2api 站点 origin 列表（留空表示不限制）
   repeated string allowed_src_hosts = 12;
@@ -398,178 +201,172 @@ message Sub2APIConfig {
   repeated string public_groups = 15;
 }
 
-// 公开首页元信息（不含用量快照；用量走 GetPublicSub2APIOverview，前端渐进渲染）
-message Sub2APIHome {
-  bool enabled = 1;
-  string console_url = 2;
-  string title = 3;
-  string subtitle = 4;
-  string introduction = 5;
-  repeated Sub2APIAnnouncement announcements = 6;
-  repeated Sub2APITimelineItem timeline = 7;
+// 更新 Sub2API 配置请求
+message UpdateSub2APIConfigRequest {
+  // 待保存的配置
+  Sub2APIConfig config = 1;
 }
 
-message GetPublicSub2APIOverviewRequest {}
+// 更新 Sub2API 配置响应
+message UpdateSub2APIConfigResponse {
+  // 已保存的配置
+  Sub2APIConfig config = 1;
+}
 
-// 公开首页今日概览：仅首页 hero/曲线所需字段（远小于完整快照）
-message GetPublicSub2APIOverviewResponse {
+// 测试 Sub2API 管理员连接请求
+message TestSub2APIConnectionRequest {
+  // 用于本次连接测试的配置
+  Sub2APIConfig config = 1;
+}
+
+// 测试 Sub2API 管理员连接响应
+message TestSub2APIConnectionResponse {
+  // 是否连接成功
+  bool connected = 1;
+  // 连接结果说明
+  string message = 2;
+}
+
+// 手动同步 Sub2API 用量请求
+message SyncSub2APIUsageRequest {
+  // 是否强制全量同步
+  bool full = 1;
+}
+
+// 手动同步 Sub2API 用量响应
+message SyncSub2APIUsageResponse {
+  // 同步后的同步信息
+  Sub2APISyncStatus item = 1;
+}
+
+// 获取当前Sub2API的同步状态请求
+message GetSyncSub2APIStatusRequest {}
+
+// 获取当前Sub2API的同步状态响应
+message GetSyncSub2APIStatusResponse {
+  // 同步信息
+  Sub2APISyncStatus item = 1;
+}
+
+// Sub2API同步信息
+message Sub2APISyncStatus {
+  // 当前连接或同步状态
   string status = 1;
-  int64 today_request_count = 2;
-  int64 today_success_count = 3;
-  double today_success_rate = 4;
-  int64 today_token_count = 5;
-  double recent_tps = 6;
-  repeated Sub2APITimePoint today_series = 7;
+  // 最近一次同步或连接错误
+  string error = 2;
+  // 上次同步完成时间
+  google.protobuf.Timestamp last_sync_time = 3;
+  // 下次计划同步时间
+  google.protobuf.Timestamp next_sync_time = 4;
+  // 最新一条使用记录的请求时间
+  google.protobuf.Timestamp latest_record_time = 5;
+  // 已同步记录数
+  int64 synced_records = 6;
 }
 
-message Sub2APIAnnouncement {
-  string id = 1;
-  string title = 2;
-  string content = 3;
-  string level = 4;
-  google.protobuf.Timestamp published_at = 5;
-  bool pinned = 6;
+// 获取指定时间范围的 Sub2API 状态请求
+message GetSub2APIStatusRequest {
+  // 开始时间
+  google.protobuf.Timestamp  start_time = 1;
+  // 结束时间
+  google.protobuf.Timestamp  end_time = 2;
 }
 
-message Sub2APITimelineItem {
-  string id = 1;
-  string title = 2;
-  string content = 3;
-  string category = 4;
-  google.protobuf.Timestamp published_at = 5;
+// 获取指定时间范围的 Sub2API 状态响应
+message GetSub2APIStatusResponse {
+  // Sub2API状态
+  Sub2APIStatus item = 1;
 }
 
-// 公告管理消息
-message ListSub2APIAnnouncementsRequest {}
-
-message ListSub2APIAnnouncementsResponse {
-  repeated Sub2APIAnnouncement announcements = 1;
+// Sub2API状态
+message Sub2APIStatus {
+  // 请求总数
+  int64 request_count = 1;
+  // 成功请求数
+  int64 success_count = 2;
+  // 总成功请求耗时
+  google.protobuf.Duration all_latency_ms = 3;
+  // 总 token 总数
+  int64 token_count = 4;
 }
 
-message CreateSub2APIAnnouncementRequest {
-  string title = 1;
-  string content = 2;
-  string level = 3;
-  bool pinned = 4;
-  google.protobuf.Timestamp published_at = 5;
+// 获取管理端用量趋势请求
+message GetSub2APIAdminTrendRequest {
+  // 区间起始时间
+  google.protobuf.Timestamp  start_time = 1;
+  // 区间结束时间
+  google.protobuf.Timestamp  end_time = 2;
 }
 
-message UpdateSub2APIAnnouncementRequest {
-  string id = 1;
-  string title = 2;
-  string content = 3;
-  string level = 4;
-  bool pinned = 5;
-  google.protobuf.Timestamp published_at = 6;
+// 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐）
+message GetSub2APIAdminTrendResponse {
+  // 按时间桶聚合的用量趋势
+  repeated Sub2APITrendPoint trend = 1;
 }
 
-message Sub2APIAnnouncementResponse {
-  Sub2APIAnnouncement announcement = 1;
-}
-
-message DeleteSub2APIAnnouncementRequest {
-  string id = 1;
-}
-
-message DeleteSub2APIAnnouncementResponse {}
-
-// 时间线管理消息
-message ListSub2APITimelineRequest {}
-
-message ListSub2APITimelineResponse {
-  repeated Sub2APITimelineItem timeline = 1;
-}
-
-message CreateSub2APITimelineItemRequest {
-  string title = 1;
-  string content = 2;
-  string category = 3;
-  google.protobuf.Timestamp published_at = 4;
-}
-
-message UpdateSub2APITimelineItemRequest {
-  string id = 1;
-  string title = 2;
-  string content = 3;
-  string category = 4;
-  google.protobuf.Timestamp published_at = 5;
-}
-
-message Sub2APITimelineItemResponse {
-  Sub2APITimelineItem item = 1;
-}
-
-message DeleteSub2APITimelineItemRequest {
-  string id = 1;
-}
-
-message DeleteSub2APITimelineItemResponse {}
-
-message Sub2APIUsageSnapshot {
-  bool configured = 1;
-  string status = 2;
-  string error = 3;
-  google.protobuf.Timestamp last_sync_time = 4;
-  google.protobuf.Timestamp next_sync_time = 5;
-  google.protobuf.Timestamp latest_record_time = 6;
-  int64 synced_records = 7;
-  int64 total_records = 8;
-  int64 request_count = 9;
-  int64 success_count = 10;
-  double success_rate = 11;
-  double average_latency_ms = 12;
-  int64 token_count = 13;
-  int64 today_request_count = 14;
-  int64 today_success_count = 15;
-  double today_success_rate = 16;
-  double today_average_latency_ms = 17;
-  int64 today_token_count = 18;
-  string data_range = 19;
-  google.protobuf.Timestamp generated_at = 20;
-  repeated Sub2APITrendPoint trend = 21;
-  repeated Sub2APITopItem model_usage = 22;
-  repeated Sub2APIRecentRequest recent_requests = 24;
-  // 最近滑动窗口内的真实吞吐（锚定最新记录时间，避免随墙钟衰减）
-  double recent_tps = 25;
-  double recent_qps = 26;
-  int32 recent_window_seconds = 27;
-  // 当日按时间分桶的成功率/生成速度序列（用于首页随时间移动的曲线）
-  repeated Sub2APITimePoint today_series = 28;
-}
-
-message Sub2APITimePoint {
-  google.protobuf.Timestamp time = 1;
-  int64 request_count = 2;
-  double success_rate = 3;
-  double avg_tps = 4;
-}
-
+// 用量趋势采样点
 message Sub2APITrendPoint {
+  // 统计日期或时间桶标签
   string date = 1;
+  // 请求数
   int64 request_count = 2;
+  // 成功请求数
   int64 success_count = 3;
-  double success_rate = 4;
-  double average_latency_ms = 5;
+  // 总成功请求耗时
+  google.protobuf.Duration all_latency_ms = 5;
+  // token 总数
   int64 token_count = 6;
 }
 
-message Sub2APITopItem {
-  string name = 1;
-  int64 request_count = 2;
-  int64 token_count = 3;
-  double success_rate = 4;
-  // 该模型的平均 token 生成速度（输出token/秒，按请求平均，不含缓存）
-  double avg_tps = 5;
+// 获取管理端最近请求列表请求
+message GetSub2APIRecentRequestsRequest {
+  // 开始时间1
+  google.protobuf.Timestamp start_time = 1;
+  // 结束时间
+  google.protobuf.Timestamp end_time = 2;
+  // 页码（从 1 起）与每页条数。
+  int32 page = 3;
+  // 每页返回条数
+  int32 page_size = 4;
+  // 模型名（模糊匹配）
+  optional string model = 5;
+  // 分组名（模糊匹配）
+  optional string group_name = 6;
+  // 账号名（模糊匹配）
+  optional string account_name = 7;
+  // 结果："success"=成功 / "failed"=失败
+  optional string outcome = 8;
 }
 
+// 获取管理端最近请求列表响应
+message GetSub2APIRecentRequestsResponse {
+  // 最近请求列表
+  repeated Sub2APIRecentRequest recent_requests = 1;
+  // 筛选后的记录总数
+  int64 total = 2;
+  // 实际页码
+  int32 page = 3;
+  // 实际每页条数
+  int32 page_size = 4;
+}
+
+// 最近一条 Sub2API 请求的摘要与详情
 message Sub2APIRecentRequest {
+  // 上游请求 ID
   string request_id = 1;
+  // 请求模型名称
   string model = 2;
+  // 请求的上游端点
   string endpoint = 3;
+  // 上游记录状态
   string status = 4;
+  // 请求是否成功
   bool success = 5;
+  // 请求延迟（毫秒）
   int64 latency_ms = 6;
+  // 本次请求的 token 数
   int64 token_count = 7;
+  // 请求发生时间
   google.protobuf.Timestamp request_time = 8;
   // 详情字段（成功请求）
   double cost = 9;              // 费用（USD）
@@ -586,6 +383,7 @@ message Sub2APIRecentRequest {
 
 // 轮次状态
 enum LotteryRoundStatus {
+  // 未指定轮次状态
   LOTTERY_ROUND_STATUS_UNSPECIFIED = 0;
   // 报名中（00:00 已结算，12:00 前）
   LOTTERY_ROUND_STATUS_REGISTERING = 1;
@@ -595,6 +393,7 @@ enum LotteryRoundStatus {
 
 // 派奖状态
 enum LotteryPayoutStatus {
+  // 未指定派奖状态
   LOTTERY_PAYOUT_STATUS_UNSPECIFIED = 0;
   // 未中奖 / 无需发放
   LOTTERY_PAYOUT_STATUS_NONE = 1;
@@ -608,6 +407,7 @@ enum LotteryPayoutStatus {
 
 // 用户在某轮的参与情况（用户端历史）
 enum LotteryMyStatus {
+  // 未指定参与状态
   LOTTERY_MY_STATUS_UNSPECIFIED = 0;
   // 未参加
   LOTTERY_MY_STATUS_NONE = 1;
@@ -633,10 +433,13 @@ message LotteryRound {
   string source_date = 2;                     // 扣费来源日期（前一天）
   google.protobuf.Timestamp settle_time = 3;  // 结算时间
   google.protobuf.Timestamp draw_time = 4;    // 开奖时间
+  // 当前轮次状态
   LotteryRoundStatus status = 5;
   double pool_ratio = 6;                      // 奖池比例快照
   double threshold = 7;                       // 报名门槛快照
+  // 基准中奖人数快照
   int32 base_winners = 8;
+  // 最大中奖人数快照（0 表示不设上限）
   int32 max_winners = 9;
   double group_spend_total = 10;              // 来源日展示分组扣费之和
   double carry_in = 11;                       // 上一期结转
@@ -646,132 +449,195 @@ message LotteryRound {
   int32 winner_count = 15;                    // 实际中奖人数
   double per_winner_amount = 16;              // 每位中奖者金额
   double carry_out = 17;                      // 结转到次日
+  // 是否按本轮配置自动派奖
   bool auto_payout = 18;
   bool distributed = 19;                      // 是否已发放
 }
 
 // 参与者/中奖记录
 message LotteryParticipant {
+  // 本地参与记录 ID
   int32 id = 1;
+  // 所属轮次日期
   string round_id = 2;
+  // Sub2API 用户 ID
   int64 sub2api_user_id = 3;
+  // 用户名或已脱敏邮箱
   string user_name = 4;
+  // 报名时记录的符合资格消费额
   double spend_snapshot = 5;
+  // 报名时间
   google.protobuf.Timestamp registered_time = 6;
+  // 是否为中奖者
   bool is_winner = 7;
+  // 奖金金额
   double prize_amount = 8;
+  // 奖金发放状态
   LotteryPayoutStatus payout_status = 9;
+  // 派奖失败原因
   string payout_error = 10;
 }
 
-// 管理端概览
+// 获取抽奖管理端概览请求
 message GetLotteryOverviewRequest {}
 
+// 获取抽奖管理端概览响应
 message GetLotteryOverviewResponse {
+  // 当前活动配置
   LotterySettings settings = 1;
   string accum_date = 2;                          // 当前累计日期
   double accum_spend = 3;                         // 今日展示分组扣费
   double accum_pool = 4;                          // 预估奖池 = 比例 × 今日扣费
   int32 accum_eligible = 5;                       // 预估资格人数
+  // 下次结算时间
   google.protobuf.Timestamp next_settle_time = 6;
+  // 下次开奖时间
   google.protobuf.Timestamp next_draw_time = 7;
   LotteryRound current = 8;                       // 当前报名中轮次（无则为空）
 }
 
+// 更新抽奖活动配置请求
 message UpdateLotterySettingsRequest {
+  // 待保存的活动配置
   LotterySettings settings = 1;
 }
 
+// 更新抽奖活动配置响应
 message UpdateLotterySettingsResponse {
+  // 已保存的活动配置
   LotterySettings settings = 1;
 }
 
+// 分页获取抽奖历史轮次请求
 message ListLotteryRoundsRequest {
+  // 页码（从 1 起）
   int32 page = 1;
+  // 每页返回条数
   int32 page_size = 2;
 }
 
+// 分页获取抽奖历史轮次响应
 message ListLotteryRoundsResponse {
+  // 抽奖轮次列表
   repeated LotteryRound rounds = 1;
+  // 历史轮次总数
   int64 total = 2;
+  // 实际页码
   int32 page = 3;
+  // 实际每页条数
   int32 page_size = 4;
 }
 
+// 获取抽奖轮次详情请求
 message GetLotteryRoundDetailRequest {
+  // 轮次日期 ID
   string id = 1;
 }
 
+// 获取抽奖轮次详情响应
 message GetLotteryRoundDetailResponse {
+  // 轮次详情
   LotteryRound round = 1;
+  // 该轮次中奖者列表
   repeated LotteryParticipant winners = 2;
 }
 
+// 获取抽奖轮次报名者列表请求
 message ListLotteryRegistrantsRequest {
   string id = 1; // 轮次日期
 }
 
 // 报名者名单：仅本地快照（用户id / 用户名 / 消费额），不做任何外部调用
 message ListLotteryRegistrantsResponse {
+  // 报名者列表
   repeated LotteryParticipant registrants = 1;
+  // 报名者总数
   int32 total = 2;
 }
 
 // Sub2API 用户信息（点击某个报名者时按 user_id 实时拉取单个）
 message Sub2APIUserInfo {
+  // Sub2API 用户 ID
   int64 id = 1;
+  // 用户名
   string username = 2;
+  // 邮箱
   string email = 3;
+  // 用户角色
   string role = 4;
+  // 账户余额
   double balance = 5;
+  // 账户状态
   string status = 6;
+  // 账户创建时间
   google.protobuf.Timestamp created_at = 7;
 }
 
+// 获取单个 Sub2API 用户请求
 message GetSub2APIUserRequest {
+  // 要查询的 Sub2API 用户 ID
   int64 user_id = 1;
 }
 
+// 获取单个 Sub2API 用户响应
 message GetSub2APIUserResponse {
+  // 用户信息
   Sub2APIUserInfo user = 1;
 }
 
+// 手动发放抽奖轮次奖金请求
 message DistributeLotteryRoundRequest {
+  // 要发放奖金的轮次日期 ID
   string id = 1;
 }
 
+// 手动发放抽奖轮次奖金响应
 message DistributeLotteryRoundResponse {
+  // 发放后的轮次状态
   LotteryRound round = 1;
 }
 
+// 手动立即结算抽奖轮次请求
 message TriggerLotterySettleRequest {
   // 为空则结算「今天」
   string date = 1;
 }
 
+// 手动立即结算抽奖轮次响应
 message TriggerLotterySettleResponse {
+  // 结算后的轮次状态
   LotteryRound round = 1;
 }
 
+// 手动立即开奖抽奖轮次请求
 message TriggerLotteryDrawRequest {
   // 为空则开奖「今天」
   string date = 1;
 }
 
+// 手动立即开奖抽奖轮次响应
 message TriggerLotteryDrawResponse {
+  // 开奖后的轮次状态
   LotteryRound round = 1;
 }
 
-// 用户端状态
+// 获取用户端抽奖状态请求
 message GetLotteryStatusRequest {}
 
+// 获取用户端抽奖状态响应
 message GetLotteryStatusResponse {
+  // 抽奖活动是否启用
   bool enabled = 1;
+  // 当前请求是否已通过 Sub2API Token 鉴权
   bool authenticated = 2;
+  // 当前 Sub2API 用户 ID
   int64 user_id = 3;
+  // 当前 Sub2API 用户名
   string user_name = 4;
   double accum_pool = 5;                          // 当期累计奖池
+  // 下次结算时间
   google.protobuf.Timestamp next_settle_time = 6;
+  // 下次开奖时间
   google.protobuf.Timestamp next_draw_time = 7;
   LotteryRound current = 8;                       // 已结算未开奖的轮次
   bool eligible = 9;                              // 是否有资格报名（报名中/昨日）
@@ -783,45 +649,75 @@ message GetLotteryStatusResponse {
   bool accum_eligible = 15;                       // 本人是否达到当期参与条件
 }
 
+// 报名当前抽奖轮次请求
 message RegisterLotteryRequest {}
 
+// 报名当前抽奖轮次响应
 message RegisterLotteryResponse {
+  // 抽奖活动是否启用
   bool enabled = 1;
+  // 当前请求是否已通过 Sub2API Token 鉴权
   bool authenticated = 2;
+  // 当前 Sub2API 用户 ID
   int64 user_id = 3;
+  // 当前 Sub2API 用户名
   string user_name = 4;
+  // 当期累计奖池
   double accum_pool = 5;
+  // 下次结算时间
   google.protobuf.Timestamp next_settle_time = 6;
+  // 下次开奖时间
   google.protobuf.Timestamp next_draw_time = 7;
+  // 当前报名中轮次
   LotteryRound current = 8;
+  // 是否有资格报名
   bool eligible = 9;
+  // 本人来源日扣费
   double user_spend = 10;
+  // 是否已经报名
   bool registered = 11;
+  // 参与门槛金额
   double threshold = 12;
+  // 当期累计对应的轮次日期
   string accum_round_date = 13;
+  // 本人当期累计扣费
   double accum_user_spend = 14;
+  // 本人是否达到当期参与条件
   bool accum_eligible = 15;
 }
 
+// 分页获取用户端抽奖历史请求
 message ListLotteryHistoryPublicRequest {
+  // 页码（从 1 起）
   int32 page = 1;
+  // 每页返回条数
   int32 page_size = 2;
 }
 
 // 用户端历史：轮次 + 本人参与情况 + 公开中奖名单（邮箱已打码）
 message LotteryHistoryItem {
+  // 抽奖轮次
   LotteryRound round = 1;
+  // 当前用户在该轮次的参与状态
   LotteryMyStatus my_status = 2;
+  // 当前用户在该轮次获得的奖金
   double my_prize = 3;
+  // 当前用户是否已报名
   bool registered = 4;
+  // 当前用户是否中奖
   bool is_winner = 5;
   // 中奖名单（公开）；user_name 若为邮箱已脱敏，用户名原样。不含派奖错误等敏感字段语义依赖。
   repeated LotteryParticipant winners = 6;
 }
 
+// 分页获取用户端抽奖历史响应
 message ListLotteryHistoryPublicResponse {
+  // 历史轮次列表
   repeated LotteryHistoryItem items = 1;
+  // 历史轮次总数
   int64 total = 2;
+  // 实际页码
   int32 page = 3;
+  // 实际每页条数
   int32 page_size = 4;
 }

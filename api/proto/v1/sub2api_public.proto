@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// Sub2API 公共API
+service Sub2APIPublicManager {
+  // 获取 Sub2API 公开首页元信息
+  rpc PublicSub2APIHome(PublicSub2APIHomeRequest) returns (PublicSub2APIHomeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/home"
+    };
+  }
+  // 获取获取指定时间范围的 Sub2API 状态
+  rpc GetPublicSub2APIStatus(GetPublicSub2APIStatusRequest) returns (GetPublicSub2APIStatusResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/status"
+    };
+  }
+  // 获取 Sub2API 概览曲线图
+  rpc GetPublicSub2APITrend(GetPublicSub2APITrendRequest) returns (GetPublicSub2APITrendResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/trend"
+    };
+  }
+  // 根据维度获取排行
+  rpc GetPublicSub2APITop(GetPublicSub2APITopRequest) returns (GetPublicSub2APITopResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/sub2api/top"
+    };
+  }
+
+}
+
+// 获取公开首页元信息请求
+message PublicSub2APIHomeRequest {}
+
+// 获取公开首页元信息响应
+message PublicSub2APIHomeResponse {
+  // 公开首页元信息
+  Sub2APIHome home = 1;
+}
+
+// 公开首页元信息
+message Sub2APIHome {
+  // 公开首页是否启用
+  bool enabled = 1;
+  // 跳转到 Sub2API 控制台的地址
+  string console_url = 2;
+  // 首页标题
+  string title = 3;
+  // 首页副标题
+  string subtitle = 4;
+  // 首页介绍文案
+  string introduction = 5;
+}
+
+
+// 获取指定时间范围的 Sub2API 状态请求
+message GetPublicSub2APIStatusRequest {
+  // 开始时间
+  google.protobuf.Timestamp  start_time = 1;
+  // 结束时间
+  google.protobuf.Timestamp  end_time = 2;
+}
+
+// 获取指定时间范围的 Sub2API 状态响应
+message GetPublicSub2APIStatusResponse {
+  // Sub2API状态
+  PublicSub2APIStatus item = 1;
+}
+
+// Sub2API状态
+message PublicSub2APIStatus {
+  // 请求总数
+  int64 request_count = 1;
+  // 成功请求数
+  int64 success_count = 2;
+  // 总成功请求耗时
+  google.protobuf.Duration all_latency_ms = 3;
+  // 总 token 总数
+  int64 token_count = 4;
+}
+
+// 获取管理端用量趋势请求
+message GetPublicSub2APITrendRequest {
+  // 区间起始时间
+  google.protobuf.Timestamp  start_time = 1;
+  // 区间结束时间
+  google.protobuf.Timestamp  end_time = 2;
+}
+
+// 用量趋势序列（区间 <=24h 按 15 分钟桶，否则按天补齐）
+message GetPublicSub2APITrendResponse {
+  // 按时间桶聚合的用量趋势
+  repeated PublicSub2APITrendPoint trend = 1;
+}
+
+// 用量趋势采样点
+message PublicSub2APITrendPoint {
+  // 统计日期或时间桶标签
+  string date = 1;
+  // 请求数
+  int64 request_count = 2;
+  // 成功请求数
+  int64 success_count = 3;
+  // 总成功请求耗时
+  google.protobuf.Duration all_latency_ms = 5;
+  // token 总数
+  int64 token_count = 6;
+}
+
+// 用量排行的统计维度
+enum Sub2APITopDimension {
+  // 未指定：按模型维度统计
+  SUB2API_TOP_DIMENSION_UNSPECIFIED = 0;
+  // 模型维度
+  SUB2API_TOP_DIMENSION_MODEL = 1;
+  // 分组维度
+  SUB2API_TOP_DIMENSION_GROUP = 2;
+  // User-Agent（客户端）维度
+  SUB2API_TOP_DIMENSION_USER_AGENT = 3;
+}
+
+// 根据维度获取排行请求
+message GetPublicSub2APITopRequest {
+  // 开始时间
+  google.protobuf.Timestamp  start_time = 1;
+  // 结束时间
+  google.protobuf.Timestamp  end_time = 2;
+  // 返回条数；<=0 返回全部
+  int32 limit = 3;
+  // 统计维度
+  Sub2APITopDimension dimension = 4;
+}
+
+// 根据维度获取排行响应
+message GetPublicSub2APITopResponse {
+  // 按 token 用量降序排序的排行项
+  repeated Sub2APITopItem items = 1;
+}
+
+
+// 模型、分组或 User-Agent 维度的用量排行项
+message Sub2APITopItem {
+  // 维度取值名称（模型名 / 分组名 / User-Agent）
+  string name = 1;
+  // 请求数
+  int64 request_count = 2;
+  // token 总数
+  int64 token_count = 3;
+  // 成功数
+  int64 success_count = 4;
+  // 该模型的平均 token 生成速度（输出token/ms）
+  double avg_tps = 5;
+}

@@ -50,101 +50,164 @@ service Sub2APIImageGen {
   }
 }
 
+// 获取当前 Sub2API Token 可用生图 API Key 列表请求
 message ListImageGenApiKeysRequest {}
 
+// 可用于生图的 API Key 摘要
 message ImageGenApiKeySummary {
+  // API Key ID，不返回密钥原文
   string id = 1;
+  // API Key 显示名称
   string name = 2;
+  // 所属分组 ID
   string group_id = 3;
+  // 所属分组名称
   string group_name = 4;
+  // 上游平台标识
   string platform = 5;
 }
 
+// 获取当前 Sub2API Token 可用生图 API Key 列表响应
 message ListImageGenApiKeysResponse {
+  // 可用 API Key 摘要列表
   repeated ImageGenApiKeySummary api_keys = 1;
 }
 
+// 获取指定 API Key 可用生图模型请求
 message ListImageGenModelsRequest {
+  // 从可用 API Key 列表中选择的 API Key ID
   string api_key_id = 1;
 }
 
+// 支持生图的模型
 message ImageGenModel {
+  // 上游模型 ID
   string id = 1;
+  // 用于界面展示的模型名称
   string display_name = 2;
 }
 
+// 获取指定 API Key 可用生图模型响应
 message ListImageGenModelsResponse {
+  // 支持生图的模型列表
   repeated ImageGenModel models = 1;
 }
 
+// 获取当前用户生图任务列表请求
 message ListImageGenGenerationsRequest {
   // 最近多少条，<=0 时取默认 50
   int32 limit = 1;
 }
 
+// 获取当前用户生图任务列表响应
 message ListImageGenGenerationsResponse {
+  // 生图任务列表，不包含图片二进制内容
   repeated ImageGenGeneration generations = 1;
 }
 
+// 创建异步生图任务请求
 message CreateImageGenGenerationRequest {
   reserved 1;                   // 原 mode：改由后端按是否带 source_image 可靠判定，不接受客户端指定
+  // 要调用的生图模型 ID
   string model = 2;
+  // 生图提示词
   string prompt = 3;
+  // 期望的图片尺寸
   string size = 4;
+  // 要生成的图片数量
   int32 n = 5;
+  // 图片质量参数
   string quality = 6;
+  // 生成图片的输出格式
   string output_format = 7;
   // 源图：整张图片，base64 data URL（data:image/png;base64,...）。
   // 带 source_image 即图生图（走 /v1/images/edits），否则文生图（走 /v1/images/generations）。
   string source_image = 8;
+  // 执行本次生成所使用的 API Key ID
   string api_key_id = 9;
 }
 
+// 获取单个生图任务请求
 message GetImageGenGenerationRequest {
+  // 生图任务 ID
   string id = 1;
 }
 
+// 生图任务操作响应
 message ImageGenGenerationResponse {
+  // 生图任务详情
   ImageGenGeneration generation = 1;
 }
 
+// 删除生图任务请求
 message DeleteImageGenGenerationRequest {
+  // 要删除的生图任务 ID
   string id = 1;
 }
 
+// 删除生图任务响应
 message DeleteImageGenGenerationResponse {}
 
+// 异步生图任务及其结果
 message ImageGenGeneration {
+  // 生图任务 ID
   string id = 1;
+  // 任务所属的 Sub2API 用户 ID
   string user_id = 2;
+  // 生成模式，由服务端根据是否提供源图确定
   string mode = 3;
+  // 调用的生图模型 ID
   string model = 4;
+  // 生图提示词
   string prompt = 5;
+  // 请求的图片尺寸
   string size = 6;
+  // 请求的图片数量
   int32 n = 7;
+  // 图片质量参数
   string quality = 8;
+  // 图片输出格式
   string output_format = 9;
   string status = 10;            // pending | completed | failed
+  // 任务失败原因
   string error_message = 11;
   reserved 12;                   // 原 source_image_id：img2img 改为直传图片字节，不再持久化源图
+  // 任务执行耗时（毫秒）
   int64 latency_ms = 13;
+  // 实际生成的图片数量
   int32 result_count = 14;
+  // 本次任务使用的 API Key ID
   string api_key_id = 15;
+  // 任务开始执行时间
   google.protobuf.Timestamp started_at = 16;
+  // 任务完成或失败时间
   google.protobuf.Timestamp finished_at = 17;
+  // 任务创建时间
   google.protobuf.Timestamp created_at = 18;
+  // 已生成图片的元数据列表
   repeated ImageGenImage images = 19;
 }
 
+// 单张已生成图片的元数据
 message ImageGenImage {
+  // 图片记录 ID
   string id = 1;
+  // 所属生图任务 ID
   string generation_id = 2;
+  // 本地保存的文件名
   string filename = 3;
+  // 该图片在任务结果中的序号
   int32 index = 4;
+  // 图片宽度（像素）
   int32 width = 5;
+  // 图片高度（像素）
   int32 height = 6;
+  // 图片 MIME 类型
   string mime_type = 7;
+  // 图片文件大小（字节）
   int64 size_bytes = 8;
+  // 上游返回的修订后提示词
   string revised_prompt = 9;
+  // 图片记录创建时间
   google.protobuf.Timestamp created_at = 10;
 }
