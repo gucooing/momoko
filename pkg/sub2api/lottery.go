@@ -2,6 +2,7 @@ package sub2api
 
 import (
 	"context"
+	"math"
 	"strconv"
 	"time"
 
@@ -27,7 +28,7 @@ const (
 	LotterySettleHour = 0
 	// LotteryDrawHour 开奖时刻（当天 12:00）：关闭报名并抽奖。
 	LotteryDrawHour = 12
-	// LotteryPrizeCap 每位中奖者金额上限：超过则中奖人数翻倍。
+	// LotteryPrizeCap 中奖者平均金额目标：超过则中奖人数翻倍。
 	LotteryPrizeCap = 10.0
 )
 
@@ -155,7 +156,7 @@ type LotteryRound struct {
 	EligibleCount   int
 	RegisteredCount int
 	WinnerCount     int
-	PerWinnerAmount float64
+	PerWinnerAmount float64 // 中奖者平均金额；实际奖金按来源日消费比例计算
 	CarryOut        float64
 	AutoPayout      bool
 	Distributed     bool
@@ -231,6 +232,46 @@ func ComputeWinnerCount(pool float64, base, maxWinners, registered int) int {
 		winners = registered
 	}
 	return winners
+}
+
+// ComputeProportionalPrizes 按中奖者来源日消费占比分配奖池。
+// 返回值与 spends 一一对应；最后一位有效中奖者承接浮点余数，保证奖池总额不丢失。
+func ComputeProportionalPrizes(pool float64, spends []float64) ([]float64, bool) {
+	prizes := make([]float64, len(spends))
+	if pool <= 0 || math.IsNaN(pool) || math.IsInf(pool, 0) {
+		return prizes, false
+	}
+
+	totalSpend := 0.0
+	lastValid := -1
+	for i, spend := range spends {
+		if !validLotterySpend(spend) {
+			continue
+		}
+		totalSpend += spend
+		lastValid = i
+	}
+	if lastValid < 0 || totalSpend <= 0 || math.IsNaN(totalSpend) || math.IsInf(totalSpend, 0) {
+		return prizes, false
+	}
+
+	allocated := 0.0
+	for i, spend := range spends {
+		if !validLotterySpend(spend) {
+			continue
+		}
+		if i == lastValid {
+			prizes[i] = pool - allocated
+			break
+		}
+		prizes[i] = pool * spend / totalSpend
+		allocated += prizes[i]
+	}
+	return prizes, true
+}
+
+func validLotterySpend(spend float64) bool {
+	return spend > 0 && !math.IsNaN(spend) && !math.IsInf(spend, 0)
 }
 
 // LotteryNow 返回抽奖时区当前时间。

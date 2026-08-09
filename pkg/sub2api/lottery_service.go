@@ -271,18 +271,37 @@ func (s *LotteryService) Draw(roundDate string) (*LotteryRound, error) {
 		return round, nil
 	}
 
-	winnerCount := ComputeWinnerCount(round.PoolAmount, round.BaseWinners, round.MaxWinners, len(participants))
-	perWinner := 0.0
-	if winnerCount > 0 {
-		perWinner = round.PoolAmount / float64(winnerCount)
+	// 零消费报名者在门槛配置为 0 时可能存在，但其消费占比为 0，不参与派奖。
+	candidates := make([]*LotteryParticipant, 0, len(participants))
+	for _, p := range participants {
+		if p != nil && validLotterySpend(p.SpendSnapshot) {
+			candidates = append(candidates, p)
+		}
 	}
-	if err = secureShuffle(participants); err != nil {
+	winnerCount := ComputeWinnerCount(round.PoolAmount, round.BaseWinners, round.MaxWinners, len(candidates))
+	if err = secureShuffle(candidates); err != nil {
 		return nil, fmt.Errorf("开奖随机失败：%w", err)
 	}
-	winners := participants[:winnerCount]
-	for _, p := range winners {
+	winners := candidates[:winnerCount]
+	spends := make([]float64, len(winners))
+	for i, p := range winners {
+		spends[i] = p.SpendSnapshot
+	}
+	prizes, allocated := ComputeProportionalPrizes(round.PoolAmount, spends)
+	if !allocated {
+		round.WinnerCount = 0
+		round.PerWinnerAmount = 0
+		round.CarryOut = round.PoolAmount
+		round.Distributed = true
+		round.Status = LotteryRoundDrawn
+		if err = s.store.SaveLotteryRound(ctx, round); err != nil {
+			return nil, err
+		}
+		return round, nil
+	}
+	for i, p := range winners {
 		p.IsWinner = true
-		p.PrizeAmount = perWinner
+		p.PrizeAmount = prizes[i]
 		p.PayoutStatus = PayoutPending
 		if err = s.store.UpdateParticipant(ctx, p); err != nil {
 			return nil, err
@@ -290,7 +309,7 @@ func (s *LotteryService) Draw(roundDate string) (*LotteryRound, error) {
 	}
 
 	round.WinnerCount = winnerCount
-	round.PerWinnerAmount = perWinner
+	round.PerWinnerAmount = round.PoolAmount / float64(winnerCount)
 	round.CarryOut = 0
 	round.Status = LotteryRoundDrawn
 	round.Distributed = false
