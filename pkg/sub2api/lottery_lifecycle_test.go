@@ -2,6 +2,7 @@ package sub2api
 
 import (
 	"context"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -281,6 +282,62 @@ func TestDraw_RejectBeforeNoon(t *testing.T) {
 	_, err := svc.Draw("2026-07-15")
 	if err != ErrLotteryDrawNotDue {
 		t.Fatalf("err=%v want DrawNotDue", err)
+	}
+}
+
+func TestDraw_DistributesPoolByWinnerSpend(t *testing.T) {
+	setClock(t, cst(2026, 7, 15, 12, 1))
+	store := newMemStore()
+	settle, _ := RoundSettleTime("2026-07-15")
+	draw, _ := RoundDrawTime("2026-07-15")
+	_ = store.SaveLotteryRound(context.Background(), &LotteryRound{
+		ID: "2026-07-15", SourceDate: "2026-07-14",
+		SettleTime: settle, DrawTime: draw,
+		Status: LotteryRoundRegistering, PoolAmount: 100,
+		BaseWinners: 10, AutoPayout: false,
+	})
+	store.parts["2026-07-15"] = []*LotteryParticipant{
+		{ID: 1, Sub2APIUserID: 1, SpendSnapshot: 10},
+		{ID: 2, Sub2APIUserID: 2, SpendSnapshot: 30},
+		{ID: 3, Sub2APIUserID: 3, SpendSnapshot: 60},
+	}
+
+	round, err := NewLotteryService(store, newEnabledConfig(), nil).Draw("2026-07-15")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if round.WinnerCount != 3 {
+		t.Fatalf("winnerCount=%d want 3", round.WinnerCount)
+	}
+	if math.Abs(round.PerWinnerAmount-100.0/3.0) > 1e-12 {
+		t.Fatalf("average=%v want %v", round.PerWinnerAmount, 100.0/3.0)
+	}
+
+	want := map[int64]float64{1: 10, 2: 30, 3: 60}
+	total := 0.0
+	for _, p := range store.parts["2026-07-15"] {
+		if !p.IsWinner || p.PayoutStatus != PayoutPending {
+			t.Fatalf("participant %d not pending winner: %+v", p.Sub2APIUserID, p)
+		}
+		if math.Abs(p.PrizeAmount-want[p.Sub2APIUserID]) > 1e-12 {
+			t.Fatalf("participant %d prize=%v want %v", p.Sub2APIUserID, p.PrizeAmount, want[p.Sub2APIUserID])
+		}
+		total += p.PrizeAmount
+	}
+	if math.Abs(total-round.PoolAmount) > 1e-12 {
+		t.Fatalf("prize total=%v pool=%v", total, round.PoolAmount)
+	}
+}
+
+func TestComputeProportionalPrizes_NoValidSpend(t *testing.T) {
+	prizes, ok := ComputeProportionalPrizes(10, []float64{0, -1, math.NaN()})
+	if ok {
+		t.Fatal("zero or invalid spend must not allocate the pool")
+	}
+	for i, prize := range prizes {
+		if prize != 0 {
+			t.Fatalf("prizes[%d]=%v want 0", i, prize)
+		}
 	}
 }
 
