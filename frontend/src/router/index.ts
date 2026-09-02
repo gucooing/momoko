@@ -26,7 +26,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   NProgress.start()
 
-  // 公开路由（如 Sub2API 公共首页）无需鉴权，直接放行
+  // 公开路由无需鉴权，直接放行
   if (to.meta?.public) return true
 
   const token = localStorage.getItem('accessToken')

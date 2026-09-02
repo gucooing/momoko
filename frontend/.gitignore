@@ -37,3 +37,6 @@ __screenshots__/
 auto-imports.d.ts
 components.d.ts
 /.claude
+
+# i18n 审计产物（由 scripts/i18n-audit.mjs 生成）
+scripts/i18n-audit-report.json

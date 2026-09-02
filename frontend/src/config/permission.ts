@@ -32,10 +32,8 @@ export const PERM = {
   DOCKER_IMAGE_MANAGE: 'docker_image:manage',
   DOCKER_NETWORK_MANAGE: 'docker_network:manage',
 
-  // ---- 工具 ----
-  NETWORK_MANAGE: 'network:manage',
-  SUB2API_VIEW: 'sub2api:view',
-  SUB2API_EDIT: 'sub2api:edit',
+	// ---- 工具 ----
+	NETWORK_MANAGE: 'network:manage',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

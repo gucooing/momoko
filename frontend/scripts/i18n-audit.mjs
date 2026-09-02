@@ -42,26 +42,26 @@ function flatten(obj, prefix = '', out = new Set()) {
 }
 
 // --- collect defined keys from export const messages ---
-// messages nests systemMessages/toolsMessages/... so evaluate all blocks in one scope
+// messages nests systemMessages/toolsMessages/... so evaluate all blocks in one scope.
+// 块名自动发现（按源码声明顺序），避免重命名模块后脚本失效。
+function discoverBlockNames() {
+  const re = /^(?:export\s+)?const\s+(\w+)\s*(?::[^=\n]+)?=\s*\{/gm
+  const names = []
+  let m
+  while ((m = re.exec(src))) names.push(m[1])
+  if (!names.includes('messages')) throw new Error('cannot find `const messages` in messages.ts')
+  return names
+}
+
 function evalAllMessages() {
-  const names = [
-    'systemMessages',
-    'toolsMessages',
-    'dockerMessages',
-    'sshMessages',
-    'nodeMessages',
-    'utilityMessages',
-    'sub2apiMessages',
-    'messages',
-    'knownTextMessages',
-  ]
+  const names = discoverBlockNames()
   const parts = []
   for (const n of names) {
     const lit = extractObjectLiteral(n)
     if (!lit) throw new Error(`cannot extract ${n}`)
     parts.push(`const ${n} = ${lit};`)
   }
-  parts.push('return { messages, knownTextMessages };')
+  parts.push('return { messages, knownTextMessages: typeof knownTextMessages === "undefined" ? {} : knownTextMessages };')
   try {
     return new Function(parts.join('\n'))()
   } catch (e) {
@@ -144,6 +144,12 @@ for (const file of files) {
 
 // Also collect string-literal keys assigned to *Key variables / maps (dynamic t(labelKey))
 // e.g. 'system.operation.types.authLogin' or "system.operation.types.xxx"
+// 命名空间根从 messages 实际结构派生，不再硬编码（否则新增/重命名模块后会漏判为未使用）。
+const nsRoots = new Set([...definedKeys].map((k) => k.split('.')[0]))
+// 单引号/反引号 = 仓库里的 JS 字符串（prettier singleQuote: true）；双引号绝大多数是 Vue 绑定
+// 表达式（:key="instance.id"），那是属性访问不是消息键。后者仍并入 usedKeys（防误报未使用），
+// 但不进 keyLikeLiterals，因此不会被当成「缺失的键」。
+const keyLikeLiterals = new Set()
 const bareKeyStringRe = /(['"`])((?:[a-zA-Z][\w]*\.){1,}[a-zA-Z][\w]*)\1/g
 for (const file of files) {
   const text = fs.readFileSync(file, 'utf8')
@@ -151,42 +157,9 @@ for (const file of files) {
   while ((m = bareKeyStringRe.exec(text))) {
     const key = m[2]
     // only count if it looks like a known namespace root
-    const root = key.split('.')[0]
-    if (
-      [
-        'common',
-        'language',
-        'layout',
-        'theme',
-        'dashboard',
-        'system',
-        'tools',
-        'docker',
-        'ssh',
-        'node',
-        'utils',
-        'sub2api',
-        'taskManager',
-        'fileManager',
-        'file',
-        'fileSource',
-        'instance',
-        'user',
-        'login',
-        'register',
-        'forgot',
-        'password',
-        'initialize',
-        'exception',
-        'dialog',
-        'avatar',
-        'iconSelector',
-        'oidc',
-        'terminal',
-      ].includes(root)
-    ) {
-      usedKeys.add(key)
-    }
+    if (!nsRoots.has(key.split('.')[0])) continue
+    usedKeys.add(key)
+    if (m[1] !== '"') keyLikeLiterals.add(key)
   }
 }
 
@@ -204,11 +177,13 @@ const unused = [...definedKeys]
   .sort()
 
 // --- missing keys (used but not defined) ---
+// 只报「确有 t()/translate()/*Key 出处」的键。裸字符串启发式（bareKeyStringRe）会把
+// node.name / instance.id 这类 JS 属性访问误当成键，混进来会把真正的缺失淹掉。
 const missing = [...usedKeys]
   .filter((k) => {
-    // skip if looks like not a message key (no dot and short?) — still report if not defined
     if (k.includes('${')) return false
-    return !definedKeys.has(k) && !isDynamicallyUsed(k)
+    if (definedKeys.has(k) || isDynamicallyUsed(k)) return false
+    return usedKeyLocations.has(k) || keyLikeLiterals.has(k)
   })
   .sort()
 

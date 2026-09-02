@@ -62,8 +62,6 @@ var (
 		{method: http.MethodPost, path: "/api/v1/auth/register/email-code"}:             {},
 		{method: http.MethodPost, path: "/api/v1/auth/login/email-code"}:                {},
 		{method: http.MethodGet, path: "/api/v1/system/login-config"}:                   {},
-		{method: http.MethodGet, path: "/api/v1/public/sub2api/home"}:                   {},
-		{method: http.MethodGet, path: "/api/v1/public/sub2api/stats"}:                  {},
 		{method: http.MethodGet, path: "/api/v1/system/initialize/status"}:              {},
 		{method: http.MethodPost, path: "/api/v1/system/initialize/confirm"}:            {},
 		{method: http.MethodPost, path: "/api/v1/system/initialize/database/test"}:      {},
@@ -87,7 +85,7 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				next.ServeHTTP(w, r)
 				return
 			}
-			// 公开路由前缀免 JWT：业务层（如 Imagine）自行用 X-Sub2API-Token 校验 sub2api token。
+			// 公开路由前缀免 JWT。
 			if strings.HasPrefix(r.URL.Path, "/api/v1/public/") {
 				next.ServeHTTP(w, r)
 				return

@@ -9,23 +9,11 @@ export const useThemeStore = defineStore('theme', () => {
   const toggleDark = useToggle(colorSchemeIsDark)
   const preferredDark = usePreferredDark()
 
-  // 作为 iframe 被 Sub2API 控制台嵌入时，父级通过 ?theme=light|dark 下发主题，
-  // 并在切换主题时携带新值重载 iframe；这里读取后作为初始主题随之切换。
-  // 仅在 ui_mode=embedded 时生效，且不写入 localStorage，避免覆盖独立访问时用户自己的选择。
-  const readEmbeddedTheme = (): 'light' | 'dark' | null => {
-    if (typeof window === 'undefined') return null
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('ui_mode') !== 'embedded') return null
-    const theme = params.get('theme')
-    return theme === 'light' || theme === 'dark' ? theme : null
-  }
-
   const themeModeStorage = localStorage.getItem('themeMode')
   const themeMode = ref<ThemeMode>(
-    readEmbeddedTheme() ??
-      (themeModeStorage === 'light' || themeModeStorage === 'dark' || themeModeStorage === 'auto'
-        ? themeModeStorage
-        : 'auto'),
+    themeModeStorage === 'light' || themeModeStorage === 'dark' || themeModeStorage === 'auto'
+      ? themeModeStorage
+      : 'auto',
   )
 
   const isDarkTheme = computed(() => {
@@ -123,19 +111,6 @@ export const useThemeStore = defineStore('theme', () => {
       applyThemeMode()
     }
   })
-
-  // 作为 iframe 被 Sub2API 控制台嵌入时，父级在切换主题时通过 postMessage 下发最新主题，
-  // 这里实时应用（不写入 localStorage，避免覆盖独立访问时用户自己的选择）。
-  if (typeof window !== 'undefined') {
-    window.addEventListener('message', (event: MessageEvent) => {
-      const data = event.data
-      if (!data || data.source !== 'sub2api' || data.type !== 'theme') return
-      if (data.theme === 'light' || data.theme === 'dark') {
-        themeMode.value = data.theme
-        applyThemeMode()
-      }
-    })
-  }
 
   applyThemeMode()
 

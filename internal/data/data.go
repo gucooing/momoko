@@ -33,8 +33,6 @@ var ProviderSet = wire.NewSet(
 	NewTaskRepo,
 	NewOperationLogRepo,
 	NewInitializeRepo,
-	NewSub2APIRepo,
-	NewImageGenRepo,
 	NewOIDCRepo,
 )
 
@@ -59,7 +57,6 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 	if err = dropLegacyAuthTable(context.Background(), db); err != nil {
 		return nil, nil, err
 	}
-
 	// 自动迁移：允许删索引/列，直接对齐最新 schema。
 	if err = db.Schema.Create(
 		context.Background(),

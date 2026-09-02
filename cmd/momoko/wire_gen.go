@@ -101,39 +101,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	dockerService := service.NewDockerService(dockerUsecase)
-	sub2APIRepo := data.NewSub2APIRepo(dataData)
-	sub2APIUsecase, cleanup6, err := biz.NewSub2APIUsecase(configRepo, sub2APIRepo, taskManager)
-	if err != nil {
-		cleanup5()
-		cleanup4()
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	sub2APIService := service.NewSub2APIService(sub2APIUsecase)
-	imageGenRepo := data.NewImageGenRepo(dataData)
-	imageGenUsecase, cleanup7, err := biz.NewImageGenUsecase(imageGenRepo, configRepo)
-	if err != nil {
-		cleanup6()
-		cleanup5()
-		cleanup4()
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	imageGenService := service.NewImageGenService(imageGenUsecase)
 	oidcRepo := data.NewOIDCRepo(dataData)
 	oidcUsecase := biz.NewOIDCUsecase(oidcRepo, configRepo, userRepo)
 	oidcService := service.NewOIDCService(oidcUsecase)
 	taskUsecase := biz.NewTaskUsecase(taskManager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, sub2APIService, imageGenService, oidcService, taskService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, oidcService, taskService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
-		cleanup7()
-		cleanup6()
 		cleanup5()
 		cleanup4()
 		cleanup3()

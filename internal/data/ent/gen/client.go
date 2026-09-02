@@ -18,8 +18,6 @@ import (
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
 	"momoko/internal/data/ent/gen/frptunnelstat"
-	"momoko/internal/data/ent/gen/imagegengeneration"
-	"momoko/internal/data/ent/gen/imagegenimage"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/menu"
@@ -30,12 +28,6 @@ import (
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/session"
 	"momoko/internal/data/ent/gen/sshhost"
-	"momoko/internal/data/ent/gen/sub2apiannouncement"
-	"momoko/internal/data/ent/gen/sub2apigroup"
-	"momoko/internal/data/ent/gen/sub2apilotteryparticipant"
-	"momoko/internal/data/ent/gen/sub2apilotteryround"
-	"momoko/internal/data/ent/gen/sub2apitimelineitem"
-	"momoko/internal/data/ent/gen/sub2apiusagerecord"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
@@ -68,10 +60,6 @@ type Client struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
-	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
-	ImageGenGeneration *ImageGenGenerationClient
-	// ImageGenImage is the client for interacting with the ImageGenImage builders.
-	ImageGenImage *ImageGenImageClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -92,18 +80,6 @@ type Client struct {
 	SSHHost *SSHHostClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
-	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
-	Sub2APIAnnouncement *Sub2APIAnnouncementClient
-	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
-	Sub2APIGroup *Sub2APIGroupClient
-	// Sub2APILotteryParticipant is the client for interacting with the Sub2APILotteryParticipant builders.
-	Sub2APILotteryParticipant *Sub2APILotteryParticipantClient
-	// Sub2APILotteryRound is the client for interacting with the Sub2APILotteryRound builders.
-	Sub2APILotteryRound *Sub2APILotteryRoundClient
-	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
-	Sub2APITimelineItem *Sub2APITimelineItemClient
-	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
-	Sub2APIUsageRecord *Sub2APIUsageRecordClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
 	// Task is the client for interacting with the Task builders.
@@ -130,8 +106,6 @@ func (c *Client) init() {
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.FrpTunnel = NewFrpTunnelClient(c.config)
 	c.FrpTunnelStat = NewFrpTunnelStatClient(c.config)
-	c.ImageGenGeneration = NewImageGenGenerationClient(c.config)
-	c.ImageGenImage = NewImageGenImageClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
@@ -142,12 +116,6 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.Session = NewSessionClient(c.config)
-	c.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(c.config)
-	c.Sub2APIGroup = NewSub2APIGroupClient(c.config)
-	c.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(c.config)
-	c.Sub2APILotteryRound = NewSub2APILotteryRoundClient(c.config)
-	c.Sub2APITimelineItem = NewSub2APITimelineItemClient(c.config)
-	c.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
 	c.Task = NewTaskClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -242,37 +210,29 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                       ctx,
-		config:                    cfg,
-		EmailTemplate:             NewEmailTemplateClient(cfg),
-		FileShare:                 NewFileShareClient(cfg),
-		FileSource:                NewFileSourceClient(cfg),
-		FileUpload:                NewFileUploadClient(cfg),
-		FileUploadChunk:           NewFileUploadChunkClient(cfg),
-		FrpTunnel:                 NewFrpTunnelClient(cfg),
-		FrpTunnelStat:             NewFrpTunnelStatClient(cfg),
-		ImageGenGeneration:        NewImageGenGenerationClient(cfg),
-		ImageGenImage:             NewImageGenImageClient(cfg),
-		Instance:                  NewInstanceClient(cfg),
-		InstanceType:              NewInstanceTypeClient(cfg),
-		Menu:                      NewMenuClient(cfg),
-		OIDCClient:                NewOIDCClientClient(cfg),
-		OperationLog:              NewOperationLogClient(cfg),
-		PortForward:               NewPortForwardClient(cfg),
-		PortForwardStat:           NewPortForwardStatClient(cfg),
-		Role:                      NewRoleClient(cfg),
-		SSHHost:                   NewSSHHostClient(cfg),
-		Session:                   NewSessionClient(cfg),
-		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
-		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
-		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
-		Sub2APILotteryRound:       NewSub2APILotteryRoundClient(cfg),
-		Sub2APITimelineItem:       NewSub2APITimelineItemClient(cfg),
-		Sub2APIUsageRecord:        NewSub2APIUsageRecordClient(cfg),
-		SystemConfig:              NewSystemConfigClient(cfg),
-		Task:                      NewTaskClient(cfg),
-		User:                      NewUserClient(cfg),
-		UserAPIKey:                NewUserAPIKeyClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		EmailTemplate:   NewEmailTemplateClient(cfg),
+		FileShare:       NewFileShareClient(cfg),
+		FileSource:      NewFileSourceClient(cfg),
+		FileUpload:      NewFileUploadClient(cfg),
+		FileUploadChunk: NewFileUploadChunkClient(cfg),
+		FrpTunnel:       NewFrpTunnelClient(cfg),
+		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
+		Instance:        NewInstanceClient(cfg),
+		InstanceType:    NewInstanceTypeClient(cfg),
+		Menu:            NewMenuClient(cfg),
+		OIDCClient:      NewOIDCClientClient(cfg),
+		OperationLog:    NewOperationLogClient(cfg),
+		PortForward:     NewPortForwardClient(cfg),
+		PortForwardStat: NewPortForwardStatClient(cfg),
+		Role:            NewRoleClient(cfg),
+		SSHHost:         NewSSHHostClient(cfg),
+		Session:         NewSessionClient(cfg),
+		SystemConfig:    NewSystemConfigClient(cfg),
+		Task:            NewTaskClient(cfg),
+		User:            NewUserClient(cfg),
+		UserAPIKey:      NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -290,37 +250,29 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                       ctx,
-		config:                    cfg,
-		EmailTemplate:             NewEmailTemplateClient(cfg),
-		FileShare:                 NewFileShareClient(cfg),
-		FileSource:                NewFileSourceClient(cfg),
-		FileUpload:                NewFileUploadClient(cfg),
-		FileUploadChunk:           NewFileUploadChunkClient(cfg),
-		FrpTunnel:                 NewFrpTunnelClient(cfg),
-		FrpTunnelStat:             NewFrpTunnelStatClient(cfg),
-		ImageGenGeneration:        NewImageGenGenerationClient(cfg),
-		ImageGenImage:             NewImageGenImageClient(cfg),
-		Instance:                  NewInstanceClient(cfg),
-		InstanceType:              NewInstanceTypeClient(cfg),
-		Menu:                      NewMenuClient(cfg),
-		OIDCClient:                NewOIDCClientClient(cfg),
-		OperationLog:              NewOperationLogClient(cfg),
-		PortForward:               NewPortForwardClient(cfg),
-		PortForwardStat:           NewPortForwardStatClient(cfg),
-		Role:                      NewRoleClient(cfg),
-		SSHHost:                   NewSSHHostClient(cfg),
-		Session:                   NewSessionClient(cfg),
-		Sub2APIAnnouncement:       NewSub2APIAnnouncementClient(cfg),
-		Sub2APIGroup:              NewSub2APIGroupClient(cfg),
-		Sub2APILotteryParticipant: NewSub2APILotteryParticipantClient(cfg),
-		Sub2APILotteryRound:       NewSub2APILotteryRoundClient(cfg),
-		Sub2APITimelineItem:       NewSub2APITimelineItemClient(cfg),
-		Sub2APIUsageRecord:        NewSub2APIUsageRecordClient(cfg),
-		SystemConfig:              NewSystemConfigClient(cfg),
-		Task:                      NewTaskClient(cfg),
-		User:                      NewUserClient(cfg),
-		UserAPIKey:                NewUserAPIKeyClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		EmailTemplate:   NewEmailTemplateClient(cfg),
+		FileShare:       NewFileShareClient(cfg),
+		FileSource:      NewFileSourceClient(cfg),
+		FileUpload:      NewFileUploadClient(cfg),
+		FileUploadChunk: NewFileUploadChunkClient(cfg),
+		FrpTunnel:       NewFrpTunnelClient(cfg),
+		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
+		Instance:        NewInstanceClient(cfg),
+		InstanceType:    NewInstanceTypeClient(cfg),
+		Menu:            NewMenuClient(cfg),
+		OIDCClient:      NewOIDCClientClient(cfg),
+		OperationLog:    NewOperationLogClient(cfg),
+		PortForward:     NewPortForwardClient(cfg),
+		PortForwardStat: NewPortForwardStatClient(cfg),
+		Role:            NewRoleClient(cfg),
+		SSHHost:         NewSSHHostClient(cfg),
+		Session:         NewSessionClient(cfg),
+		SystemConfig:    NewSystemConfigClient(cfg),
+		Task:            NewTaskClient(cfg),
+		User:            NewUserClient(cfg),
+		UserAPIKey:      NewUserAPIKeyClient(cfg),
 	}, nil
 }
 
@@ -351,11 +303,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
-		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
-		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
-		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
@@ -367,11 +316,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.ImageGenGeneration, c.ImageGenImage,
-		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
-		c.Sub2APIAnnouncement, c.Sub2APIGroup, c.Sub2APILotteryParticipant,
-		c.Sub2APILotteryRound, c.Sub2APITimelineItem, c.Sub2APIUsageRecord,
+		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
@@ -395,10 +341,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FrpTunnel.mutate(ctx, m)
 	case *FrpTunnelStatMutation:
 		return c.FrpTunnelStat.mutate(ctx, m)
-	case *ImageGenGenerationMutation:
-		return c.ImageGenGeneration.mutate(ctx, m)
-	case *ImageGenImageMutation:
-		return c.ImageGenImage.mutate(ctx, m)
 	case *InstanceMutation:
 		return c.Instance.mutate(ctx, m)
 	case *InstanceTypeMutation:
@@ -419,18 +361,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHHost.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
-	case *Sub2APIAnnouncementMutation:
-		return c.Sub2APIAnnouncement.mutate(ctx, m)
-	case *Sub2APIGroupMutation:
-		return c.Sub2APIGroup.mutate(ctx, m)
-	case *Sub2APILotteryParticipantMutation:
-		return c.Sub2APILotteryParticipant.mutate(ctx, m)
-	case *Sub2APILotteryRoundMutation:
-		return c.Sub2APILotteryRound.mutate(ctx, m)
-	case *Sub2APITimelineItemMutation:
-		return c.Sub2APITimelineItem.mutate(ctx, m)
-	case *Sub2APIUsageRecordMutation:
-		return c.Sub2APIUsageRecord.mutate(ctx, m)
 	case *SystemConfigMutation:
 		return c.SystemConfig.mutate(ctx, m)
 	case *TaskMutation:
@@ -1468,272 +1398,6 @@ func (c *FrpTunnelStatClient) mutate(ctx context.Context, m *FrpTunnelStatMutati
 		return (&FrpTunnelStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FrpTunnelStat mutation op: %q", m.Op())
-	}
-}
-
-// ImageGenGenerationClient is a client for the ImageGenGeneration schema.
-type ImageGenGenerationClient struct {
-	config
-}
-
-// NewImageGenGenerationClient returns a client for the ImageGenGeneration from the given config.
-func NewImageGenGenerationClient(c config) *ImageGenGenerationClient {
-	return &ImageGenGenerationClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `imagegengeneration.Hooks(f(g(h())))`.
-func (c *ImageGenGenerationClient) Use(hooks ...Hook) {
-	c.hooks.ImageGenGeneration = append(c.hooks.ImageGenGeneration, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `imagegengeneration.Intercept(f(g(h())))`.
-func (c *ImageGenGenerationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ImageGenGeneration = append(c.inters.ImageGenGeneration, interceptors...)
-}
-
-// Create returns a builder for creating a ImageGenGeneration entity.
-func (c *ImageGenGenerationClient) Create() *ImageGenGenerationCreate {
-	mutation := newImageGenGenerationMutation(c.config, OpCreate)
-	return &ImageGenGenerationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ImageGenGeneration entities.
-func (c *ImageGenGenerationClient) CreateBulk(builders ...*ImageGenGenerationCreate) *ImageGenGenerationCreateBulk {
-	return &ImageGenGenerationCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ImageGenGenerationClient) MapCreateBulk(slice any, setFunc func(*ImageGenGenerationCreate, int)) *ImageGenGenerationCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ImageGenGenerationCreateBulk{err: fmt.Errorf("calling to ImageGenGenerationClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ImageGenGenerationCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ImageGenGenerationCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ImageGenGeneration.
-func (c *ImageGenGenerationClient) Update() *ImageGenGenerationUpdate {
-	mutation := newImageGenGenerationMutation(c.config, OpUpdate)
-	return &ImageGenGenerationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ImageGenGenerationClient) UpdateOne(_m *ImageGenGeneration) *ImageGenGenerationUpdateOne {
-	mutation := newImageGenGenerationMutation(c.config, OpUpdateOne, withImageGenGeneration(_m))
-	return &ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ImageGenGenerationClient) UpdateOneID(id string) *ImageGenGenerationUpdateOne {
-	mutation := newImageGenGenerationMutation(c.config, OpUpdateOne, withImageGenGenerationID(id))
-	return &ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ImageGenGeneration.
-func (c *ImageGenGenerationClient) Delete() *ImageGenGenerationDelete {
-	mutation := newImageGenGenerationMutation(c.config, OpDelete)
-	return &ImageGenGenerationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ImageGenGenerationClient) DeleteOne(_m *ImageGenGeneration) *ImageGenGenerationDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ImageGenGenerationClient) DeleteOneID(id string) *ImageGenGenerationDeleteOne {
-	builder := c.Delete().Where(imagegengeneration.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ImageGenGenerationDeleteOne{builder}
-}
-
-// Query returns a query builder for ImageGenGeneration.
-func (c *ImageGenGenerationClient) Query() *ImageGenGenerationQuery {
-	return &ImageGenGenerationQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeImageGenGeneration},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ImageGenGeneration entity by its id.
-func (c *ImageGenGenerationClient) Get(ctx context.Context, id string) (*ImageGenGeneration, error) {
-	return c.Query().Where(imagegengeneration.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ImageGenGenerationClient) GetX(ctx context.Context, id string) *ImageGenGeneration {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ImageGenGenerationClient) Hooks() []Hook {
-	return c.hooks.ImageGenGeneration
-}
-
-// Interceptors returns the client interceptors.
-func (c *ImageGenGenerationClient) Interceptors() []Interceptor {
-	return c.inters.ImageGenGeneration
-}
-
-func (c *ImageGenGenerationClient) mutate(ctx context.Context, m *ImageGenGenerationMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ImageGenGenerationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ImageGenGenerationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ImageGenGenerationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ImageGenGenerationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown ImageGenGeneration mutation op: %q", m.Op())
-	}
-}
-
-// ImageGenImageClient is a client for the ImageGenImage schema.
-type ImageGenImageClient struct {
-	config
-}
-
-// NewImageGenImageClient returns a client for the ImageGenImage from the given config.
-func NewImageGenImageClient(c config) *ImageGenImageClient {
-	return &ImageGenImageClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `imagegenimage.Hooks(f(g(h())))`.
-func (c *ImageGenImageClient) Use(hooks ...Hook) {
-	c.hooks.ImageGenImage = append(c.hooks.ImageGenImage, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `imagegenimage.Intercept(f(g(h())))`.
-func (c *ImageGenImageClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ImageGenImage = append(c.inters.ImageGenImage, interceptors...)
-}
-
-// Create returns a builder for creating a ImageGenImage entity.
-func (c *ImageGenImageClient) Create() *ImageGenImageCreate {
-	mutation := newImageGenImageMutation(c.config, OpCreate)
-	return &ImageGenImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ImageGenImage entities.
-func (c *ImageGenImageClient) CreateBulk(builders ...*ImageGenImageCreate) *ImageGenImageCreateBulk {
-	return &ImageGenImageCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ImageGenImageClient) MapCreateBulk(slice any, setFunc func(*ImageGenImageCreate, int)) *ImageGenImageCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ImageGenImageCreateBulk{err: fmt.Errorf("calling to ImageGenImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ImageGenImageCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ImageGenImageCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ImageGenImage.
-func (c *ImageGenImageClient) Update() *ImageGenImageUpdate {
-	mutation := newImageGenImageMutation(c.config, OpUpdate)
-	return &ImageGenImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ImageGenImageClient) UpdateOne(_m *ImageGenImage) *ImageGenImageUpdateOne {
-	mutation := newImageGenImageMutation(c.config, OpUpdateOne, withImageGenImage(_m))
-	return &ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ImageGenImageClient) UpdateOneID(id string) *ImageGenImageUpdateOne {
-	mutation := newImageGenImageMutation(c.config, OpUpdateOne, withImageGenImageID(id))
-	return &ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ImageGenImage.
-func (c *ImageGenImageClient) Delete() *ImageGenImageDelete {
-	mutation := newImageGenImageMutation(c.config, OpDelete)
-	return &ImageGenImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ImageGenImageClient) DeleteOne(_m *ImageGenImage) *ImageGenImageDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ImageGenImageClient) DeleteOneID(id string) *ImageGenImageDeleteOne {
-	builder := c.Delete().Where(imagegenimage.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ImageGenImageDeleteOne{builder}
-}
-
-// Query returns a query builder for ImageGenImage.
-func (c *ImageGenImageClient) Query() *ImageGenImageQuery {
-	return &ImageGenImageQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeImageGenImage},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ImageGenImage entity by its id.
-func (c *ImageGenImageClient) Get(ctx context.Context, id string) (*ImageGenImage, error) {
-	return c.Query().Where(imagegenimage.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ImageGenImageClient) GetX(ctx context.Context, id string) *ImageGenImage {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ImageGenImageClient) Hooks() []Hook {
-	return c.hooks.ImageGenImage
-}
-
-// Interceptors returns the client interceptors.
-func (c *ImageGenImageClient) Interceptors() []Interceptor {
-	return c.inters.ImageGenImage
-}
-
-func (c *ImageGenImageClient) mutate(ctx context.Context, m *ImageGenImageMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ImageGenImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ImageGenImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ImageGenImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ImageGenImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown ImageGenImage mutation op: %q", m.Op())
 	}
 }
 
@@ -3227,836 +2891,6 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 	}
 }
 
-// Sub2APIAnnouncementClient is a client for the Sub2APIAnnouncement schema.
-type Sub2APIAnnouncementClient struct {
-	config
-}
-
-// NewSub2APIAnnouncementClient returns a client for the Sub2APIAnnouncement from the given config.
-func NewSub2APIAnnouncementClient(c config) *Sub2APIAnnouncementClient {
-	return &Sub2APIAnnouncementClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apiannouncement.Hooks(f(g(h())))`.
-func (c *Sub2APIAnnouncementClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APIAnnouncement = append(c.hooks.Sub2APIAnnouncement, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apiannouncement.Intercept(f(g(h())))`.
-func (c *Sub2APIAnnouncementClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APIAnnouncement = append(c.inters.Sub2APIAnnouncement, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APIAnnouncement entity.
-func (c *Sub2APIAnnouncementClient) Create() *Sub2APIAnnouncementCreate {
-	mutation := newSub2APIAnnouncementMutation(c.config, OpCreate)
-	return &Sub2APIAnnouncementCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APIAnnouncement entities.
-func (c *Sub2APIAnnouncementClient) CreateBulk(builders ...*Sub2APIAnnouncementCreate) *Sub2APIAnnouncementCreateBulk {
-	return &Sub2APIAnnouncementCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APIAnnouncementClient) MapCreateBulk(slice any, setFunc func(*Sub2APIAnnouncementCreate, int)) *Sub2APIAnnouncementCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APIAnnouncementCreateBulk{err: fmt.Errorf("calling to Sub2APIAnnouncementClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APIAnnouncementCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APIAnnouncementCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APIAnnouncement.
-func (c *Sub2APIAnnouncementClient) Update() *Sub2APIAnnouncementUpdate {
-	mutation := newSub2APIAnnouncementMutation(c.config, OpUpdate)
-	return &Sub2APIAnnouncementUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APIAnnouncementClient) UpdateOne(_m *Sub2APIAnnouncement) *Sub2APIAnnouncementUpdateOne {
-	mutation := newSub2APIAnnouncementMutation(c.config, OpUpdateOne, withSub2APIAnnouncement(_m))
-	return &Sub2APIAnnouncementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APIAnnouncementClient) UpdateOneID(id string) *Sub2APIAnnouncementUpdateOne {
-	mutation := newSub2APIAnnouncementMutation(c.config, OpUpdateOne, withSub2APIAnnouncementID(id))
-	return &Sub2APIAnnouncementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APIAnnouncement.
-func (c *Sub2APIAnnouncementClient) Delete() *Sub2APIAnnouncementDelete {
-	mutation := newSub2APIAnnouncementMutation(c.config, OpDelete)
-	return &Sub2APIAnnouncementDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APIAnnouncementClient) DeleteOne(_m *Sub2APIAnnouncement) *Sub2APIAnnouncementDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APIAnnouncementClient) DeleteOneID(id string) *Sub2APIAnnouncementDeleteOne {
-	builder := c.Delete().Where(sub2apiannouncement.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APIAnnouncementDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APIAnnouncement.
-func (c *Sub2APIAnnouncementClient) Query() *Sub2APIAnnouncementQuery {
-	return &Sub2APIAnnouncementQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APIAnnouncement},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APIAnnouncement entity by its id.
-func (c *Sub2APIAnnouncementClient) Get(ctx context.Context, id string) (*Sub2APIAnnouncement, error) {
-	return c.Query().Where(sub2apiannouncement.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APIAnnouncementClient) GetX(ctx context.Context, id string) *Sub2APIAnnouncement {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APIAnnouncementClient) Hooks() []Hook {
-	return c.hooks.Sub2APIAnnouncement
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APIAnnouncementClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APIAnnouncement
-}
-
-func (c *Sub2APIAnnouncementClient) mutate(ctx context.Context, m *Sub2APIAnnouncementMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APIAnnouncementCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APIAnnouncementUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APIAnnouncementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APIAnnouncementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APIAnnouncement mutation op: %q", m.Op())
-	}
-}
-
-// Sub2APIGroupClient is a client for the Sub2APIGroup schema.
-type Sub2APIGroupClient struct {
-	config
-}
-
-// NewSub2APIGroupClient returns a client for the Sub2APIGroup from the given config.
-func NewSub2APIGroupClient(c config) *Sub2APIGroupClient {
-	return &Sub2APIGroupClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apigroup.Hooks(f(g(h())))`.
-func (c *Sub2APIGroupClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APIGroup = append(c.hooks.Sub2APIGroup, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apigroup.Intercept(f(g(h())))`.
-func (c *Sub2APIGroupClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APIGroup = append(c.inters.Sub2APIGroup, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APIGroup entity.
-func (c *Sub2APIGroupClient) Create() *Sub2APIGroupCreate {
-	mutation := newSub2APIGroupMutation(c.config, OpCreate)
-	return &Sub2APIGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APIGroup entities.
-func (c *Sub2APIGroupClient) CreateBulk(builders ...*Sub2APIGroupCreate) *Sub2APIGroupCreateBulk {
-	return &Sub2APIGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APIGroupClient) MapCreateBulk(slice any, setFunc func(*Sub2APIGroupCreate, int)) *Sub2APIGroupCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APIGroupCreateBulk{err: fmt.Errorf("calling to Sub2APIGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APIGroupCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APIGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APIGroup.
-func (c *Sub2APIGroupClient) Update() *Sub2APIGroupUpdate {
-	mutation := newSub2APIGroupMutation(c.config, OpUpdate)
-	return &Sub2APIGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APIGroupClient) UpdateOne(_m *Sub2APIGroup) *Sub2APIGroupUpdateOne {
-	mutation := newSub2APIGroupMutation(c.config, OpUpdateOne, withSub2APIGroup(_m))
-	return &Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APIGroupClient) UpdateOneID(id string) *Sub2APIGroupUpdateOne {
-	mutation := newSub2APIGroupMutation(c.config, OpUpdateOne, withSub2APIGroupID(id))
-	return &Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APIGroup.
-func (c *Sub2APIGroupClient) Delete() *Sub2APIGroupDelete {
-	mutation := newSub2APIGroupMutation(c.config, OpDelete)
-	return &Sub2APIGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APIGroupClient) DeleteOne(_m *Sub2APIGroup) *Sub2APIGroupDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APIGroupClient) DeleteOneID(id string) *Sub2APIGroupDeleteOne {
-	builder := c.Delete().Where(sub2apigroup.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APIGroupDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APIGroup.
-func (c *Sub2APIGroupClient) Query() *Sub2APIGroupQuery {
-	return &Sub2APIGroupQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APIGroup},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APIGroup entity by its id.
-func (c *Sub2APIGroupClient) Get(ctx context.Context, id string) (*Sub2APIGroup, error) {
-	return c.Query().Where(sub2apigroup.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APIGroupClient) GetX(ctx context.Context, id string) *Sub2APIGroup {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUsageRecords queries the usage_records edge of a Sub2APIGroup.
-func (c *Sub2APIGroupClient) QueryUsageRecords(_m *Sub2APIGroup) *Sub2APIUsageRecordQuery {
-	query := (&Sub2APIUsageRecordClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(sub2apigroup.Table, sub2apigroup.FieldID, id),
-			sqlgraph.To(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, sub2apigroup.UsageRecordsTable, sub2apigroup.UsageRecordsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APIGroupClient) Hooks() []Hook {
-	return c.hooks.Sub2APIGroup
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APIGroupClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APIGroup
-}
-
-func (c *Sub2APIGroupClient) mutate(ctx context.Context, m *Sub2APIGroupMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APIGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APIGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APIGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APIGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APIGroup mutation op: %q", m.Op())
-	}
-}
-
-// Sub2APILotteryParticipantClient is a client for the Sub2APILotteryParticipant schema.
-type Sub2APILotteryParticipantClient struct {
-	config
-}
-
-// NewSub2APILotteryParticipantClient returns a client for the Sub2APILotteryParticipant from the given config.
-func NewSub2APILotteryParticipantClient(c config) *Sub2APILotteryParticipantClient {
-	return &Sub2APILotteryParticipantClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apilotteryparticipant.Hooks(f(g(h())))`.
-func (c *Sub2APILotteryParticipantClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APILotteryParticipant = append(c.hooks.Sub2APILotteryParticipant, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apilotteryparticipant.Intercept(f(g(h())))`.
-func (c *Sub2APILotteryParticipantClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APILotteryParticipant = append(c.inters.Sub2APILotteryParticipant, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APILotteryParticipant entity.
-func (c *Sub2APILotteryParticipantClient) Create() *Sub2APILotteryParticipantCreate {
-	mutation := newSub2APILotteryParticipantMutation(c.config, OpCreate)
-	return &Sub2APILotteryParticipantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APILotteryParticipant entities.
-func (c *Sub2APILotteryParticipantClient) CreateBulk(builders ...*Sub2APILotteryParticipantCreate) *Sub2APILotteryParticipantCreateBulk {
-	return &Sub2APILotteryParticipantCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APILotteryParticipantClient) MapCreateBulk(slice any, setFunc func(*Sub2APILotteryParticipantCreate, int)) *Sub2APILotteryParticipantCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APILotteryParticipantCreateBulk{err: fmt.Errorf("calling to Sub2APILotteryParticipantClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APILotteryParticipantCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APILotteryParticipantCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APILotteryParticipant.
-func (c *Sub2APILotteryParticipantClient) Update() *Sub2APILotteryParticipantUpdate {
-	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdate)
-	return &Sub2APILotteryParticipantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APILotteryParticipantClient) UpdateOne(_m *Sub2APILotteryParticipant) *Sub2APILotteryParticipantUpdateOne {
-	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdateOne, withSub2APILotteryParticipant(_m))
-	return &Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APILotteryParticipantClient) UpdateOneID(id int) *Sub2APILotteryParticipantUpdateOne {
-	mutation := newSub2APILotteryParticipantMutation(c.config, OpUpdateOne, withSub2APILotteryParticipantID(id))
-	return &Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APILotteryParticipant.
-func (c *Sub2APILotteryParticipantClient) Delete() *Sub2APILotteryParticipantDelete {
-	mutation := newSub2APILotteryParticipantMutation(c.config, OpDelete)
-	return &Sub2APILotteryParticipantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APILotteryParticipantClient) DeleteOne(_m *Sub2APILotteryParticipant) *Sub2APILotteryParticipantDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APILotteryParticipantClient) DeleteOneID(id int) *Sub2APILotteryParticipantDeleteOne {
-	builder := c.Delete().Where(sub2apilotteryparticipant.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APILotteryParticipantDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APILotteryParticipant.
-func (c *Sub2APILotteryParticipantClient) Query() *Sub2APILotteryParticipantQuery {
-	return &Sub2APILotteryParticipantQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APILotteryParticipant},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APILotteryParticipant entity by its id.
-func (c *Sub2APILotteryParticipantClient) Get(ctx context.Context, id int) (*Sub2APILotteryParticipant, error) {
-	return c.Query().Where(sub2apilotteryparticipant.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APILotteryParticipantClient) GetX(ctx context.Context, id int) *Sub2APILotteryParticipant {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APILotteryParticipantClient) Hooks() []Hook {
-	return c.hooks.Sub2APILotteryParticipant
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APILotteryParticipantClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APILotteryParticipant
-}
-
-func (c *Sub2APILotteryParticipantClient) mutate(ctx context.Context, m *Sub2APILotteryParticipantMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APILotteryParticipantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APILotteryParticipantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APILotteryParticipantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APILotteryParticipantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APILotteryParticipant mutation op: %q", m.Op())
-	}
-}
-
-// Sub2APILotteryRoundClient is a client for the Sub2APILotteryRound schema.
-type Sub2APILotteryRoundClient struct {
-	config
-}
-
-// NewSub2APILotteryRoundClient returns a client for the Sub2APILotteryRound from the given config.
-func NewSub2APILotteryRoundClient(c config) *Sub2APILotteryRoundClient {
-	return &Sub2APILotteryRoundClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apilotteryround.Hooks(f(g(h())))`.
-func (c *Sub2APILotteryRoundClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APILotteryRound = append(c.hooks.Sub2APILotteryRound, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apilotteryround.Intercept(f(g(h())))`.
-func (c *Sub2APILotteryRoundClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APILotteryRound = append(c.inters.Sub2APILotteryRound, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APILotteryRound entity.
-func (c *Sub2APILotteryRoundClient) Create() *Sub2APILotteryRoundCreate {
-	mutation := newSub2APILotteryRoundMutation(c.config, OpCreate)
-	return &Sub2APILotteryRoundCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APILotteryRound entities.
-func (c *Sub2APILotteryRoundClient) CreateBulk(builders ...*Sub2APILotteryRoundCreate) *Sub2APILotteryRoundCreateBulk {
-	return &Sub2APILotteryRoundCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APILotteryRoundClient) MapCreateBulk(slice any, setFunc func(*Sub2APILotteryRoundCreate, int)) *Sub2APILotteryRoundCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APILotteryRoundCreateBulk{err: fmt.Errorf("calling to Sub2APILotteryRoundClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APILotteryRoundCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APILotteryRoundCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APILotteryRound.
-func (c *Sub2APILotteryRoundClient) Update() *Sub2APILotteryRoundUpdate {
-	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdate)
-	return &Sub2APILotteryRoundUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APILotteryRoundClient) UpdateOne(_m *Sub2APILotteryRound) *Sub2APILotteryRoundUpdateOne {
-	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdateOne, withSub2APILotteryRound(_m))
-	return &Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APILotteryRoundClient) UpdateOneID(id string) *Sub2APILotteryRoundUpdateOne {
-	mutation := newSub2APILotteryRoundMutation(c.config, OpUpdateOne, withSub2APILotteryRoundID(id))
-	return &Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APILotteryRound.
-func (c *Sub2APILotteryRoundClient) Delete() *Sub2APILotteryRoundDelete {
-	mutation := newSub2APILotteryRoundMutation(c.config, OpDelete)
-	return &Sub2APILotteryRoundDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APILotteryRoundClient) DeleteOne(_m *Sub2APILotteryRound) *Sub2APILotteryRoundDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APILotteryRoundClient) DeleteOneID(id string) *Sub2APILotteryRoundDeleteOne {
-	builder := c.Delete().Where(sub2apilotteryround.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APILotteryRoundDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APILotteryRound.
-func (c *Sub2APILotteryRoundClient) Query() *Sub2APILotteryRoundQuery {
-	return &Sub2APILotteryRoundQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APILotteryRound},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APILotteryRound entity by its id.
-func (c *Sub2APILotteryRoundClient) Get(ctx context.Context, id string) (*Sub2APILotteryRound, error) {
-	return c.Query().Where(sub2apilotteryround.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APILotteryRoundClient) GetX(ctx context.Context, id string) *Sub2APILotteryRound {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APILotteryRoundClient) Hooks() []Hook {
-	return c.hooks.Sub2APILotteryRound
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APILotteryRoundClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APILotteryRound
-}
-
-func (c *Sub2APILotteryRoundClient) mutate(ctx context.Context, m *Sub2APILotteryRoundMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APILotteryRoundCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APILotteryRoundUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APILotteryRoundUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APILotteryRoundDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APILotteryRound mutation op: %q", m.Op())
-	}
-}
-
-// Sub2APITimelineItemClient is a client for the Sub2APITimelineItem schema.
-type Sub2APITimelineItemClient struct {
-	config
-}
-
-// NewSub2APITimelineItemClient returns a client for the Sub2APITimelineItem from the given config.
-func NewSub2APITimelineItemClient(c config) *Sub2APITimelineItemClient {
-	return &Sub2APITimelineItemClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apitimelineitem.Hooks(f(g(h())))`.
-func (c *Sub2APITimelineItemClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APITimelineItem = append(c.hooks.Sub2APITimelineItem, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apitimelineitem.Intercept(f(g(h())))`.
-func (c *Sub2APITimelineItemClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APITimelineItem = append(c.inters.Sub2APITimelineItem, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APITimelineItem entity.
-func (c *Sub2APITimelineItemClient) Create() *Sub2APITimelineItemCreate {
-	mutation := newSub2APITimelineItemMutation(c.config, OpCreate)
-	return &Sub2APITimelineItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APITimelineItem entities.
-func (c *Sub2APITimelineItemClient) CreateBulk(builders ...*Sub2APITimelineItemCreate) *Sub2APITimelineItemCreateBulk {
-	return &Sub2APITimelineItemCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APITimelineItemClient) MapCreateBulk(slice any, setFunc func(*Sub2APITimelineItemCreate, int)) *Sub2APITimelineItemCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APITimelineItemCreateBulk{err: fmt.Errorf("calling to Sub2APITimelineItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APITimelineItemCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APITimelineItemCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APITimelineItem.
-func (c *Sub2APITimelineItemClient) Update() *Sub2APITimelineItemUpdate {
-	mutation := newSub2APITimelineItemMutation(c.config, OpUpdate)
-	return &Sub2APITimelineItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APITimelineItemClient) UpdateOne(_m *Sub2APITimelineItem) *Sub2APITimelineItemUpdateOne {
-	mutation := newSub2APITimelineItemMutation(c.config, OpUpdateOne, withSub2APITimelineItem(_m))
-	return &Sub2APITimelineItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APITimelineItemClient) UpdateOneID(id string) *Sub2APITimelineItemUpdateOne {
-	mutation := newSub2APITimelineItemMutation(c.config, OpUpdateOne, withSub2APITimelineItemID(id))
-	return &Sub2APITimelineItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APITimelineItem.
-func (c *Sub2APITimelineItemClient) Delete() *Sub2APITimelineItemDelete {
-	mutation := newSub2APITimelineItemMutation(c.config, OpDelete)
-	return &Sub2APITimelineItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APITimelineItemClient) DeleteOne(_m *Sub2APITimelineItem) *Sub2APITimelineItemDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APITimelineItemClient) DeleteOneID(id string) *Sub2APITimelineItemDeleteOne {
-	builder := c.Delete().Where(sub2apitimelineitem.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APITimelineItemDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APITimelineItem.
-func (c *Sub2APITimelineItemClient) Query() *Sub2APITimelineItemQuery {
-	return &Sub2APITimelineItemQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APITimelineItem},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APITimelineItem entity by its id.
-func (c *Sub2APITimelineItemClient) Get(ctx context.Context, id string) (*Sub2APITimelineItem, error) {
-	return c.Query().Where(sub2apitimelineitem.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APITimelineItemClient) GetX(ctx context.Context, id string) *Sub2APITimelineItem {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APITimelineItemClient) Hooks() []Hook {
-	return c.hooks.Sub2APITimelineItem
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APITimelineItemClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APITimelineItem
-}
-
-func (c *Sub2APITimelineItemClient) mutate(ctx context.Context, m *Sub2APITimelineItemMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APITimelineItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APITimelineItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APITimelineItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APITimelineItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APITimelineItem mutation op: %q", m.Op())
-	}
-}
-
-// Sub2APIUsageRecordClient is a client for the Sub2APIUsageRecord schema.
-type Sub2APIUsageRecordClient struct {
-	config
-}
-
-// NewSub2APIUsageRecordClient returns a client for the Sub2APIUsageRecord from the given config.
-func NewSub2APIUsageRecordClient(c config) *Sub2APIUsageRecordClient {
-	return &Sub2APIUsageRecordClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sub2apiusagerecord.Hooks(f(g(h())))`.
-func (c *Sub2APIUsageRecordClient) Use(hooks ...Hook) {
-	c.hooks.Sub2APIUsageRecord = append(c.hooks.Sub2APIUsageRecord, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sub2apiusagerecord.Intercept(f(g(h())))`.
-func (c *Sub2APIUsageRecordClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Sub2APIUsageRecord = append(c.inters.Sub2APIUsageRecord, interceptors...)
-}
-
-// Create returns a builder for creating a Sub2APIUsageRecord entity.
-func (c *Sub2APIUsageRecordClient) Create() *Sub2APIUsageRecordCreate {
-	mutation := newSub2APIUsageRecordMutation(c.config, OpCreate)
-	return &Sub2APIUsageRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Sub2APIUsageRecord entities.
-func (c *Sub2APIUsageRecordClient) CreateBulk(builders ...*Sub2APIUsageRecordCreate) *Sub2APIUsageRecordCreateBulk {
-	return &Sub2APIUsageRecordCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *Sub2APIUsageRecordClient) MapCreateBulk(slice any, setFunc func(*Sub2APIUsageRecordCreate, int)) *Sub2APIUsageRecordCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &Sub2APIUsageRecordCreateBulk{err: fmt.Errorf("calling to Sub2APIUsageRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*Sub2APIUsageRecordCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &Sub2APIUsageRecordCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Sub2APIUsageRecord.
-func (c *Sub2APIUsageRecordClient) Update() *Sub2APIUsageRecordUpdate {
-	mutation := newSub2APIUsageRecordMutation(c.config, OpUpdate)
-	return &Sub2APIUsageRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *Sub2APIUsageRecordClient) UpdateOne(_m *Sub2APIUsageRecord) *Sub2APIUsageRecordUpdateOne {
-	mutation := newSub2APIUsageRecordMutation(c.config, OpUpdateOne, withSub2APIUsageRecord(_m))
-	return &Sub2APIUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *Sub2APIUsageRecordClient) UpdateOneID(id string) *Sub2APIUsageRecordUpdateOne {
-	mutation := newSub2APIUsageRecordMutation(c.config, OpUpdateOne, withSub2APIUsageRecordID(id))
-	return &Sub2APIUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Sub2APIUsageRecord.
-func (c *Sub2APIUsageRecordClient) Delete() *Sub2APIUsageRecordDelete {
-	mutation := newSub2APIUsageRecordMutation(c.config, OpDelete)
-	return &Sub2APIUsageRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *Sub2APIUsageRecordClient) DeleteOne(_m *Sub2APIUsageRecord) *Sub2APIUsageRecordDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *Sub2APIUsageRecordClient) DeleteOneID(id string) *Sub2APIUsageRecordDeleteOne {
-	builder := c.Delete().Where(sub2apiusagerecord.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &Sub2APIUsageRecordDeleteOne{builder}
-}
-
-// Query returns a query builder for Sub2APIUsageRecord.
-func (c *Sub2APIUsageRecordClient) Query() *Sub2APIUsageRecordQuery {
-	return &Sub2APIUsageRecordQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSub2APIUsageRecord},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Sub2APIUsageRecord entity by its id.
-func (c *Sub2APIUsageRecordClient) Get(ctx context.Context, id string) (*Sub2APIUsageRecord, error) {
-	return c.Query().Where(sub2apiusagerecord.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *Sub2APIUsageRecordClient) GetX(ctx context.Context, id string) *Sub2APIUsageRecord {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryGroup queries the group edge of a Sub2APIUsageRecord.
-func (c *Sub2APIUsageRecordClient) QueryGroup(_m *Sub2APIUsageRecord) *Sub2APIGroupQuery {
-	query := (&Sub2APIGroupClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(sub2apiusagerecord.Table, sub2apiusagerecord.FieldID, id),
-			sqlgraph.To(sub2apigroup.Table, sub2apigroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, sub2apiusagerecord.GroupTable, sub2apiusagerecord.GroupColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *Sub2APIUsageRecordClient) Hooks() []Hook {
-	return c.hooks.Sub2APIUsageRecord
-}
-
-// Interceptors returns the client interceptors.
-func (c *Sub2APIUsageRecordClient) Interceptors() []Interceptor {
-	return c.inters.Sub2APIUsageRecord
-}
-
-func (c *Sub2APIUsageRecordClient) mutate(ctx context.Context, m *Sub2APIUsageRecordMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&Sub2APIUsageRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&Sub2APIUsageRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&Sub2APIUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&Sub2APIUsageRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Sub2APIUsageRecord mutation op: %q", m.Op())
-	}
-}
-
 // SystemConfigClient is a client for the SystemConfig schema.
 type SystemConfigClient struct {
 	config
@@ -4657,19 +3491,15 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 type (
 	hooks struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
-		OIDCClient, OperationLog, PortForward, PortForwardStat, Role, SSHHost, Session,
-		Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
-		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		Task, User, UserAPIKey []ent.Hook
+		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
+		PortForward, PortForwardStat, Role, SSHHost, Session, SystemConfig, Task, User,
+		UserAPIKey []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, ImageGenGeneration, ImageGenImage, Instance, InstanceType, Menu,
-		OIDCClient, OperationLog, PortForward, PortForwardStat, Role, SSHHost, Session,
-		Sub2APIAnnouncement, Sub2APIGroup, Sub2APILotteryParticipant,
-		Sub2APILotteryRound, Sub2APITimelineItem, Sub2APIUsageRecord, SystemConfig,
-		Task, User, UserAPIKey []ent.Interceptor
+		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
+		PortForward, PortForwardStat, Role, SSHHost, Session, SystemConfig, Task, User,
+		UserAPIKey []ent.Interceptor
 	}
 )
 

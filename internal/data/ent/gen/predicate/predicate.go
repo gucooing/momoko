@@ -27,12 +27,6 @@ type FrpTunnel func(*sql.Selector)
 // FrpTunnelStat is the predicate function for frptunnelstat builders.
 type FrpTunnelStat func(*sql.Selector)
 
-// ImageGenGeneration is the predicate function for imagegengeneration builders.
-type ImageGenGeneration func(*sql.Selector)
-
-// ImageGenImage is the predicate function for imagegenimage builders.
-type ImageGenImage func(*sql.Selector)
-
 // Instance is the predicate function for instance builders.
 type Instance func(*sql.Selector)
 
@@ -62,24 +56,6 @@ type SSHHost func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
-
-// Sub2APIAnnouncement is the predicate function for sub2apiannouncement builders.
-type Sub2APIAnnouncement func(*sql.Selector)
-
-// Sub2APIGroup is the predicate function for sub2apigroup builders.
-type Sub2APIGroup func(*sql.Selector)
-
-// Sub2APILotteryParticipant is the predicate function for sub2apilotteryparticipant builders.
-type Sub2APILotteryParticipant func(*sql.Selector)
-
-// Sub2APILotteryRound is the predicate function for sub2apilotteryround builders.
-type Sub2APILotteryRound func(*sql.Selector)
-
-// Sub2APITimelineItem is the predicate function for sub2apitimelineitem builders.
-type Sub2APITimelineItem func(*sql.Selector)
-
-// Sub2APIUsageRecord is the predicate function for sub2apiusagerecord builders.
-type Sub2APIUsageRecord func(*sql.Selector)
 
 // SystemConfig is the predicate function for systemconfig builders.
 type SystemConfig func(*sql.Selector)

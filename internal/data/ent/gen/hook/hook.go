@@ -92,30 +92,6 @@ func (f FrpTunnelStatFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FrpTunnelStatMutation", m)
 }
 
-// The ImageGenGenerationFunc type is an adapter to allow the use of ordinary
-// function as ImageGenGeneration mutator.
-type ImageGenGenerationFunc func(context.Context, *gen.ImageGenGenerationMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ImageGenGenerationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ImageGenGenerationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ImageGenGenerationMutation", m)
-}
-
-// The ImageGenImageFunc type is an adapter to allow the use of ordinary
-// function as ImageGenImage mutator.
-type ImageGenImageFunc func(context.Context, *gen.ImageGenImageMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ImageGenImageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ImageGenImageMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ImageGenImageMutation", m)
-}
-
 // The InstanceFunc type is an adapter to allow the use of ordinary
 // function as Instance mutator.
 type InstanceFunc func(context.Context, *gen.InstanceMutation) (gen.Value, error)
@@ -234,78 +210,6 @@ func (f SessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SessionMutation", m)
-}
-
-// The Sub2APIAnnouncementFunc type is an adapter to allow the use of ordinary
-// function as Sub2APIAnnouncement mutator.
-type Sub2APIAnnouncementFunc func(context.Context, *gen.Sub2APIAnnouncementMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APIAnnouncementFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APIAnnouncementMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIAnnouncementMutation", m)
-}
-
-// The Sub2APIGroupFunc type is an adapter to allow the use of ordinary
-// function as Sub2APIGroup mutator.
-type Sub2APIGroupFunc func(context.Context, *gen.Sub2APIGroupMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APIGroupFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APIGroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIGroupMutation", m)
-}
-
-// The Sub2APILotteryParticipantFunc type is an adapter to allow the use of ordinary
-// function as Sub2APILotteryParticipant mutator.
-type Sub2APILotteryParticipantFunc func(context.Context, *gen.Sub2APILotteryParticipantMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APILotteryParticipantFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APILotteryParticipantMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APILotteryParticipantMutation", m)
-}
-
-// The Sub2APILotteryRoundFunc type is an adapter to allow the use of ordinary
-// function as Sub2APILotteryRound mutator.
-type Sub2APILotteryRoundFunc func(context.Context, *gen.Sub2APILotteryRoundMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APILotteryRoundFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APILotteryRoundMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APILotteryRoundMutation", m)
-}
-
-// The Sub2APITimelineItemFunc type is an adapter to allow the use of ordinary
-// function as Sub2APITimelineItem mutator.
-type Sub2APITimelineItemFunc func(context.Context, *gen.Sub2APITimelineItemMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APITimelineItemFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APITimelineItemMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APITimelineItemMutation", m)
-}
-
-// The Sub2APIUsageRecordFunc type is an adapter to allow the use of ordinary
-// function as Sub2APIUsageRecord mutator.
-type Sub2APIUsageRecordFunc func(context.Context, *gen.Sub2APIUsageRecordMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f Sub2APIUsageRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.Sub2APIUsageRecordMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.Sub2APIUsageRecordMutation", m)
 }
 
 // The SystemConfigFunc type is an adapter to allow the use of ordinary

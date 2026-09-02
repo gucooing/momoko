@@ -83,13 +83,6 @@ var (
 		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 2, constant.Tunnel, entmenu.StatusActive),
 		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_6"), 3, "", entmenu.StatusActive),
 
-		// Sub2API
-		newDefaultMenu("menu_7", entmenu.TypeDirectory, "", "Sub2API", "HOutline:CloudIcon", nil, 6, constant.Sub2APIView, entmenu.StatusActive),
-		newDefaultMenu("menu_7_1", entmenu.TypeMenu, "/sub2api/home", "首页配置", "HOutline:HomeIcon", new("menu_7"), 0, constant.Sub2APIView, entmenu.StatusActive),
-		newDefaultMenu("menu_7_1_button_0", entmenu.TypeButton, "", "编辑Sub2API", "", new("menu_7_1"), 0, constant.Sub2APIEdit, entmenu.StatusActive),
-		newDefaultMenu("menu_7_2", entmenu.TypeMenu, "/sub2api/activity", "活动配置", "HOutline:GiftIcon", new("menu_7"), 1, constant.Sub2APIView, entmenu.StatusActive),
-		newDefaultMenu("menu_7_3", entmenu.TypeMenu, "/sub2api/config", "配置", "HOutline:Cog6ToothIcon", new("menu_7"), 2, constant.Sub2APIView, entmenu.StatusActive),
-
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", new("menu_12_1"), 0, constant.UserAdd, entmenu.StatusActive),

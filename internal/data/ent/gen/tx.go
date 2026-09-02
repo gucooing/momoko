@@ -28,10 +28,6 @@ type Tx struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
-	// ImageGenGeneration is the client for interacting with the ImageGenGeneration builders.
-	ImageGenGeneration *ImageGenGenerationClient
-	// ImageGenImage is the client for interacting with the ImageGenImage builders.
-	ImageGenImage *ImageGenImageClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -52,18 +48,6 @@ type Tx struct {
 	SSHHost *SSHHostClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
-	// Sub2APIAnnouncement is the client for interacting with the Sub2APIAnnouncement builders.
-	Sub2APIAnnouncement *Sub2APIAnnouncementClient
-	// Sub2APIGroup is the client for interacting with the Sub2APIGroup builders.
-	Sub2APIGroup *Sub2APIGroupClient
-	// Sub2APILotteryParticipant is the client for interacting with the Sub2APILotteryParticipant builders.
-	Sub2APILotteryParticipant *Sub2APILotteryParticipantClient
-	// Sub2APILotteryRound is the client for interacting with the Sub2APILotteryRound builders.
-	Sub2APILotteryRound *Sub2APILotteryRoundClient
-	// Sub2APITimelineItem is the client for interacting with the Sub2APITimelineItem builders.
-	Sub2APITimelineItem *Sub2APITimelineItemClient
-	// Sub2APIUsageRecord is the client for interacting with the Sub2APIUsageRecord builders.
-	Sub2APIUsageRecord *Sub2APIUsageRecordClient
 	// SystemConfig is the client for interacting with the SystemConfig builders.
 	SystemConfig *SystemConfigClient
 	// Task is the client for interacting with the Task builders.
@@ -210,8 +194,6 @@ func (tx *Tx) init() {
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
 	tx.FrpTunnel = NewFrpTunnelClient(tx.config)
 	tx.FrpTunnelStat = NewFrpTunnelStatClient(tx.config)
-	tx.ImageGenGeneration = NewImageGenGenerationClient(tx.config)
-	tx.ImageGenImage = NewImageGenImageClient(tx.config)
 	tx.Instance = NewInstanceClient(tx.config)
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)
@@ -222,12 +204,6 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
-	tx.Sub2APIAnnouncement = NewSub2APIAnnouncementClient(tx.config)
-	tx.Sub2APIGroup = NewSub2APIGroupClient(tx.config)
-	tx.Sub2APILotteryParticipant = NewSub2APILotteryParticipantClient(tx.config)
-	tx.Sub2APILotteryRound = NewSub2APILotteryRoundClient(tx.config)
-	tx.Sub2APITimelineItem = NewSub2APITimelineItemClient(tx.config)
-	tx.Sub2APIUsageRecord = NewSub2APIUsageRecordClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
 	tx.Task = NewTaskClient(tx.config)
 	tx.User = NewUserClient(tx.config)

@@ -58,20 +58,6 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationFileManagerDeleteFileSource: constant.FileSource,
 	v1.OperationFileManagerTestFileSource:   constant.FileSource,
 
-	// —— Sub2API（编辑）——
-	v1.OperationSub2APIManagerUpdateSub2APIConfig:       constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerCreateSub2APIAnnouncement: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerUpdateSub2APIAnnouncement: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerDeleteSub2APIAnnouncement: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerCreateSub2APITimelineItem: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerUpdateSub2APITimelineItem: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerDeleteSub2APITimelineItem: constant.Sub2APIEdit,
-	// 抽奖活动写操作
-	v1.OperationSub2APIManagerUpdateLotterySettings:  constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerDistributeLotteryRound: constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerTriggerLotterySettle:   constant.Sub2APIEdit,
-	v1.OperationSub2APIManagerTriggerLotteryDraw:     constant.Sub2APIEdit,
-
 	// —— 用户管理 ——
 	v1.OperationUserServiceListUser:   constant.UserView,
 	v1.OperationUserServiceUserInfo:   constant.UserView,
@@ -125,7 +111,6 @@ var servicePrefixPermissions = []struct {
 	{"/v1.InstanceManager/", constant.Instance},
 	{"/v1.NetworkManager/", constant.Network},
 	{"/v1.TunnelManager/", constant.Tunnel},
-	{"/v1.Sub2APIManager/", constant.Sub2APIView},
 }
 
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。
@@ -151,7 +136,7 @@ var wsRoutePermissions = map[string]constant.Permissions{
 }
 
 // PermissionMiddleware 对已认证请求按操作所需权限做集中式鉴权（功能级越权防护）。
-// 公开/未认证路由没有 auth 上下文，直接放行，由各自 handler 自校验（如 sub2api token、签名链接）。
+// 公开/未认证路由没有 auth 上下文，直接放行，由各自 handler 自校验（如签名链接）。
 func (a *Authorization) PermissionMiddleware() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
