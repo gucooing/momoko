@@ -92,6 +92,42 @@ func (f FrpTunnelStatFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FrpTunnelStatMutation", m)
 }
 
+// The IQCheckPromptFunc type is an adapter to allow the use of ordinary
+// function as IQCheckPrompt mutator.
+type IQCheckPromptFunc func(context.Context, *gen.IQCheckPromptMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IQCheckPromptFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.IQCheckPromptMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.IQCheckPromptMutation", m)
+}
+
+// The IQCheckResultFunc type is an adapter to allow the use of ordinary
+// function as IQCheckResult mutator.
+type IQCheckResultFunc func(context.Context, *gen.IQCheckResultMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IQCheckResultFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.IQCheckResultMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.IQCheckResultMutation", m)
+}
+
+// The IQCheckSiteFunc type is an adapter to allow the use of ordinary
+// function as IQCheckSite mutator.
+type IQCheckSiteFunc func(context.Context, *gen.IQCheckSiteMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IQCheckSiteFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.IQCheckSiteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.IQCheckSiteMutation", m)
+}
+
 // The InstanceFunc type is an adapter to allow the use of ordinary
 // function as Instance mutator.
 type InstanceFunc func(context.Context, *gen.InstanceMutation) (gen.Value, error)

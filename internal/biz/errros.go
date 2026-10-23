@@ -70,3 +70,25 @@ var (
 	ErrOIDCRedirectURI           = response.BadRequest(500, "OIDC 回调地址不正确")
 	ErrOIDCClientNotFound        = response.BadRequest(500, "OIDC 客户端不存在")
 )
+
+// 智商检测
+var (
+	ErrIQCheckPromptTitle    = response.BadRequest(500, "提示词标题不能为空")
+	ErrIQCheckPromptContent  = response.BadRequest(500, "提示词内容不能为空")
+	ErrIQCheckPromptNotFound = response.BadRequest(500, "提示词不存在")
+	ErrIQCheckSiteName       = response.BadRequest(500, "站点名称不能为空")
+	ErrIQCheckSiteAPIKey     = response.BadRequest(500, "API Key 不能为空")
+	ErrIQCheckSiteProtocol   = response.BadRequest(500, "协议不合法")
+	ErrIQCheckSiteModels     = response.BadRequest(500, "请先勾选需要检测的模型")
+	ErrIQCheckSiteNotFound   = response.BadRequest(500, "检测站点不存在")
+	ErrIQCheckEffort         = response.BadRequest(500, "推理强度不合法")
+	ErrIQCheckRunning        = response.BadRequest(500, "该站点正在检测中，请稍后再试")
+	ErrIQCheckNoPrompt       = response.BadRequest(500, "没有启用的检测提示词，请先在提示词配置中添加")
+	ErrIQCheckPublicNotFound = response.BadRequest(404, "检测公示页不存在")
+	ErrIQCheckEndpoint       = func(err error) error {
+		return response.BadRequest(500, fmt.Sprintf("站点地址无效：%v", err))
+	}
+	ErrIQCheckUpstream = func(err error) error {
+		return response.BadRequest(500, fmt.Sprintf("请求上游失败：%v", err))
+	}
+)

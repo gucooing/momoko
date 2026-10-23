@@ -1,0 +1,454 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 智商检测：定时向配置的 AI 接口发送检测提示词，并公开展示回复结果
+service IQCheckManager {
+  // 获取检测提示词列表
+  rpc ListIQCheckPrompts(ListIQCheckPromptsRequest) returns (ListIQCheckPromptsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/iqcheck/prompts"
+    };
+  }
+  // 创建检测提示词
+  rpc CreateIQCheckPrompt(CreateIQCheckPromptRequest) returns (CreateIQCheckPromptResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/iqcheck/prompts"
+      body: "*"
+    };
+  }
+  // 更新检测提示词
+  rpc UpdateIQCheckPrompt(UpdateIQCheckPromptRequest) returns (UpdateIQCheckPromptResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/iqcheck/prompts/{id}"
+      body: "*"
+    };
+  }
+  // 删除检测提示词
+  rpc DeleteIQCheckPrompt(DeleteIQCheckPromptRequest) returns (DeleteIQCheckPromptResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/iqcheck/prompts/{id}"
+    };
+  }
+  // 获取检测站点列表
+  rpc ListIQCheckSites(ListIQCheckSitesRequest) returns (ListIQCheckSitesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/iqcheck/sites"
+    };
+  }
+  // 创建检测站点；创建时生成公开页随机路径
+  rpc CreateIQCheckSite(CreateIQCheckSiteRequest) returns (CreateIQCheckSiteResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/iqcheck/sites"
+      body: "*"
+    };
+  }
+  // 更新检测站点；api_key 为空表示保留原值
+  rpc UpdateIQCheckSite(UpdateIQCheckSiteRequest) returns (UpdateIQCheckSiteResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/iqcheck/sites/{id}"
+      body: "*"
+    };
+  }
+  // 删除检测站点及其全部检测结果
+  rpc DeleteIQCheckSite(DeleteIQCheckSiteRequest) returns (DeleteIQCheckSiteResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/iqcheck/sites/{id}"
+    };
+  }
+  // 按站点、API Key 和协议拉取上游模型列表，供勾选
+  rpc FetchIQCheckModels(FetchIQCheckModelsRequest) returns (FetchIQCheckModelsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/iqcheck/models"
+      body: "*"
+    };
+  }
+  // 立即对站点勾选的全部模型执行一轮检测
+  rpc TriggerIQCheck(TriggerIQCheckRequest) returns (TriggerIQCheckResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/iqcheck/sites/{id}/check"
+      body: "*"
+    };
+  }
+}
+
+// 智商检测公开页接口；由站点的随机路径 slug 标识站点，无需登录
+service IQCheckPublic {
+  // 获取公开页站点信息
+  rpc PublicIQCheckSite(PublicIQCheckSiteRequest) returns (PublicIQCheckSiteResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/iqcheck/{slug}"
+    };
+  }
+  // 获取公开页检测结果，按时间倒序
+  rpc PublicIQCheckResults(PublicIQCheckResultsRequest) returns (PublicIQCheckResultsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/iqcheck/{slug}/results"
+    };
+  }
+}
+
+// 上游接口协议
+enum IQCheckProtocol {
+  // 未指定
+  IQ_CHECK_PROTOCOL_UNSPECIFIED = 0;
+  // OpenAI Chat Completions（/v1/chat/completions）
+  IQ_CHECK_PROTOCOL_CHAT = 1;
+  // OpenAI Responses（/v1/responses）
+  IQ_CHECK_PROTOCOL_RESPONSES = 2;
+  // Anthropic Messages（/v1/messages）
+  IQ_CHECK_PROTOCOL_MESSAGES = 3;
+}
+
+// 检测结果状态
+enum IQCheckResultStatus {
+  // 未指定
+  IQ_CHECK_RESULT_STATUS_UNSPECIFIED = 0;
+  // 成功
+  IQ_CHECK_RESULT_STATUS_SUCCESS = 1;
+  // 失败
+  IQ_CHECK_RESULT_STATUS_FAILED = 2;
+}
+
+// 检测提示词
+message IQCheckPromptInfo {
+  // 提示词 id
+  string id = 1;
+  // 标题
+  string title = 2;
+  // 提示词内容
+  string content = 3;
+  // 是否启用；只有启用的提示词会被随机选中
+  bool enabled = 4;
+  // 排序，越小越靠前
+  int32 order = 5;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 6;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 7;
+}
+
+// 获取提示词列表请求
+message ListIQCheckPromptsRequest {
+  // 页码，从 1 开始
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 标题关键字
+  optional string keywords = 3;
+}
+
+// 获取提示词列表响应
+message ListIQCheckPromptsResponse {
+  // 页码
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 提示词列表
+  repeated IQCheckPromptInfo prompts = 4;
+}
+
+// 创建提示词请求
+message CreateIQCheckPromptRequest {
+  // 标题
+  string title = 1;
+  // 提示词内容
+  string content = 2;
+  // 是否启用
+  bool enabled = 3;
+  // 排序
+  int32 order = 4;
+}
+
+// 创建提示词响应
+message CreateIQCheckPromptResponse {
+  // 提示词
+  IQCheckPromptInfo prompt = 1;
+}
+
+// 更新提示词请求
+message UpdateIQCheckPromptRequest {
+  // 提示词 id
+  string id = 1;
+  // 标题
+  string title = 2;
+  // 提示词内容
+  string content = 3;
+  // 是否启用
+  bool enabled = 4;
+  // 排序
+  int32 order = 5;
+}
+
+// 更新提示词响应
+message UpdateIQCheckPromptResponse {
+  // 提示词
+  IQCheckPromptInfo prompt = 1;
+}
+
+// 删除提示词请求
+message DeleteIQCheckPromptRequest {
+  // 提示词 id
+  string id = 1;
+}
+
+// 删除提示词响应
+message DeleteIQCheckPromptResponse {}
+
+// 需要检测的模型及其推理强度
+message IQCheckModelConfig {
+  // 模型 id
+  string model = 1;
+  // 推理强度；为空表示不设置，可选 none/minimal/low/medium/high/xhigh/max
+  string effort = 2;
+}
+
+// 检测站点
+message IQCheckSiteInfo {
+  // 站点 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 站点接口地址（端点）
+  string endpoint = 3;
+  // 脱敏后的 API Key
+  string api_key = 4;
+  // 协议
+  IQCheckProtocol protocol = 5;
+  // 需要检测的模型
+  repeated IQCheckModelConfig models = 6;
+  // 是否启用定时检测
+  bool enabled = 7;
+  // 检测间隔，单位分钟
+  int32 interval_minutes = 8;
+  // 检测次数上限；0 表示无限
+  int32 max_runs = 9;
+  // 已执行的定时检测次数
+  int32 run_count = 10;
+  // 公开页随机路径；公开页地址由前端路由前缀 + slug 组成
+  string slug = 11;
+  // 是否正在检测
+  bool checking = 12;
+  // 最近检测时间
+  google.protobuf.Timestamp last_check_at = 13;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 14;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 15;
+  // 请求上游时使用的 User-Agent
+  string user_agent = 16;
+}
+
+// 获取站点列表请求
+message ListIQCheckSitesRequest {
+  // 页码，从 1 开始
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 名称关键字
+  optional string keywords = 3;
+}
+
+// 获取站点列表响应
+message ListIQCheckSitesResponse {
+  // 页码
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 站点列表
+  repeated IQCheckSiteInfo sites = 4;
+}
+
+// 创建站点请求
+message CreateIQCheckSiteRequest {
+  // 名称
+  string name = 1;
+  // 站点接口地址（端点）
+  string endpoint = 2;
+  // API Key
+  string api_key = 3;
+  // 协议
+  IQCheckProtocol protocol = 4;
+  // 需要检测的模型
+  repeated IQCheckModelConfig models = 5;
+  // 是否启用定时检测
+  bool enabled = 6;
+  // 检测间隔，单位分钟；小于等于 0 时使用默认值 60
+  int32 interval_minutes = 7;
+  // 检测次数上限；0 表示无限
+  int32 max_runs = 8;
+  // 请求上游时使用的 User-Agent；为空时使用默认值 pi
+  string user_agent = 9;
+}
+
+// 创建站点响应
+message CreateIQCheckSiteResponse {
+  // 站点
+  IQCheckSiteInfo site = 1;
+}
+
+// 更新站点请求
+message UpdateIQCheckSiteRequest {
+  // 站点 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 站点接口地址（端点）
+  string endpoint = 3;
+  // API Key；为空表示保留原值
+  string api_key = 4;
+  // 协议
+  IQCheckProtocol protocol = 5;
+  // 需要检测的模型
+  repeated IQCheckModelConfig models = 6;
+  // 是否启用定时检测
+  bool enabled = 7;
+  // 检测间隔，单位分钟；小于等于 0 时使用默认值 60
+  int32 interval_minutes = 8;
+  // 检测次数上限；0 表示无限
+  int32 max_runs = 9;
+  // 是否把已执行次数清零
+  bool reset_run_count = 10;
+  // 请求上游时使用的 User-Agent；为空时使用默认值 pi
+  string user_agent = 11;
+}
+
+// 更新站点响应
+message UpdateIQCheckSiteResponse {
+  // 站点
+  IQCheckSiteInfo site = 1;
+}
+
+// 删除站点请求
+message DeleteIQCheckSiteRequest {
+  // 站点 id
+  string id = 1;
+}
+
+// 删除站点响应
+message DeleteIQCheckSiteResponse {}
+
+// 拉取模型列表请求
+message FetchIQCheckModelsRequest {
+  // 站点接口地址（端点）
+  string endpoint = 1;
+  // API Key；为空且传了 site_id 时复用该站点已保存的 Key
+  string api_key = 2;
+  // 协议
+  IQCheckProtocol protocol = 3;
+  // 站点 id，编辑已有站点时传入
+  string site_id = 4;
+  // 请求上游时使用的 User-Agent；为空时使用默认值 pi
+  string user_agent = 5;
+}
+
+// 拉取模型列表响应
+message FetchIQCheckModelsResponse {
+  // 模型 id 列表
+  repeated string models = 1;
+}
+
+// 立即检测请求
+message TriggerIQCheckRequest {
+  // 站点 id
+  string id = 1;
+}
+
+// 立即检测响应
+message TriggerIQCheckResponse {
+  // 本轮检测的模型数量
+  int32 model_count = 1;
+}
+
+// 检测结果
+message IQCheckResultInfo {
+  // 结果 id
+  string id = 1;
+  // 站点 id
+  string site_id = 2;
+  // 同一轮检测的编号，一轮会对站点的全部模型各产生一条结果
+  string round_id = 3;
+  // 模型
+  string model = 4;
+  // 推理强度
+  string effort = 5;
+  // 提示词标题
+  string prompt_title = 6;
+  // 请求发送的提示词
+  string prompt_content = 7;
+  // 回复原始文本
+  string response_text = 8;
+  // 状态
+  IQCheckResultStatus status = 9;
+  // 失败原因
+  string error = 10;
+  // 耗时，单位毫秒
+  int64 duration_ms = 11;
+  // 输入 token 数；上游未返回时为 0
+  int64 input_tokens = 12;
+  // 输出 token 数；上游未返回时为 0
+  int64 output_tokens = 13;
+  // 检测时间
+  google.protobuf.Timestamp request_at = 14;
+}
+
+// 公开页站点信息
+message PublicIQCheckSiteInfo {
+  // 名称
+  string name = 1;
+  // 站点接口地址（端点）
+  string endpoint = 2;
+  // 协议
+  IQCheckProtocol protocol = 3;
+  // 检测的模型
+  repeated IQCheckModelConfig models = 4;
+  // 检测间隔，单位分钟
+  int32 interval_minutes = 5;
+  // 最近检测时间
+  google.protobuf.Timestamp last_check_at = 6;
+}
+
+// 获取公开页站点信息请求
+message PublicIQCheckSiteRequest {
+  // 站点随机路径
+  string slug = 1;
+}
+
+// 获取公开页站点信息响应
+message PublicIQCheckSiteResponse {
+  // 站点信息
+  PublicIQCheckSiteInfo site = 1;
+}
+
+// 获取公开页检测结果请求
+message PublicIQCheckResultsRequest {
+  // 站点随机路径
+  string slug = 1;
+  // 页码，从 1 开始
+  int64 page = 2;
+  // 每页数量
+  int64 page_size = 3;
+  // 按模型筛选
+  optional string model = 4;
+}
+
+// 获取公开页检测结果响应
+message PublicIQCheckResultsResponse {
+  // 页码
+  int64 page = 1;
+  // 每页数量
+  int64 page_size = 2;
+  // 总数
+  int64 total = 3;
+  // 检测结果，最新的在前
+  repeated IQCheckResultInfo results = 4;
+}

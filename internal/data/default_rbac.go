@@ -83,6 +83,13 @@ var (
 		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 2, constant.Tunnel, entmenu.StatusActive),
 		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH管理", "HOutline:SwatchIcon", new("menu_6"), 3, "", entmenu.StatusActive),
 
+		// 智商检测
+		newDefaultMenu("menu_8", entmenu.TypeDirectory, "", "智商检测", "HOutline:CpuChipIcon", nil, 6, constant.IQCheckView, entmenu.StatusActive),
+		newDefaultMenu("menu_8_1", entmenu.TypeMenu, "/iqcheck/prompt", "提示词配置", "HOutline:ChatBubbleLeftRightIcon", new("menu_8"), 0, constant.IQCheckView, entmenu.StatusActive),
+		newDefaultMenu("menu_8_1_button_0", entmenu.TypeButton, "", "编辑提示词", "", new("menu_8_1"), 0, constant.IQCheckEdit, entmenu.StatusActive),
+		newDefaultMenu("menu_8_2", entmenu.TypeMenu, "/iqcheck/site", "检测配置", "HOutline:AdjustmentsHorizontalIcon", new("menu_8"), 1, constant.IQCheckView, entmenu.StatusActive),
+		newDefaultMenu("menu_8_2_button_0", entmenu.TypeButton, "", "编辑检测配置", "", new("menu_8_2"), 0, constant.IQCheckEdit, entmenu.StatusActive),
+
 		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "系统", "HOutline:Cog6ToothIcon", nil, 10, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/user", "用户管理", "HOutline:UserGroupIcon", new("menu_12"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1_button_0", entmenu.TypeButton, "", "添加用户", "", new("menu_12_1"), 0, constant.UserAdd, entmenu.StatusActive),

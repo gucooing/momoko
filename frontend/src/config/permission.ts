@@ -34,6 +34,10 @@ export const PERM = {
 
 	// ---- 工具 ----
 	NETWORK_MANAGE: 'network:manage',
+
+	// ---- 智商检测 ----
+	IQCHECK_VIEW: 'iqcheck:view',
+	IQCHECK_EDIT: 'iqcheck:edit',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

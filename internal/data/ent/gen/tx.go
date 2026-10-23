@@ -28,6 +28,12 @@ type Tx struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
+	// IQCheckPrompt is the client for interacting with the IQCheckPrompt builders.
+	IQCheckPrompt *IQCheckPromptClient
+	// IQCheckResult is the client for interacting with the IQCheckResult builders.
+	IQCheckResult *IQCheckResultClient
+	// IQCheckSite is the client for interacting with the IQCheckSite builders.
+	IQCheckSite *IQCheckSiteClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -196,6 +202,9 @@ func (tx *Tx) init() {
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
 	tx.FrpTunnel = NewFrpTunnelClient(tx.config)
 	tx.FrpTunnelStat = NewFrpTunnelStatClient(tx.config)
+	tx.IQCheckPrompt = NewIQCheckPromptClient(tx.config)
+	tx.IQCheckResult = NewIQCheckResultClient(tx.config)
+	tx.IQCheckSite = NewIQCheckSiteClient(tx.config)
 	tx.Instance = NewInstanceClient(tx.config)
 	tx.InstanceType = NewInstanceTypeClient(tx.config)
 	tx.Menu = NewMenuClient(tx.config)

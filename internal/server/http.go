@@ -31,6 +31,7 @@ func NewHTTPServer(c *conf.Server,
 	networkApi *service.NetworkService,
 	tunnelApi *service.TunnelService,
 	dockerApi *service.DockerService,
+	iqCheckApi *service.IQCheckService,
 	oidcApi *service.OIDCService,
 	taskApi *service.TaskService,
 ) *http.Server {
@@ -77,6 +78,8 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterNetworkManagerHTTPServer(srv, networkApi)
 	v1.RegisterTunnelManagerHTTPServer(srv, tunnelApi)
 	v1.RegisterDockerManagerHTTPServer(srv, dockerApi)
+	v1.RegisterIQCheckManagerHTTPServer(srv, iqCheckApi)
+	v1.RegisterIQCheckPublicHTTPServer(srv, iqCheckApi)
 	v1.RegisterOIDCServiceHTTPServer(srv, oidcApi)
 	v1.RegisterTaskManagerHTTPServer(srv, taskApi)
 	oidcApi.RegisterOIDCServer(srv)

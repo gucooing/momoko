@@ -58,6 +58,16 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationFileManagerDeleteFileSource: constant.FileSource,
 	v1.OperationFileManagerTestFileSource:   constant.FileSource,
 
+	// —— 智商检测（编辑）——
+	v1.OperationIQCheckManagerCreateIQCheckPrompt: constant.IQCheckEdit,
+	v1.OperationIQCheckManagerUpdateIQCheckPrompt: constant.IQCheckEdit,
+	v1.OperationIQCheckManagerDeleteIQCheckPrompt: constant.IQCheckEdit,
+	v1.OperationIQCheckManagerCreateIQCheckSite:   constant.IQCheckEdit,
+	v1.OperationIQCheckManagerUpdateIQCheckSite:   constant.IQCheckEdit,
+	v1.OperationIQCheckManagerDeleteIQCheckSite:   constant.IQCheckEdit,
+	v1.OperationIQCheckManagerFetchIQCheckModels:  constant.IQCheckEdit,
+	v1.OperationIQCheckManagerTriggerIQCheck:      constant.IQCheckEdit,
+
 	// —— 用户管理 ——
 	v1.OperationUserServiceListUser:   constant.UserView,
 	v1.OperationUserServiceUserInfo:   constant.UserView,
@@ -111,6 +121,7 @@ var servicePrefixPermissions = []struct {
 	{"/v1.InstanceManager/", constant.Instance},
 	{"/v1.NetworkManager/", constant.Network},
 	{"/v1.TunnelManager/", constant.Tunnel},
+	{"/v1.IQCheckManager/", constant.IQCheckView},
 }
 
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。

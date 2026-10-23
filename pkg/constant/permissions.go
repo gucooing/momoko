@@ -77,3 +77,10 @@ const (
 	// OIDCEdit 允许编辑 OIDC 服务端配置与客户端。
 	OIDCEdit Permissions = "oidc:edit"
 )
+
+const (
+	// IQCheckView 允许查看智商检测的提示词与站点配置。
+	IQCheckView Permissions = "iqcheck:view"
+	// IQCheckEdit 允许编辑智商检测的提示词、站点配置与设置，并手动触发检测。
+	IQCheckEdit Permissions = "iqcheck:edit"
+)

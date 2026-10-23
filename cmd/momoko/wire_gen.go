@@ -101,12 +101,15 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	dockerService := service.NewDockerService(dockerUsecase)
+	iqCheckRepo := data.NewIQCheckRepo(dataData)
+	iqCheckUsecase := biz.NewIQCheckUsecase(iqCheckRepo, taskManager)
+	iqCheckService := service.NewIQCheckService(iqCheckUsecase)
 	oidcRepo := data.NewOIDCRepo(dataData)
 	oidcUsecase := biz.NewOIDCUsecase(oidcRepo, configRepo, userRepo)
 	oidcService := service.NewOIDCService(oidcUsecase)
 	taskUsecase := biz.NewTaskUsecase(taskManager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, oidcService, taskService)
+	httpServer := server.NewHTTPServer(confServer, manager, authorization, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup5()

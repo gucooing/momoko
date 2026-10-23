@@ -22,6 +22,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true },
   },
   {
+    path: '/public/iqcheck/:slug',
+    name: 'PublicIQCheck',
+    component: () => import('@/views/public/iqcheck/index.vue'),
+    meta: { keepAlive: false, public: true },
+  },
+  {
     path: '/oidc/authorize',
     name: 'OIDCAuthorize',
     component: () => import('@/views/public/oidc/authorize/index.vue'),

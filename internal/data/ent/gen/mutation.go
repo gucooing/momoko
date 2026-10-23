@@ -15,6 +15,9 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/iqcheckprompt"
+	"momoko/internal/data/ent/gen/iqcheckresult"
+	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -29,6 +32,7 @@ import (
 	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
+	"momoko/internal/data/ent/schema"
 	"momoko/internal/data/ent/schema/sharetype"
 	"sync"
 	"time"
@@ -53,6 +57,9 @@ const (
 	TypeFileUploadChunk = "FileUploadChunk"
 	TypeFrpTunnel       = "FrpTunnel"
 	TypeFrpTunnelStat   = "FrpTunnelStat"
+	TypeIQCheckPrompt   = "IQCheckPrompt"
+	TypeIQCheckResult   = "IQCheckResult"
+	TypeIQCheckSite     = "IQCheckSite"
 	TypeInstance        = "Instance"
 	TypeInstanceType    = "InstanceType"
 	TypeMenu            = "Menu"
@@ -6235,6 +6242,3209 @@ func (m *FrpTunnelStatMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FrpTunnelStatMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown FrpTunnelStat edge %s", name)
+}
+
+// IQCheckPromptMutation represents an operation that mutates the IQCheckPrompt nodes in the graph.
+type IQCheckPromptMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
+	title         *string
+	content       *string
+	enabled       *bool
+	_order        *int
+	add_order     *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*IQCheckPrompt, error)
+	predicates    []predicate.IQCheckPrompt
+}
+
+var _ ent.Mutation = (*IQCheckPromptMutation)(nil)
+
+// iqcheckpromptOption allows management of the mutation configuration using functional options.
+type iqcheckpromptOption func(*IQCheckPromptMutation)
+
+// newIQCheckPromptMutation creates new mutation for the IQCheckPrompt entity.
+func newIQCheckPromptMutation(c config, op Op, opts ...iqcheckpromptOption) *IQCheckPromptMutation {
+	m := &IQCheckPromptMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIQCheckPrompt,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIQCheckPromptID sets the ID field of the mutation.
+func withIQCheckPromptID(id string) iqcheckpromptOption {
+	return func(m *IQCheckPromptMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IQCheckPrompt
+		)
+		m.oldValue = func(ctx context.Context) (*IQCheckPrompt, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IQCheckPrompt.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIQCheckPrompt sets the old IQCheckPrompt of the mutation.
+func withIQCheckPrompt(node *IQCheckPrompt) iqcheckpromptOption {
+	return func(m *IQCheckPromptMutation) {
+		m.oldValue = func(context.Context) (*IQCheckPrompt, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IQCheckPromptMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IQCheckPromptMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IQCheckPrompt entities.
+func (m *IQCheckPromptMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IQCheckPromptMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IQCheckPromptMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IQCheckPrompt.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *IQCheckPromptMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *IQCheckPromptMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *IQCheckPromptMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *IQCheckPromptMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *IQCheckPromptMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *IQCheckPromptMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *IQCheckPromptMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *IQCheckPromptMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *IQCheckPromptMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetContent sets the "content" field.
+func (m *IQCheckPromptMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *IQCheckPromptMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *IQCheckPromptMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *IQCheckPromptMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *IQCheckPromptMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *IQCheckPromptMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetOrder sets the "order" field.
+func (m *IQCheckPromptMutation) SetOrder(i int) {
+	m._order = &i
+	m.add_order = nil
+}
+
+// Order returns the value of the "order" field in the mutation.
+func (m *IQCheckPromptMutation) Order() (r int, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrder returns the old "order" field's value of the IQCheckPrompt entity.
+// If the IQCheckPrompt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckPromptMutation) OldOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrder: %w", err)
+	}
+	return oldValue.Order, nil
+}
+
+// AddOrder adds i to the "order" field.
+func (m *IQCheckPromptMutation) AddOrder(i int) {
+	if m.add_order != nil {
+		*m.add_order += i
+	} else {
+		m.add_order = &i
+	}
+}
+
+// AddedOrder returns the value that was added to the "order" field in this mutation.
+func (m *IQCheckPromptMutation) AddedOrder() (r int, exists bool) {
+	v := m.add_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrder resets all changes to the "order" field.
+func (m *IQCheckPromptMutation) ResetOrder() {
+	m._order = nil
+	m.add_order = nil
+}
+
+// Where appends a list predicates to the IQCheckPromptMutation builder.
+func (m *IQCheckPromptMutation) Where(ps ...predicate.IQCheckPrompt) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IQCheckPromptMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IQCheckPromptMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IQCheckPrompt, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IQCheckPromptMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IQCheckPromptMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IQCheckPrompt).
+func (m *IQCheckPromptMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IQCheckPromptMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, iqcheckprompt.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, iqcheckprompt.FieldUpdateTime)
+	}
+	if m.title != nil {
+		fields = append(fields, iqcheckprompt.FieldTitle)
+	}
+	if m.content != nil {
+		fields = append(fields, iqcheckprompt.FieldContent)
+	}
+	if m.enabled != nil {
+		fields = append(fields, iqcheckprompt.FieldEnabled)
+	}
+	if m._order != nil {
+		fields = append(fields, iqcheckprompt.FieldOrder)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IQCheckPromptMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case iqcheckprompt.FieldCreateTime:
+		return m.CreateTime()
+	case iqcheckprompt.FieldUpdateTime:
+		return m.UpdateTime()
+	case iqcheckprompt.FieldTitle:
+		return m.Title()
+	case iqcheckprompt.FieldContent:
+		return m.Content()
+	case iqcheckprompt.FieldEnabled:
+		return m.Enabled()
+	case iqcheckprompt.FieldOrder:
+		return m.Order()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IQCheckPromptMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case iqcheckprompt.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case iqcheckprompt.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case iqcheckprompt.FieldTitle:
+		return m.OldTitle(ctx)
+	case iqcheckprompt.FieldContent:
+		return m.OldContent(ctx)
+	case iqcheckprompt.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case iqcheckprompt.FieldOrder:
+		return m.OldOrder(ctx)
+	}
+	return nil, fmt.Errorf("unknown IQCheckPrompt field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckPromptMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case iqcheckprompt.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case iqcheckprompt.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case iqcheckprompt.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case iqcheckprompt.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case iqcheckprompt.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case iqcheckprompt.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckPrompt field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IQCheckPromptMutation) AddedFields() []string {
+	var fields []string
+	if m.add_order != nil {
+		fields = append(fields, iqcheckprompt.FieldOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IQCheckPromptMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case iqcheckprompt.FieldOrder:
+		return m.AddedOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckPromptMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case iqcheckprompt.FieldOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckPrompt numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IQCheckPromptMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IQCheckPromptMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IQCheckPromptMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown IQCheckPrompt nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IQCheckPromptMutation) ResetField(name string) error {
+	switch name {
+	case iqcheckprompt.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case iqcheckprompt.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case iqcheckprompt.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case iqcheckprompt.FieldContent:
+		m.ResetContent()
+		return nil
+	case iqcheckprompt.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case iqcheckprompt.FieldOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckPrompt field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IQCheckPromptMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IQCheckPromptMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IQCheckPromptMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IQCheckPromptMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IQCheckPromptMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IQCheckPromptMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IQCheckPromptMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown IQCheckPrompt unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IQCheckPromptMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown IQCheckPrompt edge %s", name)
+}
+
+// IQCheckResultMutation represents an operation that mutates the IQCheckResult nodes in the graph.
+type IQCheckResultMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *string
+	create_time      *time.Time
+	update_time      *time.Time
+	round_id         *string
+	model            *string
+	effort           *string
+	prompt_id        *string
+	prompt_title     *string
+	prompt_content   *string
+	response_text    *string
+	status           *iqcheckresult.Status
+	error            *string
+	duration_ms      *int64
+	addduration_ms   *int64
+	input_tokens     *int64
+	addinput_tokens  *int64
+	output_tokens    *int64
+	addoutput_tokens *int64
+	request_at       *time.Time
+	clearedFields    map[string]struct{}
+	site             *string
+	clearedsite      bool
+	done             bool
+	oldValue         func(context.Context) (*IQCheckResult, error)
+	predicates       []predicate.IQCheckResult
+}
+
+var _ ent.Mutation = (*IQCheckResultMutation)(nil)
+
+// iqcheckresultOption allows management of the mutation configuration using functional options.
+type iqcheckresultOption func(*IQCheckResultMutation)
+
+// newIQCheckResultMutation creates new mutation for the IQCheckResult entity.
+func newIQCheckResultMutation(c config, op Op, opts ...iqcheckresultOption) *IQCheckResultMutation {
+	m := &IQCheckResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIQCheckResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIQCheckResultID sets the ID field of the mutation.
+func withIQCheckResultID(id string) iqcheckresultOption {
+	return func(m *IQCheckResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IQCheckResult
+		)
+		m.oldValue = func(ctx context.Context) (*IQCheckResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IQCheckResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIQCheckResult sets the old IQCheckResult of the mutation.
+func withIQCheckResult(node *IQCheckResult) iqcheckresultOption {
+	return func(m *IQCheckResultMutation) {
+		m.oldValue = func(context.Context) (*IQCheckResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IQCheckResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IQCheckResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IQCheckResult entities.
+func (m *IQCheckResultMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IQCheckResultMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IQCheckResultMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IQCheckResult.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *IQCheckResultMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *IQCheckResultMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *IQCheckResultMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *IQCheckResultMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *IQCheckResultMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *IQCheckResultMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetSiteID sets the "site_id" field.
+func (m *IQCheckResultMutation) SetSiteID(s string) {
+	m.site = &s
+}
+
+// SiteID returns the value of the "site_id" field in the mutation.
+func (m *IQCheckResultMutation) SiteID() (r string, exists bool) {
+	v := m.site
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSiteID returns the old "site_id" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldSiteID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSiteID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSiteID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSiteID: %w", err)
+	}
+	return oldValue.SiteID, nil
+}
+
+// ResetSiteID resets all changes to the "site_id" field.
+func (m *IQCheckResultMutation) ResetSiteID() {
+	m.site = nil
+}
+
+// SetRoundID sets the "round_id" field.
+func (m *IQCheckResultMutation) SetRoundID(s string) {
+	m.round_id = &s
+}
+
+// RoundID returns the value of the "round_id" field in the mutation.
+func (m *IQCheckResultMutation) RoundID() (r string, exists bool) {
+	v := m.round_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoundID returns the old "round_id" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldRoundID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoundID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoundID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoundID: %w", err)
+	}
+	return oldValue.RoundID, nil
+}
+
+// ResetRoundID resets all changes to the "round_id" field.
+func (m *IQCheckResultMutation) ResetRoundID() {
+	m.round_id = nil
+}
+
+// SetModel sets the "model" field.
+func (m *IQCheckResultMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *IQCheckResultMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *IQCheckResultMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetEffort sets the "effort" field.
+func (m *IQCheckResultMutation) SetEffort(s string) {
+	m.effort = &s
+}
+
+// Effort returns the value of the "effort" field in the mutation.
+func (m *IQCheckResultMutation) Effort() (r string, exists bool) {
+	v := m.effort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffort returns the old "effort" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldEffort(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffort: %w", err)
+	}
+	return oldValue.Effort, nil
+}
+
+// ResetEffort resets all changes to the "effort" field.
+func (m *IQCheckResultMutation) ResetEffort() {
+	m.effort = nil
+}
+
+// SetPromptID sets the "prompt_id" field.
+func (m *IQCheckResultMutation) SetPromptID(s string) {
+	m.prompt_id = &s
+}
+
+// PromptID returns the value of the "prompt_id" field in the mutation.
+func (m *IQCheckResultMutation) PromptID() (r string, exists bool) {
+	v := m.prompt_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptID returns the old "prompt_id" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldPromptID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptID: %w", err)
+	}
+	return oldValue.PromptID, nil
+}
+
+// ResetPromptID resets all changes to the "prompt_id" field.
+func (m *IQCheckResultMutation) ResetPromptID() {
+	m.prompt_id = nil
+}
+
+// SetPromptTitle sets the "prompt_title" field.
+func (m *IQCheckResultMutation) SetPromptTitle(s string) {
+	m.prompt_title = &s
+}
+
+// PromptTitle returns the value of the "prompt_title" field in the mutation.
+func (m *IQCheckResultMutation) PromptTitle() (r string, exists bool) {
+	v := m.prompt_title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptTitle returns the old "prompt_title" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldPromptTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptTitle: %w", err)
+	}
+	return oldValue.PromptTitle, nil
+}
+
+// ResetPromptTitle resets all changes to the "prompt_title" field.
+func (m *IQCheckResultMutation) ResetPromptTitle() {
+	m.prompt_title = nil
+}
+
+// SetPromptContent sets the "prompt_content" field.
+func (m *IQCheckResultMutation) SetPromptContent(s string) {
+	m.prompt_content = &s
+}
+
+// PromptContent returns the value of the "prompt_content" field in the mutation.
+func (m *IQCheckResultMutation) PromptContent() (r string, exists bool) {
+	v := m.prompt_content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptContent returns the old "prompt_content" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldPromptContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptContent: %w", err)
+	}
+	return oldValue.PromptContent, nil
+}
+
+// ResetPromptContent resets all changes to the "prompt_content" field.
+func (m *IQCheckResultMutation) ResetPromptContent() {
+	m.prompt_content = nil
+}
+
+// SetResponseText sets the "response_text" field.
+func (m *IQCheckResultMutation) SetResponseText(s string) {
+	m.response_text = &s
+}
+
+// ResponseText returns the value of the "response_text" field in the mutation.
+func (m *IQCheckResultMutation) ResponseText() (r string, exists bool) {
+	v := m.response_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseText returns the old "response_text" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldResponseText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseText: %w", err)
+	}
+	return oldValue.ResponseText, nil
+}
+
+// ResetResponseText resets all changes to the "response_text" field.
+func (m *IQCheckResultMutation) ResetResponseText() {
+	m.response_text = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *IQCheckResultMutation) SetStatus(i iqcheckresult.Status) {
+	m.status = &i
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *IQCheckResultMutation) Status() (r iqcheckresult.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldStatus(ctx context.Context) (v iqcheckresult.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *IQCheckResultMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetError sets the "error" field.
+func (m *IQCheckResultMutation) SetError(s string) {
+	m.error = &s
+}
+
+// Error returns the value of the "error" field in the mutation.
+func (m *IQCheckResultMutation) Error() (r string, exists bool) {
+	v := m.error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldError returns the old "error" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldError: %w", err)
+	}
+	return oldValue.Error, nil
+}
+
+// ResetError resets all changes to the "error" field.
+func (m *IQCheckResultMutation) ResetError() {
+	m.error = nil
+}
+
+// SetDurationMs sets the "duration_ms" field.
+func (m *IQCheckResultMutation) SetDurationMs(i int64) {
+	m.duration_ms = &i
+	m.addduration_ms = nil
+}
+
+// DurationMs returns the value of the "duration_ms" field in the mutation.
+func (m *IQCheckResultMutation) DurationMs() (r int64, exists bool) {
+	v := m.duration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMs returns the old "duration_ms" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldDurationMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMs: %w", err)
+	}
+	return oldValue.DurationMs, nil
+}
+
+// AddDurationMs adds i to the "duration_ms" field.
+func (m *IQCheckResultMutation) AddDurationMs(i int64) {
+	if m.addduration_ms != nil {
+		*m.addduration_ms += i
+	} else {
+		m.addduration_ms = &i
+	}
+}
+
+// AddedDurationMs returns the value that was added to the "duration_ms" field in this mutation.
+func (m *IQCheckResultMutation) AddedDurationMs() (r int64, exists bool) {
+	v := m.addduration_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMs resets all changes to the "duration_ms" field.
+func (m *IQCheckResultMutation) ResetDurationMs() {
+	m.duration_ms = nil
+	m.addduration_ms = nil
+}
+
+// SetInputTokens sets the "input_tokens" field.
+func (m *IQCheckResultMutation) SetInputTokens(i int64) {
+	m.input_tokens = &i
+	m.addinput_tokens = nil
+}
+
+// InputTokens returns the value of the "input_tokens" field in the mutation.
+func (m *IQCheckResultMutation) InputTokens() (r int64, exists bool) {
+	v := m.input_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInputTokens returns the old "input_tokens" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldInputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInputTokens: %w", err)
+	}
+	return oldValue.InputTokens, nil
+}
+
+// AddInputTokens adds i to the "input_tokens" field.
+func (m *IQCheckResultMutation) AddInputTokens(i int64) {
+	if m.addinput_tokens != nil {
+		*m.addinput_tokens += i
+	} else {
+		m.addinput_tokens = &i
+	}
+}
+
+// AddedInputTokens returns the value that was added to the "input_tokens" field in this mutation.
+func (m *IQCheckResultMutation) AddedInputTokens() (r int64, exists bool) {
+	v := m.addinput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetInputTokens resets all changes to the "input_tokens" field.
+func (m *IQCheckResultMutation) ResetInputTokens() {
+	m.input_tokens = nil
+	m.addinput_tokens = nil
+}
+
+// SetOutputTokens sets the "output_tokens" field.
+func (m *IQCheckResultMutation) SetOutputTokens(i int64) {
+	m.output_tokens = &i
+	m.addoutput_tokens = nil
+}
+
+// OutputTokens returns the value of the "output_tokens" field in the mutation.
+func (m *IQCheckResultMutation) OutputTokens() (r int64, exists bool) {
+	v := m.output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputTokens returns the old "output_tokens" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldOutputTokens(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputTokens: %w", err)
+	}
+	return oldValue.OutputTokens, nil
+}
+
+// AddOutputTokens adds i to the "output_tokens" field.
+func (m *IQCheckResultMutation) AddOutputTokens(i int64) {
+	if m.addoutput_tokens != nil {
+		*m.addoutput_tokens += i
+	} else {
+		m.addoutput_tokens = &i
+	}
+}
+
+// AddedOutputTokens returns the value that was added to the "output_tokens" field in this mutation.
+func (m *IQCheckResultMutation) AddedOutputTokens() (r int64, exists bool) {
+	v := m.addoutput_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOutputTokens resets all changes to the "output_tokens" field.
+func (m *IQCheckResultMutation) ResetOutputTokens() {
+	m.output_tokens = nil
+	m.addoutput_tokens = nil
+}
+
+// SetRequestAt sets the "request_at" field.
+func (m *IQCheckResultMutation) SetRequestAt(t time.Time) {
+	m.request_at = &t
+}
+
+// RequestAt returns the value of the "request_at" field in the mutation.
+func (m *IQCheckResultMutation) RequestAt() (r time.Time, exists bool) {
+	v := m.request_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestAt returns the old "request_at" field's value of the IQCheckResult entity.
+// If the IQCheckResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckResultMutation) OldRequestAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestAt: %w", err)
+	}
+	return oldValue.RequestAt, nil
+}
+
+// ResetRequestAt resets all changes to the "request_at" field.
+func (m *IQCheckResultMutation) ResetRequestAt() {
+	m.request_at = nil
+}
+
+// ClearSite clears the "site" edge to the IQCheckSite entity.
+func (m *IQCheckResultMutation) ClearSite() {
+	m.clearedsite = true
+	m.clearedFields[iqcheckresult.FieldSiteID] = struct{}{}
+}
+
+// SiteCleared reports if the "site" edge to the IQCheckSite entity was cleared.
+func (m *IQCheckResultMutation) SiteCleared() bool {
+	return m.clearedsite
+}
+
+// SiteIDs returns the "site" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SiteID instead. It exists only for internal usage by the builders.
+func (m *IQCheckResultMutation) SiteIDs() (ids []string) {
+	if id := m.site; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSite resets all changes to the "site" edge.
+func (m *IQCheckResultMutation) ResetSite() {
+	m.site = nil
+	m.clearedsite = false
+}
+
+// Where appends a list predicates to the IQCheckResultMutation builder.
+func (m *IQCheckResultMutation) Where(ps ...predicate.IQCheckResult) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IQCheckResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IQCheckResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IQCheckResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IQCheckResultMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IQCheckResultMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IQCheckResult).
+func (m *IQCheckResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IQCheckResultMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.create_time != nil {
+		fields = append(fields, iqcheckresult.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, iqcheckresult.FieldUpdateTime)
+	}
+	if m.site != nil {
+		fields = append(fields, iqcheckresult.FieldSiteID)
+	}
+	if m.round_id != nil {
+		fields = append(fields, iqcheckresult.FieldRoundID)
+	}
+	if m.model != nil {
+		fields = append(fields, iqcheckresult.FieldModel)
+	}
+	if m.effort != nil {
+		fields = append(fields, iqcheckresult.FieldEffort)
+	}
+	if m.prompt_id != nil {
+		fields = append(fields, iqcheckresult.FieldPromptID)
+	}
+	if m.prompt_title != nil {
+		fields = append(fields, iqcheckresult.FieldPromptTitle)
+	}
+	if m.prompt_content != nil {
+		fields = append(fields, iqcheckresult.FieldPromptContent)
+	}
+	if m.response_text != nil {
+		fields = append(fields, iqcheckresult.FieldResponseText)
+	}
+	if m.status != nil {
+		fields = append(fields, iqcheckresult.FieldStatus)
+	}
+	if m.error != nil {
+		fields = append(fields, iqcheckresult.FieldError)
+	}
+	if m.duration_ms != nil {
+		fields = append(fields, iqcheckresult.FieldDurationMs)
+	}
+	if m.input_tokens != nil {
+		fields = append(fields, iqcheckresult.FieldInputTokens)
+	}
+	if m.output_tokens != nil {
+		fields = append(fields, iqcheckresult.FieldOutputTokens)
+	}
+	if m.request_at != nil {
+		fields = append(fields, iqcheckresult.FieldRequestAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IQCheckResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case iqcheckresult.FieldCreateTime:
+		return m.CreateTime()
+	case iqcheckresult.FieldUpdateTime:
+		return m.UpdateTime()
+	case iqcheckresult.FieldSiteID:
+		return m.SiteID()
+	case iqcheckresult.FieldRoundID:
+		return m.RoundID()
+	case iqcheckresult.FieldModel:
+		return m.Model()
+	case iqcheckresult.FieldEffort:
+		return m.Effort()
+	case iqcheckresult.FieldPromptID:
+		return m.PromptID()
+	case iqcheckresult.FieldPromptTitle:
+		return m.PromptTitle()
+	case iqcheckresult.FieldPromptContent:
+		return m.PromptContent()
+	case iqcheckresult.FieldResponseText:
+		return m.ResponseText()
+	case iqcheckresult.FieldStatus:
+		return m.Status()
+	case iqcheckresult.FieldError:
+		return m.Error()
+	case iqcheckresult.FieldDurationMs:
+		return m.DurationMs()
+	case iqcheckresult.FieldInputTokens:
+		return m.InputTokens()
+	case iqcheckresult.FieldOutputTokens:
+		return m.OutputTokens()
+	case iqcheckresult.FieldRequestAt:
+		return m.RequestAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IQCheckResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case iqcheckresult.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case iqcheckresult.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case iqcheckresult.FieldSiteID:
+		return m.OldSiteID(ctx)
+	case iqcheckresult.FieldRoundID:
+		return m.OldRoundID(ctx)
+	case iqcheckresult.FieldModel:
+		return m.OldModel(ctx)
+	case iqcheckresult.FieldEffort:
+		return m.OldEffort(ctx)
+	case iqcheckresult.FieldPromptID:
+		return m.OldPromptID(ctx)
+	case iqcheckresult.FieldPromptTitle:
+		return m.OldPromptTitle(ctx)
+	case iqcheckresult.FieldPromptContent:
+		return m.OldPromptContent(ctx)
+	case iqcheckresult.FieldResponseText:
+		return m.OldResponseText(ctx)
+	case iqcheckresult.FieldStatus:
+		return m.OldStatus(ctx)
+	case iqcheckresult.FieldError:
+		return m.OldError(ctx)
+	case iqcheckresult.FieldDurationMs:
+		return m.OldDurationMs(ctx)
+	case iqcheckresult.FieldInputTokens:
+		return m.OldInputTokens(ctx)
+	case iqcheckresult.FieldOutputTokens:
+		return m.OldOutputTokens(ctx)
+	case iqcheckresult.FieldRequestAt:
+		return m.OldRequestAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown IQCheckResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case iqcheckresult.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case iqcheckresult.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case iqcheckresult.FieldSiteID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSiteID(v)
+		return nil
+	case iqcheckresult.FieldRoundID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoundID(v)
+		return nil
+	case iqcheckresult.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case iqcheckresult.FieldEffort:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffort(v)
+		return nil
+	case iqcheckresult.FieldPromptID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptID(v)
+		return nil
+	case iqcheckresult.FieldPromptTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptTitle(v)
+		return nil
+	case iqcheckresult.FieldPromptContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptContent(v)
+		return nil
+	case iqcheckresult.FieldResponseText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseText(v)
+		return nil
+	case iqcheckresult.FieldStatus:
+		v, ok := value.(iqcheckresult.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case iqcheckresult.FieldError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetError(v)
+		return nil
+	case iqcheckresult.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationMs(v)
+		return nil
+	case iqcheckresult.FieldInputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInputTokens(v)
+		return nil
+	case iqcheckresult.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputTokens(v)
+		return nil
+	case iqcheckresult.FieldRequestAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IQCheckResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addduration_ms != nil {
+		fields = append(fields, iqcheckresult.FieldDurationMs)
+	}
+	if m.addinput_tokens != nil {
+		fields = append(fields, iqcheckresult.FieldInputTokens)
+	}
+	if m.addoutput_tokens != nil {
+		fields = append(fields, iqcheckresult.FieldOutputTokens)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IQCheckResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case iqcheckresult.FieldDurationMs:
+		return m.AddedDurationMs()
+	case iqcheckresult.FieldInputTokens:
+		return m.AddedInputTokens()
+	case iqcheckresult.FieldOutputTokens:
+		return m.AddedOutputTokens()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case iqcheckresult.FieldDurationMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationMs(v)
+		return nil
+	case iqcheckresult.FieldInputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInputTokens(v)
+		return nil
+	case iqcheckresult.FieldOutputTokens:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOutputTokens(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IQCheckResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IQCheckResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IQCheckResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown IQCheckResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IQCheckResultMutation) ResetField(name string) error {
+	switch name {
+	case iqcheckresult.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case iqcheckresult.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case iqcheckresult.FieldSiteID:
+		m.ResetSiteID()
+		return nil
+	case iqcheckresult.FieldRoundID:
+		m.ResetRoundID()
+		return nil
+	case iqcheckresult.FieldModel:
+		m.ResetModel()
+		return nil
+	case iqcheckresult.FieldEffort:
+		m.ResetEffort()
+		return nil
+	case iqcheckresult.FieldPromptID:
+		m.ResetPromptID()
+		return nil
+	case iqcheckresult.FieldPromptTitle:
+		m.ResetPromptTitle()
+		return nil
+	case iqcheckresult.FieldPromptContent:
+		m.ResetPromptContent()
+		return nil
+	case iqcheckresult.FieldResponseText:
+		m.ResetResponseText()
+		return nil
+	case iqcheckresult.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case iqcheckresult.FieldError:
+		m.ResetError()
+		return nil
+	case iqcheckresult.FieldDurationMs:
+		m.ResetDurationMs()
+		return nil
+	case iqcheckresult.FieldInputTokens:
+		m.ResetInputTokens()
+		return nil
+	case iqcheckresult.FieldOutputTokens:
+		m.ResetOutputTokens()
+		return nil
+	case iqcheckresult.FieldRequestAt:
+		m.ResetRequestAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IQCheckResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.site != nil {
+		edges = append(edges, iqcheckresult.EdgeSite)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IQCheckResultMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case iqcheckresult.EdgeSite:
+		if id := m.site; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IQCheckResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IQCheckResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IQCheckResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsite {
+		edges = append(edges, iqcheckresult.EdgeSite)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IQCheckResultMutation) EdgeCleared(name string) bool {
+	switch name {
+	case iqcheckresult.EdgeSite:
+		return m.clearedsite
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IQCheckResultMutation) ClearEdge(name string) error {
+	switch name {
+	case iqcheckresult.EdgeSite:
+		m.ClearSite()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IQCheckResultMutation) ResetEdge(name string) error {
+	switch name {
+	case iqcheckresult.EdgeSite:
+		m.ResetSite()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckResult edge %s", name)
+}
+
+// IQCheckSiteMutation represents an operation that mutates the IQCheckSite nodes in the graph.
+type IQCheckSiteMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *string
+	create_time         *time.Time
+	update_time         *time.Time
+	name                *string
+	endpoint            *string
+	api_key             *string
+	user_agent          *string
+	protocol            *iqchecksite.Protocol
+	models              *[]schema.IQCheckModel
+	appendmodels        []schema.IQCheckModel
+	enabled             *bool
+	interval_minutes    *int
+	addinterval_minutes *int
+	max_runs            *int
+	addmax_runs         *int
+	run_count           *int
+	addrun_count        *int
+	slug                *string
+	last_check_at       *time.Time
+	clearedFields       map[string]struct{}
+	results             map[string]struct{}
+	removedresults      map[string]struct{}
+	clearedresults      bool
+	done                bool
+	oldValue            func(context.Context) (*IQCheckSite, error)
+	predicates          []predicate.IQCheckSite
+}
+
+var _ ent.Mutation = (*IQCheckSiteMutation)(nil)
+
+// iqchecksiteOption allows management of the mutation configuration using functional options.
+type iqchecksiteOption func(*IQCheckSiteMutation)
+
+// newIQCheckSiteMutation creates new mutation for the IQCheckSite entity.
+func newIQCheckSiteMutation(c config, op Op, opts ...iqchecksiteOption) *IQCheckSiteMutation {
+	m := &IQCheckSiteMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIQCheckSite,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIQCheckSiteID sets the ID field of the mutation.
+func withIQCheckSiteID(id string) iqchecksiteOption {
+	return func(m *IQCheckSiteMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IQCheckSite
+		)
+		m.oldValue = func(ctx context.Context) (*IQCheckSite, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IQCheckSite.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIQCheckSite sets the old IQCheckSite of the mutation.
+func withIQCheckSite(node *IQCheckSite) iqchecksiteOption {
+	return func(m *IQCheckSiteMutation) {
+		m.oldValue = func(context.Context) (*IQCheckSite, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IQCheckSiteMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IQCheckSiteMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IQCheckSite entities.
+func (m *IQCheckSiteMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IQCheckSiteMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IQCheckSiteMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IQCheckSite.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *IQCheckSiteMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *IQCheckSiteMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *IQCheckSiteMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *IQCheckSiteMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *IQCheckSiteMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *IQCheckSiteMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the "name" field.
+func (m *IQCheckSiteMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *IQCheckSiteMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *IQCheckSiteMutation) ResetName() {
+	m.name = nil
+}
+
+// SetEndpoint sets the "endpoint" field.
+func (m *IQCheckSiteMutation) SetEndpoint(s string) {
+	m.endpoint = &s
+}
+
+// Endpoint returns the value of the "endpoint" field in the mutation.
+func (m *IQCheckSiteMutation) Endpoint() (r string, exists bool) {
+	v := m.endpoint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndpoint returns the old "endpoint" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldEndpoint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndpoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndpoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndpoint: %w", err)
+	}
+	return oldValue.Endpoint, nil
+}
+
+// ResetEndpoint resets all changes to the "endpoint" field.
+func (m *IQCheckSiteMutation) ResetEndpoint() {
+	m.endpoint = nil
+}
+
+// SetAPIKey sets the "api_key" field.
+func (m *IQCheckSiteMutation) SetAPIKey(s string) {
+	m.api_key = &s
+}
+
+// APIKey returns the value of the "api_key" field in the mutation.
+func (m *IQCheckSiteMutation) APIKey() (r string, exists bool) {
+	v := m.api_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAPIKey returns the old "api_key" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldAPIKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAPIKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAPIKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAPIKey: %w", err)
+	}
+	return oldValue.APIKey, nil
+}
+
+// ResetAPIKey resets all changes to the "api_key" field.
+func (m *IQCheckSiteMutation) ResetAPIKey() {
+	m.api_key = nil
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (m *IQCheckSiteMutation) SetUserAgent(s string) {
+	m.user_agent = &s
+}
+
+// UserAgent returns the value of the "user_agent" field in the mutation.
+func (m *IQCheckSiteMutation) UserAgent() (r string, exists bool) {
+	v := m.user_agent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserAgent returns the old "user_agent" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldUserAgent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
+	}
+	return oldValue.UserAgent, nil
+}
+
+// ResetUserAgent resets all changes to the "user_agent" field.
+func (m *IQCheckSiteMutation) ResetUserAgent() {
+	m.user_agent = nil
+}
+
+// SetProtocol sets the "protocol" field.
+func (m *IQCheckSiteMutation) SetProtocol(i iqchecksite.Protocol) {
+	m.protocol = &i
+}
+
+// Protocol returns the value of the "protocol" field in the mutation.
+func (m *IQCheckSiteMutation) Protocol() (r iqchecksite.Protocol, exists bool) {
+	v := m.protocol
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProtocol returns the old "protocol" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldProtocol(ctx context.Context) (v iqchecksite.Protocol, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProtocol is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProtocol requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProtocol: %w", err)
+	}
+	return oldValue.Protocol, nil
+}
+
+// ResetProtocol resets all changes to the "protocol" field.
+func (m *IQCheckSiteMutation) ResetProtocol() {
+	m.protocol = nil
+}
+
+// SetModels sets the "models" field.
+func (m *IQCheckSiteMutation) SetModels(scm []schema.IQCheckModel) {
+	m.models = &scm
+	m.appendmodels = nil
+}
+
+// Models returns the value of the "models" field in the mutation.
+func (m *IQCheckSiteMutation) Models() (r []schema.IQCheckModel, exists bool) {
+	v := m.models
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModels returns the old "models" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldModels(ctx context.Context) (v []schema.IQCheckModel, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModels: %w", err)
+	}
+	return oldValue.Models, nil
+}
+
+// AppendModels adds scm to the "models" field.
+func (m *IQCheckSiteMutation) AppendModels(scm []schema.IQCheckModel) {
+	m.appendmodels = append(m.appendmodels, scm...)
+}
+
+// AppendedModels returns the list of values that were appended to the "models" field in this mutation.
+func (m *IQCheckSiteMutation) AppendedModels() ([]schema.IQCheckModel, bool) {
+	if len(m.appendmodels) == 0 {
+		return nil, false
+	}
+	return m.appendmodels, true
+}
+
+// ResetModels resets all changes to the "models" field.
+func (m *IQCheckSiteMutation) ResetModels() {
+	m.models = nil
+	m.appendmodels = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *IQCheckSiteMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *IQCheckSiteMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *IQCheckSiteMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetIntervalMinutes sets the "interval_minutes" field.
+func (m *IQCheckSiteMutation) SetIntervalMinutes(i int) {
+	m.interval_minutes = &i
+	m.addinterval_minutes = nil
+}
+
+// IntervalMinutes returns the value of the "interval_minutes" field in the mutation.
+func (m *IQCheckSiteMutation) IntervalMinutes() (r int, exists bool) {
+	v := m.interval_minutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIntervalMinutes returns the old "interval_minutes" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldIntervalMinutes(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIntervalMinutes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIntervalMinutes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIntervalMinutes: %w", err)
+	}
+	return oldValue.IntervalMinutes, nil
+}
+
+// AddIntervalMinutes adds i to the "interval_minutes" field.
+func (m *IQCheckSiteMutation) AddIntervalMinutes(i int) {
+	if m.addinterval_minutes != nil {
+		*m.addinterval_minutes += i
+	} else {
+		m.addinterval_minutes = &i
+	}
+}
+
+// AddedIntervalMinutes returns the value that was added to the "interval_minutes" field in this mutation.
+func (m *IQCheckSiteMutation) AddedIntervalMinutes() (r int, exists bool) {
+	v := m.addinterval_minutes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIntervalMinutes resets all changes to the "interval_minutes" field.
+func (m *IQCheckSiteMutation) ResetIntervalMinutes() {
+	m.interval_minutes = nil
+	m.addinterval_minutes = nil
+}
+
+// SetMaxRuns sets the "max_runs" field.
+func (m *IQCheckSiteMutation) SetMaxRuns(i int) {
+	m.max_runs = &i
+	m.addmax_runs = nil
+}
+
+// MaxRuns returns the value of the "max_runs" field in the mutation.
+func (m *IQCheckSiteMutation) MaxRuns() (r int, exists bool) {
+	v := m.max_runs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxRuns returns the old "max_runs" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldMaxRuns(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxRuns is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxRuns requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxRuns: %w", err)
+	}
+	return oldValue.MaxRuns, nil
+}
+
+// AddMaxRuns adds i to the "max_runs" field.
+func (m *IQCheckSiteMutation) AddMaxRuns(i int) {
+	if m.addmax_runs != nil {
+		*m.addmax_runs += i
+	} else {
+		m.addmax_runs = &i
+	}
+}
+
+// AddedMaxRuns returns the value that was added to the "max_runs" field in this mutation.
+func (m *IQCheckSiteMutation) AddedMaxRuns() (r int, exists bool) {
+	v := m.addmax_runs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxRuns resets all changes to the "max_runs" field.
+func (m *IQCheckSiteMutation) ResetMaxRuns() {
+	m.max_runs = nil
+	m.addmax_runs = nil
+}
+
+// SetRunCount sets the "run_count" field.
+func (m *IQCheckSiteMutation) SetRunCount(i int) {
+	m.run_count = &i
+	m.addrun_count = nil
+}
+
+// RunCount returns the value of the "run_count" field in the mutation.
+func (m *IQCheckSiteMutation) RunCount() (r int, exists bool) {
+	v := m.run_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunCount returns the old "run_count" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldRunCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunCount: %w", err)
+	}
+	return oldValue.RunCount, nil
+}
+
+// AddRunCount adds i to the "run_count" field.
+func (m *IQCheckSiteMutation) AddRunCount(i int) {
+	if m.addrun_count != nil {
+		*m.addrun_count += i
+	} else {
+		m.addrun_count = &i
+	}
+}
+
+// AddedRunCount returns the value that was added to the "run_count" field in this mutation.
+func (m *IQCheckSiteMutation) AddedRunCount() (r int, exists bool) {
+	v := m.addrun_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRunCount resets all changes to the "run_count" field.
+func (m *IQCheckSiteMutation) ResetRunCount() {
+	m.run_count = nil
+	m.addrun_count = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *IQCheckSiteMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *IQCheckSiteMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *IQCheckSiteMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetLastCheckAt sets the "last_check_at" field.
+func (m *IQCheckSiteMutation) SetLastCheckAt(t time.Time) {
+	m.last_check_at = &t
+}
+
+// LastCheckAt returns the value of the "last_check_at" field in the mutation.
+func (m *IQCheckSiteMutation) LastCheckAt() (r time.Time, exists bool) {
+	v := m.last_check_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastCheckAt returns the old "last_check_at" field's value of the IQCheckSite entity.
+// If the IQCheckSite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IQCheckSiteMutation) OldLastCheckAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastCheckAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastCheckAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastCheckAt: %w", err)
+	}
+	return oldValue.LastCheckAt, nil
+}
+
+// ClearLastCheckAt clears the value of the "last_check_at" field.
+func (m *IQCheckSiteMutation) ClearLastCheckAt() {
+	m.last_check_at = nil
+	m.clearedFields[iqchecksite.FieldLastCheckAt] = struct{}{}
+}
+
+// LastCheckAtCleared returns if the "last_check_at" field was cleared in this mutation.
+func (m *IQCheckSiteMutation) LastCheckAtCleared() bool {
+	_, ok := m.clearedFields[iqchecksite.FieldLastCheckAt]
+	return ok
+}
+
+// ResetLastCheckAt resets all changes to the "last_check_at" field.
+func (m *IQCheckSiteMutation) ResetLastCheckAt() {
+	m.last_check_at = nil
+	delete(m.clearedFields, iqchecksite.FieldLastCheckAt)
+}
+
+// AddResultIDs adds the "results" edge to the IQCheckResult entity by ids.
+func (m *IQCheckSiteMutation) AddResultIDs(ids ...string) {
+	if m.results == nil {
+		m.results = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.results[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResults clears the "results" edge to the IQCheckResult entity.
+func (m *IQCheckSiteMutation) ClearResults() {
+	m.clearedresults = true
+}
+
+// ResultsCleared reports if the "results" edge to the IQCheckResult entity was cleared.
+func (m *IQCheckSiteMutation) ResultsCleared() bool {
+	return m.clearedresults
+}
+
+// RemoveResultIDs removes the "results" edge to the IQCheckResult entity by IDs.
+func (m *IQCheckSiteMutation) RemoveResultIDs(ids ...string) {
+	if m.removedresults == nil {
+		m.removedresults = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.results, ids[i])
+		m.removedresults[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResults returns the removed IDs of the "results" edge to the IQCheckResult entity.
+func (m *IQCheckSiteMutation) RemovedResultsIDs() (ids []string) {
+	for id := range m.removedresults {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResultsIDs returns the "results" edge IDs in the mutation.
+func (m *IQCheckSiteMutation) ResultsIDs() (ids []string) {
+	for id := range m.results {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResults resets all changes to the "results" edge.
+func (m *IQCheckSiteMutation) ResetResults() {
+	m.results = nil
+	m.clearedresults = false
+	m.removedresults = nil
+}
+
+// Where appends a list predicates to the IQCheckSiteMutation builder.
+func (m *IQCheckSiteMutation) Where(ps ...predicate.IQCheckSite) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IQCheckSiteMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IQCheckSiteMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IQCheckSite, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IQCheckSiteMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IQCheckSiteMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IQCheckSite).
+func (m *IQCheckSiteMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IQCheckSiteMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.create_time != nil {
+		fields = append(fields, iqchecksite.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, iqchecksite.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, iqchecksite.FieldName)
+	}
+	if m.endpoint != nil {
+		fields = append(fields, iqchecksite.FieldEndpoint)
+	}
+	if m.api_key != nil {
+		fields = append(fields, iqchecksite.FieldAPIKey)
+	}
+	if m.user_agent != nil {
+		fields = append(fields, iqchecksite.FieldUserAgent)
+	}
+	if m.protocol != nil {
+		fields = append(fields, iqchecksite.FieldProtocol)
+	}
+	if m.models != nil {
+		fields = append(fields, iqchecksite.FieldModels)
+	}
+	if m.enabled != nil {
+		fields = append(fields, iqchecksite.FieldEnabled)
+	}
+	if m.interval_minutes != nil {
+		fields = append(fields, iqchecksite.FieldIntervalMinutes)
+	}
+	if m.max_runs != nil {
+		fields = append(fields, iqchecksite.FieldMaxRuns)
+	}
+	if m.run_count != nil {
+		fields = append(fields, iqchecksite.FieldRunCount)
+	}
+	if m.slug != nil {
+		fields = append(fields, iqchecksite.FieldSlug)
+	}
+	if m.last_check_at != nil {
+		fields = append(fields, iqchecksite.FieldLastCheckAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IQCheckSiteMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case iqchecksite.FieldCreateTime:
+		return m.CreateTime()
+	case iqchecksite.FieldUpdateTime:
+		return m.UpdateTime()
+	case iqchecksite.FieldName:
+		return m.Name()
+	case iqchecksite.FieldEndpoint:
+		return m.Endpoint()
+	case iqchecksite.FieldAPIKey:
+		return m.APIKey()
+	case iqchecksite.FieldUserAgent:
+		return m.UserAgent()
+	case iqchecksite.FieldProtocol:
+		return m.Protocol()
+	case iqchecksite.FieldModels:
+		return m.Models()
+	case iqchecksite.FieldEnabled:
+		return m.Enabled()
+	case iqchecksite.FieldIntervalMinutes:
+		return m.IntervalMinutes()
+	case iqchecksite.FieldMaxRuns:
+		return m.MaxRuns()
+	case iqchecksite.FieldRunCount:
+		return m.RunCount()
+	case iqchecksite.FieldSlug:
+		return m.Slug()
+	case iqchecksite.FieldLastCheckAt:
+		return m.LastCheckAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IQCheckSiteMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case iqchecksite.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case iqchecksite.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case iqchecksite.FieldName:
+		return m.OldName(ctx)
+	case iqchecksite.FieldEndpoint:
+		return m.OldEndpoint(ctx)
+	case iqchecksite.FieldAPIKey:
+		return m.OldAPIKey(ctx)
+	case iqchecksite.FieldUserAgent:
+		return m.OldUserAgent(ctx)
+	case iqchecksite.FieldProtocol:
+		return m.OldProtocol(ctx)
+	case iqchecksite.FieldModels:
+		return m.OldModels(ctx)
+	case iqchecksite.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case iqchecksite.FieldIntervalMinutes:
+		return m.OldIntervalMinutes(ctx)
+	case iqchecksite.FieldMaxRuns:
+		return m.OldMaxRuns(ctx)
+	case iqchecksite.FieldRunCount:
+		return m.OldRunCount(ctx)
+	case iqchecksite.FieldSlug:
+		return m.OldSlug(ctx)
+	case iqchecksite.FieldLastCheckAt:
+		return m.OldLastCheckAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown IQCheckSite field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckSiteMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case iqchecksite.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case iqchecksite.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case iqchecksite.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case iqchecksite.FieldEndpoint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndpoint(v)
+		return nil
+	case iqchecksite.FieldAPIKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAPIKey(v)
+		return nil
+	case iqchecksite.FieldUserAgent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserAgent(v)
+		return nil
+	case iqchecksite.FieldProtocol:
+		v, ok := value.(iqchecksite.Protocol)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProtocol(v)
+		return nil
+	case iqchecksite.FieldModels:
+		v, ok := value.([]schema.IQCheckModel)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModels(v)
+		return nil
+	case iqchecksite.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case iqchecksite.FieldIntervalMinutes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIntervalMinutes(v)
+		return nil
+	case iqchecksite.FieldMaxRuns:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxRuns(v)
+		return nil
+	case iqchecksite.FieldRunCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunCount(v)
+		return nil
+	case iqchecksite.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case iqchecksite.FieldLastCheckAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastCheckAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckSite field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IQCheckSiteMutation) AddedFields() []string {
+	var fields []string
+	if m.addinterval_minutes != nil {
+		fields = append(fields, iqchecksite.FieldIntervalMinutes)
+	}
+	if m.addmax_runs != nil {
+		fields = append(fields, iqchecksite.FieldMaxRuns)
+	}
+	if m.addrun_count != nil {
+		fields = append(fields, iqchecksite.FieldRunCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IQCheckSiteMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case iqchecksite.FieldIntervalMinutes:
+		return m.AddedIntervalMinutes()
+	case iqchecksite.FieldMaxRuns:
+		return m.AddedMaxRuns()
+	case iqchecksite.FieldRunCount:
+		return m.AddedRunCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IQCheckSiteMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case iqchecksite.FieldIntervalMinutes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIntervalMinutes(v)
+		return nil
+	case iqchecksite.FieldMaxRuns:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxRuns(v)
+		return nil
+	case iqchecksite.FieldRunCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRunCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckSite numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IQCheckSiteMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(iqchecksite.FieldLastCheckAt) {
+		fields = append(fields, iqchecksite.FieldLastCheckAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IQCheckSiteMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IQCheckSiteMutation) ClearField(name string) error {
+	switch name {
+	case iqchecksite.FieldLastCheckAt:
+		m.ClearLastCheckAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckSite nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IQCheckSiteMutation) ResetField(name string) error {
+	switch name {
+	case iqchecksite.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case iqchecksite.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case iqchecksite.FieldName:
+		m.ResetName()
+		return nil
+	case iqchecksite.FieldEndpoint:
+		m.ResetEndpoint()
+		return nil
+	case iqchecksite.FieldAPIKey:
+		m.ResetAPIKey()
+		return nil
+	case iqchecksite.FieldUserAgent:
+		m.ResetUserAgent()
+		return nil
+	case iqchecksite.FieldProtocol:
+		m.ResetProtocol()
+		return nil
+	case iqchecksite.FieldModels:
+		m.ResetModels()
+		return nil
+	case iqchecksite.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case iqchecksite.FieldIntervalMinutes:
+		m.ResetIntervalMinutes()
+		return nil
+	case iqchecksite.FieldMaxRuns:
+		m.ResetMaxRuns()
+		return nil
+	case iqchecksite.FieldRunCount:
+		m.ResetRunCount()
+		return nil
+	case iqchecksite.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case iqchecksite.FieldLastCheckAt:
+		m.ResetLastCheckAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckSite field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IQCheckSiteMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.results != nil {
+		edges = append(edges, iqchecksite.EdgeResults)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IQCheckSiteMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case iqchecksite.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.results))
+		for id := range m.results {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IQCheckSiteMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedresults != nil {
+		edges = append(edges, iqchecksite.EdgeResults)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IQCheckSiteMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case iqchecksite.EdgeResults:
+		ids := make([]ent.Value, 0, len(m.removedresults))
+		for id := range m.removedresults {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IQCheckSiteMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresults {
+		edges = append(edges, iqchecksite.EdgeResults)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IQCheckSiteMutation) EdgeCleared(name string) bool {
+	switch name {
+	case iqchecksite.EdgeResults:
+		return m.clearedresults
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IQCheckSiteMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown IQCheckSite unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IQCheckSiteMutation) ResetEdge(name string) error {
+	switch name {
+	case iqchecksite.EdgeResults:
+		m.ResetResults()
+		return nil
+	}
+	return fmt.Errorf("unknown IQCheckSite edge %s", name)
 }
 
 // InstanceMutation represents an operation that mutates the Instance nodes in the graph.

@@ -27,6 +27,15 @@ type FrpTunnel func(*sql.Selector)
 // FrpTunnelStat is the predicate function for frptunnelstat builders.
 type FrpTunnelStat func(*sql.Selector)
 
+// IQCheckPrompt is the predicate function for iqcheckprompt builders.
+type IQCheckPrompt func(*sql.Selector)
+
+// IQCheckResult is the predicate function for iqcheckresult builders.
+type IQCheckResult func(*sql.Selector)
+
+// IQCheckSite is the predicate function for iqchecksite builders.
+type IQCheckSite func(*sql.Selector)
+
 // Instance is the predicate function for instance builders.
 type Instance func(*sql.Selector)
 

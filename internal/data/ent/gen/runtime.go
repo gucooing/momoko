@@ -12,6 +12,9 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/iqcheckprompt"
+	"momoko/internal/data/ent/gen/iqcheckresult"
+	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -253,6 +256,167 @@ func init() {
 	frptunnelstatDescBytesOut := frptunnelstatFields[4].Descriptor()
 	// frptunnelstat.DefaultBytesOut holds the default value on creation for the bytes_out field.
 	frptunnelstat.DefaultBytesOut = frptunnelstatDescBytesOut.Default.(int64)
+	iqcheckpromptMixin := schema.IQCheckPrompt{}.Mixin()
+	iqcheckpromptMixinFields0 := iqcheckpromptMixin[0].Fields()
+	_ = iqcheckpromptMixinFields0
+	iqcheckpromptFields := schema.IQCheckPrompt{}.Fields()
+	_ = iqcheckpromptFields
+	// iqcheckpromptDescCreateTime is the schema descriptor for create_time field.
+	iqcheckpromptDescCreateTime := iqcheckpromptMixinFields0[0].Descriptor()
+	// iqcheckprompt.DefaultCreateTime holds the default value on creation for the create_time field.
+	iqcheckprompt.DefaultCreateTime = iqcheckpromptDescCreateTime.Default.(func() time.Time)
+	// iqcheckpromptDescUpdateTime is the schema descriptor for update_time field.
+	iqcheckpromptDescUpdateTime := iqcheckpromptMixinFields0[1].Descriptor()
+	// iqcheckprompt.DefaultUpdateTime holds the default value on creation for the update_time field.
+	iqcheckprompt.DefaultUpdateTime = iqcheckpromptDescUpdateTime.Default.(func() time.Time)
+	// iqcheckprompt.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	iqcheckprompt.UpdateDefaultUpdateTime = iqcheckpromptDescUpdateTime.UpdateDefault.(func() time.Time)
+	// iqcheckpromptDescTitle is the schema descriptor for title field.
+	iqcheckpromptDescTitle := iqcheckpromptFields[1].Descriptor()
+	// iqcheckprompt.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	iqcheckprompt.TitleValidator = iqcheckpromptDescTitle.Validators[0].(func(string) error)
+	// iqcheckpromptDescContent is the schema descriptor for content field.
+	iqcheckpromptDescContent := iqcheckpromptFields[2].Descriptor()
+	// iqcheckprompt.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	iqcheckprompt.ContentValidator = iqcheckpromptDescContent.Validators[0].(func(string) error)
+	// iqcheckpromptDescEnabled is the schema descriptor for enabled field.
+	iqcheckpromptDescEnabled := iqcheckpromptFields[3].Descriptor()
+	// iqcheckprompt.DefaultEnabled holds the default value on creation for the enabled field.
+	iqcheckprompt.DefaultEnabled = iqcheckpromptDescEnabled.Default.(bool)
+	// iqcheckpromptDescOrder is the schema descriptor for order field.
+	iqcheckpromptDescOrder := iqcheckpromptFields[4].Descriptor()
+	// iqcheckprompt.DefaultOrder holds the default value on creation for the order field.
+	iqcheckprompt.DefaultOrder = iqcheckpromptDescOrder.Default.(int)
+	// iqcheckpromptDescID is the schema descriptor for id field.
+	iqcheckpromptDescID := iqcheckpromptFields[0].Descriptor()
+	// iqcheckprompt.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	iqcheckprompt.IDValidator = iqcheckpromptDescID.Validators[0].(func(string) error)
+	iqcheckresultMixin := schema.IQCheckResult{}.Mixin()
+	iqcheckresultMixinFields0 := iqcheckresultMixin[0].Fields()
+	_ = iqcheckresultMixinFields0
+	iqcheckresultFields := schema.IQCheckResult{}.Fields()
+	_ = iqcheckresultFields
+	// iqcheckresultDescCreateTime is the schema descriptor for create_time field.
+	iqcheckresultDescCreateTime := iqcheckresultMixinFields0[0].Descriptor()
+	// iqcheckresult.DefaultCreateTime holds the default value on creation for the create_time field.
+	iqcheckresult.DefaultCreateTime = iqcheckresultDescCreateTime.Default.(func() time.Time)
+	// iqcheckresultDescUpdateTime is the schema descriptor for update_time field.
+	iqcheckresultDescUpdateTime := iqcheckresultMixinFields0[1].Descriptor()
+	// iqcheckresult.DefaultUpdateTime holds the default value on creation for the update_time field.
+	iqcheckresult.DefaultUpdateTime = iqcheckresultDescUpdateTime.Default.(func() time.Time)
+	// iqcheckresult.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	iqcheckresult.UpdateDefaultUpdateTime = iqcheckresultDescUpdateTime.UpdateDefault.(func() time.Time)
+	// iqcheckresultDescSiteID is the schema descriptor for site_id field.
+	iqcheckresultDescSiteID := iqcheckresultFields[1].Descriptor()
+	// iqcheckresult.SiteIDValidator is a validator for the "site_id" field. It is called by the builders before save.
+	iqcheckresult.SiteIDValidator = iqcheckresultDescSiteID.Validators[0].(func(string) error)
+	// iqcheckresultDescRoundID is the schema descriptor for round_id field.
+	iqcheckresultDescRoundID := iqcheckresultFields[2].Descriptor()
+	// iqcheckresult.DefaultRoundID holds the default value on creation for the round_id field.
+	iqcheckresult.DefaultRoundID = iqcheckresultDescRoundID.Default.(string)
+	// iqcheckresultDescModel is the schema descriptor for model field.
+	iqcheckresultDescModel := iqcheckresultFields[3].Descriptor()
+	// iqcheckresult.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	iqcheckresult.ModelValidator = iqcheckresultDescModel.Validators[0].(func(string) error)
+	// iqcheckresultDescEffort is the schema descriptor for effort field.
+	iqcheckresultDescEffort := iqcheckresultFields[4].Descriptor()
+	// iqcheckresult.DefaultEffort holds the default value on creation for the effort field.
+	iqcheckresult.DefaultEffort = iqcheckresultDescEffort.Default.(string)
+	// iqcheckresultDescPromptID is the schema descriptor for prompt_id field.
+	iqcheckresultDescPromptID := iqcheckresultFields[5].Descriptor()
+	// iqcheckresult.DefaultPromptID holds the default value on creation for the prompt_id field.
+	iqcheckresult.DefaultPromptID = iqcheckresultDescPromptID.Default.(string)
+	// iqcheckresultDescPromptTitle is the schema descriptor for prompt_title field.
+	iqcheckresultDescPromptTitle := iqcheckresultFields[6].Descriptor()
+	// iqcheckresult.DefaultPromptTitle holds the default value on creation for the prompt_title field.
+	iqcheckresult.DefaultPromptTitle = iqcheckresultDescPromptTitle.Default.(string)
+	// iqcheckresultDescPromptContent is the schema descriptor for prompt_content field.
+	iqcheckresultDescPromptContent := iqcheckresultFields[7].Descriptor()
+	// iqcheckresult.DefaultPromptContent holds the default value on creation for the prompt_content field.
+	iqcheckresult.DefaultPromptContent = iqcheckresultDescPromptContent.Default.(string)
+	// iqcheckresultDescResponseText is the schema descriptor for response_text field.
+	iqcheckresultDescResponseText := iqcheckresultFields[8].Descriptor()
+	// iqcheckresult.DefaultResponseText holds the default value on creation for the response_text field.
+	iqcheckresult.DefaultResponseText = iqcheckresultDescResponseText.Default.(string)
+	// iqcheckresultDescError is the schema descriptor for error field.
+	iqcheckresultDescError := iqcheckresultFields[10].Descriptor()
+	// iqcheckresult.DefaultError holds the default value on creation for the error field.
+	iqcheckresult.DefaultError = iqcheckresultDescError.Default.(string)
+	// iqcheckresultDescDurationMs is the schema descriptor for duration_ms field.
+	iqcheckresultDescDurationMs := iqcheckresultFields[11].Descriptor()
+	// iqcheckresult.DefaultDurationMs holds the default value on creation for the duration_ms field.
+	iqcheckresult.DefaultDurationMs = iqcheckresultDescDurationMs.Default.(int64)
+	// iqcheckresultDescInputTokens is the schema descriptor for input_tokens field.
+	iqcheckresultDescInputTokens := iqcheckresultFields[12].Descriptor()
+	// iqcheckresult.DefaultInputTokens holds the default value on creation for the input_tokens field.
+	iqcheckresult.DefaultInputTokens = iqcheckresultDescInputTokens.Default.(int64)
+	// iqcheckresultDescOutputTokens is the schema descriptor for output_tokens field.
+	iqcheckresultDescOutputTokens := iqcheckresultFields[13].Descriptor()
+	// iqcheckresult.DefaultOutputTokens holds the default value on creation for the output_tokens field.
+	iqcheckresult.DefaultOutputTokens = iqcheckresultDescOutputTokens.Default.(int64)
+	// iqcheckresultDescRequestAt is the schema descriptor for request_at field.
+	iqcheckresultDescRequestAt := iqcheckresultFields[14].Descriptor()
+	// iqcheckresult.DefaultRequestAt holds the default value on creation for the request_at field.
+	iqcheckresult.DefaultRequestAt = iqcheckresultDescRequestAt.Default.(func() time.Time)
+	// iqcheckresultDescID is the schema descriptor for id field.
+	iqcheckresultDescID := iqcheckresultFields[0].Descriptor()
+	// iqcheckresult.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	iqcheckresult.IDValidator = iqcheckresultDescID.Validators[0].(func(string) error)
+	iqchecksiteMixin := schema.IQCheckSite{}.Mixin()
+	iqchecksiteMixinFields0 := iqchecksiteMixin[0].Fields()
+	_ = iqchecksiteMixinFields0
+	iqchecksiteFields := schema.IQCheckSite{}.Fields()
+	_ = iqchecksiteFields
+	// iqchecksiteDescCreateTime is the schema descriptor for create_time field.
+	iqchecksiteDescCreateTime := iqchecksiteMixinFields0[0].Descriptor()
+	// iqchecksite.DefaultCreateTime holds the default value on creation for the create_time field.
+	iqchecksite.DefaultCreateTime = iqchecksiteDescCreateTime.Default.(func() time.Time)
+	// iqchecksiteDescUpdateTime is the schema descriptor for update_time field.
+	iqchecksiteDescUpdateTime := iqchecksiteMixinFields0[1].Descriptor()
+	// iqchecksite.DefaultUpdateTime holds the default value on creation for the update_time field.
+	iqchecksite.DefaultUpdateTime = iqchecksiteDescUpdateTime.Default.(func() time.Time)
+	// iqchecksite.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	iqchecksite.UpdateDefaultUpdateTime = iqchecksiteDescUpdateTime.UpdateDefault.(func() time.Time)
+	// iqchecksiteDescName is the schema descriptor for name field.
+	iqchecksiteDescName := iqchecksiteFields[1].Descriptor()
+	// iqchecksite.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	iqchecksite.NameValidator = iqchecksiteDescName.Validators[0].(func(string) error)
+	// iqchecksiteDescEndpoint is the schema descriptor for endpoint field.
+	iqchecksiteDescEndpoint := iqchecksiteFields[2].Descriptor()
+	// iqchecksite.EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
+	iqchecksite.EndpointValidator = iqchecksiteDescEndpoint.Validators[0].(func(string) error)
+	// iqchecksiteDescAPIKey is the schema descriptor for api_key field.
+	iqchecksiteDescAPIKey := iqchecksiteFields[3].Descriptor()
+	// iqchecksite.DefaultAPIKey holds the default value on creation for the api_key field.
+	iqchecksite.DefaultAPIKey = iqchecksiteDescAPIKey.Default.(string)
+	// iqchecksiteDescUserAgent is the schema descriptor for user_agent field.
+	iqchecksiteDescUserAgent := iqchecksiteFields[4].Descriptor()
+	// iqchecksite.DefaultUserAgent holds the default value on creation for the user_agent field.
+	iqchecksite.DefaultUserAgent = iqchecksiteDescUserAgent.Default.(string)
+	// iqchecksiteDescEnabled is the schema descriptor for enabled field.
+	iqchecksiteDescEnabled := iqchecksiteFields[7].Descriptor()
+	// iqchecksite.DefaultEnabled holds the default value on creation for the enabled field.
+	iqchecksite.DefaultEnabled = iqchecksiteDescEnabled.Default.(bool)
+	// iqchecksiteDescIntervalMinutes is the schema descriptor for interval_minutes field.
+	iqchecksiteDescIntervalMinutes := iqchecksiteFields[8].Descriptor()
+	// iqchecksite.DefaultIntervalMinutes holds the default value on creation for the interval_minutes field.
+	iqchecksite.DefaultIntervalMinutes = iqchecksiteDescIntervalMinutes.Default.(int)
+	// iqchecksiteDescMaxRuns is the schema descriptor for max_runs field.
+	iqchecksiteDescMaxRuns := iqchecksiteFields[9].Descriptor()
+	// iqchecksite.DefaultMaxRuns holds the default value on creation for the max_runs field.
+	iqchecksite.DefaultMaxRuns = iqchecksiteDescMaxRuns.Default.(int)
+	// iqchecksiteDescRunCount is the schema descriptor for run_count field.
+	iqchecksiteDescRunCount := iqchecksiteFields[10].Descriptor()
+	// iqchecksite.DefaultRunCount holds the default value on creation for the run_count field.
+	iqchecksite.DefaultRunCount = iqchecksiteDescRunCount.Default.(int)
+	// iqchecksiteDescSlug is the schema descriptor for slug field.
+	iqchecksiteDescSlug := iqchecksiteFields[11].Descriptor()
+	// iqchecksite.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	iqchecksite.SlugValidator = iqchecksiteDescSlug.Validators[0].(func(string) error)
+	// iqchecksiteDescID is the schema descriptor for id field.
+	iqchecksiteDescID := iqchecksiteFields[0].Descriptor()
+	// iqchecksite.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	iqchecksite.IDValidator = iqchecksiteDescID.Validators[0].(func(string) error)
 	instanceMixin := schema.Instance{}.Mixin()
 	instanceMixinFields0 := instanceMixin[0].Fields()
 	_ = instanceMixinFields0

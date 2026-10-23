@@ -242,6 +242,106 @@ var (
 			},
 		},
 	}
+	// IqCheckPromptsColumns holds the columns for the "iq_check_prompts" table.
+	IqCheckPromptsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "order", Type: field.TypeInt, Default: 0},
+	}
+	// IqCheckPromptsTable holds the schema information for the "iq_check_prompts" table.
+	IqCheckPromptsTable = &schema.Table{
+		Name:       "iq_check_prompts",
+		Columns:    IqCheckPromptsColumns,
+		PrimaryKey: []*schema.Column{IqCheckPromptsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "iqcheckprompt_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{IqCheckPromptsColumns[5]},
+			},
+		},
+	}
+	// IqCheckResultsColumns holds the columns for the "iq_check_results" table.
+	IqCheckResultsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "round_id", Type: field.TypeString, Default: ""},
+		{Name: "model", Type: field.TypeString},
+		{Name: "effort", Type: field.TypeString, Default: ""},
+		{Name: "prompt_id", Type: field.TypeString, Default: ""},
+		{Name: "prompt_title", Type: field.TypeString, Default: ""},
+		{Name: "prompt_content", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "response_text", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "failed"}, Default: "success"},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "duration_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "input_tokens", Type: field.TypeInt64, Default: 0},
+		{Name: "output_tokens", Type: field.TypeInt64, Default: 0},
+		{Name: "request_at", Type: field.TypeTime},
+		{Name: "site_id", Type: field.TypeString},
+	}
+	// IqCheckResultsTable holds the schema information for the "iq_check_results" table.
+	IqCheckResultsTable = &schema.Table{
+		Name:       "iq_check_results",
+		Columns:    IqCheckResultsColumns,
+		PrimaryKey: []*schema.Column{IqCheckResultsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "iq_check_results_iq_check_sites_results",
+				Columns:    []*schema.Column{IqCheckResultsColumns[16]},
+				RefColumns: []*schema.Column{IqCheckSitesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "iqcheckresult_site_id_request_at",
+				Unique:  false,
+				Columns: []*schema.Column{IqCheckResultsColumns[16], IqCheckResultsColumns[15]},
+			},
+			{
+				Name:    "iqcheckresult_round_id",
+				Unique:  false,
+				Columns: []*schema.Column{IqCheckResultsColumns[3]},
+			},
+		},
+	}
+	// IqCheckSitesColumns holds the columns for the "iq_check_sites" table.
+	IqCheckSitesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "endpoint", Type: field.TypeString},
+		{Name: "api_key", Type: field.TypeString, Default: ""},
+		{Name: "user_agent", Type: field.TypeString, Default: "pi"},
+		{Name: "protocol", Type: field.TypeEnum, Enums: []string{"chat", "responses", "messages"}, Default: "chat"},
+		{Name: "models", Type: field.TypeJSON},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "interval_minutes", Type: field.TypeInt, Default: 60},
+		{Name: "max_runs", Type: field.TypeInt, Default: 0},
+		{Name: "run_count", Type: field.TypeInt, Default: 0},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "last_check_at", Type: field.TypeTime, Nullable: true},
+	}
+	// IqCheckSitesTable holds the schema information for the "iq_check_sites" table.
+	IqCheckSitesTable = &schema.Table{
+		Name:       "iq_check_sites",
+		Columns:    IqCheckSitesColumns,
+		PrimaryKey: []*schema.Column{IqCheckSitesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "iqchecksite_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{IqCheckSitesColumns[9]},
+			},
+		},
+	}
 	// InstancesColumns holds the columns for the "instances" table.
 	InstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -750,6 +850,9 @@ var (
 		FileUploadChunksTable,
 		FrpTunnelsTable,
 		FrpTunnelStatsTable,
+		IqCheckPromptsTable,
+		IqCheckResultsTable,
+		IqCheckSitesTable,
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
@@ -779,6 +882,16 @@ func init() {
 	FileUploadsTable.ForeignKeys[0].RefTable = UsersTable
 	FileUploadChunksTable.ForeignKeys[0].RefTable = FileUploadsTable
 	FrpTunnelsTable.ForeignKeys[0].RefTable = UsersTable
+	IqCheckPromptsTable.Annotation = &entsql.Annotation{
+		Table: "iq_check_prompts",
+	}
+	IqCheckResultsTable.ForeignKeys[0].RefTable = IqCheckSitesTable
+	IqCheckResultsTable.Annotation = &entsql.Annotation{
+		Table: "iq_check_results",
+	}
+	IqCheckSitesTable.Annotation = &entsql.Annotation{
+		Table: "iq_check_sites",
+	}
 	InstancesTable.ForeignKeys[0].RefTable = UsersTable
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable

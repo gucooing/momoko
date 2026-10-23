@@ -20,6 +20,9 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/iqcheckprompt"
+	"momoko/internal/data/ent/gen/iqcheckresult"
+	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -61,6 +64,12 @@ type Client struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
+	// IQCheckPrompt is the client for interacting with the IQCheckPrompt builders.
+	IQCheckPrompt *IQCheckPromptClient
+	// IQCheckResult is the client for interacting with the IQCheckResult builders.
+	IQCheckResult *IQCheckResultClient
+	// IQCheckSite is the client for interacting with the IQCheckSite builders.
+	IQCheckSite *IQCheckSiteClient
 	// Instance is the client for interacting with the Instance builders.
 	Instance *InstanceClient
 	// InstanceType is the client for interacting with the InstanceType builders.
@@ -109,6 +118,9 @@ func (c *Client) init() {
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.FrpTunnel = NewFrpTunnelClient(c.config)
 	c.FrpTunnelStat = NewFrpTunnelStatClient(c.config)
+	c.IQCheckPrompt = NewIQCheckPromptClient(c.config)
+	c.IQCheckResult = NewIQCheckResultClient(c.config)
+	c.IQCheckSite = NewIQCheckSiteClient(c.config)
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
@@ -223,6 +235,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FileUploadChunk: NewFileUploadChunkClient(cfg),
 		FrpTunnel:       NewFrpTunnelClient(cfg),
 		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
+		IQCheckPrompt:   NewIQCheckPromptClient(cfg),
+		IQCheckResult:   NewIQCheckResultClient(cfg),
+		IQCheckSite:     NewIQCheckSiteClient(cfg),
 		Instance:        NewInstanceClient(cfg),
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
@@ -264,6 +279,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FileUploadChunk: NewFileUploadChunkClient(cfg),
 		FrpTunnel:       NewFrpTunnelClient(cfg),
 		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
+		IQCheckPrompt:   NewIQCheckPromptClient(cfg),
+		IQCheckResult:   NewIQCheckResultClient(cfg),
+		IQCheckSite:     NewIQCheckSiteClient(cfg),
 		Instance:        NewInstanceClient(cfg),
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
@@ -309,9 +327,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
-		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
+		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -322,9 +341,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
-		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
+		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -347,6 +367,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FrpTunnel.mutate(ctx, m)
 	case *FrpTunnelStatMutation:
 		return c.FrpTunnelStat.mutate(ctx, m)
+	case *IQCheckPromptMutation:
+		return c.IQCheckPrompt.mutate(ctx, m)
+	case *IQCheckResultMutation:
+		return c.IQCheckResult.mutate(ctx, m)
+	case *IQCheckSiteMutation:
+		return c.IQCheckSite.mutate(ctx, m)
 	case *InstanceMutation:
 		return c.Instance.mutate(ctx, m)
 	case *InstanceTypeMutation:
@@ -1406,6 +1432,437 @@ func (c *FrpTunnelStatClient) mutate(ctx context.Context, m *FrpTunnelStatMutati
 		return (&FrpTunnelStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FrpTunnelStat mutation op: %q", m.Op())
+	}
+}
+
+// IQCheckPromptClient is a client for the IQCheckPrompt schema.
+type IQCheckPromptClient struct {
+	config
+}
+
+// NewIQCheckPromptClient returns a client for the IQCheckPrompt from the given config.
+func NewIQCheckPromptClient(c config) *IQCheckPromptClient {
+	return &IQCheckPromptClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `iqcheckprompt.Hooks(f(g(h())))`.
+func (c *IQCheckPromptClient) Use(hooks ...Hook) {
+	c.hooks.IQCheckPrompt = append(c.hooks.IQCheckPrompt, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `iqcheckprompt.Intercept(f(g(h())))`.
+func (c *IQCheckPromptClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IQCheckPrompt = append(c.inters.IQCheckPrompt, interceptors...)
+}
+
+// Create returns a builder for creating a IQCheckPrompt entity.
+func (c *IQCheckPromptClient) Create() *IQCheckPromptCreate {
+	mutation := newIQCheckPromptMutation(c.config, OpCreate)
+	return &IQCheckPromptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IQCheckPrompt entities.
+func (c *IQCheckPromptClient) CreateBulk(builders ...*IQCheckPromptCreate) *IQCheckPromptCreateBulk {
+	return &IQCheckPromptCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *IQCheckPromptClient) MapCreateBulk(slice any, setFunc func(*IQCheckPromptCreate, int)) *IQCheckPromptCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &IQCheckPromptCreateBulk{err: fmt.Errorf("calling to IQCheckPromptClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*IQCheckPromptCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &IQCheckPromptCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IQCheckPrompt.
+func (c *IQCheckPromptClient) Update() *IQCheckPromptUpdate {
+	mutation := newIQCheckPromptMutation(c.config, OpUpdate)
+	return &IQCheckPromptUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IQCheckPromptClient) UpdateOne(_m *IQCheckPrompt) *IQCheckPromptUpdateOne {
+	mutation := newIQCheckPromptMutation(c.config, OpUpdateOne, withIQCheckPrompt(_m))
+	return &IQCheckPromptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IQCheckPromptClient) UpdateOneID(id string) *IQCheckPromptUpdateOne {
+	mutation := newIQCheckPromptMutation(c.config, OpUpdateOne, withIQCheckPromptID(id))
+	return &IQCheckPromptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IQCheckPrompt.
+func (c *IQCheckPromptClient) Delete() *IQCheckPromptDelete {
+	mutation := newIQCheckPromptMutation(c.config, OpDelete)
+	return &IQCheckPromptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IQCheckPromptClient) DeleteOne(_m *IQCheckPrompt) *IQCheckPromptDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IQCheckPromptClient) DeleteOneID(id string) *IQCheckPromptDeleteOne {
+	builder := c.Delete().Where(iqcheckprompt.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IQCheckPromptDeleteOne{builder}
+}
+
+// Query returns a query builder for IQCheckPrompt.
+func (c *IQCheckPromptClient) Query() *IQCheckPromptQuery {
+	return &IQCheckPromptQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIQCheckPrompt},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IQCheckPrompt entity by its id.
+func (c *IQCheckPromptClient) Get(ctx context.Context, id string) (*IQCheckPrompt, error) {
+	return c.Query().Where(iqcheckprompt.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IQCheckPromptClient) GetX(ctx context.Context, id string) *IQCheckPrompt {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *IQCheckPromptClient) Hooks() []Hook {
+	return c.hooks.IQCheckPrompt
+}
+
+// Interceptors returns the client interceptors.
+func (c *IQCheckPromptClient) Interceptors() []Interceptor {
+	return c.inters.IQCheckPrompt
+}
+
+func (c *IQCheckPromptClient) mutate(ctx context.Context, m *IQCheckPromptMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IQCheckPromptCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IQCheckPromptUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IQCheckPromptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IQCheckPromptDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown IQCheckPrompt mutation op: %q", m.Op())
+	}
+}
+
+// IQCheckResultClient is a client for the IQCheckResult schema.
+type IQCheckResultClient struct {
+	config
+}
+
+// NewIQCheckResultClient returns a client for the IQCheckResult from the given config.
+func NewIQCheckResultClient(c config) *IQCheckResultClient {
+	return &IQCheckResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `iqcheckresult.Hooks(f(g(h())))`.
+func (c *IQCheckResultClient) Use(hooks ...Hook) {
+	c.hooks.IQCheckResult = append(c.hooks.IQCheckResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `iqcheckresult.Intercept(f(g(h())))`.
+func (c *IQCheckResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IQCheckResult = append(c.inters.IQCheckResult, interceptors...)
+}
+
+// Create returns a builder for creating a IQCheckResult entity.
+func (c *IQCheckResultClient) Create() *IQCheckResultCreate {
+	mutation := newIQCheckResultMutation(c.config, OpCreate)
+	return &IQCheckResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IQCheckResult entities.
+func (c *IQCheckResultClient) CreateBulk(builders ...*IQCheckResultCreate) *IQCheckResultCreateBulk {
+	return &IQCheckResultCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *IQCheckResultClient) MapCreateBulk(slice any, setFunc func(*IQCheckResultCreate, int)) *IQCheckResultCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &IQCheckResultCreateBulk{err: fmt.Errorf("calling to IQCheckResultClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*IQCheckResultCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &IQCheckResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IQCheckResult.
+func (c *IQCheckResultClient) Update() *IQCheckResultUpdate {
+	mutation := newIQCheckResultMutation(c.config, OpUpdate)
+	return &IQCheckResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IQCheckResultClient) UpdateOne(_m *IQCheckResult) *IQCheckResultUpdateOne {
+	mutation := newIQCheckResultMutation(c.config, OpUpdateOne, withIQCheckResult(_m))
+	return &IQCheckResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IQCheckResultClient) UpdateOneID(id string) *IQCheckResultUpdateOne {
+	mutation := newIQCheckResultMutation(c.config, OpUpdateOne, withIQCheckResultID(id))
+	return &IQCheckResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IQCheckResult.
+func (c *IQCheckResultClient) Delete() *IQCheckResultDelete {
+	mutation := newIQCheckResultMutation(c.config, OpDelete)
+	return &IQCheckResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IQCheckResultClient) DeleteOne(_m *IQCheckResult) *IQCheckResultDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IQCheckResultClient) DeleteOneID(id string) *IQCheckResultDeleteOne {
+	builder := c.Delete().Where(iqcheckresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IQCheckResultDeleteOne{builder}
+}
+
+// Query returns a query builder for IQCheckResult.
+func (c *IQCheckResultClient) Query() *IQCheckResultQuery {
+	return &IQCheckResultQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIQCheckResult},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IQCheckResult entity by its id.
+func (c *IQCheckResultClient) Get(ctx context.Context, id string) (*IQCheckResult, error) {
+	return c.Query().Where(iqcheckresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IQCheckResultClient) GetX(ctx context.Context, id string) *IQCheckResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySite queries the site edge of a IQCheckResult.
+func (c *IQCheckResultClient) QuerySite(_m *IQCheckResult) *IQCheckSiteQuery {
+	query := (&IQCheckSiteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(iqcheckresult.Table, iqcheckresult.FieldID, id),
+			sqlgraph.To(iqchecksite.Table, iqchecksite.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, iqcheckresult.SiteTable, iqcheckresult.SiteColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IQCheckResultClient) Hooks() []Hook {
+	return c.hooks.IQCheckResult
+}
+
+// Interceptors returns the client interceptors.
+func (c *IQCheckResultClient) Interceptors() []Interceptor {
+	return c.inters.IQCheckResult
+}
+
+func (c *IQCheckResultClient) mutate(ctx context.Context, m *IQCheckResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IQCheckResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IQCheckResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IQCheckResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IQCheckResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown IQCheckResult mutation op: %q", m.Op())
+	}
+}
+
+// IQCheckSiteClient is a client for the IQCheckSite schema.
+type IQCheckSiteClient struct {
+	config
+}
+
+// NewIQCheckSiteClient returns a client for the IQCheckSite from the given config.
+func NewIQCheckSiteClient(c config) *IQCheckSiteClient {
+	return &IQCheckSiteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `iqchecksite.Hooks(f(g(h())))`.
+func (c *IQCheckSiteClient) Use(hooks ...Hook) {
+	c.hooks.IQCheckSite = append(c.hooks.IQCheckSite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `iqchecksite.Intercept(f(g(h())))`.
+func (c *IQCheckSiteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IQCheckSite = append(c.inters.IQCheckSite, interceptors...)
+}
+
+// Create returns a builder for creating a IQCheckSite entity.
+func (c *IQCheckSiteClient) Create() *IQCheckSiteCreate {
+	mutation := newIQCheckSiteMutation(c.config, OpCreate)
+	return &IQCheckSiteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IQCheckSite entities.
+func (c *IQCheckSiteClient) CreateBulk(builders ...*IQCheckSiteCreate) *IQCheckSiteCreateBulk {
+	return &IQCheckSiteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *IQCheckSiteClient) MapCreateBulk(slice any, setFunc func(*IQCheckSiteCreate, int)) *IQCheckSiteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &IQCheckSiteCreateBulk{err: fmt.Errorf("calling to IQCheckSiteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*IQCheckSiteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &IQCheckSiteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IQCheckSite.
+func (c *IQCheckSiteClient) Update() *IQCheckSiteUpdate {
+	mutation := newIQCheckSiteMutation(c.config, OpUpdate)
+	return &IQCheckSiteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IQCheckSiteClient) UpdateOne(_m *IQCheckSite) *IQCheckSiteUpdateOne {
+	mutation := newIQCheckSiteMutation(c.config, OpUpdateOne, withIQCheckSite(_m))
+	return &IQCheckSiteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IQCheckSiteClient) UpdateOneID(id string) *IQCheckSiteUpdateOne {
+	mutation := newIQCheckSiteMutation(c.config, OpUpdateOne, withIQCheckSiteID(id))
+	return &IQCheckSiteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IQCheckSite.
+func (c *IQCheckSiteClient) Delete() *IQCheckSiteDelete {
+	mutation := newIQCheckSiteMutation(c.config, OpDelete)
+	return &IQCheckSiteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IQCheckSiteClient) DeleteOne(_m *IQCheckSite) *IQCheckSiteDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IQCheckSiteClient) DeleteOneID(id string) *IQCheckSiteDeleteOne {
+	builder := c.Delete().Where(iqchecksite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IQCheckSiteDeleteOne{builder}
+}
+
+// Query returns a query builder for IQCheckSite.
+func (c *IQCheckSiteClient) Query() *IQCheckSiteQuery {
+	return &IQCheckSiteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIQCheckSite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IQCheckSite entity by its id.
+func (c *IQCheckSiteClient) Get(ctx context.Context, id string) (*IQCheckSite, error) {
+	return c.Query().Where(iqchecksite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IQCheckSiteClient) GetX(ctx context.Context, id string) *IQCheckSite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResults queries the results edge of a IQCheckSite.
+func (c *IQCheckSiteClient) QueryResults(_m *IQCheckSite) *IQCheckResultQuery {
+	query := (&IQCheckResultClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(iqchecksite.Table, iqchecksite.FieldID, id),
+			sqlgraph.To(iqcheckresult.Table, iqcheckresult.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, iqchecksite.ResultsTable, iqchecksite.ResultsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IQCheckSiteClient) Hooks() []Hook {
+	return c.hooks.IQCheckSite
+}
+
+// Interceptors returns the client interceptors.
+func (c *IQCheckSiteClient) Interceptors() []Interceptor {
+	return c.inters.IQCheckSite
+}
+
+func (c *IQCheckSiteClient) mutate(ctx context.Context, m *IQCheckSiteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IQCheckSiteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IQCheckSiteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IQCheckSiteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IQCheckSiteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown IQCheckSite mutation op: %q", m.Op())
 	}
 }
 
@@ -3632,15 +4089,17 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 type (
 	hooks struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
-		SystemConfig, Task, User, UserAPIKey []ent.Hook
+		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
+		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, User,
+		UserAPIKey []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
-		SystemConfig, Task, User, UserAPIKey []ent.Interceptor
+		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
+		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, User,
+		UserAPIKey []ent.Interceptor
 	}
 )
 

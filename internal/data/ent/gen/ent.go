@@ -15,6 +15,9 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/iqcheckprompt"
+	"momoko/internal/data/ent/gen/iqcheckresult"
+	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -101,6 +104,9 @@ func checkColumn(t, c string) error {
 			fileuploadchunk.Table: fileuploadchunk.ValidColumn,
 			frptunnel.Table:       frptunnel.ValidColumn,
 			frptunnelstat.Table:   frptunnelstat.ValidColumn,
+			iqcheckprompt.Table:   iqcheckprompt.ValidColumn,
+			iqcheckresult.Table:   iqcheckresult.ValidColumn,
+			iqchecksite.Table:     iqchecksite.ValidColumn,
 			instance.Table:        instance.ValidColumn,
 			instancetype.Table:    instancetype.ValidColumn,
 			menu.Table:            menu.ValidColumn,

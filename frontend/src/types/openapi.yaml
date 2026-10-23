@@ -2222,6 +2222,235 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetInstanceInfoResponse'
+    /api/v1/iqcheck/models:
+        post:
+            tags:
+                - IQCheckManager
+            description: 按站点、API Key 和协议拉取上游模型列表，供勾选
+            operationId: IQCheckManager_FetchIQCheckModels
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.FetchIQCheckModelsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.FetchIQCheckModelsResponse'
+    /api/v1/iqcheck/prompts:
+        get:
+            tags:
+                - IQCheckManager
+            description: 获取检测提示词列表
+            operationId: IQCheckManager_ListIQCheckPrompts
+            parameters:
+                - name: page
+                  in: query
+                  description: 页码，从 1 开始
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 标题关键字
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListIQCheckPromptsResponse'
+        post:
+            tags:
+                - IQCheckManager
+            description: 创建检测提示词
+            operationId: IQCheckManager_CreateIQCheckPrompt
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateIQCheckPromptRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateIQCheckPromptResponse'
+    /api/v1/iqcheck/prompts/{id}:
+        put:
+            tags:
+                - IQCheckManager
+            description: 更新检测提示词
+            operationId: IQCheckManager_UpdateIQCheckPrompt
+            parameters:
+                - name: id
+                  in: path
+                  description: 提示词 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateIQCheckPromptRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateIQCheckPromptResponse'
+        delete:
+            tags:
+                - IQCheckManager
+            description: 删除检测提示词
+            operationId: IQCheckManager_DeleteIQCheckPrompt
+            parameters:
+                - name: id
+                  in: path
+                  description: 提示词 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteIQCheckPromptResponse'
+    /api/v1/iqcheck/sites:
+        get:
+            tags:
+                - IQCheckManager
+            description: 获取检测站点列表
+            operationId: IQCheckManager_ListIQCheckSites
+            parameters:
+                - name: page
+                  in: query
+                  description: 页码，从 1 开始
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: keywords
+                  in: query
+                  description: 名称关键字
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListIQCheckSitesResponse'
+        post:
+            tags:
+                - IQCheckManager
+            description: 创建检测站点；创建时生成公开页随机路径
+            operationId: IQCheckManager_CreateIQCheckSite
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateIQCheckSiteRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateIQCheckSiteResponse'
+    /api/v1/iqcheck/sites/{id}:
+        put:
+            tags:
+                - IQCheckManager
+            description: 更新检测站点；api_key 为空表示保留原值
+            operationId: IQCheckManager_UpdateIQCheckSite
+            parameters:
+                - name: id
+                  in: path
+                  description: 站点 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateIQCheckSiteRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateIQCheckSiteResponse'
+        delete:
+            tags:
+                - IQCheckManager
+            description: 删除检测站点及其全部检测结果
+            operationId: IQCheckManager_DeleteIQCheckSite
+            parameters:
+                - name: id
+                  in: path
+                  description: 站点 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteIQCheckSiteResponse'
+    /api/v1/iqcheck/sites/{id}/check:
+        post:
+            tags:
+                - IQCheckManager
+            description: 立即对站点勾选的全部模型执行一轮检测
+            operationId: IQCheckManager_TriggerIQCheck
+            parameters:
+                - name: id
+                  in: path
+                  description: 站点 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TriggerIQCheckRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TriggerIQCheckResponse'
     /api/v1/network/port-forwards:
         get:
             tags:
@@ -2957,6 +3186,61 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MePermissionsResponse'
+    /api/v1/public/iqcheck/{slug}:
+        get:
+            tags:
+                - IQCheckPublic
+            description: 获取公开页站点信息
+            operationId: IQCheckPublic_PublicIQCheckSite
+            parameters:
+                - name: slug
+                  in: path
+                  description: 站点随机路径
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PublicIQCheckSiteResponse'
+    /api/v1/public/iqcheck/{slug}/results:
+        get:
+            tags:
+                - IQCheckPublic
+            description: 获取公开页检测结果，按时间倒序
+            operationId: IQCheckPublic_PublicIQCheckResults
+            parameters:
+                - name: slug
+                  in: path
+                  description: 站点随机路径
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: 页码，从 1 开始
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  description: 每页数量
+                  schema:
+                    type: string
+                - name: model
+                  in: query
+                  description: 按模型筛选
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PublicIQCheckResultsResponse'
     /api/v1/public/share/list:
         post:
             tags:
@@ -4506,6 +4790,75 @@ components:
             type: object
             properties: {}
             description: 批量创建系统文件响应
+        v1.CreateIQCheckPromptRequest:
+            type: object
+            properties:
+                title:
+                    type: string
+                    description: 标题
+                content:
+                    type: string
+                    description: 提示词内容
+                enabled:
+                    type: boolean
+                    description: 是否启用
+                order:
+                    type: integer
+                    description: 排序
+                    format: int32
+            description: 创建提示词请求
+        v1.CreateIQCheckPromptResponse:
+            type: object
+            properties:
+                prompt:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.IQCheckPromptInfo'
+                    description: 提示词
+            description: 创建提示词响应
+        v1.CreateIQCheckSiteRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                endpoint:
+                    type: string
+                    description: 站点接口地址（端点）
+                apiKey:
+                    type: string
+                    description: API Key
+                protocol:
+                    type: integer
+                    description: 协议
+                    format: enum
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckModelConfig'
+                    description: 需要检测的模型
+                enabled:
+                    type: boolean
+                    description: 是否启用定时检测
+                intervalMinutes:
+                    type: integer
+                    description: 检测间隔，单位分钟；小于等于 0 时使用默认值 60
+                    format: int32
+                maxRuns:
+                    type: integer
+                    description: 检测次数上限；0 表示无限
+                    format: int32
+                userAgent:
+                    type: string
+                    description: 请求上游时使用的 User-Agent；为空时使用默认值 pi
+            description: 创建站点请求
+        v1.CreateIQCheckSiteResponse:
+            type: object
+            properties:
+                site:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.IQCheckSiteInfo'
+                    description: 站点
+            description: 创建站点响应
         v1.CreateInstanceFileRequest:
             type: object
             properties:
@@ -4915,6 +5268,14 @@ components:
             type: object
             properties: {}
             description: 删除文件来源响应
+        v1.DeleteIQCheckPromptResponse:
+            type: object
+            properties: {}
+            description: 删除提示词响应
+        v1.DeleteIQCheckSiteResponse:
+            type: object
+            properties: {}
+            description: 删除站点响应
         v1.DeleteOIDCClientResponse:
             type: object
             properties: {}
@@ -6241,6 +6602,35 @@ components:
                         - $ref: '#/components/schemas/v1.EmailTemplate'
                     description: 邮件模板
             description: 获取指定邮件模板响应
+        v1.FetchIQCheckModelsRequest:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                    description: 站点接口地址（端点）
+                apiKey:
+                    type: string
+                    description: API Key；为空且传了 site_id 时复用该站点已保存的 Key
+                protocol:
+                    type: integer
+                    description: 协议
+                    format: enum
+                siteId:
+                    type: string
+                    description: 站点 id，编辑已有站点时传入
+                userAgent:
+                    type: string
+                    description: 请求上游时使用的 User-Agent；为空时使用默认值 pi
+            description: 拉取模型列表请求
+        v1.FetchIQCheckModelsResponse:
+            type: object
+            properties:
+                models:
+                    type: array
+                    items:
+                        type: string
+                    description: 模型 id 列表
+            description: 拉取模型列表响应
         v1.FileCreateItem:
             type: object
             properties:
@@ -6815,6 +7205,153 @@ components:
                 sampleIntervalSeconds:
                     type: string
                     description: 采样间隔(秒)
+        v1.IQCheckModelConfig:
+            type: object
+            properties:
+                model:
+                    type: string
+                    description: 模型 id
+                effort:
+                    type: string
+                    description: 推理强度；为空表示不设置，可选 none/minimal/low/medium/high/xhigh/max
+            description: 需要检测的模型及其推理强度
+        v1.IQCheckPromptInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 提示词 id
+                title:
+                    type: string
+                    description: 标题
+                content:
+                    type: string
+                    description: 提示词内容
+                enabled:
+                    type: boolean
+                    description: 是否启用；只有启用的提示词会被随机选中
+                order:
+                    type: integer
+                    description: 排序，越小越靠前
+                    format: int32
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+            description: 检测提示词
+        v1.IQCheckResultInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 结果 id
+                siteId:
+                    type: string
+                    description: 站点 id
+                roundId:
+                    type: string
+                    description: 同一轮检测的编号，一轮会对站点的全部模型各产生一条结果
+                model:
+                    type: string
+                    description: 模型
+                effort:
+                    type: string
+                    description: 推理强度
+                promptTitle:
+                    type: string
+                    description: 提示词标题
+                promptContent:
+                    type: string
+                    description: 请求发送的提示词
+                responseText:
+                    type: string
+                    description: 回复原始文本
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                error:
+                    type: string
+                    description: 失败原因
+                durationMs:
+                    type: string
+                    description: 耗时，单位毫秒
+                inputTokens:
+                    type: string
+                    description: 输入 token 数；上游未返回时为 0
+                outputTokens:
+                    type: string
+                    description: 输出 token 数；上游未返回时为 0
+                requestAt:
+                    type: string
+                    description: 检测时间
+                    format: date-time
+            description: 检测结果
+        v1.IQCheckSiteInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 站点 id
+                name:
+                    type: string
+                    description: 名称
+                endpoint:
+                    type: string
+                    description: 站点接口地址（端点）
+                apiKey:
+                    type: string
+                    description: 脱敏后的 API Key
+                protocol:
+                    type: integer
+                    description: 协议
+                    format: enum
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckModelConfig'
+                    description: 需要检测的模型
+                enabled:
+                    type: boolean
+                    description: 是否启用定时检测
+                intervalMinutes:
+                    type: integer
+                    description: 检测间隔，单位分钟
+                    format: int32
+                maxRuns:
+                    type: integer
+                    description: 检测次数上限；0 表示无限
+                    format: int32
+                runCount:
+                    type: integer
+                    description: 已执行的定时检测次数
+                    format: int32
+                slug:
+                    type: string
+                    description: 公开页随机路径；公开页地址由前端路由前缀 + slug 组成
+                checking:
+                    type: boolean
+                    description: 是否正在检测
+                lastCheckAt:
+                    type: string
+                    description: 最近检测时间
+                    format: date-time
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                userAgent:
+                    type: string
+                    description: 请求上游时使用的 User-Agent
+            description: 检测站点
         v1.ImageHistoryResponse:
             type: object
             properties:
@@ -7046,6 +7583,42 @@ components:
                         $ref: '#/components/schemas/v1.FileSourceInfo'
                     description: 列表
             description: 文件来源列表响应
+        v1.ListIQCheckPromptsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: 页码
+                pageSize:
+                    type: string
+                    description: 每页数量
+                total:
+                    type: string
+                    description: 总数
+                prompts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckPromptInfo'
+                    description: 提示词列表
+            description: 获取提示词列表响应
+        v1.ListIQCheckSitesResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: 页码
+                pageSize:
+                    type: string
+                    description: 每页数量
+                total:
+                    type: string
+                    description: 总数
+                sites:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckSiteInfo'
+                    description: 站点列表
+            description: 获取站点列表响应
         v1.ListOIDCClientsResponse:
             type: object
             properties:
@@ -7855,6 +8428,59 @@ components:
                     type: string
                     description: 累计出站流量(字节)
             description: 端口转发时间序列采样点
+        v1.PublicIQCheckResultsResponse:
+            type: object
+            properties:
+                page:
+                    type: string
+                    description: 页码
+                pageSize:
+                    type: string
+                    description: 每页数量
+                total:
+                    type: string
+                    description: 总数
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckResultInfo'
+                    description: 检测结果，最新的在前
+            description: 获取公开页检测结果响应
+        v1.PublicIQCheckSiteInfo:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                endpoint:
+                    type: string
+                    description: 站点接口地址（端点）
+                protocol:
+                    type: integer
+                    description: 协议
+                    format: enum
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckModelConfig'
+                    description: 检测的模型
+                intervalMinutes:
+                    type: integer
+                    description: 检测间隔，单位分钟
+                    format: int32
+                lastCheckAt:
+                    type: string
+                    description: 最近检测时间
+                    format: date-time
+            description: 公开页站点信息
+        v1.PublicIQCheckSiteResponse:
+            type: object
+            properties:
+                site:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PublicIQCheckSiteInfo'
+                    description: 站点信息
+            description: 获取公开页站点信息响应
         v1.PullDockerImageRequest:
             type: object
             properties:
@@ -8658,6 +9284,21 @@ components:
                 fingerprint:
                     type: string
                     description: 探测到的服务端主机指纹（成功时可能有）
+        v1.TriggerIQCheckRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 站点 id
+            description: 立即检测请求
+        v1.TriggerIQCheckResponse:
+            type: object
+            properties:
+                modelCount:
+                    type: integer
+                    description: 本轮检测的模型数量
+                    format: int32
+            description: 立即检测响应
         v1.TunnelInfo:
             type: object
             properties:
@@ -9079,6 +9720,84 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.FrpsConfig'
                     description: frps 实例配置
+        v1.UpdateIQCheckPromptRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 提示词 id
+                title:
+                    type: string
+                    description: 标题
+                content:
+                    type: string
+                    description: 提示词内容
+                enabled:
+                    type: boolean
+                    description: 是否启用
+                order:
+                    type: integer
+                    description: 排序
+                    format: int32
+            description: 更新提示词请求
+        v1.UpdateIQCheckPromptResponse:
+            type: object
+            properties:
+                prompt:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.IQCheckPromptInfo'
+                    description: 提示词
+            description: 更新提示词响应
+        v1.UpdateIQCheckSiteRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 站点 id
+                name:
+                    type: string
+                    description: 名称
+                endpoint:
+                    type: string
+                    description: 站点接口地址（端点）
+                apiKey:
+                    type: string
+                    description: API Key；为空表示保留原值
+                protocol:
+                    type: integer
+                    description: 协议
+                    format: enum
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.IQCheckModelConfig'
+                    description: 需要检测的模型
+                enabled:
+                    type: boolean
+                    description: 是否启用定时检测
+                intervalMinutes:
+                    type: integer
+                    description: 检测间隔，单位分钟；小于等于 0 时使用默认值 60
+                    format: int32
+                maxRuns:
+                    type: integer
+                    description: 检测次数上限；0 表示无限
+                    format: int32
+                resetRunCount:
+                    type: boolean
+                    description: 是否把已执行次数清零
+                userAgent:
+                    type: string
+                    description: 请求上游时使用的 User-Agent；为空时使用默认值 pi
+            description: 更新站点请求
+        v1.UpdateIQCheckSiteResponse:
+            type: object
+            properties:
+                site:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.IQCheckSiteInfo'
+                    description: 站点
+            description: 更新站点响应
         v1.UpdateInstanceRequest:
             type: object
             properties:
@@ -9577,6 +10296,10 @@ tags:
       description: Docker管理
     - name: FileManager
       description: 文件管理
+    - name: IQCheckManager
+      description: 智商检测：定时向配置的 AI 接口发送检测提示词，并公开展示回复结果
+    - name: IQCheckPublic
+      description: 智商检测公开页接口；由站点的随机路径 slug 标识站点，无需登录
     - name: Initialize
       description: 系统初始化
     - name: InstanceManager
