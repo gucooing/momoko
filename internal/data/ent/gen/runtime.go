@@ -19,6 +19,7 @@ import (
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/session"
+	"momoko/internal/data/ent/gen/sqlmigration"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
@@ -516,6 +517,12 @@ func init() {
 	roleDescID := roleFields[0].Descriptor()
 	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	role.IDValidator = roleDescID.Validators[0].(func(string) error)
+	sqlmigrationFields := schema.SQLMigration{}.Fields()
+	_ = sqlmigrationFields
+	// sqlmigrationDescAppliedAt is the schema descriptor for applied_at field.
+	sqlmigrationDescAppliedAt := sqlmigrationFields[2].Descriptor()
+	// sqlmigration.DefaultAppliedAt holds the default value on creation for the applied_at field.
+	sqlmigration.DefaultAppliedAt = sqlmigrationDescAppliedAt.Default.(func() time.Time)
 	sshhostMixin := schema.SSHHost{}.Mixin()
 	sshhostMixinFields0 := sshhostMixin[0].Fields()
 	_ = sshhostMixinFields0

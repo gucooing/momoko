@@ -44,6 +44,8 @@ type Tx struct {
 	PortForwardStat *PortForwardStatClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SQLMigration is the client for interacting with the SQLMigration builders.
+	SQLMigration *SQLMigrationClient
 	// SSHHost is the client for interacting with the SSHHost builders.
 	SSHHost *SSHHostClient
 	// Session is the client for interacting with the Session builders.
@@ -202,6 +204,7 @@ func (tx *Tx) init() {
 	tx.PortForward = NewPortForwardClient(tx.config)
 	tx.PortForwardStat = NewPortForwardStatClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.SQLMigration = NewSQLMigrationClient(tx.config)
 	tx.SSHHost = NewSSHHostClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)

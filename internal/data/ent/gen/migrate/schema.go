@@ -472,6 +472,19 @@ var (
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
 	}
+	// SQLMigrationsColumns holds the columns for the "sql_migrations" table.
+	SQLMigrationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "version", Type: field.TypeInt64, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "applied_at", Type: field.TypeTime},
+	}
+	// SQLMigrationsTable holds the schema information for the "sql_migrations" table.
+	SQLMigrationsTable = &schema.Table{
+		Name:       "sql_migrations",
+		Columns:    SQLMigrationsColumns,
+		PrimaryKey: []*schema.Column{SQLMigrationsColumns[0]},
+	}
 	// SSHHostsColumns holds the columns for the "ssh_hosts" table.
 	SSHHostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -745,6 +758,7 @@ var (
 		PortForwardsTable,
 		PortForwardStatsTable,
 		RolesTable,
+		SQLMigrationsTable,
 		SSHHostsTable,
 		SessionsTable,
 		ConfigsTable,
@@ -769,6 +783,9 @@ func init() {
 	InstancesTable.ForeignKeys[1].RefTable = InstanceTypesTable
 	OperationLogsTable.ForeignKeys[0].RefTable = UsersTable
 	PortForwardsTable.ForeignKeys[0].RefTable = UsersTable
+	SQLMigrationsTable.Annotation = &entsql.Annotation{
+		Table: "sql_migrations",
+	}
 	SSHHostsTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	ConfigsTable.Annotation = &entsql.Annotation{

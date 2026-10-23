@@ -22,6 +22,7 @@ import (
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/session"
+	"momoko/internal/data/ent/gen/sqlmigration"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
@@ -108,6 +109,7 @@ func checkColumn(t, c string) error {
 			portforward.Table:     portforward.ValidColumn,
 			portforwardstat.Table: portforwardstat.ValidColumn,
 			role.Table:            role.ValidColumn,
+			sqlmigration.Table:    sqlmigration.ValidColumn,
 			sshhost.Table:         sshhost.ValidColumn,
 			session.Table:         session.ValidColumn,
 			systemconfig.Table:    systemconfig.ValidColumn,

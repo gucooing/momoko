@@ -7,6 +7,7 @@ import (
 
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/migrate"
+	"momoko/internal/data/migration"
 
 	_ "github.com/glebarez/go-sqlite/compat"
 	_ "github.com/go-sql-driver/mysql"
@@ -63,6 +64,10 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true),
 	); err != nil {
+		return nil, nil, err
+	}
+	// 增量 SQL 迁移：按序号执行 internal/data/migration/sql 中上次执行位置之后的新脚本。
+	if err = migration.Run(context.Background(), db, c.Database.Driver); err != nil {
 		return nil, nil, err
 	}
 	if err = syncDefaultRBAC(context.Background(), db); err != nil {

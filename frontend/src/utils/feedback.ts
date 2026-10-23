@@ -1,4 +1,4 @@
-// 统一反馈（toast）：封装 Nuxt UI 的 useToast，替代 Element Plus 的 ElMessage（见 docs/redesign/07 约定 §3）。
+// 统一反馈（toast）：封装 Nuxt UI 的 useToast，替代 Element Plus 的 ElMessage。
 //
 // 两种用法：
 //  1) 组件 setup 内：`const fb = useFeedback()`（依赖注入，必须在 <UApp> 子树的 setup 里执行）。

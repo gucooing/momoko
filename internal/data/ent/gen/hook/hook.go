@@ -188,6 +188,18 @@ func (f RoleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.RoleMutation", m)
 }
 
+// The SQLMigrationFunc type is an adapter to allow the use of ordinary
+// function as SQLMigration mutator.
+type SQLMigrationFunc func(context.Context, *gen.SQLMigrationMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SQLMigrationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.SQLMigrationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.SQLMigrationMutation", m)
+}
+
 // The SSHHostFunc type is an adapter to allow the use of ordinary
 // function as SSHHost mutator.
 type SSHHostFunc func(context.Context, *gen.SSHHostMutation) (gen.Value, error)

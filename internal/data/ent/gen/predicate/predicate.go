@@ -51,6 +51,9 @@ type PortForwardStat func(*sql.Selector)
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 
+// SQLMigration is the predicate function for sqlmigration builders.
+type SQLMigration func(*sql.Selector)
+
 // SSHHost is the predicate function for sshhost builders.
 type SSHHost func(*sql.Selector)
 

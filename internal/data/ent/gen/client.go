@@ -27,6 +27,7 @@ import (
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/session"
+	"momoko/internal/data/ent/gen/sqlmigration"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
@@ -76,6 +77,8 @@ type Client struct {
 	PortForwardStat *PortForwardStatClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SQLMigration is the client for interacting with the SQLMigration builders.
+	SQLMigration *SQLMigrationClient
 	// SSHHost is the client for interacting with the SSHHost builders.
 	SSHHost *SSHHostClient
 	// Session is the client for interacting with the Session builders.
@@ -114,6 +117,7 @@ func (c *Client) init() {
 	c.PortForward = NewPortForwardClient(c.config)
 	c.PortForwardStat = NewPortForwardStatClient(c.config)
 	c.Role = NewRoleClient(c.config)
+	c.SQLMigration = NewSQLMigrationClient(c.config)
 	c.SSHHost = NewSSHHostClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.SystemConfig = NewSystemConfigClient(c.config)
@@ -227,6 +231,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PortForward:     NewPortForwardClient(cfg),
 		PortForwardStat: NewPortForwardStatClient(cfg),
 		Role:            NewRoleClient(cfg),
+		SQLMigration:    NewSQLMigrationClient(cfg),
 		SSHHost:         NewSSHHostClient(cfg),
 		Session:         NewSessionClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
@@ -267,6 +272,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PortForward:     NewPortForwardClient(cfg),
 		PortForwardStat: NewPortForwardStatClient(cfg),
 		Role:            NewRoleClient(cfg),
+		SQLMigration:    NewSQLMigrationClient(cfg),
 		SSHHost:         NewSSHHostClient(cfg),
 		Session:         NewSessionClient(cfg),
 		SystemConfig:    NewSystemConfigClient(cfg),
@@ -304,8 +310,8 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
 		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Use(hooks...)
 	}
@@ -317,8 +323,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
 		c.FrpTunnel, c.FrpTunnelStat, c.Instance, c.InstanceType, c.Menu, c.OIDCClient,
-		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.OperationLog, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -357,6 +363,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PortForwardStat.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
+	case *SQLMigrationMutation:
+		return c.SQLMigration.mutate(ctx, m)
 	case *SSHHostMutation:
 		return c.SSHHost.mutate(ctx, m)
 	case *SessionMutation:
@@ -2577,6 +2585,139 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 	}
 }
 
+// SQLMigrationClient is a client for the SQLMigration schema.
+type SQLMigrationClient struct {
+	config
+}
+
+// NewSQLMigrationClient returns a client for the SQLMigration from the given config.
+func NewSQLMigrationClient(c config) *SQLMigrationClient {
+	return &SQLMigrationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sqlmigration.Hooks(f(g(h())))`.
+func (c *SQLMigrationClient) Use(hooks ...Hook) {
+	c.hooks.SQLMigration = append(c.hooks.SQLMigration, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sqlmigration.Intercept(f(g(h())))`.
+func (c *SQLMigrationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SQLMigration = append(c.inters.SQLMigration, interceptors...)
+}
+
+// Create returns a builder for creating a SQLMigration entity.
+func (c *SQLMigrationClient) Create() *SQLMigrationCreate {
+	mutation := newSQLMigrationMutation(c.config, OpCreate)
+	return &SQLMigrationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SQLMigration entities.
+func (c *SQLMigrationClient) CreateBulk(builders ...*SQLMigrationCreate) *SQLMigrationCreateBulk {
+	return &SQLMigrationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SQLMigrationClient) MapCreateBulk(slice any, setFunc func(*SQLMigrationCreate, int)) *SQLMigrationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SQLMigrationCreateBulk{err: fmt.Errorf("calling to SQLMigrationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SQLMigrationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SQLMigrationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SQLMigration.
+func (c *SQLMigrationClient) Update() *SQLMigrationUpdate {
+	mutation := newSQLMigrationMutation(c.config, OpUpdate)
+	return &SQLMigrationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SQLMigrationClient) UpdateOne(_m *SQLMigration) *SQLMigrationUpdateOne {
+	mutation := newSQLMigrationMutation(c.config, OpUpdateOne, withSQLMigration(_m))
+	return &SQLMigrationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SQLMigrationClient) UpdateOneID(id int) *SQLMigrationUpdateOne {
+	mutation := newSQLMigrationMutation(c.config, OpUpdateOne, withSQLMigrationID(id))
+	return &SQLMigrationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SQLMigration.
+func (c *SQLMigrationClient) Delete() *SQLMigrationDelete {
+	mutation := newSQLMigrationMutation(c.config, OpDelete)
+	return &SQLMigrationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SQLMigrationClient) DeleteOne(_m *SQLMigration) *SQLMigrationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SQLMigrationClient) DeleteOneID(id int) *SQLMigrationDeleteOne {
+	builder := c.Delete().Where(sqlmigration.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SQLMigrationDeleteOne{builder}
+}
+
+// Query returns a query builder for SQLMigration.
+func (c *SQLMigrationClient) Query() *SQLMigrationQuery {
+	return &SQLMigrationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSQLMigration},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SQLMigration entity by its id.
+func (c *SQLMigrationClient) Get(ctx context.Context, id int) (*SQLMigration, error) {
+	return c.Query().Where(sqlmigration.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SQLMigrationClient) GetX(ctx context.Context, id int) *SQLMigration {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SQLMigrationClient) Hooks() []Hook {
+	return c.hooks.SQLMigration
+}
+
+// Interceptors returns the client interceptors.
+func (c *SQLMigrationClient) Interceptors() []Interceptor {
+	return c.inters.SQLMigration
+}
+
+func (c *SQLMigrationClient) mutate(ctx context.Context, m *SQLMigrationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SQLMigrationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SQLMigrationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SQLMigrationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SQLMigrationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown SQLMigration mutation op: %q", m.Op())
+	}
+}
+
 // SSHHostClient is a client for the SSHHost schema.
 type SSHHostClient struct {
 	config
@@ -3492,14 +3633,14 @@ type (
 	hooks struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
 		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SSHHost, Session, SystemConfig, Task, User,
-		UserAPIKey []ent.Hook
+		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
+		SystemConfig, Task, User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
 		FrpTunnelStat, Instance, InstanceType, Menu, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SSHHost, Session, SystemConfig, Task, User,
-		UserAPIKey []ent.Interceptor
+		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
+		SystemConfig, Task, User, UserAPIKey []ent.Interceptor
 	}
 )
 

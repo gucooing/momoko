@@ -101,8 +101,6 @@ momoko/
 ├── pkg/                 # 通用能力包
 ├── third_party/         # proto 依赖
 ├── dist_embed.go        # 嵌入 frontend/dist
-├── Dockerfile           # 容器镜像构建
-├── docker-compose.yml   # Compose 部署示例
 └── Makefile             # 生成、构建、测试命令
 ```
 
@@ -113,7 +111,7 @@ momoko/
 - pnpm: `10.30.3`
 - protoc: 修改 proto 后生成代码时需要
 - make: 使用 `Makefile` 命令时需要
-- Docker: 使用 Docker 管理功能或容器部署时需要
+- Docker: 使用 Docker 管理功能时需要
 
 ## 快速启动
 
@@ -181,32 +179,6 @@ Windows PowerShell：
 
 构建后访问 HTTP 地址即可使用前端页面和 `/api/v1` 接口。
 
-## Docker 部署
-
-项目提供 [docker-compose.yml](./docker-compose.yml)：
-
-```bash
-docker compose up -d
-```
-
-默认镜像为 `gucooing/momoko:latest`，可通过环境变量指定镜像：
-
-```bash
-MOMOKO_IMAGE=gucooing/momoko:v0.0.1-dev docker compose up -d
-```
-
-Compose 当前使用 host 网络，并挂载：
-
-- `./configs` -> `/app/configs`
-- `./data` -> `/app/data`
-- `./servers` -> `/app/servers`
-- `/usr/bin` -> `/app/bin`
-
-镜像发布位置：
-
-- Docker Hub: `gucooing/momoko`
-- GitHub Container Registry: `ghcr.io/gucooing/momoko`
-
 ## 常用命令
 
 ```bash
@@ -263,6 +235,7 @@ auth:
 
 - Proto 定义位于 [api/proto/v1](./api/proto/v1)，修改后执行 `make api`。
 - Ent schema 位于 [internal/data/ent/schema](./internal/data/ent/schema)，修改后执行 `go generate ./internal/data/ent`。
+- 增量 SQL 迁移脚本位于 [internal/data/migration/sql](./internal/data/migration/sql)，文件名为 `<序号>_<名称>.sql`（如 `00_remove_sub2api.sql`）。启动时在 ent 自动迁移之后按序号执行 `sql_migrations` 表中尚未记录的新脚本并写入记录；脚本以分号分隔语句，标识符用双引号，MySQL 下自动改写为反引号。
 - HTTP 路由由 proto 注解生成，注册逻辑位于 [internal/server/http.go](./internal/server/http.go)。
 - 功能权限校验位于 [internal/server/authz.go](./internal/server/authz.go)。
 - 前端动态菜单转换位于 [frontend/src/router/menuToRoute.ts](./frontend/src/router/menuToRoute.ts)。
