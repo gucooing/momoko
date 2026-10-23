@@ -50,6 +50,7 @@ const (
 	iqCheckSlugLength       = 12
 	iqCheckSlugAttempts     = 5
 	iqCheckModelConcurrency = 4
+	iqCheckStoreTimeout     = 30 * time.Second
 	iqCheckMaxPageSize      = 100
 )
 
@@ -486,7 +487,8 @@ func (t *iqCheckTickTask) Run(ctx context.Context, _ task.Reporter) error {
 	return t.uc.runDueSites(ctx)
 }
 
-// runDueSites 对所有到期的启用站点并发执行一轮检测，等全部结束后返回。
+// runDueSites 对到期的启用站点各起一个协程执行检测后立即返回，不阻塞定时任务；
+// 同一站点由 running 锁保证不会并发跑两轮。
 func (u *IQCheckUsecase) runDueSites(ctx context.Context) error {
 	sites, err := u.repo.ListEnabledSites(ctx)
 	if err != nil {
@@ -494,19 +496,18 @@ func (u *IQCheckUsecase) runDueSites(ctx context.Context) error {
 		return err
 	}
 	now := time.Now()
-	var wg sync.WaitGroup
 	for _, site := range sites {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		if !iqCheckSiteDue(site, now) || !u.tryLock(site.ID) {
 			continue
 		}
-		wg.Add(1)
 		go func(site *gen.IQCheckSite) {
-			defer wg.Done()
 			defer u.unlock(site.ID)
 			u.checkSite(ctx, site, true)
 		}(site)
 	}
-	wg.Wait()
 	return nil
 }
 
@@ -525,17 +526,17 @@ func iqCheckSiteDue(site *gen.IQCheckSite, now time.Time) bool {
 	return !now.Before(site.LastCheckAt.Add(interval))
 }
 
-// checkSite 对站点的全部模型各发一次同一条随机提示词，并把每个模型的结果入库。
+// checkSite 对站点的全部模型各发一次同一条随机提示词；每个模型独立超时、完成即入库，
+// 慢的或挂住的模型不影响其他模型结果的展示。
 func (u *IQCheckUsecase) checkSite(ctx context.Context, site *gen.IQCheckSite, countRun bool) {
-	prompt, err := u.pickPrompt(ctx)
+	setupCtx, cancelSetup := context.WithTimeout(ctx, iqCheckStoreTimeout)
+	defer cancelSetup()
+	prompt, err := u.pickPrompt(setupCtx)
 	if err != nil {
 		log.Warnf("iqcheck: 站点 %s 跳过检测: %v", site.Name, err)
 		return
 	}
 	start := time.Now()
-	if err := u.repo.MarkSiteChecked(ctx, site.ID, start, countRun); err != nil {
-		log.Errorf("iqcheck: 站点 %s 记录检测时间失败: %v", site.Name, err)
-	}
 	client, err := iqcheck.NewClient(iqcheck.Config{
 		Endpoint:  site.Endpoint,
 		APIKey:    site.APIKey,
@@ -546,25 +547,41 @@ func (u *IQCheckUsecase) checkSite(ctx context.Context, site *gen.IQCheckSite, c
 		log.Errorf("iqcheck: 站点 %s 配置无效: %v", site.Name, err)
 		return
 	}
-	roundID := uuid.NewString()
-	results := make([]*gen.IQCheckResult, len(site.Models))
-	sem := make(chan struct{}, iqCheckModelConcurrency)
-	var wg sync.WaitGroup
-	for i, model := range site.Models {
-		wg.Add(1)
-		go func(i int, model schema.IQCheckModel) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			results[i] = u.checkModel(ctx, client, site, prompt, roundID, model)
-		}(i, model)
-	}
-	wg.Wait()
-	if err := u.repo.CreateResults(ctx, results); err != nil {
-		log.Errorf("iqcheck: 站点 %s 保存检测结果失败: %v", site.Name, err)
+	if err := u.repo.MarkSiteChecked(setupCtx, site.ID, start, countRun); err != nil {
+		log.Errorf("iqcheck: 站点 %s 记录检测时间失败: %v", site.Name, err)
 		return
 	}
-	log.Infof("iqcheck: 站点 %s 完成一轮检测，%d 个模型，耗时 %s", site.Name, len(results), time.Since(start).Round(time.Second))
+	cancelSetup()
+	roundID := uuid.NewString()
+	// 固定数量的 worker，避免为每个排队模型启动一个等待信号量的协程。
+	jobs := make(chan schema.IQCheckModel, len(site.Models))
+	for _, model := range site.Models {
+		jobs <- model
+	}
+	close(jobs)
+	results := make(chan *gen.IQCheckResult, iqCheckModelConcurrency)
+	var wg sync.WaitGroup
+	for range min(iqCheckModelConcurrency, len(site.Models)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for model := range jobs {
+				// Complete 自带单次总超时；取消后排队模型也产生失败结果，不再发起请求。
+				results <- u.checkModel(ctx, client, site, prompt, roundID, model)
+			}
+		}()
+	}
+	go func() { wg.Wait(); close(results) }()
+	for row := range results {
+		// 每条结果独立限时落库，服务取消时仍尝试保存已收到的内容。
+		saveCtx, cancelSave := context.WithTimeout(context.WithoutCancel(ctx), iqCheckStoreTimeout)
+		err := u.repo.CreateResults(saveCtx, []*gen.IQCheckResult{row})
+		cancelSave()
+		if err != nil {
+			log.Errorf("iqcheck: 站点 %s 模型 %s 保存检测结果失败: %v", site.Name, row.Model, err)
+		}
+	}
+	log.Infof("iqcheck: 站点 %s 完成一轮检测，%d 个模型，耗时 %s", site.Name, len(site.Models), time.Since(start).Round(time.Second))
 }
 
 // checkModel 对单个模型发送提示词并组装结果行；失败也产生一条 failed 结果。
@@ -582,16 +599,22 @@ func (u *IQCheckUsecase) checkModel(ctx context.Context, client *iqcheck.Client,
 		Status:        iqcheckresult.StatusSuccess,
 		RequestAt:     at,
 	}
-	res, err := client.Complete(ctx, iqcheck.Request{Model: model.Model, Effort: model.Effort, Prompt: prompt.Content})
-	row.DurationMs = time.Since(at).Milliseconds()
-	if err != nil {
+	if err := ctx.Err(); err != nil {
 		row.Status = iqcheckresult.StatusFailed
 		row.Error = err.Error()
 		return row
 	}
-	row.ResponseText = res.Text
-	row.InputTokens = res.InputTokens
-	row.OutputTokens = res.OutputTokens
+	res, err := client.Complete(ctx, iqcheck.Request{Model: model.Model, Effort: model.Effort, Prompt: prompt.Content})
+	row.DurationMs = time.Since(at).Milliseconds()
+	if res != nil {
+		row.ResponseText = res.Text
+		row.InputTokens = res.InputTokens
+		row.OutputTokens = res.OutputTokens
+	}
+	if err != nil {
+		row.Status = iqcheckresult.StatusFailed
+		row.Error = err.Error()
+	}
 	return row
 }
 

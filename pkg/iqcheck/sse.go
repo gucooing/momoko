@@ -2,54 +2,111 @@ package iqcheck
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
+	"errors"
+	"fmt"
 	"io"
 	"math/big"
 	"strings"
 )
 
-// readSSE 逐事件读取 Server-Sent Events 流：空行分隔事件，支持多行 data，忽略注释行；
-// fn 返回错误即停止读取并返回该错误。
+var errStopSSE = errors.New("sse: stop")
+
+const maxSSEEventSize = 8 << 20
+
+// readSSE frames events independently of protocol semantics. It accepts LF,
+// CRLF, CR, a leading BOM, comments and multiline data. EOF flushes a final
+// unterminated event for relay compatibility; callers still require a terminal
+// protocol event before treating EOF as success.
 func readSSE(r io.Reader, fn func(event, data string) error) error {
-	br := bufio.NewReaderSize(r, 64<<10)
-	var (
-		event string
-		data  []string
-	)
-	dispatch := func() error {
+	scanner := bufio.NewScanner(r)
+	scanner.Buffer(make([]byte, 64<<10), maxSSEEventSize)
+	skipLF := false
+	scanner.Split(func(data []byte, atEOF bool) (int, []byte, error) {
 		if len(data) == 0 {
-			event = ""
-			return nil
+			return 0, nil, nil
 		}
-		err := fn(event, strings.Join(data, "\n"))
-		event = ""
-		data = data[:0]
+		offset := 0
+		if skipLF {
+			skipLF = false
+			if data[0] == '\n' {
+				data = data[1:]
+				offset = 1
+			}
+		}
+		if len(data) == 0 {
+			return offset, nil, nil
+		}
+		if i := bytes.IndexAny(data, "\r\n"); i >= 0 {
+			skipLF = data[i] == '\r'
+			return offset + i + 1, data[:i], nil
+		}
+		if atEOF {
+			return offset + len(data), data, nil
+		}
+		return offset, nil, nil
+	})
+	var event string
+	var data []string
+	size := 0
+	first := true
+	dispatch := func() error {
+		var err error
+		if len(data) > 0 {
+			err = fn(event, strings.Join(data, "\n"))
+		}
+		event, data, size = "", nil, 0
 		return err
 	}
-	for {
-		line, err := br.ReadString('\n')
-		if len(line) > 0 {
-			line = strings.TrimRight(line, "\r\n")
-			switch {
-			case line == "":
-				if derr := dispatch(); derr != nil {
-					return derr
-				}
-			case strings.HasPrefix(line, ":"):
-				// 注释 / 心跳
-			case strings.HasPrefix(line, "event:"):
-				event = strings.TrimSpace(line[len("event:"):])
-			case strings.HasPrefix(line, "data:"):
-				data = append(data, strings.TrimPrefix(line[len("data:"):], " "))
-			}
+	for scanner.Scan() {
+		line := scanner.Text()
+		if first {
+			line = strings.TrimPrefix(line, "\uFEFF")
+			first = false
 		}
-		if err != nil {
-			if err == io.EOF {
-				return dispatch()
+		if line == "" {
+			if err := dispatch(); err != nil {
+				if errors.Is(err, errStopSSE) {
+					return nil
+				}
+				return err
 			}
-			return err
+			continue
+		}
+		if strings.HasPrefix(line, ":") {
+			continue
+		}
+		field, value, _ := strings.Cut(line, ":")
+		value = strings.TrimPrefix(value, " ")
+		size += len(line) + 1
+		if size > maxSSEEventSize {
+			return errors.New("上游 SSE 事件超过大小限制")
+		}
+		switch field {
+		case "event":
+			event = value
+		case "data":
+			data = append(data, value)
+			// This marker has no continuation; tolerate a missing blank line.
+			if len(data) == 1 && strings.TrimSpace(value) == "[DONE]" {
+				if err := dispatch(); err != nil {
+					if errors.Is(err, errStopSSE) {
+						return nil
+					}
+					return err
+				}
+			}
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("读取上游事件流失败: %w", err)
+	}
+	err := dispatch()
+	if errors.Is(err, errStopSSE) {
+		return nil
+	}
+	return err
 }
 
 const slugAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

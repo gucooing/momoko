@@ -12,9 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -64,6 +62,8 @@ const (
 	DefaultTimeout = 10 * time.Minute
 	// ModelsTimeout 拉取模型列表的超时。
 	ModelsTimeout = 30 * time.Second
+	// DefaultIdleTimeout bounds the wait for headers or the next response bytes.
+	DefaultIdleTimeout = 2 * time.Minute
 
 	anthropicVersion = "2023-06-01"
 	// defaultMaxTokens messages 协议必填的输出上限；超过模型上限时按上游提示的上限重试一次。
@@ -105,19 +105,23 @@ const DefaultUserAgent = "pi"
 
 // Config 客户端配置。
 type Config struct {
-	Endpoint  string
-	APIKey    string
-	Protocol  Protocol
-	UserAgent string // 为空时使用 DefaultUserAgent
+	Endpoint    string
+	APIKey      string
+	Protocol    Protocol
+	UserAgent   string        // 为空时使用 DefaultUserAgent
+	Timeout     time.Duration // 单次检测总超时；0 使用 DefaultTimeout
+	IdleTimeout time.Duration // 等待响应数据的超时；0 使用 DefaultIdleTimeout
 }
 
 // Client 一个站点的上游调用客户端。
 type Client struct {
-	base      string
-	apiKey    string
-	protocol  Protocol
-	userAgent string
-	http      *http.Client
+	base        string
+	apiKey      string
+	protocol    Protocol
+	userAgent   string
+	http        *http.Client
+	timeout     time.Duration
+	idleTimeout time.Duration
 }
 
 // NewClient 构造客户端；Endpoint 会被 NormalizeEndpoint 规范化。
@@ -133,12 +137,20 @@ func NewClient(cfg Config) (*Client, error) {
 	if userAgent == "" {
 		userAgent = DefaultUserAgent
 	}
+	if cfg.Timeout <= 0 {
+		cfg.Timeout = DefaultTimeout
+	}
+	if cfg.IdleTimeout <= 0 {
+		cfg.IdleTimeout = DefaultIdleTimeout
+	}
 	return &Client{
-		base:      base,
-		apiKey:    strings.TrimSpace(cfg.APIKey),
-		protocol:  cfg.Protocol,
-		userAgent: userAgent,
-		http:      &http.Client{},
+		base:        base,
+		apiKey:      strings.TrimSpace(cfg.APIKey),
+		protocol:    cfg.Protocol,
+		userAgent:   userAgent,
+		http:        &http.Client{},
+		timeout:     cfg.Timeout,
+		idleTimeout: cfg.IdleTimeout,
 	}, nil
 }
 
@@ -176,17 +188,9 @@ func (c *Client) ListModels(ctx context.Context) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		resp, err := c.http.Do(req)
+		resp, err := c.do(req)
 		if err != nil {
 			return nil, fmt.Errorf("请求上游失败: %w", err)
-		}
-		body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
-		resp.Body.Close()
-		if err != nil {
-			return nil, fmt.Errorf("读取上游响应失败: %w", err)
-		}
-		if resp.StatusCode != http.StatusOK {
-			return nil, httpError(resp.StatusCode, body)
 		}
 		var payload struct {
 			Data []struct {
@@ -195,7 +199,9 @@ func (c *Client) ListModels(ctx context.Context) ([]string, error) {
 			HasMore bool   `json:"has_more"`
 			LastID  string `json:"last_id"`
 		}
-		if err := json.Unmarshal(body, &payload); err != nil {
+		err = decodeJSON(resp.Body, &payload)
+		resp.Body.Close()
+		if err != nil {
 			return nil, fmt.Errorf("上游模型列表格式无法解析: %w", err)
 		}
 		for _, m := range payload.Data {
@@ -217,320 +223,44 @@ func (c *Client) ListModels(ctx context.Context) ([]string, error) {
 	return models, nil
 }
 
-// Complete 按协议发送一轮对话并返回回复文本。
+// Complete sends one request. On failure it also returns any text and usage
+// already received, so callers can persist a useful failed result.
 func (c *Client) Complete(ctx context.Context, req Request) (*Result, error) {
-	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
+	var res *Result
+	var err error
 	switch c.protocol {
 	case ProtocolChat:
-		return c.completeChat(ctx, req)
+		res, err = c.completeChat(ctx, req)
 	case ProtocolResponses:
-		return c.completeResponses(ctx, req)
+		res, err = c.completeResponses(ctx, req)
 	case ProtocolMessages:
-		return c.completeMessages(ctx, req, defaultMaxTokens)
+		res, err = c.completeMessages(ctx, req)
+	default:
+		return nil, errors.New("协议不合法")
 	}
-	return nil, errors.New("协议不合法")
-}
-
-// completeChat OpenAI Chat Completions；优先按 SSE 流式读取，上游返回普通 JSON 时也能解析。
-func (c *Client) completeChat(ctx context.Context, req Request) (*Result, error) {
-	body := map[string]any{
-		"model":          req.Model,
-		"messages":       []map[string]string{{"role": "user", "content": req.Prompt}},
-		"stream":         true,
-		"stream_options": map[string]any{"include_usage": true},
+	if err == nil && (res == nil || strings.TrimSpace(res.Text) == "") {
+		err = errors.New("上游未返回回复文本")
 	}
-	if req.Effort != "" {
-		body["reasoning_effort"] = req.Effort
-	}
-	resp, err := c.post(ctx, "/chat/completions", body)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	res := &Result{}
-	if isEventStream(resp) {
-		var sb strings.Builder
-		err := readSSE(resp.Body, func(_ string, data string) error {
-			if data == "[DONE]" {
-				return nil
-			}
-			var chunk struct {
-				Choices []struct {
-					Delta struct {
-						Content textContent `json:"content"`
-					} `json:"delta"`
-				} `json:"choices"`
-				Usage *chatUsage `json:"usage"`
-				Error *apiError  `json:"error"`
-			}
-			if err := json.Unmarshal([]byte(data), &chunk); err != nil {
-				return nil // 无法解析的片段（如心跳）忽略
-			}
-			if chunk.Error != nil {
-				return chunk.Error
-			}
-			for _, choice := range chunk.Choices {
-				sb.WriteString(string(choice.Delta.Content))
-			}
-			if chunk.Usage != nil {
-				res.InputTokens, res.OutputTokens = chunk.Usage.PromptTokens, chunk.Usage.CompletionTokens
-			}
-			return nil
-		})
-		res.Text = sb.String()
-		if err != nil {
-			return nil, err
-		}
-		return res, nil
-	}
-
-	var payload struct {
-		Choices []struct {
-			Message struct {
-				Content textContent `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-		Usage *chatUsage `json:"usage"`
-		Error *apiError  `json:"error"`
-	}
-	if err := decodeJSON(resp.Body, &payload); err != nil {
-		return nil, err
-	}
-	if payload.Error != nil {
-		return nil, payload.Error
-	}
-	var sb strings.Builder
-	for _, choice := range payload.Choices {
-		sb.WriteString(string(choice.Message.Content))
-	}
-	res.Text = sb.String()
-	if payload.Usage != nil {
-		res.InputTokens, res.OutputTokens = payload.Usage.PromptTokens, payload.Usage.CompletionTokens
-	}
-	return res, nil
-}
-
-// completeResponses OpenAI Responses；事件名缺失时按 data.type 识别。
-func (c *Client) completeResponses(ctx context.Context, req Request) (*Result, error) {
-	body := map[string]any{
-		"model":  req.Model,
-		"input":  req.Prompt,
-		"stream": true,
-	}
-	if req.Effort != "" {
-		body["reasoning"] = map[string]any{"effort": req.Effort}
-	}
-	resp, err := c.post(ctx, "/responses", body)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	res := &Result{}
-	if isEventStream(resp) {
-		var sb strings.Builder
-		err := readSSE(resp.Body, func(event string, data string) error {
-			var payload struct {
-				Type     string           `json:"type"`
-				Delta    string           `json:"delta"`
-				Response *responsesResult `json:"response"`
-				Error    *apiError        `json:"error"`
-				Message  string           `json:"message"`
-			}
-			if err := json.Unmarshal([]byte(data), &payload); err != nil {
-				return nil
-			}
-			if event == "" {
-				event = payload.Type
-			}
-			switch event {
-			case "response.output_text.delta":
-				sb.WriteString(payload.Delta)
-			case "response.completed", "response.incomplete":
-				if payload.Response != nil && payload.Response.Usage != nil {
-					res.InputTokens, res.OutputTokens = payload.Response.Usage.InputTokens, payload.Response.Usage.OutputTokens
-				}
-			case "response.failed":
-				if payload.Response != nil && payload.Response.Error != nil {
-					return payload.Response.Error
-				}
-				return errors.New("上游返回 response.failed")
-			case "error":
-				if payload.Error != nil {
-					return payload.Error
-				}
-				if payload.Message != "" {
-					return errors.New(payload.Message)
-				}
-				return errors.New("上游返回错误事件")
-			}
-			return nil
-		})
-		res.Text = sb.String()
-		if err != nil {
-			return nil, err
-		}
-		return res, nil
-	}
-
-	var payload struct {
-		responsesResult
-		Error *apiError `json:"error"`
-	}
-	if err := decodeJSON(resp.Body, &payload); err != nil {
-		return nil, err
-	}
-	if payload.Error != nil {
-		return nil, payload.Error
-	}
-	var sb strings.Builder
-	for _, item := range payload.Output {
-		if item.Type != "message" {
-			continue
-		}
-		for _, part := range item.Content {
-			if part.Type == "output_text" {
-				sb.WriteString(part.Text)
-			}
-		}
-	}
-	res.Text = sb.String()
-	if payload.Usage != nil {
-		res.InputTokens, res.OutputTokens = payload.Usage.InputTokens, payload.Usage.OutputTokens
-	}
-	return res, nil
-}
-
-var maxTokensLimitRE = regexp.MustCompile(`max_tokens: *(\d+) *> *(\d+)`)
-
-// completeMessages Anthropic Messages；推理强度映射为 adaptive thinking + output_config.effort。
-func (c *Client) completeMessages(ctx context.Context, req Request, maxTokens int) (*Result, error) {
-	body := map[string]any{
-		"model":      req.Model,
-		"max_tokens": maxTokens,
-		"messages":   []map[string]string{{"role": "user", "content": req.Prompt}},
-		"stream":     true,
-	}
-	if _, ok := anthropicEfforts[req.Effort]; ok {
-		body["thinking"] = map[string]any{"type": "adaptive"}
-		body["output_config"] = map[string]any{"effort": req.Effort}
-	}
-	resp, err := c.post(ctx, "/messages", body)
-	if err != nil {
-		// 上游提示 max_tokens 超过模型上限时，按提示的上限重试一次。
-		var herr *HTTPError
-		if errors.As(err, &herr) && herr.Status == http.StatusBadRequest {
-			if m := maxTokensLimitRE.FindStringSubmatch(herr.Message); m != nil {
-				if limit, perr := strconv.Atoi(m[2]); perr == nil && limit > 0 && limit < maxTokens {
-					return c.completeMessages(ctx, req, limit)
-				}
-			}
-		}
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	res := &Result{}
-	if isEventStream(resp) {
-		var sb strings.Builder
-		err := readSSE(resp.Body, func(event string, data string) error {
-			var payload struct {
-				Type    string `json:"type"`
-				Message *struct {
-					Usage *anthropicUsage `json:"usage"`
-				} `json:"message"`
-				Delta *struct {
-					Type string `json:"type"`
-					Text string `json:"text"`
-				} `json:"delta"`
-				Usage *anthropicUsage `json:"usage"`
-				Error *apiError       `json:"error"`
-			}
-			if err := json.Unmarshal([]byte(data), &payload); err != nil {
-				return nil
-			}
-			if event == "" {
-				event = payload.Type
-			}
-			switch event {
-			case "message_start":
-				if payload.Message != nil && payload.Message.Usage != nil {
-					res.InputTokens = payload.Message.Usage.InputTokens
-				}
-			case "content_block_delta":
-				if payload.Delta != nil && payload.Delta.Type == "text_delta" {
-					sb.WriteString(payload.Delta.Text)
-				}
-			case "message_delta":
-				if payload.Usage != nil {
-					res.OutputTokens = payload.Usage.OutputTokens
-				}
-			case "error":
-				if payload.Error != nil {
-					return payload.Error
-				}
-				return errors.New("上游返回错误事件")
-			}
-			return nil
-		})
-		res.Text = sb.String()
-		if err != nil {
-			return nil, err
-		}
-		return res, nil
-	}
-
-	var payload struct {
-		Content []struct {
-			Type string `json:"type"`
-			Text string `json:"text"`
-		} `json:"content"`
-		Usage *anthropicUsage `json:"usage"`
-		Error *apiError       `json:"error"`
-	}
-	if err := decodeJSON(resp.Body, &payload); err != nil {
-		return nil, err
-	}
-	if payload.Error != nil {
-		return nil, payload.Error
-	}
-	var sb strings.Builder
-	for _, block := range payload.Content {
-		if block.Type == "text" {
-			sb.WriteString(block.Text)
-		}
-	}
-	res.Text = sb.String()
-	if payload.Usage != nil {
-		res.InputTokens, res.OutputTokens = payload.Usage.InputTokens, payload.Usage.OutputTokens
-	}
-	return res, nil
-}
-
-// —— 协议数据结构 ——
-
-type chatUsage struct {
-	PromptTokens     int64 `json:"prompt_tokens"`
-	CompletionTokens int64 `json:"completion_tokens"`
+	return res, err
 }
 
 type anthropicUsage struct {
-	InputTokens  int64 `json:"input_tokens"`
-	OutputTokens int64 `json:"output_tokens"`
+	InputTokens  *int64 `json:"input_tokens"`
+	OutputTokens *int64 `json:"output_tokens"`
 }
 
-type responsesResult struct {
-	Output []struct {
-		Type    string `json:"type"`
-		Content []struct {
-			Type string `json:"type"`
-			Text string `json:"text"`
-		} `json:"content"`
-	} `json:"output"`
-	Usage *anthropicUsage `json:"usage"`
-	Error *apiError       `json:"error"`
+func (u *anthropicUsage) apply(res *Result) {
+	if u == nil {
+		return
+	}
+	if u.InputTokens != nil {
+		res.InputTokens = *u.InputTokens
+	}
+	if u.OutputTokens != nil {
+		res.OutputTokens = *u.OutputTokens
+	}
 }
 
 // textContent 兼容 content 为字符串或 [{type:"text",text:"..."}] 分片数组的两种写法。
@@ -564,14 +294,22 @@ func (t *textContent) UnmarshalJSON(b []byte) error {
 		*t = textContent(sb.String())
 		return nil
 	}
-	*t = ""
-	return nil
+	return errors.New("不支持的 content 格式")
 }
 
 // apiError 上游 JSON 中的 error 对象。
 type apiError struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
+	Message string          `json:"message"`
+	Type    string          `json:"type"`
+	Code    json.RawMessage `json:"code"`
+}
+
+func (e *apiError) UnmarshalJSON(data []byte) error {
+	if len(data) > 0 && data[0] == '"' {
+		return json.Unmarshal(data, &e.Message)
+	}
+	type plain apiError
+	return json.Unmarshal(data, (*plain)(e))
 }
 
 func (e *apiError) Error() string {
@@ -580,6 +318,9 @@ func (e *apiError) Error() string {
 	}
 	if e.Type != "" {
 		return e.Type
+	}
+	if len(e.Code) > 0 && string(e.Code) != "null" {
+		return strings.Trim(string(e.Code), "\"")
 	}
 	return "上游返回错误"
 }
@@ -668,16 +409,7 @@ func (c *Client) post(ctx context.Context, path string, body any) (*http.Respons
 	if err != nil {
 		return nil, err
 	}
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("请求上游失败: %w", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		data, _ := io.ReadAll(io.LimitReader(resp.Body, maxErrorBody))
-		resp.Body.Close()
-		return nil, httpError(resp.StatusCode, data)
-	}
-	return resp, nil
+	return c.do(req)
 }
 
 func isEventStream(resp *http.Response) bool {
@@ -685,12 +417,9 @@ func isEventStream(resp *http.Response) bool {
 }
 
 func decodeJSON(r io.Reader, v any) error {
-	data, err := io.ReadAll(io.LimitReader(r, 32<<20))
-	if err != nil {
-		return fmt.Errorf("读取上游响应失败: %w", err)
-	}
-	if err := json.Unmarshal(data, v); err != nil {
-		return fmt.Errorf("上游响应格式无法解析: %s", abbreviate(string(data), 200))
+	// Decode one JSON value without waiting for the gateway to close its body.
+	if err := json.NewDecoder(io.LimitReader(r, 32<<20)).Decode(v); err != nil {
+		return fmt.Errorf("上游响应格式无法解析: %w", err)
 	}
 	return nil
 }

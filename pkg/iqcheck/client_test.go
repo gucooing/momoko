@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 type capturedRequest struct {
@@ -368,6 +369,44 @@ func TestRandomSlug(t *testing.T) {
 	for _, r := range a + b {
 		if !strings.ContainsRune(slugAlphabet, r) {
 			t.Fatalf("非法字符 %q", r)
+		}
+	}
+}
+
+// 上游发完结束事件后不关闭连接（keep-alive 中转站很常见）：客户端必须立即返回，而不是等到超时。
+func TestCompleteStopsAtTerminalEvent(t *testing.T) {
+	release := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		var events []string
+		switch r.URL.Path {
+		case "/v1/chat/completions":
+			events = []string{`data: {"choices":[{"delta":{"content":"ok"}}]}`, `data: [DONE]`}
+		case "/v1/responses":
+			events = []string{`data: {"type":"response.output_text.delta","delta":"ok"}`, `data: {"type":"response.completed","response":{"usage":{"input_tokens":1,"output_tokens":1}}}`}
+		case "/v1/messages":
+			events = []string{`data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"ok"}}`, `data: {"type":"message_stop"}`}
+		}
+		for _, e := range events {
+			fmt.Fprint(w, e, "\n\n")
+		}
+		w.(http.Flusher).Flush()
+		<-release // 挂住连接不关闭
+	}))
+	t.Cleanup(srv.Close)
+	t.Cleanup(func() { close(release) }) // 先放开挂住的 handler，再关服务器
+	for _, protocol := range []Protocol{ProtocolChat, ProtocolResponses, ProtocolMessages} {
+		c := mustClient(t, Config{Endpoint: srv.URL, APIKey: "k", Protocol: protocol})
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		start := time.Now()
+		res, err := c.Complete(ctx, Request{Model: "m", Prompt: "hi"})
+		cancel()
+		if err != nil || res.Text != "ok" {
+			t.Fatalf("%s: 结果 = %+v, err = %v", protocol, res, err)
+		}
+		if elapsed := time.Since(start); elapsed > 2*time.Second {
+			t.Fatalf("%s: 结束事件后 %s 才返回", protocol, elapsed)
 		}
 	}
 }
