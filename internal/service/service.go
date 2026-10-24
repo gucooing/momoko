@@ -12,6 +12,7 @@ var ProviderSet = wire.NewSet(
 	NewInstanceService,
 	NewOpenSSHService,
 	NewNodeService,
+	NewNodeAgentService,
 	NewNetworkService,
 	NewTunnelService,
 	NewOperationLogMiddleware,

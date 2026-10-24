@@ -19,6 +19,7 @@ import (
 func NewHTTPServer(c *conf.Server,
 	avatarManager *avatar.Manager,
 	authorization *Authorization,
+	nodeProxy *NodeProxy,
 	operationLog *service.OperationLogMiddleware,
 	authApi *service.AuthService,
 	fileApi *service.FileService,
@@ -41,12 +42,14 @@ func NewHTTPServer(c *conf.Server,
 			avatarManager.Filter(),     // 头像服务
 			distMiddleware(),           // 前端资源
 			authorization.Middleware(), // 身份验证
+			nodeProxy.Filter(),         // 远程节点：WebSocket / 预签名上传下载经 gRPC 隧道转发
 		),
 		http.Middleware(
 			operationLog.Middleware(),
 			recovery.Recovery(),
 			authorization.PermissionMiddleware(), // 功能级越权防护（按操作所需权限）
 			Middleware(),
+			nodeProxy.Middleware(), // 远程节点：一元接口按操作名经 gRPC 转发
 		),
 		http.NotFoundHandler(nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
 			response.WriteError(w, r, errors.NotFound("NOT_FOUND", "Not Found"))

@@ -1116,6 +1116,16 @@ enum OperationType {
   OperationTypeOIDCClientSecretRefresh = 101;
   // OIDC 授权码创建
   OperationTypeOIDCAuthorizationCodeCreate = 102;
+  // API Key 删除
+  OperationTypeNodeAPIKeyDelete = 103;
+  // 节点创建
+  OperationTypeNodeCreate = 104;
+  // 节点更新
+  OperationTypeNodeUpdate = 105;
+  // 节点删除
+  OperationTypeNodeDelete = 106;
+  // 节点连接测试
+  OperationTypeNodeTest = 107;
 }
 
 message ListOperationLogsRequest {

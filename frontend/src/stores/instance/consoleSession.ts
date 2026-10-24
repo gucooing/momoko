@@ -1,6 +1,7 @@
 import type { ConsoleFeatureItem, ConsoleSocketStatus } from '@/stores/instance/types'
 import type { InstanceInfo } from '@/types/v1/instance'
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { applyNodeQuery } from '@/utils/nodeContext'
 import { translate } from '@/locales'
 
 const SOCKET_RETRY_DELAY = 5000
@@ -147,6 +148,7 @@ export const createConsoleSession = (options: ConsoleSessionOptions) => {
       )
       const wsOrigin = `${apiBaseUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${apiBaseUrl.host}`
       wsUrl = new URL(wsPath.startsWith('/') ? wsPath : `/${wsPath}`, wsOrigin)
+      applyNodeQuery(wsUrl)
     }
 
     const accessToken = getAccessToken()

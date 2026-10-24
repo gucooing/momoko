@@ -64,6 +64,26 @@ func (_c *UserAPIKeyCreate) SetAPIKey(v string) *UserAPIKeyCreate {
 	return _c
 }
 
+// SetKeyID sets the "key_id" field.
+func (_c *UserAPIKeyCreate) SetKeyID(v string) *UserAPIKeyCreate {
+	_c.mutation.SetKeyID(v)
+	return _c
+}
+
+// SetNillableKeyID sets the "key_id" field if the given value is not nil.
+func (_c *UserAPIKeyCreate) SetNillableKeyID(v *string) *UserAPIKeyCreate {
+	if v != nil {
+		_c.SetKeyID(*v)
+	}
+	return _c
+}
+
+// SetPermissions sets the "permissions" field.
+func (_c *UserAPIKeyCreate) SetPermissions(v []string) *UserAPIKeyCreate {
+	_c.mutation.SetPermissions(v)
+	return _c
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (_c *UserAPIKeyCreate) SetExpiresAt(v time.Time) *UserAPIKeyCreate {
 	_c.mutation.SetExpiresAt(v)
@@ -232,6 +252,14 @@ func (_c *UserAPIKeyCreate) createSpec() (*UserAPIKey, *sqlgraph.CreateSpec) {
 		_spec.SetField(userapikey.FieldAPIKey, field.TypeString, value)
 		_node.APIKey = value
 	}
+	if value, ok := _c.mutation.KeyID(); ok {
+		_spec.SetField(userapikey.FieldKeyID, field.TypeString, value)
+		_node.KeyID = value
+	}
+	if value, ok := _c.mutation.Permissions(); ok {
+		_spec.SetField(userapikey.FieldPermissions, field.TypeJSON, value)
+		_node.Permissions = value
+	}
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(userapikey.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = &value
@@ -338,6 +366,42 @@ func (u *UserAPIKeyUpsert) SetAPIKey(v string) *UserAPIKeyUpsert {
 // UpdateAPIKey sets the "api_key" field to the value that was provided on create.
 func (u *UserAPIKeyUpsert) UpdateAPIKey() *UserAPIKeyUpsert {
 	u.SetExcluded(userapikey.FieldAPIKey)
+	return u
+}
+
+// SetKeyID sets the "key_id" field.
+func (u *UserAPIKeyUpsert) SetKeyID(v string) *UserAPIKeyUpsert {
+	u.Set(userapikey.FieldKeyID, v)
+	return u
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *UserAPIKeyUpsert) UpdateKeyID() *UserAPIKeyUpsert {
+	u.SetExcluded(userapikey.FieldKeyID)
+	return u
+}
+
+// ClearKeyID clears the value of the "key_id" field.
+func (u *UserAPIKeyUpsert) ClearKeyID() *UserAPIKeyUpsert {
+	u.SetNull(userapikey.FieldKeyID)
+	return u
+}
+
+// SetPermissions sets the "permissions" field.
+func (u *UserAPIKeyUpsert) SetPermissions(v []string) *UserAPIKeyUpsert {
+	u.Set(userapikey.FieldPermissions, v)
+	return u
+}
+
+// UpdatePermissions sets the "permissions" field to the value that was provided on create.
+func (u *UserAPIKeyUpsert) UpdatePermissions() *UserAPIKeyUpsert {
+	u.SetExcluded(userapikey.FieldPermissions)
+	return u
+}
+
+// ClearPermissions clears the value of the "permissions" field.
+func (u *UserAPIKeyUpsert) ClearPermissions() *UserAPIKeyUpsert {
+	u.SetNull(userapikey.FieldPermissions)
 	return u
 }
 
@@ -461,6 +525,48 @@ func (u *UserAPIKeyUpsertOne) SetAPIKey(v string) *UserAPIKeyUpsertOne {
 func (u *UserAPIKeyUpsertOne) UpdateAPIKey() *UserAPIKeyUpsertOne {
 	return u.Update(func(s *UserAPIKeyUpsert) {
 		s.UpdateAPIKey()
+	})
+}
+
+// SetKeyID sets the "key_id" field.
+func (u *UserAPIKeyUpsertOne) SetKeyID(v string) *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetKeyID(v)
+	})
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertOne) UpdateKeyID() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateKeyID()
+	})
+}
+
+// ClearKeyID clears the value of the "key_id" field.
+func (u *UserAPIKeyUpsertOne) ClearKeyID() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearKeyID()
+	})
+}
+
+// SetPermissions sets the "permissions" field.
+func (u *UserAPIKeyUpsertOne) SetPermissions(v []string) *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetPermissions(v)
+	})
+}
+
+// UpdatePermissions sets the "permissions" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertOne) UpdatePermissions() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdatePermissions()
+	})
+}
+
+// ClearPermissions clears the value of the "permissions" field.
+func (u *UserAPIKeyUpsertOne) ClearPermissions() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearPermissions()
 	})
 }
 
@@ -756,6 +862,48 @@ func (u *UserAPIKeyUpsertBulk) SetAPIKey(v string) *UserAPIKeyUpsertBulk {
 func (u *UserAPIKeyUpsertBulk) UpdateAPIKey() *UserAPIKeyUpsertBulk {
 	return u.Update(func(s *UserAPIKeyUpsert) {
 		s.UpdateAPIKey()
+	})
+}
+
+// SetKeyID sets the "key_id" field.
+func (u *UserAPIKeyUpsertBulk) SetKeyID(v string) *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetKeyID(v)
+	})
+}
+
+// UpdateKeyID sets the "key_id" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertBulk) UpdateKeyID() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateKeyID()
+	})
+}
+
+// ClearKeyID clears the value of the "key_id" field.
+func (u *UserAPIKeyUpsertBulk) ClearKeyID() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearKeyID()
+	})
+}
+
+// SetPermissions sets the "permissions" field.
+func (u *UserAPIKeyUpsertBulk) SetPermissions(v []string) *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetPermissions(v)
+	})
+}
+
+// UpdatePermissions sets the "permissions" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertBulk) UpdatePermissions() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdatePermissions()
+	})
+}
+
+// ClearPermissions clears the value of the "permissions" field.
+func (u *UserAPIKeyUpsertBulk) ClearPermissions() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearPermissions()
 	})
 }
 

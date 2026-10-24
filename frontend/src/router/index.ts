@@ -4,6 +4,7 @@ import { staticRoutes } from '@/router/route'
 import { useTabsStore } from '@/stores/tabs'
 import { buildLoginRoute } from '@/utils/authRedirect'
 import { getInitializeStatus } from '@/api/initialize'
+import { translate } from '@/locales'
 import NProgress from 'nprogress'
 
 // 配置 NProgress
@@ -51,9 +52,13 @@ router.beforeEach(async (to) => {
   // 仅要求登录的静态路由不依赖菜单权限，例如 OIDC 授权确认页。
   if (to.meta?.authOnly) return true
 
+  const nodeStore = useNodeStore()
+
   // 首次加载：初始化动态路由
   if (!menuStore.hasLoadedPermissions) {
     await menuStore.getUserPermissions()
+    // 远程节点上下文：拉取节点状态与生效权限，供菜单 / 按钮 / 页面按节点授权过滤。
+    await nodeStore.loadContext()
     const dynamicRoutes = menuToRoute(menuStore.menuList)
 
     // 如果没有动态路由，则跳转到403页面
@@ -93,6 +98,12 @@ router.beforeEach(async (to) => {
   // 访问 403 / 404 等异常页时，直接放行（此时权限已加载，403 是真的没有权限）
   if (to.name === '403' || to.name === '404') {
     return true
+  }
+
+  // 远程节点未授予该页面所需权限（或页面不支持远程节点）：不进入页面，回到工作台。
+  if (!nodeStore.canAccessRoute(to.path)) {
+    feedback.warning(translate('node.context.routeForbidden'))
+    return { path: '/dashboard/home', replace: true }
   }
 
   // 访问登录页：重定向到第一个菜单项

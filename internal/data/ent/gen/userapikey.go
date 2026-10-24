@@ -3,6 +3,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
@@ -25,8 +26,12 @@ type UserAPIKey struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 名称
 	Name string `json:"name,omitempty"`
-	// API Key
+	// API Key（签名种子）
 	APIKey string `json:"-"`
+	// 由种子派生的公开密钥标识，签名请求据此定位密钥
+	KeyID string `json:"key_id,omitempty"`
+	// 授予的节点权限标识
+	Permissions []string `json:"permissions,omitempty"`
 	// 过期时间，为空表示永久有效
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// 所属用户id
@@ -62,7 +67,9 @@ func (*UserAPIKey) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userapikey.FieldID, userapikey.FieldName, userapikey.FieldAPIKey, userapikey.FieldUserID:
+		case userapikey.FieldPermissions:
+			values[i] = new([]byte)
+		case userapikey.FieldID, userapikey.FieldName, userapikey.FieldAPIKey, userapikey.FieldKeyID, userapikey.FieldUserID:
 			values[i] = new(sql.NullString)
 		case userapikey.FieldCreateTime, userapikey.FieldUpdateTime, userapikey.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -110,6 +117,20 @@ func (_m *UserAPIKey) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field api_key", values[i])
 			} else if value.Valid {
 				_m.APIKey = value.String
+			}
+		case userapikey.FieldKeyID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field key_id", values[i])
+			} else if value.Valid {
+				_m.KeyID = value.String
+			}
+		case userapikey.FieldPermissions:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field permissions", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Permissions); err != nil {
+					return fmt.Errorf("unmarshal field permissions: %w", err)
+				}
 			}
 		case userapikey.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -175,6 +196,12 @@ func (_m *UserAPIKey) String() string {
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("api_key=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("key_id=")
+	builder.WriteString(_m.KeyID)
+	builder.WriteString(", ")
+	builder.WriteString("permissions=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Permissions))
 	builder.WriteString(", ")
 	if v := _m.ExpiresAt; v != nil {
 		builder.WriteString("expires_at=")

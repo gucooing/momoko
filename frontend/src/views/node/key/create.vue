@@ -1,10 +1,11 @@
-<!-- API Key 新建/编辑弹窗（重写 · P1）：FormDialog 外壳 + 令牌字段 + 原生 datetime-local + AppSwitch(永久有效)。
+<!-- API Key 新建/编辑弹窗（重写 · P1）：FormDialog 外壳 + 令牌字段 + 原生 datetime-local + AppSwitch(永久有效)
+     + 节点权限（远程主控用该 Key 调用本节点时的授权范围）。
      保留 ref 契约 showDialog(row?) + @refresh('create'|'update')；直连 create/updateAPIKey。 -->
 <template>
   <FormDialog
     v-model="open"
     :title="submitForm.id ? t('node.key.edit') : t('node.key.add')"
-    :width="480"
+    :width="640"
     :loading="submitLoading"
     @close="close"
     @confirm="confirm"
@@ -41,6 +42,12 @@
         </div>
         <AppSwitch v-model="submitForm.neverExpires" />
       </div>
+
+      <div class="app-field">
+        <label class="app-label">{{ t('node.key.permissions') }}</label>
+        <span class="key-form__hint">{{ t('node.key.permissionsHint') }}</span>
+        <NodePermissionPicker v-model="submitForm.permissions" />
+      </div>
     </div>
   </FormDialog>
 </template>
@@ -49,6 +56,7 @@
 import { useI18n } from 'vue-i18n'
 import { createAPIKey, updateAPIKey } from '@/api/node'
 import type { APIKeyInfo } from '@/types/v1/node'
+import NodePermissionPicker from '@/views/node/components/permissionPicker.vue'
 
 defineOptions({ name: 'ApiKeyCreate' })
 
@@ -64,6 +72,7 @@ const getDefaultForm = () => ({
   name: '',
   expiresAt: '' as string,
   neverExpires: false,
+  permissions: [] as string[],
 })
 const submitForm = ref(getDefaultForm())
 
@@ -102,11 +111,13 @@ const confirm = async () => {
         name: submitForm.value.name || undefined,
         expiresAt: submitForm.value.neverExpires ? undefined : expiresDate,
         neverExpires: submitForm.value.neverExpires || undefined,
+        permissions: { items: submitForm.value.permissions },
       })
     } else {
       await createAPIKey({
         name: submitForm.value.name,
         expiresAt: expiresDate,
+        permissions: submitForm.value.permissions,
       })
     }
     feedback.success(submitForm.value.id ? t('node.key.editSuccess') : t('node.key.addSuccess'))
@@ -123,6 +134,7 @@ const showDialog = (record?: APIKeyInfo) => {
   if (record) {
     form.id = record.id
     form.name = record.name
+    form.permissions = [...(record.permissions || [])]
     if (record.expiresAt) {
       form.expiresAt = toLocalInput(record.expiresAt)
       form.neverExpires = false

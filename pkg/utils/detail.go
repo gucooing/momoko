@@ -32,6 +32,11 @@ type Detail struct {
 	Success    bool   `json:"success"`
 	Error      string `json:"error,omitempty"`
 	DurationMS int64  `json:"duration_ms"`
+	// Node 主控侧：请求被转发到的远程节点。
+	Node string `json:"node,omitempty"`
+	// APIKey / Operator 节点侧：远程主控使用的 API Key 与主控侧操作者。
+	APIKey   string `json:"api_key,omitempty"`
+	Operator string `json:"operator,omitempty"`
 }
 
 func (detail *Detail) MarshalDetail() string {

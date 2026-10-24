@@ -1,4 +1,4 @@
-<!-- 导航容器：读 menuStore.menuList（已按 active 过滤），递归渲染 AppNavItem。 -->
+<!-- 导航容器：读 menuStore.navMenuList（已按 active 与当前节点权限过滤），递归渲染 AppNavItem。 -->
 <template>
   <nav class="app-nav">
     <AppNavItem
@@ -16,7 +16,7 @@ import AppNavItem from './AppNavItem.vue'
 
 defineProps<{ collapsed?: boolean }>()
 const menuStore = useMenuStore()
-const items = computed(() => menuStore.menuList)
+const items = computed(() => menuStore.navMenuList)
 </script>
 
 <style scoped lang="scss">

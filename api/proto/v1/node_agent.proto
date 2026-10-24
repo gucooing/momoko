@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "v1/node.proto";
+
+// 节点代理服务：仅暴露在节点 gRPC 端口，供主控以 API Key 签名调用（无 HTTP 映射）。
+// 其余业务（机器状态 / 应用 / 文件 / 容器 / 工具）复用各自服务的 gRPC 定义，由主控按操作名直接转发。
+service NodeAgent {
+  // 节点信息与 API Key 生效权限
+  rpc AgentInfo(AgentInfoRequest) returns (AgentInfoResponse);
+  // HTTP 隧道：一条流承载一条 HTTP/1.1 连接的原始字节（WebSocket 终端、文件预签名上传下载等）
+  rpc Tunnel(stream TunnelPacket) returns (stream TunnelPacket);
+}
+
+message AgentInfoRequest {}
+
+message AgentInfoResponse {
+  // 节点自报信息
+  NodeRemoteInfo info = 1;
+}
+
+message TunnelPacket {
+  // 原始字节
+  bytes data = 1;
+}

@@ -2,7 +2,9 @@ package biz
 
 import (
 	"fmt"
+	"time"
 
+	"momoko/pkg/nodeauth"
 	"momoko/pkg/response"
 )
 
@@ -46,6 +48,7 @@ var (
 	ErrAPIKeyNameEmpty           = response.BadRequest(500, "API Key名称不能为空")
 	ErrAPIKeyNotFound            = response.BadRequest(500, "API Key不存在")
 	ErrAPIKeyGenerate            = response.BadRequest(500, "API Key生成失败")
+	ErrAPIKeyPermission          = response.BadRequest(500, "API Key 权限标识不合法")
 	ErrFileNotExist              = response.BadRequest(500, "文件不存在")
 	ErrFileTaskNotFound          = response.BadRequest(500, "文件任务不存在")
 	ErrSign                      = response.BadRequest(500, "签名失败")
@@ -90,5 +93,27 @@ var (
 	}
 	ErrIQCheckUpstream = func(err error) error {
 		return response.BadRequest(500, fmt.Sprintf("请求上游失败：%v", err))
+	}
+)
+
+// 多节点
+var (
+	ErrNodeNameEmpty            = response.BadRequest(500, "节点名称不能为空")
+	ErrNodeAddressInvalid       = response.BadRequest(500, "节点地址格式应为 host:port")
+	ErrNodeAPIKeyEmpty          = response.BadRequest(500, "节点 API Key 不能为空")
+	ErrNodeNotFound             = response.BadRequest(500, "节点不存在")
+	ErrNodeKeyBroken            = response.BadRequest(500, "节点 API Key 无法解密（主密钥已变更），请编辑节点重新填写")
+	ErrNodeOperationUnsupported = response.BadRequest(500, "该功能暂不支持在远程节点上使用")
+	ErrNodeOperationForbidden   = response.BadRequest(500, "该操作不对远程主控开放")
+	// 以下鉴权错误由节点返回给主控；主控转发给浏览器前会改写状态码，避免触发主控登录态失效。
+	ErrNodeAuthFailed          = response.BadRequest(401, "API Key 签名校验失败")
+	ErrNodeAPIKeyExpired       = response.BadRequest(401, "API Key 已过期")
+	ErrNodeAPIKeyOwnerInactive = response.BadRequest(401, "API Key 所属用户不存在或已停用")
+	ErrNodeRequestReplay       = response.BadRequest(401, "请求已被使用（疑似重放）")
+	ErrNodeClockSkew           = func(now time.Time) error {
+		return response.BadRequest(401, fmt.Sprintf("请求时间与节点时间偏差超过 %s，请同步系统时间（节点时间 %s）", nodeauth.MaxClockSkew, now.Format(time.DateTime)))
+	}
+	ErrNodePermissionDenied = func(perm string) error {
+		return response.BadRequest(500, fmt.Sprintf("API Key 未授予该节点权限：%s", perm))
 	}
 )

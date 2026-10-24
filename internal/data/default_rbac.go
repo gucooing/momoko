@@ -67,6 +67,8 @@ var (
 
 		newDefaultMenu("menu_4", entmenu.TypeDirectory, "", "节点管理", "HOutline:SignalIcon", nil, 3, "", entmenu.StatusActive),
 		newDefaultMenu("menu_4_1", entmenu.TypeMenu, "/node/key", "ApiKey", "HOutline:KeyIcon", new("menu_4"), 1, constant.ApiKeyView, entmenu.StatusActive),
+		newDefaultMenu("menu_4_2", entmenu.TypeMenu, "/node/list", "节点列表", "HOutline:ServerIcon", new("menu_4"), 0, constant.NodeView, entmenu.StatusActive),
+		newDefaultMenu("menu_4_2_button_0", entmenu.TypeButton, "", "管理节点", "", new("menu_4_2"), 0, constant.NodeManage, entmenu.StatusActive),
 
 		newDefaultMenu("menu_5", entmenu.TypeDirectory, "", "Docker", "HOutline:CircleStackIcon", nil, 4, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_1", entmenu.TypeMenu, "/docker/container", "容器", "HOutline:CubeIcon", new("menu_5"), 0, constant.DockerView, entmenu.StatusActive),

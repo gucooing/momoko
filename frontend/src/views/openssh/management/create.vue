@@ -131,7 +131,8 @@
         <input v-model="form.tags" class="app-input" :placeholder="t('ssh.common.tagsPlaceholder')" />
       </div>
 
-      <div class="app-field ssh-form__full">
+      <!-- 分享对象是本机用户，远程节点上下文不提供 -->
+      <div v-if="!nodeStore.isRemote" class="app-field ssh-form__full">
         <label class="app-label">{{ t('ssh.common.sharedUsers') }}</label>
         <UserPicker v-model="form.sharedUserIds" :placeholder="t('ssh.common.shareUsersPlaceholder')" />
       </div>
@@ -170,6 +171,7 @@ defineOptions({ name: 'SshConnectionCreate' })
 
 const emits = defineEmits<{ refresh: [type: 'create' | 'update'] }>()
 const { t } = useI18n()
+const nodeStore = useNodeStore()
 
 const open = ref(false)
 const loading = ref(false)

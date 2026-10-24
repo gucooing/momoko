@@ -2676,6 +2676,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateAPIKeyResponse'
+        delete:
+            tags:
+                - NodeService
+            description: 删除 API Key
+            operationId: NodeService_DeleteAPIKey
+            parameters:
+                - name: id
+                  in: path
+                  description: API Key id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAPIKeyResponse'
     /api/v1/node/api-key/{id}/copy:
         post:
             tags:
@@ -2728,6 +2747,127 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RefreshAPIKeyResponse'
+    /api/v1/node/nodes:
+        get:
+            tags:
+                - NodeService
+            description: 获取节点列表
+            operationId: NodeService_ListNodes
+            parameters:
+                - name: keywords
+                  in: query
+                  description: 名称 / 地址关键字
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListNodesResponse'
+        post:
+            tags:
+                - NodeService
+            description: 创建节点
+            operationId: NodeService_CreateNode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateNodeResponse'
+    /api/v1/node/nodes/test:
+        post:
+            tags:
+                - NodeService
+            description: 测试节点连接；传 id 时未填写的字段沿用已保存配置
+            operationId: NodeService_TestNode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestNodeResponse'
+    /api/v1/node/nodes/{id}:
+        put:
+            tags:
+                - NodeService
+            description: 更新节点
+            operationId: NodeService_UpdateNode
+            parameters:
+                - name: id
+                  in: path
+                  description: 节点 id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateNodeResponse'
+        delete:
+            tags:
+                - NodeService
+            description: 删除节点
+            operationId: NodeService_DeleteNode
+            parameters:
+                - name: id
+                  in: path
+                  description: 节点 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteNodeResponse'
+    /api/v1/node/nodes/{id}/context:
+        get:
+            tags:
+                - NodeService
+            description: 获取节点上下文：实时状态与当前用户在该节点的生效权限（切换节点时调用）
+            operationId: NodeService_GetNodeContext
+            parameters:
+                - name: id
+                  in: path
+                  description: 节点 id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetNodeContextResponse'
     /api/v1/oidc/authorize-code:
         post:
             tags:
@@ -4173,7 +4313,7 @@ components:
                     description: 名称
                 apiKey:
                     type: string
-                    description: API Key；列表和更新接口不返回完整值
+                    description: API Key（签名种子）；列表和更新接口不返回完整值
                 expiresAt:
                     type: string
                     description: 过期时间；空表示永久有效
@@ -4186,6 +4326,23 @@ components:
                     type: string
                     description: 更新时间
                     format: date-time
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                    description: 授予的节点权限
+                keyId:
+                    type: string
+                    description: 公开密钥标识（由种子派生），主控请求时携带用于定位密钥
+        v1.APIKeyPermissionSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        type: string
+                    description: 权限标识
+            description: API Key 权限集合；作为更新字段时不传表示不修改
         v1.AddUserRequest:
             type: object
             properties:
@@ -4710,6 +4867,11 @@ components:
                     type: string
                     description: 过期时间；不传表示永久有效
                     format: date-time
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                    description: 授予的节点权限（权限标识），远程主控调用本节点时以此为上限
         v1.CreateAPIKeyResponse:
             type: object
             properties:
@@ -4933,6 +5095,34 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceTypeInfo'
                     description: 实例信息
             description: 创建实例类型响应
+        v1.CreateNodeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 名称
+                address:
+                    type: string
+                    description: 节点 gRPC 地址（host:port）
+                apiKey:
+                    type: string
+                    description: 节点上创建的 API Key
+                tls:
+                    type: boolean
+                    description: 使用 TLS 连接
+                tlsSkipVerify:
+                    type: boolean
+                    description: 跳过 TLS 证书校验
+                remark:
+                    type: string
+                    description: 备注
+        v1.CreateNodeResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeInfo'
+                    description: 节点信息
         v1.CreateOIDCAuthorizationCodeRequest:
             type: object
             properties:
@@ -5245,6 +5435,9 @@ components:
             type: object
             properties: {}
             description: 删除实例类型响应
+        v1.DeleteAPIKeyResponse:
+            type: object
+            properties: {}
         v1.DeleteDockerContainerResponse:
             type: object
             properties: {}
@@ -5276,6 +5469,9 @@ components:
             type: object
             properties: {}
             description: 删除站点响应
+        v1.DeleteNodeResponse:
+            type: object
+            properties: {}
         v1.DeleteOIDCClientResponse:
             type: object
             properties: {}
@@ -7103,6 +7299,18 @@ components:
                         $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 列表
             description: 获取实例列表响应
+        v1.GetNodeContextResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeInfo'
+                    description: 节点信息（含实时状态）
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                    description: 当前用户在该节点的生效权限（节点授予 ∩ 当前用户在主控的权限）
         v1.GetPortForwardResponse:
             type: object
             properties:
@@ -7619,6 +7827,14 @@ components:
                         $ref: '#/components/schemas/v1.IQCheckSiteInfo'
                     description: 站点列表
             description: 获取站点列表响应
+        v1.ListNodesResponse:
+            type: object
+            properties:
+                infos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.NodeInfo'
+                    description: 节点列表
         v1.ListOIDCClientsResponse:
             type: object
             properties:
@@ -8113,6 +8329,107 @@ components:
                         - $ref: '#/components/schemas/v1.NetworkConnectionStatus'
                     description: 网络连接统计
             description: 网络实时状态
+        v1.NodeInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 节点 id
+                name:
+                    type: string
+                    description: 名称
+                address:
+                    type: string
+                    description: 节点 gRPC 地址（host:port）
+                tls:
+                    type: boolean
+                    description: 使用 TLS 连接
+                tlsSkipVerify:
+                    type: boolean
+                    description: 跳过 TLS 证书校验（自签证书）
+                remark:
+                    type: string
+                    description: 备注
+                apiKey:
+                    type: string
+                    description: API Key（脱敏）
+                keyId:
+                    type: string
+                    description: 公开密钥标识
+                status:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeStatus'
+                    description: 最近一次检测状态
+                createTime:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updateTime:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+        v1.NodeRemoteInfo:
+            type: object
+            properties:
+                hostname:
+                    type: string
+                    description: 主机名
+                os:
+                    type: string
+                    description: 操作系统
+                arch:
+                    type: string
+                    description: 架构
+                version:
+                    type: string
+                    description: momoko 版本
+                platform:
+                    type: string
+                    description: 平台描述（发行版 / 内核）
+                apiKeyName:
+                    type: string
+                    description: API Key 名称
+                userId:
+                    type: string
+                    description: API Key 所属用户 id（节点侧）
+                username:
+                    type: string
+                    description: API Key 所属用户名（节点侧）
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                    description: API Key 在节点上的生效权限（授予范围 ∩ 所属用户权限）
+                expiresAt:
+                    type: string
+                    description: API Key 过期时间
+                    format: date-time
+                serverTime:
+                    type: string
+                    description: 节点当前时间
+                    format: date-time
+            description: 节点自报信息（由节点 NodeAgent.AgentInfo 返回）
+        v1.NodeStatus:
+            type: object
+            properties:
+                state:
+                    type: integer
+                    description: 连接状态
+                    format: enum
+                message:
+                    type: string
+                    description: 状态说明（失败原因）
+                checkTime:
+                    type: string
+                    description: 检测时间
+                    format: date-time
+                latencyMs:
+                    type: string
+                    description: 往返延迟（毫秒）
+                remote:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeRemoteInfo'
+                    description: 节点自报信息（在线时有效）
         v1.OIDCAuthorizationInfo:
             type: object
             properties:
@@ -9236,6 +9553,31 @@ components:
                     type: boolean
                     description: 是否连接成功
             description: 测试数据库连接响应
+        v1.TestNodeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 已保存节点 id；为空时仅测试下方配置
+                address:
+                    type: string
+                    description: 节点 gRPC 地址
+                apiKey:
+                    type: string
+                    description: API Key
+                tls:
+                    type: boolean
+                    description: 使用 TLS 连接
+                tlsSkipVerify:
+                    type: boolean
+                    description: 跳过 TLS 证书校验
+        v1.TestNodeResponse:
+            type: object
+            properties:
+                status:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeStatus'
+                    description: 检测结果
         v1.TestSSHHostRequest:
             type: object
             properties:
@@ -9473,6 +9815,10 @@ components:
                 neverExpires:
                     type: boolean
                     description: 设为永久有效
+                permissions:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyPermissionSet'
+                    description: 授予的节点权限；不传表示不修改
         v1.UpdateAPIKeyResponse:
             type: object
             properties:
@@ -9915,6 +10261,37 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新个人资料响应
+        v1.UpdateNodeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 节点 id
+                name:
+                    type: string
+                    description: 名称
+                address:
+                    type: string
+                    description: 节点 gRPC 地址
+                apiKey:
+                    type: string
+                    description: API Key；不传或为空表示不修改
+                tls:
+                    type: boolean
+                    description: 使用 TLS 连接
+                tlsSkipVerify:
+                    type: boolean
+                    description: 跳过 TLS 证书校验
+                remark:
+                    type: string
+                    description: 备注
+        v1.UpdateNodeResponse:
+            type: object
+            properties:
+                info:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.NodeInfo'
+                    description: 节点信息
         v1.UpdateOIDCClientRequest:
             type: object
             properties:

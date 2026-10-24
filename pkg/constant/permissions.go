@@ -79,6 +79,21 @@ const (
 )
 
 const (
+	// NodeView 允许查看节点列表并切换到远程节点。
+	NodeView Permissions = "node:view"
+	// NodeManage 允许添加、编辑、删除和测试远程节点。
+	NodeManage Permissions = "node:manage"
+
+	// 以下两项本地仅需登录、不进 RBAC 菜单，只作为 API Key 的授权范围：
+	// 远程主控经 API Key 调用对应功能时，必须显式授予。
+
+	// SystemStatus 允许远程查看机器状态（CPU / 内存 / 磁盘 / 网络）。
+	SystemStatus Permissions = "system:status"
+	// SSHManage 允许远程管理 SSH 主机与使用 Web SSH 终端。
+	SSHManage Permissions = "ssh:manage"
+)
+
+const (
 	// IQCheckView 允许查看智商检测的提示词与站点配置。
 	IQCheckView Permissions = "iqcheck:view"
 	// IQCheckEdit 允许编辑智商检测的提示词、站点配置与设置，并手动触发检测。

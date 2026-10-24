@@ -1,5 +1,6 @@
 <!-- API Key（重写 · P1 列表）：PageHeader + FilterBar(名称) + 计数条 + DataTable / 移动卡 + Pagination。
-     行内 编辑/复制/刷新（ActionMenu）；复制走 FormDialog 只读展示。保留 list/copy/refresh/create/update 契约。 -->
+     行内 编辑/复制/刷新/删除（ActionMenu）；复制走 FormDialog 只读展示。保留 list/copy/refresh/create/update 契约。
+     API Key 是远程主控调用本节点的签名种子：主控只发送派生的 Key ID 与时间戳签名，授权范围决定其可用功能。 -->
 <template>
   <div class="key-page">
     <PageHeader :title="t('node.key.title')" :description="t('node.key.pageDesc')">
@@ -42,7 +43,13 @@
         :empty-text="t('node.key.noData')"
       >
         <template #cell-apiKey="{ row }">
-          <span class="key-mono">{{ row.apiKey }}</span>
+          <div class="key-cell">
+            <span class="key-mono">{{ row.apiKey }}</span>
+            <span class="key-mono key-cell__sub" :title="t('node.key.keyIdTip')">{{ row.keyId }}</span>
+          </div>
+        </template>
+        <template #cell-permissions="{ row }">
+          <NodePermissionChips :permissions="row.permissions as string[]" />
         </template>
         <template #cell-expiresAt="{ row }">
           <StatusPill v-if="!row.expiresAt" variant="success" :label="t('node.key.permanent')" />
@@ -74,6 +81,7 @@
             </template>
             <template #meta>
               <span class="key-card__full key-mono">{{ row.apiKey }}</span>
+              <NodePermissionChips class="key-card__full" :permissions="row.permissions" />
               <span v-if="row.expiresAt">{{ t('node.key.expiresAt') }}: {{ formatTime(row.expiresAt) }}</span>
             </template>
             <template #footer>
@@ -98,6 +106,7 @@
     <FormDialog v-model="copyDialogOpen" :title="t('node.key.copyTitle')" :width="560">
       <div class="key-copy">
         <div class="key-copy__warn">{{ t('node.key.copyWarning') }}</div>
+        <p class="key-copy__desc">{{ t('node.key.seedHint') }}</p>
         <div class="key-copy__inline">
           <input class="app-input key-mono" :value="copyKeyValue" readonly />
           <AppIconButton
@@ -118,12 +127,13 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { copyAPIKey, listAPIKeys, refreshAPIKey } from '@/api/node'
+import { copyAPIKey, deleteAPIKey, listAPIKeys, refreshAPIKey } from '@/api/node'
 import type { APIKeyInfo } from '@/types/v1/node'
 import { Dialog } from '@/utils/dialog'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import ApiKeyCreate from '@/views/node/key/create.vue'
+import NodePermissionChips from '@/views/node/components/permissionChips.vue'
 
 defineOptions({ name: 'ApiKeyView' })
 
@@ -149,7 +159,8 @@ const formatTime = (value: unknown): string => {
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'name', title: t('node.key.name'), minWidth: 150 },
-  { key: 'apiKey', title: 'API Key', minWidth: 260 },
+  { key: 'apiKey', title: 'API Key', minWidth: 240 },
+  { key: 'permissions', title: t('node.key.permissions'), minWidth: 240, ellipsis: false },
   { key: 'expiresAt', title: t('node.key.expiresAt'), minWidth: 170 },
   { key: 'createTime', title: t('node.key.createTime'), width: 170 },
   { key: 'updateTime', title: t('node.key.updateTime'), width: 170 },
@@ -160,6 +171,7 @@ const rowActions = computed<ActionMenuItem[]>(() => [
   { key: 'edit', label: t('node.key.edit'), icon: 'HOutline:PencilSquareIcon' },
   { key: 'copy', label: t('node.key.copy'), icon: 'HOutline:ClipboardDocumentIcon' },
   { key: 'refresh', label: t('node.key.refresh'), icon: 'HOutline:ArrowPathIcon' },
+  { key: 'delete', label: t('node.key.delete'), icon: 'HOutline:TrashIcon', danger: true },
 ])
 
 const getList = async () => {
@@ -195,6 +207,21 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
   if (key === 'edit') apiKeyCreateRef.value?.showDialog(record)
   else if (key === 'copy') openCopy(record)
   else if (key === 'refresh') openRefresh(record)
+  else if (key === 'delete') openDelete(record)
+}
+
+const openDelete = (row: APIKeyInfo) => {
+  Dialog.confirm({
+    title: t('node.key.deleteTitle'),
+    content: t('node.key.deleteContent', { name: row.name }),
+    confirmText: t('node.key.confirm'),
+    cancelText: t('node.key.cancel'),
+    onConfirm: async () => {
+      await deleteAPIKey({ id: row.id })
+      feedback.success(t('node.key.deleteSuccess'))
+      getList()
+    },
+  })
 }
 
 const openCopy = async (row: APIKeyInfo) => {
@@ -257,6 +284,21 @@ onMounted(() => {
 .key-mono {
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.8125rem;
+}
+.key-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.key-cell__sub {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.key-copy__desc {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--el-text-color-secondary);
 }
 
 /* 复制弹窗 */

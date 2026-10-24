@@ -232,7 +232,11 @@ const { t } = useI18n()
 const INSTANCE_PAGE_SIZES = [9, 18, 27]
 const viewMode = ref<'card' | 'table'>('card')
 
-const currentUserId = computed(() => userStore.userInfo?.userId?.trim() || '')
+const nodeStore = useNodeStore()
+// 实例归属按所在节点的用户比较：远程节点上为该节点 API Key 所属用户。
+const currentUserId = computed(() =>
+  nodeStore.isRemote ? nodeStore.remoteUserId : userStore.userInfo?.userId?.trim() || '',
+)
 
 const {
   queryForm,

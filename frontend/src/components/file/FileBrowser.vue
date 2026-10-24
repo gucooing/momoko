@@ -339,6 +339,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useFeedback } from '@/utils/feedback'
+import { isRemoteNode } from '@/utils/nodeContext'
 import {
   FileSortField,
   type FileEntryInfo,
@@ -991,7 +992,8 @@ const moreActions = computed<MoreItem[]>(() => {
     actions.push({ key: 'compress', label: t('fileManager.compress'), icon: 'i-lucide-archive', disabled: !hasSelection.value })
   }
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
-  if (isSystemScope) {
+  // 分享链接是主控域名下的公开地址，远程节点上下文不提供分享。
+  if (isSystemScope && !isRemoteNode()) {
     actions.push({ key: 'share', label: t('fileManager.share'), icon: 'i-lucide-share-2', disabled: !hasSelection.value })
   }
   return actions
@@ -1020,7 +1022,8 @@ const rowActions = (row: FileEntryInfo): ActionMenuItem[] => {
     actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: 'i-lucide-folder-archive' })
   }
   // 分享支持任意系统来源（本地/OSS/FTP/WebDAV）；实例作用域不提供分享。
-  if (isSystemScope) {
+  // 分享链接是主控域名下的公开地址，远程节点上下文不提供分享。
+  if (isSystemScope && !isRemoteNode()) {
     actions.push({ key: 'share', label: t('fileManager.share'), icon: 'i-lucide-share-2' })
   }
   actions.push({ key: 'delete', label: t('fileManager.delete'), icon: 'i-lucide-trash-2', danger: true })

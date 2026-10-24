@@ -1,4 +1,5 @@
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { applyNodeQuery } from '@/utils/nodeContext'
 
 const AUTH_QUERY_KEYS = ['accessToken', 'token', 'authorization']
 
@@ -22,6 +23,8 @@ export const buildBackendWebSocketUrl = (
     )
     const wsOrigin = `${apiBaseUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${apiBaseUrl.host}`
     url = new URL(path.startsWith('/') ? path : `/${path}`, wsOrigin)
+    // 后端返回的相对 WS 路径属于当前节点：远程节点上下文中由主控经 gRPC 隧道转发。
+    applyNodeQuery(url)
   }
 
   const token = normalizeAuthToken(localStorage.getItem('accessToken') || '')

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import { resolveStaticResourceUrl } from '@/utils/assets'
+import { withNodeQuery } from '@/utils/nodeContext'
 
 // 文件管理通用工具：路径、媒体判定、格式化、下载、剪贴板、Monaco 语言识别。
 // 与具体 scope（系统/实例）无关，纯函数，便于复用与测试。
@@ -137,9 +138,9 @@ export const formatDateTime = (value: unknown): string => {
   return parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : '-'
 }
 
-// pre-sign 下载路径 → 可访问 URL。
+// pre-sign 下载路径 → 可访问 URL（远程节点上下文中附加节点标识，由主控经隧道转发）。
 export const resolvePreSignedFileUrl = (downloadUrlPath?: string | null): string =>
-  resolveStaticResourceUrl(downloadUrlPath)
+  withNodeQuery(resolveStaticResourceUrl(downloadUrlPath), downloadUrlPath || '')
 
 // 触发浏览器下载（通过临时 a[download]）。
 export const downloadFileFromUrl = (url: string, fileName?: string): void => {

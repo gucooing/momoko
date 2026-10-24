@@ -9,7 +9,8 @@
           {{ greeting }}，{{ displayName }}<span class="dash-hi__wave">👋</span>
         </h2>
         <div class="dash-hi__meta">
-          <span>{{ overview?.version?.hostname || '—' }}</span>
+          <StatusPill v-if="nodeStore.isRemote" variant="primary" :label="t('dashboard.home.remoteNode', { name: nodeStore.contextInfo?.name || '' })" />
+          <span>{{ overview?.version?.hostname || nodeStore.contextInfo?.status?.remote?.hostname || '—' }}</span>
           <i class="dash-hi__sep" />
           <span>{{ osText }}</span>
           <i class="dash-hi__sep" />
@@ -20,8 +21,24 @@
       </div>
     </header>
 
+    <!-- 远程节点不可用或未授予机器状态权限：不轮询，给出说明 -->
+    <AppPanel v-if="!canViewStatus" :title="t('dashboard.home.systemStatus')" title-icon="HOutline:ChartBarIcon">
+      <EmptyState
+        v-if="!nodeStore.isOnline"
+        icon="HOutline:ExclamationTriangleIcon"
+        :title="t('dashboard.home.nodeOffline')"
+        :description="nodeStore.contextInfo?.status?.message || t('dashboard.home.nodeOfflineDesc')"
+      />
+      <EmptyState
+        v-else
+        icon="HOutline:NoSymbolIcon"
+        :title="t('dashboard.home.statusForbidden')"
+        :description="t('dashboard.home.statusForbiddenDesc')"
+      />
+    </AppPanel>
+
     <!-- 指标带（单色，无彩色图标盒） -->
-    <MetricStrip :columns="4">
+    <MetricStrip v-if="canViewStatus" :columns="4">
       <MetricItem
         :label="t('dashboard.home.cpuUsage')"
         :value="fmtPercent(status?.cpu?.totalPercent)"
@@ -56,6 +73,7 @@
 
     <!-- 实时监控 -->
     <SystemRealtimeCharts
+      v-if="canViewStatus"
       :cpu-history="cpuHistory"
       :memory-history="memoryHistory"
       :network-history="networkHistory"
@@ -71,14 +89,29 @@
 
     <!-- 底部两栏：运行中实例 / 快捷入口 -->
     <div class="dash-cols">
-      <RunningInstanceSection class="dash-cols__main" />
+      <RunningInstanceSection v-if="canViewInstances" class="dash-cols__main" />
       <ShortcutSection class="dash-cols__side" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-let hasAutoCheckedUpdate = false
+// 自动检查更新每个浏览器标签页只做一次：切换节点会整页重载，不应反复弹出更新提示。
+const AUTO_UPDATE_CHECKED_KEY = 'momoko-update-auto-checked'
+const hasAutoCheckedUpdate = () => {
+  try {
+    return sessionStorage.getItem(AUTO_UPDATE_CHECKED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+const markAutoCheckedUpdate = () => {
+  try {
+    sessionStorage.setItem(AUTO_UPDATE_CHECKED_KEY, '1')
+  } catch {
+    // 无法持久化时退化为每次加载检查一次
+  }
+}
 </script>
 
 <script setup lang="ts">
@@ -97,7 +130,14 @@ const BUILTIN_SUPER_ADMIN_ROLE_ID = 'role_1'
 const dashboardHomeStore = useDashboardHomeStore()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
+const nodeStore = useNodeStore()
 const { t } = useI18n()
+
+// 远程节点上下文按节点授权分块展示；本机保持原有行为。
+const canViewStatus = computed(() => !nodeStore.isRemote || menuStore.hasButtonPermission('system:status'))
+const canViewInstances = computed(
+  () => !nodeStore.isRemote || menuStore.hasButtonPermission('instance:manage'),
+)
 
 const {
   cpuHistory,
@@ -170,20 +210,22 @@ const osText = computed(() => {
 })
 
 const autoCheckUpdate = async () => {
-  if (hasAutoCheckedUpdate) return
+  if (hasAutoCheckedUpdate()) return
   if (!userStore.userInfo) await userStore.getUserInfo()
   if (!menuStore.hasLoadedPermissions) await menuStore.getUserPermissions()
 
   const isBuiltinSuperAdmin = userStore.userInfo?.roleId === BUILTIN_SUPER_ADMIN_ROLE_ID
   if (!isBuiltinSuperAdmin || !menuStore.hasButtonPermission('system:update')) return
 
-  hasAutoCheckedUpdate = true
+  markAutoCheckedUpdate()
   await checkForUpdate({ silentNoUpdate: true })
 }
 
 onMounted(() => {
-  fetchOverview()
-  startAutoRefresh()
+  if (canViewStatus.value) {
+    fetchOverview()
+    startAutoRefresh()
+  }
   startCurrentDateTicker()
   void autoCheckUpdate()
 })

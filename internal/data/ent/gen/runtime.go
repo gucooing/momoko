@@ -16,6 +16,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
@@ -520,6 +521,49 @@ func init() {
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	menu.IDValidator = menuDescID.Validators[0].(func(string) error)
+	nodeMixin := schema.Node{}.Mixin()
+	nodeMixinFields0 := nodeMixin[0].Fields()
+	_ = nodeMixinFields0
+	nodeFields := schema.Node{}.Fields()
+	_ = nodeFields
+	// nodeDescCreateTime is the schema descriptor for create_time field.
+	nodeDescCreateTime := nodeMixinFields0[0].Descriptor()
+	// node.DefaultCreateTime holds the default value on creation for the create_time field.
+	node.DefaultCreateTime = nodeDescCreateTime.Default.(func() time.Time)
+	// nodeDescUpdateTime is the schema descriptor for update_time field.
+	nodeDescUpdateTime := nodeMixinFields0[1].Descriptor()
+	// node.DefaultUpdateTime holds the default value on creation for the update_time field.
+	node.DefaultUpdateTime = nodeDescUpdateTime.Default.(func() time.Time)
+	// node.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	node.UpdateDefaultUpdateTime = nodeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// nodeDescName is the schema descriptor for name field.
+	nodeDescName := nodeFields[1].Descriptor()
+	// node.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	node.NameValidator = nodeDescName.Validators[0].(func(string) error)
+	// nodeDescAddress is the schema descriptor for address field.
+	nodeDescAddress := nodeFields[2].Descriptor()
+	// node.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	node.AddressValidator = nodeDescAddress.Validators[0].(func(string) error)
+	// nodeDescAPIKey is the schema descriptor for api_key field.
+	nodeDescAPIKey := nodeFields[3].Descriptor()
+	// node.APIKeyValidator is a validator for the "api_key" field. It is called by the builders before save.
+	node.APIKeyValidator = nodeDescAPIKey.Validators[0].(func(string) error)
+	// nodeDescKeyID is the schema descriptor for key_id field.
+	nodeDescKeyID := nodeFields[4].Descriptor()
+	// node.KeyIDValidator is a validator for the "key_id" field. It is called by the builders before save.
+	node.KeyIDValidator = nodeDescKeyID.Validators[0].(func(string) error)
+	// nodeDescTLS is the schema descriptor for tls field.
+	nodeDescTLS := nodeFields[5].Descriptor()
+	// node.DefaultTLS holds the default value on creation for the tls field.
+	node.DefaultTLS = nodeDescTLS.Default.(bool)
+	// nodeDescTLSSkipVerify is the schema descriptor for tls_skip_verify field.
+	nodeDescTLSSkipVerify := nodeFields[6].Descriptor()
+	// node.DefaultTLSSkipVerify holds the default value on creation for the tls_skip_verify field.
+	node.DefaultTLSSkipVerify = nodeDescTLSSkipVerify.Default.(bool)
+	// nodeDescID is the schema descriptor for id field.
+	nodeDescID := nodeFields[0].Descriptor()
+	// node.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	node.IDValidator = nodeDescID.Validators[0].(func(string) error)
 	oidcclientMixin := schema.OIDCClient{}.Mixin()
 	oidcclientMixinFields0 := oidcclientMixin[0].Fields()
 	_ = oidcclientMixinFields0
@@ -900,7 +944,7 @@ func init() {
 	// userapikey.APIKeyValidator is a validator for the "api_key" field. It is called by the builders before save.
 	userapikey.APIKeyValidator = userapikeyDescAPIKey.Validators[0].(func(string) error)
 	// userapikeyDescUserID is the schema descriptor for user_id field.
-	userapikeyDescUserID := userapikeyFields[4].Descriptor()
+	userapikeyDescUserID := userapikeyFields[6].Descriptor()
 	// userapikey.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	userapikey.UserIDValidator = userapikeyDescUserID.Validators[0].(func(string) error)
 	// userapikeyDescID is the schema descriptor for id field.

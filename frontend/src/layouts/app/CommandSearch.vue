@@ -92,7 +92,7 @@ const flatItems = computed(() => {
       if (n.children?.length) walk(n.children)
     })
   }
-  walk(menuStore.menuList)
+  walk(menuStore.navMenuList)
   return out
 })
 const results = computed(() => {

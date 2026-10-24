@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/go-kratos/kratos/v2/transport"
 	httpm "github.com/go-kratos/kratos/v2/transport/http"
 	"go.einride.tech/aip/fieldbehavior"
 	"google.golang.org/protobuf/proto"
@@ -39,12 +38,14 @@ type publicRoute struct {
 type Authorization struct {
 	ar     biz.AuthRepo
 	system *biz.SystemUsecase
+	agent  *biz.NodeAgentUsecase
 }
 
-func NewAuthorization(ar biz.AuthRepo, system *biz.SystemUsecase) *Authorization {
+func NewAuthorization(ar biz.AuthRepo, system *biz.SystemUsecase, agent *biz.NodeAgentUsecase) *Authorization {
 	return &Authorization{
 		ar:     ar,
 		system: system,
+		agent:  agent,
 	}
 }
 
@@ -90,6 +91,17 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				next.ServeHTTP(w, r)
 				return
 			}
+			// 经节点隧道进入的请求：建流时已完成 API Key 签名鉴权与路径授权（见 node_tunnel.go），
+			// 这里以 API Key 所属用户身份继续处理，并按原始 WS 路由补做 RBAC 校验。
+			if principal, ok := biz.NodePrincipalFromContext(r.Context()); ok {
+				ctx := auth.NewContext(r.Context(), principal.Auth())
+				if err := a.checkWSPermission(ctx, r.URL.Path); err != nil {
+					response.WriteError(w, r, err)
+					return
+				}
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
 			authorization := r.Header.Get("Authorization")
 			// 仅 WebSocket 握手允许用 query 参数携带 token，避免普通请求把 token 暴露到
 			// 访问日志 / 浏览器历史 / Referer。
@@ -131,31 +143,5 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 			}
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
-	}
-}
-
-func (a *Authorization) GRPCMiddleware() middleware.Middleware {
-	//ctx := metadata.AppendToOutgoingContext(ctx, "token", "114514")
-
-	return func(handler middleware.Handler) middleware.Handler {
-		return func(ctx context.Context, req any) (any, error) {
-			tr, ok := transport.FromServerContext(ctx)
-			if !ok {
-				return nil, ErrTokenInvalid
-			}
-
-			token := tr.RequestHeader().Get("token")
-			if token == "" {
-				return nil, ErrTokenInvalid
-			}
-
-			authInfo, err := auth.ParseToken(token)
-			if err != nil {
-				return nil, ErrTokenInvalid
-			}
-
-			ctx = auth.NewContext(ctx, authInfo)
-			return handler(ctx, req)
-		}
 	}
 }

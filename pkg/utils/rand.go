@@ -30,8 +30,9 @@ func GenerateEmailCode(length int) (string, error) {
 	return string(raw), nil
 }
 
+// GenerateAPIKey 生成 API Key：它是节点签名的 HMAC 种子（不在网络上传输），32 位约 165 bit 熵。
 func GenerateAPIKey() (string, error) {
-	raw := make([]byte, 20)
+	raw := make([]byte, 32)
 	if _, err := rand.Read(raw); err != nil {
 		return "", fmt.Errorf("generate api key: %w", err)
 	}

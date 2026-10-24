@@ -85,6 +85,11 @@ func APIKey(v string) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldEQ(FieldAPIKey, v))
 }
 
+// KeyID applies equality check predicate on the "key_id" field. It's identical to KeyIDEQ.
+func KeyID(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldKeyID, v))
+}
+
 // ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
 func ExpiresAt(v time.Time) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldEQ(FieldExpiresAt, v))
@@ -303,6 +308,91 @@ func APIKeyEqualFold(v string) predicate.UserAPIKey {
 // APIKeyContainsFold applies the ContainsFold predicate on the "api_key" field.
 func APIKeyContainsFold(v string) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldContainsFold(FieldAPIKey, v))
+}
+
+// KeyIDEQ applies the EQ predicate on the "key_id" field.
+func KeyIDEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldKeyID, v))
+}
+
+// KeyIDNEQ applies the NEQ predicate on the "key_id" field.
+func KeyIDNEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNEQ(FieldKeyID, v))
+}
+
+// KeyIDIn applies the In predicate on the "key_id" field.
+func KeyIDIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIn(FieldKeyID, vs...))
+}
+
+// KeyIDNotIn applies the NotIn predicate on the "key_id" field.
+func KeyIDNotIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotIn(FieldKeyID, vs...))
+}
+
+// KeyIDGT applies the GT predicate on the "key_id" field.
+func KeyIDGT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGT(FieldKeyID, v))
+}
+
+// KeyIDGTE applies the GTE predicate on the "key_id" field.
+func KeyIDGTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGTE(FieldKeyID, v))
+}
+
+// KeyIDLT applies the LT predicate on the "key_id" field.
+func KeyIDLT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLT(FieldKeyID, v))
+}
+
+// KeyIDLTE applies the LTE predicate on the "key_id" field.
+func KeyIDLTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLTE(FieldKeyID, v))
+}
+
+// KeyIDContains applies the Contains predicate on the "key_id" field.
+func KeyIDContains(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContains(FieldKeyID, v))
+}
+
+// KeyIDHasPrefix applies the HasPrefix predicate on the "key_id" field.
+func KeyIDHasPrefix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasPrefix(FieldKeyID, v))
+}
+
+// KeyIDHasSuffix applies the HasSuffix predicate on the "key_id" field.
+func KeyIDHasSuffix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasSuffix(FieldKeyID, v))
+}
+
+// KeyIDIsNil applies the IsNil predicate on the "key_id" field.
+func KeyIDIsNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIsNull(FieldKeyID))
+}
+
+// KeyIDNotNil applies the NotNil predicate on the "key_id" field.
+func KeyIDNotNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotNull(FieldKeyID))
+}
+
+// KeyIDEqualFold applies the EqualFold predicate on the "key_id" field.
+func KeyIDEqualFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEqualFold(FieldKeyID, v))
+}
+
+// KeyIDContainsFold applies the ContainsFold predicate on the "key_id" field.
+func KeyIDContainsFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContainsFold(FieldKeyID, v))
+}
+
+// PermissionsIsNil applies the IsNil predicate on the "permissions" field.
+func PermissionsIsNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIsNull(FieldPermissions))
+}
+
+// PermissionsNotNil applies the NotNil predicate on the "permissions" field.
+func PermissionsNotNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotNull(FieldPermissions))
 }
 
 // ExpiresAtEQ applies the EQ predicate on the "expires_at" field.

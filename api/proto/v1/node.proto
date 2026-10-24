@@ -43,6 +43,52 @@ service NodeService {
       body: "*"
     };
   }
+  // 删除 API Key
+  rpc DeleteAPIKey(DeleteAPIKeyRequest) returns (DeleteAPIKeyResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/node/api-key/{id}"
+    };
+  }
+
+  // 获取节点列表
+  rpc ListNodes(ListNodesRequest) returns (ListNodesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/node/nodes"
+    };
+  }
+  // 创建节点
+  rpc CreateNode(CreateNodeRequest) returns (CreateNodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/node/nodes"
+      body: "*"
+    };
+  }
+  // 更新节点
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/node/nodes/{id}"
+      body: "*"
+    };
+  }
+  // 删除节点
+  rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/node/nodes/{id}"
+    };
+  }
+  // 测试节点连接；传 id 时未填写的字段沿用已保存配置
+  rpc TestNode(TestNodeRequest) returns (TestNodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/node/nodes/test"
+      body: "*"
+    };
+  }
+  // 获取节点上下文：实时状态与当前用户在该节点的生效权限（切换节点时调用）
+  rpc GetNodeContext(GetNodeContextRequest) returns (GetNodeContextResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/node/nodes/{id}/context"
+    };
+  }
 }
 
 message CreateAPIKeyRequest {
@@ -50,6 +96,8 @@ message CreateAPIKeyRequest {
   string name = 1;
   // 过期时间；不传表示永久有效
   optional google.protobuf.Timestamp expires_at = 2;
+  // 授予的节点权限（权限标识），远程主控调用本节点时以此为上限
+  repeated string permissions = 3;
 }
 
 message CreateAPIKeyResponse {
@@ -87,6 +135,12 @@ message CopyAPIKeyResponse {
   APIKeyInfo info = 1;
 }
 
+// API Key 权限集合；作为更新字段时不传表示不修改
+message APIKeyPermissionSet {
+  // 权限标识
+  repeated string items = 1;
+}
+
 message UpdateAPIKeyRequest {
   // API Key id
   string id = 1;
@@ -96,6 +150,8 @@ message UpdateAPIKeyRequest {
   optional google.protobuf.Timestamp expires_at = 3;
   // 设为永久有效
   optional bool never_expires = 4;
+  // 授予的节点权限；不传表示不修改
+  APIKeyPermissionSet permissions = 5;
 }
 
 message UpdateAPIKeyResponse {
@@ -113,12 +169,19 @@ message RefreshAPIKeyResponse {
   APIKeyInfo info = 1;
 }
 
+message DeleteAPIKeyRequest {
+  // API Key id
+  string id = 1;
+}
+
+message DeleteAPIKeyResponse {}
+
 message APIKeyInfo {
   // API Key id
   string id = 1;
   // 名称
   string name = 2;
-  // API Key；列表和更新接口不返回完整值
+  // API Key（签名种子）；列表和更新接口不返回完整值
   string api_key = 3;
   // 过期时间；空表示永久有效
   optional google.protobuf.Timestamp expires_at = 4;
@@ -126,4 +189,173 @@ message APIKeyInfo {
   google.protobuf.Timestamp create_time = 5;
   // 更新时间
   google.protobuf.Timestamp update_time = 6;
+  // 授予的节点权限
+  repeated string permissions = 7;
+  // 公开密钥标识（由种子派生），主控请求时携带用于定位密钥
+  string key_id = 8;
+}
+
+// 节点连接状态
+enum NodeState {
+  // 未检测
+  NodeState_Unknown = 0;
+  // 在线
+  NodeState_Online = 1;
+  // 离线（网络不可达 / 超时）
+  NodeState_Offline = 2;
+  // 鉴权失败（API Key 无效、过期或时间偏差过大）
+  NodeState_Unauthorized = 3;
+}
+
+// 节点自报信息（由节点 NodeAgent.AgentInfo 返回）
+message NodeRemoteInfo {
+  // 主机名
+  string hostname = 1;
+  // 操作系统
+  string os = 2;
+  // 架构
+  string arch = 3;
+  // momoko 版本
+  string version = 4;
+  // 平台描述（发行版 / 内核）
+  string platform = 5;
+  // API Key 名称
+  string api_key_name = 6;
+  // API Key 所属用户 id（节点侧）
+  string user_id = 7;
+  // API Key 所属用户名（节点侧）
+  string username = 8;
+  // API Key 在节点上的生效权限（授予范围 ∩ 所属用户权限）
+  repeated string permissions = 9;
+  // API Key 过期时间
+  optional google.protobuf.Timestamp expires_at = 10;
+  // 节点当前时间
+  google.protobuf.Timestamp server_time = 11;
+}
+
+message NodeStatus {
+  // 连接状态
+  NodeState state = 1;
+  // 状态说明（失败原因）
+  string message = 2;
+  // 检测时间
+  optional google.protobuf.Timestamp check_time = 3;
+  // 往返延迟（毫秒）
+  int64 latency_ms = 4;
+  // 节点自报信息（在线时有效）
+  NodeRemoteInfo remote = 5;
+}
+
+message NodeInfo {
+  // 节点 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 节点 gRPC 地址（host:port）
+  string address = 3;
+  // 使用 TLS 连接
+  bool tls = 4;
+  // 跳过 TLS 证书校验（自签证书）
+  bool tls_skip_verify = 5;
+  // 备注
+  string remark = 6;
+  // API Key（脱敏）
+  string api_key = 7;
+  // 公开密钥标识
+  string key_id = 8;
+  // 最近一次检测状态
+  NodeStatus status = 9;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 10;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 11;
+}
+
+message ListNodesRequest {
+  // 名称 / 地址关键字
+  optional string keywords = 1;
+}
+
+message ListNodesResponse {
+  // 节点列表
+  repeated NodeInfo infos = 1;
+}
+
+message CreateNodeRequest {
+  // 名称
+  string name = 1;
+  // 节点 gRPC 地址（host:port）
+  string address = 2;
+  // 节点上创建的 API Key
+  string api_key = 3;
+  // 使用 TLS 连接
+  bool tls = 4;
+  // 跳过 TLS 证书校验
+  bool tls_skip_verify = 5;
+  // 备注
+  string remark = 6;
+}
+
+message CreateNodeResponse {
+  // 节点信息
+  NodeInfo info = 1;
+}
+
+message UpdateNodeRequest {
+  // 节点 id
+  string id = 1;
+  // 名称
+  optional string name = 2;
+  // 节点 gRPC 地址
+  optional string address = 3;
+  // API Key；不传或为空表示不修改
+  optional string api_key = 4;
+  // 使用 TLS 连接
+  optional bool tls = 5;
+  // 跳过 TLS 证书校验
+  optional bool tls_skip_verify = 6;
+  // 备注
+  optional string remark = 7;
+}
+
+message UpdateNodeResponse {
+  // 节点信息
+  NodeInfo info = 1;
+}
+
+message DeleteNodeRequest {
+  // 节点 id
+  string id = 1;
+}
+
+message DeleteNodeResponse {}
+
+message TestNodeRequest {
+  // 已保存节点 id；为空时仅测试下方配置
+  optional string id = 1;
+  // 节点 gRPC 地址
+  optional string address = 2;
+  // API Key
+  optional string api_key = 3;
+  // 使用 TLS 连接
+  optional bool tls = 4;
+  // 跳过 TLS 证书校验
+  optional bool tls_skip_verify = 5;
+}
+
+message TestNodeResponse {
+  // 检测结果
+  NodeStatus status = 1;
+}
+
+message GetNodeContextRequest {
+  // 节点 id
+  string id = 1;
+}
+
+message GetNodeContextResponse {
+  // 节点信息（含实时状态）
+  NodeInfo info = 1;
+  // 当前用户在该节点的生效权限（节点授予 ∩ 当前用户在主控的权限）
+  repeated string permissions = 2;
 }

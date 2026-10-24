@@ -1,4 +1,4 @@
-<!-- 顶栏：高 60，底部 hairline，不投影（04 §3）。左:折叠/汉堡 + 标题；右:搜索/主题/语言/全屏/通知/用户。 -->
+<!-- 顶栏：高 60，底部 hairline，不投影（04 §3）。左:折叠/汉堡 + 标题；右:节点/搜索/主题/语言/全屏/通知/用户。 -->
 <template>
   <header class="app-topbar">
     <div class="app-topbar__left">
@@ -11,6 +11,7 @@
     </div>
 
     <div class="app-topbar__right">
+      <NodeSwitcher />
       <!-- 桌面专属动作：包在普通 div 里，用作用域样式可靠隐藏（子组件多根无法透传 class） -->
       <div class="app-topbar__desktop">
         <CommandSearch />
@@ -35,6 +36,7 @@
 <script setup lang="ts">
 import CommandSearch from './CommandSearch.vue'
 import LanguageMenu from './LanguageMenu.vue'
+import NodeSwitcher from './NodeSwitcher.vue'
 import NotificationMenu from './NotificationMenu.vue'
 import { translateKnownText } from '@/locales'
 import { useFullscreen } from '@vueuse/core'

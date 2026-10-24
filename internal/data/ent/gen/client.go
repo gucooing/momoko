@@ -24,6 +24,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
@@ -76,6 +77,8 @@ type Client struct {
 	InstanceType *InstanceTypeClient
 	// Menu is the client for interacting with the Menu builders.
 	Menu *MenuClient
+	// Node is the client for interacting with the Node builders.
+	Node *NodeClient
 	// OIDCClient is the client for interacting with the OIDCClient builders.
 	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
@@ -124,6 +127,7 @@ func (c *Client) init() {
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
+	c.Node = NewNodeClient(c.config)
 	c.OIDCClient = NewOIDCClientClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
 	c.PortForward = NewPortForwardClient(c.config)
@@ -241,6 +245,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instance:        NewInstanceClient(cfg),
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
+		Node:            NewNodeClient(cfg),
 		OIDCClient:      NewOIDCClientClient(cfg),
 		OperationLog:    NewOperationLogClient(cfg),
 		PortForward:     NewPortForwardClient(cfg),
@@ -285,6 +290,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instance:        NewInstanceClient(cfg),
 		InstanceType:    NewInstanceTypeClient(cfg),
 		Menu:            NewMenuClient(cfg),
+		Node:            NewNodeClient(cfg),
 		OIDCClient:      NewOIDCClientClient(cfg),
 		OperationLog:    NewOperationLogClient(cfg),
 		PortForward:     NewPortForwardClient(cfg),
@@ -328,7 +334,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
 		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
-		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
@@ -342,7 +348,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
 		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
-		c.Instance, c.InstanceType, c.Menu, c.OIDCClient, c.OperationLog,
+		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
 	} {
@@ -379,6 +385,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.InstanceType.mutate(ctx, m)
 	case *MenuMutation:
 		return c.Menu.mutate(ctx, m)
+	case *NodeMutation:
+		return c.Node.mutate(ctx, m)
 	case *OIDCClientMutation:
 		return c.OIDCClient.mutate(ctx, m)
 	case *OperationLogMutation:
@@ -2329,6 +2337,139 @@ func (c *MenuClient) mutate(ctx context.Context, m *MenuMutation) (Value, error)
 	}
 }
 
+// NodeClient is a client for the Node schema.
+type NodeClient struct {
+	config
+}
+
+// NewNodeClient returns a client for the Node from the given config.
+func NewNodeClient(c config) *NodeClient {
+	return &NodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `node.Hooks(f(g(h())))`.
+func (c *NodeClient) Use(hooks ...Hook) {
+	c.hooks.Node = append(c.hooks.Node, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `node.Intercept(f(g(h())))`.
+func (c *NodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Node = append(c.inters.Node, interceptors...)
+}
+
+// Create returns a builder for creating a Node entity.
+func (c *NodeClient) Create() *NodeCreate {
+	mutation := newNodeMutation(c.config, OpCreate)
+	return &NodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Node entities.
+func (c *NodeClient) CreateBulk(builders ...*NodeCreate) *NodeCreateBulk {
+	return &NodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NodeClient) MapCreateBulk(slice any, setFunc func(*NodeCreate, int)) *NodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NodeCreateBulk{err: fmt.Errorf("calling to NodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Node.
+func (c *NodeClient) Update() *NodeUpdate {
+	mutation := newNodeMutation(c.config, OpUpdate)
+	return &NodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NodeClient) UpdateOne(_m *Node) *NodeUpdateOne {
+	mutation := newNodeMutation(c.config, OpUpdateOne, withNode(_m))
+	return &NodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NodeClient) UpdateOneID(id string) *NodeUpdateOne {
+	mutation := newNodeMutation(c.config, OpUpdateOne, withNodeID(id))
+	return &NodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Node.
+func (c *NodeClient) Delete() *NodeDelete {
+	mutation := newNodeMutation(c.config, OpDelete)
+	return &NodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NodeClient) DeleteOne(_m *Node) *NodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NodeClient) DeleteOneID(id string) *NodeDeleteOne {
+	builder := c.Delete().Where(node.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NodeDeleteOne{builder}
+}
+
+// Query returns a query builder for Node.
+func (c *NodeClient) Query() *NodeQuery {
+	return &NodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Node entity by its id.
+func (c *NodeClient) Get(ctx context.Context, id string) (*Node, error) {
+	return c.Query().Where(node.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NodeClient) GetX(ctx context.Context, id string) *Node {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NodeClient) Hooks() []Hook {
+	return c.hooks.Node
+}
+
+// Interceptors returns the client interceptors.
+func (c *NodeClient) Interceptors() []Interceptor {
+	return c.inters.Node
+}
+
+func (c *NodeClient) mutate(ctx context.Context, m *NodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Node mutation op: %q", m.Op())
+	}
+}
+
 // OIDCClientClient is a client for the OIDCClient schema.
 type OIDCClientClient struct {
 	config
@@ -4090,16 +4231,16 @@ type (
 	hooks struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
 		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, User,
-		UserAPIKey []ent.Hook
+		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
+		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
+		User, UserAPIKey []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
 		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, OIDCClient, OperationLog, PortForward, PortForwardStat,
-		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, User,
-		UserAPIKey []ent.Interceptor
+		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
+		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
+		User, UserAPIKey []ent.Interceptor
 	}
 )
 

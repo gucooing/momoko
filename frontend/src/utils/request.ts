@@ -10,6 +10,7 @@ import router from '@/router'
 import { useUserStore } from '@/stores/user'
 import { translate as t } from '@/locales'
 import type { RefreshResponse } from '@/types/v1/auth'
+import { currentNodeId, NODE_HEADER } from '@/utils/nodeContext'
 
 interface IAuthAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
@@ -177,6 +178,10 @@ service.interceptors.request.use(
     const token = getAccessToken()
     if (token && !isPublicPath(config.url)) {
       config.headers.Authorization = toBearerAuthHeader(token)
+    }
+    // 远程节点上下文：由主控按操作决定转发到节点（机器状态/应用/文件/容器/工具）还是本机处理（系统、用户等）。
+    if (currentNodeId.value && !isPublicPath(config.url)) {
+      config.headers[NODE_HEADER] = currentNodeId.value
     }
     return config
   },

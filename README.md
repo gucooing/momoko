@@ -50,7 +50,16 @@ Momoko 是一个面向服务器、应用实例和开发工具的管理面板。�
 
 - SSH 主机列表、创建、详情、更新、删除、分享、单机测试和批量测试。
 - Web SSH 终端，支持 PTY、窗口尺寸同步和实时输入输出。
-- API Key 管理：创建、列表、复制、更新、刷新、过期时间和启用状态。
+- API Key 管理：创建、列表、复制、更新、刷新、删除、过期时间和节点权限范围。
+
+### 多节点
+
+- 主控经节点的 gRPC 端口接入其他 momoko 节点，在顶栏切换节点后统一管理其机器状态、应用（含控制台与实例文件）、文件、容器和工具（端口转发、内网穿透、SSH）。
+- 签名鉴权：节点上创建的 API Key 只作为签名种子。主控每次调用携带由种子派生的 Key ID、时间戳、一次性随机数和绑定接口方法的 HMAC-SHA256 签名，节点校验 ±5 分钟时间窗并拒绝重放；种子不在网络上传输，主控侧加密存储。
+- 权限范围：API Key 勾选可用功能，节点上的生效权限为“授予范围 ∩ Key 所属用户权限”，主控再与当前登录用户的权限取交集；切换到节点后，未授权的页面、菜单和操作按钮不显示。
+- 转发方式：普通接口按 gRPC 操作名直接转发（复用各服务的 proto 定义，无需逐接口适配）；WebSocket 终端/日志与文件预签名上传/下载经 gRPC 双向流隧道转发。
+- 节点管理：新增、编辑、删除、测试连接，后台定时探测在线状态、延迟、版本与授权范围；节点与主控的操作记录分别记下主控操作者和转发目标节点。
+- 文件分享、SSH 分享依赖主控本机的公开地址与用户，远程节点上不提供。
 
 ### Docker
 
@@ -88,7 +97,7 @@ Momoko 是一个面向服务器、应用实例和开发工具的管理面板。�
 | --- | --- |
 | 后端 | Go 1.26.3, Kratos, gRPC, HTTP |
 | 数据 | Ent, SQLite, MySQL, PostgreSQL |
-| 鉴权 | JWT, 刷新令牌, RBAC, bcrypt |
+| 鉴权 | JWT, 刷新令牌, RBAC, bcrypt, API Key HMAC 时间戳签名 |
 | 协议 | Protocol Buffers, OpenAPI, ts-proto |
 | 文件 | 本地文件, OSS/S3, FTP, WebDAV, 分片上传 |
 | 网络 | TCP/UDP 转发, frp, WebSocket |
@@ -236,6 +245,17 @@ auth:
 
 初始化完成后会写入数据库配置、生成新的 `auth.secret`，并创建 `data/initialized.json`。
 
+gRPC 端口供主控接入本节点（多节点），默认明文。对公网开放时建议配置证书或置于 TLS 反向代理之后，主控添加节点时勾选「使用 TLS」：
+
+```yaml
+server:
+  grpc:
+    addr: 0.0.0.0:22733
+    timeout: 15s
+    tls_cert_file: ./configs/grpc.crt
+    tls_key_file: ./configs/grpc.key
+```
+
 设置 `DEPLOY_ENV=dev` 后启动后端，可启用 Ent debug SQL 日志。
 
 ## 开发说明
@@ -245,6 +265,7 @@ auth:
 - 增量 SQL 迁移脚本位于 [internal/data/migration/sql](./internal/data/migration/sql)，文件名为 `<序号>_<名称>.sql`（如 `00_remove_sub2api.sql`）。启动时在 ent 自动迁移之后按序号执行 `sql_migrations` 表中尚未记录的新脚本并写入记录；脚本以分号分隔语句，标识符用双引号，MySQL 下自动改写为反引号。
 - HTTP 路由由 proto 注解生成，注册逻辑位于 [internal/server/http.go](./internal/server/http.go)。
 - 功能权限校验位于 [internal/server/authz.go](./internal/server/authz.go)。
+- 远程节点可调用的操作、所需节点权限和可走隧道的原始路径位于 [internal/server/node_policy.go](./internal/server/node_policy.go)；新增按节点区分的接口时在此登记，未登记的服务不对远程主控开放。前端对应的页面权限表位于 [frontend/src/config/nodePermission.ts](./frontend/src/config/nodePermission.ts)。
 - 前端动态菜单转换位于 [frontend/src/router/menuToRoute.ts](./frontend/src/router/menuToRoute.ts)。
 - 前端 API 类型由 proto 生成到 [frontend/src/types/v1](./frontend/src/types/v1)。
 - OpenAPI 文件生成到 [frontend/src/types/openapi.yaml](./frontend/src/types/openapi.yaml)。

@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"momoko/pkg/utils"
+	"net"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
 	httptransport "github.com/go-kratos/kratos/v2/transport/http"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"momoko/api/gen/v1"
@@ -32,17 +34,17 @@ func (m *OperationLogMiddleware) Middleware() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (reply any, err error) {
 			start := time.Now()
+			ctx, trace := biz.WithNodeTrace(ctx)
 			reply, err = handler(ctx, req)
-			m.write(ctx, req, reply, err, time.Since(start))
+			m.write(ctx, req, reply, err, time.Since(start), trace)
 			return reply, err
 		}
 	}
 }
 
-func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, handlerErr error, duration time.Duration) {
-	httpReq, ok := httptransport.RequestFromServerContext(ctx)
-	tr, ok2 := transport.FromServerContext(ctx)
-	if !ok || !ok2 || m == nil || m.uc == nil {
+func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, handlerErr error, duration time.Duration, trace *biz.NodeTrace) {
+	tr, ok := transport.FromServerContext(ctx)
+	if !ok || m == nil || m.uc == nil {
 		return
 	}
 
@@ -53,25 +55,44 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 	}
 
 	detail := utils.Detail{
-		Method:     httpReq.Method,
-		Path:       httpReq.URL.Path,
 		Operation:  operation,
 		Request:    req,
 		Success:    handlerErr == nil,
 		DurationMS: duration.Milliseconds(),
+		Node:       trace.NodeName,
 	}
-
 	entry := &v1.OperationLogInfo{
 		UserId:        operationUserID(ctx, operation, reply, handlerErr),
 		OperationType: operationType,
 		Success:       handlerErr == nil,
-		Detail:        detail.MarshalDetail(),
-		Ip:            utils.ClientIP(httpReq),
-		UserAgent:     httpReq.UserAgent(),
-		Path:          httpReq.URL.Path,
 		DurationMs:    duration.Milliseconds(),
 		OperationTime: timestamppb.New(time.Now()),
 	}
+	if httpReq, ok := httptransport.RequestFromServerContext(ctx); ok {
+		detail.Method = httpReq.Method
+		detail.Path = httpReq.URL.Path
+		entry.Ip = utils.ClientIP(httpReq)
+		entry.UserAgent = httpReq.UserAgent()
+		entry.Path = httpReq.URL.Path
+	} else {
+		// 节点 gRPC 端口：调用方是持 API Key 的远程主控，记录其地址与主控侧操作者。
+		detail.Method = "GRPC"
+		detail.Path = operation
+		entry.Path = operation
+		if p, ok := peer.FromContext(ctx); ok {
+			if host, _, err := net.SplitHostPort(p.Addr.String()); err == nil {
+				entry.Ip = host
+			} else {
+				entry.Ip = p.Addr.String()
+			}
+		}
+		if principal, ok := biz.NodePrincipalFromContext(ctx); ok {
+			detail.APIKey = principal.APIKeyName
+			detail.Operator = principal.Operator
+			entry.UserAgent = "momoko-master"
+		}
+	}
+	entry.Detail = detail.MarshalDetail()
 
 	go func() {
 		writeCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -171,6 +192,11 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationNodeServiceCopyAPIKey:                    v1.OperationType_OperationTypeNodeAPIKeyCopy,
 	v1.OperationNodeServiceUpdateAPIKey:                  v1.OperationType_OperationTypeNodeAPIKeyUpdate,
 	v1.OperationNodeServiceRefreshAPIKey:                 v1.OperationType_OperationTypeNodeAPIKeyRefresh,
+	v1.OperationNodeServiceDeleteAPIKey:                  v1.OperationType_OperationTypeNodeAPIKeyDelete,
+	v1.OperationNodeServiceCreateNode:                    v1.OperationType_OperationTypeNodeCreate,
+	v1.OperationNodeServiceUpdateNode:                    v1.OperationType_OperationTypeNodeUpdate,
+	v1.OperationNodeServiceDeleteNode:                    v1.OperationType_OperationTypeNodeDelete,
+	v1.OperationNodeServiceTestNode:                      v1.OperationType_OperationTypeNodeTest,
 	v1.OperationDockerManagerUpdateDockerConfig:          v1.OperationType_OperationTypeDockerConfigUpdate,
 	v1.OperationDockerManagerTestDockerConfig:            v1.OperationType_OperationTypeDockerConfigTest,
 	v1.OperationDockerManagerCreateDockerContainer:       v1.OperationType_OperationTypeDockerContainerCreate,

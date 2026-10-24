@@ -82,3 +82,61 @@ func (n *NodeService) RefreshAPIKey(ctx context.Context, req *v1.RefreshAPIKeyRe
 	}
 	return &v1.RefreshAPIKeyResponse{Info: info}, nil
 }
+
+func (n *NodeService) DeleteAPIKey(ctx context.Context, req *v1.DeleteAPIKeyRequest) (*v1.DeleteAPIKeyResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	if err := n.uc.DeleteAPIKey(ctx, authCtx.UserID, req); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAPIKeyResponse{}, nil
+}
+
+func (n *NodeService) ListNodes(ctx context.Context, req *v1.ListNodesRequest) (*v1.ListNodesResponse, error) {
+	infos, err := n.uc.ListNodes(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListNodesResponse{Infos: infos}, nil
+}
+
+func (n *NodeService) CreateNode(ctx context.Context, req *v1.CreateNodeRequest) (*v1.CreateNodeResponse, error) {
+	info, err := n.uc.CreateNode(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateNodeResponse{Info: info}, nil
+}
+
+func (n *NodeService) UpdateNode(ctx context.Context, req *v1.UpdateNodeRequest) (*v1.UpdateNodeResponse, error) {
+	info, err := n.uc.UpdateNode(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateNodeResponse{Info: info}, nil
+}
+
+func (n *NodeService) DeleteNode(ctx context.Context, req *v1.DeleteNodeRequest) (*v1.DeleteNodeResponse, error) {
+	if err := n.uc.DeleteNode(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteNodeResponse{}, nil
+}
+
+func (n *NodeService) TestNode(ctx context.Context, req *v1.TestNodeRequest) (*v1.TestNodeResponse, error) {
+	status, err := n.uc.TestNode(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TestNodeResponse{Status: status}, nil
+}
+
+func (n *NodeService) GetNodeContext(ctx context.Context, req *v1.GetNodeContextRequest) (*v1.GetNodeContextResponse, error) {
+	info, permissions, err := n.uc.GetNodeContext(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetNodeContextResponse{Info: info, Permissions: permissions}, nil
+}

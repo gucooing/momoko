@@ -3,7 +3,7 @@
   <AppPanel :title="t('dashboard.home.convenientTools')" title-icon="HOutline:Squares2X2Icon">
     <div class="sc__grid">
       <button
-        v-for="item in shortcuts"
+        v-for="item in visibleShortcuts"
         :key="item.labelKey"
         type="button"
         class="sc__item"
@@ -25,7 +25,12 @@ const router = useRouter()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
 const { t } = useI18n()
+const nodeStore = useNodeStore()
 const { shortcuts } = storeToRefs(dashboardHomeStore)
+// 远程节点上下文只展示该节点授权的入口
+const visibleShortcuts = computed(() =>
+  shortcuts.value.filter((item) => nodeStore.canAccessRoute(item.routePath)),
+)
 </script>
 
 <style scoped lang="scss">

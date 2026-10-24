@@ -201,6 +201,8 @@ const selectedIdSet = computed(() => new Set(selectedIds.value))
 const queryForm = ref({ keywords: '', host: '' })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
+const nodeStore = useNodeStore()
+
 const isOwner = (row: Record<string, unknown> | SSHHostInfo) =>
   (row as SSHHostInfo).accessRole === OWNER_ROLE
 
@@ -227,7 +229,8 @@ const rowActionsFor = (row: Record<string, unknown> | SSHHostInfo): ActionMenuIt
   const owner = isOwner(row)
   return [
     { key: 'edit', label: t('ssh.common.edit'), icon: 'HOutline:PencilSquareIcon', hidden: !owner },
-    { key: 'share', label: t('ssh.common.share'), icon: 'HOutline:ShareIcon', hidden: !owner },
+    // 分享对象是本机用户，远程节点上下文不提供分享
+    { key: 'share', label: t('ssh.common.share'), icon: 'HOutline:ShareIcon', hidden: !owner || nodeStore.isRemote },
     { key: 'delete', label: t('ssh.common.delete'), icon: 'HOutline:TrashIcon', danger: true, hidden: !owner },
   ]
 }

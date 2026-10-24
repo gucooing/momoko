@@ -415,6 +415,25 @@ var (
 		Columns:    MenusColumns,
 		PrimaryKey: []*schema.Column{MenusColumns[0]},
 	}
+	// NodesColumns holds the columns for the "nodes" table.
+	NodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString},
+		{Name: "api_key", Type: field.TypeString, Size: 2147483647},
+		{Name: "key_id", Type: field.TypeString},
+		{Name: "tls", Type: field.TypeBool, Default: false},
+		{Name: "tls_skip_verify", Type: field.TypeBool, Default: false},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+	}
+	// NodesTable holds the schema information for the "nodes" table.
+	NodesTable = &schema.Table{
+		Name:       "nodes",
+		Columns:    NodesColumns,
+		PrimaryKey: []*schema.Column{NodesColumns[0]},
+	}
 	// OidcClientsColumns holds the columns for the "oidc_clients" table.
 	OidcClientsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -767,6 +786,8 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "api_key", Type: field.TypeString, Unique: true},
+		{Name: "key_id", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "permissions", Type: field.TypeJSON, Nullable: true},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
 		{Name: "user_id", Type: field.TypeString},
 	}
@@ -778,7 +799,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_api_keys_users_user",
-				Columns:    []*schema.Column{UserAPIKeysColumns[6]},
+				Columns:    []*schema.Column{UserAPIKeysColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -787,7 +808,7 @@ var (
 			{
 				Name:    "userapikey_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{UserAPIKeysColumns[6]},
+				Columns: []*schema.Column{UserAPIKeysColumns[8]},
 			},
 		},
 	}
@@ -856,6 +877,7 @@ var (
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
+		NodesTable,
 		OidcClientsTable,
 		OperationLogsTable,
 		PortForwardsTable,

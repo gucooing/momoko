@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { translate as t } from '@/locales'
 import { resolveStaticResourceUrl } from '@/utils/assets'
+import { withNodeQuery } from '@/utils/nodeContext'
 import { cancelFileUpload, completeFileUpload, getFileUploadStatus } from '@/api/file'
 import { waitFileTask } from '@/utils/fileTask'
 import { useFeedback } from '@/utils/feedback'
@@ -152,7 +153,7 @@ export const useFileUpload = (getClient: () => FileClient, getTargetPath: () => 
     if (!raw) {
       throw new Error(t('fileManager.partUploadFailedHttp', { status: 0 }))
     }
-    const url = /^https?:\/\//i.test(raw) ? raw : resolveStaticResourceUrl(raw)
+    const url = /^https?:\/\//i.test(raw) ? raw : withNodeQuery(resolveStaticResourceUrl(raw), raw)
     const res = await fetch(url, { method: 'PUT', body: blob, signal })
     if (!res.ok) {
       throw new Error(t('fileManager.partUploadFailedHttp', { status: res.status }))

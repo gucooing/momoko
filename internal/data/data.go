@@ -36,6 +36,7 @@ var ProviderSet = wire.NewSet(
 	NewInitializeRepo,
 	NewIQCheckRepo,
 	NewOIDCRepo,
+	NewNodeRepo,
 )
 
 // Data is a struct that contains the database client.
@@ -72,6 +73,9 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 		return nil, nil, err
 	}
 	if err = syncDefaultRBAC(context.Background(), db); err != nil {
+		return nil, nil, err
+	}
+	if err = backfillAPIKeyIDs(context.Background(), db); err != nil {
 		return nil, nil, err
 	}
 	cleanup := func() {

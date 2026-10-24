@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -60,6 +61,44 @@ func (_u *UserAPIKeyUpdate) SetNillableAPIKey(v *string) *UserAPIKeyUpdate {
 	if v != nil {
 		_u.SetAPIKey(*v)
 	}
+	return _u
+}
+
+// SetKeyID sets the "key_id" field.
+func (_u *UserAPIKeyUpdate) SetKeyID(v string) *UserAPIKeyUpdate {
+	_u.mutation.SetKeyID(v)
+	return _u
+}
+
+// SetNillableKeyID sets the "key_id" field if the given value is not nil.
+func (_u *UserAPIKeyUpdate) SetNillableKeyID(v *string) *UserAPIKeyUpdate {
+	if v != nil {
+		_u.SetKeyID(*v)
+	}
+	return _u
+}
+
+// ClearKeyID clears the value of the "key_id" field.
+func (_u *UserAPIKeyUpdate) ClearKeyID() *UserAPIKeyUpdate {
+	_u.mutation.ClearKeyID()
+	return _u
+}
+
+// SetPermissions sets the "permissions" field.
+func (_u *UserAPIKeyUpdate) SetPermissions(v []string) *UserAPIKeyUpdate {
+	_u.mutation.SetPermissions(v)
+	return _u
+}
+
+// AppendPermissions appends value to the "permissions" field.
+func (_u *UserAPIKeyUpdate) AppendPermissions(v []string) *UserAPIKeyUpdate {
+	_u.mutation.AppendPermissions(v)
+	return _u
+}
+
+// ClearPermissions clears the value of the "permissions" field.
+func (_u *UserAPIKeyUpdate) ClearPermissions() *UserAPIKeyUpdate {
+	_u.mutation.ClearPermissions()
 	return _u
 }
 
@@ -193,6 +232,23 @@ func (_u *UserAPIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.APIKey(); ok {
 		_spec.SetField(userapikey.FieldAPIKey, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.KeyID(); ok {
+		_spec.SetField(userapikey.FieldKeyID, field.TypeString, value)
+	}
+	if _u.mutation.KeyIDCleared() {
+		_spec.ClearField(userapikey.FieldKeyID, field.TypeString)
+	}
+	if value, ok := _u.mutation.Permissions(); ok {
+		_spec.SetField(userapikey.FieldPermissions, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPermissions(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, userapikey.FieldPermissions, value)
+		})
+	}
+	if _u.mutation.PermissionsCleared() {
+		_spec.ClearField(userapikey.FieldPermissions, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(userapikey.FieldExpiresAt, field.TypeTime, value)
 	}
@@ -279,6 +335,44 @@ func (_u *UserAPIKeyUpdateOne) SetNillableAPIKey(v *string) *UserAPIKeyUpdateOne
 	if v != nil {
 		_u.SetAPIKey(*v)
 	}
+	return _u
+}
+
+// SetKeyID sets the "key_id" field.
+func (_u *UserAPIKeyUpdateOne) SetKeyID(v string) *UserAPIKeyUpdateOne {
+	_u.mutation.SetKeyID(v)
+	return _u
+}
+
+// SetNillableKeyID sets the "key_id" field if the given value is not nil.
+func (_u *UserAPIKeyUpdateOne) SetNillableKeyID(v *string) *UserAPIKeyUpdateOne {
+	if v != nil {
+		_u.SetKeyID(*v)
+	}
+	return _u
+}
+
+// ClearKeyID clears the value of the "key_id" field.
+func (_u *UserAPIKeyUpdateOne) ClearKeyID() *UserAPIKeyUpdateOne {
+	_u.mutation.ClearKeyID()
+	return _u
+}
+
+// SetPermissions sets the "permissions" field.
+func (_u *UserAPIKeyUpdateOne) SetPermissions(v []string) *UserAPIKeyUpdateOne {
+	_u.mutation.SetPermissions(v)
+	return _u
+}
+
+// AppendPermissions appends value to the "permissions" field.
+func (_u *UserAPIKeyUpdateOne) AppendPermissions(v []string) *UserAPIKeyUpdateOne {
+	_u.mutation.AppendPermissions(v)
+	return _u
+}
+
+// ClearPermissions clears the value of the "permissions" field.
+func (_u *UserAPIKeyUpdateOne) ClearPermissions() *UserAPIKeyUpdateOne {
+	_u.mutation.ClearPermissions()
 	return _u
 }
 
@@ -441,6 +535,23 @@ func (_u *UserAPIKeyUpdateOne) sqlSave(ctx context.Context) (_node *UserAPIKey, 
 	}
 	if value, ok := _u.mutation.APIKey(); ok {
 		_spec.SetField(userapikey.FieldAPIKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.KeyID(); ok {
+		_spec.SetField(userapikey.FieldKeyID, field.TypeString, value)
+	}
+	if _u.mutation.KeyIDCleared() {
+		_spec.ClearField(userapikey.FieldKeyID, field.TypeString)
+	}
+	if value, ok := _u.mutation.Permissions(); ok {
+		_spec.SetField(userapikey.FieldPermissions, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedPermissions(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, userapikey.FieldPermissions, value)
+		})
+	}
+	if _u.mutation.PermissionsCleared() {
+		_spec.ClearField(userapikey.FieldPermissions, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(userapikey.FieldExpiresAt, field.TypeTime, value)

@@ -22,6 +22,10 @@ const (
 	FieldName = "name"
 	// FieldAPIKey holds the string denoting the api_key field in the database.
 	FieldAPIKey = "api_key"
+	// FieldKeyID holds the string denoting the key_id field in the database.
+	FieldKeyID = "key_id"
+	// FieldPermissions holds the string denoting the permissions field in the database.
+	FieldPermissions = "permissions"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
 	// FieldUserID holds the string denoting the user_id field in the database.
@@ -46,6 +50,8 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldAPIKey,
+	FieldKeyID,
+	FieldPermissions,
 	FieldExpiresAt,
 	FieldUserID,
 }
@@ -103,6 +109,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByAPIKey orders the results by the api_key field.
 func ByAPIKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAPIKey, opts...).ToFunc()
+}
+
+// ByKeyID orders the results by the key_id field.
+func ByKeyID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeyID, opts...).ToFunc()
 }
 
 // ByExpiresAt orders the results by the expires_at field.

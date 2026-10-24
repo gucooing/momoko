@@ -19,6 +19,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/portforward"
@@ -110,6 +111,7 @@ func checkColumn(t, c string) error {
 			instance.Table:        instance.ValidColumn,
 			instancetype.Table:    instancetype.ValidColumn,
 			menu.Table:            menu.ValidColumn,
+			node.Table:            node.ValidColumn,
 			oidcclient.Table:      oidcclient.ValidColumn,
 			operationlog.Table:    operationlog.ValidColumn,
 			portforward.Table:     portforward.ValidColumn,

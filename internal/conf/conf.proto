@@ -21,6 +21,10 @@ message Server {
     string network = 1;
     string addr = 2;
     google.protobuf.Duration timeout = 3;
+    // TLS 证书文件（PEM）；与 tls_key_file 同时配置时节点 gRPC 端口启用 TLS
+    string tls_cert_file = 4;
+    // TLS 私钥文件（PEM）
+    string tls_key_file = 5;
   }
   HTTP http = 1;
   GRPC grpc = 2;
