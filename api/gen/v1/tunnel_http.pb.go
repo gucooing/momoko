@@ -22,9 +22,12 @@ const _ = http.SupportPackageIsVersion1
 const OperationTunnelManagerCreateTunnel = "/v1.TunnelManager/CreateTunnel"
 const OperationTunnelManagerDeleteTunnel = "/v1.TunnelManager/DeleteTunnel"
 const OperationTunnelManagerGetFrpsConfig = "/v1.TunnelManager/GetFrpsConfig"
+const OperationTunnelManagerGetFrpsLogs = "/v1.TunnelManager/GetFrpsLogs"
 const OperationTunnelManagerGetTunnel = "/v1.TunnelManager/GetTunnel"
 const OperationTunnelManagerGetTunnelStats = "/v1.TunnelManager/GetTunnelStats"
 const OperationTunnelManagerListTunnels = "/v1.TunnelManager/ListTunnels"
+const OperationTunnelManagerResetTunnelCredential = "/v1.TunnelManager/ResetTunnelCredential"
+const OperationTunnelManagerRestartFrps = "/v1.TunnelManager/RestartFrps"
 const OperationTunnelManagerUpdateFrpsConfig = "/v1.TunnelManager/UpdateFrpsConfig"
 const OperationTunnelManagerUpdateTunnel = "/v1.TunnelManager/UpdateTunnel"
 
@@ -35,12 +38,18 @@ type TunnelManagerHTTPServer interface {
 	DeleteTunnel(context.Context, *DeleteTunnelRequest) (*DeleteTunnelResponse, error)
 	// GetFrpsConfig 获取 frps 实例配置
 	GetFrpsConfig(context.Context, *GetFrpsConfigRequest) (*GetFrpsConfigResponse, error)
+	// GetFrpsLogs 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+	GetFrpsLogs(context.Context, *GetFrpsLogsRequest) (*GetFrpsLogsResponse, error)
 	// GetTunnel 获取隧道详情
 	GetTunnel(context.Context, *GetTunnelRequest) (*GetTunnelResponse, error)
 	// GetTunnelStats 获取隧道统计信息（实时快照 + 指定时间范围内的时间序列）
 	GetTunnelStats(context.Context, *GetTunnelStatsRequest) (*GetTunnelStatsResponse, error)
 	// ListTunnels 获取隧道列表
 	ListTunnels(context.Context, *ListTunnelsRequest) (*ListTunnelsResponse, error)
+	// ResetTunnelCredential 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+	ResetTunnelCredential(context.Context, *ResetTunnelCredentialRequest) (*ResetTunnelCredentialResponse, error)
+	// RestartFrps 按当前配置重启 frps
+	RestartFrps(context.Context, *RestartFrpsRequest) (*RestartFrpsResponse, error)
 	// UpdateFrpsConfig 更新 frps 实例配置
 	UpdateFrpsConfig(context.Context, *UpdateFrpsConfigRequest) (*UpdateFrpsConfigResponse, error)
 	// UpdateTunnel 更新隧道
@@ -57,6 +66,9 @@ func RegisterTunnelManagerHTTPServer(s *http.Server, srv TunnelManagerHTTPServer
 	r.GET("/api/v1/tunnel/tunnels/{id}/stats", _TunnelManager_GetTunnelStats0_HTTP_Handler(srv))
 	r.GET("/api/v1/tunnel/frps-config", _TunnelManager_GetFrpsConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/tunnel/frps-config", _TunnelManager_UpdateFrpsConfig0_HTTP_Handler(srv))
+	r.POST("/api/v1/tunnel/frps-restart", _TunnelManager_RestartFrps0_HTTP_Handler(srv))
+	r.GET("/api/v1/tunnel/frps-logs", _TunnelManager_GetFrpsLogs0_HTTP_Handler(srv))
+	r.POST("/api/v1/tunnel/tunnels/{id}/credential/reset", _TunnelManager_ResetTunnelCredential0_HTTP_Handler(srv))
 }
 
 func _TunnelManager_ListTunnels0_HTTP_Handler(srv TunnelManagerHTTPServer) func(ctx http.Context) error {
@@ -232,6 +244,72 @@ func _TunnelManager_UpdateFrpsConfig0_HTTP_Handler(srv TunnelManagerHTTPServer) 
 	}
 }
 
+func _TunnelManager_RestartFrps0_HTTP_Handler(srv TunnelManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RestartFrpsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTunnelManagerRestartFrps)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RestartFrps(ctx, req.(*RestartFrpsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RestartFrpsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _TunnelManager_GetFrpsLogs0_HTTP_Handler(srv TunnelManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetFrpsLogsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTunnelManagerGetFrpsLogs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetFrpsLogs(ctx, req.(*GetFrpsLogsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetFrpsLogsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _TunnelManager_ResetTunnelCredential0_HTTP_Handler(srv TunnelManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetTunnelCredentialRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTunnelManagerResetTunnelCredential)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetTunnelCredential(ctx, req.(*ResetTunnelCredentialRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetTunnelCredentialResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type TunnelManagerHTTPClient interface {
 	// CreateTunnel 创建隧道
 	CreateTunnel(ctx context.Context, req *CreateTunnelRequest, opts ...http.CallOption) (rsp *CreateTunnelResponse, err error)
@@ -239,12 +317,18 @@ type TunnelManagerHTTPClient interface {
 	DeleteTunnel(ctx context.Context, req *DeleteTunnelRequest, opts ...http.CallOption) (rsp *DeleteTunnelResponse, err error)
 	// GetFrpsConfig 获取 frps 实例配置
 	GetFrpsConfig(ctx context.Context, req *GetFrpsConfigRequest, opts ...http.CallOption) (rsp *GetFrpsConfigResponse, err error)
+	// GetFrpsLogs 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+	GetFrpsLogs(ctx context.Context, req *GetFrpsLogsRequest, opts ...http.CallOption) (rsp *GetFrpsLogsResponse, err error)
 	// GetTunnel 获取隧道详情
 	GetTunnel(ctx context.Context, req *GetTunnelRequest, opts ...http.CallOption) (rsp *GetTunnelResponse, err error)
 	// GetTunnelStats 获取隧道统计信息（实时快照 + 指定时间范围内的时间序列）
 	GetTunnelStats(ctx context.Context, req *GetTunnelStatsRequest, opts ...http.CallOption) (rsp *GetTunnelStatsResponse, err error)
 	// ListTunnels 获取隧道列表
 	ListTunnels(ctx context.Context, req *ListTunnelsRequest, opts ...http.CallOption) (rsp *ListTunnelsResponse, err error)
+	// ResetTunnelCredential 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+	ResetTunnelCredential(ctx context.Context, req *ResetTunnelCredentialRequest, opts ...http.CallOption) (rsp *ResetTunnelCredentialResponse, err error)
+	// RestartFrps 按当前配置重启 frps
+	RestartFrps(ctx context.Context, req *RestartFrpsRequest, opts ...http.CallOption) (rsp *RestartFrpsResponse, err error)
 	// UpdateFrpsConfig 更新 frps 实例配置
 	UpdateFrpsConfig(ctx context.Context, req *UpdateFrpsConfigRequest, opts ...http.CallOption) (rsp *UpdateFrpsConfigResponse, err error)
 	// UpdateTunnel 更新隧道
@@ -301,6 +385,20 @@ func (c *TunnelManagerHTTPClientImpl) GetFrpsConfig(ctx context.Context, in *Get
 	return &out, nil
 }
 
+// GetFrpsLogs 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+func (c *TunnelManagerHTTPClientImpl) GetFrpsLogs(ctx context.Context, in *GetFrpsLogsRequest, opts ...http.CallOption) (*GetFrpsLogsResponse, error) {
+	var out GetFrpsLogsResponse
+	pattern := "/api/v1/tunnel/frps-logs"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationTunnelManagerGetFrpsLogs))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetTunnel 获取隧道详情
 func (c *TunnelManagerHTTPClientImpl) GetTunnel(ctx context.Context, in *GetTunnelRequest, opts ...http.CallOption) (*GetTunnelResponse, error) {
 	var out GetTunnelResponse
@@ -337,6 +435,34 @@ func (c *TunnelManagerHTTPClientImpl) ListTunnels(ctx context.Context, in *ListT
 	opts = append(opts, http.Operation(OperationTunnelManagerListTunnels))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResetTunnelCredential 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+func (c *TunnelManagerHTTPClientImpl) ResetTunnelCredential(ctx context.Context, in *ResetTunnelCredentialRequest, opts ...http.CallOption) (*ResetTunnelCredentialResponse, error) {
+	var out ResetTunnelCredentialResponse
+	pattern := "/api/v1/tunnel/tunnels/{id}/credential/reset"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationTunnelManagerResetTunnelCredential))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RestartFrps 按当前配置重启 frps
+func (c *TunnelManagerHTTPClientImpl) RestartFrps(ctx context.Context, in *RestartFrpsRequest, opts ...http.CallOption) (*RestartFrpsResponse, error) {
+	var out RestartFrpsResponse
+	pattern := "/api/v1/tunnel/frps-restart"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationTunnelManagerRestartFrps))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

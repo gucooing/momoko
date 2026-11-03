@@ -23,6 +23,6 @@ const items = computed(() => menuStore.navMenuList)
 .app-nav {
   display: flex;
   flex-direction: column;
-  padding: 6px 10px 16px;
+  padding: 4px 12px 16px;
 }
 </style>

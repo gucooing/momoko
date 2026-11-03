@@ -111,8 +111,30 @@ export interface ListSharesRequest {
   page: number;
   /** 每页数量 */
   pageSize: number;
-  /** 搜索关键字（名称/路径） */
-  keywords?: string | undefined;
+  /** 搜索关键字（名称/令牌/提取码） */
+  keywords?:
+    | string
+    | undefined;
+  /** 状态筛选：active=有效 expired=已过期 exhausted=次数用完 disabled=已停用，空=全部 */
+  status?: string | undefined;
+}
+
+/** 分享统计（当前用户全部分享，不受筛选/分页影响） */
+export interface ShareStats {
+  /** 分享总数 */
+  total: number;
+  /** 有效（启用、未过期、未用完） */
+  active: number;
+  /** 已过期（启用但已过期） */
+  expired: number;
+  /** 次数用完（启用、未过期、下载次数已达上限） */
+  exhausted: number;
+  /** 已停用 */
+  disabled: number;
+  /** 累计下载次数 */
+  downloads: number;
+  /** 3 天内到期的有效分享数 */
+  expiringSoon: number;
 }
 
 /** 分享列表响应 */
@@ -125,6 +147,8 @@ export interface ListSharesResponse {
   pageSize: number;
   /** 总数 */
   total: number;
+  /** 统计 */
+  stats: ShareStats | undefined;
 }
 
 /** 更新分享请求（全量覆盖可编辑字段） */
@@ -189,6 +213,22 @@ export interface GetShareMetaResponse {
   ownerName: string;
   /** 分享者头像（公开展示） */
   ownerAvatar: string;
+  /** 顶层文件数 */
+  fileCount: number;
+  /** 顶层文件夹数 */
+  dirCount: number;
+  /** 顶层文件总大小（不含文件夹内容） */
+  totalSize: number;
+  /** 分享创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 提取码连续输错被锁定时的解锁时间（未锁定为空） */
+  lockedUntil:
+    | Date
+    | undefined;
+  /** 提取码位数（需要提取码时有值，便于提示访问者） */
+  codeLength: number;
 }
 
 /** 浏览分享目录请求（公开，需会话签名） */
@@ -245,6 +285,10 @@ export interface CreateShareSessionResponse {
   needCode: boolean;
   /** 失败原因（已关闭/已过期/次数用尽/提取码错误等） */
   message: string;
+  /** 提取码剩余可尝试次数（仅提取码错误时有意义） */
+  attemptsLeft: number;
+  /** 连续输错被锁定时的解锁时间 */
+  lockedUntil: Date | undefined;
 }
 
 /** 文件来源能力（供前端隐藏/禁用不支持的动作） */
@@ -331,7 +375,23 @@ export interface FileSourceInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 最近一次连通性测试结果，未测试过为空 */
+  lastTest: FileSourceTestResult | undefined;
+}
+
+/** 文件来源连通性测试结果 */
+export interface FileSourceTestResult {
+  /** 是否连通 */
+  ok: boolean;
+  /** 耗时（毫秒） */
+  latencyMs: number;
+  /** 结果消息 */
+  message: string;
+  /** 测试时间 */
+  testedAt: Date | undefined;
 }
 
 /** 文件来源列表请求 */
@@ -416,6 +476,10 @@ export interface TestFileSourceResponse {
   ok: boolean;
   /** 结果消息 */
   message: string;
+  /** 耗时（毫秒） */
+  latencyMs: number;
+  /** 测试时间 */
+  testedAt: Date | undefined;
 }
 
 /** 获取系统文件列表请求 */
@@ -472,6 +536,12 @@ export interface FileDirectoryInfo {
   fileCount: number;
   /** 条目总数 */
   itemCount: number;
+  /** 当前目录下（不含子目录）文件大小合计，字节 */
+  totalSize: number;
+  /** 所在磁盘总容量，字节；0=未知（远端来源） */
+  diskTotal: number;
+  /** 所在磁盘可用容量，字节 */
+  diskFree: number;
 }
 
 /** 系统文件条目信息 */

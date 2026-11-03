@@ -20,11 +20,7 @@ func NewIQCheckService(uc *biz.IQCheckUsecase) *IQCheckService {
 }
 
 func (s *IQCheckService) ListIQCheckPrompts(ctx context.Context, req *v1.ListIQCheckPromptsRequest) (*v1.ListIQCheckPromptsResponse, error) {
-	prompts, total, err := s.uc.ListPrompts(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ListIQCheckPromptsResponse{Page: req.Page, PageSize: req.PageSize, Total: total, Prompts: prompts}, nil
+	return s.uc.ListPrompts(ctx, req)
 }
 
 func (s *IQCheckService) CreateIQCheckPrompt(ctx context.Context, req *v1.CreateIQCheckPromptRequest) (*v1.CreateIQCheckPromptResponse, error) {
@@ -51,11 +47,7 @@ func (s *IQCheckService) DeleteIQCheckPrompt(ctx context.Context, req *v1.Delete
 }
 
 func (s *IQCheckService) ListIQCheckSites(ctx context.Context, req *v1.ListIQCheckSitesRequest) (*v1.ListIQCheckSitesResponse, error) {
-	sites, total, err := s.uc.ListSites(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ListIQCheckSitesResponse{Page: req.Page, PageSize: req.PageSize, Total: total, Sites: sites}, nil
+	return s.uc.ListSites(ctx, req)
 }
 
 func (s *IQCheckService) CreateIQCheckSite(ctx context.Context, req *v1.CreateIQCheckSiteRequest) (*v1.CreateIQCheckSiteResponse, error) {

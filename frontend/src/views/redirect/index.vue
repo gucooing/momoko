@@ -44,17 +44,20 @@ nextTick(() => {
 }
 
 .redir-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px var(--m-pSoft);
+  rotate: -6deg;
   opacity: 0.9;
   animation: redir-pulse 1.4s ease-in-out infinite;
 }
 
 .redir-text {
   margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--el-text-color-secondary);
 }
 

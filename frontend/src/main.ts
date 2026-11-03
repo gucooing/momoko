@@ -1,3 +1,4 @@
+import '@fontsource-variable/outfit' // 品牌字体 Outfit（本地打包，不依赖外网字体服务）
 import '@/styles/index.css' // 公共样式
 import '@/styles/design-tokens.css' // 设计令牌（含 --el-* 语义色，已自给自足，不再依赖 EP 暗色 css）
 import 'nprogress/nprogress.css' // NProgress 样式

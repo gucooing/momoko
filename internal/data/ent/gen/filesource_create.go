@@ -112,6 +112,62 @@ func (_c *FileSourceCreate) SetUserID(v string) *FileSourceCreate {
 	return _c
 }
 
+// SetLastTestOk sets the "last_test_ok" field.
+func (_c *FileSourceCreate) SetLastTestOk(v bool) *FileSourceCreate {
+	_c.mutation.SetLastTestOk(v)
+	return _c
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestOk(v *bool) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestOk(*v)
+	}
+	return _c
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_c *FileSourceCreate) SetLastTestLatencyMs(v int64) *FileSourceCreate {
+	_c.mutation.SetLastTestLatencyMs(v)
+	return _c
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestLatencyMs(v *int64) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestLatencyMs(*v)
+	}
+	return _c
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_c *FileSourceCreate) SetLastTestMessage(v string) *FileSourceCreate {
+	_c.mutation.SetLastTestMessage(v)
+	return _c
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestMessage(v *string) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestMessage(*v)
+	}
+	return _c
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (_c *FileSourceCreate) SetLastTestTime(v time.Time) *FileSourceCreate {
+	_c.mutation.SetLastTestTime(v)
+	return _c
+}
+
+// SetNillableLastTestTime sets the "last_test_time" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestTime(v *time.Time) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestTime(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FileSourceCreate) SetID(v string) *FileSourceCreate {
 	_c.mutation.SetID(v)
@@ -178,6 +234,18 @@ func (_c *FileSourceCreate) defaults() {
 		v := filesource.DefaultConfig
 		_c.mutation.SetConfig(v)
 	}
+	if _, ok := _c.mutation.LastTestOk(); !ok {
+		v := filesource.DefaultLastTestOk
+		_c.mutation.SetLastTestOk(v)
+	}
+	if _, ok := _c.mutation.LastTestLatencyMs(); !ok {
+		v := filesource.DefaultLastTestLatencyMs
+		_c.mutation.SetLastTestLatencyMs(v)
+	}
+	if _, ok := _c.mutation.LastTestMessage(); !ok {
+		v := filesource.DefaultLastTestMessage
+		_c.mutation.SetLastTestMessage(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -215,6 +283,15 @@ func (_c *FileSourceCreate) check() error {
 	}
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "FileSource.user_id"`)}
+	}
+	if _, ok := _c.mutation.LastTestOk(); !ok {
+		return &ValidationError{Name: "last_test_ok", err: errors.New(`gen: missing required field "FileSource.last_test_ok"`)}
+	}
+	if _, ok := _c.mutation.LastTestLatencyMs(); !ok {
+		return &ValidationError{Name: "last_test_latency_ms", err: errors.New(`gen: missing required field "FileSource.last_test_latency_ms"`)}
+	}
+	if _, ok := _c.mutation.LastTestMessage(); !ok {
+		return &ValidationError{Name: "last_test_message", err: errors.New(`gen: missing required field "FileSource.last_test_message"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`gen: missing required edge "FileSource.user"`)}
@@ -282,6 +359,22 @@ func (_c *FileSourceCreate) createSpec() (*FileSource, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Config(); ok {
 		_spec.SetField(filesource.FieldConfig, field.TypeString, value)
 		_node.Config = value
+	}
+	if value, ok := _c.mutation.LastTestOk(); ok {
+		_spec.SetField(filesource.FieldLastTestOk, field.TypeBool, value)
+		_node.LastTestOk = value
+	}
+	if value, ok := _c.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(filesource.FieldLastTestLatencyMs, field.TypeInt64, value)
+		_node.LastTestLatencyMs = value
+	}
+	if value, ok := _c.mutation.LastTestMessage(); ok {
+		_spec.SetField(filesource.FieldLastTestMessage, field.TypeString, value)
+		_node.LastTestMessage = value
+	}
+	if value, ok := _c.mutation.LastTestTime(); ok {
+		_spec.SetField(filesource.FieldLastTestTime, field.TypeTime, value)
+		_node.LastTestTime = &value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -436,6 +529,66 @@ func (u *FileSourceUpsert) UpdateUserID() *FileSourceUpsert {
 	return u
 }
 
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *FileSourceUpsert) SetLastTestOk(v bool) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestOk, v)
+	return u
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestOk() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestOk)
+	return u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *FileSourceUpsert) SetLastTestLatencyMs(v int64) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestLatencyMs, v)
+	return u
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestLatencyMs() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestLatencyMs)
+	return u
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *FileSourceUpsert) AddLastTestLatencyMs(v int64) *FileSourceUpsert {
+	u.Add(filesource.FieldLastTestLatencyMs, v)
+	return u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *FileSourceUpsert) SetLastTestMessage(v string) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestMessage, v)
+	return u
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestMessage() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestMessage)
+	return u
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (u *FileSourceUpsert) SetLastTestTime(v time.Time) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestTime, v)
+	return u
+}
+
+// UpdateLastTestTime sets the "last_test_time" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestTime() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestTime)
+	return u
+}
+
+// ClearLastTestTime clears the value of the "last_test_time" field.
+func (u *FileSourceUpsert) ClearLastTestTime() *FileSourceUpsert {
+	u.SetNull(filesource.FieldLastTestTime)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -582,6 +735,76 @@ func (u *FileSourceUpsertOne) SetUserID(v string) *FileSourceUpsertOne {
 func (u *FileSourceUpsertOne) UpdateUserID() *FileSourceUpsertOne {
 	return u.Update(func(s *FileSourceUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *FileSourceUpsertOne) SetLastTestOk(v bool) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestOk(v)
+	})
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestOk() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestOk()
+	})
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *FileSourceUpsertOne) SetLastTestLatencyMs(v int64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestLatencyMs(v)
+	})
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *FileSourceUpsertOne) AddLastTestLatencyMs(v int64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestLatencyMs(v)
+	})
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestLatencyMs() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestLatencyMs()
+	})
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *FileSourceUpsertOne) SetLastTestMessage(v string) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestMessage(v)
+	})
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestMessage() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestMessage()
+	})
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (u *FileSourceUpsertOne) SetLastTestTime(v time.Time) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestTime(v)
+	})
+}
+
+// UpdateLastTestTime sets the "last_test_time" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestTime() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestTime()
+	})
+}
+
+// ClearLastTestTime clears the value of the "last_test_time" field.
+func (u *FileSourceUpsertOne) ClearLastTestTime() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.ClearLastTestTime()
 	})
 }
 
@@ -898,6 +1121,76 @@ func (u *FileSourceUpsertBulk) SetUserID(v string) *FileSourceUpsertBulk {
 func (u *FileSourceUpsertBulk) UpdateUserID() *FileSourceUpsertBulk {
 	return u.Update(func(s *FileSourceUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *FileSourceUpsertBulk) SetLastTestOk(v bool) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestOk(v)
+	})
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestOk() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestOk()
+	})
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *FileSourceUpsertBulk) SetLastTestLatencyMs(v int64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestLatencyMs(v)
+	})
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *FileSourceUpsertBulk) AddLastTestLatencyMs(v int64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestLatencyMs(v)
+	})
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestLatencyMs() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestLatencyMs()
+	})
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *FileSourceUpsertBulk) SetLastTestMessage(v string) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestMessage(v)
+	})
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestMessage() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestMessage()
+	})
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (u *FileSourceUpsertBulk) SetLastTestTime(v time.Time) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestTime(v)
+	})
+}
+
+// UpdateLastTestTime sets the "last_test_time" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestTime() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestTime()
+	})
+}
+
+// ClearLastTestTime clears the value of the "last_test_time" field.
+func (u *FileSourceUpsertBulk) ClearLastTestTime() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.ClearLastTestTime()
 	})
 }
 

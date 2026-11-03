@@ -39,6 +39,12 @@ type PortForward struct {
 	TargetPort int `json:"target_port,omitempty"`
 	// 是否启用
 	IsEnable bool `json:"is_enable,omitempty"`
+	// 备注
+	Remark string `json:"remark,omitempty"`
+	// 自创建（或上次清零）起累计入站流量(字节)，运行中定期落库
+	TotalBytesIn int64 `json:"total_bytes_in,omitempty"`
+	// 自创建（或上次清零）起累计出站流量(字节)，运行中定期落库
+	TotalBytesOut int64 `json:"total_bytes_out,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PortForwardQuery when eager-loading is set.
 	Edges        PortForwardEdges `json:"edges"`
@@ -72,9 +78,9 @@ func (*PortForward) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case portforward.FieldIsEnable:
 			values[i] = new(sql.NullBool)
-		case portforward.FieldListenPort, portforward.FieldTargetPort:
+		case portforward.FieldListenPort, portforward.FieldTargetPort, portforward.FieldTotalBytesIn, portforward.FieldTotalBytesOut:
 			values[i] = new(sql.NullInt64)
-		case portforward.FieldID, portforward.FieldName, portforward.FieldUserID, portforward.FieldProtocol, portforward.FieldListenAddress, portforward.FieldTargetAddress:
+		case portforward.FieldID, portforward.FieldName, portforward.FieldUserID, portforward.FieldProtocol, portforward.FieldListenAddress, portforward.FieldTargetAddress, portforward.FieldRemark:
 			values[i] = new(sql.NullString)
 		case portforward.FieldCreateTime, portforward.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -159,6 +165,24 @@ func (_m *PortForward) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsEnable = value.Bool
 			}
+		case portforward.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
+		case portforward.FieldTotalBytesIn:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field total_bytes_in", values[i])
+			} else if value.Valid {
+				_m.TotalBytesIn = value.Int64
+			}
+		case portforward.FieldTotalBytesOut:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field total_bytes_out", values[i])
+			} else if value.Valid {
+				_m.TotalBytesOut = value.Int64
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -229,6 +253,15 @@ func (_m *PortForward) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_enable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
+	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	builder.WriteString("total_bytes_in=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TotalBytesIn))
+	builder.WriteString(", ")
+	builder.WriteString("total_bytes_out=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TotalBytesOut))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -29,6 +29,10 @@ const (
 	FieldScopes = "scopes"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldLastUsedTime holds the string denoting the last_used_time field in the database.
+	FieldLastUsedTime = "last_used_time"
 	// Table holds the table name of the oidcclient in the database.
 	Table = "oidc_clients"
 )
@@ -44,6 +48,8 @@ var Columns = []string{
 	FieldRedirectUris,
 	FieldScopes,
 	FieldActive,
+	FieldDescription,
+	FieldLastUsedTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -71,6 +77,8 @@ var (
 	ClientSecretValidator func(string) error
 	// DefaultActive holds the default value on creation for the "active" field.
 	DefaultActive bool
+	// DefaultDescription holds the default value on creation for the "description" field.
+	DefaultDescription string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -111,4 +119,14 @@ func ByClientSecret(opts ...sql.OrderTermOption) OrderOption {
 // ByActive orders the results by the active field.
 func ByActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActive, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByLastUsedTime orders the results by the last_used_time field.
+func ByLastUsedTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastUsedTime, opts...).ToFunc()
 }

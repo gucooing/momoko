@@ -285,9 +285,10 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 .data-table__scroll {
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
+  padding: 2px 6px;
 }
 /* 重载遮罩：轻蒙层 + 居中 spinner，保留旧数据可见、不改布局，替代整表骨架替换的闪烁。
    延迟 220ms 淡入：快请求（翻页秒回）根本不显示遮罩，只有慢请求才淡入，杜绝闪一下。 */
@@ -322,17 +323,22 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 .data-table th,
 .data-table td {
-  padding: 7px 12px;
+  padding: 12px 12px;
   text-align: left;
   white-space: nowrap;
 }
 .data-table thead th {
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+:global(html.is-compact) .data-table th,
+:global(html.is-compact) .data-table td {
+  padding-top: 7px;
+  padding-bottom: 7px;
 }
 .data-table th.is-center,
 .data-table td.is-center {
@@ -346,10 +352,12 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--el-fill-color-lighter);
+  background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-weight: 600;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--el-border-color-light);
 }
 .data-table tbody td {
   color: var(--el-text-color-regular);
@@ -366,7 +374,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   background: var(--el-fill-color-light);
 }
 .data-table tbody tr.is-selected {
-  background: color-mix(in srgb, var(--el-color-primary) 5%, var(--el-bg-color));
+  background: color-mix(in srgb, var(--m-pSoft) 70%, var(--el-bg-color));
 }
 .data-table tbody tr.is-clickable {
   cursor: pointer;
@@ -440,8 +448,8 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   color: var(--el-text-color-placeholder);
 }
 .data-table__checkbox {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--el-color-primary);
   cursor: pointer;
   vertical-align: middle;

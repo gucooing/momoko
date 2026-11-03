@@ -11,6 +11,15 @@
     @confirm="confirm"
   >
     <div class="node-form">
+      <details v-if="!form.id" class="node-form__guide">
+        <summary>{{ t('node.page.guideHint') }}</summary>
+        <ol>
+          <li>{{ t('node.list.guideStep1') }}</li>
+          <li>{{ t('node.list.guideStep2') }}</li>
+          <li>{{ t('node.list.guideStep3') }}</li>
+        </ol>
+      </details>
+
       <div class="app-field">
         <label class="app-label app-label--required">{{ t('node.list.name') }}</label>
         <input
@@ -219,12 +228,33 @@ defineExpose({ showDialog })
   flex-direction: column;
   gap: 14px;
 }
+.node-form__guide {
+  padding: 10px 14px;
+  border-radius: var(--app-radius);
+  background: var(--m-a2Soft);
+  color: var(--m-ink);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.node-form__guide summary {
+  min-height: 24px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.node-form__guide ol {
+  margin: 6px 0 0;
+  padding-left: 1.2rem;
+  list-style: decimal;
+}
 .node-form__hint {
   font-size: 0.75rem;
   color: var(--el-text-color-placeholder);
 }
 .node-form__switch {
   flex-direction: row;
+  padding: 10px 14px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -243,15 +273,28 @@ defineExpose({ showDialog })
 }
 .node-form__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   width: 100%;
 }
+
 .node-form__spacer {
   flex: 1;
 }
+@media (width < 480px) {
+  .node-form__spacer {
+    flex-basis: 100%;
+    height: 0;
+  }
+  .node-form__footer > :deep(button) {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
 .node-mono {
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-family: var(--app-font-mono);
   font-size: 0.8125rem;
 }
 </style>

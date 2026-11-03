@@ -25,16 +25,28 @@ const (
 	defaultCcsN    = 5
 )
 
+// Encryption 是 SMTP 连接的加密方式。
+type Encryption int
+
+const (
+	// EncryptionSSL 隐式 TLS：建立 TCP 连接后立即握手（一般 465 端口）。
+	EncryptionSSL Encryption = iota
+	// EncryptionSTARTTLS 先明文连接，再通过 STARTTLS 升级（一般 587 端口）。
+	EncryptionSTARTTLS
+	// EncryptionNone 不加密（一般 25 端口）。
+	EncryptionNone
+)
+
 type Config struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	From     string
-	FromName string
-	UseTLS   bool
-	Timeout  time.Duration
-	CcsN     int
+	Host       string
+	Port       int
+	Username   string
+	Password   string
+	From       string
+	FromName   string
+	Encryption Encryption
+	Timeout    time.Duration
+	CcsN       int
 }
 
 type Message struct {
@@ -60,9 +72,13 @@ func NewClient(config Config) (*Client, error) {
 		config.CcsN = defaultCcsN
 	}
 	if config.Port == 0 {
-		config.Port = 465
-		if !config.UseTLS {
+		switch config.Encryption {
+		case EncryptionSTARTTLS:
+			config.Port = 587
+		case EncryptionNone:
 			config.Port = 25
+		default:
+			config.Port = 465
 		}
 	}
 	if config.Timeout <= 0 {
@@ -155,8 +171,9 @@ func (c *Client) send(ctx context.Context, message Message) error {
 	}
 	defer conn.Close()
 
-	if c.config.UseTLS {
-		conn = tls.Client(conn, &tls.Config{ServerName: c.config.Host, MinVersion: tls.VersionTLS12})
+	tlsConfig := &tls.Config{ServerName: c.config.Host, MinVersion: tls.VersionTLS12}
+	if c.config.Encryption == EncryptionSSL {
+		conn = tls.Client(conn, tlsConfig)
 	}
 	if err = conn.SetDeadline(time.Now().Add(c.config.Timeout)); err != nil {
 		return err
@@ -167,6 +184,15 @@ func (c *Client) send(ctx context.Context, message Message) error {
 		return err
 	}
 	defer client.Close()
+
+	if c.config.Encryption == EncryptionSTARTTLS {
+		if ok, _ := client.Extension("STARTTLS"); !ok {
+			return errors.New("smtp server does not support STARTTLS")
+		}
+		if err = client.StartTLS(tlsConfig); err != nil {
+			return err
+		}
+	}
 
 	// 发送消息
 	if c.config.Username != "" || c.config.Password != "" {

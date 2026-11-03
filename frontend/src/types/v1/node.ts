@@ -8,6 +8,17 @@
 
 export const protobufPackage = "v1";
 
+/** API Key 有效状态 */
+export enum APIKeyStatus {
+  /** APIKeyStatus_Valid - 有效（永久有效或距过期超过 30 天） */
+  APIKeyStatus_Valid = "APIKeyStatus_Valid",
+  /** APIKeyStatus_Expiring - 即将过期（30 天内过期） */
+  APIKeyStatus_Expiring = "APIKeyStatus_Expiring",
+  /** APIKeyStatus_Expired - 已过期 */
+  APIKeyStatus_Expired = "APIKeyStatus_Expired",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 节点连接状态 */
 export enum NodeState {
   /** NodeState_Unknown - 未检测 */
@@ -30,6 +41,8 @@ export interface CreateAPIKeyRequest {
     | undefined;
   /** 授予的节点权限（权限标识），远程主控调用本节点时以此为上限 */
   permissions: string[];
+  /** 用途备注 */
+  remark: string;
 }
 
 export interface CreateAPIKeyResponse {
@@ -43,7 +56,11 @@ export interface ListAPIKeysRequest {
   /** page size */
   pageSize: number;
   /** 名称关键字 */
-  keywords?: string | undefined;
+  keywords?:
+    | string
+    | undefined;
+  /** 按有效状态筛选；不传表示全部 */
+  status?: APIKeyStatus | undefined;
 }
 
 export interface ListAPIKeysResponse {
@@ -55,6 +72,12 @@ export interface ListAPIKeysResponse {
   total: number;
   /** 列表 */
   infos: APIKeyInfo[];
+  /** 有效数量（按关键字筛选，不受状态筛选影响） */
+  validCount: number;
+  /** 即将过期数量 */
+  expiringCount: number;
+  /** 已过期数量 */
+  expiredCount: number;
 }
 
 export interface CopyAPIKeyRequest {
@@ -89,7 +112,11 @@ export interface UpdateAPIKeyRequest {
     | boolean
     | undefined;
   /** 授予的节点权限；不传表示不修改 */
-  permissions: APIKeyPermissionSet | undefined;
+  permissions:
+    | APIKeyPermissionSet
+    | undefined;
+  /** 用途备注；不传表示不修改 */
+  remark?: string | undefined;
 }
 
 export interface UpdateAPIKeyResponse {
@@ -138,6 +165,16 @@ export interface APIKeyInfo {
   permissions: string[];
   /** 公开密钥标识（由种子派生），主控请求时携带用于定位密钥 */
   keyId: string;
+  /** 用途备注 */
+  remark: string;
+  /** 最近一次被远程主控调用的时间；空表示从未使用 */
+  lastUsedTime?:
+    | Date
+    | undefined;
+  /** 最近一次调用来源 IP */
+  lastUsedIp: string;
+  /** 有效状态 */
+  status: APIKeyStatus;
 }
 
 /** 节点自报信息（由节点 NodeAgent.AgentInfo 返回） */
@@ -180,7 +217,15 @@ export interface NodeStatus {
   /** 往返延迟（毫秒） */
   latencyMs: number;
   /** 节点自报信息（在线时有效） */
-  remote: NodeRemoteInfo | undefined;
+  remote:
+    | NodeRemoteInfo
+    | undefined;
+  /** 最近一次探测在线的时间（持久化，离线时用于显示“最后在线”） */
+  lastOnlineTime?:
+    | Date
+    | undefined;
+  /** 最近一次在线时的节点自报信息（仅当前不在线时返回，用于离线后仍显示版本 / 系统） */
+  lastRemote: NodeRemoteInfo | undefined;
 }
 
 export interface NodeInfo {
@@ -220,6 +265,8 @@ export interface ListNodesRequest {
 export interface ListNodesResponse {
   /** 节点列表 */
   infos: NodeInfo[];
+  /** 本机（主控）信息：主机名 / 系统 / 架构 / 版本，用于在节点列表中展示本机卡片 */
+  local: NodeRemoteInfo | undefined;
 }
 
 export interface CreateNodeRequest {

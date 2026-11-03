@@ -32,15 +32,19 @@ const OperationSystemAdminRoles = "/v1.System/AdminRoles"
 const OperationSystemCheckUpdate = "/v1.System/CheckUpdate"
 const OperationSystemEmailConfig = "/v1.System/EmailConfig"
 const OperationSystemEmailTemplate = "/v1.System/EmailTemplate"
+const OperationSystemListEmailTemplates = "/v1.System/ListEmailTemplates"
 const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
 const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
+const OperationSystemOperationLogStats = "/v1.System/OperationLogStats"
+const OperationSystemSiteConfig = "/v1.System/SiteConfig"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
 const OperationSystemTestEmailConfig = "/v1.System/TestEmailConfig"
 const OperationSystemUpdateEmailConfig = "/v1.System/UpdateEmailConfig"
 const OperationSystemUpdateEmailTemplate = "/v1.System/UpdateEmailTemplate"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
+const OperationSystemUpdateSiteConfig = "/v1.System/UpdateSiteConfig"
 
 type SystemHTTPServer interface {
 	// AdminAddPermissions 管理员添加权限菜单
@@ -69,12 +73,18 @@ type SystemHTTPServer interface {
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// EmailTemplate 获取指定邮件模板
 	EmailTemplate(context.Context, *EmailTemplateRequest) (*EmailTemplateResponse, error)
+	// ListEmailTemplates 列出全部邮件模板（含是否自定义、最后修改时间）
+	ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	// LoginConfig 获取登录配置
 	LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
+	// OperationLogStats 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
+	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+	SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// SystemStatus 获取系统实时状态
@@ -87,6 +97,8 @@ type SystemHTTPServer interface {
 	UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
+	// UpdateSiteConfig 更新站点常规配置
+	UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error)
 }
 
 func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
@@ -105,14 +117,18 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.DELETE("/api/v1/role/admin/del", _System_AdminDeleteRole0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/login-config", _System_LoginConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/login-config", _System_UpdateLoginConfig0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/site-config", _System_SiteConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/site-config", _System_UpdateSiteConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/email-config", _System_EmailConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/email-config", _System_UpdateEmailConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/system/email-template", _System_UpdateEmailTemplate0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/email-template", _System_EmailTemplate0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/email-templates", _System_ListEmailTemplates0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/email-config/test", _System_TestEmailConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/operation-logs", _System_ListOperationLogs0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/operation-logs/stats", _System_OperationLogStats0_HTTP_Handler(srv))
 }
 
 func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
@@ -411,6 +427,47 @@ func _System_UpdateLoginConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http
 	}
 }
 
+func _System_SiteConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SiteConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemSiteConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SiteConfig(ctx, req.(*SiteConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SiteConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_UpdateSiteConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSiteConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateSiteConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSiteConfig(ctx, req.(*UpdateSiteConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateSiteConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_EmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in EmailConfigRequest
@@ -489,6 +546,25 @@ func _System_EmailTemplate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Con
 			return err
 		}
 		reply := out.(*EmailTemplateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_ListEmailTemplates0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListEmailTemplatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemListEmailTemplates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListEmailTemplates(ctx, req.(*ListEmailTemplatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListEmailTemplatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -572,6 +648,25 @@ func _System_ListOperationLogs0_HTTP_Handler(srv SystemHTTPServer) func(ctx http
 	}
 }
 
+func _System_OperationLogStats0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in OperationLogStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemOperationLogStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OperationLogStats(ctx, req.(*OperationLogStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OperationLogStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SystemHTTPClient interface {
 	// AdminAddPermissions 管理员添加权限菜单
 	AdminAddPermissions(ctx context.Context, req *AdminAddPermissionsRequest, opts ...http.CallOption) (rsp *AdminAddPermissionsResponse, err error)
@@ -599,12 +694,18 @@ type SystemHTTPClient interface {
 	EmailConfig(ctx context.Context, req *EmailConfigRequest, opts ...http.CallOption) (rsp *EmailConfigResponse, err error)
 	// EmailTemplate 获取指定邮件模板
 	EmailTemplate(ctx context.Context, req *EmailTemplateRequest, opts ...http.CallOption) (rsp *EmailTemplateResponse, err error)
+	// ListEmailTemplates 列出全部邮件模板（含是否自定义、最后修改时间）
+	ListEmailTemplates(ctx context.Context, req *ListEmailTemplatesRequest, opts ...http.CallOption) (rsp *ListEmailTemplatesResponse, err error)
 	// ListOperationLogs 获取操作日志
 	ListOperationLogs(ctx context.Context, req *ListOperationLogsRequest, opts ...http.CallOption) (rsp *ListOperationLogsResponse, err error)
 	// LoginConfig 获取登录配置
 	LoginConfig(ctx context.Context, req *LoginConfigRequest, opts ...http.CallOption) (rsp *LoginConfigResponse, err error)
 	// MePermissions 获取当前角色的全部权限
 	MePermissions(ctx context.Context, req *MePermissionsRequest, opts ...http.CallOption) (rsp *MePermissionsResponse, err error)
+	// OperationLogStats 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+	OperationLogStats(ctx context.Context, req *OperationLogStatsRequest, opts ...http.CallOption) (rsp *OperationLogStatsResponse, err error)
+	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+	SiteConfig(ctx context.Context, req *SiteConfigRequest, opts ...http.CallOption) (rsp *SiteConfigResponse, err error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
 	// SystemStatus 获取系统实时状态
@@ -617,6 +718,8 @@ type SystemHTTPClient interface {
 	UpdateEmailTemplate(ctx context.Context, req *UpdateEmailTemplateRequest, opts ...http.CallOption) (rsp *UpdateEmailTemplateResponse, err error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(ctx context.Context, req *UpdateLoginConfigRequest, opts ...http.CallOption) (rsp *UpdateLoginConfigResponse, err error)
+	// UpdateSiteConfig 更新站点常规配置
+	UpdateSiteConfig(ctx context.Context, req *UpdateSiteConfigRequest, opts ...http.CallOption) (rsp *UpdateSiteConfigResponse, err error)
 }
 
 type SystemHTTPClientImpl struct {
@@ -809,6 +912,20 @@ func (c *SystemHTTPClientImpl) EmailTemplate(ctx context.Context, in *EmailTempl
 	return &out, nil
 }
 
+// ListEmailTemplates 列出全部邮件模板（含是否自定义、最后修改时间）
+func (c *SystemHTTPClientImpl) ListEmailTemplates(ctx context.Context, in *ListEmailTemplatesRequest, opts ...http.CallOption) (*ListEmailTemplatesResponse, error) {
+	var out ListEmailTemplatesResponse
+	pattern := "/api/v1/system/email-templates"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemListEmailTemplates))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListOperationLogs 获取操作日志
 func (c *SystemHTTPClientImpl) ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...http.CallOption) (*ListOperationLogsResponse, error) {
 	var out ListOperationLogsResponse
@@ -843,6 +960,34 @@ func (c *SystemHTTPClientImpl) MePermissions(ctx context.Context, in *MePermissi
 	pattern := "/api/v1/permissions/me"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemMePermissions))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// OperationLogStats 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+func (c *SystemHTTPClientImpl) OperationLogStats(ctx context.Context, in *OperationLogStatsRequest, opts ...http.CallOption) (*OperationLogStatsResponse, error) {
+	var out OperationLogStatsResponse
+	pattern := "/api/v1/system/operation-logs/stats"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemOperationLogStats))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+func (c *SystemHTTPClientImpl) SiteConfig(ctx context.Context, in *SiteConfigRequest, opts ...http.CallOption) (*SiteConfigResponse, error) {
+	var out SiteConfigResponse
+	pattern := "/api/v1/system/site-config"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemSiteConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -927,6 +1072,20 @@ func (c *SystemHTTPClientImpl) UpdateLoginConfig(ctx context.Context, in *Update
 	pattern := "/api/v1/system/login-config"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSystemUpdateLoginConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSiteConfig 更新站点常规配置
+func (c *SystemHTTPClientImpl) UpdateSiteConfig(ctx context.Context, in *UpdateSiteConfigRequest, opts ...http.CallOption) (*UpdateSiteConfigResponse, error) {
+	var out UpdateSiteConfigResponse
+	pattern := "/api/v1/system/site-config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateSiteConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

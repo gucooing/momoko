@@ -1,111 +1,190 @@
-<!-- OIDC 客户端（重写 · P1 列表/CRUD）：PageHeader(OIDC配置 + 生成客户端) + FilterBar + DataTable / 移动卡片 + Pagination。
-     子弹窗：configDialog(服务端配置) / clientForm(创建编辑) / 内联「客户端配置」只读展示（完整 secret 仅一次）。
-     行内 编辑/刷新密钥/删除（Dialog.info 确认）。文案走 system.oidc.*。 -->
+<!-- 系统设置 · OIDC 身份提供方（第二期）：标题 + 服务状态 pill → SettingsSubNav → 页内服务端配置卡（configDialog.vue）
+     → 客户端区：标题计数 + 新建 → 启用状态 chips(带数) + 搜索 → 新 Secret 提示条 → PC 表格（贴纸头像、Client ID、回调、Scopes、启用开关、创建/最近使用、行内小图标）/ 手机卡片。
+     子弹窗：clientForm(创建编辑) / 客户端配置只读展示（完整 secret 仅一次）。行内 编辑/刷新密钥/删除（Dialog.info 确认）。 -->
 <template>
   <div class="oidc-page">
-    <PageHeader :title="t('system.oidc.title')" :description="t('system.oidc.pageDesc')">
-      <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-settings" @click="openConfig">
-          {{ t('system.oidc.openConfig') }}
-        </UButton>
-        <UButton
-          v-permission="[PERM.OIDC_EDIT]"
-          color="primary"
-          icon="i-lucide-plus"
-          @click="openClient()"
-        >
-          {{ t('system.oidc.createClient') }}
-        </UButton>
+    <PageHeader>
+      <template #title>
+        <span class="oidc-title">
+          {{ t('system.oidcx.pageTitle') }}
+          <StatusPill
+            v-if="config"
+            :variant="config.enabled ? 'success' : 'neutral'"
+            :label="config.enabled ? t('system.oidcx.serving') : t('system.oidcx.stopped')"
+          />
+        </span>
       </template>
+      <template #description>{{ t('system.oidcx.pageDesc') }}</template>
     </PageHeader>
 
-    <FilterBar @search="reload" @reset="reset">
-      <template #fields>
-        <div class="app-field">
-          <label class="app-label">{{ t('system.oidc.clientName') }}</label>
-          <input
-            v-model="queryForm.keywords"
-            class="app-input"
-            :placeholder="t('system.oidc.clientNamePlaceholder')"
-            @keyup.enter="reload"
-          />
-        </div>
-      </template>
-    </FilterBar>
+    <SettingsSubNav />
 
-    <div class="oidc-page__body">
-      <div class="oidc-page__bar">
-        <span class="oidc-page__bar-hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
+    <OIDCConfigCard :can-edit="canEdit" @change="onConfigChange" />
+
+    <div class="oidc-section">
+      <div class="oidc-section__text">
+        <h2>{{ t('system.oidcx.clients') }}</h2>
+        <p>
+          <span class="m-num">{{ t('system.oidcx.clientsCount', { n: counts.all }) }}</span>
+          · <b class="oidc-tone-ok m-num">{{ t('system.oidcx.clientsActive', { n: counts.active }) }}</b>
+        </p>
       </div>
-
-      <!-- 桌面：表格 -->
-      <DataTable
-        v-if="!menuStore.isMobile"
-        :columns="columns"
-        :rows="clients"
-        row-key="id"
-        :loading="loading"
-      >
-        <template #cell-clientSecret="{ row }">
-          <span class="oidc-mono">{{ row.clientSecret }}</span>
-        </template>
-        <template #cell-active="{ row }">
-          <StatusPill
-            :variant="row.active ? 'success' : 'neutral'"
-            :label="row.active ? t('system.common.enabled') : t('system.common.inactive')"
-          />
-        </template>
-        <template #cell-redirectUris="{ row }">{{ joinArr(row.redirectUris, ', ') }}</template>
-        <template #cell-scopes="{ row }">{{ joinArr(row.scopes, ' ') }}</template>
-        <template #cell-operation="{ row }">
-          <ActionMenu v-if="canEdit" :items="rowActions" @select="(key) => onRowAction(key, row)" />
-          <span v-else class="text-dim">—</span>
-        </template>
-      </DataTable>
-
-      <!-- 移动：卡片 -->
-      <template v-else>
-        <div v-if="loading" class="oidc-cards">
-          <div v-for="i in 4" :key="i" class="oidc-skeleton" />
-        </div>
-        <EmptyState
-          v-else-if="!clients.length"
-          icon="HOutline:KeyIcon"
-          :title="t('system.oidc.emptyTitle')"
-          :description="t('system.oidc.emptyDesc')"
-        />
-        <div v-else class="oidc-cards">
-          <EntityCard v-for="row in clients" :key="row.id">
-            <template #title>{{ row.name }}</template>
-            <template #status>
-              <StatusPill
-                :variant="row.active ? 'success' : 'neutral'"
-                :label="row.active ? t('system.common.enabled') : t('system.common.inactive')"
-              />
-            </template>
-            <template #meta>
-              <span class="oidc-card__full oidc-mono">{{ row.clientId }}</span>
-              <span class="oidc-card__full">{{ t('system.oidc.colScopes') }}: {{ row.scopes.join(' ') }}</span>
-              <span class="oidc-card__full oidc-card__uris">{{ row.redirectUris.join(', ') }}</span>
-            </template>
-            <template #footer>
-              <span>{{ fmtTime(row.createTime) }}</span>
-              <ActionMenu v-if="canEdit" :items="rowActions" @select="(key) => onRowAction(key, row)" />
-            </template>
-          </EntityCard>
-        </div>
-      </template>
-
-      <Pagination
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        @change="loadClients"
-      />
+      <UButton v-permission="[PERM.OIDC_EDIT]" color="primary" icon="i-lucide-plus" @click="openClient()">
+        {{ t('system.oidcx.newClient') }}
+      </UButton>
     </div>
 
-    <!-- 服务端配置 / 创建编辑 -->
-    <OIDCConfigDialog ref="configRef" :can-edit="canEdit" @saved="onConfigSaved" />
+    <ListToolbar
+      v-model:status="activeFilter"
+      v-model:keyword="queryForm.keywords"
+      :chips="filterChips"
+      :chips-label="t('system.common.status')"
+      :placeholder="t('system.oidcx.searchPlaceholder')"
+      @search="reload"
+    />
+
+    <!-- 新 Secret 提示条 -->
+    <div v-if="revealClient" class="oidc-secret" role="status">
+      <span class="m-sticker m-sticker--solid-ink oidc-secret__icon">
+        <component :is="menuStore.iconComponents['HOutline:KeyIcon']" />
+      </span>
+      <span class="oidc-secret__text">
+        <b>{{ t('system.oidcx.secretIssued', { name: revealClient.name }) }}</b>
+        <span>
+          {{ t('system.oidcx.secretOnce') }}
+          <code class="m-mono">{{ revealClient.clientSecret }}</code>
+        </span>
+      </span>
+      <UButton color="neutral" variant="outline" size="sm" :icon="secretCopied ? 'i-lucide-check' : 'i-lucide-copy'" @click="copySecret">
+        {{ secretCopied ? t('system.oidc.copied') : t('system.oidcx.copySecret') }}
+      </UButton>
+      <UButton color="neutral" variant="ghost" size="sm" @click="revealVisible = true">
+        {{ t('system.oidcx.viewConfig') }}
+      </UButton>
+      <AppIconButton icon="HOutline:XMarkIcon" :label="t('common.close')" :box="36" @click="revealClient = null" />
+    </div>
+
+    <!-- 桌面：表格 -->
+    <DataTable
+      v-if="!menuStore.isMobile"
+      :columns="columns"
+      :rows="clients"
+      row-key="id"
+      :loading="loading"
+      :empty-text="t('system.oidc.emptyTitle')"
+    >
+      <template #cell-name="{ row }">
+        <span class="oidc-client" :class="{ 'is-off': !row.active }">
+          <span class="m-sticker oidc-avatar" :class="`m-sticker--${tone(String(row.id))}`" :style="{ transform: `rotate(${rot(String(row.id))})` }">
+            {{ letters(String(row.name)) }}
+          </span>
+          <span class="oidc-client__text">
+            <b>{{ row.name }}</b>
+            <span v-if="row.description">{{ row.description }}</span>
+          </span>
+        </span>
+      </template>
+      <template #cell-clientId="{ row }">
+        <span class="oidc-chip m-mono">{{ row.clientId }}</span>
+      </template>
+      <template #cell-redirectUris="{ row }">
+        <span class="oidc-uris">
+          <span v-for="u in (row.redirectUris as string[])" :key="u" class="m-mono">{{ u }}</span>
+        </span>
+      </template>
+      <template #cell-scopes="{ row }">
+        <span class="oidc-scopes">
+          <span v-for="sp in (row.scopes as string[])" :key="sp" class="oidc-scope m-mono">{{ sp }}</span>
+        </span>
+      </template>
+      <template #cell-active="{ row }">
+        <AppSwitch
+          :model-value="Boolean(row.active)"
+          :disabled="!canEdit || toggling === row.id"
+          :aria-label="t('system.oidcx.toggleClient', { name: row.name })"
+          @update:model-value="(v: boolean) => toggleActive(String(row.id), v)"
+        />
+      </template>
+      <template #cell-createTime="{ row }">
+        <span class="oidc-time">
+          <b class="m-num">{{ fmtDate(row.createTime) }}</b>
+          <span>{{ usedText(row.lastUsedTime) }}</span>
+        </span>
+      </template>
+      <template #cell-operation="{ row }">
+        <span v-if="canEdit" class="oidc-acts">
+          <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('system.oidc.refreshSecret')" :box="36" @click="onRowAction('refresh', row)" />
+          <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="36" @click="onRowAction('edit', row)" />
+          <AppIconButton icon="HOutline:TrashIcon" class="is-danger" :label="t('system.common.delete')" :box="36" @click="onRowAction('delete', row)" />
+        </span>
+        <span v-else class="text-dim">—</span>
+      </template>
+    </DataTable>
+
+    <!-- 移动：卡片 -->
+    <template v-else>
+      <div v-if="loading && !clients.length" class="oidc-cards">
+        <div v-for="i in 3" :key="i" class="oidc-skeleton" />
+      </div>
+      <EmptyState
+        v-else-if="!clients.length"
+        icon="HOutline:KeyIcon"
+        :title="t('system.oidc.emptyTitle')"
+        :description="t('system.oidcx.emptyDesc')"
+      />
+      <div v-else class="oidc-cards">
+        <article v-for="row in clients" :key="row.id" class="oidc-card" :class="{ 'is-off': !row.active }">
+          <header class="oidc-card__head">
+            <span class="m-sticker oidc-avatar" :class="`m-sticker--${tone(row.id)}`" :style="{ transform: `rotate(${rot(row.id)})` }">
+              {{ letters(row.name) }}
+            </span>
+            <span class="oidc-client__text">
+              <b>{{ row.name }}</b>
+              <span v-if="row.description">{{ row.description }}</span>
+            </span>
+            <AppSwitch
+              :model-value="row.active"
+              :disabled="!canEdit || toggling === row.id"
+              :aria-label="t('system.oidcx.toggleClient', { name: row.name })"
+              @update:model-value="(v: boolean) => toggleActive(row.id, v)"
+            />
+          </header>
+          <dl class="oidc-dl">
+            <div class="is-full"><dt>Client ID</dt><dd class="m-mono">{{ row.clientId }}</dd></div>
+            <div class="is-full">
+              <dt>{{ t('system.oidcx.redirectCount', { n: row.redirectUris.length }) }}</dt>
+              <dd class="m-mono">{{ row.redirectUris[0] || '—' }}</dd>
+            </div>
+            <div><dt>{{ t('system.oidcx.createdAt') }}</dt><dd class="m-num">{{ fmtDate(row.createTime) }}</dd></div>
+            <div><dt>{{ t('system.oidcx.lastUsed') }}</dt><dd>{{ usedText(row.lastUsedTime) }}</dd></div>
+          </dl>
+          <footer class="oidc-card__foot">
+            <span class="oidc-scopes">
+              <span v-for="sp in row.scopes" :key="sp" class="oidc-scope m-mono">{{ sp }}</span>
+            </span>
+            <template v-if="canEdit">
+              <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('system.oidc.refreshSecret')" @click="refreshSecret(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" @click="openClient(row)" />
+              <AppIconButton icon="HOutline:TrashIcon" class="is-danger" :label="t('system.common.delete')" @click="confirmDelete(row)" />
+            </template>
+          </footer>
+        </article>
+      </div>
+    </template>
+
+    <Pagination
+      v-if="pagination.total > pagination.pageSize || pagination.page > 1"
+      v-model:page="pagination.page"
+      v-model:page-size="pagination.pageSize"
+      :total="pagination.total"
+      @change="loadClients"
+    />
+
+    <p class="oidc-note">
+      <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
+      {{ t('system.oidcx.callbackNote') }}
+    </p>
+
     <OIDCClientForm ref="clientFormRef" @refresh="loadClients" @reveal="openReveal" />
 
     <!-- 客户端配置（完整 secret 仅一次） -->
@@ -118,20 +197,9 @@
           <div v-for="item in clientConfigItems" :key="item.label" class="app-field">
             <label class="app-label">{{ item.label }}</label>
             <div class="oidc-config__inline">
-              <textarea
-                v-if="item.multiline"
-                class="app-textarea"
-                :value="item.value"
-                readonly
-                rows="2"
-              />
+              <textarea v-if="item.multiline" class="app-textarea" :value="item.value" readonly rows="2" />
               <input v-else class="app-input" :value="item.value" readonly />
-              <AppIconButton
-                icon="HOutline:ClipboardDocumentIcon"
-                :label="t('common.copy')"
-                :box="32"
-                @click="copyText(item.value)"
-              />
+              <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('common.copy')" :box="36" @click="copyText(item.value)" />
             </div>
           </div>
         </div>
@@ -149,21 +217,28 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { listOIDCClients, deleteOIDCClient, refreshOIDCClientSecret, getOIDCConfig } from '@/api/oidc'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
+import 'dayjs/locale/zh-hk'
+import { listOIDCClients, deleteOIDCClient, refreshOIDCClientSecret, updateOIDCClient } from '@/api/oidc'
 import { PERM } from '@/config/permission'
 import { Dialog } from '@/utils/dialog'
 import type { OIDCClientInfo, OIDCConfig } from '@/types/v1/oidc'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
-import OIDCConfigDialog from '@/views/system/oidc/configDialog.vue'
+import type { ToolbarChip } from '@/components/ui/ListToolbar.vue'
+import OIDCConfigCard from '@/views/system/oidc/configDialog.vue'
 import OIDCClientForm from '@/views/system/oidc/clientForm.vue'
+import SettingsSubNav from '@/views/system/components/SettingsSubNav.vue'
+
+dayjs.extend(relativeTime)
 
 defineOptions({ name: 'SystemOIDCView' })
 
-const menuStore = useMenuStore()
-const { t } = useI18n()
+type ActiveKey = '' | 'on' | 'off'
 
-const configRef = useTemplateRef<InstanceType<typeof OIDCConfigDialog> | null>('configRef')
+const menuStore = useMenuStore()
+const { t, locale } = useI18n()
+
 const clientFormRef = useTemplateRef<InstanceType<typeof OIDCClientForm> | null>('clientFormRef')
 
 const canEdit = computed(() => menuStore.hasButtonPermission(PERM.OIDC_EDIT))
@@ -172,26 +247,45 @@ const loading = ref(false)
 const clients = ref<OIDCClientInfo[]>([])
 const config = ref<OIDCConfig | null>(null)
 const queryForm = ref({ keywords: '' })
-const pagination = ref({ page: 1, pageSize: 10, total: 0 })
+const activeFilter = ref<ActiveKey>('')
+const counts = ref({ all: 0, active: 0 })
+const pagination = ref({ page: 1, pageSize: 20, total: 0 })
+const toggling = ref('')
+
+const filterChips = computed<ToolbarChip<ActiveKey>[]>(() => [
+  { label: t('system.common.all'), value: '', count: counts.value.all },
+  { label: t('system.oidcx.filterOn'), value: 'on', count: counts.value.active },
+  { label: t('system.oidcx.filterOff'), value: 'off', count: counts.value.all - counts.value.active },
+])
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('system.oidc.colName'), minWidth: 140 },
-  { key: 'clientId', title: t('system.oidc.colClientId'), minWidth: 220 },
-  { key: 'clientSecret', title: t('system.oidc.colClientSecret'), minWidth: 160 },
-  { key: 'active', title: t('system.common.status'), width: 90 },
-  { key: 'redirectUris', title: t('system.oidc.colRedirectUris'), minWidth: 220 },
-  { key: 'scopes', title: t('system.oidc.colScopes'), minWidth: 150 },
-  { key: 'operation', title: t('system.common.operation'), width: 70, align: 'center' },
+  { key: 'name', title: t('system.oidcx.colClient'), minWidth: 200, ellipsis: false },
+  { key: 'clientId', title: t('system.oidc.colClientId'), minWidth: 170 },
+  { key: 'redirectUris', title: t('system.oidc.colRedirectUris'), minWidth: 240, ellipsis: false },
+  { key: 'scopes', title: t('system.oidc.colScopes'), minWidth: 160, ellipsis: false },
+  { key: 'active', title: t('system.common.enabled'), width: 80 },
+  { key: 'createTime', title: t('system.oidcx.createdAt'), width: 140, ellipsis: false },
+  { key: 'operation', title: t('system.common.operation'), width: 136, align: 'right' },
 ])
 
-const rowActions = computed<ActionMenuItem[]>(() => [
-  { key: 'edit', label: t('system.common.edit'), icon: 'HOutline:PencilSquareIcon' },
-  { key: 'refresh', label: t('system.oidc.refreshSecret'), icon: 'HOutline:ArrowPathIcon' },
-  { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
-])
+// —— 贴纸头像 ——
+const TONES = ['a', 'ok', 'a2', 'p', 'warn']
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg', '-3deg']
+const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0)
+const tone = (id: string) => TONES[hash(id) % TONES.length]
+const rot = (id: string) => ROTS[hash(id) % ROTS.length]
+const letters = (name: string) => {
+  const chars = [...name.trim()]
+  if (!chars.length) return '?'
+  return /^[a-z]/i.test(chars[0] ?? '') ? (chars[0] ?? '').toUpperCase() + (chars[1] ?? '').toLowerCase() : chars[0]
+}
 
-const joinArr = (v: unknown, sep: string) => (Array.isArray(v) ? v.join(sep) : '')
-const fmtTime = (v: unknown) => (v ? dayjs(v as string | Date).format('YYYY-MM-DD HH:mm') : '—')
+const fmtDate = (v: unknown) => (v ? dayjs(v as string | Date).format('YYYY-MM-DD') : '—')
+const dayjsLocale = computed(() => (locale.value === 'en-US' ? 'en' : locale.value === 'zh-HK' ? 'zh-hk' : 'zh-cn'))
+const usedText = (v: unknown) => {
+  if (!v) return t('system.oidcx.neverUsed')
+  return t('system.oidcx.usedAgo', { ago: dayjs(v as string | Date).locale(dayjsLocale.value).fromNow() })
+}
 
 const loadClients = async () => {
   loading.value = true
@@ -200,9 +294,11 @@ const loadClients = async () => {
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       keywords: queryForm.value.keywords || undefined,
+      active: activeFilter.value === '' ? undefined : activeFilter.value === 'on',
     })
     clients.value = data?.clients || []
     pagination.value.total = Number(data?.total || 0)
+    counts.value = { all: Number(data?.allCount) || 0, active: Number(data?.activeCount) || 0 }
   } finally {
     loading.value = false
   }
@@ -212,14 +308,8 @@ const reload = () => {
   pagination.value.page = 1
   loadClients()
 }
-const reset = () => {
-  queryForm.value.keywords = ''
-  pagination.value.page = 1
-  loadClients()
-}
 
-const openConfig = () => configRef.value?.showDialog()
-const onConfigSaved = (value: OIDCConfig) => {
+const onConfigChange = (value: OIDCConfig) => {
   config.value = value
 }
 
@@ -233,6 +323,28 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
   else if (key === 'delete') confirmDelete(client)
 }
 
+const toggleActive = async (id: string, active: boolean) => {
+  const client = clients.value.find((c) => c.id === id)
+  if (!client) return
+  toggling.value = id
+  try {
+    await updateOIDCClient({
+      id: client.id,
+      name: client.name,
+      redirectUris: client.redirectUris,
+      scopes: client.scopes,
+      active,
+      description: client.description,
+    })
+    client.active = active
+    counts.value.active += active ? 1 : -1
+    feedback.success(t('system.oidc.editSuccess'))
+    if (activeFilter.value) loadClients()
+  } finally {
+    toggling.value = ''
+  }
+}
+
 const refreshSecret = (client: OIDCClientInfo) => {
   Dialog.info({
     showCancelButton: true,
@@ -241,7 +353,7 @@ const refreshSecret = (client: OIDCClientInfo) => {
     cancelText: t('common.cancel'),
     onConfirm: async () => {
       const { data } = await refreshOIDCClientSecret({ id: client.id })
-      if (data?.client) openReveal(data.client)
+      if (data?.client) openReveal(data.client, false)
       loadClients()
     },
   })
@@ -256,14 +368,16 @@ const confirmDelete = (client: OIDCClientInfo) => {
     onConfirm: async () => {
       await deleteOIDCClient({ id: client.id })
       feedback.success(t('common.deleteSuccess'))
+      if (revealClient.value?.id === client.id) revealClient.value = null
       loadClients()
     },
   })
 }
 
-// —— 客户端配置只读展示（含完整 secret）——
+// —— 新 Secret：提示条 + 完整配置弹窗 ——
 const revealVisible = ref(false)
 const revealClient = ref<OIDCClientInfo | null>(null)
+const secretCopied = ref(false)
 
 const clientConfigItems = computed<{ label: string; value: string; multiline?: boolean }[]>(() => {
   const client = revealClient.value
@@ -282,62 +396,248 @@ const clientConfigItems = computed<{ label: string; value: string; multiline?: b
     { label: t('system.oidc.userinfoUrl'), value: e?.userinfoUrl || '' },
     { label: t('system.oidc.jwksUrl'), value: e?.jwksUrl || '' },
     { label: t('system.oidc.tokenAuthMethod'), value: e?.tokenEndpointAuthMethod || 'client_secret_post' },
-    { label: t('system.oidc.signingAlgs'), value: e?.allowedIdTokenSigningAlgs || 'RS256,ES256,PS256' },
+    { label: t('system.oidc.signingAlgs'), value: e?.allowedIdTokenSigningAlgs || 'RS256' },
   ].filter((item) => item.value)
 })
 const clientConfigText = computed(() =>
   clientConfigItems.value.map((item) => `${item.label}: ${item.value}`).join('\n'),
 )
 
-const openReveal = (client: OIDCClientInfo) => {
+// 新建：直接弹完整配置；刷新：顶部提示条（可再展开完整配置）
+const openReveal = (client: OIDCClientInfo, showDialog = true) => {
   revealClient.value = client
-  revealVisible.value = true
+  secretCopied.value = false
+  revealVisible.value = showDialog
 }
 
 const copyText = async (value: string) => {
   await navigator.clipboard.writeText(value)
   feedback.success(t('system.oidc.copied'))
 }
-
-const loadConfig = async () => {
-  const { data } = await getOIDCConfig()
-  config.value = data?.config || null
+const copySecret = async () => {
+  if (!revealClient.value) return
+  await copyText(revealClient.value.clientSecret)
+  secretCopied.value = true
 }
 
-onMounted(() => {
-  loadClients()
-  loadConfig()
-})
+onMounted(loadClients)
 </script>
 
 <style scoped lang="scss">
 .oidc-page {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+.oidc-title {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
-.oidc-page__body {
+.oidc-title :deep(.status-pill) {
+  font-family: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+.oidc-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin-top: 8px;
+}
+.oidc-section__text {
+  flex: 1 1 260px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
-.oidc-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.oidc-section__text h2 {
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
 }
-.oidc-page__bar-hint {
-  font-size: 0.8125rem;
+.oidc-section__text p {
+  margin: 0;
+  font-size: 0.875rem;
   color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
 }
-.oidc-mono {
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.8125rem;
+.oidc-tone-ok {
+  color: var(--m-ok);
+  font-weight: 700;
 }
 .text-dim {
   color: var(--el-text-color-placeholder);
+}
+
+/* Secret 提示条 */
+.oidc-secret {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 14px 14px 18px;
+  border-radius: var(--app-radius-lg);
+  background: var(--m-warnSoft);
+}
+.oidc-secret__icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  transform: rotate(-5deg);
+}
+.oidc-secret__icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+}
+.oidc-secret__text {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-primary);
+}
+.oidc-secret__text b {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--m-warn);
+}
+.oidc-secret__text code {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: var(--app-radius-xs);
+  background: var(--el-bg-color);
+  font-weight: 700;
+  word-break: break-all;
+}
+
+/* 表格单元 */
+.oidc-client {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.oidc-client.is-off,
+.oidc-card.is-off .oidc-client__text {
+  opacity: 0.6;
+}
+.oidc-avatar {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  font-family: var(--app-font-display);
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+.oidc-client__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.oidc-client__text b {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oidc-client__text span {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oidc-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--app-radius-xs);
+  background: var(--el-fill-color-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.oidc-uris {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 340px;
+}
+.oidc-uris span {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oidc-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.oidc-scope {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background: var(--m-a2Soft);
+  color: var(--m-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.oidc-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+.oidc-time b {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.oidc-time span {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.oidc-acts {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.oidc-acts :deep(.is-danger),
+.oidc-card__foot :deep(.is-danger) {
+  color: var(--m-bad);
+}
+.oidc-acts :deep(.is-danger:hover),
+.oidc-card__foot :deep(.is-danger:hover) {
+  background: var(--m-badSoft);
+}
+.oidc-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.oidc-note :deep(svg) {
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 
 /* 客户端配置只读展示 */
@@ -347,11 +647,12 @@ onMounted(() => {
   gap: 12px;
 }
 .oidc-reveal__warn {
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: var(--app-radius-sm);
-  background: color-mix(in srgb, var(--el-color-warning, #f59e0b) 12%, transparent);
-  color: var(--el-color-warning, #f59e0b);
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
   font-size: 0.8125rem;
+  font-weight: 600;
 }
 .oidc-reveal__grid {
   display: grid;
@@ -373,26 +674,67 @@ onMounted(() => {
 .oidc-cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
-.oidc-card__full {
-  flex-basis: 100%;
+.oidc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px 6px 16px;
+  border-radius: var(--app-radius-lg);
+  border: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
 }
-.oidc-card__uris {
+.oidc-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 4px;
+}
+.oidc-dl {
+  margin: 0 4px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+.oidc-dl > div {
+  min-width: 0;
+}
+.oidc-dl .is-full {
+  grid-column: 1 / -1;
+}
+.oidc-dl dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.oidc-dl dd {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--el-text-color-placeholder);
+}
+.oidc-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.oidc-card__foot .oidc-scopes {
+  flex: 1;
+  min-width: 0;
 }
 .oidc-skeleton {
-  height: 120px;
-  border-radius: var(--app-radius);
-  background: linear-gradient(
-    100deg,
-    var(--el-fill-color-light) 30%,
-    var(--el-fill-color) 50%,
-    var(--el-fill-color-light) 70%
-  );
+  height: 180px;
+  border-radius: var(--app-radius-lg);
+  background: linear-gradient(100deg, var(--el-fill-color-light) 30%, var(--el-fill-color) 50%, var(--el-fill-color-light) 70%);
   background-size: 200% 100%;
   animation: oidc-shimmer 1.4s ease-in-out infinite;
 }
@@ -407,6 +749,12 @@ onMounted(() => {
 @media (width <= 768px) {
   .oidc-reveal__grid {
     grid-template-columns: 1fr;
+  }
+  .oidc-secret__text {
+    flex-basis: calc(100% - 60px);
+  }
+  .oidc-note {
+    align-items: flex-start;
   }
 }
 </style>

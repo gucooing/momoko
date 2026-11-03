@@ -55,6 +55,8 @@ export interface SendRegisterEmailCodeRequest {
 
 /** 发送注册邮件验证码响应 */
 export interface SendRegisterEmailCodeResponse {
+  /** 验证码有效期（秒） */
+  expiresInSeconds: number;
 }
 
 /** 发送登录邮件验证码请求 */
@@ -65,6 +67,32 @@ export interface SendLoginEmailCodeRequest {
 
 /** 发送登录邮件验证码响应 */
 export interface SendLoginEmailCodeResponse {
+}
+
+/** 发送重置密码邮件验证码请求 */
+export interface SendResetPasswordEmailCodeRequest {
+  /** 注册时使用的邮箱 */
+  email: string;
+}
+
+/** 发送重置密码邮件验证码响应 */
+export interface SendResetPasswordEmailCodeResponse {
+  /** 验证码有效期（秒） */
+  expiresInSeconds: number;
+}
+
+/** 重置密码请求 */
+export interface ResetPasswordRequest {
+  /** 邮箱 */
+  email: string;
+  /** 邮箱验证码 */
+  code: string;
+  /** 新密码 */
+  newPassword: string;
+}
+
+/** 重置密码响应 */
+export interface ResetPasswordResponse {
 }
 
 /** 账号登录响应 */
@@ -120,7 +148,25 @@ export interface LoginDevice {
   /** 会话id */
   sessionId: string;
   /** 最近一次刷新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 登录时的 User-Agent */
+  userAgent: string;
+  /** 设备类型：desktop / mobile / tablet / cli */
+  deviceType: string;
+  /** 最近活跃 IP 的网络范围：loopback（本机） / lan（局域网） / public（公网） */
+  ipScope: string;
+  /** 最近活跃时间（带该会话 token 的最近一次请求，约 1 分钟精度） */
+  lastActiveTime:
+    | Date
+    | undefined;
+  /** 最近活跃 IP */
+  lastIp: string;
+  /** 登录方式：password（账号密码） / email_code（邮箱验证码） */
+  loginMethod: string;
+  /** 会话过期时间（不续签时） */
+  expireTime: Date | undefined;
 }
 
 /** 更新密码请求 */
@@ -138,9 +184,112 @@ export interface UpdatePasswordResponse {
 /** 退出登录请求 */
 export interface LogoutRequest {
   /** 是否指定会话 */
-  sessionId?: string | undefined;
+  sessionId?:
+    | string
+    | undefined;
+  /** 为 true 时下线除当前会话外的所有会话（忽略 session_id） */
+  others: boolean;
 }
 
 /** 退出登录响应 */
 export interface LogoutResponse {
+}
+
+/** 用户消息 */
+export interface UserMessage {
+  /** 消息id */
+  id: string;
+  /** 分类：security（账号安全） / system（系统） / notice（通知公告） */
+  category: string;
+  /** 消息种类，前端据此本地化：login_new_device / login_failed / password_changed / password_reset / notice */
+  kind: string;
+  /** 标题（notice 为发布者填写；其它种类可为空，由前端按 kind 生成） */
+  title: string;
+  /** 内容（notice 为发布者填写） */
+  content: string;
+  /** 模板参数（如 device / ip / ip_scope） */
+  params: { [key: string]: string };
+  /** 是否已读 */
+  read: boolean;
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 发布者昵称（仅 notice） */
+  senderName: string;
+  /** 发布者头像（仅 notice） */
+  senderAvatar: string;
+}
+
+export interface UserMessage_ParamsEntry {
+  key: string;
+  value: string;
+}
+
+/** 我的消息列表请求 */
+export interface ListMessagesRequest {
+  /** page */
+  page: number;
+  /** page size（最大 100） */
+  pageSize: number;
+  /** 只看未读 */
+  unreadOnly: boolean;
+}
+
+/** 我的消息列表响应 */
+export interface ListMessagesResponse {
+  /** 消息 */
+  messages: UserMessage[];
+  /** 符合条件的总数 */
+  total: number;
+  /** 全部消息数 */
+  allCount: number;
+  /** 未读数 */
+  unreadCount: number;
+  /** actual page */
+  page: number;
+  /** actual page size */
+  pageSize: number;
+}
+
+/** 标记已读请求 */
+export interface ReadMessagesRequest {
+  /** 消息id */
+  ids: string[];
+  /** 为 true 时标记全部（忽略 ids） */
+  all: boolean;
+}
+
+/** 标记已读响应 */
+export interface ReadMessagesResponse {
+  /** 剩余未读数 */
+  unreadCount: number;
+}
+
+/** 删除消息请求 */
+export interface DeleteMessagesRequest {
+  /** 消息id */
+  ids: string[];
+  /** 为 true 时删除全部（忽略 ids） */
+  all: boolean;
+}
+
+/** 删除消息响应 */
+export interface DeleteMessagesResponse {
+  /** 剩余未读数 */
+  unreadCount: number;
+}
+
+/** 发布通知请求 */
+export interface PublishMessageRequest {
+  /** 标题（可空，默认用发布者昵称） */
+  title: string;
+  /** 内容 */
+  content: string;
+}
+
+/** 发布通知响应 */
+export interface PublishMessageResponse {
+  /** 送达用户数 */
+  recipients: number;
 }

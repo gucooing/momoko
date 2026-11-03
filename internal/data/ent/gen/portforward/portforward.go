@@ -35,6 +35,12 @@ const (
 	FieldTargetPort = "target_port"
 	// FieldIsEnable holds the string denoting the is_enable field in the database.
 	FieldIsEnable = "is_enable"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
+	// FieldTotalBytesIn holds the string denoting the total_bytes_in field in the database.
+	FieldTotalBytesIn = "total_bytes_in"
+	// FieldTotalBytesOut holds the string denoting the total_bytes_out field in the database.
+	FieldTotalBytesOut = "total_bytes_out"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the portforward in the database.
@@ -61,6 +67,9 @@ var Columns = []string{
 	FieldTargetAddress,
 	FieldTargetPort,
 	FieldIsEnable,
+	FieldRemark,
+	FieldTotalBytesIn,
+	FieldTotalBytesOut,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -94,6 +103,12 @@ var (
 	DefaultTargetPort int
 	// DefaultIsEnable holds the default value on creation for the "is_enable" field.
 	DefaultIsEnable bool
+	// DefaultRemark holds the default value on creation for the "remark" field.
+	DefaultRemark string
+	// DefaultTotalBytesIn holds the default value on creation for the "total_bytes_in" field.
+	DefaultTotalBytesIn int64
+	// DefaultTotalBytesOut holds the default value on creation for the "total_bytes_out" field.
+	DefaultTotalBytesOut int64
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -177,6 +192,21 @@ func ByTargetPort(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEnable orders the results by the is_enable field.
 func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByTotalBytesIn orders the results by the total_bytes_in field.
+func ByTotalBytesIn(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalBytesIn, opts...).ToFunc()
+}
+
+// ByTotalBytesOut orders the results by the total_bytes_out field.
+func ByTotalBytesOut(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalBytesOut, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

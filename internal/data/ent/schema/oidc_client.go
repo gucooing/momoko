@@ -19,6 +19,8 @@ func (OIDCClient) Fields() []ent.Field {
 		field.JSON("redirect_uris", []string{}).Comment("回调地址"),
 		field.JSON("scopes", []string{}).Comment("授权范围"),
 		field.Bool("active").Default(true).Comment("是否启用"),
+		field.String("description").Default("").Comment("描述"),
+		field.Time("last_used_time").Optional().Nillable().Comment("最近一次成功换取令牌的时间"),
 	}
 }
 

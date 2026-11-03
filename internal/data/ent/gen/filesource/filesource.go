@@ -31,6 +31,14 @@ const (
 	FieldConfig = "config"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldLastTestOk holds the string denoting the last_test_ok field in the database.
+	FieldLastTestOk = "last_test_ok"
+	// FieldLastTestLatencyMs holds the string denoting the last_test_latency_ms field in the database.
+	FieldLastTestLatencyMs = "last_test_latency_ms"
+	// FieldLastTestMessage holds the string denoting the last_test_message field in the database.
+	FieldLastTestMessage = "last_test_message"
+	// FieldLastTestTime holds the string denoting the last_test_time field in the database.
+	FieldLastTestTime = "last_test_time"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the filesource in the database.
@@ -55,6 +63,10 @@ var Columns = []string{
 	FieldRedirect302,
 	FieldConfig,
 	FieldUserID,
+	FieldLastTestOk,
+	FieldLastTestLatencyMs,
+	FieldLastTestMessage,
+	FieldLastTestTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -82,6 +94,12 @@ var (
 	DefaultRedirect302 bool
 	// DefaultConfig holds the default value on creation for the "config" field.
 	DefaultConfig string
+	// DefaultLastTestOk holds the default value on creation for the "last_test_ok" field.
+	DefaultLastTestOk bool
+	// DefaultLastTestLatencyMs holds the default value on creation for the "last_test_latency_ms" field.
+	DefaultLastTestLatencyMs int64
+	// DefaultLastTestMessage holds the default value on creation for the "last_test_message" field.
+	DefaultLastTestMessage string
 )
 
 // Type defines the type for the "type" enum field.
@@ -154,6 +172,26 @@ func ByConfig(opts ...sql.OrderTermOption) OrderOption {
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByLastTestOk orders the results by the last_test_ok field.
+func ByLastTestOk(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestOk, opts...).ToFunc()
+}
+
+// ByLastTestLatencyMs orders the results by the last_test_latency_ms field.
+func ByLastTestLatencyMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestLatencyMs, opts...).ToFunc()
+}
+
+// ByLastTestMessage orders the results by the last_test_message field.
+func ByLastTestMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestMessage, opts...).ToFunc()
+}
+
+// ByLastTestTime orders the results by the last_test_time field.
+func ByLastTestTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestTime, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

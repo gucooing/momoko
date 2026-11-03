@@ -95,6 +95,34 @@ func (_c *OIDCClientCreate) SetNillableActive(v *bool) *OIDCClientCreate {
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *OIDCClientCreate) SetDescription(v string) *OIDCClientCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *OIDCClientCreate) SetNillableDescription(v *string) *OIDCClientCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (_c *OIDCClientCreate) SetLastUsedTime(v time.Time) *OIDCClientCreate {
+	_c.mutation.SetLastUsedTime(v)
+	return _c
+}
+
+// SetNillableLastUsedTime sets the "last_used_time" field if the given value is not nil.
+func (_c *OIDCClientCreate) SetNillableLastUsedTime(v *time.Time) *OIDCClientCreate {
+	if v != nil {
+		_c.SetLastUsedTime(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OIDCClientCreate) SetID(v string) *OIDCClientCreate {
 	_c.mutation.SetID(v)
@@ -148,6 +176,10 @@ func (_c *OIDCClientCreate) defaults() {
 		v := oidcclient.DefaultActive
 		_c.mutation.SetActive(v)
 	}
+	if _, ok := _c.mutation.Description(); !ok {
+		v := oidcclient.DefaultDescription
+		_c.mutation.SetDescription(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -190,6 +222,9 @@ func (_c *OIDCClientCreate) check() error {
 	}
 	if _, ok := _c.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`gen: missing required field "OIDCClient.active"`)}
+	}
+	if _, ok := _c.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`gen: missing required field "OIDCClient.description"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := oidcclient.IDValidator(v); err != nil {
@@ -263,6 +298,14 @@ func (_c *OIDCClientCreate) createSpec() (*OIDCClient, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Active(); ok {
 		_spec.SetField(oidcclient.FieldActive, field.TypeBool, value)
 		_node.Active = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(oidcclient.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := _c.mutation.LastUsedTime(); ok {
+		_spec.SetField(oidcclient.FieldLastUsedTime, field.TypeTime, value)
+		_node.LastUsedTime = &value
 	}
 	return _node, _spec
 }
@@ -397,6 +440,36 @@ func (u *OIDCClientUpsert) SetActive(v bool) *OIDCClientUpsert {
 // UpdateActive sets the "active" field to the value that was provided on create.
 func (u *OIDCClientUpsert) UpdateActive() *OIDCClientUpsert {
 	u.SetExcluded(oidcclient.FieldActive)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *OIDCClientUpsert) SetDescription(v string) *OIDCClientUpsert {
+	u.Set(oidcclient.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OIDCClientUpsert) UpdateDescription() *OIDCClientUpsert {
+	u.SetExcluded(oidcclient.FieldDescription)
+	return u
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (u *OIDCClientUpsert) SetLastUsedTime(v time.Time) *OIDCClientUpsert {
+	u.Set(oidcclient.FieldLastUsedTime, v)
+	return u
+}
+
+// UpdateLastUsedTime sets the "last_used_time" field to the value that was provided on create.
+func (u *OIDCClientUpsert) UpdateLastUsedTime() *OIDCClientUpsert {
+	u.SetExcluded(oidcclient.FieldLastUsedTime)
+	return u
+}
+
+// ClearLastUsedTime clears the value of the "last_used_time" field.
+func (u *OIDCClientUpsert) ClearLastUsedTime() *OIDCClientUpsert {
+	u.SetNull(oidcclient.FieldLastUsedTime)
 	return u
 }
 
@@ -546,6 +619,41 @@ func (u *OIDCClientUpsertOne) SetActive(v bool) *OIDCClientUpsertOne {
 func (u *OIDCClientUpsertOne) UpdateActive() *OIDCClientUpsertOne {
 	return u.Update(func(s *OIDCClientUpsert) {
 		s.UpdateActive()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *OIDCClientUpsertOne) SetDescription(v string) *OIDCClientUpsertOne {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OIDCClientUpsertOne) UpdateDescription() *OIDCClientUpsertOne {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (u *OIDCClientUpsertOne) SetLastUsedTime(v time.Time) *OIDCClientUpsertOne {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.SetLastUsedTime(v)
+	})
+}
+
+// UpdateLastUsedTime sets the "last_used_time" field to the value that was provided on create.
+func (u *OIDCClientUpsertOne) UpdateLastUsedTime() *OIDCClientUpsertOne {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.UpdateLastUsedTime()
+	})
+}
+
+// ClearLastUsedTime clears the value of the "last_used_time" field.
+func (u *OIDCClientUpsertOne) ClearLastUsedTime() *OIDCClientUpsertOne {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.ClearLastUsedTime()
 	})
 }
 
@@ -862,6 +970,41 @@ func (u *OIDCClientUpsertBulk) SetActive(v bool) *OIDCClientUpsertBulk {
 func (u *OIDCClientUpsertBulk) UpdateActive() *OIDCClientUpsertBulk {
 	return u.Update(func(s *OIDCClientUpsert) {
 		s.UpdateActive()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *OIDCClientUpsertBulk) SetDescription(v string) *OIDCClientUpsertBulk {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OIDCClientUpsertBulk) UpdateDescription() *OIDCClientUpsertBulk {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (u *OIDCClientUpsertBulk) SetLastUsedTime(v time.Time) *OIDCClientUpsertBulk {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.SetLastUsedTime(v)
+	})
+}
+
+// UpdateLastUsedTime sets the "last_used_time" field to the value that was provided on create.
+func (u *OIDCClientUpsertBulk) UpdateLastUsedTime() *OIDCClientUpsertBulk {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.UpdateLastUsedTime()
+	})
+}
+
+// ClearLastUsedTime clears the value of the "last_used_time" field.
+func (u *OIDCClientUpsertBulk) ClearLastUsedTime() *OIDCClientUpsertBulk {
+	return u.Update(func(s *OIDCClientUpsert) {
+		s.ClearLastUsedTime()
 	})
 }
 

@@ -39,15 +39,19 @@ const OperationDockerManagerListDockerImages = "/v1.DockerManager/ListDockerImag
 const OperationDockerManagerListDockerNetworks = "/v1.DockerManager/ListDockerNetworks"
 const OperationDockerManagerListDockerTasks = "/v1.DockerManager/ListDockerTasks"
 const OperationDockerManagerPauseDockerContainer = "/v1.DockerManager/PauseDockerContainer"
+const OperationDockerManagerPruneDockerImages = "/v1.DockerManager/PruneDockerImages"
+const OperationDockerManagerPruneDockerNetworks = "/v1.DockerManager/PruneDockerNetworks"
 const OperationDockerManagerPullDockerImage = "/v1.DockerManager/PullDockerImage"
 const OperationDockerManagerRecreateDockerContainer = "/v1.DockerManager/RecreateDockerContainer"
 const OperationDockerManagerRecreateDockerNetwork = "/v1.DockerManager/RecreateDockerNetwork"
 const OperationDockerManagerRenameDockerContainer = "/v1.DockerManager/RenameDockerContainer"
 const OperationDockerManagerRestartDockerContainer = "/v1.DockerManager/RestartDockerContainer"
+const OperationDockerManagerSearchDockerImages = "/v1.DockerManager/SearchDockerImages"
 const OperationDockerManagerStartDockerContainer = "/v1.DockerManager/StartDockerContainer"
 const OperationDockerManagerStopDockerContainer = "/v1.DockerManager/StopDockerContainer"
 const OperationDockerManagerTagDockerImage = "/v1.DockerManager/TagDockerImage"
 const OperationDockerManagerTestDockerConfig = "/v1.DockerManager/TestDockerConfig"
+const OperationDockerManagerTestDockerRegistryAuth = "/v1.DockerManager/TestDockerRegistryAuth"
 const OperationDockerManagerUnpauseDockerContainer = "/v1.DockerManager/UnpauseDockerContainer"
 const OperationDockerManagerUpdateDockerConfig = "/v1.DockerManager/UpdateDockerConfig"
 const OperationDockerManagerUpdateDockerContainer = "/v1.DockerManager/UpdateDockerContainer"
@@ -95,6 +99,10 @@ type DockerManagerHTTPServer interface {
 	ListDockerTasks(context.Context, *ListDockerTasksRequest) (*ListDockerTasksResponse, error)
 	// PauseDockerContainer 暂停容器
 	PauseDockerContainer(context.Context, *PauseDockerContainerRequest) (*PauseDockerContainerResponse, error)
+	// PruneDockerImages 清理镜像（默认只清理悬空镜像）
+	PruneDockerImages(context.Context, *PruneDockerImagesRequest) (*PruneDockerImagesResponse, error)
+	// PruneDockerNetworks 清理未使用的网络
+	PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error)
 	// PullDockerImage 拉取镜像
 	PullDockerImage(context.Context, *PullDockerImageRequest) (*PullDockerImageResponse, error)
 	// RecreateDockerContainer 重建容器
@@ -105,6 +113,8 @@ type DockerManagerHTTPServer interface {
 	RenameDockerContainer(context.Context, *RenameDockerContainerRequest) (*RenameDockerContainerResponse, error)
 	// RestartDockerContainer 重启容器
 	RestartDockerContainer(context.Context, *RestartDockerContainerRequest) (*RestartDockerContainerResponse, error)
+	// SearchDockerImages 搜索镜像仓库（Docker Hub）
+	SearchDockerImages(context.Context, *SearchDockerImagesRequest) (*SearchDockerImagesResponse, error)
 	// StartDockerContainer 启动容器
 	StartDockerContainer(context.Context, *StartDockerContainerRequest) (*StartDockerContainerResponse, error)
 	// StopDockerContainer 停止容器
@@ -113,6 +123,8 @@ type DockerManagerHTTPServer interface {
 	TagDockerImage(context.Context, *TagDockerImageRequest) (*TagDockerImageResponse, error)
 	// TestDockerConfig 测试Docker配置
 	TestDockerConfig(context.Context, *TestDockerConfigRequest) (*TestDockerConfigResponse, error)
+	// TestDockerRegistryAuth 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+	TestDockerRegistryAuth(context.Context, *TestDockerRegistryAuthRequest) (*TestDockerRegistryAuthResponse, error)
 	// UnpauseDockerContainer 恢复容器
 	UnpauseDockerContainer(context.Context, *UnpauseDockerContainerRequest) (*UnpauseDockerContainerResponse, error)
 	// UpdateDockerConfig 更新Docker配置
@@ -130,6 +142,7 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.GET("/api/v1/docker/status", _DockerManager_DockerStatus0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/config", _DockerManager_GetDockerConfig0_HTTP_Handler(srv))
 	r.PUT("/api/v1/docker/config", _DockerManager_UpdateDockerConfig0_HTTP_Handler(srv))
+	r.POST("/api/v1/docker/registry-auth/test", _DockerManager_TestDockerRegistryAuth0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/config/test", _DockerManager_TestDockerConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/tasks", _DockerManager_ListDockerTasks0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/containers", _DockerManager_ListDockerContainers0_HTTP_Handler(srv))
@@ -153,6 +166,8 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.POST("/api/v1/docker/images/{id}/tag", _DockerManager_TagDockerImage0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/docker/images/{id}", _DockerManager_DeleteDockerImage0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/images/{id}/history", _DockerManager_ImageHistory0_HTTP_Handler(srv))
+	r.POST("/api/v1/docker/image-prune", _DockerManager_PruneDockerImages0_HTTP_Handler(srv))
+	r.GET("/api/v1/docker/image-search", _DockerManager_SearchDockerImages0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/networks", _DockerManager_ListDockerNetworks0_HTTP_Handler(srv))
 	r.GET("/api/v1/docker/networks/{id}", _DockerManager_GetDockerNetwork0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/networks", _DockerManager_CreateDockerNetwork0_HTTP_Handler(srv))
@@ -161,6 +176,7 @@ func RegisterDockerManagerHTTPServer(s *http.Server, srv DockerManagerHTTPServer
 	r.DELETE("/api/v1/docker/networks/{id}", _DockerManager_DeleteDockerNetwork0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/networks/{network_id}/connect", _DockerManager_ConnectDockerNetwork0_HTTP_Handler(srv))
 	r.POST("/api/v1/docker/networks/{network_id}/disconnect", _DockerManager_DisconnectDockerNetwork0_HTTP_Handler(srv))
+	r.POST("/api/v1/docker/network-prune", _DockerManager_PruneDockerNetworks0_HTTP_Handler(srv))
 }
 
 func _DockerManager_DockerStatus0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
@@ -219,6 +235,28 @@ func _DockerManager_UpdateDockerConfig0_HTTP_Handler(srv DockerManagerHTTPServer
 			return err
 		}
 		reply := out.(*UpdateDockerConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _DockerManager_TestDockerRegistryAuth0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestDockerRegistryAuthRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDockerManagerTestDockerRegistryAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestDockerRegistryAuth(ctx, req.(*TestDockerRegistryAuthRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestDockerRegistryAuthResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -753,6 +791,47 @@ func _DockerManager_ImageHistory0_HTTP_Handler(srv DockerManagerHTTPServer) func
 	}
 }
 
+func _DockerManager_PruneDockerImages0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PruneDockerImagesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDockerManagerPruneDockerImages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PruneDockerImages(ctx, req.(*PruneDockerImagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PruneDockerImagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _DockerManager_SearchDockerImages0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SearchDockerImagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDockerManagerSearchDockerImages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SearchDockerImages(ctx, req.(*SearchDockerImagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SearchDockerImagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _DockerManager_ListDockerNetworks0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListDockerNetworksRequest
@@ -938,6 +1017,28 @@ func _DockerManager_DisconnectDockerNetwork0_HTTP_Handler(srv DockerManagerHTTPS
 	}
 }
 
+func _DockerManager_PruneDockerNetworks0_HTTP_Handler(srv DockerManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PruneDockerNetworksRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDockerManagerPruneDockerNetworks)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PruneDockerNetworks(ctx, req.(*PruneDockerNetworksRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PruneDockerNetworksResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DockerManagerHTTPClient interface {
 	// ConnectDockerNetwork 连接容器到网络
 	ConnectDockerNetwork(ctx context.Context, req *ConnectDockerNetworkRequest, opts ...http.CallOption) (rsp *ConnectDockerNetworkResponse, err error)
@@ -979,6 +1080,10 @@ type DockerManagerHTTPClient interface {
 	ListDockerTasks(ctx context.Context, req *ListDockerTasksRequest, opts ...http.CallOption) (rsp *ListDockerTasksResponse, err error)
 	// PauseDockerContainer 暂停容器
 	PauseDockerContainer(ctx context.Context, req *PauseDockerContainerRequest, opts ...http.CallOption) (rsp *PauseDockerContainerResponse, err error)
+	// PruneDockerImages 清理镜像（默认只清理悬空镜像）
+	PruneDockerImages(ctx context.Context, req *PruneDockerImagesRequest, opts ...http.CallOption) (rsp *PruneDockerImagesResponse, err error)
+	// PruneDockerNetworks 清理未使用的网络
+	PruneDockerNetworks(ctx context.Context, req *PruneDockerNetworksRequest, opts ...http.CallOption) (rsp *PruneDockerNetworksResponse, err error)
 	// PullDockerImage 拉取镜像
 	PullDockerImage(ctx context.Context, req *PullDockerImageRequest, opts ...http.CallOption) (rsp *PullDockerImageResponse, err error)
 	// RecreateDockerContainer 重建容器
@@ -989,6 +1094,8 @@ type DockerManagerHTTPClient interface {
 	RenameDockerContainer(ctx context.Context, req *RenameDockerContainerRequest, opts ...http.CallOption) (rsp *RenameDockerContainerResponse, err error)
 	// RestartDockerContainer 重启容器
 	RestartDockerContainer(ctx context.Context, req *RestartDockerContainerRequest, opts ...http.CallOption) (rsp *RestartDockerContainerResponse, err error)
+	// SearchDockerImages 搜索镜像仓库（Docker Hub）
+	SearchDockerImages(ctx context.Context, req *SearchDockerImagesRequest, opts ...http.CallOption) (rsp *SearchDockerImagesResponse, err error)
 	// StartDockerContainer 启动容器
 	StartDockerContainer(ctx context.Context, req *StartDockerContainerRequest, opts ...http.CallOption) (rsp *StartDockerContainerResponse, err error)
 	// StopDockerContainer 停止容器
@@ -997,6 +1104,8 @@ type DockerManagerHTTPClient interface {
 	TagDockerImage(ctx context.Context, req *TagDockerImageRequest, opts ...http.CallOption) (rsp *TagDockerImageResponse, err error)
 	// TestDockerConfig 测试Docker配置
 	TestDockerConfig(ctx context.Context, req *TestDockerConfigRequest, opts ...http.CallOption) (rsp *TestDockerConfigResponse, err error)
+	// TestDockerRegistryAuth 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+	TestDockerRegistryAuth(ctx context.Context, req *TestDockerRegistryAuthRequest, opts ...http.CallOption) (rsp *TestDockerRegistryAuthResponse, err error)
 	// UnpauseDockerContainer 恢复容器
 	UnpauseDockerContainer(ctx context.Context, req *UnpauseDockerContainerRequest, opts ...http.CallOption) (rsp *UnpauseDockerContainerResponse, err error)
 	// UpdateDockerConfig 更新Docker配置
@@ -1297,6 +1406,34 @@ func (c *DockerManagerHTTPClientImpl) PauseDockerContainer(ctx context.Context, 
 	return &out, nil
 }
 
+// PruneDockerImages 清理镜像（默认只清理悬空镜像）
+func (c *DockerManagerHTTPClientImpl) PruneDockerImages(ctx context.Context, in *PruneDockerImagesRequest, opts ...http.CallOption) (*PruneDockerImagesResponse, error) {
+	var out PruneDockerImagesResponse
+	pattern := "/api/v1/docker/image-prune"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDockerManagerPruneDockerImages))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PruneDockerNetworks 清理未使用的网络
+func (c *DockerManagerHTTPClientImpl) PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...http.CallOption) (*PruneDockerNetworksResponse, error) {
+	var out PruneDockerNetworksResponse
+	pattern := "/api/v1/docker/network-prune"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDockerManagerPruneDockerNetworks))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PullDockerImage 拉取镜像
 func (c *DockerManagerHTTPClientImpl) PullDockerImage(ctx context.Context, in *PullDockerImageRequest, opts ...http.CallOption) (*PullDockerImageResponse, error) {
 	var out PullDockerImageResponse
@@ -1367,6 +1504,20 @@ func (c *DockerManagerHTTPClientImpl) RestartDockerContainer(ctx context.Context
 	return &out, nil
 }
 
+// SearchDockerImages 搜索镜像仓库（Docker Hub）
+func (c *DockerManagerHTTPClientImpl) SearchDockerImages(ctx context.Context, in *SearchDockerImagesRequest, opts ...http.CallOption) (*SearchDockerImagesResponse, error) {
+	var out SearchDockerImagesResponse
+	pattern := "/api/v1/docker/image-search"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDockerManagerSearchDockerImages))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // StartDockerContainer 启动容器
 func (c *DockerManagerHTTPClientImpl) StartDockerContainer(ctx context.Context, in *StartDockerContainerRequest, opts ...http.CallOption) (*StartDockerContainerResponse, error) {
 	var out StartDockerContainerResponse
@@ -1415,6 +1566,20 @@ func (c *DockerManagerHTTPClientImpl) TestDockerConfig(ctx context.Context, in *
 	pattern := "/api/v1/docker/config/test"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDockerManagerTestDockerConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TestDockerRegistryAuth 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+func (c *DockerManagerHTTPClientImpl) TestDockerRegistryAuth(ctx context.Context, in *TestDockerRegistryAuthRequest, opts ...http.CallOption) (*TestDockerRegistryAuthResponse, error) {
+	var out TestDockerRegistryAuthResponse
+	pattern := "/api/v1/docker/registry-auth/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDockerManagerTestDockerRegistryAuth))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

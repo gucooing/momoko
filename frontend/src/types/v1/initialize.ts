@@ -59,6 +59,12 @@ export interface InitializeStatusResponse {
   initialized: boolean;
   /** 支持的数据库类型 */
   supportedDatabaseTypes: DatabaseType[];
+  /** 程序版本 */
+  version: string;
+  /** 本机主机名（初始化后作为本机节点名称） */
+  hostname: string;
+  /** SQLite 默认数据库文件路径 */
+  defaultSqlitePath: string;
 }
 
 /** 确认系统初始化请求 */
@@ -89,4 +95,8 @@ export interface TestInitializeDatabaseRequest {
 export interface TestInitializeDatabaseResponse {
   /** 是否连接成功 */
   success: boolean;
+  /** 数据库服务端版本 */
+  serverVersion: string;
+  /** 连接 + 查询耗时（毫秒） */
+  latencyMs: number;
 }

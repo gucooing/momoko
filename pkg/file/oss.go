@@ -134,11 +134,13 @@ func (s *ossStore) DirInfo(ctx context.Context, dir string) (*v1.FileDirectoryIn
 		return nil, err
 	}
 	var dirCount, fileCount int64
+	var totalSize uint64
 	for _, e := range entries {
 		if e.IsDir {
 			dirCount++
 		} else {
 			fileCount++
+			totalSize += e.Size
 		}
 	}
 	name := path.Base(strings.Trim(dir, "/"))
@@ -151,6 +153,7 @@ func (s *ossStore) DirInfo(ctx context.Context, dir string) (*v1.FileDirectoryIn
 		DirCount:  dirCount,
 		FileCount: fileCount,
 		ItemCount: int64(len(entries)),
+		TotalSize: totalSize,
 	}, nil
 }
 

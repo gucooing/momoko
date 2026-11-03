@@ -40,6 +40,7 @@ var (
 	ErrInstanceAccess            = response.BadRequest(500, "您没有该实例权限")
 	ErrInstanceTypeName          = response.BadRequest(500, "类型名称不能为空")
 	ErrInstanceTypeID            = response.BadRequest(500, "类型ID不能为空")
+	ErrInstanceTypeInUse         = response.BadRequest(500, "仍有应用在使用该类型，请先修改这些应用的类型")
 	ErrSSHHostInvalid            = response.BadRequest(500, "SSH服务端参数无效")
 	ErrSSHAuthInvalid            = response.BadRequest(500, "SSH认证方式无效")
 	ErrSSHCredentialInvalid      = response.BadRequest(500, "SSH凭据不能为空")

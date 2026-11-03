@@ -7,6 +7,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/role"
+	"momoko/internal/data/ent/gen/user"
 )
 
 type systemRepo struct {
@@ -126,6 +127,19 @@ func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status 
 	}
 
 	return roles, int64(total), nil
+}
+
+// CountUsersByRoles 统计各角色下的用户数（角色数量有限，逐个计数）。
+func (s *systemRepo) CountUsersByRoles(ctx context.Context, roleIds []string) (map[string]int64, error) {
+	counts := make(map[string]int64, len(roleIds))
+	for _, id := range roleIds {
+		n, err := s.data.db.User.Query().Where(user.HasRoleWith(role.IDEQ(id))).Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		counts[id] = int64(n)
+	}
+	return counts, nil
 }
 
 func (s *systemRepo) GetRole(ctx context.Context, roleId string) (*gen.Role, error) {

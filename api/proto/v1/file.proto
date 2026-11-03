@@ -268,8 +268,28 @@ message ListSharesRequest {
   int64 page = 1;
   // 每页数量
   int64 page_size = 2;
-  // 搜索关键字（名称/路径）
+  // 搜索关键字（名称/令牌/提取码）
   optional string keywords = 3;
+  // 状态筛选：active=有效 expired=已过期 exhausted=次数用完 disabled=已停用，空=全部
+  optional string status = 4;
+}
+
+// 分享统计（当前用户全部分享，不受筛选/分页影响）
+message ShareStats {
+  // 分享总数
+  int64 total = 1;
+  // 有效（启用、未过期、未用完）
+  int64 active = 2;
+  // 已过期（启用但已过期）
+  int64 expired = 3;
+  // 次数用完（启用、未过期、下载次数已达上限）
+  int64 exhausted = 4;
+  // 已停用
+  int64 disabled = 5;
+  // 累计下载次数
+  int64 downloads = 6;
+  // 3 天内到期的有效分享数
+  int64 expiring_soon = 7;
 }
 
 // 分享列表响应
@@ -282,6 +302,8 @@ message ListSharesResponse {
   int64 page_size = 3;
   // 总数
   int64 total = 4;
+  // 统计
+  ShareStats stats = 5;
 }
 
 // 更新分享请求（全量覆盖可编辑字段）
@@ -341,6 +363,18 @@ message GetShareMetaResponse {
   string owner_name = 7;
   // 分享者头像（公开展示）
   string owner_avatar = 8;
+  // 顶层文件数
+  int64 file_count = 9;
+  // 顶层文件夹数
+  int64 dir_count = 10;
+  // 顶层文件总大小（不含文件夹内容）
+  uint64 total_size = 11;
+  // 分享创建时间
+  google.protobuf.Timestamp create_time = 12;
+  // 提取码连续输错被锁定时的解锁时间（未锁定为空）
+  google.protobuf.Timestamp locked_until = 13;
+  // 提取码位数（需要提取码时有值，便于提示访问者）
+  int32 code_length = 14;
 }
 
 // 浏览分享目录请求（公开，需会话签名）
@@ -393,6 +427,10 @@ message CreateShareSessionResponse {
   bool need_code = 3;
   // 失败原因（已关闭/已过期/次数用尽/提取码错误等）
   string message = 4;
+  // 提取码剩余可尝试次数（仅提取码错误时有意义）
+  int64 attempts_left = 5;
+  // 连续输错被锁定时的解锁时间
+  google.protobuf.Timestamp locked_until = 6;
 }
 
 // 文件来源能力（供前端隐藏/禁用不支持的动作）
@@ -468,6 +506,20 @@ message FileSourceInfo {
   google.protobuf.Timestamp create_time = 9;
   // 更新时间
   google.protobuf.Timestamp update_time = 10;
+  // 最近一次连通性测试结果，未测试过为空
+  FileSourceTestResult last_test = 11;
+}
+
+// 文件来源连通性测试结果
+message FileSourceTestResult {
+  // 是否连通
+  bool ok = 1;
+  // 耗时（毫秒）
+  int64 latency_ms = 2;
+  // 结果消息
+  string message = 3;
+  // 测试时间
+  google.protobuf.Timestamp tested_at = 4;
 }
 
 // 文件来源列表请求
@@ -549,6 +601,10 @@ message TestFileSourceResponse {
   bool ok = 1;
   // 结果消息
   string message = 2;
+  // 耗时（毫秒）
+  int64 latency_ms = 3;
+  // 测试时间
+  google.protobuf.Timestamp tested_at = 4;
 }
 
 // 文件排序字段
@@ -623,6 +679,12 @@ message FileDirectoryInfo {
   int64 file_count = 5;
   // 条目总数
   int64 item_count = 6;
+  // 当前目录下（不含子目录）文件大小合计，字节
+  uint64 total_size = 7;
+  // 所在磁盘总容量，字节；0=未知（远端来源）
+  uint64 disk_total = 8;
+  // 所在磁盘可用容量，字节
+  uint64 disk_free = 9;
 }
 
 // 系统文件条目信息

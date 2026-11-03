@@ -28,7 +28,11 @@ func (i *InstanceService) RegisterWsServer(srv *http.Server) {
 }
 
 func (i *InstanceService) GetInstanceTypes(ctx context.Context, req *v1.GetInstanceTypesRequest) (*v1.GetInstanceTypesResponse, error) {
-	types, err := i.uc.GetTypes(ctx)
+	userID := ""
+	if authCtx, ok := auth.FromContext(ctx); ok {
+		userID = authCtx.UserID
+	}
+	types, err := i.uc.GetTypes(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +119,14 @@ func (i *InstanceService) GetInstanceInfo(ctx context.Context, req *v1.GetInstan
 		return nil, err
 	}
 	return &v1.GetInstanceInfoResponse{Info: info}, nil
+}
+
+func (i *InstanceService) GetInstanceStats(ctx context.Context, req *v1.GetInstanceStatsRequest) (*v1.GetInstanceStatsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return i.uc.GetInstanceStats(ctx, authCtx.UserID, req.Id)
 }
 
 func (i *InstanceService) StartInstance(ctx context.Context, req *v1.StartInstanceRequest) (*v1.StartInstanceResponse, error) {

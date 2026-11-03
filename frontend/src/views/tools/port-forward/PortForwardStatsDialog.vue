@@ -1,91 +1,170 @@
-<!-- 端口转发统计（重写）：FormDialog + 摘要 + 时间段 seg + echarts。逻辑保留。 -->
+<!-- 端口转发实时统计：规则头 + 时间范围 + 指标格 + 流量速率曲线 + 并发连接柱 + 活动连接列表（可断开）+ 导出 CSV。
+     ECharts 颜色取自当前配色（usePaletteColors）。 -->
 <template>
   <FormDialog
     v-model="visible"
     :title="dialogTitle"
-    :width="820"
+    :width="860"
     :show-footer="false"
     overflow-visible
     @close="handleClosed"
   >
-    <div class="pf-stats">
-      <div class="pf-stats-bar">
-        <StatusPill
-          :variant="row?.type === PortForwardType.PORT_FORWARD_TYPE_UDP ? 'warning' : 'primary'"
-          :label="row?.type === PortForwardType.PORT_FORWARD_TYPE_UDP ? 'UDP' : 'TCP'"
-          :dot="false"
-        />
-        <span class="pf-stats-route mono">{{ row?.listenAddress }}:{{ row?.listenPort }} → {{ row?.targetAddress }}:{{ row?.targetPort }}</span>
-        <StatusPill :variant="running ? 'success' : 'neutral'" :label="running ? t('tools.portForward.stats.running') : t('tools.portForward.stats.stopped')" />
-        <span v-if="running && startTimeText" class="pf-stats-muted">{{ t('tools.portForward.stats.startTime') }} {{ startTimeText }}</span>
-      </div>
-      <div class="pf-stats-metrics">
-        <span><i>{{ t('tools.portForward.stats.activeConnections') }}</i><b>{{ activeConnections }}</b></span>
-        <span><i>{{ t('tools.portForward.stats.totalConnections') }}</i><b>{{ totalConnections }}</b></span>
-        <span><i>{{ t('tools.portForward.stats.inbound') }}</i><b>{{ formatBytes(snapshotIn) }}</b></span>
-        <span><i>{{ t('tools.portForward.stats.outbound') }}</i><b>{{ formatBytes(snapshotOut) }}</b></span>
+    <div class="pfs">
+      <div class="pfs-head">
+        <span class="m-sticker pfs-head__sticker m-mono" :class="isUdp ? 'm-sticker--a' : 'm-sticker--a2'">{{ isUdp ? 'UDP' : 'TCP' }}</span>
+        <div class="pfs-head__text">
+          <div class="pfs-head__route m-mono">
+            {{ row?.listenAddress }}:{{ row?.listenPort }}
+            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
+            <b>{{ row?.targetAddress }}:{{ row?.targetPort }}</b>
+          </div>
+          <div class="pfs-head__meta">
+            <StatusPill
+              :variant="running ? 'success' : 'neutral'"
+              :label="running ? t('tools.portForward.stats.running') : t('tools.portForward.stats.stopped')"
+            />
+            <span v-if="running && startTimeText" class="pfs-muted m-num">{{ t('tools.portForward.stats.startTime') }} {{ startTimeText }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="pf-stats-toolbar">
-        <div class="seg">
+      <div class="pfs-toolbar">
+        <div class="pfs-seg" role="radiogroup" :aria-label="t('tools.portForward.stats.rangeLabel')">
           <button
             v-for="opt in rangeOptions"
             :key="opt.value"
             type="button"
-            class="seg__btn"
-            :class="{ 'is-active': rangeKey === opt.value }"
+            role="radio"
+            class="pfs-seg__btn"
+            :class="{ 'is-on': rangeKey === opt.value }"
+            :aria-checked="rangeKey === opt.value"
             @click="setRange(opt.value)"
           >{{ opt.label }}</button>
         </div>
-        <template v-if="rangeKey === 'custom'">
-          <!-- 桌面：datetime-local；移动：拆成 date+time，避免原生日历在弹窗内溢出屏幕 -->
-          <template v-if="!isMobile">
-            <input
-              v-model="customStartLocal"
-              type="datetime-local"
-              class="app-input pf-stats-dt"
-              :aria-label="t('tools.portForward.stats.rangeStart')"
-              @change="onCustomChange"
-            />
-            <span class="pf-stats-muted">~</span>
-            <input
-              v-model="customEndLocal"
-              type="datetime-local"
-              class="app-input pf-stats-dt"
-              :aria-label="t('tools.portForward.stats.rangeEnd')"
-              @change="onCustomChange"
-            />
-          </template>
-          <template v-else>
-            <div class="pf-stats-custom-mobile">
-              <div class="pf-stats-custom-mobile__row">
-                <span>{{ t('tools.portForward.stats.rangeStart') }}</span>
-                <input v-model="customStartDate" type="date" class="app-input" @change="syncMobileCustom" />
-                <input v-model="customStartTime" type="time" class="app-input" @change="syncMobileCustom" />
-              </div>
-              <div class="pf-stats-custom-mobile__row">
-                <span>{{ t('tools.portForward.stats.rangeEnd') }}</span>
-                <input v-model="customEndDate" type="date" class="app-input" @change="syncMobileCustom" />
-                <input v-model="customEndTime" type="time" class="app-input" @change="syncMobileCustom" />
-              </div>
-            </div>
-          </template>
-        </template>
-        <span class="pf-stats-spacer" />
-        <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-refresh-cw" :loading="loading" @click="refresh">
-          {{ t('tools.portForward.stats.refresh') }}
-        </UButton>
-        <label class="pf-stats-check">
+        <span class="pfs-spacer" />
+        <label class="pfs-live">
           <input v-model="autoRefresh" type="checkbox" @change="restartPolling" />
-          <span>{{ t('tools.portForward.stats.autoRefresh') }}</span>
+          <span class="pfs-live__dot" :class="{ 'is-on': autoRefresh }" />
+          {{ t('tools.portForward.stats.live') }}
         </label>
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.portForward.stats.refresh')" :box="36" :size="18" @click="refresh" />
       </div>
 
-      <div class="pf-stats-chart-wrap">
-        <div ref="chartEl" class="pf-stats-chart" />
-        <div v-if="!points.length && !loading" class="pf-stats-empty">
-          <EmptyState icon="HOutline:ChartBarIcon" :title="t('tools.portForward.stats.noData')" />
+      <div v-if="rangeKey === 'custom'" class="pfs-custom">
+        <template v-if="!isMobile">
+          <input
+            v-model="customStartLocal"
+            type="datetime-local"
+            class="app-input pfs-dt"
+            :aria-label="t('tools.portForward.stats.rangeStart')"
+            @change="onCustomChange"
+          />
+          <span class="pfs-muted">{{ t('tools.portForward.stats.to') }}</span>
+          <input
+            v-model="customEndLocal"
+            type="datetime-local"
+            class="app-input pfs-dt"
+            :aria-label="t('tools.portForward.stats.rangeEnd')"
+            @change="onCustomChange"
+          />
+        </template>
+        <template v-else>
+          <div class="pfs-custom__row">
+            <span>{{ t('tools.portForward.stats.rangeStart') }}</span>
+            <input v-model="customStartDate" type="date" class="app-input" @change="syncMobileCustom" />
+            <input v-model="customStartTime" type="time" class="app-input" @change="syncMobileCustom" />
+          </div>
+          <div class="pfs-custom__row">
+            <span>{{ t('tools.portForward.stats.rangeEnd') }}</span>
+            <input v-model="customEndDate" type="date" class="app-input" @change="syncMobileCustom" />
+            <input v-model="customEndTime" type="time" class="app-input" @change="syncMobileCustom" />
+          </div>
+        </template>
+      </div>
+
+      <dl class="pfs-stats">
+        <div>
+          <dt>{{ t('tools.portForward.stats.rateIn') }}</dt>
+          <dd class="m-num is-p">{{ formatRate(rateIn, '0 B/s') }}</dd>
         </div>
+        <div>
+          <dt>{{ t('tools.portForward.stats.rateOut') }}</dt>
+          <dd class="m-num">{{ formatRate(rateOut, '0 B/s') }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('tools.portForward.stats.activeConnections') }}</dt>
+          <dd class="m-num">{{ activeConnections }}<small> / {{ t('tools.portForward.stats.totalShort', { n: totalConnections }) }}</small></dd>
+        </div>
+        <div>
+          <dt>{{ t('tools.portForward.stats.rangeTraffic') }}</dt>
+          <dd class="m-num">{{ formatBytes(rangeTraffic) }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('tools.portForward.stats.totalTraffic') }}</dt>
+          <dd class="m-num">{{ formatBytes(totalIn + totalOut) }}</dd>
+        </div>
+      </dl>
+
+      <section class="pfs-card">
+        <div class="pfs-card__head">
+          <span class="pfs-card__title">{{ t('tools.portForward.stats.rateChart') }}</span>
+          <span class="pfs-legend"><i class="is-in" />{{ t('tools.portForward.stats.inbound') }}</span>
+          <span class="pfs-legend"><i class="is-out" />{{ t('tools.portForward.stats.outbound') }}</span>
+        </div>
+        <div class="pfs-chart-wrap">
+          <div ref="rateEl" class="pfs-chart" />
+          <div v-if="!points.length && !loading" class="pfs-empty">{{ t('tools.portForward.stats.noData') }}</div>
+        </div>
+      </section>
+
+      <section class="pfs-card">
+        <div class="pfs-card__head">
+          <span class="pfs-card__title">{{ t('tools.portForward.stats.connectionsChart') }}</span>
+          <span class="pfs-muted m-num">{{ t('tools.portForward.stats.peak', { n: connPeak }) }}</span>
+        </div>
+        <div class="pfs-chart-wrap is-small">
+          <div ref="connEl" class="pfs-chart" />
+        </div>
+      </section>
+
+      <section class="pfs-card">
+        <div class="pfs-card__head">
+          <span class="pfs-card__title">{{ t('tools.portForward.stats.liveConnections', { n: connections.length }) }}</span>
+        </div>
+        <div v-if="connections.length" class="pfs-conns">
+          <div v-for="c in visibleConnections" :key="c.id" class="pfs-conn">
+            <span class="pfs-conn__dot" />
+            <span class="pfs-conn__main">
+              <span class="m-mono pfs-conn__addr">{{ c.remoteAddr }}</span>
+              <span class="pfs-muted">
+                {{ c.lan ? t('tools.portForward.stats.lan') : t('tools.portForward.stats.public') }} ·
+                {{ t('tools.portForward.stats.connectedFor', { d: formatDuration(Date.now() - (toDate(c.startTime)?.getTime() || Date.now()), t) }) }}
+              </span>
+            </span>
+            <span class="pfs-conn__bytes m-num">↓ {{ formatBytes(c.bytesIn) }}<br /><small>↑ {{ formatBytes(c.bytesOut) }}</small></span>
+            <AppIconButton
+              icon="HOutline:XMarkIcon"
+              class="pfs-conn__kill"
+              :label="t('tools.portForward.stats.disconnect', { addr: c.remoteAddr })"
+              :box="36"
+              :size="16"
+              @click="closeConns([c.id])"
+            />
+          </div>
+          <button v-if="connections.length > CONN_LIMIT && !showAllConns" type="button" class="pfs-more" @click="showAllConns = true">
+            {{ t('tools.portForward.stats.showAll', { n: connections.length }) }}
+          </button>
+        </div>
+        <div v-else class="pfs-conns__empty">{{ t('tools.portForward.stats.noConnections') }}</div>
+      </section>
+
+      <div class="pfs-foot">
+        <UButton color="neutral" variant="soft" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
+          {{ t('tools.portForward.stats.exportCsv') }}
+        </UButton>
+        <UButton color="error" variant="soft" icon="i-lucide-unplug" :disabled="!connections.length" @click="closeConns()">
+          {{ t('tools.portForward.stats.disconnectAll') }}
+        </UButton>
       </div>
     </div>
   </FormDialog>
@@ -94,23 +173,27 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
-import { getPortForwardStats } from '@/api/network'
-import { PortForwardType, type PortForwardInfo, type PortForwardStatPoint } from '@/types/v1/network'
+import { getPortForwardStats, closePortForwardConnections } from '@/api/network'
+import { PortForwardType, type PortForwardInfo, type PortForwardStatPoint, type PortForwardConnection } from '@/types/v1/network'
 import { showRequestError } from '@/utils/request'
+import { usePaletteColors, withAlpha } from '@/composables/usePaletteColors'
+import { formatBytes, formatRate, formatDateTime, formatDuration, toDate, downloadText } from '@/views/tools/components/format'
 
 type RangeKey = '5m' | '30m' | '1h' | '6h' | '24h' | 'custom'
-type ChartPoint = { time: string; activeConnections: number; inboundRate: number; outboundRate: number }
-type ChartTooltipParam = { axisValueLabel?: string; marker?: string; seriesName?: string; value?: number | string }
+type ChartPoint = { ts: number; label: string; activeConnections: number; inboundRate: number; outboundRate: number; bytesIn: number; bytesOut: number }
+type TooltipParam = { axisValueLabel?: string; marker?: string; seriesName?: string; value?: number | string }
 
-const POLL_INTERVAL_MS = 10000
+const POLL_INTERVAL_MS = 5000
+const CONN_LIMIT = 8
 const PRESET_SECONDS: Record<Exclude<RangeKey, 'custom'>, number> = {
   '5m': 300, '30m': 1800, '1h': 3600, '6h': 21600, '24h': 86400,
 }
 
 const props = defineProps<{ modelValue: boolean; row: PortForwardInfo | null }>()
-const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: boolean]; changed: [] }>()
 const { t, locale } = useI18n()
 const menuStore = useMenuStore()
+const palette = usePaletteColors()
 const isMobile = computed(() => menuStore.isMobile)
 
 const visible = computed({
@@ -118,7 +201,8 @@ const visible = computed({
   set: (value: boolean) => emit('update:modelValue', value),
 })
 
-const chartEl = ref<HTMLDivElement | null>(null)
+const rateEl = ref<HTMLDivElement | null>(null)
+const connEl = ref<HTMLDivElement | null>(null)
 const rangeKey = ref<RangeKey>('1h')
 const customStart = ref<Date | null>(null)
 const customEnd = ref<Date | null>(null)
@@ -130,14 +214,35 @@ const loading = ref(false)
 const autoRefresh = ref(true)
 const running = ref(false)
 const startTime = ref<Date | null>(null)
-const snapshotIn = ref(0)
-const snapshotOut = ref(0)
 const activeConnections = ref(0)
 const totalConnections = ref(0)
+const rateIn = ref(0)
+const rateOut = ref(0)
+const totalIn = ref(0)
+const totalOut = ref(0)
 const points = ref<ChartPoint[]>([])
+const connections = ref<PortForwardConnection[]>([])
+const showAllConns = ref(false)
 
-let chart: echarts.ECharts | null = null
+let rateChart: echarts.ECharts | null = null
+let connChart: echarts.ECharts | null = null
 let pollTimer: ReturnType<typeof setTimeout> | null = null
+
+const isUdp = computed(() => props.row?.type === PortForwardType.PORT_FORWARD_TYPE_UDP)
+const visibleConnections = computed(() => (showAllConns.value ? connections.value : connections.value.slice(0, CONN_LIMIT)))
+const connPeak = computed(() => points.value.reduce((m, p) => Math.max(m, p.activeConnections), activeConnections.value))
+const rangeTraffic = computed(() => {
+  // 区间流量：相邻采样累计值之差（计数归零时取新值）
+  let sum = 0
+  for (let i = 1; i < points.value.length; i++) {
+    const a = points.value[i - 1]!
+    const b = points.value[i]!
+    const dIn = b.bytesIn - a.bytesIn
+    const dOut = b.bytesOut - a.bytesOut
+    sum += dIn < 0 || dOut < 0 ? b.bytesIn + b.bytesOut : dIn + dOut
+  }
+  return sum
+})
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const toLocalInput = (d: Date) =>
@@ -185,33 +290,11 @@ const dialogTitle = computed(() => {
   const name = props.row?.name
   return name ? t('tools.portForward.stats.titleWithName', { name }) : t('tools.portForward.stats.title')
 })
-const startTimeText = computed(() => {
-  if (!running.value || !startTime.value) return ''
-  const d = startTime.value
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-})
-const chartLabels = computed(() => ({
-  connections: t('tools.portForward.stats.connectionsChart'),
-  inbound: t('tools.portForward.stats.inbound'),
-  outbound: t('tools.portForward.stats.outbound'),
-}))
+const startTimeText = computed(() => (startTime.value ? formatDateTime(startTime.value) : ''))
 
-const toNumber = (value?: number | string) => Number(value || 0)
-const formatBytes = (bytes?: number | string) => {
-  const n = Number(bytes)
-  if (!n) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let i = 0
-  let v = n
-  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++ }
-  return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
-}
-const formatRate = (bytesPerSecond?: number | string) => `${formatBytes(bytesPerSecond)}/s`
-const formatAxisTime = (date: Date) => {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
+const num = (value?: number | string) => Number(value || 0)
+const axisLabel = (d: Date, spanSeconds: number) =>
+  spanSeconds > 86400 ? `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}` : `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
 
 const resolveRange = (): { startTimeMs: number; endTimeMs: number } => {
   if (rangeKey.value === 'custom' && customStart.value && customEnd.value) {
@@ -225,147 +308,141 @@ const resolveRange = (): { startTimeMs: number; endTimeMs: number } => {
   return { startTimeMs: end - seconds * 1000, endTimeMs: end }
 }
 
-const buildChartPoints = (raw: PortForwardStatPoint[]): ChartPoint[] =>
+const buildChartPoints = (raw: PortForwardStatPoint[], spanSeconds: number): ChartPoint[] =>
   raw.map((point, index) => {
-    const time = point.time ? new Date(point.time) : new Date()
-    const bytesIn = toNumber(point.bytesIn)
-    const bytesOut = toNumber(point.bytesOut)
+    const time = toDate(point.time) || new Date()
+    const bytesIn = num(point.bytesIn)
+    const bytesOut = num(point.bytesOut)
     let inboundRate = 0
     let outboundRate = 0
     const prev = index > 0 ? raw[index - 1] : undefined
     if (prev) {
-      const prevTime = prev.time ? new Date(prev.time).getTime() : time.getTime()
+      const prevTime = toDate(prev.time)?.getTime() ?? time.getTime()
       const dt = Math.max(1, (time.getTime() - prevTime) / 1000)
-      inboundRate = Math.max(0, (bytesIn - toNumber(prev.bytesIn)) / dt)
-      outboundRate = Math.max(0, (bytesOut - toNumber(prev.bytesOut)) / dt)
+      const dIn = bytesIn - num(prev.bytesIn)
+      const dOut = bytesOut - num(prev.bytesOut)
+      inboundRate = Math.max(0, (dIn < 0 ? bytesIn : dIn) / dt)
+      outboundRate = Math.max(0, (dOut < 0 ? bytesOut : dOut) / dt)
     }
-    return { time: formatAxisTime(time), activeConnections: toNumber(point.activeConnections), inboundRate, outboundRate }
+    return {
+      ts: time.getTime(),
+      label: axisLabel(time, spanSeconds),
+      activeConnections: num(point.activeConnections),
+      inboundRate,
+      outboundRate,
+      bytesIn,
+      bytesOut,
+    }
   })
 
 const tooltipFormatter = (params: unknown) => {
-  const items = (Array.isArray(params) ? params : [params]) as ChartTooltipParam[]
+  const items = (Array.isArray(params) ? params : [params]) as TooltipParam[]
   const title = items[0]?.axisValueLabel || ''
   const rows = items.map((item) => {
-    const name = item.seriesName || ''
     const value = Number(item.value ?? 0)
-    const text = name === chartLabels.value.connections ? String(value) : formatRate(value)
-    return `<div class="pf-stats-tooltip__row"><span>${item.marker || ''}${name}</span><strong>${text}</strong></div>`
+    const text = item.seriesName === t('tools.portForward.stats.connectionsChart') ? String(value) : formatRate(value, '0 B/s')
+    return `<div style="display:flex;justify-content:space-between;gap:16px"><span>${item.marker || ''}${item.seriesName || ''}</span><b>${text}</b></div>`
   }).join('')
-  return `<div class="pf-stats-tooltip"><div class="pf-stats-tooltip__title">${title}</div>${rows}</div>`
+  return `<div style="min-width:160px"><div style="margin-bottom:4px;font-weight:700">${title}</div>${rows}</div>`
 }
 
-const themeColors = () => {
-  // echarts canvas 不解析 CSS 变量，必须用实色
-  const isDark = document.documentElement.classList.contains('dark')
+const baseOption = () => {
+  const c = palette.value
   return {
-    isDark,
-    text: isDark ? '#c9d1d9' : '#4b5563',
-    muted: isDark ? '#8b949e' : '#9ca3af',
-    split: isDark ? 'rgba(148,163,184,0.18)' : '#e5e7eb',
-    bg: isDark ? '#0d1117' : '#ffffff',
+    backgroundColor: 'transparent',
+    textStyle: { fontFamily: 'inherit' },
+    tooltip: {
+      trigger: 'axis' as const,
+      confine: true,
+      formatter: tooltipFormatter,
+      backgroundColor: c.s,
+      borderColor: c.line,
+      textStyle: { color: c.ink, fontSize: 12 },
+    },
+    xAxis: {
+      type: 'category' as const,
+      boundaryGap: false,
+      data: points.value.map((p) => p.label),
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: c.line } },
+      axisLabel: { color: c.ink2, fontSize: 11, hideOverlap: true },
+    },
   }
 }
 
-const ensureChart = () => {
-  if (!chartEl.value) return
-  if (!chart) chart = echarts.init(chartEl.value, undefined, { renderer: 'canvas' })
+const ensureCharts = () => {
+  if (rateEl.value && !rateChart) rateChart = echarts.init(rateEl.value, undefined, { renderer: 'canvas' })
+  if (connEl.value && !connChart) connChart = echarts.init(connEl.value, undefined, { renderer: 'canvas' })
 }
 
-const updateChart = (animate = false) => {
-  ensureChart()
-  if (!chart) return
-  const labels = chartLabels.value
-  const theme = themeColors()
-  const hasPoints = points.value.length > 0
-  // 采样点很少时显示节点，避免「有数据但看不见线」
+const updateCharts = (animate = false) => {
+  ensureCharts()
+  const c = palette.value
   const showSymbol = points.value.length > 0 && points.value.length <= 8
-
-  chart.setOption({
-    backgroundColor: theme.bg,
+  const base = baseOption()
+  rateChart?.setOption({
+    ...base,
     animation: animate,
-    animationDuration: 400,
-    animationDurationUpdate: 300,
-    color: ['#2f7cff', '#13b981', '#f59e0b'],
-    tooltip: {
-      trigger: 'axis',
-      formatter: tooltipFormatter,
-      confine: true,
-      backgroundColor: theme.isDark ? '#161b22' : '#fff',
-      borderColor: theme.split,
-      textStyle: { color: theme.text, fontSize: 12 },
+    color: [c.p, c.a2],
+    grid: { top: 12, left: 8, right: 12, bottom: 4, containLabel: true },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      splitNumber: 3,
+      splitLine: { lineStyle: { color: c.line, type: 'dashed' } },
+      axisLabel: { color: c.ink2, fontSize: 11, formatter: (v: number) => formatRate(v, '0') },
     },
-    legend: {
-      top: 4,
-      left: 8,
-      itemWidth: 10,
-      itemHeight: 10,
-      itemGap: 12,
-      textStyle: { color: theme.text, fontSize: 11 },
-      data: [labels.connections, labels.inbound, labels.outbound],
-    },
-    grid: { top: 40, left: 48, right: 72, bottom: 30 },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: points.value.map((item) => item.time),
-      axisTick: { alignWithLabel: true },
-      axisLabel: { color: theme.muted, fontSize: 11 },
-      axisLine: { lineStyle: { color: theme.split } },
-    },
-    yAxis: [
-      {
-        type: 'value',
-        min: 0,
-        minInterval: 1,
-        splitLine: { lineStyle: { color: theme.split } },
-        axisLabel: { color: theme.muted, fontSize: 11 },
-      },
-      {
-        type: 'value',
-        min: 0,
-        axisLabel: { formatter: (value: number) => formatRate(value), color: theme.muted, fontSize: 11 },
-        splitLine: { show: false },
-      },
-    ],
     series: [
       {
-        name: labels.connections,
+        name: t('tools.portForward.stats.inbound'),
         type: 'line',
-        yAxisIndex: 0,
-        data: points.value.map((i) => i.activeConnections),
+        smooth: true,
         showSymbol,
         symbolSize: 6,
-        smooth: true,
-        lineStyle: { width: 2 },
+        data: points.value.map((p) => p.inboundRate),
+        lineStyle: { width: 2.5, color: c.p },
+        itemStyle: { color: c.p },
+        areaStyle: { color: withAlpha(c.p, 0.14) },
       },
       {
-        name: labels.inbound,
+        name: t('tools.portForward.stats.outbound'),
         type: 'line',
-        yAxisIndex: 1,
-        data: points.value.map((i) => i.inboundRate),
+        smooth: true,
         showSymbol,
         symbolSize: 6,
-        smooth: true,
-        areaStyle: { opacity: theme.isDark ? 0.12 : 0.08 },
-        lineStyle: { width: 2 },
-      },
-      {
-        name: labels.outbound,
-        type: 'line',
-        yAxisIndex: 1,
-        data: points.value.map((i) => i.outboundRate),
-        showSymbol,
-        symbolSize: 6,
-        smooth: true,
-        areaStyle: { opacity: theme.isDark ? 0.12 : 0.08 },
-        lineStyle: { width: 2 },
+        data: points.value.map((p) => p.outboundRate),
+        lineStyle: { width: 2, color: c.a2, type: 'dashed' },
+        itemStyle: { color: c.a2 },
       },
     ],
-    // 无点时清空，避免旧 series 残留
-    ...(hasPoints ? {} : { series: [] }),
-  }, { notMerge: false, lazyUpdate: false })
-  // FormDialog 打开后尺寸才稳定，强制 resize
-  requestAnimationFrame(() => chart?.resize())
+  }, { notMerge: true })
+  connChart?.setOption({
+    ...base,
+    animation: animate,
+    xAxis: { ...base.xAxis, boundaryGap: true },
+    grid: { top: 8, left: 8, right: 12, bottom: 4, containLabel: true },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      minInterval: 1,
+      splitNumber: 2,
+      splitLine: { lineStyle: { color: c.line, type: 'dashed' } },
+      axisLabel: { color: c.ink2, fontSize: 11 },
+    },
+    series: [
+      {
+        name: t('tools.portForward.stats.connectionsChart'),
+        type: 'bar',
+        barMaxWidth: 14,
+        data: points.value.map((p) => p.activeConnections),
+        itemStyle: { color: c.a, borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  }, { notMerge: true })
+  requestAnimationFrame(() => {
+    rateChart?.resize()
+    connChart?.resize()
+  })
 }
 
 const stopPolling = () => {
@@ -373,29 +450,29 @@ const stopPolling = () => {
 }
 const schedulePolling = () => {
   stopPolling()
-  if (!visible.value || !autoRefresh.value) return
+  if (!visible.value || !autoRefresh.value || rangeKey.value === 'custom') return
   pollTimer = setTimeout(() => { void loadStats() }, POLL_INTERVAL_MS)
 }
 
 const loadStats = async (animate = false) => {
   if (!props.row?.id) return
-  // 允许切换时间段打断上一次 loading 语义：只挡并发重复请求用本地锁不够，直接覆盖
   loading.value = true
   try {
     const range = resolveRange()
     const { data } = await getPortForwardStats({ id: props.row.id, startTimeMs: range.startTimeMs, endTimeMs: range.endTimeMs })
     const snapshot = data?.snapshot
     running.value = !!snapshot?.running
-    activeConnections.value = toNumber(snapshot?.activeConnections)
-    totalConnections.value = toNumber(snapshot?.totalConnections)
-    snapshotIn.value = toNumber(snapshot?.bytesIn)
-    snapshotOut.value = toNumber(snapshot?.bytesOut)
-    startTime.value = snapshot?.startTime ? new Date(snapshot.startTime) : null
-    points.value = buildChartPoints(data?.points || [])
+    activeConnections.value = num(snapshot?.activeConnections)
+    totalConnections.value = num(snapshot?.totalConnections)
+    rateIn.value = num(snapshot?.rateIn)
+    rateOut.value = num(snapshot?.rateOut)
+    totalIn.value = num(snapshot?.totalBytesIn)
+    totalOut.value = num(snapshot?.totalBytesOut)
+    startTime.value = toDate(snapshot?.startTime)
+    connections.value = data?.connections || []
+    points.value = buildChartPoints(data?.points || [], (range.endTimeMs - range.startTimeMs) / 1000)
     await nextTick()
-    updateChart(animate)
-    await nextTick()
-    chart?.resize()
+    updateCharts(animate)
   } catch (error) {
     showRequestError(error, t('tools.portForward.stats.loadFailed'))
   } finally {
@@ -406,7 +483,6 @@ const loadStats = async (animate = false) => {
 
 const refresh = () => {
   stopPolling()
-  loading.value = false
   void loadStats(true)
 }
 const setRange = (key: RangeKey) => {
@@ -424,138 +500,251 @@ const setRange = (key: RangeKey) => {
 const onCustomChange = () => { if (customStart.value && customEnd.value) refresh() }
 const restartPolling = () => { if (autoRefresh.value) schedulePolling(); else stopPolling() }
 
+const closeConns = async (ids?: string[]) => {
+  if (!props.row?.id) return
+  try {
+    const { data } = await closePortForwardConnections({ id: props.row.id, connIds: ids || [], all: !ids })
+    feedback.success(t('tools.portForward.stats.disconnected', { n: Number(data?.closed || 0) }))
+    emit('changed')
+    setTimeout(() => void loadStats(), 300)
+  } catch {
+    /* interceptor */
+  }
+}
+
+const exportCsv = () => {
+  const header = 'time,active_connections,inbound_bytes_per_sec,outbound_bytes_per_sec,inbound_total_bytes,outbound_total_bytes'
+  const lines = points.value.map((p) =>
+    [formatDateTime(new Date(p.ts)), p.activeConnections, Math.round(p.inboundRate), Math.round(p.outboundRate), p.bytesIn, p.bytesOut].join(','),
+  )
+  downloadText(`port-forward-${props.row?.name || 'stats'}.csv`, [header, ...lines].join('\n') + '\n', 'text/csv;charset=utf-8')
+}
+
 const handleOpened = async () => {
+  showAllConns.value = false
   await nextTick()
-  ensureChart()
-  chart?.resize()
+  ensureCharts()
   await loadStats(true)
 }
-const handleClosed = () => { stopPolling(); points.value = [] }
+const handleClosed = () => {
+  stopPolling()
+  points.value = []
+  connections.value = []
+  rateChart?.dispose()
+  connChart?.dispose()
+  rateChart = null
+  connChart = null
+}
 
 watch(visible, (open) => { if (open) void handleOpened(); else handleClosed() })
-watch(locale, () => { if (visible.value) updateChart() })
-const resizeChart = () => chart?.resize()
-onMounted(() => window.addEventListener('resize', resizeChart))
+watch(() => props.row?.id, (id, prev) => { if (visible.value && id && id !== prev) void loadStats(true) })
+watch([locale, palette], () => { if (visible.value) updateCharts() }, { deep: true })
+const resizeCharts = () => {
+  rateChart?.resize()
+  connChart?.resize()
+}
+onMounted(() => window.addEventListener('resize', resizeCharts))
 onBeforeUnmount(() => {
-  stopPolling()
-  window.removeEventListener('resize', resizeChart)
-  chart?.dispose()
-  chart = null
+  window.removeEventListener('resize', resizeCharts)
+  handleClosed()
 })
 </script>
 
 <style scoped lang="scss">
-.pf-stats { display: flex; flex-direction: column; gap: 10px; }
-.pf-stats-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 0.8125rem; }
-.pf-stats-route { color: var(--el-text-color-primary); font-weight: 600; }
-.pf-stats-muted { color: var(--el-text-color-secondary); font-size: 0.75rem; }
-.pf-stats-metrics {
-  display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 8px 12px;
-  border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius);
-  span { display: inline-flex; align-items: baseline; gap: 6px; }
-  i { color: var(--el-text-color-secondary); font-style: normal; font-size: 0.75rem; }
-  b { color: var(--el-text-color-primary); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.pfs { display: flex; flex-direction: column; gap: 14px; }
+.pfs-muted { font-size: 0.75rem; color: var(--el-text-color-secondary); }
+.pfs-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pfs-head__sticker {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  font-size: 0.8125rem;
+  transform: rotate(-5deg);
 }
-.pf-stats-toolbar {
+.pfs-head__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pfs-head__route {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px 8px;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--el-text-color-regular);
+  b { color: var(--el-text-color-primary); }
+  :deep(svg) { width: 14px; height: 14px; color: var(--m-p); }
 }
-/* 切勿 width:100%：会把刷新/自定义时间挤到下一行，造成大块空白 */
-.seg {
+.pfs-head__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+.pfs-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pfs-spacer { flex: 1; }
+.pfs-seg {
   display: inline-flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  flex: 0 1 auto;
-  padding: 2px;
   gap: 2px;
-  background: var(--el-fill-color-light);
-  border-radius: var(--app-radius);
+  padding: 3px;
   max-width: 100%;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
   overflow-x: auto;
+  scrollbar-width: none;
 }
-.seg__btn {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  padding: 5px 9px;
+.pfs-seg::-webkit-scrollbar { display: none; }
+.pfs-seg__btn {
+  flex: none;
+  min-height: 34px;
+  padding: 0 12px;
   border: none;
+  border-radius: 999px;
   background: transparent;
-  border-radius: var(--app-radius-sm);
   color: var(--el-text-color-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
-  line-height: 1.2;
 }
-.seg__btn.is-active {
+.pfs-seg__btn.is-on {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   box-shadow: var(--app-shadow-sm);
 }
-.pf-stats-dt {
-  width: 11.5rem;
-  max-width: 100%;
-  height: 32px;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.8125rem;
-}
-.pf-stats-custom-mobile {
-  display: flex;
-  flex-direction: column;
+.pfs-live {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  width: 100%;
-  flex-basis: 100%;
+  min-height: 36px;
+  padding: 0 4px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  user-select: none;
+  input { position: absolute; opacity: 0; pointer-events: none; }
 }
-.pf-stats-custom-mobile__row {
+.pfs-live__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--el-border-color-light);
+}
+.pfs-live__dot.is-on { background: var(--m-ok); box-shadow: 0 0 0 4px var(--m-okSoft); }
+.pfs-custom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pfs-dt { width: 12rem; height: 38px; font-variant-numeric: tabular-nums; }
+.pfs-custom__row {
   display: grid;
-  grid-template-columns: 4.5rem 1fr 5.5rem;
+  grid-template-columns: 4rem 1fr 6rem;
   gap: 6px;
   align-items: center;
-  span {
-    font-size: 0.72rem;
-    color: var(--el-text-color-placeholder);
-    font-weight: 600;
-  }
-  .app-input {
+  width: 100%;
+  span { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); }
+  .app-input { min-width: 0; height: 40px; }
+}
+
+.pfs-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  > div {
     min-width: 0;
-    height: 32px;
-    font-size: 0.8125rem;
+    padding: 12px 14px;
+    border-radius: var(--app-radius);
+    background: var(--el-fill-color-light);
   }
+  dt { font-size: 0.72rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+  dd {
+    margin: 4px 0 0;
+    font-family: var(--app-font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--el-text-color-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    small { font-family: inherit; font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
+  }
+  dd.is-p { color: var(--m-pInk); }
 }
-.pf-stats-spacer { flex: 1 1 8px; min-width: 0; }
-.pf-stats-check {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;
-  color: var(--el-text-color-regular); cursor: pointer; user-select: none;
-}
-.pf-stats-check input { accent-color: var(--el-color-primary); }
-.pf-stats-chart-wrap {
-  position: relative;
-  width: 100%;
-  height: 16rem;
-  min-height: 256px;
+
+.pfs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
+}
+.pfs-card__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pfs-card__title { flex: 1; font-size: 0.875rem; font-weight: 800; color: var(--el-text-color-primary); }
+.pfs-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  i { width: 14px; height: 3px; border-radius: 2px; }
+  i.is-in { background: var(--m-p); }
+  i.is-out { background: var(--m-a2); }
+}
+.pfs-chart-wrap { position: relative; height: 200px; }
+.pfs-chart-wrap.is-small { height: 110px; }
+.pfs-chart { width: 100%; height: 100%; }
+.pfs-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+
+.pfs-conns { display: flex; flex-direction: column; }
+.pfs-conn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 0;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.pfs-conn:first-child { border-top: none; }
+.pfs-conn__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--m-ok); }
+.pfs-conn__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pfs-conn__addr {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  white-space: nowrap;
   overflow: hidden;
-  background: var(--el-bg-color);
+  text-overflow: ellipsis;
 }
-.pf-stats-chart {
-  width: 100%;
-  height: 100%;
-  min-height: 256px;
+.pfs-conn__bytes {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--el-text-color-primary);
+  line-height: 1.35;
+  small { font-weight: 600; color: var(--el-text-color-secondary); }
 }
-.pf-stats-empty {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: var(--el-bg-color); border-radius: var(--app-radius);
+.pfs-conns :deep(.pfs-conn__kill:hover) { color: var(--m-bad); background: var(--m-badSoft); }
+.pfs-conns__empty { padding: 14px 0 6px; font-size: 0.8125rem; color: var(--el-text-color-secondary); text-align: center; }
+.pfs-more {
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--m-pInk);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
 }
-.mono { font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace; }
-:global(.pf-stats-tooltip) { min-width: 11rem; }
-:global(.pf-stats-tooltip__title) { margin-bottom: 0.35rem; color: var(--el-text-color-regular); font-weight: 600; }
-:global(.pf-stats-tooltip__row) { display: flex; justify-content: space-between; gap: 1rem; line-height: 1.6; }
-:global(.pf-stats-tooltip__row span) { color: var(--el-text-color-secondary); }
+.pfs-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
 @media (width <= 768px) {
-  .pf-stats-spacer { display: none; }
-  .pf-stats-dt { flex: 1; width: auto; }
+  .pfs-stats { grid-template-columns: 1fr 1fr; }
+  .pfs-stats > div:last-child { grid-column: 1 / -1; }
+  .pfs-spacer { display: none; }
+  .pfs-seg { width: 100%; }
+  .pfs-seg__btn { flex: 1; }
+  .pfs-chart-wrap { height: 170px; }
+  .pfs-foot > * { flex: 1; justify-content: center; }
 }
 </style>

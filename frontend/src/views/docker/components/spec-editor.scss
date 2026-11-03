@@ -1,0 +1,98 @@
+// 容器 端口/挂载/环境变量 编辑器共用样式（各编辑器 scoped 引入；列宽在各自组件里定义）
+.spec-ed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.spec-ed__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.spec-ed__grid {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+.spec-ed__labels span {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spec-ed__row {
+  min-width: 0;
+}
+.spec-ed__row .app-input {
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+.spec-ed__arrow {
+  text-align: center;
+  color: var(--el-text-color-placeholder);
+  font-weight: 700;
+}
+.spec-ed__empty {
+  padding: 14px 12px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+.spec-ed__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px dashed var(--el-border-color-light);
+  border-radius: var(--app-radius);
+  background: transparent;
+  color: var(--m-pInk);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.spec-ed__add:hover {
+  border-color: var(--m-p);
+  background: var(--m-pSoft);
+}
+.spec-ed__add :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+
+// 小分段（TCP/UDP、读写/只读）
+.spec-seg {
+  display: flex;
+  height: 38px;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--app-radius-sm);
+  background: var(--el-fill-color-light);
+}
+.spec-seg__btn {
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.spec-seg__btn.is-on {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
+}

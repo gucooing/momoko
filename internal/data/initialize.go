@@ -47,8 +47,44 @@ func (r *initializeRepo) ConfirmInitialize(ctx context.Context, databaseType v1.
 	return initialize.WriteMarker()
 }
 
-func (r *initializeRepo) TestDatabase(ctx context.Context, database *conf.Data_Database) error {
-	return TestDatabaseConnection(ctx, database)
+func (r *initializeRepo) TestDatabase(ctx context.Context, database *conf.Data_Database) (string, error) {
+	if err := TestDatabaseConnection(ctx, database); err != nil {
+		return "", err
+	}
+	return databaseServerVersion(ctx, database), nil
+}
+
+// databaseServerVersion 查询数据库服务端版本，用于初始化向导展示；查询失败返回空串。
+func databaseServerVersion(ctx context.Context, database *conf.Data_Database) string {
+	db, err := sql.Open(database.Driver, database.Source)
+	if err != nil {
+		return ""
+	}
+	defer db.Close()
+	var query, prefix string
+	switch database.Driver {
+	case "sqlite3", "sqlite":
+		query, prefix = "SELECT sqlite_version()", "SQLite "
+	case "mysql":
+		query, prefix = "SELECT VERSION()", "MySQL "
+	case "postgres", "pgx":
+		query, prefix = "SHOW server_version", "PostgreSQL "
+	default:
+		return ""
+	}
+	var v string
+	if err := db.QueryRowContext(ctx, query).Scan(&v); err != nil {
+		return ""
+	}
+	v = strings.TrimSpace(v)
+	if database.Driver == "mysql" && strings.Contains(strings.ToLower(v), "mariadb") {
+		prefix = "MariaDB "
+		v = strings.SplitN(v, "-MariaDB", 2)[0]
+	}
+	if i := strings.IndexAny(v, " ("); i > 0 && prefix == "PostgreSQL " {
+		v = v[:i]
+	}
+	return prefix + v
 }
 
 func TestDatabaseConnection(ctx context.Context, database *conf.Data_Database) error {

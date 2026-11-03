@@ -24,6 +24,10 @@
         <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
         <span class="tn-form__tip">{{ t('tools.tunnel.nameTip') }}</span>
       </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.tunnel.remark') }}</label>
+        <input v-model="form.remark" class="app-input" :placeholder="t('tools.tunnel.remarkPlaceholder')" maxlength="120" />
+      </div>
 
       <!-- 类型：大按钮网格，一眼看懂差异（不是下拉埋信息） -->
       <div class="app-field">
@@ -200,6 +204,7 @@ const defaultForm = () => ({
   maxBandwidth: '',
   maxActiveConns: 0,
   isEnable: true,
+  remark: '',
 })
 const form = ref(defaultForm())
 
@@ -268,6 +273,7 @@ const confirm = async () => {
         maxBandwidth: form.value.maxBandwidth,
         maxActiveConns: form.value.maxActiveConns,
         isEnable: form.value.isEnable,
+        remark: form.value.remark.trim(),
       })
       feedback.success(t('tools.tunnel.editSuccess'))
     } else {
@@ -283,6 +289,7 @@ const confirm = async () => {
         maxBandwidth: form.value.maxBandwidth,
         maxActiveConns: form.value.maxActiveConns,
         isEnable: form.value.isEnable,
+        remark: form.value.remark.trim(),
       })
       feedback.success(t('tools.tunnel.addSuccess'))
     }
@@ -316,6 +323,7 @@ const showDialog = (payload?: TunnelInfo) => {
     maxBandwidth: payload.maxBandwidth || '',
     maxActiveConns: payload.maxActiveConns || 0,
     isEnable: payload.isEnable ?? true,
+    remark: payload.remark || '',
   }
   // 编辑时若已有高级字段，自动展开，避免「有值看不见」
   if (payload.allowUsers || payload.maxBandwidth || payload.maxActiveConns) showAdvanced.value = true

@@ -238,6 +238,20 @@ func (_u *FrpTunnelUpdate) AddMaxActiveConns(v int) *FrpTunnelUpdate {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *FrpTunnelUpdate) SetRemark(v string) *FrpTunnelUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *FrpTunnelUpdate) SetNillableRemark(v *string) *FrpTunnelUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FrpTunnelUpdate) SetUser(v *User) *FrpTunnelUpdate {
 	return _u.SetUserID(v.ID)
@@ -377,6 +391,9 @@ func (_u *FrpTunnelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedMaxActiveConns(); ok {
 		_spec.AddField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(frptunnel.FieldRemark, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -636,6 +653,20 @@ func (_u *FrpTunnelUpdateOne) AddMaxActiveConns(v int) *FrpTunnelUpdateOne {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *FrpTunnelUpdateOne) SetRemark(v string) *FrpTunnelUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *FrpTunnelUpdateOne) SetNillableRemark(v *string) *FrpTunnelUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FrpTunnelUpdateOne) SetUser(v *User) *FrpTunnelUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -805,6 +836,9 @@ func (_u *FrpTunnelUpdateOne) sqlSave(ctx context.Context) (_node *FrpTunnel, er
 	}
 	if value, ok := _u.mutation.AddedMaxActiveConns(); ok {
 		_spec.AddField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(frptunnel.FieldRemark, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

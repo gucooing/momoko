@@ -36,6 +36,12 @@ type UserAPIKey struct {
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// 所属用户id
 	UserID string `json:"user_id,omitempty"`
+	// 用途备注
+	Remark string `json:"remark,omitempty"`
+	// 最近一次被远程主控调用的时间
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	// 最近一次调用来源 IP
+	LastUsedIP string `json:"last_used_ip,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserAPIKeyQuery when eager-loading is set.
 	Edges        UserAPIKeyEdges `json:"edges"`
@@ -69,9 +75,9 @@ func (*UserAPIKey) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case userapikey.FieldPermissions:
 			values[i] = new([]byte)
-		case userapikey.FieldID, userapikey.FieldName, userapikey.FieldAPIKey, userapikey.FieldKeyID, userapikey.FieldUserID:
+		case userapikey.FieldID, userapikey.FieldName, userapikey.FieldAPIKey, userapikey.FieldKeyID, userapikey.FieldUserID, userapikey.FieldRemark, userapikey.FieldLastUsedIP:
 			values[i] = new(sql.NullString)
-		case userapikey.FieldCreateTime, userapikey.FieldUpdateTime, userapikey.FieldExpiresAt:
+		case userapikey.FieldCreateTime, userapikey.FieldUpdateTime, userapikey.FieldExpiresAt, userapikey.FieldLastUsedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -145,6 +151,25 @@ func (_m *UserAPIKey) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UserID = value.String
 			}
+		case userapikey.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
+		case userapikey.FieldLastUsedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_used_at", values[i])
+			} else if value.Valid {
+				_m.LastUsedAt = new(time.Time)
+				*_m.LastUsedAt = value.Time
+			}
+		case userapikey.FieldLastUsedIP:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_used_ip", values[i])
+			} else if value.Valid {
+				_m.LastUsedIP = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -210,6 +235,17 @@ func (_m *UserAPIKey) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	if v := _m.LastUsedAt; v != nil {
+		builder.WriteString("last_used_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("last_used_ip=")
+	builder.WriteString(_m.LastUsedIP)
 	builder.WriteByte(')')
 	return builder.String()
 }

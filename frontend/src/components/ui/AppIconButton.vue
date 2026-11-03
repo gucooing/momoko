@@ -37,7 +37,7 @@ withDefaults(
     active?: boolean
     badge?: number | string
   }>(),
-  { size: 18, box: 36 },
+  { size: 20, box: 40 },
 )
 const menuStore = useMenuStore()
 </script>
@@ -48,7 +48,7 @@ const menuStore = useMenuStore()
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--app-radius-sm);
+  border-radius: 14px;
   color: var(--el-text-color-secondary);
   background: transparent;
   border: none;
@@ -64,8 +64,8 @@ const menuStore = useMenuStore()
   box-shadow: var(--app-focus-ring, 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 25%, transparent));
 }
 .app-icon-btn--active {
-  color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+  color: var(--m-pInk);
+  background: var(--m-pSoft);
 }
 .app-icon-btn__icon {
   display: block;
@@ -81,8 +81,8 @@ const menuStore = useMenuStore()
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--el-color-danger, #ef4444);
-  color: #fff;
+  background: var(--m-p);
+  color: var(--m-pOn);
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;

@@ -33,6 +33,7 @@ const OperationInstanceManagerEditInstanceFile = "/v1.InstanceManager/EditInstan
 const OperationInstanceManagerGetInstanceFileList = "/v1.InstanceManager/GetInstanceFileList"
 const OperationInstanceManagerGetInstanceFileTree = "/v1.InstanceManager/GetInstanceFileTree"
 const OperationInstanceManagerGetInstanceInfo = "/v1.InstanceManager/GetInstanceInfo"
+const OperationInstanceManagerGetInstanceStats = "/v1.InstanceManager/GetInstanceStats"
 const OperationInstanceManagerGetInstanceTypes = "/v1.InstanceManager/GetInstanceTypes"
 const OperationInstanceManagerGetInstances = "/v1.InstanceManager/GetInstances"
 const OperationInstanceManagerInstanceFilePreSign = "/v1.InstanceManager/InstanceFilePreSign"
@@ -64,7 +65,7 @@ type InstanceManagerHTTPServer interface {
 	DelInstance(context.Context, *DelInstanceRequest) (*DelInstanceResponse, error)
 	// DelInstanceLog 清空终端日志
 	DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error)
-	// DelInstanceType 删除实例类型
+	// DelInstanceType 删除实例类型(仍有应用在用时拒绝)
 	DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error)
 	// EditInstanceFile 编辑实例目录内文件
 	EditInstanceFile(context.Context, *EditInstanceFileRequest) (*EditInstanceFileResponse, error)
@@ -74,6 +75,8 @@ type InstanceManagerHTTPServer interface {
 	GetInstanceFileTree(context.Context, *GetInstanceFileTreeRequest) (*GetInstanceFileTreeResponse, error)
 	// GetInstanceInfo 获取实例详情
 	GetInstanceInfo(context.Context, *GetInstanceInfoRequest) (*GetInstanceInfoResponse, error)
+	// GetInstanceStats 获取实例资源占用(CPU/内存/进程/磁盘)
+	GetInstanceStats(context.Context, *GetInstanceStatsRequest) (*GetInstanceStatsResponse, error)
 	// GetInstanceTypes 实例类型管理
 	// 获取实例类型
 	GetInstanceTypes(context.Context, *GetInstanceTypesRequest) (*GetInstanceTypesResponse, error)
@@ -114,6 +117,7 @@ func RegisterInstanceManagerHTTPServer(s *http.Server, srv InstanceManagerHTTPSe
 	r.POST("/api/v1/instance/instance/restart/{id}", _InstanceManager_RestartInstance0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/instance/instance/del/{id}", _InstanceManager_DelInstance0_HTTP_Handler(srv))
 	r.PUT("/api/v1/instance/instance/{id}", _InstanceManager_UpdateInstance0_HTTP_Handler(srv))
+	r.GET("/api/v1/instance/stats/{id}", _InstanceManager_GetInstanceStats0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/instance/instance/del/log/{id}", _InstanceManager_DelInstanceLog0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/{id}", _InstanceManager_GetInstanceFileList0_HTTP_Handler(srv))
 	r.GET("/api/v1/instance/file/tree/{id}", _InstanceManager_GetInstanceFileTree0_HTTP_Handler(srv))
@@ -398,6 +402,28 @@ func _InstanceManager_UpdateInstance0_HTTP_Handler(srv InstanceManagerHTTPServer
 			return err
 		}
 		reply := out.(*UpdateInstanceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InstanceManager_GetInstanceStats0_HTTP_Handler(srv InstanceManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetInstanceStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInstanceManagerGetInstanceStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetInstanceStats(ctx, req.(*GetInstanceStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetInstanceStatsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -731,7 +757,7 @@ type InstanceManagerHTTPClient interface {
 	DelInstance(ctx context.Context, req *DelInstanceRequest, opts ...http.CallOption) (rsp *DelInstanceResponse, err error)
 	// DelInstanceLog 清空终端日志
 	DelInstanceLog(ctx context.Context, req *DelInstanceLogRequest, opts ...http.CallOption) (rsp *DelInstanceLogResponse, err error)
-	// DelInstanceType 删除实例类型
+	// DelInstanceType 删除实例类型(仍有应用在用时拒绝)
 	DelInstanceType(ctx context.Context, req *DelInstanceTypeRequest, opts ...http.CallOption) (rsp *DelInstanceTypeResponse, err error)
 	// EditInstanceFile 编辑实例目录内文件
 	EditInstanceFile(ctx context.Context, req *EditInstanceFileRequest, opts ...http.CallOption) (rsp *EditInstanceFileResponse, err error)
@@ -741,6 +767,8 @@ type InstanceManagerHTTPClient interface {
 	GetInstanceFileTree(ctx context.Context, req *GetInstanceFileTreeRequest, opts ...http.CallOption) (rsp *GetInstanceFileTreeResponse, err error)
 	// GetInstanceInfo 获取实例详情
 	GetInstanceInfo(ctx context.Context, req *GetInstanceInfoRequest, opts ...http.CallOption) (rsp *GetInstanceInfoResponse, err error)
+	// GetInstanceStats 获取实例资源占用(CPU/内存/进程/磁盘)
+	GetInstanceStats(ctx context.Context, req *GetInstanceStatsRequest, opts ...http.CallOption) (rsp *GetInstanceStatsResponse, err error)
 	// GetInstanceTypes 实例类型管理
 	// 获取实例类型
 	GetInstanceTypes(ctx context.Context, req *GetInstanceTypesRequest, opts ...http.CallOption) (rsp *GetInstanceTypesResponse, err error)
@@ -901,7 +929,7 @@ func (c *InstanceManagerHTTPClientImpl) DelInstanceLog(ctx context.Context, in *
 	return &out, nil
 }
 
-// DelInstanceType 删除实例类型
+// DelInstanceType 删除实例类型(仍有应用在用时拒绝)
 func (c *InstanceManagerHTTPClientImpl) DelInstanceType(ctx context.Context, in *DelInstanceTypeRequest, opts ...http.CallOption) (*DelInstanceTypeResponse, error) {
 	var out DelInstanceTypeResponse
 	pattern := "/api/v1/instance/type/{id}"
@@ -963,6 +991,20 @@ func (c *InstanceManagerHTTPClientImpl) GetInstanceInfo(ctx context.Context, in 
 	pattern := "/api/v1/instance/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationInstanceManagerGetInstanceInfo))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetInstanceStats 获取实例资源占用(CPU/内存/进程/磁盘)
+func (c *InstanceManagerHTTPClientImpl) GetInstanceStats(ctx context.Context, in *GetInstanceStatsRequest, opts ...http.CallOption) (*GetInstanceStatsResponse, error) {
+	var out GetInstanceStatsResponse
+	pattern := "/api/v1/instance/stats/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationInstanceManagerGetInstanceStats))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

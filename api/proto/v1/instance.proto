@@ -31,7 +31,7 @@ service InstanceManager {
       body: "*"
     };
   }
-  // 删除实例类型
+  // 删除实例类型(仍有应用在用时拒绝)
   rpc DelInstanceType(DelInstanceTypeRequest) returns (DelInstanceTypeResponse) {
     option (google.api.http) = {
       delete: "/api/v1/instance/type/{id}"
@@ -90,6 +90,12 @@ service InstanceManager {
     option (google.api.http) = {
       put: "/api/v1/instance/instance/{id}"
       body: "*"
+    };
+  }
+  // 获取实例资源占用(CPU/内存/进程/磁盘)
+  rpc GetInstanceStats(GetInstanceStatsRequest) returns (GetInstanceStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/stats/{id}"
     };
   }
   // 清空终端日志
@@ -194,6 +200,16 @@ message GetInstanceTypesResponse {
 message CreateInstanceTypeRequest {
   // 类型名称
   string name = 1;
+  // 是否启用(不传默认启用)
+  optional bool is_enable = 2;
+  // 类型说明
+  string description = 3;
+  // 默认启动命令(新建应用时预填)
+  string start_command = 4;
+  // 默认停止命令(新建应用时预填)
+  string stop_command = 5;
+  // 控制台快捷命令（显示在应用控制台输入框上方）
+  repeated string quick_commands = 6;
 }
 
 // 创建实例类型响应
@@ -210,6 +226,19 @@ message UpdateInstanceTypeRequest {
   optional string name = 2;
   // 是否启用
   optional bool is_enable = 3;
+  // 类型说明
+  optional string description = 4;
+  // 默认启动命令
+  optional string start_command = 5;
+  // 默认停止命令
+  optional string stop_command = 6;
+  // 控制台快捷命令（不传表示不修改）
+  InstanceQuickCommands quick_commands = 7;
+}
+
+// 控制台快捷命令列表（用于区分「不修改」与「清空」）
+message InstanceQuickCommands {
+  repeated string items = 1;
 }
 
 // 更新实例类型响应
@@ -237,6 +266,32 @@ message InstanceTypeInfo {
   bool is_system = 3;
   // 是否启用
   bool is_enable = 4;
+  // 类型说明
+  string description = 5;
+  // 默认启动命令
+  string start_command = 6;
+  // 默认停止命令
+  string stop_command = 7;
+  // 当前用户可见的、使用该类型的应用数
+  int64 app_count = 8;
+  // 使用该类型的应用(当前用户可见，最多 8 个)
+  repeated InstanceTypeApp apps = 9;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 10;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 11;
+  // 控制台快捷命令
+  repeated string quick_commands = 12;
+}
+
+// 使用某类型的应用摘要
+message InstanceTypeApp {
+  // 实例id
+  string id = 1;
+  // 实例名称
+  string name = 2;
+  // 实例状态
+  InstanceStatus status = 3;
 }
 
 // 获取实例列表请求
@@ -287,6 +342,10 @@ message CreateInstanceRequest {
   bool auto_start = 9;
   // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
   repeated string env = 10;
+  // 停止超时(秒)：发送停止命令后超时未退出则强制结束，<=0 使用默认值
+  int32 stop_timeout = 11;
+  // 崩溃后自动重启
+  bool auto_restart = 12;
 }
 
 // 创建实例响应
@@ -382,6 +441,10 @@ message UpdateInstanceRequest{
   optional bool auto_start = 9;
   // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
   repeated string env = 10;
+  // 停止超时(秒)
+  optional int32 stop_timeout = 11;
+  // 崩溃后自动重启
+  optional bool auto_restart = 12;
 }
 
 message UpdateInstanceResponse{
@@ -430,6 +493,54 @@ message InstanceInfo {
   bool auto_start = 14;
   // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
   repeated string env = 15;
+  // 停止超时(秒)
+  int32 stop_timeout = 16;
+  // 崩溃后自动重启
+  bool auto_restart = 17;
+  // 主进程 PID(运行时才有)
+  int32 pid = 18;
+  // 类型id
+  string type_id = 19;
+  // 所属用户名
+  string user_name = 20;
+  // 更新时间
+  google.protobuf.Timestamp update_time = 21;
+  // 所属类型的控制台快捷命令
+  repeated string quick_commands = 22;
+}
+
+// 获取实例资源占用请求
+message GetInstanceStatsRequest {
+  // 实例id
+  string id = 1;
+}
+
+// 获取实例资源占用响应
+message GetInstanceStatsResponse {
+  // 是否运行中
+  bool running = 1;
+  // 主进程 PID
+  int32 pid = 2;
+  // 进程数(含子进程)
+  int32 process_count = 3;
+  // CPU 占用(百分比，按单核 100% 计，多核可超过 100)
+  double cpu_percent = 4;
+  // 逻辑 CPU 核数
+  int32 cpu_cores = 5;
+  // 常驻内存(字节，含子进程)
+  uint64 memory_bytes = 6;
+  // 本机内存总量(字节)
+  uint64 memory_total = 7;
+  // 工作目录占用(字节，定期统计)
+  uint64 disk_usage_bytes = 8;
+  // 工作目录所在磁盘总量(字节)
+  uint64 disk_total = 9;
+  // 工作目录所在磁盘剩余(字节)
+  uint64 disk_free = 10;
+  // 工作目录占用的统计时间
+  google.protobuf.Timestamp disk_scan_time = 11;
+  // 启动时间
+  google.protobuf.Timestamp start_time = 12;
 }
 
 // 实例状态

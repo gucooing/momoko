@@ -45,14 +45,14 @@ const sidebarToggleLabel = computed(() =>
 .app-sidebar {
   display: flex;
   flex-direction: column;
-  width: 248px;
+  width: 252px;
   height: 100%;
   background: var(--el-bg-color);
   border-right: 1px solid var(--el-border-color-light);
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .app-sidebar--collapsed {
-  width: 72px;
+  width: 76px;
 }
 .app-sidebar--mobile {
   width: 100%;
@@ -61,25 +61,28 @@ const sidebarToggleLabel = computed(() =>
 .app-sidebar__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 60px;
-  padding: 0 18px;
+  gap: 12px;
+  height: 68px;
+  padding: 0 20px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .app-sidebar--collapsed .app-sidebar__brand {
   justify-content: center;
   padding: 0;
 }
 .app-sidebar__logo {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--app-radius-sm);
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   flex-shrink: 0;
+  object-fit: cover;
+  transform: rotate(-6deg);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
 }
 .app-sidebar__name {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-family: var(--app-font-display);
+  font-size: 1.375rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
   white-space: nowrap;
@@ -89,16 +92,23 @@ const sidebarToggleLabel = computed(() =>
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none;
+}
+.app-sidebar__nav::-webkit-scrollbar {
+  display: none;
 }
 .app-sidebar__foot {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  margin: 8px 10px 12px;
+  padding: 6px;
+  border-radius: 18px;
+  background: var(--el-bg-color-page);
 }
 .app-sidebar__foot.is-collapsed {
   flex-direction: column;
+  margin: 8px 8px 12px;
 }
 </style>

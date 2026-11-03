@@ -41,6 +41,10 @@ type Instance struct {
 	StopCommand string `json:"stop_command,omitempty"`
 	// 是否自启动
 	AutoStart bool `json:"auto_start,omitempty"`
+	// 崩溃后自动重启
+	AutoRestart bool `json:"auto_restart,omitempty"`
+	// 停止超时(秒)，<=0 使用默认值
+	StopTimeout int32 `json:"stop_timeout,omitempty"`
 	// 环境变量
 	Env []string `json:"env,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -102,8 +106,10 @@ func (*Instance) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case instance.FieldEnv:
 			values[i] = new([]byte)
-		case instance.FieldIsSystem, instance.FieldAutoStart:
+		case instance.FieldIsSystem, instance.FieldAutoStart, instance.FieldAutoRestart:
 			values[i] = new(sql.NullBool)
+		case instance.FieldStopTimeout:
+			values[i] = new(sql.NullInt64)
 		case instance.FieldID, instance.FieldName, instance.FieldRemark, instance.FieldTags, instance.FieldPath, instance.FieldStartCommand, instance.FieldStopCommand:
 			values[i] = new(sql.NullString)
 		case instance.FieldCreateTime, instance.FieldUpdateTime:
@@ -192,6 +198,18 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field auto_start", values[i])
 			} else if value.Valid {
 				_m.AutoStart = value.Bool
+			}
+		case instance.FieldAutoRestart:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_restart", values[i])
+			} else if value.Valid {
+				_m.AutoRestart = value.Bool
+			}
+		case instance.FieldStopTimeout:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stop_timeout", values[i])
+			} else if value.Valid {
+				_m.StopTimeout = int32(value.Int64)
 			}
 		case instance.FieldEnv:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -295,6 +313,12 @@ func (_m *Instance) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("auto_start=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AutoStart))
+	builder.WriteString(", ")
+	builder.WriteString("auto_restart=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AutoRestart))
+	builder.WriteString(", ")
+	builder.WriteString("stop_timeout=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StopTimeout))
 	builder.WriteString(", ")
 	builder.WriteString("env=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Env))

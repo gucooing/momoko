@@ -1,6 +1,36 @@
 import { createI18n } from 'vue-i18n'
 import { APP_LOCALES, type AppLocale } from '@/locales/types'
-import { knownTextMessages, messages } from '@/locales/messages'
+import { knownTextMessages, messages as baseMessages } from '@/locales/messages'
+
+type LocaleTree = { [key: string]: string | LocaleTree }
+
+// 各模块的补充文案放在 locales/extra/*.ts（默认导出 { 'zh-CN': {...}, 'zh-HK': {...}, 'en-US': {...} }），
+// 启动时深合并进主文案表，同名键以补充文案为准。
+const deepMerge = (target: LocaleTree, source: LocaleTree): LocaleTree => {
+  const out: LocaleTree = { ...target }
+  for (const [key, value] of Object.entries(source)) {
+    const prev = out[key]
+    out[key] =
+      typeof value === 'object' && typeof prev === 'object' ? deepMerge(prev, value) : value
+  }
+  return out
+}
+
+const extraModules = import.meta.glob<{ default: Partial<Record<AppLocale, LocaleTree>> }>(
+  './extra/*.ts',
+  { eager: true },
+)
+
+const messages = Object.values(extraModules).reduce(
+  (acc, mod) => {
+    for (const [locale, tree] of Object.entries(mod.default)) {
+      const key = locale as AppLocale
+      acc[key] = deepMerge(acc[key] as LocaleTree, tree as LocaleTree) as (typeof acc)[AppLocale]
+    }
+    return acc
+  },
+  { ...baseMessages } as Record<AppLocale, (typeof baseMessages)[AppLocale]>,
+) as typeof baseMessages
 
 const LOCALE_STORAGE_KEY = 'app-locale'
 

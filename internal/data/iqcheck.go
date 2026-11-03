@@ -198,10 +198,13 @@ func (r *iqCheckRepo) CreateResults(ctx context.Context, results []*gen.IQCheckR
 	return r.data.db.IQCheckResult.CreateBulk(builders...).Exec(ctx)
 }
 
-func (r *iqCheckRepo) ListResults(ctx context.Context, siteID, model string, page, pageSize int64) ([]*gen.IQCheckResult, int64, error) {
+func (r *iqCheckRepo) ListResults(ctx context.Context, siteID, model, resultID string, page, pageSize int64) ([]*gen.IQCheckResult, int64, error) {
 	query := r.data.db.IQCheckResult.Query().Where(iqcheckresult.SiteIDEQ(siteID))
 	if model != "" {
 		query = query.Where(iqcheckresult.ModelEQ(model))
+	}
+	if resultID != "" {
+		query = query.Where(iqcheckresult.IDEQ(resultID))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -216,4 +219,138 @@ func (r *iqCheckRepo) ListResults(ctx context.Context, siteID, model string, pag
 		return nil, 0, err
 	}
 	return rows, int64(total), nil
+}
+
+// —— 统计 ——
+
+// ListAllSites 返回全部站点（按名称/端点关键字过滤），用于在内存中按状态筛选与统计。
+func (r *iqCheckRepo) ListAllSites(ctx context.Context, keywords string) ([]*gen.IQCheckSite, error) {
+	query := r.data.db.IQCheckSite.Query()
+	if keywords != "" {
+		query = query.Where(iqchecksite.Or(
+			iqchecksite.NameContains(keywords),
+			iqchecksite.EndpointContains(keywords),
+		))
+	}
+	return query.Order(gen.Desc(iqchecksite.FieldCreateTime)).All(ctx)
+}
+
+// RecentResults 返回站点最近的若干条检测结果（只取汇总需要的字段），最新的在前。
+func (r *iqCheckRepo) RecentResults(ctx context.Context, siteID string, limit int) ([]*gen.IQCheckResult, error) {
+	return r.data.db.IQCheckResult.Query().
+		Where(iqcheckresult.SiteIDEQ(siteID)).
+		Order(gen.Desc(iqcheckresult.FieldRequestAt), gen.Desc(iqcheckresult.FieldCreateTime)).
+		Limit(limit).
+		Select(
+			iqcheckresult.FieldID,
+			iqcheckresult.FieldRoundID,
+			iqcheckresult.FieldStatus,
+			iqcheckresult.FieldError,
+			iqcheckresult.FieldDurationMs,
+			iqcheckresult.FieldRequestAt,
+			iqcheckresult.FieldPromptTitle,
+		).
+		All(ctx)
+}
+
+// CountSiteResults 返回站点的检测结果总数。
+func (r *iqCheckRepo) CountSiteResults(ctx context.Context, siteID string) (int64, error) {
+	n, err := r.data.db.IQCheckResult.Query().Where(iqcheckresult.SiteIDEQ(siteID)).Count(ctx)
+	return int64(n), err
+}
+
+// CountResultsSince 返回全部站点在 since 之后产生的检测结果条数。
+func (r *iqCheckRepo) CountResultsSince(ctx context.Context, since time.Time) (int64, error) {
+	n, err := r.data.db.IQCheckResult.Query().Where(iqcheckresult.RequestAtGTE(since)).Count(ctx)
+	return int64(n), err
+}
+
+// CountPrompts 返回提示词总数与启用数。
+func (r *iqCheckRepo) CountPrompts(ctx context.Context) (int64, int64, error) {
+	all, err := r.data.db.IQCheckPrompt.Query().Count(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+	enabled, err := r.data.db.IQCheckPrompt.Query().Where(iqcheckprompt.EnabledEQ(true)).Count(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+	return int64(all), int64(enabled), nil
+}
+
+// PromptUsage 返回提示词被检测使用的次数、最近使用时间与涉及的站点数。
+func (r *iqCheckRepo) PromptUsage(ctx context.Context, promptID string) (biz.IQCheckPromptUsage, error) {
+	var usage biz.IQCheckPromptUsage
+	query := r.data.db.IQCheckResult.Query().Where(iqcheckresult.PromptIDEQ(promptID))
+	count, err := query.Clone().Count(ctx)
+	if err != nil || count == 0 {
+		return usage, err
+	}
+	usage.Count = int64(count)
+	latest, err := query.Clone().
+		Order(gen.Desc(iqcheckresult.FieldRequestAt)).
+		Select(iqcheckresult.FieldID, iqcheckresult.FieldRequestAt).
+		First(ctx)
+	if err != nil {
+		return usage, err
+	}
+	at := latest.RequestAt
+	usage.LastUsedAt = &at
+	sites, err := query.Clone().Unique(true).Select(iqcheckresult.FieldSiteID).Strings(ctx)
+	if err != nil {
+		return usage, err
+	}
+	usage.SiteCount = int64(len(sites))
+	return usage, nil
+}
+
+// SiteResultStats 汇总站点检测结果：总数、成功数、成功平均耗时、since 之后的总数/成功数、按模型计数。
+func (r *iqCheckRepo) SiteResultStats(ctx context.Context, siteID string, since time.Time) (biz.IQCheckSiteResultStats, error) {
+	var stats biz.IQCheckSiteResultStats
+	base := r.data.db.IQCheckResult.Query().Where(iqcheckresult.SiteIDEQ(siteID))
+	total, err := base.Clone().Count(ctx)
+	if err != nil || total == 0 {
+		return stats, err
+	}
+	stats.Total = int64(total)
+	success := base.Clone().Where(iqcheckresult.StatusEQ(iqcheckresult.StatusSuccess))
+	okCount, err := success.Clone().Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.Success = int64(okCount)
+	if okCount > 0 {
+		var durations []struct {
+			Avg float64 `json:"avg"`
+		}
+		if err := success.Clone().Aggregate(gen.As(gen.Mean(iqcheckresult.FieldDurationMs), "avg")).Scan(ctx, &durations); err != nil {
+			return stats, err
+		}
+		if len(durations) > 0 {
+			stats.AvgDurationMs = int64(durations[0].Avg)
+		}
+	}
+	recent := base.Clone().Where(iqcheckresult.RequestAtGTE(since))
+	recentTotal, err := recent.Clone().Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.RecentTotal = int64(recentTotal)
+	recentOK, err := recent.Clone().Where(iqcheckresult.StatusEQ(iqcheckresult.StatusSuccess)).Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.RecentSuccess = int64(recentOK)
+
+	var models []struct {
+		Model string `json:"model"`
+		Count int64  `json:"count"`
+	}
+	if err := base.Clone().GroupBy(iqcheckresult.FieldModel).Aggregate(gen.Count()).Scan(ctx, &models); err != nil {
+		return stats, err
+	}
+	for _, m := range models {
+		stats.Models = append(stats.Models, biz.IQCheckModelCount{Model: m.Model, Count: m.Count})
+	}
+	return stats, nil
 }

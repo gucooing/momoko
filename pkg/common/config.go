@@ -7,6 +7,18 @@ const (
 	ConfigLoginUsernameLoginEnabled              ConfigKey = "login.username_login_enabled"
 	ConfigLoginEmailLoginEnabled                 ConfigKey = "login.email_login_enabled"
 	ConfigLoginRegisterEmailVerificationRequired ConfigKey = "login.register_email_verification_required"
+	ConfigLoginAccessTokenTTLMinutes             ConfigKey = "login.access_token_ttl_minutes"
+	ConfigLoginRefreshTokenTTLDays               ConfigKey = "login.refresh_token_ttl_days"
+	ConfigLoginLockoutThreshold                  ConfigKey = "login.lockout_threshold"
+	ConfigLoginLockoutMinutes                    ConfigKey = "login.lockout_minutes"
+
+	ConfigSiteName            ConfigKey = "site.name"
+	ConfigSiteExternalURL     ConfigKey = "site.external_url"
+	ConfigSiteDefaultLanguage ConfigKey = "site.default_language"
+	ConfigSiteSettingsAudit   ConfigKey = "site.settings_audit"
+	ConfigUpdateAutoCheck     ConfigKey = "update.auto_check"
+	ConfigUpdateChannel       ConfigKey = "update.channel"
+	ConfigUpdateLastCheck     ConfigKey = "update.last_check"
 
 	ConfigOIDCEnabled                     ConfigKey = "oidc.enabled"
 	ConfigOIDCIssuerURL                   ConfigKey = "oidc.issuer_url"
@@ -14,6 +26,7 @@ const (
 	ConfigOIDCIDTokenTTLSeconds           ConfigKey = "oidc.id_token_ttl_seconds"
 	ConfigOIDCAuthorizationCodeTTLSeconds ConfigKey = "oidc.authorization_code_ttl_seconds"
 	ConfigOIDCPrivateKey                  ConfigKey = "oidc.private_key"
+	ConfigOIDCPrivateKeyRotatedAt         ConfigKey = "oidc.private_key_rotated_at"
 
 	ConfigEmailEnabled        ConfigKey = "email.enabled"
 	ConfigEmailHost           ConfigKey = "email.host"
@@ -22,16 +35,18 @@ const (
 	ConfigEmailPassword       ConfigKey = "email.password"
 	ConfigEmailFrom           ConfigKey = "email.from"
 	ConfigEmailFromName       ConfigKey = "email.from_name"
-	ConfigEmailUseTLS         ConfigKey = "email.use_tls"
+	ConfigEmailEncryption     ConfigKey = "email.encryption"
+	ConfigEmailLastTest       ConfigKey = "email.last_test"
 	ConfigEmailTimeoutSeconds ConfigKey = "email.timeout_seconds"
 	ConfigEmailCcsN           ConfigKey = "email.ccs_n"
 
 	ConfigDockerEnabled               ConfigKey = "docker.enabled"
 	ConfigDockerHost                  ConfigKey = "docker.host"
 	ConfigDockerTLSEnabled            ConfigKey = "docker.tls_enabled"
-	ConfigDockerTLSCAPath             ConfigKey = "docker.tls_ca_path"
-	ConfigDockerTLSCertPath           ConfigKey = "docker.tls_cert_path"
-	ConfigDockerTLSKeyPath            ConfigKey = "docker.tls_key_path"
+	ConfigDockerTLSCA                 ConfigKey = "docker.tls_ca"
+	ConfigDockerTLSCert               ConfigKey = "docker.tls_cert"
+	ConfigDockerTLSKey                ConfigKey = "docker.tls_key"
+	ConfigDockerTLSSkipVerify         ConfigKey = "docker.tls_skip_verify"
 	ConfigDockerAPIVersion            ConfigKey = "docker.api_version"
 	ConfigDockerRequestTimeoutSeconds ConfigKey = "docker.request_timeout_seconds"
 	ConfigDockerDefaultPlatform       ConfigKey = "docker.default_platform"
@@ -49,6 +64,7 @@ const (
 	ConfigFrpsSubdomainHost      ConfigKey = "frps.subdomain_host"
 	ConfigFrpsStatSampleInterval ConfigKey = "frps.stat_sample_interval"
 	ConfigFrpsServerAddr         ConfigKey = "frps.server_addr"
+	ConfigFrpsTLSForce           ConfigKey = "frps.tls_force"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -56,6 +72,18 @@ var configDefaults = map[ConfigKey]string{
 	ConfigLoginUsernameLoginEnabled:              "true",
 	ConfigLoginEmailLoginEnabled:                 "false",
 	ConfigLoginRegisterEmailVerificationRequired: "false",
+	ConfigLoginAccessTokenTTLMinutes:             "60",
+	ConfigLoginRefreshTokenTTLDays:               "14",
+	ConfigLoginLockoutThreshold:                  "5",
+	ConfigLoginLockoutMinutes:                    "15",
+
+	ConfigSiteName:            "Momoko",
+	ConfigSiteExternalURL:     "",
+	ConfigSiteDefaultLanguage: "auto",
+	ConfigSiteSettingsAudit:   "",
+	ConfigUpdateAutoCheck:     "true",
+	ConfigUpdateChannel:       "UpdateChannel_Stable",
+	ConfigUpdateLastCheck:     "",
 
 	ConfigOIDCEnabled:                     "false",
 	ConfigOIDCIssuerURL:                   "",
@@ -63,6 +91,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigOIDCIDTokenTTLSeconds:           "3600",
 	ConfigOIDCAuthorizationCodeTTLSeconds: "300",
 	ConfigOIDCPrivateKey:                  "",
+	ConfigOIDCPrivateKeyRotatedAt:         "",
 
 	ConfigEmailEnabled:        "false",
 	ConfigEmailHost:           "",
@@ -71,16 +100,18 @@ var configDefaults = map[ConfigKey]string{
 	ConfigEmailPassword:       "",
 	ConfigEmailFrom:           "",
 	ConfigEmailFromName:       "",
-	ConfigEmailUseTLS:         "true",
+	ConfigEmailEncryption:     "EmailEncryption_SSL",
+	ConfigEmailLastTest:       "",
 	ConfigEmailTimeoutSeconds: "10",
 	ConfigEmailCcsN:           "5",
 
 	ConfigDockerEnabled:               "false",
 	ConfigDockerHost:                  "",
 	ConfigDockerTLSEnabled:            "false",
-	ConfigDockerTLSCAPath:             "",
-	ConfigDockerTLSCertPath:           "",
-	ConfigDockerTLSKeyPath:            "",
+	ConfigDockerTLSCA:                 "",
+	ConfigDockerTLSCert:               "",
+	ConfigDockerTLSKey:                "",
+	ConfigDockerTLSSkipVerify:         "false",
 	ConfigDockerAPIVersion:            "",
 	ConfigDockerRequestTimeoutSeconds: "30",
 	ConfigDockerDefaultPlatform:       "",
@@ -97,6 +128,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsSubdomainHost:      "",
 	ConfigFrpsStatSampleInterval: "30",
 	ConfigFrpsServerAddr:         "",
+	ConfigFrpsTLSForce:           "false",
 }
 
 func (k ConfigKey) String() string {

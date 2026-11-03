@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	v1 "momoko/api/gen/v1"
@@ -13,6 +14,7 @@ import (
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
+	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/file"
 	"momoko/pkg/utils"
@@ -144,11 +146,40 @@ func (f *fileRepo) CreateShare(ctx context.Context, userID, token, name string, 
 	return builder.Save(ctx)
 }
 
-// ListShares 分页返回某用户的分享（按创建时间倒序），支持名称/路径关键字。
-func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error) {
+// sharePredicates 返回分享状态筛选条件。状态优先级与前端一致：停用 > 过期 > 次数用完 > 有效。
+func shareStatusPredicate(status string, now time.Time) predicate.FileShare {
+	notExpired := fileshare.Or(fileshare.ExpiresAtIsNil(), fileshare.ExpiresAtGT(now))
+	exhausted := predicate.FileShare(func(s *sql.Selector) {
+		s.Where(sql.And(
+			sql.GT(s.C(fileshare.FieldMaxDownloads), 0),
+			sql.ColumnsGTE(s.C(fileshare.FieldDownloadCount), s.C(fileshare.FieldMaxDownloads)),
+		))
+	})
+	switch status {
+	case "disabled":
+		return fileshare.EnabledEQ(false)
+	case "expired":
+		return fileshare.And(fileshare.EnabledEQ(true), fileshare.ExpiresAtNotNil(), fileshare.ExpiresAtLTE(now))
+	case "exhausted":
+		return fileshare.And(fileshare.EnabledEQ(true), notExpired, exhausted)
+	case "active":
+		return fileshare.And(fileshare.EnabledEQ(true), notExpired, fileshare.Not(exhausted))
+	}
+	return nil
+}
+
+// ListShares 分页返回某用户的分享（按创建时间倒序），支持名称/令牌/提取码关键字与状态筛选。
+func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize int64, keywords, status string) ([]*gen.FileShare, int64, error) {
 	query := f.data.db.FileShare.Query().Where(fileshare.UserIDEQ(userID))
 	if keywords != "" {
-		query = query.Where(fileshare.NameContainsFold(keywords))
+		query = query.Where(fileshare.Or(
+			fileshare.NameContainsFold(keywords),
+			fileshare.TokenContains(keywords),
+			fileshare.CodeEQ(keywords),
+		))
+	}
+	if p := shareStatusPredicate(status, time.Now()); p != nil {
+		query = query.Where(p)
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -169,6 +200,41 @@ func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize
 		return nil, 0, err
 	}
 	return items, int64(total), nil
+}
+
+// ShareStats 统计某用户全部分享的状态分布与累计下载次数（不受筛选/分页影响）。
+func (f *fileRepo) ShareStats(ctx context.Context, userID string) (*v1.ShareStats, error) {
+	rows, err := f.data.db.FileShare.Query().
+		Where(fileshare.UserIDEQ(userID)).
+		Select(
+			fileshare.FieldEnabled,
+			fileshare.FieldExpiresAt,
+			fileshare.FieldMaxDownloads,
+			fileshare.FieldDownloadCount,
+		).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	soon := now.Add(72 * time.Hour)
+	stats := &v1.ShareStats{Total: int64(len(rows))}
+	for _, r := range rows {
+		stats.Downloads += r.DownloadCount
+		switch {
+		case !r.Enabled:
+			stats.Disabled++
+		case r.ExpiresAt != nil && !r.ExpiresAt.After(now):
+			stats.Expired++
+		case r.MaxDownloads > 0 && r.DownloadCount >= r.MaxDownloads:
+			stats.Exhausted++
+		default:
+			stats.Active++
+			if r.ExpiresAt != nil && r.ExpiresAt.Before(soon) {
+				stats.ExpiringSoon++
+			}
+		}
+	}
+	return stats, nil
 }
 
 // GetShareByToken 按公开令牌获取分享（不限用户）。供公开访问使用；带出分享者用于公开展示。
@@ -249,6 +315,16 @@ func (f *fileRepo) UpdateFileSource(ctx context.Context, id, name, configJSON st
 		SetRedirect302(redirect302).
 		SetConfig(configJSON).
 		Save(ctx)
+}
+
+// SaveFileSourceTest 回写一条文件来源最近一次连通性测试结果。
+func (f *fileRepo) SaveFileSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, message string, at time.Time) error {
+	return f.data.db.FileSource.UpdateOneID(id).
+		SetLastTestOk(ok).
+		SetLastTestLatencyMs(latencyMs).
+		SetLastTestMessage(message).
+		SetLastTestTime(at).
+		Exec(ctx)
 }
 
 // DeleteFileSource 删除一条文件来源。

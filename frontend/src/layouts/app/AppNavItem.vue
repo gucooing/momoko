@@ -74,30 +74,30 @@ const navigate = () => {
 
 <style scoped lang="scss">
 .nav-group__label {
-  padding: 0 12px;
-  margin: 14px 0 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  padding: 0 14px;
+  margin: 18px 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--el-text-color-placeholder);
+  color: var(--el-text-color-secondary);
   transition: color 0.15s;
 }
 .nav-group:first-child .nav-group__label {
   margin-top: 4px;
 }
 .nav-group__label.is-active {
-  color: var(--el-color-primary);
+  color: var(--m-pInk);
 }
 .nav-group__sublabel {
-  padding: 6px 12px 2px 34px;
+  padding: 6px 14px 2px 46px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .nav-group__divider {
   height: 1px;
-  margin: 10px 14px;
+  margin: 10px 16px;
   background: var(--el-border-color-lighter);
 }
 
@@ -105,16 +105,17 @@ const navigate = () => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 8px 12px;
-  margin: 1px 0;
+  min-height: 42px;
+  padding: 0 14px;
+  margin: 2px 0;
   border: none;
-  border-radius: var(--app-radius-sm);
+  border-radius: 14px;
   background: transparent;
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-secondary);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -124,38 +125,31 @@ const navigate = () => {
   color: var(--el-text-color-primary);
 }
 .nav-link.is-active {
-  background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
-  color: var(--el-color-primary);
-}
-.nav-link.is-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 18px;
-  border-radius: 0 3px 3px 0;
-  background: var(--el-color-primary);
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  font-weight: 800;
 }
 .nav-link__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 .nav-link__icon :deep(svg) {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+}
+.nav-link.is-active .nav-link__icon :deep(svg) {
+  stroke-width: 2;
 }
 .nav-link__dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: currentColor;
-  opacity: 0.45;
+  opacity: 0.5;
   margin: auto;
 }
 .nav-link__label {
@@ -165,6 +159,8 @@ const navigate = () => {
 }
 .nav-link.is-collapsed {
   justify-content: center;
-  padding: 8px;
+  padding: 0;
+  width: 48px;
+  margin: 2px auto;
 }
 </style>

@@ -119,6 +119,75 @@ func (_u *FileSourceUpdate) SetNillableUserID(v *string) *FileSourceUpdate {
 	return _u
 }
 
+// SetLastTestOk sets the "last_test_ok" field.
+func (_u *FileSourceUpdate) SetLastTestOk(v bool) *FileSourceUpdate {
+	_u.mutation.SetLastTestOk(v)
+	return _u
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestOk(v *bool) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestOk(*v)
+	}
+	return _u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_u *FileSourceUpdate) SetLastTestLatencyMs(v int64) *FileSourceUpdate {
+	_u.mutation.ResetLastTestLatencyMs()
+	_u.mutation.SetLastTestLatencyMs(v)
+	return _u
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestLatencyMs(v *int64) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLastTestLatencyMs adds value to the "last_test_latency_ms" field.
+func (_u *FileSourceUpdate) AddLastTestLatencyMs(v int64) *FileSourceUpdate {
+	_u.mutation.AddLastTestLatencyMs(v)
+	return _u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_u *FileSourceUpdate) SetLastTestMessage(v string) *FileSourceUpdate {
+	_u.mutation.SetLastTestMessage(v)
+	return _u
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestMessage(v *string) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestMessage(*v)
+	}
+	return _u
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (_u *FileSourceUpdate) SetLastTestTime(v time.Time) *FileSourceUpdate {
+	_u.mutation.SetLastTestTime(v)
+	return _u
+}
+
+// SetNillableLastTestTime sets the "last_test_time" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestTime(v *time.Time) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestTime(*v)
+	}
+	return _u
+}
+
+// ClearLastTestTime clears the value of the "last_test_time" field.
+func (_u *FileSourceUpdate) ClearLastTestTime() *FileSourceUpdate {
+	_u.mutation.ClearLastTestTime()
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileSourceUpdate) SetUser(v *User) *FileSourceUpdate {
 	return _u.SetUserID(v.ID)
@@ -218,6 +287,24 @@ func (_u *FileSourceUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Config(); ok {
 		_spec.SetField(filesource.FieldConfig, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastTestOk(); ok {
+		_spec.SetField(filesource.FieldLastTestOk, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(filesource.FieldLastTestLatencyMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestLatencyMs(); ok {
+		_spec.AddField(filesource.FieldLastTestLatencyMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.LastTestMessage(); ok {
+		_spec.SetField(filesource.FieldLastTestMessage, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastTestTime(); ok {
+		_spec.SetField(filesource.FieldLastTestTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastTestTimeCleared() {
+		_spec.ClearField(filesource.FieldLastTestTime, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -358,6 +445,75 @@ func (_u *FileSourceUpdateOne) SetNillableUserID(v *string) *FileSourceUpdateOne
 	return _u
 }
 
+// SetLastTestOk sets the "last_test_ok" field.
+func (_u *FileSourceUpdateOne) SetLastTestOk(v bool) *FileSourceUpdateOne {
+	_u.mutation.SetLastTestOk(v)
+	return _u
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestOk(v *bool) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestOk(*v)
+	}
+	return _u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_u *FileSourceUpdateOne) SetLastTestLatencyMs(v int64) *FileSourceUpdateOne {
+	_u.mutation.ResetLastTestLatencyMs()
+	_u.mutation.SetLastTestLatencyMs(v)
+	return _u
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestLatencyMs(v *int64) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLastTestLatencyMs adds value to the "last_test_latency_ms" field.
+func (_u *FileSourceUpdateOne) AddLastTestLatencyMs(v int64) *FileSourceUpdateOne {
+	_u.mutation.AddLastTestLatencyMs(v)
+	return _u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_u *FileSourceUpdateOne) SetLastTestMessage(v string) *FileSourceUpdateOne {
+	_u.mutation.SetLastTestMessage(v)
+	return _u
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestMessage(v *string) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestMessage(*v)
+	}
+	return _u
+}
+
+// SetLastTestTime sets the "last_test_time" field.
+func (_u *FileSourceUpdateOne) SetLastTestTime(v time.Time) *FileSourceUpdateOne {
+	_u.mutation.SetLastTestTime(v)
+	return _u
+}
+
+// SetNillableLastTestTime sets the "last_test_time" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestTime(v *time.Time) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestTime(*v)
+	}
+	return _u
+}
+
+// ClearLastTestTime clears the value of the "last_test_time" field.
+func (_u *FileSourceUpdateOne) ClearLastTestTime() *FileSourceUpdateOne {
+	_u.mutation.ClearLastTestTime()
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileSourceUpdateOne) SetUser(v *User) *FileSourceUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -487,6 +643,24 @@ func (_u *FileSourceUpdateOne) sqlSave(ctx context.Context) (_node *FileSource, 
 	}
 	if value, ok := _u.mutation.Config(); ok {
 		_spec.SetField(filesource.FieldConfig, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastTestOk(); ok {
+		_spec.SetField(filesource.FieldLastTestOk, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(filesource.FieldLastTestLatencyMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestLatencyMs(); ok {
+		_spec.AddField(filesource.FieldLastTestLatencyMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.LastTestMessage(); ok {
+		_spec.SetField(filesource.FieldLastTestMessage, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastTestTime(); ok {
+		_spec.SetField(filesource.FieldLastTestTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastTestTimeCleared() {
+		_spec.ClearField(filesource.FieldLastTestTime, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

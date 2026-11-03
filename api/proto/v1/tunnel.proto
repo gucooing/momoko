@@ -60,6 +60,26 @@ service TunnelManager {
       body: "*"
     };
   }
+  // 按当前配置重启 frps
+  rpc RestartFrps(RestartFrpsRequest) returns (RestartFrpsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/tunnel/frps-restart"
+      body: "*"
+    };
+  }
+  // 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+  rpc GetFrpsLogs(GetFrpsLogsRequest) returns (GetFrpsLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tunnel/frps-logs"
+    };
+  }
+  // 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+  rpc ResetTunnelCredential(ResetTunnelCredentialRequest) returns (ResetTunnelCredentialResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/tunnel/tunnels/{id}/credential/reset"
+      body: "*"
+    };
+  }
 }
 
 message ListTunnelsRequest {
@@ -84,6 +104,52 @@ message ListTunnelsResponse {
   int64 total = 3;
   // 列表
   repeated TunnelInfo infos = 4;
+  // 概览（当前用户全部隧道，不受筛选影响）
+  TunnelOverview overview = 5;
+}
+
+// 隧道概览
+message TunnelOverview {
+  // 隧道总数
+  int64 total = 1;
+  // 在线
+  int64 online = 2;
+  // 待连接
+  int64 pending = 3;
+  // 离线（未启用）
+  int64 offline = 4;
+  // 当前在线的 frpc 客户端数（按主机名去重）
+  int64 clients = 5;
+  // 各代理类型的隧道数
+  repeated TunnelTypeCount type_counts = 6;
+  // 今日入站流量合计(字节)
+  int64 today_bytes_in = 7;
+  // 今日出站流量合计(字节)
+  int64 today_bytes_out = 8;
+  // 当前活跃连接合计
+  int64 active_connections = 9;
+  // 连入过的 frpc 客户端（本进程启动以来，按主机名+地址去重）
+  repeated TunnelClientSummary client_list = 10;
+}
+
+// frpc 客户端汇总
+message TunnelClientSummary {
+  // 客户端信息
+  TunnelClient client = 1;
+  // 是否有隧道在线
+  bool online = 2;
+  // 该客户端承载的隧道数
+  int64 tunnels = 3;
+  // 其中在线的隧道数
+  int64 online_tunnels = 4;
+}
+
+// 某代理类型的隧道数
+message TunnelTypeCount {
+  // 代理类型
+  TunnelType type = 1;
+  // 数量
+  int64 count = 2;
 }
 
 message CreateTunnelRequest {
@@ -109,6 +175,8 @@ message CreateTunnelRequest {
   string max_bandwidth = 10;
   // 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限
   int32 max_active_conns = 11;
+  // 备注
+  string remark = 12;
 }
 
 message CreateTunnelResponse {
@@ -151,6 +219,8 @@ message UpdateTunnelRequest {
   optional string max_bandwidth = 11;
   // 活跃连接数上限，0=不限
   optional int32 max_active_conns = 12;
+  // 备注
+  optional string remark = 13;
 }
 
 message UpdateTunnelResponse {
@@ -188,6 +258,73 @@ message GetFrpsConfigRequest {}
 message GetFrpsConfigResponse {
   // frps 实例配置
   FrpsConfig config = 1;
+  // frps 运行状态
+  FrpsStatus status = 2;
+}
+
+message RestartFrpsRequest {}
+
+message RestartFrpsResponse {
+  // frps 运行状态
+  FrpsStatus status = 1;
+}
+
+message GetFrpsLogsRequest {
+  // 返回最近多少行，<=0 时默认 300
+  int32 limit = 1;
+}
+
+message GetFrpsLogsResponse {
+  // 日志（按时间升序）
+  repeated FrpsLogEntry entries = 1;
+}
+
+// frps 日志行
+message FrpsLogEntry {
+  // 时间
+  google.protobuf.Timestamp time = 1;
+  // 级别：trace/debug/info/warn/error
+  string level = 2;
+  // 内容
+  string message = 3;
+}
+
+message ResetTunnelCredentialRequest {
+  // 隧道 id
+  string id = 1;
+}
+
+message ResetTunnelCredentialResponse {
+  // 隧道详情（含新凭证）
+  TunnelInfo info = 1;
+}
+
+// frps 运行状态
+message FrpsStatus {
+  // 是否运行中
+  bool running = 1;
+  // 本次启动时间
+  google.protobuf.Timestamp start_time = 2;
+  // frp 版本
+  string version = 3;
+  // 最近一次启动失败的原因
+  string error = 4;
+}
+
+// 连入隧道的 frpc 客户端
+message TunnelClient {
+  // 主机名
+  string hostname = 1;
+  // 操作系统
+  string os = 2;
+  // CPU 架构
+  string arch = 3;
+  // frpc 版本
+  string version = 4;
+  // 客户端地址 ip:port
+  string address = 5;
+  // 最近一次登录时间
+  google.protobuf.Timestamp login_time = 6;
 }
 
 message UpdateFrpsConfigRequest {
@@ -212,6 +349,8 @@ message TunnelStat {
   int64 bytes_out = 4;
   // 最近一次上线时间
   google.protobuf.Timestamp last_start_time = 5;
+  // 最近一次下线时间
+  google.protobuf.Timestamp last_close_time = 6;
 }
 
 // 隧道时间序列采样点
@@ -267,6 +406,14 @@ message TunnelInfo {
   string max_bandwidth = 19;
   // 活跃连接数上限，0=不限
   int32 max_active_conns = 20;
+  // 备注
+  string remark = 21;
+  // 最近一次连入的 frpc 客户端（进程启动后未连入过则为空）
+  TunnelClient client = 22;
+  // 最近一次上线时间
+  google.protobuf.Timestamp last_online_time = 23;
+  // 最近一次下线时间
+  google.protobuf.Timestamp last_offline_time = 24;
 }
 
 // frps 实例配置（实例级，非逐条隧道规则）。
@@ -293,6 +440,8 @@ message FrpsConfig {
   int32 stat_sample_interval = 9;
   // 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
   string server_addr = 11;
+  // 强制 frpc 使用 TLS 连接（拒绝明文连接）
+  bool tls_force = 12;
 }
 
 enum TunnelType {

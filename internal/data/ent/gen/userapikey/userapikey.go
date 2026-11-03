@@ -30,6 +30,12 @@ const (
 	FieldExpiresAt = "expires_at"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
+	// FieldLastUsedAt holds the string denoting the last_used_at field in the database.
+	FieldLastUsedAt = "last_used_at"
+	// FieldLastUsedIP holds the string denoting the last_used_ip field in the database.
+	FieldLastUsedIP = "last_used_ip"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the userapikey in the database.
@@ -54,6 +60,9 @@ var Columns = []string{
 	FieldPermissions,
 	FieldExpiresAt,
 	FieldUserID,
+	FieldRemark,
+	FieldLastUsedAt,
+	FieldLastUsedIP,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -124,6 +133,21 @@ func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByLastUsedAt orders the results by the last_used_at field.
+func ByLastUsedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastUsedAt, opts...).ToFunc()
+}
+
+// ByLastUsedIP orders the results by the last_used_ip field.
+func ByLastUsedIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastUsedIP, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

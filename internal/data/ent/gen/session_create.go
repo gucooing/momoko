@@ -94,6 +94,62 @@ func (_c *SessionCreate) SetExpiresAt(v time.Time) *SessionCreate {
 	return _c
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (_c *SessionCreate) SetUserAgent(v string) *SessionCreate {
+	_c.mutation.SetUserAgent(v)
+	return _c
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableUserAgent(v *string) *SessionCreate {
+	if v != nil {
+		_c.SetUserAgent(*v)
+	}
+	return _c
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (_c *SessionCreate) SetLoginMethod(v string) *SessionCreate {
+	_c.mutation.SetLoginMethod(v)
+	return _c
+}
+
+// SetNillableLoginMethod sets the "login_method" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableLoginMethod(v *string) *SessionCreate {
+	if v != nil {
+		_c.SetLoginMethod(*v)
+	}
+	return _c
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (_c *SessionCreate) SetLastActiveAt(v time.Time) *SessionCreate {
+	_c.mutation.SetLastActiveAt(v)
+	return _c
+}
+
+// SetNillableLastActiveAt sets the "last_active_at" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableLastActiveAt(v *time.Time) *SessionCreate {
+	if v != nil {
+		_c.SetLastActiveAt(*v)
+	}
+	return _c
+}
+
+// SetLastIP sets the "last_ip" field.
+func (_c *SessionCreate) SetLastIP(v string) *SessionCreate {
+	_c.mutation.SetLastIP(v)
+	return _c
+}
+
+// SetNillableLastIP sets the "last_ip" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableLastIP(v *string) *SessionCreate {
+	if v != nil {
+		_c.SetLastIP(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SessionCreate) SetID(v string) *SessionCreate {
 	_c.mutation.SetID(v)
@@ -147,6 +203,18 @@ func (_c *SessionCreate) defaults() {
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		v := session.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
+	}
+	if _, ok := _c.mutation.UserAgent(); !ok {
+		v := session.DefaultUserAgent
+		_c.mutation.SetUserAgent(v)
+	}
+	if _, ok := _c.mutation.LoginMethod(); !ok {
+		v := session.DefaultLoginMethod
+		_c.mutation.SetLoginMethod(v)
+	}
+	if _, ok := _c.mutation.LastIP(); !ok {
+		v := session.DefaultLastIP
+		_c.mutation.SetLastIP(v)
 	}
 }
 
@@ -203,6 +271,15 @@ func (_c *SessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`gen: missing required field "Session.expires_at"`)}
+	}
+	if _, ok := _c.mutation.UserAgent(); !ok {
+		return &ValidationError{Name: "user_agent", err: errors.New(`gen: missing required field "Session.user_agent"`)}
+	}
+	if _, ok := _c.mutation.LoginMethod(); !ok {
+		return &ValidationError{Name: "login_method", err: errors.New(`gen: missing required field "Session.login_method"`)}
+	}
+	if _, ok := _c.mutation.LastIP(); !ok {
+		return &ValidationError{Name: "last_ip", err: errors.New(`gen: missing required field "Session.last_ip"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := session.IDValidator(v); err != nil {
@@ -279,6 +356,22 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = value
+	}
+	if value, ok := _c.mutation.UserAgent(); ok {
+		_spec.SetField(session.FieldUserAgent, field.TypeString, value)
+		_node.UserAgent = value
+	}
+	if value, ok := _c.mutation.LoginMethod(); ok {
+		_spec.SetField(session.FieldLoginMethod, field.TypeString, value)
+		_node.LoginMethod = value
+	}
+	if value, ok := _c.mutation.LastActiveAt(); ok {
+		_spec.SetField(session.FieldLastActiveAt, field.TypeTime, value)
+		_node.LastActiveAt = &value
+	}
+	if value, ok := _c.mutation.LastIP(); ok {
+		_spec.SetField(session.FieldLastIP, field.TypeString, value)
+		_node.LastIP = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -445,6 +538,60 @@ func (u *SessionUpsert) UpdateExpiresAt() *SessionUpsert {
 	return u
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (u *SessionUpsert) SetUserAgent(v string) *SessionUpsert {
+	u.Set(session.FieldUserAgent, v)
+	return u
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateUserAgent() *SessionUpsert {
+	u.SetExcluded(session.FieldUserAgent)
+	return u
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (u *SessionUpsert) SetLoginMethod(v string) *SessionUpsert {
+	u.Set(session.FieldLoginMethod, v)
+	return u
+}
+
+// UpdateLoginMethod sets the "login_method" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateLoginMethod() *SessionUpsert {
+	u.SetExcluded(session.FieldLoginMethod)
+	return u
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (u *SessionUpsert) SetLastActiveAt(v time.Time) *SessionUpsert {
+	u.Set(session.FieldLastActiveAt, v)
+	return u
+}
+
+// UpdateLastActiveAt sets the "last_active_at" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateLastActiveAt() *SessionUpsert {
+	u.SetExcluded(session.FieldLastActiveAt)
+	return u
+}
+
+// ClearLastActiveAt clears the value of the "last_active_at" field.
+func (u *SessionUpsert) ClearLastActiveAt() *SessionUpsert {
+	u.SetNull(session.FieldLastActiveAt)
+	return u
+}
+
+// SetLastIP sets the "last_ip" field.
+func (u *SessionUpsert) SetLastIP(v string) *SessionUpsert {
+	u.Set(session.FieldLastIP, v)
+	return u
+}
+
+// UpdateLastIP sets the "last_ip" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateLastIP() *SessionUpsert {
+	u.SetExcluded(session.FieldLastIP)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -605,6 +752,69 @@ func (u *SessionUpsertOne) SetExpiresAt(v time.Time) *SessionUpsertOne {
 func (u *SessionUpsertOne) UpdateExpiresAt() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateExpiresAt()
+	})
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (u *SessionUpsertOne) SetUserAgent(v string) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetUserAgent(v)
+	})
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateUserAgent() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateUserAgent()
+	})
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (u *SessionUpsertOne) SetLoginMethod(v string) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLoginMethod(v)
+	})
+}
+
+// UpdateLoginMethod sets the "login_method" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateLoginMethod() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLoginMethod()
+	})
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (u *SessionUpsertOne) SetLastActiveAt(v time.Time) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLastActiveAt(v)
+	})
+}
+
+// UpdateLastActiveAt sets the "last_active_at" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateLastActiveAt() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLastActiveAt()
+	})
+}
+
+// ClearLastActiveAt clears the value of the "last_active_at" field.
+func (u *SessionUpsertOne) ClearLastActiveAt() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.ClearLastActiveAt()
+	})
+}
+
+// SetLastIP sets the "last_ip" field.
+func (u *SessionUpsertOne) SetLastIP(v string) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLastIP(v)
+	})
+}
+
+// UpdateLastIP sets the "last_ip" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateLastIP() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLastIP()
 	})
 }
 
@@ -935,6 +1145,69 @@ func (u *SessionUpsertBulk) SetExpiresAt(v time.Time) *SessionUpsertBulk {
 func (u *SessionUpsertBulk) UpdateExpiresAt() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateExpiresAt()
+	})
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (u *SessionUpsertBulk) SetUserAgent(v string) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetUserAgent(v)
+	})
+}
+
+// UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateUserAgent() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateUserAgent()
+	})
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (u *SessionUpsertBulk) SetLoginMethod(v string) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLoginMethod(v)
+	})
+}
+
+// UpdateLoginMethod sets the "login_method" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateLoginMethod() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLoginMethod()
+	})
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (u *SessionUpsertBulk) SetLastActiveAt(v time.Time) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLastActiveAt(v)
+	})
+}
+
+// UpdateLastActiveAt sets the "last_active_at" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateLastActiveAt() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLastActiveAt()
+	})
+}
+
+// ClearLastActiveAt clears the value of the "last_active_at" field.
+func (u *SessionUpsertBulk) ClearLastActiveAt() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.ClearLastActiveAt()
+	})
+}
+
+// SetLastIP sets the "last_ip" field.
+func (u *SessionUpsertBulk) SetLastIP(v string) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLastIP(v)
+	})
+}
+
+// UpdateLastIP sets the "last_ip" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateLastIP() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLastIP()
 	})
 }
 

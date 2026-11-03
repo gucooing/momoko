@@ -23,6 +23,9 @@ func (PortForward) Fields() []ent.Field {
 		field.String("target_address").Default("0.0.0.0").Comment("目标地址"),
 		field.Int("target_port").Default(0).Comment("目标端口"),
 		field.Bool("is_enable").Default(false).Comment("是否启用"),
+		field.String("remark").Default("").Comment("备注"),
+		field.Int64("total_bytes_in").Default(0).Comment("自创建（或上次清零）起累计入站流量(字节)，运行中定期落库"),
+		field.Int64("total_bytes_out").Default(0).Comment("自创建（或上次清零）起累计出站流量(字节)，运行中定期落库"),
 	}
 }
 

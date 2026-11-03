@@ -2,10 +2,13 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"io"
+	"strings"
 
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/proto"
 
 	v1 "momoko/api/gen/v1"
 	dockerpkg "momoko/pkg/docker"
@@ -41,24 +44,117 @@ func NewDockerUsecase(config ConfigRepo, tasks *task.Manager) (*DockerUsecase, e
 	return &DockerUsecase{config: config, docker: manager}, nil
 }
 
+// Config 返回给前端的配置：私钥内容不外传（只给 tls_key_meta），证书附带解析出的 CN / 有效期。
 func (d *DockerUsecase) Config(ctx context.Context) (*v1.DockerConfigInfo, error) {
-	return d.config.DockerConfig(ctx)
+	cfg, err := d.config.DockerConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return publicDockerConfig(cfg), nil
+}
+
+func publicDockerConfig(cfg *v1.DockerConfigInfo) *v1.DockerConfigInfo {
+	out := proto.Clone(cfg).(*v1.DockerConfigInfo)
+	out.TlsCaMeta = dockerpkg.TLSCertMeta(out.TlsCa)
+	out.TlsCertMeta = dockerpkg.TLSCertMeta(out.TlsCert)
+	out.TlsKeyMeta = dockerpkg.TLSKeyMeta(out.TlsKey)
+	out.TlsKey = ""
+	out.TlsKeyClear = false
+	// 仓库密码 / token 不回传；保存时留空即沿用已保存的
+	for _, auth := range out.RegistryAuths {
+		if auth != nil {
+			auth.Password, auth.Token = "", ""
+		}
+	}
+	return out
+}
+
+// mergeStoredSecrets 私钥留空表示沿用已保存的（除非显式清除）；仓库凭据密码留空时沿用同地址同用户名的已保存密码。
+func (d *DockerUsecase) mergeStoredSecrets(ctx context.Context, cfg *v1.DockerConfigInfo) (*v1.DockerConfigInfo, error) {
+	if cfg == nil {
+		return nil, ErrSystem(errors.New("缺少 Docker 配置"))
+	}
+	stored, err := d.config.DockerConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cfg = proto.Clone(cfg).(*v1.DockerConfigInfo)
+	if cfg.TlsKeyClear {
+		cfg.TlsKey = ""
+	} else if strings.TrimSpace(cfg.TlsKey) == "" {
+		cfg.TlsKey = stored.TlsKey
+	}
+	cfg.TlsKeyClear = false
+	cfg.TlsCaMeta, cfg.TlsCertMeta, cfg.TlsKeyMeta = nil, nil, nil
+	for _, auth := range cfg.RegistryAuths {
+		if auth == nil || auth.Password != "" || auth.Token != "" {
+			continue
+		}
+		if old := findRegistryAuth(stored.RegistryAuths, auth.ServerAddress, auth.Username); old != nil {
+			auth.Password, auth.Token = old.Password, old.Token
+		}
+	}
+	return cfg, nil
+}
+
+func findRegistryAuth(list []*v1.DockerRegistryAuth, server, username string) *v1.DockerRegistryAuth {
+	for _, item := range list {
+		if item != nil && strings.EqualFold(strings.TrimSpace(item.ServerAddress), strings.TrimSpace(server)) && item.Username == username {
+			return item
+		}
+	}
+	return nil
 }
 
 func (d *DockerUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateDockerConfigRequest) (*v1.DockerConfigInfo, error) {
-	cfg, err := d.config.UpdateDockerConfig(ctx, req.Config)
+	merged, err := d.mergeStoredSecrets(ctx, req.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := d.config.UpdateDockerConfig(ctx, merged)
 	if err != nil {
 		return nil, err
 	}
 	if err = d.docker.Reconfigure(cfg); err != nil {
 		return nil, ErrSystem(err)
 	}
-	return cfg, nil
+	return publicDockerConfig(cfg), nil
 }
 
 func (d *DockerUsecase) TestConfig(ctx context.Context, req *v1.TestDockerConfigRequest) (*v1.DockerStatusResponse, error) {
-	status, _ := d.docker.Test(ctx, req.GetConfig())
+	merged, err := d.mergeStoredSecrets(ctx, req.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+	status, _ := d.docker.Test(ctx, merged)
 	return status, nil
+}
+
+// TestRegistryAuth 通过引擎登录仓库验证凭据；已保存的同地址同用户名凭据同步记下验证结果。
+func (d *DockerUsecase) TestRegistryAuth(ctx context.Context, auth *v1.DockerRegistryAuth) (*v1.DockerRegistryAuth, error) {
+	if auth == nil {
+		return nil, ErrSystem(errors.New("缺少仓库凭据"))
+	}
+	stored, err := d.config.DockerConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	probe := proto.Clone(auth).(*v1.DockerRegistryAuth)
+	saved := findRegistryAuth(stored.RegistryAuths, probe.ServerAddress, probe.Username)
+	if probe.Password == "" && probe.Token == "" && saved != nil {
+		probe.Password, probe.Token = saved.Password, saved.Token
+	}
+	result, err := d.docker.RegistryLogin(ctx, probe)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if saved != nil {
+		saved.VerifiedAt, saved.Verified, saved.VerifyError = result.VerifiedAt, result.Verified, result.VerifyError
+		if _, err := d.config.UpdateDockerConfig(context.WithoutCancel(ctx), stored); err != nil {
+			return nil, ErrSystem(err)
+		}
+	}
+	return result, nil
 }
 
 func (d *DockerUsecase) Status(ctx context.Context) (*v1.DockerStatusResponse, error) {
@@ -237,6 +333,30 @@ func (d *DockerUsecase) ImageHistory(ctx context.Context, id string) ([]*v1.Dock
 		return nil, ErrSystem(err)
 	}
 	return items, nil
+}
+
+func (d *DockerUsecase) PruneImages(ctx context.Context, all bool) (*v1.PruneDockerImagesResponse, error) {
+	result, err := d.docker.PruneImages(ctx, all)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return result, nil
+}
+
+func (d *DockerUsecase) SearchImages(ctx context.Context, term string, limit int32) ([]*v1.DockerImageSearchResult, error) {
+	items, err := d.docker.SearchImages(ctx, term, limit)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return items, nil
+}
+
+func (d *DockerUsecase) PruneNetworks(ctx context.Context) ([]string, error) {
+	deleted, err := d.docker.PruneNetworks(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return deleted, nil
 }
 
 func (d *DockerUsecase) ListNetworks(ctx context.Context, req *v1.ListDockerNetworksRequest) (*v1.ListDockerNetworksResponse, error) {

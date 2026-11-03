@@ -58,6 +58,14 @@ func (d *DockerService) TestDockerConfig(ctx context.Context, req *v1.TestDocker
 	return &v1.TestDockerConfigResponse{Status: status}, nil
 }
 
+func (d *DockerService) TestDockerRegistryAuth(ctx context.Context, req *v1.TestDockerRegistryAuthRequest) (*v1.TestDockerRegistryAuthResponse, error) {
+	auth, err := d.uc.TestRegistryAuth(ctx, req.GetAuth())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TestDockerRegistryAuthResponse{Auth: auth}, nil
+}
+
 func (d *DockerService) ListDockerTasks(ctx context.Context, _ *v1.ListDockerTasksRequest) (*v1.ListDockerTasksResponse, error) {
 	tasks, err := d.uc.Tasks(ctx)
 	if err != nil {
@@ -214,6 +222,26 @@ func (d *DockerService) ImageHistory(ctx context.Context, req *v1.ImageHistoryRe
 		return nil, err
 	}
 	return &v1.ImageHistoryResponse{Items: items}, nil
+}
+
+func (d *DockerService) PruneDockerImages(ctx context.Context, req *v1.PruneDockerImagesRequest) (*v1.PruneDockerImagesResponse, error) {
+	return d.uc.PruneImages(ctx, req.GetAll())
+}
+
+func (d *DockerService) SearchDockerImages(ctx context.Context, req *v1.SearchDockerImagesRequest) (*v1.SearchDockerImagesResponse, error) {
+	items, err := d.uc.SearchImages(ctx, req.GetTerm(), req.GetLimit())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SearchDockerImagesResponse{Items: items}, nil
+}
+
+func (d *DockerService) PruneDockerNetworks(ctx context.Context, _ *v1.PruneDockerNetworksRequest) (*v1.PruneDockerNetworksResponse, error) {
+	deleted, err := d.uc.PruneNetworks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PruneDockerNetworksResponse{Deleted: deleted}, nil
 }
 
 func (d *DockerService) ListDockerNetworks(ctx context.Context, req *v1.ListDockerNetworksRequest) (*v1.ListDockerNetworksResponse, error) {

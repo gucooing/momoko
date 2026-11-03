@@ -173,6 +173,108 @@ func (RoleStatus) EnumDescriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{2}
 }
 
+// 更新通道
+type UpdateChannel int32
+
+const (
+	// 稳定版：只看正式发行版
+	UpdateChannel_UpdateChannel_Stable UpdateChannel = 0
+	// 测试版：包含预发布版本
+	UpdateChannel_UpdateChannel_Beta UpdateChannel = 1
+)
+
+// Enum value maps for UpdateChannel.
+var (
+	UpdateChannel_name = map[int32]string{
+		0: "UpdateChannel_Stable",
+		1: "UpdateChannel_Beta",
+	}
+	UpdateChannel_value = map[string]int32{
+		"UpdateChannel_Stable": 0,
+		"UpdateChannel_Beta":   1,
+	}
+)
+
+func (x UpdateChannel) Enum() *UpdateChannel {
+	p := new(UpdateChannel)
+	*p = x
+	return p
+}
+
+func (x UpdateChannel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (UpdateChannel) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_system_proto_enumTypes[3].Descriptor()
+}
+
+func (UpdateChannel) Type() protoreflect.EnumType {
+	return &file_v1_system_proto_enumTypes[3]
+}
+
+func (x UpdateChannel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use UpdateChannel.Descriptor instead.
+func (UpdateChannel) EnumDescriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{3}
+}
+
+// SMTP 加密方式
+type EmailEncryption int32
+
+const (
+	// 隐式 TLS（SSL，一般 465 端口）
+	EmailEncryption_EmailEncryption_SSL EmailEncryption = 0
+	// 明文连接后升级（STARTTLS，一般 587 端口）
+	EmailEncryption_EmailEncryption_STARTTLS EmailEncryption = 1
+	// 不加密（一般 25 端口）
+	EmailEncryption_EmailEncryption_NONE EmailEncryption = 2
+)
+
+// Enum value maps for EmailEncryption.
+var (
+	EmailEncryption_name = map[int32]string{
+		0: "EmailEncryption_SSL",
+		1: "EmailEncryption_STARTTLS",
+		2: "EmailEncryption_NONE",
+	}
+	EmailEncryption_value = map[string]int32{
+		"EmailEncryption_SSL":      0,
+		"EmailEncryption_STARTTLS": 1,
+		"EmailEncryption_NONE":     2,
+	}
+)
+
+func (x EmailEncryption) Enum() *EmailEncryption {
+	p := new(EmailEncryption)
+	*p = x
+	return p
+}
+
+func (x EmailEncryption) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EmailEncryption) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_system_proto_enumTypes[4].Descriptor()
+}
+
+func (EmailEncryption) Type() protoreflect.EnumType {
+	return &file_v1_system_proto_enumTypes[4]
+}
+
+func (x EmailEncryption) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EmailEncryption.Descriptor instead.
+func (EmailEncryption) EnumDescriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{4}
+}
+
 // 邮件模板类型
 type EmailTemplateType int32
 
@@ -181,6 +283,8 @@ const (
 	EmailTemplateType_EmailTemplateType_Register EmailTemplateType = 0
 	// 登录
 	EmailTemplateType_EmailTemplateType_Login EmailTemplateType = 1
+	// 重置密码
+	EmailTemplateType_EmailTemplateType_ResetPassword EmailTemplateType = 2
 )
 
 // Enum value maps for EmailTemplateType.
@@ -188,10 +292,12 @@ var (
 	EmailTemplateType_name = map[int32]string{
 		0: "EmailTemplateType_Register",
 		1: "EmailTemplateType_Login",
+		2: "EmailTemplateType_ResetPassword",
 	}
 	EmailTemplateType_value = map[string]int32{
-		"EmailTemplateType_Register": 0,
-		"EmailTemplateType_Login":    1,
+		"EmailTemplateType_Register":      0,
+		"EmailTemplateType_Login":         1,
+		"EmailTemplateType_ResetPassword": 2,
 	}
 )
 
@@ -206,11 +312,11 @@ func (x EmailTemplateType) String() string {
 }
 
 func (EmailTemplateType) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_system_proto_enumTypes[3].Descriptor()
+	return file_v1_system_proto_enumTypes[5].Descriptor()
 }
 
 func (EmailTemplateType) Type() protoreflect.EnumType {
-	return &file_v1_system_proto_enumTypes[3]
+	return &file_v1_system_proto_enumTypes[5]
 }
 
 func (x EmailTemplateType) Number() protoreflect.EnumNumber {
@@ -219,7 +325,7 @@ func (x EmailTemplateType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EmailTemplateType.Descriptor instead.
 func (EmailTemplateType) EnumDescriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{3}
+	return file_v1_system_proto_rawDescGZIP(), []int{5}
 }
 
 // 操作日志类型
@@ -430,6 +536,20 @@ const (
 	OperationType_OperationTypeNodeDelete OperationType = 106
 	// 节点连接测试
 	OperationType_OperationTypeNodeTest OperationType = 107
+	// OIDC 签名密钥轮换
+	OperationType_OperationTypeOIDCSigningKeyRotate OperationType = 108
+	// 任务取消
+	OperationType_OperationTypeTaskCancel OperationType = 109
+	// 任务重试
+	OperationType_OperationTypeTaskRetry OperationType = 110
+	// 任务删除
+	OperationType_OperationTypeTaskDelete OperationType = 111
+	// 任务批量清理
+	OperationType_OperationTypeTaskClear OperationType = 112
+	// 系统常规设置更新（站点名称 / 对外地址 / 默认语言 / 版本更新偏好）
+	OperationType_OperationTypeSystemSiteConfigUpdate OperationType = 120
+	// Docker 仓库凭据验证
+	OperationType_OperationTypeDockerRegistryAuthTest OperationType = 121
 )
 
 // Enum value maps for OperationType.
@@ -537,6 +657,13 @@ var (
 		105: "OperationTypeNodeUpdate",
 		106: "OperationTypeNodeDelete",
 		107: "OperationTypeNodeTest",
+		108: "OperationTypeOIDCSigningKeyRotate",
+		109: "OperationTypeTaskCancel",
+		110: "OperationTypeTaskRetry",
+		111: "OperationTypeTaskDelete",
+		112: "OperationTypeTaskClear",
+		120: "OperationTypeSystemSiteConfigUpdate",
+		121: "OperationTypeDockerRegistryAuthTest",
 	}
 	OperationType_value = map[string]int32{
 		"OperationTypeUncategorized":               0,
@@ -641,6 +768,13 @@ var (
 		"OperationTypeNodeUpdate":                  105,
 		"OperationTypeNodeDelete":                  106,
 		"OperationTypeNodeTest":                    107,
+		"OperationTypeOIDCSigningKeyRotate":        108,
+		"OperationTypeTaskCancel":                  109,
+		"OperationTypeTaskRetry":                   110,
+		"OperationTypeTaskDelete":                  111,
+		"OperationTypeTaskClear":                   112,
+		"OperationTypeSystemSiteConfigUpdate":      120,
+		"OperationTypeDockerRegistryAuthTest":      121,
 	}
 )
 
@@ -655,11 +789,11 @@ func (x OperationType) String() string {
 }
 
 func (OperationType) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_system_proto_enumTypes[4].Descriptor()
+	return file_v1_system_proto_enumTypes[6].Descriptor()
 }
 
 func (OperationType) Type() protoreflect.EnumType {
-	return &file_v1_system_proto_enumTypes[4]
+	return &file_v1_system_proto_enumTypes[6]
 }
 
 func (x OperationType) Number() protoreflect.EnumNumber {
@@ -668,7 +802,7 @@ func (x OperationType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OperationType.Descriptor instead.
 func (OperationType) EnumDescriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{4}
+	return file_v1_system_proto_rawDescGZIP(), []int{6}
 }
 
 // 获取当前角色的全部权限请求
@@ -825,7 +959,11 @@ type CheckUpdateResponse struct {
 	// 最新发行版发布时间
 	PublishedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=published_at,json=publishedAt,proto3" json:"published_at,omitempty"`
 	// 最新发行版 Markdown 更新内容
-	ReleaseBody   string `protobuf:"bytes,7,opt,name=release_body,json=releaseBody,proto3" json:"release_body,omitempty"`
+	ReleaseBody string `protobuf:"bytes,7,opt,name=release_body,json=releaseBody,proto3" json:"release_body,omitempty"`
+	// 本次检查时间
+	CheckedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=checked_at,json=checkedAt,proto3" json:"checked_at,omitempty"`
+	// 检查所用的更新通道
+	Channel       UpdateChannel `protobuf:"varint,9,opt,name=channel,proto3,enum=v1.UpdateChannel" json:"channel,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -907,6 +1045,20 @@ func (x *CheckUpdateResponse) GetReleaseBody() string {
 		return x.ReleaseBody
 	}
 	return ""
+}
+
+func (x *CheckUpdateResponse) GetCheckedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CheckedAt
+	}
+	return nil
+}
+
+func (x *CheckUpdateResponse) GetChannel() UpdateChannel {
+	if x != nil {
+		return x.Channel
+	}
+	return UpdateChannel_UpdateChannel_Stable
 }
 
 // 权限菜单信息
@@ -1766,7 +1918,9 @@ type RoleInfo struct {
 	// 更新时间
 	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	// 角色菜单id
-	MenuIds       []string `protobuf:"bytes,8,rep,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
+	MenuIds []string `protobuf:"bytes,8,rep,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
+	// 分配了该角色的用户数
+	UserCount     int64 `protobuf:"varint,9,opt,name=user_count,json=userCount,proto3" json:"user_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1855,6 +2009,13 @@ func (x *RoleInfo) GetMenuIds() []string {
 		return x.MenuIds
 	}
 	return nil
+}
+
+func (x *RoleInfo) GetUserCount() int64 {
+	if x != nil {
+		return x.UserCount
+	}
+	return 0
 }
 
 // 获取角色详情请求
@@ -2290,8 +2451,16 @@ type LoginConfig struct {
 	EmailLoginEnabled bool `protobuf:"varint,3,opt,name=email_login_enabled,json=emailLoginEnabled,proto3" json:"email_login_enabled,omitempty"`
 	// 注册时是否强制验证邮箱
 	RegisterEmailVerificationRequired bool `protobuf:"varint,4,opt,name=register_email_verification_required,json=registerEmailVerificationRequired,proto3" json:"register_email_verification_required,omitempty"`
-	unknownFields                     protoimpl.UnknownFields
-	sizeCache                         protoimpl.SizeCache
+	// 访问令牌有效期（分钟）
+	AccessTokenTtlMinutes int32 `protobuf:"varint,5,opt,name=access_token_ttl_minutes,json=accessTokenTtlMinutes,proto3" json:"access_token_ttl_minutes,omitempty"`
+	// 刷新令牌有效期（天）：超过该时长未使用需重新登录
+	RefreshTokenTtlDays int32 `protobuf:"varint,6,opt,name=refresh_token_ttl_days,json=refreshTokenTtlDays,proto3" json:"refresh_token_ttl_days,omitempty"`
+	// 登录失败锁定：按账号 + IP 连续失败次数达到该值后锁定；0 表示不锁定
+	LockoutThreshold int32 `protobuf:"varint,7,opt,name=lockout_threshold,json=lockoutThreshold,proto3" json:"lockout_threshold,omitempty"`
+	// 登录失败锁定时长（分钟）
+	LockoutMinutes int32 `protobuf:"varint,8,opt,name=lockout_minutes,json=lockoutMinutes,proto3" json:"lockout_minutes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *LoginConfig) Reset() {
@@ -2352,6 +2521,34 @@ func (x *LoginConfig) GetRegisterEmailVerificationRequired() bool {
 	return false
 }
 
+func (x *LoginConfig) GetAccessTokenTtlMinutes() int32 {
+	if x != nil {
+		return x.AccessTokenTtlMinutes
+	}
+	return 0
+}
+
+func (x *LoginConfig) GetRefreshTokenTtlDays() int32 {
+	if x != nil {
+		return x.RefreshTokenTtlDays
+	}
+	return 0
+}
+
+func (x *LoginConfig) GetLockoutThreshold() int32 {
+	if x != nil {
+		return x.LockoutThreshold
+	}
+	return 0
+}
+
+func (x *LoginConfig) GetLockoutMinutes() int32 {
+	if x != nil {
+		return x.LockoutMinutes
+	}
+	return 0
+}
+
 // 获取登录配置请求
 type LoginConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2389,13 +2586,17 @@ func (*LoginConfigRequest) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{27}
 }
 
-// 获取登录配置响应
+// 获取登录配置响应（公开接口，登录页使用）
 type LoginConfigResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 登录配置
-	Config        *LoginConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Config *LoginConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	// 站点名称
+	SiteName string `protobuf:"bytes,2,opt,name=site_name,json=siteName,proto3" json:"site_name,omitempty"`
+	// 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器）
+	DefaultLanguage string `protobuf:"bytes,3,opt,name=default_language,json=defaultLanguage,proto3" json:"default_language,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *LoginConfigResponse) Reset() {
@@ -2435,6 +2636,20 @@ func (x *LoginConfigResponse) GetConfig() *LoginConfig {
 	return nil
 }
 
+func (x *LoginConfigResponse) GetSiteName() string {
+	if x != nil {
+		return x.SiteName
+	}
+	return ""
+}
+
+func (x *LoginConfigResponse) GetDefaultLanguage() string {
+	if x != nil {
+		return x.DefaultLanguage
+	}
+	return ""
+}
+
 // 更新登录配置请求
 type UpdateLoginConfigRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2446,8 +2661,16 @@ type UpdateLoginConfigRequest struct {
 	EmailLoginEnabled bool `protobuf:"varint,3,opt,name=email_login_enabled,json=emailLoginEnabled,proto3" json:"email_login_enabled,omitempty"`
 	// 注册时是否强制验证邮箱
 	RegisterEmailVerificationRequired bool `protobuf:"varint,4,opt,name=register_email_verification_required,json=registerEmailVerificationRequired,proto3" json:"register_email_verification_required,omitempty"`
-	unknownFields                     protoimpl.UnknownFields
-	sizeCache                         protoimpl.SizeCache
+	// 访问令牌有效期（分钟）
+	AccessTokenTtlMinutes int32 `protobuf:"varint,5,opt,name=access_token_ttl_minutes,json=accessTokenTtlMinutes,proto3" json:"access_token_ttl_minutes,omitempty"`
+	// 刷新令牌有效期（天）
+	RefreshTokenTtlDays int32 `protobuf:"varint,6,opt,name=refresh_token_ttl_days,json=refreshTokenTtlDays,proto3" json:"refresh_token_ttl_days,omitempty"`
+	// 登录失败锁定次数；0 表示不锁定
+	LockoutThreshold int32 `protobuf:"varint,7,opt,name=lockout_threshold,json=lockoutThreshold,proto3" json:"lockout_threshold,omitempty"`
+	// 登录失败锁定时长（分钟）
+	LockoutMinutes int32 `protobuf:"varint,8,opt,name=lockout_minutes,json=lockoutMinutes,proto3" json:"lockout_minutes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UpdateLoginConfigRequest) Reset() {
@@ -2508,6 +2731,34 @@ func (x *UpdateLoginConfigRequest) GetRegisterEmailVerificationRequired() bool {
 	return false
 }
 
+func (x *UpdateLoginConfigRequest) GetAccessTokenTtlMinutes() int32 {
+	if x != nil {
+		return x.AccessTokenTtlMinutes
+	}
+	return 0
+}
+
+func (x *UpdateLoginConfigRequest) GetRefreshTokenTtlDays() int32 {
+	if x != nil {
+		return x.RefreshTokenTtlDays
+	}
+	return 0
+}
+
+func (x *UpdateLoginConfigRequest) GetLockoutThreshold() int32 {
+	if x != nil {
+		return x.LockoutThreshold
+	}
+	return 0
+}
+
+func (x *UpdateLoginConfigRequest) GetLockoutMinutes() int32 {
+	if x != nil {
+		return x.LockoutMinutes
+	}
+	return 0
+}
+
 // 更新登录配置响应
 type UpdateLoginConfigResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2554,6 +2805,461 @@ func (x *UpdateLoginConfigResponse) GetConfig() *LoginConfig {
 	return nil
 }
 
+// 最近一次检查更新结果
+type UpdateCheckResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 检查时间
+	Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	// 远程最新版本号
+	LatestVersion string `protobuf:"bytes,2,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`
+	// 是否有可用更新
+	HasUpdate bool `protobuf:"varint,3,opt,name=has_update,json=hasUpdate,proto3" json:"has_update,omitempty"`
+	// 失败原因（成功时为空）
+	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	// 发行版页面地址
+	ReleaseUrl string `protobuf:"bytes,5,opt,name=release_url,json=releaseUrl,proto3" json:"release_url,omitempty"`
+	// 是否由每日自动检查触发
+	Auto          bool `protobuf:"varint,6,opt,name=auto,proto3" json:"auto,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateCheckResult) Reset() {
+	*x = UpdateCheckResult{}
+	mi := &file_v1_system_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCheckResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCheckResult) ProtoMessage() {}
+
+func (x *UpdateCheckResult) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCheckResult.ProtoReflect.Descriptor instead.
+func (*UpdateCheckResult) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UpdateCheckResult) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *UpdateCheckResult) GetLatestVersion() string {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return ""
+}
+
+func (x *UpdateCheckResult) GetHasUpdate() bool {
+	if x != nil {
+		return x.HasUpdate
+	}
+	return false
+}
+
+func (x *UpdateCheckResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *UpdateCheckResult) GetReleaseUrl() string {
+	if x != nil {
+		return x.ReleaseUrl
+	}
+	return ""
+}
+
+func (x *UpdateCheckResult) GetAuto() bool {
+	if x != nil {
+		return x.Auto
+	}
+	return false
+}
+
+// 设置的最近修改记录
+type SettingsAudit struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 修改时间
+	Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	// 修改人
+	UserName      string `protobuf:"bytes,2,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SettingsAudit) Reset() {
+	*x = SettingsAudit{}
+	mi := &file_v1_system_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SettingsAudit) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SettingsAudit) ProtoMessage() {}
+
+func (x *SettingsAudit) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SettingsAudit.ProtoReflect.Descriptor instead.
+func (*SettingsAudit) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *SettingsAudit) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *SettingsAudit) GetUserName() string {
+	if x != nil {
+		return x.UserName
+	}
+	return ""
+}
+
+// 站点常规配置
+type SiteConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 站点名称：显示在浏览器标签、登录页和邮件里（邮件模板变量 {{.site}}）
+	SiteName string `protobuf:"bytes,1,opt,name=site_name,json=siteName,proto3" json:"site_name,omitempty"`
+	// 对外访问地址（如 https://panel.example.com），邮件模板变量 {{.url}}
+	ExternalUrl string `protobuf:"bytes,2,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	// 默认语言：zh-CN / zh-HK / en-US / auto（跟随浏览器）
+	DefaultLanguage string `protobuf:"bytes,3,opt,name=default_language,json=defaultLanguage,proto3" json:"default_language,omitempty"`
+	// 每天自动检查一次更新
+	AutoCheckUpdate bool `protobuf:"varint,4,opt,name=auto_check_update,json=autoCheckUpdate,proto3" json:"auto_check_update,omitempty"`
+	// 更新通道
+	UpdateChannel UpdateChannel `protobuf:"varint,5,opt,name=update_channel,json=updateChannel,proto3,enum=v1.UpdateChannel" json:"update_channel,omitempty"`
+	// 最近一次检查更新结果（只读）
+	LastUpdateCheck *UpdateCheckResult `protobuf:"bytes,6,opt,name=last_update_check,json=lastUpdateCheck,proto3" json:"last_update_check,omitempty"`
+	// 系统设置最近一次修改（只读，登录/邮件/模板/常规任一保存都会刷新）
+	LastModified  *SettingsAudit `protobuf:"bytes,7,opt,name=last_modified,json=lastModified,proto3" json:"last_modified,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteConfig) Reset() {
+	*x = SiteConfig{}
+	mi := &file_v1_system_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteConfig) ProtoMessage() {}
+
+func (x *SiteConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteConfig.ProtoReflect.Descriptor instead.
+func (*SiteConfig) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *SiteConfig) GetSiteName() string {
+	if x != nil {
+		return x.SiteName
+	}
+	return ""
+}
+
+func (x *SiteConfig) GetExternalUrl() string {
+	if x != nil {
+		return x.ExternalUrl
+	}
+	return ""
+}
+
+func (x *SiteConfig) GetDefaultLanguage() string {
+	if x != nil {
+		return x.DefaultLanguage
+	}
+	return ""
+}
+
+func (x *SiteConfig) GetAutoCheckUpdate() bool {
+	if x != nil {
+		return x.AutoCheckUpdate
+	}
+	return false
+}
+
+func (x *SiteConfig) GetUpdateChannel() UpdateChannel {
+	if x != nil {
+		return x.UpdateChannel
+	}
+	return UpdateChannel_UpdateChannel_Stable
+}
+
+func (x *SiteConfig) GetLastUpdateCheck() *UpdateCheckResult {
+	if x != nil {
+		return x.LastUpdateCheck
+	}
+	return nil
+}
+
+func (x *SiteConfig) GetLastModified() *SettingsAudit {
+	if x != nil {
+		return x.LastModified
+	}
+	return nil
+}
+
+// 获取站点常规配置请求
+type SiteConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteConfigRequest) Reset() {
+	*x = SiteConfigRequest{}
+	mi := &file_v1_system_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteConfigRequest) ProtoMessage() {}
+
+func (x *SiteConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteConfigRequest.ProtoReflect.Descriptor instead.
+func (*SiteConfigRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{34}
+}
+
+// 获取站点常规配置响应
+type SiteConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        *SiteConfig            `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SiteConfigResponse) Reset() {
+	*x = SiteConfigResponse{}
+	mi := &file_v1_system_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SiteConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SiteConfigResponse) ProtoMessage() {}
+
+func (x *SiteConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SiteConfigResponse.ProtoReflect.Descriptor instead.
+func (*SiteConfigResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *SiteConfigResponse) GetConfig() *SiteConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+// 更新站点常规配置请求
+type UpdateSiteConfigRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 站点名称
+	SiteName string `protobuf:"bytes,1,opt,name=site_name,json=siteName,proto3" json:"site_name,omitempty"`
+	// 对外访问地址
+	ExternalUrl string `protobuf:"bytes,2,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	// 默认语言
+	DefaultLanguage string `protobuf:"bytes,3,opt,name=default_language,json=defaultLanguage,proto3" json:"default_language,omitempty"`
+	// 每天自动检查一次更新
+	AutoCheckUpdate bool `protobuf:"varint,4,opt,name=auto_check_update,json=autoCheckUpdate,proto3" json:"auto_check_update,omitempty"`
+	// 更新通道
+	UpdateChannel UpdateChannel `protobuf:"varint,5,opt,name=update_channel,json=updateChannel,proto3,enum=v1.UpdateChannel" json:"update_channel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSiteConfigRequest) Reset() {
+	*x = UpdateSiteConfigRequest{}
+	mi := &file_v1_system_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSiteConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSiteConfigRequest) ProtoMessage() {}
+
+func (x *UpdateSiteConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSiteConfigRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSiteConfigRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *UpdateSiteConfigRequest) GetSiteName() string {
+	if x != nil {
+		return x.SiteName
+	}
+	return ""
+}
+
+func (x *UpdateSiteConfigRequest) GetExternalUrl() string {
+	if x != nil {
+		return x.ExternalUrl
+	}
+	return ""
+}
+
+func (x *UpdateSiteConfigRequest) GetDefaultLanguage() string {
+	if x != nil {
+		return x.DefaultLanguage
+	}
+	return ""
+}
+
+func (x *UpdateSiteConfigRequest) GetAutoCheckUpdate() bool {
+	if x != nil {
+		return x.AutoCheckUpdate
+	}
+	return false
+}
+
+func (x *UpdateSiteConfigRequest) GetUpdateChannel() UpdateChannel {
+	if x != nil {
+		return x.UpdateChannel
+	}
+	return UpdateChannel_UpdateChannel_Stable
+}
+
+// 更新站点常规配置响应
+type UpdateSiteConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        *SiteConfig            `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSiteConfigResponse) Reset() {
+	*x = UpdateSiteConfigResponse{}
+	mi := &file_v1_system_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSiteConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSiteConfigResponse) ProtoMessage() {}
+
+func (x *UpdateSiteConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSiteConfigResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSiteConfigResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *UpdateSiteConfigResponse) GetConfig() *SiteConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
 // 邮件配置
 type EmailConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2571,19 +3277,21 @@ type EmailConfig struct {
 	From string `protobuf:"bytes,6,opt,name=from,proto3" json:"from,omitempty"`
 	// 发件人名称
 	FromName string `protobuf:"bytes,7,opt,name=from_name,json=fromName,proto3" json:"from_name,omitempty"`
-	// 是否使用 TLS
-	UseTls bool `protobuf:"varint,8,opt,name=use_tls,json=useTls,proto3" json:"use_tls,omitempty"`
+	// 加密方式
+	Encryption EmailEncryption `protobuf:"varint,11,opt,name=encryption,proto3,enum=v1.EmailEncryption" json:"encryption,omitempty"`
 	// 超时时间，单位秒
 	TimeoutSeconds int32 `protobuf:"varint,9,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
 	// 并发发送协程数
-	CcsN          int32 `protobuf:"varint,10,opt,name=ccs_n,json=ccsN,proto3" json:"ccs_n,omitempty"`
+	CcsN int32 `protobuf:"varint,10,opt,name=ccs_n,json=ccsN,proto3" json:"ccs_n,omitempty"`
+	// 最近一次测试发送结果（只读）
+	LastTest      *EmailTestResult `protobuf:"bytes,12,opt,name=last_test,json=lastTest,proto3" json:"last_test,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EmailConfig) Reset() {
 	*x = EmailConfig{}
-	mi := &file_v1_system_proto_msgTypes[31]
+	mi := &file_v1_system_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2595,7 +3303,7 @@ func (x *EmailConfig) String() string {
 func (*EmailConfig) ProtoMessage() {}
 
 func (x *EmailConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[31]
+	mi := &file_v1_system_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2608,7 +3316,7 @@ func (x *EmailConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailConfig.ProtoReflect.Descriptor instead.
 func (*EmailConfig) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{31}
+	return file_v1_system_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *EmailConfig) GetEnabled() bool {
@@ -2660,11 +3368,11 @@ func (x *EmailConfig) GetFromName() string {
 	return ""
 }
 
-func (x *EmailConfig) GetUseTls() bool {
+func (x *EmailConfig) GetEncryption() EmailEncryption {
 	if x != nil {
-		return x.UseTls
+		return x.Encryption
 	}
-	return false
+	return EmailEncryption_EmailEncryption_SSL
 }
 
 func (x *EmailConfig) GetTimeoutSeconds() int32 {
@@ -2681,19 +3389,110 @@ func (x *EmailConfig) GetCcsN() int32 {
 	return 0
 }
 
+func (x *EmailConfig) GetLastTest() *EmailTestResult {
+	if x != nil {
+		return x.LastTest
+	}
+	return nil
+}
+
+// 邮件测试发送结果
+type EmailTestResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 测试时间
+	Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	// 收件邮箱
+	Recipient string `protobuf:"bytes,2,opt,name=recipient,proto3" json:"recipient,omitempty"`
+	// 是否成功
+	Success bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// 失败原因
+	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	// 耗时毫秒
+	DurationMs    int64 `protobuf:"varint,5,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailTestResult) Reset() {
+	*x = EmailTestResult{}
+	mi := &file_v1_system_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailTestResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailTestResult) ProtoMessage() {}
+
+func (x *EmailTestResult) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailTestResult.ProtoReflect.Descriptor instead.
+func (*EmailTestResult) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *EmailTestResult) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *EmailTestResult) GetRecipient() string {
+	if x != nil {
+		return x.Recipient
+	}
+	return ""
+}
+
+func (x *EmailTestResult) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *EmailTestResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *EmailTestResult) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
 // 模板配置
 type EmailTemplate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Subject       string                 `protobuf:"bytes,1,opt,name=subject,proto3" json:"subject,omitempty"`                      // 邮件主题 TEXT 模板
-	Template      string                 `protobuf:"bytes,2,opt,name=template,proto3" json:"template,omitempty"`                    // 邮件内容 HTML 模板
-	Type          EmailTemplateType      `protobuf:"varint,3,opt,name=type,proto3,enum=v1.EmailTemplateType" json:"type,omitempty"` // 模板类型
+	Subject       string                 `protobuf:"bytes,1,opt,name=subject,proto3" json:"subject,omitempty"`                         // 邮件主题 TEXT 模板
+	Template      string                 `protobuf:"bytes,2,opt,name=template,proto3" json:"template,omitempty"`                       // 邮件内容 HTML 模板
+	Type          EmailTemplateType      `protobuf:"varint,3,opt,name=type,proto3,enum=v1.EmailTemplateType" json:"type,omitempty"`    // 模板类型
+	Customized    bool                   `protobuf:"varint,4,opt,name=customized,proto3" json:"customized,omitempty"`                  // 是否已自定义（false 表示仍是内置默认模板）
+	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"` // 最后修改时间（未自定义时为空）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EmailTemplate) Reset() {
 	*x = EmailTemplate{}
-	mi := &file_v1_system_proto_msgTypes[32]
+	mi := &file_v1_system_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2705,7 +3504,7 @@ func (x *EmailTemplate) String() string {
 func (*EmailTemplate) ProtoMessage() {}
 
 func (x *EmailTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[32]
+	mi := &file_v1_system_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2718,7 +3517,7 @@ func (x *EmailTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailTemplate.ProtoReflect.Descriptor instead.
 func (*EmailTemplate) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{32}
+	return file_v1_system_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *EmailTemplate) GetSubject() string {
@@ -2742,6 +3541,102 @@ func (x *EmailTemplate) GetType() EmailTemplateType {
 	return EmailTemplateType_EmailTemplateType_Register
 }
 
+func (x *EmailTemplate) GetCustomized() bool {
+	if x != nil {
+		return x.Customized
+	}
+	return false
+}
+
+func (x *EmailTemplate) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+// 列出全部邮件模板请求
+type ListEmailTemplatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEmailTemplatesRequest) Reset() {
+	*x = ListEmailTemplatesRequest{}
+	mi := &file_v1_system_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEmailTemplatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEmailTemplatesRequest) ProtoMessage() {}
+
+func (x *ListEmailTemplatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEmailTemplatesRequest.ProtoReflect.Descriptor instead.
+func (*ListEmailTemplatesRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{41}
+}
+
+// 列出全部邮件模板响应
+type ListEmailTemplatesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Templates     []*EmailTemplate       `protobuf:"bytes,1,rep,name=templates,proto3" json:"templates,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEmailTemplatesResponse) Reset() {
+	*x = ListEmailTemplatesResponse{}
+	mi := &file_v1_system_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEmailTemplatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEmailTemplatesResponse) ProtoMessage() {}
+
+func (x *ListEmailTemplatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEmailTemplatesResponse.ProtoReflect.Descriptor instead.
+func (*ListEmailTemplatesResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ListEmailTemplatesResponse) GetTemplates() []*EmailTemplate {
+	if x != nil {
+		return x.Templates
+	}
+	return nil
+}
+
 // 获取邮件配置请求
 type EmailConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2751,7 +3646,7 @@ type EmailConfigRequest struct {
 
 func (x *EmailConfigRequest) Reset() {
 	*x = EmailConfigRequest{}
-	mi := &file_v1_system_proto_msgTypes[33]
+	mi := &file_v1_system_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2763,7 +3658,7 @@ func (x *EmailConfigRequest) String() string {
 func (*EmailConfigRequest) ProtoMessage() {}
 
 func (x *EmailConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[33]
+	mi := &file_v1_system_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2776,7 +3671,7 @@ func (x *EmailConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailConfigRequest.ProtoReflect.Descriptor instead.
 func (*EmailConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{33}
+	return file_v1_system_proto_rawDescGZIP(), []int{43}
 }
 
 // 获取邮件配置响应
@@ -2790,7 +3685,7 @@ type EmailConfigResponse struct {
 
 func (x *EmailConfigResponse) Reset() {
 	*x = EmailConfigResponse{}
-	mi := &file_v1_system_proto_msgTypes[34]
+	mi := &file_v1_system_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2802,7 +3697,7 @@ func (x *EmailConfigResponse) String() string {
 func (*EmailConfigResponse) ProtoMessage() {}
 
 func (x *EmailConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[34]
+	mi := &file_v1_system_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2815,7 +3710,7 @@ func (x *EmailConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailConfigResponse.ProtoReflect.Descriptor instead.
 func (*EmailConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{34}
+	return file_v1_system_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *EmailConfigResponse) GetConfig() *EmailConfig {
@@ -2842,8 +3737,8 @@ type UpdateEmailConfigRequest struct {
 	From string `protobuf:"bytes,6,opt,name=from,proto3" json:"from,omitempty"`
 	// 发件人名称
 	FromName string `protobuf:"bytes,7,opt,name=from_name,json=fromName,proto3" json:"from_name,omitempty"`
-	// 是否使用 TLS
-	UseTls bool `protobuf:"varint,8,opt,name=use_tls,json=useTls,proto3" json:"use_tls,omitempty"`
+	// 加密方式
+	Encryption EmailEncryption `protobuf:"varint,11,opt,name=encryption,proto3,enum=v1.EmailEncryption" json:"encryption,omitempty"`
 	// 超时时间，单位秒
 	TimeoutSeconds int32 `protobuf:"varint,9,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
 	// 并发发送协程数
@@ -2854,7 +3749,7 @@ type UpdateEmailConfigRequest struct {
 
 func (x *UpdateEmailConfigRequest) Reset() {
 	*x = UpdateEmailConfigRequest{}
-	mi := &file_v1_system_proto_msgTypes[35]
+	mi := &file_v1_system_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2866,7 +3761,7 @@ func (x *UpdateEmailConfigRequest) String() string {
 func (*UpdateEmailConfigRequest) ProtoMessage() {}
 
 func (x *UpdateEmailConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[35]
+	mi := &file_v1_system_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2879,7 +3774,7 @@ func (x *UpdateEmailConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEmailConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEmailConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{35}
+	return file_v1_system_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *UpdateEmailConfigRequest) GetEnabled() bool {
@@ -2931,11 +3826,11 @@ func (x *UpdateEmailConfigRequest) GetFromName() string {
 	return ""
 }
 
-func (x *UpdateEmailConfigRequest) GetUseTls() bool {
+func (x *UpdateEmailConfigRequest) GetEncryption() EmailEncryption {
 	if x != nil {
-		return x.UseTls
+		return x.Encryption
 	}
-	return false
+	return EmailEncryption_EmailEncryption_SSL
 }
 
 func (x *UpdateEmailConfigRequest) GetTimeoutSeconds() int32 {
@@ -2963,7 +3858,7 @@ type UpdateEmailConfigResponse struct {
 
 func (x *UpdateEmailConfigResponse) Reset() {
 	*x = UpdateEmailConfigResponse{}
-	mi := &file_v1_system_proto_msgTypes[36]
+	mi := &file_v1_system_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2975,7 +3870,7 @@ func (x *UpdateEmailConfigResponse) String() string {
 func (*UpdateEmailConfigResponse) ProtoMessage() {}
 
 func (x *UpdateEmailConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[36]
+	mi := &file_v1_system_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2988,7 +3883,7 @@ func (x *UpdateEmailConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEmailConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEmailConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{36}
+	return file_v1_system_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *UpdateEmailConfigResponse) GetConfig() *EmailConfig {
@@ -3013,7 +3908,7 @@ type UpdateEmailTemplateRequest struct {
 
 func (x *UpdateEmailTemplateRequest) Reset() {
 	*x = UpdateEmailTemplateRequest{}
-	mi := &file_v1_system_proto_msgTypes[37]
+	mi := &file_v1_system_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3025,7 +3920,7 @@ func (x *UpdateEmailTemplateRequest) String() string {
 func (*UpdateEmailTemplateRequest) ProtoMessage() {}
 
 func (x *UpdateEmailTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[37]
+	mi := &file_v1_system_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3038,7 +3933,7 @@ func (x *UpdateEmailTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEmailTemplateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEmailTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{37}
+	return file_v1_system_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *UpdateEmailTemplateRequest) GetType() EmailTemplateType {
@@ -3073,7 +3968,7 @@ type UpdateEmailTemplateResponse struct {
 
 func (x *UpdateEmailTemplateResponse) Reset() {
 	*x = UpdateEmailTemplateResponse{}
-	mi := &file_v1_system_proto_msgTypes[38]
+	mi := &file_v1_system_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3085,7 +3980,7 @@ func (x *UpdateEmailTemplateResponse) String() string {
 func (*UpdateEmailTemplateResponse) ProtoMessage() {}
 
 func (x *UpdateEmailTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[38]
+	mi := &file_v1_system_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3098,7 +3993,7 @@ func (x *UpdateEmailTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEmailTemplateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEmailTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{38}
+	return file_v1_system_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *UpdateEmailTemplateResponse) GetTemplate() *EmailTemplate {
@@ -3119,7 +4014,7 @@ type EmailTemplateRequest struct {
 
 func (x *EmailTemplateRequest) Reset() {
 	*x = EmailTemplateRequest{}
-	mi := &file_v1_system_proto_msgTypes[39]
+	mi := &file_v1_system_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3131,7 +4026,7 @@ func (x *EmailTemplateRequest) String() string {
 func (*EmailTemplateRequest) ProtoMessage() {}
 
 func (x *EmailTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[39]
+	mi := &file_v1_system_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3144,7 +4039,7 @@ func (x *EmailTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailTemplateRequest.ProtoReflect.Descriptor instead.
 func (*EmailTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{39}
+	return file_v1_system_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *EmailTemplateRequest) GetType() EmailTemplateType {
@@ -3165,7 +4060,7 @@ type EmailTemplateResponse struct {
 
 func (x *EmailTemplateResponse) Reset() {
 	*x = EmailTemplateResponse{}
-	mi := &file_v1_system_proto_msgTypes[40]
+	mi := &file_v1_system_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3177,7 +4072,7 @@ func (x *EmailTemplateResponse) String() string {
 func (*EmailTemplateResponse) ProtoMessage() {}
 
 func (x *EmailTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[40]
+	mi := &file_v1_system_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3190,7 +4085,7 @@ func (x *EmailTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailTemplateResponse.ProtoReflect.Descriptor instead.
 func (*EmailTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{40}
+	return file_v1_system_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *EmailTemplateResponse) GetTemplate() *EmailTemplate {
@@ -3217,7 +4112,7 @@ type TestEmailConfigRequest struct {
 
 func (x *TestEmailConfigRequest) Reset() {
 	*x = TestEmailConfigRequest{}
-	mi := &file_v1_system_proto_msgTypes[41]
+	mi := &file_v1_system_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3229,7 +4124,7 @@ func (x *TestEmailConfigRequest) String() string {
 func (*TestEmailConfigRequest) ProtoMessage() {}
 
 func (x *TestEmailConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[41]
+	mi := &file_v1_system_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3242,7 +4137,7 @@ func (x *TestEmailConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestEmailConfigRequest.ProtoReflect.Descriptor instead.
 func (*TestEmailConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{41}
+	return file_v1_system_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *TestEmailConfigRequest) GetRecipient() string {
@@ -3282,7 +4177,7 @@ type TestEmailConfigResponse struct {
 
 func (x *TestEmailConfigResponse) Reset() {
 	*x = TestEmailConfigResponse{}
-	mi := &file_v1_system_proto_msgTypes[42]
+	mi := &file_v1_system_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3294,7 +4189,7 @@ func (x *TestEmailConfigResponse) String() string {
 func (*TestEmailConfigResponse) ProtoMessage() {}
 
 func (x *TestEmailConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[42]
+	mi := &file_v1_system_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3307,7 +4202,7 @@ func (x *TestEmailConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestEmailConfigResponse.ProtoReflect.Descriptor instead.
 func (*TestEmailConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{42}
+	return file_v1_system_proto_rawDescGZIP(), []int{52}
 }
 
 // 获取系统信息概览请求
@@ -3319,7 +4214,7 @@ type SystemOverviewRequest struct {
 
 func (x *SystemOverviewRequest) Reset() {
 	*x = SystemOverviewRequest{}
-	mi := &file_v1_system_proto_msgTypes[43]
+	mi := &file_v1_system_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3331,7 +4226,7 @@ func (x *SystemOverviewRequest) String() string {
 func (*SystemOverviewRequest) ProtoMessage() {}
 
 func (x *SystemOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[43]
+	mi := &file_v1_system_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3344,7 +4239,7 @@ func (x *SystemOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemOverviewRequest.ProtoReflect.Descriptor instead.
 func (*SystemOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{43}
+	return file_v1_system_proto_rawDescGZIP(), []int{53}
 }
 
 // 获取系统信息概览响应
@@ -3374,7 +4269,7 @@ type SystemOverviewResponse struct {
 
 func (x *SystemOverviewResponse) Reset() {
 	*x = SystemOverviewResponse{}
-	mi := &file_v1_system_proto_msgTypes[44]
+	mi := &file_v1_system_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3386,7 +4281,7 @@ func (x *SystemOverviewResponse) String() string {
 func (*SystemOverviewResponse) ProtoMessage() {}
 
 func (x *SystemOverviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[44]
+	mi := &file_v1_system_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3399,7 +4294,7 @@ func (x *SystemOverviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemOverviewResponse.ProtoReflect.Descriptor instead.
 func (*SystemOverviewResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{44}
+	return file_v1_system_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *SystemOverviewResponse) GetVersion() *SystemVersionInfo {
@@ -3480,7 +4375,7 @@ type SystemStatusRequest struct {
 
 func (x *SystemStatusRequest) Reset() {
 	*x = SystemStatusRequest{}
-	mi := &file_v1_system_proto_msgTypes[45]
+	mi := &file_v1_system_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3492,7 +4387,7 @@ func (x *SystemStatusRequest) String() string {
 func (*SystemStatusRequest) ProtoMessage() {}
 
 func (x *SystemStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[45]
+	mi := &file_v1_system_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3505,7 +4400,7 @@ func (x *SystemStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemStatusRequest.ProtoReflect.Descriptor instead.
 func (*SystemStatusRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{45}
+	return file_v1_system_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SystemStatusRequest) GetInterfaceName() string {
@@ -3548,7 +4443,7 @@ type SystemStatusResponse struct {
 
 func (x *SystemStatusResponse) Reset() {
 	*x = SystemStatusResponse{}
-	mi := &file_v1_system_proto_msgTypes[46]
+	mi := &file_v1_system_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3560,7 +4455,7 @@ func (x *SystemStatusResponse) String() string {
 func (*SystemStatusResponse) ProtoMessage() {}
 
 func (x *SystemStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[46]
+	mi := &file_v1_system_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3573,7 +4468,7 @@ func (x *SystemStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemStatusResponse.ProtoReflect.Descriptor instead.
 func (*SystemStatusResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{46}
+	return file_v1_system_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *SystemStatusResponse) GetCpu() *CpuStatus {
@@ -3634,7 +4529,7 @@ type SystemVersionInfo struct {
 
 func (x *SystemVersionInfo) Reset() {
 	*x = SystemVersionInfo{}
-	mi := &file_v1_system_proto_msgTypes[47]
+	mi := &file_v1_system_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3646,7 +4541,7 @@ func (x *SystemVersionInfo) String() string {
 func (*SystemVersionInfo) ProtoMessage() {}
 
 func (x *SystemVersionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[47]
+	mi := &file_v1_system_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3659,7 +4554,7 @@ func (x *SystemVersionInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemVersionInfo.ProtoReflect.Descriptor instead.
 func (*SystemVersionInfo) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{47}
+	return file_v1_system_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *SystemVersionInfo) GetHostname() string {
@@ -3726,7 +4621,7 @@ type CpuOverview struct {
 
 func (x *CpuOverview) Reset() {
 	*x = CpuOverview{}
-	mi := &file_v1_system_proto_msgTypes[48]
+	mi := &file_v1_system_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3738,7 +4633,7 @@ func (x *CpuOverview) String() string {
 func (*CpuOverview) ProtoMessage() {}
 
 func (x *CpuOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[48]
+	mi := &file_v1_system_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3751,7 +4646,7 @@ func (x *CpuOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CpuOverview.ProtoReflect.Descriptor instead.
 func (*CpuOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{48}
+	return file_v1_system_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *CpuOverview) GetLogicalCount() int32 {
@@ -3792,7 +4687,7 @@ type CpuStatus struct {
 
 func (x *CpuStatus) Reset() {
 	*x = CpuStatus{}
-	mi := &file_v1_system_proto_msgTypes[49]
+	mi := &file_v1_system_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3804,7 +4699,7 @@ func (x *CpuStatus) String() string {
 func (*CpuStatus) ProtoMessage() {}
 
 func (x *CpuStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[49]
+	mi := &file_v1_system_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3817,7 +4712,7 @@ func (x *CpuStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CpuStatus.ProtoReflect.Descriptor instead.
 func (*CpuStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{49}
+	return file_v1_system_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *CpuStatus) GetTotalPercent() float64 {
@@ -3861,7 +4756,7 @@ type CpuCoreStatus struct {
 
 func (x *CpuCoreStatus) Reset() {
 	*x = CpuCoreStatus{}
-	mi := &file_v1_system_proto_msgTypes[50]
+	mi := &file_v1_system_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3873,7 +4768,7 @@ func (x *CpuCoreStatus) String() string {
 func (*CpuCoreStatus) ProtoMessage() {}
 
 func (x *CpuCoreStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[50]
+	mi := &file_v1_system_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3886,7 +4781,7 @@ func (x *CpuCoreStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CpuCoreStatus.ProtoReflect.Descriptor instead.
 func (*CpuCoreStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{50}
+	return file_v1_system_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CpuCoreStatus) GetCoreId() int32 {
@@ -3916,7 +4811,7 @@ type MemoryOverview struct {
 
 func (x *MemoryOverview) Reset() {
 	*x = MemoryOverview{}
-	mi := &file_v1_system_proto_msgTypes[51]
+	mi := &file_v1_system_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3928,7 +4823,7 @@ func (x *MemoryOverview) String() string {
 func (*MemoryOverview) ProtoMessage() {}
 
 func (x *MemoryOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[51]
+	mi := &file_v1_system_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3941,7 +4836,7 @@ func (x *MemoryOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryOverview.ProtoReflect.Descriptor instead.
 func (*MemoryOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{51}
+	return file_v1_system_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *MemoryOverview) GetPhysicalMemory() *PhysicalMemoryOverview {
@@ -3971,7 +4866,7 @@ type MemoryStatus struct {
 
 func (x *MemoryStatus) Reset() {
 	*x = MemoryStatus{}
-	mi := &file_v1_system_proto_msgTypes[52]
+	mi := &file_v1_system_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3983,7 +4878,7 @@ func (x *MemoryStatus) String() string {
 func (*MemoryStatus) ProtoMessage() {}
 
 func (x *MemoryStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[52]
+	mi := &file_v1_system_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3996,7 +4891,7 @@ func (x *MemoryStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryStatus.ProtoReflect.Descriptor instead.
 func (*MemoryStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{52}
+	return file_v1_system_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *MemoryStatus) GetPhysicalMemory() *PhysicalMemoryStatus {
@@ -4024,7 +4919,7 @@ type PhysicalMemoryOverview struct {
 
 func (x *PhysicalMemoryOverview) Reset() {
 	*x = PhysicalMemoryOverview{}
-	mi := &file_v1_system_proto_msgTypes[53]
+	mi := &file_v1_system_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4036,7 +4931,7 @@ func (x *PhysicalMemoryOverview) String() string {
 func (*PhysicalMemoryOverview) ProtoMessage() {}
 
 func (x *PhysicalMemoryOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[53]
+	mi := &file_v1_system_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4049,7 +4944,7 @@ func (x *PhysicalMemoryOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhysicalMemoryOverview.ProtoReflect.Descriptor instead.
 func (*PhysicalMemoryOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{53}
+	return file_v1_system_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *PhysicalMemoryOverview) GetTotalBytes() uint64 {
@@ -4078,7 +4973,7 @@ type PhysicalMemoryStatus struct {
 
 func (x *PhysicalMemoryStatus) Reset() {
 	*x = PhysicalMemoryStatus{}
-	mi := &file_v1_system_proto_msgTypes[54]
+	mi := &file_v1_system_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4090,7 +4985,7 @@ func (x *PhysicalMemoryStatus) String() string {
 func (*PhysicalMemoryStatus) ProtoMessage() {}
 
 func (x *PhysicalMemoryStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[54]
+	mi := &file_v1_system_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4103,7 +4998,7 @@ func (x *PhysicalMemoryStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhysicalMemoryStatus.ProtoReflect.Descriptor instead.
 func (*PhysicalMemoryStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{54}
+	return file_v1_system_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *PhysicalMemoryStatus) GetTotalBytes() uint64 {
@@ -4152,7 +5047,7 @@ type VirtualMemoryOverview struct {
 
 func (x *VirtualMemoryOverview) Reset() {
 	*x = VirtualMemoryOverview{}
-	mi := &file_v1_system_proto_msgTypes[55]
+	mi := &file_v1_system_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4164,7 +5059,7 @@ func (x *VirtualMemoryOverview) String() string {
 func (*VirtualMemoryOverview) ProtoMessage() {}
 
 func (x *VirtualMemoryOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[55]
+	mi := &file_v1_system_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4177,7 +5072,7 @@ func (x *VirtualMemoryOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VirtualMemoryOverview.ProtoReflect.Descriptor instead.
 func (*VirtualMemoryOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{55}
+	return file_v1_system_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *VirtualMemoryOverview) GetTotalBytes() uint64 {
@@ -4216,7 +5111,7 @@ type VirtualMemoryStatus struct {
 
 func (x *VirtualMemoryStatus) Reset() {
 	*x = VirtualMemoryStatus{}
-	mi := &file_v1_system_proto_msgTypes[56]
+	mi := &file_v1_system_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4228,7 +5123,7 @@ func (x *VirtualMemoryStatus) String() string {
 func (*VirtualMemoryStatus) ProtoMessage() {}
 
 func (x *VirtualMemoryStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[56]
+	mi := &file_v1_system_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4241,7 +5136,7 @@ func (x *VirtualMemoryStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VirtualMemoryStatus.ProtoReflect.Descriptor instead.
 func (*VirtualMemoryStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{56}
+	return file_v1_system_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *VirtualMemoryStatus) GetTotalBytes() uint64 {
@@ -4337,7 +5232,7 @@ type NetworkInterfaceOverview struct {
 
 func (x *NetworkInterfaceOverview) Reset() {
 	*x = NetworkInterfaceOverview{}
-	mi := &file_v1_system_proto_msgTypes[57]
+	mi := &file_v1_system_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4349,7 +5244,7 @@ func (x *NetworkInterfaceOverview) String() string {
 func (*NetworkInterfaceOverview) ProtoMessage() {}
 
 func (x *NetworkInterfaceOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[57]
+	mi := &file_v1_system_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4362,7 +5257,7 @@ func (x *NetworkInterfaceOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkInterfaceOverview.ProtoReflect.Descriptor instead.
 func (*NetworkInterfaceOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{57}
+	return file_v1_system_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *NetworkInterfaceOverview) GetName() string {
@@ -4431,7 +5326,7 @@ type NetworkStatus struct {
 
 func (x *NetworkStatus) Reset() {
 	*x = NetworkStatus{}
-	mi := &file_v1_system_proto_msgTypes[58]
+	mi := &file_v1_system_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4443,7 +5338,7 @@ func (x *NetworkStatus) String() string {
 func (*NetworkStatus) ProtoMessage() {}
 
 func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[58]
+	mi := &file_v1_system_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4456,7 +5351,7 @@ func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkStatus.ProtoReflect.Descriptor instead.
 func (*NetworkStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{58}
+	return file_v1_system_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *NetworkStatus) GetTotal() *NetworkInterfaceStatus {
@@ -4530,7 +5425,7 @@ type NetworkInterfaceStatus struct {
 
 func (x *NetworkInterfaceStatus) Reset() {
 	*x = NetworkInterfaceStatus{}
-	mi := &file_v1_system_proto_msgTypes[59]
+	mi := &file_v1_system_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4542,7 +5437,7 @@ func (x *NetworkInterfaceStatus) String() string {
 func (*NetworkInterfaceStatus) ProtoMessage() {}
 
 func (x *NetworkInterfaceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[59]
+	mi := &file_v1_system_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4555,7 +5450,7 @@ func (x *NetworkInterfaceStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkInterfaceStatus.ProtoReflect.Descriptor instead.
 func (*NetworkInterfaceStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{59}
+	return file_v1_system_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *NetworkInterfaceStatus) GetName() string {
@@ -4698,7 +5593,7 @@ type NetworkConnectionStatus struct {
 
 func (x *NetworkConnectionStatus) Reset() {
 	*x = NetworkConnectionStatus{}
-	mi := &file_v1_system_proto_msgTypes[60]
+	mi := &file_v1_system_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4710,7 +5605,7 @@ func (x *NetworkConnectionStatus) String() string {
 func (*NetworkConnectionStatus) ProtoMessage() {}
 
 func (x *NetworkConnectionStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[60]
+	mi := &file_v1_system_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4723,7 +5618,7 @@ func (x *NetworkConnectionStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkConnectionStatus.ProtoReflect.Descriptor instead.
 func (*NetworkConnectionStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{60}
+	return file_v1_system_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *NetworkConnectionStatus) GetSupported() bool {
@@ -4785,7 +5680,7 @@ type DiskPartitionOverview struct {
 
 func (x *DiskPartitionOverview) Reset() {
 	*x = DiskPartitionOverview{}
-	mi := &file_v1_system_proto_msgTypes[61]
+	mi := &file_v1_system_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4797,7 +5692,7 @@ func (x *DiskPartitionOverview) String() string {
 func (*DiskPartitionOverview) ProtoMessage() {}
 
 func (x *DiskPartitionOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[61]
+	mi := &file_v1_system_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4810,7 +5705,7 @@ func (x *DiskPartitionOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskPartitionOverview.ProtoReflect.Descriptor instead.
 func (*DiskPartitionOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{61}
+	return file_v1_system_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *DiskPartitionOverview) GetDevice() string {
@@ -4856,7 +5751,7 @@ type DiskIOOverview struct {
 
 func (x *DiskIOOverview) Reset() {
 	*x = DiskIOOverview{}
-	mi := &file_v1_system_proto_msgTypes[62]
+	mi := &file_v1_system_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4868,7 +5763,7 @@ func (x *DiskIOOverview) String() string {
 func (*DiskIOOverview) ProtoMessage() {}
 
 func (x *DiskIOOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[62]
+	mi := &file_v1_system_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4881,7 +5776,7 @@ func (x *DiskIOOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskIOOverview.ProtoReflect.Descriptor instead.
 func (*DiskIOOverview) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{62}
+	return file_v1_system_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *DiskIOOverview) GetName() string {
@@ -4930,7 +5825,7 @@ type DiskStatus struct {
 
 func (x *DiskStatus) Reset() {
 	*x = DiskStatus{}
-	mi := &file_v1_system_proto_msgTypes[63]
+	mi := &file_v1_system_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4942,7 +5837,7 @@ func (x *DiskStatus) String() string {
 func (*DiskStatus) ProtoMessage() {}
 
 func (x *DiskStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[63]
+	mi := &file_v1_system_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4955,7 +5850,7 @@ func (x *DiskStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskStatus.ProtoReflect.Descriptor instead.
 func (*DiskStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{63}
+	return file_v1_system_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *DiskStatus) GetTotal() *DiskPartitionStatus {
@@ -5049,7 +5944,7 @@ type DiskPartitionStatus struct {
 
 func (x *DiskPartitionStatus) Reset() {
 	*x = DiskPartitionStatus{}
-	mi := &file_v1_system_proto_msgTypes[64]
+	mi := &file_v1_system_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5061,7 +5956,7 @@ func (x *DiskPartitionStatus) String() string {
 func (*DiskPartitionStatus) ProtoMessage() {}
 
 func (x *DiskPartitionStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[64]
+	mi := &file_v1_system_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5074,7 +5969,7 @@ func (x *DiskPartitionStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskPartitionStatus.ProtoReflect.Descriptor instead.
 func (*DiskPartitionStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{64}
+	return file_v1_system_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *DiskPartitionStatus) GetDevice() string {
@@ -5199,7 +6094,7 @@ type DiskIOStatus struct {
 
 func (x *DiskIOStatus) Reset() {
 	*x = DiskIOStatus{}
-	mi := &file_v1_system_proto_msgTypes[65]
+	mi := &file_v1_system_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5211,7 +6106,7 @@ func (x *DiskIOStatus) String() string {
 func (*DiskIOStatus) ProtoMessage() {}
 
 func (x *DiskIOStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[65]
+	mi := &file_v1_system_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5224,7 +6119,7 @@ func (x *DiskIOStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskIOStatus.ProtoReflect.Descriptor instead.
 func (*DiskIOStatus) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{65}
+	return file_v1_system_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *DiskIOStatus) GetName() string {
@@ -5321,14 +6216,18 @@ type ListOperationLogsRequest struct {
 	// 开始时间
 	StartTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	// 结束时间
-	EndTime       *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	EndTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	// 关键字：匹配请求路径、IP、详情
+	Keywords *string `protobuf:"bytes,9,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 模块：操作类型前缀（Auth/User/System/File/Instance/SSHHost/Node/Docker/OIDC/Task）
+	Module        *string `protobuf:"bytes,10,opt,name=module,proto3,oneof" json:"module,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOperationLogsRequest) Reset() {
 	*x = ListOperationLogsRequest{}
-	mi := &file_v1_system_proto_msgTypes[66]
+	mi := &file_v1_system_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5340,7 +6239,7 @@ func (x *ListOperationLogsRequest) String() string {
 func (*ListOperationLogsRequest) ProtoMessage() {}
 
 func (x *ListOperationLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[66]
+	mi := &file_v1_system_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5353,7 +6252,7 @@ func (x *ListOperationLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOperationLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListOperationLogsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{66}
+	return file_v1_system_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *ListOperationLogsRequest) GetUserId() string {
@@ -5412,6 +6311,20 @@ func (x *ListOperationLogsRequest) GetEndTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *ListOperationLogsRequest) GetKeywords() string {
+	if x != nil && x.Keywords != nil {
+		return *x.Keywords
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetModule() string {
+	if x != nil && x.Module != nil {
+		return *x.Module
+	}
+	return ""
+}
+
 // 查询操作日志响应
 type ListOperationLogsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -5422,14 +6335,18 @@ type ListOperationLogsResponse struct {
 	// actual page size
 	PageSize int64 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// 总数
-	Total         int64 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
+	Total int64 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
+	// 同一组条件（忽略「是否成功」）下的成功数
+	SuccessCount int64 `protobuf:"varint,5,opt,name=success_count,json=successCount,proto3" json:"success_count,omitempty"`
+	// 同一组条件（忽略「是否成功」）下的失败数
+	FailedCount   int64 `protobuf:"varint,6,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOperationLogsResponse) Reset() {
 	*x = ListOperationLogsResponse{}
-	mi := &file_v1_system_proto_msgTypes[67]
+	mi := &file_v1_system_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5441,7 +6358,7 @@ func (x *ListOperationLogsResponse) String() string {
 func (*ListOperationLogsResponse) ProtoMessage() {}
 
 func (x *ListOperationLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[67]
+	mi := &file_v1_system_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5454,7 +6371,7 @@ func (x *ListOperationLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOperationLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListOperationLogsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{67}
+	return file_v1_system_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ListOperationLogsResponse) GetLogs() []*OperationLogInfo {
@@ -5485,7 +6402,148 @@ func (x *ListOperationLogsResponse) GetTotal() int64 {
 	return 0
 }
 
-// 操作日志信息
+func (x *ListOperationLogsResponse) GetSuccessCount() int64 {
+	if x != nil {
+		return x.SuccessCount
+	}
+	return 0
+}
+
+func (x *ListOperationLogsResponse) GetFailedCount() int64 {
+	if x != nil {
+		return x.FailedCount
+	}
+	return 0
+}
+
+// 操作日志统计请求
+type OperationLogStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperationLogStatsRequest) Reset() {
+	*x = OperationLogStatsRequest{}
+	mi := &file_v1_system_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperationLogStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperationLogStatsRequest) ProtoMessage() {}
+
+func (x *OperationLogStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OperationLogStatsRequest.ProtoReflect.Descriptor instead.
+func (*OperationLogStatsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{78}
+}
+
+// 操作日志统计响应（统计范围：服务器本地时间今天 0 点起）
+type OperationLogStatsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 今日操作数
+	TodayTotal int64 `protobuf:"varint,1,opt,name=today_total,json=todayTotal,proto3" json:"today_total,omitempty"`
+	// 今日失败数
+	TodayFailed int64 `protobuf:"varint,2,opt,name=today_failed,json=todayFailed,proto3" json:"today_failed,omitempty"`
+	// 今日活跃用户数（去重）
+	TodayActiveUsers int64 `protobuf:"varint,3,opt,name=today_active_users,json=todayActiveUsers,proto3" json:"today_active_users,omitempty"`
+	// 今日经主控转发到远程节点（或来自远程主控）的操作数
+	TodayForwarded int64 `protobuf:"varint,4,opt,name=today_forwarded,json=todayForwarded,proto3" json:"today_forwarded,omitempty"`
+	// 全部记录数
+	Total int64 `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	// 最早一条记录的时间
+	EarliestTime  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=earliest_time,json=earliestTime,proto3" json:"earliest_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperationLogStatsResponse) Reset() {
+	*x = OperationLogStatsResponse{}
+	mi := &file_v1_system_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperationLogStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperationLogStatsResponse) ProtoMessage() {}
+
+func (x *OperationLogStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_system_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OperationLogStatsResponse.ProtoReflect.Descriptor instead.
+func (*OperationLogStatsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_system_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *OperationLogStatsResponse) GetTodayTotal() int64 {
+	if x != nil {
+		return x.TodayTotal
+	}
+	return 0
+}
+
+func (x *OperationLogStatsResponse) GetTodayFailed() int64 {
+	if x != nil {
+		return x.TodayFailed
+	}
+	return 0
+}
+
+func (x *OperationLogStatsResponse) GetTodayActiveUsers() int64 {
+	if x != nil {
+		return x.TodayActiveUsers
+	}
+	return 0
+}
+
+func (x *OperationLogStatsResponse) GetTodayForwarded() int64 {
+	if x != nil {
+		return x.TodayForwarded
+	}
+	return 0
+}
+
+func (x *OperationLogStatsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *OperationLogStatsResponse) GetEarliestTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EarliestTime
+	}
+	return nil
+}
+
 type OperationLogInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 操作用户id
@@ -5512,7 +6570,7 @@ type OperationLogInfo struct {
 
 func (x *OperationLogInfo) Reset() {
 	*x = OperationLogInfo{}
-	mi := &file_v1_system_proto_msgTypes[68]
+	mi := &file_v1_system_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5524,7 +6582,7 @@ func (x *OperationLogInfo) String() string {
 func (*OperationLogInfo) ProtoMessage() {}
 
 func (x *OperationLogInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_system_proto_msgTypes[68]
+	mi := &file_v1_system_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5537,7 +6595,7 @@ func (x *OperationLogInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationLogInfo.ProtoReflect.Descriptor instead.
 func (*OperationLogInfo) Descriptor() ([]byte, []int) {
-	return file_v1_system_proto_rawDescGZIP(), []int{68}
+	return file_v1_system_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *OperationLogInfo) GetUserId() string {
@@ -5613,7 +6671,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\vpermissions\x18\x01 \x03(\tR\vpermissions\x12\"\n" +
 	"\x05menus\x18\x02 \x03(\v2\f.v1.MenuInfoR\x05menus\x12'\n" +
 	"\x0fcurrent_version\x18\x03 \x01(\tR\x0ecurrentVersion\"\x14\n" +
-	"\x12CheckUpdateRequest\"\xaa\x02\n" +
+	"\x12CheckUpdateRequest\"\x92\x03\n" +
 	"\x13CheckUpdateResponse\x12'\n" +
 	"\x0fcurrent_version\x18\x01 \x01(\tR\x0ecurrentVersion\x12%\n" +
 	"\x0elatest_version\x18\x02 \x01(\tR\rlatestVersion\x12\x1d\n" +
@@ -5623,7 +6681,10 @@ const file_v1_system_proto_rawDesc = "" +
 	"releaseUrl\x12!\n" +
 	"\frelease_name\x18\x05 \x01(\tR\vreleaseName\x12=\n" +
 	"\fpublished_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vpublishedAt\x12!\n" +
-	"\frelease_body\x18\a \x01(\tR\vreleaseBody\"\xb8\x03\n" +
+	"\frelease_body\x18\a \x01(\tR\vreleaseBody\x129\n" +
+	"\n" +
+	"checked_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcheckedAt\x12+\n" +
+	"\achannel\x18\t \x01(\x0e2\x11.v1.UpdateChannelR\achannel\"\xb8\x03\n" +
 	"\bMenuInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04icon\x18\x02 \x01(\tR\x04icon\x12\x1b\n" +
@@ -5681,7 +6742,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x05roles\x18\x01 \x03(\v2\f.v1.RoleInfoR\x05roles\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\xb5\x02\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\xd4\x02\n" +
 	"\bRoleInfo\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1d\n" +
@@ -5693,7 +6754,9 @@ const file_v1_system_proto_rawDesc = "" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\x12\x19\n" +
-	"\bmenu_ids\x18\b \x03(\tR\amenuIds\"+\n" +
+	"\bmenu_ids\x18\b \x03(\tR\amenuIds\x12\x1d\n" +
+	"\n" +
+	"user_count\x18\t \x01(\x03R\tuserCount\"+\n" +
 	"\x10AdminRoleRequest\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\"5\n" +
 	"\x11AdminRoleResponse\x12 \n" +
@@ -5715,22 +6778,64 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x04role\x18\x01 \x01(\v2\f.v1.RoleInfoR\x04role\"3\n" +
 	"\x16AdminDeleteRoleRequest\x12\x19\n" +
 	"\brole_ids\x18\x01 \x03(\tR\aroleIds\"\x19\n" +
-	"\x17AdminDeleteRoleResponse\"\xef\x01\n" +
+	"\x17AdminDeleteRoleResponse\"\xb3\x03\n" +
 	"\vLoginConfig\x12)\n" +
 	"\x10register_enabled\x18\x01 \x01(\bR\x0fregisterEnabled\x124\n" +
 	"\x16username_login_enabled\x18\x02 \x01(\bR\x14usernameLoginEnabled\x12.\n" +
 	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\x12O\n" +
-	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\"\x14\n" +
-	"\x12LoginConfigRequest\">\n" +
+	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\x127\n" +
+	"\x18access_token_ttl_minutes\x18\x05 \x01(\x05R\x15accessTokenTtlMinutes\x123\n" +
+	"\x16refresh_token_ttl_days\x18\x06 \x01(\x05R\x13refreshTokenTtlDays\x12+\n" +
+	"\x11lockout_threshold\x18\a \x01(\x05R\x10lockoutThreshold\x12'\n" +
+	"\x0flockout_minutes\x18\b \x01(\x05R\x0elockoutMinutes\"\x14\n" +
+	"\x12LoginConfigRequest\"\x86\x01\n" +
 	"\x13LoginConfigResponse\x12'\n" +
-	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\xfc\x01\n" +
+	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\x12\x1b\n" +
+	"\tsite_name\x18\x02 \x01(\tR\bsiteName\x12)\n" +
+	"\x10default_language\x18\x03 \x01(\tR\x0fdefaultLanguage\"\xc0\x03\n" +
 	"\x18UpdateLoginConfigRequest\x12)\n" +
 	"\x10register_enabled\x18\x01 \x01(\bR\x0fregisterEnabled\x124\n" +
 	"\x16username_login_enabled\x18\x02 \x01(\bR\x14usernameLoginEnabled\x12.\n" +
 	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\x12O\n" +
-	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\"D\n" +
+	"$register_email_verification_required\x18\x04 \x01(\bR!registerEmailVerificationRequired\x127\n" +
+	"\x18access_token_ttl_minutes\x18\x05 \x01(\x05R\x15accessTokenTtlMinutes\x123\n" +
+	"\x16refresh_token_ttl_days\x18\x06 \x01(\x05R\x13refreshTokenTtlDays\x12+\n" +
+	"\x11lockout_threshold\x18\a \x01(\x05R\x10lockoutThreshold\x12'\n" +
+	"\x0flockout_minutes\x18\b \x01(\x05R\x0elockoutMinutes\"D\n" +
 	"\x19UpdateLoginConfigResponse\x12'\n" +
-	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\x8f\x02\n" +
+	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\"\xd4\x01\n" +
+	"\x11UpdateCheckResult\x12.\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12%\n" +
+	"\x0elatest_version\x18\x02 \x01(\tR\rlatestVersion\x12\x1d\n" +
+	"\n" +
+	"has_update\x18\x03 \x01(\bR\thasUpdate\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\x12\x1f\n" +
+	"\vrelease_url\x18\x05 \x01(\tR\n" +
+	"releaseUrl\x12\x12\n" +
+	"\x04auto\x18\x06 \x01(\bR\x04auto\"\\\n" +
+	"\rSettingsAudit\x12.\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x1b\n" +
+	"\tuser_name\x18\x02 \x01(\tR\buserName\"\xd8\x02\n" +
+	"\n" +
+	"SiteConfig\x12\x1b\n" +
+	"\tsite_name\x18\x01 \x01(\tR\bsiteName\x12!\n" +
+	"\fexternal_url\x18\x02 \x01(\tR\vexternalUrl\x12)\n" +
+	"\x10default_language\x18\x03 \x01(\tR\x0fdefaultLanguage\x12*\n" +
+	"\x11auto_check_update\x18\x04 \x01(\bR\x0fautoCheckUpdate\x128\n" +
+	"\x0eupdate_channel\x18\x05 \x01(\x0e2\x11.v1.UpdateChannelR\rupdateChannel\x12A\n" +
+	"\x11last_update_check\x18\x06 \x01(\v2\x15.v1.UpdateCheckResultR\x0flastUpdateCheck\x126\n" +
+	"\rlast_modified\x18\a \x01(\v2\x11.v1.SettingsAuditR\flastModified\"\x13\n" +
+	"\x11SiteConfigRequest\"<\n" +
+	"\x12SiteConfigResponse\x12&\n" +
+	"\x06config\x18\x01 \x01(\v2\x0e.v1.SiteConfigR\x06config\"\xea\x01\n" +
+	"\x17UpdateSiteConfigRequest\x12\x1b\n" +
+	"\tsite_name\x18\x01 \x01(\tR\bsiteName\x12!\n" +
+	"\fexternal_url\x18\x02 \x01(\tR\vexternalUrl\x12)\n" +
+	"\x10default_language\x18\x03 \x01(\tR\x0fdefaultLanguage\x12*\n" +
+	"\x11auto_check_update\x18\x04 \x01(\bR\x0fautoCheckUpdate\x128\n" +
+	"\x0eupdate_channel\x18\x05 \x01(\x0e2\x11.v1.UpdateChannelR\rupdateChannel\"B\n" +
+	"\x18UpdateSiteConfigResponse\x12&\n" +
+	"\x06config\x18\x01 \x01(\v2\x0e.v1.SiteConfigR\x06config\"\xdd\x02\n" +
 	"\vEmailConfig\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -5738,18 +6843,36 @@ const file_v1_system_proto_rawDesc = "" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
 	"\x04from\x18\x06 \x01(\tR\x04from\x12\x1b\n" +
-	"\tfrom_name\x18\a \x01(\tR\bfromName\x12\x17\n" +
-	"\ause_tls\x18\b \x01(\bR\x06useTls\x12'\n" +
+	"\tfrom_name\x18\a \x01(\tR\bfromName\x123\n" +
+	"\n" +
+	"encryption\x18\v \x01(\x0e2\x13.v1.EmailEncryptionR\n" +
+	"encryption\x12'\n" +
 	"\x0ftimeout_seconds\x18\t \x01(\x05R\x0etimeoutSeconds\x12\x13\n" +
 	"\x05ccs_n\x18\n" +
-	" \x01(\x05R\x04ccsN\"p\n" +
+	" \x01(\x05R\x04ccsN\x120\n" +
+	"\tlast_test\x18\f \x01(\v2\x13.v1.EmailTestResultR\blastTest\"\xb0\x01\n" +
+	"\x0fEmailTestResult\x12.\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x1c\n" +
+	"\trecipient\x18\x02 \x01(\tR\trecipient\x12\x18\n" +
+	"\asuccess\x18\x03 \x01(\bR\asuccess\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\x12\x1f\n" +
+	"\vduration_ms\x18\x05 \x01(\x03R\n" +
+	"durationMs\"\xcd\x01\n" +
 	"\rEmailTemplate\x12\x18\n" +
 	"\asubject\x18\x01 \x01(\tR\asubject\x12\x1a\n" +
 	"\btemplate\x18\x02 \x01(\tR\btemplate\x12)\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x15.v1.EmailTemplateTypeR\x04type\"\x14\n" +
+	"\x04type\x18\x03 \x01(\x0e2\x15.v1.EmailTemplateTypeR\x04type\x12\x1e\n" +
+	"\n" +
+	"customized\x18\x04 \x01(\bR\n" +
+	"customized\x12;\n" +
+	"\vupdate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\"\x1b\n" +
+	"\x19ListEmailTemplatesRequest\"M\n" +
+	"\x1aListEmailTemplatesResponse\x12/\n" +
+	"\ttemplates\x18\x01 \x03(\v2\x11.v1.EmailTemplateR\ttemplates\"\x14\n" +
 	"\x12EmailConfigRequest\">\n" +
 	"\x13EmailConfigResponse\x12'\n" +
-	"\x06config\x18\x01 \x01(\v2\x0f.v1.EmailConfigR\x06config\"\x9c\x02\n" +
+	"\x06config\x18\x01 \x01(\v2\x0f.v1.EmailConfigR\x06config\"\xb8\x02\n" +
 	"\x18UpdateEmailConfigRequest\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -5757,8 +6880,10 @@ const file_v1_system_proto_rawDesc = "" +
 	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x05 \x01(\tR\bpassword\x12\x12\n" +
 	"\x04from\x18\x06 \x01(\tR\x04from\x12\x1b\n" +
-	"\tfrom_name\x18\a \x01(\tR\bfromName\x12\x17\n" +
-	"\ause_tls\x18\b \x01(\bR\x06useTls\x12'\n" +
+	"\tfrom_name\x18\a \x01(\tR\bfromName\x123\n" +
+	"\n" +
+	"encryption\x18\v \x01(\x0e2\x13.v1.EmailEncryptionR\n" +
+	"encryption\x12'\n" +
 	"\x0ftimeout_seconds\x18\t \x01(\x05R\x0etimeoutSeconds\x12\x13\n" +
 	"\x05ccs_n\x18\n" +
 	" \x01(\x05R\x04ccsN\"D\n" +
@@ -5982,7 +7107,7 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x1bwrite_rate_bytes_per_second\x18\t \x01(\x01R\x17writeRateBytesPerSecond\x12(\n" +
 	"\x10iops_in_progress\x18\n" +
 	" \x01(\x04R\x0eiopsInProgress\x12\x17\n" +
-	"\aio_time\x18\v \x01(\x04R\x06ioTime\"\x86\x03\n" +
+	"\aio_time\x18\v \x01(\x04R\x06ioTime\"\xdc\x03\n" +
 	"\x18ListOperationLogsRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x12=\n" +
 	"\x0eoperation_type\x18\x02 \x01(\x0e2\x11.v1.OperationTypeH\x01R\roperationType\x88\x01\x01\x12\x1d\n" +
@@ -5992,18 +7117,34 @@ const file_v1_system_proto_rawDesc = "" +
 	"\tpage_size\x18\x06 \x01(\x03R\bpageSize\x129\n" +
 	"\n" +
 	"start_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
-	"\bend_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\aendTimeB\n" +
+	"\bend_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12\x1f\n" +
+	"\bkeywords\x18\t \x01(\tH\x04R\bkeywords\x88\x01\x01\x12\x1b\n" +
+	"\x06module\x18\n" +
+	" \x01(\tH\x05R\x06module\x88\x01\x01B\n" +
 	"\n" +
 	"\b_user_idB\x11\n" +
 	"\x0f_operation_typeB\n" +
 	"\n" +
 	"\b_successB\a\n" +
-	"\x05_path\"\x8c\x01\n" +
+	"\x05_pathB\v\n" +
+	"\t_keywordsB\t\n" +
+	"\a_module\"\xd4\x01\n" +
 	"\x19ListOperationLogsResponse\x12(\n" +
 	"\x04logs\x18\x01 \x03(\v2\x14.v1.OperationLogInfoR\x04logs\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\xcf\x02\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\x12#\n" +
+	"\rsuccess_count\x18\x05 \x01(\x03R\fsuccessCount\x12!\n" +
+	"\ffailed_count\x18\x06 \x01(\x03R\vfailedCount\"\x1a\n" +
+	"\x18OperationLogStatsRequest\"\x8d\x02\n" +
+	"\x19OperationLogStatsResponse\x12\x1f\n" +
+	"\vtoday_total\x18\x01 \x01(\x03R\n" +
+	"todayTotal\x12!\n" +
+	"\ftoday_failed\x18\x02 \x01(\x03R\vtodayFailed\x12,\n" +
+	"\x12today_active_users\x18\x03 \x01(\x03R\x10todayActiveUsers\x12'\n" +
+	"\x0ftoday_forwarded\x18\x04 \x01(\x03R\x0etodayForwarded\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12?\n" +
+	"\rearliest_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\fearliestTime\"\xcf\x02\n" +
 	"\x10OperationLogInfo\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tH\x00R\x06userId\x88\x01\x01\x128\n" +
 	"\x0eoperation_type\x18\x02 \x01(\x0e2\x11.v1.OperationTypeR\roperationType\x12\x18\n" +
@@ -6029,10 +7170,18 @@ const file_v1_system_proto_rawDesc = "" +
 	"\n" +
 	"RoleStatus\x12\x17\n" +
 	"\x13RoleStatus_InActive\x10\x00\x12\x15\n" +
-	"\x11RoleStatus_Active\x10\x01*P\n" +
+	"\x11RoleStatus_Active\x10\x01*A\n" +
+	"\rUpdateChannel\x12\x18\n" +
+	"\x14UpdateChannel_Stable\x10\x00\x12\x16\n" +
+	"\x12UpdateChannel_Beta\x10\x01*b\n" +
+	"\x0fEmailEncryption\x12\x17\n" +
+	"\x13EmailEncryption_SSL\x10\x00\x12\x1c\n" +
+	"\x18EmailEncryption_STARTTLS\x10\x01\x12\x18\n" +
+	"\x14EmailEncryption_NONE\x10\x02*u\n" +
 	"\x11EmailTemplateType\x12\x1e\n" +
 	"\x1aEmailTemplateType_Register\x10\x00\x12\x1b\n" +
-	"\x17EmailTemplateType_Login\x10\x01*\xbc\x1c\n" +
+	"\x17EmailTemplateType_Login\x10\x01\x12#\n" +
+	"\x1fEmailTemplateType_ResetPassword\x10\x02*\xa7\x1e\n" +
 	"\rOperationType\x12\x1e\n" +
 	"\x1aOperationTypeUncategorized\x10\x00\x12\x1a\n" +
 	"\x16OperationTypeAuthLogin\x10\x01\x12\x1b\n" +
@@ -6136,7 +7285,14 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x17OperationTypeNodeCreate\x10h\x12\x1b\n" +
 	"\x17OperationTypeNodeUpdate\x10i\x12\x1b\n" +
 	"\x17OperationTypeNodeDelete\x10j\x12\x19\n" +
-	"\x15OperationTypeNodeTest\x10k2\xd2\x13\n" +
+	"\x15OperationTypeNodeTest\x10k\x12%\n" +
+	"!OperationTypeOIDCSigningKeyRotate\x10l\x12\x1b\n" +
+	"\x17OperationTypeTaskCancel\x10m\x12\x1a\n" +
+	"\x16OperationTypeTaskRetry\x10n\x12\x1b\n" +
+	"\x17OperationTypeTaskDelete\x10o\x12\x1a\n" +
+	"\x16OperationTypeTaskClear\x10p\x12'\n" +
+	"#OperationTypeSystemSiteConfigUpdate\x10x\x12'\n" +
+	"#OperationTypeDockerRegistryAuthTest\x10y2\xa5\x17\n" +
 	"\x06System\x12d\n" +
 	"\rMePermissions\x12\x18.v1.MePermissionsRequest\x1a\x19.v1.MePermissionsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/permissions/me\x12c\n" +
 	"\vCheckUpdate\x12\x16.v1.CheckUpdateRequest\x1a\x17.v1.CheckUpdateResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/system/update/check\x12p\n" +
@@ -6152,15 +7308,20 @@ const file_v1_system_proto_rawDesc = "" +
 	"\rAdminEditRole\x12\x18.v1.AdminEditRoleRequest\x1a\x19.v1.AdminEditRoleResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/role/admin/{role_id}\x12j\n" +
 	"\x0fAdminDeleteRole\x12\x1a.v1.AdminDeleteRoleRequest\x1a\x1b.v1.AdminDeleteRoleResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/role/admin/del\x12c\n" +
 	"\vLoginConfig\x12\x16.v1.LoginConfigRequest\x1a\x17.v1.LoginConfigResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/system/login-config\x12x\n" +
-	"\x11UpdateLoginConfig\x12\x1c.v1.UpdateLoginConfigRequest\x1a\x1d.v1.UpdateLoginConfigResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/system/login-config\x12c\n" +
+	"\x11UpdateLoginConfig\x12\x1c.v1.UpdateLoginConfigRequest\x1a\x1d.v1.UpdateLoginConfigResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/system/login-config\x12_\n" +
+	"\n" +
+	"SiteConfig\x12\x15.v1.SiteConfigRequest\x1a\x16.v1.SiteConfigResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/system/site-config\x12t\n" +
+	"\x10UpdateSiteConfig\x12\x1b.v1.UpdateSiteConfigRequest\x1a\x1c.v1.UpdateSiteConfigResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/system/site-config\x12c\n" +
 	"\vEmailConfig\x12\x16.v1.EmailConfigRequest\x1a\x17.v1.EmailConfigResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/system/email-config\x12x\n" +
 	"\x11UpdateEmailConfig\x12\x1c.v1.UpdateEmailConfigRequest\x1a\x1d.v1.UpdateEmailConfigResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/system/email-config\x12\x80\x01\n" +
 	"\x13UpdateEmailTemplate\x12\x1e.v1.UpdateEmailTemplateRequest\x1a\x1f.v1.UpdateEmailTemplateResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/api/v1/system/email-template\x12k\n" +
-	"\rEmailTemplate\x12\x18.v1.EmailTemplateRequest\x1a\x19.v1.EmailTemplateResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/system/email-template\x12w\n" +
+	"\rEmailTemplate\x12\x18.v1.EmailTemplateRequest\x1a\x19.v1.EmailTemplateResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/system/email-template\x12{\n" +
+	"\x12ListEmailTemplates\x12\x1d.v1.ListEmailTemplatesRequest\x1a\x1e.v1.ListEmailTemplatesResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/system/email-templates\x12w\n" +
 	"\x0fTestEmailConfig\x12\x1a.v1.TestEmailConfigRequest\x1a\x1b.v1.TestEmailConfigResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/system/email-config/test\x12h\n" +
 	"\x0eSystemOverview\x12\x19.v1.SystemOverviewRequest\x1a\x1a.v1.SystemOverviewResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/system/overview\x12`\n" +
 	"\fSystemStatus\x12\x17.v1.SystemStatusRequest\x1a\x18.v1.SystemStatusResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/system/status\x12w\n" +
-	"\x11ListOperationLogs\x12\x1c.v1.ListOperationLogsRequest\x1a\x1d.v1.ListOperationLogsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/system/operation-logsB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x11ListOperationLogs\x12\x1c.v1.ListOperationLogsRequest\x1a\x1d.v1.ListOperationLogsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/system/operation-logs\x12}\n" +
+	"\x11OperationLogStats\x12\x1c.v1.OperationLogStatsRequest\x1a\x1d.v1.OperationLogStatsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/system/operation-logs/statsB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_system_proto_rawDescOnce sync.Once
@@ -6174,206 +7335,245 @@ func file_v1_system_proto_rawDescGZIP() []byte {
 	return file_v1_system_proto_rawDescData
 }
 
-var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
+var file_v1_system_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 83)
 var file_v1_system_proto_goTypes = []any{
 	(MenuStatus)(0),                        // 0: v1.MenuStatus
 	(MenuType)(0),                          // 1: v1.MenuType
 	(RoleStatus)(0),                        // 2: v1.RoleStatus
-	(EmailTemplateType)(0),                 // 3: v1.EmailTemplateType
-	(OperationType)(0),                     // 4: v1.OperationType
-	(*MePermissionsRequest)(nil),           // 5: v1.MePermissionsRequest
-	(*MePermissionsResponse)(nil),          // 6: v1.MePermissionsResponse
-	(*CheckUpdateRequest)(nil),             // 7: v1.CheckUpdateRequest
-	(*CheckUpdateResponse)(nil),            // 8: v1.CheckUpdateResponse
-	(*MenuInfo)(nil),                       // 9: v1.MenuInfo
-	(*AdminPermissionsRequest)(nil),        // 10: v1.AdminPermissionsRequest
-	(*AdminPermissionsResponse)(nil),       // 11: v1.AdminPermissionsResponse
-	(*AdminPermissionsInfoRequest)(nil),    // 12: v1.AdminPermissionsInfoRequest
-	(*AdminPermissionsInfoResponse)(nil),   // 13: v1.AdminPermissionsInfoResponse
-	(*AdminAddPermissionsRequest)(nil),     // 14: v1.AdminAddPermissionsRequest
-	(*AdminAddPermissionsResponse)(nil),    // 15: v1.AdminAddPermissionsResponse
-	(*AdminEditPermissionsRequest)(nil),    // 16: v1.AdminEditPermissionsRequest
-	(*AdminEditPermissionsResponse)(nil),   // 17: v1.AdminEditPermissionsResponse
-	(*AdminDeletePermissionsRequest)(nil),  // 18: v1.AdminDeletePermissionsRequest
-	(*AdminDeletePermissionsResponse)(nil), // 19: v1.AdminDeletePermissionsResponse
-	(*AdminRolesRequest)(nil),              // 20: v1.AdminRolesRequest
-	(*AdminRolesResponse)(nil),             // 21: v1.AdminRolesResponse
-	(*RoleInfo)(nil),                       // 22: v1.RoleInfo
-	(*AdminRoleRequest)(nil),               // 23: v1.AdminRoleRequest
-	(*AdminRoleResponse)(nil),              // 24: v1.AdminRoleResponse
-	(*AdminAddRoleRequest)(nil),            // 25: v1.AdminAddRoleRequest
-	(*AdminAddRoleResponse)(nil),           // 26: v1.AdminAddRoleResponse
-	(*AdminEditRoleRequest)(nil),           // 27: v1.AdminEditRoleRequest
-	(*AdminEditRoleResponse)(nil),          // 28: v1.AdminEditRoleResponse
-	(*AdminDeleteRoleRequest)(nil),         // 29: v1.AdminDeleteRoleRequest
-	(*AdminDeleteRoleResponse)(nil),        // 30: v1.AdminDeleteRoleResponse
-	(*LoginConfig)(nil),                    // 31: v1.LoginConfig
-	(*LoginConfigRequest)(nil),             // 32: v1.LoginConfigRequest
-	(*LoginConfigResponse)(nil),            // 33: v1.LoginConfigResponse
-	(*UpdateLoginConfigRequest)(nil),       // 34: v1.UpdateLoginConfigRequest
-	(*UpdateLoginConfigResponse)(nil),      // 35: v1.UpdateLoginConfigResponse
-	(*EmailConfig)(nil),                    // 36: v1.EmailConfig
-	(*EmailTemplate)(nil),                  // 37: v1.EmailTemplate
-	(*EmailConfigRequest)(nil),             // 38: v1.EmailConfigRequest
-	(*EmailConfigResponse)(nil),            // 39: v1.EmailConfigResponse
-	(*UpdateEmailConfigRequest)(nil),       // 40: v1.UpdateEmailConfigRequest
-	(*UpdateEmailConfigResponse)(nil),      // 41: v1.UpdateEmailConfigResponse
-	(*UpdateEmailTemplateRequest)(nil),     // 42: v1.UpdateEmailTemplateRequest
-	(*UpdateEmailTemplateResponse)(nil),    // 43: v1.UpdateEmailTemplateResponse
-	(*EmailTemplateRequest)(nil),           // 44: v1.EmailTemplateRequest
-	(*EmailTemplateResponse)(nil),          // 45: v1.EmailTemplateResponse
-	(*TestEmailConfigRequest)(nil),         // 46: v1.TestEmailConfigRequest
-	(*TestEmailConfigResponse)(nil),        // 47: v1.TestEmailConfigResponse
-	(*SystemOverviewRequest)(nil),          // 48: v1.SystemOverviewRequest
-	(*SystemOverviewResponse)(nil),         // 49: v1.SystemOverviewResponse
-	(*SystemStatusRequest)(nil),            // 50: v1.SystemStatusRequest
-	(*SystemStatusResponse)(nil),           // 51: v1.SystemStatusResponse
-	(*SystemVersionInfo)(nil),              // 52: v1.SystemVersionInfo
-	(*CpuOverview)(nil),                    // 53: v1.CpuOverview
-	(*CpuStatus)(nil),                      // 54: v1.CpuStatus
-	(*CpuCoreStatus)(nil),                  // 55: v1.CpuCoreStatus
-	(*MemoryOverview)(nil),                 // 56: v1.MemoryOverview
-	(*MemoryStatus)(nil),                   // 57: v1.MemoryStatus
-	(*PhysicalMemoryOverview)(nil),         // 58: v1.PhysicalMemoryOverview
-	(*PhysicalMemoryStatus)(nil),           // 59: v1.PhysicalMemoryStatus
-	(*VirtualMemoryOverview)(nil),          // 60: v1.VirtualMemoryOverview
-	(*VirtualMemoryStatus)(nil),            // 61: v1.VirtualMemoryStatus
-	(*NetworkInterfaceOverview)(nil),       // 62: v1.NetworkInterfaceOverview
-	(*NetworkStatus)(nil),                  // 63: v1.NetworkStatus
-	(*NetworkInterfaceStatus)(nil),         // 64: v1.NetworkInterfaceStatus
-	(*NetworkConnectionStatus)(nil),        // 65: v1.NetworkConnectionStatus
-	(*DiskPartitionOverview)(nil),          // 66: v1.DiskPartitionOverview
-	(*DiskIOOverview)(nil),                 // 67: v1.DiskIOOverview
-	(*DiskStatus)(nil),                     // 68: v1.DiskStatus
-	(*DiskPartitionStatus)(nil),            // 69: v1.DiskPartitionStatus
-	(*DiskIOStatus)(nil),                   // 70: v1.DiskIOStatus
-	(*ListOperationLogsRequest)(nil),       // 71: v1.ListOperationLogsRequest
-	(*ListOperationLogsResponse)(nil),      // 72: v1.ListOperationLogsResponse
-	(*OperationLogInfo)(nil),               // 73: v1.OperationLogInfo
-	nil,                                    // 74: v1.TestEmailConfigRequest.DataEntry
-	nil,                                    // 75: v1.NetworkConnectionStatus.TcpStatusesEntry
-	(*timestamppb.Timestamp)(nil),          // 76: google.protobuf.Timestamp
+	(UpdateChannel)(0),                     // 3: v1.UpdateChannel
+	(EmailEncryption)(0),                   // 4: v1.EmailEncryption
+	(EmailTemplateType)(0),                 // 5: v1.EmailTemplateType
+	(OperationType)(0),                     // 6: v1.OperationType
+	(*MePermissionsRequest)(nil),           // 7: v1.MePermissionsRequest
+	(*MePermissionsResponse)(nil),          // 8: v1.MePermissionsResponse
+	(*CheckUpdateRequest)(nil),             // 9: v1.CheckUpdateRequest
+	(*CheckUpdateResponse)(nil),            // 10: v1.CheckUpdateResponse
+	(*MenuInfo)(nil),                       // 11: v1.MenuInfo
+	(*AdminPermissionsRequest)(nil),        // 12: v1.AdminPermissionsRequest
+	(*AdminPermissionsResponse)(nil),       // 13: v1.AdminPermissionsResponse
+	(*AdminPermissionsInfoRequest)(nil),    // 14: v1.AdminPermissionsInfoRequest
+	(*AdminPermissionsInfoResponse)(nil),   // 15: v1.AdminPermissionsInfoResponse
+	(*AdminAddPermissionsRequest)(nil),     // 16: v1.AdminAddPermissionsRequest
+	(*AdminAddPermissionsResponse)(nil),    // 17: v1.AdminAddPermissionsResponse
+	(*AdminEditPermissionsRequest)(nil),    // 18: v1.AdminEditPermissionsRequest
+	(*AdminEditPermissionsResponse)(nil),   // 19: v1.AdminEditPermissionsResponse
+	(*AdminDeletePermissionsRequest)(nil),  // 20: v1.AdminDeletePermissionsRequest
+	(*AdminDeletePermissionsResponse)(nil), // 21: v1.AdminDeletePermissionsResponse
+	(*AdminRolesRequest)(nil),              // 22: v1.AdminRolesRequest
+	(*AdminRolesResponse)(nil),             // 23: v1.AdminRolesResponse
+	(*RoleInfo)(nil),                       // 24: v1.RoleInfo
+	(*AdminRoleRequest)(nil),               // 25: v1.AdminRoleRequest
+	(*AdminRoleResponse)(nil),              // 26: v1.AdminRoleResponse
+	(*AdminAddRoleRequest)(nil),            // 27: v1.AdminAddRoleRequest
+	(*AdminAddRoleResponse)(nil),           // 28: v1.AdminAddRoleResponse
+	(*AdminEditRoleRequest)(nil),           // 29: v1.AdminEditRoleRequest
+	(*AdminEditRoleResponse)(nil),          // 30: v1.AdminEditRoleResponse
+	(*AdminDeleteRoleRequest)(nil),         // 31: v1.AdminDeleteRoleRequest
+	(*AdminDeleteRoleResponse)(nil),        // 32: v1.AdminDeleteRoleResponse
+	(*LoginConfig)(nil),                    // 33: v1.LoginConfig
+	(*LoginConfigRequest)(nil),             // 34: v1.LoginConfigRequest
+	(*LoginConfigResponse)(nil),            // 35: v1.LoginConfigResponse
+	(*UpdateLoginConfigRequest)(nil),       // 36: v1.UpdateLoginConfigRequest
+	(*UpdateLoginConfigResponse)(nil),      // 37: v1.UpdateLoginConfigResponse
+	(*UpdateCheckResult)(nil),              // 38: v1.UpdateCheckResult
+	(*SettingsAudit)(nil),                  // 39: v1.SettingsAudit
+	(*SiteConfig)(nil),                     // 40: v1.SiteConfig
+	(*SiteConfigRequest)(nil),              // 41: v1.SiteConfigRequest
+	(*SiteConfigResponse)(nil),             // 42: v1.SiteConfigResponse
+	(*UpdateSiteConfigRequest)(nil),        // 43: v1.UpdateSiteConfigRequest
+	(*UpdateSiteConfigResponse)(nil),       // 44: v1.UpdateSiteConfigResponse
+	(*EmailConfig)(nil),                    // 45: v1.EmailConfig
+	(*EmailTestResult)(nil),                // 46: v1.EmailTestResult
+	(*EmailTemplate)(nil),                  // 47: v1.EmailTemplate
+	(*ListEmailTemplatesRequest)(nil),      // 48: v1.ListEmailTemplatesRequest
+	(*ListEmailTemplatesResponse)(nil),     // 49: v1.ListEmailTemplatesResponse
+	(*EmailConfigRequest)(nil),             // 50: v1.EmailConfigRequest
+	(*EmailConfigResponse)(nil),            // 51: v1.EmailConfigResponse
+	(*UpdateEmailConfigRequest)(nil),       // 52: v1.UpdateEmailConfigRequest
+	(*UpdateEmailConfigResponse)(nil),      // 53: v1.UpdateEmailConfigResponse
+	(*UpdateEmailTemplateRequest)(nil),     // 54: v1.UpdateEmailTemplateRequest
+	(*UpdateEmailTemplateResponse)(nil),    // 55: v1.UpdateEmailTemplateResponse
+	(*EmailTemplateRequest)(nil),           // 56: v1.EmailTemplateRequest
+	(*EmailTemplateResponse)(nil),          // 57: v1.EmailTemplateResponse
+	(*TestEmailConfigRequest)(nil),         // 58: v1.TestEmailConfigRequest
+	(*TestEmailConfigResponse)(nil),        // 59: v1.TestEmailConfigResponse
+	(*SystemOverviewRequest)(nil),          // 60: v1.SystemOverviewRequest
+	(*SystemOverviewResponse)(nil),         // 61: v1.SystemOverviewResponse
+	(*SystemStatusRequest)(nil),            // 62: v1.SystemStatusRequest
+	(*SystemStatusResponse)(nil),           // 63: v1.SystemStatusResponse
+	(*SystemVersionInfo)(nil),              // 64: v1.SystemVersionInfo
+	(*CpuOverview)(nil),                    // 65: v1.CpuOverview
+	(*CpuStatus)(nil),                      // 66: v1.CpuStatus
+	(*CpuCoreStatus)(nil),                  // 67: v1.CpuCoreStatus
+	(*MemoryOverview)(nil),                 // 68: v1.MemoryOverview
+	(*MemoryStatus)(nil),                   // 69: v1.MemoryStatus
+	(*PhysicalMemoryOverview)(nil),         // 70: v1.PhysicalMemoryOverview
+	(*PhysicalMemoryStatus)(nil),           // 71: v1.PhysicalMemoryStatus
+	(*VirtualMemoryOverview)(nil),          // 72: v1.VirtualMemoryOverview
+	(*VirtualMemoryStatus)(nil),            // 73: v1.VirtualMemoryStatus
+	(*NetworkInterfaceOverview)(nil),       // 74: v1.NetworkInterfaceOverview
+	(*NetworkStatus)(nil),                  // 75: v1.NetworkStatus
+	(*NetworkInterfaceStatus)(nil),         // 76: v1.NetworkInterfaceStatus
+	(*NetworkConnectionStatus)(nil),        // 77: v1.NetworkConnectionStatus
+	(*DiskPartitionOverview)(nil),          // 78: v1.DiskPartitionOverview
+	(*DiskIOOverview)(nil),                 // 79: v1.DiskIOOverview
+	(*DiskStatus)(nil),                     // 80: v1.DiskStatus
+	(*DiskPartitionStatus)(nil),            // 81: v1.DiskPartitionStatus
+	(*DiskIOStatus)(nil),                   // 82: v1.DiskIOStatus
+	(*ListOperationLogsRequest)(nil),       // 83: v1.ListOperationLogsRequest
+	(*ListOperationLogsResponse)(nil),      // 84: v1.ListOperationLogsResponse
+	(*OperationLogStatsRequest)(nil),       // 85: v1.OperationLogStatsRequest
+	(*OperationLogStatsResponse)(nil),      // 86: v1.OperationLogStatsResponse
+	(*OperationLogInfo)(nil),               // 87: v1.OperationLogInfo
+	nil,                                    // 88: v1.TestEmailConfigRequest.DataEntry
+	nil,                                    // 89: v1.NetworkConnectionStatus.TcpStatusesEntry
+	(*timestamppb.Timestamp)(nil),          // 90: google.protobuf.Timestamp
 }
 var file_v1_system_proto_depIdxs = []int32{
-	9,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
-	76, // 1: v1.CheckUpdateResponse.published_at:type_name -> google.protobuf.Timestamp
-	0,  // 2: v1.MenuInfo.status:type_name -> v1.MenuStatus
-	1,  // 3: v1.MenuInfo.type:type_name -> v1.MenuType
-	76, // 4: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
-	76, // 5: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
-	9,  // 6: v1.MenuInfo.children:type_name -> v1.MenuInfo
-	9,  // 7: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
-	9,  // 8: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
-	1,  // 9: v1.AdminAddPermissionsRequest.type:type_name -> v1.MenuType
-	0,  // 10: v1.AdminAddPermissionsRequest.status:type_name -> v1.MenuStatus
-	0,  // 11: v1.AdminEditPermissionsRequest.status:type_name -> v1.MenuStatus
-	2,  // 12: v1.AdminRolesRequest.status:type_name -> v1.RoleStatus
-	22, // 13: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
-	2,  // 14: v1.RoleInfo.status:type_name -> v1.RoleStatus
-	76, // 15: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
-	76, // 16: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
-	22, // 17: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
-	2,  // 18: v1.AdminAddRoleRequest.status:type_name -> v1.RoleStatus
-	22, // 19: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
-	2,  // 20: v1.AdminEditRoleRequest.status:type_name -> v1.RoleStatus
-	22, // 21: v1.AdminEditRoleResponse.role:type_name -> v1.RoleInfo
-	31, // 22: v1.LoginConfigResponse.config:type_name -> v1.LoginConfig
-	31, // 23: v1.UpdateLoginConfigResponse.config:type_name -> v1.LoginConfig
-	3,  // 24: v1.EmailTemplate.type:type_name -> v1.EmailTemplateType
-	36, // 25: v1.EmailConfigResponse.config:type_name -> v1.EmailConfig
-	36, // 26: v1.UpdateEmailConfigResponse.config:type_name -> v1.EmailConfig
-	3,  // 27: v1.UpdateEmailTemplateRequest.type:type_name -> v1.EmailTemplateType
-	37, // 28: v1.UpdateEmailTemplateResponse.template:type_name -> v1.EmailTemplate
-	3,  // 29: v1.EmailTemplateRequest.type:type_name -> v1.EmailTemplateType
-	37, // 30: v1.EmailTemplateResponse.template:type_name -> v1.EmailTemplate
-	36, // 31: v1.TestEmailConfigRequest.config:type_name -> v1.EmailConfig
-	37, // 32: v1.TestEmailConfigRequest.messages:type_name -> v1.EmailTemplate
-	74, // 33: v1.TestEmailConfigRequest.Data:type_name -> v1.TestEmailConfigRequest.DataEntry
-	52, // 34: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
-	76, // 35: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
-	53, // 36: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
-	56, // 37: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
-	62, // 38: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
-	66, // 39: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
-	67, // 40: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
-	76, // 41: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
-	54, // 42: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
-	57, // 43: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
-	63, // 44: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
-	68, // 45: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
-	76, // 46: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
-	55, // 47: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
-	58, // 48: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
-	60, // 49: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
-	59, // 50: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
-	61, // 51: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
-	64, // 52: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
-	64, // 53: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
-	64, // 54: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
-	65, // 55: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
-	75, // 56: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
-	69, // 57: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
-	69, // 58: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
-	69, // 59: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
-	70, // 60: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
-	70, // 61: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
-	70, // 62: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
-	4,  // 63: v1.ListOperationLogsRequest.operation_type:type_name -> v1.OperationType
-	76, // 64: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
-	76, // 65: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
-	73, // 66: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
-	4,  // 67: v1.OperationLogInfo.operation_type:type_name -> v1.OperationType
-	76, // 68: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
-	5,  // 69: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
-	7,  // 70: v1.System.CheckUpdate:input_type -> v1.CheckUpdateRequest
-	10, // 71: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
-	12, // 72: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
-	14, // 73: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
-	16, // 74: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
-	18, // 75: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
-	20, // 76: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
-	23, // 77: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
-	25, // 78: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
-	27, // 79: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
-	29, // 80: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
-	32, // 81: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
-	34, // 82: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
-	38, // 83: v1.System.EmailConfig:input_type -> v1.EmailConfigRequest
-	40, // 84: v1.System.UpdateEmailConfig:input_type -> v1.UpdateEmailConfigRequest
-	42, // 85: v1.System.UpdateEmailTemplate:input_type -> v1.UpdateEmailTemplateRequest
-	44, // 86: v1.System.EmailTemplate:input_type -> v1.EmailTemplateRequest
-	46, // 87: v1.System.TestEmailConfig:input_type -> v1.TestEmailConfigRequest
-	48, // 88: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
-	50, // 89: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
-	71, // 90: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
-	6,  // 91: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
-	8,  // 92: v1.System.CheckUpdate:output_type -> v1.CheckUpdateResponse
-	11, // 93: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
-	13, // 94: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
-	15, // 95: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
-	17, // 96: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
-	19, // 97: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
-	21, // 98: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
-	24, // 99: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
-	26, // 100: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
-	28, // 101: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
-	30, // 102: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
-	33, // 103: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
-	35, // 104: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
-	39, // 105: v1.System.EmailConfig:output_type -> v1.EmailConfigResponse
-	41, // 106: v1.System.UpdateEmailConfig:output_type -> v1.UpdateEmailConfigResponse
-	43, // 107: v1.System.UpdateEmailTemplate:output_type -> v1.UpdateEmailTemplateResponse
-	45, // 108: v1.System.EmailTemplate:output_type -> v1.EmailTemplateResponse
-	47, // 109: v1.System.TestEmailConfig:output_type -> v1.TestEmailConfigResponse
-	49, // 110: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
-	51, // 111: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
-	72, // 112: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
-	91, // [91:113] is the sub-list for method output_type
-	69, // [69:91] is the sub-list for method input_type
-	69, // [69:69] is the sub-list for extension type_name
-	69, // [69:69] is the sub-list for extension extendee
-	0,  // [0:69] is the sub-list for field type_name
+	11,  // 0: v1.MePermissionsResponse.menus:type_name -> v1.MenuInfo
+	90,  // 1: v1.CheckUpdateResponse.published_at:type_name -> google.protobuf.Timestamp
+	90,  // 2: v1.CheckUpdateResponse.checked_at:type_name -> google.protobuf.Timestamp
+	3,   // 3: v1.CheckUpdateResponse.channel:type_name -> v1.UpdateChannel
+	0,   // 4: v1.MenuInfo.status:type_name -> v1.MenuStatus
+	1,   // 5: v1.MenuInfo.type:type_name -> v1.MenuType
+	90,  // 6: v1.MenuInfo.create_time:type_name -> google.protobuf.Timestamp
+	90,  // 7: v1.MenuInfo.update_time:type_name -> google.protobuf.Timestamp
+	11,  // 8: v1.MenuInfo.children:type_name -> v1.MenuInfo
+	11,  // 9: v1.AdminPermissionsResponse.menus:type_name -> v1.MenuInfo
+	11,  // 10: v1.AdminPermissionsInfoResponse.menu:type_name -> v1.MenuInfo
+	1,   // 11: v1.AdminAddPermissionsRequest.type:type_name -> v1.MenuType
+	0,   // 12: v1.AdminAddPermissionsRequest.status:type_name -> v1.MenuStatus
+	0,   // 13: v1.AdminEditPermissionsRequest.status:type_name -> v1.MenuStatus
+	2,   // 14: v1.AdminRolesRequest.status:type_name -> v1.RoleStatus
+	24,  // 15: v1.AdminRolesResponse.roles:type_name -> v1.RoleInfo
+	2,   // 16: v1.RoleInfo.status:type_name -> v1.RoleStatus
+	90,  // 17: v1.RoleInfo.create_time:type_name -> google.protobuf.Timestamp
+	90,  // 18: v1.RoleInfo.update_time:type_name -> google.protobuf.Timestamp
+	24,  // 19: v1.AdminRoleResponse.role:type_name -> v1.RoleInfo
+	2,   // 20: v1.AdminAddRoleRequest.status:type_name -> v1.RoleStatus
+	24,  // 21: v1.AdminAddRoleResponse.role:type_name -> v1.RoleInfo
+	2,   // 22: v1.AdminEditRoleRequest.status:type_name -> v1.RoleStatus
+	24,  // 23: v1.AdminEditRoleResponse.role:type_name -> v1.RoleInfo
+	33,  // 24: v1.LoginConfigResponse.config:type_name -> v1.LoginConfig
+	33,  // 25: v1.UpdateLoginConfigResponse.config:type_name -> v1.LoginConfig
+	90,  // 26: v1.UpdateCheckResult.time:type_name -> google.protobuf.Timestamp
+	90,  // 27: v1.SettingsAudit.time:type_name -> google.protobuf.Timestamp
+	3,   // 28: v1.SiteConfig.update_channel:type_name -> v1.UpdateChannel
+	38,  // 29: v1.SiteConfig.last_update_check:type_name -> v1.UpdateCheckResult
+	39,  // 30: v1.SiteConfig.last_modified:type_name -> v1.SettingsAudit
+	40,  // 31: v1.SiteConfigResponse.config:type_name -> v1.SiteConfig
+	3,   // 32: v1.UpdateSiteConfigRequest.update_channel:type_name -> v1.UpdateChannel
+	40,  // 33: v1.UpdateSiteConfigResponse.config:type_name -> v1.SiteConfig
+	4,   // 34: v1.EmailConfig.encryption:type_name -> v1.EmailEncryption
+	46,  // 35: v1.EmailConfig.last_test:type_name -> v1.EmailTestResult
+	90,  // 36: v1.EmailTestResult.time:type_name -> google.protobuf.Timestamp
+	5,   // 37: v1.EmailTemplate.type:type_name -> v1.EmailTemplateType
+	90,  // 38: v1.EmailTemplate.update_time:type_name -> google.protobuf.Timestamp
+	47,  // 39: v1.ListEmailTemplatesResponse.templates:type_name -> v1.EmailTemplate
+	45,  // 40: v1.EmailConfigResponse.config:type_name -> v1.EmailConfig
+	4,   // 41: v1.UpdateEmailConfigRequest.encryption:type_name -> v1.EmailEncryption
+	45,  // 42: v1.UpdateEmailConfigResponse.config:type_name -> v1.EmailConfig
+	5,   // 43: v1.UpdateEmailTemplateRequest.type:type_name -> v1.EmailTemplateType
+	47,  // 44: v1.UpdateEmailTemplateResponse.template:type_name -> v1.EmailTemplate
+	5,   // 45: v1.EmailTemplateRequest.type:type_name -> v1.EmailTemplateType
+	47,  // 46: v1.EmailTemplateResponse.template:type_name -> v1.EmailTemplate
+	45,  // 47: v1.TestEmailConfigRequest.config:type_name -> v1.EmailConfig
+	47,  // 48: v1.TestEmailConfigRequest.messages:type_name -> v1.EmailTemplate
+	88,  // 49: v1.TestEmailConfigRequest.Data:type_name -> v1.TestEmailConfigRequest.DataEntry
+	64,  // 50: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
+	90,  // 51: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
+	65,  // 52: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
+	68,  // 53: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
+	74,  // 54: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
+	78,  // 55: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
+	79,  // 56: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
+	90,  // 57: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
+	66,  // 58: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
+	69,  // 59: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
+	75,  // 60: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
+	80,  // 61: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
+	90,  // 62: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
+	67,  // 63: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
+	70,  // 64: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
+	72,  // 65: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
+	71,  // 66: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
+	73,  // 67: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
+	76,  // 68: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
+	76,  // 69: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
+	76,  // 70: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
+	77,  // 71: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
+	89,  // 72: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
+	81,  // 73: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
+	81,  // 74: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
+	81,  // 75: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
+	82,  // 76: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
+	82,  // 77: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
+	82,  // 78: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
+	6,   // 79: v1.ListOperationLogsRequest.operation_type:type_name -> v1.OperationType
+	90,  // 80: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
+	90,  // 81: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
+	87,  // 82: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
+	90,  // 83: v1.OperationLogStatsResponse.earliest_time:type_name -> google.protobuf.Timestamp
+	6,   // 84: v1.OperationLogInfo.operation_type:type_name -> v1.OperationType
+	90,  // 85: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
+	7,   // 86: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
+	9,   // 87: v1.System.CheckUpdate:input_type -> v1.CheckUpdateRequest
+	12,  // 88: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
+	14,  // 89: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
+	16,  // 90: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
+	18,  // 91: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
+	20,  // 92: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
+	22,  // 93: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
+	25,  // 94: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
+	27,  // 95: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
+	29,  // 96: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
+	31,  // 97: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
+	34,  // 98: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
+	36,  // 99: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
+	41,  // 100: v1.System.SiteConfig:input_type -> v1.SiteConfigRequest
+	43,  // 101: v1.System.UpdateSiteConfig:input_type -> v1.UpdateSiteConfigRequest
+	50,  // 102: v1.System.EmailConfig:input_type -> v1.EmailConfigRequest
+	52,  // 103: v1.System.UpdateEmailConfig:input_type -> v1.UpdateEmailConfigRequest
+	54,  // 104: v1.System.UpdateEmailTemplate:input_type -> v1.UpdateEmailTemplateRequest
+	56,  // 105: v1.System.EmailTemplate:input_type -> v1.EmailTemplateRequest
+	48,  // 106: v1.System.ListEmailTemplates:input_type -> v1.ListEmailTemplatesRequest
+	58,  // 107: v1.System.TestEmailConfig:input_type -> v1.TestEmailConfigRequest
+	60,  // 108: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
+	62,  // 109: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
+	83,  // 110: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
+	85,  // 111: v1.System.OperationLogStats:input_type -> v1.OperationLogStatsRequest
+	8,   // 112: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
+	10,  // 113: v1.System.CheckUpdate:output_type -> v1.CheckUpdateResponse
+	13,  // 114: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
+	15,  // 115: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
+	17,  // 116: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
+	19,  // 117: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
+	21,  // 118: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
+	23,  // 119: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
+	26,  // 120: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
+	28,  // 121: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
+	30,  // 122: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
+	32,  // 123: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
+	35,  // 124: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
+	37,  // 125: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
+	42,  // 126: v1.System.SiteConfig:output_type -> v1.SiteConfigResponse
+	44,  // 127: v1.System.UpdateSiteConfig:output_type -> v1.UpdateSiteConfigResponse
+	51,  // 128: v1.System.EmailConfig:output_type -> v1.EmailConfigResponse
+	53,  // 129: v1.System.UpdateEmailConfig:output_type -> v1.UpdateEmailConfigResponse
+	55,  // 130: v1.System.UpdateEmailTemplate:output_type -> v1.UpdateEmailTemplateResponse
+	57,  // 131: v1.System.EmailTemplate:output_type -> v1.EmailTemplateResponse
+	49,  // 132: v1.System.ListEmailTemplates:output_type -> v1.ListEmailTemplatesResponse
+	59,  // 133: v1.System.TestEmailConfig:output_type -> v1.TestEmailConfigResponse
+	61,  // 134: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
+	63,  // 135: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
+	84,  // 136: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
+	86,  // 137: v1.System.OperationLogStats:output_type -> v1.OperationLogStatsResponse
+	112, // [112:138] is the sub-list for method output_type
+	86,  // [86:112] is the sub-list for method input_type
+	86,  // [86:86] is the sub-list for extension type_name
+	86,  // [86:86] is the sub-list for extension extendee
+	0,   // [0:86] is the sub-list for field type_name
 }
 
 func init() { file_v1_system_proto_init() }
@@ -6382,17 +7582,17 @@ func file_v1_system_proto_init() {
 		return
 	}
 	file_v1_system_proto_msgTypes[15].OneofWrappers = []any{}
-	file_v1_system_proto_msgTypes[41].OneofWrappers = []any{}
-	file_v1_system_proto_msgTypes[45].OneofWrappers = []any{}
-	file_v1_system_proto_msgTypes[66].OneofWrappers = []any{}
-	file_v1_system_proto_msgTypes[68].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[51].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[55].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[76].OneofWrappers = []any{}
+	file_v1_system_proto_msgTypes[80].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_system_proto_rawDesc), len(file_v1_system_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   71,
+			NumEnums:      7,
+			NumMessages:   83,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

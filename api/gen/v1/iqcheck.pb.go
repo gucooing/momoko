@@ -133,6 +133,124 @@ func (IQCheckResultStatus) EnumDescriptor() ([]byte, []int) {
 	return file_v1_iqcheck_proto_rawDescGZIP(), []int{1}
 }
 
+// 站点健康状态
+type IQCheckSiteHealth int32
+
+const (
+	// 从未检测
+	IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_UNSPECIFIED IQCheckSiteHealth = 0
+	// 最近一轮全部成功
+	IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_HEALTHY IQCheckSiteHealth = 1
+	// 最近一轮部分失败
+	IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL IQCheckSiteHealth = 2
+	// 最近一轮全部失败
+	IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED IQCheckSiteHealth = 3
+)
+
+// Enum value maps for IQCheckSiteHealth.
+var (
+	IQCheckSiteHealth_name = map[int32]string{
+		0: "IQ_CHECK_SITE_HEALTH_UNSPECIFIED",
+		1: "IQ_CHECK_SITE_HEALTH_HEALTHY",
+		2: "IQ_CHECK_SITE_HEALTH_PARTIAL",
+		3: "IQ_CHECK_SITE_HEALTH_FAILED",
+	}
+	IQCheckSiteHealth_value = map[string]int32{
+		"IQ_CHECK_SITE_HEALTH_UNSPECIFIED": 0,
+		"IQ_CHECK_SITE_HEALTH_HEALTHY":     1,
+		"IQ_CHECK_SITE_HEALTH_PARTIAL":     2,
+		"IQ_CHECK_SITE_HEALTH_FAILED":      3,
+	}
+)
+
+func (x IQCheckSiteHealth) Enum() *IQCheckSiteHealth {
+	p := new(IQCheckSiteHealth)
+	*p = x
+	return p
+}
+
+func (x IQCheckSiteHealth) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IQCheckSiteHealth) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_iqcheck_proto_enumTypes[2].Descriptor()
+}
+
+func (IQCheckSiteHealth) Type() protoreflect.EnumType {
+	return &file_v1_iqcheck_proto_enumTypes[2]
+}
+
+func (x IQCheckSiteHealth) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IQCheckSiteHealth.Descriptor instead.
+func (IQCheckSiteHealth) EnumDescriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{2}
+}
+
+// 站点列表筛选
+type IQCheckSiteFilter int32
+
+const (
+	// 全部
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_ALL IQCheckSiteFilter = 0
+	// 最近一轮全部成功
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_HEALTHY IQCheckSiteFilter = 1
+	// 最近一轮有失败
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_FAILING IQCheckSiteFilter = 2
+	// 未启用定时检测
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_DISABLED IQCheckSiteFilter = 3
+	// 从未检测
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_NEVER IQCheckSiteFilter = 4
+)
+
+// Enum value maps for IQCheckSiteFilter.
+var (
+	IQCheckSiteFilter_name = map[int32]string{
+		0: "IQ_CHECK_SITE_FILTER_ALL",
+		1: "IQ_CHECK_SITE_FILTER_HEALTHY",
+		2: "IQ_CHECK_SITE_FILTER_FAILING",
+		3: "IQ_CHECK_SITE_FILTER_DISABLED",
+		4: "IQ_CHECK_SITE_FILTER_NEVER",
+	}
+	IQCheckSiteFilter_value = map[string]int32{
+		"IQ_CHECK_SITE_FILTER_ALL":      0,
+		"IQ_CHECK_SITE_FILTER_HEALTHY":  1,
+		"IQ_CHECK_SITE_FILTER_FAILING":  2,
+		"IQ_CHECK_SITE_FILTER_DISABLED": 3,
+		"IQ_CHECK_SITE_FILTER_NEVER":    4,
+	}
+)
+
+func (x IQCheckSiteFilter) Enum() *IQCheckSiteFilter {
+	p := new(IQCheckSiteFilter)
+	*p = x
+	return p
+}
+
+func (x IQCheckSiteFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IQCheckSiteFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_iqcheck_proto_enumTypes[3].Descriptor()
+}
+
+func (IQCheckSiteFilter) Type() protoreflect.EnumType {
+	return &file_v1_iqcheck_proto_enumTypes[3]
+}
+
+func (x IQCheckSiteFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IQCheckSiteFilter.Descriptor instead.
+func (IQCheckSiteFilter) EnumDescriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{3}
+}
+
 // 检测提示词
 type IQCheckPromptInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -149,7 +267,13 @@ type IQCheckPromptInfo struct {
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 已被检测使用的次数（检测结果条数）
+	UseCount int64 `protobuf:"varint,8,opt,name=use_count,json=useCount,proto3" json:"use_count,omitempty"`
+	// 最近一次被使用的时间
+	LastUsedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
+	// 被检测使用过的站点数
+	SiteCount     int64 `protobuf:"varint,10,opt,name=site_count,json=siteCount,proto3" json:"site_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -233,6 +357,27 @@ func (x *IQCheckPromptInfo) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *IQCheckPromptInfo) GetUseCount() int64 {
+	if x != nil {
+		return x.UseCount
+	}
+	return 0
+}
+
+func (x *IQCheckPromptInfo) GetLastUsedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastUsedAt
+	}
+	return nil
+}
+
+func (x *IQCheckPromptInfo) GetSiteCount() int64 {
+	if x != nil {
+		return x.SiteCount
+	}
+	return 0
+}
+
 // 获取提示词列表请求
 type ListIQCheckPromptsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -307,7 +452,11 @@ type ListIQCheckPromptsResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 提示词列表
-	Prompts       []*IQCheckPromptInfo `protobuf:"bytes,4,rep,name=prompts,proto3" json:"prompts,omitempty"`
+	Prompts []*IQCheckPromptInfo `protobuf:"bytes,4,rep,name=prompts,proto3" json:"prompts,omitempty"`
+	// 启用中的提示词数量（不受关键字筛选影响）
+	EnabledCount int64 `protobuf:"varint,5,opt,name=enabled_count,json=enabledCount,proto3" json:"enabled_count,omitempty"`
+	// 提示词总数（不受关键字筛选影响）
+	AllCount      int64 `protobuf:"varint,6,opt,name=all_count,json=allCount,proto3" json:"all_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -368,6 +517,20 @@ func (x *ListIQCheckPromptsResponse) GetPrompts() []*IQCheckPromptInfo {
 		return x.Prompts
 	}
 	return nil
+}
+
+func (x *ListIQCheckPromptsResponse) GetEnabledCount() int64 {
+	if x != nil {
+		return x.EnabledCount
+	}
+	return 0
+}
+
+func (x *ListIQCheckPromptsResponse) GetAllCount() int64 {
+	if x != nil {
+		return x.AllCount
+	}
+	return 0
 }
 
 // 创建提示词请求
@@ -789,7 +952,17 @@ type IQCheckSiteInfo struct {
 	// 更新时间
 	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	// 请求上游时使用的 User-Agent
-	UserAgent     string `protobuf:"bytes,16,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	UserAgent string `protobuf:"bytes,16,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	// 预计下一次定时检测时间；未启用或已达次数上限时为空
+	NextCheckAt *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=next_check_at,json=nextCheckAt,proto3" json:"next_check_at,omitempty"`
+	// 最近一轮检测汇总；从未检测时为空
+	LastRound *IQCheckRoundSummary `protobuf:"bytes,18,opt,name=last_round,json=lastRound,proto3" json:"last_round,omitempty"`
+	// 最近若干轮检测汇总，旧的在前
+	RecentRounds []*IQCheckRoundSummary `protobuf:"bytes,19,rep,name=recent_rounds,json=recentRounds,proto3" json:"recent_rounds,omitempty"`
+	// 检测结果总条数
+	ResultCount int64 `protobuf:"varint,20,opt,name=result_count,json=resultCount,proto3" json:"result_count,omitempty"`
+	// 站点健康状态
+	Health        IQCheckSiteHealth `protobuf:"varint,21,opt,name=health,proto3,enum=v1.IQCheckSiteHealth" json:"health,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -936,6 +1109,250 @@ func (x *IQCheckSiteInfo) GetUserAgent() string {
 	return ""
 }
 
+func (x *IQCheckSiteInfo) GetNextCheckAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.NextCheckAt
+	}
+	return nil
+}
+
+func (x *IQCheckSiteInfo) GetLastRound() *IQCheckRoundSummary {
+	if x != nil {
+		return x.LastRound
+	}
+	return nil
+}
+
+func (x *IQCheckSiteInfo) GetRecentRounds() []*IQCheckRoundSummary {
+	if x != nil {
+		return x.RecentRounds
+	}
+	return nil
+}
+
+func (x *IQCheckSiteInfo) GetResultCount() int64 {
+	if x != nil {
+		return x.ResultCount
+	}
+	return 0
+}
+
+func (x *IQCheckSiteInfo) GetHealth() IQCheckSiteHealth {
+	if x != nil {
+		return x.Health
+	}
+	return IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_UNSPECIFIED
+}
+
+// 一轮检测的汇总
+type IQCheckRoundSummary struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 轮次编号
+	RoundId string `protobuf:"bytes,1,opt,name=round_id,json=roundId,proto3" json:"round_id,omitempty"`
+	// 检测时间
+	RequestAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=request_at,json=requestAt,proto3" json:"request_at,omitempty"`
+	// 成功的模型数
+	Success int32 `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	// 失败的模型数
+	Failed int32 `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
+	// 成功结果的平均耗时（毫秒）
+	AvgDurationMs int64 `protobuf:"varint,5,opt,name=avg_duration_ms,json=avgDurationMs,proto3" json:"avg_duration_ms,omitempty"`
+	// 第一条失败原因
+	Error string `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`
+	// 提示词标题
+	PromptTitle   string `protobuf:"bytes,7,opt,name=prompt_title,json=promptTitle,proto3" json:"prompt_title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IQCheckRoundSummary) Reset() {
+	*x = IQCheckRoundSummary{}
+	mi := &file_v1_iqcheck_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IQCheckRoundSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IQCheckRoundSummary) ProtoMessage() {}
+
+func (x *IQCheckRoundSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_iqcheck_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IQCheckRoundSummary.ProtoReflect.Descriptor instead.
+func (*IQCheckRoundSummary) Descriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *IQCheckRoundSummary) GetRoundId() string {
+	if x != nil {
+		return x.RoundId
+	}
+	return ""
+}
+
+func (x *IQCheckRoundSummary) GetRequestAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RequestAt
+	}
+	return nil
+}
+
+func (x *IQCheckRoundSummary) GetSuccess() int32 {
+	if x != nil {
+		return x.Success
+	}
+	return 0
+}
+
+func (x *IQCheckRoundSummary) GetFailed() int32 {
+	if x != nil {
+		return x.Failed
+	}
+	return 0
+}
+
+func (x *IQCheckRoundSummary) GetAvgDurationMs() int64 {
+	if x != nil {
+		return x.AvgDurationMs
+	}
+	return 0
+}
+
+func (x *IQCheckRoundSummary) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *IQCheckRoundSummary) GetPromptTitle() string {
+	if x != nil {
+		return x.PromptTitle
+	}
+	return ""
+}
+
+// 站点统计（不受筛选影响）
+type IQCheckSiteStats struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 站点总数
+	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 最近一轮全部成功
+	Healthy int64 `protobuf:"varint,2,opt,name=healthy,proto3" json:"healthy,omitempty"`
+	// 最近一轮有失败
+	Failing int64 `protobuf:"varint,3,opt,name=failing,proto3" json:"failing,omitempty"`
+	// 未启用定时检测
+	Disabled int64 `protobuf:"varint,4,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	// 从未检测
+	Never int64 `protobuf:"varint,5,opt,name=never,proto3" json:"never,omitempty"`
+	// 正在检测
+	Checking int64 `protobuf:"varint,6,opt,name=checking,proto3" json:"checking,omitempty"`
+	// 全部站点检测的模型数（去重：模型 + 推理强度）
+	ModelCount int64 `protobuf:"varint,7,opt,name=model_count,json=modelCount,proto3" json:"model_count,omitempty"`
+	// 今天产生的检测结果条数
+	ChecksToday   int64 `protobuf:"varint,8,opt,name=checks_today,json=checksToday,proto3" json:"checks_today,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IQCheckSiteStats) Reset() {
+	*x = IQCheckSiteStats{}
+	mi := &file_v1_iqcheck_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IQCheckSiteStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IQCheckSiteStats) ProtoMessage() {}
+
+func (x *IQCheckSiteStats) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_iqcheck_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IQCheckSiteStats.ProtoReflect.Descriptor instead.
+func (*IQCheckSiteStats) Descriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *IQCheckSiteStats) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetHealthy() int64 {
+	if x != nil {
+		return x.Healthy
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetFailing() int64 {
+	if x != nil {
+		return x.Failing
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetDisabled() int64 {
+	if x != nil {
+		return x.Disabled
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetNever() int64 {
+	if x != nil {
+		return x.Never
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetChecking() int64 {
+	if x != nil {
+		return x.Checking
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetModelCount() int64 {
+	if x != nil {
+		return x.ModelCount
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetChecksToday() int64 {
+	if x != nil {
+		return x.ChecksToday
+	}
+	return 0
+}
+
 // 获取站点列表请求
 type ListIQCheckSitesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -943,15 +1360,17 @@ type ListIQCheckSitesRequest struct {
 	Page int64 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	// 每页数量
 	PageSize int64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// 名称关键字
-	Keywords      *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 名称/端点/模型关键字
+	Keywords *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 状态筛选
+	Filter        *IQCheckSiteFilter `protobuf:"varint,4,opt,name=filter,proto3,enum=v1.IQCheckSiteFilter,oneof" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListIQCheckSitesRequest) Reset() {
 	*x = ListIQCheckSitesRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[11]
+	mi := &file_v1_iqcheck_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1382,7 @@ func (x *ListIQCheckSitesRequest) String() string {
 func (*ListIQCheckSitesRequest) ProtoMessage() {}
 
 func (x *ListIQCheckSitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[11]
+	mi := &file_v1_iqcheck_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1395,7 @@ func (x *ListIQCheckSitesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIQCheckSitesRequest.ProtoReflect.Descriptor instead.
 func (*ListIQCheckSitesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{11}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListIQCheckSitesRequest) GetPage() int64 {
@@ -1000,6 +1419,13 @@ func (x *ListIQCheckSitesRequest) GetKeywords() string {
 	return ""
 }
 
+func (x *ListIQCheckSitesRequest) GetFilter() IQCheckSiteFilter {
+	if x != nil && x.Filter != nil {
+		return *x.Filter
+	}
+	return IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_ALL
+}
+
 // 获取站点列表响应
 type ListIQCheckSitesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1010,14 +1436,16 @@ type ListIQCheckSitesResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 站点列表
-	Sites         []*IQCheckSiteInfo `protobuf:"bytes,4,rep,name=sites,proto3" json:"sites,omitempty"`
+	Sites []*IQCheckSiteInfo `protobuf:"bytes,4,rep,name=sites,proto3" json:"sites,omitempty"`
+	// 站点统计
+	Stats         *IQCheckSiteStats `protobuf:"bytes,5,opt,name=stats,proto3" json:"stats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListIQCheckSitesResponse) Reset() {
 	*x = ListIQCheckSitesResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[12]
+	mi := &file_v1_iqcheck_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1029,7 +1457,7 @@ func (x *ListIQCheckSitesResponse) String() string {
 func (*ListIQCheckSitesResponse) ProtoMessage() {}
 
 func (x *ListIQCheckSitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[12]
+	mi := &file_v1_iqcheck_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +1470,7 @@ func (x *ListIQCheckSitesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIQCheckSitesResponse.ProtoReflect.Descriptor instead.
 func (*ListIQCheckSitesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{12}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListIQCheckSitesResponse) GetPage() int64 {
@@ -1069,6 +1497,13 @@ func (x *ListIQCheckSitesResponse) GetTotal() int64 {
 func (x *ListIQCheckSitesResponse) GetSites() []*IQCheckSiteInfo {
 	if x != nil {
 		return x.Sites
+	}
+	return nil
+}
+
+func (x *ListIQCheckSitesResponse) GetStats() *IQCheckSiteStats {
+	if x != nil {
+		return x.Stats
 	}
 	return nil
 }
@@ -1100,7 +1535,7 @@ type CreateIQCheckSiteRequest struct {
 
 func (x *CreateIQCheckSiteRequest) Reset() {
 	*x = CreateIQCheckSiteRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[13]
+	mi := &file_v1_iqcheck_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1112,7 +1547,7 @@ func (x *CreateIQCheckSiteRequest) String() string {
 func (*CreateIQCheckSiteRequest) ProtoMessage() {}
 
 func (x *CreateIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[13]
+	mi := &file_v1_iqcheck_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1125,7 +1560,7 @@ func (x *CreateIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateIQCheckSiteRequest.ProtoReflect.Descriptor instead.
 func (*CreateIQCheckSiteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{13}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateIQCheckSiteRequest) GetName() string {
@@ -1202,7 +1637,7 @@ type CreateIQCheckSiteResponse struct {
 
 func (x *CreateIQCheckSiteResponse) Reset() {
 	*x = CreateIQCheckSiteResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[14]
+	mi := &file_v1_iqcheck_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1214,7 +1649,7 @@ func (x *CreateIQCheckSiteResponse) String() string {
 func (*CreateIQCheckSiteResponse) ProtoMessage() {}
 
 func (x *CreateIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[14]
+	mi := &file_v1_iqcheck_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1662,7 @@ func (x *CreateIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateIQCheckSiteResponse.ProtoReflect.Descriptor instead.
 func (*CreateIQCheckSiteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{14}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateIQCheckSiteResponse) GetSite() *IQCheckSiteInfo {
@@ -1268,7 +1703,7 @@ type UpdateIQCheckSiteRequest struct {
 
 func (x *UpdateIQCheckSiteRequest) Reset() {
 	*x = UpdateIQCheckSiteRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[15]
+	mi := &file_v1_iqcheck_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1280,7 +1715,7 @@ func (x *UpdateIQCheckSiteRequest) String() string {
 func (*UpdateIQCheckSiteRequest) ProtoMessage() {}
 
 func (x *UpdateIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[15]
+	mi := &file_v1_iqcheck_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1293,7 +1728,7 @@ func (x *UpdateIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIQCheckSiteRequest.ProtoReflect.Descriptor instead.
 func (*UpdateIQCheckSiteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{15}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateIQCheckSiteRequest) GetId() string {
@@ -1384,7 +1819,7 @@ type UpdateIQCheckSiteResponse struct {
 
 func (x *UpdateIQCheckSiteResponse) Reset() {
 	*x = UpdateIQCheckSiteResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[16]
+	mi := &file_v1_iqcheck_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1396,7 +1831,7 @@ func (x *UpdateIQCheckSiteResponse) String() string {
 func (*UpdateIQCheckSiteResponse) ProtoMessage() {}
 
 func (x *UpdateIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[16]
+	mi := &file_v1_iqcheck_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +1844,7 @@ func (x *UpdateIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIQCheckSiteResponse.ProtoReflect.Descriptor instead.
 func (*UpdateIQCheckSiteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{16}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateIQCheckSiteResponse) GetSite() *IQCheckSiteInfo {
@@ -1430,7 +1865,7 @@ type DeleteIQCheckSiteRequest struct {
 
 func (x *DeleteIQCheckSiteRequest) Reset() {
 	*x = DeleteIQCheckSiteRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[17]
+	mi := &file_v1_iqcheck_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1442,7 +1877,7 @@ func (x *DeleteIQCheckSiteRequest) String() string {
 func (*DeleteIQCheckSiteRequest) ProtoMessage() {}
 
 func (x *DeleteIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[17]
+	mi := &file_v1_iqcheck_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1455,7 +1890,7 @@ func (x *DeleteIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteIQCheckSiteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteIQCheckSiteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{17}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteIQCheckSiteRequest) GetId() string {
@@ -1474,7 +1909,7 @@ type DeleteIQCheckSiteResponse struct {
 
 func (x *DeleteIQCheckSiteResponse) Reset() {
 	*x = DeleteIQCheckSiteResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[18]
+	mi := &file_v1_iqcheck_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1486,7 +1921,7 @@ func (x *DeleteIQCheckSiteResponse) String() string {
 func (*DeleteIQCheckSiteResponse) ProtoMessage() {}
 
 func (x *DeleteIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[18]
+	mi := &file_v1_iqcheck_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1499,7 +1934,7 @@ func (x *DeleteIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteIQCheckSiteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteIQCheckSiteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{18}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{20}
 }
 
 // 拉取模型列表请求
@@ -1521,7 +1956,7 @@ type FetchIQCheckModelsRequest struct {
 
 func (x *FetchIQCheckModelsRequest) Reset() {
 	*x = FetchIQCheckModelsRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[19]
+	mi := &file_v1_iqcheck_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1533,7 +1968,7 @@ func (x *FetchIQCheckModelsRequest) String() string {
 func (*FetchIQCheckModelsRequest) ProtoMessage() {}
 
 func (x *FetchIQCheckModelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[19]
+	mi := &file_v1_iqcheck_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1546,7 +1981,7 @@ func (x *FetchIQCheckModelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchIQCheckModelsRequest.ProtoReflect.Descriptor instead.
 func (*FetchIQCheckModelsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{19}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *FetchIQCheckModelsRequest) GetEndpoint() string {
@@ -1595,7 +2030,7 @@ type FetchIQCheckModelsResponse struct {
 
 func (x *FetchIQCheckModelsResponse) Reset() {
 	*x = FetchIQCheckModelsResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[20]
+	mi := &file_v1_iqcheck_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1607,7 +2042,7 @@ func (x *FetchIQCheckModelsResponse) String() string {
 func (*FetchIQCheckModelsResponse) ProtoMessage() {}
 
 func (x *FetchIQCheckModelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[20]
+	mi := &file_v1_iqcheck_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1620,7 +2055,7 @@ func (x *FetchIQCheckModelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchIQCheckModelsResponse.ProtoReflect.Descriptor instead.
 func (*FetchIQCheckModelsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{20}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *FetchIQCheckModelsResponse) GetModels() []string {
@@ -1641,7 +2076,7 @@ type TriggerIQCheckRequest struct {
 
 func (x *TriggerIQCheckRequest) Reset() {
 	*x = TriggerIQCheckRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[21]
+	mi := &file_v1_iqcheck_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1653,7 +2088,7 @@ func (x *TriggerIQCheckRequest) String() string {
 func (*TriggerIQCheckRequest) ProtoMessage() {}
 
 func (x *TriggerIQCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[21]
+	mi := &file_v1_iqcheck_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1666,7 +2101,7 @@ func (x *TriggerIQCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerIQCheckRequest.ProtoReflect.Descriptor instead.
 func (*TriggerIQCheckRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{21}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *TriggerIQCheckRequest) GetId() string {
@@ -1687,7 +2122,7 @@ type TriggerIQCheckResponse struct {
 
 func (x *TriggerIQCheckResponse) Reset() {
 	*x = TriggerIQCheckResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[22]
+	mi := &file_v1_iqcheck_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1699,7 +2134,7 @@ func (x *TriggerIQCheckResponse) String() string {
 func (*TriggerIQCheckResponse) ProtoMessage() {}
 
 func (x *TriggerIQCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[22]
+	mi := &file_v1_iqcheck_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1712,7 +2147,7 @@ func (x *TriggerIQCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerIQCheckResponse.ProtoReflect.Descriptor instead.
 func (*TriggerIQCheckResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{22}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *TriggerIQCheckResponse) GetModelCount() int32 {
@@ -1759,7 +2194,7 @@ type IQCheckResultInfo struct {
 
 func (x *IQCheckResultInfo) Reset() {
 	*x = IQCheckResultInfo{}
-	mi := &file_v1_iqcheck_proto_msgTypes[23]
+	mi := &file_v1_iqcheck_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1771,7 +2206,7 @@ func (x *IQCheckResultInfo) String() string {
 func (*IQCheckResultInfo) ProtoMessage() {}
 
 func (x *IQCheckResultInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[23]
+	mi := &file_v1_iqcheck_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1784,7 +2219,7 @@ func (x *IQCheckResultInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IQCheckResultInfo.ProtoReflect.Descriptor instead.
 func (*IQCheckResultInfo) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{23}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *IQCheckResultInfo) GetId() string {
@@ -1899,14 +2334,18 @@ type PublicIQCheckSiteInfo struct {
 	// 检测间隔，单位分钟
 	IntervalMinutes int32 `protobuf:"varint,5,opt,name=interval_minutes,json=intervalMinutes,proto3" json:"interval_minutes,omitempty"`
 	// 最近检测时间
-	LastCheckAt   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_check_at,json=lastCheckAt,proto3" json:"last_check_at,omitempty"`
+	LastCheckAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_check_at,json=lastCheckAt,proto3" json:"last_check_at,omitempty"`
+	// 检测统计
+	Stats *PublicIQCheckStats `protobuf:"bytes,7,opt,name=stats,proto3" json:"stats,omitempty"`
+	// 是否启用定时检测
+	Enabled       bool `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PublicIQCheckSiteInfo) Reset() {
 	*x = PublicIQCheckSiteInfo{}
-	mi := &file_v1_iqcheck_proto_msgTypes[24]
+	mi := &file_v1_iqcheck_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1918,7 +2357,7 @@ func (x *PublicIQCheckSiteInfo) String() string {
 func (*PublicIQCheckSiteInfo) ProtoMessage() {}
 
 func (x *PublicIQCheckSiteInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[24]
+	mi := &file_v1_iqcheck_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2370,7 @@ func (x *PublicIQCheckSiteInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIQCheckSiteInfo.ProtoReflect.Descriptor instead.
 func (*PublicIQCheckSiteInfo) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{24}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *PublicIQCheckSiteInfo) GetName() string {
@@ -1976,6 +2415,166 @@ func (x *PublicIQCheckSiteInfo) GetLastCheckAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *PublicIQCheckSiteInfo) GetStats() *PublicIQCheckStats {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
+func (x *PublicIQCheckSiteInfo) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+// 公开页检测统计
+type PublicIQCheckStats struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 检测结果总条数
+	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 成功条数
+	Success int64 `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	// 成功结果的平均耗时（毫秒）
+	AvgDurationMs int64 `protobuf:"varint,3,opt,name=avg_duration_ms,json=avgDurationMs,proto3" json:"avg_duration_ms,omitempty"`
+	// 近 7 天的检测结果条数
+	Last7DTotal int64 `protobuf:"varint,4,opt,name=last7d_total,json=last7dTotal,proto3" json:"last7d_total,omitempty"`
+	// 近 7 天的成功条数
+	Last7DSuccess int64 `protobuf:"varint,5,opt,name=last7d_success,json=last7dSuccess,proto3" json:"last7d_success,omitempty"`
+	// 按模型统计的结果条数
+	Models        []*PublicIQCheckModelCount `protobuf:"bytes,6,rep,name=models,proto3" json:"models,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublicIQCheckStats) Reset() {
+	*x = PublicIQCheckStats{}
+	mi := &file_v1_iqcheck_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublicIQCheckStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublicIQCheckStats) ProtoMessage() {}
+
+func (x *PublicIQCheckStats) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_iqcheck_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublicIQCheckStats.ProtoReflect.Descriptor instead.
+func (*PublicIQCheckStats) Descriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *PublicIQCheckStats) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *PublicIQCheckStats) GetSuccess() int64 {
+	if x != nil {
+		return x.Success
+	}
+	return 0
+}
+
+func (x *PublicIQCheckStats) GetAvgDurationMs() int64 {
+	if x != nil {
+		return x.AvgDurationMs
+	}
+	return 0
+}
+
+func (x *PublicIQCheckStats) GetLast7DTotal() int64 {
+	if x != nil {
+		return x.Last7DTotal
+	}
+	return 0
+}
+
+func (x *PublicIQCheckStats) GetLast7DSuccess() int64 {
+	if x != nil {
+		return x.Last7DSuccess
+	}
+	return 0
+}
+
+func (x *PublicIQCheckStats) GetModels() []*PublicIQCheckModelCount {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
+// 按模型统计的结果条数
+type PublicIQCheckModelCount struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 模型
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// 结果条数
+	Count         int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublicIQCheckModelCount) Reset() {
+	*x = PublicIQCheckModelCount{}
+	mi := &file_v1_iqcheck_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublicIQCheckModelCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublicIQCheckModelCount) ProtoMessage() {}
+
+func (x *PublicIQCheckModelCount) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_iqcheck_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublicIQCheckModelCount.ProtoReflect.Descriptor instead.
+func (*PublicIQCheckModelCount) Descriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *PublicIQCheckModelCount) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *PublicIQCheckModelCount) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 // 获取公开页站点信息请求
 type PublicIQCheckSiteRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1987,7 +2586,7 @@ type PublicIQCheckSiteRequest struct {
 
 func (x *PublicIQCheckSiteRequest) Reset() {
 	*x = PublicIQCheckSiteRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[25]
+	mi := &file_v1_iqcheck_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1999,7 +2598,7 @@ func (x *PublicIQCheckSiteRequest) String() string {
 func (*PublicIQCheckSiteRequest) ProtoMessage() {}
 
 func (x *PublicIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[25]
+	mi := &file_v1_iqcheck_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2012,7 +2611,7 @@ func (x *PublicIQCheckSiteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIQCheckSiteRequest.ProtoReflect.Descriptor instead.
 func (*PublicIQCheckSiteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{25}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PublicIQCheckSiteRequest) GetSlug() string {
@@ -2033,7 +2632,7 @@ type PublicIQCheckSiteResponse struct {
 
 func (x *PublicIQCheckSiteResponse) Reset() {
 	*x = PublicIQCheckSiteResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[26]
+	mi := &file_v1_iqcheck_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2045,7 +2644,7 @@ func (x *PublicIQCheckSiteResponse) String() string {
 func (*PublicIQCheckSiteResponse) ProtoMessage() {}
 
 func (x *PublicIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[26]
+	mi := &file_v1_iqcheck_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2058,7 +2657,7 @@ func (x *PublicIQCheckSiteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIQCheckSiteResponse.ProtoReflect.Descriptor instead.
 func (*PublicIQCheckSiteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{26}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PublicIQCheckSiteResponse) GetSite() *PublicIQCheckSiteInfo {
@@ -2078,14 +2677,16 @@ type PublicIQCheckResultsRequest struct {
 	// 每页数量
 	PageSize int64 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// 按模型筛选
-	Model         *string `protobuf:"bytes,4,opt,name=model,proto3,oneof" json:"model,omitempty"`
+	Model *string `protobuf:"bytes,4,opt,name=model,proto3,oneof" json:"model,omitempty"`
+	// 只取指定 id 的结果（用于打开分享的单条结果链接）
+	ResultId      *string `protobuf:"bytes,5,opt,name=result_id,json=resultId,proto3,oneof" json:"result_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PublicIQCheckResultsRequest) Reset() {
 	*x = PublicIQCheckResultsRequest{}
-	mi := &file_v1_iqcheck_proto_msgTypes[27]
+	mi := &file_v1_iqcheck_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2097,7 +2698,7 @@ func (x *PublicIQCheckResultsRequest) String() string {
 func (*PublicIQCheckResultsRequest) ProtoMessage() {}
 
 func (x *PublicIQCheckResultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[27]
+	mi := &file_v1_iqcheck_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2110,7 +2711,7 @@ func (x *PublicIQCheckResultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIQCheckResultsRequest.ProtoReflect.Descriptor instead.
 func (*PublicIQCheckResultsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{27}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PublicIQCheckResultsRequest) GetSlug() string {
@@ -2141,6 +2742,13 @@ func (x *PublicIQCheckResultsRequest) GetModel() string {
 	return ""
 }
 
+func (x *PublicIQCheckResultsRequest) GetResultId() string {
+	if x != nil && x.ResultId != nil {
+		return *x.ResultId
+	}
+	return ""
+}
+
 // 获取公开页检测结果响应
 type PublicIQCheckResultsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2158,7 +2766,7 @@ type PublicIQCheckResultsResponse struct {
 
 func (x *PublicIQCheckResultsResponse) Reset() {
 	*x = PublicIQCheckResultsResponse{}
-	mi := &file_v1_iqcheck_proto_msgTypes[28]
+	mi := &file_v1_iqcheck_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2170,7 +2778,7 @@ func (x *PublicIQCheckResultsResponse) String() string {
 func (*PublicIQCheckResultsResponse) ProtoMessage() {}
 
 func (x *PublicIQCheckResultsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_iqcheck_proto_msgTypes[28]
+	mi := &file_v1_iqcheck_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2183,7 +2791,7 @@ func (x *PublicIQCheckResultsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicIQCheckResultsResponse.ProtoReflect.Descriptor instead.
 func (*PublicIQCheckResultsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{28}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *PublicIQCheckResultsResponse) GetPage() int64 {
@@ -2218,7 +2826,7 @@ var File_v1_iqcheck_proto protoreflect.FileDescriptor
 
 const file_v1_iqcheck_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/iqcheck.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfd\x01\n" +
+	"\x10v1/iqcheck.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf7\x02\n" +
 	"\x11IQCheckPromptInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -2228,17 +2836,25 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\vcreate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"z\n" +
+	"updateTime\x12\x1b\n" +
+	"\tuse_count\x18\b \x01(\x03R\buseCount\x12<\n" +
+	"\flast_used_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"lastUsedAt\x12\x1d\n" +
+	"\n" +
+	"site_count\x18\n" +
+	" \x01(\x03R\tsiteCount\"z\n" +
 	"\x19ListIQCheckPromptsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
 	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01B\v\n" +
-	"\t_keywords\"\x94\x01\n" +
+	"\t_keywords\"\xd6\x01\n" +
 	"\x1aListIQCheckPromptsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12/\n" +
-	"\aprompts\x18\x04 \x03(\v2\x15.v1.IQCheckPromptInfoR\aprompts\"|\n" +
+	"\aprompts\x18\x04 \x03(\v2\x15.v1.IQCheckPromptInfoR\aprompts\x12#\n" +
+	"\renabled_count\x18\x05 \x01(\x03R\fenabledCount\x12\x1b\n" +
+	"\tall_count\x18\x06 \x01(\x03R\ballCount\"|\n" +
 	"\x1aCreateIQCheckPromptRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x18\n" +
@@ -2259,7 +2875,7 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x1bDeleteIQCheckPromptResponse\"B\n" +
 	"\x12IQCheckModelConfig\x12\x14\n" +
 	"\x05model\x18\x01 \x01(\tR\x05model\x12\x16\n" +
-	"\x06effort\x18\x02 \x01(\tR\x06effort\"\xd1\x04\n" +
+	"\x06effort\x18\x02 \x01(\tR\x06effort\"\xd9\x06\n" +
 	"\x0fIQCheckSiteInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -2280,17 +2896,45 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\vupdate_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x10 \x01(\tR\tuserAgent\"x\n" +
+	"user_agent\x18\x10 \x01(\tR\tuserAgent\x12>\n" +
+	"\rnext_check_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\vnextCheckAt\x126\n" +
+	"\n" +
+	"last_round\x18\x12 \x01(\v2\x17.v1.IQCheckRoundSummaryR\tlastRound\x12<\n" +
+	"\rrecent_rounds\x18\x13 \x03(\v2\x17.v1.IQCheckRoundSummaryR\frecentRounds\x12!\n" +
+	"\fresult_count\x18\x14 \x01(\x03R\vresultCount\x12-\n" +
+	"\x06health\x18\x15 \x01(\x0e2\x15.v1.IQCheckSiteHealthR\x06health\"\xfe\x01\n" +
+	"\x13IQCheckRoundSummary\x12\x19\n" +
+	"\bround_id\x18\x01 \x01(\tR\aroundId\x129\n" +
+	"\n" +
+	"request_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\trequestAt\x12\x18\n" +
+	"\asuccess\x18\x03 \x01(\x05R\asuccess\x12\x16\n" +
+	"\x06failed\x18\x04 \x01(\x05R\x06failed\x12&\n" +
+	"\x0favg_duration_ms\x18\x05 \x01(\x03R\ravgDurationMs\x12\x14\n" +
+	"\x05error\x18\x06 \x01(\tR\x05error\x12!\n" +
+	"\fprompt_title\x18\a \x01(\tR\vpromptTitle\"\xee\x01\n" +
+	"\x10IQCheckSiteStats\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x18\n" +
+	"\ahealthy\x18\x02 \x01(\x03R\ahealthy\x12\x18\n" +
+	"\afailing\x18\x03 \x01(\x03R\afailing\x12\x1a\n" +
+	"\bdisabled\x18\x04 \x01(\x03R\bdisabled\x12\x14\n" +
+	"\x05never\x18\x05 \x01(\x03R\x05never\x12\x1a\n" +
+	"\bchecking\x18\x06 \x01(\x03R\bchecking\x12\x1f\n" +
+	"\vmodel_count\x18\a \x01(\x03R\n" +
+	"modelCount\x12!\n" +
+	"\fchecks_today\x18\b \x01(\x03R\vchecksToday\"\xb7\x01\n" +
 	"\x17ListIQCheckSitesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
-	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01B\v\n" +
-	"\t_keywords\"\x8c\x01\n" +
+	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01\x122\n" +
+	"\x06filter\x18\x04 \x01(\x0e2\x15.v1.IQCheckSiteFilterH\x01R\x06filter\x88\x01\x01B\v\n" +
+	"\t_keywordsB\t\n" +
+	"\a_filter\"\xb8\x01\n" +
 	"\x18ListIQCheckSitesResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12)\n" +
-	"\x05sites\x18\x04 \x03(\v2\x13.v1.IQCheckSiteInfoR\x05sites\"\xc3\x02\n" +
+	"\x05sites\x18\x04 \x03(\v2\x13.v1.IQCheckSiteInfoR\x05sites\x12*\n" +
+	"\x05stats\x18\x05 \x01(\v2\x14.v1.IQCheckSiteStatsR\x05stats\"\xc3\x02\n" +
 	"\x18CreateIQCheckSiteRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12\x17\n" +
@@ -2354,24 +2998,39 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\finput_tokens\x18\f \x01(\x03R\vinputTokens\x12#\n" +
 	"\routput_tokens\x18\r \x01(\x03R\foutputTokens\x129\n" +
 	"\n" +
-	"request_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\trequestAt\"\x93\x02\n" +
+	"request_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\trequestAt\"\xdb\x02\n" +
 	"\x15PublicIQCheckSiteInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12/\n" +
 	"\bprotocol\x18\x03 \x01(\x0e2\x13.v1.IQCheckProtocolR\bprotocol\x12.\n" +
 	"\x06models\x18\x04 \x03(\v2\x16.v1.IQCheckModelConfigR\x06models\x12)\n" +
 	"\x10interval_minutes\x18\x05 \x01(\x05R\x0fintervalMinutes\x12>\n" +
-	"\rlast_check_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vlastCheckAt\".\n" +
+	"\rlast_check_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vlastCheckAt\x12,\n" +
+	"\x05stats\x18\a \x01(\v2\x16.v1.PublicIQCheckStatsR\x05stats\x12\x18\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\"\xeb\x01\n" +
+	"\x12PublicIQCheckStats\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x18\n" +
+	"\asuccess\x18\x02 \x01(\x03R\asuccess\x12&\n" +
+	"\x0favg_duration_ms\x18\x03 \x01(\x03R\ravgDurationMs\x12!\n" +
+	"\flast7d_total\x18\x04 \x01(\x03R\vlast7dTotal\x12%\n" +
+	"\x0elast7d_success\x18\x05 \x01(\x03R\rlast7dSuccess\x123\n" +
+	"\x06models\x18\x06 \x03(\v2\x1b.v1.PublicIQCheckModelCountR\x06models\"E\n" +
+	"\x17PublicIQCheckModelCount\x12\x14\n" +
+	"\x05model\x18\x01 \x01(\tR\x05model\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\".\n" +
 	"\x18PublicIQCheckSiteRequest\x12\x12\n" +
 	"\x04slug\x18\x01 \x01(\tR\x04slug\"J\n" +
 	"\x19PublicIQCheckSiteResponse\x12-\n" +
-	"\x04site\x18\x01 \x01(\v2\x19.v1.PublicIQCheckSiteInfoR\x04site\"\x87\x01\n" +
+	"\x04site\x18\x01 \x01(\v2\x19.v1.PublicIQCheckSiteInfoR\x04site\"\xb7\x01\n" +
 	"\x1bPublicIQCheckResultsRequest\x12\x12\n" +
 	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x03R\bpageSize\x12\x19\n" +
-	"\x05model\x18\x04 \x01(\tH\x00R\x05model\x88\x01\x01B\b\n" +
-	"\x06_model\"\x96\x01\n" +
+	"\x05model\x18\x04 \x01(\tH\x00R\x05model\x88\x01\x01\x12 \n" +
+	"\tresult_id\x18\x05 \x01(\tH\x01R\bresultId\x88\x01\x01B\b\n" +
+	"\x06_modelB\f\n" +
+	"\n" +
+	"_result_id\"\x96\x01\n" +
 	"\x1cPublicIQCheckResultsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
@@ -2385,7 +3044,18 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x13IQCheckResultStatus\x12&\n" +
 	"\"IQ_CHECK_RESULT_STATUS_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eIQ_CHECK_RESULT_STATUS_SUCCESS\x10\x01\x12!\n" +
-	"\x1dIQ_CHECK_RESULT_STATUS_FAILED\x10\x022\xc0\t\n" +
+	"\x1dIQ_CHECK_RESULT_STATUS_FAILED\x10\x02*\x9e\x01\n" +
+	"\x11IQCheckSiteHealth\x12$\n" +
+	" IQ_CHECK_SITE_HEALTH_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cIQ_CHECK_SITE_HEALTH_HEALTHY\x10\x01\x12 \n" +
+	"\x1cIQ_CHECK_SITE_HEALTH_PARTIAL\x10\x02\x12\x1f\n" +
+	"\x1bIQ_CHECK_SITE_HEALTH_FAILED\x10\x03*\xb8\x01\n" +
+	"\x11IQCheckSiteFilter\x12\x1c\n" +
+	"\x18IQ_CHECK_SITE_FILTER_ALL\x10\x00\x12 \n" +
+	"\x1cIQ_CHECK_SITE_FILTER_HEALTHY\x10\x01\x12 \n" +
+	"\x1cIQ_CHECK_SITE_FILTER_FAILING\x10\x02\x12!\n" +
+	"\x1dIQ_CHECK_SITE_FILTER_DISABLED\x10\x03\x12\x1e\n" +
+	"\x1aIQ_CHECK_SITE_FILTER_NEVER\x10\x042\xc0\t\n" +
 	"\x0eIQCheckManager\x12t\n" +
 	"\x12ListIQCheckPrompts\x12\x1d.v1.ListIQCheckPromptsRequest\x1a\x1e.v1.ListIQCheckPromptsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/iqcheck/prompts\x12z\n" +
 	"\x13CreateIQCheckPrompt\x12\x1e.v1.CreateIQCheckPromptRequest\x1a\x1f.v1.CreateIQCheckPromptResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/iqcheck/prompts\x12\x7f\n" +
@@ -2413,97 +3083,113 @@ func file_v1_iqcheck_proto_rawDescGZIP() []byte {
 	return file_v1_iqcheck_proto_rawDescData
 }
 
-var file_v1_iqcheck_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_iqcheck_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_v1_iqcheck_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_v1_iqcheck_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_v1_iqcheck_proto_goTypes = []any{
 	(IQCheckProtocol)(0),                 // 0: v1.IQCheckProtocol
 	(IQCheckResultStatus)(0),             // 1: v1.IQCheckResultStatus
-	(*IQCheckPromptInfo)(nil),            // 2: v1.IQCheckPromptInfo
-	(*ListIQCheckPromptsRequest)(nil),    // 3: v1.ListIQCheckPromptsRequest
-	(*ListIQCheckPromptsResponse)(nil),   // 4: v1.ListIQCheckPromptsResponse
-	(*CreateIQCheckPromptRequest)(nil),   // 5: v1.CreateIQCheckPromptRequest
-	(*CreateIQCheckPromptResponse)(nil),  // 6: v1.CreateIQCheckPromptResponse
-	(*UpdateIQCheckPromptRequest)(nil),   // 7: v1.UpdateIQCheckPromptRequest
-	(*UpdateIQCheckPromptResponse)(nil),  // 8: v1.UpdateIQCheckPromptResponse
-	(*DeleteIQCheckPromptRequest)(nil),   // 9: v1.DeleteIQCheckPromptRequest
-	(*DeleteIQCheckPromptResponse)(nil),  // 10: v1.DeleteIQCheckPromptResponse
-	(*IQCheckModelConfig)(nil),           // 11: v1.IQCheckModelConfig
-	(*IQCheckSiteInfo)(nil),              // 12: v1.IQCheckSiteInfo
-	(*ListIQCheckSitesRequest)(nil),      // 13: v1.ListIQCheckSitesRequest
-	(*ListIQCheckSitesResponse)(nil),     // 14: v1.ListIQCheckSitesResponse
-	(*CreateIQCheckSiteRequest)(nil),     // 15: v1.CreateIQCheckSiteRequest
-	(*CreateIQCheckSiteResponse)(nil),    // 16: v1.CreateIQCheckSiteResponse
-	(*UpdateIQCheckSiteRequest)(nil),     // 17: v1.UpdateIQCheckSiteRequest
-	(*UpdateIQCheckSiteResponse)(nil),    // 18: v1.UpdateIQCheckSiteResponse
-	(*DeleteIQCheckSiteRequest)(nil),     // 19: v1.DeleteIQCheckSiteRequest
-	(*DeleteIQCheckSiteResponse)(nil),    // 20: v1.DeleteIQCheckSiteResponse
-	(*FetchIQCheckModelsRequest)(nil),    // 21: v1.FetchIQCheckModelsRequest
-	(*FetchIQCheckModelsResponse)(nil),   // 22: v1.FetchIQCheckModelsResponse
-	(*TriggerIQCheckRequest)(nil),        // 23: v1.TriggerIQCheckRequest
-	(*TriggerIQCheckResponse)(nil),       // 24: v1.TriggerIQCheckResponse
-	(*IQCheckResultInfo)(nil),            // 25: v1.IQCheckResultInfo
-	(*PublicIQCheckSiteInfo)(nil),        // 26: v1.PublicIQCheckSiteInfo
-	(*PublicIQCheckSiteRequest)(nil),     // 27: v1.PublicIQCheckSiteRequest
-	(*PublicIQCheckSiteResponse)(nil),    // 28: v1.PublicIQCheckSiteResponse
-	(*PublicIQCheckResultsRequest)(nil),  // 29: v1.PublicIQCheckResultsRequest
-	(*PublicIQCheckResultsResponse)(nil), // 30: v1.PublicIQCheckResultsResponse
-	(*timestamppb.Timestamp)(nil),        // 31: google.protobuf.Timestamp
+	(IQCheckSiteHealth)(0),               // 2: v1.IQCheckSiteHealth
+	(IQCheckSiteFilter)(0),               // 3: v1.IQCheckSiteFilter
+	(*IQCheckPromptInfo)(nil),            // 4: v1.IQCheckPromptInfo
+	(*ListIQCheckPromptsRequest)(nil),    // 5: v1.ListIQCheckPromptsRequest
+	(*ListIQCheckPromptsResponse)(nil),   // 6: v1.ListIQCheckPromptsResponse
+	(*CreateIQCheckPromptRequest)(nil),   // 7: v1.CreateIQCheckPromptRequest
+	(*CreateIQCheckPromptResponse)(nil),  // 8: v1.CreateIQCheckPromptResponse
+	(*UpdateIQCheckPromptRequest)(nil),   // 9: v1.UpdateIQCheckPromptRequest
+	(*UpdateIQCheckPromptResponse)(nil),  // 10: v1.UpdateIQCheckPromptResponse
+	(*DeleteIQCheckPromptRequest)(nil),   // 11: v1.DeleteIQCheckPromptRequest
+	(*DeleteIQCheckPromptResponse)(nil),  // 12: v1.DeleteIQCheckPromptResponse
+	(*IQCheckModelConfig)(nil),           // 13: v1.IQCheckModelConfig
+	(*IQCheckSiteInfo)(nil),              // 14: v1.IQCheckSiteInfo
+	(*IQCheckRoundSummary)(nil),          // 15: v1.IQCheckRoundSummary
+	(*IQCheckSiteStats)(nil),             // 16: v1.IQCheckSiteStats
+	(*ListIQCheckSitesRequest)(nil),      // 17: v1.ListIQCheckSitesRequest
+	(*ListIQCheckSitesResponse)(nil),     // 18: v1.ListIQCheckSitesResponse
+	(*CreateIQCheckSiteRequest)(nil),     // 19: v1.CreateIQCheckSiteRequest
+	(*CreateIQCheckSiteResponse)(nil),    // 20: v1.CreateIQCheckSiteResponse
+	(*UpdateIQCheckSiteRequest)(nil),     // 21: v1.UpdateIQCheckSiteRequest
+	(*UpdateIQCheckSiteResponse)(nil),    // 22: v1.UpdateIQCheckSiteResponse
+	(*DeleteIQCheckSiteRequest)(nil),     // 23: v1.DeleteIQCheckSiteRequest
+	(*DeleteIQCheckSiteResponse)(nil),    // 24: v1.DeleteIQCheckSiteResponse
+	(*FetchIQCheckModelsRequest)(nil),    // 25: v1.FetchIQCheckModelsRequest
+	(*FetchIQCheckModelsResponse)(nil),   // 26: v1.FetchIQCheckModelsResponse
+	(*TriggerIQCheckRequest)(nil),        // 27: v1.TriggerIQCheckRequest
+	(*TriggerIQCheckResponse)(nil),       // 28: v1.TriggerIQCheckResponse
+	(*IQCheckResultInfo)(nil),            // 29: v1.IQCheckResultInfo
+	(*PublicIQCheckSiteInfo)(nil),        // 30: v1.PublicIQCheckSiteInfo
+	(*PublicIQCheckStats)(nil),           // 31: v1.PublicIQCheckStats
+	(*PublicIQCheckModelCount)(nil),      // 32: v1.PublicIQCheckModelCount
+	(*PublicIQCheckSiteRequest)(nil),     // 33: v1.PublicIQCheckSiteRequest
+	(*PublicIQCheckSiteResponse)(nil),    // 34: v1.PublicIQCheckSiteResponse
+	(*PublicIQCheckResultsRequest)(nil),  // 35: v1.PublicIQCheckResultsRequest
+	(*PublicIQCheckResultsResponse)(nil), // 36: v1.PublicIQCheckResultsResponse
+	(*timestamppb.Timestamp)(nil),        // 37: google.protobuf.Timestamp
 }
 var file_v1_iqcheck_proto_depIdxs = []int32{
-	31, // 0: v1.IQCheckPromptInfo.create_time:type_name -> google.protobuf.Timestamp
-	31, // 1: v1.IQCheckPromptInfo.update_time:type_name -> google.protobuf.Timestamp
-	2,  // 2: v1.ListIQCheckPromptsResponse.prompts:type_name -> v1.IQCheckPromptInfo
-	2,  // 3: v1.CreateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
-	2,  // 4: v1.UpdateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
-	0,  // 5: v1.IQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
-	11, // 6: v1.IQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
-	31, // 7: v1.IQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
-	31, // 8: v1.IQCheckSiteInfo.create_time:type_name -> google.protobuf.Timestamp
-	31, // 9: v1.IQCheckSiteInfo.update_time:type_name -> google.protobuf.Timestamp
-	12, // 10: v1.ListIQCheckSitesResponse.sites:type_name -> v1.IQCheckSiteInfo
-	0,  // 11: v1.CreateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
-	11, // 12: v1.CreateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
-	12, // 13: v1.CreateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
-	0,  // 14: v1.UpdateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
-	11, // 15: v1.UpdateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
-	12, // 16: v1.UpdateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
-	0,  // 17: v1.FetchIQCheckModelsRequest.protocol:type_name -> v1.IQCheckProtocol
-	1,  // 18: v1.IQCheckResultInfo.status:type_name -> v1.IQCheckResultStatus
-	31, // 19: v1.IQCheckResultInfo.request_at:type_name -> google.protobuf.Timestamp
-	0,  // 20: v1.PublicIQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
-	11, // 21: v1.PublicIQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
-	31, // 22: v1.PublicIQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
-	26, // 23: v1.PublicIQCheckSiteResponse.site:type_name -> v1.PublicIQCheckSiteInfo
-	25, // 24: v1.PublicIQCheckResultsResponse.results:type_name -> v1.IQCheckResultInfo
-	3,  // 25: v1.IQCheckManager.ListIQCheckPrompts:input_type -> v1.ListIQCheckPromptsRequest
-	5,  // 26: v1.IQCheckManager.CreateIQCheckPrompt:input_type -> v1.CreateIQCheckPromptRequest
-	7,  // 27: v1.IQCheckManager.UpdateIQCheckPrompt:input_type -> v1.UpdateIQCheckPromptRequest
-	9,  // 28: v1.IQCheckManager.DeleteIQCheckPrompt:input_type -> v1.DeleteIQCheckPromptRequest
-	13, // 29: v1.IQCheckManager.ListIQCheckSites:input_type -> v1.ListIQCheckSitesRequest
-	15, // 30: v1.IQCheckManager.CreateIQCheckSite:input_type -> v1.CreateIQCheckSiteRequest
-	17, // 31: v1.IQCheckManager.UpdateIQCheckSite:input_type -> v1.UpdateIQCheckSiteRequest
-	19, // 32: v1.IQCheckManager.DeleteIQCheckSite:input_type -> v1.DeleteIQCheckSiteRequest
-	21, // 33: v1.IQCheckManager.FetchIQCheckModels:input_type -> v1.FetchIQCheckModelsRequest
-	23, // 34: v1.IQCheckManager.TriggerIQCheck:input_type -> v1.TriggerIQCheckRequest
-	27, // 35: v1.IQCheckPublic.PublicIQCheckSite:input_type -> v1.PublicIQCheckSiteRequest
-	29, // 36: v1.IQCheckPublic.PublicIQCheckResults:input_type -> v1.PublicIQCheckResultsRequest
-	4,  // 37: v1.IQCheckManager.ListIQCheckPrompts:output_type -> v1.ListIQCheckPromptsResponse
-	6,  // 38: v1.IQCheckManager.CreateIQCheckPrompt:output_type -> v1.CreateIQCheckPromptResponse
-	8,  // 39: v1.IQCheckManager.UpdateIQCheckPrompt:output_type -> v1.UpdateIQCheckPromptResponse
-	10, // 40: v1.IQCheckManager.DeleteIQCheckPrompt:output_type -> v1.DeleteIQCheckPromptResponse
-	14, // 41: v1.IQCheckManager.ListIQCheckSites:output_type -> v1.ListIQCheckSitesResponse
-	16, // 42: v1.IQCheckManager.CreateIQCheckSite:output_type -> v1.CreateIQCheckSiteResponse
-	18, // 43: v1.IQCheckManager.UpdateIQCheckSite:output_type -> v1.UpdateIQCheckSiteResponse
-	20, // 44: v1.IQCheckManager.DeleteIQCheckSite:output_type -> v1.DeleteIQCheckSiteResponse
-	22, // 45: v1.IQCheckManager.FetchIQCheckModels:output_type -> v1.FetchIQCheckModelsResponse
-	24, // 46: v1.IQCheckManager.TriggerIQCheck:output_type -> v1.TriggerIQCheckResponse
-	28, // 47: v1.IQCheckPublic.PublicIQCheckSite:output_type -> v1.PublicIQCheckSiteResponse
-	30, // 48: v1.IQCheckPublic.PublicIQCheckResults:output_type -> v1.PublicIQCheckResultsResponse
-	37, // [37:49] is the sub-list for method output_type
-	25, // [25:37] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	37, // 0: v1.IQCheckPromptInfo.create_time:type_name -> google.protobuf.Timestamp
+	37, // 1: v1.IQCheckPromptInfo.update_time:type_name -> google.protobuf.Timestamp
+	37, // 2: v1.IQCheckPromptInfo.last_used_at:type_name -> google.protobuf.Timestamp
+	4,  // 3: v1.ListIQCheckPromptsResponse.prompts:type_name -> v1.IQCheckPromptInfo
+	4,  // 4: v1.CreateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
+	4,  // 5: v1.UpdateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
+	0,  // 6: v1.IQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
+	13, // 7: v1.IQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
+	37, // 8: v1.IQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
+	37, // 9: v1.IQCheckSiteInfo.create_time:type_name -> google.protobuf.Timestamp
+	37, // 10: v1.IQCheckSiteInfo.update_time:type_name -> google.protobuf.Timestamp
+	37, // 11: v1.IQCheckSiteInfo.next_check_at:type_name -> google.protobuf.Timestamp
+	15, // 12: v1.IQCheckSiteInfo.last_round:type_name -> v1.IQCheckRoundSummary
+	15, // 13: v1.IQCheckSiteInfo.recent_rounds:type_name -> v1.IQCheckRoundSummary
+	2,  // 14: v1.IQCheckSiteInfo.health:type_name -> v1.IQCheckSiteHealth
+	37, // 15: v1.IQCheckRoundSummary.request_at:type_name -> google.protobuf.Timestamp
+	3,  // 16: v1.ListIQCheckSitesRequest.filter:type_name -> v1.IQCheckSiteFilter
+	14, // 17: v1.ListIQCheckSitesResponse.sites:type_name -> v1.IQCheckSiteInfo
+	16, // 18: v1.ListIQCheckSitesResponse.stats:type_name -> v1.IQCheckSiteStats
+	0,  // 19: v1.CreateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
+	13, // 20: v1.CreateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
+	14, // 21: v1.CreateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
+	0,  // 22: v1.UpdateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
+	13, // 23: v1.UpdateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
+	14, // 24: v1.UpdateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
+	0,  // 25: v1.FetchIQCheckModelsRequest.protocol:type_name -> v1.IQCheckProtocol
+	1,  // 26: v1.IQCheckResultInfo.status:type_name -> v1.IQCheckResultStatus
+	37, // 27: v1.IQCheckResultInfo.request_at:type_name -> google.protobuf.Timestamp
+	0,  // 28: v1.PublicIQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
+	13, // 29: v1.PublicIQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
+	37, // 30: v1.PublicIQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
+	31, // 31: v1.PublicIQCheckSiteInfo.stats:type_name -> v1.PublicIQCheckStats
+	32, // 32: v1.PublicIQCheckStats.models:type_name -> v1.PublicIQCheckModelCount
+	30, // 33: v1.PublicIQCheckSiteResponse.site:type_name -> v1.PublicIQCheckSiteInfo
+	29, // 34: v1.PublicIQCheckResultsResponse.results:type_name -> v1.IQCheckResultInfo
+	5,  // 35: v1.IQCheckManager.ListIQCheckPrompts:input_type -> v1.ListIQCheckPromptsRequest
+	7,  // 36: v1.IQCheckManager.CreateIQCheckPrompt:input_type -> v1.CreateIQCheckPromptRequest
+	9,  // 37: v1.IQCheckManager.UpdateIQCheckPrompt:input_type -> v1.UpdateIQCheckPromptRequest
+	11, // 38: v1.IQCheckManager.DeleteIQCheckPrompt:input_type -> v1.DeleteIQCheckPromptRequest
+	17, // 39: v1.IQCheckManager.ListIQCheckSites:input_type -> v1.ListIQCheckSitesRequest
+	19, // 40: v1.IQCheckManager.CreateIQCheckSite:input_type -> v1.CreateIQCheckSiteRequest
+	21, // 41: v1.IQCheckManager.UpdateIQCheckSite:input_type -> v1.UpdateIQCheckSiteRequest
+	23, // 42: v1.IQCheckManager.DeleteIQCheckSite:input_type -> v1.DeleteIQCheckSiteRequest
+	25, // 43: v1.IQCheckManager.FetchIQCheckModels:input_type -> v1.FetchIQCheckModelsRequest
+	27, // 44: v1.IQCheckManager.TriggerIQCheck:input_type -> v1.TriggerIQCheckRequest
+	33, // 45: v1.IQCheckPublic.PublicIQCheckSite:input_type -> v1.PublicIQCheckSiteRequest
+	35, // 46: v1.IQCheckPublic.PublicIQCheckResults:input_type -> v1.PublicIQCheckResultsRequest
+	6,  // 47: v1.IQCheckManager.ListIQCheckPrompts:output_type -> v1.ListIQCheckPromptsResponse
+	8,  // 48: v1.IQCheckManager.CreateIQCheckPrompt:output_type -> v1.CreateIQCheckPromptResponse
+	10, // 49: v1.IQCheckManager.UpdateIQCheckPrompt:output_type -> v1.UpdateIQCheckPromptResponse
+	12, // 50: v1.IQCheckManager.DeleteIQCheckPrompt:output_type -> v1.DeleteIQCheckPromptResponse
+	18, // 51: v1.IQCheckManager.ListIQCheckSites:output_type -> v1.ListIQCheckSitesResponse
+	20, // 52: v1.IQCheckManager.CreateIQCheckSite:output_type -> v1.CreateIQCheckSiteResponse
+	22, // 53: v1.IQCheckManager.UpdateIQCheckSite:output_type -> v1.UpdateIQCheckSiteResponse
+	24, // 54: v1.IQCheckManager.DeleteIQCheckSite:output_type -> v1.DeleteIQCheckSiteResponse
+	26, // 55: v1.IQCheckManager.FetchIQCheckModels:output_type -> v1.FetchIQCheckModelsResponse
+	28, // 56: v1.IQCheckManager.TriggerIQCheck:output_type -> v1.TriggerIQCheckResponse
+	34, // 57: v1.IQCheckPublic.PublicIQCheckSite:output_type -> v1.PublicIQCheckSiteResponse
+	36, // 58: v1.IQCheckPublic.PublicIQCheckResults:output_type -> v1.PublicIQCheckResultsResponse
+	47, // [47:59] is the sub-list for method output_type
+	35, // [35:47] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_v1_iqcheck_proto_init() }
@@ -2512,15 +3198,15 @@ func file_v1_iqcheck_proto_init() {
 		return
 	}
 	file_v1_iqcheck_proto_msgTypes[1].OneofWrappers = []any{}
-	file_v1_iqcheck_proto_msgTypes[11].OneofWrappers = []any{}
-	file_v1_iqcheck_proto_msgTypes[27].OneofWrappers = []any{}
+	file_v1_iqcheck_proto_msgTypes[13].OneofWrappers = []any{}
+	file_v1_iqcheck_proto_msgTypes[31].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_iqcheck_proto_rawDesc), len(file_v1_iqcheck_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   29,
+			NumEnums:      4,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

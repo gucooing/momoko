@@ -19,14 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName                 = "/v1.AuthService/Login"
-	AuthService_Register_FullMethodName              = "/v1.AuthService/Register"
-	AuthService_SendRegisterEmailCode_FullMethodName = "/v1.AuthService/SendRegisterEmailCode"
-	AuthService_SendLoginEmailCode_FullMethodName    = "/v1.AuthService/SendLoginEmailCode"
-	AuthService_Refresh_FullMethodName               = "/v1.AuthService/Refresh"
-	AuthService_Devices_FullMethodName               = "/v1.AuthService/Devices"
-	AuthService_UpdatePassword_FullMethodName        = "/v1.AuthService/UpdatePassword"
-	AuthService_Logout_FullMethodName                = "/v1.AuthService/Logout"
+	AuthService_Login_FullMethodName                      = "/v1.AuthService/Login"
+	AuthService_Register_FullMethodName                   = "/v1.AuthService/Register"
+	AuthService_SendRegisterEmailCode_FullMethodName      = "/v1.AuthService/SendRegisterEmailCode"
+	AuthService_SendLoginEmailCode_FullMethodName         = "/v1.AuthService/SendLoginEmailCode"
+	AuthService_SendResetPasswordEmailCode_FullMethodName = "/v1.AuthService/SendResetPasswordEmailCode"
+	AuthService_ResetPassword_FullMethodName              = "/v1.AuthService/ResetPassword"
+	AuthService_Refresh_FullMethodName                    = "/v1.AuthService/Refresh"
+	AuthService_Devices_FullMethodName                    = "/v1.AuthService/Devices"
+	AuthService_UpdatePassword_FullMethodName             = "/v1.AuthService/UpdatePassword"
+	AuthService_Logout_FullMethodName                     = "/v1.AuthService/Logout"
+	AuthService_ListMessages_FullMethodName               = "/v1.AuthService/ListMessages"
+	AuthService_ReadMessages_FullMethodName               = "/v1.AuthService/ReadMessages"
+	AuthService_DeleteMessages_FullMethodName             = "/v1.AuthService/DeleteMessages"
+	AuthService_PublishMessage_FullMethodName             = "/v1.AuthService/PublishMessage"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -43,6 +49,10 @@ type AuthServiceClient interface {
 	SendRegisterEmailCode(ctx context.Context, in *SendRegisterEmailCodeRequest, opts ...grpc.CallOption) (*SendRegisterEmailCodeResponse, error)
 	// 发送登录邮件验证码
 	SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...grpc.CallOption) (*SendLoginEmailCodeResponse, error)
+	// 发送重置密码邮件验证码
+	SendResetPasswordEmailCode(ctx context.Context, in *SendResetPasswordEmailCodeRequest, opts ...grpc.CallOption) (*SendResetPasswordEmailCodeResponse, error)
+	// 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordResponse, error)
 	// 刷新token
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
 	// 获取登录设备
@@ -51,6 +61,14 @@ type AuthServiceClient interface {
 	UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...grpc.CallOption) (*UpdatePasswordResponse, error)
 	// 退出登录
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
+	// 我的消息列表（含未读数）
+	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
+	// 标记消息已读
+	ReadMessages(ctx context.Context, in *ReadMessagesRequest, opts ...grpc.CallOption) (*ReadMessagesResponse, error)
+	// 删除消息
+	DeleteMessages(ctx context.Context, in *DeleteMessagesRequest, opts ...grpc.CallOption) (*DeleteMessagesResponse, error)
+	// 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+	PublishMessage(ctx context.Context, in *PublishMessageRequest, opts ...grpc.CallOption) (*PublishMessageResponse, error)
 }
 
 type authServiceClient struct {
@@ -101,6 +119,26 @@ func (c *authServiceClient) SendLoginEmailCode(ctx context.Context, in *SendLogi
 	return out, nil
 }
 
+func (c *authServiceClient) SendResetPasswordEmailCode(ctx context.Context, in *SendResetPasswordEmailCodeRequest, opts ...grpc.CallOption) (*SendResetPasswordEmailCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendResetPasswordEmailCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_SendResetPasswordEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetPasswordResponse)
+	err := c.cc.Invoke(ctx, AuthService_ResetPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RefreshResponse)
@@ -141,6 +179,46 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 	return out, nil
 }
 
+func (c *authServiceClient) ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMessagesResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ReadMessages(ctx context.Context, in *ReadMessagesRequest, opts ...grpc.CallOption) (*ReadMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadMessagesResponse)
+	err := c.cc.Invoke(ctx, AuthService_ReadMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteMessages(ctx context.Context, in *DeleteMessagesRequest, opts ...grpc.CallOption) (*DeleteMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteMessagesResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) PublishMessage(ctx context.Context, in *PublishMessageRequest, opts ...grpc.CallOption) (*PublishMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PublishMessageResponse)
+	err := c.cc.Invoke(ctx, AuthService_PublishMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -155,6 +233,10 @@ type AuthServiceServer interface {
 	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
 	// 发送登录邮件验证码
 	SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error)
+	// 发送重置密码邮件验证码
+	SendResetPasswordEmailCode(context.Context, *SendResetPasswordEmailCodeRequest) (*SendResetPasswordEmailCodeResponse, error)
+	// 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error)
 	// 刷新token
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
 	// 获取登录设备
@@ -163,6 +245,14 @@ type AuthServiceServer interface {
 	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordResponse, error)
 	// 退出登录
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	// 我的消息列表（含未读数）
+	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
+	// 标记消息已读
+	ReadMessages(context.Context, *ReadMessagesRequest) (*ReadMessagesResponse, error)
+	// 删除消息
+	DeleteMessages(context.Context, *DeleteMessagesRequest) (*DeleteMessagesResponse, error)
+	// 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+	PublishMessage(context.Context, *PublishMessageRequest) (*PublishMessageResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -185,6 +275,12 @@ func (UnimplementedAuthServiceServer) SendRegisterEmailCode(context.Context, *Se
 func (UnimplementedAuthServiceServer) SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendLoginEmailCode not implemented")
 }
+func (UnimplementedAuthServiceServer) SendResetPasswordEmailCode(context.Context, *SendResetPasswordEmailCodeRequest) (*SendResetPasswordEmailCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendResetPasswordEmailCode not implemented")
+}
+func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetPassword not implemented")
+}
 func (UnimplementedAuthServiceServer) Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Refresh not implemented")
 }
@@ -196,6 +292,18 @@ func (UnimplementedAuthServiceServer) UpdatePassword(context.Context, *UpdatePas
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
+}
+func (UnimplementedAuthServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMessages not implemented")
+}
+func (UnimplementedAuthServiceServer) ReadMessages(context.Context, *ReadMessagesRequest) (*ReadMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReadMessages not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteMessages(context.Context, *DeleteMessagesRequest) (*DeleteMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteMessages not implemented")
+}
+func (UnimplementedAuthServiceServer) PublishMessage(context.Context, *PublishMessageRequest) (*PublishMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishMessage not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -290,6 +398,42 @@ func _AuthService_SendLoginEmailCode_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_SendResetPasswordEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendResetPasswordEmailCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendResetPasswordEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendResetPasswordEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendResetPasswordEmailCode(ctx, req.(*SendResetPasswordEmailCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ResetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ResetPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ResetPassword(ctx, req.(*ResetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_Refresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RefreshRequest)
 	if err := dec(in); err != nil {
@@ -362,6 +506,78 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ListMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListMessages(ctx, req.(*ListMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ReadMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ReadMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ReadMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ReadMessages(ctx, req.(*ReadMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteMessages(ctx, req.(*DeleteMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_PublishMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).PublishMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_PublishMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).PublishMessage(ctx, req.(*PublishMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -386,6 +602,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_SendLoginEmailCode_Handler,
 		},
 		{
+			MethodName: "SendResetPasswordEmailCode",
+			Handler:    _AuthService_SendResetPasswordEmailCode_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _AuthService_ResetPassword_Handler,
+		},
+		{
 			MethodName: "Refresh",
 			Handler:    _AuthService_Refresh_Handler,
 		},
@@ -400,6 +624,22 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Logout",
 			Handler:    _AuthService_Logout_Handler,
+		},
+		{
+			MethodName: "ListMessages",
+			Handler:    _AuthService_ListMessages_Handler,
+		},
+		{
+			MethodName: "ReadMessages",
+			Handler:    _AuthService_ReadMessages_Handler,
+		},
+		{
+			MethodName: "DeleteMessages",
+			Handler:    _AuthService_DeleteMessages_Handler,
+		},
+		{
+			MethodName: "PublishMessage",
+			Handler:    _AuthService_PublishMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

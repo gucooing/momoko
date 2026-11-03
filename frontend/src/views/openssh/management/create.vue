@@ -127,8 +127,9 @@
       </div>
 
       <div class="app-field ssh-form__full">
-        <label class="app-label">{{ t('ssh.common.tags') }}</label>
-        <input v-model="form.tags" class="app-input" :placeholder="t('ssh.common.tagsPlaceholder')" />
+        <label class="app-label">{{ t('ssh.form.groupTags') }}</label>
+        <input v-model="form.tags" class="app-input" :placeholder="t('ssh.form.groupTagsPlaceholder')" />
+        <span class="ssh-form__hint">{{ t('ssh.form.groupTagsHint') }}</span>
       </div>
 
       <!-- 分享对象是本机用户，远程节点上下文不提供 -->
@@ -369,6 +370,10 @@ defineExpose({ showDialog })
 .ssh-form__full {
   grid-column: 1 / -1;
 }
+.ssh-form__hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 .ssh-form__host {
   grid-column: 1 / 2;
 }
@@ -388,23 +393,24 @@ defineExpose({ showDialog })
 /* authType seg */
 .seg {
   display: inline-flex;
-  padding: 3px;
+  padding: 4px;
   gap: 2px;
   background: var(--el-fill-color-light);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-pill);
 }
 .seg--wide {
   width: 100%;
 }
 .seg__btn {
   flex: 1;
-  padding: 5px 12px;
+  min-height: 36px;
+  padding: 0 12px;
   border: none;
   background: transparent;
-  border-radius: var(--app-radius-sm);
+  border-radius: var(--app-radius-pill);
   color: var(--el-text-color-secondary);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }

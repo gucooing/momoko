@@ -21,7 +21,21 @@ export interface OIDCConfig {
   /** Authorization Code 有效期，单位秒 */
   authorizationCodeTtlSeconds: number;
   /** 根据 Issuer URL 自动生成的 OIDC 端点配置 */
-  endpoints: OIDCEndpoints | undefined;
+  endpoints:
+    | OIDCEndpoints
+    | undefined;
+  /** 当前签名密钥 */
+  signingKey: OIDCSigningKey | undefined;
+}
+
+/** OIDC 签名密钥信息（只含公开信息） */
+export interface OIDCSigningKey {
+  /** 签名算法 */
+  algorithm: string;
+  /** 密钥 ID（JWKS kid） */
+  keyId: string;
+  /** 生成/轮换时间；为空表示尚未生成 */
+  rotatedAt: Date | undefined;
 }
 
 /** OIDC 客户端接入所需端点信息 */
@@ -103,7 +117,13 @@ export interface OIDCClientInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 描述 */
+  description: string;
+  /** 最近一次成功换取令牌的时间；为空表示从未使用 */
+  lastUsedTime: Date | undefined;
 }
 
 /** 获取 OIDC 客户端列表请求 */
@@ -112,8 +132,12 @@ export interface ListOIDCClientsRequest {
   page: number;
   /** 每页数量 */
   pageSize: number;
-  /** 客户端名称关键字 */
-  keywords?: string | undefined;
+  /** 关键字：匹配名称、描述、Client ID */
+  keywords?:
+    | string
+    | undefined;
+  /** 按启用状态过滤 */
+  active?: boolean | undefined;
 }
 
 /** 获取 OIDC 客户端列表响应 */
@@ -126,6 +150,10 @@ export interface ListOIDCClientsResponse {
   total: number;
   /** 客户端列表 */
   clients: OIDCClientInfo[];
+  /** 同一关键字下的全部数量（不受启用过滤影响） */
+  allCount: number;
+  /** 同一关键字下已启用数量 */
+  activeCount: number;
 }
 
 /** 创建 OIDC 客户端请求 */
@@ -138,6 +166,8 @@ export interface CreateOIDCClientRequest {
   scopes: string[];
   /** 是否启用 */
   active: boolean;
+  /** 描述 */
+  description: string;
 }
 
 /** 创建 OIDC 客户端响应 */
@@ -158,6 +188,8 @@ export interface UpdateOIDCClientRequest {
   scopes: string[];
   /** 是否启用 */
   active: boolean;
+  /** 描述 */
+  description: string;
 }
 
 /** 更新 OIDC 客户端响应 */
@@ -188,6 +220,16 @@ export interface RefreshOIDCClientSecretResponse {
   client: OIDCClientInfo | undefined;
 }
 
+/** 轮换签名密钥请求 */
+export interface RotateOIDCSigningKeyRequest {
+}
+
+/** 轮换签名密钥响应 */
+export interface RotateOIDCSigningKeyResponse {
+  /** 新的签名密钥信息 */
+  signingKey: OIDCSigningKey | undefined;
+}
+
 /** 获取 OIDC 授权页展示信息请求 */
 export interface OIDCAuthorizationInfoRequest {
   /** 授权响应类型；当前仅支持 code */
@@ -210,6 +252,10 @@ export interface OIDCAuthorizationInfo {
   redirectUri: string;
   /** 当前授权请求的 scopes */
   scope: string;
+  /** 客户端描述，用于授权确认页展示 */
+  clientDescription: string;
+  /** 身份服务 Issuer URL，用于授权确认页页脚展示 */
+  issuerUrl: string;
 }
 
 /** 获取 OIDC 授权页展示信息响应 */

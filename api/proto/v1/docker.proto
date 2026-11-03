@@ -28,6 +28,13 @@ service DockerManager {
       body: "*"
     };
   }
+  // 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+  rpc TestDockerRegistryAuth(TestDockerRegistryAuthRequest) returns (TestDockerRegistryAuthResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/registry-auth/test"
+      body: "*"
+    };
+  }
   // 测试Docker配置
   rpc TestDockerConfig(TestDockerConfigRequest) returns (TestDockerConfigResponse) {
     option (google.api.http) = {
@@ -180,6 +187,19 @@ service DockerManager {
       get: "/api/v1/docker/images/{id}/history"
     };
   }
+  // 清理镜像（默认只清理悬空镜像）
+  rpc PruneDockerImages(PruneDockerImagesRequest) returns (PruneDockerImagesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/image-prune"
+      body: "*"
+    };
+  }
+  // 搜索镜像仓库（Docker Hub）
+  rpc SearchDockerImages(SearchDockerImagesRequest) returns (SearchDockerImagesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/image-search"
+    };
+  }
 
   // 获取网络列表
   rpc ListDockerNetworks(ListDockerNetworksRequest) returns (ListDockerNetworksResponse) {
@@ -234,6 +254,13 @@ service DockerManager {
       body: "*"
     };
   }
+  // 清理未使用的网络
+  rpc PruneDockerNetworks(PruneDockerNetworksRequest) returns (PruneDockerNetworksResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/network-prune"
+      body: "*"
+    };
+  }
 }
 
 // Docker连接状态请求
@@ -251,6 +278,24 @@ message DockerStatusResponse {
   DockerEngineInfo info = 4;
   // 版本信息
   DockerEngineVersion version = 5;
+  // 本次探测往返耗时（毫秒）
+  int64 latency_ms = 6;
+  // 网络数量
+  int32 networks = 7;
+  // 最近连接事件（新的在前）
+  repeated DockerConnectionEvent events = 8;
+}
+
+// Docker 连接事件
+message DockerConnectionEvent {
+  // 级别：ok / warn / error / info
+  string level = 1;
+  // 事件类型：connected / disconnected / reconfigured / test_ok / test_failed
+  string kind = 2;
+  // 详情
+  string detail = 3;
+  // 发生时间
+  google.protobuf.Timestamp time = 4;
 }
 
 // Docker引擎信息
@@ -356,12 +401,21 @@ message DockerConfigInfo {
   string host = 2;
   // 是否启用TLS
   bool tls_enabled = 3;
-  // CA证书路径
-  string tls_ca_path = 4;
-  // 客户端证书路径
-  string tls_cert_path = 5;
-  // 客户端私钥路径
-  string tls_key_path = 6;
+  // CA 证书（PEM 内容）
+  string tls_ca = 14;
+  // 客户端证书（PEM 内容）
+  string tls_cert = 15;
+  // 客户端私钥（PEM 内容）。读取时始终为空（只返回 tls_key_meta）；
+  // 更新/测试时留空表示沿用已保存的私钥，除非 tls_key_clear 为 true
+  string tls_key = 16;
+  // 清除已保存的客户端私钥（仅更新时有效）
+  bool tls_key_clear = 17;
+  // CA 证书信息（只读）
+  DockerTLSFileMeta tls_ca_meta = 18;
+  // 客户端证书信息（只读）
+  DockerTLSFileMeta tls_cert_meta = 19;
+  // 客户端私钥信息（只读）
+  DockerTLSFileMeta tls_key_meta = 20;
   // API版本
   string api_version = 7;
   // 请求超时秒数
@@ -372,6 +426,24 @@ message DockerConfigInfo {
   int32 task_timeout_seconds = 11;
   // 仓库认证配置
   repeated DockerRegistryAuth registry_auths = 12;
+  // 跳过 TLS 证书校验（仅调试自签名证书）
+  bool tls_skip_verify = 13;
+}
+
+// TLS 证书 / 私钥文件信息
+message DockerTLSFileMeta {
+  // 是否已保存
+  bool present = 1;
+  // 内容大小（字节）
+  int64 size = 2;
+  // 证书主题 CN（私钥为空）
+  string subject = 3;
+  // 证书有效期截止（私钥为空）
+  google.protobuf.Timestamp not_after = 4;
+  // 算法（如 RSA 4096 / ECDSA P-256 / Ed25519）
+  string algorithm = 5;
+  // 解析错误（内容不是有效的 PEM 时）
+  string error = 6;
 }
 
 // Docker仓库认证
@@ -384,6 +456,24 @@ message DockerRegistryAuth {
   string password = 3;
   // Token
   string token = 4;
+  // 最近一次验证时间
+  google.protobuf.Timestamp verified_at = 5;
+  // 最近一次验证是否通过
+  bool verified = 6;
+  // 最近一次验证失败原因
+  string verify_error = 7;
+}
+
+// 验证仓库凭据请求
+message TestDockerRegistryAuthRequest {
+  // 待验证的凭据；password/token 留空时沿用已保存的同地址同用户名凭据
+  DockerRegistryAuth auth = 1;
+}
+
+// 验证仓库凭据响应
+message TestDockerRegistryAuthResponse {
+  // 带验证结果（verified_at / verified / verify_error）的凭据，不含密码
+  DockerRegistryAuth auth = 1;
 }
 
 // 获取Docker任务列表请求
@@ -783,6 +873,10 @@ message DockerContainerCreateOptions {
   int64 nano_cpus = 23;
   // 平台
   string platform = 24;
+  // 创建后立即启动
+  bool start = 25;
+  // on-failure 重启策略的最大重试次数（0 不限制）
+  int32 restart_max_retries = 26;
 }
 
 // 容器摘要
@@ -1007,14 +1101,76 @@ message ListDockerImagesRequest {
   int64 page = 5;
   // 每页数量
   int64 page_size = 6;
+  // 使用情况筛选：used（被容器使用）/ unused（未使用且有标签）/ dangling（悬空）；空为全部
+  string usage = 7;
+  // 排序：created（默认，新的在前）/ size（大的在前）/ name
+  string sort = 8;
 }
 
 // 获取镜像列表响应
 message ListDockerImagesResponse {
   // 镜像列表
   repeated DockerImageSummary items = 1;
-  // 总数
+  // 总数（筛选后）
   int64 total = 2;
+  // 全量统计（不受使用情况筛选影响）
+  DockerImageStats stats = 3;
+}
+
+// 镜像统计
+message DockerImageStats {
+  // 镜像总数
+  int64 total = 1;
+  // 被容器使用的镜像数
+  int64 used = 2;
+  // 未使用的镜像数（不含悬空）
+  int64 unused = 3;
+  // 悬空镜像数
+  int64 dangling = 4;
+  // 总占用（字节）
+  int64 total_size = 5;
+  // 悬空镜像可回收（字节）
+  int64 reclaimable_size = 6;
+}
+
+// 清理镜像请求
+message PruneDockerImagesRequest {
+  // 是否也清理未被容器使用的有标签镜像（默认只清理悬空镜像）
+  bool all = 1;
+}
+
+// 清理镜像响应
+message PruneDockerImagesResponse {
+  // 删除的镜像数
+  int64 deleted = 1;
+  // 回收空间（字节）
+  int64 space_reclaimed = 2;
+}
+
+// 搜索镜像请求
+message SearchDockerImagesRequest {
+  // 关键字
+  string term = 1;
+  // 返回数量上限（默认 10）
+  int32 limit = 2;
+}
+
+// 搜索镜像响应
+message SearchDockerImagesResponse {
+  // 结果
+  repeated DockerImageSearchResult items = 1;
+}
+
+// 镜像搜索结果
+message DockerImageSearchResult {
+  // 仓库名
+  string name = 1;
+  // 描述
+  string description = 2;
+  // 星标数
+  int64 stars = 3;
+  // 是否官方镜像
+  bool official = 4;
 }
 
 // 获取镜像详情请求
@@ -1119,6 +1275,10 @@ message DockerImageSummary {
   int64 containers = 8;
   // 标签
   map<string, string> labels = 9;
+  // 使用该镜像的容器名称
+  repeated string used_by = 10;
+  // 是否悬空镜像（无标签）
+  bool dangling = 11;
 }
 
 // 镜像详情
@@ -1147,6 +1307,12 @@ message DockerImageInfo {
   map<string, string> labels = 11;
   // 层信息
   repeated string layers = 12;
+  // 镜像声明的端口（如 80/tcp）
+  repeated string exposed_ports = 13;
+  // 默认启动命令
+  repeated string cmd = 14;
+  // 声明的数据卷
+  repeated string volumes = 15;
 }
 
 // 镜像历史记录
@@ -1179,14 +1345,41 @@ message ListDockerNetworksRequest {
   int64 page = 5;
   // 每页数量
   int64 page_size = 6;
+  // 类型筛选：builtin（bridge/host/none 等内置）/ custom；空为全部
+  string kind = 7;
+  // 关键字：匹配名称、ID、子网、已连接容器名
+  string keyword = 8;
 }
 
 // 获取网络列表响应
 message ListDockerNetworksResponse {
   // 网络列表
   repeated DockerNetworkInfo items = 1;
-  // 总数
+  // 总数（筛选后）
   int64 total = 2;
+  // 全量统计（不受类型/关键字筛选影响）
+  DockerNetworkListStats stats = 3;
+}
+
+// 网络列表统计
+message DockerNetworkListStats {
+  // 网络总数
+  int64 total = 1;
+  // 内置网络数
+  int64 builtin = 2;
+  // 自定义网络数
+  int64 custom = 3;
+  // 已分配的容器 IP 数
+  int64 allocated_ips = 4;
+}
+
+// 清理网络请求
+message PruneDockerNetworksRequest {}
+
+// 清理网络响应
+message PruneDockerNetworksResponse {
+  // 删除的网络名称
+  repeated string deleted = 1;
 }
 
 // 获取网络详情请求
@@ -1344,6 +1537,8 @@ message DockerNetworkInfo {
   map<string, string> options = 13;
   // 标签
   map<string, string> labels = 14;
+  // 是否 Docker 内置网络（bridge / host / none 等，不能删除或重建）
+  bool builtin = 15;
 }
 
 // IPAM配置
@@ -1380,4 +1575,8 @@ message DockerNetworkContainer {
   string ipv4_address = 4;
   // IPv6地址
   string ipv6_address = 5;
+  // 容器状态（running / exited ...）
+  string state = 6;
+  // 网络别名
+  repeated string aliases = 7;
 }

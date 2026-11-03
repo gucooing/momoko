@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/pkg/task"
@@ -39,6 +41,45 @@ type Manager struct {
 	cfg    *v1.DockerConfigInfo
 	client *client.Client
 	tasks  *dockerTasks
+
+	eventsMu      sync.Mutex
+	events        []*v1.DockerConnectionEvent
+	lastConnected *bool
+}
+
+// maxConnectionEvents 内存中保留的最近连接事件条数（进程重启后清空）。
+const maxConnectionEvents = 20
+
+func (m *Manager) recordEvent(level, kind, detail string) {
+	m.eventsMu.Lock()
+	defer m.eventsMu.Unlock()
+	ev := &v1.DockerConnectionEvent{Level: level, Kind: kind, Detail: detail, Time: timestamppb.Now()}
+	m.events = append([]*v1.DockerConnectionEvent{ev}, m.events...)
+	if len(m.events) > maxConnectionEvents {
+		m.events = m.events[:maxConnectionEvents]
+	}
+}
+
+// observeConnection 只在连接状态发生变化时记一条事件，避免轮询刷屏。
+func (m *Manager) observeConnection(connected bool, detail string) {
+	m.eventsMu.Lock()
+	changed := m.lastConnected == nil || *m.lastConnected != connected
+	m.lastConnected = &connected
+	m.eventsMu.Unlock()
+	if !changed {
+		return
+	}
+	if connected {
+		m.recordEvent("ok", "connected", detail)
+	} else {
+		m.recordEvent("error", "disconnected", detail)
+	}
+}
+
+func (m *Manager) Events() []*v1.DockerConnectionEvent {
+	m.eventsMu.Lock()
+	defer m.eventsMu.Unlock()
+	return append([]*v1.DockerConnectionEvent(nil), m.events...)
 }
 
 // NewManager 创建 Docker 管理器。当 Docker 已启用但客户端初始化失败时（如 TLS 证书路径缺失、
@@ -63,6 +104,7 @@ func (m *Manager) Reconfigure(cfg *v1.DockerConfigInfo) error {
 		var err error
 		cli, err = newClient(cfg)
 		if err != nil {
+			m.recordEvent("error", "reconfigured", err.Error())
 			return err
 		}
 	}
@@ -76,6 +118,15 @@ func (m *Manager) Reconfigure(cfg *v1.DockerConfigInfo) error {
 	if old != nil {
 		_ = old.Close()
 	}
+	detail := cfg.Host
+	if !cfg.Enabled {
+		detail = ErrDisabled.Error()
+	}
+	m.recordEvent("info", "reconfigured", detail)
+	// 配置变更后重新判定一次连接状态
+	m.eventsMu.Lock()
+	m.lastConnected = nil
+	m.eventsMu.Unlock()
 	return nil
 }
 
@@ -88,6 +139,7 @@ func (m *Manager) Config() *v1.DockerConfigInfo {
 func (m *Manager) Status(ctx context.Context) *v1.DockerStatusResponse {
 	cfg := m.Config()
 	status := &v1.DockerStatusResponse{Enabled: cfg.Enabled}
+	defer func() { status.Events = m.Events() }()
 	if !cfg.Enabled {
 		status.Error = ErrDisabled.Error()
 		return status
@@ -95,48 +147,73 @@ func (m *Manager) Status(ctx context.Context) *v1.DockerStatusResponse {
 	cli, err := m.getClient()
 	if err != nil {
 		status.Error = err.Error()
+		m.observeConnection(false, err.Error())
 		return status
 	}
 	ctx, cancel := m.withTimeout(ctx)
 	defer cancel()
-	info, err := cli.Info(ctx)
-	if err != nil {
-		status.Error = err.Error()
+	if err := probeEngine(ctx, cli, status); err != nil {
+		m.observeConnection(false, err.Error())
 		return status
 	}
-	version, err := cli.ServerVersion(ctx)
-	if err != nil {
-		status.Error = err.Error()
-		return status
-	}
-	status.Connected = true
-	status.Info = toEngineInfo(info)
-	status.Version = toEngineVersion(version)
+	m.observeConnection(true, fmt.Sprintf("%s · %d ms", hostLabel(cfg), status.LatencyMs))
 	return status
 }
 
 func (m *Manager) Test(ctx context.Context, cfg *v1.DockerConfigInfo) (*v1.DockerStatusResponse, error) {
+	status := &v1.DockerStatusResponse{Enabled: cfg.Enabled}
 	cli, err := newClient(cfg)
 	if err != nil {
-		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
+		status.Error = err.Error()
+		m.recordEvent("error", "test_failed", err.Error())
+		status.Events = m.Events()
+		return status, err
 	}
 	defer cli.Close()
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout(cfg))
 	defer cancel()
+	if err := probeEngine(ctx, cli, status); err != nil {
+		m.recordEvent("error", "test_failed", err.Error())
+		status.Events = m.Events()
+		return status, err
+	}
+	m.recordEvent("ok", "test_ok", fmt.Sprintf("%s · %d ms", hostLabel(cfg), status.LatencyMs))
+	status.Events = m.Events()
+	return status, nil
+}
+
+// probeEngine 探测引擎：Ping 计往返耗时，再取 Info / Version / 网络数量填入 status。
+func probeEngine(ctx context.Context, cli *client.Client, status *v1.DockerStatusResponse) error {
+	start := time.Now()
+	if _, err := cli.Ping(ctx); err != nil {
+		status.Error = err.Error()
+		return err
+	}
+	status.LatencyMs = time.Since(start).Milliseconds()
 	info, err := cli.Info(ctx)
 	if err != nil {
-		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
+		status.Error = err.Error()
+		return err
 	}
 	version, err := cli.ServerVersion(ctx)
 	if err != nil {
-		return &v1.DockerStatusResponse{Enabled: cfg.Enabled, Error: err.Error()}, err
+		status.Error = err.Error()
+		return err
 	}
-	return &v1.DockerStatusResponse{
-		Enabled:   cfg.Enabled,
-		Connected: true,
-		Info:      toEngineInfo(info),
-		Version:   toEngineVersion(version),
-	}, nil
+	if networks, nerr := cli.NetworkList(ctx, networktypes.ListOptions{}); nerr == nil {
+		status.Networks = int32(len(networks))
+	}
+	status.Connected = true
+	status.Info = toEngineInfo(info)
+	status.Version = toEngineVersion(version)
+	return nil
+}
+
+func hostLabel(cfg *v1.DockerConfigInfo) string {
+	if cfg.Host != "" {
+		return cfg.Host
+	}
+	return client.DefaultDockerHost
 }
 
 func (m *Manager) Task(id string) (*v1.DockerTaskInfo, error) {
@@ -195,21 +272,25 @@ func newClient(cfg *v1.DockerConfigInfo) (*client.Client, error) {
 		client.FromEnv,
 		client.WithAPIVersionNegotiation(),
 	}
+	if cfg.TlsEnabled {
+		tlsCfg, err := buildTLSConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
+		// 先换上带 TLS 的 Transport，再由 WithHost 按协议配置拨号
+		opts = append(opts, client.WithHTTPClient(&http.Client{
+			Transport:     &http.Transport{TLSClientConfig: tlsCfg},
+			CheckRedirect: client.CheckRedirect,
+		}))
+		if cfg.Host == "" {
+			opts = append(opts, client.WithHost(client.DefaultDockerHost))
+		}
+	}
 	if cfg.Host != "" {
 		opts = append(opts, client.WithHost(cfg.Host))
 	}
 	if cfg.ApiVersion != "" {
 		opts = append(opts, client.WithVersion(cfg.ApiVersion))
-	}
-	if cfg.TlsEnabled {
-		if cfg.TlsCaPath == "" || cfg.TlsCertPath == "" || cfg.TlsKeyPath == "" {
-			return nil, errors.New("docker TLS 证书路径不能为空")
-		}
-		opts = append(opts, client.WithTLSClientConfig(
-			cfg.TlsCaPath,
-			cfg.TlsCertPath,
-			cfg.TlsKeyPath,
-		))
 	}
 	return client.NewClientWithOpts(opts...)
 }
@@ -338,6 +419,14 @@ func toRestartPolicy(name string) containertypes.RestartPolicy {
 		return containertypes.RestartPolicy{}
 	}
 	return containertypes.RestartPolicy{Name: containertypes.RestartPolicyMode(name)}
+}
+
+func toRestartPolicyWithRetries(name string, retries int32) containertypes.RestartPolicy {
+	policy := toRestartPolicy(name)
+	if policy.Name == containertypes.RestartPolicyOnFailure && retries > 0 {
+		policy.MaximumRetryCount = int(retries)
+	}
+	return policy
 }
 
 func toNetworkEndpoint(opts *v1.ConnectDockerNetworkRequest) *networktypes.EndpointSettings {

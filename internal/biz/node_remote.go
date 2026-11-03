@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
@@ -29,6 +30,8 @@ type NodeRepo interface {
 	CreateNode(ctx context.Context, node *NodeConfig) (*NodeConfig, error)
 	UpdateNode(ctx context.Context, node *NodeConfig) (*NodeConfig, error)
 	DeleteNode(ctx context.Context, id string) error
+	// TouchNodeOnline 记录节点最近一次在线时间（不改动 update_time）
+	TouchNodeOnline(ctx context.Context, id string, at time.Time) error
 }
 
 func nodeError(code int, format string, args ...any) error {
@@ -194,7 +197,7 @@ func (n *NodeUsecase) TestNode(ctx context.Context, req *v1.TestNodeRequest) (*v
 	defer client.Close()
 	result := n.probe(ctx, client)
 	if cfg.ID != "" && !overridden {
-		n.status.set(cfg.ID, result)
+		n.setStatus(cfg.ID, result)
 	}
 	return result, nil
 }
@@ -207,7 +210,7 @@ func (n *NodeUsecase) GetNodeContext(ctx context.Context, req *v1.GetNodeContext
 		return nil, nil, err
 	}
 	result := n.probe(ctx, client)
-	n.status.set(client.Config.ID, result)
+	n.setStatus(client.Config.ID, result)
 	info := n.toNodeInfo(client.Config)
 
 	permissions := make([]string, 0)
@@ -273,14 +276,14 @@ func (n *NodeUsecase) probeAsync(cfg *NodeConfig) {
 	go func() {
 		client, err := n.clients.get(cfg)
 		if err != nil {
-			n.status.set(cfg.ID, &v1.NodeStatus{
+			n.setStatus(cfg.ID, &v1.NodeStatus{
 				State:     v1.NodeState_NodeState_Offline,
 				Message:   err.Error(),
 				CheckTime: timestamppb.Now(),
 			})
 			return
 		}
-		n.status.set(cfg.ID, n.probe(context.Background(), client))
+		n.setStatus(cfg.ID, n.probe(context.Background(), client))
 	}()
 }
 
@@ -301,14 +304,15 @@ func (n *NodeUsecase) startProber() func() {
 				for _, cfg := range nodes {
 					client, err := n.clients.get(cfg)
 					if err != nil {
-						n.status.set(cfg.ID, &v1.NodeStatus{
+						n.setStatus(cfg.ID, &v1.NodeStatus{
 							State:     v1.NodeState_NodeState_Offline,
 							Message:   err.Error(),
 							CheckTime: timestamppb.Now(),
 						})
 						continue
 					}
-					n.status.set(cfg.ID, n.probe(ctx, client))
+					n.seedLastOnline(cfg)
+					n.setStatus(cfg.ID, n.probe(ctx, client))
 				}
 			}
 			timer.Reset(nodeProbeInterval)
@@ -317,7 +321,30 @@ func (n *NodeUsecase) startProber() func() {
 	return cancel
 }
 
+// setStatus 写入检测结果；节点在线时按节流间隔把在线时间写库，供重启后显示“最后在线”。
+func (n *NodeUsecase) setStatus(id string, s *v1.NodeStatus) {
+	if at := n.status.set(id, s); !at.IsZero() {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = n.nodes.TouchNodeOnline(ctx, id, at)
+		}()
+	}
+}
+
+func (n *NodeUsecase) seedLastOnline(cfg *NodeConfig) {
+	if cfg.LastOnlineAt != nil {
+		n.status.seedLastOnline(cfg.ID, *cfg.LastOnlineAt)
+	}
+}
+
 func (n *NodeUsecase) toNodeInfo(cfg *NodeConfig) *v1.NodeInfo {
+	n.seedLastOnline(cfg)
+	status := n.status.get(cfg.ID)
+	if status.LastOnlineTime == nil && cfg.LastOnlineAt != nil {
+		status = proto.Clone(status).(*v1.NodeStatus)
+		status.LastOnlineTime = timestamppb.New(*cfg.LastOnlineAt)
+	}
 	apiKey := "******"
 	if cfg.APIKey != "" {
 		apiKey = utils.PrivacyString(cfg.APIKey)
@@ -331,7 +358,7 @@ func (n *NodeUsecase) toNodeInfo(cfg *NodeConfig) *v1.NodeInfo {
 		Remark:        cfg.Remark,
 		ApiKey:        apiKey,
 		KeyId:         cfg.KeyID,
-		Status:        n.status.get(cfg.ID),
+		Status:        status,
 		CreateTime:    timestamppb.New(cfg.CreateTime),
 		UpdateTime:    timestamppb.New(cfg.UpdateTime),
 	}

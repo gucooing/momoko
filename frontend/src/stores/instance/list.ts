@@ -55,6 +55,8 @@ const createDefaultEditorForm = (defaultType = ''): InstanceEditorFormValue => (
   stopCommand: 'exit',
   instancePath: './servers/',
   autoStart: false,
+  autoRestart: false,
+  stopTimeout: 0,
   envText: '',
 })
 
@@ -84,6 +86,8 @@ const mapInfoToEditorForm = (info: InstanceInfo, resolveTypeId: (value: string) 
   stopCommand: info.stopCommand || '',
   instancePath: info.instancePath || '',
   autoStart: Boolean(info.autoStart),
+  autoRestart: Boolean(info.autoRestart),
+  stopTimeout: Number(info.stopTimeout || 0),
   envText: joinEnvLines(info.env),
 })
 
@@ -97,6 +101,8 @@ const buildCreatePayload = (form: InstanceEditorFormValue, userId: string): Crea
   instancePath: form.instancePath.trim(),
   stopCommand: form.stopCommand.trim(),
   autoStart: form.autoStart,
+  autoRestart: form.autoRestart,
+  stopTimeout: Math.max(0, Math.round(Number(form.stopTimeout) || 0)),
   env: parseEnvLines(form.envText),
 })
 
@@ -112,6 +118,8 @@ const buildUpdatePayload = (
   instancePath: form.instancePath.trim(),
   stopCommand: form.stopCommand.trim(),
   autoStart: form.autoStart,
+  autoRestart: form.autoRestart,
+  stopTimeout: Math.max(0, Math.round(Number(form.stopTimeout) || 0)),
   env: parseEnvLines(form.envText),
 })
 
@@ -149,7 +157,13 @@ export const useInstanceListStore = defineStore('instance-list', () => {
   const typeOptions = computed<InstanceTypeOption[]>(() =>
     instanceTypeList.value
       .filter((item) => item.isEnable)
-      .map((item) => ({ label: item.name, value: item.id })),
+      .map((item) => ({
+        label: item.name,
+        value: item.id,
+        description: item.description || '',
+        startCommand: item.startCommand || '',
+        stopCommand: item.stopCommand || '',
+      })),
   )
 
   const statusOptions = computed(() =>

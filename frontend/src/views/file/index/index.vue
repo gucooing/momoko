@@ -1,6 +1,9 @@
 <template>
   <div class="file-page">
-    <FileBrowser :scope="scope" :initial-path="initialPath" />
+    <FileBrowser :scope="scope" :initial-path="initialPath">
+      <template #nav>
+      </template>
+    </FileBrowser>
   </div>
 </template>
 
@@ -16,7 +19,7 @@ const route = useRoute()
 const scope: FileScope = { kind: 'system' }
 const initialPath = String(route.query.workdir || '')
 
-// 全出血：整个页面即文件管理，无外框/内边距（与终端页同理）。
+// 全出血：FileBrowser 自带页面内边距与滚动（目录树吸顶、批量条吸底都依赖它自己的滚动容器）。
 useFullBleed()
 </script>
 

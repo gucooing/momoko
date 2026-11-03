@@ -7,7 +7,7 @@ import { currentNodeId, storeCurrentNodeId } from '@/utils/nodeContext'
 import { translate } from '@/locales'
 
 // 切换节点后这些带资源 id 的页面在新节点上无意义，回到工作台。
-const NODE_DETAIL_ROUTE_PREFIXES = ['/instance/console', '/instance/files', '/openssh/terminal']
+const NODE_DETAIL_ROUTE_PREFIXES = ['/instance/app', '/openssh/terminal']
 
 export const useNodeStore = defineStore('node', () => {
   const nodes = ref<NodeInfo[]>([])

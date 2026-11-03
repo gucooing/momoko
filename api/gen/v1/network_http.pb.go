@@ -19,14 +19,18 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationNetworkManagerClosePortForwardConnections = "/v1.NetworkManager/ClosePortForwardConnections"
 const OperationNetworkManagerCreatePortForward = "/v1.NetworkManager/CreatePortForward"
 const OperationNetworkManagerDeletePortForward = "/v1.NetworkManager/DeletePortForward"
 const OperationNetworkManagerGetPortForward = "/v1.NetworkManager/GetPortForward"
 const OperationNetworkManagerGetPortForwardStats = "/v1.NetworkManager/GetPortForwardStats"
 const OperationNetworkManagerListPortForwards = "/v1.NetworkManager/ListPortForwards"
+const OperationNetworkManagerResetPortForwardTraffic = "/v1.NetworkManager/ResetPortForwardTraffic"
 const OperationNetworkManagerUpdatePortForward = "/v1.NetworkManager/UpdatePortForward"
 
 type NetworkManagerHTTPServer interface {
+	// ClosePortForwardConnections 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+	ClosePortForwardConnections(context.Context, *ClosePortForwardConnectionsRequest) (*ClosePortForwardConnectionsResponse, error)
 	// CreatePortForward 创建端口转发
 	CreatePortForward(context.Context, *CreatePortForwardRequest) (*CreatePortForwardResponse, error)
 	// DeletePortForward 删除端口转发
@@ -37,6 +41,8 @@ type NetworkManagerHTTPServer interface {
 	GetPortForwardStats(context.Context, *GetPortForwardStatsRequest) (*GetPortForwardStatsResponse, error)
 	// ListPortForwards 获取端口转发列表
 	ListPortForwards(context.Context, *ListPortForwardsRequest) (*ListPortForwardsResponse, error)
+	// ResetPortForwardTraffic 清零端口转发的累计流量
+	ResetPortForwardTraffic(context.Context, *ResetPortForwardTrafficRequest) (*ResetPortForwardTrafficResponse, error)
 	// UpdatePortForward 更新端口转发
 	UpdatePortForward(context.Context, *UpdatePortForwardRequest) (*UpdatePortForwardResponse, error)
 }
@@ -49,6 +55,8 @@ func RegisterNetworkManagerHTTPServer(s *http.Server, srv NetworkManagerHTTPServ
 	r.PUT("/api/v1/network/port-forwards/{id}", _NetworkManager_UpdatePortForward0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/network/port-forwards/{id}", _NetworkManager_DeletePortForward0_HTTP_Handler(srv))
 	r.GET("/api/v1/network/port-forwards/{id}/stats", _NetworkManager_GetPortForwardStats0_HTTP_Handler(srv))
+	r.POST("/api/v1/network/port-forwards/{id}/connections/close", _NetworkManager_ClosePortForwardConnections0_HTTP_Handler(srv))
+	r.POST("/api/v1/network/port-forwards/{id}/traffic/reset", _NetworkManager_ResetPortForwardTraffic0_HTTP_Handler(srv))
 }
 
 func _NetworkManager_ListPortForwards0_HTTP_Handler(srv NetworkManagerHTTPServer) func(ctx http.Context) error {
@@ -183,7 +191,59 @@ func _NetworkManager_GetPortForwardStats0_HTTP_Handler(srv NetworkManagerHTTPSer
 	}
 }
 
+func _NetworkManager_ClosePortForwardConnections0_HTTP_Handler(srv NetworkManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClosePortForwardConnectionsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNetworkManagerClosePortForwardConnections)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClosePortForwardConnections(ctx, req.(*ClosePortForwardConnectionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ClosePortForwardConnectionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NetworkManager_ResetPortForwardTraffic0_HTTP_Handler(srv NetworkManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetPortForwardTrafficRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNetworkManagerResetPortForwardTraffic)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetPortForwardTraffic(ctx, req.(*ResetPortForwardTrafficRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetPortForwardTrafficResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NetworkManagerHTTPClient interface {
+	// ClosePortForwardConnections 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+	ClosePortForwardConnections(ctx context.Context, req *ClosePortForwardConnectionsRequest, opts ...http.CallOption) (rsp *ClosePortForwardConnectionsResponse, err error)
 	// CreatePortForward 创建端口转发
 	CreatePortForward(ctx context.Context, req *CreatePortForwardRequest, opts ...http.CallOption) (rsp *CreatePortForwardResponse, err error)
 	// DeletePortForward 删除端口转发
@@ -194,6 +254,8 @@ type NetworkManagerHTTPClient interface {
 	GetPortForwardStats(ctx context.Context, req *GetPortForwardStatsRequest, opts ...http.CallOption) (rsp *GetPortForwardStatsResponse, err error)
 	// ListPortForwards 获取端口转发列表
 	ListPortForwards(ctx context.Context, req *ListPortForwardsRequest, opts ...http.CallOption) (rsp *ListPortForwardsResponse, err error)
+	// ResetPortForwardTraffic 清零端口转发的累计流量
+	ResetPortForwardTraffic(ctx context.Context, req *ResetPortForwardTrafficRequest, opts ...http.CallOption) (rsp *ResetPortForwardTrafficResponse, err error)
 	// UpdatePortForward 更新端口转发
 	UpdatePortForward(ctx context.Context, req *UpdatePortForwardRequest, opts ...http.CallOption) (rsp *UpdatePortForwardResponse, err error)
 }
@@ -204,6 +266,20 @@ type NetworkManagerHTTPClientImpl struct {
 
 func NewNetworkManagerHTTPClient(client *http.Client) NetworkManagerHTTPClient {
 	return &NetworkManagerHTTPClientImpl{client}
+}
+
+// ClosePortForwardConnections 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+func (c *NetworkManagerHTTPClientImpl) ClosePortForwardConnections(ctx context.Context, in *ClosePortForwardConnectionsRequest, opts ...http.CallOption) (*ClosePortForwardConnectionsResponse, error) {
+	var out ClosePortForwardConnectionsResponse
+	pattern := "/api/v1/network/port-forwards/{id}/connections/close"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationNetworkManagerClosePortForwardConnections))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // CreatePortForward 创建端口转发
@@ -270,6 +346,20 @@ func (c *NetworkManagerHTTPClientImpl) ListPortForwards(ctx context.Context, in 
 	opts = append(opts, http.Operation(OperationNetworkManagerListPortForwards))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResetPortForwardTraffic 清零端口转发的累计流量
+func (c *NetworkManagerHTTPClientImpl) ResetPortForwardTraffic(ctx context.Context, in *ResetPortForwardTrafficRequest, opts ...http.CallOption) (*ResetPortForwardTrafficResponse, error) {
+	var out ResetPortForwardTrafficResponse
+	pattern := "/api/v1/network/port-forwards/{id}/traffic/reset"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationNetworkManagerResetPortForwardTraffic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

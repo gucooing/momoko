@@ -48,4 +48,10 @@ type Store interface {
 	LoadResumable(ctx context.Context) ([]*Record, error)
 	// Delete 删除一条任务行。
 	Delete(ctx context.Context, id string) error
+	// CountByStatus 按状态统计满足过滤条件（忽略 Filter.Status）的任务数。
+	CountByStatus(ctx context.Context, f Filter) (map[Status]int64, error)
+	// CountByType 统计全部任务里每个类型的数量。
+	CountByType(ctx context.Context) (map[string]int64, error)
+	// DeleteByStatus 批量删除处于给定状态的任务行，返回删除行数。
+	DeleteByStatus(ctx context.Context, statuses []Status) (int64, error)
 }

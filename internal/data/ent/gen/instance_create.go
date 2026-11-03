@@ -149,6 +149,34 @@ func (_c *InstanceCreate) SetNillableAutoStart(v *bool) *InstanceCreate {
 	return _c
 }
 
+// SetAutoRestart sets the "auto_restart" field.
+func (_c *InstanceCreate) SetAutoRestart(v bool) *InstanceCreate {
+	_c.mutation.SetAutoRestart(v)
+	return _c
+}
+
+// SetNillableAutoRestart sets the "auto_restart" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableAutoRestart(v *bool) *InstanceCreate {
+	if v != nil {
+		_c.SetAutoRestart(*v)
+	}
+	return _c
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (_c *InstanceCreate) SetStopTimeout(v int32) *InstanceCreate {
+	_c.mutation.SetStopTimeout(v)
+	return _c
+}
+
+// SetNillableStopTimeout sets the "stop_timeout" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableStopTimeout(v *int32) *InstanceCreate {
+	if v != nil {
+		_c.SetStopTimeout(*v)
+	}
+	return _c
+}
+
 // SetEnv sets the "env" field.
 func (_c *InstanceCreate) SetEnv(v []string) *InstanceCreate {
 	_c.mutation.SetEnv(v)
@@ -257,6 +285,14 @@ func (_c *InstanceCreate) defaults() {
 		v := instance.DefaultAutoStart
 		_c.mutation.SetAutoStart(v)
 	}
+	if _, ok := _c.mutation.AutoRestart(); !ok {
+		v := instance.DefaultAutoRestart
+		_c.mutation.SetAutoRestart(v)
+	}
+	if _, ok := _c.mutation.StopTimeout(); !ok {
+		v := instance.DefaultStopTimeout
+		_c.mutation.SetStopTimeout(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -299,6 +335,12 @@ func (_c *InstanceCreate) check() error {
 	}
 	if _, ok := _c.mutation.AutoStart(); !ok {
 		return &ValidationError{Name: "auto_start", err: errors.New(`gen: missing required field "Instance.auto_start"`)}
+	}
+	if _, ok := _c.mutation.AutoRestart(); !ok {
+		return &ValidationError{Name: "auto_restart", err: errors.New(`gen: missing required field "Instance.auto_restart"`)}
+	}
+	if _, ok := _c.mutation.StopTimeout(); !ok {
+		return &ValidationError{Name: "stop_timeout", err: errors.New(`gen: missing required field "Instance.stop_timeout"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := instance.IDValidator(v); err != nil {
@@ -386,6 +428,14 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.AutoStart(); ok {
 		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
 		_node.AutoStart = value
+	}
+	if value, ok := _c.mutation.AutoRestart(); ok {
+		_spec.SetField(instance.FieldAutoRestart, field.TypeBool, value)
+		_node.AutoRestart = value
+	}
+	if value, ok := _c.mutation.StopTimeout(); ok {
+		_spec.SetField(instance.FieldStopTimeout, field.TypeInt32, value)
+		_node.StopTimeout = value
 	}
 	if value, ok := _c.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
@@ -613,6 +663,36 @@ func (u *InstanceUpsert) UpdateAutoStart() *InstanceUpsert {
 	return u
 }
 
+// SetAutoRestart sets the "auto_restart" field.
+func (u *InstanceUpsert) SetAutoRestart(v bool) *InstanceUpsert {
+	u.Set(instance.FieldAutoRestart, v)
+	return u
+}
+
+// UpdateAutoRestart sets the "auto_restart" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateAutoRestart() *InstanceUpsert {
+	u.SetExcluded(instance.FieldAutoRestart)
+	return u
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (u *InstanceUpsert) SetStopTimeout(v int32) *InstanceUpsert {
+	u.Set(instance.FieldStopTimeout, v)
+	return u
+}
+
+// UpdateStopTimeout sets the "stop_timeout" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateStopTimeout() *InstanceUpsert {
+	u.SetExcluded(instance.FieldStopTimeout)
+	return u
+}
+
+// AddStopTimeout adds v to the "stop_timeout" field.
+func (u *InstanceUpsert) AddStopTimeout(v int32) *InstanceUpsert {
+	u.Add(instance.FieldStopTimeout, v)
+	return u
+}
+
 // SetEnv sets the "env" field.
 func (u *InstanceUpsert) SetEnv(v []string) *InstanceUpsert {
 	u.Set(instance.FieldEnv, v)
@@ -819,6 +899,41 @@ func (u *InstanceUpsertOne) SetAutoStart(v bool) *InstanceUpsertOne {
 func (u *InstanceUpsertOne) UpdateAutoStart() *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateAutoStart()
+	})
+}
+
+// SetAutoRestart sets the "auto_restart" field.
+func (u *InstanceUpsertOne) SetAutoRestart(v bool) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetAutoRestart(v)
+	})
+}
+
+// UpdateAutoRestart sets the "auto_restart" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateAutoRestart() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateAutoRestart()
+	})
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (u *InstanceUpsertOne) SetStopTimeout(v int32) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetStopTimeout(v)
+	})
+}
+
+// AddStopTimeout adds v to the "stop_timeout" field.
+func (u *InstanceUpsertOne) AddStopTimeout(v int32) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.AddStopTimeout(v)
+	})
+}
+
+// UpdateStopTimeout sets the "stop_timeout" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateStopTimeout() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateStopTimeout()
 	})
 }
 
@@ -1198,6 +1313,41 @@ func (u *InstanceUpsertBulk) SetAutoStart(v bool) *InstanceUpsertBulk {
 func (u *InstanceUpsertBulk) UpdateAutoStart() *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
 		s.UpdateAutoStart()
+	})
+}
+
+// SetAutoRestart sets the "auto_restart" field.
+func (u *InstanceUpsertBulk) SetAutoRestart(v bool) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetAutoRestart(v)
+	})
+}
+
+// UpdateAutoRestart sets the "auto_restart" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateAutoRestart() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateAutoRestart()
+	})
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (u *InstanceUpsertBulk) SetStopTimeout(v int32) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetStopTimeout(v)
+	})
+}
+
+// AddStopTimeout adds v to the "stop_timeout" field.
+func (u *InstanceUpsertBulk) AddStopTimeout(v int32) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.AddStopTimeout(v)
+	})
+}
+
+// UpdateStopTimeout sets the "stop_timeout" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateStopTimeout() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateStopTimeout()
 	})
 }
 

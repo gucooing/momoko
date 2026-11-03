@@ -31,6 +31,8 @@ const (
 	FieldTLSSkipVerify = "tls_skip_verify"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// FieldLastOnlineAt holds the string denoting the last_online_at field in the database.
+	FieldLastOnlineAt = "last_online_at"
 	// Table holds the table name of the node in the database.
 	Table = "nodes"
 )
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldTLS,
 	FieldTLSSkipVerify,
 	FieldRemark,
+	FieldLastOnlineAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -133,4 +136,9 @@ func ByTLSSkipVerify(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByLastOnlineAt orders the results by the last_online_at field.
+func ByLastOnlineAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastOnlineAt, opts...).ToFunc()
 }

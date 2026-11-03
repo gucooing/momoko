@@ -33,14 +33,18 @@ const (
 	System_AdminDeleteRole_FullMethodName        = "/v1.System/AdminDeleteRole"
 	System_LoginConfig_FullMethodName            = "/v1.System/LoginConfig"
 	System_UpdateLoginConfig_FullMethodName      = "/v1.System/UpdateLoginConfig"
+	System_SiteConfig_FullMethodName             = "/v1.System/SiteConfig"
+	System_UpdateSiteConfig_FullMethodName       = "/v1.System/UpdateSiteConfig"
 	System_EmailConfig_FullMethodName            = "/v1.System/EmailConfig"
 	System_UpdateEmailConfig_FullMethodName      = "/v1.System/UpdateEmailConfig"
 	System_UpdateEmailTemplate_FullMethodName    = "/v1.System/UpdateEmailTemplate"
 	System_EmailTemplate_FullMethodName          = "/v1.System/EmailTemplate"
+	System_ListEmailTemplates_FullMethodName     = "/v1.System/ListEmailTemplates"
 	System_TestEmailConfig_FullMethodName        = "/v1.System/TestEmailConfig"
 	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
 	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
 	System_ListOperationLogs_FullMethodName      = "/v1.System/ListOperationLogs"
+	System_OperationLogStats_FullMethodName      = "/v1.System/OperationLogStats"
 )
 
 // SystemClient is the client API for System service.
@@ -77,6 +81,10 @@ type SystemClient interface {
 	LoginConfig(ctx context.Context, in *LoginConfigRequest, opts ...grpc.CallOption) (*LoginConfigResponse, error)
 	// 更新登录配置
 	UpdateLoginConfig(ctx context.Context, in *UpdateLoginConfigRequest, opts ...grpc.CallOption) (*UpdateLoginConfigResponse, error)
+	// 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+	SiteConfig(ctx context.Context, in *SiteConfigRequest, opts ...grpc.CallOption) (*SiteConfigResponse, error)
+	// 更新站点常规配置
+	UpdateSiteConfig(ctx context.Context, in *UpdateSiteConfigRequest, opts ...grpc.CallOption) (*UpdateSiteConfigResponse, error)
 	// 获取邮件配置
 	EmailConfig(ctx context.Context, in *EmailConfigRequest, opts ...grpc.CallOption) (*EmailConfigResponse, error)
 	// 更新邮件配置
@@ -85,6 +93,8 @@ type SystemClient interface {
 	UpdateEmailTemplate(ctx context.Context, in *UpdateEmailTemplateRequest, opts ...grpc.CallOption) (*UpdateEmailTemplateResponse, error)
 	// 获取指定邮件模板
 	EmailTemplate(ctx context.Context, in *EmailTemplateRequest, opts ...grpc.CallOption) (*EmailTemplateResponse, error)
+	// 列出全部邮件模板（含是否自定义、最后修改时间）
+	ListEmailTemplates(ctx context.Context, in *ListEmailTemplatesRequest, opts ...grpc.CallOption) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...grpc.CallOption) (*TestEmailConfigResponse, error)
 	// 获取系统信息概览
@@ -93,6 +103,8 @@ type SystemClient interface {
 	SystemStatus(ctx context.Context, in *SystemStatusRequest, opts ...grpc.CallOption) (*SystemStatusResponse, error)
 	// 获取操作日志
 	ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...grpc.CallOption) (*ListOperationLogsResponse, error)
+	// 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+	OperationLogStats(ctx context.Context, in *OperationLogStatsRequest, opts ...grpc.CallOption) (*OperationLogStatsResponse, error)
 }
 
 type systemClient struct {
@@ -243,6 +255,26 @@ func (c *systemClient) UpdateLoginConfig(ctx context.Context, in *UpdateLoginCon
 	return out, nil
 }
 
+func (c *systemClient) SiteConfig(ctx context.Context, in *SiteConfigRequest, opts ...grpc.CallOption) (*SiteConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SiteConfigResponse)
+	err := c.cc.Invoke(ctx, System_SiteConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) UpdateSiteConfig(ctx context.Context, in *UpdateSiteConfigRequest, opts ...grpc.CallOption) (*UpdateSiteConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSiteConfigResponse)
+	err := c.cc.Invoke(ctx, System_UpdateSiteConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *systemClient) EmailConfig(ctx context.Context, in *EmailConfigRequest, opts ...grpc.CallOption) (*EmailConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmailConfigResponse)
@@ -277,6 +309,16 @@ func (c *systemClient) EmailTemplate(ctx context.Context, in *EmailTemplateReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmailTemplateResponse)
 	err := c.cc.Invoke(ctx, System_EmailTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) ListEmailTemplates(ctx context.Context, in *ListEmailTemplatesRequest, opts ...grpc.CallOption) (*ListEmailTemplatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListEmailTemplatesResponse)
+	err := c.cc.Invoke(ctx, System_ListEmailTemplates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,6 +365,16 @@ func (c *systemClient) ListOperationLogs(ctx context.Context, in *ListOperationL
 	return out, nil
 }
 
+func (c *systemClient) OperationLogStats(ctx context.Context, in *OperationLogStatsRequest, opts ...grpc.CallOption) (*OperationLogStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OperationLogStatsResponse)
+	err := c.cc.Invoke(ctx, System_OperationLogStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServer is the server API for System service.
 // All implementations must embed UnimplementedSystemServer
 // for forward compatibility.
@@ -357,6 +409,10 @@ type SystemServer interface {
 	LoginConfig(context.Context, *LoginConfigRequest) (*LoginConfigResponse, error)
 	// 更新登录配置
 	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
+	// 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+	SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error)
+	// 更新站点常规配置
+	UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error)
 	// 获取邮件配置
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// 更新邮件配置
@@ -365,6 +421,8 @@ type SystemServer interface {
 	UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error)
 	// 获取指定邮件模板
 	EmailTemplate(context.Context, *EmailTemplateRequest) (*EmailTemplateResponse, error)
+	// 列出全部邮件模板（含是否自定义、最后修改时间）
+	ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
 	// 获取系统信息概览
@@ -373,6 +431,8 @@ type SystemServer interface {
 	SystemStatus(context.Context, *SystemStatusRequest) (*SystemStatusResponse, error)
 	// 获取操作日志
 	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
+	// 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
 	mustEmbedUnimplementedSystemServer()
 }
 
@@ -425,6 +485,12 @@ func (UnimplementedSystemServer) LoginConfig(context.Context, *LoginConfigReques
 func (UnimplementedSystemServer) UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateLoginConfig not implemented")
 }
+func (UnimplementedSystemServer) SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SiteConfig not implemented")
+}
+func (UnimplementedSystemServer) UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSiteConfig not implemented")
+}
 func (UnimplementedSystemServer) EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EmailConfig not implemented")
 }
@@ -437,6 +503,9 @@ func (UnimplementedSystemServer) UpdateEmailTemplate(context.Context, *UpdateEma
 func (UnimplementedSystemServer) EmailTemplate(context.Context, *EmailTemplateRequest) (*EmailTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EmailTemplate not implemented")
 }
+func (UnimplementedSystemServer) ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListEmailTemplates not implemented")
+}
 func (UnimplementedSystemServer) TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestEmailConfig not implemented")
 }
@@ -448,6 +517,9 @@ func (UnimplementedSystemServer) SystemStatus(context.Context, *SystemStatusRequ
 }
 func (UnimplementedSystemServer) ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOperationLogs not implemented")
+}
+func (UnimplementedSystemServer) OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method OperationLogStats not implemented")
 }
 func (UnimplementedSystemServer) mustEmbedUnimplementedSystemServer() {}
 func (UnimplementedSystemServer) testEmbeddedByValue()                {}
@@ -722,6 +794,42 @@ func _System_UpdateLoginConfig_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_SiteConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SiteConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).SiteConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_SiteConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).SiteConfig(ctx, req.(*SiteConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_UpdateSiteConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSiteConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateSiteConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateSiteConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateSiteConfig(ctx, req.(*UpdateSiteConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _System_EmailConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EmailConfigRequest)
 	if err := dec(in); err != nil {
@@ -790,6 +898,24 @@ func _System_EmailTemplate_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SystemServer).EmailTemplate(ctx, req.(*EmailTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_ListEmailTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEmailTemplatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ListEmailTemplates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ListEmailTemplates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ListEmailTemplates(ctx, req.(*ListEmailTemplatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -866,6 +992,24 @@ func _System_ListOperationLogs_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_OperationLogStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OperationLogStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).OperationLogStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_OperationLogStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).OperationLogStats(ctx, req.(*OperationLogStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // System_ServiceDesc is the grpc.ServiceDesc for System service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -930,6 +1074,14 @@ var System_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _System_UpdateLoginConfig_Handler,
 		},
 		{
+			MethodName: "SiteConfig",
+			Handler:    _System_SiteConfig_Handler,
+		},
+		{
+			MethodName: "UpdateSiteConfig",
+			Handler:    _System_UpdateSiteConfig_Handler,
+		},
+		{
 			MethodName: "EmailConfig",
 			Handler:    _System_EmailConfig_Handler,
 		},
@@ -946,6 +1098,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _System_EmailTemplate_Handler,
 		},
 		{
+			MethodName: "ListEmailTemplates",
+			Handler:    _System_ListEmailTemplates_Handler,
+		},
+		{
 			MethodName: "TestEmailConfig",
 			Handler:    _System_TestEmailConfig_Handler,
 		},
@@ -960,6 +1116,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOperationLogs",
 			Handler:    _System_ListOperationLogs_Handler,
+		},
+		{
+			MethodName: "OperationLogStats",
+			Handler:    _System_OperationLogStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

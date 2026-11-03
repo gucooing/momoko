@@ -138,6 +138,26 @@ func (_u *NodeUpdate) ClearRemark() *NodeUpdate {
 	return _u
 }
 
+// SetLastOnlineAt sets the "last_online_at" field.
+func (_u *NodeUpdate) SetLastOnlineAt(v time.Time) *NodeUpdate {
+	_u.mutation.SetLastOnlineAt(v)
+	return _u
+}
+
+// SetNillableLastOnlineAt sets the "last_online_at" field if the given value is not nil.
+func (_u *NodeUpdate) SetNillableLastOnlineAt(v *time.Time) *NodeUpdate {
+	if v != nil {
+		_u.SetLastOnlineAt(*v)
+	}
+	return _u
+}
+
+// ClearLastOnlineAt clears the value of the "last_online_at" field.
+func (_u *NodeUpdate) ClearLastOnlineAt() *NodeUpdate {
+	_u.mutation.ClearLastOnlineAt()
+	return _u
+}
+
 // Mutation returns the NodeMutation object of the builder.
 func (_u *NodeUpdate) Mutation() *NodeMutation {
 	return _u.mutation
@@ -242,6 +262,12 @@ func (_u *NodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(node.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastOnlineAt(); ok {
+		_spec.SetField(node.FieldLastOnlineAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastOnlineAtCleared() {
+		_spec.ClearField(node.FieldLastOnlineAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -370,6 +396,26 @@ func (_u *NodeUpdateOne) SetNillableRemark(v *string) *NodeUpdateOne {
 // ClearRemark clears the value of the "remark" field.
 func (_u *NodeUpdateOne) ClearRemark() *NodeUpdateOne {
 	_u.mutation.ClearRemark()
+	return _u
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (_u *NodeUpdateOne) SetLastOnlineAt(v time.Time) *NodeUpdateOne {
+	_u.mutation.SetLastOnlineAt(v)
+	return _u
+}
+
+// SetNillableLastOnlineAt sets the "last_online_at" field if the given value is not nil.
+func (_u *NodeUpdateOne) SetNillableLastOnlineAt(v *time.Time) *NodeUpdateOne {
+	if v != nil {
+		_u.SetLastOnlineAt(*v)
+	}
+	return _u
+}
+
+// ClearLastOnlineAt clears the value of the "last_online_at" field.
+func (_u *NodeUpdateOne) ClearLastOnlineAt() *NodeUpdateOne {
+	_u.mutation.ClearLastOnlineAt()
 	return _u
 }
 
@@ -507,6 +553,12 @@ func (_u *NodeUpdateOne) sqlSave(ctx context.Context) (_node *Node, err error) {
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(node.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastOnlineAt(); ok {
+		_spec.SetField(node.FieldLastOnlineAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastOnlineAtCleared() {
+		_spec.ClearField(node.FieldLastOnlineAt, field.TypeTime)
 	}
 	_node = &Node{config: _u.config}
 	_spec.Assign = _node.assignValues

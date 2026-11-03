@@ -1,4 +1,4 @@
-<!-- 顶栏：高 60，底部 hairline，不投影（04 §3）。左:折叠/汉堡 + 标题；右:节点/搜索/主题/语言/全屏/通知/用户。 -->
+<!-- 顶栏：高 64，半透明底 + hairline。左:折叠/汉堡 + 标题；右:节点/搜索/语言/全屏/深浅色/主题/通知。 -->
 <template>
   <header class="app-topbar">
     <div class="app-topbar__left">
@@ -15,11 +15,6 @@
       <!-- 桌面专属动作：包在普通 div 里，用作用域样式可靠隐藏（子组件多根无法透传 class） -->
       <div class="app-topbar__desktop">
         <CommandSearch />
-        <AppIconButton
-          icon="HOutline:Cog6ToothIcon"
-          :label="t('layout.themeConfig')"
-          @click="openThemeConfig"
-        />
         <LanguageMenu />
         <AppIconButton
           :icon="isFullscreen ? 'HOutline:ArrowsPointingInIcon' : 'HOutline:ArrowsPointingOutIcon'"
@@ -28,6 +23,12 @@
         />
         <span class="app-topbar__divider" />
       </div>
+      <AppIconButton
+        :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+        :label="t('theme.toggleDark')"
+        @click="themeStore.toggleDarkQuick()"
+      />
+      <ThemeQuickMenu />
       <NotificationMenu />
     </div>
   </header>
@@ -38,6 +39,7 @@ import CommandSearch from './CommandSearch.vue'
 import LanguageMenu from './LanguageMenu.vue'
 import NodeSwitcher from './NodeSwitcher.vue'
 import NotificationMenu from './NotificationMenu.vue'
+import ThemeQuickMenu from './ThemeQuickMenu.vue'
 import { translateKnownText } from '@/locales'
 import { useFullscreen } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
@@ -64,9 +66,6 @@ const onToggle = () => {
   if (menuStore.isMobile) menuStore.toggleMobileMenu()
   else menuStore.toggleCollapse()
 }
-const openThemeConfig = () => {
-  themeStore.themeConfigDrawerOpen = true
-}
 </script>
 
 <style scoped lang="scss">
@@ -75,10 +74,11 @@ const openThemeConfig = () => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  height: 60px;
+  height: 64px;
   flex-shrink: 0;
-  padding: 0 16px 0 10px;
-  background: var(--el-bg-color);
+  padding: 0 16px 0 12px;
+  background: color-mix(in srgb, var(--el-bg-color-page) 88%, transparent);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .app-topbar__left {
@@ -88,8 +88,8 @@ const openThemeConfig = () => {
   min-width: 0;
 }
 .app-topbar__title {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
   overflow: hidden;

@@ -20,7 +20,9 @@ import (
 )
 
 type OIDCRepo interface {
-	ListClients(ctx context.Context, page, pageSize int64, keywords *string) ([]*gen.OIDCClient, int64, error)
+	ListClients(ctx context.Context, page, pageSize int64, keywords *string, active *bool) ([]*gen.OIDCClient, int64, error)
+	CountClients(ctx context.Context, keywords *string) (all int64, active int64, err error)
+	MarkClientUsed(ctx context.Context, id string, at time.Time) error
 	GetClientByClientID(ctx context.Context, clientID string) (*gen.OIDCClient, error)
 	CreateClient(ctx context.Context, client *gen.OIDCClient) (*gen.OIDCClient, error)
 	UpdateClient(ctx context.Context, client *gen.OIDCClient) (*gen.OIDCClient, error)
@@ -46,13 +48,63 @@ func NewOIDCUsecase(repo OIDCRepo, config ConfigRepo, users UserRepo) *OIDCUseca
 	}
 }
 
-// Config 返回后台配置页需要展示的 Provider 配置和自动推导端点。
+// Config 返回后台配置页需要展示的 Provider 配置、自动推导端点和签名密钥信息。
 func (u *OIDCUsecase) Config(ctx context.Context, origin string) (*v1.OIDCConfig, error) {
 	config, endpoints, err := u.providerConfig(ctx, origin)
 	if err != nil {
 		return nil, oidcErr(err)
 	}
-	return toOIDCConfig(config, endpoints), nil
+	out := toOIDCConfig(config, endpoints)
+	key, err := u.signingKeyInfo(ctx)
+	if err != nil {
+		return nil, oidcErr(err)
+	}
+	out.SigningKey = key
+	return out, nil
+}
+
+// RotateSigningKey 生成新的签名私钥；旧密钥签发的令牌随即无法通过 JWKS 校验。
+func (u *OIDCUsecase) RotateSigningKey(ctx context.Context) (*v1.OIDCSigningKey, error) {
+	raw, err := oidcserver.GeneratePrivateKeyPEM()
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if err := u.config.BatchUpdate(ctx, map[common.ConfigKey]string{
+		common.ConfigOIDCPrivateKey:          raw,
+		common.ConfigOIDCPrivateKeyRotatedAt: time.Now().UTC().Format(time.RFC3339),
+	}); err != nil {
+		return nil, ErrSystem(err)
+	}
+	info, err := u.signingKeyInfo(ctx)
+	if err != nil {
+		return nil, oidcErr(err)
+	}
+	return info, nil
+}
+
+// signingKeyInfo 返回签名密钥的公开信息；尚未生成时只返回算法。
+func (u *OIDCUsecase) signingKeyInfo(ctx context.Context) (*v1.OIDCSigningKey, error) {
+	info := &v1.OIDCSigningKey{Algorithm: oidcserver.DefaultAllowedIDTokenSigningAlgs}
+	raw, err := u.config.Get(ctx, common.ConfigOIDCPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(raw) == "" {
+		return info, nil
+	}
+	key, err := oidcserver.ParsePrivateKeyPEM(raw)
+	if err != nil {
+		return nil, err
+	}
+	info.KeyId = oidcserver.KeyID(key)
+	rotatedAt, err := u.config.Get(ctx, common.ConfigOIDCPrivateKeyRotatedAt)
+	if err != nil {
+		return nil, err
+	}
+	if t, err := time.Parse(time.RFC3339, rotatedAt); err == nil {
+		info.RotatedAt = timestamppb.New(t)
+	}
+	return info, nil
 }
 
 // UpdateConfig 保存 OIDC Provider 配置。
@@ -82,8 +134,8 @@ func (u *OIDCUsecase) UpdateConfig(ctx context.Context, req *v1.UpdateOIDCConfig
 	return u.Config(ctx, origin)
 }
 
-// ListClients 返回后台客户端列表；列表接口不返回完整 Client Secret。
-func (u *OIDCUsecase) ListClients(ctx context.Context, req *v1.ListOIDCClientsRequest) ([]*v1.OIDCClientInfo, int64, error) {
+// ListClients 返回后台客户端列表与启用统计；列表接口不返回完整 Client Secret。
+func (u *OIDCUsecase) ListClients(ctx context.Context, req *v1.ListOIDCClientsRequest) (*v1.ListOIDCClientsResponse, error) {
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -93,15 +145,26 @@ func (u *OIDCUsecase) ListClients(ctx context.Context, req *v1.ListOIDCClientsRe
 	if req.PageSize > 100 {
 		req.PageSize = 100
 	}
-	clients, total, err := u.repo.ListClients(ctx, req.Page, req.PageSize, req.Keywords)
+	clients, total, err := u.repo.ListClients(ctx, req.Page, req.PageSize, req.Keywords, req.Active)
 	if err != nil {
-		return nil, 0, ErrSystem(err)
+		return nil, ErrSystem(err)
+	}
+	all, active, err := u.repo.CountClients(ctx, req.Keywords)
+	if err != nil {
+		return nil, ErrSystem(err)
 	}
 	list := make([]*v1.OIDCClientInfo, 0, len(clients))
 	for _, client := range clients {
 		list = append(list, toOIDCClientInfo(client, false))
 	}
-	return list, total, nil
+	return &v1.ListOIDCClientsResponse{
+		Page:        req.Page,
+		PageSize:    req.PageSize,
+		Total:       total,
+		Clients:     list,
+		AllCount:    all,
+		ActiveCount: active,
+	}, nil
 }
 
 // CreateClient 生成新的 OIDC 客户端。
@@ -129,6 +192,7 @@ func (u *OIDCUsecase) CreateClient(ctx context.Context, req *v1.CreateOIDCClient
 		RedirectUris: normalizeURIList(req.RedirectUris),
 		Scopes:       normalizeScopeList(req.Scopes),
 		Active:       req.Active,
+		Description:  strings.TrimSpace(req.Description),
 	})
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -150,6 +214,7 @@ func (u *OIDCUsecase) UpdateClient(ctx context.Context, req *v1.UpdateOIDCClient
 		RedirectUris: normalizeURIList(req.RedirectUris),
 		Scopes:       normalizeScopeList(req.Scopes),
 		Active:       req.Active,
+		Description:  strings.TrimSpace(req.Description),
 	})
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -211,10 +276,12 @@ func (u *OIDCUsecase) AuthorizationInfo(ctx context.Context, req *v1.OIDCAuthori
 		return nil, oidcErr(err)
 	}
 	return &v1.OIDCAuthorizationInfo{
-		ClientName:  client.Name,
-		ClientId:    client.ClientID,
-		RedirectUri: req.RedirectUri,
-		Scope:       oidcserver.NormalizeScopes(req.Scope),
+		ClientName:        client.Name,
+		ClientId:          client.ClientID,
+		RedirectUri:       req.RedirectUri,
+		Scope:             oidcserver.NormalizeScopes(req.Scope),
+		ClientDescription: client.Description,
+		IssuerUrl:         config.IssuerURL,
 	}, nil
 }
 
@@ -336,6 +403,7 @@ func (u *OIDCUsecase) ExchangeToken(ctx context.Context, req oidcserver.TokenReq
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	_ = u.repo.MarkClientUsed(context.WithoutCancel(ctx), client.ID, time.Now())
 	return &oidcserver.TokenResponse{
 		AccessToken: accessToken,
 		TokenType:   "Bearer",
@@ -437,7 +505,10 @@ func (u *OIDCUsecase) signingKey(ctx context.Context) (*rsa.PrivateKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := u.config.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigOIDCPrivateKey: raw}); err != nil {
+		if err := u.config.BatchUpdate(ctx, map[common.ConfigKey]string{
+			common.ConfigOIDCPrivateKey:          raw,
+			common.ConfigOIDCPrivateKeyRotatedAt: time.Now().UTC().Format(time.RFC3339),
+		}); err != nil {
 			return nil, err
 		}
 	}
@@ -456,6 +527,10 @@ func toOIDCClientInfo(client *gen.OIDCClient, includeSecret bool) *v1.OIDCClient
 		Active:       client.Active,
 		CreateTime:   timestamppb.New(client.CreateTime),
 		UpdateTime:   timestamppb.New(client.UpdateTime),
+		Description:  client.Description,
+	}
+	if client.LastUsedTime != nil {
+		info.LastUsedTime = timestamppb.New(*client.LastUsedTime)
 	}
 	if includeSecret {
 		info.ClientSecret = client.ClientSecret

@@ -2,10 +2,13 @@ package data
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/user"
 )
 
@@ -43,19 +46,46 @@ func (ur *userRepo) FindByID(ctx context.Context, id string) (*gen.User, error) 
 	return query.First(ctx)
 }
 
-func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status *user.Status, username *string) ([]*gen.User, int64, error) {
+func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, filter biz.UserListFilter) ([]*gen.User, int64, *biz.UserListCounts, error) {
 	query := ur.data.db.User.Query()
 
-	if status != nil {
-		query = query.Where(user.StatusEQ(*status))
+	if filter.Keywords != nil && strings.TrimSpace(*filter.Keywords) != "" {
+		kw := strings.TrimSpace(*filter.Keywords)
+		query = query.Where(user.Or(
+			user.UsernameContains(kw),
+			user.NameContains(kw),
+			user.EmailContains(kw),
+			user.LastLoginIPHasPrefix(kw),
+		))
 	}
-	if username != nil && *username != "" {
-		query = query.Where(user.UsernameContains(*username))
+	if filter.RoleID != nil && *filter.RoleID != "" {
+		query = query.Where(user.HasRoleWith(role.IDEQ(*filter.RoleID)))
+	}
+
+	counts := &biz.UserListCounts{}
+	active, err := query.Clone().Where(user.StatusEQ(user.StatusActive)).Count(ctx)
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	inactive, err := query.Clone().Where(user.StatusNEQ(user.StatusActive)).Count(ctx)
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	todayLogin, err := query.Clone().Where(user.LastLoginAtGTE(today)).Count(ctx)
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	counts.Active, counts.Inactive, counts.TodayLogin = int64(active), int64(inactive), int64(todayLogin)
+
+	if filter.Status != nil {
+		query = query.Where(user.StatusEQ(*filter.Status))
 	}
 
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
 	users, err := query.
@@ -65,10 +95,10 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, status 
 		Order(gen.Asc(user.FieldID)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
-	return users, int64(total), nil
+	return users, int64(total), counts, nil
 }
 
 func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
@@ -115,7 +145,31 @@ func (ur *userRepo) DeleteUser(ctx context.Context, userIds []string) error {
 }
 
 func (ur *userRepo) UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error) {
-	return ur.data.db.User.UpdateOneID(userId).SetPassword(passwordHash).Save(ctx)
+	return ur.data.db.User.UpdateOneID(userId).
+		SetPassword(passwordHash).
+		SetPasswordUpdatedAt(time.Now()).
+		Save(ctx)
+}
+
+// TouchLastLogin 记录用户最近一次登录的时间、来源 IP 与方式（password / email_code）。
+func (ur *userRepo) TouchLastLogin(ctx context.Context, userId, ip, method string) error {
+	return ur.data.db.User.UpdateOneID(userId).
+		SetLastLoginAt(time.Now()).
+		SetLastLoginIP(ip).
+		SetLastLoginMethod(method).
+		Exec(ctx)
+}
+
+func (ur *userRepo) BatchUpdateUsers(ctx context.Context, userIds []string, status *user.Status, roleId *string) (int64, error) {
+	update := ur.data.db.User.Update().Where(user.IDIn(userIds...))
+	if status != nil {
+		update.SetStatus(*status)
+	}
+	if roleId != nil {
+		update.SetRoleID(*roleId)
+	}
+	n, err := update.Save(ctx)
+	return int64(n), err
 }
 
 func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*gen.User, error) {
@@ -137,6 +191,9 @@ func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateM
 	}
 	if req.Username != nil {
 		update.SetUsername(*req.Username)
+	}
+	if req.Phone != nil {
+		update.SetPhone(strings.TrimSpace(*req.Phone))
 	}
 
 	return update.Save(ctx)

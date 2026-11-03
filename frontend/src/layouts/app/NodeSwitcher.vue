@@ -130,7 +130,7 @@ const pick = (id: string, close: () => void) => {
 
 const goManage = (close: () => void) => {
   close()
-  void router.push('/node/list')
+  void router.push('/node')
 }
 
 onMounted(() => {

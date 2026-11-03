@@ -14,6 +14,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
 	"momoko/pkg/response"
+	"momoko/pkg/utils"
 )
 
 // Middleware is a middleware that validates the request message with [FieldBehavior](https://google.aip.dev/203)
@@ -62,6 +63,8 @@ var (
 		{method: http.MethodPost, path: "/api/v1/auth/refresh"}:                         {},
 		{method: http.MethodPost, path: "/api/v1/auth/register/email-code"}:             {},
 		{method: http.MethodPost, path: "/api/v1/auth/login/email-code"}:                {},
+		{method: http.MethodPost, path: "/api/v1/auth/password/reset/email-code"}:       {},
+		{method: http.MethodPost, path: "/api/v1/auth/password/reset"}:                  {},
 		{method: http.MethodGet, path: "/api/v1/system/login-config"}:                   {},
 		{method: http.MethodGet, path: "/api/v1/system/initialize/status"}:              {},
 		{method: http.MethodPost, path: "/api/v1/system/initialize/confirm"}:            {},
@@ -135,6 +138,8 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 				response.WriteError(w, r, ErrTokenInvalid)
 				return
 			}
+			// 记录会话最近活跃（仓储内节流，异步写入）。
+			a.ar.TouchSession(r.Context(), authInfo.SessionID, utils.ClientIP(r))
 			ctx := auth.NewContext(r.Context(), authInfo)
 			// 原始 WS 路由（终端/容器 exec 等）不经 operation 鉴权中间件，这里按路径补做权限校验。
 			if err := a.checkWSPermission(ctx, r.URL.Path); err != nil {

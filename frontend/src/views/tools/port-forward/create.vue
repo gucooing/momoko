@@ -12,7 +12,8 @@
     @confirm="confirm"
   >
     <div class="pf-form">
-      <!-- 名称：次要，但必填；放顶部避免滚动后忘记 -->
+      <!-- 名称 + 备注：名称必填，放顶部避免滚动后忘记 -->
+      <div class="pf-form__row">
       <div class="app-field">
         <label class="app-label app-label--required">{{ t('tools.portForward.ruleName') }}</label>
         <input
@@ -25,6 +26,16 @@
           @keyup.enter="confirm"
         />
         <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
+      <div class="app-field">
+        <label class="app-label">{{ t('tools.portForward.remark') }}</label>
+        <input
+          v-model="form.remark"
+          class="app-input"
+          :placeholder="t('tools.portForward.remarkPlaceholder')"
+          maxlength="120"
+        />
+      </div>
       </div>
 
       <!-- 协议：紧凑分段，紧贴路由（这是规则的第一属性） -->
@@ -156,6 +167,7 @@ const defaultForm = () => ({
   targetAddress: '127.0.0.1',
   targetPort: undefined as number | undefined,
   isEnable: true,
+  remark: '',
 })
 const form = ref(defaultForm())
 
@@ -223,6 +235,7 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress || undefined,
         targetPort: form.value.targetPort,
         isEnable: form.value.isEnable,
+        remark: form.value.remark.trim(),
       })
       info = data?.info
     } else {
@@ -234,6 +247,7 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress,
         targetPort: form.value.targetPort!,
         isEnable: form.value.isEnable,
+        remark: form.value.remark.trim(),
       })
       info = data?.info
     }
@@ -264,6 +278,7 @@ const showDialog = (payload?: PortForwardInfo) => {
     targetAddress: payload.targetAddress || '127.0.0.1',
     targetPort: payload.targetPort || undefined,
     isEnable: payload.isEnable ?? true,
+    remark: payload.remark || '',
   }
   nextTick(() => nameRef.value?.focus())
 }
@@ -272,6 +287,14 @@ defineExpose({ showDialog })
 </script>
 
 <style scoped lang="scss">
+.pf-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (width <= 768px) {
+  .pf-form__row { grid-template-columns: 1fr; }
+}
 .pf-form {
   display: flex;
   flex-direction: column;

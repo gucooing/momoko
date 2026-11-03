@@ -30,7 +30,7 @@ func (o *OpenSSHService) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsReq
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	infos, total, err := o.uc.GetSSHHosts(ctx, req, authCtx.UserID)
+	infos, total, stats, err := o.uc.GetSSHHosts(ctx, req, authCtx.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +39,7 @@ func (o *OpenSSHService) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsReq
 		PageSize: req.PageSize,
 		Total:    total,
 		Infos:    infos,
+		Stats:    stats,
 	}, nil
 }
 
@@ -107,6 +108,18 @@ func (o *OpenSSHService) TestSSHHost(ctx context.Context, req *v1.TestSSHHostReq
 		return nil, biz.ErrTokenInvalid
 	}
 	return o.uc.TestSSHHost(ctx, authCtx.UserID, req)
+}
+
+func (o *OpenSSHService) TestSSHHosts(ctx context.Context, req *v1.TestSSHHostsRequest) (*v1.TestSSHHostsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	results, err := o.uc.TestSSHHosts(ctx, authCtx.UserID, req.Ids)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TestSSHHostsResponse{Results: results}, nil
 }
 
 func (o *OpenSSHService) RunSSHWsConn(conn *websocket.Conn) {

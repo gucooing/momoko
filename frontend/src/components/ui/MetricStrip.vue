@@ -14,12 +14,7 @@ withDefaults(defineProps<{ columns?: number }>(), { columns: 4 })
 .metric-strip {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1px;
-  background: var(--el-border-color-lighter);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--app-shadow-card);
+  gap: 14px;
 }
 @media (width >= 640px) {
   .metric-strip {

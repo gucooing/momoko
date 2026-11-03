@@ -49,6 +49,8 @@ type FrpTunnel struct {
 	MaxBandwidth string `json:"max_bandwidth,omitempty"`
 	// 活跃连接数上限，0=不限；momoko 在每条用户连接时校验
 	MaxActiveConns int `json:"max_active_conns,omitempty"`
+	// 备注
+	Remark string `json:"remark,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FrpTunnelQuery when eager-loading is set.
 	Edges        FrpTunnelEdges `json:"edges"`
@@ -84,7 +86,7 @@ func (*FrpTunnel) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case frptunnel.FieldRemotePort, frptunnel.FieldLocalPort, frptunnel.FieldMaxActiveConns:
 			values[i] = new(sql.NullInt64)
-		case frptunnel.FieldID, frptunnel.FieldName, frptunnel.FieldUserID, frptunnel.FieldProxyType, frptunnel.FieldCustomDomains, frptunnel.FieldSubdomain, frptunnel.FieldLocalIP, frptunnel.FieldCredential, frptunnel.FieldAllowUsers, frptunnel.FieldMaxBandwidth:
+		case frptunnel.FieldID, frptunnel.FieldName, frptunnel.FieldUserID, frptunnel.FieldProxyType, frptunnel.FieldCustomDomains, frptunnel.FieldSubdomain, frptunnel.FieldLocalIP, frptunnel.FieldCredential, frptunnel.FieldAllowUsers, frptunnel.FieldMaxBandwidth, frptunnel.FieldRemark:
 			values[i] = new(sql.NullString)
 		case frptunnel.FieldCreateTime, frptunnel.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -199,6 +201,12 @@ func (_m *FrpTunnel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.MaxActiveConns = int(value.Int64)
 			}
+		case frptunnel.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -284,6 +292,9 @@ func (_m *FrpTunnel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("max_active_conns=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MaxActiveConns))
+	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
 	builder.WriteByte(')')
 	return builder.String()
 }

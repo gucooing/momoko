@@ -61,6 +61,20 @@ service UserService {
       delete: "/api/v1/user/del"
     };
   }
+  // 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+  rpc BatchUpdateUser(BatchUpdateUserRequest) returns (BatchUpdateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/batch"
+      body: "*"
+    };
+  }
+  // 管理员重置用户密码（重置后该用户所有会话下线）
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/user/{user_id}/password"
+      body: "*"
+    };
+  }
 }
 
 // 获取自己信息请求
@@ -86,6 +100,8 @@ message UpdateMeRequest {
   optional string tags = 5;
   // 账户名
   optional string username = 6;
+  // 手机号
+  optional string phone = 7;
 }
 
 // 更新个人资料响应
@@ -100,18 +116,48 @@ message MyLoginLogsRequest {
   int64 page = 1;
   // page size
   int64 page_size = 2;
+  // 按结果筛选（空为全部）
+  optional bool success = 3;
 }
 
 // 获取自己的登录日志响应
 message MyLoginLogsResponse {
   // 登录日志
-  repeated OperationLogInfo logs = 1;
+  repeated LoginLogInfo logs = 1;
   // actual page
   int64 page = 2;
   // actual page size
   int64 page_size = 3;
-  // 总数
+  // 总数（按结果筛选后）
   int64 total = 4;
+  // 成功次数（不受结果筛选影响）
+  int64 success_count = 5;
+  // 失败次数（不受结果筛选影响）
+  int64 failed_count = 6;
+}
+
+// 登录日志
+message LoginLogInfo {
+  // 登录时间
+  google.protobuf.Timestamp time = 1;
+  // ip
+  string ip = 2;
+  // ip 网络范围：loopback（本机） / lan（局域网） / public（公网）
+  string ip_scope = 3;
+  // ua
+  string user_agent = 4;
+  // 登录设备（登录时上报的设备名）
+  string device = 5;
+  // 设备类型：desktop / mobile / tablet / cli
+  string device_type = 6;
+  // 登录方式：password（账号密码） / email_code（邮箱验证码）
+  string method = 7;
+  // 是否成功
+  bool success = 8;
+  // 失败原因
+  string error = 9;
+  // 原始操作详情（JSON）
+  string detail = 10;
 }
 
 // 获取用户列表请求
@@ -122,8 +168,10 @@ message ListUserRequest {
   int64 page_size = 2;
   // status filter
   optional UserStatus status = 3;
-  // username filter
+  // 关键字：匹配用户名 / 昵称 / 邮箱 / 最近登录 IP
   optional string username = 4;
+  // 按角色筛选
+  optional string role_id = 5;
 }
 
 // 获取用户列表响应
@@ -136,6 +184,12 @@ message ListUserResponse {
   int64 page_size = 3;
   // 总数
   int64 total = 4;
+  // 启用数量（按关键字、角色筛选，不受状态筛选影响）
+  int64 active_count = 5;
+  // 未启用数量
+  int64 inactive_count = 6;
+  // 今天登录过的用户数量（按关键字、角色筛选）
+  int64 today_login_count = 7;
 }
 
 // 获取用户详情请求
@@ -176,6 +230,18 @@ message UserInfo {
   string role_name = 11;
   // 角色id
   string role_id = 12;
+  // 最近一次登录时间（未登录过为空）
+  google.protobuf.Timestamp last_login_time = 13;
+  // 最近一次修改密码时间（从未修改为空）
+  google.protobuf.Timestamp password_update_time = 14;
+  // 手机号
+  string phone = 15;
+  // 最近一次登录 IP
+  string last_login_ip = 16;
+  // 最近一次登录方式：password（账号密码） / email_code（邮箱验证码）
+  string last_login_method = 17;
+  // 是否系统内置账号（初始化时创建的超级管理员；不能删除、停用或修改角色）
+  bool is_builtin = 18;
 }
 
 // 用户状态
@@ -268,3 +334,32 @@ message DeleteUserRequest {
 
 // 删除用户响应
 message DeleteUserResponse {}
+
+// 批量修改用户请求
+message BatchUpdateUserRequest {
+  // 用户id
+  repeated string user_ids = 1;
+  // 新状态（不传则不修改）
+  optional UserStatus status = 2;
+  // 新角色id（不传则不修改）
+  optional string role_id = 3;
+}
+
+// 批量修改用户响应
+message BatchUpdateUserResponse {
+  // 实际修改的用户数
+  int64 updated = 1;
+  // 跳过的用户数（内置账号）
+  int64 skipped = 2;
+}
+
+// 重置用户密码请求
+message ResetUserPasswordRequest {
+  // 用户id
+  string user_id = 1;
+  // 新密码
+  string password = 2;
+}
+
+// 重置用户密码响应
+message ResetUserPasswordResponse {}

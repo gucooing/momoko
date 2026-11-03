@@ -1,434 +1,570 @@
-<!-- 初始化向导（P3）：居中卡 + 三步（数据库 → 管理员 → 确认）；
-     对齐登录门面：冷灰页底、hairline 卡、令牌表单、无 EP、无彩色装饰。 -->
+<!-- 初始化向导：左侧主色品牌区（步骤列表 + 贴纸）+ 右侧表单；手机上品牌区在上（当前步标题 + 进度条），
+     表单卡片上浮，底部固定操作条。四步：选择数据库 → 连接信息（测试连接）→ 创建超级管理员 → 完成（等待重启 / 结果）。 -->
 <template>
-  <div class="init-page">
-    <div class="init-page__chrome">
-      <LanguageMenu />
-      <AppIconButton
-        v-if="APP_CONFIG.showThemeConfig"
-        icon="HOutline:Cog6ToothIcon"
-        :label="t('layout.themeConfig')"
-        :box="32"
-        @click="themeStore.themeConfigDrawerOpen = true"
-      />
-      <AppIconButton
-        :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
-        :label="t('login.toggleTheme')"
-        :box="32"
-        @click="toggleTheme"
-      />
-    </div>
+  <div class="init" :class="{ 'is-final': currentStep === 3 }">
+    <section class="init-brand">
+      <span class="init-brand__blob" aria-hidden="true" />
+      <span class="init-brand__ring" aria-hidden="true" />
+      <svg class="init-brand__star" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
+      </svg>
 
-    <div class="init-page__center">
-      <div class="init-card">
-        <div class="init-card__brand">
-          <img :src="APP_CONFIG.logoSrc" alt="" class="init-card__logo" />
-          <span class="init-card__name">{{ APP_CONFIG.name }}</span>
+      <div class="init-brand__logo">
+        <img :src="APP_CONFIG.logoSrc" alt="" />
+        <span>{{ APP_CONFIG.name }}</span>
+        <span class="init-brand__badge">{{ t('initialize.firstRun') }}</span>
+      </div>
+
+      <div class="init-brand__copy">
+        <h1>
+          {{ t('initialize.heroLine1') }}<br />
+          {{ t('initialize.heroLine2', { name: APP_CONFIG.name }) }}
+        </h1>
+        <p>{{ t('initialize.heroDesc') }}</p>
+      </div>
+
+      <!-- 手机：当前步标题 + 进度条 -->
+      <div class="init-brand__mstep">
+        <span class="init-brand__mcount">
+          {{ t('initialize.firstRun') }} · {{ t('initialize.stepOf', { step: currentStep + 1, total: steps.length }) }}
+        </span>
+        <h1 class="init-brand__mtitle">{{ steps[currentStep]?.title }}</h1>
+        <ol class="init-brand__bars" :aria-label="t('initialize.pageTitle')">
+          <li
+            v-for="(s, i) in steps"
+            :key="s.key"
+            :class="{ 'is-on': i <= currentStep }"
+            :aria-label="s.title"
+          />
+        </ol>
+      </div>
+
+      <ol class="init-steps" :aria-label="t('initialize.pageTitle')">
+        <li v-for="(s, i) in steps" :key="s.key">
+          <button
+            type="button"
+            class="init-steps__btn"
+            :class="{ 'is-done': stepDone(i), 'is-on': currentStep === i }"
+            :aria-current="currentStep === i ? 'step' : undefined"
+            :disabled="!canJumpTo(i)"
+            @click="jumpTo(i)"
+          >
+            <span class="init-steps__num">
+              <component
+                :is="menuStore.iconComponents['HOutline:CheckIcon']"
+                v-if="stepDone(i)"
+                class="init-steps__check"
+              />
+              <span v-else class="m-num">{{ i + 1 }}</span>
+            </span>
+            <span class="init-steps__text">
+              <span class="init-steps__title">{{ s.title }}</span>
+              <span class="init-steps__desc">{{ s.desc }}</span>
+            </span>
+          </button>
+        </li>
+      </ol>
+
+      <ul class="init-brand__tags" aria-hidden="true">
+        <li v-for="(tag, i) in heroTags" :key="tag" :class="`is-${i % 3}`">{{ tag }}</li>
+      </ul>
+    </section>
+
+    <section class="init-panel">
+      <div class="init-panel__top">
+        <span class="init-panel__count">
+          <i18n-t scope="global" keypath="initialize.stepOfRich" tag="span">
+            <template #step>
+              <b class="m-num">{{ currentStep + 1 }}</b>
+            </template>
+            <template #total>{{ steps.length }}</template>
+          </i18n-t>
+        </span>
+        <span class="init-panel__spacer" />
+        <div class="init-panel__chrome">
+          <LanguageMenu />
+          <AppIconButton
+            v-if="APP_CONFIG.showThemeConfig"
+            icon="HOutline:SwatchIcon"
+            :label="t('layout.themeConfig')"
+            @click="themeStore.themeConfigDrawerOpen = true"
+          />
+          <AppIconButton
+            :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+            :label="t('login.toggleTheme')"
+            @click="toggleTheme"
+          />
         </div>
+      </div>
+      <div class="init-panel__bars" aria-hidden="true">
+        <span v-for="(s, i) in steps" :key="s.key" :class="{ 'is-on': i <= currentStep }" />
+      </div>
 
-        <header class="init-card__head">
-          <h1 class="init-card__title">{{ t('initialize.pageTitle') }}</h1>
-          <p class="init-card__sub">{{ t('initialize.pageDesc') }}</p>
-        </header>
-
-        <!-- 步骤条：桌面数字+文案；移动紧凑点 -->
-        <nav class="init-steps" :aria-label="t('initialize.pageTitle')">
-          <template v-for="(step, i) in steps" :key="step.key">
-            <div
-              class="init-steps__item"
-              :class="{
-                'is-active': currentStep === i,
-                'is-done': currentStep > i || (i === 2 && confirmed && readyForLogin),
-              }"
-            >
-              <span class="init-steps__dot">
-                <component
-                  :is="menuStore.iconComponents['HOutline:CheckIcon']"
-                  v-if="currentStep > i || (i === 2 && confirmed && readyForLogin && !initError)"
-                  class="init-steps__check"
-                />
-                <template v-else>{{ i + 1 }}</template>
-              </span>
-              <span class="init-steps__label">{{ step.label }}</span>
-            </div>
-            <span v-if="i < steps.length - 1" class="init-steps__line" aria-hidden="true" />
-          </template>
-        </nav>
-
-        <div class="init-card__body">
+      <div class="init-panel__center">
+        <form class="init-form" novalidate @submit.prevent="onNext">
           <Transition name="init-fade" mode="out-in">
-            <!-- Step 0: 数据库 -->
-            <div v-if="currentStep === 0" key="db" class="init-step">
-              <div class="app-field">
-                <label class="app-label">{{ t('initialize.databaseType') }}</label>
-                <AppSelect
-                  v-model="dbForm.type"
-                  :options="dbTypeOptions"
-                  :placeholder="t('initialize.pleaseSelect')"
-                  :error="!!dbErrors.type"
-                  @update:model-value="onDbTypeChange"
-                />
-                <span v-if="dbErrors.type" class="app-field__error">{{ dbErrors.type }}</span>
-              </div>
+            <!-- 第 1 步：选择数据库 -->
+            <div v-if="currentStep === 0" key="type" class="init-step">
+              <header class="init-head">
+                <h2>{{ t('initialize.typeTitle') }}</h2>
+                <p>{{ t('initialize.typeDesc', { name: APP_CONFIG.name }) }}</p>
+              </header>
 
-              <template v-if="dbForm.type === DatabaseType.DatabaseType_SQLite">
-                <div class="app-field">
-                  <label class="app-label" for="init-sqlite-path">
-                    {{ t('initialize.sqlitePath') }}
-                    <span class="init-hint" :title="t('initialize.sqlitePathTip')">?</span>
-                  </label>
-                  <input
-                    id="init-sqlite-path"
-                    v-model="dbForm.sqlitePath"
-                    class="app-input init-input"
-                    :placeholder="t('initialize.sqlitePathPlaceholder')"
-                    autocomplete="off"
-                  />
-                </div>
-              </template>
-
-              <template v-else-if="isRemoteDb">
-                <div class="app-field">
-                  <label class="app-label" for="init-address">{{ t('initialize.address') }}</label>
-                  <input
-                    id="init-address"
-                    v-model="dbForm.address"
-                    class="app-input init-input"
-                    :class="{ 'is-error': dbErrors.address }"
-                    :placeholder="addressPlaceholder"
-                    autocomplete="off"
-                  />
-                  <span v-if="dbErrors.address" class="app-field__error">{{ dbErrors.address }}</span>
-                </div>
-                <div class="app-field">
-                  <label class="app-label" for="init-db-user">{{ t('initialize.databaseUsername') }}</label>
-                  <input
-                    id="init-db-user"
-                    v-model="dbForm.username"
-                    class="app-input init-input"
-                    :class="{ 'is-error': dbErrors.username }"
-                    :placeholder="t('initialize.databaseUsernamePlaceholder')"
-                    autocomplete="username"
-                  />
-                  <span v-if="dbErrors.username" class="app-field__error">{{ dbErrors.username }}</span>
-                </div>
-                <div class="app-field">
-                  <label class="app-label" for="init-db-pass">{{ t('initialize.databasePassword') }}</label>
-                  <div class="init-input-wrap">
-                    <input
-                      id="init-db-pass"
-                      v-model="dbForm.password"
-                      class="app-input init-input init-input--with-icon"
-                      :type="showDbPwd ? 'text' : 'password'"
-                      :placeholder="t('initialize.databasePasswordPlaceholder')"
-                      autocomplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      class="init-eye"
-                      :aria-label="showDbPwd ? t('login.hidePassword') : t('login.showPassword')"
-                      @click="showDbPwd = !showDbPwd"
-                    >
+              <div
+                v-if="dbOptions.length"
+                class="init-dbs"
+                role="radiogroup"
+                :aria-label="t('initialize.databaseType')"
+              >
+                <button
+                  v-for="d in dbOptions"
+                  :key="d.value"
+                  type="button"
+                  role="radio"
+                  class="init-db"
+                  :class="{ 'is-on': dbForm.type === d.value }"
+                  :aria-checked="dbForm.type === d.value"
+                  @click="selectDbType(d.value)"
+                >
+                  <span class="init-db__top">
+                    <span class="m-sticker init-db__av" :class="`m-sticker--${d.tone}`" :style="{ rotate: d.rot }">
+                      {{ d.short }}
+                    </span>
+                    <span class="init-db__chk" :class="{ 'is-on': dbForm.type === d.value }">
                       <component
-                        :is="
-                          menuStore.iconComponents[
-                            showDbPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
-                          ]
-                        "
-                        class="init-eye__icon"
+                        :is="menuStore.iconComponents['HOutline:CheckIcon']"
+                        v-if="dbForm.type === d.value"
                       />
-                    </button>
-                  </div>
-                </div>
-                <div class="app-field">
-                  <label class="app-label" for="init-db-name">{{ t('initialize.databaseName') }}</label>
-                  <input
-                    id="init-db-name"
-                    v-model="dbForm.databaseName"
-                    class="app-input init-input"
-                    :class="{ 'is-error': dbErrors.databaseName }"
-                    :placeholder="t('initialize.databaseNamePlaceholder')"
-                    autocomplete="off"
-                  />
-                  <span v-if="dbErrors.databaseName" class="app-field__error">{{
-                    dbErrors.databaseName
-                  }}</span>
-                </div>
-              </template>
+                    </span>
+                  </span>
+                  <span class="init-db__body">
+                    <span class="init-db__name">
+                      {{ d.name }}
+                      <span v-if="d.recommended" class="init-db__rec">{{ t('initialize.recommended') }}</span>
+                    </span>
+                    <span class="init-db__sub">{{ d.sub }}</span>
+                    <span class="init-db__desc">{{ d.desc }}</span>
+                  </span>
+                </button>
+              </div>
+              <div v-else class="init-note init-note--warn">
+                <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" />
+                <span>{{ t('initialize.noDatabaseTypes') }}</span>
+              </div>
+              <span v-if="dbErrors.type" class="app-field__error">{{ dbErrors.type }}</span>
 
-              <div class="init-actions">
-                <UButton
-                  color="primary"
-                  variant="soft"
-                  class="init-btn"
-                  :loading="testing"
-                  :disabled="!isDbTypeSelected"
-                  @click="handleTestConnection"
-                >
-                  {{ testing ? t('initialize.testConnecting') : t('initialize.testConnection') }}
-                </UButton>
-                <UButton
-                  color="primary"
-                  class="init-btn"
-                  :disabled="!connectionTested"
-                  @click="currentStep = 1"
-                >
-                  {{ t('initialize.nextStep') }}
-                </UButton>
+              <div class="init-note">
+                <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
+                <span>{{ t('initialize.typeTip') }}</span>
               </div>
             </div>
 
-            <!-- Step 1: 管理员 -->
-            <div v-else-if="currentStep === 1" key="admin" class="init-step">
-              <div class="app-field">
-                <label class="app-label" for="init-admin-user">{{ t('initialize.adminUsername') }}</label>
-                <input
-                  id="init-admin-user"
-                  v-model="adminForm.username"
-                  class="app-input init-input"
-                  :class="{ 'is-error': adminErrors.username }"
-                  :placeholder="t('initialize.adminUsernamePlaceholder')"
-                  autocomplete="username"
-                />
-                <span v-if="adminErrors.username" class="app-field__error">{{
-                  adminErrors.username
-                }}</span>
+            <!-- 第 2 步：连接信息 -->
+            <div v-else-if="currentStep === 1" key="conn" class="init-step">
+              <header class="init-head">
+                <h2>{{ t('initialize.connTitle') }}</h2>
+                <i18n-t scope="global" keypath="initialize.connSelected" tag="p">
+                  <template #db>
+                    <b>{{ databaseTypeLabel(dbForm.type) }}</b>
+                  </template>
+                  <template #tip>{{ isSqlite ? t('initialize.connSqliteTip') : t('initialize.connRemoteTip') }}</template>
+                </i18n-t>
+              </header>
+
+              <template v-if="isSqlite">
+                <label class="init-field">
+                  <span class="init-field__label">{{ t('initialize.sqlitePath') }}</span>
+                  <span class="init-fld">
+                    <component :is="menuStore.iconComponents['HOutline:DocumentIcon']" class="init-fld__ico" />
+                    <input
+                      v-model="dbForm.sqlitePath"
+                      class="init-fld__input m-mono"
+                      :placeholder="defaultSqlitePath"
+                      autocomplete="off"
+                      spellcheck="false"
+                      @input="connectionTested = false"
+                    />
+                  </span>
+                  <span class="init-field__hint">{{ t('initialize.sqlitePathHint') }}</span>
+                </label>
+              </template>
+
+              <template v-else>
+                <div class="init-grid init-grid--host">
+                  <label class="init-field">
+                    <span class="init-field__label">{{ t('initialize.host') }}</span>
+                    <span class="init-fld" :class="{ 'is-error': dbErrors.address }">
+                      <component :is="menuStore.iconComponents['HOutline:ServerIcon']" class="init-fld__ico" />
+                      <input
+                        v-model="dbForm.host"
+                        class="init-fld__input m-mono"
+                        placeholder="127.0.0.1"
+                        autocomplete="off"
+                        spellcheck="false"
+                        @input="connectionTested = false"
+                      />
+                    </span>
+                    <span v-if="dbErrors.address" class="app-field__error">{{ dbErrors.address }}</span>
+                  </label>
+                  <label class="init-field">
+                    <span class="init-field__label">{{ t('initialize.port') }}</span>
+                    <span class="init-fld">
+                      <component :is="menuStore.iconComponents['HOutline:HashtagIcon']" class="init-fld__ico" />
+                      <input
+                        v-model="dbForm.port"
+                        class="init-fld__input m-mono"
+                        inputmode="numeric"
+                        :placeholder="defaultPort"
+                        autocomplete="off"
+                        @input="connectionTested = false"
+                      />
+                    </span>
+                  </label>
+                </div>
+                <label class="init-field">
+                  <span class="init-field__label">{{ t('initialize.databaseName') }}</span>
+                  <span class="init-fld" :class="{ 'is-error': dbErrors.databaseName }">
+                    <component :is="menuStore.iconComponents['HOutline:CircleStackIcon']" class="init-fld__ico" />
+                    <input
+                      v-model="dbForm.databaseName"
+                      class="init-fld__input m-mono"
+                      placeholder="momoko"
+                      autocomplete="off"
+                      spellcheck="false"
+                      @input="connectionTested = false"
+                    />
+                  </span>
+                  <span v-if="dbErrors.databaseName" class="app-field__error">{{ dbErrors.databaseName }}</span>
+                </label>
+                <div class="init-grid">
+                  <label class="init-field">
+                    <span class="init-field__label">{{ t('initialize.databaseUsername') }}</span>
+                    <span class="init-fld" :class="{ 'is-error': dbErrors.username }">
+                      <component :is="menuStore.iconComponents['HOutline:UserIcon']" class="init-fld__ico" />
+                      <input
+                        v-model="dbForm.username"
+                        class="init-fld__input m-mono"
+                        placeholder="momoko"
+                        autocomplete="off"
+                        spellcheck="false"
+                        @input="connectionTested = false"
+                      />
+                    </span>
+                    <span v-if="dbErrors.username" class="app-field__error">{{ dbErrors.username }}</span>
+                  </label>
+                  <label class="init-field">
+                    <span class="init-field__label">{{ t('initialize.databasePassword') }}</span>
+                    <span class="init-fld">
+                      <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" class="init-fld__ico" />
+                      <input
+                        v-model="dbForm.password"
+                        class="init-fld__input"
+                        :type="showDbPwd ? 'text' : 'password'"
+                        :placeholder="t('initialize.databasePasswordPlaceholder')"
+                        autocomplete="new-password"
+                        @input="connectionTested = false"
+                      />
+                      <button
+                        type="button"
+                        class="init-fld__eye"
+                        :aria-label="showDbPwd ? t('login.hidePassword') : t('login.showPassword')"
+                        @click="showDbPwd = !showDbPwd"
+                      >
+                        <component
+                          :is="menuStore.iconComponents[showDbPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon']"
+                        />
+                      </button>
+                    </span>
+                  </label>
+                </div>
+              </template>
+
+              <div class="init-test">
+                <div class="init-test__row">
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    class="init-btn init-btn--outline"
+                    icon="i-lucide-plug"
+                    :loading="testing"
+                    @click="handleTestConnection"
+                  >
+                    {{ testing ? t('initialize.testConnecting') : t('initialize.testConnection') }}
+                  </UButton>
+                  <span v-if="!connectionTested && !testing" class="init-field__hint">
+                    {{ t('initialize.testFirst') }}
+                  </span>
+                </div>
+                <div v-if="connectionTested" class="init-ok" role="status">
+                  <span class="init-ok__ico">
+                    <component :is="menuStore.iconComponents['HOutline:CheckIcon']" />
+                  </span>
+                  <span class="init-ok__text">
+                    <b>{{ t('initialize.databaseConnected') }}</b>
+                    <span>{{ testSummary }}</span>
+                  </span>
+                </div>
               </div>
-              <div class="app-field">
-                <label class="app-label" for="init-admin-pass">{{ t('initialize.adminPassword') }}</label>
-                <div class="init-input-wrap">
+            </div>
+
+            <!-- 第 3 步：超级管理员 -->
+            <div v-else-if="currentStep === 2" key="admin" class="init-step">
+              <header class="init-head">
+                <h2>{{ t('initialize.adminTitle') }}</h2>
+                <p>{{ t('initialize.adminDesc') }}</p>
+              </header>
+
+              <div class="init-grid">
+                <label class="init-field">
+                  <span class="init-field__label">{{ t('initialize.adminUsername') }}</span>
+                  <span class="init-fld" :class="{ 'is-error': adminErrors.username }">
+                    <component :is="menuStore.iconComponents['HOutline:UserIcon']" class="init-fld__ico" />
+                    <input
+                      v-model="adminForm.username"
+                      class="init-fld__input"
+                      placeholder="admin"
+                      autocomplete="username"
+                    />
+                  </span>
+                  <span v-if="adminErrors.username" class="app-field__error">{{ adminErrors.username }}</span>
+                </label>
+                <label class="init-field">
+                  <span class="init-field__label">{{ t('initialize.adminEmail') }}</span>
+                  <span class="init-fld" :class="{ 'is-error': adminErrors.email }">
+                    <component :is="menuStore.iconComponents['HOutline:EnvelopeIcon']" class="init-fld__ico" />
+                    <input
+                      v-model="adminForm.email"
+                      class="init-fld__input"
+                      type="email"
+                      placeholder="name@example.com"
+                      autocomplete="email"
+                      inputmode="email"
+                    />
+                  </span>
+                  <span v-if="adminErrors.email" class="app-field__error">{{ adminErrors.email }}</span>
+                </label>
+              </div>
+
+              <label class="init-field">
+                <span class="init-field__label">{{ t('initialize.adminName') }}</span>
+                <span class="init-fld" :class="{ 'is-error': adminErrors.name }">
+                  <component :is="menuStore.iconComponents['HOutline:IdentificationIcon']" class="init-fld__ico" />
+                  <input
+                    v-model="adminForm.name"
+                    class="init-fld__input"
+                    :placeholder="t('initialize.adminNamePlaceholder')"
+                    autocomplete="nickname"
+                  />
+                </span>
+                <span v-if="adminErrors.name" class="app-field__error">{{ adminErrors.name }}</span>
+              </label>
+
+              <div class="init-field">
+                <label class="init-field__label" for="init-admin-pass">{{ t('initialize.adminPassword') }}</label>
+                <span class="init-fld" :class="{ 'is-error': adminErrors.password }">
+                  <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" class="init-fld__ico" />
                   <input
                     id="init-admin-pass"
                     v-model="adminForm.password"
-                    class="app-input init-input init-input--with-icon"
-                    :class="{ 'is-error': adminErrors.password }"
+                    class="init-fld__input"
                     :type="showAdminPwd ? 'text' : 'password'"
-                    :placeholder="t('initialize.adminPasswordPlaceholder')"
+                    :placeholder="t('initialize.passwordPlaceholder')"
                     autocomplete="new-password"
                   />
                   <button
                     type="button"
-                    class="init-eye"
+                    class="init-fld__eye"
                     :aria-label="showAdminPwd ? t('login.hidePassword') : t('login.showPassword')"
                     @click="showAdminPwd = !showAdminPwd"
                   >
                     <component
-                      :is="
-                        menuStore.iconComponents[
-                          showAdminPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
-                        ]
-                      "
-                      class="init-eye__icon"
+                      :is="menuStore.iconComponents[showAdminPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon']"
                     />
                   </button>
+                </span>
+                <div class="init-meter" aria-live="polite">
+                  <span class="init-meter__bars" aria-hidden="true">
+                    <span
+                      v-for="n in 4"
+                      :key="n"
+                      :class="adminForm.password && n <= strength.score ? `is-${strength.tone}` : ''"
+                    />
+                  </span>
+                  <span class="init-meter__label" :class="adminForm.password ? `is-${strength.tone}` : ''">
+                    {{ t('initialize.strength', { level: adminForm.password ? strength.label : '—' }) }}
+                  </span>
                 </div>
-                <span v-if="adminErrors.password" class="app-field__error">{{
-                  adminErrors.password
-                }}</span>
+                <ul class="init-rules">
+                  <li v-for="r in strength.rules" :key="r.key" :class="{ 'is-ok': r.ok }">
+                    <component :is="menuStore.iconComponents[r.ok ? 'HOutline:CheckIcon' : 'HOutline:MinusIcon']" />
+                    {{ r.label }}
+                  </li>
+                </ul>
+                <span v-if="adminErrors.password" class="app-field__error">{{ adminErrors.password }}</span>
               </div>
-              <div class="app-field">
-                <label class="app-label" for="init-admin-pass2">{{
-                  t('initialize.adminConfirmPassword')
-                }}</label>
-                <div class="init-input-wrap">
+
+              <div class="init-field">
+                <label class="init-field__label" for="init-admin-pass2">{{ t('initialize.adminConfirmPassword') }}</label>
+                <span class="init-fld" :class="{ 'is-error': adminErrors.confirmPassword }">
+                  <component :is="menuStore.iconComponents['HOutline:ShieldCheckIcon']" class="init-fld__ico" />
                   <input
                     id="init-admin-pass2"
                     v-model="adminForm.confirmPassword"
-                    class="app-input init-input init-input--with-icon"
-                    :class="{ 'is-error': adminErrors.confirmPassword }"
-                    :type="showAdminPwd2 ? 'text' : 'password'"
-                    :placeholder="t('initialize.adminConfirmPasswordPlaceholder')"
+                    class="init-fld__input"
+                    :type="showAdminPwd ? 'text' : 'password'"
+                    :placeholder="t('initialize.confirmPlaceholder')"
                     autocomplete="new-password"
                   />
-                  <button
-                    type="button"
-                    class="init-eye"
-                    :aria-label="showAdminPwd2 ? t('login.hidePassword') : t('login.showPassword')"
-                    @click="showAdminPwd2 = !showAdminPwd2"
-                  >
-                    <component
-                      :is="
-                        menuStore.iconComponents[
-                          showAdminPwd2 ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
-                        ]
-                      "
-                      class="init-eye__icon"
-                    />
-                  </button>
-                </div>
-                <span v-if="adminErrors.confirmPassword" class="app-field__error">{{
-                  adminErrors.confirmPassword
-                }}</span>
-              </div>
-              <div class="app-field">
-                <label class="app-label" for="init-admin-email">{{ t('initialize.adminEmail') }}</label>
-                <input
-                  id="init-admin-email"
-                  v-model="adminForm.email"
-                  class="app-input init-input"
-                  :class="{ 'is-error': adminErrors.email }"
-                  :placeholder="t('initialize.adminEmailPlaceholder')"
-                  autocomplete="email"
-                  inputmode="email"
-                />
-                <span v-if="adminErrors.email" class="app-field__error">{{ adminErrors.email }}</span>
-              </div>
-              <div class="app-field">
-                <label class="app-label" for="init-admin-name">{{ t('initialize.adminName') }}</label>
-                <input
-                  id="init-admin-name"
-                  v-model="adminForm.name"
-                  class="app-input init-input"
-                  :class="{ 'is-error': adminErrors.name }"
-                  :placeholder="t('initialize.adminNamePlaceholder')"
-                  autocomplete="nickname"
-                />
-                <span v-if="adminErrors.name" class="app-field__error">{{ adminErrors.name }}</span>
-              </div>
-
-              <div class="init-actions">
-                <UButton color="neutral" variant="ghost" class="init-btn" @click="currentStep = 0">
-                  {{ t('initialize.previousStep') }}
-                </UButton>
-                <UButton color="primary" class="init-btn" @click="handleStep2Next">
-                  {{ t('initialize.nextStep') }}
-                </UButton>
+                </span>
+                <span class="init-match" :class="`is-${matchState}`">
+                  <component
+                    :is="
+                      menuStore.iconComponents[
+                        matchState === 'ok'
+                          ? 'HOutline:CheckIcon'
+                          : matchState === 'bad'
+                            ? 'HOutline:XMarkIcon'
+                            : 'HOutline:MinusIcon'
+                      ]
+                    "
+                  />
+                  {{
+                    matchState === 'ok'
+                      ? t('initialize.passwordMatch')
+                      : matchState === 'bad'
+                        ? t('initialize.passwordMismatch')
+                        : t('initialize.adminConfirmPasswordRequired')
+                  }}
+                </span>
               </div>
             </div>
 
-            <!-- Step 2: 确认 / 结果 -->
-            <div v-else key="confirm" class="init-step">
-              <template v-if="!confirmed">
-                <section class="init-summary">
-                  <h2 class="init-summary__title">{{ t('initialize.steps.database') }}</h2>
-                  <dl class="init-summary__grid">
-                    <div class="init-summary__item">
-                      <dt>{{ t('initialize.type') }}</dt>
-                      <dd>{{ databaseTypeLabel(dbForm.type) }}</dd>
-                    </div>
-                    <div
-                      v-if="dbForm.type === DatabaseType.DatabaseType_SQLite"
-                      class="init-summary__item"
-                    >
-                      <dt>{{ t('initialize.filePath') }}</dt>
-                      <dd>
-                        {{
-                          dbForm.sqlitePath ||
-                          `./data/momoko.db${t('initialize.defaultMark')}`
-                        }}
-                      </dd>
-                    </div>
-                    <template v-else>
-                      <div class="init-summary__item">
-                        <dt>{{ t('initialize.address') }}</dt>
-                        <dd>{{ dbForm.address }}</dd>
-                      </div>
-                      <div class="init-summary__item">
-                        <dt>{{ t('initialize.databaseUsername') }}</dt>
-                        <dd>{{ dbForm.username }}</dd>
-                      </div>
-                      <div class="init-summary__item">
-                        <dt>{{ t('initialize.databaseName') }}</dt>
-                        <dd>{{ dbForm.databaseName }}</dd>
-                      </div>
-                    </template>
-                  </dl>
+            <!-- 第 4 步：完成 / 等待重启 / 失败 -->
+            <div v-else key="done" class="init-step">
+              <div class="init-art" :class="`is-${resultTone}`" aria-hidden="true">
+                <span class="init-art__disc" />
+                <span class="init-art__ring" />
+                <span class="init-art__tile">
+                  <component
+                    :is="
+                      menuStore.iconComponents[
+                        resultTone === 'error'
+                          ? 'HOutline:XMarkIcon'
+                          : resultTone === 'success'
+                            ? 'HOutline:CheckIcon'
+                            : 'HOutline:ArrowPathIcon'
+                      ]
+                    "
+                    :class="{ 'is-spin': resultTone === 'pending' }"
+                  />
+                </span>
+                <span class="init-art__tag">{{ resultSticker }}</span>
+              </div>
 
-                  <h2 class="init-summary__title">{{ t('initialize.steps.admin') }}</h2>
-                  <dl class="init-summary__grid">
-                    <div class="init-summary__item">
-                      <dt>{{ t('initialize.adminUsername') }}</dt>
-                      <dd>{{ adminForm.username }}</dd>
-                    </div>
-                    <div class="init-summary__item">
-                      <dt>{{ t('initialize.adminEmail') }}</dt>
-                      <dd>{{ adminForm.email }}</dd>
-                    </div>
-                    <div class="init-summary__item">
-                      <dt>{{ t('initialize.adminName') }}</dt>
-                      <dd>{{ adminForm.name }}</dd>
-                    </div>
-                  </dl>
-                </section>
+              <header class="init-head init-head--done">
+                <h2>{{ resultTitle }}</h2>
+                <p>{{ resultSubTitle }}</p>
+              </header>
 
-                <div class="init-actions">
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    class="init-btn"
-                    :disabled="confirming"
-                    @click="currentStep = 1"
-                  >
-                    {{ t('initialize.previousStep') }}
-                  </UButton>
-                  <UButton
-                    color="primary"
-                    class="init-btn"
-                    :loading="confirming"
-                    @click="handleConfirm"
-                  >
-                    {{ confirming ? t('initialize.initializing') : t('initialize.confirmInitialize') }}
-                  </UButton>
+              <dl class="init-summary">
+                <div>
+                  <dt>{{ t('initialize.summaryDatabase') }}</dt>
+                  <dd>{{ databaseTypeLabel(dbForm.type) }}</dd>
                 </div>
-              </template>
-
-              <template v-else>
-                <div class="init-result" :class="resultTone">
-                  <div class="init-result__icon" aria-hidden="true">
-                    <component
-                      :is="
-                        menuStore.iconComponents[
-                          initError
-                            ? 'HOutline:XCircleIcon'
-                            : readyForLogin
-                              ? 'HOutline:CheckCircleIcon'
-                              : 'HOutline:ArrowPathIcon'
-                        ]
-                      "
-                      class="init-result__svg"
-                      :class="{ 'is-spin': polling && !readyForLogin && !initError }"
-                    />
-                  </div>
-                  <h2 class="init-result__title">{{ resultTitle }}</h2>
-                  <p class="init-result__sub">{{ resultSubTitle }}</p>
-                  <div class="init-actions init-actions--center">
-                    <UButton
-                      v-if="!readyForLogin && !initError"
-                      color="primary"
-                      class="init-btn"
-                      :loading="polling"
-                      @click="goToLogin"
-                    >
-                      {{ polling ? t('initialize.waitingRestart') : t('initialize.goLogin') }}
-                    </UButton>
-                    <UButton
-                      v-if="readyForLogin"
-                      color="primary"
-                      class="init-btn"
-                      @click="goToLogin"
-                    >
-                      {{ t('initialize.goLogin') }}
-                    </UButton>
-                    <UButton
-                      v-if="initError"
-                      color="primary"
-                      class="init-btn"
-                      @click="resetInit"
-                    >
-                      {{ t('initialize.reconfigure') }}
-                    </UButton>
-                  </div>
+                <div>
+                  <dt>{{ t('initialize.summaryAdmin') }}</dt>
+                  <dd>{{ adminForm.username }}</dd>
                 </div>
-              </template>
+                <div class="is-wide">
+                  <dt>{{ t('initialize.summaryTarget') }}</dt>
+                  <dd class="m-mono is-mono">{{ dbTarget }}</dd>
+                </div>
+                <div v-if="status.hostname">
+                  <dt>{{ t('initialize.summaryNode') }}</dt>
+                  <dd>{{ status.hostname }}</dd>
+                </div>
+                <div v-if="status.version">
+                  <dt>{{ t('initialize.summaryVersion') }}</dt>
+                  <dd class="m-mono is-mono">{{ status.version }}</dd>
+                </div>
+                <div class="is-wide">
+                  <dt>{{ t('initialize.summaryAddress') }}</dt>
+                  <dd class="m-mono is-mono">{{ accessAddress }}</dd>
+                </div>
+              </dl>
+
+              <div v-if="readyForLogin" class="init-next">
+                <span class="init-next__label">{{ t('initialize.nextUp') }}</span>
+                <div class="init-next__links">
+                  <RouterLink
+                    v-for="l in nextLinks"
+                    :key="l.path"
+                    class="init-next__link"
+                    :to="{ path: '/login', query: { redirect: l.path } }"
+                  >
+                    <component :is="menuStore.iconComponents[l.icon]" />
+                    {{ l.label }}
+                  </RouterLink>
+                </div>
+              </div>
+
+              <div class="init-done-actions">
+                <UButton
+                  v-if="initError"
+                  color="primary"
+                  class="init-btn init-btn--primary init-btn--lg"
+                  icon="i-lucide-arrow-left"
+                  @click="resetInit"
+                >
+                  {{ t('initialize.reconfigure') }}
+                </UButton>
+                <UButton
+                  v-else
+                  color="primary"
+                  class="init-btn init-btn--primary init-btn--lg"
+                  trailing-icon="i-lucide-arrow-right"
+                  :loading="polling && !readyForLogin"
+                  @click="goToLogin"
+                >
+                  {{ polling && !readyForLogin ? t('initialize.waitingRestart') : t('initialize.goLogin') }}
+                </UButton>
+              </div>
             </div>
           </Transition>
-        </div>
+
+          <!-- 底部导航（第 4 步不显示）；手机上固定在底部 -->
+          <div v-if="currentStep < 3" class="init-foot">
+            <UButton
+              v-if="currentStep > 0"
+              color="neutral"
+              variant="outline"
+              class="init-btn init-btn--outline init-btn--back"
+              icon="i-lucide-arrow-left"
+              :aria-label="t('initialize.previousStep')"
+              :disabled="confirming"
+              @click="currentStep--"
+            >
+              <span class="init-btn__text">{{ t('initialize.previousStep') }}</span>
+            </UButton>
+            <span class="init-foot__spacer" />
+            <UButton
+              type="submit"
+              color="primary"
+              class="init-btn init-btn--primary init-btn--next"
+              trailing-icon="i-lucide-arrow-right"
+              :loading="confirming"
+              :disabled="nextDisabled"
+            >
+              {{ nextLabel }}
+            </UButton>
+          </div>
+        </form>
       </div>
 
-      <p class="init-page__copy">
-        {{ t('login.copyright', { year: currentYear, name: APP_CONFIG.name }) }}
+      <p class="init-panel__copy">
+        {{ footerText }}
       </p>
-    </div>
+    </section>
 
     <ThemeConfig />
   </div>
@@ -436,16 +572,9 @@
 
 <script setup lang="ts">
 import { APP_CONFIG } from '@/config/app.config'
-import {
-  getInitializeStatus,
-  testDatabaseConnection,
-  confirmInitialize,
-} from '@/api/initialize'
+import { getInitializeStatus, testDatabaseConnection, confirmInitialize } from '@/api/initialize'
 import { DatabaseType } from '@/types/v1/initialize'
-import type {
-  TestInitializeDatabaseRequest,
-  ConfirmInitializeRequest,
-} from '@/types/v1/initialize'
+import type { TestInitializeDatabaseRequest, ConfirmInitializeRequest } from '@/types/v1/initialize'
 import { useFeedback } from '@/utils/feedback'
 import ThemeConfig from '@/components/ThemeConfig.vue'
 import LanguageMenu from '@/layouts/app/LanguageMenu.vue'
@@ -454,6 +583,7 @@ import { useI18n } from 'vue-i18n'
 defineOptions({ name: 'InitializeView' })
 
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const FALLBACK_SQLITE_PATH = './data/momoko.db'
 
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
@@ -465,15 +595,21 @@ const currentYear = new Date().getFullYear()
 const currentStep = ref(0)
 const testing = ref(false)
 const connectionTested = ref(false)
+const testResult = reactive({ serverVersion: '', latencyMs: 0 })
 const confirming = ref(false)
 const confirmed = ref(false)
 const polling = ref(false)
 const readyForLogin = ref(false)
 const initError = ref(false)
-const supportedDatabaseTypes = ref<DatabaseType[]>([])
 const showDbPwd = ref(false)
 const showAdminPwd = ref(false)
-const showAdminPwd2 = ref(false)
+
+const status = reactive({
+  supportedDatabaseTypes: [] as DatabaseType[],
+  version: '',
+  hostname: '',
+  defaultSqlitePath: '',
+})
 
 const dbErrors = ref<Record<string, string>>({})
 const adminErrors = ref<Record<string, string>>({})
@@ -481,7 +617,8 @@ const adminErrors = ref<Record<string, string>>({})
 interface DbForm {
   type: DatabaseType | ''
   sqlitePath: string
-  address: string
+  host: string
+  port: string
   username: string
   password: string
   databaseName: string
@@ -498,7 +635,8 @@ interface AdminForm {
 const dbForm = reactive<DbForm>({
   type: '',
   sqlitePath: '',
-  address: '',
+  host: '',
+  port: '',
   username: '',
   password: '',
   databaseName: '',
@@ -512,32 +650,116 @@ const adminForm = reactive<AdminForm>({
   name: '',
 })
 
+const footerText = computed(() =>
+  [
+    status.version ? `${APP_CONFIG.name} ${status.version}` : APP_CONFIG.name,
+    t('login.copyright', { year: currentYear, name: APP_CONFIG.name }),
+  ].join(' · '),
+)
+
+const heroTags = computed(() => t('initialize.heroTags').split(',').filter(Boolean))
+
 const steps = computed(() => [
-  { key: 'database', label: t('initialize.steps.database') },
-  { key: 'admin', label: t('initialize.steps.admin') },
-  { key: 'confirm', label: t('initialize.steps.confirm') },
+  { key: 'type', title: t('initialize.typeTitle'), desc: t('initialize.typeStepDesc') },
+  { key: 'conn', title: t('initialize.connTitle'), desc: t('initialize.connStepDesc') },
+  { key: 'admin', title: t('initialize.adminTitle'), desc: t('initialize.adminStepDesc') },
+  { key: 'done', title: t('initialize.doneTitle'), desc: t('initialize.doneStepDesc') },
 ])
 
-const isDbTypeSelected = computed(() => !!dbForm.type)
-const isRemoteDb = computed(
-  () =>
-    dbForm.type === DatabaseType.DatabaseType_MySQL ||
-    dbForm.type === DatabaseType.DatabaseType_PostgreSQL,
+const isSqlite = computed(() => dbForm.type === DatabaseType.DatabaseType_SQLite)
+const defaultSqlitePath = computed(() => status.defaultSqlitePath || FALLBACK_SQLITE_PATH)
+const defaultPort = computed(() => (dbForm.type === DatabaseType.DatabaseType_PostgreSQL ? '5432' : '3306'))
+
+const DB_META: Record<string, { short: string; name: string; tone: string; rot: string; key: string }> = {
+  [DatabaseType.DatabaseType_SQLite]: { short: 'S', name: 'SQLite', tone: 'a', rot: '-5deg', key: 'sqlite' },
+  [DatabaseType.DatabaseType_MySQL]: { short: 'My', name: 'MySQL', tone: 'a2', rot: '4deg', key: 'mysql' },
+  [DatabaseType.DatabaseType_PostgreSQL]: { short: 'Pg', name: 'PostgreSQL', tone: 'p', rot: '-3deg', key: 'postgres' },
+}
+
+const dbOptions = computed(() =>
+  status.supportedDatabaseTypes
+    .filter((dt) => DB_META[dt])
+    .map((dt) => {
+      const meta = DB_META[dt]!
+      return {
+        value: dt,
+        short: meta.short,
+        name: meta.name,
+        tone: meta.tone,
+        rot: meta.rot,
+        recommended: dt === DatabaseType.DatabaseType_SQLite,
+        sub: t(`initialize.db.${meta.key}.sub`),
+        desc: t(`initialize.db.${meta.key}.desc`),
+      }
+    }),
 )
 
-const addressPlaceholder = computed(() => {
-  if (dbForm.type === DatabaseType.DatabaseType_MySQL) return t('initialize.mysqlAddressPlaceholder')
-  if (dbForm.type === DatabaseType.DatabaseType_PostgreSQL)
-    return t('initialize.postgresAddressPlaceholder')
-  return t('initialize.addressPlaceholder')
+const remoteAddress = computed(() => {
+  const host = dbForm.host.trim()
+  const port = dbForm.port.trim()
+  if (!host) return ''
+  return port ? `${host}:${port}` : host
 })
 
-const dbTypeOptions = computed(() =>
-  supportedDatabaseTypes.value.map((dt) => ({
-    label: databaseTypeLabel(dt),
-    value: dt as DatabaseType | '',
-  })),
-)
+const dbTarget = computed(() => {
+  if (isSqlite.value) return dbForm.sqlitePath.trim() || defaultSqlitePath.value
+  const addr = remoteAddress.value.includes(':') ? remoteAddress.value : `${remoteAddress.value}:${defaultPort.value}`
+  const user = dbForm.username.trim()
+  return `${user ? `${user}@` : ''}${addr}/${dbForm.databaseName.trim()}`
+})
+
+const accessAddress = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''))
+
+const testSummary = computed(() => {
+  const parts: string[] = []
+  if (testResult.serverVersion) parts.push(`${databaseTypeLabel(dbForm.type)} ${testResult.serverVersion}`)
+  parts.push(t('initialize.latency', { ms: testResult.latencyMs }))
+  parts.push(isSqlite.value ? t('initialize.sqliteWritable') : t('initialize.remoteWritable', { db: dbForm.databaseName.trim() }))
+  return parts.join(' · ')
+})
+
+// 密码强度：仅提示，不参与校验（后端规则仍以 passwordMin 为准）
+const strength = computed(() => {
+  const pw = adminForm.password
+  const checks = [
+    { key: 'len', ok: pw.length >= 8, label: t('initialize.rules.length') },
+    { key: 'case', ok: /[a-z]/.test(pw) && /[A-Z]/.test(pw), label: t('initialize.rules.case') },
+    { key: 'digit', ok: /\d/.test(pw), label: t('initialize.rules.digit') },
+    { key: 'symbol', ok: /[^A-Za-z0-9]/.test(pw), label: t('initialize.rules.symbol') },
+  ]
+  let score = checks.filter((c) => c.ok).length
+  if (pw.length < 6) score = Math.min(score, 1)
+  const tones = ['bad', 'bad', 'warn', 'ok', 'ok'] as const
+  const levels = ['veryWeak', 'weak', 'fair', 'strong', 'veryStrong'] as const
+  return {
+    score: Math.max(score, 1),
+    tone: tones[score] ?? 'bad',
+    label: t(`initialize.levels.${levels[score] ?? 'weak'}`),
+    rules: checks,
+  }
+})
+
+const matchState = computed<'idle' | 'ok' | 'bad'>(() => {
+  if (!adminForm.confirmPassword) return 'idle'
+  return adminForm.confirmPassword === adminForm.password ? 'ok' : 'bad'
+})
+
+const nextLabel = computed(() => {
+  if (currentStep.value === 2) return confirming.value ? t('initialize.initializing') : t('initialize.finish')
+  return t('initialize.nextStep')
+})
+
+const nextDisabled = computed(() => {
+  if (currentStep.value === 0) return !dbForm.type
+  if (currentStep.value === 1) return !connectionTested.value || testing.value
+  return false
+})
+
+const resultTone = computed<'error' | 'success' | 'pending'>(() => {
+  if (initError.value) return 'error'
+  if (readyForLogin.value) return 'success'
+  return 'pending'
+})
 
 const resultTitle = computed(() => {
   if (initError.value) return t('initialize.resultFailed')
@@ -551,33 +773,48 @@ const resultSubTitle = computed(() => {
   return t('initialize.resultRunningSubtitle')
 })
 
-const resultTone = computed(() => {
-  if (initError.value) return 'is-error'
-  if (readyForLogin.value) return 'is-success'
-  return 'is-pending'
+const resultSticker = computed(() => {
+  if (initError.value) return t('initialize.stickerFailed')
+  if (readyForLogin.value) return t('initialize.stickerDone')
+  return t('initialize.stickerRunning')
 })
 
+const nextLinks = computed(() => [
+  { path: '/instance/list', icon: 'HOutline:CubeIcon', label: t('initialize.linkApp') },
+  { path: '/docker?tab=config', icon: 'HOutline:ServerStackIcon', label: t('initialize.linkDocker') },
+  { path: '/node', icon: 'HOutline:ServerIcon', label: t('initialize.linkNode') },
+])
+
+function stepDone(i: number) {
+  if (i === 3) return confirmed.value && readyForLogin.value && !initError.value
+  return currentStep.value > i
+}
+
+// 只能回到已完成的步骤（提交后不再允许跳转）
+function canJumpTo(i: number) {
+  return !confirmed.value && !confirming.value && i < currentStep.value
+}
+
+function jumpTo(i: number) {
+  if (canJumpTo(i)) currentStep.value = i
+}
+
 function databaseTypeLabel(type: DatabaseType | ''): string {
-  switch (type) {
-    case DatabaseType.DatabaseType_SQLite:
-      return 'SQLite'
-    case DatabaseType.DatabaseType_MySQL:
-      return 'MySQL'
-    case DatabaseType.DatabaseType_PostgreSQL:
-      return 'PostgreSQL'
-    default:
-      return type || t('initialize.pleaseSelect')
-  }
+  if (type && DB_META[type]) return DB_META[type]!.name
+  return type || t('initialize.pleaseSelect')
 }
 
 function toggleTheme() {
   themeStore.toggleThemeMode(themeStore.isDarkTheme ? 'light' : 'dark')
 }
 
-function onDbTypeChange() {
+function selectDbType(type: DatabaseType) {
+  if (dbForm.type === type) return
+  dbForm.type = type
   connectionTested.value = false
   dbForm.sqlitePath = ''
-  dbForm.address = ''
+  dbForm.host = ''
+  dbForm.port = ''
   dbForm.username = ''
   dbForm.password = ''
   dbForm.databaseName = ''
@@ -588,8 +825,8 @@ function validateDbForm(): boolean {
   const next: Record<string, string> = {}
   if (!dbForm.type) {
     next.type = t('initialize.databaseTypeRequired')
-  } else if (dbForm.type !== DatabaseType.DatabaseType_SQLite) {
-    if (!dbForm.address.trim()) next.address = t('initialize.addressRequired')
+  } else if (!isSqlite.value) {
+    if (!dbForm.host.trim()) next.address = t('initialize.addressRequired')
     if (!dbForm.username.trim()) next.username = t('initialize.databaseUsernameRequired')
     if (!dbForm.databaseName.trim()) next.databaseName = t('initialize.databaseNameRequired')
   }
@@ -622,14 +859,14 @@ function validateAdminForm(): boolean {
 }
 
 function buildDatabaseConfig() {
-  const isSqlite = dbForm.type === DatabaseType.DatabaseType_SQLite
+  const sqlite = isSqlite.value
   return {
     type: dbForm.type as DatabaseType,
-    sqlitePath: isSqlite ? dbForm.sqlitePath : '',
-    address: isSqlite ? '' : dbForm.address,
-    username: isSqlite ? '' : dbForm.username,
-    password: isSqlite ? '' : dbForm.password,
-    databaseName: isSqlite ? '' : dbForm.databaseName,
+    sqlitePath: sqlite ? dbForm.sqlitePath.trim() : '',
+    address: sqlite ? '' : remoteAddress.value,
+    username: sqlite ? '' : dbForm.username.trim(),
+    password: sqlite ? '' : dbForm.password,
+    databaseName: sqlite ? '' : dbForm.databaseName.trim(),
   }
 }
 
@@ -641,10 +878,10 @@ function buildConfirmPayload(): ConfirmInitializeRequest {
   return {
     database: buildDatabaseConfig(),
     admin: {
-      username: adminForm.username,
+      username: adminForm.username.trim(),
       password: adminForm.password,
-      email: adminForm.email,
-      name: adminForm.name,
+      email: adminForm.email.trim(),
+      name: adminForm.name.trim(),
     },
   }
 }
@@ -658,7 +895,8 @@ async function handleTestConnection() {
   try {
     const { data } = await testDatabaseConnection(buildTestPayload())
     if (data?.success) {
-      fb.success(t('initialize.databaseConnected'))
+      testResult.serverVersion = data.serverVersion || ''
+      testResult.latencyMs = Number(data.latencyMs) || 0
       connectionTested.value = true
     } else {
       fb.error(t('initialize.databaseConnectFailed'))
@@ -670,9 +908,24 @@ async function handleTestConnection() {
   }
 }
 
-function handleStep2Next() {
-  if (!validateAdminForm()) return
-  currentStep.value = 2
+function onNext() {
+  if (nextDisabled.value || confirming.value) return
+  if (currentStep.value === 0) {
+    if (!dbForm.type) {
+      dbErrors.value = { type: t('initialize.databaseTypeRequired') }
+      return
+    }
+    currentStep.value = 1
+    return
+  }
+  if (currentStep.value === 1) {
+    if (connectionTested.value) currentStep.value = 2
+    return
+  }
+  if (currentStep.value === 2) {
+    if (!validateAdminForm()) return
+    handleConfirm()
+  }
 }
 
 async function handleConfirm() {
@@ -681,21 +934,22 @@ async function handleConfirm() {
 
   try {
     const { data } = await confirmInitialize(buildConfirmPayload())
+    confirmed.value = true
+    currentStep.value = 3
     if (data?.initialized) {
-      confirmed.value = true
       if (data.restartRequired) {
         startPolling()
       } else {
         readyForLogin.value = true
       }
     } else {
-      confirmed.value = true
       initError.value = true
       fb.error(t('initialize.resultFailed'))
     }
   } catch {
     confirmed.value = true
     initError.value = true
+    currentStep.value = 3
   } finally {
     confirming.value = false
   }
@@ -754,9 +1008,17 @@ function resetInit() {
 async function loadInitStatus() {
   try {
     const { data } = await getInitializeStatus()
-    supportedDatabaseTypes.value = data?.supportedDatabaseTypes || []
+    status.supportedDatabaseTypes = data?.supportedDatabaseTypes || []
+    status.version = data?.version || ''
+    status.hostname = data?.hostname || ''
+    status.defaultSqlitePath = data?.defaultSqlitePath || ''
     if (data?.initialized) {
       router.replace({ path: '/login' })
+      return
+    }
+    // 默认选中推荐的 SQLite，减少一步操作
+    if (!dbForm.type && status.supportedDatabaseTypes.includes(DatabaseType.DatabaseType_SQLite)) {
+      dbForm.type = DatabaseType.DatabaseType_SQLite
     }
   } catch {
     // 接口不可用时保持在初始化页
@@ -768,358 +1030,858 @@ onBeforeUnmount(clearPoll)
 </script>
 
 <style scoped lang="scss">
-.init-page {
+.init {
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
-  background: var(--el-bg-color-page);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 16px 32px;
-  box-sizing: border-box;
+  background: var(--el-bg-color);
 }
 
-.init-page__chrome {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  z-index: 2;
-}
-
-.init-page__center {
-  width: min(100%, 480px);
+/* ---- 品牌区 ---- */
+.init-brand {
+  position: relative;
+  flex: 1 1 460px;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 16px;
+  gap: 36px;
+  padding: 48px 52px;
+  overflow: hidden;
+  background: var(--m-p);
+  color: var(--m-pOn);
 }
-
-.init-card {
-  background: var(--el-bg-color);
-  border: 1px solid var(--app-hairline);
-  border-radius: var(--app-radius-lg);
-  padding: 28px 28px 24px;
-  box-shadow: var(--app-shadow-sm);
+.init-brand__blob {
+  position: absolute;
+  right: -140px;
+  bottom: -170px;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  background: var(--m-a);
 }
-
-.init-card__brand {
+.init-brand__ring {
+  position: absolute;
+  right: 70px;
+  top: 46%;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 20px solid var(--m-a2);
+}
+.init-brand__star {
+  position: absolute;
+  right: 70px;
+  top: 96px;
+  width: 56px;
+  height: 56px;
+  fill: var(--m-pOn);
+}
+.init-brand__logo {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 12px;
+  font-family: var(--app-font-display);
+  font-size: 1.625rem;
+  font-weight: 800;
 }
-
-.init-card__logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  flex-shrink: 0;
+.init-brand__logo img {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  object-fit: cover;
+  transform: rotate(-6deg);
+  box-shadow: 0 0 0 3px var(--m-pOn);
 }
-
-.init-card__name {
-  font-size: 1.0625rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--el-text-color-primary);
-}
-
-.init-card__head {
-  margin-bottom: 16px;
-}
-
-.init-card__title {
-  margin: 0 0 4px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  color: var(--el-text-color-primary);
-}
-
-.init-card__sub {
-  margin: 0;
+.init-brand__badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--m-a);
+  color: var(--m-aOn);
   font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--el-text-color-secondary);
+  font-weight: 800;
+  transform: rotate(3deg);
+}
+.init-brand__copy {
+  position: relative;
+  max-width: 480px;
+}
+.init-brand__copy h1 {
+  font-family: var(--app-font-display);
+  font-size: clamp(2.25rem, 3.6vw, 3rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.init-brand__copy p {
+  margin-top: 14px;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  opacity: 0.94;
+}
+.init-brand__mstep {
+  display: none;
 }
 
-/* —— 步骤条 —— */
 .init-steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.init-steps__btn {
   display: flex;
   align-items: center;
-  gap: 0;
-  margin-bottom: 20px;
-  padding: 10px 4px;
-  border-radius: var(--app-radius-sm);
-  background: var(--el-fill-color-light);
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--m-pOn);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  transition: background-color 0.15s;
+}
+.init-steps__btn:disabled {
+  opacity: 1;
+}
+.init-steps__btn.is-done:not(:disabled) {
+  cursor: pointer;
+}
+.init-steps__btn.is-done:not(:disabled):hover {
+  background: color-mix(in srgb, var(--m-pOn) 12%, transparent);
+}
+.init-steps__btn.is-on {
+  background: color-mix(in srgb, var(--m-pOn) 16%, transparent);
+}
+.init-steps__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 2px solid var(--m-pOn);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.init-steps__btn.is-done .init-steps__num {
+  border-color: transparent;
+  background: var(--m-pOn);
+  color: var(--m-p);
+}
+.init-steps__btn.is-on .init-steps__num {
+  border-color: transparent;
+  background: var(--m-a);
+  color: var(--m-aOn);
+  transform: rotate(-6deg);
+}
+.init-steps__check {
+  width: 20px;
+  height: 20px;
+  stroke-width: 3;
+}
+.init-steps__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.init-steps__title {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.init-steps__desc {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  opacity: 0.92;
+}
+.init-brand__tags {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+.init-brand__tags li {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.35);
+}
+.init-brand__tags .is-0 {
+  background: var(--m-pOn);
+  color: var(--m-p);
+  transform: rotate(-5deg);
+}
+.init-brand__tags .is-1 {
+  background: var(--m-ink);
+  color: var(--m-bg);
+  transform: rotate(4deg);
+}
+.init-brand__tags .is-2 {
+  background: var(--m-a2);
+  color: #fff;
+  transform: rotate(-3deg);
 }
 
-.init-steps__item {
+/* ---- 表单区 ---- */
+.init-panel {
+  position: relative;
+  flex: 1 1 600px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 40px 28px;
+  background: var(--el-bg-color);
+}
+.init-panel__top {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
-  padding: 0 4px;
 }
-
-.init-steps__dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  font-size: 0.6875rem;
+.init-panel__count {
+  font-size: 0.875rem;
   font-weight: 700;
-  flex-shrink: 0;
   color: var(--el-text-color-secondary);
-  background: var(--el-bg-color);
-  box-shadow: inset 0 0 0 1px var(--app-hairline);
-  font-variant-numeric: tabular-nums;
 }
-
-.init-steps__item.is-active .init-steps__dot {
-  color: #fff;
-  background: var(--el-color-primary);
-  box-shadow: none;
+.init-panel__count b {
+  color: var(--el-text-color-primary);
 }
-
-.init-steps__item.is-done .init-steps__dot {
-  color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
-  box-shadow: none;
+.init-panel__spacer {
+  flex: 1;
 }
-
-.init-steps__check {
-  width: 12px;
-  height: 12px;
+.init-panel__chrome {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-
-.init-steps__label {
+.init-panel__bars {
+  display: flex;
+  gap: 8px;
+}
+.init-panel__bars span {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
+  transition: background-color 0.2s;
+}
+.init-panel__bars span.is-on {
+  background: var(--m-p);
+}
+.init-panel__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+.init-panel__copy {
+  margin: 0;
+  text-align: center;
   font-size: 0.75rem;
-  font-weight: 600;
   color: var(--el-text-color-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.init-steps__item.is-active .init-steps__label {
-  color: var(--el-color-primary);
+.init-form {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
-
-.init-steps__item.is-done .init-steps__label {
-  color: var(--el-text-color-regular);
-}
-
-.init-steps__line {
-  width: 12px;
-  height: 1px;
-  flex-shrink: 0;
-  background: var(--app-hairline);
-}
-
-/* —— 表单区 —— */
 .init-step {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 22px;
 }
-
-.init-input {
-  height: 36px;
-  font-size: 0.8125rem;
-}
-
-.init-input-wrap {
-  position: relative;
-}
-
-.init-input--with-icon {
-  padding-right: 36px;
-}
-
-.init-eye {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: var(--app-radius-sm);
-  background: transparent;
-  color: var(--el-text-color-placeholder);
-  cursor: pointer;
-  padding: 0;
-}
-
-.init-eye:hover {
-  color: var(--el-text-color-regular);
-  background: var(--el-fill-color-light);
-}
-
-.init-eye__icon {
-  width: 16px;
-  height: 16px;
-}
-
-.init-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  margin-left: 4px;
-  border-radius: 999px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--el-text-color-placeholder);
-  background: var(--el-fill-color);
-  cursor: help;
-  vertical-align: middle;
-}
-
-.init-actions {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.init-actions--center {
-  justify-content: center;
-}
-
-.init-btn {
-  height: 36px !important;
-  min-width: 6.5rem;
-  font-size: 0.8125rem !important;
-  font-weight: 600;
-}
-
-/* —— 摘要 —— */
-.init-summary {
+.init-head {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
-
-.init-summary__title {
+.init-head h2 {
   margin: 0;
-  padding-bottom: 6px;
-  font-size: 0.8125rem;
-  font-weight: 650;
+  font-family: var(--app-font-display);
+  font-size: 2.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
-  border-bottom: 1px solid var(--app-hairline);
 }
-
-.init-summary__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
+.init-head p {
   margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--el-text-color-secondary);
+}
+.init-head p b {
+  color: var(--el-text-color-primary);
 }
 
-.init-summary__item {
-  min-width: 0;
-
-  dt {
-    margin: 0 0 2px;
-    font-size: 0.75rem;
-    color: var(--el-text-color-secondary);
-  }
-
-  dd {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--el-text-color-primary);
-    word-break: break-all;
-  }
+/* 数据库卡片 */
+.init-dbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
 }
-
-/* —— 结果 —— */
-.init-result {
+.init-db {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 12px 0 4px;
+  gap: 12px;
+  padding: 18px;
+  border: 2px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+.init-db:hover {
+  border-color: var(--el-text-color-secondary);
+  transform: translateY(-2px);
+}
+.init-db.is-on,
+.init-db.is-on:hover {
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 4px var(--m-pSoft);
+}
+.init-db__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 8px;
 }
-
-.init-result__icon {
-  display: flex;
+.init-db__av {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+}
+.init-db__chk {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  margin-bottom: 4px;
-}
-
-.init-result.is-success .init-result__icon {
-  color: var(--el-color-success);
-  background: color-mix(in srgb, var(--el-color-success) 12%, transparent);
-}
-
-.init-result.is-error .init-result__icon {
-  color: var(--el-color-danger);
-  background: color-mix(in srgb, var(--el-color-danger) 12%, transparent);
-}
-
-.init-result.is-pending .init-result__icon {
-  color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
-}
-
-.init-result__svg {
+  flex: none;
   width: 26px;
   height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--el-border-color-light);
+}
+.init-db__chk.is-on {
+  border-color: transparent;
+  background: var(--m-p);
+  color: var(--m-pOn);
+}
+.init-db__chk svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 3;
+}
+.init-db__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.init-db__name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--app-font-display);
+  font-size: 1.1875rem;
+  font-weight: 800;
+}
+.init-db__rec {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--m-a);
+  color: var(--m-aOn);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.init-db__sub {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--m-pInk);
+}
+.init-db__desc {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--el-text-color-secondary);
 }
 
-.init-result__svg.is-spin {
-  animation: init-spin 1s linear infinite;
+.init-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--app-radius);
+  background: var(--m-a2Soft);
+  color: var(--el-text-color-primary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.init-note svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+.init-note--warn {
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
 }
 
+/* 字段 */
+.init-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.init-grid--host {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.init-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.init-field__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.init-field__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+}
+.init-fld {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 6px 0 16px;
+  border-radius: var(--app-radius);
+  border: 1.5px solid transparent;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+.init-fld:focus-within {
+  border-color: var(--m-p);
+  background: var(--el-bg-color);
+}
+.init-fld.is-error {
+  border-color: var(--m-bad);
+}
+.init-fld__ico {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.init-fld__input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 10px 0 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  outline: none;
+}
+.init-fld__input.m-mono {
+  font-size: 0.875rem;
+}
+.init-fld__input::placeholder {
+  color: var(--el-text-color-placeholder);
+}
+.init-fld__eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+.init-fld__eye:hover {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+}
+.init-fld__eye svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 测试连接 */
+.init-test {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.init-test__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.init-ok {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--app-radius);
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.init-ok__ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--m-ok);
+  color: var(--el-bg-color);
+  transform: rotate(-5deg);
+}
+.init-ok__ico svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+.init-ok__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.init-ok__text b {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.init-ok__text span {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow-wrap: anywhere;
+}
+
+/* 密码强度 */
+.init-meter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.init-meter__bars {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+.init-meter__bars span {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--el-border-color-light);
+  transition: background-color 0.2s;
+}
+.init-meter__bars .is-bad {
+  background: var(--m-bad);
+}
+.init-meter__bars .is-warn {
+  background: var(--m-warn);
+}
+.init-meter__bars .is-ok {
+  background: var(--m-ok);
+}
+.init-meter__label {
+  min-width: 64px;
+  text-align: right;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--el-text-color-secondary);
+}
+.init-meter__label.is-bad {
+  color: var(--m-bad);
+}
+.init-meter__label.is-warn {
+  color: var(--m-warn);
+}
+.init-meter__label.is-ok {
+  color: var(--m-ok);
+}
+.init-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.init-rules li,
+.init-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+}
+.init-rules li svg,
+.init-match svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.6;
+}
+.init-rules li.is-ok,
+.init-match.is-ok {
+  color: var(--m-ok);
+}
+.init-match {
+  font-weight: 700;
+}
+.init-match.is-bad {
+  color: var(--m-bad);
+}
+
+/* 完成步 */
+.init-art {
+  position: relative;
+  height: 150px;
+}
+.init-art__disc {
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--m-a);
+}
+.init-art__ring {
+  position: absolute;
+  left: 96px;
+  top: 70px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 12px solid var(--m-a2);
+}
+.init-art__tile {
+  position: absolute;
+  left: 30px;
+  top: 26px;
+  width: 96px;
+  height: 96px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  transform: rotate(-8deg);
+  box-shadow: var(--app-shadow-brand);
+}
+.init-art.is-error .init-art__tile {
+  background: var(--m-bad);
+}
+.init-art__tile svg {
+  width: 50px;
+  height: 50px;
+  stroke-width: 2.6;
+}
+.init-art__tile svg.is-spin {
+  width: 44px;
+  height: 44px;
+  stroke-width: 2.2;
+  animation: init-spin 1.1s linear infinite;
+}
 @keyframes init-spin {
   to {
     transform: rotate(360deg);
   }
 }
-
-.init-result__title {
-  margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--el-text-color-primary);
+.init-art__tag {
+  position: absolute;
+  left: 190px;
+  top: 40px;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--m-ink);
+  color: var(--m-bg);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: rotate(4deg);
 }
-
-.init-result__sub {
-  margin: 0 0 8px;
-  max-width: 28rem;
-  font-size: 0.8125rem;
-  line-height: 1.5;
+.init-head--done h2 {
+  font-size: 2.25rem;
+}
+.init-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: var(--app-radius-lg);
+  background: var(--el-fill-color-light);
+}
+.init-summary > div {
+  min-width: 0;
+}
+.init-summary .is-wide {
+  grid-column: 1 / -1;
+}
+.init-summary dt {
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--el-text-color-secondary);
 }
+.init-summary dd {
+  margin: 4px 0 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.init-summary dd.is-mono {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.init-next {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.init-next__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.init-next__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.init-next__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+.init-next__link:hover {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.init-next__link svg {
+  width: 16px;
+  height: 16px;
+}
+.init-done-actions {
+  display: flex;
+}
 
-.init-page__copy {
-  margin: 0;
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--el-text-color-placeholder);
+/* 按钮 */
+.init-btn {
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+.init-btn--outline {
+  background: var(--el-bg-color) !important;
+  box-shadow: inset 0 0 0 1.5px var(--el-border-color-light) !important;
+}
+.init-btn--outline:hover:not(:disabled) {
+  color: var(--m-pInk) !important;
+  box-shadow: inset 0 0 0 1.5px var(--m-p) !important;
+}
+.init-btn--back,
+.init-btn--next {
+  min-height: 52px;
+  padding: 0 22px;
+}
+.init-btn--next {
+  padding: 0 26px;
+  font-size: 0.9375rem !important;
+  box-shadow: var(--app-shadow-brand);
+}
+.init-btn--lg {
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 1rem !important;
+  box-shadow: var(--app-shadow-brand);
+}
+
+.init-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 18px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.init-foot__spacer {
+  flex: 1;
 }
 
 .init-fade-enter-active,
@@ -1137,46 +1899,246 @@ onBeforeUnmount(clearPoll)
   transform: translateY(-3px);
 }
 
-@media (max-width: 480px) {
-  .init-page {
-    padding: 56px 12px 32px;
-    align-items: center;
+/* ---- 窄屏：品牌区在上（步骤标题 + 进度条），表单卡片上浮，底部操作条固定 ---- */
+@media (width < 900px) {
+  .init {
+    overflow-x: clip;
   }
-
-  .init-card {
-    padding: 22px 18px 20px;
-    border-radius: var(--app-radius);
+  /* 品牌区不建立定位上下文：装饰相对整页定位，表单卡片的背景与圆角才能盖住品牌区底部 */
+  .init-brand {
+    position: static;
+    flex: 1 1 100%;
+    min-height: 0;
+    padding: 16px 20px 56px;
+    gap: 0;
   }
-
-  .init-steps__label {
+  .init-brand__blob {
+    right: -60px;
+    top: -70px;
+    bottom: auto;
+    width: 200px;
+    height: 200px;
+  }
+  .init-brand__ring {
     display: none;
   }
-
-  .init-steps__item {
-    flex: 0 0 auto;
+  .init-brand__star,
+  .init-brand__copy,
+  .init-steps,
+  .init-brand__tags,
+  .init-brand__badge {
+    display: none;
+  }
+  .init-brand__logo {
+    font-size: 1.25rem;
+    padding-right: 150px;
+  }
+  .init-brand__logo img {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .init-brand__mstep {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-top: 22px;
+  }
+  .init-brand__mcount {
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .init-brand__mtitle {
+    margin: 4px 0 14px;
+    font-family: var(--app-font-display);
+    font-size: 1.875rem;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .init-brand__bars {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .init-brand__bars li {
+    flex: 1;
+    height: 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--m-pOn) 30%, transparent);
+  }
+  .init-brand__bars li.is-on {
+    background: var(--m-a);
   }
 
-  .init-steps {
-    justify-content: center;
+  .init-panel {
+    position: static;
+    flex: 1 1 100%;
+    margin-top: -32px;
+    padding: 24px 20px 0;
     gap: 0;
-    padding: 10px 12px;
+    border-radius: 30px 30px 0 0;
+  }
+  .init-panel__top {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--el-bg-color);
+    box-shadow: var(--app-shadow-sm);
+  }
+  .init-panel__count,
+  .init-panel__spacer,
+  .init-panel__bars,
+  .init-head h2 {
+    display: none;
+  }
+  .init-head--done h2 {
+    display: block;
+    font-size: 1.75rem;
+  }
+  .init-panel__center {
+    padding-top: 0;
+  }
+  .init-panel__copy {
+    padding: 8px 0 20px;
+  }
+  .init-form,
+  .init-step {
+    gap: 18px;
+  }
+  .init-head p {
+    font-size: 0.875rem;
   }
 
-  .init-steps__line {
-    width: 28px;
-    margin: 0 4px;
+  .init-dbs {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .init-db {
+    position: relative;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+  .init-db:hover {
+    transform: none;
+  }
+  .init-db__top {
+    display: contents;
+  }
+  .init-db__av {
+    order: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    font-size: 1.125rem;
+  }
+  .init-db__body {
+    order: 1;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+  .init-db__chk {
+    order: 2;
+  }
+  .init-db__name {
+    font-size: 1.0625rem;
+  }
+  .init-note {
+    padding: 12px 14px;
+    font-size: 0.8125rem;
   }
 
-  .init-summary__grid {
+  .init-grid {
     grid-template-columns: 1fr;
   }
+  .init-grid--host {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 10px;
+  }
 
-  .init-actions {
-    flex-direction: column-reverse;
+  .init-art {
+    height: 120px;
+    flex: none;
+  }
+  .init-art__disc {
+    left: 0;
+    top: 6px;
+    width: 100px;
+    height: 100px;
+  }
+  .init-art__ring {
+    left: 78px;
+    top: 58px;
+    width: 56px;
+    height: 56px;
+    border-width: 10px;
+  }
+  .init-art__tile {
+    left: 18px;
+    top: 18px;
+    width: 80px;
+    height: 80px;
+    border-radius: 26px;
+  }
+  .init-art__tile svg {
+    width: 42px;
+    height: 42px;
+  }
+  .init-art__tag {
+    left: 150px;
+    top: 34px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 0.875rem;
+  }
+  .init-summary {
+    padding: 14px;
+    gap: 12px;
+    border-radius: 18px;
+  }
+  .init-summary dd {
+    font-size: 0.875rem;
+  }
+  .init-done-actions :deep(.init-btn) {
+    width: 100%;
+  }
 
-    .init-btn {
-      width: 100%;
-    }
+  .init-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 0 -20px;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    background: var(--el-bg-color);
+  }
+  .init-foot__spacer {
+    display: none;
+  }
+  .init-btn--back {
+    width: 56px;
+    min-height: 56px;
+    padding: 0 !important;
+    flex: none;
+  }
+  .init-btn--back .init-btn__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .init-btn--next {
+    flex: 1;
+    min-height: 56px;
   }
 }
 </style>

@@ -23,6 +23,62 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type PortForwardStatus int32
+
+const (
+	// 未指定
+	PortForwardStatus_PORT_FORWARD_STATUS_UNSPECIFIED PortForwardStatus = 0
+	// 运行中
+	PortForwardStatus_PORT_FORWARD_STATUS_RUNNING PortForwardStatus = 1
+	// 已停用
+	PortForwardStatus_PORT_FORWARD_STATUS_STOPPED PortForwardStatus = 2
+	// 异常
+	PortForwardStatus_PORT_FORWARD_STATUS_ERROR PortForwardStatus = 3
+)
+
+// Enum value maps for PortForwardStatus.
+var (
+	PortForwardStatus_name = map[int32]string{
+		0: "PORT_FORWARD_STATUS_UNSPECIFIED",
+		1: "PORT_FORWARD_STATUS_RUNNING",
+		2: "PORT_FORWARD_STATUS_STOPPED",
+		3: "PORT_FORWARD_STATUS_ERROR",
+	}
+	PortForwardStatus_value = map[string]int32{
+		"PORT_FORWARD_STATUS_UNSPECIFIED": 0,
+		"PORT_FORWARD_STATUS_RUNNING":     1,
+		"PORT_FORWARD_STATUS_STOPPED":     2,
+		"PORT_FORWARD_STATUS_ERROR":       3,
+	}
+)
+
+func (x PortForwardStatus) Enum() *PortForwardStatus {
+	p := new(PortForwardStatus)
+	*p = x
+	return p
+}
+
+func (x PortForwardStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PortForwardStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_network_proto_enumTypes[0].Descriptor()
+}
+
+func (PortForwardStatus) Type() protoreflect.EnumType {
+	return &file_v1_network_proto_enumTypes[0]
+}
+
+func (x PortForwardStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PortForwardStatus.Descriptor instead.
+func (PortForwardStatus) EnumDescriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{0}
+}
+
 type PortForwardType int32
 
 const (
@@ -59,11 +115,11 @@ func (x PortForwardType) String() string {
 }
 
 func (PortForwardType) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_network_proto_enumTypes[0].Descriptor()
+	return file_v1_network_proto_enumTypes[1].Descriptor()
 }
 
 func (PortForwardType) Type() protoreflect.EnumType {
-	return &file_v1_network_proto_enumTypes[0]
+	return &file_v1_network_proto_enumTypes[1]
 }
 
 func (x PortForwardType) Number() protoreflect.EnumNumber {
@@ -72,7 +128,7 @@ func (x PortForwardType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PortForwardType.Descriptor instead.
 func (PortForwardType) EnumDescriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{0}
+	return file_v1_network_proto_rawDescGZIP(), []int{1}
 }
 
 type ListPortForwardsRequest struct {
@@ -86,7 +142,9 @@ type ListPortForwardsRequest struct {
 	// 转发类型
 	Type *PortForwardType `protobuf:"varint,4,opt,name=type,proto3,enum=v1.PortForwardType,oneof" json:"type,omitempty"`
 	// 是否启用
-	IsEnable      *bool `protobuf:"varint,5,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	IsEnable *bool `protobuf:"varint,5,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	// 运行状态
+	Status        *PortForwardStatus `protobuf:"varint,6,opt,name=status,proto3,enum=v1.PortForwardStatus,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -156,6 +214,13 @@ func (x *ListPortForwardsRequest) GetIsEnable() bool {
 	return false
 }
 
+func (x *ListPortForwardsRequest) GetStatus() PortForwardStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return PortForwardStatus_PORT_FORWARD_STATUS_UNSPECIFIED
+}
+
 type ListPortForwardsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// actual page
@@ -165,7 +230,9 @@ type ListPortForwardsResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 列表
-	Infos         []*PortForwardInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*PortForwardInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	// 概览（当前用户全部规则，不受筛选影响）
+	Overview      *PortForwardOverview `protobuf:"bytes,5,opt,name=overview,proto3" json:"overview,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -228,6 +295,176 @@ func (x *ListPortForwardsResponse) GetInfos() []*PortForwardInfo {
 	return nil
 }
 
+func (x *ListPortForwardsResponse) GetOverview() *PortForwardOverview {
+	if x != nil {
+		return x.Overview
+	}
+	return nil
+}
+
+// 端口转发概览
+type PortForwardOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 规则总数
+	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 运行中
+	Running int64 `protobuf:"varint,2,opt,name=running,proto3" json:"running,omitempty"`
+	// 已停用
+	Stopped int64 `protobuf:"varint,3,opt,name=stopped,proto3" json:"stopped,omitempty"`
+	// 异常（已启用但未能运行或目标不可达）
+	Error int64 `protobuf:"varint,4,opt,name=error,proto3" json:"error,omitempty"`
+	// TCP 规则数
+	Tcp int64 `protobuf:"varint,5,opt,name=tcp,proto3" json:"tcp,omitempty"`
+	// UDP 规则数
+	Udp int64 `protobuf:"varint,6,opt,name=udp,proto3" json:"udp,omitempty"`
+	// 当前活动连接合计
+	ActiveConnections int64 `protobuf:"varint,7,opt,name=active_connections,json=activeConnections,proto3" json:"active_connections,omitempty"`
+	// 当前入站速率合计(字节/秒)
+	RateIn int64 `protobuf:"varint,8,opt,name=rate_in,json=rateIn,proto3" json:"rate_in,omitempty"`
+	// 当前出站速率合计(字节/秒)
+	RateOut int64 `protobuf:"varint,9,opt,name=rate_out,json=rateOut,proto3" json:"rate_out,omitempty"`
+	// 今日入站流量(字节)
+	TodayBytesIn int64 `protobuf:"varint,10,opt,name=today_bytes_in,json=todayBytesIn,proto3" json:"today_bytes_in,omitempty"`
+	// 今日出站流量(字节)
+	TodayBytesOut int64 `protobuf:"varint,11,opt,name=today_bytes_out,json=todayBytesOut,proto3" json:"today_bytes_out,omitempty"`
+	// 昨日流量合计(字节，入站+出站)
+	YesterdayBytes int64 `protobuf:"varint,12,opt,name=yesterday_bytes,json=yesterdayBytes,proto3" json:"yesterday_bytes,omitempty"`
+	// 今日并发连接峰值
+	TodayPeakConnections int64 `protobuf:"varint,13,opt,name=today_peak_connections,json=todayPeakConnections,proto3" json:"today_peak_connections,omitempty"`
+	// 今日峰值出现时间
+	TodayPeakTime *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=today_peak_time,json=todayPeakTime,proto3" json:"today_peak_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortForwardOverview) Reset() {
+	*x = PortForwardOverview{}
+	mi := &file_v1_network_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortForwardOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortForwardOverview) ProtoMessage() {}
+
+func (x *PortForwardOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortForwardOverview.ProtoReflect.Descriptor instead.
+func (*PortForwardOverview) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PortForwardOverview) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetRunning() int64 {
+	if x != nil {
+		return x.Running
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetStopped() int64 {
+	if x != nil {
+		return x.Stopped
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetError() int64 {
+	if x != nil {
+		return x.Error
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetTcp() int64 {
+	if x != nil {
+		return x.Tcp
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetUdp() int64 {
+	if x != nil {
+		return x.Udp
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetActiveConnections() int64 {
+	if x != nil {
+		return x.ActiveConnections
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetRateIn() int64 {
+	if x != nil {
+		return x.RateIn
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetRateOut() int64 {
+	if x != nil {
+		return x.RateOut
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetTodayBytesIn() int64 {
+	if x != nil {
+		return x.TodayBytesIn
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetTodayBytesOut() int64 {
+	if x != nil {
+		return x.TodayBytesOut
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetYesterdayBytes() int64 {
+	if x != nil {
+		return x.YesterdayBytes
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetTodayPeakConnections() int64 {
+	if x != nil {
+		return x.TodayPeakConnections
+	}
+	return 0
+}
+
+func (x *PortForwardOverview) GetTodayPeakTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.TodayPeakTime
+	}
+	return nil
+}
+
 type CreatePortForwardRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称
@@ -243,14 +480,16 @@ type CreatePortForwardRequest struct {
 	// 目标端口
 	TargetPort int32 `protobuf:"varint,6,opt,name=target_port,json=targetPort,proto3" json:"target_port,omitempty"`
 	// 是否启用
-	IsEnable      bool `protobuf:"varint,7,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
+	IsEnable bool `protobuf:"varint,7,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
+	// 备注
+	Remark        string `protobuf:"bytes,8,opt,name=remark,proto3" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreatePortForwardRequest) Reset() {
 	*x = CreatePortForwardRequest{}
-	mi := &file_v1_network_proto_msgTypes[2]
+	mi := &file_v1_network_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -262,7 +501,7 @@ func (x *CreatePortForwardRequest) String() string {
 func (*CreatePortForwardRequest) ProtoMessage() {}
 
 func (x *CreatePortForwardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[2]
+	mi := &file_v1_network_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -275,7 +514,7 @@ func (x *CreatePortForwardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePortForwardRequest.ProtoReflect.Descriptor instead.
 func (*CreatePortForwardRequest) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{2}
+	return file_v1_network_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreatePortForwardRequest) GetName() string {
@@ -327,6 +566,13 @@ func (x *CreatePortForwardRequest) GetIsEnable() bool {
 	return false
 }
 
+func (x *CreatePortForwardRequest) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
 type CreatePortForwardResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 端口转发详情
@@ -337,7 +583,7 @@ type CreatePortForwardResponse struct {
 
 func (x *CreatePortForwardResponse) Reset() {
 	*x = CreatePortForwardResponse{}
-	mi := &file_v1_network_proto_msgTypes[3]
+	mi := &file_v1_network_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +595,7 @@ func (x *CreatePortForwardResponse) String() string {
 func (*CreatePortForwardResponse) ProtoMessage() {}
 
 func (x *CreatePortForwardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[3]
+	mi := &file_v1_network_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -362,7 +608,7 @@ func (x *CreatePortForwardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePortForwardResponse.ProtoReflect.Descriptor instead.
 func (*CreatePortForwardResponse) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{3}
+	return file_v1_network_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreatePortForwardResponse) GetInfo() *PortForwardInfo {
@@ -382,7 +628,7 @@ type GetPortForwardRequest struct {
 
 func (x *GetPortForwardRequest) Reset() {
 	*x = GetPortForwardRequest{}
-	mi := &file_v1_network_proto_msgTypes[4]
+	mi := &file_v1_network_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -394,7 +640,7 @@ func (x *GetPortForwardRequest) String() string {
 func (*GetPortForwardRequest) ProtoMessage() {}
 
 func (x *GetPortForwardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[4]
+	mi := &file_v1_network_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -407,7 +653,7 @@ func (x *GetPortForwardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortForwardRequest.ProtoReflect.Descriptor instead.
 func (*GetPortForwardRequest) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{4}
+	return file_v1_network_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetPortForwardRequest) GetId() string {
@@ -427,7 +673,7 @@ type GetPortForwardResponse struct {
 
 func (x *GetPortForwardResponse) Reset() {
 	*x = GetPortForwardResponse{}
-	mi := &file_v1_network_proto_msgTypes[5]
+	mi := &file_v1_network_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -439,7 +685,7 @@ func (x *GetPortForwardResponse) String() string {
 func (*GetPortForwardResponse) ProtoMessage() {}
 
 func (x *GetPortForwardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[5]
+	mi := &file_v1_network_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -452,7 +698,7 @@ func (x *GetPortForwardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortForwardResponse.ProtoReflect.Descriptor instead.
 func (*GetPortForwardResponse) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{5}
+	return file_v1_network_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetPortForwardResponse) GetInfo() *PortForwardInfo {
@@ -479,14 +725,16 @@ type UpdatePortForwardRequest struct {
 	// 目标端口
 	TargetPort *int32 `protobuf:"varint,7,opt,name=target_port,json=targetPort,proto3,oneof" json:"target_port,omitempty"`
 	// 是否启用
-	IsEnable      *bool `protobuf:"varint,8,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	IsEnable *bool `protobuf:"varint,8,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	// 备注
+	Remark        *string `protobuf:"bytes,9,opt,name=remark,proto3,oneof" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdatePortForwardRequest) Reset() {
 	*x = UpdatePortForwardRequest{}
-	mi := &file_v1_network_proto_msgTypes[6]
+	mi := &file_v1_network_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +746,7 @@ func (x *UpdatePortForwardRequest) String() string {
 func (*UpdatePortForwardRequest) ProtoMessage() {}
 
 func (x *UpdatePortForwardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[6]
+	mi := &file_v1_network_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +759,7 @@ func (x *UpdatePortForwardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePortForwardRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePortForwardRequest) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{6}
+	return file_v1_network_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdatePortForwardRequest) GetId() string {
@@ -570,6 +818,13 @@ func (x *UpdatePortForwardRequest) GetIsEnable() bool {
 	return false
 }
 
+func (x *UpdatePortForwardRequest) GetRemark() string {
+	if x != nil && x.Remark != nil {
+		return *x.Remark
+	}
+	return ""
+}
+
 type UpdatePortForwardResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 端口转发详情
@@ -580,7 +835,7 @@ type UpdatePortForwardResponse struct {
 
 func (x *UpdatePortForwardResponse) Reset() {
 	*x = UpdatePortForwardResponse{}
-	mi := &file_v1_network_proto_msgTypes[7]
+	mi := &file_v1_network_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -592,7 +847,7 @@ func (x *UpdatePortForwardResponse) String() string {
 func (*UpdatePortForwardResponse) ProtoMessage() {}
 
 func (x *UpdatePortForwardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[7]
+	mi := &file_v1_network_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +860,7 @@ func (x *UpdatePortForwardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePortForwardResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePortForwardResponse) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{7}
+	return file_v1_network_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdatePortForwardResponse) GetInfo() *PortForwardInfo {
@@ -625,7 +880,7 @@ type DeletePortForwardRequest struct {
 
 func (x *DeletePortForwardRequest) Reset() {
 	*x = DeletePortForwardRequest{}
-	mi := &file_v1_network_proto_msgTypes[8]
+	mi := &file_v1_network_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -637,7 +892,7 @@ func (x *DeletePortForwardRequest) String() string {
 func (*DeletePortForwardRequest) ProtoMessage() {}
 
 func (x *DeletePortForwardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[8]
+	mi := &file_v1_network_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -650,7 +905,7 @@ func (x *DeletePortForwardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePortForwardRequest.ProtoReflect.Descriptor instead.
 func (*DeletePortForwardRequest) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{8}
+	return file_v1_network_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeletePortForwardRequest) GetId() string {
@@ -668,7 +923,7 @@ type DeletePortForwardResponse struct {
 
 func (x *DeletePortForwardResponse) Reset() {
 	*x = DeletePortForwardResponse{}
-	mi := &file_v1_network_proto_msgTypes[9]
+	mi := &file_v1_network_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -680,7 +935,7 @@ func (x *DeletePortForwardResponse) String() string {
 func (*DeletePortForwardResponse) ProtoMessage() {}
 
 func (x *DeletePortForwardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[9]
+	mi := &file_v1_network_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +948,7 @@ func (x *DeletePortForwardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePortForwardResponse.ProtoReflect.Descriptor instead.
 func (*DeletePortForwardResponse) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{9}
+	return file_v1_network_proto_rawDescGZIP(), []int{10}
 }
 
 type GetPortForwardStatsRequest struct {
@@ -710,7 +965,7 @@ type GetPortForwardStatsRequest struct {
 
 func (x *GetPortForwardStatsRequest) Reset() {
 	*x = GetPortForwardStatsRequest{}
-	mi := &file_v1_network_proto_msgTypes[10]
+	mi := &file_v1_network_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -722,7 +977,7 @@ func (x *GetPortForwardStatsRequest) String() string {
 func (*GetPortForwardStatsRequest) ProtoMessage() {}
 
 func (x *GetPortForwardStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[10]
+	mi := &file_v1_network_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -735,7 +990,7 @@ func (x *GetPortForwardStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortForwardStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetPortForwardStatsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{10}
+	return file_v1_network_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetPortForwardStatsRequest) GetId() string {
@@ -767,13 +1022,15 @@ type GetPortForwardStatsResponse struct {
 	Points []*PortForwardStatPoint `protobuf:"bytes,2,rep,name=points,proto3" json:"points,omitempty"`
 	// 采样间隔(秒)
 	SampleIntervalSeconds int64 `protobuf:"varint,3,opt,name=sample_interval_seconds,json=sampleIntervalSeconds,proto3" json:"sample_interval_seconds,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// 当前活动连接（TCP 连接 / UDP 会话）
+	Connections   []*PortForwardConnection `protobuf:"bytes,4,rep,name=connections,proto3" json:"connections,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetPortForwardStatsResponse) Reset() {
 	*x = GetPortForwardStatsResponse{}
-	mi := &file_v1_network_proto_msgTypes[11]
+	mi := &file_v1_network_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +1042,7 @@ func (x *GetPortForwardStatsResponse) String() string {
 func (*GetPortForwardStatsResponse) ProtoMessage() {}
 
 func (x *GetPortForwardStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[11]
+	mi := &file_v1_network_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +1055,7 @@ func (x *GetPortForwardStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortForwardStatsResponse.ProtoReflect.Descriptor instead.
 func (*GetPortForwardStatsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{11}
+	return file_v1_network_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetPortForwardStatsResponse) GetSnapshot() *PortForwardStat {
@@ -822,6 +1079,302 @@ func (x *GetPortForwardStatsResponse) GetSampleIntervalSeconds() int64 {
 	return 0
 }
 
+func (x *GetPortForwardStatsResponse) GetConnections() []*PortForwardConnection {
+	if x != nil {
+		return x.Connections
+	}
+	return nil
+}
+
+// 端口转发的一条活动连接
+type PortForwardConnection struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 连接 id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 客户端地址 ip:port
+	RemoteAddr string `protobuf:"bytes,2,opt,name=remote_addr,json=remoteAddr,proto3" json:"remote_addr,omitempty"`
+	// 是否来自局域网/本机
+	Lan bool `protobuf:"varint,3,opt,name=lan,proto3" json:"lan,omitempty"`
+	// 建立时间
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 入站流量(字节，客户端→目标)
+	BytesIn int64 `protobuf:"varint,5,opt,name=bytes_in,json=bytesIn,proto3" json:"bytes_in,omitempty"`
+	// 出站流量(字节，目标→客户端)
+	BytesOut      int64 `protobuf:"varint,6,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortForwardConnection) Reset() {
+	*x = PortForwardConnection{}
+	mi := &file_v1_network_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortForwardConnection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortForwardConnection) ProtoMessage() {}
+
+func (x *PortForwardConnection) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortForwardConnection.ProtoReflect.Descriptor instead.
+func (*PortForwardConnection) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *PortForwardConnection) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PortForwardConnection) GetRemoteAddr() string {
+	if x != nil {
+		return x.RemoteAddr
+	}
+	return ""
+}
+
+func (x *PortForwardConnection) GetLan() bool {
+	if x != nil {
+		return x.Lan
+	}
+	return false
+}
+
+func (x *PortForwardConnection) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *PortForwardConnection) GetBytesIn() int64 {
+	if x != nil {
+		return x.BytesIn
+	}
+	return 0
+}
+
+func (x *PortForwardConnection) GetBytesOut() int64 {
+	if x != nil {
+		return x.BytesOut
+	}
+	return 0
+}
+
+type ClosePortForwardConnectionsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 端口转发 id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 要断开的连接 id
+	ConnIds []string `protobuf:"bytes,2,rep,name=conn_ids,json=connIds,proto3" json:"conn_ids,omitempty"`
+	// 断开全部连接
+	All           bool `protobuf:"varint,3,opt,name=all,proto3" json:"all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClosePortForwardConnectionsRequest) Reset() {
+	*x = ClosePortForwardConnectionsRequest{}
+	mi := &file_v1_network_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClosePortForwardConnectionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClosePortForwardConnectionsRequest) ProtoMessage() {}
+
+func (x *ClosePortForwardConnectionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClosePortForwardConnectionsRequest.ProtoReflect.Descriptor instead.
+func (*ClosePortForwardConnectionsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ClosePortForwardConnectionsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ClosePortForwardConnectionsRequest) GetConnIds() []string {
+	if x != nil {
+		return x.ConnIds
+	}
+	return nil
+}
+
+func (x *ClosePortForwardConnectionsRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+type ClosePortForwardConnectionsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 实际断开的连接数
+	Closed        int64 `protobuf:"varint,1,opt,name=closed,proto3" json:"closed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClosePortForwardConnectionsResponse) Reset() {
+	*x = ClosePortForwardConnectionsResponse{}
+	mi := &file_v1_network_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClosePortForwardConnectionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClosePortForwardConnectionsResponse) ProtoMessage() {}
+
+func (x *ClosePortForwardConnectionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClosePortForwardConnectionsResponse.ProtoReflect.Descriptor instead.
+func (*ClosePortForwardConnectionsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ClosePortForwardConnectionsResponse) GetClosed() int64 {
+	if x != nil {
+		return x.Closed
+	}
+	return 0
+}
+
+type ResetPortForwardTrafficRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 端口转发 id
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPortForwardTrafficRequest) Reset() {
+	*x = ResetPortForwardTrafficRequest{}
+	mi := &file_v1_network_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPortForwardTrafficRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPortForwardTrafficRequest) ProtoMessage() {}
+
+func (x *ResetPortForwardTrafficRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPortForwardTrafficRequest.ProtoReflect.Descriptor instead.
+func (*ResetPortForwardTrafficRequest) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ResetPortForwardTrafficRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ResetPortForwardTrafficResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 端口转发详情
+	Info          *PortForwardInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPortForwardTrafficResponse) Reset() {
+	*x = ResetPortForwardTrafficResponse{}
+	mi := &file_v1_network_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPortForwardTrafficResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPortForwardTrafficResponse) ProtoMessage() {}
+
+func (x *ResetPortForwardTrafficResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_network_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPortForwardTrafficResponse.ProtoReflect.Descriptor instead.
+func (*ResetPortForwardTrafficResponse) Descriptor() ([]byte, []int) {
+	return file_v1_network_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ResetPortForwardTrafficResponse) GetInfo() *PortForwardInfo {
+	if x != nil {
+		return x.Info
+	}
+	return nil
+}
+
 // 端口转发实时快照
 type PortForwardStat struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -836,14 +1389,22 @@ type PortForwardStat struct {
 	// 累计出站流量(字节)
 	BytesOut int64 `protobuf:"varint,5,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
 	// 本次启动时间
-	StartTime     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// 当前入站速率(字节/秒)
+	RateIn int64 `protobuf:"varint,7,opt,name=rate_in,json=rateIn,proto3" json:"rate_in,omitempty"`
+	// 当前出站速率(字节/秒)
+	RateOut int64 `protobuf:"varint,8,opt,name=rate_out,json=rateOut,proto3" json:"rate_out,omitempty"`
+	// 自创建（或上次清零）起累计入站流量(字节)
+	TotalBytesIn int64 `protobuf:"varint,9,opt,name=total_bytes_in,json=totalBytesIn,proto3" json:"total_bytes_in,omitempty"`
+	// 自创建（或上次清零）起累计出站流量(字节)
+	TotalBytesOut int64 `protobuf:"varint,10,opt,name=total_bytes_out,json=totalBytesOut,proto3" json:"total_bytes_out,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PortForwardStat) Reset() {
 	*x = PortForwardStat{}
-	mi := &file_v1_network_proto_msgTypes[12]
+	mi := &file_v1_network_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -855,7 +1416,7 @@ func (x *PortForwardStat) String() string {
 func (*PortForwardStat) ProtoMessage() {}
 
 func (x *PortForwardStat) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[12]
+	mi := &file_v1_network_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -868,7 +1429,7 @@ func (x *PortForwardStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortForwardStat.ProtoReflect.Descriptor instead.
 func (*PortForwardStat) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{12}
+	return file_v1_network_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PortForwardStat) GetRunning() bool {
@@ -913,6 +1474,34 @@ func (x *PortForwardStat) GetStartTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *PortForwardStat) GetRateIn() int64 {
+	if x != nil {
+		return x.RateIn
+	}
+	return 0
+}
+
+func (x *PortForwardStat) GetRateOut() int64 {
+	if x != nil {
+		return x.RateOut
+	}
+	return 0
+}
+
+func (x *PortForwardStat) GetTotalBytesIn() int64 {
+	if x != nil {
+		return x.TotalBytesIn
+	}
+	return 0
+}
+
+func (x *PortForwardStat) GetTotalBytesOut() int64 {
+	if x != nil {
+		return x.TotalBytesOut
+	}
+	return 0
+}
+
 // 端口转发时间序列采样点
 type PortForwardStatPoint struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -930,7 +1519,7 @@ type PortForwardStatPoint struct {
 
 func (x *PortForwardStatPoint) Reset() {
 	*x = PortForwardStatPoint{}
-	mi := &file_v1_network_proto_msgTypes[13]
+	mi := &file_v1_network_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -942,7 +1531,7 @@ func (x *PortForwardStatPoint) String() string {
 func (*PortForwardStatPoint) ProtoMessage() {}
 
 func (x *PortForwardStatPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[13]
+	mi := &file_v1_network_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -955,7 +1544,7 @@ func (x *PortForwardStatPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortForwardStatPoint.ProtoReflect.Descriptor instead.
 func (*PortForwardStatPoint) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{13}
+	return file_v1_network_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PortForwardStatPoint) GetTime() *timestamppb.Timestamp {
@@ -1004,7 +1593,7 @@ type PortForwardInfo struct {
 	TargetAddress string `protobuf:"bytes,7,opt,name=target_address,json=targetAddress,proto3" json:"target_address,omitempty"`
 	// 目标端口
 	TargetPort int32 `protobuf:"varint,8,opt,name=target_port,json=targetPort,proto3" json:"target_port,omitempty"`
-	// 是否启用
+	// 是否启用（配置值；实际是否运行见 status）
 	IsEnable bool `protobuf:"varint,9,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
@@ -1019,14 +1608,30 @@ type PortForwardInfo struct {
 	// 累计入站流量(字节，客户端→目标)
 	BytesIn int64 `protobuf:"varint,17,opt,name=bytes_in,json=bytesIn,proto3" json:"bytes_in,omitempty"`
 	// 累计出站流量(字节，目标→客户端)
-	BytesOut      int64 `protobuf:"varint,18,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
+	BytesOut int64 `protobuf:"varint,18,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
+	// 备注
+	Remark string `protobuf:"bytes,19,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 运行状态
+	Status PortForwardStatus `protobuf:"varint,20,opt,name=status,proto3,enum=v1.PortForwardStatus" json:"status,omitempty"`
+	// 当前入站速率(字节/秒)
+	RateIn int64 `protobuf:"varint,21,opt,name=rate_in,json=rateIn,proto3" json:"rate_in,omitempty"`
+	// 当前出站速率(字节/秒)
+	RateOut int64 `protobuf:"varint,22,opt,name=rate_out,json=rateOut,proto3" json:"rate_out,omitempty"`
+	// 最近约 1 分钟的总速率采样(字节/秒，按时间升序，约每 2 秒一个点)
+	RateHistory []int64 `protobuf:"varint,23,rep,packed,name=rate_history,json=rateHistory,proto3" json:"rate_history,omitempty"`
+	// 自创建（或上次清零）起累计入站流量(字节)
+	TotalBytesIn int64 `protobuf:"varint,24,opt,name=total_bytes_in,json=totalBytesIn,proto3" json:"total_bytes_in,omitempty"`
+	// 自创建（或上次清零）起累计出站流量(字节)
+	TotalBytesOut int64 `protobuf:"varint,25,opt,name=total_bytes_out,json=totalBytesOut,proto3" json:"total_bytes_out,omitempty"`
+	// 本次启动时间（运行中才有效）
+	StartTime     *timestamppb.Timestamp `protobuf:"bytes,26,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PortForwardInfo) Reset() {
 	*x = PortForwardInfo{}
-	mi := &file_v1_network_proto_msgTypes[14]
+	mi := &file_v1_network_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1038,7 +1643,7 @@ func (x *PortForwardInfo) String() string {
 func (*PortForwardInfo) ProtoMessage() {}
 
 func (x *PortForwardInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_network_proto_msgTypes[14]
+	mi := &file_v1_network_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1051,7 +1656,7 @@ func (x *PortForwardInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortForwardInfo.ProtoReflect.Descriptor instead.
 func (*PortForwardInfo) Descriptor() ([]byte, []int) {
-	return file_v1_network_proto_rawDescGZIP(), []int{14}
+	return file_v1_network_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PortForwardInfo) GetId() string {
@@ -1166,26 +1771,101 @@ func (x *PortForwardInfo) GetBytesOut() int64 {
 	return 0
 }
 
+func (x *PortForwardInfo) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *PortForwardInfo) GetStatus() PortForwardStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PortForwardStatus_PORT_FORWARD_STATUS_UNSPECIFIED
+}
+
+func (x *PortForwardInfo) GetRateIn() int64 {
+	if x != nil {
+		return x.RateIn
+	}
+	return 0
+}
+
+func (x *PortForwardInfo) GetRateOut() int64 {
+	if x != nil {
+		return x.RateOut
+	}
+	return 0
+}
+
+func (x *PortForwardInfo) GetRateHistory() []int64 {
+	if x != nil {
+		return x.RateHistory
+	}
+	return nil
+}
+
+func (x *PortForwardInfo) GetTotalBytesIn() int64 {
+	if x != nil {
+		return x.TotalBytesIn
+	}
+	return 0
+}
+
+func (x *PortForwardInfo) GetTotalBytesOut() int64 {
+	if x != nil {
+		return x.TotalBytesOut
+	}
+	return 0
+}
+
+func (x *PortForwardInfo) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
 var File_v1_network_proto protoreflect.FileDescriptor
 
 const file_v1_network_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/network.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdf\x01\n" +
+	"\x10v1/network.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9e\x02\n" +
 	"\x17ListPortForwardsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
 	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01\x12,\n" +
 	"\x04type\x18\x04 \x01(\x0e2\x13.v1.PortForwardTypeH\x01R\x04type\x88\x01\x01\x12 \n" +
-	"\tis_enable\x18\x05 \x01(\bH\x02R\bisEnable\x88\x01\x01B\v\n" +
+	"\tis_enable\x18\x05 \x01(\bH\x02R\bisEnable\x88\x01\x01\x122\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x15.v1.PortForwardStatusH\x03R\x06status\x88\x01\x01B\v\n" +
 	"\t_keywordsB\a\n" +
 	"\x05_typeB\f\n" +
 	"\n" +
-	"_is_enable\"\x8c\x01\n" +
+	"_is_enableB\t\n" +
+	"\a_status\"\xc1\x01\n" +
 	"\x18ListPortForwardsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12)\n" +
-	"\x05infos\x18\x04 \x03(\v2\x13.v1.PortForwardInfoR\x05infos\"\x84\x02\n" +
+	"\x05infos\x18\x04 \x03(\v2\x13.v1.PortForwardInfoR\x05infos\x123\n" +
+	"\boverview\x18\x05 \x01(\v2\x17.v1.PortForwardOverviewR\boverview\"\xed\x03\n" +
+	"\x13PortForwardOverview\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x18\n" +
+	"\arunning\x18\x02 \x01(\x03R\arunning\x12\x18\n" +
+	"\astopped\x18\x03 \x01(\x03R\astopped\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\x03R\x05error\x12\x10\n" +
+	"\x03tcp\x18\x05 \x01(\x03R\x03tcp\x12\x10\n" +
+	"\x03udp\x18\x06 \x01(\x03R\x03udp\x12-\n" +
+	"\x12active_connections\x18\a \x01(\x03R\x11activeConnections\x12\x17\n" +
+	"\arate_in\x18\b \x01(\x03R\x06rateIn\x12\x19\n" +
+	"\brate_out\x18\t \x01(\x03R\arateOut\x12$\n" +
+	"\x0etoday_bytes_in\x18\n" +
+	" \x01(\x03R\ftodayBytesIn\x12&\n" +
+	"\x0ftoday_bytes_out\x18\v \x01(\x03R\rtodayBytesOut\x12'\n" +
+	"\x0fyesterday_bytes\x18\f \x01(\x03R\x0eyesterdayBytes\x124\n" +
+	"\x16today_peak_connections\x18\r \x01(\x03R\x14todayPeakConnections\x12B\n" +
+	"\x0ftoday_peak_time\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\rtodayPeakTime\"\x9c\x02\n" +
 	"\x18CreatePortForwardRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x13.v1.PortForwardTypeR\x04type\x12%\n" +
@@ -1195,13 +1875,14 @@ const file_v1_network_proto_rawDesc = "" +
 	"\x0etarget_address\x18\x05 \x01(\tR\rtargetAddress\x12\x1f\n" +
 	"\vtarget_port\x18\x06 \x01(\x05R\n" +
 	"targetPort\x12\x1b\n" +
-	"\tis_enable\x18\a \x01(\bR\bisEnable\"D\n" +
+	"\tis_enable\x18\a \x01(\bR\bisEnable\x12\x16\n" +
+	"\x06remark\x18\b \x01(\tR\x06remark\"D\n" +
 	"\x19CreatePortForwardResponse\x12'\n" +
 	"\x04info\x18\x01 \x01(\v2\x13.v1.PortForwardInfoR\x04info\"'\n" +
 	"\x15GetPortForwardRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"A\n" +
 	"\x16GetPortForwardResponse\x12'\n" +
-	"\x04info\x18\x01 \x01(\v2\x13.v1.PortForwardInfoR\x04info\"\x9d\x03\n" +
+	"\x04info\x18\x01 \x01(\v2\x13.v1.PortForwardInfoR\x04info\"\xc5\x03\n" +
 	"\x18UpdatePortForwardRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12,\n" +
@@ -1212,7 +1893,8 @@ const file_v1_network_proto_rawDesc = "" +
 	"\x0etarget_address\x18\x06 \x01(\tH\x04R\rtargetAddress\x88\x01\x01\x12$\n" +
 	"\vtarget_port\x18\a \x01(\x05H\x05R\n" +
 	"targetPort\x88\x01\x01\x12 \n" +
-	"\tis_enable\x18\b \x01(\bH\x06R\bisEnable\x88\x01\x01B\a\n" +
+	"\tis_enable\x18\b \x01(\bH\x06R\bisEnable\x88\x01\x01\x12\x1b\n" +
+	"\x06remark\x18\t \x01(\tH\aR\x06remark\x88\x01\x01B\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_typeB\x11\n" +
 	"\x0f_listen_addressB\x0e\n" +
@@ -1220,7 +1902,8 @@ const file_v1_network_proto_rawDesc = "" +
 	"\x0f_target_addressB\x0e\n" +
 	"\f_target_portB\f\n" +
 	"\n" +
-	"_is_enable\"D\n" +
+	"_is_enableB\t\n" +
+	"\a_remark\"D\n" +
 	"\x19UpdatePortForwardResponse\x12'\n" +
 	"\x04info\x18\x01 \x01(\v2\x13.v1.PortForwardInfoR\x04info\"*\n" +
 	"\x18DeletePortForwardRequest\x12\x0e\n" +
@@ -1229,11 +1912,31 @@ const file_v1_network_proto_rawDesc = "" +
 	"\x1aGetPortForwardStatsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\rstart_time_ms\x18\x02 \x01(\x03R\vstartTimeMs\x12\x1e\n" +
-	"\vend_time_ms\x18\x03 \x01(\x03R\tendTimeMs\"\xb8\x01\n" +
+	"\vend_time_ms\x18\x03 \x01(\x03R\tendTimeMs\"\xf5\x01\n" +
 	"\x1bGetPortForwardStatsResponse\x12/\n" +
 	"\bsnapshot\x18\x01 \x01(\v2\x13.v1.PortForwardStatR\bsnapshot\x120\n" +
 	"\x06points\x18\x02 \x03(\v2\x18.v1.PortForwardStatPointR\x06points\x126\n" +
-	"\x17sample_interval_seconds\x18\x03 \x01(\x03R\x15sampleIntervalSeconds\"\xfa\x01\n" +
+	"\x17sample_interval_seconds\x18\x03 \x01(\x03R\x15sampleIntervalSeconds\x12;\n" +
+	"\vconnections\x18\x04 \x03(\v2\x19.v1.PortForwardConnectionR\vconnections\"\xcd\x01\n" +
+	"\x15PortForwardConnection\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
+	"\vremote_addr\x18\x02 \x01(\tR\n" +
+	"remoteAddr\x12\x10\n" +
+	"\x03lan\x18\x03 \x01(\bR\x03lan\x129\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x12\x19\n" +
+	"\bbytes_in\x18\x05 \x01(\x03R\abytesIn\x12\x1b\n" +
+	"\tbytes_out\x18\x06 \x01(\x03R\bbytesOut\"a\n" +
+	"\"ClosePortForwardConnectionsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bconn_ids\x18\x02 \x03(\tR\aconnIds\x12\x10\n" +
+	"\x03all\x18\x03 \x01(\bR\x03all\"=\n" +
+	"#ClosePortForwardConnectionsResponse\x12\x16\n" +
+	"\x06closed\x18\x01 \x01(\x03R\x06closed\"0\n" +
+	"\x1eResetPortForwardTrafficRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"J\n" +
+	"\x1fResetPortForwardTrafficResponse\x12'\n" +
+	"\x04info\x18\x01 \x01(\v2\x13.v1.PortForwardInfoR\x04info\"\xfc\x02\n" +
 	"\x0fPortForwardStat\x12\x18\n" +
 	"\arunning\x18\x01 \x01(\bR\arunning\x12-\n" +
 	"\x12active_connections\x18\x02 \x01(\x03R\x11activeConnections\x12+\n" +
@@ -1241,12 +1944,17 @@ const file_v1_network_proto_rawDesc = "" +
 	"\bbytes_in\x18\x04 \x01(\x03R\abytesIn\x12\x1b\n" +
 	"\tbytes_out\x18\x05 \x01(\x03R\bbytesOut\x129\n" +
 	"\n" +
-	"start_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\"\xad\x01\n" +
+	"start_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x12\x17\n" +
+	"\arate_in\x18\a \x01(\x03R\x06rateIn\x12\x19\n" +
+	"\brate_out\x18\b \x01(\x03R\arateOut\x12$\n" +
+	"\x0etotal_bytes_in\x18\t \x01(\x03R\ftotalBytesIn\x12&\n" +
+	"\x0ftotal_bytes_out\x18\n" +
+	" \x01(\x03R\rtotalBytesOut\"\xad\x01\n" +
 	"\x14PortForwardStatPoint\x12.\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12-\n" +
 	"\x12active_connections\x18\x02 \x01(\x03R\x11activeConnections\x12\x19\n" +
 	"\bbytes_in\x18\x03 \x01(\x03R\abytesIn\x12\x1b\n" +
-	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\xc8\x04\n" +
+	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\xef\x06\n" +
 	"\x0fPortForwardInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x17\n" +
@@ -1267,18 +1975,34 @@ const file_v1_network_proto_rawDesc = "" +
 	"\x12active_connections\x18\x0f \x01(\x03R\x11activeConnections\x12+\n" +
 	"\x11total_connections\x18\x10 \x01(\x03R\x10totalConnections\x12\x19\n" +
 	"\bbytes_in\x18\x11 \x01(\x03R\abytesIn\x12\x1b\n" +
-	"\tbytes_out\x18\x12 \x01(\x03R\bbytesOut*j\n" +
+	"\tbytes_out\x18\x12 \x01(\x03R\bbytesOut\x12\x16\n" +
+	"\x06remark\x18\x13 \x01(\tR\x06remark\x12-\n" +
+	"\x06status\x18\x14 \x01(\x0e2\x15.v1.PortForwardStatusR\x06status\x12\x17\n" +
+	"\arate_in\x18\x15 \x01(\x03R\x06rateIn\x12\x19\n" +
+	"\brate_out\x18\x16 \x01(\x03R\arateOut\x12!\n" +
+	"\frate_history\x18\x17 \x03(\x03R\vrateHistory\x12$\n" +
+	"\x0etotal_bytes_in\x18\x18 \x01(\x03R\ftotalBytesIn\x12&\n" +
+	"\x0ftotal_bytes_out\x18\x19 \x01(\x03R\rtotalBytesOut\x129\n" +
+	"\n" +
+	"start_time\x18\x1a \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime*\x99\x01\n" +
+	"\x11PortForwardStatus\x12#\n" +
+	"\x1fPORT_FORWARD_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bPORT_FORWARD_STATUS_RUNNING\x10\x01\x12\x1f\n" +
+	"\x1bPORT_FORWARD_STATUS_STOPPED\x10\x02\x12\x1d\n" +
+	"\x19PORT_FORWARD_STATUS_ERROR\x10\x03*j\n" +
 	"\x0fPortForwardType\x12!\n" +
 	"\x1dPORT_FORWARD_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15PORT_FORWARD_TYPE_TCP\x10\x01\x12\x19\n" +
-	"\x15PORT_FORWARD_TYPE_UDP\x10\x022\x81\x06\n" +
+	"\x15PORT_FORWARD_TYPE_UDP\x10\x022\xd5\b\n" +
 	"\x0eNetworkManager\x12t\n" +
 	"\x10ListPortForwards\x12\x1b.v1.ListPortForwardsRequest\x1a\x1c.v1.ListPortForwardsResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/network/port-forwards\x12z\n" +
 	"\x11CreatePortForward\x12\x1c.v1.CreatePortForwardRequest\x1a\x1d.v1.CreatePortForwardResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/network/port-forwards\x12s\n" +
 	"\x0eGetPortForward\x12\x19.v1.GetPortForwardRequest\x1a\x1a.v1.GetPortForwardResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1/network/port-forwards/{id}\x12\x7f\n" +
 	"\x11UpdatePortForward\x12\x1c.v1.UpdatePortForwardRequest\x1a\x1d.v1.UpdatePortForwardResponse\"-\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/network/port-forwards/{id}\x12|\n" +
 	"\x11DeletePortForward\x12\x1c.v1.DeletePortForwardRequest\x1a\x1d.v1.DeletePortForwardResponse\"*\x82\xd3\xe4\x93\x02$*\"/api/v1/network/port-forwards/{id}\x12\x88\x01\n" +
-	"\x13GetPortForwardStats\x12\x1e.v1.GetPortForwardStatsRequest\x1a\x1f.v1.GetPortForwardStatsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/network/port-forwards/{id}/statsB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x13GetPortForwardStats\x12\x1e.v1.GetPortForwardStatsRequest\x1a\x1f.v1.GetPortForwardStatsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/network/port-forwards/{id}/stats\x12\xaf\x01\n" +
+	"\x1bClosePortForwardConnections\x12&.v1.ClosePortForwardConnectionsRequest\x1a'.v1.ClosePortForwardConnectionsResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/network/port-forwards/{id}/connections/close\x12\x9f\x01\n" +
+	"\x17ResetPortForwardTraffic\x12\".v1.ResetPortForwardTrafficRequest\x1a#.v1.ResetPortForwardTrafficResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/network/port-forwards/{id}/traffic/resetB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_network_proto_rawDescOnce sync.Once
@@ -1292,59 +2016,78 @@ func file_v1_network_proto_rawDescGZIP() []byte {
 	return file_v1_network_proto_rawDescData
 }
 
-var file_v1_network_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_v1_network_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_v1_network_proto_goTypes = []any{
-	(PortForwardType)(0),                // 0: v1.PortForwardType
-	(*ListPortForwardsRequest)(nil),     // 1: v1.ListPortForwardsRequest
-	(*ListPortForwardsResponse)(nil),    // 2: v1.ListPortForwardsResponse
-	(*CreatePortForwardRequest)(nil),    // 3: v1.CreatePortForwardRequest
-	(*CreatePortForwardResponse)(nil),   // 4: v1.CreatePortForwardResponse
-	(*GetPortForwardRequest)(nil),       // 5: v1.GetPortForwardRequest
-	(*GetPortForwardResponse)(nil),      // 6: v1.GetPortForwardResponse
-	(*UpdatePortForwardRequest)(nil),    // 7: v1.UpdatePortForwardRequest
-	(*UpdatePortForwardResponse)(nil),   // 8: v1.UpdatePortForwardResponse
-	(*DeletePortForwardRequest)(nil),    // 9: v1.DeletePortForwardRequest
-	(*DeletePortForwardResponse)(nil),   // 10: v1.DeletePortForwardResponse
-	(*GetPortForwardStatsRequest)(nil),  // 11: v1.GetPortForwardStatsRequest
-	(*GetPortForwardStatsResponse)(nil), // 12: v1.GetPortForwardStatsResponse
-	(*PortForwardStat)(nil),             // 13: v1.PortForwardStat
-	(*PortForwardStatPoint)(nil),        // 14: v1.PortForwardStatPoint
-	(*PortForwardInfo)(nil),             // 15: v1.PortForwardInfo
-	(*timestamppb.Timestamp)(nil),       // 16: google.protobuf.Timestamp
+	(PortForwardStatus)(0),                      // 0: v1.PortForwardStatus
+	(PortForwardType)(0),                        // 1: v1.PortForwardType
+	(*ListPortForwardsRequest)(nil),             // 2: v1.ListPortForwardsRequest
+	(*ListPortForwardsResponse)(nil),            // 3: v1.ListPortForwardsResponse
+	(*PortForwardOverview)(nil),                 // 4: v1.PortForwardOverview
+	(*CreatePortForwardRequest)(nil),            // 5: v1.CreatePortForwardRequest
+	(*CreatePortForwardResponse)(nil),           // 6: v1.CreatePortForwardResponse
+	(*GetPortForwardRequest)(nil),               // 7: v1.GetPortForwardRequest
+	(*GetPortForwardResponse)(nil),              // 8: v1.GetPortForwardResponse
+	(*UpdatePortForwardRequest)(nil),            // 9: v1.UpdatePortForwardRequest
+	(*UpdatePortForwardResponse)(nil),           // 10: v1.UpdatePortForwardResponse
+	(*DeletePortForwardRequest)(nil),            // 11: v1.DeletePortForwardRequest
+	(*DeletePortForwardResponse)(nil),           // 12: v1.DeletePortForwardResponse
+	(*GetPortForwardStatsRequest)(nil),          // 13: v1.GetPortForwardStatsRequest
+	(*GetPortForwardStatsResponse)(nil),         // 14: v1.GetPortForwardStatsResponse
+	(*PortForwardConnection)(nil),               // 15: v1.PortForwardConnection
+	(*ClosePortForwardConnectionsRequest)(nil),  // 16: v1.ClosePortForwardConnectionsRequest
+	(*ClosePortForwardConnectionsResponse)(nil), // 17: v1.ClosePortForwardConnectionsResponse
+	(*ResetPortForwardTrafficRequest)(nil),      // 18: v1.ResetPortForwardTrafficRequest
+	(*ResetPortForwardTrafficResponse)(nil),     // 19: v1.ResetPortForwardTrafficResponse
+	(*PortForwardStat)(nil),                     // 20: v1.PortForwardStat
+	(*PortForwardStatPoint)(nil),                // 21: v1.PortForwardStatPoint
+	(*PortForwardInfo)(nil),                     // 22: v1.PortForwardInfo
+	(*timestamppb.Timestamp)(nil),               // 23: google.protobuf.Timestamp
 }
 var file_v1_network_proto_depIdxs = []int32{
-	0,  // 0: v1.ListPortForwardsRequest.type:type_name -> v1.PortForwardType
-	15, // 1: v1.ListPortForwardsResponse.infos:type_name -> v1.PortForwardInfo
-	0,  // 2: v1.CreatePortForwardRequest.type:type_name -> v1.PortForwardType
-	15, // 3: v1.CreatePortForwardResponse.info:type_name -> v1.PortForwardInfo
-	15, // 4: v1.GetPortForwardResponse.info:type_name -> v1.PortForwardInfo
-	0,  // 5: v1.UpdatePortForwardRequest.type:type_name -> v1.PortForwardType
-	15, // 6: v1.UpdatePortForwardResponse.info:type_name -> v1.PortForwardInfo
-	13, // 7: v1.GetPortForwardStatsResponse.snapshot:type_name -> v1.PortForwardStat
-	14, // 8: v1.GetPortForwardStatsResponse.points:type_name -> v1.PortForwardStatPoint
-	16, // 9: v1.PortForwardStat.start_time:type_name -> google.protobuf.Timestamp
-	16, // 10: v1.PortForwardStatPoint.time:type_name -> google.protobuf.Timestamp
-	0,  // 11: v1.PortForwardInfo.type:type_name -> v1.PortForwardType
-	16, // 12: v1.PortForwardInfo.create_time:type_name -> google.protobuf.Timestamp
-	16, // 13: v1.PortForwardInfo.update_time:type_name -> google.protobuf.Timestamp
-	1,  // 14: v1.NetworkManager.ListPortForwards:input_type -> v1.ListPortForwardsRequest
-	3,  // 15: v1.NetworkManager.CreatePortForward:input_type -> v1.CreatePortForwardRequest
-	5,  // 16: v1.NetworkManager.GetPortForward:input_type -> v1.GetPortForwardRequest
-	7,  // 17: v1.NetworkManager.UpdatePortForward:input_type -> v1.UpdatePortForwardRequest
-	9,  // 18: v1.NetworkManager.DeletePortForward:input_type -> v1.DeletePortForwardRequest
-	11, // 19: v1.NetworkManager.GetPortForwardStats:input_type -> v1.GetPortForwardStatsRequest
-	2,  // 20: v1.NetworkManager.ListPortForwards:output_type -> v1.ListPortForwardsResponse
-	4,  // 21: v1.NetworkManager.CreatePortForward:output_type -> v1.CreatePortForwardResponse
-	6,  // 22: v1.NetworkManager.GetPortForward:output_type -> v1.GetPortForwardResponse
-	8,  // 23: v1.NetworkManager.UpdatePortForward:output_type -> v1.UpdatePortForwardResponse
-	10, // 24: v1.NetworkManager.DeletePortForward:output_type -> v1.DeletePortForwardResponse
-	12, // 25: v1.NetworkManager.GetPortForwardStats:output_type -> v1.GetPortForwardStatsResponse
-	20, // [20:26] is the sub-list for method output_type
-	14, // [14:20] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	1,  // 0: v1.ListPortForwardsRequest.type:type_name -> v1.PortForwardType
+	0,  // 1: v1.ListPortForwardsRequest.status:type_name -> v1.PortForwardStatus
+	22, // 2: v1.ListPortForwardsResponse.infos:type_name -> v1.PortForwardInfo
+	4,  // 3: v1.ListPortForwardsResponse.overview:type_name -> v1.PortForwardOverview
+	23, // 4: v1.PortForwardOverview.today_peak_time:type_name -> google.protobuf.Timestamp
+	1,  // 5: v1.CreatePortForwardRequest.type:type_name -> v1.PortForwardType
+	22, // 6: v1.CreatePortForwardResponse.info:type_name -> v1.PortForwardInfo
+	22, // 7: v1.GetPortForwardResponse.info:type_name -> v1.PortForwardInfo
+	1,  // 8: v1.UpdatePortForwardRequest.type:type_name -> v1.PortForwardType
+	22, // 9: v1.UpdatePortForwardResponse.info:type_name -> v1.PortForwardInfo
+	20, // 10: v1.GetPortForwardStatsResponse.snapshot:type_name -> v1.PortForwardStat
+	21, // 11: v1.GetPortForwardStatsResponse.points:type_name -> v1.PortForwardStatPoint
+	15, // 12: v1.GetPortForwardStatsResponse.connections:type_name -> v1.PortForwardConnection
+	23, // 13: v1.PortForwardConnection.start_time:type_name -> google.protobuf.Timestamp
+	22, // 14: v1.ResetPortForwardTrafficResponse.info:type_name -> v1.PortForwardInfo
+	23, // 15: v1.PortForwardStat.start_time:type_name -> google.protobuf.Timestamp
+	23, // 16: v1.PortForwardStatPoint.time:type_name -> google.protobuf.Timestamp
+	1,  // 17: v1.PortForwardInfo.type:type_name -> v1.PortForwardType
+	23, // 18: v1.PortForwardInfo.create_time:type_name -> google.protobuf.Timestamp
+	23, // 19: v1.PortForwardInfo.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 20: v1.PortForwardInfo.status:type_name -> v1.PortForwardStatus
+	23, // 21: v1.PortForwardInfo.start_time:type_name -> google.protobuf.Timestamp
+	2,  // 22: v1.NetworkManager.ListPortForwards:input_type -> v1.ListPortForwardsRequest
+	5,  // 23: v1.NetworkManager.CreatePortForward:input_type -> v1.CreatePortForwardRequest
+	7,  // 24: v1.NetworkManager.GetPortForward:input_type -> v1.GetPortForwardRequest
+	9,  // 25: v1.NetworkManager.UpdatePortForward:input_type -> v1.UpdatePortForwardRequest
+	11, // 26: v1.NetworkManager.DeletePortForward:input_type -> v1.DeletePortForwardRequest
+	13, // 27: v1.NetworkManager.GetPortForwardStats:input_type -> v1.GetPortForwardStatsRequest
+	16, // 28: v1.NetworkManager.ClosePortForwardConnections:input_type -> v1.ClosePortForwardConnectionsRequest
+	18, // 29: v1.NetworkManager.ResetPortForwardTraffic:input_type -> v1.ResetPortForwardTrafficRequest
+	3,  // 30: v1.NetworkManager.ListPortForwards:output_type -> v1.ListPortForwardsResponse
+	6,  // 31: v1.NetworkManager.CreatePortForward:output_type -> v1.CreatePortForwardResponse
+	8,  // 32: v1.NetworkManager.GetPortForward:output_type -> v1.GetPortForwardResponse
+	10, // 33: v1.NetworkManager.UpdatePortForward:output_type -> v1.UpdatePortForwardResponse
+	12, // 34: v1.NetworkManager.DeletePortForward:output_type -> v1.DeletePortForwardResponse
+	14, // 35: v1.NetworkManager.GetPortForwardStats:output_type -> v1.GetPortForwardStatsResponse
+	17, // 36: v1.NetworkManager.ClosePortForwardConnections:output_type -> v1.ClosePortForwardConnectionsResponse
+	19, // 37: v1.NetworkManager.ResetPortForwardTraffic:output_type -> v1.ResetPortForwardTrafficResponse
+	30, // [30:38] is the sub-list for method output_type
+	22, // [22:30] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_v1_network_proto_init() }
@@ -1353,14 +2096,14 @@ func file_v1_network_proto_init() {
 		return
 	}
 	file_v1_network_proto_msgTypes[0].OneofWrappers = []any{}
-	file_v1_network_proto_msgTypes[6].OneofWrappers = []any{}
+	file_v1_network_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_network_proto_rawDesc), len(file_v1_network_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   15,
+			NumEnums:      2,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

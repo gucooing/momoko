@@ -29,6 +29,7 @@ import (
 	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
+	"momoko/internal/data/ent/gen/usermessage"
 	"momoko/internal/data/ent/schema"
 	"time"
 )
@@ -126,6 +127,18 @@ func init() {
 	filesourceDescConfig := filesourceFields[5].Descriptor()
 	// filesource.DefaultConfig holds the default value on creation for the config field.
 	filesource.DefaultConfig = filesourceDescConfig.Default.(string)
+	// filesourceDescLastTestOk is the schema descriptor for last_test_ok field.
+	filesourceDescLastTestOk := filesourceFields[7].Descriptor()
+	// filesource.DefaultLastTestOk holds the default value on creation for the last_test_ok field.
+	filesource.DefaultLastTestOk = filesourceDescLastTestOk.Default.(bool)
+	// filesourceDescLastTestLatencyMs is the schema descriptor for last_test_latency_ms field.
+	filesourceDescLastTestLatencyMs := filesourceFields[8].Descriptor()
+	// filesource.DefaultLastTestLatencyMs holds the default value on creation for the last_test_latency_ms field.
+	filesource.DefaultLastTestLatencyMs = filesourceDescLastTestLatencyMs.Default.(int64)
+	// filesourceDescLastTestMessage is the schema descriptor for last_test_message field.
+	filesourceDescLastTestMessage := filesourceFields[9].Descriptor()
+	// filesource.DefaultLastTestMessage holds the default value on creation for the last_test_message field.
+	filesource.DefaultLastTestMessage = filesourceDescLastTestMessage.Default.(string)
 	fileuploadMixin := schema.FileUpload{}.Mixin()
 	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
 	_ = fileuploadMixinFields0
@@ -235,6 +248,10 @@ func init() {
 	frptunnelDescMaxActiveConns := frptunnelFields[13].Descriptor()
 	// frptunnel.DefaultMaxActiveConns holds the default value on creation for the max_active_conns field.
 	frptunnel.DefaultMaxActiveConns = frptunnelDescMaxActiveConns.Default.(int)
+	// frptunnelDescRemark is the schema descriptor for remark field.
+	frptunnelDescRemark := frptunnelFields[14].Descriptor()
+	// frptunnel.DefaultRemark holds the default value on creation for the remark field.
+	frptunnel.DefaultRemark = frptunnelDescRemark.Default.(string)
 	// frptunnelDescID is the schema descriptor for id field.
 	frptunnelDescID := frptunnelFields[0].Descriptor()
 	// frptunnel.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -459,6 +476,14 @@ func init() {
 	instanceDescAutoStart := instanceFields[8].Descriptor()
 	// instance.DefaultAutoStart holds the default value on creation for the auto_start field.
 	instance.DefaultAutoStart = instanceDescAutoStart.Default.(bool)
+	// instanceDescAutoRestart is the schema descriptor for auto_restart field.
+	instanceDescAutoRestart := instanceFields[9].Descriptor()
+	// instance.DefaultAutoRestart holds the default value on creation for the auto_restart field.
+	instance.DefaultAutoRestart = instanceDescAutoRestart.Default.(bool)
+	// instanceDescStopTimeout is the schema descriptor for stop_timeout field.
+	instanceDescStopTimeout := instanceFields[10].Descriptor()
+	// instance.DefaultStopTimeout holds the default value on creation for the stop_timeout field.
+	instance.DefaultStopTimeout = instanceDescStopTimeout.Default.(int32)
 	// instanceDescID is the schema descriptor for id field.
 	instanceDescID := instanceFields[0].Descriptor()
 	// instance.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -490,6 +515,18 @@ func init() {
 	instancetypeDescIsEnable := instancetypeFields[3].Descriptor()
 	// instancetype.DefaultIsEnable holds the default value on creation for the is_enable field.
 	instancetype.DefaultIsEnable = instancetypeDescIsEnable.Default.(bool)
+	// instancetypeDescDescription is the schema descriptor for description field.
+	instancetypeDescDescription := instancetypeFields[4].Descriptor()
+	// instancetype.DefaultDescription holds the default value on creation for the description field.
+	instancetype.DefaultDescription = instancetypeDescDescription.Default.(string)
+	// instancetypeDescStartCommand is the schema descriptor for start_command field.
+	instancetypeDescStartCommand := instancetypeFields[5].Descriptor()
+	// instancetype.DefaultStartCommand holds the default value on creation for the start_command field.
+	instancetype.DefaultStartCommand = instancetypeDescStartCommand.Default.(string)
+	// instancetypeDescStopCommand is the schema descriptor for stop_command field.
+	instancetypeDescStopCommand := instancetypeFields[6].Descriptor()
+	// instancetype.DefaultStopCommand holds the default value on creation for the stop_command field.
+	instancetype.DefaultStopCommand = instancetypeDescStopCommand.Default.(string)
 	// instancetypeDescID is the schema descriptor for id field.
 	instancetypeDescID := instancetypeFields[0].Descriptor()
 	// instancetype.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -595,6 +632,10 @@ func init() {
 	oidcclientDescActive := oidcclientFields[6].Descriptor()
 	// oidcclient.DefaultActive holds the default value on creation for the active field.
 	oidcclient.DefaultActive = oidcclientDescActive.Default.(bool)
+	// oidcclientDescDescription is the schema descriptor for description field.
+	oidcclientDescDescription := oidcclientFields[7].Descriptor()
+	// oidcclient.DefaultDescription holds the default value on creation for the description field.
+	oidcclient.DefaultDescription = oidcclientDescDescription.Default.(string)
 	// oidcclientDescID is the schema descriptor for id field.
 	oidcclientDescID := oidcclientFields[0].Descriptor()
 	// oidcclient.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -672,6 +713,18 @@ func init() {
 	portforwardDescIsEnable := portforwardFields[8].Descriptor()
 	// portforward.DefaultIsEnable holds the default value on creation for the is_enable field.
 	portforward.DefaultIsEnable = portforwardDescIsEnable.Default.(bool)
+	// portforwardDescRemark is the schema descriptor for remark field.
+	portforwardDescRemark := portforwardFields[9].Descriptor()
+	// portforward.DefaultRemark holds the default value on creation for the remark field.
+	portforward.DefaultRemark = portforwardDescRemark.Default.(string)
+	// portforwardDescTotalBytesIn is the schema descriptor for total_bytes_in field.
+	portforwardDescTotalBytesIn := portforwardFields[10].Descriptor()
+	// portforward.DefaultTotalBytesIn holds the default value on creation for the total_bytes_in field.
+	portforward.DefaultTotalBytesIn = portforwardDescTotalBytesIn.Default.(int64)
+	// portforwardDescTotalBytesOut is the schema descriptor for total_bytes_out field.
+	portforwardDescTotalBytesOut := portforwardFields[11].Descriptor()
+	// portforward.DefaultTotalBytesOut holds the default value on creation for the total_bytes_out field.
+	portforward.DefaultTotalBytesOut = portforwardDescTotalBytesOut.Default.(int64)
 	// portforwardDescID is the schema descriptor for id field.
 	portforwardDescID := portforwardFields[0].Descriptor()
 	// portforward.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -764,6 +817,14 @@ func init() {
 	sshhostDescUsername := sshhostFields[4].Descriptor()
 	// sshhost.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	sshhost.UsernameValidator = sshhostDescUsername.Validators[0].(func(string) error)
+	// sshhostDescLastTestOk is the schema descriptor for last_test_ok field.
+	sshhostDescLastTestOk := sshhostFields[12].Descriptor()
+	// sshhost.DefaultLastTestOk holds the default value on creation for the last_test_ok field.
+	sshhost.DefaultLastTestOk = sshhostDescLastTestOk.Default.(bool)
+	// sshhostDescLastTestLatencyMs is the schema descriptor for last_test_latency_ms field.
+	sshhostDescLastTestLatencyMs := sshhostFields[13].Descriptor()
+	// sshhost.DefaultLastTestLatencyMs holds the default value on creation for the last_test_latency_ms field.
+	sshhost.DefaultLastTestLatencyMs = sshhostDescLastTestLatencyMs.Default.(int)
 	// sshhostDescID is the schema descriptor for id field.
 	sshhostDescID := sshhostFields[0].Descriptor()
 	// sshhost.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -803,6 +864,18 @@ func init() {
 	sessionDescRefreshNoise := sessionFields[6].Descriptor()
 	// session.RefreshNoiseValidator is a validator for the "refresh_noise" field. It is called by the builders before save.
 	session.RefreshNoiseValidator = sessionDescRefreshNoise.Validators[0].(func(string) error)
+	// sessionDescUserAgent is the schema descriptor for user_agent field.
+	sessionDescUserAgent := sessionFields[8].Descriptor()
+	// session.DefaultUserAgent holds the default value on creation for the user_agent field.
+	session.DefaultUserAgent = sessionDescUserAgent.Default.(string)
+	// sessionDescLoginMethod is the schema descriptor for login_method field.
+	sessionDescLoginMethod := sessionFields[9].Descriptor()
+	// session.DefaultLoginMethod holds the default value on creation for the login_method field.
+	session.DefaultLoginMethod = sessionDescLoginMethod.Default.(string)
+	// sessionDescLastIP is the schema descriptor for last_ip field.
+	sessionDescLastIP := sessionFields[11].Descriptor()
+	// session.DefaultLastIP holds the default value on creation for the last_ip field.
+	session.DefaultLastIP = sessionDescLastIP.Default.(string)
 	// sessionDescID is the schema descriptor for id field.
 	sessionDescID := sessionFields[0].Descriptor()
 	// session.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -916,6 +989,10 @@ func init() {
 	userDescName := userFields[7].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
+	// userDescPhone is the schema descriptor for phone field.
+	userDescPhone := userFields[9].Descriptor()
+	// user.DefaultPhone holds the default value on creation for the phone field.
+	user.DefaultPhone = userDescPhone.Default.(string)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -951,4 +1028,47 @@ func init() {
 	userapikeyDescID := userapikeyFields[0].Descriptor()
 	// userapikey.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	userapikey.IDValidator = userapikeyDescID.Validators[0].(func(string) error)
+	usermessageMixin := schema.UserMessage{}.Mixin()
+	usermessageMixinFields0 := usermessageMixin[0].Fields()
+	_ = usermessageMixinFields0
+	usermessageFields := schema.UserMessage{}.Fields()
+	_ = usermessageFields
+	// usermessageDescCreateTime is the schema descriptor for create_time field.
+	usermessageDescCreateTime := usermessageMixinFields0[0].Descriptor()
+	// usermessage.DefaultCreateTime holds the default value on creation for the create_time field.
+	usermessage.DefaultCreateTime = usermessageDescCreateTime.Default.(func() time.Time)
+	// usermessageDescUpdateTime is the schema descriptor for update_time field.
+	usermessageDescUpdateTime := usermessageMixinFields0[1].Descriptor()
+	// usermessage.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usermessage.DefaultUpdateTime = usermessageDescUpdateTime.Default.(func() time.Time)
+	// usermessage.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usermessage.UpdateDefaultUpdateTime = usermessageDescUpdateTime.UpdateDefault.(func() time.Time)
+	// usermessageDescUserID is the schema descriptor for user_id field.
+	usermessageDescUserID := usermessageFields[1].Descriptor()
+	// usermessage.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	usermessage.UserIDValidator = usermessageDescUserID.Validators[0].(func(string) error)
+	// usermessageDescCategory is the schema descriptor for category field.
+	usermessageDescCategory := usermessageFields[2].Descriptor()
+	// usermessage.DefaultCategory holds the default value on creation for the category field.
+	usermessage.DefaultCategory = usermessageDescCategory.Default.(string)
+	// usermessageDescKind is the schema descriptor for kind field.
+	usermessageDescKind := usermessageFields[3].Descriptor()
+	// usermessage.KindValidator is a validator for the "kind" field. It is called by the builders before save.
+	usermessage.KindValidator = usermessageDescKind.Validators[0].(func(string) error)
+	// usermessageDescTitle is the schema descriptor for title field.
+	usermessageDescTitle := usermessageFields[4].Descriptor()
+	// usermessage.DefaultTitle holds the default value on creation for the title field.
+	usermessage.DefaultTitle = usermessageDescTitle.Default.(string)
+	// usermessageDescContent is the schema descriptor for content field.
+	usermessageDescContent := usermessageFields[5].Descriptor()
+	// usermessage.DefaultContent holds the default value on creation for the content field.
+	usermessage.DefaultContent = usermessageDescContent.Default.(string)
+	// usermessageDescSenderID is the schema descriptor for sender_id field.
+	usermessageDescSenderID := usermessageFields[7].Descriptor()
+	// usermessage.DefaultSenderID holds the default value on creation for the sender_id field.
+	usermessage.DefaultSenderID = usermessageDescSenderID.Default.(string)
+	// usermessageDescID is the schema descriptor for id field.
+	usermessageDescID := usermessageFields[0].Descriptor()
+	// usermessage.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	usermessage.IDValidator = usermessageDescID.Validators[0].(func(string) error)
 }

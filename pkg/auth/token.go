@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"momoko/internal/data/ent/gen"
@@ -16,10 +17,12 @@ import (
 )
 
 const (
-	AccessTokenExpiresIn  = time.Hour
-	RefreshTokenExpiresIn = 14 * 24 * time.Hour
-	tokenIssuer           = "momoko"
-	tokenSubject          = "user"
+	// DefaultAccessTokenExpiresIn / DefaultRefreshTokenExpiresIn 未配置时的令牌有效期；
+	// 运行时以系统设置为准（SetTokenTTL）。
+	DefaultAccessTokenExpiresIn  = time.Hour
+	DefaultRefreshTokenExpiresIn = 14 * 24 * time.Hour
+	tokenIssuer                  = "momoko"
+	tokenSubject                 = "user"
 
 	// noiseBytes 会话噪声原始字节长度（编码后写入 JWT / DB）。
 	noiseBytes = 32
@@ -31,7 +34,38 @@ const (
 var (
 	AuthSecretKey   = "123456"
 	ErrTokenInvalid = response.BadRequest(401, "token invalid")
+
+	accessTTL  atomic.Int64
+	refreshTTL atomic.Int64
 )
+
+// SetTokenTTL 设置访问令牌 / 刷新令牌有效期（系统设置保存或启动时调用）；非正值回退默认值。
+func SetTokenTTL(access, refresh time.Duration) {
+	if access <= 0 {
+		access = DefaultAccessTokenExpiresIn
+	}
+	if refresh <= 0 {
+		refresh = DefaultRefreshTokenExpiresIn
+	}
+	accessTTL.Store(int64(access))
+	refreshTTL.Store(int64(refresh))
+}
+
+// AccessTokenTTL 当前访问令牌有效期。
+func AccessTokenTTL() time.Duration {
+	if v := accessTTL.Load(); v > 0 {
+		return time.Duration(v)
+	}
+	return DefaultAccessTokenExpiresIn
+}
+
+// RefreshTokenTTL 当前刷新令牌（会话）有效期。
+func RefreshTokenTTL() time.Duration {
+	if v := refreshTTL.Load(); v > 0 {
+		return time.Duration(v)
+	}
+	return DefaultRefreshTokenExpiresIn
+}
 
 // ValidateSecret
 // 应在启动认证服务前调用，弱密钥直接 fail-closed。
@@ -65,12 +99,12 @@ func NewNoise() (string, error) {
 
 // GenerateAccessToken 签发 access JWT；noise 取会话的 AccessNoise。
 func GenerateAccessToken(session *gen.Session) (string, error) {
-	return generateToken(session, TokenKindAccess, AccessTokenExpiresIn)
+	return generateToken(session, TokenKindAccess, AccessTokenTTL())
 }
 
 // GenerateRefreshToken 签发 refresh JWT；noise 取会话的 RefreshNoise。
 func GenerateRefreshToken(session *gen.Session) (string, error) {
-	return generateToken(session, TokenKindRefresh, RefreshTokenExpiresIn)
+	return generateToken(session, TokenKindRefresh, RefreshTokenTTL())
 }
 
 func generateToken(session *gen.Session, kind TokenKind, ttl time.Duration) (string, error) {

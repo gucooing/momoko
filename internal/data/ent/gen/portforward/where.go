@@ -110,6 +110,21 @@ func IsEnable(v bool) predicate.PortForward {
 	return predicate.PortForward(sql.FieldEQ(FieldIsEnable, v))
 }
 
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldRemark, v))
+}
+
+// TotalBytesIn applies equality check predicate on the "total_bytes_in" field. It's identical to TotalBytesInEQ.
+func TotalBytesIn(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldTotalBytesIn, v))
+}
+
+// TotalBytesOut applies equality check predicate on the "total_bytes_out" field. It's identical to TotalBytesOutEQ.
+func TotalBytesOut(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldTotalBytesOut, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.PortForward {
 	return predicate.PortForward(sql.FieldEQ(FieldCreateTime, v))
@@ -558,6 +573,151 @@ func IsEnableEQ(v bool) predicate.PortForward {
 // IsEnableNEQ applies the NEQ predicate on the "is_enable" field.
 func IsEnableNEQ(v bool) predicate.PortForward {
 	return predicate.PortForward(sql.FieldNEQ(FieldIsEnable, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.PortForward {
+	return predicate.PortForward(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// TotalBytesInEQ applies the EQ predicate on the "total_bytes_in" field.
+func TotalBytesInEQ(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldTotalBytesIn, v))
+}
+
+// TotalBytesInNEQ applies the NEQ predicate on the "total_bytes_in" field.
+func TotalBytesInNEQ(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNEQ(FieldTotalBytesIn, v))
+}
+
+// TotalBytesInIn applies the In predicate on the "total_bytes_in" field.
+func TotalBytesInIn(vs ...int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldIn(FieldTotalBytesIn, vs...))
+}
+
+// TotalBytesInNotIn applies the NotIn predicate on the "total_bytes_in" field.
+func TotalBytesInNotIn(vs ...int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNotIn(FieldTotalBytesIn, vs...))
+}
+
+// TotalBytesInGT applies the GT predicate on the "total_bytes_in" field.
+func TotalBytesInGT(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGT(FieldTotalBytesIn, v))
+}
+
+// TotalBytesInGTE applies the GTE predicate on the "total_bytes_in" field.
+func TotalBytesInGTE(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGTE(FieldTotalBytesIn, v))
+}
+
+// TotalBytesInLT applies the LT predicate on the "total_bytes_in" field.
+func TotalBytesInLT(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLT(FieldTotalBytesIn, v))
+}
+
+// TotalBytesInLTE applies the LTE predicate on the "total_bytes_in" field.
+func TotalBytesInLTE(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLTE(FieldTotalBytesIn, v))
+}
+
+// TotalBytesOutEQ applies the EQ predicate on the "total_bytes_out" field.
+func TotalBytesOutEQ(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldTotalBytesOut, v))
+}
+
+// TotalBytesOutNEQ applies the NEQ predicate on the "total_bytes_out" field.
+func TotalBytesOutNEQ(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNEQ(FieldTotalBytesOut, v))
+}
+
+// TotalBytesOutIn applies the In predicate on the "total_bytes_out" field.
+func TotalBytesOutIn(vs ...int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldIn(FieldTotalBytesOut, vs...))
+}
+
+// TotalBytesOutNotIn applies the NotIn predicate on the "total_bytes_out" field.
+func TotalBytesOutNotIn(vs ...int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNotIn(FieldTotalBytesOut, vs...))
+}
+
+// TotalBytesOutGT applies the GT predicate on the "total_bytes_out" field.
+func TotalBytesOutGT(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGT(FieldTotalBytesOut, v))
+}
+
+// TotalBytesOutGTE applies the GTE predicate on the "total_bytes_out" field.
+func TotalBytesOutGTE(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldGTE(FieldTotalBytesOut, v))
+}
+
+// TotalBytesOutLT applies the LT predicate on the "total_bytes_out" field.
+func TotalBytesOutLT(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLT(FieldTotalBytesOut, v))
+}
+
+// TotalBytesOutLTE applies the LTE predicate on the "total_bytes_out" field.
+func TotalBytesOutLTE(v int64) predicate.PortForward {
+	return predicate.PortForward(sql.FieldLTE(FieldTotalBytesOut, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -1,15 +1,21 @@
-<!-- 快捷入口：安静的单色图标网格，非彩色大块（01 §8 / 06a）。 -->
+<!-- 快捷入口：彩色「贴纸」图标块网格，只显示当前用户在当前节点可进入的页面。 -->
 <template>
-  <AppPanel :title="t('dashboard.home.convenientTools')" title-icon="HOutline:Squares2X2Icon">
+  <AppPanel v-if="visibleShortcuts.length" :title="t('dashboard.home.convenientTools')" title-icon="HOutline:Squares2X2Icon">
     <div class="sc__grid">
       <button
-        v-for="item in visibleShortcuts"
+        v-for="(item, i) in visibleShortcuts"
         :key="item.labelKey"
         type="button"
         class="sc__item"
         @click="router.push(item.routePath)"
       >
-        <span class="sc__icon"><component :is="menuStore.iconComponents[item.icon]" /></span>
+        <span
+          class="sc__icon m-sticker"
+          :class="`m-sticker--${item.color}`"
+          :style="{ transform: `rotate(${ROTS[i % ROTS.length]})` }"
+        >
+          <component :is="menuStore.iconComponents[item.icon]" />
+        </span>
         <span class="sc__label">{{ t(item.labelKey) }}</span>
       </button>
     </div>
@@ -19,71 +25,83 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import { useI18n } from 'vue-i18n'
+
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg', '-3deg', '2deg']
 
 const router = useRouter()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
 const { t } = useI18n()
 const nodeStore = useNodeStore()
+const accessible = useAccessibleRoutes()
 const { shortcuts } = storeToRefs(dashboardHomeStore)
-// 远程节点上下文只展示该节点授权的入口
+// 只展示菜单里存在、且当前节点授权的入口
 const visibleShortcuts = computed(() =>
-  shortcuts.value.filter((item) => nodeStore.canAccessRoute(item.routePath)),
+  shortcuts.value.filter(
+    (item) => accessible.value.has(item.routePath) && nodeStore.canAccessRoute(item.routePath),
+  ),
 )
 </script>
 
 <style scoped lang="scss">
 .sc__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 6px;
 }
-@media (width >= 420px) {
+@media (width >= 640px) {
   .sc__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
   }
 }
 .sc__item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 16px 8px;
-  border: 1px solid var(--el-border-color-lighter);
+  gap: 8px;
+  padding: 6px 2px;
+  border: none;
   border-radius: var(--app-radius);
-  background: var(--el-bg-color);
+  background: transparent;
+  color: var(--el-text-color-primary);
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  transition: background 0.15s;
+}
+@media (width >= 640px) {
+  .sc__item {
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 18px;
+  }
 }
 .sc__item:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--el-color-primary) 35%, var(--el-border-color));
-  background: var(--el-fill-color-lighter);
+  background: var(--el-fill-color-light);
 }
 .sc__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--app-radius-sm);
-  background: var(--el-fill-color-light);
-  color: var(--el-text-color-secondary);
-  transition: color 0.15s, background 0.15s;
-}
-.sc__item:hover .sc__icon {
-  color: var(--el-color-primary);
-  background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
 }
 .sc__icon :deep(svg) {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 .sc__label {
   font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--el-text-color-regular);
-  text-align: center;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+@media (width >= 640px) {
+  .sc__label {
+    font-size: 0.875rem;
+  }
 }
 </style>

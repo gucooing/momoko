@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"sort"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -43,12 +44,55 @@ func (t *TaskUsecase) ListTasks(ctx context.Context, req *v1.ListTasksRequest) (
 	for _, info := range infos {
 		items = append(items, toTaskInfo(info, names[info.UserID]))
 	}
+	byStatus, err := t.manager.CountByStatus(ctx, filter)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	counts := &v1.TaskStatusCounts{
+		Pending:  byStatus[task.StatusPending],
+		Running:  byStatus[task.StatusRunning],
+		Success:  byStatus[task.StatusSuccess],
+		Failed:   byStatus[task.StatusFailed],
+		Canceled: byStatus[task.StatusCanceled],
+	}
+	for _, n := range byStatus {
+		counts.All += n
+	}
+	byType, err := t.manager.CountByType(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	types := make([]*v1.TaskTypeCount, 0, len(byType))
+	for typ, n := range byType {
+		types = append(types, &v1.TaskTypeCount{Type: typ, Count: n})
+	}
+	sort.Slice(types, func(i, j int) bool {
+		if types[i].Count != types[j].Count {
+			return types[i].Count > types[j].Count
+		}
+		return types[i].Type < types[j].Type
+	})
 	return &v1.ListTasksResponse{
 		Items:    items,
 		Total:    total,
 		Page:     req.GetPage(),
 		PageSize: req.GetPageSize(),
+		Counts:   counts,
+		Types:    types,
 	}, nil
+}
+
+// ClearTasks 批量清理终态任务；status 为空时清理全部成功/失败/已取消任务。
+func (t *TaskUsecase) ClearTasks(ctx context.Context, status string) (int64, error) {
+	var statuses []task.Status
+	if status != "" {
+		statuses = append(statuses, task.Status(status))
+	}
+	n, err := t.manager.Clear(ctx, statuses...)
+	if err != nil {
+		return 0, ErrSystem(err)
+	}
+	return n, nil
 }
 
 func (t *TaskUsecase) GetTask(ctx context.Context, id string) (*v1.TaskInfo, error) {

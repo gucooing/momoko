@@ -1,4 +1,4 @@
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
 
 /**
  * 内容区布局声明。
@@ -12,12 +12,16 @@ const contentFullBleed = ref(false)
 // AppContent 读取：内容区是否全出血。
 export const useContentFullBleed = () => contentFullBleed
 
-// 页面调用：挂载即全出血，卸载还原。内容区无 keep-alive，导航即重挂载，故成对触发可靠。
+// 页面调用：挂载/激活即全出血，卸载/失活还原（内容区有 keep-alive，页面切走时只是失活）。
 export const useFullBleed = () => {
-  onMounted(() => {
+  const on = () => {
     contentFullBleed.value = true
-  })
-  onBeforeUnmount(() => {
+  }
+  const off = () => {
     contentFullBleed.value = false
-  })
+  }
+  onMounted(on)
+  onActivated(on)
+  onDeactivated(off)
+  onBeforeUnmount(off)
 }

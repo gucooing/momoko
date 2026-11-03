@@ -1,13 +1,12 @@
 <template>
   <AppPanel :title="t('dashboard.home.realtimeMonitor')" title-icon="HOutline:ChartBarSquareIcon">
     <template #actions>
-      <div class="rt-interval" role="group">
+      <div class="rt-seg" role="group" :aria-label="t('dashboard.home.refreshEvery')">
         <button
           v-for="opt in [1, 3, 5, 10]"
           :key="opt"
           type="button"
-          class="rt-interval__btn"
-          :class="{ 'is-active': refreshInterval === opt }"
+          :class="{ 'is-on': refreshInterval === opt }"
           @click="onIntervalChange(opt)"
         >
           {{ opt }}s
@@ -15,49 +14,59 @@
       </div>
     </template>
 
-    <div class="rt-grid">
-      <div class="rt-chart">
-        <div class="rt-chart__head">
-          <span class="rt-chart__title">{{ t('dashboard.home.cpuUsageChart') }}</span>
-        </div>
-        <div class="rt-chart__box"><VChart :option="cpuChartOption" autoresize /></div>
+    <div class="rt-bar">
+      <div class="rt-seg rt-seg--metrics" role="tablist">
+        <button
+          v-for="m in metricTabs"
+          :key="m.key"
+          type="button"
+          role="tab"
+          :aria-selected="metric === m.key"
+          :class="{ 'is-on': metric === m.key }"
+          @click="metric = m.key"
+        >
+          {{ t(m.label) }}
+        </button>
       </div>
-      <div class="rt-chart">
-        <div class="rt-chart__head">
-          <span class="rt-chart__title">{{ t('dashboard.home.memorySwapUsageChart') }}</span>
-        </div>
-        <div class="rt-chart__box"><VChart :option="memoryChartOption" autoresize /></div>
+      <select
+        v-if="metric === 'network'"
+        class="app-select rt-select"
+        :value="selectedInterface"
+        :aria-label="t('dashboard.home.networkRate')"
+        @change="onInterfaceChange(($event.target as HTMLSelectElement).value)"
+      >
+        <option value="">{{ t('dashboard.home.allSummary') }}</option>
+        <option v-for="iface in networkOptions" :key="iface.value" :value="iface.value">
+          {{ iface.label }}
+        </option>
+      </select>
+      <select
+        v-if="metric === 'disk'"
+        class="app-select rt-select"
+        :value="selectedDisk"
+        :aria-label="t('dashboard.home.diskIoRate')"
+        @change="onDiskChange(($event.target as HTMLSelectElement).value)"
+      >
+        <option value="">{{ t('dashboard.home.allSummary') }}</option>
+        <option v-for="d in diskOptions" :key="d.value" :value="d.value">{{ d.label }}</option>
+      </select>
+    </div>
+
+    <div class="rt-stats">
+      <div v-for="st in currentStats" :key="st.label" class="rt-stat">
+        <span class="rt-stat__label">
+          <i :style="{ background: st.color }" />
+          {{ st.label }}
+        </span>
+        <b class="m-num">{{ st.value }}</b>
       </div>
-      <div class="rt-chart">
-        <div class="rt-chart__head">
-          <span class="rt-chart__title">{{ t('dashboard.home.networkRate') }}</span>
-          <select
-            class="rt-select"
-            :value="selectedInterface"
-            @change="onInterfaceChange(($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">{{ t('dashboard.home.allSummary') }}</option>
-            <option v-for="iface in networkOptions" :key="iface.value" :value="iface.value">
-              {{ iface.label }}
-            </option>
-          </select>
-        </div>
-        <div class="rt-chart__box"><VChart :option="networkChartOption" autoresize /></div>
-      </div>
-      <div class="rt-chart">
-        <div class="rt-chart__head">
-          <span class="rt-chart__title">{{ t('dashboard.home.diskIoRate') }}</span>
-          <select
-            class="rt-select"
-            :value="selectedDisk"
-            @change="onDiskChange(($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">{{ t('dashboard.home.allSummary') }}</option>
-            <option v-for="d in diskOptions" :key="d.value" :value="d.value">{{ d.label }}</option>
-          </select>
-        </div>
-        <div class="rt-chart__box"><VChart :option="diskChartOption" autoresize /></div>
-      </div>
+    </div>
+
+    <div class="rt-chart">
+      <VChart v-if="metric === 'cpu'" :option="cpuChartOption" autoresize />
+      <VChart v-else-if="metric === 'memory'" :option="memoryChartOption" autoresize />
+      <VChart v-else-if="metric === 'network'" :option="networkChartOption" autoresize />
+      <VChart v-else :option="diskChartOption" autoresize />
     </div>
   </AppPanel>
 </template>
@@ -65,16 +74,34 @@
 <script setup lang="ts">
 import type { RefreshInterval, CpuPoint, MemoryPoint, NetworkPoint, DiskPoint } from '@/stores/dashboard/home'
 import type { NetworkInterfaceOverview, DiskPartitionOverview } from '@/types/v1/system'
-import { useThemeStore } from '@/stores/theme'
+import { usePaletteColors, withAlpha } from '@/composables/usePaletteColors'
 import { useI18n } from 'vue-i18n'
 
-const themeStore = useThemeStore()
 const { t } = useI18n()
+const pc = usePaletteColors()
+
+type Metric = 'cpu' | 'memory' | 'network' | 'disk'
+const metric = ref<Metric>('cpu')
+const metricTabs: { key: Metric; label: string }[] = [
+  { key: 'cpu', label: 'dashboard.home.tabCpu' },
+  { key: 'memory', label: 'dashboard.home.tabMemory' },
+  { key: 'network', label: 'dashboard.home.tabNetwork' },
+  { key: 'disk', label: 'dashboard.home.tabDisk' },
+]
 
 const tooltipTheme = computed(() => ({
-  backgroundColor: themeStore.isDarkTheme ? '#1d1e1f' : '#fff',
-  borderColor: themeStore.isDarkTheme ? '#363637' : '#e4e7ed',
-  textStyle: { color: themeStore.isDarkTheme ? '#cfd3dc' : '#303133' },
+  backgroundColor: pc.value.s,
+  borderColor: pc.value.line,
+  borderRadius: 14,
+  padding: [10, 12],
+  textStyle: { color: pc.value.ink },
+}))
+
+const axisStyle = computed(() => ({
+  axisLabel: { fontSize: 11, color: pc.value.ink2 },
+  axisLine: { lineStyle: { color: pc.value.line } },
+  axisTick: { show: false },
+  splitLine: { lineStyle: { color: pc.value.line, type: 'dashed' as const } },
 }))
 
 const props = defineProps<{
@@ -131,32 +158,18 @@ const formatBytes = (bytes: number | string) => {
   return (num / base ** i).toFixed(i === 0 ? 0 : 1) + ' ' + units[i] + '/s'
 }
 
-const baseChartGrid = { left: 45, right: 15, top: 10, bottom: 25 }
+const baseChartGrid = { left: 52, right: 12, top: 14, bottom: 26 }
 
 const makeLineSeries = (name: string, color: string) => ({
   name,
   type: 'line',
   smooth: true,
   symbol: 'none',
-  lineStyle: { color, width: 2 },
-  areaStyle: {
-    color: {
-      type: 'linear',
-      x: 0, y: 0, x2: 0, y2: 1,
-      colorStops: [
-        { offset: 0, color: color + '30' },
-        { offset: 1, color: 'transparent' },
-      ],
-    },
-  },
+  itemStyle: { color },
+  lineStyle: { color, width: 3 },
+  areaStyle: { color: withAlpha(color, 0.14) },
 })
 
-const coreColors = [
-  '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6',
-  '#3b82f6', '#e11d48', '#a855f7', '#0ea5e9', '#eab308',
-  '#22c55e', '#fdba74',
-]
 
 const tooltipZ = { extraCssText: 'z-index: 99999 !important; pointer-events: auto' }
 
@@ -169,20 +182,15 @@ const cpuChartOption = computed(() => {
       type: 'line',
       smooth: true,
       symbol: 'none',
-      lineStyle: { color: '#6366f1', width: 2.5 },
+      itemStyle: { color: pc.value.p },
+      lineStyle: { color: pc.value.p, width: 3 },
       data: props.cpuHistory.map((p) => p.total),
-      areaStyle: {
-        color: {
-          type: 'linear',
-          x: 0, y: 0, x2: 0, y2: 1,
-          colorStops: [
-            { offset: 0, color: '#6366f140' },
-            { offset: 1, color: 'transparent' },
-          ],
-        },
-      },
+      areaStyle: { color: withAlpha(pc.value.p, 0.14) },
+      z: 3,
     },
   ]
+  // 各核心用强调色系的细线，退居背景
+  const coreColors = [pc.value.a2, pc.value.a, pc.value.ok, pc.value.ink2]
 
   for (let i = 0; i < coreCount; i++) {
     const color = coreColors[i % coreColors.length]
@@ -191,15 +199,16 @@ const cpuChartOption = computed(() => {
       type: 'line',
       smooth: true,
       symbol: 'none',
-      lineStyle: { color, width: 1, opacity: 0.5 },
+      itemStyle: { color },
+      lineStyle: { color, width: 1, opacity: 0.35 },
       data: props.cpuHistory.map((p) => p.cores[i] ?? 0),
     })
   }
 
   return {
     grid: baseChartGrid,
-    xAxis: { type: 'category', data: props.cpuHistory.map((p) => p.time), axisLabel: { fontSize: 10 } },
-    yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%', fontSize: 10 } },
+    xAxis: { type: 'category', data: props.cpuHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
+    yAxis: { type: 'value', max: 100, ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: '{value}%' } },
     tooltip: {
       ...tooltipTheme.value,
       extraCssText: 'z-index: 99999 !important; pointer-events: auto; max-height: 420px; overflow-y: auto',
@@ -246,8 +255,8 @@ const formatMemoryBytes = (bytes: number | string) => {
 
 const memoryChartOption = computed(() => ({
   grid: baseChartGrid,
-  xAxis: { type: 'category', data: props.memoryHistory.map((p) => p.time), axisLabel: { fontSize: 10 } },
-  yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%', fontSize: 10 } },
+  xAxis: { type: 'category', data: props.memoryHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
+  yAxis: { type: 'value', max: 100, ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: '{value}%' } },
   tooltip: {
     ...tooltipTheme.value,
     ...tooltipZ,
@@ -271,106 +280,159 @@ const memoryChartOption = computed(() => ({
     },
   },
   series: [
-    { ...makeLineSeries(t('dashboard.home.physicalMemorySeries'), '#10b981'), data: props.memoryHistory.map((p) => p.physical) },
-    { ...makeLineSeries('Swap', '#f59e0b'), data: props.memoryHistory.map((p) => p.swap) },
+    { ...makeLineSeries(t('dashboard.home.physicalMemorySeries'), pc.value.p), data: props.memoryHistory.map((p) => p.physical) },
+    { ...makeLineSeries('Swap', pc.value.a2), data: props.memoryHistory.map((p) => p.swap) },
   ],
 }))
 
 const networkChartOption = computed(() => ({
   grid: baseChartGrid,
-  xAxis: { type: 'category', data: props.networkHistory.map((p) => p.time), axisLabel: { fontSize: 10 } },
-  yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatBytes(v), fontSize: 10 } },
+  xAxis: { type: 'category', data: props.networkHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
+  yAxis: { type: 'value', ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: (v: number) => formatBytes(v) } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
   series: [
-    { ...makeLineSeries(t('dashboard.home.download'), '#10b981'), data: props.networkHistory.map((p) => p.download) },
-    { ...makeLineSeries(t('dashboard.home.upload'), '#f59e0b'), data: props.networkHistory.map((p) => p.upload) },
+    { ...makeLineSeries(t('dashboard.home.download'), pc.value.p), data: props.networkHistory.map((p) => p.download) },
+    { ...makeLineSeries(t('dashboard.home.upload'), pc.value.a2), data: props.networkHistory.map((p) => p.upload) },
   ],
 }))
 
 const diskChartOption = computed(() => ({
   grid: baseChartGrid,
-  xAxis: { type: 'category', data: props.diskHistory.map((p) => p.time), axisLabel: { fontSize: 10 } },
-  yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatBytes(v), fontSize: 10 } },
+  xAxis: { type: 'category', data: props.diskHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
+  yAxis: { type: 'value', ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: (v: number) => formatBytes(v) } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
   series: [
-    { ...makeLineSeries(t('dashboard.home.read'), '#6366f1'), data: props.diskHistory.map((p) => p.read) },
-    { ...makeLineSeries(t('dashboard.home.write'), '#ef4444'), data: props.diskHistory.map((p) => p.write) },
+    { ...makeLineSeries(t('dashboard.home.read'), pc.value.p), data: props.diskHistory.map((p) => p.read) },
+    { ...makeLineSeries(t('dashboard.home.write'), pc.value.a2), data: props.diskHistory.map((p) => p.write) },
   ],
 }))
+
+const pct = (v?: number) => `${(v ?? 0).toFixed(1)}%`
+const last = <T,>(arr: T[]) => arr[arr.length - 1]
+const peakOf = (vals: number[]) => (vals.length ? Math.max(...vals) : 0)
+
+/** 当前指标的「当前 / 峰值」摘要，色点与曲线一致 */
+const currentStats = computed(() => {
+  const c = pc.value
+  if (metric.value === 'cpu') {
+    const vals = props.cpuHistory.map((p) => p.total)
+    return [
+      { label: t('dashboard.home.current'), value: pct(last(vals)), color: c.p },
+      { label: t('dashboard.home.peak'), value: pct(peakOf(vals)), color: c.a },
+    ]
+  }
+  if (metric.value === 'memory') {
+    const pt = last(props.memoryHistory)
+    return [
+      { label: t('dashboard.home.physicalMemorySeries'), value: pct(pt?.physical), color: c.p },
+      { label: 'Swap', value: pct(pt?.swap), color: c.a2 },
+    ]
+  }
+  if (metric.value === 'network') {
+    const pt = last(props.networkHistory)
+    return [
+      { label: t('dashboard.home.download'), value: formatBytes(pt?.download ?? 0), color: c.p },
+      { label: t('dashboard.home.upload'), value: formatBytes(pt?.upload ?? 0), color: c.a2 },
+    ]
+  }
+  const pt = last(props.diskHistory)
+  return [
+    { label: t('dashboard.home.read'), value: formatBytes(pt?.read ?? 0), color: c.p },
+    { label: t('dashboard.home.write'), value: formatBytes(pt?.write ?? 0), color: c.a2 },
+  ]
+})
 </script>
 
 <style scoped lang="scss">
-.rt-interval {
+.rt-seg {
   display: inline-flex;
   gap: 2px;
-  padding: 2px;
+  padding: 4px;
+  border-radius: 999px;
   background: var(--el-fill-color-light);
-  border-radius: var(--app-radius-sm);
 }
-.rt-interval__btn {
-  padding: 3px 10px;
+.rt-seg button {
+  min-height: 32px;
+  padding: 0 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.rt-interval__btn:hover {
+.rt-seg button:hover {
   color: var(--el-text-color-primary);
 }
-.rt-interval__btn.is-active {
+.rt-seg button.is-on {
   background: var(--el-bg-color);
-  color: var(--el-color-primary);
-  box-shadow: var(--app-shadow-card);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
 }
-
-.rt-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+.rt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
-@media (width >= 1024px) {
-  .rt-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.rt-seg--metrics button {
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 0.875rem;
+}
+@media (width < 640px) {
+  .rt-seg--metrics {
+    display: flex;
+    width: 100%;
+  }
+  .rt-seg--metrics button {
+    flex: 1;
+    padding: 0 6px;
   }
 }
-.rt-chart {
-  padding: 14px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
-  background: var(--el-bg-color);
-}
-.rt-chart__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 28px;
-  margin-bottom: 8px;
-}
-.rt-chart__title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--el-text-color-regular);
-}
-.rt-chart__box {
-  width: 100%;
-  height: 220px;
-  overflow: visible;
-}
 .rt-select {
-  height: 28px;
-  max-width: 160px;
-  padding: 0 8px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-sm);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-regular);
+  width: auto;
+  max-width: 240px;
+}
+.rt-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin: 18px 0 6px;
+}
+.rt-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rt-stat__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.75rem;
-  cursor: pointer;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.rt-stat__label i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.rt-stat b {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.rt-chart {
+  width: 100%;
+  height: 260px;
+}
+@media (width < 640px) {
+  .rt-chart {
+    height: 200px;
+  }
 }
 </style>

@@ -314,9 +314,11 @@ func (x *SendRegisterEmailCodeRequest) GetEmail() string {
 
 // 发送注册邮件验证码响应
 type SendRegisterEmailCodeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 验证码有效期（秒）
+	ExpiresInSeconds int64 `protobuf:"varint,1,opt,name=expires_in_seconds,json=expiresInSeconds,proto3" json:"expires_in_seconds,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *SendRegisterEmailCodeResponse) Reset() {
@@ -347,6 +349,13 @@ func (x *SendRegisterEmailCodeResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SendRegisterEmailCodeResponse.ProtoReflect.Descriptor instead.
 func (*SendRegisterEmailCodeResponse) Descriptor() ([]byte, []int) {
 	return file_v1_auth_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SendRegisterEmailCodeResponse) GetExpiresInSeconds() int64 {
+	if x != nil {
+		return x.ExpiresInSeconds
+	}
+	return 0
 }
 
 // 发送登录邮件验证码请求
@@ -432,6 +441,199 @@ func (*SendLoginEmailCodeResponse) Descriptor() ([]byte, []int) {
 	return file_v1_auth_proto_rawDescGZIP(), []int{6}
 }
 
+// 发送重置密码邮件验证码请求
+type SendResetPasswordEmailCodeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 注册时使用的邮箱
+	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendResetPasswordEmailCodeRequest) Reset() {
+	*x = SendResetPasswordEmailCodeRequest{}
+	mi := &file_v1_auth_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendResetPasswordEmailCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendResetPasswordEmailCodeRequest) ProtoMessage() {}
+
+func (x *SendResetPasswordEmailCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendResetPasswordEmailCodeRequest.ProtoReflect.Descriptor instead.
+func (*SendResetPasswordEmailCodeRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SendResetPasswordEmailCodeRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+// 发送重置密码邮件验证码响应
+type SendResetPasswordEmailCodeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 验证码有效期（秒）
+	ExpiresInSeconds int64 `protobuf:"varint,1,opt,name=expires_in_seconds,json=expiresInSeconds,proto3" json:"expires_in_seconds,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SendResetPasswordEmailCodeResponse) Reset() {
+	*x = SendResetPasswordEmailCodeResponse{}
+	mi := &file_v1_auth_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendResetPasswordEmailCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendResetPasswordEmailCodeResponse) ProtoMessage() {}
+
+func (x *SendResetPasswordEmailCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendResetPasswordEmailCodeResponse.ProtoReflect.Descriptor instead.
+func (*SendResetPasswordEmailCodeResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SendResetPasswordEmailCodeResponse) GetExpiresInSeconds() int64 {
+	if x != nil {
+		return x.ExpiresInSeconds
+	}
+	return 0
+}
+
+// 重置密码请求
+type ResetPasswordRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// 邮箱验证码
+	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	// 新密码
+	NewPassword   string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPasswordRequest) Reset() {
+	*x = ResetPasswordRequest{}
+	mi := &file_v1_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPasswordRequest) ProtoMessage() {}
+
+func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
+func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ResetPasswordRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *ResetPasswordRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *ResetPasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+// 重置密码响应
+type ResetPasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPasswordResponse) Reset() {
+	*x = ResetPasswordResponse{}
+	mi := &file_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPasswordResponse) ProtoMessage() {}
+
+func (x *ResetPasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPasswordResponse.ProtoReflect.Descriptor instead.
+func (*ResetPasswordResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
 // 账号登录响应
 type LoginResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -447,7 +649,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_v1_auth_proto_msgTypes[7]
+	mi := &file_v1_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -459,7 +661,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[7]
+	mi := &file_v1_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -472,7 +674,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_v1_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *LoginResponse) GetAccessToken() string {
@@ -507,7 +709,7 @@ type RefreshRequest struct {
 
 func (x *RefreshRequest) Reset() {
 	*x = RefreshRequest{}
-	mi := &file_v1_auth_proto_msgTypes[8]
+	mi := &file_v1_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -519,7 +721,7 @@ func (x *RefreshRequest) String() string {
 func (*RefreshRequest) ProtoMessage() {}
 
 func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[8]
+	mi := &file_v1_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -532,7 +734,7 @@ func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{8}
+	return file_v1_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *RefreshRequest) GetRefreshToken() string {
@@ -557,7 +759,7 @@ type RefreshResponse struct {
 
 func (x *RefreshResponse) Reset() {
 	*x = RefreshResponse{}
-	mi := &file_v1_auth_proto_msgTypes[9]
+	mi := &file_v1_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -569,7 +771,7 @@ func (x *RefreshResponse) String() string {
 func (*RefreshResponse) ProtoMessage() {}
 
 func (x *RefreshResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[9]
+	mi := &file_v1_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -582,7 +784,7 @@ func (x *RefreshResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshResponse.ProtoReflect.Descriptor instead.
 func (*RefreshResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_v1_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RefreshResponse) GetAccessToken() string {
@@ -615,7 +817,7 @@ type DevicesRequest struct {
 
 func (x *DevicesRequest) Reset() {
 	*x = DevicesRequest{}
-	mi := &file_v1_auth_proto_msgTypes[10]
+	mi := &file_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +829,7 @@ func (x *DevicesRequest) String() string {
 func (*DevicesRequest) ProtoMessage() {}
 
 func (x *DevicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[10]
+	mi := &file_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +842,7 @@ func (x *DevicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DevicesRequest.ProtoReflect.Descriptor instead.
 func (*DevicesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{10}
+	return file_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
 // 获取登录设备响应
@@ -656,7 +858,7 @@ type DevicesResponse struct {
 
 func (x *DevicesResponse) Reset() {
 	*x = DevicesResponse{}
-	mi := &file_v1_auth_proto_msgTypes[11]
+	mi := &file_v1_auth_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -668,7 +870,7 @@ func (x *DevicesResponse) String() string {
 func (*DevicesResponse) ProtoMessage() {}
 
 func (x *DevicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[11]
+	mi := &file_v1_auth_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -681,7 +883,7 @@ func (x *DevicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DevicesResponse.ProtoReflect.Descriptor instead.
 func (*DevicesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{11}
+	return file_v1_auth_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DevicesResponse) GetDevices() []*LoginDevice {
@@ -712,14 +914,28 @@ type LoginDevice struct {
 	// 会话id
 	SessionId string `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	// 最近一次刷新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 登录时的 User-Agent
+	UserAgent string `protobuf:"bytes,7,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	// 设备类型：desktop / mobile / tablet / cli
+	DeviceType string `protobuf:"bytes,8,opt,name=device_type,json=deviceType,proto3" json:"device_type,omitempty"`
+	// 最近活跃 IP 的网络范围：loopback（本机） / lan（局域网） / public（公网）
+	IpScope string `protobuf:"bytes,9,opt,name=ip_scope,json=ipScope,proto3" json:"ip_scope,omitempty"`
+	// 最近活跃时间（带该会话 token 的最近一次请求，约 1 分钟精度）
+	LastActiveTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_active_time,json=lastActiveTime,proto3" json:"last_active_time,omitempty"`
+	// 最近活跃 IP
+	LastIp string `protobuf:"bytes,11,opt,name=last_ip,json=lastIp,proto3" json:"last_ip,omitempty"`
+	// 登录方式：password（账号密码） / email_code（邮箱验证码）
+	LoginMethod string `protobuf:"bytes,12,opt,name=login_method,json=loginMethod,proto3" json:"login_method,omitempty"`
+	// 会话过期时间（不续签时）
+	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginDevice) Reset() {
 	*x = LoginDevice{}
-	mi := &file_v1_auth_proto_msgTypes[12]
+	mi := &file_v1_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -731,7 +947,7 @@ func (x *LoginDevice) String() string {
 func (*LoginDevice) ProtoMessage() {}
 
 func (x *LoginDevice) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[12]
+	mi := &file_v1_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -744,7 +960,7 @@ func (x *LoginDevice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginDevice.ProtoReflect.Descriptor instead.
 func (*LoginDevice) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{12}
+	return file_v1_auth_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *LoginDevice) GetLoginTime() *timestamppb.Timestamp {
@@ -789,6 +1005,55 @@ func (x *LoginDevice) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *LoginDevice) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *LoginDevice) GetDeviceType() string {
+	if x != nil {
+		return x.DeviceType
+	}
+	return ""
+}
+
+func (x *LoginDevice) GetIpScope() string {
+	if x != nil {
+		return x.IpScope
+	}
+	return ""
+}
+
+func (x *LoginDevice) GetLastActiveTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastActiveTime
+	}
+	return nil
+}
+
+func (x *LoginDevice) GetLastIp() string {
+	if x != nil {
+		return x.LastIp
+	}
+	return ""
+}
+
+func (x *LoginDevice) GetLoginMethod() string {
+	if x != nil {
+		return x.LoginMethod
+	}
+	return ""
+}
+
+func (x *LoginDevice) GetExpireTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpireTime
+	}
+	return nil
+}
+
 // 更新密码请求
 type UpdatePasswordRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -802,7 +1067,7 @@ type UpdatePasswordRequest struct {
 
 func (x *UpdatePasswordRequest) Reset() {
 	*x = UpdatePasswordRequest{}
-	mi := &file_v1_auth_proto_msgTypes[13]
+	mi := &file_v1_auth_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -814,7 +1079,7 @@ func (x *UpdatePasswordRequest) String() string {
 func (*UpdatePasswordRequest) ProtoMessage() {}
 
 func (x *UpdatePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[13]
+	mi := &file_v1_auth_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +1092,7 @@ func (x *UpdatePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePasswordRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{13}
+	return file_v1_auth_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdatePasswordRequest) GetOldPassword() string {
@@ -853,7 +1118,7 @@ type UpdatePasswordResponse struct {
 
 func (x *UpdatePasswordResponse) Reset() {
 	*x = UpdatePasswordResponse{}
-	mi := &file_v1_auth_proto_msgTypes[14]
+	mi := &file_v1_auth_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -865,7 +1130,7 @@ func (x *UpdatePasswordResponse) String() string {
 func (*UpdatePasswordResponse) ProtoMessage() {}
 
 func (x *UpdatePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[14]
+	mi := &file_v1_auth_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -878,21 +1143,23 @@ func (x *UpdatePasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePasswordResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{14}
+	return file_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
 // 退出登录请求
 type LogoutRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 是否指定会话
-	SessionId     *string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3,oneof" json:"session_id,omitempty"`
+	SessionId *string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3,oneof" json:"session_id,omitempty"`
+	// 为 true 时下线除当前会话外的所有会话（忽略 session_id）
+	Others        bool `protobuf:"varint,2,opt,name=others,proto3" json:"others,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_v1_auth_proto_msgTypes[15]
+	mi := &file_v1_auth_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +1171,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[15]
+	mi := &file_v1_auth_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +1184,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{15}
+	return file_v1_auth_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *LogoutRequest) GetSessionId() string {
@@ -925,6 +1192,13 @@ func (x *LogoutRequest) GetSessionId() string {
 		return *x.SessionId
 	}
 	return ""
+}
+
+func (x *LogoutRequest) GetOthers() bool {
+	if x != nil {
+		return x.Others
+	}
+	return false
 }
 
 // 退出登录响应
@@ -936,7 +1210,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_v1_auth_proto_msgTypes[16]
+	mi := &file_v1_auth_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -948,7 +1222,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_proto_msgTypes[16]
+	mi := &file_v1_auth_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -961,7 +1235,592 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_proto_rawDescGZIP(), []int{16}
+	return file_v1_auth_proto_rawDescGZIP(), []int{20}
+}
+
+// 用户消息
+type UserMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 消息id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 分类：security（账号安全） / system（系统） / notice（通知公告）
+	Category string `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
+	// 消息种类，前端据此本地化：login_new_device / login_failed / password_changed / password_reset / notice
+	Kind string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	// 标题（notice 为发布者填写；其它种类可为空，由前端按 kind 生成）
+	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	// 内容（notice 为发布者填写）
+	Content string `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	// 模板参数（如 device / ip / ip_scope）
+	Params map[string]string `protobuf:"bytes,6,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// 是否已读
+	Read bool `protobuf:"varint,7,opt,name=read,proto3" json:"read,omitempty"`
+	// 创建时间
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	// 发布者昵称（仅 notice）
+	SenderName string `protobuf:"bytes,9,opt,name=sender_name,json=senderName,proto3" json:"sender_name,omitempty"`
+	// 发布者头像（仅 notice）
+	SenderAvatar  string `protobuf:"bytes,10,opt,name=sender_avatar,json=senderAvatar,proto3" json:"sender_avatar,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserMessage) Reset() {
+	*x = UserMessage{}
+	mi := &file_v1_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserMessage) ProtoMessage() {}
+
+func (x *UserMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserMessage.ProtoReflect.Descriptor instead.
+func (*UserMessage) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UserMessage) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserMessage) GetCategory() string {
+	if x != nil {
+		return x.Category
+	}
+	return ""
+}
+
+func (x *UserMessage) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *UserMessage) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UserMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *UserMessage) GetParams() map[string]string {
+	if x != nil {
+		return x.Params
+	}
+	return nil
+}
+
+func (x *UserMessage) GetRead() bool {
+	if x != nil {
+		return x.Read
+	}
+	return false
+}
+
+func (x *UserMessage) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *UserMessage) GetSenderName() string {
+	if x != nil {
+		return x.SenderName
+	}
+	return ""
+}
+
+func (x *UserMessage) GetSenderAvatar() string {
+	if x != nil {
+		return x.SenderAvatar
+	}
+	return ""
+}
+
+// 我的消息列表请求
+type ListMessagesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// page
+	Page int64 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// page size（最大 100）
+	PageSize int64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 只看未读
+	UnreadOnly    bool `protobuf:"varint,3,opt,name=unread_only,json=unreadOnly,proto3" json:"unread_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMessagesRequest) Reset() {
+	*x = ListMessagesRequest{}
+	mi := &file_v1_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMessagesRequest) ProtoMessage() {}
+
+func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMessagesRequest.ProtoReflect.Descriptor instead.
+func (*ListMessagesRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListMessagesRequest) GetPage() int64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMessagesRequest) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMessagesRequest) GetUnreadOnly() bool {
+	if x != nil {
+		return x.UnreadOnly
+	}
+	return false
+}
+
+// 我的消息列表响应
+type ListMessagesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 消息
+	Messages []*UserMessage `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	// 符合条件的总数
+	Total int64 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 全部消息数
+	AllCount int64 `protobuf:"varint,3,opt,name=all_count,json=allCount,proto3" json:"all_count,omitempty"`
+	// 未读数
+	UnreadCount int64 `protobuf:"varint,4,opt,name=unread_count,json=unreadCount,proto3" json:"unread_count,omitempty"`
+	// actual page
+	Page int64 `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	// actual page size
+	PageSize      int64 `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMessagesResponse) Reset() {
+	*x = ListMessagesResponse{}
+	mi := &file_v1_auth_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMessagesResponse) ProtoMessage() {}
+
+func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMessagesResponse.ProtoReflect.Descriptor instead.
+func (*ListMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListMessagesResponse) GetMessages() []*UserMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *ListMessagesResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListMessagesResponse) GetAllCount() int64 {
+	if x != nil {
+		return x.AllCount
+	}
+	return 0
+}
+
+func (x *ListMessagesResponse) GetUnreadCount() int64 {
+	if x != nil {
+		return x.UnreadCount
+	}
+	return 0
+}
+
+func (x *ListMessagesResponse) GetPage() int64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMessagesResponse) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// 标记已读请求
+type ReadMessagesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 消息id
+	Ids []string `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	// 为 true 时标记全部（忽略 ids）
+	All           bool `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadMessagesRequest) Reset() {
+	*x = ReadMessagesRequest{}
+	mi := &file_v1_auth_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadMessagesRequest) ProtoMessage() {}
+
+func (x *ReadMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadMessagesRequest.ProtoReflect.Descriptor instead.
+func (*ReadMessagesRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ReadMessagesRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *ReadMessagesRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+// 标记已读响应
+type ReadMessagesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 剩余未读数
+	UnreadCount   int64 `protobuf:"varint,1,opt,name=unread_count,json=unreadCount,proto3" json:"unread_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadMessagesResponse) Reset() {
+	*x = ReadMessagesResponse{}
+	mi := &file_v1_auth_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadMessagesResponse) ProtoMessage() {}
+
+func (x *ReadMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadMessagesResponse.ProtoReflect.Descriptor instead.
+func (*ReadMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ReadMessagesResponse) GetUnreadCount() int64 {
+	if x != nil {
+		return x.UnreadCount
+	}
+	return 0
+}
+
+// 删除消息请求
+type DeleteMessagesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 消息id
+	Ids []string `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	// 为 true 时删除全部（忽略 ids）
+	All           bool `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMessagesRequest) Reset() {
+	*x = DeleteMessagesRequest{}
+	mi := &file_v1_auth_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMessagesRequest) ProtoMessage() {}
+
+func (x *DeleteMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMessagesRequest.ProtoReflect.Descriptor instead.
+func (*DeleteMessagesRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *DeleteMessagesRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *DeleteMessagesRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+// 删除消息响应
+type DeleteMessagesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 剩余未读数
+	UnreadCount   int64 `protobuf:"varint,1,opt,name=unread_count,json=unreadCount,proto3" json:"unread_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMessagesResponse) Reset() {
+	*x = DeleteMessagesResponse{}
+	mi := &file_v1_auth_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMessagesResponse) ProtoMessage() {}
+
+func (x *DeleteMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMessagesResponse.ProtoReflect.Descriptor instead.
+func (*DeleteMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *DeleteMessagesResponse) GetUnreadCount() int64 {
+	if x != nil {
+		return x.UnreadCount
+	}
+	return 0
+}
+
+// 发布通知请求
+type PublishMessageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标题（可空，默认用发布者昵称）
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// 内容
+	Content       string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishMessageRequest) Reset() {
+	*x = PublishMessageRequest{}
+	mi := &file_v1_auth_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishMessageRequest) ProtoMessage() {}
+
+func (x *PublishMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishMessageRequest.ProtoReflect.Descriptor instead.
+func (*PublishMessageRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *PublishMessageRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PublishMessageRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+// 发布通知响应
+type PublishMessageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 送达用户数
+	Recipients    int64 `protobuf:"varint,1,opt,name=recipients,proto3" json:"recipients,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishMessageResponse) Reset() {
+	*x = PublishMessageResponse{}
+	mi := &file_v1_auth_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishMessageResponse) ProtoMessage() {}
+
+func (x *PublishMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishMessageResponse.ProtoReflect.Descriptor instead.
+func (*PublishMessageResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *PublishMessageResponse) GetRecipients() int64 {
+	if x != nil {
+		return x.Recipients
+	}
+	return 0
 }
 
 var File_v1_auth_proto protoreflect.FileDescriptor
@@ -986,11 +1845,21 @@ const file_v1_auth_proto_rawDesc = "" +
 	"\x10RegisterResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"4\n" +
 	"\x1cSendRegisterEmailCodeRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\"\x1f\n" +
-	"\x1dSendRegisterEmailCodeResponse\"1\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"M\n" +
+	"\x1dSendRegisterEmailCodeResponse\x12,\n" +
+	"\x12expires_in_seconds\x18\x01 \x01(\x03R\x10expiresInSeconds\"1\n" +
 	"\x19SendLoginEmailCodeRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\"\x1c\n" +
-	"\x1aSendLoginEmailCodeResponse\"\x91\x01\n" +
+	"\x1aSendLoginEmailCodeResponse\"9\n" +
+	"!SendResetPasswordEmailCodeRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"R\n" +
+	"\"SendResetPasswordEmailCodeResponse\x12,\n" +
+	"\x12expires_in_seconds\x18\x01 \x01(\x03R\x10expiresInSeconds\"c\n" +
+	"\x14ResetPasswordRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12!\n" +
+	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\"\x17\n" +
+	"\x15ResetPasswordResponse\"\x91\x01\n" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x128\n" +
@@ -1007,7 +1876,7 @@ const file_v1_auth_proto_rawDesc = "" +
 	"\x0fDevicesResponse\x12)\n" +
 	"\adevices\x18\x01 \x03(\v2\x0f.v1.LoginDeviceR\adevices\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x02 \x01(\tR\tsessionId\"\xe9\x01\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\"\x83\x04\n" +
 	"\vLoginDevice\x129\n" +
 	"\n" +
 	"login_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tloginTime\x12\x16\n" +
@@ -1017,25 +1886,89 @@ const file_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x05 \x01(\tR\tsessionId\x12;\n" +
 	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"]\n" +
+	"updateTime\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\a \x01(\tR\tuserAgent\x12\x1f\n" +
+	"\vdevice_type\x18\b \x01(\tR\n" +
+	"deviceType\x12\x19\n" +
+	"\bip_scope\x18\t \x01(\tR\aipScope\x12D\n" +
+	"\x10last_active_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\x0elastActiveTime\x12\x17\n" +
+	"\alast_ip\x18\v \x01(\tR\x06lastIp\x12!\n" +
+	"\flogin_method\x18\f \x01(\tR\vloginMethod\x12;\n" +
+	"\vexpire_time\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"expireTime\"]\n" +
 	"\x15UpdatePasswordRequest\x12!\n" +
 	"\fold_password\x18\x01 \x01(\tR\voldPassword\x12!\n" +
 	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\"\x18\n" +
-	"\x16UpdatePasswordResponse\"B\n" +
+	"\x16UpdatePasswordResponse\"Z\n" +
 	"\rLogoutRequest\x12\"\n" +
 	"\n" +
-	"session_id\x18\x01 \x01(\tH\x00R\tsessionId\x88\x01\x01B\r\n" +
+	"session_id\x18\x01 \x01(\tH\x00R\tsessionId\x88\x01\x01\x12\x16\n" +
+	"\x06others\x18\x02 \x01(\bR\x06othersB\r\n" +
 	"\v_session_id\"\x10\n" +
-	"\x0eLogoutResponse2\xa1\x06\n" +
+	"\x0eLogoutResponse\"\x84\x03\n" +
+	"\vUserMessage\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bcategory\x18\x02 \x01(\tR\bcategory\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x05 \x01(\tR\acontent\x123\n" +
+	"\x06params\x18\x06 \x03(\v2\x1b.v1.UserMessage.ParamsEntryR\x06params\x12\x12\n" +
+	"\x04read\x18\a \x01(\bR\x04read\x12;\n" +
+	"\vcreate_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12\x1f\n" +
+	"\vsender_name\x18\t \x01(\tR\n" +
+	"senderName\x12#\n" +
+	"\rsender_avatar\x18\n" +
+	" \x01(\tR\fsenderAvatar\x1a9\n" +
+	"\vParamsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"g\n" +
+	"\x13ListMessagesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
+	"\vunread_only\x18\x03 \x01(\bR\n" +
+	"unreadOnly\"\xca\x01\n" +
+	"\x14ListMessagesResponse\x12+\n" +
+	"\bmessages\x18\x01 \x03(\v2\x0f.v1.UserMessageR\bmessages\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x1b\n" +
+	"\tall_count\x18\x03 \x01(\x03R\ballCount\x12!\n" +
+	"\funread_count\x18\x04 \x01(\x03R\vunreadCount\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x03R\bpageSize\"9\n" +
+	"\x13ReadMessagesRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x12\x10\n" +
+	"\x03all\x18\x02 \x01(\bR\x03all\"9\n" +
+	"\x14ReadMessagesResponse\x12!\n" +
+	"\funread_count\x18\x01 \x01(\x03R\vunreadCount\";\n" +
+	"\x15DeleteMessagesRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\x12\x10\n" +
+	"\x03all\x18\x02 \x01(\bR\x03all\";\n" +
+	"\x16DeleteMessagesResponse\x12!\n" +
+	"\funread_count\x18\x01 \x01(\x03R\vunreadCount\"G\n" +
+	"\x15PublishMessageRequest\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"8\n" +
+	"\x16PublishMessageResponse\x12\x1e\n" +
+	"\n" +
+	"recipients\x18\x01 \x01(\x03R\n" +
+	"recipients2\xe1\v\n" +
 	"\vAuthService\x12K\n" +
 	"\x05Login\x12\x10.v1.LoginRequest\x1a\x11.v1.LoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12W\n" +
 	"\bRegister\x12\x13.v1.RegisterRequest\x1a\x14.v1.RegisterResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/auth/register\x12\x89\x01\n" +
 	"\x15SendRegisterEmailCode\x12 .v1.SendRegisterEmailCodeRequest\x1a!.v1.SendRegisterEmailCodeResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/register/email-code\x12}\n" +
-	"\x12SendLoginEmailCode\x12\x1d.v1.SendLoginEmailCodeRequest\x1a\x1e.v1.SendLoginEmailCodeResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/auth/login/email-code\x12S\n" +
+	"\x12SendLoginEmailCode\x12\x1d.v1.SendLoginEmailCodeRequest\x1a\x1e.v1.SendLoginEmailCodeResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/auth/login/email-code\x12\x9e\x01\n" +
+	"\x1aSendResetPasswordEmailCode\x12%.v1.SendResetPasswordEmailCodeRequest\x1a&.v1.SendResetPasswordEmailCodeResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/auth/password/reset/email-code\x12l\n" +
+	"\rResetPassword\x12\x18.v1.ResetPasswordRequest\x1a\x19.v1.ResetPasswordResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/auth/password/reset\x12S\n" +
 	"\aRefresh\x12\x12.v1.RefreshRequest\x1a\x13.v1.RefreshResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/auth/refresh\x12P\n" +
 	"\aDevices\x12\x12.v1.DevicesRequest\x1a\x13.v1.DevicesResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/auth/devices\x12i\n" +
 	"\x0eUpdatePassword\x12\x19.v1.UpdatePasswordRequest\x1a\x1a.v1.UpdatePasswordResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/auth/password\x12O\n" +
-	"\x06Logout\x12\x11.v1.LogoutRequest\x1a\x12.v1.LogoutResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/logoutB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x06Logout\x12\x11.v1.LogoutRequest\x1a\x12.v1.LogoutResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/logout\x12`\n" +
+	"\fListMessages\x12\x17.v1.ListMessagesRequest\x1a\x18.v1.ListMessagesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/auth/messages\x12h\n" +
+	"\fReadMessages\x12\x17.v1.ReadMessagesRequest\x1a\x18.v1.ReadMessagesResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/auth/messages/read\x12p\n" +
+	"\x0eDeleteMessages\x12\x19.v1.DeleteMessagesRequest\x1a\x1a.v1.DeleteMessagesResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/auth/messages/delete\x12q\n" +
+	"\x0ePublishMessage\x12\x19.v1.PublishMessageRequest\x1a\x1a.v1.PublishMessageResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/auth/messages/publishB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_auth_proto_rawDescOnce sync.Once
@@ -1049,55 +1982,86 @@ func file_v1_auth_proto_rawDescGZIP() []byte {
 	return file_v1_auth_proto_rawDescData
 }
 
-var file_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),                  // 0: v1.LoginRequest
-	(*RegisterRequest)(nil),               // 1: v1.RegisterRequest
-	(*RegisterResponse)(nil),              // 2: v1.RegisterResponse
-	(*SendRegisterEmailCodeRequest)(nil),  // 3: v1.SendRegisterEmailCodeRequest
-	(*SendRegisterEmailCodeResponse)(nil), // 4: v1.SendRegisterEmailCodeResponse
-	(*SendLoginEmailCodeRequest)(nil),     // 5: v1.SendLoginEmailCodeRequest
-	(*SendLoginEmailCodeResponse)(nil),    // 6: v1.SendLoginEmailCodeResponse
-	(*LoginResponse)(nil),                 // 7: v1.LoginResponse
-	(*RefreshRequest)(nil),                // 8: v1.RefreshRequest
-	(*RefreshResponse)(nil),               // 9: v1.RefreshResponse
-	(*DevicesRequest)(nil),                // 10: v1.DevicesRequest
-	(*DevicesResponse)(nil),               // 11: v1.DevicesResponse
-	(*LoginDevice)(nil),                   // 12: v1.LoginDevice
-	(*UpdatePasswordRequest)(nil),         // 13: v1.UpdatePasswordRequest
-	(*UpdatePasswordResponse)(nil),        // 14: v1.UpdatePasswordResponse
-	(*LogoutRequest)(nil),                 // 15: v1.LogoutRequest
-	(*LogoutResponse)(nil),                // 16: v1.LogoutResponse
-	(*durationpb.Duration)(nil),           // 17: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil),         // 18: google.protobuf.Timestamp
+	(*LoginRequest)(nil),                       // 0: v1.LoginRequest
+	(*RegisterRequest)(nil),                    // 1: v1.RegisterRequest
+	(*RegisterResponse)(nil),                   // 2: v1.RegisterResponse
+	(*SendRegisterEmailCodeRequest)(nil),       // 3: v1.SendRegisterEmailCodeRequest
+	(*SendRegisterEmailCodeResponse)(nil),      // 4: v1.SendRegisterEmailCodeResponse
+	(*SendLoginEmailCodeRequest)(nil),          // 5: v1.SendLoginEmailCodeRequest
+	(*SendLoginEmailCodeResponse)(nil),         // 6: v1.SendLoginEmailCodeResponse
+	(*SendResetPasswordEmailCodeRequest)(nil),  // 7: v1.SendResetPasswordEmailCodeRequest
+	(*SendResetPasswordEmailCodeResponse)(nil), // 8: v1.SendResetPasswordEmailCodeResponse
+	(*ResetPasswordRequest)(nil),               // 9: v1.ResetPasswordRequest
+	(*ResetPasswordResponse)(nil),              // 10: v1.ResetPasswordResponse
+	(*LoginResponse)(nil),                      // 11: v1.LoginResponse
+	(*RefreshRequest)(nil),                     // 12: v1.RefreshRequest
+	(*RefreshResponse)(nil),                    // 13: v1.RefreshResponse
+	(*DevicesRequest)(nil),                     // 14: v1.DevicesRequest
+	(*DevicesResponse)(nil),                    // 15: v1.DevicesResponse
+	(*LoginDevice)(nil),                        // 16: v1.LoginDevice
+	(*UpdatePasswordRequest)(nil),              // 17: v1.UpdatePasswordRequest
+	(*UpdatePasswordResponse)(nil),             // 18: v1.UpdatePasswordResponse
+	(*LogoutRequest)(nil),                      // 19: v1.LogoutRequest
+	(*LogoutResponse)(nil),                     // 20: v1.LogoutResponse
+	(*UserMessage)(nil),                        // 21: v1.UserMessage
+	(*ListMessagesRequest)(nil),                // 22: v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),               // 23: v1.ListMessagesResponse
+	(*ReadMessagesRequest)(nil),                // 24: v1.ReadMessagesRequest
+	(*ReadMessagesResponse)(nil),               // 25: v1.ReadMessagesResponse
+	(*DeleteMessagesRequest)(nil),              // 26: v1.DeleteMessagesRequest
+	(*DeleteMessagesResponse)(nil),             // 27: v1.DeleteMessagesResponse
+	(*PublishMessageRequest)(nil),              // 28: v1.PublishMessageRequest
+	(*PublishMessageResponse)(nil),             // 29: v1.PublishMessageResponse
+	nil,                                        // 30: v1.UserMessage.ParamsEntry
+	(*durationpb.Duration)(nil),                // 31: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil),              // 32: google.protobuf.Timestamp
 }
 var file_v1_auth_proto_depIdxs = []int32{
-	17, // 0: v1.LoginResponse.expires_in:type_name -> google.protobuf.Duration
-	17, // 1: v1.RefreshResponse.expires_in:type_name -> google.protobuf.Duration
-	12, // 2: v1.DevicesResponse.devices:type_name -> v1.LoginDevice
-	18, // 3: v1.LoginDevice.login_time:type_name -> google.protobuf.Timestamp
-	18, // 4: v1.LoginDevice.update_time:type_name -> google.protobuf.Timestamp
-	0,  // 5: v1.AuthService.Login:input_type -> v1.LoginRequest
-	1,  // 6: v1.AuthService.Register:input_type -> v1.RegisterRequest
-	3,  // 7: v1.AuthService.SendRegisterEmailCode:input_type -> v1.SendRegisterEmailCodeRequest
-	5,  // 8: v1.AuthService.SendLoginEmailCode:input_type -> v1.SendLoginEmailCodeRequest
-	8,  // 9: v1.AuthService.Refresh:input_type -> v1.RefreshRequest
-	10, // 10: v1.AuthService.Devices:input_type -> v1.DevicesRequest
-	13, // 11: v1.AuthService.UpdatePassword:input_type -> v1.UpdatePasswordRequest
-	15, // 12: v1.AuthService.Logout:input_type -> v1.LogoutRequest
-	7,  // 13: v1.AuthService.Login:output_type -> v1.LoginResponse
-	2,  // 14: v1.AuthService.Register:output_type -> v1.RegisterResponse
-	4,  // 15: v1.AuthService.SendRegisterEmailCode:output_type -> v1.SendRegisterEmailCodeResponse
-	6,  // 16: v1.AuthService.SendLoginEmailCode:output_type -> v1.SendLoginEmailCodeResponse
-	9,  // 17: v1.AuthService.Refresh:output_type -> v1.RefreshResponse
-	11, // 18: v1.AuthService.Devices:output_type -> v1.DevicesResponse
-	14, // 19: v1.AuthService.UpdatePassword:output_type -> v1.UpdatePasswordResponse
-	16, // 20: v1.AuthService.Logout:output_type -> v1.LogoutResponse
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	31, // 0: v1.LoginResponse.expires_in:type_name -> google.protobuf.Duration
+	31, // 1: v1.RefreshResponse.expires_in:type_name -> google.protobuf.Duration
+	16, // 2: v1.DevicesResponse.devices:type_name -> v1.LoginDevice
+	32, // 3: v1.LoginDevice.login_time:type_name -> google.protobuf.Timestamp
+	32, // 4: v1.LoginDevice.update_time:type_name -> google.protobuf.Timestamp
+	32, // 5: v1.LoginDevice.last_active_time:type_name -> google.protobuf.Timestamp
+	32, // 6: v1.LoginDevice.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 7: v1.UserMessage.params:type_name -> v1.UserMessage.ParamsEntry
+	32, // 8: v1.UserMessage.create_time:type_name -> google.protobuf.Timestamp
+	21, // 9: v1.ListMessagesResponse.messages:type_name -> v1.UserMessage
+	0,  // 10: v1.AuthService.Login:input_type -> v1.LoginRequest
+	1,  // 11: v1.AuthService.Register:input_type -> v1.RegisterRequest
+	3,  // 12: v1.AuthService.SendRegisterEmailCode:input_type -> v1.SendRegisterEmailCodeRequest
+	5,  // 13: v1.AuthService.SendLoginEmailCode:input_type -> v1.SendLoginEmailCodeRequest
+	7,  // 14: v1.AuthService.SendResetPasswordEmailCode:input_type -> v1.SendResetPasswordEmailCodeRequest
+	9,  // 15: v1.AuthService.ResetPassword:input_type -> v1.ResetPasswordRequest
+	12, // 16: v1.AuthService.Refresh:input_type -> v1.RefreshRequest
+	14, // 17: v1.AuthService.Devices:input_type -> v1.DevicesRequest
+	17, // 18: v1.AuthService.UpdatePassword:input_type -> v1.UpdatePasswordRequest
+	19, // 19: v1.AuthService.Logout:input_type -> v1.LogoutRequest
+	22, // 20: v1.AuthService.ListMessages:input_type -> v1.ListMessagesRequest
+	24, // 21: v1.AuthService.ReadMessages:input_type -> v1.ReadMessagesRequest
+	26, // 22: v1.AuthService.DeleteMessages:input_type -> v1.DeleteMessagesRequest
+	28, // 23: v1.AuthService.PublishMessage:input_type -> v1.PublishMessageRequest
+	11, // 24: v1.AuthService.Login:output_type -> v1.LoginResponse
+	2,  // 25: v1.AuthService.Register:output_type -> v1.RegisterResponse
+	4,  // 26: v1.AuthService.SendRegisterEmailCode:output_type -> v1.SendRegisterEmailCodeResponse
+	6,  // 27: v1.AuthService.SendLoginEmailCode:output_type -> v1.SendLoginEmailCodeResponse
+	8,  // 28: v1.AuthService.SendResetPasswordEmailCode:output_type -> v1.SendResetPasswordEmailCodeResponse
+	10, // 29: v1.AuthService.ResetPassword:output_type -> v1.ResetPasswordResponse
+	13, // 30: v1.AuthService.Refresh:output_type -> v1.RefreshResponse
+	15, // 31: v1.AuthService.Devices:output_type -> v1.DevicesResponse
+	18, // 32: v1.AuthService.UpdatePassword:output_type -> v1.UpdatePasswordResponse
+	20, // 33: v1.AuthService.Logout:output_type -> v1.LogoutResponse
+	23, // 34: v1.AuthService.ListMessages:output_type -> v1.ListMessagesResponse
+	25, // 35: v1.AuthService.ReadMessages:output_type -> v1.ReadMessagesResponse
+	27, // 36: v1.AuthService.DeleteMessages:output_type -> v1.DeleteMessagesResponse
+	29, // 37: v1.AuthService.PublishMessage:output_type -> v1.PublishMessageResponse
+	24, // [24:38] is the sub-list for method output_type
+	10, // [10:24] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_v1_auth_proto_init() }
@@ -1109,14 +2073,14 @@ func file_v1_auth_proto_init() {
 		(*LoginRequest_Username)(nil),
 		(*LoginRequest_Email)(nil),
 	}
-	file_v1_auth_proto_msgTypes[15].OneofWrappers = []any{}
+	file_v1_auth_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_auth_proto_rawDesc), len(file_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

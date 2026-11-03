@@ -32,6 +32,14 @@ const (
 	FieldRefreshNoise = "refresh_noise"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldUserAgent holds the string denoting the user_agent field in the database.
+	FieldUserAgent = "user_agent"
+	// FieldLoginMethod holds the string denoting the login_method field in the database.
+	FieldLoginMethod = "login_method"
+	// FieldLastActiveAt holds the string denoting the last_active_at field in the database.
+	FieldLastActiveAt = "last_active_at"
+	// FieldLastIP holds the string denoting the last_ip field in the database.
+	FieldLastIP = "last_ip"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the session in the database.
@@ -57,6 +65,10 @@ var Columns = []string{
 	FieldAccessNoise,
 	FieldRefreshNoise,
 	FieldExpiresAt,
+	FieldUserAgent,
+	FieldLoginMethod,
+	FieldLastActiveAt,
+	FieldLastIP,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -86,6 +98,12 @@ var (
 	AccessNoiseValidator func(string) error
 	// RefreshNoiseValidator is a validator for the "refresh_noise" field. It is called by the builders before save.
 	RefreshNoiseValidator func(string) error
+	// DefaultUserAgent holds the default value on creation for the "user_agent" field.
+	DefaultUserAgent string
+	// DefaultLoginMethod holds the default value on creation for the "login_method" field.
+	DefaultLoginMethod string
+	// DefaultLastIP holds the default value on creation for the "last_ip" field.
+	DefaultLastIP string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -141,6 +159,26 @@ func ByRefreshNoise(opts ...sql.OrderTermOption) OrderOption {
 // ByExpiresAt orders the results by the expires_at field.
 func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByUserAgent orders the results by the user_agent field.
+func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
+}
+
+// ByLoginMethod orders the results by the login_method field.
+func ByLoginMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoginMethod, opts...).ToFunc()
+}
+
+// ByLastActiveAt orders the results by the last_active_at field.
+func ByLastActiveAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastActiveAt, opts...).ToFunc()
+}
+
+// ByLastIP orders the results by the last_ip field.
+func ByLastIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastIP, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

@@ -55,11 +55,13 @@ export const buildShareLink = (token: string): string => {
 export const buildShareDownloadUrl = (
   token: string,
   sign: string,
-  options: { path?: string; inline?: boolean } = {},
+  options: { path?: string; paths?: string[]; inline?: boolean } = {},
 ): string => {
   const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
   const params = new URLSearchParams({ token, sign })
   if (options.path) params.set('path', options.path)
+  // 多选下载：path 重复出现，后端把这些条目一起打包为 zip。
+  for (const p of options.paths || []) if (p) params.append('path', p)
   if (options.inline) params.set('inline', '1')
   return `${base}/public/share/download?${params.toString()}`
 }

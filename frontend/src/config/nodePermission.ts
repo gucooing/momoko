@@ -86,8 +86,7 @@ const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/dashboard/home', ''],
   ['/instance/list', 'instance:manage'],
   ['/instance/type', 'instance:manage'],
-  ['/instance/console', 'instance:manage'],
-  ['/instance/files', 'instance:manage'],
+  ['/instance/app', 'instance:manage'],
   ['/file/index', 'terminal'],
   ['/file/source', 'file:source'],
   ['/file/share', null],
@@ -95,7 +94,7 @@ const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/tools/port-forward', 'network:manage'],
   ['/tools/tunnel', 'tunnel:manage'],
   ['/openssh', 'ssh:manage'],
-  ['/system/task', 'task:manage'],
+  ['/system/logs/task', 'task:manage'],
 ]
 
 /** 返回页面在远程节点上所需权限；undefined 表示全局页面。 */

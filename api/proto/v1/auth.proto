@@ -38,6 +38,20 @@ service AuthService {
       body: "*"
     };
   }
+  // 发送重置密码邮件验证码
+  rpc SendResetPasswordEmailCode(SendResetPasswordEmailCodeRequest) returns (SendResetPasswordEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password/reset/email-code"
+      body: "*"
+    };
+  }
+  // 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password/reset"
+      body: "*"
+    };
+  }
   // 刷新token
   rpc Refresh(RefreshRequest) returns (RefreshResponse) {
     option (google.api.http) = {
@@ -62,6 +76,33 @@ service AuthService {
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
       post: "/api/v1/auth/logout"
+      body: "*"
+    };
+  }
+  // 我的消息列表（含未读数）
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/auth/messages"
+    };
+  }
+  // 标记消息已读
+  rpc ReadMessages(ReadMessagesRequest) returns (ReadMessagesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/messages/read"
+      body: "*"
+    };
+  }
+  // 删除消息
+  rpc DeleteMessages(DeleteMessagesRequest) returns (DeleteMessagesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/messages/delete"
+      body: "*"
+    };
+  }
+  // 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+  rpc PublishMessage(PublishMessageRequest) returns (PublishMessageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/messages/publish"
       body: "*"
     };
   }
@@ -111,7 +152,10 @@ message SendRegisterEmailCodeRequest {
 }
 
 // 发送注册邮件验证码响应
-message SendRegisterEmailCodeResponse {}
+message SendRegisterEmailCodeResponse {
+  // 验证码有效期（秒）
+  int64 expires_in_seconds = 1;
+}
 
 // 发送登录邮件验证码请求
 message SendLoginEmailCodeRequest {
@@ -121,6 +165,31 @@ message SendLoginEmailCodeRequest {
 
 // 发送登录邮件验证码响应
 message SendLoginEmailCodeResponse {}
+
+// 发送重置密码邮件验证码请求
+message SendResetPasswordEmailCodeRequest {
+  // 注册时使用的邮箱
+  string email = 1;
+}
+
+// 发送重置密码邮件验证码响应
+message SendResetPasswordEmailCodeResponse {
+  // 验证码有效期（秒）
+  int64 expires_in_seconds = 1;
+}
+
+// 重置密码请求
+message ResetPasswordRequest {
+  // 邮箱
+  string email = 1;
+  // 邮箱验证码
+  string code = 2;
+  // 新密码
+  string new_password = 3;
+}
+
+// 重置密码响应
+message ResetPasswordResponse {}
 
 // 账号登录响应
 message LoginResponse {
@@ -175,6 +244,20 @@ message LoginDevice {
   string session_id = 5;
   // 最近一次刷新时间
   google.protobuf.Timestamp update_time = 6;
+  // 登录时的 User-Agent
+  string user_agent = 7;
+  // 设备类型：desktop / mobile / tablet / cli
+  string device_type = 8;
+  // 最近活跃 IP 的网络范围：loopback（本机） / lan（局域网） / public（公网）
+  string ip_scope = 9;
+  // 最近活跃时间（带该会话 token 的最近一次请求，约 1 分钟精度）
+  google.protobuf.Timestamp last_active_time = 10;
+  // 最近活跃 IP
+  string last_ip = 11;
+  // 登录方式：password（账号密码） / email_code（邮箱验证码）
+  string login_method = 12;
+  // 会话过期时间（不续签时）
+  google.protobuf.Timestamp expire_time = 13;
 }
 
 // 更新密码请求
@@ -192,7 +275,101 @@ message UpdatePasswordResponse {}
 message LogoutRequest{
   // 是否指定会话
   optional string session_id = 1;
+  // 为 true 时下线除当前会话外的所有会话（忽略 session_id）
+  bool others = 2;
 }
 
 // 退出登录响应
 message LogoutResponse{}
+
+// 用户消息
+message UserMessage {
+  // 消息id
+  string id = 1;
+  // 分类：security（账号安全） / system（系统） / notice（通知公告）
+  string category = 2;
+  // 消息种类，前端据此本地化：login_new_device / login_failed / password_changed / password_reset / notice
+  string kind = 3;
+  // 标题（notice 为发布者填写；其它种类可为空，由前端按 kind 生成）
+  string title = 4;
+  // 内容（notice 为发布者填写）
+  string content = 5;
+  // 模板参数（如 device / ip / ip_scope）
+  map<string, string> params = 6;
+  // 是否已读
+  bool read = 7;
+  // 创建时间
+  google.protobuf.Timestamp create_time = 8;
+  // 发布者昵称（仅 notice）
+  string sender_name = 9;
+  // 发布者头像（仅 notice）
+  string sender_avatar = 10;
+}
+
+// 我的消息列表请求
+message ListMessagesRequest {
+  // page
+  int64 page = 1;
+  // page size（最大 100）
+  int64 page_size = 2;
+  // 只看未读
+  bool unread_only = 3;
+}
+
+// 我的消息列表响应
+message ListMessagesResponse {
+  // 消息
+  repeated UserMessage messages = 1;
+  // 符合条件的总数
+  int64 total = 2;
+  // 全部消息数
+  int64 all_count = 3;
+  // 未读数
+  int64 unread_count = 4;
+  // actual page
+  int64 page = 5;
+  // actual page size
+  int64 page_size = 6;
+}
+
+// 标记已读请求
+message ReadMessagesRequest {
+  // 消息id
+  repeated string ids = 1;
+  // 为 true 时标记全部（忽略 ids）
+  bool all = 2;
+}
+
+// 标记已读响应
+message ReadMessagesResponse {
+  // 剩余未读数
+  int64 unread_count = 1;
+}
+
+// 删除消息请求
+message DeleteMessagesRequest {
+  // 消息id
+  repeated string ids = 1;
+  // 为 true 时删除全部（忽略 ids）
+  bool all = 2;
+}
+
+// 删除消息响应
+message DeleteMessagesResponse {
+  // 剩余未读数
+  int64 unread_count = 1;
+}
+
+// 发布通知请求
+message PublishMessageRequest {
+  // 标题（可空，默认用发布者昵称）
+  string title = 1;
+  // 内容
+  string content = 2;
+}
+
+// 发布通知响应
+message PublishMessageResponse {
+  // 送达用户数
+  int64 recipients = 1;
+}

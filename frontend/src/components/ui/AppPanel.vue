@@ -37,7 +37,7 @@ const menuStore = useMenuStore()
 <style scoped lang="scss">
 .app-panel {
   background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-card);
   overflow: hidden;
@@ -47,8 +47,7 @@ const menuStore = useMenuStore()
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 15px 20px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  padding: 18px 22px 0;
   min-width: 0;
 }
 @media (width < 640px) {
@@ -69,16 +68,16 @@ const menuStore = useMenuStore()
   min-width: 0;
 }
 .app-panel__title h2 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
 }
 .app-panel__title-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   align-self: center;
-  color: var(--el-text-color-secondary);
+  color: var(--m-pInk);
 }
 .app-panel__caption {
   font-size: 0.75rem;
@@ -92,7 +91,7 @@ const menuStore = useMenuStore()
   min-width: 0;
 }
 .app-panel__body {
-  padding: 20px;
+  padding: 18px 22px 22px;
 }
 .app-panel--flush .app-panel__body {
   padding: 0;
@@ -101,7 +100,7 @@ const menuStore = useMenuStore()
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 20px;
+  padding: 14px 22px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 </style>

@@ -26,6 +26,7 @@ const (
 	OIDCService_UpdateOIDCClient_FullMethodName            = "/v1.OIDCService/UpdateOIDCClient"
 	OIDCService_DeleteOIDCClient_FullMethodName            = "/v1.OIDCService/DeleteOIDCClient"
 	OIDCService_RefreshOIDCClientSecret_FullMethodName     = "/v1.OIDCService/RefreshOIDCClientSecret"
+	OIDCService_RotateOIDCSigningKey_FullMethodName        = "/v1.OIDCService/RotateOIDCSigningKey"
 	OIDCService_OIDCAuthorizationInfo_FullMethodName       = "/v1.OIDCService/OIDCAuthorizationInfo"
 	OIDCService_CreateOIDCAuthorizationCode_FullMethodName = "/v1.OIDCService/CreateOIDCAuthorizationCode"
 )
@@ -50,6 +51,8 @@ type OIDCServiceClient interface {
 	DeleteOIDCClient(ctx context.Context, in *DeleteOIDCClientRequest, opts ...grpc.CallOption) (*DeleteOIDCClientResponse, error)
 	// 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
 	RefreshOIDCClientSecret(ctx context.Context, in *RefreshOIDCClientSecretRequest, opts ...grpc.CallOption) (*RefreshOIDCClientSecretResponse, error)
+	// 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+	RotateOIDCSigningKey(ctx context.Context, in *RotateOIDCSigningKeyRequest, opts ...grpc.CallOption) (*RotateOIDCSigningKeyResponse, error)
 	// 获取 OIDC 授权页展示信息；只校验授权请求并返回客户端名称，不生成授权码
 	OIDCAuthorizationInfo(ctx context.Context, in *OIDCAuthorizationInfoRequest, opts ...grpc.CallOption) (*OIDCAuthorizationInfoResponse, error)
 	// 创建 OIDC 授权码；由前端授权确认页在用户已登录后调用
@@ -134,6 +137,16 @@ func (c *oIDCServiceClient) RefreshOIDCClientSecret(ctx context.Context, in *Ref
 	return out, nil
 }
 
+func (c *oIDCServiceClient) RotateOIDCSigningKey(ctx context.Context, in *RotateOIDCSigningKeyRequest, opts ...grpc.CallOption) (*RotateOIDCSigningKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RotateOIDCSigningKeyResponse)
+	err := c.cc.Invoke(ctx, OIDCService_RotateOIDCSigningKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *oIDCServiceClient) OIDCAuthorizationInfo(ctx context.Context, in *OIDCAuthorizationInfoRequest, opts ...grpc.CallOption) (*OIDCAuthorizationInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OIDCAuthorizationInfoResponse)
@@ -174,6 +187,8 @@ type OIDCServiceServer interface {
 	DeleteOIDCClient(context.Context, *DeleteOIDCClientRequest) (*DeleteOIDCClientResponse, error)
 	// 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
 	RefreshOIDCClientSecret(context.Context, *RefreshOIDCClientSecretRequest) (*RefreshOIDCClientSecretResponse, error)
+	// 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+	RotateOIDCSigningKey(context.Context, *RotateOIDCSigningKeyRequest) (*RotateOIDCSigningKeyResponse, error)
 	// 获取 OIDC 授权页展示信息；只校验授权请求并返回客户端名称，不生成授权码
 	OIDCAuthorizationInfo(context.Context, *OIDCAuthorizationInfoRequest) (*OIDCAuthorizationInfoResponse, error)
 	// 创建 OIDC 授权码；由前端授权确认页在用户已登录后调用
@@ -208,6 +223,9 @@ func (UnimplementedOIDCServiceServer) DeleteOIDCClient(context.Context, *DeleteO
 }
 func (UnimplementedOIDCServiceServer) RefreshOIDCClientSecret(context.Context, *RefreshOIDCClientSecretRequest) (*RefreshOIDCClientSecretResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshOIDCClientSecret not implemented")
+}
+func (UnimplementedOIDCServiceServer) RotateOIDCSigningKey(context.Context, *RotateOIDCSigningKeyRequest) (*RotateOIDCSigningKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RotateOIDCSigningKey not implemented")
 }
 func (UnimplementedOIDCServiceServer) OIDCAuthorizationInfo(context.Context, *OIDCAuthorizationInfoRequest) (*OIDCAuthorizationInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OIDCAuthorizationInfo not implemented")
@@ -362,6 +380,24 @@ func _OIDCService_RefreshOIDCClientSecret_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OIDCService_RotateOIDCSigningKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RotateOIDCSigningKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OIDCServiceServer).RotateOIDCSigningKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OIDCService_RotateOIDCSigningKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OIDCServiceServer).RotateOIDCSigningKey(ctx, req.(*RotateOIDCSigningKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OIDCService_OIDCAuthorizationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OIDCAuthorizationInfoRequest)
 	if err := dec(in); err != nil {
@@ -432,6 +468,10 @@ var OIDCService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshOIDCClientSecret",
 			Handler:    _OIDCService_RefreshOIDCClientSecret_Handler,
+		},
+		{
+			MethodName: "RotateOIDCSigningKey",
+			Handler:    _OIDCService_RotateOIDCSigningKey_Handler,
 		},
 		{
 			MethodName: "OIDCAuthorizationInfo",

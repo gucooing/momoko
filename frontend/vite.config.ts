@@ -97,13 +97,18 @@ export default defineConfig(({ mode }) => {
       vue(),
       tailwindcss(),
       // Nuxt UI v4（Reka UI + Tailwind v4）。colorMode:false —— 明暗仍由 themeStore 的 useDark() 独占 .dark。
-      // 主色 primary=teal（teal-500 = #14b8a6 薄荷青），中性 neutral=slate。
       // Nuxt UI 只允许单个 unplugin-auto-import / unplugin-vue-components 实例，
       // 故把项目原有配置并入这里（defu 合并：数组与 Nuxt UI 默认项拼接，二者共存）。
       // ElementPlusResolver 已移除（EP 已卸载）。
       ui({
         colorMode: false,
-        ui: { colors: { primary: 'teal', neutral: 'slate' } },
+        // 实际色值由 design-tokens.css 的 data-palette 覆盖 --ui-primary 等（六套可自选配色）；
+        // 这里的 primary/neutral 仅作为 Nuxt UI 生成色阶的兜底。按钮/徽标统一全圆角药丸。
+        ui: {
+          colors: { primary: 'pink', neutral: 'slate' },
+          button: { slots: { base: 'rounded-full font-semibold' } },
+          badge: { slots: { base: 'rounded-full font-semibold' } },
+        },
         autoImport: {
           imports: ['vue', 'vue-router', 'pinia', { '@/utils/feedback': ['feedback', 'useFeedback'] }],
           dirs: ['src/stores', 'src/stores/**'],

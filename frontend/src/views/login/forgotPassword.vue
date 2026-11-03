@@ -1,4 +1,4 @@
-<!-- 找回密码：占位流程；紧凑卡内表单。 -->
+<!-- 找回密码：占位流程（提交后提示功能开发中）；前置图标输入框，外壳样式由 login/index.vue 提供。 -->
 <template>
   <div class="auth-form">
     <header class="auth-form__head">
@@ -8,25 +8,35 @@
 
     <form class="auth-form__body" @submit.prevent="handleAction">
       <div class="app-field">
-        <label class="app-label" for="forgot-email">{{ t('forgot.emailPlaceholder') }}</label>
-        <input
-          id="forgot-email"
-          v-model="forgotPasswordForm.email"
-          class="app-input auth-input"
-          :class="{ 'is-error': error }"
-          type="email"
-          :placeholder="t('forgot.emailPlaceholder')"
-          autocomplete="email"
-        />
+        <label class="app-label" for="forgot-email">{{ t('user.email') }}</label>
+        <div class="auth-fld">
+          <component :is="menuStore.iconComponents['HOutline:EnvelopeIcon']" class="auth-fld__ico" />
+          <input
+            id="forgot-email"
+            v-model="forgotPasswordForm.email"
+            class="app-input auth-input auth-input--lead"
+            :class="{ 'is-error': error }"
+            type="email"
+            :placeholder="t('forgot.emailPlaceholder')"
+            autocomplete="email"
+          />
+        </div>
         <span v-if="error" class="app-field__error">{{ error }}</span>
       </div>
 
-      <UButton type="submit" color="primary" block class="auth-submit">
+      <UButton
+        type="submit"
+        color="primary"
+        block
+        class="auth-submit"
+        trailing-icon="i-lucide-arrow-right"
+      >
         {{ t('forgot.submit') }}
       </UButton>
     </form>
 
     <p class="auth-switch">
+      <span>{{ t('forgot.remembered') }}</span>
       <button type="button" class="auth-text-btn" @click="emits('goToMode', 'login')">
         {{ t('forgot.backLogin') }}
       </button>
@@ -46,6 +56,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 const fb = useFeedback()
+const menuStore = useMenuStore()
 
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -104,7 +115,39 @@ const handleAction = () => {
   font-size: 0.8125rem;
 }
 
+/* 带前置图标的输入框（与注册页一致） */
+.auth-fld {
+  position: relative;
+}
+.auth-fld__ico {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  color: var(--el-text-color-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+.auth-fld .auth-input.auth-input--lead {
+  padding-left: 46px;
+  background: var(--m-s2);
+  border-color: transparent;
+}
+.auth-fld .auth-input.auth-input--lead:focus {
+  background: var(--el-bg-color);
+  border-color: var(--el-color-primary);
+}
+.auth-fld .auth-input.auth-input--lead.is-error {
+  border-color: var(--el-color-danger);
+}
+.auth-fld:focus-within .auth-fld__ico {
+  color: var(--m-pInk);
+}
+
 .auth-submit {
+  justify-content: center;
   margin-top: 4px;
   height: 36px !important;
   font-size: 0.875rem !important;
@@ -114,7 +157,11 @@ const handleAction = () => {
 .auth-switch {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
   margin: 14px 0 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 
 .auth-text-btn {
@@ -122,7 +169,7 @@ const handleAction = () => {
   background: transparent;
   padding: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-color-primary);
   cursor: pointer;
 }

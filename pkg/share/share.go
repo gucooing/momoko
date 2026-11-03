@@ -224,11 +224,26 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 	return items, sub, nil
 }
 
-// ServeDownload 将分享内 subPath 指向的目标写入 w：subPath 为空时打包全部顶层条目（可跨来源）为 zip；
-// 指向目录时打包该目录；指向文件时直传（可 Seek 来源支持 Range）。inline=true 以内联方式返回（用于预览）。
+// ServeDownload 将分享内 subPaths 指向的目标写入 w：为空时打包全部顶层条目（可跨来源）为 zip；
+// 多个路径（访问者多选）时把这些条目一起实时打包为 zip；
+// 单个路径指向目录时打包该目录；指向文件时直传（可 Seek 来源支持 Range）。inline=true 以内联方式返回（用于预览）。
 // 若目标条目所属来源开启 redirect_302 且支持预签名（OSS），单文件改为 302 跳转到（公开域名）预签名直链，momoko 不在数据路径。
-func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPath string, inline bool, w http.ResponseWriter, r *http.Request) error {
-	sub := normalizeSub(subPath)
+func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPaths []string, inline bool, w http.ResponseWriter, r *http.Request) error {
+	subs := make([]string, 0, len(subPaths))
+	seen := make(map[string]bool, len(subPaths))
+	for _, p := range subPaths {
+		if n := normalizeSub(p); n != "" && !seen[n] {
+			seen[n] = true
+			subs = append(subs, n)
+		}
+	}
+	if len(subs) > 1 {
+		return streamZipSelection(ctx, resolve, s, subs, w)
+	}
+	sub := ""
+	if len(subs) == 1 {
+		sub = subs[0]
+	}
 	// 根：打包全部顶层条目（可能来自不同来源）为 zip。
 	if sub == "" {
 		return streamZipItems(ctx, resolve, s.Items, s.Name, w)
@@ -311,6 +326,35 @@ func streamZipItems(ctx context.Context, resolve StoreResolver, items []sharetyp
 			return err
 		}
 		if err := zipRoot(ctx, store, it.Path, zw); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// streamZipSelection 将访问者多选的若干虚拟路径（可跨条目/来源）实时打包为 zip；任一路径越界即整体拒绝。
+func streamZipSelection(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subs []string, w http.ResponseWriter) error {
+	type target struct {
+		store file.Store
+		real  string
+	}
+	targets := make([]target, 0, len(subs))
+	for _, sub := range subs {
+		it, real, ok := resolveItem(s, sub)
+		if !ok {
+			return errors.New("文件不存在")
+		}
+		store, _, err := resolve(ctx, it.SourceID)
+		if err != nil {
+			return errors.New("文件不存在")
+		}
+		targets = append(targets, target{store: store, real: real})
+	}
+	zipHeader(w, s.Name)
+	zw := zip.NewWriter(w)
+	defer zw.Close()
+	for _, t := range targets {
+		if err := zipRoot(ctx, t.store, t.real, zw); err != nil {
 			return err
 		}
 	}
@@ -424,6 +468,7 @@ func ToMeta(s *gen.FileShare, owner *gen.User, now time.Time) *v1.GetShareMetaRe
 	meta := &v1.GetShareMetaResponse{
 		Name:          s.Name,
 		NeedCode:      s.Code != "",
+		CodeLength:    int32(len([]rune(s.Code))),
 		MaxDownloads:  s.MaxDownloads,
 		DownloadCount: s.DownloadCount,
 		Available:     Available(s, now),
@@ -437,6 +482,18 @@ func ToMeta(s *gen.FileShare, owner *gen.User, now time.Time) *v1.GetShareMetaRe
 	}
 	if s.ExpiresAt != nil {
 		meta.ExpiresAt = timestamppb.New(*s.ExpiresAt)
+	}
+	if !s.CreateTime.IsZero() {
+		meta.CreateTime = timestamppb.New(s.CreateTime)
+	}
+	// 顶层统计直接用创建时缓存的条目属性，不访问来源。
+	for _, it := range s.Items {
+		if it.IsDir {
+			meta.DirCount++
+			continue
+		}
+		meta.FileCount++
+		meta.TotalSize += it.Size
 	}
 	return meta
 }

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"net"
 	"os"
 	"runtime"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	ghost "github.com/shirou/gopsutil/v4/host"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
@@ -64,10 +66,6 @@ type NodeAgentUsecase struct {
 	users  UserRepo
 	system *SystemUsecase
 	replay *nodeauth.ReplayGuard
-
-	hostMu       sync.Mutex
-	hostInfo     *ghost.InfoStat
-	hostInfoTime time.Time
 }
 
 func NewNodeAgentUsecase(keys APIKeyRepo, users UserRepo, system *SystemUsecase) *NodeAgentUsecase {
@@ -110,6 +108,7 @@ func (u *NodeAgentUsecase) Authenticate(ctx context.Context, md metadata.MD, met
 	if err != nil || owner.Status != user.StatusActive {
 		return nil, ErrNodeAPIKeyOwnerInactive
 	}
+	u.touchAPIKey(ctx, key, now)
 
 	scopes := make(map[constant.Permissions]struct{}, len(key.Permissions))
 	for _, perm := range key.Permissions {
@@ -125,6 +124,29 @@ func (u *NodeAgentUsecase) Authenticate(ctx context.Context, md metadata.MD, met
 		Operator:   signed.Operator(),
 		scopes:     scopes,
 	}, nil
+}
+
+// apiKeyTouchInterval 最近使用时间写库的最小间隔（来源 IP 变化时立即写）。
+const apiKeyTouchInterval = time.Minute
+
+// touchAPIKey 异步记录 API Key 最近一次被调用的时间与来源 IP（节流）。
+func (u *NodeAgentUsecase) touchAPIKey(ctx context.Context, key *gen.UserAPIKey, now time.Time) {
+	ip := ""
+	if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
+		ip = p.Addr.String()
+		if host, _, err := net.SplitHostPort(ip); err == nil {
+			ip = host
+		}
+	}
+	if key.LastUsedAt != nil && now.Sub(*key.LastUsedAt) < apiKeyTouchInterval && key.LastUsedIP == ip {
+		return
+	}
+	id := key.ID
+	go func() {
+		tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = u.keys.TouchAPIKeyUsed(tctx, id, now, ip)
+	}()
 }
 
 // Authorize 校验主体能否执行需要 perm 的操作：授予范围必须包含 perm；
@@ -154,20 +176,26 @@ func (u *NodeAgentUsecase) EffectivePermissions(ctx context.Context, p *NodePrin
 
 // AgentInfo 汇总节点信息与生效权限，主控据此展示节点并过滤页面与操作。
 func (u *NodeAgentUsecase) AgentInfo(ctx context.Context, p *NodePrincipal) *v1.NodeRemoteInfo {
-	info := &v1.NodeRemoteInfo{
-		Os:          runtime.GOOS,
-		Arch:        runtime.GOARCH,
-		Version:     version.Current(),
-		ApiKeyName:  p.APIKeyName,
-		UserId:      p.UserID,
-		Username:    p.Username,
-		Permissions: u.EffectivePermissions(ctx, p),
-		ServerTime:  timestamppb.Now(),
-	}
+	info := LocalNodeInfo(ctx)
+	info.ApiKeyName = p.APIKeyName
+	info.UserId = p.UserID
+	info.Username = p.Username
+	info.Permissions = u.EffectivePermissions(ctx, p)
 	if p.ExpiresAt != nil {
 		info.ExpiresAt = timestamppb.New(*p.ExpiresAt)
 	}
-	if host := u.host(ctx); host != nil {
+	return info
+}
+
+// LocalNodeInfo 返回本机的主机名 / 系统 / 架构 / 版本（节点自报信息与主控节点列表的本机卡片共用）。
+func LocalNodeInfo(ctx context.Context) *v1.NodeRemoteInfo {
+	info := &v1.NodeRemoteInfo{
+		Os:         runtime.GOOS,
+		Arch:       runtime.GOARCH,
+		Version:    version.Current(),
+		ServerTime: timestamppb.Now(),
+	}
+	if host := localHost.get(ctx); host != nil {
 		info.Hostname = host.Hostname
 		info.Platform = strings.TrimSpace(host.Platform + " " + host.PlatformVersion)
 		if host.KernelVersion != "" {
@@ -179,18 +207,27 @@ func (u *NodeAgentUsecase) AgentInfo(ctx context.Context, p *NodePrincipal) *v1.
 	return info
 }
 
-func (u *NodeAgentUsecase) host(ctx context.Context) *ghost.InfoStat {
-	u.hostMu.Lock()
-	defer u.hostMu.Unlock()
-	if u.hostInfo != nil && time.Since(u.hostInfoTime) < nodeHostInfoTTL {
-		return u.hostInfo
+// localHost 缓存本机主机信息（gopsutil 读取较慢）。
+var localHost = &hostInfoCache{}
+
+type hostInfoCache struct {
+	mu   sync.Mutex
+	info *ghost.InfoStat
+	at   time.Time
+}
+
+func (c *hostInfoCache) get(ctx context.Context) *ghost.InfoStat {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.info != nil && time.Since(c.at) < nodeHostInfoTTL {
+		return c.info
 	}
 	host, err := ghost.InfoWithContext(ctx)
 	if err != nil {
-		return u.hostInfo
+		return c.info
 	}
-	u.hostInfo = host
-	u.hostInfoTime = time.Now()
+	c.info = host
+	c.at = time.Now()
 	return host
 }
 

@@ -105,9 +105,10 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
   const activeSession = computed(() => activeEntry.value?.session)
 
   watch(
-    () => tabsStore.tabs.map((tab) => tab.fullPath),
-    (fullPaths) => {
-      const openedTabSet = new Set(fullPaths)
+    // 会话按页面路径区分（不含查询参数，如 ?tab=），与打开的标签按路径比对
+    () => tabsStore.tabs.map((tab) => tab.fullPath.split(/[?#]/)[0] || ''),
+    (paths) => {
+      const openedTabSet = new Set(paths)
 
       Object.keys(sessionEntries.value).forEach((routeKey) => {
         if (!openedTabSet.has(routeKey)) {
@@ -142,6 +143,13 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
 
     await entry.session.initializeSession()
     entry.initialized = !!normalizedInstanceId
+  }
+
+  // 重新连接：重建当前会话（后端会重放最近的输出）
+  const reconnect = async () => {
+    const session = activeSession.value
+    if (!session) return
+    await session.initializeSession()
   }
 
   const refreshCurrentInfo = async () => {
@@ -251,6 +259,7 @@ export const useInstanceConsoleStore = defineStore('instance-console', () => {
     isBusy,
     initialize,
     refreshCurrentInfo,
+    reconnect,
     togglePower: togglePowerState,
     restartTerminal,
     forceStopConsole,

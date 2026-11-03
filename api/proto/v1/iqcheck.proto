@@ -131,6 +131,12 @@ message IQCheckPromptInfo {
   google.protobuf.Timestamp create_time = 6;
   // 更新时间
   google.protobuf.Timestamp update_time = 7;
+  // 已被检测使用的次数（检测结果条数）
+  int64 use_count = 8;
+  // 最近一次被使用的时间
+  google.protobuf.Timestamp last_used_at = 9;
+  // 被检测使用过的站点数
+  int64 site_count = 10;
 }
 
 // 获取提示词列表请求
@@ -153,6 +159,10 @@ message ListIQCheckPromptsResponse {
   int64 total = 3;
   // 提示词列表
   repeated IQCheckPromptInfo prompts = 4;
+  // 启用中的提示词数量（不受关键字筛选影响）
+  int64 enabled_count = 5;
+  // 提示词总数（不受关键字筛选影响）
+  int64 all_count = 6;
 }
 
 // 创建提示词请求
@@ -244,6 +254,80 @@ message IQCheckSiteInfo {
   google.protobuf.Timestamp update_time = 15;
   // 请求上游时使用的 User-Agent
   string user_agent = 16;
+  // 预计下一次定时检测时间；未启用或已达次数上限时为空
+  google.protobuf.Timestamp next_check_at = 17;
+  // 最近一轮检测汇总；从未检测时为空
+  IQCheckRoundSummary last_round = 18;
+  // 最近若干轮检测汇总，旧的在前
+  repeated IQCheckRoundSummary recent_rounds = 19;
+  // 检测结果总条数
+  int64 result_count = 20;
+  // 站点健康状态
+  IQCheckSiteHealth health = 21;
+}
+
+// 站点健康状态
+enum IQCheckSiteHealth {
+  // 从未检测
+  IQ_CHECK_SITE_HEALTH_UNSPECIFIED = 0;
+  // 最近一轮全部成功
+  IQ_CHECK_SITE_HEALTH_HEALTHY = 1;
+  // 最近一轮部分失败
+  IQ_CHECK_SITE_HEALTH_PARTIAL = 2;
+  // 最近一轮全部失败
+  IQ_CHECK_SITE_HEALTH_FAILED = 3;
+}
+
+// 一轮检测的汇总
+message IQCheckRoundSummary {
+  // 轮次编号
+  string round_id = 1;
+  // 检测时间
+  google.protobuf.Timestamp request_at = 2;
+  // 成功的模型数
+  int32 success = 3;
+  // 失败的模型数
+  int32 failed = 4;
+  // 成功结果的平均耗时（毫秒）
+  int64 avg_duration_ms = 5;
+  // 第一条失败原因
+  string error = 6;
+  // 提示词标题
+  string prompt_title = 7;
+}
+
+// 站点列表筛选
+enum IQCheckSiteFilter {
+  // 全部
+  IQ_CHECK_SITE_FILTER_ALL = 0;
+  // 最近一轮全部成功
+  IQ_CHECK_SITE_FILTER_HEALTHY = 1;
+  // 最近一轮有失败
+  IQ_CHECK_SITE_FILTER_FAILING = 2;
+  // 未启用定时检测
+  IQ_CHECK_SITE_FILTER_DISABLED = 3;
+  // 从未检测
+  IQ_CHECK_SITE_FILTER_NEVER = 4;
+}
+
+// 站点统计（不受筛选影响）
+message IQCheckSiteStats {
+  // 站点总数
+  int64 total = 1;
+  // 最近一轮全部成功
+  int64 healthy = 2;
+  // 最近一轮有失败
+  int64 failing = 3;
+  // 未启用定时检测
+  int64 disabled = 4;
+  // 从未检测
+  int64 never = 5;
+  // 正在检测
+  int64 checking = 6;
+  // 全部站点检测的模型数（去重：模型 + 推理强度）
+  int64 model_count = 7;
+  // 今天产生的检测结果条数
+  int64 checks_today = 8;
 }
 
 // 获取站点列表请求
@@ -252,8 +336,10 @@ message ListIQCheckSitesRequest {
   int64 page = 1;
   // 每页数量
   int64 page_size = 2;
-  // 名称关键字
+  // 名称/端点/模型关键字
   optional string keywords = 3;
+  // 状态筛选
+  optional IQCheckSiteFilter filter = 4;
 }
 
 // 获取站点列表响应
@@ -266,6 +352,8 @@ message ListIQCheckSitesResponse {
   int64 total = 3;
   // 站点列表
   repeated IQCheckSiteInfo sites = 4;
+  // 站点统计
+  IQCheckSiteStats stats = 5;
 }
 
 // 创建站点请求
@@ -415,6 +503,34 @@ message PublicIQCheckSiteInfo {
   int32 interval_minutes = 5;
   // 最近检测时间
   google.protobuf.Timestamp last_check_at = 6;
+  // 检测统计
+  PublicIQCheckStats stats = 7;
+  // 是否启用定时检测
+  bool enabled = 8;
+}
+
+// 公开页检测统计
+message PublicIQCheckStats {
+  // 检测结果总条数
+  int64 total = 1;
+  // 成功条数
+  int64 success = 2;
+  // 成功结果的平均耗时（毫秒）
+  int64 avg_duration_ms = 3;
+  // 近 7 天的检测结果条数
+  int64 last7d_total = 4;
+  // 近 7 天的成功条数
+  int64 last7d_success = 5;
+  // 按模型统计的结果条数
+  repeated PublicIQCheckModelCount models = 6;
+}
+
+// 按模型统计的结果条数
+message PublicIQCheckModelCount {
+  // 模型
+  string model = 1;
+  // 结果条数
+  int64 count = 2;
 }
 
 // 获取公开页站点信息请求
@@ -439,6 +555,8 @@ message PublicIQCheckResultsRequest {
   int64 page_size = 3;
   // 按模型筛选
   optional string model = 4;
+  // 只取指定 id 的结果（用于打开分享的单条结果链接）
+  optional string result_id = 5;
 }
 
 // 获取公开页检测结果响应

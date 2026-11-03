@@ -8,6 +8,18 @@
 
 export const protobufPackage = "v1";
 
+export enum PortForwardStatus {
+  /** PORT_FORWARD_STATUS_UNSPECIFIED - 未指定 */
+  PORT_FORWARD_STATUS_UNSPECIFIED = "PORT_FORWARD_STATUS_UNSPECIFIED",
+  /** PORT_FORWARD_STATUS_RUNNING - 运行中 */
+  PORT_FORWARD_STATUS_RUNNING = "PORT_FORWARD_STATUS_RUNNING",
+  /** PORT_FORWARD_STATUS_STOPPED - 已停用 */
+  PORT_FORWARD_STATUS_STOPPED = "PORT_FORWARD_STATUS_STOPPED",
+  /** PORT_FORWARD_STATUS_ERROR - 异常 */
+  PORT_FORWARD_STATUS_ERROR = "PORT_FORWARD_STATUS_ERROR",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 export enum PortForwardType {
   /** PORT_FORWARD_TYPE_UNSPECIFIED - 未指定 */
   PORT_FORWARD_TYPE_UNSPECIFIED = "PORT_FORWARD_TYPE_UNSPECIFIED",
@@ -32,7 +44,11 @@ export interface ListPortForwardsRequest {
     | PortForwardType
     | undefined;
   /** 是否启用 */
-  isEnable?: boolean | undefined;
+  isEnable?:
+    | boolean
+    | undefined;
+  /** 运行状态 */
+  status?: PortForwardStatus | undefined;
 }
 
 export interface ListPortForwardsResponse {
@@ -44,6 +60,40 @@ export interface ListPortForwardsResponse {
   total: number;
   /** 列表 */
   infos: PortForwardInfo[];
+  /** 概览（当前用户全部规则，不受筛选影响） */
+  overview: PortForwardOverview | undefined;
+}
+
+/** 端口转发概览 */
+export interface PortForwardOverview {
+  /** 规则总数 */
+  total: number;
+  /** 运行中 */
+  running: number;
+  /** 已停用 */
+  stopped: number;
+  /** 异常（已启用但未能运行或目标不可达） */
+  error: number;
+  /** TCP 规则数 */
+  tcp: number;
+  /** UDP 规则数 */
+  udp: number;
+  /** 当前活动连接合计 */
+  activeConnections: number;
+  /** 当前入站速率合计(字节/秒) */
+  rateIn: number;
+  /** 当前出站速率合计(字节/秒) */
+  rateOut: number;
+  /** 今日入站流量(字节) */
+  todayBytesIn: number;
+  /** 今日出站流量(字节) */
+  todayBytesOut: number;
+  /** 昨日流量合计(字节，入站+出站) */
+  yesterdayBytes: number;
+  /** 今日并发连接峰值 */
+  todayPeakConnections: number;
+  /** 今日峰值出现时间 */
+  todayPeakTime: Date | undefined;
 }
 
 export interface CreatePortForwardRequest {
@@ -61,6 +111,8 @@ export interface CreatePortForwardRequest {
   targetPort: number;
   /** 是否启用 */
   isEnable: boolean;
+  /** 备注 */
+  remark: string;
 }
 
 export interface CreatePortForwardResponse {
@@ -106,7 +158,11 @@ export interface UpdatePortForwardRequest {
     | number
     | undefined;
   /** 是否启用 */
-  isEnable?: boolean | undefined;
+  isEnable?:
+    | boolean
+    | undefined;
+  /** 备注 */
+  remark?: string | undefined;
 }
 
 export interface UpdatePortForwardResponse {
@@ -140,6 +196,50 @@ export interface GetPortForwardStatsResponse {
   points: PortForwardStatPoint[];
   /** 采样间隔(秒) */
   sampleIntervalSeconds: number;
+  /** 当前活动连接（TCP 连接 / UDP 会话） */
+  connections: PortForwardConnection[];
+}
+
+/** 端口转发的一条活动连接 */
+export interface PortForwardConnection {
+  /** 连接 id */
+  id: string;
+  /** 客户端地址 ip:port */
+  remoteAddr: string;
+  /** 是否来自局域网/本机 */
+  lan: boolean;
+  /** 建立时间 */
+  startTime:
+    | Date
+    | undefined;
+  /** 入站流量(字节，客户端→目标) */
+  bytesIn: number;
+  /** 出站流量(字节，目标→客户端) */
+  bytesOut: number;
+}
+
+export interface ClosePortForwardConnectionsRequest {
+  /** 端口转发 id */
+  id: string;
+  /** 要断开的连接 id */
+  connIds: string[];
+  /** 断开全部连接 */
+  all: boolean;
+}
+
+export interface ClosePortForwardConnectionsResponse {
+  /** 实际断开的连接数 */
+  closed: number;
+}
+
+export interface ResetPortForwardTrafficRequest {
+  /** 端口转发 id */
+  id: string;
+}
+
+export interface ResetPortForwardTrafficResponse {
+  /** 端口转发详情 */
+  info: PortForwardInfo | undefined;
 }
 
 /** 端口转发实时快照 */
@@ -155,7 +255,17 @@ export interface PortForwardStat {
   /** 累计出站流量(字节) */
   bytesOut: number;
   /** 本次启动时间 */
-  startTime: Date | undefined;
+  startTime:
+    | Date
+    | undefined;
+  /** 当前入站速率(字节/秒) */
+  rateIn: number;
+  /** 当前出站速率(字节/秒) */
+  rateOut: number;
+  /** 自创建（或上次清零）起累计入站流量(字节) */
+  totalBytesIn: number;
+  /** 自创建（或上次清零）起累计出站流量(字节) */
+  totalBytesOut: number;
 }
 
 /** 端口转发时间序列采样点 */
@@ -189,7 +299,7 @@ export interface PortForwardInfo {
   targetAddress: string;
   /** 目标端口 */
   targetPort: number;
-  /** 是否启用 */
+  /** 是否启用（配置值；实际是否运行见 status） */
   isEnable: boolean;
   /** 创建时间 */
   createTime:
@@ -209,4 +319,20 @@ export interface PortForwardInfo {
   bytesIn: number;
   /** 累计出站流量(字节，目标→客户端) */
   bytesOut: number;
+  /** 备注 */
+  remark: string;
+  /** 运行状态 */
+  status: PortForwardStatus;
+  /** 当前入站速率(字节/秒) */
+  rateIn: number;
+  /** 当前出站速率(字节/秒) */
+  rateOut: number;
+  /** 最近约 1 分钟的总速率采样(字节/秒，按时间升序，约每 2 秒一个点) */
+  rateHistory: number[];
+  /** 自创建（或上次清零）起累计入站流量(字节) */
+  totalBytesIn: number;
+  /** 自创建（或上次清零）起累计出站流量(字节) */
+  totalBytesOut: number;
+  /** 本次启动时间（运行中才有效） */
+  startTime: Date | undefined;
 }

@@ -1,4 +1,4 @@
-<!-- 注册：紧凑令牌表单，密码眼睛内嵌。 -->
+<!-- 注册：前置图标输入框 + 密码强度条 + 两次输入一致提示；外壳与样式基调由 login/index.vue 提供。 -->
 <template>
   <div class="auth-form">
     <header class="auth-form__head">
@@ -8,45 +8,58 @@
 
     <form class="auth-form__body" @submit.prevent="handleRegister">
       <div class="app-field">
-        <label class="app-label" for="reg-username">{{ t('register.usernamePlaceholder') }}</label>
-        <input
-          id="reg-username"
-          v-model="registerForm.username"
-          class="app-input auth-input"
-          :class="{ 'is-error': errors.username }"
-          :placeholder="t('register.usernamePlaceholder')"
-          autocomplete="username"
-        />
+        <label class="app-label" for="reg-username">{{ t('user.username') }}</label>
+        <div class="auth-fld">
+          <component :is="menuStore.iconComponents['HOutline:UserIcon']" class="auth-fld__ico" />
+          <input
+            id="reg-username"
+            v-model="registerForm.username"
+            class="app-input auth-input auth-input--lead"
+            :class="{ 'is-error': errors.username }"
+            :placeholder="t('register.usernamePlaceholder')"
+            autocomplete="username"
+          />
+        </div>
         <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
       </div>
 
       <div class="app-field">
-        <label class="app-label" for="reg-email">{{ t('register.emailPlaceholder') }}</label>
-        <input
-          id="reg-email"
-          v-model="registerForm.email"
-          class="app-input auth-input"
-          :class="{ 'is-error': errors.email }"
-          :placeholder="t('register.emailPlaceholder')"
-          autocomplete="email"
-          @input="handleEmailInput"
-        />
+        <label class="app-label" for="reg-email">{{ t('user.email') }}</label>
+        <div class="auth-fld">
+          <component :is="menuStore.iconComponents['HOutline:EnvelopeIcon']" class="auth-fld__ico" />
+          <input
+            id="reg-email"
+            v-model="registerForm.email"
+            class="app-input auth-input auth-input--lead"
+            :class="{ 'is-error': errors.email }"
+            type="email"
+            :placeholder="t('register.emailPlaceholder')"
+            autocomplete="email"
+            @input="handleEmailInput"
+          />
+        </div>
         <span v-if="errors.email" class="app-field__error">{{ errors.email }}</span>
       </div>
 
       <div v-if="props.registerEmailVerificationRequired" class="app-field">
-        <label class="app-label" for="reg-code">{{ t('register.codePlaceholder') }}</label>
+        <label class="app-label" for="reg-code">{{ t('register.codeLabel') }}</label>
         <div class="auth-code-row">
-          <input
-            id="reg-code"
-            v-model="registerForm.code"
-            class="app-input auth-input"
-            :class="{ 'is-error': errors.code }"
-            :placeholder="t('register.codePlaceholder')"
-            maxlength="6"
-            inputmode="numeric"
-            autocomplete="one-time-code"
-          />
+          <div class="auth-fld">
+            <component
+              :is="menuStore.iconComponents['HOutline:ShieldCheckIcon']"
+              class="auth-fld__ico"
+            />
+            <input
+              id="reg-code"
+              v-model="registerForm.code"
+              class="app-input auth-input auth-input--lead"
+              :class="{ 'is-error': errors.code }"
+              :placeholder="t('register.codePlaceholder')"
+              maxlength="6"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+            />
+          </div>
           <UButton
             type="button"
             color="primary"
@@ -59,15 +72,20 @@
           </UButton>
         </div>
         <span v-if="errors.code" class="app-field__error">{{ errors.code }}</span>
+        <span v-else-if="sendCodeCountdown > 0" class="auth-hint auth-hint--ok" role="status">
+          <component :is="menuStore.iconComponents['HOutline:CheckIcon']" class="auth-hint__ico" />
+          {{ t('login.codeSent') }}
+        </span>
       </div>
 
       <div class="app-field">
-        <label class="app-label" for="reg-password">{{ t('register.passwordPlaceholder') }}</label>
-        <div class="auth-input-wrap">
+        <label class="app-label" for="reg-password">{{ t('login.passwordLabel') }}</label>
+        <div class="auth-input-wrap auth-fld">
+          <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" class="auth-fld__ico" />
           <input
             id="reg-password"
             v-model="registerForm.password"
-            class="app-input auth-input auth-input--with-icon"
+            class="app-input auth-input auth-input--lead auth-input--with-icon"
             :class="{ 'is-error': errors.password }"
             :type="showPwd ? 'text' : 'password'"
             :placeholder="t('register.passwordPlaceholder')"
@@ -88,17 +106,30 @@
           </button>
         </div>
         <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
+        <div v-if="registerForm.password" class="auth-meter" aria-live="polite">
+          <span class="auth-meter__bars" aria-hidden="true">
+            <span
+              v-for="n in 4"
+              :key="n"
+              class="auth-meter__bar"
+              :class="n <= strength.score ? `is-${strength.tone}` : ''"
+            />
+          </span>
+          <span class="auth-meter__label" :class="`is-${strength.tone}`">
+            {{ t('register.strength', { level: strength.label }) }}
+          </span>
+        </div>
+        <span class="auth-hint">{{ t('register.passwordTip') }}</span>
       </div>
 
       <div class="app-field">
-        <label class="app-label" for="reg-confirm">{{
-          t('register.confirmPasswordPlaceholder')
-        }}</label>
-        <div class="auth-input-wrap">
+        <label class="app-label" for="reg-confirm">{{ t('register.confirmPasswordLabel') }}</label>
+        <div class="auth-input-wrap auth-fld">
+          <component :is="menuStore.iconComponents['HOutline:ShieldCheckIcon']" class="auth-fld__ico" />
           <input
             id="reg-confirm"
             v-model="registerForm.confirmPassword"
-            class="app-input auth-input auth-input--with-icon"
+            class="app-input auth-input auth-input--lead auth-input--with-icon"
             :class="{ 'is-error': errors.confirmPassword }"
             :type="showConfirmPwd ? 'text' : 'password'"
             :placeholder="t('register.confirmPasswordPlaceholder')"
@@ -123,9 +154,27 @@
         <span v-if="errors.confirmPassword" class="app-field__error">{{
           errors.confirmPassword
         }}</span>
+        <span
+          v-else-if="registerForm.confirmPassword"
+          class="auth-hint"
+          :class="passwordsMatch ? 'auth-hint--ok' : 'auth-hint--bad'"
+        >
+          <component
+            :is="menuStore.iconComponents[passwordsMatch ? 'HOutline:CheckIcon' : 'HOutline:XMarkIcon']"
+            class="auth-hint__ico"
+          />
+          {{ passwordsMatch ? t('register.passwordMatch') : t('register.confirmPasswordMismatch') }}
+        </span>
       </div>
 
-      <UButton type="submit" color="primary" block class="auth-submit" :loading="loading">
+      <UButton
+        type="submit"
+        color="primary"
+        block
+        class="auth-submit"
+        trailing-icon="i-lucide-arrow-right"
+        :loading="loading"
+      >
         {{ t('register.submit') }}
       </UButton>
     </form>
@@ -179,6 +228,30 @@ const sendCodeCountdown = ref(0)
 let sendCodeTimer: ReturnType<typeof setInterval> | null = null
 
 const isValidEmail = (email: string) => EMAIL_REGEXP.test(email)
+
+// 密码强度：仅作提示，不参与校验（后端规则仍以 register.passwordMin 为准）。
+const strength = computed(() => {
+  const pw = registerForm.value.password
+  const rules = [
+    pw.length >= 8,
+    /[a-z]/.test(pw) && /[A-Z]/.test(pw),
+    /\d/.test(pw),
+    /[^A-Za-z0-9]/.test(pw),
+  ]
+  let score = rules.filter(Boolean).length
+  if (pw.length < 6) score = Math.min(score, 1)
+  const levels = ['weak', 'weak', 'fair', 'strong', 'strong'] as const
+  const tone = levels[score] ?? 'weak'
+  const levelKey = ['veryWeak', 'weak', 'fair', 'strong', 'veryStrong'][score] ?? 'weak'
+  const label = t(`register.strengthLevels.${levelKey}`)
+  return { score: Math.max(score, 1), tone, label }
+})
+
+const passwordsMatch = computed(
+  () =>
+    !!registerForm.value.confirmPassword &&
+    registerForm.value.confirmPassword === registerForm.value.password,
+)
 
 const sendCodeButtonText = computed(() =>
   sendCodeCountdown.value > 0
@@ -314,12 +387,45 @@ onBeforeUnmount(() => {
   font-size: 0.8125rem;
 }
 
+/* 带前置图标的输入框：图标绝对定位，输入左内边距让位（特异性高于外壳的 :deep 覆盖） */
+.auth-fld {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.auth-fld__ico {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  color: var(--el-text-color-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+.auth-fld .auth-input.auth-input--lead {
+  padding-left: 46px;
+  background: var(--m-s2);
+  border-color: transparent;
+}
+.auth-fld .auth-input.auth-input--lead:focus {
+  background: var(--el-bg-color);
+  border-color: var(--el-color-primary);
+}
+.auth-fld .auth-input.auth-input--lead.is-error {
+  border-color: var(--el-color-danger);
+}
+.auth-fld:focus-within .auth-fld__ico {
+  color: var(--m-pInk);
+}
+
 .auth-input-wrap {
   position: relative;
 }
 
 .auth-input--with-icon {
-  padding-right: 36px;
+  padding-right: 44px;
 }
 
 .auth-eye {
@@ -338,6 +444,7 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-placeholder);
   cursor: pointer;
   padding: 0;
+  z-index: 1;
 }
 
 .auth-eye:hover {
@@ -356,20 +463,85 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
-.auth-code-row .app-input {
-  flex: 1;
-  min-width: 0;
-}
-
 .auth-code-btn {
   flex-shrink: 0;
   min-width: 6.5rem;
   height: 36px !important;
+  border-radius: 999px;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* 强度条 */
+.auth-meter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.auth-meter__bars {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+.auth-meter__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--m-line);
+  transition: background 0.2s;
+}
+.auth-meter__bar.is-weak {
+  background: var(--m-bad);
+}
+.auth-meter__bar.is-fair {
+  background: var(--m-warn);
+}
+.auth-meter__bar.is-strong {
+  background: var(--m-ok);
+}
+.auth-meter__label {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+.auth-meter__label.is-weak {
+  color: var(--m-bad);
+}
+.auth-meter__label.is-fair {
+  color: var(--m-warn);
+}
+.auth-meter__label.is-strong {
+  color: var(--m-ok);
+}
+
+.auth-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--el-text-color-secondary);
+}
+.auth-hint--ok {
+  font-weight: 600;
+  color: var(--m-ok);
+}
+.auth-hint--bad {
+  font-weight: 600;
+  color: var(--m-bad);
+}
+.auth-hint__ico {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  stroke-width: 2.4;
 }
 
 .auth-submit {
   margin-top: 4px;
   height: 36px !important;
+  justify-content: center;
   font-size: 0.875rem !important;
   font-weight: 600;
 }
@@ -389,7 +561,7 @@ onBeforeUnmount(() => {
   background: transparent;
   padding: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-color-primary);
   cursor: pointer;
 }

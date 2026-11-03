@@ -6,6 +6,8 @@ import type {
   CancelTaskResponse,
   RetryTaskResponse,
   DeleteTaskResponse,
+  ClearTasksRequest,
+  ClearTasksResponse,
 } from '@/types/v1/task'
 
 // 任务管理：通用任务管理器（pkg/task）的统一面板接口。鉴权由后端 /v1.TaskManager/ 前缀统一要求 task:manage。
@@ -22,3 +24,6 @@ export const retryTask = (id: string) => request.post<RetryTaskResponse>('/task/
 
 export const deleteTask = (id: string) =>
   request.post<DeleteTaskResponse>('/task/delete', { id })
+
+export const clearTasks = (data: Partial<ClearTasksRequest>) =>
+  request.post<ClearTasksResponse>('/task/clear', data)

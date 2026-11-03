@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,14 +14,26 @@ import (
 
 const (
 	apiKeyCreateRetry = 5
+	// APIKeyExpiringWindow 距过期不足该时长的 API Key 视为“即将过期”。
+	APIKeyExpiringWindow = 30 * 24 * time.Hour
 )
 
+// APIKeyStatusCounts 按有效状态统计的 API Key 数量。
+type APIKeyStatusCounts struct {
+	Valid    int64
+	Expiring int64
+	Expired  int64
+}
+
 type APIKeyRepo interface {
-	CreateUserAPIKey(ctx context.Context, userID, name, apiKey string, expiresAt *time.Time, permissions []string) (*gen.UserAPIKey, error)
+	CreateUserAPIKey(ctx context.Context, userID, name, remark, apiKey string, expiresAt *time.Time, permissions []string) (*gen.UserAPIKey, error)
 	GetUserAPIKey(ctx context.Context, userID, id string) (*gen.UserAPIKey, error)
 	GetAPIKeyByKeyID(ctx context.Context, keyID string) (*gen.UserAPIKey, error)
-	ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string) ([]*gen.UserAPIKey, int64, error)
-	UpdateUserAPIKey(ctx context.Context, userID, id string, name *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error)
+	// ListUserAPIKeys 分页列出；status 为空表示全部，counts 按关键字统计（不受 status 影响）。
+	ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string, status *v1.APIKeyStatus) ([]*gen.UserAPIKey, int64, *APIKeyStatusCounts, error)
+	UpdateUserAPIKey(ctx context.Context, userID, id string, name, remark *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error)
+	// TouchAPIKeyUsed 记录最近一次被调用的时间与来源 IP（不改动 update_time）。
+	TouchAPIKeyUsed(ctx context.Context, id string, at time.Time, ip string) error
 	RefreshUserAPIKey(ctx context.Context, userID, id, apiKey string) (*gen.UserAPIKey, error)
 	DeleteUserAPIKey(ctx context.Context, userID, id string) error
 }
@@ -68,7 +81,7 @@ func (n *NodeUsecase) CreateAPIKey(ctx context.Context, userID string, req *v1.C
 			return nil, ErrSystem(err)
 		}
 
-		item, err := n.repo.CreateUserAPIKey(ctx, userID, req.Name, apiKey, expiration, permissions)
+		item, err := n.repo.CreateUserAPIKey(ctx, userID, req.Name, strings.TrimSpace(req.Remark), apiKey, expiration, permissions)
 		if err == nil {
 			return n.toAPIKeyInfo(item, true), nil
 		}
@@ -80,7 +93,7 @@ func (n *NodeUsecase) CreateAPIKey(ctx context.Context, userID string, req *v1.C
 	return nil, ErrAPIKeyGenerate
 }
 
-func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.ListAPIKeysRequest) ([]*v1.APIKeyInfo, int64, error) {
+func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.ListAPIKeysRequest) ([]*v1.APIKeyInfo, int64, *APIKeyStatusCounts, error) {
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -91,16 +104,16 @@ func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.Li
 		req.PageSize = 100
 	}
 
-	items, total, err := n.repo.ListUserAPIKeys(ctx, userID, req.Page, req.PageSize, req.Keywords)
+	items, total, counts, err := n.repo.ListUserAPIKeys(ctx, userID, req.Page, req.PageSize, req.Keywords, req.Status)
 	if err != nil {
-		return nil, 0, ErrSystem(err)
+		return nil, 0, nil, ErrSystem(err)
 	}
 
 	infos := make([]*v1.APIKeyInfo, 0, len(items))
 	for _, item := range items {
 		infos = append(infos, n.toAPIKeyInfo(item, false))
 	}
-	return infos, total, nil
+	return infos, total, counts, nil
 }
 
 func (n *NodeUsecase) CopyAPIKey(ctx context.Context, userID string, req *v1.CopyAPIKeyRequest) (*v1.APIKeyInfo, error) {
@@ -122,6 +135,10 @@ func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.U
 	if req.ExpiresAt != nil {
 		expiration = new(req.ExpiresAt.AsTime())
 	}
+	var remark *string
+	if req.Remark != nil {
+		remark = new(strings.TrimSpace(*req.Remark))
+	}
 	var permissions *[]string
 	if req.Permissions != nil {
 		normalized, err := normalizeNodePermissions(req.Permissions.Items)
@@ -135,6 +152,7 @@ func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.U
 		userID,
 		req.Id,
 		req.Name,
+		remark,
 		expiration,
 		req.NeverExpires,
 		permissions,
@@ -188,6 +206,12 @@ func (n *NodeUsecase) toAPIKeyInfo(item *gen.UserAPIKey, includeSecret bool) *v1
 		UpdateTime:  timestamppb.New(item.UpdateTime),
 		Permissions: item.Permissions,
 		KeyId:       item.KeyID,
+		Remark:      item.Remark,
+		LastUsedIp:  item.LastUsedIP,
+		Status:      APIKeyStatusOf(item.ExpiresAt, time.Now()),
+	}
+	if item.LastUsedAt != nil {
+		info.LastUsedTime = timestamppb.New(*item.LastUsedAt)
 	}
 	if includeSecret {
 		info.ApiKey = item.APIKey
@@ -198,4 +222,18 @@ func (n *NodeUsecase) toAPIKeyInfo(item *gen.UserAPIKey, includeSecret bool) *v1
 		info.ExpiresAt = timestamppb.New(*item.ExpiresAt)
 	}
 	return info
+}
+
+// APIKeyStatusOf 按过期时间判断 API Key 的有效状态。
+func APIKeyStatusOf(expiresAt *time.Time, now time.Time) v1.APIKeyStatus {
+	switch {
+	case expiresAt == nil:
+		return v1.APIKeyStatus_APIKeyStatus_Valid
+	case !now.Before(*expiresAt):
+		return v1.APIKeyStatus_APIKeyStatus_Expired
+	case expiresAt.Sub(now) <= APIKeyExpiringWindow:
+		return v1.APIKeyStatus_APIKeyStatus_Expiring
+	default:
+		return v1.APIKeyStatus_APIKeyStatus_Valid
+	}
 }

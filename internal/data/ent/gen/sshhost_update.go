@@ -206,6 +206,101 @@ func (_u *SSHHostUpdate) ClearTags() *SSHHostUpdate {
 	return _u
 }
 
+// SetLastTestAt sets the "last_test_at" field.
+func (_u *SSHHostUpdate) SetLastTestAt(v time.Time) *SSHHostUpdate {
+	_u.mutation.SetLastTestAt(v)
+	return _u
+}
+
+// SetNillableLastTestAt sets the "last_test_at" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableLastTestAt(v *time.Time) *SSHHostUpdate {
+	if v != nil {
+		_u.SetLastTestAt(*v)
+	}
+	return _u
+}
+
+// ClearLastTestAt clears the value of the "last_test_at" field.
+func (_u *SSHHostUpdate) ClearLastTestAt() *SSHHostUpdate {
+	_u.mutation.ClearLastTestAt()
+	return _u
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (_u *SSHHostUpdate) SetLastTestOk(v bool) *SSHHostUpdate {
+	_u.mutation.SetLastTestOk(v)
+	return _u
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableLastTestOk(v *bool) *SSHHostUpdate {
+	if v != nil {
+		_u.SetLastTestOk(*v)
+	}
+	return _u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_u *SSHHostUpdate) SetLastTestLatencyMs(v int) *SSHHostUpdate {
+	_u.mutation.ResetLastTestLatencyMs()
+	_u.mutation.SetLastTestLatencyMs(v)
+	return _u
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableLastTestLatencyMs(v *int) *SSHHostUpdate {
+	if v != nil {
+		_u.SetLastTestLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLastTestLatencyMs adds value to the "last_test_latency_ms" field.
+func (_u *SSHHostUpdate) AddLastTestLatencyMs(v int) *SSHHostUpdate {
+	_u.mutation.AddLastTestLatencyMs(v)
+	return _u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_u *SSHHostUpdate) SetLastTestMessage(v string) *SSHHostUpdate {
+	_u.mutation.SetLastTestMessage(v)
+	return _u
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableLastTestMessage(v *string) *SSHHostUpdate {
+	if v != nil {
+		_u.SetLastTestMessage(*v)
+	}
+	return _u
+}
+
+// ClearLastTestMessage clears the value of the "last_test_message" field.
+func (_u *SSHHostUpdate) ClearLastTestMessage() *SSHHostUpdate {
+	_u.mutation.ClearLastTestMessage()
+	return _u
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (_u *SSHHostUpdate) SetLastConnectAt(v time.Time) *SSHHostUpdate {
+	_u.mutation.SetLastConnectAt(v)
+	return _u
+}
+
+// SetNillableLastConnectAt sets the "last_connect_at" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableLastConnectAt(v *time.Time) *SSHHostUpdate {
+	if v != nil {
+		_u.SetLastConnectAt(*v)
+	}
+	return _u
+}
+
+// ClearLastConnectAt clears the value of the "last_connect_at" field.
+func (_u *SSHHostUpdate) ClearLastConnectAt() *SSHHostUpdate {
+	_u.mutation.ClearLastConnectAt()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdate) SetOwnerID(id string) *SSHHostUpdate {
 	_u.mutation.SetOwnerID(id)
@@ -392,6 +487,33 @@ func (_u *SSHHostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(sshhost.FieldTags, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastTestAt(); ok {
+		_spec.SetField(sshhost.FieldLastTestAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastTestAtCleared() {
+		_spec.ClearField(sshhost.FieldLastTestAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastTestOk(); ok {
+		_spec.SetField(sshhost.FieldLastTestOk, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(sshhost.FieldLastTestLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestLatencyMs(); ok {
+		_spec.AddField(sshhost.FieldLastTestLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.LastTestMessage(); ok {
+		_spec.SetField(sshhost.FieldLastTestMessage, field.TypeString, value)
+	}
+	if _u.mutation.LastTestMessageCleared() {
+		_spec.ClearField(sshhost.FieldLastTestMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastConnectAt(); ok {
+		_spec.SetField(sshhost.FieldLastConnectAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastConnectAtCleared() {
+		_spec.ClearField(sshhost.FieldLastConnectAt, field.TypeTime)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -664,6 +786,101 @@ func (_u *SSHHostUpdateOne) ClearTags() *SSHHostUpdateOne {
 	return _u
 }
 
+// SetLastTestAt sets the "last_test_at" field.
+func (_u *SSHHostUpdateOne) SetLastTestAt(v time.Time) *SSHHostUpdateOne {
+	_u.mutation.SetLastTestAt(v)
+	return _u
+}
+
+// SetNillableLastTestAt sets the "last_test_at" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableLastTestAt(v *time.Time) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetLastTestAt(*v)
+	}
+	return _u
+}
+
+// ClearLastTestAt clears the value of the "last_test_at" field.
+func (_u *SSHHostUpdateOne) ClearLastTestAt() *SSHHostUpdateOne {
+	_u.mutation.ClearLastTestAt()
+	return _u
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (_u *SSHHostUpdateOne) SetLastTestOk(v bool) *SSHHostUpdateOne {
+	_u.mutation.SetLastTestOk(v)
+	return _u
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableLastTestOk(v *bool) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetLastTestOk(*v)
+	}
+	return _u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_u *SSHHostUpdateOne) SetLastTestLatencyMs(v int) *SSHHostUpdateOne {
+	_u.mutation.ResetLastTestLatencyMs()
+	_u.mutation.SetLastTestLatencyMs(v)
+	return _u
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableLastTestLatencyMs(v *int) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetLastTestLatencyMs(*v)
+	}
+	return _u
+}
+
+// AddLastTestLatencyMs adds value to the "last_test_latency_ms" field.
+func (_u *SSHHostUpdateOne) AddLastTestLatencyMs(v int) *SSHHostUpdateOne {
+	_u.mutation.AddLastTestLatencyMs(v)
+	return _u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_u *SSHHostUpdateOne) SetLastTestMessage(v string) *SSHHostUpdateOne {
+	_u.mutation.SetLastTestMessage(v)
+	return _u
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableLastTestMessage(v *string) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetLastTestMessage(*v)
+	}
+	return _u
+}
+
+// ClearLastTestMessage clears the value of the "last_test_message" field.
+func (_u *SSHHostUpdateOne) ClearLastTestMessage() *SSHHostUpdateOne {
+	_u.mutation.ClearLastTestMessage()
+	return _u
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (_u *SSHHostUpdateOne) SetLastConnectAt(v time.Time) *SSHHostUpdateOne {
+	_u.mutation.SetLastConnectAt(v)
+	return _u
+}
+
+// SetNillableLastConnectAt sets the "last_connect_at" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableLastConnectAt(v *time.Time) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetLastConnectAt(*v)
+	}
+	return _u
+}
+
+// ClearLastConnectAt clears the value of the "last_connect_at" field.
+func (_u *SSHHostUpdateOne) ClearLastConnectAt() *SSHHostUpdateOne {
+	_u.mutation.ClearLastConnectAt()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdateOne) SetOwnerID(id string) *SSHHostUpdateOne {
 	_u.mutation.SetOwnerID(id)
@@ -880,6 +1097,33 @@ func (_u *SSHHostUpdateOne) sqlSave(ctx context.Context) (_node *SSHHost, err er
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(sshhost.FieldTags, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastTestAt(); ok {
+		_spec.SetField(sshhost.FieldLastTestAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastTestAtCleared() {
+		_spec.ClearField(sshhost.FieldLastTestAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastTestOk(); ok {
+		_spec.SetField(sshhost.FieldLastTestOk, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(sshhost.FieldLastTestLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestLatencyMs(); ok {
+		_spec.AddField(sshhost.FieldLastTestLatencyMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.LastTestMessage(); ok {
+		_spec.SetField(sshhost.FieldLastTestMessage, field.TypeString, value)
+	}
+	if _u.mutation.LastTestMessageCleared() {
+		_spec.ClearField(sshhost.FieldLastTestMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastConnectAt(); ok {
+		_spec.SetField(sshhost.FieldLastConnectAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastConnectAtCleared() {
+		_spec.ClearField(sshhost.FieldLastConnectAt, field.TypeTime)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

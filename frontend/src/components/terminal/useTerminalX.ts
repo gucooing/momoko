@@ -9,13 +9,13 @@ import type { TerminalThemeMode } from './useTerminalTheme'
 const FONT_FAMILY =
   "'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Source Code Pro', Consolas, Menlo, Monaco, monospace"
 
-// 暗色（默认）：深板岩底 + 薄荷光标，ANSI 取 GitHub-dark 近似
+// 暗色（默认）：固定终端黑（不随全局配色变化），ANSI 取 GitHub-dark 近似
 const DARK_THEME: ITheme = {
-  background: '#0d1117',
-  foreground: '#c9d1d9',
-  cursor: '#2dd4bf',
-  cursorAccent: '#0d1117',
-  selectionBackground: 'rgba(45, 212, 191, 0.28)',
+  background: '#0f0b14',
+  foreground: '#e8e3ee',
+  cursor: '#e8e3ee',
+  cursorAccent: '#0f0b14',
+  selectionBackground: 'rgba(232, 227, 238, 0.24)',
   black: '#484f58',
   red: '#ff7b72',
   green: '#3fb950',
@@ -85,7 +85,7 @@ const sharedFontSize = ref(readStoredFontSize())
 
 interface UseTerminalXOptions {
   /** 手动主题 ref（来自 useTerminalTheme） */
-  theme: Ref<TerminalThemeMode>
+  theme: Readonly<Ref<TerminalThemeMode>>
   /** 键盘输入回调：原始键盘流原样发往后端（SSH / 实例 PTY 同构） */
   onData?: (data: string) => void
   /** 二进制输入回调：legacy 鼠标编码等含高位字节的输入走此通道（需按二进制帧发送） */
@@ -169,10 +169,15 @@ export function useTerminalX(options: UseTerminalXOptions) {
   }
 
   const write = (data: string) => terminal?.write(data)
+  const scrollToBottom = () => terminal?.scrollToBottom()
   const writeln = (data: string) => terminal?.writeln(data)
   const clear = () => terminal?.clear()
   const reset = () => terminal?.reset()
   const focus = () => terminal?.focus()
+  const blur = () => terminal?.blur()
+  const getSelection = () => terminal?.getSelection() ?? ''
+  // 粘贴走 xterm 的 paste：自动处理换行与 bracketed paste，经 onData 发往后端
+  const paste = (text: string) => terminal?.paste(text)
   const setFontSize = (size: number) => applyFontSize(size)
   const bumpFontSize = (delta: number) => applyFontSize(fontSize.value + delta)
 
@@ -211,6 +216,10 @@ export function useTerminalX(options: UseTerminalXOptions) {
     clear,
     reset,
     focus,
+    blur,
+    getSelection,
+    paste,
+    scrollToBottom,
     fit: applyFit,
     setFontSize,
     bumpFontSize,

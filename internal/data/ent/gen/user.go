@@ -39,6 +39,16 @@ type User struct {
 	Name string `json:"name,omitempty"`
 	// 标签
 	Tags string `json:"tags,omitempty"`
+	// 手机号
+	Phone string `json:"phone,omitempty"`
+	// 最近一次登录时间
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
+	// 最近一次修改密码时间
+	PasswordUpdatedAt *time.Time `json:"password_updated_at,omitempty"`
+	// 最近一次登录 IP
+	LastLoginIP string `json:"last_login_ip,omitempty"`
+	// 最近一次登录方式：password / email_code
+	LastLoginMethod string `json:"last_login_method,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges          UserEdges `json:"edges"`
@@ -94,9 +104,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags:
+		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags, user.FieldPhone, user.FieldLastLoginIP, user.FieldLastLoginMethod:
 			values[i] = new(sql.NullString)
-		case user.FieldCreateTime, user.FieldUpdateTime:
+		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldLastLoginAt, user.FieldPasswordUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.ForeignKeys[0]: // instance_users
 			values[i] = new(sql.NullString)
@@ -182,6 +192,38 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field tags", values[i])
 			} else if value.Valid {
 				_m.Tags = value.String
+			}
+		case user.FieldPhone:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field phone", values[i])
+			} else if value.Valid {
+				_m.Phone = value.String
+			}
+		case user.FieldLastLoginAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_login_at", values[i])
+			} else if value.Valid {
+				_m.LastLoginAt = new(time.Time)
+				*_m.LastLoginAt = value.Time
+			}
+		case user.FieldPasswordUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field password_updated_at", values[i])
+			} else if value.Valid {
+				_m.PasswordUpdatedAt = new(time.Time)
+				*_m.PasswordUpdatedAt = value.Time
+			}
+		case user.FieldLastLoginIP:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_login_ip", values[i])
+			} else if value.Valid {
+				_m.LastLoginIP = value.String
+			}
+		case user.FieldLastLoginMethod:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_login_method", values[i])
+			} else if value.Valid {
+				_m.LastLoginMethod = value.String
 			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -277,6 +319,25 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
 	builder.WriteString(_m.Tags)
+	builder.WriteString(", ")
+	builder.WriteString("phone=")
+	builder.WriteString(_m.Phone)
+	builder.WriteString(", ")
+	if v := _m.LastLoginAt; v != nil {
+		builder.WriteString("last_login_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.PasswordUpdatedAt; v != nil {
+		builder.WriteString("password_updated_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("last_login_ip=")
+	builder.WriteString(_m.LastLoginIP)
+	builder.WriteString(", ")
+	builder.WriteString("last_login_method=")
+	builder.WriteString(_m.LastLoginMethod)
 	builder.WriteByte(')')
 	return builder.String()
 }

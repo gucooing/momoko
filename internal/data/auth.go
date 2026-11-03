@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"momoko/internal/biz"
@@ -15,6 +16,8 @@ type authRepo struct {
 	data *Data
 
 	cacheToken *cache.Cache[string, *gen.Session]
+	// lastTouch 会话最近一次写入活跃时间（节流用）。
+	lastTouch sync.Map
 }
 
 func NewAuthRepo(data *Data) biz.AuthRepo {
@@ -38,9 +41,13 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Se
 		SetDeviceID(authInfo.DeviceID).
 		SetDevice(authInfo.Device).
 		SetIP(authInfo.IP).
+		SetLastIP(authInfo.IP).
+		SetLastActiveAt(time.Now()).
+		SetUserAgent(authInfo.UserAgent).
+		SetLoginMethod(authInfo.LoginMethod).
 		SetAccessNoise(authInfo.AccessNoise).
 		SetRefreshNoise(authInfo.RefreshNoise).
-		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenExpiresIn)).
+		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenTTL())).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -54,7 +61,7 @@ func (ar *authRepo) Refresh(ctx context.Context, sessionID, accessNoise, refresh
 	updated, err := ar.data.db.Session.UpdateOneID(sessionID).
 		SetAccessNoise(accessNoise).
 		SetRefreshNoise(refreshNoise).
-		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenExpiresIn)).
+		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenTTL())).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -91,4 +98,32 @@ func (ar *authRepo) DeleteAuth(ctx context.Context, userID string, sessionID *st
 
 	_, err := del.Exec(ctx)
 	return err
+}
+
+// sessionTouchInterval 同一会话两次写入活跃时间的最小间隔。
+const sessionTouchInterval = time.Minute
+
+// TouchSession 记录会话最近活跃时间与 IP；同一会话 1 分钟内（IP 不变时）只写一次。
+func (ar *authRepo) TouchSession(ctx context.Context, sessionID, ip string) {
+	type touch struct {
+		at time.Time
+		ip string
+	}
+	now := time.Now()
+	if v, ok := ar.lastTouch.Load(sessionID); ok {
+		t := v.(touch)
+		if t.ip == ip && now.Sub(t.at) < sessionTouchInterval {
+			return
+		}
+	}
+	ar.lastTouch.Store(sessionID, touch{at: now, ip: ip})
+	go func() {
+		writeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 3*time.Second)
+		defer cancel()
+		_, _ = ar.data.db.Session.Update().
+			Where(entauth.IDEQ(sessionID)).
+			SetLastActiveAt(now).
+			SetLastIP(ip).
+			Save(writeCtx)
+	}()
 }

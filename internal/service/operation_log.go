@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	kerrors "github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -35,6 +36,7 @@ func (m *OperationLogMiddleware) Middleware() middleware.Middleware {
 		return func(ctx context.Context, req any) (reply any, err error) {
 			start := time.Now()
 			ctx, trace := biz.WithNodeTrace(ctx)
+			ctx, _ = biz.WithLoginTrace(ctx)
 			reply, err = handler(ctx, req)
 			m.write(ctx, req, reply, err, time.Since(start), trace)
 			return reply, err
@@ -61,12 +63,21 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 		DurationMS: duration.Milliseconds(),
 		Node:       trace.NodeName,
 	}
+	if handlerErr != nil {
+		detail.Error = operationErrorText(handlerErr)
+	}
 	entry := &v1.OperationLogInfo{
 		UserId:        operationUserID(ctx, operation, reply, handlerErr),
 		OperationType: operationType,
 		Success:       handlerErr == nil,
 		DurationMs:    duration.Milliseconds(),
 		OperationTime: timestamppb.New(time.Now()),
+	}
+	// 登录失败时也记到对应用户名下（登录日志里能看到失败记录）。
+	if entry.UserId == nil {
+		if lt, ok := biz.LoginTraceFromContext(ctx); ok && lt.UserID != "" {
+			entry.UserId = &lt.UserID
+		}
 	}
 	if httpReq, ok := httptransport.RequestFromServerContext(ctx); ok {
 		detail.Method = httpReq.Method
@@ -144,6 +155,8 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationUserServiceAddUser:                       v1.OperationType_OperationTypeUserCreate,
 	v1.OperationUserServiceEditUser:                      v1.OperationType_OperationTypeUserUpdate,
 	v1.OperationUserServiceDeleteUser:                    v1.OperationType_OperationTypeUserDelete,
+	v1.OperationUserServiceBatchUpdateUser:               v1.OperationType_OperationTypeUserUpdate,
+	v1.OperationUserServiceResetUserPassword:             v1.OperationType_OperationTypeUserUpdate,
 	v1.OperationSystemAdminAddPermissions:                v1.OperationType_OperationTypeSystemPermissionCreate,
 	v1.OperationSystemAdminEditPermissions:               v1.OperationType_OperationTypeSystemPermissionUpdate,
 	v1.OperationSystemAdminDeletePermissions:             v1.OperationType_OperationTypeSystemPermissionDelete,
@@ -151,6 +164,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemAdminEditRole:                      v1.OperationType_OperationTypeSystemRoleUpdate,
 	v1.OperationSystemAdminDeleteRole:                    v1.OperationType_OperationTypeSystemRoleDelete,
 	v1.OperationSystemUpdateLoginConfig:                  v1.OperationType_OperationTypeSystemLoginConfigUpdate,
+	v1.OperationSystemUpdateSiteConfig:                   v1.OperationType_OperationTypeSystemSiteConfigUpdate,
 	v1.OperationSystemUpdateEmailConfig:                  v1.OperationType_OperationTypeSystemEmailConfigUpdate,
 	v1.OperationSystemUpdateEmailTemplate:                v1.OperationType_OperationTypeSystemEmailTemplateUpdate,
 	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,
@@ -199,6 +213,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationNodeServiceTestNode:                      v1.OperationType_OperationTypeNodeTest,
 	v1.OperationDockerManagerUpdateDockerConfig:          v1.OperationType_OperationTypeDockerConfigUpdate,
 	v1.OperationDockerManagerTestDockerConfig:            v1.OperationType_OperationTypeDockerConfigTest,
+	v1.OperationDockerManagerTestDockerRegistryAuth:      v1.OperationType_OperationTypeDockerRegistryAuthTest,
 	v1.OperationDockerManagerCreateDockerContainer:       v1.OperationType_OperationTypeDockerContainerCreate,
 	v1.OperationDockerManagerUpdateDockerContainer:       v1.OperationType_OperationTypeDockerContainerUpdate,
 	v1.OperationDockerManagerDeleteDockerContainer:       v1.OperationType_OperationTypeDockerContainerDelete,
@@ -220,12 +235,27 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationDockerManagerDeleteDockerNetwork:         v1.OperationType_OperationTypeDockerNetworkDelete,
 	v1.OperationDockerManagerConnectDockerNetwork:        v1.OperationType_OperationTypeDockerNetworkConnect,
 	v1.OperationDockerManagerDisconnectDockerNetwork:     v1.OperationType_OperationTypeDockerNetworkDisconnect,
+	v1.OperationDockerManagerPruneDockerNetworks:         v1.OperationType_OperationTypeDockerNetworkPrune,
+	v1.OperationDockerManagerPruneDockerImages:           v1.OperationType_OperationTypeDockerImageDelete,
 	v1.OperationOIDCServiceUpdateOIDCConfig:              v1.OperationType_OperationTypeOIDCConfigUpdate,
 	v1.OperationOIDCServiceCreateOIDCClient:              v1.OperationType_OperationTypeOIDCClientCreate,
 	v1.OperationOIDCServiceUpdateOIDCClient:              v1.OperationType_OperationTypeOIDCClientUpdate,
 	v1.OperationOIDCServiceDeleteOIDCClient:              v1.OperationType_OperationTypeOIDCClientDelete,
 	v1.OperationOIDCServiceRefreshOIDCClientSecret:       v1.OperationType_OperationTypeOIDCClientSecretRefresh,
 	v1.OperationOIDCServiceCreateOIDCAuthorizationCode:   v1.OperationType_OperationTypeOIDCAuthorizationCodeCreate,
+	v1.OperationOIDCServiceRotateOIDCSigningKey:          v1.OperationType_OperationTypeOIDCSigningKeyRotate,
+	v1.OperationTaskManagerCancelTask:                    v1.OperationType_OperationTypeTaskCancel,
+	v1.OperationTaskManagerRetryTask:                     v1.OperationType_OperationTypeTaskRetry,
+	v1.OperationTaskManagerDeleteTask:                    v1.OperationType_OperationTypeTaskDelete,
+	v1.OperationTaskManagerClearTasks:                    v1.OperationType_OperationTypeTaskClear,
+}
+
+// operationErrorText 取错误里给人看的部分（Kratos 错误取 message，其余取 Error()）。
+func operationErrorText(err error) string {
+	if se := kerrors.FromError(err); se != nil && se.Message != "" {
+		return se.Message
+	}
+	return err.Error()
 }
 
 func toOperationType(operation string) (v1.OperationType, bool) {

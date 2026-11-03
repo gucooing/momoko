@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 
@@ -125,7 +126,7 @@ func (m *Manager) CreateContainer(ctx context.Context, opts *v1.DockerContainerC
 		return "", err
 	}
 	hostConfig := &containertypes.HostConfig{
-		RestartPolicy: toRestartPolicy(opts.GetRestartPolicy()),
+		RestartPolicy: toRestartPolicyWithRetries(opts.GetRestartPolicy(), opts.GetRestartMaxRetries()),
 		AutoRemove:    opts.GetAutoRemove(),
 		Privileged:    opts.GetPrivileged(),
 		PortBindings:  portBindings,
@@ -163,6 +164,11 @@ func (m *Manager) CreateContainer(ctx context.Context, opts *v1.DockerContainerC
 	)
 	if err != nil {
 		return "", err
+	}
+	if opts.GetStart() {
+		if err := cli.ContainerStart(ctx, resp.ID, containertypes.StartOptions{}); err != nil {
+			return resp.ID, fmt.Errorf("容器已创建，但启动失败: %w", err)
+		}
 	}
 	return resp.ID, nil
 }

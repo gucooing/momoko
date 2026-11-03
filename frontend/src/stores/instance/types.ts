@@ -25,6 +25,10 @@ export interface QueryFormValue {
 export interface InstanceTypeOption {
   label: string
   value: string
+  /** 类型模板：新建应用时预填 */
+  description?: string
+  startCommand?: string
+  stopCommand?: string
 }
 
 export type InstanceEditorMode = 'create' | 'edit'
@@ -39,6 +43,9 @@ export interface InstanceEditorFormValue {
   stopCommand: string
   instancePath: string
   autoStart: boolean
+  autoRestart: boolean
+  /** 停止超时（秒），0 表示默认 */
+  stopTimeout: number
   envText: string
 }
 

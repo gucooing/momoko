@@ -19,65 +19,55 @@
       </template>
     </PageHeader>
 
-    <FilterBar @search="applyFilters" @reset="resetFilters">
-      <template #fields>
-        <div class="app-field">
-          <label class="app-label">{{ t('instance.searchPlaceholder') }}</label>
-          <input
-            v-model="queryForm.keyword"
-            class="app-input"
-            :placeholder="t('instance.searchPlaceholder')"
-            @keyup.enter="applyFilters"
-          />
-        </div>
-        <div class="app-field">
-          <label class="app-label">{{ t('common.type') }}</label>
-          <AppSelect v-model="queryForm.type" :options="typeFilterOptions" />
-        </div>
-        <div class="app-field">
-          <label class="app-label">{{ t('common.status') }}</label>
-          <AppSelect v-model="queryForm.status" :options="statusFilterOptions" />
-        </div>
-      </template>
-    </FilterBar>
-
-    <!-- 批量操作条（选中后出现） -->
-    <div v-if="selectedIds.length" class="inst-page__batch">
-      <span class="inst-page__batch-count">{{ t('instance.selectedItems', { count: selectedIds.length }) }}</span>
-      <div class="inst-page__batch-actions">
-        <UButton
-          color="primary"
-          variant="soft"
-          size="sm"
-          icon="i-lucide-play"
-          :disabled="!canBatchStart"
-          @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
+    <!-- 工具条：状态胶囊 + 搜索 + 类型 + 视图切换（替代表单式筛选） -->
+    <div class="inst-tools">
+      <div class="inst-chips" role="tablist" :aria-label="t('common.status')">
+        <button
+          v-for="opt in statusChips"
+          :key="String(opt.value)"
+          type="button"
+          role="tab"
+          class="inst-chip"
+          :class="{ 'is-on': queryForm.status === opt.value }"
+          :aria-selected="queryForm.status === opt.value"
+          @click="setStatusFilter(opt.value)"
         >
-          {{ t('instance.batchStart') }}
-        </UButton>
-        <UButton
-          color="neutral"
-          variant="soft"
-          size="sm"
-          icon="i-lucide-square"
-          :disabled="!canBatchStop"
-          @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
+          {{ opt.label }}
+        </button>
+      </div>
+      <span class="inst-tools__spacer" />
+      <label class="inst-search">
+        <component :is="menuStore.iconComponents['HOutline:MagnifyingGlassIcon']" />
+        <input
+          v-model="queryForm.keyword"
+          type="search"
+          :placeholder="t('instance.searchPlaceholder')"
+          :aria-label="t('instance.searchPlaceholder')"
+          @keyup.enter="applyFilters"
+        />
+      </label>
+      <div class="inst-type">
+        <AppSelect v-model="queryForm.type" :options="typeFilterOptions" />
+      </div>
+      <div v-if="!menuStore.isMobile" class="seg">
+        <button
+          type="button"
+          class="seg__btn"
+          :class="{ 'is-active': viewMode === 'card' }"
+          :aria-label="t('system.common.card')"
+          @click="viewMode = 'card'"
         >
-          {{ t('instance.batchStop') }}
-        </UButton>
-        <UButton
-          color="error"
-          variant="soft"
-          size="sm"
-          icon="i-lucide-trash-2"
-          :disabled="!canBatchDelete"
-          @click="handleBatchDelete"
+          <component :is="menuStore.iconComponents['HOutline:Squares2X2Icon']" />
+        </button>
+        <button
+          type="button"
+          class="seg__btn"
+          :class="{ 'is-active': viewMode === 'table' }"
+          :aria-label="t('system.common.table')"
+          @click="viewMode = 'table'"
         >
-          {{ t('instance.batchDelete') }}
-        </UButton>
-        <UButton color="neutral" variant="ghost" size="sm" @click="selectedIds = []">
-          {{ t('instance.deselectAll') }}
-        </UButton>
+          <component :is="menuStore.iconComponents['HOutline:Bars3Icon']" />
+        </button>
       </div>
     </div>
 
@@ -93,36 +83,14 @@
             <span class="inst-page__dot is-stop" />{{ t('instance.stopped') }} {{ stoppedCount }}
           </span>
         </div>
-        <div class="inst-page__bar-right">
-          <button
-            v-if="menuStore.isMobile || viewMode === 'card'"
-            type="button"
-            class="inst-page__selall"
-            @click="toggleCurrentPageSelection"
-          >
-            {{ isCurrentPageAllSelected ? t('instance.deselectAll') : t('instance.selectCurrentPage') }}
-          </button>
-          <div v-if="!menuStore.isMobile" class="seg">
-            <button
-              type="button"
-              class="seg__btn"
-              :class="{ 'is-active': viewMode === 'card' }"
-              @click="viewMode = 'card'"
-            >
-              <component :is="menuStore.iconComponents['HOutline:Squares2X2Icon']" />
-              {{ t('system.common.card') }}
-            </button>
-            <button
-              type="button"
-              class="seg__btn"
-              :class="{ 'is-active': viewMode === 'table' }"
-              @click="viewMode = 'table'"
-            >
-              <component :is="menuStore.iconComponents['HOutline:Bars3Icon']" />
-              {{ t('system.common.table') }}
-            </button>
-          </div>
-        </div>
+        <button
+          v-if="menuStore.isMobile || viewMode === 'card'"
+          type="button"
+          class="inst-page__selall"
+          @click="toggleCurrentPageSelection"
+        >
+          {{ isCurrentPageAllSelected ? t('instance.deselectAll') : t('instance.selectCurrentPage') }}
+        </button>
       </div>
 
       <!-- 卡片流 -->
@@ -189,6 +157,35 @@
       />
     </div>
 
+    <!-- 批量操作条：选中后浮在底部 -->
+    <Transition name="batch-pop">
+      <div v-if="selectedIds.length" class="inst-batch" role="toolbar">
+        <span class="inst-batch__count">{{ t('instance.selectedItems', { count: selectedIds.length }) }}</span>
+        <button
+          type="button"
+          class="inst-batch__btn"
+          :disabled="!canBatchStart"
+          @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
+        >
+          <component :is="menuStore.iconComponents['HOutline:PlayIcon']" />{{ t('instance.batchStart') }}
+        </button>
+        <button
+          type="button"
+          class="inst-batch__btn"
+          :disabled="!canBatchStop"
+          @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
+        >
+          <component :is="menuStore.iconComponents['HOutline:StopIcon']" />{{ t('instance.batchStop') }}
+        </button>
+        <button type="button" class="inst-batch__btn is-danger" :disabled="!canBatchDelete" @click="handleBatchDelete">
+          <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />{{ t('instance.batchDelete') }}
+        </button>
+        <button type="button" class="inst-batch__btn is-icon" :aria-label="t('instance.deselectAll')" @click="selectedIds = []">
+          <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
+        </button>
+      </div>
+    </Transition>
+
     <InstanceEditor
       :visible="instanceEditorVisible"
       :mode="instanceEditorMode"
@@ -204,6 +201,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { useDebounceFn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { useInstanceListStore } from '@/stores/instance/list'
@@ -266,7 +264,6 @@ const {
   closeInstanceEditor,
   submitInstanceEditor,
   applyFilters,
-  resetFilters,
   handlePageChange,
   refreshStatus,
   batchChangeStatus,
@@ -292,10 +289,24 @@ const typeFilterOptions = computed(() => [
   { label: t('instance.allTypes'), value: '' },
   ...typeOptions.value,
 ])
-const statusFilterOptions = computed(() => [
+// 只给用户能理解的三种状态做筛选胶囊（未指定/未知不单列）
+const CHIP_STATUSES = [
+  InstanceStatus.INSTANCE_STATUS_RUNNING,
+  InstanceStatus.INSTANCE_STATUS_STOPPED,
+  InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
+] as const
+const statusChips = computed(() => [
   { label: t('instance.allStatus'), value: '' as InstanceStatus | '' },
-  ...statusOptions.value,
+  ...statusOptions.value.filter((o) => (CHIP_STATUSES as readonly InstanceStatus[]).includes(o.value)),
 ])
+const setStatusFilter = (value: InstanceStatus | '') => {
+  queryForm.value.status = value
+  applyFilters()
+}
+// 输入即搜索（防抖）、切换类型即筛选，省去「搜索」按钮
+const debouncedApply = useDebounceFn(() => applyFilters(), 350)
+watch(() => queryForm.value.keyword, () => debouncedApply())
+watch(() => queryForm.value.type, () => applyFilters())
 
 // —— 表视图列 + 单元格渲染 ——
 const columns = computed<DataTableColumn[]>(() => [
@@ -362,7 +373,7 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
 // —— 导航 ——
 const openInstanceConsole = (item: InstanceRecord) => {
   router.push({
-    path: `/instance/console/${item.id}`,
+    path: `/instance/app/${item.id}`,
     query: { tabTitle: item.name },
   })
 }
@@ -372,12 +383,8 @@ const openInstanceFileManager = (
 ) => {
   // 实例文件 API 以实例目录为根，不能再把 instancePath 当地址（会 500「路径不存在」）
   router.push({
-    path: `/instance/files/${item.id}`,
-    query: {
-      tabTitle: t('instance.instanceFileTab', { name: item.name }),
-      from: 'instance',
-      status: item.status,
-    },
+    path: `/instance/app/${item.id}`,
+    query: { tab: 'files', tabTitle: item.name },
   })
 }
 
@@ -546,38 +553,109 @@ onMounted(() => {
 .inst-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* 批量条 */
-.inst-page__batch {
+/* 工具条 */
+.inst-tools {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border: 1px solid color-mix(in srgb, var(--el-color-primary) 30%, var(--el-border-color-lighter));
-  border-radius: var(--app-radius-lg);
-  background: color-mix(in srgb, var(--el-color-primary) 5%, var(--el-bg-color));
+  gap: 10px;
 }
-.inst-page__batch-count {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--el-color-primary);
+.inst-tools__spacer {
+  flex: 1;
+}
+.inst-chips {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.inst-chips::-webkit-scrollbar {
+  display: none;
+}
+.inst-chip {
+  flex: none;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
   white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.inst-page__batch-actions {
+.inst-chip:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.inst-chip.is-on {
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
+}
+.inst-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex: 0 1 280px;
+  min-width: 180px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  transition: border-color 0.15s;
+}
+.inst-search:focus-within {
+  border-color: var(--m-p);
+}
+.inst-search :deep(svg) {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.inst-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 0.875rem;
+}
+.inst-type {
+  width: 170px;
+}
+@media (width < 768px) {
+  .inst-tools__spacer {
+    display: none;
+  }
+  .inst-chips {
+    order: 3;
+    width: 100%;
+  }
+  .inst-search {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .inst-type {
+    width: 128px;
+  }
 }
 
 /* 主体 */
 .inst-page__body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .inst-page__bar {
   display: flex;
@@ -591,75 +669,63 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 6px 16px;
 }
-.inst-page__bar-hint {
-  font-size: 0.8125rem;
-  color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
+.inst-page__bar-hint,
 .inst-page__stat {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   font-variant-numeric: tabular-nums;
 }
 .inst-page__dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   flex-shrink: 0;
-  background: var(--el-text-color-placeholder);
 }
 .inst-page__dot.is-run {
-  background: var(--el-color-success, #16a34a);
+  background: var(--m-ok);
 }
 .inst-page__dot.is-stop {
-  background: var(--el-text-color-placeholder);
-}
-.inst-page__bar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  background: var(--el-text-color-secondary);
+  opacity: 0.5;
 }
 .inst-page__selall {
+  min-height: 36px;
   border: none;
   background: transparent;
-  color: var(--el-color-primary);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  color: var(--m-pInk);
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
-.inst-page__selall:hover {
-  text-decoration: underline;
-}
 
-/* 卡/表切换 分段控件 */
+/* 卡/表切换 */
 .seg {
   display: inline-flex;
-  padding: 3px;
+  padding: 4px;
   gap: 2px;
   background: var(--el-fill-color-light);
-  border-radius: var(--app-radius);
+  border-radius: 999px;
 }
 .seg__btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 32px;
   border: none;
   background: transparent;
-  border-radius: var(--app-radius-sm);
+  border-radius: 999px;
   color: var(--el-text-color-secondary);
-  font-size: 0.8125rem;
-  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .seg__btn :deep(svg) {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
 }
 .seg__btn.is-active {
   background: var(--el-bg-color);
@@ -671,18 +737,16 @@ onMounted(() => {
 .inst-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 @media (width >= 560px) {
   .inst-grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
-
-/* 卡片骨架 */
 .inst-skeleton {
-  height: 168px;
-  border-radius: var(--app-radius);
+  height: 260px;
+  border-radius: var(--app-radius-lg);
   background: linear-gradient(
     100deg,
     var(--el-fill-color-light) 30%,
@@ -699,5 +763,78 @@ onMounted(() => {
   to {
     background-position: -200% 0;
   }
+}
+
+/* 浮动批量条 */
+.inst-batch {
+  position: sticky;
+  bottom: 18px;
+  z-index: 20;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 6px 6px 6px 18px;
+  border-radius: 999px;
+  background: var(--m-ink);
+  color: var(--m-bg);
+  box-shadow: var(--app-shadow-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.inst-batch__count {
+  margin-right: 10px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.inst-batch__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.inst-batch__btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--m-bg) 14%, transparent);
+}
+.inst-batch__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.inst-batch__btn.is-danger {
+  color: var(--m-a);
+}
+.inst-batch__btn.is-icon {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+}
+.inst-batch__btn :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+@media (width < 992px) {
+  .inst-batch {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+}
+.batch-pop-enter-active,
+.batch-pop-leave-active {
+  transition: opacity 0.18s, transform 0.18s;
+}
+.batch-pop-enter-from,
+.batch-pop-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
 }
 </style>

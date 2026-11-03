@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_MeInfo_FullMethodName      = "/v1.UserService/MeInfo"
-	UserService_UpdateMe_FullMethodName    = "/v1.UserService/UpdateMe"
-	UserService_MyLoginLogs_FullMethodName = "/v1.UserService/MyLoginLogs"
-	UserService_ListUser_FullMethodName    = "/v1.UserService/ListUser"
-	UserService_UserInfo_FullMethodName    = "/v1.UserService/UserInfo"
-	UserService_AddUser_FullMethodName     = "/v1.UserService/AddUser"
-	UserService_EditUser_FullMethodName    = "/v1.UserService/EditUser"
-	UserService_DeleteUser_FullMethodName  = "/v1.UserService/DeleteUser"
+	UserService_MeInfo_FullMethodName            = "/v1.UserService/MeInfo"
+	UserService_UpdateMe_FullMethodName          = "/v1.UserService/UpdateMe"
+	UserService_MyLoginLogs_FullMethodName       = "/v1.UserService/MyLoginLogs"
+	UserService_ListUser_FullMethodName          = "/v1.UserService/ListUser"
+	UserService_UserInfo_FullMethodName          = "/v1.UserService/UserInfo"
+	UserService_AddUser_FullMethodName           = "/v1.UserService/AddUser"
+	UserService_EditUser_FullMethodName          = "/v1.UserService/EditUser"
+	UserService_DeleteUser_FullMethodName        = "/v1.UserService/DeleteUser"
+	UserService_BatchUpdateUser_FullMethodName   = "/v1.UserService/BatchUpdateUser"
+	UserService_ResetUserPassword_FullMethodName = "/v1.UserService/ResetUserPassword"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -51,6 +53,10 @@ type UserServiceClient interface {
 	EditUser(ctx context.Context, in *EditUserRequest, opts ...grpc.CallOption) (*EditUserResponse, error)
 	// 删除用户
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	// 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+	BatchUpdateUser(ctx context.Context, in *BatchUpdateUserRequest, opts ...grpc.CallOption) (*BatchUpdateUserResponse, error)
+	// 管理员重置用户密码（重置后该用户所有会话下线）
+	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
 }
 
 type userServiceClient struct {
@@ -141,6 +147,26 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserReques
 	return out, nil
 }
 
+func (c *userServiceClient) BatchUpdateUser(ctx context.Context, in *BatchUpdateUserRequest, opts ...grpc.CallOption) (*BatchUpdateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchUpdateUserResponse)
+	err := c.cc.Invoke(ctx, UserService_BatchUpdateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetUserPasswordResponse)
+	err := c.cc.Invoke(ctx, UserService_ResetUserPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -163,6 +189,10 @@ type UserServiceServer interface {
 	EditUser(context.Context, *EditUserRequest) (*EditUserResponse, error)
 	// 删除用户
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	// 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+	BatchUpdateUser(context.Context, *BatchUpdateUserRequest) (*BatchUpdateUserResponse, error)
+	// 管理员重置用户密码（重置后该用户所有会话下线）
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -196,6 +226,12 @@ func (UnimplementedUserServiceServer) EditUser(context.Context, *EditUserRequest
 }
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserServiceServer) BatchUpdateUser(context.Context, *BatchUpdateUserRequest) (*BatchUpdateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchUpdateUser not implemented")
+}
+func (UnimplementedUserServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -362,6 +398,42 @@ func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_BatchUpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchUpdateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BatchUpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_BatchUpdateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BatchUpdateUser(ctx, req.(*BatchUpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ResetUserPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetUserPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ResetUserPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ResetUserPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ResetUserPassword(ctx, req.(*ResetUserPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -400,6 +472,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _UserService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "BatchUpdateUser",
+			Handler:    _UserService_BatchUpdateUser_Handler,
+		},
+		{
+			MethodName: "ResetUserPassword",
+			Handler:    _UserService_ResetUserPassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

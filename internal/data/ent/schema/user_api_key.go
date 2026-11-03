@@ -22,6 +22,9 @@ func (UserAPIKey) Fields() []ent.Field {
 		field.JSON("permissions", []string{}).Optional().Comment("授予的节点权限标识"),
 		field.Time("expires_at").Optional().Nillable().Comment("过期时间，为空表示永久有效"),
 		field.String("user_id").NotEmpty().Comment("所属用户id"),
+		field.String("remark").Optional().Comment("用途备注"),
+		field.Time("last_used_at").Optional().Nillable().Comment("最近一次被远程主控调用的时间"),
+		field.String("last_used_ip").Optional().Comment("最近一次调用来源 IP"),
 	}
 }
 

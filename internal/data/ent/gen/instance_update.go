@@ -161,6 +161,41 @@ func (_u *InstanceUpdate) SetNillableAutoStart(v *bool) *InstanceUpdate {
 	return _u
 }
 
+// SetAutoRestart sets the "auto_restart" field.
+func (_u *InstanceUpdate) SetAutoRestart(v bool) *InstanceUpdate {
+	_u.mutation.SetAutoRestart(v)
+	return _u
+}
+
+// SetNillableAutoRestart sets the "auto_restart" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableAutoRestart(v *bool) *InstanceUpdate {
+	if v != nil {
+		_u.SetAutoRestart(*v)
+	}
+	return _u
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (_u *InstanceUpdate) SetStopTimeout(v int32) *InstanceUpdate {
+	_u.mutation.ResetStopTimeout()
+	_u.mutation.SetStopTimeout(v)
+	return _u
+}
+
+// SetNillableStopTimeout sets the "stop_timeout" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableStopTimeout(v *int32) *InstanceUpdate {
+	if v != nil {
+		_u.SetStopTimeout(*v)
+	}
+	return _u
+}
+
+// AddStopTimeout adds value to the "stop_timeout" field.
+func (_u *InstanceUpdate) AddStopTimeout(v int32) *InstanceUpdate {
+	_u.mutation.AddStopTimeout(v)
+	return _u
+}
+
 // SetEnv sets the "env" field.
 func (_u *InstanceUpdate) SetEnv(v []string) *InstanceUpdate {
 	_u.mutation.SetEnv(v)
@@ -360,6 +395,15 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AutoStart(); ok {
 		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AutoRestart(); ok {
+		_spec.SetField(instance.FieldAutoRestart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.StopTimeout(); ok {
+		_spec.SetField(instance.FieldStopTimeout, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedStopTimeout(); ok {
+		_spec.AddField(instance.FieldStopTimeout, field.TypeInt32, value)
 	}
 	if value, ok := _u.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
@@ -625,6 +669,41 @@ func (_u *InstanceUpdateOne) SetNillableAutoStart(v *bool) *InstanceUpdateOne {
 	return _u
 }
 
+// SetAutoRestart sets the "auto_restart" field.
+func (_u *InstanceUpdateOne) SetAutoRestart(v bool) *InstanceUpdateOne {
+	_u.mutation.SetAutoRestart(v)
+	return _u
+}
+
+// SetNillableAutoRestart sets the "auto_restart" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableAutoRestart(v *bool) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetAutoRestart(*v)
+	}
+	return _u
+}
+
+// SetStopTimeout sets the "stop_timeout" field.
+func (_u *InstanceUpdateOne) SetStopTimeout(v int32) *InstanceUpdateOne {
+	_u.mutation.ResetStopTimeout()
+	_u.mutation.SetStopTimeout(v)
+	return _u
+}
+
+// SetNillableStopTimeout sets the "stop_timeout" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableStopTimeout(v *int32) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetStopTimeout(*v)
+	}
+	return _u
+}
+
+// AddStopTimeout adds value to the "stop_timeout" field.
+func (_u *InstanceUpdateOne) AddStopTimeout(v int32) *InstanceUpdateOne {
+	_u.mutation.AddStopTimeout(v)
+	return _u
+}
+
 // SetEnv sets the "env" field.
 func (_u *InstanceUpdateOne) SetEnv(v []string) *InstanceUpdateOne {
 	_u.mutation.SetEnv(v)
@@ -854,6 +933,15 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	}
 	if value, ok := _u.mutation.AutoStart(); ok {
 		_spec.SetField(instance.FieldAutoStart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AutoRestart(); ok {
+		_spec.SetField(instance.FieldAutoRestart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.StopTimeout(); ok {
+		_spec.SetField(instance.FieldStopTimeout, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedStopTimeout(); ok {
+		_spec.AddField(instance.FieldStopTimeout, field.TypeInt32, value)
 	}
 	if value, ok := _u.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)

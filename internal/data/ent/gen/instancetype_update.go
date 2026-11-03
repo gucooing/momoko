@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -73,6 +74,66 @@ func (_u *InstanceTypeUpdate) SetNillableIsEnable(v *bool) *InstanceTypeUpdate {
 	if v != nil {
 		_u.SetIsEnable(*v)
 	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *InstanceTypeUpdate) SetDescription(v string) *InstanceTypeUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *InstanceTypeUpdate) SetNillableDescription(v *string) *InstanceTypeUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetStartCommand sets the "start_command" field.
+func (_u *InstanceTypeUpdate) SetStartCommand(v string) *InstanceTypeUpdate {
+	_u.mutation.SetStartCommand(v)
+	return _u
+}
+
+// SetNillableStartCommand sets the "start_command" field if the given value is not nil.
+func (_u *InstanceTypeUpdate) SetNillableStartCommand(v *string) *InstanceTypeUpdate {
+	if v != nil {
+		_u.SetStartCommand(*v)
+	}
+	return _u
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (_u *InstanceTypeUpdate) SetStopCommand(v string) *InstanceTypeUpdate {
+	_u.mutation.SetStopCommand(v)
+	return _u
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_u *InstanceTypeUpdate) SetNillableStopCommand(v *string) *InstanceTypeUpdate {
+	if v != nil {
+		_u.SetStopCommand(*v)
+	}
+	return _u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_u *InstanceTypeUpdate) SetQuickCommands(v []string) *InstanceTypeUpdate {
+	_u.mutation.SetQuickCommands(v)
+	return _u
+}
+
+// AppendQuickCommands appends value to the "quick_commands" field.
+func (_u *InstanceTypeUpdate) AppendQuickCommands(v []string) *InstanceTypeUpdate {
+	_u.mutation.AppendQuickCommands(v)
+	return _u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (_u *InstanceTypeUpdate) ClearQuickCommands() *InstanceTypeUpdate {
+	_u.mutation.ClearQuickCommands()
 	return _u
 }
 
@@ -151,6 +212,26 @@ func (_u *InstanceTypeUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(instancetype.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartCommand(); ok {
+		_spec.SetField(instancetype.FieldStartCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StopCommand(); ok {
+		_spec.SetField(instancetype.FieldStopCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.QuickCommands(); ok {
+		_spec.SetField(instancetype.FieldQuickCommands, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedQuickCommands(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instancetype.FieldQuickCommands, value)
+		})
+	}
+	if _u.mutation.QuickCommandsCleared() {
+		_spec.ClearField(instancetype.FieldQuickCommands, field.TypeJSON)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{instancetype.Label}
@@ -216,6 +297,66 @@ func (_u *InstanceTypeUpdateOne) SetNillableIsEnable(v *bool) *InstanceTypeUpdat
 	if v != nil {
 		_u.SetIsEnable(*v)
 	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *InstanceTypeUpdateOne) SetDescription(v string) *InstanceTypeUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *InstanceTypeUpdateOne) SetNillableDescription(v *string) *InstanceTypeUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetStartCommand sets the "start_command" field.
+func (_u *InstanceTypeUpdateOne) SetStartCommand(v string) *InstanceTypeUpdateOne {
+	_u.mutation.SetStartCommand(v)
+	return _u
+}
+
+// SetNillableStartCommand sets the "start_command" field if the given value is not nil.
+func (_u *InstanceTypeUpdateOne) SetNillableStartCommand(v *string) *InstanceTypeUpdateOne {
+	if v != nil {
+		_u.SetStartCommand(*v)
+	}
+	return _u
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (_u *InstanceTypeUpdateOne) SetStopCommand(v string) *InstanceTypeUpdateOne {
+	_u.mutation.SetStopCommand(v)
+	return _u
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_u *InstanceTypeUpdateOne) SetNillableStopCommand(v *string) *InstanceTypeUpdateOne {
+	if v != nil {
+		_u.SetStopCommand(*v)
+	}
+	return _u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_u *InstanceTypeUpdateOne) SetQuickCommands(v []string) *InstanceTypeUpdateOne {
+	_u.mutation.SetQuickCommands(v)
+	return _u
+}
+
+// AppendQuickCommands appends value to the "quick_commands" field.
+func (_u *InstanceTypeUpdateOne) AppendQuickCommands(v []string) *InstanceTypeUpdateOne {
+	_u.mutation.AppendQuickCommands(v)
+	return _u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (_u *InstanceTypeUpdateOne) ClearQuickCommands() *InstanceTypeUpdateOne {
+	_u.mutation.ClearQuickCommands()
 	return _u
 }
 
@@ -323,6 +464,26 @@ func (_u *InstanceTypeUpdateOne) sqlSave(ctx context.Context) (_node *InstanceTy
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(instancetype.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartCommand(); ok {
+		_spec.SetField(instancetype.FieldStartCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StopCommand(); ok {
+		_spec.SetField(instancetype.FieldStopCommand, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.QuickCommands(); ok {
+		_spec.SetField(instancetype.FieldQuickCommands, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedQuickCommands(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instancetype.FieldQuickCommands, value)
+		})
+	}
+	if _u.mutation.QuickCommandsCleared() {
+		_spec.ClearField(instancetype.FieldQuickCommands, field.TypeJSON)
 	}
 	_node = &InstanceType{config: _u.config}
 	_spec.Assign = _node.assignValues

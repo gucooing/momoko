@@ -37,10 +37,12 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
 <style scoped lang="scss">
 .metric {
   background: var(--el-bg-color);
-  padding: 16px 18px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 .metric__head {
@@ -51,13 +53,13 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
 }
 .metric__icon {
   flex: none;
-  width: 14px;
-  height: 14px;
-  color: var(--el-text-color-secondary);
+  width: 16px;
+  height: 16px;
+  color: var(--m-pInk);
 }
 .metric__label {
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--el-text-color-secondary);
@@ -66,17 +68,18 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
   white-space: nowrap;
 }
 .metric__value {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: var(--app-font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--el-text-color-primary);
   font-variant-numeric: tabular-nums;
 }
 .metric__bar {
-  height: 4px;
+  height: 8px;
   border-radius: 999px;
-  background: var(--el-fill-color);
+  background: var(--el-fill-color-light);
   overflow: hidden;
   margin-top: 0.15rem;
 }

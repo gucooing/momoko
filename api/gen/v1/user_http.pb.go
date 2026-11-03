@@ -20,17 +20,21 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationUserServiceAddUser = "/v1.UserService/AddUser"
+const OperationUserServiceBatchUpdateUser = "/v1.UserService/BatchUpdateUser"
 const OperationUserServiceDeleteUser = "/v1.UserService/DeleteUser"
 const OperationUserServiceEditUser = "/v1.UserService/EditUser"
 const OperationUserServiceListUser = "/v1.UserService/ListUser"
 const OperationUserServiceMeInfo = "/v1.UserService/MeInfo"
 const OperationUserServiceMyLoginLogs = "/v1.UserService/MyLoginLogs"
+const OperationUserServiceResetUserPassword = "/v1.UserService/ResetUserPassword"
 const OperationUserServiceUpdateMe = "/v1.UserService/UpdateMe"
 const OperationUserServiceUserInfo = "/v1.UserService/UserInfo"
 
 type UserServiceHTTPServer interface {
 	// AddUser 添加用户
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
+	// BatchUpdateUser 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+	BatchUpdateUser(context.Context, *BatchUpdateUserRequest) (*BatchUpdateUserResponse, error)
 	// DeleteUser 删除用户
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// EditUser 更新用户
@@ -41,6 +45,8 @@ type UserServiceHTTPServer interface {
 	MeInfo(context.Context, *MeInfoRequest) (*MeInfoResponse, error)
 	// MyLoginLogs 获取自己的登录日志
 	MyLoginLogs(context.Context, *MyLoginLogsRequest) (*MyLoginLogsResponse, error)
+	// ResetUserPassword 管理员重置用户密码（重置后该用户所有会话下线）
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	// UpdateMe 更新个人资料
 	UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error)
 	// UserInfo 获取用户详情
@@ -57,6 +63,8 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r.POST("/api/v1/user/add", _UserService_AddUser0_HTTP_Handler(srv))
 	r.PUT("/api/v1/user/{user_id}", _UserService_EditUser0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/user/del", _UserService_DeleteUser0_HTTP_Handler(srv))
+	r.POST("/api/v1/user/batch", _UserService_BatchUpdateUser0_HTTP_Handler(srv))
+	r.PUT("/api/v1/user/{user_id}/password", _UserService_ResetUserPassword0_HTTP_Handler(srv))
 }
 
 func _UserService_MeInfo0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
@@ -226,9 +234,58 @@ func _UserService_DeleteUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx h
 	}
 }
 
+func _UserService_BatchUpdateUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchUpdateUserRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceBatchUpdateUser)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchUpdateUser(ctx, req.(*BatchUpdateUserRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchUpdateUserResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserService_ResetUserPassword0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetUserPasswordRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceResetUserPassword)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetUserPassword(ctx, req.(*ResetUserPasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetUserPasswordResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserServiceHTTPClient interface {
 	// AddUser 添加用户
 	AddUser(ctx context.Context, req *AddUserRequest, opts ...http.CallOption) (rsp *AddUserResponse, err error)
+	// BatchUpdateUser 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+	BatchUpdateUser(ctx context.Context, req *BatchUpdateUserRequest, opts ...http.CallOption) (rsp *BatchUpdateUserResponse, err error)
 	// DeleteUser 删除用户
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserResponse, err error)
 	// EditUser 更新用户
@@ -239,6 +296,8 @@ type UserServiceHTTPClient interface {
 	MeInfo(ctx context.Context, req *MeInfoRequest, opts ...http.CallOption) (rsp *MeInfoResponse, err error)
 	// MyLoginLogs 获取自己的登录日志
 	MyLoginLogs(ctx context.Context, req *MyLoginLogsRequest, opts ...http.CallOption) (rsp *MyLoginLogsResponse, err error)
+	// ResetUserPassword 管理员重置用户密码（重置后该用户所有会话下线）
+	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *ResetUserPasswordResponse, err error)
 	// UpdateMe 更新个人资料
 	UpdateMe(ctx context.Context, req *UpdateMeRequest, opts ...http.CallOption) (rsp *UpdateMeResponse, err error)
 	// UserInfo 获取用户详情
@@ -259,6 +318,20 @@ func (c *UserServiceHTTPClientImpl) AddUser(ctx context.Context, in *AddUserRequ
 	pattern := "/api/v1/user/add"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserServiceAddUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// BatchUpdateUser 批量修改用户状态 / 角色（内置超级管理员会被跳过）
+func (c *UserServiceHTTPClientImpl) BatchUpdateUser(ctx context.Context, in *BatchUpdateUserRequest, opts ...http.CallOption) (*BatchUpdateUserResponse, error) {
+	var out BatchUpdateUserResponse
+	pattern := "/api/v1/user/batch"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserServiceBatchUpdateUser))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -331,6 +404,20 @@ func (c *UserServiceHTTPClientImpl) MyLoginLogs(ctx context.Context, in *MyLogin
 	opts = append(opts, http.Operation(OperationUserServiceMyLoginLogs))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResetUserPassword 管理员重置用户密码（重置后该用户所有会话下线）
+func (c *UserServiceHTTPClientImpl) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...http.CallOption) (*ResetUserPasswordResponse, error) {
+	var out ResetUserPasswordResponse
+	pattern := "/api/v1/user/{user_id}/password"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserServiceResetUserPassword))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

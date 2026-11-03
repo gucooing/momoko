@@ -161,6 +161,62 @@ func (_u *PortForwardUpdate) SetNillableIsEnable(v *bool) *PortForwardUpdate {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *PortForwardUpdate) SetRemark(v string) *PortForwardUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *PortForwardUpdate) SetNillableRemark(v *string) *PortForwardUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (_u *PortForwardUpdate) SetTotalBytesIn(v int64) *PortForwardUpdate {
+	_u.mutation.ResetTotalBytesIn()
+	_u.mutation.SetTotalBytesIn(v)
+	return _u
+}
+
+// SetNillableTotalBytesIn sets the "total_bytes_in" field if the given value is not nil.
+func (_u *PortForwardUpdate) SetNillableTotalBytesIn(v *int64) *PortForwardUpdate {
+	if v != nil {
+		_u.SetTotalBytesIn(*v)
+	}
+	return _u
+}
+
+// AddTotalBytesIn adds value to the "total_bytes_in" field.
+func (_u *PortForwardUpdate) AddTotalBytesIn(v int64) *PortForwardUpdate {
+	_u.mutation.AddTotalBytesIn(v)
+	return _u
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (_u *PortForwardUpdate) SetTotalBytesOut(v int64) *PortForwardUpdate {
+	_u.mutation.ResetTotalBytesOut()
+	_u.mutation.SetTotalBytesOut(v)
+	return _u
+}
+
+// SetNillableTotalBytesOut sets the "total_bytes_out" field if the given value is not nil.
+func (_u *PortForwardUpdate) SetNillableTotalBytesOut(v *int64) *PortForwardUpdate {
+	if v != nil {
+		_u.SetTotalBytesOut(*v)
+	}
+	return _u
+}
+
+// AddTotalBytesOut adds value to the "total_bytes_out" field.
+func (_u *PortForwardUpdate) AddTotalBytesOut(v int64) *PortForwardUpdate {
+	_u.mutation.AddTotalBytesOut(v)
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *PortForwardUpdate) SetUser(v *User) *PortForwardUpdate {
 	return _u.SetUserID(v.ID)
@@ -277,6 +333,21 @@ func (_u *PortForwardUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalBytesIn(); ok {
+		_spec.SetField(portforward.FieldTotalBytesIn, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalBytesIn(); ok {
+		_spec.AddField(portforward.FieldTotalBytesIn, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.TotalBytesOut(); ok {
+		_spec.SetField(portforward.FieldTotalBytesOut, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalBytesOut(); ok {
+		_spec.AddField(portforward.FieldTotalBytesOut, field.TypeInt64, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -459,6 +530,62 @@ func (_u *PortForwardUpdateOne) SetNillableIsEnable(v *bool) *PortForwardUpdateO
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *PortForwardUpdateOne) SetRemark(v string) *PortForwardUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *PortForwardUpdateOne) SetNillableRemark(v *string) *PortForwardUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (_u *PortForwardUpdateOne) SetTotalBytesIn(v int64) *PortForwardUpdateOne {
+	_u.mutation.ResetTotalBytesIn()
+	_u.mutation.SetTotalBytesIn(v)
+	return _u
+}
+
+// SetNillableTotalBytesIn sets the "total_bytes_in" field if the given value is not nil.
+func (_u *PortForwardUpdateOne) SetNillableTotalBytesIn(v *int64) *PortForwardUpdateOne {
+	if v != nil {
+		_u.SetTotalBytesIn(*v)
+	}
+	return _u
+}
+
+// AddTotalBytesIn adds value to the "total_bytes_in" field.
+func (_u *PortForwardUpdateOne) AddTotalBytesIn(v int64) *PortForwardUpdateOne {
+	_u.mutation.AddTotalBytesIn(v)
+	return _u
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (_u *PortForwardUpdateOne) SetTotalBytesOut(v int64) *PortForwardUpdateOne {
+	_u.mutation.ResetTotalBytesOut()
+	_u.mutation.SetTotalBytesOut(v)
+	return _u
+}
+
+// SetNillableTotalBytesOut sets the "total_bytes_out" field if the given value is not nil.
+func (_u *PortForwardUpdateOne) SetNillableTotalBytesOut(v *int64) *PortForwardUpdateOne {
+	if v != nil {
+		_u.SetTotalBytesOut(*v)
+	}
+	return _u
+}
+
+// AddTotalBytesOut adds value to the "total_bytes_out" field.
+func (_u *PortForwardUpdateOne) AddTotalBytesOut(v int64) *PortForwardUpdateOne {
+	_u.mutation.AddTotalBytesOut(v)
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *PortForwardUpdateOne) SetUser(v *User) *PortForwardUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -605,6 +732,21 @@ func (_u *PortForwardUpdateOne) sqlSave(ctx context.Context) (_node *PortForward
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalBytesIn(); ok {
+		_spec.SetField(portforward.FieldTotalBytesIn, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalBytesIn(); ok {
+		_spec.AddField(portforward.FieldTotalBytesIn, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.TotalBytesOut(); ok {
+		_spec.SetField(portforward.FieldTotalBytesOut, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalBytesOut(); ok {
+		_spec.AddField(portforward.FieldTotalBytesOut, field.TypeInt64, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

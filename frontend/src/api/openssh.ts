@@ -12,6 +12,8 @@ import type {
   ShareSSHHostResponse,
   TestSSHHostRequest,
   TestSSHHostResponse,
+  TestSSHHostsRequest,
+  TestSSHHostsResponse,
   UpdateSSHHostRequest,
   UpdateSSHHostResponse,
 } from '@/types/v1/openssh'
@@ -43,4 +45,9 @@ export const shareSshHost = (data: ShareSSHHostRequest) => {
 // 测试当前表单草稿连通性（不写库状态）
 export const testSshHost = (data: TestSSHHostRequest) => {
   return request.post<TestSSHHostResponse>('/openssh/host/test', data)
+}
+
+// 批量测试已保存主机并记录结果；ids 为空表示全部可访问主机
+export const testSshHosts = (data: TestSSHHostsRequest) => {
+  return request.post<TestSSHHostsResponse>('/openssh/host/batch-test', data, { timeout: 120000 })
 }

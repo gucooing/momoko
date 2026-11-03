@@ -63,15 +63,18 @@ func (u *UserService) MyLoginLogs(ctx context.Context, req *v1.MyLoginLogsReques
 }
 
 func (u *UserService) ListUser(ctx context.Context, req *v1.ListUserRequest) (*v1.ListUserResponse, error) {
-	users, total, err := u.uc.ListUsers(ctx, req)
+	users, total, counts, err := u.uc.ListUsers(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.ListUserResponse{
-		Users:    users,
-		Page:     req.Page,
-		PageSize: req.PageSize,
-		Total:    total,
+		Users:           users,
+		Page:            req.Page,
+		PageSize:        req.PageSize,
+		Total:           total,
+		ActiveCount:     counts.Active,
+		InactiveCount:   counts.Inactive,
+		TodayLoginCount: counts.TodayLogin,
 	}, nil
 }
 
@@ -105,4 +108,19 @@ func (u *UserService) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest)
 		return nil, err
 	}
 	return &v1.DeleteUserResponse{}, nil
+}
+
+func (u *UserService) BatchUpdateUser(ctx context.Context, req *v1.BatchUpdateUserRequest) (*v1.BatchUpdateUserResponse, error) {
+	updated, skipped, err := u.uc.BatchUpdateUsers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchUpdateUserResponse{Updated: updated, Skipped: skipped}, nil
+}
+
+func (u *UserService) ResetUserPassword(ctx context.Context, req *v1.ResetUserPasswordRequest) (*v1.ResetUserPasswordResponse, error) {
+	if err := u.uc.ResetPassword(ctx, req.UserId, req.Password); err != nil {
+		return nil, err
+	}
+	return &v1.ResetUserPasswordResponse{}, nil
 }

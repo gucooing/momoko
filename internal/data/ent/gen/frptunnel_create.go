@@ -210,6 +210,20 @@ func (_c *FrpTunnelCreate) SetNillableMaxActiveConns(v *int) *FrpTunnelCreate {
 	return _c
 }
 
+// SetRemark sets the "remark" field.
+func (_c *FrpTunnelCreate) SetRemark(v string) *FrpTunnelCreate {
+	_c.mutation.SetRemark(v)
+	return _c
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_c *FrpTunnelCreate) SetNillableRemark(v *string) *FrpTunnelCreate {
+	if v != nil {
+		_c.SetRemark(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FrpTunnelCreate) SetID(v string) *FrpTunnelCreate {
 	_c.mutation.SetID(v)
@@ -304,6 +318,10 @@ func (_c *FrpTunnelCreate) defaults() {
 		v := frptunnel.DefaultMaxActiveConns
 		_c.mutation.SetMaxActiveConns(v)
 	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		v := frptunnel.DefaultRemark
+		_c.mutation.SetRemark(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -372,6 +390,9 @@ func (_c *FrpTunnelCreate) check() error {
 	}
 	if _, ok := _c.mutation.MaxActiveConns(); !ok {
 		return &ValidationError{Name: "max_active_conns", err: errors.New(`gen: missing required field "FrpTunnel.max_active_conns"`)}
+	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		return &ValidationError{Name: "remark", err: errors.New(`gen: missing required field "FrpTunnel.remark"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := frptunnel.IDValidator(v); err != nil {
@@ -472,6 +493,10 @@ func (_c *FrpTunnelCreate) createSpec() (*FrpTunnel, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.MaxActiveConns(); ok {
 		_spec.SetField(frptunnel.FieldMaxActiveConns, field.TypeInt, value)
 		_node.MaxActiveConns = value
+	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(frptunnel.FieldRemark, field.TypeString, value)
+		_node.Remark = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -725,6 +750,18 @@ func (u *FrpTunnelUpsert) UpdateMaxActiveConns() *FrpTunnelUpsert {
 // AddMaxActiveConns adds v to the "max_active_conns" field.
 func (u *FrpTunnelUpsert) AddMaxActiveConns(v int) *FrpTunnelUpsert {
 	u.Add(frptunnel.FieldMaxActiveConns, v)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *FrpTunnelUpsert) SetRemark(v string) *FrpTunnelUpsert {
+	u.Set(frptunnel.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *FrpTunnelUpsert) UpdateRemark() *FrpTunnelUpsert {
+	u.SetExcluded(frptunnel.FieldRemark)
 	return u
 }
 
@@ -993,6 +1030,20 @@ func (u *FrpTunnelUpsertOne) AddMaxActiveConns(v int) *FrpTunnelUpsertOne {
 func (u *FrpTunnelUpsertOne) UpdateMaxActiveConns() *FrpTunnelUpsertOne {
 	return u.Update(func(s *FrpTunnelUpsert) {
 		s.UpdateMaxActiveConns()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *FrpTunnelUpsertOne) SetRemark(v string) *FrpTunnelUpsertOne {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *FrpTunnelUpsertOne) UpdateRemark() *FrpTunnelUpsertOne {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.UpdateRemark()
 	})
 }
 
@@ -1428,6 +1479,20 @@ func (u *FrpTunnelUpsertBulk) AddMaxActiveConns(v int) *FrpTunnelUpsertBulk {
 func (u *FrpTunnelUpsertBulk) UpdateMaxActiveConns() *FrpTunnelUpsertBulk {
 	return u.Update(func(s *FrpTunnelUpsert) {
 		s.UpdateMaxActiveConns()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *FrpTunnelUpsertBulk) SetRemark(v string) *FrpTunnelUpsertBulk {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *FrpTunnelUpsertBulk) UpdateRemark() *FrpTunnelUpsertBulk {
+	return u.Update(func(s *FrpTunnelUpsert) {
+		s.UpdateRemark()
 	})
 }
 

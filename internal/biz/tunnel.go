@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,6 +41,7 @@ type TunnelRepo interface {
 	SaveFrpTunnelStats(ctx context.Context, samples []FrpTunnelStatSample) error
 	ListFrpTunnelStats(ctx context.Context, tunnelID string, start, end time.Time) ([]*gen.FrpTunnelStat, error)
 	DeleteFrpTunnelStatsByTunnel(ctx context.Context, tunnelID string) error
+	ResetTunnelCredential(ctx context.Context, userID *string, id, credential string) (*gen.FrpTunnel, error)
 }
 
 type TunnelUsecase struct {
@@ -148,20 +150,95 @@ func (t *TunnelUsecase) sampleLoop(ctx context.Context) {
 }
 
 func (t *TunnelUsecase) ListTunnels(ctx context.Context, userID string, req *v1.ListTunnelsRequest) (*v1.ListTunnelsResponse, error) {
-	infos, count, err := t.repo.ListTunnels(ctx, req.IsEnable, &userID, req.Type, req.Keywords)
+	// 概览统计当前用户全部隧道；筛选在内存中完成（隧道数量有限），以便同时给出各类计数。
+	tunnels, _, err := t.repo.ListTunnels(ctx, nil, &userID, nil, nil)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	rsp := &v1.ListTunnelsResponse{
+	overview := &v1.TunnelOverview{Total: int64(len(tunnels))}
+	typeCounts := make(map[v1.TunnelType]int64)
+	clients := make(map[string]*v1.TunnelClientSummary)
+	clientOrder := make([]string, 0)
+	keywords := strings.ToLower(strings.TrimSpace(req.GetKeywords()))
+	filtered := make([]*v1.TunnelInfo, 0, len(tunnels))
+	for _, tn := range tunnels {
+		info := t.toV1TunnelInfo(tn)
+		typeCounts[info.Type]++
+		if info.Client != nil {
+			key := info.Client.Hostname + "|" + info.Client.Address
+			sum, ok := clients[key]
+			if !ok {
+				sum = &v1.TunnelClientSummary{Client: info.Client}
+				clients[key] = sum
+				clientOrder = append(clientOrder, key)
+			}
+			sum.Tunnels++
+			if info.Status == v1.TunnelStatus_TUNNEL_STATUS_ONLINE {
+				sum.Online = true
+				sum.OnlineTunnels++
+			}
+			if info.Client.LoginTime.AsTime().After(sum.Client.LoginTime.AsTime()) {
+				sum.Client = info.Client
+			}
+		}
+		switch info.Status {
+		case v1.TunnelStatus_TUNNEL_STATUS_ONLINE:
+			overview.Online++
+		case v1.TunnelStatus_TUNNEL_STATUS_PENDING:
+			overview.Pending++
+		default:
+			overview.Offline++
+		}
+		overview.TodayBytesIn += info.BytesIn
+		overview.TodayBytesOut += info.BytesOut
+		overview.ActiveConnections += info.ActiveConnections
+
+		if req.Type != nil && *req.Type != v1.TunnelType_TUNNEL_TYPE_UNSPECIFIED && info.Type != *req.Type {
+			continue
+		}
+		if req.IsEnable != nil && info.IsEnable != *req.IsEnable {
+			continue
+		}
+		if keywords != "" && !matchTunnel(info, keywords) {
+			continue
+		}
+		filtered = append(filtered, info)
+	}
+	for _, key := range clientOrder {
+		sum := clients[key]
+		if sum.Online {
+			overview.Clients++
+		}
+		overview.ClientList = append(overview.ClientList, sum)
+	}
+	for _, ty := range []v1.TunnelType{
+		v1.TunnelType_TUNNEL_TYPE_TCP, v1.TunnelType_TUNNEL_TYPE_UDP, v1.TunnelType_TUNNEL_TYPE_HTTP,
+		v1.TunnelType_TUNNEL_TYPE_HTTPS, v1.TunnelType_TUNNEL_TYPE_STCP, v1.TunnelType_TUNNEL_TYPE_XTCP,
+		v1.TunnelType_TUNNEL_TYPE_TCPMUX,
+	} {
+		overview.TypeCounts = append(overview.TypeCounts, &v1.TunnelTypeCount{Type: ty, Count: typeCounts[ty]})
+	}
+
+	return &v1.ListTunnelsResponse{
 		Page:     req.Page,
 		PageSize: req.PageSize,
-		Total:    count,
-		Infos:    make([]*v1.TunnelInfo, 0, len(infos)),
+		Total:    int64(len(filtered)),
+		Overview: overview,
+		Infos:    networkPage(filtered, req.Page, req.PageSize),
+	}, nil
+}
+
+func matchTunnel(info *v1.TunnelInfo, keywords string) bool {
+	fields := []string{info.Name, info.Remark, info.CustomDomains, info.Subdomain, info.LocalIp + ":" + strconv.Itoa(int(info.LocalPort))}
+	if info.Client != nil {
+		fields = append(fields, info.Client.Hostname)
 	}
-	for _, info := range infos {
-		rsp.Infos = append(rsp.Infos, t.toV1TunnelInfo(info))
+	for _, f := range fields {
+		if strings.Contains(strings.ToLower(f), keywords) {
+			return true
+		}
 	}
-	return rsp, nil
+	return false
 }
 
 func (t *TunnelUsecase) CreateTunnel(ctx context.Context, userID string, req *v1.CreateTunnelRequest) (*v1.TunnelInfo, error) {
@@ -197,6 +274,53 @@ func (t *TunnelUsecase) UpdateTunnel(ctx context.Context, userID string, req *v1
 	return t.toV1TunnelInfo(info), nil
 }
 
+// ResetTunnelCredential 重新生成隧道凭证。
+func (t *TunnelUsecase) ResetTunnelCredential(ctx context.Context, userID, id string) (*v1.TunnelInfo, error) {
+	info, err := t.repo.ResetTunnelCredential(ctx, &userID, id, genCredential())
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, response.BadRequest(404, "隧道不存在")
+		}
+		return nil, ErrSystem(err)
+	}
+	return t.toV1TunnelInfo(info), nil
+}
+
+// FrpsStatus 返回 frps 运行状态。
+func (t *TunnelUsecase) FrpsStatus() *v1.FrpsStatus {
+	st := t.manager.Status()
+	out := &v1.FrpsStatus{Running: st.Running, Version: st.Version, Error: st.Error}
+	if !st.StartTime.IsZero() {
+		out.StartTime = timestamppb.New(st.StartTime)
+	}
+	return out
+}
+
+// RestartFrps 按当前配置重启 frps。
+func (t *TunnelUsecase) RestartFrps(ctx context.Context) (*v1.FrpsStatus, error) {
+	cfg, err := t.config.FrpsConfig(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if err := t.manager.Apply(toFrpsOptions(cfg)); err != nil {
+		return nil, response.BadRequest(500, "重启 frps 失败："+err.Error())
+	}
+	return t.FrpsStatus(), nil
+}
+
+// FrpsLogs 返回 frps 最近的运行日志。
+func (t *TunnelUsecase) FrpsLogs(limit int) []*v1.FrpsLogEntry {
+	if limit <= 0 {
+		limit = 300
+	}
+	entries := t.manager.Logs(limit)
+	out := make([]*v1.FrpsLogEntry, 0, len(entries))
+	for _, e := range entries {
+		out = append(out, &v1.FrpsLogEntry{Time: timestamppb.New(e.Time), Level: e.Level, Message: e.Message})
+	}
+	return out
+}
+
 func (t *TunnelUsecase) DeleteTunnel(ctx context.Context, userID, id string) error {
 	if err := t.repo.DeleteTunnel(ctx, &userID, id); err != nil {
 		return ErrSystem(err)
@@ -225,6 +349,12 @@ func (t *TunnelUsecase) GetTunnelStats(ctx context.Context, userID, id string, s
 			ActiveConnections: stat.ActiveConns,
 			BytesIn:           stat.BytesIn,
 			BytesOut:          stat.BytesOut,
+		}
+		if !stat.LastStartTime.IsZero() {
+			resp.Snapshot.LastStartTime = timestamppb.New(stat.LastStartTime)
+		}
+		if !stat.LastCloseTime.IsZero() {
+			resp.Snapshot.LastCloseTime = timestamppb.New(stat.LastCloseTime)
 		}
 	}
 
@@ -292,11 +422,28 @@ func (t *TunnelUsecase) toV1TunnelInfo(tunnel *gen.FrpTunnel) *v1.TunnelInfo {
 		IsEnable:       tunnel.IsEnable,
 		MaxBandwidth:   tunnel.MaxBandwidth,
 		MaxActiveConns: int32(tunnel.MaxActiveConns),
+		Remark:         tunnel.Remark,
 		CreateTime:     timestamppb.New(tunnel.CreateTime),
 		UpdateTime:     timestamppb.New(tunnel.UpdateTime),
 	}
+	if c, ok := t.manager.Client(tunnel.Name); ok {
+		info.Client = &v1.TunnelClient{
+			Hostname:  c.Hostname,
+			Os:        c.Os,
+			Arch:      c.Arch,
+			Version:   c.Version,
+			Address:   c.Address,
+			LoginTime: timestamppb.New(c.LoginTime),
+		}
+	}
 
 	stat, ok := t.manager.Stat(tunnel.Name)
+	if ok && !stat.LastStartTime.IsZero() {
+		info.LastOnlineTime = timestamppb.New(stat.LastStartTime)
+	}
+	if ok && !stat.LastCloseTime.IsZero() {
+		info.LastOfflineTime = timestamppb.New(stat.LastCloseTime)
+	}
 	switch {
 	case !tunnel.IsEnable:
 		info.Status = v1.TunnelStatus_TUNNEL_STATUS_OFFLINE
@@ -323,6 +470,7 @@ func toFrpsOptions(cfg *v1.FrpsConfig) frp_tunnel.Options {
 		KCPBindPort:    int(cfg.KcpBindPort),
 		QUICBindPort:   int(cfg.QuicBindPort),
 		SubdomainHost:  cfg.SubdomainHost,
+		TLSForce:       cfg.TlsForce,
 	}
 }
 

@@ -19,14 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TunnelManager_ListTunnels_FullMethodName      = "/v1.TunnelManager/ListTunnels"
-	TunnelManager_CreateTunnel_FullMethodName     = "/v1.TunnelManager/CreateTunnel"
-	TunnelManager_GetTunnel_FullMethodName        = "/v1.TunnelManager/GetTunnel"
-	TunnelManager_UpdateTunnel_FullMethodName     = "/v1.TunnelManager/UpdateTunnel"
-	TunnelManager_DeleteTunnel_FullMethodName     = "/v1.TunnelManager/DeleteTunnel"
-	TunnelManager_GetTunnelStats_FullMethodName   = "/v1.TunnelManager/GetTunnelStats"
-	TunnelManager_GetFrpsConfig_FullMethodName    = "/v1.TunnelManager/GetFrpsConfig"
-	TunnelManager_UpdateFrpsConfig_FullMethodName = "/v1.TunnelManager/UpdateFrpsConfig"
+	TunnelManager_ListTunnels_FullMethodName           = "/v1.TunnelManager/ListTunnels"
+	TunnelManager_CreateTunnel_FullMethodName          = "/v1.TunnelManager/CreateTunnel"
+	TunnelManager_GetTunnel_FullMethodName             = "/v1.TunnelManager/GetTunnel"
+	TunnelManager_UpdateTunnel_FullMethodName          = "/v1.TunnelManager/UpdateTunnel"
+	TunnelManager_DeleteTunnel_FullMethodName          = "/v1.TunnelManager/DeleteTunnel"
+	TunnelManager_GetTunnelStats_FullMethodName        = "/v1.TunnelManager/GetTunnelStats"
+	TunnelManager_GetFrpsConfig_FullMethodName         = "/v1.TunnelManager/GetFrpsConfig"
+	TunnelManager_UpdateFrpsConfig_FullMethodName      = "/v1.TunnelManager/UpdateFrpsConfig"
+	TunnelManager_RestartFrps_FullMethodName           = "/v1.TunnelManager/RestartFrps"
+	TunnelManager_GetFrpsLogs_FullMethodName           = "/v1.TunnelManager/GetFrpsLogs"
+	TunnelManager_ResetTunnelCredential_FullMethodName = "/v1.TunnelManager/ResetTunnelCredential"
 )
 
 // TunnelManagerClient is the client API for TunnelManager service.
@@ -51,6 +54,12 @@ type TunnelManagerClient interface {
 	GetFrpsConfig(ctx context.Context, in *GetFrpsConfigRequest, opts ...grpc.CallOption) (*GetFrpsConfigResponse, error)
 	// 更新 frps 实例配置
 	UpdateFrpsConfig(ctx context.Context, in *UpdateFrpsConfigRequest, opts ...grpc.CallOption) (*UpdateFrpsConfigResponse, error)
+	// 按当前配置重启 frps
+	RestartFrps(ctx context.Context, in *RestartFrpsRequest, opts ...grpc.CallOption) (*RestartFrpsResponse, error)
+	// 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+	GetFrpsLogs(ctx context.Context, in *GetFrpsLogsRequest, opts ...grpc.CallOption) (*GetFrpsLogsResponse, error)
+	// 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+	ResetTunnelCredential(ctx context.Context, in *ResetTunnelCredentialRequest, opts ...grpc.CallOption) (*ResetTunnelCredentialResponse, error)
 }
 
 type tunnelManagerClient struct {
@@ -141,6 +150,36 @@ func (c *tunnelManagerClient) UpdateFrpsConfig(ctx context.Context, in *UpdateFr
 	return out, nil
 }
 
+func (c *tunnelManagerClient) RestartFrps(ctx context.Context, in *RestartFrpsRequest, opts ...grpc.CallOption) (*RestartFrpsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestartFrpsResponse)
+	err := c.cc.Invoke(ctx, TunnelManager_RestartFrps_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tunnelManagerClient) GetFrpsLogs(ctx context.Context, in *GetFrpsLogsRequest, opts ...grpc.CallOption) (*GetFrpsLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFrpsLogsResponse)
+	err := c.cc.Invoke(ctx, TunnelManager_GetFrpsLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tunnelManagerClient) ResetTunnelCredential(ctx context.Context, in *ResetTunnelCredentialRequest, opts ...grpc.CallOption) (*ResetTunnelCredentialResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetTunnelCredentialResponse)
+	err := c.cc.Invoke(ctx, TunnelManager_ResetTunnelCredential_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TunnelManagerServer is the server API for TunnelManager service.
 // All implementations must embed UnimplementedTunnelManagerServer
 // for forward compatibility.
@@ -163,6 +202,12 @@ type TunnelManagerServer interface {
 	GetFrpsConfig(context.Context, *GetFrpsConfigRequest) (*GetFrpsConfigResponse, error)
 	// 更新 frps 实例配置
 	UpdateFrpsConfig(context.Context, *UpdateFrpsConfigRequest) (*UpdateFrpsConfigResponse, error)
+	// 按当前配置重启 frps
+	RestartFrps(context.Context, *RestartFrpsRequest) (*RestartFrpsResponse, error)
+	// 获取 frps 最近的运行日志（进程内环形缓冲，最多保留 1000 行）
+	GetFrpsLogs(context.Context, *GetFrpsLogsRequest) (*GetFrpsLogsResponse, error)
+	// 重新生成隧道凭证（旧凭证立即失效，frpc 需换用新配置）
+	ResetTunnelCredential(context.Context, *ResetTunnelCredentialRequest) (*ResetTunnelCredentialResponse, error)
 	mustEmbedUnimplementedTunnelManagerServer()
 }
 
@@ -196,6 +241,15 @@ func (UnimplementedTunnelManagerServer) GetFrpsConfig(context.Context, *GetFrpsC
 }
 func (UnimplementedTunnelManagerServer) UpdateFrpsConfig(context.Context, *UpdateFrpsConfigRequest) (*UpdateFrpsConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateFrpsConfig not implemented")
+}
+func (UnimplementedTunnelManagerServer) RestartFrps(context.Context, *RestartFrpsRequest) (*RestartFrpsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestartFrps not implemented")
+}
+func (UnimplementedTunnelManagerServer) GetFrpsLogs(context.Context, *GetFrpsLogsRequest) (*GetFrpsLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFrpsLogs not implemented")
+}
+func (UnimplementedTunnelManagerServer) ResetTunnelCredential(context.Context, *ResetTunnelCredentialRequest) (*ResetTunnelCredentialResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetTunnelCredential not implemented")
 }
 func (UnimplementedTunnelManagerServer) mustEmbedUnimplementedTunnelManagerServer() {}
 func (UnimplementedTunnelManagerServer) testEmbeddedByValue()                       {}
@@ -362,6 +416,60 @@ func _TunnelManager_UpdateFrpsConfig_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TunnelManager_RestartFrps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestartFrpsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TunnelManagerServer).RestartFrps(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TunnelManager_RestartFrps_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TunnelManagerServer).RestartFrps(ctx, req.(*RestartFrpsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TunnelManager_GetFrpsLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFrpsLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TunnelManagerServer).GetFrpsLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TunnelManager_GetFrpsLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TunnelManagerServer).GetFrpsLogs(ctx, req.(*GetFrpsLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TunnelManager_ResetTunnelCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetTunnelCredentialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TunnelManagerServer).ResetTunnelCredential(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TunnelManager_ResetTunnelCredential_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TunnelManagerServer).ResetTunnelCredential(ctx, req.(*ResetTunnelCredentialRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TunnelManager_ServiceDesc is the grpc.ServiceDesc for TunnelManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -400,6 +508,18 @@ var TunnelManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateFrpsConfig",
 			Handler:    _TunnelManager_UpdateFrpsConfig_Handler,
+		},
+		{
+			MethodName: "RestartFrps",
+			Handler:    _TunnelManager_RestartFrps_Handler,
+		},
+		{
+			MethodName: "GetFrpsLogs",
+			Handler:    _TunnelManager_GetFrpsLogs_Handler,
+		},
+		{
+			MethodName: "ResetTunnelCredential",
+			Handler:    _TunnelManager_ResetTunnelCredential_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

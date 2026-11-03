@@ -3,7 +3,10 @@ package biz
 import (
 	"context"
 	"momoko/pkg/utils"
+	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/net/websocket"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,7 +20,10 @@ import (
 const OpenSSHWSPath = "/api/v1/openssh/ws"
 
 type OpenSSHRepo interface {
-	GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, keywords, host *string) ([]*gen.SSHHost, int64, error)
+	GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, filter SSHHostListFilter) ([]*gen.SSHHost, int64, error)
+	ListAccessibleSSHHosts(ctx context.Context, userID string) ([]*gen.SSHHost, error)
+	SaveSSHHostTestResult(ctx context.Context, hostID string, at time.Time, ok bool, latencyMs int, message string) error
+	TouchSSHHostConnect(ctx context.Context, hostID string, at time.Time) error
 	GetSSHHostByUserID(ctx context.Context, userID, hostID string) (*gen.SSHHost, error)
 	GetSSHHostByOwnerID(ctx context.Context, ownerID, hostID string) (*gen.SSHHost, error)
 	CreateSSHHost(ctx context.Context, req *v1.CreateSSHHostRequest, ownerID string, sharedUserIDs []string) (*gen.SSHHost, error)
@@ -27,6 +33,17 @@ type OpenSSHRepo interface {
 	GetSSHHostConfigByUserID(ctx context.Context, userID, hostID string) (sshcore.Config, error)
 }
 
+// SSHHostListFilter 主机列表筛选条件。
+type SSHHostListFilter struct {
+	Keywords string
+	Host     string
+	Tag      string
+	Status   v1.SSHHostFilter
+}
+
+// 批量测试并发数
+const sshBatchTestConcurrency = 6
+
 type OpenSSHUsecase struct {
 	repo OpenSSHRepo
 }
@@ -35,7 +52,7 @@ func NewOpenSSHUsecase(repo OpenSSHRepo) *OpenSSHUsecase {
 	return &OpenSSHUsecase{repo: repo}
 }
 
-func (o *OpenSSHUsecase) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsRequest, userID string) ([]*v1.SSHHostInfo, int64, error) {
+func (o *OpenSSHUsecase) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsRequest, userID string) ([]*v1.SSHHostInfo, int64, *v1.SSHHostStats, error) {
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -46,16 +63,153 @@ func (o *OpenSSHUsecase) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsReq
 		req.PageSize = 50
 	}
 
-	items, total, err := o.repo.GetSSHHosts(ctx, req.Page, req.PageSize, userID, req.Keywords, req.Host)
+	filter := SSHHostListFilter{
+		Keywords: strings.TrimSpace(req.GetKeywords()),
+		Host:     strings.TrimSpace(req.GetHost()),
+		Tag:      strings.TrimSpace(req.GetTag()),
+		Status:   req.GetFilter(),
+	}
+	items, total, err := o.repo.GetSSHHosts(ctx, req.Page, req.PageSize, userID, filter)
 	if err != nil {
-		return nil, 0, ErrSystem(err)
+		return nil, 0, nil, ErrSystem(err)
 	}
 
 	infos := make([]*v1.SSHHostInfo, 0, len(items))
 	for _, item := range items {
 		infos = append(infos, o.toSSHHostInfo(item, userID))
 	}
-	return infos, total, nil
+
+	all, err := o.repo.ListAccessibleSSHHosts(ctx, userID)
+	if err != nil {
+		return nil, 0, nil, ErrSystem(err)
+	}
+	return infos, total, sshHostStats(all, userID), nil
+}
+
+// sshHostStats 汇总可访问主机的连通/分享统计、标签与最近一次测试概况。
+func sshHostStats(items []*gen.SSHHost, userID string) *v1.SSHHostStats {
+	stats := &v1.SSHHostStats{Total: int64(len(items))}
+	tagSet := map[string]struct{}{}
+	var latencySum, latencyN int
+	var lastTest time.Time
+	for _, item := range items {
+		owner := item.Edges.Owner != nil && item.Edges.Owner.ID == userID
+		if owner && len(item.Edges.SharedUsers) > 0 {
+			stats.Shared++
+		}
+		if !owner {
+			stats.SharedWithMe++
+		}
+		for _, tag := range splitSSHTags(item.Tags) {
+			tagSet[tag] = struct{}{}
+		}
+		mark := &v1.SSHHostTestMark{Id: item.ID, Name: item.Name}
+		if item.LastTestAt != nil {
+			mark.Tested = true
+			mark.Ok = item.LastTestOk
+			if item.LastTestAt.After(lastTest) {
+				lastTest = *item.LastTestAt
+			}
+			if item.LastTestOk {
+				stats.Ok++
+				latencySum += item.LastTestLatencyMs
+				latencyN++
+			} else {
+				stats.Failed++
+				mark.Message = item.LastTestMessage
+			}
+		} else {
+			stats.Untested++
+		}
+		stats.Marks = append(stats.Marks, mark)
+	}
+	for tag := range tagSet {
+		stats.Tags = append(stats.Tags, tag)
+	}
+	sort.Strings(stats.Tags)
+	if latencyN > 0 {
+		stats.AvgLatencyMs = int32(latencySum / latencyN)
+	}
+	if !lastTest.IsZero() {
+		stats.LastTestTime = timestamppb.New(lastTest)
+	}
+	return stats
+}
+
+// splitSSHTags 标签以逗号（中英文）或空格分隔。
+func splitSSHTags(tags string) []string {
+	fields := strings.FieldsFunc(tags, func(r rune) bool {
+		return r == ',' || r == '，' || r == ' ' || r == ';' || r == '；'
+	})
+	out := make([]string, 0, len(fields))
+	for _, f := range fields {
+		if f = strings.TrimSpace(f); f != "" {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
+// TestSSHHosts 并发测试已保存主机并记录结果；ids 为空表示全部可访问主机。
+func (o *OpenSSHUsecase) TestSSHHosts(ctx context.Context, userID string, ids []string) ([]*v1.SSHHostTestMark, error) {
+	all, err := o.repo.ListAccessibleSSHHosts(ctx, userID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	targets := all
+	if len(ids) > 0 {
+		want := make(map[string]struct{}, len(ids))
+		for _, id := range ids {
+			want[strings.TrimSpace(id)] = struct{}{}
+		}
+		targets = targets[:0:0]
+		for _, item := range all {
+			if _, ok := want[item.ID]; ok {
+				targets = append(targets, item)
+			}
+		}
+		if len(targets) == 0 {
+			return nil, ErrSSHHostAccess
+		}
+	}
+
+	results := make([]*v1.SSHHostTestMark, len(targets))
+	sem := make(chan struct{}, sshBatchTestConcurrency)
+	var wg sync.WaitGroup
+	for i, item := range targets {
+		wg.Add(1)
+		go func(i int, item *gen.SSHHost) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			results[i] = o.testStoredHost(ctx, userID, item)
+		}(i, item)
+	}
+	wg.Wait()
+	return results, nil
+}
+
+func (o *OpenSSHUsecase) testStoredHost(ctx context.Context, userID string, item *gen.SSHHost) *v1.SSHHostTestMark {
+	mark := &v1.SSHHostTestMark{Id: item.ID, Name: item.Name, Tested: true}
+	started := time.Now()
+	latency := 0
+	cfg, err := o.repo.GetSSHHostConfigByUserID(ctx, userID, item.ID)
+	if err == nil {
+		_, err = sshcore.Test(ctx, cfg)
+		latency = int(time.Since(started).Milliseconds())
+	} else if strings.Contains(err.Error(), "decrypt ssh") || strings.Contains(err.Error(), "message authentication failed") {
+		err = ErrSSHStoredCredentialBroken
+	}
+	if err != nil {
+		mark.Message = err.Error()
+		latency = 0
+	} else {
+		mark.Ok = true
+	}
+	storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+	defer cancel()
+	_ = o.repo.SaveSSHHostTestResult(storeCtx, item.ID, time.Now(), mark.Ok, latency, mark.Message)
+	return mark
 }
 
 func (o *OpenSSHUsecase) CreateSSHHost(ctx context.Context, req *v1.CreateSSHHostRequest, userID string) (*v1.SSHHostInfo, error) {
@@ -202,6 +356,7 @@ func (o *OpenSSHUsecase) StartSSHWebSocket(ctx context.Context, conn *websocket.
 		_ = websocket.Message.Send(conn, err.Error())
 		return o.wrapSSHRepoErr(err)
 	}
+	_ = o.repo.TouchSSHHostConnect(ctx, hostID, time.Now())
 	return sshcore.ServeWebSocket(conn, cfg)
 }
 
@@ -256,6 +411,16 @@ func (o *OpenSSHUsecase) toSSHHostInfo(item *gen.SSHHost, userID string) *v1.SSH
 		WsPath:      OpenSSHWSPath,
 		CreateTime:  timestamppb.New(item.CreateTime),
 		UpdateTime:  timestamppb.New(item.UpdateTime),
+
+		LastTestOk:        item.LastTestOk,
+		LastTestLatencyMs: int32(item.LastTestLatencyMs),
+		LastTestMessage:   item.LastTestMessage,
+	}
+	if item.LastTestAt != nil {
+		info.LastTestTime = timestamppb.New(*item.LastTestAt)
+	}
+	if item.LastConnectAt != nil {
+		info.LastConnectTime = timestamppb.New(*item.LastConnectAt)
 	}
 	if owner := item.Edges.Owner; owner != nil {
 		info.OwnerUserId = owner.ID

@@ -33,28 +33,68 @@ func (i *instanceRepo) GetTypes(ctx context.Context) ([]*gen.InstanceType, error
 }
 
 // CreateType 创建实例类型
-func (i *instanceRepo) CreateType(ctx context.Context, name string) (*gen.InstanceType, error) {
+func (i *instanceRepo) CreateType(ctx context.Context, req *v1.CreateInstanceTypeRequest) (*gen.InstanceType, error) {
 	create := i.data.db.InstanceType.Create().
 		SetID(uuid.NewString()).
-		SetName(name)
+		SetName(req.Name).
+		SetDescription(req.Description).
+		SetStartCommand(req.StartCommand).
+		SetStopCommand(req.StopCommand).
+		SetQuickCommands(req.QuickCommands)
+	if req.IsEnable != nil {
+		create.SetIsEnable(*req.IsEnable)
+	}
 
 	return create.Save(ctx)
 }
 
 // UpdateType 更新实例类型
-func (i *instanceRepo) UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*gen.InstanceType, error) {
+func (i *instanceRepo) UpdateType(ctx context.Context, req *v1.UpdateInstanceTypeRequest) (*gen.InstanceType, error) {
 	update := i.data.db.InstanceType.
-		UpdateOneID(id).
+		UpdateOneID(req.Id).
 		Where(instancetype.IsSystem(false))
 
-	if name != nil {
-		update.SetName(*name)
+	if req.Name != nil {
+		update.SetName(*req.Name)
 	}
-	if isEnable != nil {
-		update.SetIsEnable(*isEnable)
+	if req.IsEnable != nil {
+		update.SetIsEnable(*req.IsEnable)
+	}
+	if req.Description != nil {
+		update.SetDescription(*req.Description)
+	}
+	if req.StartCommand != nil {
+		update.SetStartCommand(*req.StartCommand)
+	}
+	if req.StopCommand != nil {
+		update.SetStopCommand(*req.StopCommand)
+	}
+	if req.QuickCommands != nil {
+		update.SetQuickCommands(req.QuickCommands.GetItems())
 	}
 
 	return update.Save(ctx)
+}
+
+// CountTypeUsage 统计使用该类型的实例数(不区分用户，用于删除校验)
+func (i *instanceRepo) CountTypeUsage(ctx context.Context, id string) (int, error) {
+	return i.data.db.Instance.Query().
+		Where(instance.HasTypeWith(instancetype.IDEQ(id))).
+		Count(ctx)
+}
+
+// GetVisibleInstancesWithType 获取当前用户可见的全部实例(带类型)，用于类型使用统计
+func (i *instanceRepo) GetVisibleInstancesWithType(ctx context.Context, userId string) ([]*gen.Instance, error) {
+	return i.data.db.Instance.Query().
+		Where(
+			instance.Or(
+				instance.HasUserWith(user.IDEQ(userId)),
+				instance.HasUsersWith(user.IDEQ(userId)),
+			),
+		).
+		WithType().
+		Order(gen.Asc(instance.FieldCreateTime)).
+		All(ctx)
 }
 
 // DeleteType 删除实例类型
@@ -77,13 +117,13 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 		query.Where(
 			instance.Or(
 				instance.NameContains(*keywords),
-				instance.Tags(*keywords),
+				instance.TagsContains(*keywords),
 			),
 		)
 	}
 	if types != nil {
 		query.Where(
-			instance.HasTypeWith(instancetype.NameEQ(*types)),
+			instance.HasTypeWith(instancetype.Or(instancetype.IDEQ(*types), instancetype.NameEQ(*types))),
 		)
 	}
 
@@ -137,7 +177,9 @@ func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanc
 		SetStopCommand(req.StopCommand).
 		SetAutoStart(req.AutoStart).
 		SetTypeID(req.Type).
-		SetEnv(req.Env)
+		SetEnv(req.Env).
+		SetStopTimeout(req.StopTimeout).
+		SetAutoRestart(req.AutoRestart)
 
 	return create.Save(ctx)
 }
@@ -175,6 +217,12 @@ func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanc
 	}
 	if req.Env != nil {
 		update.SetEnv(req.Env)
+	}
+	if req.StopTimeout != nil {
+		update.SetStopTimeout(*req.StopTimeout)
+	}
+	if req.AutoRestart != nil {
+		update.SetAutoRestart(*req.AutoRestart)
 	}
 	if _, err := update.Save(ctx); err != nil {
 		return nil, err

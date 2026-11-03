@@ -24,6 +24,11 @@ func (SSHHost) Fields() []ent.Field {
 		field.String("fingerprint").Optional().Comment("SSH主机指纹"),
 		field.String("remark").Optional().Comment("备注"),
 		field.String("tags").Optional().Comment("标签"),
+		field.Time("last_test_at").Optional().Nillable().Comment("上次连通性测试时间"),
+		field.Bool("last_test_ok").Default(false).Comment("上次测试是否连通"),
+		field.Int("last_test_latency_ms").Default(0).Comment("上次测试延迟（毫秒）"),
+		field.Text("last_test_message").Optional().Comment("上次测试失败原因"),
+		field.Time("last_connect_at").Optional().Nillable().Comment("上次打开终端连接的时间"),
 	}
 }
 

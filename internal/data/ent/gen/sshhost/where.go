@@ -120,6 +120,31 @@ func Tags(v string) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldEQ(FieldTags, v))
 }
 
+// LastTestAt applies equality check predicate on the "last_test_at" field. It's identical to LastTestAtEQ.
+func LastTestAt(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestAt, v))
+}
+
+// LastTestOk applies equality check predicate on the "last_test_ok" field. It's identical to LastTestOkEQ.
+func LastTestOk(v bool) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestOk, v))
+}
+
+// LastTestLatencyMs applies equality check predicate on the "last_test_latency_ms" field. It's identical to LastTestLatencyMsEQ.
+func LastTestLatencyMs(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestMessage applies equality check predicate on the "last_test_message" field. It's identical to LastTestMessageEQ.
+func LastTestMessage(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestMessage, v))
+}
+
+// LastConnectAt applies equality check predicate on the "last_connect_at" field. It's identical to LastConnectAtEQ.
+func LastConnectAt(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastConnectAt, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldEQ(FieldCreateTime, v))
@@ -818,6 +843,231 @@ func TagsEqualFold(v string) predicate.SSHHost {
 // TagsContainsFold applies the ContainsFold predicate on the "tags" field.
 func TagsContainsFold(v string) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldContainsFold(FieldTags, v))
+}
+
+// LastTestAtEQ applies the EQ predicate on the "last_test_at" field.
+func LastTestAtEQ(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestAt, v))
+}
+
+// LastTestAtNEQ applies the NEQ predicate on the "last_test_at" field.
+func LastTestAtNEQ(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldLastTestAt, v))
+}
+
+// LastTestAtIn applies the In predicate on the "last_test_at" field.
+func LastTestAtIn(vs ...time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIn(FieldLastTestAt, vs...))
+}
+
+// LastTestAtNotIn applies the NotIn predicate on the "last_test_at" field.
+func LastTestAtNotIn(vs ...time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotIn(FieldLastTestAt, vs...))
+}
+
+// LastTestAtGT applies the GT predicate on the "last_test_at" field.
+func LastTestAtGT(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGT(FieldLastTestAt, v))
+}
+
+// LastTestAtGTE applies the GTE predicate on the "last_test_at" field.
+func LastTestAtGTE(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGTE(FieldLastTestAt, v))
+}
+
+// LastTestAtLT applies the LT predicate on the "last_test_at" field.
+func LastTestAtLT(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLT(FieldLastTestAt, v))
+}
+
+// LastTestAtLTE applies the LTE predicate on the "last_test_at" field.
+func LastTestAtLTE(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLTE(FieldLastTestAt, v))
+}
+
+// LastTestAtIsNil applies the IsNil predicate on the "last_test_at" field.
+func LastTestAtIsNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIsNull(FieldLastTestAt))
+}
+
+// LastTestAtNotNil applies the NotNil predicate on the "last_test_at" field.
+func LastTestAtNotNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotNull(FieldLastTestAt))
+}
+
+// LastTestOkEQ applies the EQ predicate on the "last_test_ok" field.
+func LastTestOkEQ(v bool) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestOk, v))
+}
+
+// LastTestOkNEQ applies the NEQ predicate on the "last_test_ok" field.
+func LastTestOkNEQ(v bool) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldLastTestOk, v))
+}
+
+// LastTestLatencyMsEQ applies the EQ predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsEQ(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsNEQ applies the NEQ predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsNEQ(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsIn applies the In predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsIn(vs ...int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIn(FieldLastTestLatencyMs, vs...))
+}
+
+// LastTestLatencyMsNotIn applies the NotIn predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsNotIn(vs ...int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotIn(FieldLastTestLatencyMs, vs...))
+}
+
+// LastTestLatencyMsGT applies the GT predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsGT(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGT(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsGTE applies the GTE predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsGTE(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGTE(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsLT applies the LT predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsLT(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLT(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsLTE applies the LTE predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsLTE(v int) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLTE(FieldLastTestLatencyMs, v))
+}
+
+// LastTestMessageEQ applies the EQ predicate on the "last_test_message" field.
+func LastTestMessageEQ(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastTestMessage, v))
+}
+
+// LastTestMessageNEQ applies the NEQ predicate on the "last_test_message" field.
+func LastTestMessageNEQ(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldLastTestMessage, v))
+}
+
+// LastTestMessageIn applies the In predicate on the "last_test_message" field.
+func LastTestMessageIn(vs ...string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIn(FieldLastTestMessage, vs...))
+}
+
+// LastTestMessageNotIn applies the NotIn predicate on the "last_test_message" field.
+func LastTestMessageNotIn(vs ...string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotIn(FieldLastTestMessage, vs...))
+}
+
+// LastTestMessageGT applies the GT predicate on the "last_test_message" field.
+func LastTestMessageGT(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGT(FieldLastTestMessage, v))
+}
+
+// LastTestMessageGTE applies the GTE predicate on the "last_test_message" field.
+func LastTestMessageGTE(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGTE(FieldLastTestMessage, v))
+}
+
+// LastTestMessageLT applies the LT predicate on the "last_test_message" field.
+func LastTestMessageLT(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLT(FieldLastTestMessage, v))
+}
+
+// LastTestMessageLTE applies the LTE predicate on the "last_test_message" field.
+func LastTestMessageLTE(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLTE(FieldLastTestMessage, v))
+}
+
+// LastTestMessageContains applies the Contains predicate on the "last_test_message" field.
+func LastTestMessageContains(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldContains(FieldLastTestMessage, v))
+}
+
+// LastTestMessageHasPrefix applies the HasPrefix predicate on the "last_test_message" field.
+func LastTestMessageHasPrefix(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldHasPrefix(FieldLastTestMessage, v))
+}
+
+// LastTestMessageHasSuffix applies the HasSuffix predicate on the "last_test_message" field.
+func LastTestMessageHasSuffix(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldHasSuffix(FieldLastTestMessage, v))
+}
+
+// LastTestMessageIsNil applies the IsNil predicate on the "last_test_message" field.
+func LastTestMessageIsNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIsNull(FieldLastTestMessage))
+}
+
+// LastTestMessageNotNil applies the NotNil predicate on the "last_test_message" field.
+func LastTestMessageNotNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotNull(FieldLastTestMessage))
+}
+
+// LastTestMessageEqualFold applies the EqualFold predicate on the "last_test_message" field.
+func LastTestMessageEqualFold(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEqualFold(FieldLastTestMessage, v))
+}
+
+// LastTestMessageContainsFold applies the ContainsFold predicate on the "last_test_message" field.
+func LastTestMessageContainsFold(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldContainsFold(FieldLastTestMessage, v))
+}
+
+// LastConnectAtEQ applies the EQ predicate on the "last_connect_at" field.
+func LastConnectAtEQ(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldLastConnectAt, v))
+}
+
+// LastConnectAtNEQ applies the NEQ predicate on the "last_connect_at" field.
+func LastConnectAtNEQ(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldLastConnectAt, v))
+}
+
+// LastConnectAtIn applies the In predicate on the "last_connect_at" field.
+func LastConnectAtIn(vs ...time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIn(FieldLastConnectAt, vs...))
+}
+
+// LastConnectAtNotIn applies the NotIn predicate on the "last_connect_at" field.
+func LastConnectAtNotIn(vs ...time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotIn(FieldLastConnectAt, vs...))
+}
+
+// LastConnectAtGT applies the GT predicate on the "last_connect_at" field.
+func LastConnectAtGT(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGT(FieldLastConnectAt, v))
+}
+
+// LastConnectAtGTE applies the GTE predicate on the "last_connect_at" field.
+func LastConnectAtGTE(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGTE(FieldLastConnectAt, v))
+}
+
+// LastConnectAtLT applies the LT predicate on the "last_connect_at" field.
+func LastConnectAtLT(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLT(FieldLastConnectAt, v))
+}
+
+// LastConnectAtLTE applies the LTE predicate on the "last_connect_at" field.
+func LastConnectAtLTE(v time.Time) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLTE(FieldLastConnectAt, v))
+}
+
+// LastConnectAtIsNil applies the IsNil predicate on the "last_connect_at" field.
+func LastConnectAtIsNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIsNull(FieldLastConnectAt))
+}
+
+// LastConnectAtNotNil applies the NotNil predicate on the "last_connect_at" field.
+func LastConnectAtNotNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotNull(FieldLastConnectAt))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

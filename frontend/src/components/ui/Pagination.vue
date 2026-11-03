@@ -120,14 +120,15 @@ const onSizePick = (size: number) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
-  border: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  border-radius: var(--app-radius-sm);
-  color: var(--el-text-color-regular);
-  font-size: 0.8125rem;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 12px;
+  color: var(--el-text-color-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -137,13 +138,13 @@ const onSizePick = (size: number) => {
   height: 16px;
 }
 .pagination__btn:hover:not(:disabled):not(.is-ellipsis) {
-  border-color: color-mix(in srgb, var(--el-color-primary) 40%, var(--el-border-color));
-  color: var(--el-color-primary);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
 }
 .pagination__btn.is-active {
-  background: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  color: #fff;
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
 }
 .pagination__btn:disabled {
   opacity: 0.5;

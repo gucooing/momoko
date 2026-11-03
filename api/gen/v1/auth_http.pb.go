@@ -19,30 +19,48 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationAuthServiceDeleteMessages = "/v1.AuthService/DeleteMessages"
 const OperationAuthServiceDevices = "/v1.AuthService/Devices"
+const OperationAuthServiceListMessages = "/v1.AuthService/ListMessages"
 const OperationAuthServiceLogin = "/v1.AuthService/Login"
 const OperationAuthServiceLogout = "/v1.AuthService/Logout"
+const OperationAuthServicePublishMessage = "/v1.AuthService/PublishMessage"
+const OperationAuthServiceReadMessages = "/v1.AuthService/ReadMessages"
 const OperationAuthServiceRefresh = "/v1.AuthService/Refresh"
 const OperationAuthServiceRegister = "/v1.AuthService/Register"
+const OperationAuthServiceResetPassword = "/v1.AuthService/ResetPassword"
 const OperationAuthServiceSendLoginEmailCode = "/v1.AuthService/SendLoginEmailCode"
 const OperationAuthServiceSendRegisterEmailCode = "/v1.AuthService/SendRegisterEmailCode"
+const OperationAuthServiceSendResetPasswordEmailCode = "/v1.AuthService/SendResetPasswordEmailCode"
 const OperationAuthServiceUpdatePassword = "/v1.AuthService/UpdatePassword"
 
 type AuthServiceHTTPServer interface {
+	// DeleteMessages 删除消息
+	DeleteMessages(context.Context, *DeleteMessagesRequest) (*DeleteMessagesResponse, error)
 	// Devices 获取登录设备
 	Devices(context.Context, *DevicesRequest) (*DevicesResponse, error)
+	// ListMessages 我的消息列表（含未读数）
+	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
 	// Login 账号登录
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	// Logout 退出登录
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	// PublishMessage 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+	PublishMessage(context.Context, *PublishMessageRequest) (*PublishMessageResponse, error)
+	// ReadMessages 标记消息已读
+	ReadMessages(context.Context, *ReadMessagesRequest) (*ReadMessagesResponse, error)
 	// Refresh 刷新token
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
 	// Register 注册
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	// ResetPassword 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error)
 	// SendLoginEmailCode 发送登录邮件验证码
 	SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error)
 	// SendRegisterEmailCode 发送注册邮件验证码
 	SendRegisterEmailCode(context.Context, *SendRegisterEmailCodeRequest) (*SendRegisterEmailCodeResponse, error)
+	// SendResetPasswordEmailCode 发送重置密码邮件验证码
+	SendResetPasswordEmailCode(context.Context, *SendResetPasswordEmailCodeRequest) (*SendResetPasswordEmailCodeResponse, error)
 	// UpdatePassword 更新密码
 	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordResponse, error)
 }
@@ -53,10 +71,16 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.POST("/api/v1/auth/register", _AuthService_Register0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/register/email-code", _AuthService_SendRegisterEmailCode0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/login/email-code", _AuthService_SendLoginEmailCode0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/password/reset/email-code", _AuthService_SendResetPasswordEmailCode0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/password/reset", _AuthService_ResetPassword0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/refresh", _AuthService_Refresh0_HTTP_Handler(srv))
 	r.GET("/api/v1/auth/devices", _AuthService_Devices0_HTTP_Handler(srv))
 	r.PUT("/api/v1/auth/password", _AuthService_UpdatePassword0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
+	r.GET("/api/v1/auth/messages", _AuthService_ListMessages0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/messages/read", _AuthService_ReadMessages0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/messages/delete", _AuthService_DeleteMessages0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/messages/publish", _AuthService_PublishMessage0_HTTP_Handler(srv))
 }
 
 func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
@@ -147,6 +171,50 @@ func _AuthService_SendLoginEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 	}
 }
 
+func _AuthService_SendResetPasswordEmailCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendResetPasswordEmailCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceSendResetPasswordEmailCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendResetPasswordEmailCode(ctx, req.(*SendResetPasswordEmailCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendResetPasswordEmailCodeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_ResetPassword0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetPasswordRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceResetPassword)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetPassword(ctx, req.(*ResetPasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetPasswordResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AuthService_Refresh0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in RefreshRequest
@@ -232,21 +300,118 @@ func _AuthService_Logout0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.
 	}
 }
 
+func _AuthService_ListMessages0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMessagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceListMessages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMessages(ctx, req.(*ListMessagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMessagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_ReadMessages0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ReadMessagesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceReadMessages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ReadMessages(ctx, req.(*ReadMessagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ReadMessagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_DeleteMessages0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteMessagesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceDeleteMessages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteMessages(ctx, req.(*DeleteMessagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteMessagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_PublishMessage0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PublishMessageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServicePublishMessage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PublishMessage(ctx, req.(*PublishMessageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PublishMessageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AuthServiceHTTPClient interface {
+	// DeleteMessages 删除消息
+	DeleteMessages(ctx context.Context, req *DeleteMessagesRequest, opts ...http.CallOption) (rsp *DeleteMessagesResponse, err error)
 	// Devices 获取登录设备
 	Devices(ctx context.Context, req *DevicesRequest, opts ...http.CallOption) (rsp *DevicesResponse, err error)
+	// ListMessages 我的消息列表（含未读数）
+	ListMessages(ctx context.Context, req *ListMessagesRequest, opts ...http.CallOption) (rsp *ListMessagesResponse, err error)
 	// Login 账号登录
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	// Logout 退出登录
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
+	// PublishMessage 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+	PublishMessage(ctx context.Context, req *PublishMessageRequest, opts ...http.CallOption) (rsp *PublishMessageResponse, err error)
+	// ReadMessages 标记消息已读
+	ReadMessages(ctx context.Context, req *ReadMessagesRequest, opts ...http.CallOption) (rsp *ReadMessagesResponse, err error)
 	// Refresh 刷新token
 	Refresh(ctx context.Context, req *RefreshRequest, opts ...http.CallOption) (rsp *RefreshResponse, err error)
 	// Register 注册
 	Register(ctx context.Context, req *RegisterRequest, opts ...http.CallOption) (rsp *RegisterResponse, err error)
+	// ResetPassword 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+	ResetPassword(ctx context.Context, req *ResetPasswordRequest, opts ...http.CallOption) (rsp *ResetPasswordResponse, err error)
 	// SendLoginEmailCode 发送登录邮件验证码
 	SendLoginEmailCode(ctx context.Context, req *SendLoginEmailCodeRequest, opts ...http.CallOption) (rsp *SendLoginEmailCodeResponse, err error)
 	// SendRegisterEmailCode 发送注册邮件验证码
 	SendRegisterEmailCode(ctx context.Context, req *SendRegisterEmailCodeRequest, opts ...http.CallOption) (rsp *SendRegisterEmailCodeResponse, err error)
+	// SendResetPasswordEmailCode 发送重置密码邮件验证码
+	SendResetPasswordEmailCode(ctx context.Context, req *SendResetPasswordEmailCodeRequest, opts ...http.CallOption) (rsp *SendResetPasswordEmailCodeResponse, err error)
 	// UpdatePassword 更新密码
 	UpdatePassword(ctx context.Context, req *UpdatePasswordRequest, opts ...http.CallOption) (rsp *UpdatePasswordResponse, err error)
 }
@@ -259,12 +424,40 @@ func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
 }
 
+// DeleteMessages 删除消息
+func (c *AuthServiceHTTPClientImpl) DeleteMessages(ctx context.Context, in *DeleteMessagesRequest, opts ...http.CallOption) (*DeleteMessagesResponse, error) {
+	var out DeleteMessagesResponse
+	pattern := "/api/v1/auth/messages/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceDeleteMessages))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // Devices 获取登录设备
 func (c *AuthServiceHTTPClientImpl) Devices(ctx context.Context, in *DevicesRequest, opts ...http.CallOption) (*DevicesResponse, error) {
 	var out DevicesResponse
 	pattern := "/api/v1/auth/devices"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAuthServiceDevices))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMessages 我的消息列表（含未读数）
+func (c *AuthServiceHTTPClientImpl) ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...http.CallOption) (*ListMessagesResponse, error) {
+	var out ListMessagesResponse
+	pattern := "/api/v1/auth/messages"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAuthServiceListMessages))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -301,6 +494,34 @@ func (c *AuthServiceHTTPClientImpl) Logout(ctx context.Context, in *LogoutReques
 	return &out, nil
 }
 
+// PublishMessage 发布通知（推送给全部启用的用户，需 system_config:edit 权限）
+func (c *AuthServiceHTTPClientImpl) PublishMessage(ctx context.Context, in *PublishMessageRequest, opts ...http.CallOption) (*PublishMessageResponse, error) {
+	var out PublishMessageResponse
+	pattern := "/api/v1/auth/messages/publish"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServicePublishMessage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ReadMessages 标记消息已读
+func (c *AuthServiceHTTPClientImpl) ReadMessages(ctx context.Context, in *ReadMessagesRequest, opts ...http.CallOption) (*ReadMessagesResponse, error) {
+	var out ReadMessagesResponse
+	pattern := "/api/v1/auth/messages/read"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceReadMessages))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // Refresh 刷新token
 func (c *AuthServiceHTTPClientImpl) Refresh(ctx context.Context, in *RefreshRequest, opts ...http.CallOption) (*RefreshResponse, error) {
 	var out RefreshResponse
@@ -329,6 +550,20 @@ func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRe
 	return &out, nil
 }
 
+// ResetPassword 通过邮箱验证码重置密码（重置后该用户所有登录会话失效）
+func (c *AuthServiceHTTPClientImpl) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...http.CallOption) (*ResetPasswordResponse, error) {
+	var out ResetPasswordResponse
+	pattern := "/api/v1/auth/password/reset"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceResetPassword))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // SendLoginEmailCode 发送登录邮件验证码
 func (c *AuthServiceHTTPClientImpl) SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...http.CallOption) (*SendLoginEmailCodeResponse, error) {
 	var out SendLoginEmailCodeResponse
@@ -349,6 +584,20 @@ func (c *AuthServiceHTTPClientImpl) SendRegisterEmailCode(ctx context.Context, i
 	pattern := "/api/v1/auth/register/email-code"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAuthServiceSendRegisterEmailCode))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SendResetPasswordEmailCode 发送重置密码邮件验证码
+func (c *AuthServiceHTTPClientImpl) SendResetPasswordEmailCode(ctx context.Context, in *SendResetPasswordEmailCodeRequest, opts ...http.CallOption) (*SendResetPasswordEmailCodeResponse, error) {
+	var out SendResetPasswordEmailCodeResponse
+	pattern := "/api/v1/auth/password/reset/email-code"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceSendResetPasswordEmailCode))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

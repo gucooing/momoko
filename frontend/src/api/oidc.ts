@@ -14,6 +14,7 @@ import type {
   OIDCConfigResponse,
   RefreshOIDCClientSecretRequest,
   RefreshOIDCClientSecretResponse,
+  RotateOIDCSigningKeyResponse,
   UpdateOIDCClientRequest,
   UpdateOIDCClientResponse,
   UpdateOIDCConfigRequest,
@@ -54,4 +55,8 @@ export const getOIDCAuthorizationInfo = (data: OIDCAuthorizationInfoRequest) => 
 
 export const createOIDCAuthorizationCode = (data: CreateOIDCAuthorizationCodeRequest) => {
   return request.post<CreateOIDCAuthorizationCodeResponse>('/oidc/authorize-code', data)
+}
+
+export const rotateOIDCSigningKey = () => {
+  return request.post<RotateOIDCSigningKeyResponse>('/oidc/signing-key/rotate', {})
 }

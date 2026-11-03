@@ -33,6 +33,7 @@ func (r *networkRepo) CreatePortForward(ctx context.Context, userID string, req 
 		SetTargetAddress(req.TargetAddress).
 		SetTargetPort(int(req.TargetPort)).
 		SetIsEnable(req.IsEnable).
+		SetRemark(req.Remark).
 		Save(ctx)
 }
 
@@ -55,7 +56,7 @@ func (r *networkRepo) ListPortForwards(ctx context.Context, isEnable *bool, user
 		return nil, 0, err
 	}
 
-	items, err := query.All(ctx)
+	items, err := query.Order(gen.Desc(portforward.FieldCreateTime)).All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -69,7 +70,8 @@ func (r *networkRepo) UpdatePortForward(ctx context.Context, userID *string, req
 		SetNillableName(req.Name).
 		SetNillableListenAddress(req.ListenAddress).
 		SetNillableTargetAddress(req.TargetAddress).
-		SetNillableIsEnable(req.IsEnable)
+		SetNillableIsEnable(req.IsEnable).
+		SetNillableRemark(req.Remark)
 
 	if userID != nil {
 		builder = builder.Where(portforward.UserIDEQ(*userID))
@@ -153,6 +155,40 @@ func (r *networkRepo) DeletePortForwardStatsByForward(ctx context.Context, portF
 		Where(portforwardstat.PortForwardIDEQ(portForwardID)).
 		Exec(ctx)
 	return err
+}
+
+// ListPortForwardStatsByForwards 返回多条转发在 [start, end] 内的采样，按转发 id、时间升序。
+func (r *networkRepo) ListPortForwardStatsByForwards(ctx context.Context, ids []string, start, end time.Time) ([]*gen.PortForwardStat, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	return r.data.db.PortForwardStat.Query().
+		Where(
+			portforwardstat.PortForwardIDIn(ids...),
+			portforwardstat.SampleTimeGTE(start),
+			portforwardstat.SampleTimeLTE(end),
+		).
+		Order(gen.Asc(portforwardstat.FieldPortForwardID), gen.Asc(portforwardstat.FieldSampleTime)).
+		All(ctx)
+}
+
+// AddPortForwardTraffic 在转发的累计流量上加上增量。
+func (r *networkRepo) AddPortForwardTraffic(ctx context.Context, id string, bytesIn, bytesOut int64) error {
+	return r.data.db.PortForward.UpdateOneID(id).
+		AddTotalBytesIn(bytesIn).
+		AddTotalBytesOut(bytesOut).
+		Exec(ctx)
+}
+
+// ResetPortForwardTraffic 将转发的累计流量清零。
+func (r *networkRepo) ResetPortForwardTraffic(ctx context.Context, userID *string, id string) (*gen.PortForward, error) {
+	builder := r.data.db.PortForward.UpdateOneID(id).
+		SetTotalBytesIn(0).
+		SetTotalBytesOut(0)
+	if userID != nil {
+		builder = builder.Where(portforward.UserIDEQ(*userID))
+	}
+	return builder.Save(ctx)
 }
 
 func toEntProtocol(a v1.PortForwardType) portforward.Protocol {

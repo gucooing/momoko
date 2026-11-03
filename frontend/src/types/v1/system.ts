@@ -36,12 +36,34 @@ export enum RoleStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 更新通道 */
+export enum UpdateChannel {
+  /** UpdateChannel_Stable - 稳定版：只看正式发行版 */
+  UpdateChannel_Stable = "UpdateChannel_Stable",
+  /** UpdateChannel_Beta - 测试版：包含预发布版本 */
+  UpdateChannel_Beta = "UpdateChannel_Beta",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
+/** SMTP 加密方式 */
+export enum EmailEncryption {
+  /** EmailEncryption_SSL - 隐式 TLS（SSL，一般 465 端口） */
+  EmailEncryption_SSL = "EmailEncryption_SSL",
+  /** EmailEncryption_STARTTLS - 明文连接后升级（STARTTLS，一般 587 端口） */
+  EmailEncryption_STARTTLS = "EmailEncryption_STARTTLS",
+  /** EmailEncryption_NONE - 不加密（一般 25 端口） */
+  EmailEncryption_NONE = "EmailEncryption_NONE",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 邮件模板类型 */
 export enum EmailTemplateType {
   /** EmailTemplateType_Register - 注册 */
   EmailTemplateType_Register = "EmailTemplateType_Register",
   /** EmailTemplateType_Login - 登录 */
   EmailTemplateType_Login = "EmailTemplateType_Login",
+  /** EmailTemplateType_ResetPassword - 重置密码 */
+  EmailTemplateType_ResetPassword = "EmailTemplateType_ResetPassword",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -251,6 +273,20 @@ export enum OperationType {
   OperationTypeNodeDelete = "OperationTypeNodeDelete",
   /** OperationTypeNodeTest - 节点连接测试 */
   OperationTypeNodeTest = "OperationTypeNodeTest",
+  /** OperationTypeOIDCSigningKeyRotate - OIDC 签名密钥轮换 */
+  OperationTypeOIDCSigningKeyRotate = "OperationTypeOIDCSigningKeyRotate",
+  /** OperationTypeTaskCancel - 任务取消 */
+  OperationTypeTaskCancel = "OperationTypeTaskCancel",
+  /** OperationTypeTaskRetry - 任务重试 */
+  OperationTypeTaskRetry = "OperationTypeTaskRetry",
+  /** OperationTypeTaskDelete - 任务删除 */
+  OperationTypeTaskDelete = "OperationTypeTaskDelete",
+  /** OperationTypeTaskClear - 任务批量清理 */
+  OperationTypeTaskClear = "OperationTypeTaskClear",
+  /** OperationTypeSystemSiteConfigUpdate - 系统常规设置更新（站点名称 / 对外地址 / 默认语言 / 版本更新偏好） */
+  OperationTypeSystemSiteConfigUpdate = "OperationTypeSystemSiteConfigUpdate",
+  /** OperationTypeDockerRegistryAuthTest - Docker 仓库凭据验证 */
+  OperationTypeDockerRegistryAuthTest = "OperationTypeDockerRegistryAuthTest",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -290,6 +326,12 @@ export interface CheckUpdateResponse {
     | undefined;
   /** 最新发行版 Markdown 更新内容 */
   releaseBody: string;
+  /** 本次检查时间 */
+  checkedAt:
+    | Date
+    | undefined;
+  /** 检查所用的更新通道 */
+  channel: UpdateChannel;
 }
 
 /** 权限菜单信息 */
@@ -450,6 +492,8 @@ export interface RoleInfo {
     | undefined;
   /** 角色菜单id */
   menuIds: string[];
+  /** 分配了该角色的用户数 */
+  userCount: number;
 }
 
 /** 获取角色详情请求 */
@@ -522,16 +566,30 @@ export interface LoginConfig {
   emailLoginEnabled: boolean;
   /** 注册时是否强制验证邮箱 */
   registerEmailVerificationRequired: boolean;
+  /** 访问令牌有效期（分钟） */
+  accessTokenTtlMinutes: number;
+  /** 刷新令牌有效期（天）：超过该时长未使用需重新登录 */
+  refreshTokenTtlDays: number;
+  /** 登录失败锁定：按账号 + IP 连续失败次数达到该值后锁定；0 表示不锁定 */
+  lockoutThreshold: number;
+  /** 登录失败锁定时长（分钟） */
+  lockoutMinutes: number;
 }
 
 /** 获取登录配置请求 */
 export interface LoginConfigRequest {
 }
 
-/** 获取登录配置响应 */
+/** 获取登录配置响应（公开接口，登录页使用） */
 export interface LoginConfigResponse {
   /** 登录配置 */
-  config: LoginConfig | undefined;
+  config:
+    | LoginConfig
+    | undefined;
+  /** 站点名称 */
+  siteName: string;
+  /** 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器） */
+  defaultLanguage: string;
 }
 
 /** 更新登录配置请求 */
@@ -544,12 +602,96 @@ export interface UpdateLoginConfigRequest {
   emailLoginEnabled: boolean;
   /** 注册时是否强制验证邮箱 */
   registerEmailVerificationRequired: boolean;
+  /** 访问令牌有效期（分钟） */
+  accessTokenTtlMinutes: number;
+  /** 刷新令牌有效期（天） */
+  refreshTokenTtlDays: number;
+  /** 登录失败锁定次数；0 表示不锁定 */
+  lockoutThreshold: number;
+  /** 登录失败锁定时长（分钟） */
+  lockoutMinutes: number;
 }
 
 /** 更新登录配置响应 */
 export interface UpdateLoginConfigResponse {
   /** 登录配置 */
   config: LoginConfig | undefined;
+}
+
+/** 最近一次检查更新结果 */
+export interface UpdateCheckResult {
+  /** 检查时间 */
+  time:
+    | Date
+    | undefined;
+  /** 远程最新版本号 */
+  latestVersion: string;
+  /** 是否有可用更新 */
+  hasUpdate: boolean;
+  /** 失败原因（成功时为空） */
+  error: string;
+  /** 发行版页面地址 */
+  releaseUrl: string;
+  /** 是否由每日自动检查触发 */
+  auto: boolean;
+}
+
+/** 设置的最近修改记录 */
+export interface SettingsAudit {
+  /** 修改时间 */
+  time:
+    | Date
+    | undefined;
+  /** 修改人 */
+  userName: string;
+}
+
+/** 站点常规配置 */
+export interface SiteConfig {
+  /** 站点名称：显示在浏览器标签、登录页和邮件里（邮件模板变量 {{.site}}） */
+  siteName: string;
+  /** 对外访问地址（如 https://panel.example.com），邮件模板变量 {{.url}} */
+  externalUrl: string;
+  /** 默认语言：zh-CN / zh-HK / en-US / auto（跟随浏览器） */
+  defaultLanguage: string;
+  /** 每天自动检查一次更新 */
+  autoCheckUpdate: boolean;
+  /** 更新通道 */
+  updateChannel: UpdateChannel;
+  /** 最近一次检查更新结果（只读） */
+  lastUpdateCheck:
+    | UpdateCheckResult
+    | undefined;
+  /** 系统设置最近一次修改（只读，登录/邮件/模板/常规任一保存都会刷新） */
+  lastModified: SettingsAudit | undefined;
+}
+
+/** 获取站点常规配置请求 */
+export interface SiteConfigRequest {
+}
+
+/** 获取站点常规配置响应 */
+export interface SiteConfigResponse {
+  config: SiteConfig | undefined;
+}
+
+/** 更新站点常规配置请求 */
+export interface UpdateSiteConfigRequest {
+  /** 站点名称 */
+  siteName: string;
+  /** 对外访问地址 */
+  externalUrl: string;
+  /** 默认语言 */
+  defaultLanguage: string;
+  /** 每天自动检查一次更新 */
+  autoCheckUpdate: boolean;
+  /** 更新通道 */
+  updateChannel: UpdateChannel;
+}
+
+/** 更新站点常规配置响应 */
+export interface UpdateSiteConfigResponse {
+  config: SiteConfig | undefined;
 }
 
 /** 邮件配置 */
@@ -568,12 +710,30 @@ export interface EmailConfig {
   from: string;
   /** 发件人名称 */
   fromName: string;
-  /** 是否使用 TLS */
-  useTls: boolean;
+  /** 加密方式 */
+  encryption: EmailEncryption;
   /** 超时时间，单位秒 */
   timeoutSeconds: number;
   /** 并发发送协程数 */
   ccsN: number;
+  /** 最近一次测试发送结果（只读） */
+  lastTest: EmailTestResult | undefined;
+}
+
+/** 邮件测试发送结果 */
+export interface EmailTestResult {
+  /** 测试时间 */
+  time:
+    | Date
+    | undefined;
+  /** 收件邮箱 */
+  recipient: string;
+  /** 是否成功 */
+  success: boolean;
+  /** 失败原因 */
+  error: string;
+  /** 耗时毫秒 */
+  durationMs: number;
 }
 
 /** 模板配置 */
@@ -584,6 +744,19 @@ export interface EmailTemplate {
   template: string;
   /** 模板类型 */
   type: EmailTemplateType;
+  /** 是否已自定义（false 表示仍是内置默认模板） */
+  customized: boolean;
+  /** 最后修改时间（未自定义时为空） */
+  updateTime: Date | undefined;
+}
+
+/** 列出全部邮件模板请求 */
+export interface ListEmailTemplatesRequest {
+}
+
+/** 列出全部邮件模板响应 */
+export interface ListEmailTemplatesResponse {
+  templates: EmailTemplate[];
 }
 
 /** 获取邮件配置请求 */
@@ -612,8 +785,8 @@ export interface UpdateEmailConfigRequest {
   from: string;
   /** 发件人名称 */
   fromName: string;
-  /** 是否使用 TLS */
-  useTls: boolean;
+  /** 加密方式 */
+  encryption: EmailEncryption;
   /** 超时时间，单位秒 */
   timeoutSeconds: number;
   /** 并发发送协程数 */
@@ -1092,7 +1265,15 @@ export interface ListOperationLogsRequest {
     | Date
     | undefined;
   /** 结束时间 */
-  endTime: Date | undefined;
+  endTime:
+    | Date
+    | undefined;
+  /** 关键字：匹配请求路径、IP、详情 */
+  keywords?:
+    | string
+    | undefined;
+  /** 模块：操作类型前缀（Auth/User/System/File/Instance/SSHHost/Node/Docker/OIDC/Task） */
+  module?: string | undefined;
 }
 
 /** 查询操作日志响应 */
@@ -1105,9 +1286,32 @@ export interface ListOperationLogsResponse {
   pageSize: number;
   /** 总数 */
   total: number;
+  /** 同一组条件（忽略「是否成功」）下的成功数 */
+  successCount: number;
+  /** 同一组条件（忽略「是否成功」）下的失败数 */
+  failedCount: number;
 }
 
-/** 操作日志信息 */
+/** 操作日志统计请求 */
+export interface OperationLogStatsRequest {
+}
+
+/** 操作日志统计响应（统计范围：服务器本地时间今天 0 点起） */
+export interface OperationLogStatsResponse {
+  /** 今日操作数 */
+  todayTotal: number;
+  /** 今日失败数 */
+  todayFailed: number;
+  /** 今日活跃用户数（去重） */
+  todayActiveUsers: number;
+  /** 今日经主控转发到远程节点（或来自远程主控）的操作数 */
+  todayForwarded: number;
+  /** 全部记录数 */
+  total: number;
+  /** 最早一条记录的时间 */
+  earliestTime: Date | undefined;
+}
+
 export interface OperationLogInfo {
   /** 操作用户id */
   userId?:

@@ -34,7 +34,11 @@ type OIDCClient struct {
 	// 授权范围
 	Scopes []string `json:"scopes,omitempty"`
 	// 是否启用
-	Active       bool `json:"active,omitempty"`
+	Active bool `json:"active,omitempty"`
+	// 描述
+	Description string `json:"description,omitempty"`
+	// 最近一次成功换取令牌的时间
+	LastUsedTime *time.Time `json:"last_used_time,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -47,9 +51,9 @@ func (*OIDCClient) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case oidcclient.FieldActive:
 			values[i] = new(sql.NullBool)
-		case oidcclient.FieldID, oidcclient.FieldName, oidcclient.FieldClientID, oidcclient.FieldClientSecret:
+		case oidcclient.FieldID, oidcclient.FieldName, oidcclient.FieldClientID, oidcclient.FieldClientSecret, oidcclient.FieldDescription:
 			values[i] = new(sql.NullString)
-		case oidcclient.FieldCreateTime, oidcclient.FieldUpdateTime:
+		case oidcclient.FieldCreateTime, oidcclient.FieldUpdateTime, oidcclient.FieldLastUsedTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -124,6 +128,19 @@ func (_m *OIDCClient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Active = value.Bool
 			}
+		case oidcclient.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
+		case oidcclient.FieldLastUsedTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_used_time", values[i])
+			} else if value.Valid {
+				_m.LastUsedTime = new(time.Time)
+				*_m.LastUsedTime = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -182,6 +199,14 @@ func (_m *OIDCClient) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Active))
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	if v := _m.LastUsedTime; v != nil {
+		builder.WriteString("last_used_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

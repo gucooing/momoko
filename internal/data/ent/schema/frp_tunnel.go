@@ -32,6 +32,7 @@ func (FrpTunnel) Fields() []ent.Field {
 		field.Bool("is_enable").Default(false).Comment("是否启用"),
 		field.String("max_bandwidth").Default("").Comment("带宽上限/限速(如 1MB)；客户端声明带宽不得超过；空=不限"),
 		field.Int("max_active_conns").Default(0).Comment("活跃连接数上限，0=不限；momoko 在每条用户连接时校验"),
+		field.String("remark").Default("").Comment("备注"),
 	}
 }
 

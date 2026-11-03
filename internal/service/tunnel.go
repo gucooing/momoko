@@ -89,7 +89,37 @@ func (t *TunnelService) GetFrpsConfig(ctx context.Context, _ *v1.GetFrpsConfigRe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetFrpsConfigResponse{Config: cfg}, nil
+	return &v1.GetFrpsConfigResponse{Config: cfg, Status: t.uc.FrpsStatus()}, nil
+}
+
+func (t *TunnelService) RestartFrps(ctx context.Context, _ *v1.RestartFrpsRequest) (*v1.RestartFrpsResponse, error) {
+	if _, ok := auth.FromContext(ctx); !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	status, err := t.uc.RestartFrps(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RestartFrpsResponse{Status: status}, nil
+}
+
+func (t *TunnelService) GetFrpsLogs(ctx context.Context, req *v1.GetFrpsLogsRequest) (*v1.GetFrpsLogsResponse, error) {
+	if _, ok := auth.FromContext(ctx); !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return &v1.GetFrpsLogsResponse{Entries: t.uc.FrpsLogs(int(req.Limit))}, nil
+}
+
+func (t *TunnelService) ResetTunnelCredential(ctx context.Context, req *v1.ResetTunnelCredentialRequest) (*v1.ResetTunnelCredentialResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := t.uc.ResetTunnelCredential(ctx, authCtx.UserID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ResetTunnelCredentialResponse{Info: info}, nil
 }
 
 func (t *TunnelService) UpdateFrpsConfig(ctx context.Context, req *v1.UpdateFrpsConfigRequest) (*v1.UpdateFrpsConfigResponse, error) {

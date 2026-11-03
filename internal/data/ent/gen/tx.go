@@ -66,6 +66,8 @@ type Tx struct {
 	User *UserClient
 	// UserAPIKey is the client for interacting with the UserAPIKey builders.
 	UserAPIKey *UserAPIKeyClient
+	// UserMessage is the client for interacting with the UserMessage builders.
+	UserMessage *UserMessageClient
 
 	// lazily loaded.
 	client     *Client
@@ -223,6 +225,7 @@ func (tx *Tx) init() {
 	tx.Task = NewTaskClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAPIKey = NewUserAPIKeyClient(tx.config)
+	tx.UserMessage = NewUserMessageClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

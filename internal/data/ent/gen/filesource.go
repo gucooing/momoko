@@ -35,6 +35,14 @@ type FileSource struct {
 	Config string `json:"config,omitempty"`
 	// 创建者用户id
 	UserID string `json:"user_id,omitempty"`
+	// 最近一次测试是否连通
+	LastTestOk bool `json:"last_test_ok,omitempty"`
+	// 最近一次测试耗时(毫秒)
+	LastTestLatencyMs int64 `json:"last_test_latency_ms,omitempty"`
+	// 最近一次测试结果消息
+	LastTestMessage string `json:"last_test_message,omitempty"`
+	// 最近一次测试时间
+	LastTestTime *time.Time `json:"last_test_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileSourceQuery when eager-loading is set.
 	Edges        FileSourceEdges `json:"edges"`
@@ -66,11 +74,13 @@ func (*FileSource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case filesource.FieldEnabled, filesource.FieldRedirect302:
+		case filesource.FieldEnabled, filesource.FieldRedirect302, filesource.FieldLastTestOk:
 			values[i] = new(sql.NullBool)
-		case filesource.FieldID, filesource.FieldName, filesource.FieldType, filesource.FieldConfig, filesource.FieldUserID:
+		case filesource.FieldLastTestLatencyMs:
+			values[i] = new(sql.NullInt64)
+		case filesource.FieldID, filesource.FieldName, filesource.FieldType, filesource.FieldConfig, filesource.FieldUserID, filesource.FieldLastTestMessage:
 			values[i] = new(sql.NullString)
-		case filesource.FieldCreateTime, filesource.FieldUpdateTime:
+		case filesource.FieldCreateTime, filesource.FieldUpdateTime, filesource.FieldLastTestTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -141,6 +151,31 @@ func (_m *FileSource) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UserID = value.String
 			}
+		case filesource.FieldLastTestOk:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_ok", values[i])
+			} else if value.Valid {
+				_m.LastTestOk = value.Bool
+			}
+		case filesource.FieldLastTestLatencyMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_latency_ms", values[i])
+			} else if value.Valid {
+				_m.LastTestLatencyMs = value.Int64
+			}
+		case filesource.FieldLastTestMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_message", values[i])
+			} else if value.Valid {
+				_m.LastTestMessage = value.String
+			}
+		case filesource.FieldLastTestTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_time", values[i])
+			} else if value.Valid {
+				_m.LastTestTime = new(time.Time)
+				*_m.LastTestTime = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -205,6 +240,20 @@ func (_m *FileSource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("last_test_ok=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestOk))
+	builder.WriteString(", ")
+	builder.WriteString("last_test_latency_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestLatencyMs))
+	builder.WriteString(", ")
+	builder.WriteString("last_test_message=")
+	builder.WriteString(_m.LastTestMessage)
+	builder.WriteString(", ")
+	if v := _m.LastTestTime; v != nil {
+		builder.WriteString("last_test_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

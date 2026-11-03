@@ -43,6 +43,16 @@ type SSHHost struct {
 	Remark string `json:"remark,omitempty"`
 	// 标签
 	Tags string `json:"tags,omitempty"`
+	// 上次连通性测试时间
+	LastTestAt *time.Time `json:"last_test_at,omitempty"`
+	// 上次测试是否连通
+	LastTestOk bool `json:"last_test_ok,omitempty"`
+	// 上次测试延迟（毫秒）
+	LastTestLatencyMs int `json:"last_test_latency_ms,omitempty"`
+	// 上次测试失败原因
+	LastTestMessage string `json:"last_test_message,omitempty"`
+	// 上次打开终端连接的时间
+	LastConnectAt *time.Time `json:"last_connect_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SSHHostQuery when eager-loading is set.
 	Edges          SSHHostEdges `json:"edges"`
@@ -86,11 +96,13 @@ func (*SSHHost) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case sshhost.FieldPort:
+		case sshhost.FieldLastTestOk:
+			values[i] = new(sql.NullBool)
+		case sshhost.FieldPort, sshhost.FieldLastTestLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags:
+		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags, sshhost.FieldLastTestMessage:
 			values[i] = new(sql.NullString)
-		case sshhost.FieldCreateTime, sshhost.FieldUpdateTime:
+		case sshhost.FieldCreateTime, sshhost.FieldUpdateTime, sshhost.FieldLastTestAt, sshhost.FieldLastConnectAt:
 			values[i] = new(sql.NullTime)
 		case sshhost.ForeignKeys[0]: // ssh_host_owner
 			values[i] = new(sql.NullString)
@@ -187,6 +199,38 @@ func (_m *SSHHost) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Tags = value.String
 			}
+		case sshhost.FieldLastTestAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_at", values[i])
+			} else if value.Valid {
+				_m.LastTestAt = new(time.Time)
+				*_m.LastTestAt = value.Time
+			}
+		case sshhost.FieldLastTestOk:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_ok", values[i])
+			} else if value.Valid {
+				_m.LastTestOk = value.Bool
+			}
+		case sshhost.FieldLastTestLatencyMs:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_latency_ms", values[i])
+			} else if value.Valid {
+				_m.LastTestLatencyMs = int(value.Int64)
+			}
+		case sshhost.FieldLastTestMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_message", values[i])
+			} else if value.Valid {
+				_m.LastTestMessage = value.String
+			}
+		case sshhost.FieldLastConnectAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_connect_at", values[i])
+			} else if value.Valid {
+				_m.LastConnectAt = new(time.Time)
+				*_m.LastConnectAt = value.Time
+			}
 		case sshhost.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ssh_host_owner", values[i])
@@ -273,6 +317,25 @@ func (_m *SSHHost) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
 	builder.WriteString(_m.Tags)
+	builder.WriteString(", ")
+	if v := _m.LastTestAt; v != nil {
+		builder.WriteString("last_test_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("last_test_ok=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestOk))
+	builder.WriteString(", ")
+	builder.WriteString("last_test_latency_ms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestLatencyMs))
+	builder.WriteString(", ")
+	builder.WriteString("last_test_message=")
+	builder.WriteString(_m.LastTestMessage)
+	builder.WriteString(", ")
+	if v := _m.LastConnectAt; v != nil {
+		builder.WriteString("last_connect_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

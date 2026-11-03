@@ -98,6 +98,8 @@ message CreateAPIKeyRequest {
   optional google.protobuf.Timestamp expires_at = 2;
   // 授予的节点权限（权限标识），远程主控调用本节点时以此为上限
   repeated string permissions = 3;
+  // 用途备注
+  string remark = 4;
 }
 
 message CreateAPIKeyResponse {
@@ -112,6 +114,18 @@ message ListAPIKeysRequest {
   int64 page_size = 2;
   // 名称关键字
   optional string keywords = 3;
+  // 按有效状态筛选；不传表示全部
+  optional APIKeyStatus status = 4;
+}
+
+// API Key 有效状态
+enum APIKeyStatus {
+  // 有效（永久有效或距过期超过 30 天）
+  APIKeyStatus_Valid = 0;
+  // 即将过期（30 天内过期）
+  APIKeyStatus_Expiring = 1;
+  // 已过期
+  APIKeyStatus_Expired = 2;
 }
 
 message ListAPIKeysResponse {
@@ -123,6 +137,12 @@ message ListAPIKeysResponse {
   int64 total = 3;
   // 列表
   repeated APIKeyInfo infos = 4;
+  // 有效数量（按关键字筛选，不受状态筛选影响）
+  int64 valid_count = 5;
+  // 即将过期数量
+  int64 expiring_count = 6;
+  // 已过期数量
+  int64 expired_count = 7;
 }
 
 message CopyAPIKeyRequest {
@@ -152,6 +172,8 @@ message UpdateAPIKeyRequest {
   optional bool never_expires = 4;
   // 授予的节点权限；不传表示不修改
   APIKeyPermissionSet permissions = 5;
+  // 用途备注；不传表示不修改
+  optional string remark = 6;
 }
 
 message UpdateAPIKeyResponse {
@@ -193,6 +215,14 @@ message APIKeyInfo {
   repeated string permissions = 7;
   // 公开密钥标识（由种子派生），主控请求时携带用于定位密钥
   string key_id = 8;
+  // 用途备注
+  string remark = 9;
+  // 最近一次被远程主控调用的时间；空表示从未使用
+  optional google.protobuf.Timestamp last_used_time = 10;
+  // 最近一次调用来源 IP
+  string last_used_ip = 11;
+  // 有效状态
+  APIKeyStatus status = 12;
 }
 
 // 节点连接状态
@@ -244,6 +274,10 @@ message NodeStatus {
   int64 latency_ms = 4;
   // 节点自报信息（在线时有效）
   NodeRemoteInfo remote = 5;
+  // 最近一次探测在线的时间（持久化，离线时用于显示“最后在线”）
+  optional google.protobuf.Timestamp last_online_time = 6;
+  // 最近一次在线时的节点自报信息（仅当前不在线时返回，用于离线后仍显示版本 / 系统）
+  NodeRemoteInfo last_remote = 7;
 }
 
 message NodeInfo {
@@ -279,6 +313,8 @@ message ListNodesRequest {
 message ListNodesResponse {
   // 节点列表
   repeated NodeInfo infos = 1;
+  // 本机（主控）信息：主机名 / 系统 / 架构 / 版本，用于在节点列表中展示本机卡片
+  NodeRemoteInfo local = 2;
 }
 
 message CreateNodeRequest {

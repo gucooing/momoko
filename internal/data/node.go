@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -42,6 +43,7 @@ func (r *nodeRepo) toNodeConfig(item *gen.Node) *biz.NodeConfig {
 		Remark:        item.Remark,
 		CreateTime:    item.CreateTime,
 		UpdateTime:    item.UpdateTime,
+		LastOnlineAt:  item.LastOnlineAt,
 	}
 }
 
@@ -109,6 +111,18 @@ func (r *nodeRepo) UpdateNode(ctx context.Context, node *biz.NodeConfig) (*biz.N
 		return nil, err
 	}
 	return r.toNodeConfig(item), nil
+}
+
+// TouchNodeOnline 只写在线时间，保持 update_time 不变（它表示配置修改时间）。
+func (r *nodeRepo) TouchNodeOnline(ctx context.Context, id string, at time.Time) error {
+	item, err := r.data.db.Node.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	return r.data.db.Node.UpdateOne(item).
+		SetLastOnlineAt(at).
+		SetUpdateTime(item.UpdateTime).
+		Exec(ctx)
 }
 
 func (r *nodeRepo) DeleteNode(ctx context.Context, id string) error {

@@ -24,6 +24,7 @@ const (
 	TaskManager_CancelTask_FullMethodName = "/v1.TaskManager/CancelTask"
 	TaskManager_RetryTask_FullMethodName  = "/v1.TaskManager/RetryTask"
 	TaskManager_DeleteTask_FullMethodName = "/v1.TaskManager/DeleteTask"
+	TaskManager_ClearTasks_FullMethodName = "/v1.TaskManager/ClearTasks"
 )
 
 // TaskManagerClient is the client API for TaskManager service.
@@ -43,6 +44,8 @@ type TaskManagerClient interface {
 	RetryTask(ctx context.Context, in *RetryTaskRequest, opts ...grpc.CallOption) (*RetryTaskResponse, error)
 	// 删除终态任务行（清理列表）
 	DeleteTask(ctx context.Context, in *DeleteTaskRequest, opts ...grpc.CallOption) (*DeleteTaskResponse, error)
+	// 批量清理终态任务行（成功/失败/已取消）
+	ClearTasks(ctx context.Context, in *ClearTasksRequest, opts ...grpc.CallOption) (*ClearTasksResponse, error)
 }
 
 type taskManagerClient struct {
@@ -103,6 +106,16 @@ func (c *taskManagerClient) DeleteTask(ctx context.Context, in *DeleteTaskReques
 	return out, nil
 }
 
+func (c *taskManagerClient) ClearTasks(ctx context.Context, in *ClearTasksRequest, opts ...grpc.CallOption) (*ClearTasksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearTasksResponse)
+	err := c.cc.Invoke(ctx, TaskManager_ClearTasks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TaskManagerServer is the server API for TaskManager service.
 // All implementations must embed UnimplementedTaskManagerServer
 // for forward compatibility.
@@ -120,6 +133,8 @@ type TaskManagerServer interface {
 	RetryTask(context.Context, *RetryTaskRequest) (*RetryTaskResponse, error)
 	// 删除终态任务行（清理列表）
 	DeleteTask(context.Context, *DeleteTaskRequest) (*DeleteTaskResponse, error)
+	// 批量清理终态任务行（成功/失败/已取消）
+	ClearTasks(context.Context, *ClearTasksRequest) (*ClearTasksResponse, error)
 	mustEmbedUnimplementedTaskManagerServer()
 }
 
@@ -144,6 +159,9 @@ func (UnimplementedTaskManagerServer) RetryTask(context.Context, *RetryTaskReque
 }
 func (UnimplementedTaskManagerServer) DeleteTask(context.Context, *DeleteTaskRequest) (*DeleteTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteTask not implemented")
+}
+func (UnimplementedTaskManagerServer) ClearTasks(context.Context, *ClearTasksRequest) (*ClearTasksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClearTasks not implemented")
 }
 func (UnimplementedTaskManagerServer) mustEmbedUnimplementedTaskManagerServer() {}
 func (UnimplementedTaskManagerServer) testEmbeddedByValue()                     {}
@@ -256,6 +274,24 @@ func _TaskManager_DeleteTask_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaskManager_ClearTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearTasksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskManagerServer).ClearTasks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskManager_ClearTasks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskManagerServer).ClearTasks(ctx, req.(*ClearTasksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TaskManager_ServiceDesc is the grpc.ServiceDesc for TaskManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -282,6 +318,10 @@ var TaskManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteTask",
 			Handler:    _TaskManager_DeleteTask_Handler,
+		},
+		{
+			MethodName: "ClearTasks",
+			Handler:    _TaskManager_ClearTasks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

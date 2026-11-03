@@ -51,3 +51,11 @@ func (s *TaskService) DeleteTask(ctx context.Context, req *v1.DeleteTaskRequest)
 	}
 	return &v1.DeleteTaskResponse{}, nil
 }
+
+func (s *TaskService) ClearTasks(ctx context.Context, req *v1.ClearTasksRequest) (*v1.ClearTasksResponse, error) {
+	n, err := s.uc.ClearTasks(ctx, req.GetStatus())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ClearTasksResponse{Deleted: n}, nil
+}

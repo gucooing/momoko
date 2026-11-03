@@ -80,3 +80,27 @@ func (n *NetworkService) GetPortForwardStats(ctx context.Context, req *v1.GetPor
 	}
 	return n.uc.GetPortForwardStats(ctx, authCtx.UserID, req.Id, req.StartTimeMs, req.EndTimeMs)
 }
+
+func (n *NetworkService) ClosePortForwardConnections(ctx context.Context, req *v1.ClosePortForwardConnectionsRequest) (*v1.ClosePortForwardConnectionsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	closed, err := n.uc.ClosePortForwardConnections(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ClosePortForwardConnectionsResponse{Closed: closed}, nil
+}
+
+func (n *NetworkService) ResetPortForwardTraffic(ctx context.Context, req *v1.ResetPortForwardTrafficRequest) (*v1.ResetPortForwardTrafficResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := n.uc.ResetPortForwardTraffic(ctx, authCtx.UserID, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ResetPortForwardTrafficResponse{Info: info}, nil
+}

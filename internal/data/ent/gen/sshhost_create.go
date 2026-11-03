@@ -152,6 +152,76 @@ func (_c *SSHHostCreate) SetNillableTags(v *string) *SSHHostCreate {
 	return _c
 }
 
+// SetLastTestAt sets the "last_test_at" field.
+func (_c *SSHHostCreate) SetLastTestAt(v time.Time) *SSHHostCreate {
+	_c.mutation.SetLastTestAt(v)
+	return _c
+}
+
+// SetNillableLastTestAt sets the "last_test_at" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableLastTestAt(v *time.Time) *SSHHostCreate {
+	if v != nil {
+		_c.SetLastTestAt(*v)
+	}
+	return _c
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (_c *SSHHostCreate) SetLastTestOk(v bool) *SSHHostCreate {
+	_c.mutation.SetLastTestOk(v)
+	return _c
+}
+
+// SetNillableLastTestOk sets the "last_test_ok" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableLastTestOk(v *bool) *SSHHostCreate {
+	if v != nil {
+		_c.SetLastTestOk(*v)
+	}
+	return _c
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (_c *SSHHostCreate) SetLastTestLatencyMs(v int) *SSHHostCreate {
+	_c.mutation.SetLastTestLatencyMs(v)
+	return _c
+}
+
+// SetNillableLastTestLatencyMs sets the "last_test_latency_ms" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableLastTestLatencyMs(v *int) *SSHHostCreate {
+	if v != nil {
+		_c.SetLastTestLatencyMs(*v)
+	}
+	return _c
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (_c *SSHHostCreate) SetLastTestMessage(v string) *SSHHostCreate {
+	_c.mutation.SetLastTestMessage(v)
+	return _c
+}
+
+// SetNillableLastTestMessage sets the "last_test_message" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableLastTestMessage(v *string) *SSHHostCreate {
+	if v != nil {
+		_c.SetLastTestMessage(*v)
+	}
+	return _c
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (_c *SSHHostCreate) SetLastConnectAt(v time.Time) *SSHHostCreate {
+	_c.mutation.SetLastConnectAt(v)
+	return _c
+}
+
+// SetNillableLastConnectAt sets the "last_connect_at" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableLastConnectAt(v *time.Time) *SSHHostCreate {
+	if v != nil {
+		_c.SetLastConnectAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SSHHostCreate) SetID(v string) *SSHHostCreate {
 	_c.mutation.SetID(v)
@@ -231,6 +301,14 @@ func (_c *SSHHostCreate) defaults() {
 		v := sshhost.DefaultPort
 		_c.mutation.SetPort(v)
 	}
+	if _, ok := _c.mutation.LastTestOk(); !ok {
+		v := sshhost.DefaultLastTestOk
+		_c.mutation.SetLastTestOk(v)
+	}
+	if _, ok := _c.mutation.LastTestLatencyMs(); !ok {
+		v := sshhost.DefaultLastTestLatencyMs
+		_c.mutation.SetLastTestLatencyMs(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -283,6 +361,12 @@ func (_c *SSHHostCreate) check() error {
 	}
 	if _, ok := _c.mutation.Credential(); !ok {
 		return &ValidationError{Name: "credential", err: errors.New(`gen: missing required field "SSHHost.credential"`)}
+	}
+	if _, ok := _c.mutation.LastTestOk(); !ok {
+		return &ValidationError{Name: "last_test_ok", err: errors.New(`gen: missing required field "SSHHost.last_test_ok"`)}
+	}
+	if _, ok := _c.mutation.LastTestLatencyMs(); !ok {
+		return &ValidationError{Name: "last_test_latency_ms", err: errors.New(`gen: missing required field "SSHHost.last_test_latency_ms"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := sshhost.IDValidator(v); err != nil {
@@ -375,6 +459,26 @@ func (_c *SSHHostCreate) createSpec() (*SSHHost, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Tags(); ok {
 		_spec.SetField(sshhost.FieldTags, field.TypeString, value)
 		_node.Tags = value
+	}
+	if value, ok := _c.mutation.LastTestAt(); ok {
+		_spec.SetField(sshhost.FieldLastTestAt, field.TypeTime, value)
+		_node.LastTestAt = &value
+	}
+	if value, ok := _c.mutation.LastTestOk(); ok {
+		_spec.SetField(sshhost.FieldLastTestOk, field.TypeBool, value)
+		_node.LastTestOk = value
+	}
+	if value, ok := _c.mutation.LastTestLatencyMs(); ok {
+		_spec.SetField(sshhost.FieldLastTestLatencyMs, field.TypeInt, value)
+		_node.LastTestLatencyMs = value
+	}
+	if value, ok := _c.mutation.LastTestMessage(); ok {
+		_spec.SetField(sshhost.FieldLastTestMessage, field.TypeString, value)
+		_node.LastTestMessage = value
+	}
+	if value, ok := _c.mutation.LastConnectAt(); ok {
+		_spec.SetField(sshhost.FieldLastConnectAt, field.TypeTime, value)
+		_node.LastConnectAt = &value
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -623,6 +727,90 @@ func (u *SSHHostUpsert) ClearTags() *SSHHostUpsert {
 	return u
 }
 
+// SetLastTestAt sets the "last_test_at" field.
+func (u *SSHHostUpsert) SetLastTestAt(v time.Time) *SSHHostUpsert {
+	u.Set(sshhost.FieldLastTestAt, v)
+	return u
+}
+
+// UpdateLastTestAt sets the "last_test_at" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateLastTestAt() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldLastTestAt)
+	return u
+}
+
+// ClearLastTestAt clears the value of the "last_test_at" field.
+func (u *SSHHostUpsert) ClearLastTestAt() *SSHHostUpsert {
+	u.SetNull(sshhost.FieldLastTestAt)
+	return u
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *SSHHostUpsert) SetLastTestOk(v bool) *SSHHostUpsert {
+	u.Set(sshhost.FieldLastTestOk, v)
+	return u
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateLastTestOk() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldLastTestOk)
+	return u
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *SSHHostUpsert) SetLastTestLatencyMs(v int) *SSHHostUpsert {
+	u.Set(sshhost.FieldLastTestLatencyMs, v)
+	return u
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateLastTestLatencyMs() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldLastTestLatencyMs)
+	return u
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *SSHHostUpsert) AddLastTestLatencyMs(v int) *SSHHostUpsert {
+	u.Add(sshhost.FieldLastTestLatencyMs, v)
+	return u
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *SSHHostUpsert) SetLastTestMessage(v string) *SSHHostUpsert {
+	u.Set(sshhost.FieldLastTestMessage, v)
+	return u
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateLastTestMessage() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldLastTestMessage)
+	return u
+}
+
+// ClearLastTestMessage clears the value of the "last_test_message" field.
+func (u *SSHHostUpsert) ClearLastTestMessage() *SSHHostUpsert {
+	u.SetNull(sshhost.FieldLastTestMessage)
+	return u
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (u *SSHHostUpsert) SetLastConnectAt(v time.Time) *SSHHostUpsert {
+	u.Set(sshhost.FieldLastConnectAt, v)
+	return u
+}
+
+// UpdateLastConnectAt sets the "last_connect_at" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateLastConnectAt() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldLastConnectAt)
+	return u
+}
+
+// ClearLastConnectAt clears the value of the "last_connect_at" field.
+func (u *SSHHostUpsert) ClearLastConnectAt() *SSHHostUpsert {
+	u.SetNull(sshhost.FieldLastConnectAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -860,6 +1048,104 @@ func (u *SSHHostUpsertOne) UpdateTags() *SSHHostUpsertOne {
 func (u *SSHHostUpsertOne) ClearTags() *SSHHostUpsertOne {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearTags()
+	})
+}
+
+// SetLastTestAt sets the "last_test_at" field.
+func (u *SSHHostUpsertOne) SetLastTestAt(v time.Time) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestAt(v)
+	})
+}
+
+// UpdateLastTestAt sets the "last_test_at" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateLastTestAt() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestAt()
+	})
+}
+
+// ClearLastTestAt clears the value of the "last_test_at" field.
+func (u *SSHHostUpsertOne) ClearLastTestAt() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastTestAt()
+	})
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *SSHHostUpsertOne) SetLastTestOk(v bool) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestOk(v)
+	})
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateLastTestOk() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestOk()
+	})
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *SSHHostUpsertOne) SetLastTestLatencyMs(v int) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestLatencyMs(v)
+	})
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *SSHHostUpsertOne) AddLastTestLatencyMs(v int) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.AddLastTestLatencyMs(v)
+	})
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateLastTestLatencyMs() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestLatencyMs()
+	})
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *SSHHostUpsertOne) SetLastTestMessage(v string) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestMessage(v)
+	})
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateLastTestMessage() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestMessage()
+	})
+}
+
+// ClearLastTestMessage clears the value of the "last_test_message" field.
+func (u *SSHHostUpsertOne) ClearLastTestMessage() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastTestMessage()
+	})
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (u *SSHHostUpsertOne) SetLastConnectAt(v time.Time) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastConnectAt(v)
+	})
+}
+
+// UpdateLastConnectAt sets the "last_connect_at" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateLastConnectAt() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastConnectAt()
+	})
+}
+
+// ClearLastConnectAt clears the value of the "last_connect_at" field.
+func (u *SSHHostUpsertOne) ClearLastConnectAt() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastConnectAt()
 	})
 }
 
@@ -1267,6 +1553,104 @@ func (u *SSHHostUpsertBulk) UpdateTags() *SSHHostUpsertBulk {
 func (u *SSHHostUpsertBulk) ClearTags() *SSHHostUpsertBulk {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearTags()
+	})
+}
+
+// SetLastTestAt sets the "last_test_at" field.
+func (u *SSHHostUpsertBulk) SetLastTestAt(v time.Time) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestAt(v)
+	})
+}
+
+// UpdateLastTestAt sets the "last_test_at" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateLastTestAt() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestAt()
+	})
+}
+
+// ClearLastTestAt clears the value of the "last_test_at" field.
+func (u *SSHHostUpsertBulk) ClearLastTestAt() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastTestAt()
+	})
+}
+
+// SetLastTestOk sets the "last_test_ok" field.
+func (u *SSHHostUpsertBulk) SetLastTestOk(v bool) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestOk(v)
+	})
+}
+
+// UpdateLastTestOk sets the "last_test_ok" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateLastTestOk() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestOk()
+	})
+}
+
+// SetLastTestLatencyMs sets the "last_test_latency_ms" field.
+func (u *SSHHostUpsertBulk) SetLastTestLatencyMs(v int) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestLatencyMs(v)
+	})
+}
+
+// AddLastTestLatencyMs adds v to the "last_test_latency_ms" field.
+func (u *SSHHostUpsertBulk) AddLastTestLatencyMs(v int) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.AddLastTestLatencyMs(v)
+	})
+}
+
+// UpdateLastTestLatencyMs sets the "last_test_latency_ms" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateLastTestLatencyMs() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestLatencyMs()
+	})
+}
+
+// SetLastTestMessage sets the "last_test_message" field.
+func (u *SSHHostUpsertBulk) SetLastTestMessage(v string) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastTestMessage(v)
+	})
+}
+
+// UpdateLastTestMessage sets the "last_test_message" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateLastTestMessage() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastTestMessage()
+	})
+}
+
+// ClearLastTestMessage clears the value of the "last_test_message" field.
+func (u *SSHHostUpsertBulk) ClearLastTestMessage() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastTestMessage()
+	})
+}
+
+// SetLastConnectAt sets the "last_connect_at" field.
+func (u *SSHHostUpsertBulk) SetLastConnectAt(v time.Time) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetLastConnectAt(v)
+	})
+}
+
+// UpdateLastConnectAt sets the "last_connect_at" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateLastConnectAt() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateLastConnectAt()
+	})
+}
+
+// ClearLastConnectAt clears the value of the "last_connect_at" field.
+func (u *SSHHostUpsertBulk) ClearLastConnectAt() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearLastConnectAt()
 	})
 }
 

@@ -15,6 +15,11 @@ import type {
   GetFrpsConfigResponse,
   UpdateFrpsConfigRequest,
   UpdateFrpsConfigResponse,
+  RestartFrpsResponse,
+  ResetTunnelCredentialRequest,
+  ResetTunnelCredentialResponse,
+  GetFrpsLogsRequest,
+  GetFrpsLogsResponse,
 } from '@/types/v1/tunnel'
 
 export const listTunnels = (params: ListTunnelsRequest) => {
@@ -49,4 +54,16 @@ export const getFrpsConfig = () => {
 
 export const updateFrpsConfig = (data: UpdateFrpsConfigRequest) => {
   return request.put<UpdateFrpsConfigResponse>('/tunnel/frps-config', data)
+}
+
+export const restartFrps = () => {
+  return request.post<RestartFrpsResponse>('/tunnel/frps-restart', {})
+}
+
+export const resetTunnelCredential = (data: ResetTunnelCredentialRequest) => {
+  return request.post<ResetTunnelCredentialResponse>(`/tunnel/tunnels/${data.id}/credential/reset`, data)
+}
+
+export const getFrpsLogs = (params: GetFrpsLogsRequest) => {
+  return request.get<GetFrpsLogsResponse>('/tunnel/frps-logs', { params })
 }

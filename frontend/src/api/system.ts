@@ -6,6 +6,11 @@ import type {
   EmailTemplateResponse,
   ListOperationLogsRequest,
   ListOperationLogsResponse,
+  ListEmailTemplatesResponse,
+  SiteConfigResponse,
+  UpdateSiteConfigRequest,
+  UpdateSiteConfigResponse,
+  OperationLogStatsResponse,
   SystemOverviewResponse,
   SystemStatusRequest,
   SystemStatusResponse,
@@ -47,4 +52,21 @@ export const getEmailTemplate = (params: EmailTemplateRequest) => {
 
 export const updateEmailTemplate = (params: UpdateEmailTemplateRequest) => {
   return request.put<UpdateEmailTemplateResponse>('/system/email-template', params)
+}
+
+export const listEmailTemplates = () => {
+  return request.get<ListEmailTemplatesResponse>('/system/email-templates')
+}
+
+export const getOperationLogStats = () => {
+  return request.get<OperationLogStatsResponse>('/system/operation-logs/stats')
+}
+
+// 站点常规配置（站点名称 / 对外地址 / 默认语言 / 版本更新偏好 + 最近检查与最近修改）
+export const getSiteConfig = () => {
+  return request.get<SiteConfigResponse>('/system/site-config')
+}
+
+export const updateSiteConfig = (params: UpdateSiteConfigRequest) => {
+  return request.put<UpdateSiteConfigResponse>('/system/site-config', params)
 }

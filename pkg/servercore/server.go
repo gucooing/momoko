@@ -61,6 +61,7 @@ type ServerConfig struct {
 	AutoRestart        bool          // 子进程非主动退出后是否自动重启。
 	MaxRestartAttempts int           // 非主动退出后的单轮最大重试次数，启动成功后会清零，不包含当前这次已启动。
 	RestartInterval    time.Duration // 自动重启前的等待间隔。
+	StopTimeout        time.Duration // 优雅停止的等待时间，超时后强制结束；<=0 使用默认值。
 	LogLimit           int
 	SubscriberBuffer   int
 }
@@ -74,6 +75,7 @@ type Server struct {
 
 	mu          sync.RWMutex
 	ptmx        pty.Pty
+	pid         int
 	cols        int
 	rows        int
 	running     bool
@@ -96,6 +98,7 @@ type logSubscriber struct {
 }
 
 type startResult struct {
+	pid     int
 	ptmx    pty.Pty
 	waitFn  func() error
 	stopFn  func(force bool) error
@@ -133,6 +136,9 @@ func normalizeServerConfig(cfg ServerConfig) (ServerConfig, error) {
 	}
 	if normalized.RestartInterval <= 0 {
 		normalized.RestartInterval = defaultRestartInterval
+	}
+	if normalized.StopTimeout <= 0 {
+		normalized.StopTimeout = defaultStopTimeout
 	}
 
 	return normalized, nil
@@ -191,6 +197,16 @@ func (s *Server) Done() <-chan struct{} {
 		return closedWaitDone
 	}
 	return s.waitDone
+}
+
+// PID 返回当前运行中的主进程 PID，未运行时返回 0。
+func (s *Server) PID() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if !s.running {
+		return 0
+	}
+	return s.pid
 }
 
 // CreateTime 返回实例创建时间。
@@ -276,6 +292,7 @@ func (s *Server) stop(force bool) error {
 	stopFn := s.stopFn
 	ptmx := s.ptmx
 	stopCommand := s.cfg.StopCommand
+	stopTimeout := s.cfg.StopTimeout
 	s.manualStop = true
 	s.mu.Unlock()
 
@@ -288,7 +305,7 @@ func (s *Server) stop(force bool) error {
 			select {
 			case <-waitDone:
 				return nil
-			case <-time.After(defaultStopTimeout):
+			case <-time.After(stopTimeout):
 			}
 		}
 	}
@@ -561,6 +578,7 @@ func (s *Server) markStoppedLocked() {
 // applyStartResultLocked 写入本次启动生成的运行时句柄和输出配置。
 func (s *Server) applyStartResultLocked(result *startResult) {
 	s.ptmx = result.ptmx
+	s.pid = result.pid
 	s.waitFn = result.waitFn
 	s.stopFn = result.stopFn
 	s.closeFn = result.closeFn
@@ -569,6 +587,7 @@ func (s *Server) applyStartResultLocked(result *startResult) {
 // resetProcessStateLocked 清空当前进程相关的运行时状态。
 func (s *Server) resetProcessStateLocked() {
 	s.ptmx = nil
+	s.pid = 0
 	s.waitFn = nil
 	s.stopFn = nil
 	s.closeFn = nil
@@ -600,7 +619,12 @@ func (s *Server) startProcessLocked() (*startResult, error) {
 	}
 	_ = ptmx.Resize(s.cols, s.rows)
 
+	pid := 0
+	if cmd.Process != nil {
+		pid = cmd.Process.Pid
+	}
 	return &startResult{
+		pid:    pid,
 		ptmx:   ptmx,
 		waitFn: cmd.Wait,
 		stopFn: func(force bool) error { return stopPtyProcess(cmd.Process, force) },

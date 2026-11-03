@@ -313,6 +313,34 @@ func (m *Manager) List(ctx context.Context, f Filter, page, pageSize int64) ([]*
 	return infos, total, nil
 }
 
+// CountByStatus 按状态统计任务数（忽略 f.Status），供列表页状态 chips 使用。
+func (m *Manager) CountByStatus(ctx context.Context, f Filter) (map[Status]int64, error) {
+	f.Status = ""
+	return m.store.CountByStatus(ctx, f)
+}
+
+// CountByType 统计全部任务里每个类型的数量，供类型筛选使用。
+func (m *Manager) CountByType(ctx context.Context) (map[string]int64, error) {
+	return m.store.CountByType(ctx)
+}
+
+// Clear 批量删除终态任务行；statuses 为空时清理全部终态，非终态会被忽略（运行中的任务不能删）。
+func (m *Manager) Clear(ctx context.Context, statuses ...Status) (int64, error) {
+	if len(statuses) == 0 {
+		statuses = []Status{StatusSuccess, StatusFailed, StatusCanceled}
+	}
+	terminal := make([]Status, 0, len(statuses))
+	for _, s := range statuses {
+		if s.Terminal() {
+			terminal = append(terminal, s)
+		}
+	}
+	if len(terminal) == 0 {
+		return 0, nil
+	}
+	return m.store.DeleteByStatus(ctx, terminal)
+}
+
 // Subscribe 订阅某运行中任务的实时事件：先回放已缓冲事件，再流式推送；任务终态时关闭。
 func (m *Manager) Subscribe(id string) (<-chan Event, func(), bool) {
 	m.mu.Lock()

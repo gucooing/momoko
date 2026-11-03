@@ -1,42 +1,59 @@
-<!-- 容器终端（重写）：令牌浮层 + 复用 TerminalConsole（外壳/xterm/主题/接线全收敛）。
+<!-- 容器终端：DockerTermSheet 外壳（PC 居中大面板 / 手机底部面板）+ 复用 TerminalConsole。
      协议与原实现一致：ws 原始输入(onData→send) / 原始字节输出(ArrayBuffer→持久 TextDecoder→write)，不发 resize 帧。
-     命令栏设置要执行的 shell（连接中禁用），reconnect 用当前命令重连。保留 props/emits 契约。 -->
+     终端顶栏左侧：要执行的命令（回车或「连接」用新命令重连）+ 常用 shell 快捷切换。保留 props/emits 契约。 -->
 <template>
-  <Teleport to="body">
-    <Transition name="dk-term">
-      <div v-if="visible" class="dk-term-overlay" @mousedown.self="close">
-        <div class="dk-term-panel">
-          <div class="dk-term-bar">
-            <span class="dk-term-bar__label">{{ t('docker.common.terminal') }}</span>
+  <DockerTermSheet
+    v-model="visible"
+    :title="dialogTitle"
+    :subtitle="t('docker.terminalDialog.sub')"
+    icon="HOutline:CommandLineIcon"
+    tone="ok"
+  >
+    <TerminalConsole
+      ref="termRef"
+      :title="dialogTitle"
+      icon="HOutline:CommandLineIcon"
+      :status="socketStatus"
+      :status-label="statusLabel"
+      :actions="actions"
+      @data="onData"
+      @action="onAction"
+    >
+      <template #lead>
+        <div class="dk-execopts">
+          <label class="dk-execopts__cmd">
+            <span class="dk-execopts__prompt m-mono">$</span>
             <input
               v-model="commandText"
-              class="app-input dk-term-cmd"
-              :disabled="socketStatus === 'connecting' || socketStatus === 'connected'"
+              class="m-mono"
               placeholder="/bin/sh"
+              :aria-label="t('docker.terminalDialog.shellLabel')"
               @keyup.enter="reconnect"
             />
-          </div>
-          <div class="dk-term-body">
-            <TerminalConsole
-              ref="termRef"
-              :title="dialogTitle"
-              icon="HOutline:CommandLineIcon"
-              :status="socketStatus"
-              :status-label="statusLabel"
-              :actions="actions"
-              @data="onData"
-              @action="onAction"
-            />
+            <button type="button" class="dk-execopts__go" :disabled="socketStatus === 'connecting'" @click="reconnect">
+              {{ t('docker.terminalDialog.connect') }}
+            </button>
+          </label>
+          <div class="dk-execopts__shells" role="group" :aria-label="t('docker.terminalDialog.quickShell')">
+            <button
+              v-for="sh in QUICK_SHELLS"
+              :key="sh"
+              type="button"
+              class="dk-execopts__shell m-mono"
+              :class="{ 'is-on': commandText.trim() === sh }"
+              @click="useShell(sh)"
+            >{{ sh.split('/').pop() }}</button>
           </div>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+      </template>
+    </TerminalConsole>
+  </DockerTermSheet>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
+import DockerTermSheet from '@/views/docker/components/DockerTermSheet.vue'
 import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
@@ -55,6 +72,7 @@ const visible = computed({
   set: (value: boolean) => emit('update:modelValue', value),
 })
 
+const QUICK_SHELLS = ['/bin/sh', '/bin/bash', '/bin/ash']
 const termRef = ref<InstanceType<typeof TerminalConsole> | null>(null)
 const commandText = ref('/bin/sh')
 const socketStatus = ref<ConsoleSocketStatus>('disconnected')
@@ -76,7 +94,6 @@ const statusLabel = computed(() => {
 const actions = computed<TerminalAction[]>(() => [
   { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('docker.common.reconnect'), tone: 'primary' },
   { key: 'clear', icon: 'HOutline:TrashIcon', label: t('docker.common.clear') },
-  { key: 'close', icon: 'HOutline:XMarkIcon', label: t('system.common.close'), tone: 'danger' },
 ])
 
 const execCommand = () => {
@@ -128,6 +145,10 @@ const connect = () => {
 }
 
 const reconnect = () => { termRef.value?.reset(); connect() }
+const useShell = (sh: string) => {
+  commandText.value = sh
+  reconnect()
+}
 const onData = (data: string | Uint8Array) => { if (socket?.readyState === WebSocket.OPEN) socket.send(data) }
 const onAction = (key: string) => {
   if (key === 'reconnect') reconnect()
@@ -149,66 +170,60 @@ onBeforeUnmount(closeSocket)
 </script>
 
 <style scoped lang="scss">
-.dk-term-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2200;
+.dk-execopts { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dk-execopts__cmd {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: color-mix(in srgb, #0b1220 55%, transparent);
-  backdrop-filter: blur(2px);
-}
-.dk-term-panel {
-  display: flex;
-  flex-direction: column;
-  width: min(1000px, 96vw);
-  height: min(80vh, 720px);
-  border-radius: var(--app-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--app-shadow-lg);
-}
-.dk-term-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  flex: 0 1 340px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 4px 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--el-text-color-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    outline: none;
+  }
 }
-.dk-term-bar__label {
+.dk-execopts__cmd:focus-within { border-color: var(--m-p); }
+.dk-execopts__prompt { color: var(--m-ok); font-weight: 800; }
+.dk-execopts__go {
+  flex: none;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--m-p);
+  color: var(--m-pOn);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dk-execopts__go:disabled { opacity: 0.6; cursor: default; }
+.dk-execopts__shells { display: inline-flex; flex: none; gap: 2px; padding: 3px; border-radius: 999px; background: var(--el-fill-color-light); }
+.dk-execopts__shell {
+  min-height: 32px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--el-text-color-secondary);
-  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
-.dk-term-cmd {
-  max-width: 280px;
-}
-.dk-term-body {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-}
-.dk-term-body :deep(.term-shell) {
-  flex: 1;
-  min-height: 0;
-  border-radius: 0;
-}
-
-.dk-term-enter-active,
-.dk-term-leave-active { transition: opacity 0.18s ease; }
-.dk-term-enter-active .dk-term-panel,
-.dk-term-leave-active .dk-term-panel { transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1); }
-.dk-term-enter-from,
-.dk-term-leave-to { opacity: 0; }
-.dk-term-enter-from .dk-term-panel,
-.dk-term-leave-to .dk-term-panel { transform: translateY(8px) scale(0.98); }
-
+.dk-execopts__shell.is-on { background: var(--el-bg-color); color: var(--el-text-color-primary); box-shadow: var(--app-shadow-sm); }
 @media (width <= 768px) {
-  .dk-term-overlay { padding: 0; }
-  .dk-term-panel { width: 100vw; height: 100vh; border-radius: 0; }
+  .dk-execopts { width: 100%; }
+  .dk-execopts__cmd { flex: 1 1 auto; }
+  .dk-execopts__shells { display: none; }
 }
 </style>

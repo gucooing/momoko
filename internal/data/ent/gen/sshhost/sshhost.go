@@ -39,6 +39,16 @@ const (
 	FieldRemark = "remark"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
+	// FieldLastTestAt holds the string denoting the last_test_at field in the database.
+	FieldLastTestAt = "last_test_at"
+	// FieldLastTestOk holds the string denoting the last_test_ok field in the database.
+	FieldLastTestOk = "last_test_ok"
+	// FieldLastTestLatencyMs holds the string denoting the last_test_latency_ms field in the database.
+	FieldLastTestLatencyMs = "last_test_latency_ms"
+	// FieldLastTestMessage holds the string denoting the last_test_message field in the database.
+	FieldLastTestMessage = "last_test_message"
+	// FieldLastConnectAt holds the string denoting the last_connect_at field in the database.
+	FieldLastConnectAt = "last_connect_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeSharedUsers holds the string denoting the shared_users edge name in mutations.
@@ -74,6 +84,11 @@ var Columns = []string{
 	FieldFingerprint,
 	FieldRemark,
 	FieldTags,
+	FieldLastTestAt,
+	FieldLastTestOk,
+	FieldLastTestLatencyMs,
+	FieldLastTestMessage,
+	FieldLastConnectAt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "ssh_hosts"
@@ -120,6 +135,10 @@ var (
 	PortValidator func(int) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
+	// DefaultLastTestOk holds the default value on creation for the "last_test_ok" field.
+	DefaultLastTestOk bool
+	// DefaultLastTestLatencyMs holds the default value on creation for the "last_test_latency_ms" field.
+	DefaultLastTestLatencyMs int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -213,6 +232,31 @@ func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 // ByTags orders the results by the tags field.
 func ByTags(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTags, opts...).ToFunc()
+}
+
+// ByLastTestAt orders the results by the last_test_at field.
+func ByLastTestAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestAt, opts...).ToFunc()
+}
+
+// ByLastTestOk orders the results by the last_test_ok field.
+func ByLastTestOk(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestOk, opts...).ToFunc()
+}
+
+// ByLastTestLatencyMs orders the results by the last_test_latency_ms field.
+func ByLastTestLatencyMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestLatencyMs, opts...).ToFunc()
+}
+
+// ByLastTestMessage orders the results by the last_test_message field.
+func ByLastTestMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestMessage, opts...).ToFunc()
+}
+
+// ByLastConnectAt orders the results by the last_connect_at field.
+func ByLastConnectAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastConnectAt, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

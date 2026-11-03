@@ -35,7 +35,9 @@ type Node struct {
 	// 跳过 TLS 证书校验
 	TLSSkipVerify bool `json:"tls_skip_verify,omitempty"`
 	// 备注
-	Remark       string `json:"remark,omitempty"`
+	Remark string `json:"remark,omitempty"`
+	// 最近一次探测在线的时间
+	LastOnlineAt *time.Time `json:"last_online_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -48,7 +50,7 @@ func (*Node) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case node.FieldID, node.FieldName, node.FieldAddress, node.FieldAPIKey, node.FieldKeyID, node.FieldRemark:
 			values[i] = new(sql.NullString)
-		case node.FieldCreateTime, node.FieldUpdateTime:
+		case node.FieldCreateTime, node.FieldUpdateTime, node.FieldLastOnlineAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -125,6 +127,13 @@ func (_m *Node) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Remark = value.String
 			}
+		case node.FieldLastOnlineAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_online_at", values[i])
+			} else if value.Valid {
+				_m.LastOnlineAt = new(time.Time)
+				*_m.LastOnlineAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -186,6 +195,11 @@ func (_m *Node) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	if v := _m.LastOnlineAt; v != nil {
+		builder.WriteString("last_online_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

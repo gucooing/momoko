@@ -31,8 +31,8 @@ defineProps<{ title?: string; caption?: string; count?: number | null }>()
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
 }

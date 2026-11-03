@@ -32,6 +32,34 @@ export enum IQCheckResultStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 站点健康状态 */
+export enum IQCheckSiteHealth {
+  /** IQ_CHECK_SITE_HEALTH_UNSPECIFIED - 从未检测 */
+  IQ_CHECK_SITE_HEALTH_UNSPECIFIED = "IQ_CHECK_SITE_HEALTH_UNSPECIFIED",
+  /** IQ_CHECK_SITE_HEALTH_HEALTHY - 最近一轮全部成功 */
+  IQ_CHECK_SITE_HEALTH_HEALTHY = "IQ_CHECK_SITE_HEALTH_HEALTHY",
+  /** IQ_CHECK_SITE_HEALTH_PARTIAL - 最近一轮部分失败 */
+  IQ_CHECK_SITE_HEALTH_PARTIAL = "IQ_CHECK_SITE_HEALTH_PARTIAL",
+  /** IQ_CHECK_SITE_HEALTH_FAILED - 最近一轮全部失败 */
+  IQ_CHECK_SITE_HEALTH_FAILED = "IQ_CHECK_SITE_HEALTH_FAILED",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
+/** 站点列表筛选 */
+export enum IQCheckSiteFilter {
+  /** IQ_CHECK_SITE_FILTER_ALL - 全部 */
+  IQ_CHECK_SITE_FILTER_ALL = "IQ_CHECK_SITE_FILTER_ALL",
+  /** IQ_CHECK_SITE_FILTER_HEALTHY - 最近一轮全部成功 */
+  IQ_CHECK_SITE_FILTER_HEALTHY = "IQ_CHECK_SITE_FILTER_HEALTHY",
+  /** IQ_CHECK_SITE_FILTER_FAILING - 最近一轮有失败 */
+  IQ_CHECK_SITE_FILTER_FAILING = "IQ_CHECK_SITE_FILTER_FAILING",
+  /** IQ_CHECK_SITE_FILTER_DISABLED - 未启用定时检测 */
+  IQ_CHECK_SITE_FILTER_DISABLED = "IQ_CHECK_SITE_FILTER_DISABLED",
+  /** IQ_CHECK_SITE_FILTER_NEVER - 从未检测 */
+  IQ_CHECK_SITE_FILTER_NEVER = "IQ_CHECK_SITE_FILTER_NEVER",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 检测提示词 */
 export interface IQCheckPromptInfo {
   /** 提示词 id */
@@ -49,7 +77,17 @@ export interface IQCheckPromptInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 已被检测使用的次数（检测结果条数） */
+  useCount: number;
+  /** 最近一次被使用的时间 */
+  lastUsedAt:
+    | Date
+    | undefined;
+  /** 被检测使用过的站点数 */
+  siteCount: number;
 }
 
 /** 获取提示词列表请求 */
@@ -72,6 +110,10 @@ export interface ListIQCheckPromptsResponse {
   total: number;
   /** 提示词列表 */
   prompts: IQCheckPromptInfo[];
+  /** 启用中的提示词数量（不受关键字筛选影响） */
+  enabledCount: number;
+  /** 提示词总数（不受关键字筛选影响） */
+  allCount: number;
 }
 
 /** 创建提示词请求 */
@@ -170,6 +212,60 @@ export interface IQCheckSiteInfo {
     | undefined;
   /** 请求上游时使用的 User-Agent */
   userAgent: string;
+  /** 预计下一次定时检测时间；未启用或已达次数上限时为空 */
+  nextCheckAt:
+    | Date
+    | undefined;
+  /** 最近一轮检测汇总；从未检测时为空 */
+  lastRound:
+    | IQCheckRoundSummary
+    | undefined;
+  /** 最近若干轮检测汇总，旧的在前 */
+  recentRounds: IQCheckRoundSummary[];
+  /** 检测结果总条数 */
+  resultCount: number;
+  /** 站点健康状态 */
+  health: IQCheckSiteHealth;
+}
+
+/** 一轮检测的汇总 */
+export interface IQCheckRoundSummary {
+  /** 轮次编号 */
+  roundId: string;
+  /** 检测时间 */
+  requestAt:
+    | Date
+    | undefined;
+  /** 成功的模型数 */
+  success: number;
+  /** 失败的模型数 */
+  failed: number;
+  /** 成功结果的平均耗时（毫秒） */
+  avgDurationMs: number;
+  /** 第一条失败原因 */
+  error: string;
+  /** 提示词标题 */
+  promptTitle: string;
+}
+
+/** 站点统计（不受筛选影响） */
+export interface IQCheckSiteStats {
+  /** 站点总数 */
+  total: number;
+  /** 最近一轮全部成功 */
+  healthy: number;
+  /** 最近一轮有失败 */
+  failing: number;
+  /** 未启用定时检测 */
+  disabled: number;
+  /** 从未检测 */
+  never: number;
+  /** 正在检测 */
+  checking: number;
+  /** 全部站点检测的模型数（去重：模型 + 推理强度） */
+  modelCount: number;
+  /** 今天产生的检测结果条数 */
+  checksToday: number;
 }
 
 /** 获取站点列表请求 */
@@ -178,8 +274,12 @@ export interface ListIQCheckSitesRequest {
   page: number;
   /** 每页数量 */
   pageSize: number;
-  /** 名称关键字 */
-  keywords?: string | undefined;
+  /** 名称/端点/模型关键字 */
+  keywords?:
+    | string
+    | undefined;
+  /** 状态筛选 */
+  filter?: IQCheckSiteFilter | undefined;
 }
 
 /** 获取站点列表响应 */
@@ -192,6 +292,8 @@ export interface ListIQCheckSitesResponse {
   total: number;
   /** 站点列表 */
   sites: IQCheckSiteInfo[];
+  /** 站点统计 */
+  stats: IQCheckSiteStats | undefined;
 }
 
 /** 创建站点请求 */
@@ -341,7 +443,39 @@ export interface PublicIQCheckSiteInfo {
   /** 检测间隔，单位分钟 */
   intervalMinutes: number;
   /** 最近检测时间 */
-  lastCheckAt: Date | undefined;
+  lastCheckAt:
+    | Date
+    | undefined;
+  /** 检测统计 */
+  stats:
+    | PublicIQCheckStats
+    | undefined;
+  /** 是否启用定时检测 */
+  enabled: boolean;
+}
+
+/** 公开页检测统计 */
+export interface PublicIQCheckStats {
+  /** 检测结果总条数 */
+  total: number;
+  /** 成功条数 */
+  success: number;
+  /** 成功结果的平均耗时（毫秒） */
+  avgDurationMs: number;
+  /** 近 7 天的检测结果条数 */
+  last7dTotal: number;
+  /** 近 7 天的成功条数 */
+  last7dSuccess: number;
+  /** 按模型统计的结果条数 */
+  models: PublicIQCheckModelCount[];
+}
+
+/** 按模型统计的结果条数 */
+export interface PublicIQCheckModelCount {
+  /** 模型 */
+  model: string;
+  /** 结果条数 */
+  count: number;
 }
 
 /** 获取公开页站点信息请求 */
@@ -365,7 +499,11 @@ export interface PublicIQCheckResultsRequest {
   /** 每页数量 */
   pageSize: number;
   /** 按模型筛选 */
-  model?: string | undefined;
+  model?:
+    | string
+    | undefined;
+  /** 只取指定 id 的结果（用于打开分享的单条结果链接） */
+  resultId?: string | undefined;
 }
 
 /** 获取公开页检测结果响应 */

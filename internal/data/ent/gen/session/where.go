@@ -110,6 +110,26 @@ func ExpiresAt(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldExpiresAt, v))
 }
 
+// UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
+func UserAgent(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldUserAgent, v))
+}
+
+// LoginMethod applies equality check predicate on the "login_method" field. It's identical to LoginMethodEQ.
+func LoginMethod(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLoginMethod, v))
+}
+
+// LastActiveAt applies equality check predicate on the "last_active_at" field. It's identical to LastActiveAtEQ.
+func LastActiveAt(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLastActiveAt, v))
+}
+
+// LastIP applies equality check predicate on the "last_ip" field. It's identical to LastIPEQ.
+func LastIP(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLastIP, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldCreateTime, v))
@@ -618,6 +638,251 @@ func ExpiresAtLT(v time.Time) predicate.Session {
 // ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
 func ExpiresAtLTE(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// UserAgentEQ applies the EQ predicate on the "user_agent" field.
+func UserAgentEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldUserAgent, v))
+}
+
+// UserAgentNEQ applies the NEQ predicate on the "user_agent" field.
+func UserAgentNEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldUserAgent, v))
+}
+
+// UserAgentIn applies the In predicate on the "user_agent" field.
+func UserAgentIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldUserAgent, vs...))
+}
+
+// UserAgentNotIn applies the NotIn predicate on the "user_agent" field.
+func UserAgentNotIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldUserAgent, vs...))
+}
+
+// UserAgentGT applies the GT predicate on the "user_agent" field.
+func UserAgentGT(v string) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldUserAgent, v))
+}
+
+// UserAgentGTE applies the GTE predicate on the "user_agent" field.
+func UserAgentGTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldUserAgent, v))
+}
+
+// UserAgentLT applies the LT predicate on the "user_agent" field.
+func UserAgentLT(v string) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldUserAgent, v))
+}
+
+// UserAgentLTE applies the LTE predicate on the "user_agent" field.
+func UserAgentLTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldUserAgent, v))
+}
+
+// UserAgentContains applies the Contains predicate on the "user_agent" field.
+func UserAgentContains(v string) predicate.Session {
+	return predicate.Session(sql.FieldContains(FieldUserAgent, v))
+}
+
+// UserAgentHasPrefix applies the HasPrefix predicate on the "user_agent" field.
+func UserAgentHasPrefix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasPrefix(FieldUserAgent, v))
+}
+
+// UserAgentHasSuffix applies the HasSuffix predicate on the "user_agent" field.
+func UserAgentHasSuffix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasSuffix(FieldUserAgent, v))
+}
+
+// UserAgentEqualFold applies the EqualFold predicate on the "user_agent" field.
+func UserAgentEqualFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldEqualFold(FieldUserAgent, v))
+}
+
+// UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
+func UserAgentContainsFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldContainsFold(FieldUserAgent, v))
+}
+
+// LoginMethodEQ applies the EQ predicate on the "login_method" field.
+func LoginMethodEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLoginMethod, v))
+}
+
+// LoginMethodNEQ applies the NEQ predicate on the "login_method" field.
+func LoginMethodNEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldLoginMethod, v))
+}
+
+// LoginMethodIn applies the In predicate on the "login_method" field.
+func LoginMethodIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldLoginMethod, vs...))
+}
+
+// LoginMethodNotIn applies the NotIn predicate on the "login_method" field.
+func LoginMethodNotIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldLoginMethod, vs...))
+}
+
+// LoginMethodGT applies the GT predicate on the "login_method" field.
+func LoginMethodGT(v string) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldLoginMethod, v))
+}
+
+// LoginMethodGTE applies the GTE predicate on the "login_method" field.
+func LoginMethodGTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldLoginMethod, v))
+}
+
+// LoginMethodLT applies the LT predicate on the "login_method" field.
+func LoginMethodLT(v string) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldLoginMethod, v))
+}
+
+// LoginMethodLTE applies the LTE predicate on the "login_method" field.
+func LoginMethodLTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldLoginMethod, v))
+}
+
+// LoginMethodContains applies the Contains predicate on the "login_method" field.
+func LoginMethodContains(v string) predicate.Session {
+	return predicate.Session(sql.FieldContains(FieldLoginMethod, v))
+}
+
+// LoginMethodHasPrefix applies the HasPrefix predicate on the "login_method" field.
+func LoginMethodHasPrefix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasPrefix(FieldLoginMethod, v))
+}
+
+// LoginMethodHasSuffix applies the HasSuffix predicate on the "login_method" field.
+func LoginMethodHasSuffix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasSuffix(FieldLoginMethod, v))
+}
+
+// LoginMethodEqualFold applies the EqualFold predicate on the "login_method" field.
+func LoginMethodEqualFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldEqualFold(FieldLoginMethod, v))
+}
+
+// LoginMethodContainsFold applies the ContainsFold predicate on the "login_method" field.
+func LoginMethodContainsFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldContainsFold(FieldLoginMethod, v))
+}
+
+// LastActiveAtEQ applies the EQ predicate on the "last_active_at" field.
+func LastActiveAtEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLastActiveAt, v))
+}
+
+// LastActiveAtNEQ applies the NEQ predicate on the "last_active_at" field.
+func LastActiveAtNEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldLastActiveAt, v))
+}
+
+// LastActiveAtIn applies the In predicate on the "last_active_at" field.
+func LastActiveAtIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldLastActiveAt, vs...))
+}
+
+// LastActiveAtNotIn applies the NotIn predicate on the "last_active_at" field.
+func LastActiveAtNotIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldLastActiveAt, vs...))
+}
+
+// LastActiveAtGT applies the GT predicate on the "last_active_at" field.
+func LastActiveAtGT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldLastActiveAt, v))
+}
+
+// LastActiveAtGTE applies the GTE predicate on the "last_active_at" field.
+func LastActiveAtGTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldLastActiveAt, v))
+}
+
+// LastActiveAtLT applies the LT predicate on the "last_active_at" field.
+func LastActiveAtLT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldLastActiveAt, v))
+}
+
+// LastActiveAtLTE applies the LTE predicate on the "last_active_at" field.
+func LastActiveAtLTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldLastActiveAt, v))
+}
+
+// LastActiveAtIsNil applies the IsNil predicate on the "last_active_at" field.
+func LastActiveAtIsNil() predicate.Session {
+	return predicate.Session(sql.FieldIsNull(FieldLastActiveAt))
+}
+
+// LastActiveAtNotNil applies the NotNil predicate on the "last_active_at" field.
+func LastActiveAtNotNil() predicate.Session {
+	return predicate.Session(sql.FieldNotNull(FieldLastActiveAt))
+}
+
+// LastIPEQ applies the EQ predicate on the "last_ip" field.
+func LastIPEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLastIP, v))
+}
+
+// LastIPNEQ applies the NEQ predicate on the "last_ip" field.
+func LastIPNEQ(v string) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldLastIP, v))
+}
+
+// LastIPIn applies the In predicate on the "last_ip" field.
+func LastIPIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldLastIP, vs...))
+}
+
+// LastIPNotIn applies the NotIn predicate on the "last_ip" field.
+func LastIPNotIn(vs ...string) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldLastIP, vs...))
+}
+
+// LastIPGT applies the GT predicate on the "last_ip" field.
+func LastIPGT(v string) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldLastIP, v))
+}
+
+// LastIPGTE applies the GTE predicate on the "last_ip" field.
+func LastIPGTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldLastIP, v))
+}
+
+// LastIPLT applies the LT predicate on the "last_ip" field.
+func LastIPLT(v string) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldLastIP, v))
+}
+
+// LastIPLTE applies the LTE predicate on the "last_ip" field.
+func LastIPLTE(v string) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldLastIP, v))
+}
+
+// LastIPContains applies the Contains predicate on the "last_ip" field.
+func LastIPContains(v string) predicate.Session {
+	return predicate.Session(sql.FieldContains(FieldLastIP, v))
+}
+
+// LastIPHasPrefix applies the HasPrefix predicate on the "last_ip" field.
+func LastIPHasPrefix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasPrefix(FieldLastIP, v))
+}
+
+// LastIPHasSuffix applies the HasSuffix predicate on the "last_ip" field.
+func LastIPHasSuffix(v string) predicate.Session {
+	return predicate.Session(sql.FieldHasSuffix(FieldLastIP, v))
+}
+
+// LastIPEqualFold applies the EqualFold predicate on the "last_ip" field.
+func LastIPEqualFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldEqualFold(FieldLastIP, v))
+}
+
+// LastIPContainsFold applies the ContainsFold predicate on the "last_ip" field.
+func LastIPContainsFold(v string) predicate.Session {
+	return predicate.Session(sql.FieldContainsFold(FieldLastIP, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -57,6 +57,13 @@ service OpenSSHManager {
       body: "*"
     };
   }
+  // 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+  rpc TestSSHHosts(TestSSHHostsRequest) returns (TestSSHHostsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/openssh/host/batch-test"
+      body: "*"
+    };
+  }
 }
 
 message GetSSHHostsRequest {
@@ -68,6 +75,26 @@ message GetSSHHostsRequest {
   optional string keywords = 3;
   // 主机地址
   optional string host = 4;
+  // 按连通状态/分享筛选
+  optional SSHHostFilter filter = 5;
+  // 按标签（分组）筛选
+  optional string tag = 6;
+}
+
+// 列表筛选
+enum SSHHostFilter {
+  // 全部
+  SSH_HOST_FILTER_ALL = 0;
+  // 上次测试连通
+  SSH_HOST_FILTER_OK = 1;
+  // 上次测试失败
+  SSH_HOST_FILTER_FAILED = 2;
+  // 从未测试
+  SSH_HOST_FILTER_UNTESTED = 3;
+  // 我分享给他人的
+  SSH_HOST_FILTER_SHARED = 4;
+  // 他人分享给我的
+  SSH_HOST_FILTER_SHARED_WITH_ME = 5;
 }
 
 message GetSSHHostsResponse {
@@ -75,10 +102,60 @@ message GetSSHHostsResponse {
   int64 page = 1;
   // actual page size
   int64 page_size = 2;
-  // 总数
+  // 总数（筛选后）
   int64 total = 3;
   // 列表
   repeated SSHHostInfo infos = 4;
+  // 全部可访问主机的统计（不受筛选影响）
+  SSHHostStats stats = 5;
+}
+
+// SSH 主机统计
+message SSHHostStats {
+  // 可访问主机总数
+  int64 total = 1;
+  // 上次测试连通
+  int64 ok = 2;
+  // 上次测试失败
+  int64 failed = 3;
+  // 从未测试
+  int64 untested = 4;
+  // 我分享给他人的
+  int64 shared = 5;
+  // 他人分享给我的
+  int64 shared_with_me = 6;
+  // 全部标签（分组），按名称排序
+  repeated string tags = 7;
+  // 最近一次测试时间
+  google.protobuf.Timestamp last_test_time = 8;
+  // 连通主机的平均延迟（毫秒）
+  int32 avg_latency_ms = 9;
+  // 每台主机的上次测试状态（按创建时间排序，用于概览条）
+  repeated SSHHostTestMark marks = 10;
+}
+
+// 主机上次测试状态标记
+message SSHHostTestMark {
+  // 主机 id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 是否测试过
+  bool tested = 3;
+  // 是否连通
+  bool ok = 4;
+  // 失败原因
+  string message = 5;
+}
+
+message TestSSHHostsRequest {
+  // 要测试的主机 id；为空表示全部可访问主机
+  repeated string ids = 1;
+}
+
+message TestSSHHostsResponse {
+  // 每台主机的测试结果
+  repeated SSHHostTestMark results = 1;
 }
 
 message CreateSSHHostRequest {
@@ -238,6 +315,16 @@ message SSHHostInfo {
   google.protobuf.Timestamp create_time = 14;
   // 更新时间
   google.protobuf.Timestamp update_time = 15;
+  // 上次测试时间；未测试过为空
+  google.protobuf.Timestamp last_test_time = 16;
+  // 上次测试是否连通
+  bool last_test_ok = 17;
+  // 上次测试延迟（毫秒）
+  int32 last_test_latency_ms = 18;
+  // 上次测试失败原因
+  string last_test_message = 19;
+  // 上次打开终端连接的时间；从未连接为空
+  google.protobuf.Timestamp last_connect_time = 20;
 }
 
 message SSHHostSharedUser {

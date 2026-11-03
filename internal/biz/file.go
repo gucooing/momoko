@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
@@ -60,7 +61,8 @@ type FileRepo interface {
 	SetUploadProviderRefIfEmpty(ctx context.Context, id, ref string) (bool, error)
 
 	CreateShare(ctx context.Context, userID, token, name string, items []sharetype.Item, req *v1.CreateShareRequest) (*gen.FileShare, error)
-	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords string) ([]*gen.FileShare, int64, error)
+	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords, status string) ([]*gen.FileShare, int64, error)
+	ShareStats(ctx context.Context, userID string) (*v1.ShareStats, error)
 	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
 	UpdateShare(ctx context.Context, userID, name string, items []sharetype.Item, req *v1.UpdateShareRequest) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
@@ -71,6 +73,7 @@ type FileRepo interface {
 	GetFileSource(ctx context.Context, id string) (*gen.FileSource, error)
 	UpdateFileSource(ctx context.Context, id, name, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
 	DeleteFileSource(ctx context.Context, id string) error
+	SaveFileSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, message string, at time.Time) error
 }
 
 type FileUsecase struct {
@@ -911,6 +914,20 @@ func (f *FileUsecase) toFileSourceInfo(rec *gen.FileSource) *v1.FileSourceInfo {
 		CreatorName: creator,
 		CreateTime:  timestamppb.New(rec.CreateTime),
 		UpdateTime:  timestamppb.New(rec.UpdateTime),
+		LastTest:    lastTestOf(rec),
+	}
+}
+
+// lastTestOf 取出来源最近一次测试结果，未测试过返回 nil。
+func lastTestOf(rec *gen.FileSource) *v1.FileSourceTestResult {
+	if rec.LastTestTime == nil {
+		return nil
+	}
+	return &v1.FileSourceTestResult{
+		Ok:        rec.LastTestOk,
+		LatencyMs: rec.LastTestLatencyMs,
+		Message:   rec.LastTestMessage,
+		TestedAt:  timestamppb.New(*rec.LastTestTime),
 	}
 }
 
@@ -971,32 +988,45 @@ func (f *FileUsecase) DeleteFileSource(ctx context.Context, id string) error {
 	return nil
 }
 
-// TestFileSource 测试来源连通性：传 id 测已存在来源；否则用请求里的明文配置测未保存的来源。
+// TestFileSource 测试来源连通性：传 id 测已存在来源（结果回写为「最近一次测试」）；否则用请求里的明文配置测未保存的来源。
 func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSourceRequest) (*v1.TestFileSourceResponse, error) {
 	var cfg file.Config
 	if req.Id != "" {
 		rec, err := f.repo.GetFileSource(ctx, req.Id)
 		if err != nil {
-			return &v1.TestFileSourceResponse{Ok: false, Message: "来源不存在"}, nil
+			return &v1.TestFileSourceResponse{Ok: false, Message: "来源不存在", TestedAt: timestamppb.Now()}, nil
 		}
 		cfg, err = f.decryptedConfig(rec)
 		if err != nil {
-			return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+			return f.finishSourceTest(ctx, req.Id, false, 0, err.Error()), nil
 		}
 	} else {
 		if !validSourceType(req.Type) {
-			return &v1.TestFileSourceResponse{Ok: false, Message: "类型不合法"}, nil
+			return &v1.TestFileSourceResponse{Ok: false, Message: "类型不合法", TestedAt: timestamppb.Now()}, nil
 		}
 		cfg = requestToConfig(req.Type, req.Config)
 	}
+	start := time.Now()
 	store, err := file.NewStore(cfg)
 	if err != nil {
-		return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+		return f.finishSourceTest(ctx, req.Id, false, time.Since(start).Milliseconds(), err.Error()), nil
 	}
 	if _, err := store.List(ctx, "", v1.FileSortField_FILE_SORT_FIELD_NAME, false); err != nil {
-		return &v1.TestFileSourceResponse{Ok: false, Message: err.Error()}, nil
+		return f.finishSourceTest(ctx, req.Id, false, time.Since(start).Milliseconds(), err.Error()), nil
 	}
-	return &v1.TestFileSourceResponse{Ok: true, Message: "连接成功"}, nil
+	return f.finishSourceTest(ctx, req.Id, true, time.Since(start).Milliseconds(), "连接成功"), nil
+}
+
+// finishSourceTest 组装测试结果；已保存来源同时回写最近一次测试记录（回写失败不影响本次结果）。
+func (f *FileUsecase) finishSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, msg string) *v1.TestFileSourceResponse {
+	if latencyMs < 1 {
+		latencyMs = 1
+	}
+	now := time.Now()
+	if id != "" {
+		_ = f.repo.SaveFileSourceTest(ctx, id, ok, latencyMs, msg, now)
+	}
+	return &v1.TestFileSourceResponse{Ok: ok, Message: msg, LatencyMs: latencyMs, TestedAt: timestamppb.New(now)}
 }
 
 // ---- 分享 ----
@@ -1020,7 +1050,11 @@ func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.Cr
 
 // ListShares 返回某用户的分享列表。
 func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.ListSharesRequest) (*v1.ListSharesResponse, error) {
-	items, total, err := f.repo.ListShares(ctx, userID, req.Page, req.PageSize, req.GetKeywords())
+	items, total, err := f.repo.ListShares(ctx, userID, req.Page, req.PageSize, req.GetKeywords(), req.GetStatus())
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	stats, err := f.repo.ShareStats(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1028,6 +1062,7 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 		Page:     req.Page,
 		PageSize: req.PageSize,
 		Total:    total,
+		Stats:    stats,
 		Items:    make([]*v1.ShareInfo, 0, len(items)),
 	}
 	for _, it := range items {
@@ -1076,7 +1111,64 @@ func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetSh
 	if err != nil {
 		return nil, ErrShareNotFound
 	}
-	return share.ToMeta(rec, rec.Edges.User, time.Now()), nil
+	meta := share.ToMeta(rec, rec.Edges.User, time.Now())
+	if until, locked := shareCodeLockedUntil(shareAttemptKey(ctx, token)); locked {
+		meta.LockedUntil = timestamppb.New(until)
+	}
+	return meta, nil
+}
+
+// 提取码防爆破：同一访客（IP）对同一分享连续输错 shareCodeMaxFails 次后锁定 shareCodeLockTTL。
+const (
+	shareCodeMaxFails = 5
+	shareCodeLockTTL  = 10 * time.Minute
+)
+
+type shareCodeAttempt struct {
+	fails       int
+	last        time.Time
+	lockedUntil time.Time
+}
+
+var (
+	shareCodeAttempts   = cache.New[string, *shareCodeAttempt](30 * time.Minute)
+	shareCodeAttemptsMu sync.Mutex
+)
+
+func shareAttemptKey(ctx context.Context, token string) string {
+	return token + "|" + utils.ClientIPFromContext(ctx)
+}
+
+// shareCodeLockedUntil 返回该访客是否处于锁定期及解锁时间。
+func shareCodeLockedUntil(key string) (time.Time, bool) {
+	shareCodeAttemptsMu.Lock()
+	defer shareCodeAttemptsMu.Unlock()
+	a, ok := shareCodeAttempts.Get(key)
+	if !ok || a == nil || !time.Now().Before(a.lockedUntil) {
+		return time.Time{}, false
+	}
+	return a.lockedUntil, true
+}
+
+// recordShareCodeFail 记一次提取码错误，返回剩余可尝试次数与（达到上限时的）解锁时间。
+func recordShareCodeFail(key string) (int, time.Time) {
+	shareCodeAttemptsMu.Lock()
+	defer shareCodeAttemptsMu.Unlock()
+	now := time.Now()
+	a, ok := shareCodeAttempts.Get(key)
+	if !ok || a == nil || now.Sub(a.last) > shareCodeLockTTL {
+		a = &shareCodeAttempt{}
+	}
+	a.fails++
+	a.last = now
+	if a.fails >= shareCodeMaxFails {
+		a.fails = 0
+		a.lockedUntil = now.Add(shareCodeLockTTL)
+		shareCodeAttempts.Set(key, a)
+		return 0, a.lockedUntil
+	}
+	shareCodeAttempts.Set(key, a)
+	return shareCodeMaxFails - a.fails, time.Time{}
 }
 
 // CreateShareSession 公开：用 token(+提取码) 换取一次性会话签名。
@@ -1095,12 +1187,29 @@ func (f *FileUsecase) CreateShareSession(ctx context.Context, token, code string
 	if rec.MaxDownloads > 0 && rec.DownloadCount >= rec.MaxDownloads {
 		return &v1.CreateShareSessionResponse{Message: "分享下载次数已用尽"}, nil
 	}
-	if rec.Code != "" && rec.Code != code {
-		resp := &v1.CreateShareSessionResponse{NeedCode: true}
-		if code != "" {
-			resp.Message = "提取码错误"
+	if rec.Code != "" {
+		key := shareAttemptKey(ctx, token)
+		if until, locked := shareCodeLockedUntil(key); locked {
+			return &v1.CreateShareSessionResponse{
+				NeedCode:    true,
+				Message:     "提取码错误次数过多，请稍后再试",
+				LockedUntil: timestamppb.New(until),
+			}, nil
 		}
-		return resp, nil
+		if rec.Code != code {
+			resp := &v1.CreateShareSessionResponse{NeedCode: true}
+			if code != "" {
+				left, until := recordShareCodeFail(key)
+				resp.Message = "提取码错误"
+				resp.AttemptsLeft = int64(left)
+				if !until.IsZero() {
+					resp.Message = "提取码错误次数过多，请稍后再试"
+					resp.LockedUntil = timestamppb.New(until)
+				}
+			}
+			return resp, nil
+		}
+		shareCodeAttempts.Del(key)
 	}
 	ttl := ShareSessionTTL
 	if rec.ExpiresAt != nil {
@@ -1167,7 +1276,8 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 	// 预览(inline)与 Range 续传分段不计入下载次数。
 	countable := r.Header.Get("Range") == "" && !inline
 	// 传入来源解析器：目标条目按其来源解析 Store，并由该来源自身的 redirect_302 决定是否 302 直链。
-	if err := share.ServeDownload(ctx, f.storeFor, rec, q.Get("path"), inline, w, r); err != nil {
+	// path 可重复出现（访问者多选下载），多个时打包为一个 zip。
+	if err := share.ServeDownload(ctx, f.storeFor, rec, q["path"], inline, w, r); err != nil {
 		return
 	}
 	if countable {

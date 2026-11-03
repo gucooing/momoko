@@ -35,6 +35,16 @@ const (
 	FieldName = "name"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
+	// FieldPhone holds the string denoting the phone field in the database.
+	FieldPhone = "phone"
+	// FieldLastLoginAt holds the string denoting the last_login_at field in the database.
+	FieldLastLoginAt = "last_login_at"
+	// FieldPasswordUpdatedAt holds the string denoting the password_updated_at field in the database.
+	FieldPasswordUpdatedAt = "password_updated_at"
+	// FieldLastLoginIP holds the string denoting the last_login_ip field in the database.
+	FieldLastLoginIP = "last_login_ip"
+	// FieldLastLoginMethod holds the string denoting the last_login_method field in the database.
+	FieldLastLoginMethod = "last_login_method"
 	// EdgeRole holds the string denoting the role edge name in mutations.
 	EdgeRole = "role"
 	// EdgeSharedSSHHosts holds the string denoting the shared_ssh_hosts edge name in mutations.
@@ -77,6 +87,11 @@ var Columns = []string{
 	FieldBio,
 	FieldName,
 	FieldTags,
+	FieldPhone,
+	FieldLastLoginAt,
+	FieldPasswordUpdatedAt,
+	FieldLastLoginIP,
+	FieldLastLoginMethod,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -120,6 +135,8 @@ var (
 	DefaultAvatar string
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
+	// DefaultPhone holds the default value on creation for the "phone" field.
+	DefaultPhone string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -206,6 +223,31 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByTags orders the results by the tags field.
 func ByTags(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTags, opts...).ToFunc()
+}
+
+// ByPhone orders the results by the phone field.
+func ByPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPhone, opts...).ToFunc()
+}
+
+// ByLastLoginAt orders the results by the last_login_at field.
+func ByLastLoginAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastLoginAt, opts...).ToFunc()
+}
+
+// ByPasswordUpdatedAt orders the results by the password_updated_at field.
+func ByPasswordUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPasswordUpdatedAt, opts...).ToFunc()
+}
+
+// ByLastLoginIP orders the results by the last_login_ip field.
+func ByLastLoginIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastLoginIP, opts...).ToFunc()
+}
+
+// ByLastLoginMethod orders the results by the last_login_method field.
+func ByLastLoginMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastLoginMethod, opts...).ToFunc()
 }
 
 // ByRoleField orders the results by role field.

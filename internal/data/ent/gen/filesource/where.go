@@ -100,6 +100,26 @@ func UserID(v string) predicate.FileSource {
 	return predicate.FileSource(sql.FieldEQ(FieldUserID, v))
 }
 
+// LastTestOk applies equality check predicate on the "last_test_ok" field. It's identical to LastTestOkEQ.
+func LastTestOk(v bool) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestOk, v))
+}
+
+// LastTestLatencyMs applies equality check predicate on the "last_test_latency_ms" field. It's identical to LastTestLatencyMsEQ.
+func LastTestLatencyMs(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestMessage applies equality check predicate on the "last_test_message" field. It's identical to LastTestMessageEQ.
+func LastTestMessage(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestMessage, v))
+}
+
+// LastTestTime applies equality check predicate on the "last_test_time" field. It's identical to LastTestTimeEQ.
+func LastTestTime(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestTime, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileSource {
 	return predicate.FileSource(sql.FieldEQ(FieldCreateTime, v))
@@ -413,6 +433,171 @@ func UserIDEqualFold(v string) predicate.FileSource {
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.FileSource {
 	return predicate.FileSource(sql.FieldContainsFold(FieldUserID, v))
+}
+
+// LastTestOkEQ applies the EQ predicate on the "last_test_ok" field.
+func LastTestOkEQ(v bool) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestOk, v))
+}
+
+// LastTestOkNEQ applies the NEQ predicate on the "last_test_ok" field.
+func LastTestOkNEQ(v bool) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestOk, v))
+}
+
+// LastTestLatencyMsEQ applies the EQ predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsEQ(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsNEQ applies the NEQ predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsNEQ(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsIn applies the In predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsIn(vs ...int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldIn(FieldLastTestLatencyMs, vs...))
+}
+
+// LastTestLatencyMsNotIn applies the NotIn predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsNotIn(vs ...int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotIn(FieldLastTestLatencyMs, vs...))
+}
+
+// LastTestLatencyMsGT applies the GT predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsGT(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGT(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsGTE applies the GTE predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsGTE(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGTE(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsLT applies the LT predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsLT(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLT(FieldLastTestLatencyMs, v))
+}
+
+// LastTestLatencyMsLTE applies the LTE predicate on the "last_test_latency_ms" field.
+func LastTestLatencyMsLTE(v int64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLTE(FieldLastTestLatencyMs, v))
+}
+
+// LastTestMessageEQ applies the EQ predicate on the "last_test_message" field.
+func LastTestMessageEQ(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestMessage, v))
+}
+
+// LastTestMessageNEQ applies the NEQ predicate on the "last_test_message" field.
+func LastTestMessageNEQ(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestMessage, v))
+}
+
+// LastTestMessageIn applies the In predicate on the "last_test_message" field.
+func LastTestMessageIn(vs ...string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldIn(FieldLastTestMessage, vs...))
+}
+
+// LastTestMessageNotIn applies the NotIn predicate on the "last_test_message" field.
+func LastTestMessageNotIn(vs ...string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotIn(FieldLastTestMessage, vs...))
+}
+
+// LastTestMessageGT applies the GT predicate on the "last_test_message" field.
+func LastTestMessageGT(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGT(FieldLastTestMessage, v))
+}
+
+// LastTestMessageGTE applies the GTE predicate on the "last_test_message" field.
+func LastTestMessageGTE(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGTE(FieldLastTestMessage, v))
+}
+
+// LastTestMessageLT applies the LT predicate on the "last_test_message" field.
+func LastTestMessageLT(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLT(FieldLastTestMessage, v))
+}
+
+// LastTestMessageLTE applies the LTE predicate on the "last_test_message" field.
+func LastTestMessageLTE(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLTE(FieldLastTestMessage, v))
+}
+
+// LastTestMessageContains applies the Contains predicate on the "last_test_message" field.
+func LastTestMessageContains(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldContains(FieldLastTestMessage, v))
+}
+
+// LastTestMessageHasPrefix applies the HasPrefix predicate on the "last_test_message" field.
+func LastTestMessageHasPrefix(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldHasPrefix(FieldLastTestMessage, v))
+}
+
+// LastTestMessageHasSuffix applies the HasSuffix predicate on the "last_test_message" field.
+func LastTestMessageHasSuffix(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldHasSuffix(FieldLastTestMessage, v))
+}
+
+// LastTestMessageEqualFold applies the EqualFold predicate on the "last_test_message" field.
+func LastTestMessageEqualFold(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEqualFold(FieldLastTestMessage, v))
+}
+
+// LastTestMessageContainsFold applies the ContainsFold predicate on the "last_test_message" field.
+func LastTestMessageContainsFold(v string) predicate.FileSource {
+	return predicate.FileSource(sql.FieldContainsFold(FieldLastTestMessage, v))
+}
+
+// LastTestTimeEQ applies the EQ predicate on the "last_test_time" field.
+func LastTestTimeEQ(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestTime, v))
+}
+
+// LastTestTimeNEQ applies the NEQ predicate on the "last_test_time" field.
+func LastTestTimeNEQ(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestTime, v))
+}
+
+// LastTestTimeIn applies the In predicate on the "last_test_time" field.
+func LastTestTimeIn(vs ...time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldIn(FieldLastTestTime, vs...))
+}
+
+// LastTestTimeNotIn applies the NotIn predicate on the "last_test_time" field.
+func LastTestTimeNotIn(vs ...time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotIn(FieldLastTestTime, vs...))
+}
+
+// LastTestTimeGT applies the GT predicate on the "last_test_time" field.
+func LastTestTimeGT(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGT(FieldLastTestTime, v))
+}
+
+// LastTestTimeGTE applies the GTE predicate on the "last_test_time" field.
+func LastTestTimeGTE(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGTE(FieldLastTestTime, v))
+}
+
+// LastTestTimeLT applies the LT predicate on the "last_test_time" field.
+func LastTestTimeLT(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLT(FieldLastTestTime, v))
+}
+
+// LastTestTimeLTE applies the LTE predicate on the "last_test_time" field.
+func LastTestTimeLTE(v time.Time) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLTE(FieldLastTestTime, v))
+}
+
+// LastTestTimeIsNil applies the IsNil predicate on the "last_test_time" field.
+func LastTestTimeIsNil() predicate.FileSource {
+	return predicate.FileSource(sql.FieldIsNull(FieldLastTestTime))
+}
+
+// LastTestTimeNotNil applies the NotNil predicate on the "last_test_time" field.
+func LastTestTimeNotNil() predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotNull(FieldLastTestTime))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

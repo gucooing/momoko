@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NetworkManager_ListPortForwards_FullMethodName    = "/v1.NetworkManager/ListPortForwards"
-	NetworkManager_CreatePortForward_FullMethodName   = "/v1.NetworkManager/CreatePortForward"
-	NetworkManager_GetPortForward_FullMethodName      = "/v1.NetworkManager/GetPortForward"
-	NetworkManager_UpdatePortForward_FullMethodName   = "/v1.NetworkManager/UpdatePortForward"
-	NetworkManager_DeletePortForward_FullMethodName   = "/v1.NetworkManager/DeletePortForward"
-	NetworkManager_GetPortForwardStats_FullMethodName = "/v1.NetworkManager/GetPortForwardStats"
+	NetworkManager_ListPortForwards_FullMethodName            = "/v1.NetworkManager/ListPortForwards"
+	NetworkManager_CreatePortForward_FullMethodName           = "/v1.NetworkManager/CreatePortForward"
+	NetworkManager_GetPortForward_FullMethodName              = "/v1.NetworkManager/GetPortForward"
+	NetworkManager_UpdatePortForward_FullMethodName           = "/v1.NetworkManager/UpdatePortForward"
+	NetworkManager_DeletePortForward_FullMethodName           = "/v1.NetworkManager/DeletePortForward"
+	NetworkManager_GetPortForwardStats_FullMethodName         = "/v1.NetworkManager/GetPortForwardStats"
+	NetworkManager_ClosePortForwardConnections_FullMethodName = "/v1.NetworkManager/ClosePortForwardConnections"
+	NetworkManager_ResetPortForwardTraffic_FullMethodName     = "/v1.NetworkManager/ResetPortForwardTraffic"
 )
 
 // NetworkManagerClient is the client API for NetworkManager service.
@@ -45,6 +47,10 @@ type NetworkManagerClient interface {
 	DeletePortForward(ctx context.Context, in *DeletePortForwardRequest, opts ...grpc.CallOption) (*DeletePortForwardResponse, error)
 	// 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
 	GetPortForwardStats(ctx context.Context, in *GetPortForwardStatsRequest, opts ...grpc.CallOption) (*GetPortForwardStatsResponse, error)
+	// 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+	ClosePortForwardConnections(ctx context.Context, in *ClosePortForwardConnectionsRequest, opts ...grpc.CallOption) (*ClosePortForwardConnectionsResponse, error)
+	// 清零端口转发的累计流量
+	ResetPortForwardTraffic(ctx context.Context, in *ResetPortForwardTrafficRequest, opts ...grpc.CallOption) (*ResetPortForwardTrafficResponse, error)
 }
 
 type networkManagerClient struct {
@@ -115,6 +121,26 @@ func (c *networkManagerClient) GetPortForwardStats(ctx context.Context, in *GetP
 	return out, nil
 }
 
+func (c *networkManagerClient) ClosePortForwardConnections(ctx context.Context, in *ClosePortForwardConnectionsRequest, opts ...grpc.CallOption) (*ClosePortForwardConnectionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClosePortForwardConnectionsResponse)
+	err := c.cc.Invoke(ctx, NetworkManager_ClosePortForwardConnections_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *networkManagerClient) ResetPortForwardTraffic(ctx context.Context, in *ResetPortForwardTrafficRequest, opts ...grpc.CallOption) (*ResetPortForwardTrafficResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetPortForwardTrafficResponse)
+	err := c.cc.Invoke(ctx, NetworkManager_ResetPortForwardTraffic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkManagerServer is the server API for NetworkManager service.
 // All implementations must embed UnimplementedNetworkManagerServer
 // for forward compatibility.
@@ -133,6 +159,10 @@ type NetworkManagerServer interface {
 	DeletePortForward(context.Context, *DeletePortForwardRequest) (*DeletePortForwardResponse, error)
 	// 获取端口转发统计信息（实时快照 + 指定时间范围内的时间序列）
 	GetPortForwardStats(context.Context, *GetPortForwardStatsRequest) (*GetPortForwardStatsResponse, error)
+	// 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+	ClosePortForwardConnections(context.Context, *ClosePortForwardConnectionsRequest) (*ClosePortForwardConnectionsResponse, error)
+	// 清零端口转发的累计流量
+	ResetPortForwardTraffic(context.Context, *ResetPortForwardTrafficRequest) (*ResetPortForwardTrafficResponse, error)
 	mustEmbedUnimplementedNetworkManagerServer()
 }
 
@@ -160,6 +190,12 @@ func (UnimplementedNetworkManagerServer) DeletePortForward(context.Context, *Del
 }
 func (UnimplementedNetworkManagerServer) GetPortForwardStats(context.Context, *GetPortForwardStatsRequest) (*GetPortForwardStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPortForwardStats not implemented")
+}
+func (UnimplementedNetworkManagerServer) ClosePortForwardConnections(context.Context, *ClosePortForwardConnectionsRequest) (*ClosePortForwardConnectionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClosePortForwardConnections not implemented")
+}
+func (UnimplementedNetworkManagerServer) ResetPortForwardTraffic(context.Context, *ResetPortForwardTrafficRequest) (*ResetPortForwardTrafficResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetPortForwardTraffic not implemented")
 }
 func (UnimplementedNetworkManagerServer) mustEmbedUnimplementedNetworkManagerServer() {}
 func (UnimplementedNetworkManagerServer) testEmbeddedByValue()                        {}
@@ -290,6 +326,42 @@ func _NetworkManager_GetPortForwardStats_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NetworkManager_ClosePortForwardConnections_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClosePortForwardConnectionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkManagerServer).ClosePortForwardConnections(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NetworkManager_ClosePortForwardConnections_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkManagerServer).ClosePortForwardConnections(ctx, req.(*ClosePortForwardConnectionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NetworkManager_ResetPortForwardTraffic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetPortForwardTrafficRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkManagerServer).ResetPortForwardTraffic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NetworkManager_ResetPortForwardTraffic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkManagerServer).ResetPortForwardTraffic(ctx, req.(*ResetPortForwardTrafficRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NetworkManager_ServiceDesc is the grpc.ServiceDesc for NetworkManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -320,6 +392,14 @@ var NetworkManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPortForwardStats",
 			Handler:    _NetworkManager_GetPortForwardStats_Handler,
+		},
+		{
+			MethodName: "ClosePortForwardConnections",
+			Handler:    _NetworkManager_ClosePortForwardConnections_Handler,
+		},
+		{
+			MethodName: "ResetPortForwardTraffic",
+			Handler:    _NetworkManager_ResetPortForwardTraffic_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

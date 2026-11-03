@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"momoko/api/gen/v1"
 	"momoko/internal/biz"
@@ -39,7 +41,8 @@ func (r *operationLogRepo) CreateOperationLog(ctx context.Context, log *v1.Opera
 	return create.Exec(ctx)
 }
 
-func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOperationLogsRequest) ([]*gen.OperationLog, int64, error) {
+// operationLogQuery 按请求条件构造查询；withSuccess=false 时忽略「是否成功」条件（用于成功/失败计数）。
+func (r *operationLogRepo) operationLogQuery(req *v1.ListOperationLogsRequest, withSuccess bool) *gen.OperationLogQuery {
 	query := r.data.db.OperationLog.Query()
 
 	if req.UserId != nil && *req.UserId != "" {
@@ -48,11 +51,22 @@ func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOp
 	if req.OperationType != nil {
 		query = query.Where(operationlog.OperationTypeEQ(req.OperationType.String()))
 	}
-	if req.Success != nil {
+	if req.Module != nil && *req.Module != "" {
+		query = query.Where(operationlog.OperationTypeHasPrefix("OperationType" + *req.Module))
+	}
+	if withSuccess && req.Success != nil {
 		query = query.Where(operationlog.SuccessEQ(*req.Success))
 	}
 	if req.Path != nil && *req.Path != "" {
 		query = query.Where(operationlog.PathEQ(*req.Path))
+	}
+	if req.Keywords != nil && strings.TrimSpace(*req.Keywords) != "" {
+		kw := strings.TrimSpace(*req.Keywords)
+		query = query.Where(operationlog.Or(
+			operationlog.PathContainsFold(kw),
+			operationlog.IPContains(kw),
+			operationlog.DetailContainsFold(kw),
+		))
 	}
 	if req.StartTime != nil {
 		query = query.Where(operationlog.OperationTimeGTE(req.StartTime.AsTime()))
@@ -60,6 +74,11 @@ func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOp
 	if req.EndTime != nil {
 		query = query.Where(operationlog.OperationTimeLTE(req.EndTime.AsTime()))
 	}
+	return query
+}
+
+func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOperationLogsRequest) ([]*gen.OperationLog, int64, error) {
+	query := r.operationLogQuery(req, true)
 
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -76,4 +95,58 @@ func (r *operationLogRepo) ListOperationLogs(ctx context.Context, req *v1.ListOp
 	}
 
 	return logs, int64(total), nil
+}
+
+// CountOperationLogsBySuccess 统计同一组条件（忽略是否成功）下的成功数与失败数。
+func (r *operationLogRepo) CountOperationLogsBySuccess(ctx context.Context, req *v1.ListOperationLogsRequest) (int64, int64, error) {
+	base := r.operationLogQuery(req, false)
+	failed, err := base.Clone().Where(operationlog.SuccessEQ(false)).Count(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+	all, err := base.Count(ctx)
+	if err != nil {
+		return 0, 0, err
+	}
+	return int64(all - failed), int64(failed), nil
+}
+
+// OperationLogStats 统计 since 之后的操作数、失败数、活跃用户数与经主控转发数，以及全部记录数和最早记录时间。
+func (r *operationLogRepo) OperationLogStats(ctx context.Context, since time.Time) (*biz.OperationLogStats, error) {
+	today := r.data.db.OperationLog.Query().Where(operationlog.OperationTimeGTE(since))
+	out := &biz.OperationLogStats{}
+	n, err := today.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out.TodayTotal = int64(n)
+	if n, err = today.Clone().Where(operationlog.SuccessEQ(false)).Count(ctx); err != nil {
+		return nil, err
+	}
+	out.TodayFailed = int64(n)
+	users, err := today.Clone().Where(operationlog.UserIDNotNil()).Unique(true).Select(operationlog.FieldUserID).Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out.TodayActiveUsers = int64(len(users))
+	if n, err = today.Clone().Where(operationlog.Or(
+		operationlog.DetailContains(`"node":"`),
+		operationlog.DetailContains(`"api_key":"`),
+	)).Count(ctx); err != nil {
+		return nil, err
+	}
+	out.TodayForwarded = int64(n)
+	if n, err = r.data.db.OperationLog.Query().Count(ctx); err != nil {
+		return nil, err
+	}
+	out.Total = int64(n)
+	if n > 0 {
+		first, err := r.data.db.OperationLog.Query().Order(gen.Asc(operationlog.FieldOperationTime)).First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		t := first.OperationTime
+		out.EarliestTime = &t
+	}
+	return out, nil
 }

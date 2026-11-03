@@ -21,6 +21,10 @@ func (Session) Fields() []ent.Field {
 		field.String("access_noise").NotEmpty().Comment("access token 随机噪声"),
 		field.String("refresh_noise").NotEmpty().Comment("refresh token 随机噪声"),
 		field.Time("expires_at").Comment("会话（refresh）过期时间"),
+		field.String("user_agent").Default("").Comment("登录时的 User-Agent"),
+		field.String("login_method").Default("").Comment("登录方式：password / email_code"),
+		field.Time("last_active_at").Optional().Nillable().Comment("最近活跃时间"),
+		field.String("last_ip").Default("").Comment("最近活跃 IP"),
 	}
 }
 

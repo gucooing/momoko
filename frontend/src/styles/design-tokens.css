@@ -1,106 +1,216 @@
 /* ============================================================
    Momoko Console · 设计令牌 (Design Tokens)
-   —— 唯一事实来源见 docs/redesign/01-design-language.md
-   本文件把 01 的数值映射到三套载体：
-     · 自建语义色 --el-*（历史命名保留，已不依赖 Element Plus）
-     · Nuxt UI v4 的 --ui-*（U* 组件读取）
+   ------------------------------------------------------------
+   六套配色（data-palette）× 浅/深（html.dark），由 themeStore 写到 <html> 上。
+   每套只定义一组品牌原色 --m-*；下方统一映射为：
+     · 自建语义色 --el-*（历史命名保留，全站组件读取）
+     · Nuxt UI v4 的 --ui-*（U* 组件读取，覆盖其 @layer theme 默认值）
      · 自建 --app-*（圆角/阴影/hairline）
-   浅色写在 :root，深色写在 html.dark。
-   本文件在 main.ts 中于公共样式之后导入；深色用 html.dark 自给。
+   --m-* 含义：
+     p 主色 · pOn 主色上的文字 · pInk 主色文字(浅底上) · pSoft 主色淡底
+     a 强调色(黄/橙) · aOn · aSoft · a2 第二强调色 · a2Soft
+     bg 页面底 · s 卡片面 · s2 次级面 · line 描边 · ink 主文字 · ink2 次文字
+     ok/warn/bad (+Soft) 语义色
+   选择器特异性：浅色 :root[data-palette] (0,2,0) < 深色 html.dark[data-palette] (0,2,1)。
    ============================================================ */
 
-:root {
-  /* ---------- 中性色 · 浅色 (01 §1.1) ---------- */
-  --el-bg-color-page: #f3f5f9; /* 冷灰页底，让白卡浮起 */
-  --el-bg-color: #ffffff; /* 卡片/面板 */
-  --el-bg-color-overlay: #ffffff; /* 浮层 */
-
-  --el-text-color-primary: #1b2333; /* 近板岩黑 */
-  --el-text-color-regular: #434c60;
-  --el-text-color-secondary: #6b7384;
-  /* placeholder 略加深，贴近 secondary，改善空态/辅助文案对比度 */
-  --el-text-color-placeholder: #7a8494;
-  --el-text-color-disabled: #a8b0bd;
-
-  --el-border-color: #e2e7ee; /* 强 */
-  --el-border-color-light: #e9edf3;
-  --el-border-color-lighter: #eef1f6; /* hairline 默认 */
-  --el-border-color-extra-light: #f4f6f9;
-
-  --el-fill-color: #eef1f6;
-  --el-fill-color-light: #f4f6f9;
-  --el-fill-color-lighter: #f8fafc;
-  --el-fill-color-blank: #ffffff;
-
-  /* ---------- 圆角 (01 §4) ---------- */
-  --app-radius-xs: 6px;
-  --app-radius-sm: 8px;
-  --app-radius: 12px;
-  --app-radius-lg: 16px;
-  --app-radius-xl: 20px;
-
-  /* ---------- 阴影 · 浅色 (01 §5) —— 静态卡尽量不投影 ---------- */
-  --app-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --app-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.05);
-  --app-shadow-md: 0 4px 8px -4px rgba(16, 24, 40, 0.08), 0 12px 28px -12px rgba(16, 24, 40, 0.14);
-  --app-shadow-lg: 0 12px 32px -12px rgba(16, 24, 40, 0.18);
-
-  /* hairline 便捷别名 */
-  --app-hairline: var(--el-border-color-lighter);
-
-  /* ---------- Nuxt UI 语义令牌映射 · 浅色 ---------- */
-  --ui-bg: var(--el-bg-color);
-  --ui-bg-muted: var(--el-fill-color-light);
-  --ui-bg-elevated: var(--el-fill-color);
-  --ui-bg-accented: var(--el-fill-color);
-  --ui-bg-inverted: var(--el-text-color-primary);
-
-  --ui-text-dimmed: var(--el-text-color-placeholder);
-  --ui-text-muted: var(--el-text-color-secondary);
-  --ui-text-toned: var(--el-text-color-regular);
-  --ui-text: var(--el-text-color-primary);
-  --ui-text-highlighted: var(--el-text-color-primary);
-  --ui-text-inverted: #ffffff;
-
-  --ui-border: var(--el-border-color-light);
-  --ui-border-muted: var(--el-border-color-lighter);
-  --ui-border-accented: var(--el-border-color);
-
-  --ui-radius: var(--app-radius-sm);
+/* ---------- 浅色 ---------- */
+:root,
+:root[data-palette='sakura'],
+[data-palette='sakura'] {
+  --m-p: #d6245f; --m-pOn: #ffffff; --m-pInk: #c8195a; --m-pSoft: #ffe3ee;
+  --m-a: #ffc93c; --m-aOn: #2a1630; --m-aSoft: #fff3cc;
+  --m-a2: #7b5cff; --m-a2Soft: #ece6ff;
+  --m-bg: #fff6f9; --m-s: #ffffff; --m-s2: #fff0f5; --m-line: #f6dce6;
+  --m-ink: #2a1630; --m-ink2: #6e5a72;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #b25e00; --m-warnSoft: #fff0d9;
+  --m-bad: #d21f3c; --m-badSoft: #ffe2e6;
+}
+:root[data-palette='mint'],
+[data-palette='mint'] {
+  --m-p: #00805f; --m-pOn: #ffffff; --m-pInk: #007a5a; --m-pSoft: #d9f7ec;
+  --m-a: #ffe14d; --m-aOn: #0f2a21; --m-aSoft: #fff8cc;
+  --m-a2: #2e9bff; --m-a2Soft: #e0f0ff;
+  --m-bg: #f3fbf7; --m-s: #ffffff; --m-s2: #eaf7f1; --m-line: #d3ede2;
+  --m-ink: #0f2a21; --m-ink2: #4f6b61;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #a35b00; --m-warnSoft: #fff2d6;
+  --m-bad: #d2263b; --m-badSoft: #ffe3e6;
+}
+:root[data-palette='volt'],
+[data-palette='volt'] {
+  --m-p: #3450ff; --m-pOn: #ffffff; --m-pInk: #2a44e6; --m-pSoft: #e3e8ff;
+  --m-a: #ff7a1a; --m-aOn: #11163a; --m-aSoft: #ffe9d9;
+  --m-a2: #00b8a9; --m-a2Soft: #d9f6f3;
+  --m-bg: #f4f6ff; --m-s: #ffffff; --m-s2: #edf0ff; --m-line: #dde2f7;
+  --m-ink: #11163a; --m-ink2: #555c80;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #b4530a; --m-warnSoft: #ffebd9;
+  --m-bad: #d32448; --m-badSoft: #ffe2e8;
+}
+:root[data-palette='grape'],
+[data-palette='grape'] {
+  --m-p: #7c3aed; --m-pOn: #ffffff; --m-pInk: #6d28d9; --m-pSoft: #efe6ff;
+  --m-a: #ffd23f; --m-aOn: #1f1436; --m-aSoft: #fff6cc;
+  --m-a2: #e8457a; --m-a2Soft: #ffe3ec;
+  --m-bg: #f8f5ff; --m-s: #ffffff; --m-s2: #f2ecff; --m-line: #e4dafa;
+  --m-ink: #1f1436; --m-ink2: #625878;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #a35b00; --m-warnSoft: #fff2d6;
+  --m-bad: #d2263b; --m-badSoft: #ffe3e6;
+}
+:root[data-palette='sunset'],
+[data-palette='sunset'] {
+  --m-p: #c2410c; --m-pOn: #ffffff; --m-pInk: #b23a0a; --m-pSoft: #ffe6d6;
+  --m-a: #ffc93c; --m-aOn: #2b1708; --m-aSoft: #fff3cc;
+  --m-a2: #2f6fed; --m-a2Soft: #e1ebff;
+  --m-bg: #fff7f0; --m-s: #ffffff; --m-s2: #fff0e5; --m-line: #f7dfcc;
+  --m-ink: #2b1708; --m-ink2: #735a4b;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #9a5a00; --m-warnSoft: #fff2d6;
+  --m-bad: #c81e3a; --m-badSoft: #ffe3e6;
+}
+:root[data-palette='classic'],
+[data-palette='classic'] {
+  --m-p: #0f7f72; --m-pOn: #ffffff; --m-pInk: #0b7266; --m-pSoft: #ddf3ef;
+  --m-a: #ffb020; --m-aOn: #1b2333; --m-aSoft: #fff1d6;
+  --m-a2: #5b6cff; --m-a2Soft: #e6e9ff;
+  --m-bg: #f3f5f9; --m-s: #ffffff; --m-s2: #eef1f6; --m-line: #e2e7ee;
+  --m-ink: #1b2333; --m-ink2: #5f6878;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #a35b00; --m-warnSoft: #fff2d6;
+  --m-bad: #d2263b; --m-badSoft: #ffe3e6;
 }
 
-/* ============================================================
-   深色 —— 干净的深板岩，忌死黑 (01 §1.2)
-   用 html.dark 提升特异性
-   ============================================================ */
-html.dark {
-  --el-bg-color-page: #0e1116;
-  --el-bg-color: #171b22;
-  --el-bg-color-overlay: #1c212b;
+/* ---------- 深色 ---------- */
+html.dark,
+html.dark[data-palette='sakura'],
+html.dark [data-palette='sakura'] {
+  --m-p: #ff4f8b; --m-pOn: #1a0b14; --m-pInk: #ff85ae; --m-pSoft: #3a1a2c;
+  --m-a: #ffd25a; --m-aOn: #1a0b14; --m-aSoft: #3a3016;
+  --m-a2: #a08bff; --m-a2Soft: #2a2245;
+  --m-bg: #140e17; --m-s: #1e1622; --m-s2: #271d2c; --m-line: #33263a;
+  --m-ink: #f8eef4; --m-ink2: #b9a6be;
+  --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffb547; --m-warnSoft: #3a2a12;
+  --m-bad: #ff6b81; --m-badSoft: #3a1720;
+}
+html.dark[data-palette='mint'],
+html.dark [data-palette='mint'] {
+  --m-p: #1fd3a0; --m-pOn: #0c1512; --m-pInk: #4be3b6; --m-pSoft: #0f3329;
+  --m-a: #ffe14d; --m-aOn: #0c1512; --m-aSoft: #33300f;
+  --m-a2: #5bb4ff; --m-a2Soft: #12283a;
+  --m-bg: #0c1512; --m-s: #13201b; --m-s2: #192a23; --m-line: #22362e;
+  --m-ink: #eaf7f2; --m-ink2: #9db8ae;
+  --m-ok: #4be3b6; --m-okSoft: #0f3329; --m-warn: #ffc14d; --m-warnSoft: #3a2e12;
+  --m-bad: #ff6b7d; --m-badSoft: #3a1820;
+}
+html.dark[data-palette='volt'],
+html.dark [data-palette='volt'] {
+  --m-p: #5b74ff; --m-pOn: #0d1024; --m-pInk: #8c9dff; --m-pSoft: #1c2350;
+  --m-a: #ff8a33; --m-aOn: #0d1024; --m-aSoft: #3a2312;
+  --m-a2: #2fd9c8; --m-a2Soft: #10302f;
+  --m-bg: #0d1024; --m-s: #161a35; --m-s2: #1d2242; --m-line: #272d52;
+  --m-ink: #eef0ff; --m-ink2: #a3a9cc;
+  --m-ok: #3edc9a; --m-okSoft: #113024; --m-warn: #ffaa55; --m-warnSoft: #3a2812;
+  --m-bad: #ff6b86; --m-badSoft: #3a1626;
+}
+html.dark[data-palette='grape'],
+html.dark [data-palette='grape'] {
+  --m-p: #a78bfa; --m-pOn: #120c1f; --m-pInk: #c4b1ff; --m-pSoft: #2a1f4a;
+  --m-a: #ffd23f; --m-aOn: #120c1f; --m-aSoft: #37300f;
+  --m-a2: #ff7ba6; --m-a2Soft: #3a1a2a;
+  --m-bg: #120c1f; --m-s: #1b1430; --m-s2: #241b3d; --m-line: #30264d;
+  --m-ink: #f2eeff; --m-ink2: #b2a8cc;
+  --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffb547; --m-warnSoft: #3a2a12;
+  --m-bad: #ff6b81; --m-badSoft: #3a1720;
+}
+html.dark[data-palette='sunset'],
+html.dark [data-palette='sunset'] {
+  --m-p: #ff7a3d; --m-pOn: #1a0f08; --m-pInk: #ffa06e; --m-pSoft: #3a2114;
+  --m-a: #ffd25a; --m-aOn: #1a0f08; --m-aSoft: #3a3016;
+  --m-a2: #6ea0ff; --m-a2Soft: #172440;
+  --m-bg: #150e09; --m-s: #22160e; --m-s2: #2c1d13; --m-line: #3a281b;
+  --m-ink: #fff1e8; --m-ink2: #c7ae9e;
+  --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffc14d; --m-warnSoft: #3a2e12;
+  --m-bad: #ff6b7d; --m-badSoft: #3a1820;
+}
+html.dark[data-palette='classic'],
+html.dark [data-palette='classic'] {
+  --m-p: #2cc4ae; --m-pOn: #0e1116; --m-pInk: #5ed8c5; --m-pSoft: #12302c;
+  --m-a: #ffb020; --m-aOn: #0e1116; --m-aSoft: #3a2e12;
+  --m-a2: #8c98ff; --m-a2Soft: #1e2348;
+  --m-bg: #0e1116; --m-s: #171b22; --m-s2: #1c212b; --m-line: #2b323d;
+  --m-ink: #e8ebf1; --m-ink2: #9aa2b1;
+  --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffc14d; --m-warnSoft: #3a2e12;
+  --m-bad: #ff6b7d; --m-badSoft: #3a1820;
+}
 
-  --el-text-color-primary: #e8ebf1;
-  --el-text-color-regular: #bcc3d0;
-  --el-text-color-secondary: #8b93a3;
-  --el-text-color-placeholder: #7a8496;
-  --el-text-color-disabled: #5a6374;
+/* ---------- 映射：--m-* → 语义令牌（浅深共用，--m-* 变化即自动跟随） ---------- */
+:root {
+  /* 中性 */
+  --el-bg-color-page: var(--m-bg);
+  --el-bg-color: var(--m-s);
+  --el-bg-color-overlay: var(--m-s);
 
-  --el-border-color: #2b323d;
-  --el-border-color-light: #262c36;
-  --el-border-color-lighter: #222831; /* hairline 默认(暗) */
-  --el-border-color-extra-light: #1c222b;
+  --el-text-color-primary: var(--m-ink);
+  --el-text-color-regular: color-mix(in srgb, var(--m-ink) 78%, var(--m-ink2));
+  --el-text-color-secondary: var(--m-ink2);
+  --el-text-color-placeholder: var(--m-ink2);
+  --el-text-color-disabled: color-mix(in srgb, var(--m-ink2) 55%, var(--m-s));
 
-  --el-fill-color: #222831;
-  --el-fill-color-light: #1c212b;
-  --el-fill-color-lighter: #191e26;
-  --el-fill-color-blank: #171b22;
+  --el-border-color: color-mix(in srgb, var(--m-line) 78%, var(--m-ink2));
+  --el-border-color-light: var(--m-line);
+  --el-border-color-lighter: color-mix(in srgb, var(--m-line) 72%, var(--m-s));
+  --el-border-color-extra-light: color-mix(in srgb, var(--m-line) 45%, var(--m-s));
 
-  /* 阴影 · 深色更深 */
-  --app-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.3);
-  --app-shadow-md: 0 4px 10px -4px rgba(0, 0, 0, 0.5), 0 12px 30px -12px rgba(0, 0, 0, 0.6);
-  --app-shadow-lg: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  --el-fill-color: color-mix(in srgb, var(--m-s2) 70%, var(--m-line));
+  --el-fill-color-light: var(--m-s2);
+  --el-fill-color-lighter: color-mix(in srgb, var(--m-s2) 50%, var(--m-s));
+  --el-fill-color-blank: var(--m-s);
 
-  /* Nuxt UI 语义令牌 · 深色 */
+  /* 品牌与语义色 */
+  --el-color-primary: var(--m-p);
+  --el-color-primary-light-3: color-mix(in srgb, var(--m-p) 70%, var(--m-s));
+  --el-color-primary-light-5: color-mix(in srgb, var(--m-p) 50%, var(--m-s));
+  --el-color-primary-light-7: color-mix(in srgb, var(--m-p) 30%, var(--m-s));
+  --el-color-primary-light-8: color-mix(in srgb, var(--m-p) 20%, var(--m-s));
+  --el-color-primary-light-9: var(--m-pSoft);
+  --el-color-primary-dark-2: var(--m-pInk);
+  --el-color-success: var(--m-ok);
+  --el-color-warning: var(--m-warn);
+  --el-color-danger: var(--m-bad);
+  --el-color-error: var(--m-bad);
+  --el-color-info: var(--m-ink2);
+
+  /* 圆角：更圆润、更年轻 */
+  --app-radius-xs: 8px;
+  --app-radius-sm: 12px;
+  --app-radius: 16px;
+  --app-radius-lg: 22px;
+  --app-radius-xl: 28px;
+  --app-radius-pill: 999px;
+
+  /* 阴影 · 浅色：静态卡几乎不投影，浮层带一点主色气息 */
+  --app-shadow-card: 0 1px 2px color-mix(in srgb, var(--m-ink) 4%, transparent);
+  --app-shadow-sm: 0 1px 2px color-mix(in srgb, var(--m-ink) 6%, transparent),
+    0 1px 3px color-mix(in srgb, var(--m-ink) 6%, transparent);
+  --app-shadow-md: 0 4px 8px -4px color-mix(in srgb, var(--m-ink) 10%, transparent),
+    0 14px 30px -12px color-mix(in srgb, var(--m-ink) 18%, transparent);
+  --app-shadow-lg: 0 16px 40px -14px color-mix(in srgb, var(--m-ink) 30%, transparent);
+  --app-shadow-brand: 0 12px 28px -12px color-mix(in srgb, var(--m-p) 70%, transparent);
+
+  --app-hairline: var(--el-border-color-lighter);
+
+  /* 字体：数字/拉丁字用 Outfit，中文走系统黑体 */
+  --app-font-sans: 'Outfit Variable', 'Outfit', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --app-font-display: 'Outfit Variable', 'Outfit', 'HarmonyOS Sans SC', 'PingFang SC',
+    'Microsoft YaHei', system-ui, sans-serif;
+  --app-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* Nuxt UI 语义令牌（非 layer，覆盖 @layer theme 中的默认值） */
+  --ui-primary: var(--m-p);
+  --ui-secondary: var(--m-a2);
+  --ui-success: var(--m-ok);
+  --ui-info: var(--m-a2);
+  --ui-warning: var(--m-warn);
+  --ui-error: var(--m-bad);
+
   --ui-bg: var(--el-bg-color);
   --ui-bg-muted: var(--el-fill-color-light);
   --ui-bg-elevated: var(--el-fill-color);
@@ -112,17 +222,31 @@ html.dark {
   --ui-text-toned: var(--el-text-color-regular);
   --ui-text: var(--el-text-color-primary);
   --ui-text-highlighted: var(--el-text-color-primary);
-  --ui-text-inverted: #0e1116;
+  --ui-text-inverted: var(--m-pOn);
 
   --ui-border: var(--el-border-color-light);
   --ui-border-muted: var(--el-border-color-lighter);
   --ui-border-accented: var(--el-border-color);
+  --ui-border-inverted: var(--el-text-color-primary);
+
+  --ui-radius: 8px;
+}
+
+html.dark {
+  --app-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.32);
+  --app-shadow-md: 0 4px 10px -4px rgba(0, 0, 0, 0.5), 0 14px 32px -12px rgba(0, 0, 0, 0.62);
+  --app-shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.72);
+  --app-shadow-brand: 0 12px 28px -12px color-mix(in srgb, var(--m-p) 45%, transparent);
+  color-scheme: dark;
 }
 
 /* ---------- 基础表面 ---------- */
 body {
   background: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
+  font-family: var(--app-font-sans);
+  transition: background-color 0.25s ease, color 0.25s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -135,13 +259,13 @@ body {
 .app-select,
 .app-textarea {
   width: 100%;
-  height: 32px;
-  padding: 0 10px;
-  font-size: 0.8125rem;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 0.875rem;
   font-family: inherit;
   color: var(--el-text-color-primary);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background: var(--el-fill-color-lighter);
+  border: 1.5px solid var(--el-border-color-light);
   border-radius: var(--app-radius-sm);
   transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
@@ -150,7 +274,7 @@ body {
 .app-textarea {
   height: auto;
   min-height: 72px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   line-height: 1.5;
   resize: vertical;
 }
@@ -167,7 +291,8 @@ body {
 .app-select:focus,
 .app-textarea:focus {
   border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 15%, transparent);
+  background: var(--el-bg-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--el-color-primary) 16%, transparent);
 }
 .app-input:disabled,
 .app-select:disabled,
@@ -198,9 +323,9 @@ html.dark .app-select {
   gap: 5px;
 }
 .app-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--el-text-color-regular);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
 }
 .app-label--required::after {
   content: '*';
@@ -269,4 +394,65 @@ a:focus-visible,
 }
 *::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* 触屏设备隐藏滚动条（仍可滑动），避免出现突兀的横条 */
+@media (pointer: coarse) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---------- 通用小工具 ---------- */
+.tnum,
+.m-num {
+  font-family: var(--app-font-display);
+  font-variant-numeric: tabular-nums;
+}
+.m-mono {
+  font-family: var(--app-font-mono);
+}
+/* 「贴纸」图标块：彩色淡底 + 轻微旋转 */
+.m-sticker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 30%;
+  font-weight: 800;
+}
+.m-sticker--p { background: var(--m-pSoft); color: var(--m-pInk); }
+.m-sticker--a { background: var(--m-aSoft); color: var(--m-aOn); }
+.m-sticker--a2 { background: var(--m-a2Soft); color: var(--m-ink); }
+.m-sticker--ok { background: var(--m-okSoft); color: var(--m-ok); }
+.m-sticker--bad { background: var(--m-badSoft); color: var(--m-bad); }
+.m-sticker--warn { background: var(--m-warnSoft); color: var(--m-warn); }
+.m-sticker--solid-p { background: var(--m-p); color: var(--m-pOn); }
+.m-sticker--solid-a { background: var(--m-a); color: var(--m-aOn); }
+.m-sticker--solid-a2 { background: var(--m-a2); color: #fff; }
+.m-sticker--solid-ink { background: var(--m-ink); color: var(--m-bg); }
+
+/* 外观 · 减少动效 */
+html.is-reduce-motion *,
+html.is-reduce-motion *::before,
+html.is-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* 深色下黄色系淡底很暗，文字改用强调色本身以保证可读 */
+html.dark .m-sticker--a {
+  color: var(--m-a);
 }

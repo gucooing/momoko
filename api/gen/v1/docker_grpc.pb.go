@@ -22,6 +22,7 @@ const (
 	DockerManager_DockerStatus_FullMethodName            = "/v1.DockerManager/DockerStatus"
 	DockerManager_GetDockerConfig_FullMethodName         = "/v1.DockerManager/GetDockerConfig"
 	DockerManager_UpdateDockerConfig_FullMethodName      = "/v1.DockerManager/UpdateDockerConfig"
+	DockerManager_TestDockerRegistryAuth_FullMethodName  = "/v1.DockerManager/TestDockerRegistryAuth"
 	DockerManager_TestDockerConfig_FullMethodName        = "/v1.DockerManager/TestDockerConfig"
 	DockerManager_ListDockerTasks_FullMethodName         = "/v1.DockerManager/ListDockerTasks"
 	DockerManager_ListDockerContainers_FullMethodName    = "/v1.DockerManager/ListDockerContainers"
@@ -45,6 +46,8 @@ const (
 	DockerManager_TagDockerImage_FullMethodName          = "/v1.DockerManager/TagDockerImage"
 	DockerManager_DeleteDockerImage_FullMethodName       = "/v1.DockerManager/DeleteDockerImage"
 	DockerManager_ImageHistory_FullMethodName            = "/v1.DockerManager/ImageHistory"
+	DockerManager_PruneDockerImages_FullMethodName       = "/v1.DockerManager/PruneDockerImages"
+	DockerManager_SearchDockerImages_FullMethodName      = "/v1.DockerManager/SearchDockerImages"
 	DockerManager_ListDockerNetworks_FullMethodName      = "/v1.DockerManager/ListDockerNetworks"
 	DockerManager_GetDockerNetwork_FullMethodName        = "/v1.DockerManager/GetDockerNetwork"
 	DockerManager_CreateDockerNetwork_FullMethodName     = "/v1.DockerManager/CreateDockerNetwork"
@@ -53,6 +56,7 @@ const (
 	DockerManager_DeleteDockerNetwork_FullMethodName     = "/v1.DockerManager/DeleteDockerNetwork"
 	DockerManager_ConnectDockerNetwork_FullMethodName    = "/v1.DockerManager/ConnectDockerNetwork"
 	DockerManager_DisconnectDockerNetwork_FullMethodName = "/v1.DockerManager/DisconnectDockerNetwork"
+	DockerManager_PruneDockerNetworks_FullMethodName     = "/v1.DockerManager/PruneDockerNetworks"
 )
 
 // DockerManagerClient is the client API for DockerManager service.
@@ -67,6 +71,8 @@ type DockerManagerClient interface {
 	GetDockerConfig(ctx context.Context, in *GetDockerConfigRequest, opts ...grpc.CallOption) (*GetDockerConfigResponse, error)
 	// 更新Docker配置
 	UpdateDockerConfig(ctx context.Context, in *UpdateDockerConfigRequest, opts ...grpc.CallOption) (*UpdateDockerConfigResponse, error)
+	// 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+	TestDockerRegistryAuth(ctx context.Context, in *TestDockerRegistryAuthRequest, opts ...grpc.CallOption) (*TestDockerRegistryAuthResponse, error)
 	// 测试Docker配置
 	TestDockerConfig(ctx context.Context, in *TestDockerConfigRequest, opts ...grpc.CallOption) (*TestDockerConfigResponse, error)
 	// 获取Docker任务列表
@@ -113,6 +119,10 @@ type DockerManagerClient interface {
 	DeleteDockerImage(ctx context.Context, in *DeleteDockerImageRequest, opts ...grpc.CallOption) (*DeleteDockerImageResponse, error)
 	// 获取镜像历史
 	ImageHistory(ctx context.Context, in *ImageHistoryRequest, opts ...grpc.CallOption) (*ImageHistoryResponse, error)
+	// 清理镜像（默认只清理悬空镜像）
+	PruneDockerImages(ctx context.Context, in *PruneDockerImagesRequest, opts ...grpc.CallOption) (*PruneDockerImagesResponse, error)
+	// 搜索镜像仓库（Docker Hub）
+	SearchDockerImages(ctx context.Context, in *SearchDockerImagesRequest, opts ...grpc.CallOption) (*SearchDockerImagesResponse, error)
 	// 获取网络列表
 	ListDockerNetworks(ctx context.Context, in *ListDockerNetworksRequest, opts ...grpc.CallOption) (*ListDockerNetworksResponse, error)
 	// 获取网络详情
@@ -129,6 +139,8 @@ type DockerManagerClient interface {
 	ConnectDockerNetwork(ctx context.Context, in *ConnectDockerNetworkRequest, opts ...grpc.CallOption) (*ConnectDockerNetworkResponse, error)
 	// 断开容器网络
 	DisconnectDockerNetwork(ctx context.Context, in *DisconnectDockerNetworkRequest, opts ...grpc.CallOption) (*DisconnectDockerNetworkResponse, error)
+	// 清理未使用的网络
+	PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...grpc.CallOption) (*PruneDockerNetworksResponse, error)
 }
 
 type dockerManagerClient struct {
@@ -163,6 +175,16 @@ func (c *dockerManagerClient) UpdateDockerConfig(ctx context.Context, in *Update
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateDockerConfigResponse)
 	err := c.cc.Invoke(ctx, DockerManager_UpdateDockerConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerManagerClient) TestDockerRegistryAuth(ctx context.Context, in *TestDockerRegistryAuthRequest, opts ...grpc.CallOption) (*TestDockerRegistryAuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TestDockerRegistryAuthResponse)
+	err := c.cc.Invoke(ctx, DockerManager_TestDockerRegistryAuth_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -399,6 +421,26 @@ func (c *dockerManagerClient) ImageHistory(ctx context.Context, in *ImageHistory
 	return out, nil
 }
 
+func (c *dockerManagerClient) PruneDockerImages(ctx context.Context, in *PruneDockerImagesRequest, opts ...grpc.CallOption) (*PruneDockerImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PruneDockerImagesResponse)
+	err := c.cc.Invoke(ctx, DockerManager_PruneDockerImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dockerManagerClient) SearchDockerImages(ctx context.Context, in *SearchDockerImagesRequest, opts ...grpc.CallOption) (*SearchDockerImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchDockerImagesResponse)
+	err := c.cc.Invoke(ctx, DockerManager_SearchDockerImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dockerManagerClient) ListDockerNetworks(ctx context.Context, in *ListDockerNetworksRequest, opts ...grpc.CallOption) (*ListDockerNetworksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListDockerNetworksResponse)
@@ -479,6 +521,16 @@ func (c *dockerManagerClient) DisconnectDockerNetwork(ctx context.Context, in *D
 	return out, nil
 }
 
+func (c *dockerManagerClient) PruneDockerNetworks(ctx context.Context, in *PruneDockerNetworksRequest, opts ...grpc.CallOption) (*PruneDockerNetworksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PruneDockerNetworksResponse)
+	err := c.cc.Invoke(ctx, DockerManager_PruneDockerNetworks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DockerManagerServer is the server API for DockerManager service.
 // All implementations must embed UnimplementedDockerManagerServer
 // for forward compatibility.
@@ -491,6 +543,8 @@ type DockerManagerServer interface {
 	GetDockerConfig(context.Context, *GetDockerConfigRequest) (*GetDockerConfigResponse, error)
 	// 更新Docker配置
 	UpdateDockerConfig(context.Context, *UpdateDockerConfigRequest) (*UpdateDockerConfigResponse, error)
+	// 验证仓库凭据（通过引擎登录仓库）；已保存的同地址凭据会同步记录验证结果
+	TestDockerRegistryAuth(context.Context, *TestDockerRegistryAuthRequest) (*TestDockerRegistryAuthResponse, error)
 	// 测试Docker配置
 	TestDockerConfig(context.Context, *TestDockerConfigRequest) (*TestDockerConfigResponse, error)
 	// 获取Docker任务列表
@@ -537,6 +591,10 @@ type DockerManagerServer interface {
 	DeleteDockerImage(context.Context, *DeleteDockerImageRequest) (*DeleteDockerImageResponse, error)
 	// 获取镜像历史
 	ImageHistory(context.Context, *ImageHistoryRequest) (*ImageHistoryResponse, error)
+	// 清理镜像（默认只清理悬空镜像）
+	PruneDockerImages(context.Context, *PruneDockerImagesRequest) (*PruneDockerImagesResponse, error)
+	// 搜索镜像仓库（Docker Hub）
+	SearchDockerImages(context.Context, *SearchDockerImagesRequest) (*SearchDockerImagesResponse, error)
 	// 获取网络列表
 	ListDockerNetworks(context.Context, *ListDockerNetworksRequest) (*ListDockerNetworksResponse, error)
 	// 获取网络详情
@@ -553,6 +611,8 @@ type DockerManagerServer interface {
 	ConnectDockerNetwork(context.Context, *ConnectDockerNetworkRequest) (*ConnectDockerNetworkResponse, error)
 	// 断开容器网络
 	DisconnectDockerNetwork(context.Context, *DisconnectDockerNetworkRequest) (*DisconnectDockerNetworkResponse, error)
+	// 清理未使用的网络
+	PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error)
 	mustEmbedUnimplementedDockerManagerServer()
 }
 
@@ -571,6 +631,9 @@ func (UnimplementedDockerManagerServer) GetDockerConfig(context.Context, *GetDoc
 }
 func (UnimplementedDockerManagerServer) UpdateDockerConfig(context.Context, *UpdateDockerConfigRequest) (*UpdateDockerConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateDockerConfig not implemented")
+}
+func (UnimplementedDockerManagerServer) TestDockerRegistryAuth(context.Context, *TestDockerRegistryAuthRequest) (*TestDockerRegistryAuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestDockerRegistryAuth not implemented")
 }
 func (UnimplementedDockerManagerServer) TestDockerConfig(context.Context, *TestDockerConfigRequest) (*TestDockerConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestDockerConfig not implemented")
@@ -641,6 +704,12 @@ func (UnimplementedDockerManagerServer) DeleteDockerImage(context.Context, *Dele
 func (UnimplementedDockerManagerServer) ImageHistory(context.Context, *ImageHistoryRequest) (*ImageHistoryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ImageHistory not implemented")
 }
+func (UnimplementedDockerManagerServer) PruneDockerImages(context.Context, *PruneDockerImagesRequest) (*PruneDockerImagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PruneDockerImages not implemented")
+}
+func (UnimplementedDockerManagerServer) SearchDockerImages(context.Context, *SearchDockerImagesRequest) (*SearchDockerImagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchDockerImages not implemented")
+}
 func (UnimplementedDockerManagerServer) ListDockerNetworks(context.Context, *ListDockerNetworksRequest) (*ListDockerNetworksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListDockerNetworks not implemented")
 }
@@ -664,6 +733,9 @@ func (UnimplementedDockerManagerServer) ConnectDockerNetwork(context.Context, *C
 }
 func (UnimplementedDockerManagerServer) DisconnectDockerNetwork(context.Context, *DisconnectDockerNetworkRequest) (*DisconnectDockerNetworkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DisconnectDockerNetwork not implemented")
+}
+func (UnimplementedDockerManagerServer) PruneDockerNetworks(context.Context, *PruneDockerNetworksRequest) (*PruneDockerNetworksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PruneDockerNetworks not implemented")
 }
 func (UnimplementedDockerManagerServer) mustEmbedUnimplementedDockerManagerServer() {}
 func (UnimplementedDockerManagerServer) testEmbeddedByValue()                       {}
@@ -736,6 +808,24 @@ func _DockerManager_UpdateDockerConfig_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DockerManagerServer).UpdateDockerConfig(ctx, req.(*UpdateDockerConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerManager_TestDockerRegistryAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestDockerRegistryAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerManagerServer).TestDockerRegistryAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DockerManager_TestDockerRegistryAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerManagerServer).TestDockerRegistryAuth(ctx, req.(*TestDockerRegistryAuthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1154,6 +1244,42 @@ func _DockerManager_ImageHistory_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerManager_PruneDockerImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PruneDockerImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerManagerServer).PruneDockerImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DockerManager_PruneDockerImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerManagerServer).PruneDockerImages(ctx, req.(*PruneDockerImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DockerManager_SearchDockerImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchDockerImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerManagerServer).SearchDockerImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DockerManager_SearchDockerImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerManagerServer).SearchDockerImages(ctx, req.(*SearchDockerImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DockerManager_ListDockerNetworks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListDockerNetworksRequest)
 	if err := dec(in); err != nil {
@@ -1298,6 +1424,24 @@ func _DockerManager_DisconnectDockerNetwork_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DockerManager_PruneDockerNetworks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PruneDockerNetworksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DockerManagerServer).PruneDockerNetworks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DockerManager_PruneDockerNetworks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DockerManagerServer).PruneDockerNetworks(ctx, req.(*PruneDockerNetworksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DockerManager_ServiceDesc is the grpc.ServiceDesc for DockerManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1316,6 +1460,10 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDockerConfig",
 			Handler:    _DockerManager_UpdateDockerConfig_Handler,
+		},
+		{
+			MethodName: "TestDockerRegistryAuth",
+			Handler:    _DockerManager_TestDockerRegistryAuth_Handler,
 		},
 		{
 			MethodName: "TestDockerConfig",
@@ -1410,6 +1558,14 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DockerManager_ImageHistory_Handler,
 		},
 		{
+			MethodName: "PruneDockerImages",
+			Handler:    _DockerManager_PruneDockerImages_Handler,
+		},
+		{
+			MethodName: "SearchDockerImages",
+			Handler:    _DockerManager_SearchDockerImages_Handler,
+		},
+		{
 			MethodName: "ListDockerNetworks",
 			Handler:    _DockerManager_ListDockerNetworks_Handler,
 		},
@@ -1440,6 +1596,10 @@ var DockerManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisconnectDockerNetwork",
 			Handler:    _DockerManager_DisconnectDockerNetwork_Handler,
+		},
+		{
+			MethodName: "PruneDockerNetworks",
+			Handler:    _DockerManager_PruneDockerNetworks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

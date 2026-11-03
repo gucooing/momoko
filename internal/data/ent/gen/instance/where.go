@@ -115,6 +115,16 @@ func AutoStart(v bool) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldAutoStart, v))
 }
 
+// AutoRestart applies equality check predicate on the "auto_restart" field. It's identical to AutoRestartEQ.
+func AutoRestart(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldAutoRestart, v))
+}
+
+// StopTimeout applies equality check predicate on the "stop_timeout" field. It's identical to StopTimeoutEQ.
+func StopTimeout(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldStopTimeout, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldCreateTime, v))
@@ -623,6 +633,56 @@ func AutoStartEQ(v bool) predicate.Instance {
 // AutoStartNEQ applies the NEQ predicate on the "auto_start" field.
 func AutoStartNEQ(v bool) predicate.Instance {
 	return predicate.Instance(sql.FieldNEQ(FieldAutoStart, v))
+}
+
+// AutoRestartEQ applies the EQ predicate on the "auto_restart" field.
+func AutoRestartEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldAutoRestart, v))
+}
+
+// AutoRestartNEQ applies the NEQ predicate on the "auto_restart" field.
+func AutoRestartNEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldAutoRestart, v))
+}
+
+// StopTimeoutEQ applies the EQ predicate on the "stop_timeout" field.
+func StopTimeoutEQ(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldStopTimeout, v))
+}
+
+// StopTimeoutNEQ applies the NEQ predicate on the "stop_timeout" field.
+func StopTimeoutNEQ(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldStopTimeout, v))
+}
+
+// StopTimeoutIn applies the In predicate on the "stop_timeout" field.
+func StopTimeoutIn(vs ...int32) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldStopTimeout, vs...))
+}
+
+// StopTimeoutNotIn applies the NotIn predicate on the "stop_timeout" field.
+func StopTimeoutNotIn(vs ...int32) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldStopTimeout, vs...))
+}
+
+// StopTimeoutGT applies the GT predicate on the "stop_timeout" field.
+func StopTimeoutGT(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldStopTimeout, v))
+}
+
+// StopTimeoutGTE applies the GTE predicate on the "stop_timeout" field.
+func StopTimeoutGTE(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldStopTimeout, v))
+}
+
+// StopTimeoutLT applies the LT predicate on the "stop_timeout" field.
+func StopTimeoutLT(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldStopTimeout, v))
+}
+
+// StopTimeoutLTE applies the LTE predicate on the "stop_timeout" field.
+func StopTimeoutLTE(v int32) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldStopTimeout, v))
 }
 
 // EnvIsNil applies the IsNil predicate on the "env" field.

@@ -320,6 +320,18 @@ func (f UserAPIKeyFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserAPIKeyMutation", m)
 }
 
+// The UserMessageFunc type is an adapter to allow the use of ordinary
+// function as UserMessage mutator.
+type UserMessageFunc func(context.Context, *gen.UserMessageMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserMessageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.UserMessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMessageMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, gen.Mutation) bool
 

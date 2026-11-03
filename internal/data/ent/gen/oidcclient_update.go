@@ -115,6 +115,40 @@ func (_u *OIDCClientUpdate) SetNillableActive(v *bool) *OIDCClientUpdate {
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *OIDCClientUpdate) SetDescription(v string) *OIDCClientUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *OIDCClientUpdate) SetNillableDescription(v *string) *OIDCClientUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (_u *OIDCClientUpdate) SetLastUsedTime(v time.Time) *OIDCClientUpdate {
+	_u.mutation.SetLastUsedTime(v)
+	return _u
+}
+
+// SetNillableLastUsedTime sets the "last_used_time" field if the given value is not nil.
+func (_u *OIDCClientUpdate) SetNillableLastUsedTime(v *time.Time) *OIDCClientUpdate {
+	if v != nil {
+		_u.SetLastUsedTime(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedTime clears the value of the "last_used_time" field.
+func (_u *OIDCClientUpdate) ClearLastUsedTime() *OIDCClientUpdate {
+	_u.mutation.ClearLastUsedTime()
+	return _u
+}
+
 // Mutation returns the OIDCClientMutation object of the builder.
 func (_u *OIDCClientUpdate) Mutation() *OIDCClientMutation {
 	return _u.mutation
@@ -219,6 +253,15 @@ func (_u *OIDCClientUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(oidcclient.FieldActive, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(oidcclient.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastUsedTime(); ok {
+		_spec.SetField(oidcclient.FieldLastUsedTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedTimeCleared() {
+		_spec.ClearField(oidcclient.FieldLastUsedTime, field.TypeTime)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{oidcclient.Label}
@@ -322,6 +365,40 @@ func (_u *OIDCClientUpdateOne) SetNillableActive(v *bool) *OIDCClientUpdateOne {
 	if v != nil {
 		_u.SetActive(*v)
 	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *OIDCClientUpdateOne) SetDescription(v string) *OIDCClientUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *OIDCClientUpdateOne) SetNillableDescription(v *string) *OIDCClientUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetLastUsedTime sets the "last_used_time" field.
+func (_u *OIDCClientUpdateOne) SetLastUsedTime(v time.Time) *OIDCClientUpdateOne {
+	_u.mutation.SetLastUsedTime(v)
+	return _u
+}
+
+// SetNillableLastUsedTime sets the "last_used_time" field if the given value is not nil.
+func (_u *OIDCClientUpdateOne) SetNillableLastUsedTime(v *time.Time) *OIDCClientUpdateOne {
+	if v != nil {
+		_u.SetLastUsedTime(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedTime clears the value of the "last_used_time" field.
+func (_u *OIDCClientUpdateOne) ClearLastUsedTime() *OIDCClientUpdateOne {
+	_u.mutation.ClearLastUsedTime()
 	return _u
 }
 
@@ -458,6 +535,15 @@ func (_u *OIDCClientUpdateOne) sqlSave(ctx context.Context) (_node *OIDCClient, 
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(oidcclient.FieldActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(oidcclient.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastUsedTime(); ok {
+		_spec.SetField(oidcclient.FieldLastUsedTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedTimeCleared() {
+		_spec.ClearField(oidcclient.FieldLastUsedTime, field.TypeTime)
 	}
 	_node = &OIDCClient{config: _u.config}
 	_spec.Assign = _node.assignValues

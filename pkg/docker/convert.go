@@ -200,7 +200,41 @@ func toImageInfo(data imagetypes.InspectResponse) *v1.DockerImageInfo {
 		VirtualSize:  data.VirtualSize,
 		Labels:       labels,
 		Layers:       append([]string(nil), data.RootFS.Layers...),
+		ExposedPorts: imageExposedPorts(data),
+		Cmd:          imageCmd(data),
+		Volumes:      imageVolumes(data),
 	}
+}
+
+func imageExposedPorts(data imagetypes.InspectResponse) []string {
+	if data.Config == nil {
+		return nil
+	}
+	ports := make([]string, 0, len(data.Config.ExposedPorts))
+	for port := range data.Config.ExposedPorts {
+		ports = append(ports, string(port))
+	}
+	sort.Strings(ports)
+	return ports
+}
+
+func imageCmd(data imagetypes.InspectResponse) []string {
+	if data.Config == nil {
+		return nil
+	}
+	return append([]string(nil), data.Config.Cmd...)
+}
+
+func imageVolumes(data imagetypes.InspectResponse) []string {
+	if data.Config == nil {
+		return nil
+	}
+	volumes := make([]string, 0, len(data.Config.Volumes))
+	for v := range data.Config.Volumes {
+		volumes = append(volumes, v)
+	}
+	sort.Strings(volumes)
+	return volumes
 }
 
 func toImageHistory(data imagetypes.HistoryResponseItem) *v1.DockerImageHistoryItem {
@@ -240,6 +274,7 @@ func toNetworkInfo(data networktypes.Inspect) *v1.DockerNetworkInfo {
 		Containers: containers,
 		Options:    cloneStringMap(data.Options),
 		Labels:     cloneStringMap(data.Labels),
+		Builtin:    isBuiltinNetwork(data.Name),
 	}
 }
 

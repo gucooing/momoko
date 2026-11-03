@@ -37,7 +37,9 @@ type OIDCConfig struct {
 	// Authorization Code 有效期，单位秒
 	AuthorizationCodeTtlSeconds int64 `protobuf:"varint,5,opt,name=authorization_code_ttl_seconds,json=authorizationCodeTtlSeconds,proto3" json:"authorization_code_ttl_seconds,omitempty"`
 	// 根据 Issuer URL 自动生成的 OIDC 端点配置
-	Endpoints     *OIDCEndpoints `protobuf:"bytes,6,opt,name=endpoints,proto3" json:"endpoints,omitempty"`
+	Endpoints *OIDCEndpoints `protobuf:"bytes,6,opt,name=endpoints,proto3" json:"endpoints,omitempty"`
+	// 当前签名密钥
+	SigningKey    *OIDCSigningKey `protobuf:"bytes,7,opt,name=signing_key,json=signingKey,proto3" json:"signing_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -114,6 +116,77 @@ func (x *OIDCConfig) GetEndpoints() *OIDCEndpoints {
 	return nil
 }
 
+func (x *OIDCConfig) GetSigningKey() *OIDCSigningKey {
+	if x != nil {
+		return x.SigningKey
+	}
+	return nil
+}
+
+// OIDC 签名密钥信息（只含公开信息）
+type OIDCSigningKey struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 签名算法
+	Algorithm string `protobuf:"bytes,1,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
+	// 密钥 ID（JWKS kid）
+	KeyId string `protobuf:"bytes,2,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	// 生成/轮换时间；为空表示尚未生成
+	RotatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=rotated_at,json=rotatedAt,proto3" json:"rotated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OIDCSigningKey) Reset() {
+	*x = OIDCSigningKey{}
+	mi := &file_v1_oidc_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OIDCSigningKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OIDCSigningKey) ProtoMessage() {}
+
+func (x *OIDCSigningKey) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_oidc_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OIDCSigningKey.ProtoReflect.Descriptor instead.
+func (*OIDCSigningKey) Descriptor() ([]byte, []int) {
+	return file_v1_oidc_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *OIDCSigningKey) GetAlgorithm() string {
+	if x != nil {
+		return x.Algorithm
+	}
+	return ""
+}
+
+func (x *OIDCSigningKey) GetKeyId() string {
+	if x != nil {
+		return x.KeyId
+	}
+	return ""
+}
+
+func (x *OIDCSigningKey) GetRotatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RotatedAt
+	}
+	return nil
+}
+
 // OIDC 客户端接入所需端点信息
 type OIDCEndpoints struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -147,7 +220,7 @@ type OIDCEndpoints struct {
 
 func (x *OIDCEndpoints) Reset() {
 	*x = OIDCEndpoints{}
-	mi := &file_v1_oidc_proto_msgTypes[1]
+	mi := &file_v1_oidc_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -159,7 +232,7 @@ func (x *OIDCEndpoints) String() string {
 func (*OIDCEndpoints) ProtoMessage() {}
 
 func (x *OIDCEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[1]
+	mi := &file_v1_oidc_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -172,7 +245,7 @@ func (x *OIDCEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCEndpoints.ProtoReflect.Descriptor instead.
 func (*OIDCEndpoints) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{1}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *OIDCEndpoints) GetProviderName() string {
@@ -268,7 +341,7 @@ type OIDCConfigRequest struct {
 
 func (x *OIDCConfigRequest) Reset() {
 	*x = OIDCConfigRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[2]
+	mi := &file_v1_oidc_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -280,7 +353,7 @@ func (x *OIDCConfigRequest) String() string {
 func (*OIDCConfigRequest) ProtoMessage() {}
 
 func (x *OIDCConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[2]
+	mi := &file_v1_oidc_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -293,7 +366,7 @@ func (x *OIDCConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCConfigRequest.ProtoReflect.Descriptor instead.
 func (*OIDCConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{2}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{3}
 }
 
 // 获取 OIDC 配置响应
@@ -307,7 +380,7 @@ type OIDCConfigResponse struct {
 
 func (x *OIDCConfigResponse) Reset() {
 	*x = OIDCConfigResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[3]
+	mi := &file_v1_oidc_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +392,7 @@ func (x *OIDCConfigResponse) String() string {
 func (*OIDCConfigResponse) ProtoMessage() {}
 
 func (x *OIDCConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[3]
+	mi := &file_v1_oidc_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +405,7 @@ func (x *OIDCConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCConfigResponse.ProtoReflect.Descriptor instead.
 func (*OIDCConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{3}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *OIDCConfigResponse) GetConfig() *OIDCConfig {
@@ -361,7 +434,7 @@ type UpdateOIDCConfigRequest struct {
 
 func (x *UpdateOIDCConfigRequest) Reset() {
 	*x = UpdateOIDCConfigRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[4]
+	mi := &file_v1_oidc_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -373,7 +446,7 @@ func (x *UpdateOIDCConfigRequest) String() string {
 func (*UpdateOIDCConfigRequest) ProtoMessage() {}
 
 func (x *UpdateOIDCConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[4]
+	mi := &file_v1_oidc_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -386,7 +459,7 @@ func (x *UpdateOIDCConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOIDCConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOIDCConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{4}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateOIDCConfigRequest) GetEnabled() bool {
@@ -435,7 +508,7 @@ type UpdateOIDCConfigResponse struct {
 
 func (x *UpdateOIDCConfigResponse) Reset() {
 	*x = UpdateOIDCConfigResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[5]
+	mi := &file_v1_oidc_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +520,7 @@ func (x *UpdateOIDCConfigResponse) String() string {
 func (*UpdateOIDCConfigResponse) ProtoMessage() {}
 
 func (x *UpdateOIDCConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[5]
+	mi := &file_v1_oidc_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +533,7 @@ func (x *UpdateOIDCConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOIDCConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOIDCConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{5}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateOIDCConfigResponse) GetConfig() *OIDCConfig {
@@ -490,14 +563,18 @@ type OIDCClientInfo struct {
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 描述
+	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
+	// 最近一次成功换取令牌的时间；为空表示从未使用
+	LastUsedTime  *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=last_used_time,json=lastUsedTime,proto3" json:"last_used_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OIDCClientInfo) Reset() {
 	*x = OIDCClientInfo{}
-	mi := &file_v1_oidc_proto_msgTypes[6]
+	mi := &file_v1_oidc_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +586,7 @@ func (x *OIDCClientInfo) String() string {
 func (*OIDCClientInfo) ProtoMessage() {}
 
 func (x *OIDCClientInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[6]
+	mi := &file_v1_oidc_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +599,7 @@ func (x *OIDCClientInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCClientInfo.ProtoReflect.Descriptor instead.
 func (*OIDCClientInfo) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{6}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *OIDCClientInfo) GetId() string {
@@ -588,6 +665,20 @@ func (x *OIDCClientInfo) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *OIDCClientInfo) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *OIDCClientInfo) GetLastUsedTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastUsedTime
+	}
+	return nil
+}
+
 // 获取 OIDC 客户端列表请求
 type ListOIDCClientsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -595,15 +686,17 @@ type ListOIDCClientsRequest struct {
 	Page int64 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	// 每页数量
 	PageSize int64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// 客户端名称关键字
-	Keywords      *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 关键字：匹配名称、描述、Client ID
+	Keywords *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 按启用状态过滤
+	Active        *bool `protobuf:"varint,4,opt,name=active,proto3,oneof" json:"active,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOIDCClientsRequest) Reset() {
 	*x = ListOIDCClientsRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[7]
+	mi := &file_v1_oidc_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -615,7 +708,7 @@ func (x *ListOIDCClientsRequest) String() string {
 func (*ListOIDCClientsRequest) ProtoMessage() {}
 
 func (x *ListOIDCClientsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[7]
+	mi := &file_v1_oidc_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -628,7 +721,7 @@ func (x *ListOIDCClientsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOIDCClientsRequest.ProtoReflect.Descriptor instead.
 func (*ListOIDCClientsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{7}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListOIDCClientsRequest) GetPage() int64 {
@@ -652,6 +745,13 @@ func (x *ListOIDCClientsRequest) GetKeywords() string {
 	return ""
 }
 
+func (x *ListOIDCClientsRequest) GetActive() bool {
+	if x != nil && x.Active != nil {
+		return *x.Active
+	}
+	return false
+}
+
 // 获取 OIDC 客户端列表响应
 type ListOIDCClientsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -662,14 +762,18 @@ type ListOIDCClientsResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 客户端列表
-	Clients       []*OIDCClientInfo `protobuf:"bytes,4,rep,name=clients,proto3" json:"clients,omitempty"`
+	Clients []*OIDCClientInfo `protobuf:"bytes,4,rep,name=clients,proto3" json:"clients,omitempty"`
+	// 同一关键字下的全部数量（不受启用过滤影响）
+	AllCount int64 `protobuf:"varint,5,opt,name=all_count,json=allCount,proto3" json:"all_count,omitempty"`
+	// 同一关键字下已启用数量
+	ActiveCount   int64 `protobuf:"varint,6,opt,name=active_count,json=activeCount,proto3" json:"active_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListOIDCClientsResponse) Reset() {
 	*x = ListOIDCClientsResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[8]
+	mi := &file_v1_oidc_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -681,7 +785,7 @@ func (x *ListOIDCClientsResponse) String() string {
 func (*ListOIDCClientsResponse) ProtoMessage() {}
 
 func (x *ListOIDCClientsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[8]
+	mi := &file_v1_oidc_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +798,7 @@ func (x *ListOIDCClientsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOIDCClientsResponse.ProtoReflect.Descriptor instead.
 func (*ListOIDCClientsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{8}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListOIDCClientsResponse) GetPage() int64 {
@@ -725,6 +829,20 @@ func (x *ListOIDCClientsResponse) GetClients() []*OIDCClientInfo {
 	return nil
 }
 
+func (x *ListOIDCClientsResponse) GetAllCount() int64 {
+	if x != nil {
+		return x.AllCount
+	}
+	return 0
+}
+
+func (x *ListOIDCClientsResponse) GetActiveCount() int64 {
+	if x != nil {
+		return x.ActiveCount
+	}
+	return 0
+}
+
 // 创建 OIDC 客户端请求
 type CreateOIDCClientRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -735,14 +853,16 @@ type CreateOIDCClientRequest struct {
 	// 允许的 scopes；为空时使用 openid email profile
 	Scopes []string `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"`
 	// 是否启用
-	Active        bool `protobuf:"varint,4,opt,name=active,proto3" json:"active,omitempty"`
+	Active bool `protobuf:"varint,4,opt,name=active,proto3" json:"active,omitempty"`
+	// 描述
+	Description   string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOIDCClientRequest) Reset() {
 	*x = CreateOIDCClientRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[9]
+	mi := &file_v1_oidc_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -754,7 +874,7 @@ func (x *CreateOIDCClientRequest) String() string {
 func (*CreateOIDCClientRequest) ProtoMessage() {}
 
 func (x *CreateOIDCClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[9]
+	mi := &file_v1_oidc_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -767,7 +887,7 @@ func (x *CreateOIDCClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOIDCClientRequest.ProtoReflect.Descriptor instead.
 func (*CreateOIDCClientRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{9}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateOIDCClientRequest) GetName() string {
@@ -798,6 +918,13 @@ func (x *CreateOIDCClientRequest) GetActive() bool {
 	return false
 }
 
+func (x *CreateOIDCClientRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 // 创建 OIDC 客户端响应
 type CreateOIDCClientResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -809,7 +936,7 @@ type CreateOIDCClientResponse struct {
 
 func (x *CreateOIDCClientResponse) Reset() {
 	*x = CreateOIDCClientResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[10]
+	mi := &file_v1_oidc_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -821,7 +948,7 @@ func (x *CreateOIDCClientResponse) String() string {
 func (*CreateOIDCClientResponse) ProtoMessage() {}
 
 func (x *CreateOIDCClientResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[10]
+	mi := &file_v1_oidc_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -834,7 +961,7 @@ func (x *CreateOIDCClientResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOIDCClientResponse.ProtoReflect.Descriptor instead.
 func (*CreateOIDCClientResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{10}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CreateOIDCClientResponse) GetClient() *OIDCClientInfo {
@@ -856,14 +983,16 @@ type UpdateOIDCClientRequest struct {
 	// 允许的 scopes；必须包含 openid
 	Scopes []string `protobuf:"bytes,4,rep,name=scopes,proto3" json:"scopes,omitempty"`
 	// 是否启用
-	Active        bool `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
+	Active bool `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
+	// 描述
+	Description   string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateOIDCClientRequest) Reset() {
 	*x = UpdateOIDCClientRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[11]
+	mi := &file_v1_oidc_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -875,7 +1004,7 @@ func (x *UpdateOIDCClientRequest) String() string {
 func (*UpdateOIDCClientRequest) ProtoMessage() {}
 
 func (x *UpdateOIDCClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[11]
+	mi := &file_v1_oidc_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -888,7 +1017,7 @@ func (x *UpdateOIDCClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOIDCClientRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOIDCClientRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{11}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpdateOIDCClientRequest) GetId() string {
@@ -926,6 +1055,13 @@ func (x *UpdateOIDCClientRequest) GetActive() bool {
 	return false
 }
 
+func (x *UpdateOIDCClientRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 // 更新 OIDC 客户端响应
 type UpdateOIDCClientResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -937,7 +1073,7 @@ type UpdateOIDCClientResponse struct {
 
 func (x *UpdateOIDCClientResponse) Reset() {
 	*x = UpdateOIDCClientResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[12]
+	mi := &file_v1_oidc_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -949,7 +1085,7 @@ func (x *UpdateOIDCClientResponse) String() string {
 func (*UpdateOIDCClientResponse) ProtoMessage() {}
 
 func (x *UpdateOIDCClientResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[12]
+	mi := &file_v1_oidc_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +1098,7 @@ func (x *UpdateOIDCClientResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOIDCClientResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOIDCClientResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{12}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpdateOIDCClientResponse) GetClient() *OIDCClientInfo {
@@ -983,7 +1119,7 @@ type DeleteOIDCClientRequest struct {
 
 func (x *DeleteOIDCClientRequest) Reset() {
 	*x = DeleteOIDCClientRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[13]
+	mi := &file_v1_oidc_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -995,7 +1131,7 @@ func (x *DeleteOIDCClientRequest) String() string {
 func (*DeleteOIDCClientRequest) ProtoMessage() {}
 
 func (x *DeleteOIDCClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[13]
+	mi := &file_v1_oidc_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1008,7 +1144,7 @@ func (x *DeleteOIDCClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOIDCClientRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOIDCClientRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{13}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DeleteOIDCClientRequest) GetId() string {
@@ -1027,7 +1163,7 @@ type DeleteOIDCClientResponse struct {
 
 func (x *DeleteOIDCClientResponse) Reset() {
 	*x = DeleteOIDCClientResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[14]
+	mi := &file_v1_oidc_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1039,7 +1175,7 @@ func (x *DeleteOIDCClientResponse) String() string {
 func (*DeleteOIDCClientResponse) ProtoMessage() {}
 
 func (x *DeleteOIDCClientResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[14]
+	mi := &file_v1_oidc_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1052,7 +1188,7 @@ func (x *DeleteOIDCClientResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOIDCClientResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOIDCClientResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{14}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{15}
 }
 
 // 刷新 OIDC Client Secret 请求
@@ -1066,7 +1202,7 @@ type RefreshOIDCClientSecretRequest struct {
 
 func (x *RefreshOIDCClientSecretRequest) Reset() {
 	*x = RefreshOIDCClientSecretRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[15]
+	mi := &file_v1_oidc_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1078,7 +1214,7 @@ func (x *RefreshOIDCClientSecretRequest) String() string {
 func (*RefreshOIDCClientSecretRequest) ProtoMessage() {}
 
 func (x *RefreshOIDCClientSecretRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[15]
+	mi := &file_v1_oidc_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1091,7 +1227,7 @@ func (x *RefreshOIDCClientSecretRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshOIDCClientSecretRequest.ProtoReflect.Descriptor instead.
 func (*RefreshOIDCClientSecretRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{15}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *RefreshOIDCClientSecretRequest) GetId() string {
@@ -1112,7 +1248,7 @@ type RefreshOIDCClientSecretResponse struct {
 
 func (x *RefreshOIDCClientSecretResponse) Reset() {
 	*x = RefreshOIDCClientSecretResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[16]
+	mi := &file_v1_oidc_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1124,7 +1260,7 @@ func (x *RefreshOIDCClientSecretResponse) String() string {
 func (*RefreshOIDCClientSecretResponse) ProtoMessage() {}
 
 func (x *RefreshOIDCClientSecretResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[16]
+	mi := &file_v1_oidc_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1137,12 +1273,95 @@ func (x *RefreshOIDCClientSecretResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshOIDCClientSecretResponse.ProtoReflect.Descriptor instead.
 func (*RefreshOIDCClientSecretResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{16}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RefreshOIDCClientSecretResponse) GetClient() *OIDCClientInfo {
 	if x != nil {
 		return x.Client
+	}
+	return nil
+}
+
+// 轮换签名密钥请求
+type RotateOIDCSigningKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RotateOIDCSigningKeyRequest) Reset() {
+	*x = RotateOIDCSigningKeyRequest{}
+	mi := &file_v1_oidc_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateOIDCSigningKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateOIDCSigningKeyRequest) ProtoMessage() {}
+
+func (x *RotateOIDCSigningKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_oidc_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateOIDCSigningKeyRequest.ProtoReflect.Descriptor instead.
+func (*RotateOIDCSigningKeyRequest) Descriptor() ([]byte, []int) {
+	return file_v1_oidc_proto_rawDescGZIP(), []int{18}
+}
+
+// 轮换签名密钥响应
+type RotateOIDCSigningKeyResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 新的签名密钥信息
+	SigningKey    *OIDCSigningKey `protobuf:"bytes,1,opt,name=signing_key,json=signingKey,proto3" json:"signing_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RotateOIDCSigningKeyResponse) Reset() {
+	*x = RotateOIDCSigningKeyResponse{}
+	mi := &file_v1_oidc_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateOIDCSigningKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateOIDCSigningKeyResponse) ProtoMessage() {}
+
+func (x *RotateOIDCSigningKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_oidc_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateOIDCSigningKeyResponse.ProtoReflect.Descriptor instead.
+func (*RotateOIDCSigningKeyResponse) Descriptor() ([]byte, []int) {
+	return file_v1_oidc_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *RotateOIDCSigningKeyResponse) GetSigningKey() *OIDCSigningKey {
+	if x != nil {
+		return x.SigningKey
 	}
 	return nil
 }
@@ -1164,7 +1383,7 @@ type OIDCAuthorizationInfoRequest struct {
 
 func (x *OIDCAuthorizationInfoRequest) Reset() {
 	*x = OIDCAuthorizationInfoRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[17]
+	mi := &file_v1_oidc_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1176,7 +1395,7 @@ func (x *OIDCAuthorizationInfoRequest) String() string {
 func (*OIDCAuthorizationInfoRequest) ProtoMessage() {}
 
 func (x *OIDCAuthorizationInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[17]
+	mi := &file_v1_oidc_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1189,7 +1408,7 @@ func (x *OIDCAuthorizationInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCAuthorizationInfoRequest.ProtoReflect.Descriptor instead.
 func (*OIDCAuthorizationInfoRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{17}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *OIDCAuthorizationInfoRequest) GetResponseType() string {
@@ -1230,14 +1449,18 @@ type OIDCAuthorizationInfo struct {
 	// 当前授权请求的回调地址
 	RedirectUri string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 	// 当前授权请求的 scopes
-	Scope         string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
+	Scope string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
+	// 客户端描述，用于授权确认页展示
+	ClientDescription string `protobuf:"bytes,5,opt,name=client_description,json=clientDescription,proto3" json:"client_description,omitempty"`
+	// 身份服务 Issuer URL，用于授权确认页页脚展示
+	IssuerUrl     string `protobuf:"bytes,6,opt,name=issuer_url,json=issuerUrl,proto3" json:"issuer_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OIDCAuthorizationInfo) Reset() {
 	*x = OIDCAuthorizationInfo{}
-	mi := &file_v1_oidc_proto_msgTypes[18]
+	mi := &file_v1_oidc_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1249,7 +1472,7 @@ func (x *OIDCAuthorizationInfo) String() string {
 func (*OIDCAuthorizationInfo) ProtoMessage() {}
 
 func (x *OIDCAuthorizationInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[18]
+	mi := &file_v1_oidc_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1262,7 +1485,7 @@ func (x *OIDCAuthorizationInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCAuthorizationInfo.ProtoReflect.Descriptor instead.
 func (*OIDCAuthorizationInfo) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{18}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OIDCAuthorizationInfo) GetClientName() string {
@@ -1293,6 +1516,20 @@ func (x *OIDCAuthorizationInfo) GetScope() string {
 	return ""
 }
 
+func (x *OIDCAuthorizationInfo) GetClientDescription() string {
+	if x != nil {
+		return x.ClientDescription
+	}
+	return ""
+}
+
+func (x *OIDCAuthorizationInfo) GetIssuerUrl() string {
+	if x != nil {
+		return x.IssuerUrl
+	}
+	return ""
+}
+
 // 获取 OIDC 授权页展示信息响应
 type OIDCAuthorizationInfoResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1304,7 +1541,7 @@ type OIDCAuthorizationInfoResponse struct {
 
 func (x *OIDCAuthorizationInfoResponse) Reset() {
 	*x = OIDCAuthorizationInfoResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[19]
+	mi := &file_v1_oidc_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1316,7 +1553,7 @@ func (x *OIDCAuthorizationInfoResponse) String() string {
 func (*OIDCAuthorizationInfoResponse) ProtoMessage() {}
 
 func (x *OIDCAuthorizationInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[19]
+	mi := &file_v1_oidc_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1329,7 +1566,7 @@ func (x *OIDCAuthorizationInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCAuthorizationInfoResponse.ProtoReflect.Descriptor instead.
 func (*OIDCAuthorizationInfoResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{19}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *OIDCAuthorizationInfoResponse) GetInfo() *OIDCAuthorizationInfo {
@@ -1364,7 +1601,7 @@ type CreateOIDCAuthorizationCodeRequest struct {
 
 func (x *CreateOIDCAuthorizationCodeRequest) Reset() {
 	*x = CreateOIDCAuthorizationCodeRequest{}
-	mi := &file_v1_oidc_proto_msgTypes[20]
+	mi := &file_v1_oidc_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1376,7 +1613,7 @@ func (x *CreateOIDCAuthorizationCodeRequest) String() string {
 func (*CreateOIDCAuthorizationCodeRequest) ProtoMessage() {}
 
 func (x *CreateOIDCAuthorizationCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[20]
+	mi := &file_v1_oidc_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1389,7 +1626,7 @@ func (x *CreateOIDCAuthorizationCodeRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateOIDCAuthorizationCodeRequest.ProtoReflect.Descriptor instead.
 func (*CreateOIDCAuthorizationCodeRequest) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{20}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateOIDCAuthorizationCodeRequest) GetResponseType() string {
@@ -1459,7 +1696,7 @@ type CreateOIDCAuthorizationCodeResponse struct {
 
 func (x *CreateOIDCAuthorizationCodeResponse) Reset() {
 	*x = CreateOIDCAuthorizationCodeResponse{}
-	mi := &file_v1_oidc_proto_msgTypes[21]
+	mi := &file_v1_oidc_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1471,7 +1708,7 @@ func (x *CreateOIDCAuthorizationCodeResponse) String() string {
 func (*CreateOIDCAuthorizationCodeResponse) ProtoMessage() {}
 
 func (x *CreateOIDCAuthorizationCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_oidc_proto_msgTypes[21]
+	mi := &file_v1_oidc_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +1721,7 @@ func (x *CreateOIDCAuthorizationCodeResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateOIDCAuthorizationCodeResponse.ProtoReflect.Descriptor instead.
 func (*CreateOIDCAuthorizationCodeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_oidc_proto_rawDescGZIP(), []int{21}
+	return file_v1_oidc_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateOIDCAuthorizationCodeResponse) GetRedirectUrl() string {
@@ -1498,7 +1735,7 @@ var File_v1_oidc_proto protoreflect.FileDescriptor
 
 const file_v1_oidc_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/oidc.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa5\x02\n" +
+	"\rv1/oidc.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xda\x02\n" +
 	"\n" +
 	"OIDCConfig\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1d\n" +
@@ -1507,7 +1744,14 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\x18access_token_ttl_seconds\x18\x03 \x01(\x03R\x15accessTokenTtlSeconds\x12/\n" +
 	"\x14id_token_ttl_seconds\x18\x04 \x01(\x03R\x11idTokenTtlSeconds\x12C\n" +
 	"\x1eauthorization_code_ttl_seconds\x18\x05 \x01(\x03R\x1bauthorizationCodeTtlSeconds\x12/\n" +
-	"\tendpoints\x18\x06 \x01(\v2\x11.v1.OIDCEndpointsR\tendpoints\"\xf3\x03\n" +
+	"\tendpoints\x18\x06 \x01(\v2\x11.v1.OIDCEndpointsR\tendpoints\x123\n" +
+	"\vsigning_key\x18\a \x01(\v2\x12.v1.OIDCSigningKeyR\n" +
+	"signingKey\"\x80\x01\n" +
+	"\x0eOIDCSigningKey\x12\x1c\n" +
+	"\talgorithm\x18\x01 \x01(\tR\talgorithm\x12\x15\n" +
+	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x129\n" +
+	"\n" +
+	"rotated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\trotatedAt\"\xf3\x03\n" +
 	"\rOIDCEndpoints\x12#\n" +
 	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12\x1d\n" +
 	"\n" +
@@ -1534,7 +1778,7 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\x14id_token_ttl_seconds\x18\x04 \x01(\x03R\x11idTokenTtlSeconds\x12C\n" +
 	"\x1eauthorization_code_ttl_seconds\x18\x05 \x01(\x03R\x1bauthorizationCodeTtlSeconds\"B\n" +
 	"\x18UpdateOIDCConfigResponse\x12&\n" +
-	"\x06config\x18\x01 \x01(\v2\x0e.v1.OIDCConfigR\x06config\"\xc5\x02\n" +
+	"\x06config\x18\x01 \x01(\v2\x0e.v1.OIDCConfigR\x06config\"\xa9\x03\n" +
 	"\x0eOIDCClientInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
@@ -1546,30 +1790,39 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\vcreate_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"w\n" +
+	"updateTime\x12 \n" +
+	"\vdescription\x18\n" +
+	" \x01(\tR\vdescription\x12@\n" +
+	"\x0elast_used_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\flastUsedTime\"\x9f\x01\n" +
 	"\x16ListOIDCClientsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
-	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01B\v\n" +
-	"\t_keywords\"\x8e\x01\n" +
+	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01\x12\x1b\n" +
+	"\x06active\x18\x04 \x01(\bH\x01R\x06active\x88\x01\x01B\v\n" +
+	"\t_keywordsB\t\n" +
+	"\a_active\"\xce\x01\n" +
 	"\x17ListOIDCClientsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12,\n" +
-	"\aclients\x18\x04 \x03(\v2\x12.v1.OIDCClientInfoR\aclients\"\x82\x01\n" +
+	"\aclients\x18\x04 \x03(\v2\x12.v1.OIDCClientInfoR\aclients\x12\x1b\n" +
+	"\tall_count\x18\x05 \x01(\x03R\ballCount\x12!\n" +
+	"\factive_count\x18\x06 \x01(\x03R\vactiveCount\"\xa4\x01\n" +
 	"\x17CreateOIDCClientRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\rredirect_uris\x18\x02 \x03(\tR\fredirectUris\x12\x16\n" +
 	"\x06scopes\x18\x03 \x03(\tR\x06scopes\x12\x16\n" +
-	"\x06active\x18\x04 \x01(\bR\x06active\"F\n" +
+	"\x06active\x18\x04 \x01(\bR\x06active\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\"F\n" +
 	"\x18CreateOIDCClientResponse\x12*\n" +
-	"\x06client\x18\x01 \x01(\v2\x12.v1.OIDCClientInfoR\x06client\"\x92\x01\n" +
+	"\x06client\x18\x01 \x01(\v2\x12.v1.OIDCClientInfoR\x06client\"\xb4\x01\n" +
 	"\x17UpdateOIDCClientRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
 	"\rredirect_uris\x18\x03 \x03(\tR\fredirectUris\x12\x16\n" +
 	"\x06scopes\x18\x04 \x03(\tR\x06scopes\x12\x16\n" +
-	"\x06active\x18\x05 \x01(\bR\x06active\"F\n" +
+	"\x06active\x18\x05 \x01(\bR\x06active\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\"F\n" +
 	"\x18UpdateOIDCClientResponse\x12*\n" +
 	"\x06client\x18\x01 \x01(\v2\x12.v1.OIDCClientInfoR\x06client\")\n" +
 	"\x17DeleteOIDCClientRequest\x12\x0e\n" +
@@ -1578,18 +1831,25 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\x1eRefreshOIDCClientSecretRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"M\n" +
 	"\x1fRefreshOIDCClientSecretResponse\x12*\n" +
-	"\x06client\x18\x01 \x01(\v2\x12.v1.OIDCClientInfoR\x06client\"\x99\x01\n" +
+	"\x06client\x18\x01 \x01(\v2\x12.v1.OIDCClientInfoR\x06client\"\x1d\n" +
+	"\x1bRotateOIDCSigningKeyRequest\"S\n" +
+	"\x1cRotateOIDCSigningKeyResponse\x123\n" +
+	"\vsigning_key\x18\x01 \x01(\v2\x12.v1.OIDCSigningKeyR\n" +
+	"signingKey\"\x99\x01\n" +
 	"\x1cOIDCAuthorizationInfoRequest\x12#\n" +
 	"\rresponse_type\x18\x01 \x01(\tR\fresponseType\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"\x8e\x01\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\"\xdc\x01\n" +
 	"\x15OIDCAuthorizationInfo\x12\x1f\n" +
 	"\vclient_name\x18\x01 \x01(\tR\n" +
 	"clientName\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"N\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\x12-\n" +
+	"\x12client_description\x18\x05 \x01(\tR\x11clientDescription\x12\x1d\n" +
+	"\n" +
+	"issuer_url\x18\x06 \x01(\tR\tissuerUrl\"N\n" +
 	"\x1dOIDCAuthorizationInfoResponse\x12-\n" +
 	"\x04info\x18\x01 \x01(\v2\x19.v1.OIDCAuthorizationInfoR\x04info\"\xa6\x02\n" +
 	"\"CreateOIDCAuthorizationCodeRequest\x12#\n" +
@@ -1602,7 +1862,7 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\x0ecode_challenge\x18\a \x01(\tR\rcodeChallenge\x122\n" +
 	"\x15code_challenge_method\x18\b \x01(\tR\x13codeChallengeMethod\"H\n" +
 	"#CreateOIDCAuthorizationCodeResponse\x12!\n" +
-	"\fredirect_url\x18\x01 \x01(\tR\vredirectUrl2\xc9\b\n" +
+	"\fredirect_url\x18\x01 \x01(\tR\vredirectUrl2\xd1\t\n" +
 	"\vOIDCService\x12X\n" +
 	"\n" +
 	"OIDCConfig\x12\x15.v1.OIDCConfigRequest\x1a\x16.v1.OIDCConfigResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/oidc/config\x12m\n" +
@@ -1611,7 +1871,8 @@ const file_v1_oidc_proto_rawDesc = "" +
 	"\x10CreateOIDCClient\x12\x1b.v1.CreateOIDCClientRequest\x1a\x1c.v1.CreateOIDCClientResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/oidc/clients\x12s\n" +
 	"\x10UpdateOIDCClient\x12\x1b.v1.UpdateOIDCClientRequest\x1a\x1c.v1.UpdateOIDCClientResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\x1a\x19/api/v1/oidc/clients/{id}\x12p\n" +
 	"\x10DeleteOIDCClient\x12\x1b.v1.DeleteOIDCClientRequest\x1a\x1c.v1.DeleteOIDCClientResponse\"!\x82\xd3\xe4\x93\x02\x1b*\x19/api/v1/oidc/clients/{id}\x12\x8f\x01\n" +
-	"\x17RefreshOIDCClientSecret\x12\".v1.RefreshOIDCClientSecretRequest\x1a#.v1.RefreshOIDCClientSecretResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/oidc/clients/{id}/secret\x12\x84\x01\n" +
+	"\x17RefreshOIDCClientSecret\x12\".v1.RefreshOIDCClientSecretRequest\x1a#.v1.RefreshOIDCClientSecretResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/oidc/clients/{id}/secret\x12\x85\x01\n" +
+	"\x14RotateOIDCSigningKey\x12\x1f.v1.RotateOIDCSigningKeyRequest\x1a .v1.RotateOIDCSigningKeyResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/oidc/signing-key/rotate\x12\x84\x01\n" +
 	"\x15OIDCAuthorizationInfo\x12 .v1.OIDCAuthorizationInfoRequest\x1a!.v1.OIDCAuthorizationInfoResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/oidc/authorize-info\x12\x96\x01\n" +
 	"\x1bCreateOIDCAuthorizationCode\x12&.v1.CreateOIDCAuthorizationCodeRequest\x1a'.v1.CreateOIDCAuthorizationCodeResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/oidc/authorize-codeB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
@@ -1627,66 +1888,75 @@ func file_v1_oidc_proto_rawDescGZIP() []byte {
 	return file_v1_oidc_proto_rawDescData
 }
 
-var file_v1_oidc_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_v1_oidc_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_v1_oidc_proto_goTypes = []any{
 	(*OIDCConfig)(nil),                          // 0: v1.OIDCConfig
-	(*OIDCEndpoints)(nil),                       // 1: v1.OIDCEndpoints
-	(*OIDCConfigRequest)(nil),                   // 2: v1.OIDCConfigRequest
-	(*OIDCConfigResponse)(nil),                  // 3: v1.OIDCConfigResponse
-	(*UpdateOIDCConfigRequest)(nil),             // 4: v1.UpdateOIDCConfigRequest
-	(*UpdateOIDCConfigResponse)(nil),            // 5: v1.UpdateOIDCConfigResponse
-	(*OIDCClientInfo)(nil),                      // 6: v1.OIDCClientInfo
-	(*ListOIDCClientsRequest)(nil),              // 7: v1.ListOIDCClientsRequest
-	(*ListOIDCClientsResponse)(nil),             // 8: v1.ListOIDCClientsResponse
-	(*CreateOIDCClientRequest)(nil),             // 9: v1.CreateOIDCClientRequest
-	(*CreateOIDCClientResponse)(nil),            // 10: v1.CreateOIDCClientResponse
-	(*UpdateOIDCClientRequest)(nil),             // 11: v1.UpdateOIDCClientRequest
-	(*UpdateOIDCClientResponse)(nil),            // 12: v1.UpdateOIDCClientResponse
-	(*DeleteOIDCClientRequest)(nil),             // 13: v1.DeleteOIDCClientRequest
-	(*DeleteOIDCClientResponse)(nil),            // 14: v1.DeleteOIDCClientResponse
-	(*RefreshOIDCClientSecretRequest)(nil),      // 15: v1.RefreshOIDCClientSecretRequest
-	(*RefreshOIDCClientSecretResponse)(nil),     // 16: v1.RefreshOIDCClientSecretResponse
-	(*OIDCAuthorizationInfoRequest)(nil),        // 17: v1.OIDCAuthorizationInfoRequest
-	(*OIDCAuthorizationInfo)(nil),               // 18: v1.OIDCAuthorizationInfo
-	(*OIDCAuthorizationInfoResponse)(nil),       // 19: v1.OIDCAuthorizationInfoResponse
-	(*CreateOIDCAuthorizationCodeRequest)(nil),  // 20: v1.CreateOIDCAuthorizationCodeRequest
-	(*CreateOIDCAuthorizationCodeResponse)(nil), // 21: v1.CreateOIDCAuthorizationCodeResponse
-	(*timestamppb.Timestamp)(nil),               // 22: google.protobuf.Timestamp
+	(*OIDCSigningKey)(nil),                      // 1: v1.OIDCSigningKey
+	(*OIDCEndpoints)(nil),                       // 2: v1.OIDCEndpoints
+	(*OIDCConfigRequest)(nil),                   // 3: v1.OIDCConfigRequest
+	(*OIDCConfigResponse)(nil),                  // 4: v1.OIDCConfigResponse
+	(*UpdateOIDCConfigRequest)(nil),             // 5: v1.UpdateOIDCConfigRequest
+	(*UpdateOIDCConfigResponse)(nil),            // 6: v1.UpdateOIDCConfigResponse
+	(*OIDCClientInfo)(nil),                      // 7: v1.OIDCClientInfo
+	(*ListOIDCClientsRequest)(nil),              // 8: v1.ListOIDCClientsRequest
+	(*ListOIDCClientsResponse)(nil),             // 9: v1.ListOIDCClientsResponse
+	(*CreateOIDCClientRequest)(nil),             // 10: v1.CreateOIDCClientRequest
+	(*CreateOIDCClientResponse)(nil),            // 11: v1.CreateOIDCClientResponse
+	(*UpdateOIDCClientRequest)(nil),             // 12: v1.UpdateOIDCClientRequest
+	(*UpdateOIDCClientResponse)(nil),            // 13: v1.UpdateOIDCClientResponse
+	(*DeleteOIDCClientRequest)(nil),             // 14: v1.DeleteOIDCClientRequest
+	(*DeleteOIDCClientResponse)(nil),            // 15: v1.DeleteOIDCClientResponse
+	(*RefreshOIDCClientSecretRequest)(nil),      // 16: v1.RefreshOIDCClientSecretRequest
+	(*RefreshOIDCClientSecretResponse)(nil),     // 17: v1.RefreshOIDCClientSecretResponse
+	(*RotateOIDCSigningKeyRequest)(nil),         // 18: v1.RotateOIDCSigningKeyRequest
+	(*RotateOIDCSigningKeyResponse)(nil),        // 19: v1.RotateOIDCSigningKeyResponse
+	(*OIDCAuthorizationInfoRequest)(nil),        // 20: v1.OIDCAuthorizationInfoRequest
+	(*OIDCAuthorizationInfo)(nil),               // 21: v1.OIDCAuthorizationInfo
+	(*OIDCAuthorizationInfoResponse)(nil),       // 22: v1.OIDCAuthorizationInfoResponse
+	(*CreateOIDCAuthorizationCodeRequest)(nil),  // 23: v1.CreateOIDCAuthorizationCodeRequest
+	(*CreateOIDCAuthorizationCodeResponse)(nil), // 24: v1.CreateOIDCAuthorizationCodeResponse
+	(*timestamppb.Timestamp)(nil),               // 25: google.protobuf.Timestamp
 }
 var file_v1_oidc_proto_depIdxs = []int32{
-	1,  // 0: v1.OIDCConfig.endpoints:type_name -> v1.OIDCEndpoints
-	0,  // 1: v1.OIDCConfigResponse.config:type_name -> v1.OIDCConfig
-	0,  // 2: v1.UpdateOIDCConfigResponse.config:type_name -> v1.OIDCConfig
-	22, // 3: v1.OIDCClientInfo.create_time:type_name -> google.protobuf.Timestamp
-	22, // 4: v1.OIDCClientInfo.update_time:type_name -> google.protobuf.Timestamp
-	6,  // 5: v1.ListOIDCClientsResponse.clients:type_name -> v1.OIDCClientInfo
-	6,  // 6: v1.CreateOIDCClientResponse.client:type_name -> v1.OIDCClientInfo
-	6,  // 7: v1.UpdateOIDCClientResponse.client:type_name -> v1.OIDCClientInfo
-	6,  // 8: v1.RefreshOIDCClientSecretResponse.client:type_name -> v1.OIDCClientInfo
-	18, // 9: v1.OIDCAuthorizationInfoResponse.info:type_name -> v1.OIDCAuthorizationInfo
-	2,  // 10: v1.OIDCService.OIDCConfig:input_type -> v1.OIDCConfigRequest
-	4,  // 11: v1.OIDCService.UpdateOIDCConfig:input_type -> v1.UpdateOIDCConfigRequest
-	7,  // 12: v1.OIDCService.ListOIDCClients:input_type -> v1.ListOIDCClientsRequest
-	9,  // 13: v1.OIDCService.CreateOIDCClient:input_type -> v1.CreateOIDCClientRequest
-	11, // 14: v1.OIDCService.UpdateOIDCClient:input_type -> v1.UpdateOIDCClientRequest
-	13, // 15: v1.OIDCService.DeleteOIDCClient:input_type -> v1.DeleteOIDCClientRequest
-	15, // 16: v1.OIDCService.RefreshOIDCClientSecret:input_type -> v1.RefreshOIDCClientSecretRequest
-	17, // 17: v1.OIDCService.OIDCAuthorizationInfo:input_type -> v1.OIDCAuthorizationInfoRequest
-	20, // 18: v1.OIDCService.CreateOIDCAuthorizationCode:input_type -> v1.CreateOIDCAuthorizationCodeRequest
-	3,  // 19: v1.OIDCService.OIDCConfig:output_type -> v1.OIDCConfigResponse
-	5,  // 20: v1.OIDCService.UpdateOIDCConfig:output_type -> v1.UpdateOIDCConfigResponse
-	8,  // 21: v1.OIDCService.ListOIDCClients:output_type -> v1.ListOIDCClientsResponse
-	10, // 22: v1.OIDCService.CreateOIDCClient:output_type -> v1.CreateOIDCClientResponse
-	12, // 23: v1.OIDCService.UpdateOIDCClient:output_type -> v1.UpdateOIDCClientResponse
-	14, // 24: v1.OIDCService.DeleteOIDCClient:output_type -> v1.DeleteOIDCClientResponse
-	16, // 25: v1.OIDCService.RefreshOIDCClientSecret:output_type -> v1.RefreshOIDCClientSecretResponse
-	19, // 26: v1.OIDCService.OIDCAuthorizationInfo:output_type -> v1.OIDCAuthorizationInfoResponse
-	21, // 27: v1.OIDCService.CreateOIDCAuthorizationCode:output_type -> v1.CreateOIDCAuthorizationCodeResponse
-	19, // [19:28] is the sub-list for method output_type
-	10, // [10:19] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 0: v1.OIDCConfig.endpoints:type_name -> v1.OIDCEndpoints
+	1,  // 1: v1.OIDCConfig.signing_key:type_name -> v1.OIDCSigningKey
+	25, // 2: v1.OIDCSigningKey.rotated_at:type_name -> google.protobuf.Timestamp
+	0,  // 3: v1.OIDCConfigResponse.config:type_name -> v1.OIDCConfig
+	0,  // 4: v1.UpdateOIDCConfigResponse.config:type_name -> v1.OIDCConfig
+	25, // 5: v1.OIDCClientInfo.create_time:type_name -> google.protobuf.Timestamp
+	25, // 6: v1.OIDCClientInfo.update_time:type_name -> google.protobuf.Timestamp
+	25, // 7: v1.OIDCClientInfo.last_used_time:type_name -> google.protobuf.Timestamp
+	7,  // 8: v1.ListOIDCClientsResponse.clients:type_name -> v1.OIDCClientInfo
+	7,  // 9: v1.CreateOIDCClientResponse.client:type_name -> v1.OIDCClientInfo
+	7,  // 10: v1.UpdateOIDCClientResponse.client:type_name -> v1.OIDCClientInfo
+	7,  // 11: v1.RefreshOIDCClientSecretResponse.client:type_name -> v1.OIDCClientInfo
+	1,  // 12: v1.RotateOIDCSigningKeyResponse.signing_key:type_name -> v1.OIDCSigningKey
+	21, // 13: v1.OIDCAuthorizationInfoResponse.info:type_name -> v1.OIDCAuthorizationInfo
+	3,  // 14: v1.OIDCService.OIDCConfig:input_type -> v1.OIDCConfigRequest
+	5,  // 15: v1.OIDCService.UpdateOIDCConfig:input_type -> v1.UpdateOIDCConfigRequest
+	8,  // 16: v1.OIDCService.ListOIDCClients:input_type -> v1.ListOIDCClientsRequest
+	10, // 17: v1.OIDCService.CreateOIDCClient:input_type -> v1.CreateOIDCClientRequest
+	12, // 18: v1.OIDCService.UpdateOIDCClient:input_type -> v1.UpdateOIDCClientRequest
+	14, // 19: v1.OIDCService.DeleteOIDCClient:input_type -> v1.DeleteOIDCClientRequest
+	16, // 20: v1.OIDCService.RefreshOIDCClientSecret:input_type -> v1.RefreshOIDCClientSecretRequest
+	18, // 21: v1.OIDCService.RotateOIDCSigningKey:input_type -> v1.RotateOIDCSigningKeyRequest
+	20, // 22: v1.OIDCService.OIDCAuthorizationInfo:input_type -> v1.OIDCAuthorizationInfoRequest
+	23, // 23: v1.OIDCService.CreateOIDCAuthorizationCode:input_type -> v1.CreateOIDCAuthorizationCodeRequest
+	4,  // 24: v1.OIDCService.OIDCConfig:output_type -> v1.OIDCConfigResponse
+	6,  // 25: v1.OIDCService.UpdateOIDCConfig:output_type -> v1.UpdateOIDCConfigResponse
+	9,  // 26: v1.OIDCService.ListOIDCClients:output_type -> v1.ListOIDCClientsResponse
+	11, // 27: v1.OIDCService.CreateOIDCClient:output_type -> v1.CreateOIDCClientResponse
+	13, // 28: v1.OIDCService.UpdateOIDCClient:output_type -> v1.UpdateOIDCClientResponse
+	15, // 29: v1.OIDCService.DeleteOIDCClient:output_type -> v1.DeleteOIDCClientResponse
+	17, // 30: v1.OIDCService.RefreshOIDCClientSecret:output_type -> v1.RefreshOIDCClientSecretResponse
+	19, // 31: v1.OIDCService.RotateOIDCSigningKey:output_type -> v1.RotateOIDCSigningKeyResponse
+	22, // 32: v1.OIDCService.OIDCAuthorizationInfo:output_type -> v1.OIDCAuthorizationInfoResponse
+	24, // 33: v1.OIDCService.CreateOIDCAuthorizationCode:output_type -> v1.CreateOIDCAuthorizationCodeResponse
+	24, // [24:34] is the sub-list for method output_type
+	14, // [14:24] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_v1_oidc_proto_init() }
@@ -1694,14 +1964,14 @@ func file_v1_oidc_proto_init() {
 	if File_v1_oidc_proto != nil {
 		return
 	}
-	file_v1_oidc_proto_msgTypes[7].OneofWrappers = []any{}
+	file_v1_oidc_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_oidc_proto_rawDesc), len(file_v1_oidc_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -34,6 +34,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationDockerManagerUpdateDockerImageTags: constant.DockerImageManage,
 	v1.OperationDockerManagerTagDockerImage:        constant.DockerImageManage,
 	v1.OperationDockerManagerDeleteDockerImage:     constant.DockerImageManage,
+	v1.OperationDockerManagerPruneDockerImages:     constant.DockerImageManage,
 	// —— Docker 网络（管理）——
 	v1.OperationDockerManagerCreateDockerNetwork:     constant.DockerNetworkManage,
 	v1.OperationDockerManagerUpdateDockerNetwork:     constant.DockerNetworkManage,
@@ -41,9 +42,11 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationDockerManagerDeleteDockerNetwork:     constant.DockerNetworkManage,
 	v1.OperationDockerManagerConnectDockerNetwork:    constant.DockerNetworkManage,
 	v1.OperationDockerManagerDisconnectDockerNetwork: constant.DockerNetworkManage,
+	v1.OperationDockerManagerPruneDockerNetworks:     constant.DockerNetworkManage,
 	// —— Docker 配置（编辑）——
-	v1.OperationDockerManagerUpdateDockerConfig: constant.DockerConfigEdit,
-	v1.OperationDockerManagerTestDockerConfig:   constant.DockerConfigEdit,
+	v1.OperationDockerManagerUpdateDockerConfig:     constant.DockerConfigEdit,
+	v1.OperationDockerManagerTestDockerConfig:       constant.DockerConfigEdit,
+	v1.OperationDockerManagerTestDockerRegistryAuth: constant.DockerConfigEdit,
 	// —— 文件分享（管理）——
 	v1.OperationFileManagerCreateShare: constant.FileShare,
 	v1.OperationFileManagerListShares:  constant.FileShare,
@@ -69,11 +72,13 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationIQCheckManagerTriggerIQCheck:      constant.IQCheckEdit,
 
 	// —— 用户管理 ——
-	v1.OperationUserServiceListUser:   constant.UserView,
-	v1.OperationUserServiceUserInfo:   constant.UserView,
-	v1.OperationUserServiceAddUser:    constant.UserAdd,
-	v1.OperationUserServiceEditUser:   constant.UserEdit,
-	v1.OperationUserServiceDeleteUser: constant.UserDelete,
+	v1.OperationUserServiceListUser:          constant.UserView,
+	v1.OperationUserServiceUserInfo:          constant.UserView,
+	v1.OperationUserServiceAddUser:           constant.UserAdd,
+	v1.OperationUserServiceEditUser:          constant.UserEdit,
+	v1.OperationUserServiceDeleteUser:        constant.UserDelete,
+	v1.OperationUserServiceBatchUpdateUser:   constant.UserEdit,
+	v1.OperationUserServiceResetUserPassword: constant.UserEdit,
 
 	// —— 系统：菜单/权限 ——
 	v1.OperationSystemAdminPermissions:       constant.MenuView,
@@ -89,15 +94,22 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemAdminDeleteRole: constant.RoleDelete,
 	// —— 系统：配置 / 邮件 / 操作日志 ——
 	v1.OperationSystemUpdateLoginConfig:   constant.SystemConfigEdit,
+	v1.OperationSystemSiteConfig:          constant.SystemConfigView,
+	v1.OperationSystemUpdateSiteConfig:    constant.SystemConfigEdit,
 	v1.OperationSystemEmailConfig:         constant.SystemConfigView,
 	v1.OperationSystemUpdateEmailConfig:   constant.SystemConfigEdit,
 	v1.OperationSystemEmailTemplate:       constant.SystemConfigView,
 	v1.OperationSystemUpdateEmailTemplate: constant.SystemConfigEdit,
 	v1.OperationSystemTestEmailConfig:     constant.SystemConfigEdit,
 	v1.OperationSystemListOperationLogs:   constant.SystemConfigView,
+	v1.OperationSystemListEmailTemplates:  constant.SystemConfigView,
+	v1.OperationSystemOperationLogStats:   constant.SystemConfigView,
 
 	// —— 系统：更新检查 ——
 	v1.OperationSystemCheckUpdate: constant.SystemUpdate,
+
+	// —— 站内消息：发布通知（推送给全部用户）——
+	v1.OperationAuthServicePublishMessage: constant.SystemConfigEdit,
 
 	// —— OIDC 服务端 ——
 	v1.OperationOIDCServiceOIDCConfig:              constant.OIDCView,
@@ -107,6 +119,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationOIDCServiceUpdateOIDCClient:        constant.OIDCEdit,
 	v1.OperationOIDCServiceDeleteOIDCClient:        constant.OIDCEdit,
 	v1.OperationOIDCServiceRefreshOIDCClientSecret: constant.OIDCEdit,
+	v1.OperationOIDCServiceRotateOIDCSigningKey:    constant.OIDCEdit,
 
 	// —— 远程节点 ——
 	v1.OperationNodeServiceListNodes:      constant.NodeView,

@@ -154,6 +154,9 @@ const onRetry = async () => {
   const ok = await upload.retryFailed()
   if (ok) emit('uploaded')
 }
+
+// 供外部（文件列表区拖放）直接把文件加入上传队列。
+defineExpose({ addFiles: (files: FileList | File[]) => upload.addFiles(files) })
 </script>
 
 <style scoped>

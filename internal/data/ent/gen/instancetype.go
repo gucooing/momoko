@@ -3,6 +3,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"momoko/internal/data/ent/gen/instancetype"
 	"strings"
@@ -27,8 +28,16 @@ type InstanceType struct {
 	// 是否系统内置
 	IsSystem bool `json:"is_system,omitempty"`
 	// 是否启用
-	IsEnable     bool `json:"is_enable,omitempty"`
-	selectValues sql.SelectValues
+	IsEnable bool `json:"is_enable,omitempty"`
+	// 类型说明
+	Description string `json:"description,omitempty"`
+	// 默认启动命令
+	StartCommand string `json:"start_command,omitempty"`
+	// 默认停止命令
+	StopCommand string `json:"stop_command,omitempty"`
+	// 控制台快捷命令（按顺序显示为一排按钮）
+	QuickCommands []string `json:"quick_commands,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,9 +45,11 @@ func (*InstanceType) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case instancetype.FieldQuickCommands:
+			values[i] = new([]byte)
 		case instancetype.FieldIsSystem, instancetype.FieldIsEnable:
 			values[i] = new(sql.NullBool)
-		case instancetype.FieldID, instancetype.FieldName:
+		case instancetype.FieldID, instancetype.FieldName, instancetype.FieldDescription, instancetype.FieldStartCommand, instancetype.FieldStopCommand:
 			values[i] = new(sql.NullString)
 		case instancetype.FieldCreateTime, instancetype.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -93,6 +104,32 @@ func (_m *InstanceType) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsEnable = value.Bool
 			}
+		case instancetype.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
+		case instancetype.FieldStartCommand:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field start_command", values[i])
+			} else if value.Valid {
+				_m.StartCommand = value.String
+			}
+		case instancetype.FieldStopCommand:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stop_command", values[i])
+			} else if value.Valid {
+				_m.StopCommand = value.String
+			}
+		case instancetype.FieldQuickCommands:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field quick_commands", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.QuickCommands); err != nil {
+					return fmt.Errorf("unmarshal field quick_commands: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -143,6 +180,18 @@ func (_m *InstanceType) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_enable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("start_command=")
+	builder.WriteString(_m.StartCommand)
+	builder.WriteString(", ")
+	builder.WriteString("stop_command=")
+	builder.WriteString(_m.StopCommand)
+	builder.WriteString(", ")
+	builder.WriteString("quick_commands=")
+	builder.WriteString(fmt.Sprintf("%v", _m.QuickCommands))
 	builder.WriteByte(')')
 	return builder.String()
 }

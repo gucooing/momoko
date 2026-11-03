@@ -94,12 +94,36 @@ export interface ListTasksRequest {
   kind?: string | undefined;
 }
 
+/** 任务状态统计（与列表同一组关键字/类型/种类条件，不受状态过滤影响） */
+export interface TaskStatusCounts {
+  all: number;
+  pending: number;
+  running: number;
+  success: number;
+  failed: number;
+  canceled: number;
+}
+
+/** 任务类型及其数量 */
+export interface TaskTypeCount {
+  /** 注册类型键 */
+  type: string;
+  /** 数量 */
+  count: number;
+}
+
 /** 列出任务响应 */
 export interface ListTasksResponse {
   items: TaskInfo[];
   total: number;
   page: number;
   pageSize: number;
+  /** 各状态数量 */
+  counts:
+    | TaskStatusCounts
+    | undefined;
+  /** 全部任务里出现过的类型（不受任何过滤影响），供类型筛选 */
+  types: TaskTypeCount[];
 }
 
 export interface GetTaskRequest {
@@ -130,4 +154,14 @@ export interface DeleteTaskRequest {
 }
 
 export interface DeleteTaskResponse {
+}
+
+export interface ClearTasksRequest {
+  /** 只清理该终态（success/failed/canceled）；为空时清理全部终态任务 */
+  status?: string | undefined;
+}
+
+export interface ClearTasksResponse {
+  /** 删除的行数 */
+  deleted: number;
 }

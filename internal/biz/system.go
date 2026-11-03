@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,10 +42,23 @@ func (s *SystemUsecase) CurrentVersion() string {
 	return version.Current()
 }
 
-// CheckUpdate 查询远程最新发行版并与当前版本比较（更新检查逻辑在 pkg/version 内）。
+// CheckUpdate 按系统设置里的更新通道查询远程最新发行版并与当前版本比较（更新检查逻辑在 pkg/version 内），
+// 结果（含失败原因）记入「最近一次检查」。
 func (s *SystemUsecase) CheckUpdate(ctx context.Context) (*v1.CheckUpdateResponse, error) {
-	rel, err := version.CheckLatest(ctx)
+	return s.checkUpdate(ctx, false)
+}
+
+func (s *SystemUsecase) checkUpdate(ctx context.Context, auto bool) (*v1.CheckUpdateResponse, error) {
+	channel := v1.UpdateChannel_UpdateChannel_Stable
+	if site, err := s.config.SiteConfig(ctx); err == nil {
+		channel = site.UpdateChannel
+	}
+	now := time.Now()
+	rel, err := version.CheckLatestChannel(ctx, channel == v1.UpdateChannel_UpdateChannel_Beta)
+	result := &v1.UpdateCheckResult{Time: timestamppb.New(now), Auto: auto}
 	if err != nil {
+		result.Error = err.Error()
+		_ = s.config.SaveUpdateCheck(context.WithoutCancel(ctx), result)
 		return nil, ErrSystem(err)
 	}
 	resp := &v1.CheckUpdateResponse{
@@ -54,6 +68,8 @@ func (s *SystemUsecase) CheckUpdate(ctx context.Context) (*v1.CheckUpdateRespons
 		ReleaseUrl:     rel.HTMLURL,
 		ReleaseName:    rel.Name,
 		ReleaseBody:    rel.Body,
+		CheckedAt:      timestamppb.New(now),
+		Channel:        channel,
 	}
 	if resp.ReleaseUrl == "" {
 		resp.ReleaseUrl = version.ReleasesURL
@@ -61,7 +77,48 @@ func (s *SystemUsecase) CheckUpdate(ctx context.Context) (*v1.CheckUpdateRespons
 	if !rel.PublishedAt.IsZero() {
 		resp.PublishedAt = timestamppb.New(rel.PublishedAt)
 	}
+	result.LatestVersion = resp.LatestVersion
+	result.HasUpdate = resp.HasUpdate
+	result.ReleaseUrl = resp.ReleaseUrl
+	_ = s.config.SaveUpdateCheck(context.WithoutCancel(ctx), result)
 	return resp, nil
+}
+
+// autoCheckUpdateLoop 开启「每天自动检查更新」时，距上次检查满 24 小时就检查一次（每小时判定一次）。
+func (s *SystemUsecase) autoCheckUpdateLoop() {
+	const interval = 24 * time.Hour
+	tick := func() {
+		ctx := context.Background()
+		site, err := s.config.SiteConfig(ctx)
+		if err != nil || !site.AutoCheckUpdate {
+			return
+		}
+		if last := site.GetLastUpdateCheck(); last != nil && last.GetTime() != nil && time.Since(last.GetTime().AsTime()) < interval {
+			return
+		}
+		_, _ = s.checkUpdate(ctx, true)
+	}
+	time.Sleep(2 * time.Minute)
+	tick()
+	t := time.NewTicker(time.Hour)
+	defer t.Stop()
+	for range t.C {
+		tick()
+	}
+}
+
+// TouchSettings 记录系统设置最近一次修改人（取当前登录用户名）。
+func (s *SystemUsecase) TouchSettings(ctx context.Context) {
+	name := ""
+	if a, ok := auth.FromContext(ctx); ok && a.UserID != "" {
+		if u, err := s.userRepo.FindByID(ctx, a.UserID); err == nil && u != nil {
+			name = u.Name
+			if name == "" {
+				name = u.Username
+			}
+		}
+	}
+	_ = s.config.SaveSettingsAudit(context.WithoutCancel(ctx), &v1.SettingsAudit{Time: timestamppb.Now(), UserName: name})
 }
 
 func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissions) error {
@@ -96,6 +153,8 @@ type SystemRepo interface {
 	CreateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error)
 	UpdateRole(ctx context.Context, roleInfo *gen.Role, menuIds []string) (*gen.Role, error)
 	DeleteRole(ctx context.Context, roleIds []string) error
+	// CountUsersByRoles 统计各角色下的用户数。
+	CountUsersByRoles(ctx context.Context, roleIds []string) (map[string]int64, error)
 }
 
 func NewSystemUsecase(sys SystemRepo, userRepo UserRepo, config ConfigRepo) *SystemUsecase {
@@ -114,6 +173,7 @@ func NewSystemUsecase(sys SystemRepo, userRepo UserRepo, config ConfigRepo) *Sys
 func (s *SystemUsecase) init() {
 	ctx := context.Background()
 	s.NewEmailClient(ctx)
+	go s.autoCheckUpdateLoop()
 }
 
 func (s *SystemUsecase) NewEmailClient(ctx context.Context) {
@@ -152,11 +212,51 @@ func (s *SystemUsecase) TestEmailConfig(ctx context.Context, req *v1.TestEmailCo
 		message.Data = req.Data
 	}
 
+	start := time.Now()
 	err := email.Test(ctx, toEmailConfig(config), message)
+	result := &v1.EmailTestResult{
+		Time:       timestamppb.New(start),
+		Recipient:  req.Recipient,
+		Success:    err == nil,
+		DurationMs: time.Since(start).Milliseconds(),
+	}
+	if err != nil {
+		result.Error = err.Error()
+	}
+	_ = s.config.SaveEmailTestResult(context.WithoutCancel(ctx), result)
 	if err != nil {
 		return ErrSystem(err)
 	}
 	return nil
+}
+
+// withSiteEmailData 给邮件模板补上通用变量：{{.site}} 站点名称、{{.url}} 对外地址、{{.minutes}} 验证码有效分钟数。
+func (s *SystemUsecase) withSiteEmailData(ctx context.Context, data any) any {
+	m, ok := data.(map[string]string)
+	if !ok {
+		return data
+	}
+	out := make(map[string]string, len(m)+3)
+	if site, err := s.config.SiteConfig(ctx); err == nil {
+		out["site"] = site.SiteName
+		out["url"] = site.ExternalUrl
+	}
+	out["minutes"] = strconv.Itoa(int(EmailCodeTTL.Minutes()))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+func toEmailEncryption(value v1.EmailEncryption) email.Encryption {
+	switch value {
+	case v1.EmailEncryption_EmailEncryption_STARTTLS:
+		return email.EncryptionSTARTTLS
+	case v1.EmailEncryption_EmailEncryption_NONE:
+		return email.EncryptionNone
+	default:
+		return email.EncryptionSSL
+	}
 }
 
 func (s *SystemUsecase) SendEmail(ctx context.Context, templateType v1.EmailTemplateType, recipient string, data any) error {
@@ -171,7 +271,7 @@ func (s *SystemUsecase) SendEmail(ctx context.Context, templateType v1.EmailTemp
 		Recipient: recipient,
 		Template:  template.Template,
 		Subject:   template.Subject,
-		Data:      data,
+		Data:      s.withSiteEmailData(ctx, data),
 	})
 }
 
@@ -314,9 +414,19 @@ func (s *SystemUsecase) GetAllRoles(ctx context.Context, req *v1.AdminRolesReque
 	if err != nil {
 		return nil, 0, ErrSystem(err)
 	}
+	roleIds := make([]string, 0, len(roleInfos))
+	for _, roleInfo := range roleInfos {
+		roleIds = append(roleIds, roleInfo.ID)
+	}
+	userCounts, err := s.sys.CountUsersByRoles(ctx, roleIds)
+	if err != nil {
+		return nil, 0, ErrSystem(err)
+	}
 	roles := make([]*v1.RoleInfo, 0, len(roleInfos))
 	for _, roleInfo := range roleInfos {
-		roles = append(roles, toRoleInfo(roleInfo))
+		info := toRoleInfo(roleInfo)
+		info.UserCount = userCounts[roleInfo.ID]
+		roles = append(roles, info)
 	}
 	return roles, total, nil
 }
@@ -326,7 +436,11 @@ func (s *SystemUsecase) GetRole(ctx context.Context, roleId string) (*v1.RoleInf
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return toRoleInfo(roleInfo), nil
+	info := toRoleInfo(roleInfo)
+	if userCounts, err := s.sys.CountUsersByRoles(ctx, []string{roleId}); err == nil {
+		info.UserCount = userCounts[roleId]
+	}
+	return info, nil
 }
 
 func (s *SystemUsecase) AddRole(ctx context.Context, req *v1.AdminAddRoleRequest) (*v1.RoleInfo, error) {
@@ -746,14 +860,14 @@ func toDiskIOStatus(data *sysinfo.DiskIOStatus) *v1.DiskIOStatus {
 
 func toEmailConfig(config *v1.EmailConfig) email.Config {
 	return email.Config{
-		Host:     config.Host,
-		Port:     int(config.Port),
-		Username: config.Username,
-		Password: config.Password,
-		From:     config.From,
-		FromName: config.FromName,
-		UseTLS:   config.UseTls,
-		Timeout:  time.Duration(config.TimeoutSeconds) * time.Second,
-		CcsN:     int(config.CcsN),
+		Host:       config.Host,
+		Port:       int(config.Port),
+		Username:   config.Username,
+		Password:   config.Password,
+		From:       config.From,
+		FromName:   config.FromName,
+		Encryption: toEmailEncryption(config.Encryption),
+		Timeout:    time.Duration(config.TimeoutSeconds) * time.Second,
+		CcsN:       int(config.CcsN),
 	}
 }

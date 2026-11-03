@@ -23,6 +23,14 @@ const (
 	FieldIsSystem = "is_system"
 	// FieldIsEnable holds the string denoting the is_enable field in the database.
 	FieldIsEnable = "is_enable"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldStartCommand holds the string denoting the start_command field in the database.
+	FieldStartCommand = "start_command"
+	// FieldStopCommand holds the string denoting the stop_command field in the database.
+	FieldStopCommand = "stop_command"
+	// FieldQuickCommands holds the string denoting the quick_commands field in the database.
+	FieldQuickCommands = "quick_commands"
 	// Table holds the table name of the instancetype in the database.
 	Table = "instance_types"
 )
@@ -35,6 +43,10 @@ var Columns = []string{
 	FieldName,
 	FieldIsSystem,
 	FieldIsEnable,
+	FieldDescription,
+	FieldStartCommand,
+	FieldStopCommand,
+	FieldQuickCommands,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,6 +72,12 @@ var (
 	DefaultIsSystem bool
 	// DefaultIsEnable holds the default value on creation for the "is_enable" field.
 	DefaultIsEnable bool
+	// DefaultDescription holds the default value on creation for the "description" field.
+	DefaultDescription string
+	// DefaultStartCommand holds the default value on creation for the "start_command" field.
+	DefaultStartCommand string
+	// DefaultStopCommand holds the default value on creation for the "stop_command" field.
+	DefaultStopCommand string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -95,4 +113,19 @@ func ByIsSystem(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEnable orders the results by the is_enable field.
 func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByStartCommand orders the results by the start_command field.
+func ByStartCommand(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartCommand, opts...).ToFunc()
+}
+
+// ByStopCommand orders the results by the stop_command field.
+func ByStopCommand(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStopCommand, opts...).ToFunc()
 }

@@ -136,6 +136,66 @@ func (_u *UserAPIKeyUpdate) SetNillableUserID(v *string) *UserAPIKeyUpdate {
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *UserAPIKeyUpdate) SetRemark(v string) *UserAPIKeyUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *UserAPIKeyUpdate) SetNillableRemark(v *string) *UserAPIKeyUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (_u *UserAPIKeyUpdate) ClearRemark() *UserAPIKeyUpdate {
+	_u.mutation.ClearRemark()
+	return _u
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (_u *UserAPIKeyUpdate) SetLastUsedAt(v time.Time) *UserAPIKeyUpdate {
+	_u.mutation.SetLastUsedAt(v)
+	return _u
+}
+
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_u *UserAPIKeyUpdate) SetNillableLastUsedAt(v *time.Time) *UserAPIKeyUpdate {
+	if v != nil {
+		_u.SetLastUsedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (_u *UserAPIKeyUpdate) ClearLastUsedAt() *UserAPIKeyUpdate {
+	_u.mutation.ClearLastUsedAt()
+	return _u
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (_u *UserAPIKeyUpdate) SetLastUsedIP(v string) *UserAPIKeyUpdate {
+	_u.mutation.SetLastUsedIP(v)
+	return _u
+}
+
+// SetNillableLastUsedIP sets the "last_used_ip" field if the given value is not nil.
+func (_u *UserAPIKeyUpdate) SetNillableLastUsedIP(v *string) *UserAPIKeyUpdate {
+	if v != nil {
+		_u.SetLastUsedIP(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedIP clears the value of the "last_used_ip" field.
+func (_u *UserAPIKeyUpdate) ClearLastUsedIP() *UserAPIKeyUpdate {
+	_u.mutation.ClearLastUsedIP()
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *UserAPIKeyUpdate) SetUser(v *User) *UserAPIKeyUpdate {
 	return _u.SetUserID(v.ID)
@@ -254,6 +314,24 @@ func (_u *UserAPIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(userapikey.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(userapikey.FieldRemark, field.TypeString, value)
+	}
+	if _u.mutation.RemarkCleared() {
+		_spec.ClearField(userapikey.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastUsedAt(); ok {
+		_spec.SetField(userapikey.FieldLastUsedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedAtCleared() {
+		_spec.ClearField(userapikey.FieldLastUsedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastUsedIP(); ok {
+		_spec.SetField(userapikey.FieldLastUsedIP, field.TypeString, value)
+	}
+	if _u.mutation.LastUsedIPCleared() {
+		_spec.ClearField(userapikey.FieldLastUsedIP, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -410,6 +488,66 @@ func (_u *UserAPIKeyUpdateOne) SetNillableUserID(v *string) *UserAPIKeyUpdateOne
 	return _u
 }
 
+// SetRemark sets the "remark" field.
+func (_u *UserAPIKeyUpdateOne) SetRemark(v string) *UserAPIKeyUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *UserAPIKeyUpdateOne) SetNillableRemark(v *string) *UserAPIKeyUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (_u *UserAPIKeyUpdateOne) ClearRemark() *UserAPIKeyUpdateOne {
+	_u.mutation.ClearRemark()
+	return _u
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (_u *UserAPIKeyUpdateOne) SetLastUsedAt(v time.Time) *UserAPIKeyUpdateOne {
+	_u.mutation.SetLastUsedAt(v)
+	return _u
+}
+
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_u *UserAPIKeyUpdateOne) SetNillableLastUsedAt(v *time.Time) *UserAPIKeyUpdateOne {
+	if v != nil {
+		_u.SetLastUsedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (_u *UserAPIKeyUpdateOne) ClearLastUsedAt() *UserAPIKeyUpdateOne {
+	_u.mutation.ClearLastUsedAt()
+	return _u
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (_u *UserAPIKeyUpdateOne) SetLastUsedIP(v string) *UserAPIKeyUpdateOne {
+	_u.mutation.SetLastUsedIP(v)
+	return _u
+}
+
+// SetNillableLastUsedIP sets the "last_used_ip" field if the given value is not nil.
+func (_u *UserAPIKeyUpdateOne) SetNillableLastUsedIP(v *string) *UserAPIKeyUpdateOne {
+	if v != nil {
+		_u.SetLastUsedIP(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedIP clears the value of the "last_used_ip" field.
+func (_u *UserAPIKeyUpdateOne) ClearLastUsedIP() *UserAPIKeyUpdateOne {
+	_u.mutation.ClearLastUsedIP()
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *UserAPIKeyUpdateOne) SetUser(v *User) *UserAPIKeyUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -558,6 +696,24 @@ func (_u *UserAPIKeyUpdateOne) sqlSave(ctx context.Context) (_node *UserAPIKey, 
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(userapikey.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(userapikey.FieldRemark, field.TypeString, value)
+	}
+	if _u.mutation.RemarkCleared() {
+		_spec.ClearField(userapikey.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastUsedAt(); ok {
+		_spec.SetField(userapikey.FieldLastUsedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedAtCleared() {
+		_spec.ClearField(userapikey.FieldLastUsedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastUsedIP(); ok {
+		_spec.SetField(userapikey.FieldLastUsedIP, field.TypeString, value)
+	}
+	if _u.mutation.LastUsedIPCleared() {
+		_spec.ClearField(userapikey.FieldLastUsedIP, field.TypeString)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -1,4 +1,4 @@
-<!-- OIDC 客户端 创建/编辑弹窗（P1）：FormDialog + 令牌字段 + 内联校验。
+<!-- OIDC 客户端 创建/编辑弹窗：FormDialog + 令牌字段 + 内联校验（第二期新增「描述」）。
      保存后：新建会返回完整 Client Secret → 通过 reveal 事件交父级展示；同时 refresh 列表。 -->
 <template>
   <FormDialog
@@ -19,6 +19,11 @@
           :placeholder="t('system.oidc.providerNamePlaceholder')"
         />
         <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
+      </div>
+
+      <div class="app-field">
+        <label class="app-label">{{ t('system.oidcx.description') }}</label>
+        <input v-model="form.description" class="app-input" :placeholder="t('system.oidcx.descriptionPlaceholder')" maxlength="60" />
       </div>
 
       <div class="app-field">
@@ -70,6 +75,7 @@ const emptyForm = () => ({
   redirectUrisText: '',
   scopesText: 'openid email profile',
   active: true,
+  description: '',
 })
 const form = ref(emptyForm())
 
@@ -103,6 +109,7 @@ const confirm = async () => {
       redirectUris: splitLines(form.value.redirectUrisText),
       scopes: splitLines(form.value.scopesText),
       active: form.value.active,
+      description: form.value.description.trim(),
     }
     const { data } = form.value.id
       ? await updateOIDCClient({ id: form.value.id, ...payload })
@@ -127,6 +134,7 @@ const showDialog = (row?: OIDCClientInfo) => {
     redirectUrisText: row?.redirectUris.join('\n') || '',
     scopesText: row?.scopes.join(' ') || 'openid email profile',
     active: row?.active ?? true,
+    description: row?.description || '',
   }
   open.value = true
 }

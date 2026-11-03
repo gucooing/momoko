@@ -64,16 +64,17 @@
         <span v-if="errors.path" class="app-field__error">{{ errors.path }}</span>
       </div>
 
-      <!-- 权限标识（仅按钮类型） -->
-      <div v-if="submitForm.type === MenuType.MenuType_Button" class="app-field">
-        <label class="app-label app-label--required">{{ t('system.menu.permissions') }}</label>
+      <!-- 权限标识（按钮必填；目录/菜单可选，编辑时保留原值） -->
+      <div class="app-field">
+        <label class="app-label" :class="{ 'app-label--required': isButtonType }">{{ t('system.menu.permissions') }}</label>
         <input
           v-model="submitForm.permissions"
-          class="app-input"
+          class="app-input m-mono"
           :class="{ 'is-error': errors.permissions }"
           :placeholder="t('system.menu.permissionsPlaceholder')"
         />
         <span v-if="errors.permissions" class="app-field__error">{{ errors.permissions }}</span>
+        <span v-else-if="!isButtonType" class="menu-form__help">{{ t('accessAdmin.menu.permissionsOptional') }}</span>
       </div>
 
       <!-- 图标（非按钮类型） -->
@@ -205,7 +206,6 @@ const parentSelectOptions = computed<{ label: string; value: string }[]>(() => [
 
 const onTypeChange = () => {
   errors.value = {}
-  if (!isButtonType.value) submitForm.value.permissions = ''
   if (isButtonType.value) submitForm.value.icon = ''
 }
 
@@ -243,7 +243,7 @@ const confirm = async () => {
     const order = Number(f.order) || 0
     const path = f.type === MenuType.MenuType_Menu ? f.path.trim() : ''
     const icon = isButtonType.value ? '' : f.icon
-    const permissions = isButtonType.value ? f.permissions.trim() : ''
+    const permissions = f.permissions.trim()
     if (isEdit.value) {
       const payload: AdminEditPermissionsRequest = {
         menuId: editingMenuId.value!,
@@ -297,8 +297,12 @@ const loadMenuInfo = async (menuId: string) => {
   }
 }
 
-const showDialog = async (menuId?: string) => {
+const showDialog = async (menuId?: string, preset?: { parentId?: string; type?: MenuType }) => {
   submitForm.value = emptyForm()
+  if (!menuId && preset) {
+    if (preset.type) submitForm.value.type = preset.type
+    if (preset.parentId) submitForm.value.parentId = preset.parentId
+  }
   errors.value = {}
   editingMenuId.value = menuId
   open.value = true
@@ -342,6 +346,10 @@ defineExpose({ showDialog })
 }
 .menu-form__radio.is-disabled input {
   cursor: not-allowed;
+}
+.menu-form__help {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 .menu-form__icon {
   display: flex;

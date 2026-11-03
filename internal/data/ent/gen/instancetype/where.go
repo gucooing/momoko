@@ -89,6 +89,21 @@ func IsEnable(v bool) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldEQ(FieldIsEnable, v))
 }
 
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldDescription, v))
+}
+
+// StartCommand applies equality check predicate on the "start_command" field. It's identical to StartCommandEQ.
+func StartCommand(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldStartCommand, v))
+}
+
+// StopCommand applies equality check predicate on the "stop_command" field. It's identical to StopCommandEQ.
+func StopCommand(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldStopCommand, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldEQ(FieldCreateTime, v))
@@ -252,6 +267,211 @@ func IsEnableEQ(v bool) predicate.InstanceType {
 // IsEnableNEQ applies the NEQ predicate on the "is_enable" field.
 func IsEnableNEQ(v bool) predicate.InstanceType {
 	return predicate.InstanceType(sql.FieldNEQ(FieldIsEnable, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// StartCommandEQ applies the EQ predicate on the "start_command" field.
+func StartCommandEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldStartCommand, v))
+}
+
+// StartCommandNEQ applies the NEQ predicate on the "start_command" field.
+func StartCommandNEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNEQ(FieldStartCommand, v))
+}
+
+// StartCommandIn applies the In predicate on the "start_command" field.
+func StartCommandIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldIn(FieldStartCommand, vs...))
+}
+
+// StartCommandNotIn applies the NotIn predicate on the "start_command" field.
+func StartCommandNotIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNotIn(FieldStartCommand, vs...))
+}
+
+// StartCommandGT applies the GT predicate on the "start_command" field.
+func StartCommandGT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGT(FieldStartCommand, v))
+}
+
+// StartCommandGTE applies the GTE predicate on the "start_command" field.
+func StartCommandGTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGTE(FieldStartCommand, v))
+}
+
+// StartCommandLT applies the LT predicate on the "start_command" field.
+func StartCommandLT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLT(FieldStartCommand, v))
+}
+
+// StartCommandLTE applies the LTE predicate on the "start_command" field.
+func StartCommandLTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLTE(FieldStartCommand, v))
+}
+
+// StartCommandContains applies the Contains predicate on the "start_command" field.
+func StartCommandContains(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContains(FieldStartCommand, v))
+}
+
+// StartCommandHasPrefix applies the HasPrefix predicate on the "start_command" field.
+func StartCommandHasPrefix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasPrefix(FieldStartCommand, v))
+}
+
+// StartCommandHasSuffix applies the HasSuffix predicate on the "start_command" field.
+func StartCommandHasSuffix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasSuffix(FieldStartCommand, v))
+}
+
+// StartCommandEqualFold applies the EqualFold predicate on the "start_command" field.
+func StartCommandEqualFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEqualFold(FieldStartCommand, v))
+}
+
+// StartCommandContainsFold applies the ContainsFold predicate on the "start_command" field.
+func StartCommandContainsFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContainsFold(FieldStartCommand, v))
+}
+
+// StopCommandEQ applies the EQ predicate on the "stop_command" field.
+func StopCommandEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEQ(FieldStopCommand, v))
+}
+
+// StopCommandNEQ applies the NEQ predicate on the "stop_command" field.
+func StopCommandNEQ(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNEQ(FieldStopCommand, v))
+}
+
+// StopCommandIn applies the In predicate on the "stop_command" field.
+func StopCommandIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldIn(FieldStopCommand, vs...))
+}
+
+// StopCommandNotIn applies the NotIn predicate on the "stop_command" field.
+func StopCommandNotIn(vs ...string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNotIn(FieldStopCommand, vs...))
+}
+
+// StopCommandGT applies the GT predicate on the "stop_command" field.
+func StopCommandGT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGT(FieldStopCommand, v))
+}
+
+// StopCommandGTE applies the GTE predicate on the "stop_command" field.
+func StopCommandGTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldGTE(FieldStopCommand, v))
+}
+
+// StopCommandLT applies the LT predicate on the "stop_command" field.
+func StopCommandLT(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLT(FieldStopCommand, v))
+}
+
+// StopCommandLTE applies the LTE predicate on the "stop_command" field.
+func StopCommandLTE(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldLTE(FieldStopCommand, v))
+}
+
+// StopCommandContains applies the Contains predicate on the "stop_command" field.
+func StopCommandContains(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContains(FieldStopCommand, v))
+}
+
+// StopCommandHasPrefix applies the HasPrefix predicate on the "stop_command" field.
+func StopCommandHasPrefix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasPrefix(FieldStopCommand, v))
+}
+
+// StopCommandHasSuffix applies the HasSuffix predicate on the "stop_command" field.
+func StopCommandHasSuffix(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldHasSuffix(FieldStopCommand, v))
+}
+
+// StopCommandEqualFold applies the EqualFold predicate on the "stop_command" field.
+func StopCommandEqualFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldEqualFold(FieldStopCommand, v))
+}
+
+// StopCommandContainsFold applies the ContainsFold predicate on the "stop_command" field.
+func StopCommandContainsFold(v string) predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldContainsFold(FieldStopCommand, v))
+}
+
+// QuickCommandsIsNil applies the IsNil predicate on the "quick_commands" field.
+func QuickCommandsIsNil() predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldIsNull(FieldQuickCommands))
+}
+
+// QuickCommandsNotNil applies the NotNil predicate on the "quick_commands" field.
+func QuickCommandsNotNil() predicate.InstanceType {
+	return predicate.InstanceType(sql.FieldNotNull(FieldQuickCommands))
 }
 
 // And groups predicates with the AND operator between them.

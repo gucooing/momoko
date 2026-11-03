@@ -40,9 +40,11 @@ type InstanceUsecase struct {
 
 type InstanceRepo interface {
 	GetTypes(ctx context.Context) ([]*gen.InstanceType, error)
-	CreateType(ctx context.Context, name string) (*gen.InstanceType, error)
-	UpdateType(ctx context.Context, id string, name *string, isEnable *bool) (*gen.InstanceType, error)
+	CreateType(ctx context.Context, req *v1.CreateInstanceTypeRequest) (*gen.InstanceType, error)
+	UpdateType(ctx context.Context, req *v1.UpdateInstanceTypeRequest) (*gen.InstanceType, error)
 	DeleteType(ctx context.Context, id string) error
+	CountTypeUsage(ctx context.Context, id string) (int, error)
+	GetVisibleInstancesWithType(ctx context.Context, userId string) ([]*gen.Instance, error)
 	GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*gen.Instance, int64, error)
 	GetInstanceByUserID(ctx context.Context, userId, instanceId string) (*gen.Instance, error)
 	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*gen.Instance, error)
@@ -85,15 +87,46 @@ func (i *InstanceUsecase) Close() {
 	_ = i.instance.Shutdown(defaultShutdownTimeout)
 }
 
-func (i *InstanceUsecase) GetTypes(ctx context.Context) ([]*v1.InstanceTypeInfo, error) {
+// maxInstanceTypeApps 类型卡片上展示的应用摘要上限（总数见 app_count）。
+const maxInstanceTypeApps = 8
+
+func (i *InstanceUsecase) GetTypes(ctx context.Context, userID string) ([]*v1.InstanceTypeInfo, error) {
 	typeInfos, err := i.repo.GetTypes(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
+	// 按类型归集当前用户可见的应用（数量 + 摘要），用于类型卡片的「在用的应用」
+	usage := make(map[string][]*v1.InstanceTypeApp)
+	counts := make(map[string]int64)
+	if userID != "" {
+		items, err := i.repo.GetVisibleInstancesWithType(ctx, userID)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		for _, item := range items {
+			t := item.Edges.Type
+			if t == nil {
+				continue
+			}
+			counts[t.ID]++
+			if len(usage[t.ID]) >= maxInstanceTypeApps {
+				continue
+			}
+			status := v1.InstanceStatus_INSTANCE_STATUS_STOPPED
+			if server, ok := i.instance.Get(item.ID); ok && server.Running() {
+				status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
+			}
+			usage[t.ID] = append(usage[t.ID], &v1.InstanceTypeApp{Id: item.ID, Name: item.Name, Status: status})
+		}
+	}
+
 	types := make([]*v1.InstanceTypeInfo, 0, len(typeInfos))
 	for _, typeInfo := range typeInfos {
-		types = append(types, toInstanceTypeInfo(typeInfo))
+		info := toInstanceTypeInfo(typeInfo)
+		info.AppCount = counts[typeInfo.ID]
+		info.Apps = usage[typeInfo.ID]
+		types = append(types, info)
 	}
 	return types, nil
 }
@@ -103,7 +136,12 @@ func (i *InstanceUsecase) CreateType(ctx context.Context, req *v1.CreateInstance
 		return nil, ErrInstanceTypeName
 	}
 
-	typeInfo, err := i.repo.CreateType(ctx, req.Name)
+	req.Name = strings.TrimSpace(req.Name)
+	if req.Name == "" {
+		return nil, ErrInstanceTypeName
+	}
+	req.QuickCommands = normalizeQuickCommands(req.QuickCommands)
+	typeInfo, err := i.repo.CreateType(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -115,14 +153,60 @@ func (i *InstanceUsecase) UpdateType(ctx context.Context, req *v1.UpdateInstance
 		return nil, ErrInstanceTypeID
 	}
 
-	typeInfo, err := i.repo.UpdateType(ctx, req.Id, req.Name, req.IsEnable)
+	if req.Name != nil {
+		name := strings.TrimSpace(*req.Name)
+		if name == "" {
+			return nil, ErrInstanceTypeName
+		}
+		req.Name = &name
+	}
+	if req.QuickCommands != nil {
+		req.QuickCommands.Items = normalizeQuickCommands(req.QuickCommands.Items)
+	}
+	typeInfo, err := i.repo.UpdateType(ctx, req)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	return toInstanceTypeInfo(typeInfo), nil
 }
 
+const (
+	maxQuickCommands      = 20
+	maxQuickCommandLength = 200
+)
+
+// normalizeQuickCommands 去掉首尾空白、空行与重复项，限制条数与单条长度。
+func normalizeQuickCommands(items []string) []string {
+	out := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		cmd := strings.TrimSpace(item)
+		if cmd == "" {
+			continue
+		}
+		if r := []rune(cmd); len(r) > maxQuickCommandLength {
+			cmd = string(r[:maxQuickCommandLength])
+		}
+		if _, ok := seen[cmd]; ok {
+			continue
+		}
+		seen[cmd] = struct{}{}
+		out = append(out, cmd)
+		if len(out) == maxQuickCommands {
+			break
+		}
+	}
+	return out
+}
+
 func (i *InstanceUsecase) DeleteType(ctx context.Context, id string) error {
+	count, err := i.repo.CountTypeUsage(ctx, id)
+	if err != nil {
+		return ErrSystem(err)
+	}
+	if count > 0 {
+		return ErrInstanceTypeInUse
+	}
 	if err := i.repo.DeleteType(ctx, id); err != nil {
 		return ErrSystem(err)
 	}
@@ -140,7 +224,20 @@ func (i *InstanceUsecase) GetInstances(ctx context.Context, req *v1.GetInstances
 		req.PageSize = 50
 	}
 
-	items, total, err := i.repo.GetInstances(ctx, req.Page, req.PageSize, userID, req.Keywords, req.Type)
+	// 运行状态只在内存里，按状态筛选时取全量后在内存中过滤并分页
+	filterStatus := req.Status != nil && *req.Status != v1.InstanceStatus_INSTANCE_STATUS_UNSPECIFIED
+	page, pageSize := req.Page, req.PageSize
+	if filterStatus {
+		page, pageSize = 1, 100000
+	}
+	if req.Keywords != nil && strings.TrimSpace(*req.Keywords) == "" {
+		req.Keywords = nil
+	}
+	if req.Type != nil && strings.TrimSpace(*req.Type) == "" {
+		req.Type = nil
+	}
+
+	items, total, err := i.repo.GetInstances(ctx, page, pageSize, userID, req.Keywords, req.Type)
 	if err != nil {
 		return nil, 0, ErrSystem(err)
 	}
@@ -151,7 +248,23 @@ func (i *InstanceUsecase) GetInstances(ctx context.Context, req *v1.GetInstances
 		if err != nil {
 			return nil, 0, err
 		}
-		infos = append(infos, i.toInstanceInfo(core, item))
+		info := i.toInstanceInfo(core, item)
+		if filterStatus && info.Status != *req.Status {
+			continue
+		}
+		infos = append(infos, info)
+	}
+	if filterStatus {
+		total = int64(len(infos))
+		start := (req.Page - 1) * req.PageSize
+		end := start + req.PageSize
+		if start >= total {
+			return []*v1.InstanceInfo{}, total, nil
+		}
+		if end > total {
+			end = total
+		}
+		infos = infos[start:end]
 	}
 	return infos, total, nil
 }
@@ -306,8 +419,9 @@ func toServerConfig(item *gen.Instance) servercore.ServerConfig {
 		Dir:                item.Path,
 		Env:                item.Env,
 		StopCommand:        item.StopCommand,
-		AutoRestart:        item.AutoStart,
+		AutoRestart:        item.AutoRestart,
 		MaxRestartAttempts: defaultInstanceRestartTimes,
+		StopTimeout:        time.Duration(item.StopTimeout) * time.Second,
 	}
 }
 
@@ -428,10 +542,16 @@ func parseWsResizeControl(input string) (cols, rows int, ok bool) {
 
 func toInstanceTypeInfo(data *gen.InstanceType) *v1.InstanceTypeInfo {
 	return &v1.InstanceTypeInfo{
-		Id:       data.ID,
-		Name:     data.Name,
-		IsSystem: data.IsSystem,
-		IsEnable: data.IsEnable,
+		Id:            data.ID,
+		Name:          data.Name,
+		IsSystem:      data.IsSystem,
+		IsEnable:      data.IsEnable,
+		Description:   data.Description,
+		StartCommand:  data.StartCommand,
+		StopCommand:   data.StopCommand,
+		QuickCommands: data.QuickCommands,
+		CreateTime:    timestamppb.New(data.CreateTime),
+		UpdateTime:    timestamppb.New(data.UpdateTime),
 	}
 }
 
@@ -447,20 +567,30 @@ func (i *InstanceUsecase) toInstanceInfo(server *servercore.Server, item *gen.In
 		InstancePath: item.Path,
 		StopCommand:  item.StopCommand,
 		AutoStart:    item.AutoStart,
+		AutoRestart:  item.AutoRestart,
+		StopTimeout:  item.StopTimeout,
 		Env:          item.Env,
 		WsPath:       InstanceWsPath,
+		UpdateTime:   timestamppb.New(item.UpdateTime),
 	}
 	if server.Running() {
 		info.Status = v1.InstanceStatus_INSTANCE_STATUS_RUNNING
+		info.Pid = int32(server.PID())
 		if startTime, ok := server.StartTime(); ok {
 			info.StartTime = timestamppb.New(startTime)
 		}
 	}
 	if t := item.Edges.Type; t != nil {
 		info.Type = t.Name
+		info.TypeId = t.ID
+		info.QuickCommands = t.QuickCommands
 	}
 	if u := item.Edges.User; u != nil {
 		info.UserId = u.ID
+		info.UserName = u.Name
+		if info.UserName == "" {
+			info.UserName = u.Username
+		}
 	}
 	return info
 }

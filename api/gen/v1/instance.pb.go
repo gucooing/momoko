@@ -167,7 +167,17 @@ func (x *GetInstanceTypesResponse) GetTypes() []*InstanceTypeInfo {
 type CreateInstanceTypeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 类型名称
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 是否启用(不传默认启用)
+	IsEnable *bool `protobuf:"varint,2,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	// 类型说明
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// 默认启动命令(新建应用时预填)
+	StartCommand string `protobuf:"bytes,4,opt,name=start_command,json=startCommand,proto3" json:"start_command,omitempty"`
+	// 默认停止命令(新建应用时预填)
+	StopCommand string `protobuf:"bytes,5,opt,name=stop_command,json=stopCommand,proto3" json:"stop_command,omitempty"`
+	// 控制台快捷命令（显示在应用控制台输入框上方）
+	QuickCommands []string `protobuf:"bytes,6,rep,name=quick_commands,json=quickCommands,proto3" json:"quick_commands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -207,6 +217,41 @@ func (x *CreateInstanceTypeRequest) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *CreateInstanceTypeRequest) GetIsEnable() bool {
+	if x != nil && x.IsEnable != nil {
+		return *x.IsEnable
+	}
+	return false
+}
+
+func (x *CreateInstanceTypeRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateInstanceTypeRequest) GetStartCommand() string {
+	if x != nil {
+		return x.StartCommand
+	}
+	return ""
+}
+
+func (x *CreateInstanceTypeRequest) GetStopCommand() string {
+	if x != nil {
+		return x.StopCommand
+	}
+	return ""
+}
+
+func (x *CreateInstanceTypeRequest) GetQuickCommands() []string {
+	if x != nil {
+		return x.QuickCommands
+	}
+	return nil
 }
 
 // 创建实例类型响应
@@ -263,7 +308,15 @@ type UpdateInstanceTypeRequest struct {
 	// 类型名称
 	Name *string `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	// 是否启用
-	IsEnable      *bool `protobuf:"varint,3,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	IsEnable *bool `protobuf:"varint,3,opt,name=is_enable,json=isEnable,proto3,oneof" json:"is_enable,omitempty"`
+	// 类型说明
+	Description *string `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	// 默认启动命令
+	StartCommand *string `protobuf:"bytes,5,opt,name=start_command,json=startCommand,proto3,oneof" json:"start_command,omitempty"`
+	// 默认停止命令
+	StopCommand *string `protobuf:"bytes,6,opt,name=stop_command,json=stopCommand,proto3,oneof" json:"stop_command,omitempty"`
+	// 控制台快捷命令（不传表示不修改）
+	QuickCommands *InstanceQuickCommands `protobuf:"bytes,7,opt,name=quick_commands,json=quickCommands,proto3" json:"quick_commands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -319,6 +372,79 @@ func (x *UpdateInstanceTypeRequest) GetIsEnable() bool {
 	return false
 }
 
+func (x *UpdateInstanceTypeRequest) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *UpdateInstanceTypeRequest) GetStartCommand() string {
+	if x != nil && x.StartCommand != nil {
+		return *x.StartCommand
+	}
+	return ""
+}
+
+func (x *UpdateInstanceTypeRequest) GetStopCommand() string {
+	if x != nil && x.StopCommand != nil {
+		return *x.StopCommand
+	}
+	return ""
+}
+
+func (x *UpdateInstanceTypeRequest) GetQuickCommands() *InstanceQuickCommands {
+	if x != nil {
+		return x.QuickCommands
+	}
+	return nil
+}
+
+// 控制台快捷命令列表（用于区分「不修改」与「清空」）
+type InstanceQuickCommands struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []string               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceQuickCommands) Reset() {
+	*x = InstanceQuickCommands{}
+	mi := &file_v1_instance_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceQuickCommands) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceQuickCommands) ProtoMessage() {}
+
+func (x *InstanceQuickCommands) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceQuickCommands.ProtoReflect.Descriptor instead.
+func (*InstanceQuickCommands) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *InstanceQuickCommands) GetItems() []string {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 // 更新实例类型响应
 type UpdateInstanceTypeResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -330,7 +456,7 @@ type UpdateInstanceTypeResponse struct {
 
 func (x *UpdateInstanceTypeResponse) Reset() {
 	*x = UpdateInstanceTypeResponse{}
-	mi := &file_v1_instance_proto_msgTypes[5]
+	mi := &file_v1_instance_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -342,7 +468,7 @@ func (x *UpdateInstanceTypeResponse) String() string {
 func (*UpdateInstanceTypeResponse) ProtoMessage() {}
 
 func (x *UpdateInstanceTypeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[5]
+	mi := &file_v1_instance_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -355,7 +481,7 @@ func (x *UpdateInstanceTypeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInstanceTypeResponse.ProtoReflect.Descriptor instead.
 func (*UpdateInstanceTypeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{5}
+	return file_v1_instance_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateInstanceTypeResponse) GetType() *InstanceTypeInfo {
@@ -376,7 +502,7 @@ type DelInstanceTypeRequest struct {
 
 func (x *DelInstanceTypeRequest) Reset() {
 	*x = DelInstanceTypeRequest{}
-	mi := &file_v1_instance_proto_msgTypes[6]
+	mi := &file_v1_instance_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +514,7 @@ func (x *DelInstanceTypeRequest) String() string {
 func (*DelInstanceTypeRequest) ProtoMessage() {}
 
 func (x *DelInstanceTypeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[6]
+	mi := &file_v1_instance_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +527,7 @@ func (x *DelInstanceTypeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceTypeRequest.ProtoReflect.Descriptor instead.
 func (*DelInstanceTypeRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{6}
+	return file_v1_instance_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DelInstanceTypeRequest) GetId() string {
@@ -420,7 +546,7 @@ type DelInstanceTypeResponse struct {
 
 func (x *DelInstanceTypeResponse) Reset() {
 	*x = DelInstanceTypeResponse{}
-	mi := &file_v1_instance_proto_msgTypes[7]
+	mi := &file_v1_instance_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -432,7 +558,7 @@ func (x *DelInstanceTypeResponse) String() string {
 func (*DelInstanceTypeResponse) ProtoMessage() {}
 
 func (x *DelInstanceTypeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[7]
+	mi := &file_v1_instance_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -445,7 +571,7 @@ func (x *DelInstanceTypeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceTypeResponse.ProtoReflect.Descriptor instead.
 func (*DelInstanceTypeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{7}
+	return file_v1_instance_proto_rawDescGZIP(), []int{8}
 }
 
 // 实例类型信息
@@ -458,14 +584,30 @@ type InstanceTypeInfo struct {
 	// 是否系统内置
 	IsSystem bool `protobuf:"varint,3,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
 	// 是否启用
-	IsEnable      bool `protobuf:"varint,4,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
+	IsEnable bool `protobuf:"varint,4,opt,name=is_enable,json=isEnable,proto3" json:"is_enable,omitempty"`
+	// 类型说明
+	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	// 默认启动命令
+	StartCommand string `protobuf:"bytes,6,opt,name=start_command,json=startCommand,proto3" json:"start_command,omitempty"`
+	// 默认停止命令
+	StopCommand string `protobuf:"bytes,7,opt,name=stop_command,json=stopCommand,proto3" json:"stop_command,omitempty"`
+	// 当前用户可见的、使用该类型的应用数
+	AppCount int64 `protobuf:"varint,8,opt,name=app_count,json=appCount,proto3" json:"app_count,omitempty"`
+	// 使用该类型的应用(当前用户可见，最多 8 个)
+	Apps []*InstanceTypeApp `protobuf:"bytes,9,rep,name=apps,proto3" json:"apps,omitempty"`
+	// 创建时间
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	// 更新时间
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 控制台快捷命令
+	QuickCommands []string `protobuf:"bytes,12,rep,name=quick_commands,json=quickCommands,proto3" json:"quick_commands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *InstanceTypeInfo) Reset() {
 	*x = InstanceTypeInfo{}
-	mi := &file_v1_instance_proto_msgTypes[8]
+	mi := &file_v1_instance_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -477,7 +619,7 @@ func (x *InstanceTypeInfo) String() string {
 func (*InstanceTypeInfo) ProtoMessage() {}
 
 func (x *InstanceTypeInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[8]
+	mi := &file_v1_instance_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -490,7 +632,7 @@ func (x *InstanceTypeInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceTypeInfo.ProtoReflect.Descriptor instead.
 func (*InstanceTypeInfo) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{8}
+	return file_v1_instance_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *InstanceTypeInfo) GetId() string {
@@ -521,6 +663,126 @@ func (x *InstanceTypeInfo) GetIsEnable() bool {
 	return false
 }
 
+func (x *InstanceTypeInfo) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *InstanceTypeInfo) GetStartCommand() string {
+	if x != nil {
+		return x.StartCommand
+	}
+	return ""
+}
+
+func (x *InstanceTypeInfo) GetStopCommand() string {
+	if x != nil {
+		return x.StopCommand
+	}
+	return ""
+}
+
+func (x *InstanceTypeInfo) GetAppCount() int64 {
+	if x != nil {
+		return x.AppCount
+	}
+	return 0
+}
+
+func (x *InstanceTypeInfo) GetApps() []*InstanceTypeApp {
+	if x != nil {
+		return x.Apps
+	}
+	return nil
+}
+
+func (x *InstanceTypeInfo) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *InstanceTypeInfo) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+func (x *InstanceTypeInfo) GetQuickCommands() []string {
+	if x != nil {
+		return x.QuickCommands
+	}
+	return nil
+}
+
+// 使用某类型的应用摘要
+type InstanceTypeApp struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 实例id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 实例名称
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 实例状态
+	Status        InstanceStatus `protobuf:"varint,3,opt,name=status,proto3,enum=v1.InstanceStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceTypeApp) Reset() {
+	*x = InstanceTypeApp{}
+	mi := &file_v1_instance_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceTypeApp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceTypeApp) ProtoMessage() {}
+
+func (x *InstanceTypeApp) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceTypeApp.ProtoReflect.Descriptor instead.
+func (*InstanceTypeApp) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *InstanceTypeApp) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *InstanceTypeApp) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InstanceTypeApp) GetStatus() InstanceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return InstanceStatus_INSTANCE_STATUS_UNSPECIFIED
+}
+
 // 获取实例列表请求
 type GetInstancesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -540,7 +802,7 @@ type GetInstancesRequest struct {
 
 func (x *GetInstancesRequest) Reset() {
 	*x = GetInstancesRequest{}
-	mi := &file_v1_instance_proto_msgTypes[9]
+	mi := &file_v1_instance_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -552,7 +814,7 @@ func (x *GetInstancesRequest) String() string {
 func (*GetInstancesRequest) ProtoMessage() {}
 
 func (x *GetInstancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[9]
+	mi := &file_v1_instance_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -565,7 +827,7 @@ func (x *GetInstancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstancesRequest.ProtoReflect.Descriptor instead.
 func (*GetInstancesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{9}
+	return file_v1_instance_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetInstancesRequest) GetPage() int64 {
@@ -620,7 +882,7 @@ type GetInstancesResponse struct {
 
 func (x *GetInstancesResponse) Reset() {
 	*x = GetInstancesResponse{}
-	mi := &file_v1_instance_proto_msgTypes[10]
+	mi := &file_v1_instance_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -632,7 +894,7 @@ func (x *GetInstancesResponse) String() string {
 func (*GetInstancesResponse) ProtoMessage() {}
 
 func (x *GetInstancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[10]
+	mi := &file_v1_instance_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -645,7 +907,7 @@ func (x *GetInstancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstancesResponse.ProtoReflect.Descriptor instead.
 func (*GetInstancesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{10}
+	return file_v1_instance_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetInstancesResponse) GetPage() int64 {
@@ -698,14 +960,18 @@ type CreateInstanceRequest struct {
 	// 是否自启动
 	AutoStart bool `protobuf:"varint,9,opt,name=auto_start,json=autoStart,proto3" json:"auto_start,omitempty"`
 	// 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-	Env           []string `protobuf:"bytes,10,rep,name=env,proto3" json:"env,omitempty"`
+	Env []string `protobuf:"bytes,10,rep,name=env,proto3" json:"env,omitempty"`
+	// 停止超时(秒)：发送停止命令后超时未退出则强制结束，<=0 使用默认值
+	StopTimeout int32 `protobuf:"varint,11,opt,name=stop_timeout,json=stopTimeout,proto3" json:"stop_timeout,omitempty"`
+	// 崩溃后自动重启
+	AutoRestart   bool `protobuf:"varint,12,opt,name=auto_restart,json=autoRestart,proto3" json:"auto_restart,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateInstanceRequest) Reset() {
 	*x = CreateInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[11]
+	mi := &file_v1_instance_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -717,7 +983,7 @@ func (x *CreateInstanceRequest) String() string {
 func (*CreateInstanceRequest) ProtoMessage() {}
 
 func (x *CreateInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[11]
+	mi := &file_v1_instance_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -730,7 +996,7 @@ func (x *CreateInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInstanceRequest.ProtoReflect.Descriptor instead.
 func (*CreateInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{11}
+	return file_v1_instance_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateInstanceRequest) GetName() string {
@@ -803,6 +1069,20 @@ func (x *CreateInstanceRequest) GetEnv() []string {
 	return nil
 }
 
+func (x *CreateInstanceRequest) GetStopTimeout() int32 {
+	if x != nil {
+		return x.StopTimeout
+	}
+	return 0
+}
+
+func (x *CreateInstanceRequest) GetAutoRestart() bool {
+	if x != nil {
+		return x.AutoRestart
+	}
+	return false
+}
+
 // 创建实例响应
 type CreateInstanceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -814,7 +1094,7 @@ type CreateInstanceResponse struct {
 
 func (x *CreateInstanceResponse) Reset() {
 	*x = CreateInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[12]
+	mi := &file_v1_instance_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -826,7 +1106,7 @@ func (x *CreateInstanceResponse) String() string {
 func (*CreateInstanceResponse) ProtoMessage() {}
 
 func (x *CreateInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[12]
+	mi := &file_v1_instance_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -839,7 +1119,7 @@ func (x *CreateInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInstanceResponse.ProtoReflect.Descriptor instead.
 func (*CreateInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{12}
+	return file_v1_instance_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateInstanceResponse) GetInfo() *InstanceInfo {
@@ -860,7 +1140,7 @@ type GetInstanceInfoRequest struct {
 
 func (x *GetInstanceInfoRequest) Reset() {
 	*x = GetInstanceInfoRequest{}
-	mi := &file_v1_instance_proto_msgTypes[13]
+	mi := &file_v1_instance_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -872,7 +1152,7 @@ func (x *GetInstanceInfoRequest) String() string {
 func (*GetInstanceInfoRequest) ProtoMessage() {}
 
 func (x *GetInstanceInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[13]
+	mi := &file_v1_instance_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -885,7 +1165,7 @@ func (x *GetInstanceInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetInstanceInfoRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{13}
+	return file_v1_instance_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetInstanceInfoRequest) GetId() string {
@@ -906,7 +1186,7 @@ type GetInstanceInfoResponse struct {
 
 func (x *GetInstanceInfoResponse) Reset() {
 	*x = GetInstanceInfoResponse{}
-	mi := &file_v1_instance_proto_msgTypes[14]
+	mi := &file_v1_instance_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +1198,7 @@ func (x *GetInstanceInfoResponse) String() string {
 func (*GetInstanceInfoResponse) ProtoMessage() {}
 
 func (x *GetInstanceInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[14]
+	mi := &file_v1_instance_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1211,7 @@ func (x *GetInstanceInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetInstanceInfoResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{14}
+	return file_v1_instance_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetInstanceInfoResponse) GetInfo() *InstanceInfo {
@@ -952,7 +1232,7 @@ type GetInstanceTerminalInfoRequest struct {
 
 func (x *GetInstanceTerminalInfoRequest) Reset() {
 	*x = GetInstanceTerminalInfoRequest{}
-	mi := &file_v1_instance_proto_msgTypes[15]
+	mi := &file_v1_instance_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -964,7 +1244,7 @@ func (x *GetInstanceTerminalInfoRequest) String() string {
 func (*GetInstanceTerminalInfoRequest) ProtoMessage() {}
 
 func (x *GetInstanceTerminalInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[15]
+	mi := &file_v1_instance_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -977,7 +1257,7 @@ func (x *GetInstanceTerminalInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceTerminalInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetInstanceTerminalInfoRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{15}
+	return file_v1_instance_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetInstanceTerminalInfoRequest) GetId() string {
@@ -996,7 +1276,7 @@ type GetInstanceTerminalInfoResponse struct {
 
 func (x *GetInstanceTerminalInfoResponse) Reset() {
 	*x = GetInstanceTerminalInfoResponse{}
-	mi := &file_v1_instance_proto_msgTypes[16]
+	mi := &file_v1_instance_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1008,7 +1288,7 @@ func (x *GetInstanceTerminalInfoResponse) String() string {
 func (*GetInstanceTerminalInfoResponse) ProtoMessage() {}
 
 func (x *GetInstanceTerminalInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[16]
+	mi := &file_v1_instance_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1301,7 @@ func (x *GetInstanceTerminalInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceTerminalInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetInstanceTerminalInfoResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{16}
+	return file_v1_instance_proto_rawDescGZIP(), []int{18}
 }
 
 // 启动实例请求
@@ -1035,7 +1315,7 @@ type StartInstanceRequest struct {
 
 func (x *StartInstanceRequest) Reset() {
 	*x = StartInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[17]
+	mi := &file_v1_instance_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1047,7 +1327,7 @@ func (x *StartInstanceRequest) String() string {
 func (*StartInstanceRequest) ProtoMessage() {}
 
 func (x *StartInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[17]
+	mi := &file_v1_instance_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1060,7 +1340,7 @@ func (x *StartInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartInstanceRequest.ProtoReflect.Descriptor instead.
 func (*StartInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{17}
+	return file_v1_instance_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *StartInstanceRequest) GetId() string {
@@ -1081,7 +1361,7 @@ type StartInstanceResponse struct {
 
 func (x *StartInstanceResponse) Reset() {
 	*x = StartInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[18]
+	mi := &file_v1_instance_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1093,7 +1373,7 @@ func (x *StartInstanceResponse) String() string {
 func (*StartInstanceResponse) ProtoMessage() {}
 
 func (x *StartInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[18]
+	mi := &file_v1_instance_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1106,7 +1386,7 @@ func (x *StartInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartInstanceResponse.ProtoReflect.Descriptor instead.
 func (*StartInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{18}
+	return file_v1_instance_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *StartInstanceResponse) GetInfo() *InstanceInfo {
@@ -1129,7 +1409,7 @@ type StopInstanceRequest struct {
 
 func (x *StopInstanceRequest) Reset() {
 	*x = StopInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[19]
+	mi := &file_v1_instance_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1141,7 +1421,7 @@ func (x *StopInstanceRequest) String() string {
 func (*StopInstanceRequest) ProtoMessage() {}
 
 func (x *StopInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[19]
+	mi := &file_v1_instance_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1154,7 +1434,7 @@ func (x *StopInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopInstanceRequest.ProtoReflect.Descriptor instead.
 func (*StopInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{19}
+	return file_v1_instance_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *StopInstanceRequest) GetId() string {
@@ -1180,7 +1460,7 @@ type StopInstanceResponse struct {
 
 func (x *StopInstanceResponse) Reset() {
 	*x = StopInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[20]
+	mi := &file_v1_instance_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1192,7 +1472,7 @@ func (x *StopInstanceResponse) String() string {
 func (*StopInstanceResponse) ProtoMessage() {}
 
 func (x *StopInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[20]
+	mi := &file_v1_instance_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1205,7 +1485,7 @@ func (x *StopInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopInstanceResponse.ProtoReflect.Descriptor instead.
 func (*StopInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{20}
+	return file_v1_instance_proto_rawDescGZIP(), []int{22}
 }
 
 // 重启实例请求
@@ -1221,7 +1501,7 @@ type RestartInstanceRequest struct {
 
 func (x *RestartInstanceRequest) Reset() {
 	*x = RestartInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[21]
+	mi := &file_v1_instance_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1233,7 +1513,7 @@ func (x *RestartInstanceRequest) String() string {
 func (*RestartInstanceRequest) ProtoMessage() {}
 
 func (x *RestartInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[21]
+	mi := &file_v1_instance_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1246,7 +1526,7 @@ func (x *RestartInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartInstanceRequest.ProtoReflect.Descriptor instead.
 func (*RestartInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{21}
+	return file_v1_instance_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *RestartInstanceRequest) GetId() string {
@@ -1272,7 +1552,7 @@ type RestartInstanceResponse struct {
 
 func (x *RestartInstanceResponse) Reset() {
 	*x = RestartInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[22]
+	mi := &file_v1_instance_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1284,7 +1564,7 @@ func (x *RestartInstanceResponse) String() string {
 func (*RestartInstanceResponse) ProtoMessage() {}
 
 func (x *RestartInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[22]
+	mi := &file_v1_instance_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1297,7 +1577,7 @@ func (x *RestartInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartInstanceResponse.ProtoReflect.Descriptor instead.
 func (*RestartInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{22}
+	return file_v1_instance_proto_rawDescGZIP(), []int{24}
 }
 
 // 删除实例请求
@@ -1311,7 +1591,7 @@ type DelInstanceRequest struct {
 
 func (x *DelInstanceRequest) Reset() {
 	*x = DelInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[23]
+	mi := &file_v1_instance_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1323,7 +1603,7 @@ func (x *DelInstanceRequest) String() string {
 func (*DelInstanceRequest) ProtoMessage() {}
 
 func (x *DelInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[23]
+	mi := &file_v1_instance_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1336,7 +1616,7 @@ func (x *DelInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceRequest.ProtoReflect.Descriptor instead.
 func (*DelInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{23}
+	return file_v1_instance_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DelInstanceRequest) GetId() string {
@@ -1355,7 +1635,7 @@ type DelInstanceResponse struct {
 
 func (x *DelInstanceResponse) Reset() {
 	*x = DelInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[24]
+	mi := &file_v1_instance_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1367,7 +1647,7 @@ func (x *DelInstanceResponse) String() string {
 func (*DelInstanceResponse) ProtoMessage() {}
 
 func (x *DelInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[24]
+	mi := &file_v1_instance_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1380,7 +1660,7 @@ func (x *DelInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceResponse.ProtoReflect.Descriptor instead.
 func (*DelInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{24}
+	return file_v1_instance_proto_rawDescGZIP(), []int{26}
 }
 
 type UpdateInstanceRequest struct {
@@ -1404,14 +1684,18 @@ type UpdateInstanceRequest struct {
 	// 是否自启动
 	AutoStart *bool `protobuf:"varint,9,opt,name=auto_start,json=autoStart,proto3,oneof" json:"auto_start,omitempty"`
 	// 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-	Env           []string `protobuf:"bytes,10,rep,name=env,proto3" json:"env,omitempty"`
+	Env []string `protobuf:"bytes,10,rep,name=env,proto3" json:"env,omitempty"`
+	// 停止超时(秒)
+	StopTimeout *int32 `protobuf:"varint,11,opt,name=stop_timeout,json=stopTimeout,proto3,oneof" json:"stop_timeout,omitempty"`
+	// 崩溃后自动重启
+	AutoRestart   *bool `protobuf:"varint,12,opt,name=auto_restart,json=autoRestart,proto3,oneof" json:"auto_restart,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateInstanceRequest) Reset() {
 	*x = UpdateInstanceRequest{}
-	mi := &file_v1_instance_proto_msgTypes[25]
+	mi := &file_v1_instance_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1423,7 +1707,7 @@ func (x *UpdateInstanceRequest) String() string {
 func (*UpdateInstanceRequest) ProtoMessage() {}
 
 func (x *UpdateInstanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[25]
+	mi := &file_v1_instance_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1436,7 +1720,7 @@ func (x *UpdateInstanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInstanceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateInstanceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{25}
+	return file_v1_instance_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateInstanceRequest) GetId() string {
@@ -1509,6 +1793,20 @@ func (x *UpdateInstanceRequest) GetEnv() []string {
 	return nil
 }
 
+func (x *UpdateInstanceRequest) GetStopTimeout() int32 {
+	if x != nil && x.StopTimeout != nil {
+		return *x.StopTimeout
+	}
+	return 0
+}
+
+func (x *UpdateInstanceRequest) GetAutoRestart() bool {
+	if x != nil && x.AutoRestart != nil {
+		return *x.AutoRestart
+	}
+	return false
+}
+
 type UpdateInstanceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 实例详情
@@ -1519,7 +1817,7 @@ type UpdateInstanceResponse struct {
 
 func (x *UpdateInstanceResponse) Reset() {
 	*x = UpdateInstanceResponse{}
-	mi := &file_v1_instance_proto_msgTypes[26]
+	mi := &file_v1_instance_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1531,7 +1829,7 @@ func (x *UpdateInstanceResponse) String() string {
 func (*UpdateInstanceResponse) ProtoMessage() {}
 
 func (x *UpdateInstanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[26]
+	mi := &file_v1_instance_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1544,7 +1842,7 @@ func (x *UpdateInstanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInstanceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateInstanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{26}
+	return file_v1_instance_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateInstanceResponse) GetInfo() *InstanceInfo {
@@ -1565,7 +1863,7 @@ type DelInstanceLogRequest struct {
 
 func (x *DelInstanceLogRequest) Reset() {
 	*x = DelInstanceLogRequest{}
-	mi := &file_v1_instance_proto_msgTypes[27]
+	mi := &file_v1_instance_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1577,7 +1875,7 @@ func (x *DelInstanceLogRequest) String() string {
 func (*DelInstanceLogRequest) ProtoMessage() {}
 
 func (x *DelInstanceLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[27]
+	mi := &file_v1_instance_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1590,7 +1888,7 @@ func (x *DelInstanceLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceLogRequest.ProtoReflect.Descriptor instead.
 func (*DelInstanceLogRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{27}
+	return file_v1_instance_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DelInstanceLogRequest) GetId() string {
@@ -1609,7 +1907,7 @@ type DelInstanceLogResponse struct {
 
 func (x *DelInstanceLogResponse) Reset() {
 	*x = DelInstanceLogResponse{}
-	mi := &file_v1_instance_proto_msgTypes[28]
+	mi := &file_v1_instance_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1621,7 +1919,7 @@ func (x *DelInstanceLogResponse) String() string {
 func (*DelInstanceLogResponse) ProtoMessage() {}
 
 func (x *DelInstanceLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[28]
+	mi := &file_v1_instance_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1634,7 +1932,7 @@ func (x *DelInstanceLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelInstanceLogResponse.ProtoReflect.Descriptor instead.
 func (*DelInstanceLogResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{28}
+	return file_v1_instance_proto_rawDescGZIP(), []int{30}
 }
 
 // 实例详情
@@ -1669,14 +1967,28 @@ type InstanceInfo struct {
 	// 是否自启动
 	AutoStart bool `protobuf:"varint,14,opt,name=auto_start,json=autoStart,proto3" json:"auto_start,omitempty"`
 	// 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-	Env           []string `protobuf:"bytes,15,rep,name=env,proto3" json:"env,omitempty"`
+	Env []string `protobuf:"bytes,15,rep,name=env,proto3" json:"env,omitempty"`
+	// 停止超时(秒)
+	StopTimeout int32 `protobuf:"varint,16,opt,name=stop_timeout,json=stopTimeout,proto3" json:"stop_timeout,omitempty"`
+	// 崩溃后自动重启
+	AutoRestart bool `protobuf:"varint,17,opt,name=auto_restart,json=autoRestart,proto3" json:"auto_restart,omitempty"`
+	// 主进程 PID(运行时才有)
+	Pid int32 `protobuf:"varint,18,opt,name=pid,proto3" json:"pid,omitempty"`
+	// 类型id
+	TypeId string `protobuf:"bytes,19,opt,name=type_id,json=typeId,proto3" json:"type_id,omitempty"`
+	// 所属用户名
+	UserName string `protobuf:"bytes,20,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+	// 更新时间
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 所属类型的控制台快捷命令
+	QuickCommands []string `protobuf:"bytes,22,rep,name=quick_commands,json=quickCommands,proto3" json:"quick_commands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *InstanceInfo) Reset() {
 	*x = InstanceInfo{}
-	mi := &file_v1_instance_proto_msgTypes[29]
+	mi := &file_v1_instance_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1688,7 +2000,7 @@ func (x *InstanceInfo) String() string {
 func (*InstanceInfo) ProtoMessage() {}
 
 func (x *InstanceInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[29]
+	mi := &file_v1_instance_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1701,7 +2013,7 @@ func (x *InstanceInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceInfo.ProtoReflect.Descriptor instead.
 func (*InstanceInfo) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{29}
+	return file_v1_instance_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *InstanceInfo) GetId() string {
@@ -1809,6 +2121,246 @@ func (x *InstanceInfo) GetEnv() []string {
 	return nil
 }
 
+func (x *InstanceInfo) GetStopTimeout() int32 {
+	if x != nil {
+		return x.StopTimeout
+	}
+	return 0
+}
+
+func (x *InstanceInfo) GetAutoRestart() bool {
+	if x != nil {
+		return x.AutoRestart
+	}
+	return false
+}
+
+func (x *InstanceInfo) GetPid() int32 {
+	if x != nil {
+		return x.Pid
+	}
+	return 0
+}
+
+func (x *InstanceInfo) GetTypeId() string {
+	if x != nil {
+		return x.TypeId
+	}
+	return ""
+}
+
+func (x *InstanceInfo) GetUserName() string {
+	if x != nil {
+		return x.UserName
+	}
+	return ""
+}
+
+func (x *InstanceInfo) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+func (x *InstanceInfo) GetQuickCommands() []string {
+	if x != nil {
+		return x.QuickCommands
+	}
+	return nil
+}
+
+// 获取实例资源占用请求
+type GetInstanceStatsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 实例id
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInstanceStatsRequest) Reset() {
+	*x = GetInstanceStatsRequest{}
+	mi := &file_v1_instance_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInstanceStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInstanceStatsRequest) ProtoMessage() {}
+
+func (x *GetInstanceStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInstanceStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetInstanceStatsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetInstanceStatsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// 获取实例资源占用响应
+type GetInstanceStatsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否运行中
+	Running bool `protobuf:"varint,1,opt,name=running,proto3" json:"running,omitempty"`
+	// 主进程 PID
+	Pid int32 `protobuf:"varint,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	// 进程数(含子进程)
+	ProcessCount int32 `protobuf:"varint,3,opt,name=process_count,json=processCount,proto3" json:"process_count,omitempty"`
+	// CPU 占用(百分比，按单核 100% 计，多核可超过 100)
+	CpuPercent float64 `protobuf:"fixed64,4,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	// 逻辑 CPU 核数
+	CpuCores int32 `protobuf:"varint,5,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	// 常驻内存(字节，含子进程)
+	MemoryBytes uint64 `protobuf:"varint,6,opt,name=memory_bytes,json=memoryBytes,proto3" json:"memory_bytes,omitempty"`
+	// 本机内存总量(字节)
+	MemoryTotal uint64 `protobuf:"varint,7,opt,name=memory_total,json=memoryTotal,proto3" json:"memory_total,omitempty"`
+	// 工作目录占用(字节，定期统计)
+	DiskUsageBytes uint64 `protobuf:"varint,8,opt,name=disk_usage_bytes,json=diskUsageBytes,proto3" json:"disk_usage_bytes,omitempty"`
+	// 工作目录所在磁盘总量(字节)
+	DiskTotal uint64 `protobuf:"varint,9,opt,name=disk_total,json=diskTotal,proto3" json:"disk_total,omitempty"`
+	// 工作目录所在磁盘剩余(字节)
+	DiskFree uint64 `protobuf:"varint,10,opt,name=disk_free,json=diskFree,proto3" json:"disk_free,omitempty"`
+	// 工作目录占用的统计时间
+	DiskScanTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=disk_scan_time,json=diskScanTime,proto3" json:"disk_scan_time,omitempty"`
+	// 启动时间
+	StartTime     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInstanceStatsResponse) Reset() {
+	*x = GetInstanceStatsResponse{}
+	mi := &file_v1_instance_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInstanceStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInstanceStatsResponse) ProtoMessage() {}
+
+func (x *GetInstanceStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_instance_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInstanceStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetInstanceStatsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_instance_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetInstanceStatsResponse) GetRunning() bool {
+	if x != nil {
+		return x.Running
+	}
+	return false
+}
+
+func (x *GetInstanceStatsResponse) GetPid() int32 {
+	if x != nil {
+		return x.Pid
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetProcessCount() int32 {
+	if x != nil {
+		return x.ProcessCount
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetCpuPercent() float64 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetCpuCores() int32 {
+	if x != nil {
+		return x.CpuCores
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetMemoryBytes() uint64 {
+	if x != nil {
+		return x.MemoryBytes
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetMemoryTotal() uint64 {
+	if x != nil {
+		return x.MemoryTotal
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetDiskUsageBytes() uint64 {
+	if x != nil {
+		return x.DiskUsageBytes
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetDiskTotal() uint64 {
+	if x != nil {
+		return x.DiskTotal
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetDiskFree() uint64 {
+	if x != nil {
+		return x.DiskFree
+	}
+	return 0
+}
+
+func (x *GetInstanceStatsResponse) GetDiskScanTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DiskScanTime
+	}
+	return nil
+}
+
+func (x *GetInstanceStatsResponse) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
 // 获取实例文件列表请求
 type GetInstanceFileListRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1834,7 +2386,7 @@ type GetInstanceFileListRequest struct {
 
 func (x *GetInstanceFileListRequest) Reset() {
 	*x = GetInstanceFileListRequest{}
-	mi := &file_v1_instance_proto_msgTypes[30]
+	mi := &file_v1_instance_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1846,7 +2398,7 @@ func (x *GetInstanceFileListRequest) String() string {
 func (*GetInstanceFileListRequest) ProtoMessage() {}
 
 func (x *GetInstanceFileListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[30]
+	mi := &file_v1_instance_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1859,7 +2411,7 @@ func (x *GetInstanceFileListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceFileListRequest.ProtoReflect.Descriptor instead.
 func (*GetInstanceFileListRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{30}
+	return file_v1_instance_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetInstanceFileListRequest) GetId() string {
@@ -1937,7 +2489,7 @@ type GetInstanceFileListResponse struct {
 
 func (x *GetInstanceFileListResponse) Reset() {
 	*x = GetInstanceFileListResponse{}
-	mi := &file_v1_instance_proto_msgTypes[31]
+	mi := &file_v1_instance_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1949,7 +2501,7 @@ func (x *GetInstanceFileListResponse) String() string {
 func (*GetInstanceFileListResponse) ProtoMessage() {}
 
 func (x *GetInstanceFileListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[31]
+	mi := &file_v1_instance_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1962,7 +2514,7 @@ func (x *GetInstanceFileListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceFileListResponse.ProtoReflect.Descriptor instead.
 func (*GetInstanceFileListResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{31}
+	return file_v1_instance_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetInstanceFileListResponse) GetDirectory() *FileDirectoryInfo {
@@ -2013,7 +2565,7 @@ type GetInstanceFileTreeRequest struct {
 
 func (x *GetInstanceFileTreeRequest) Reset() {
 	*x = GetInstanceFileTreeRequest{}
-	mi := &file_v1_instance_proto_msgTypes[32]
+	mi := &file_v1_instance_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2025,7 +2577,7 @@ func (x *GetInstanceFileTreeRequest) String() string {
 func (*GetInstanceFileTreeRequest) ProtoMessage() {}
 
 func (x *GetInstanceFileTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[32]
+	mi := &file_v1_instance_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2038,7 +2590,7 @@ func (x *GetInstanceFileTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceFileTreeRequest.ProtoReflect.Descriptor instead.
 func (*GetInstanceFileTreeRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{32}
+	return file_v1_instance_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetInstanceFileTreeRequest) GetId() string {
@@ -2068,7 +2620,7 @@ type GetInstanceFileTreeResponse struct {
 
 func (x *GetInstanceFileTreeResponse) Reset() {
 	*x = GetInstanceFileTreeResponse{}
-	mi := &file_v1_instance_proto_msgTypes[33]
+	mi := &file_v1_instance_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2080,7 +2632,7 @@ func (x *GetInstanceFileTreeResponse) String() string {
 func (*GetInstanceFileTreeResponse) ProtoMessage() {}
 
 func (x *GetInstanceFileTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[33]
+	mi := &file_v1_instance_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2093,7 +2645,7 @@ func (x *GetInstanceFileTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInstanceFileTreeResponse.ProtoReflect.Descriptor instead.
 func (*GetInstanceFileTreeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{33}
+	return file_v1_instance_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetInstanceFileTreeResponse) GetPath() string {
@@ -2123,7 +2675,7 @@ type CreateInstanceFileRequest struct {
 
 func (x *CreateInstanceFileRequest) Reset() {
 	*x = CreateInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[34]
+	mi := &file_v1_instance_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2135,7 +2687,7 @@ func (x *CreateInstanceFileRequest) String() string {
 func (*CreateInstanceFileRequest) ProtoMessage() {}
 
 func (x *CreateInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[34]
+	mi := &file_v1_instance_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2148,7 +2700,7 @@ func (x *CreateInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*CreateInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{34}
+	return file_v1_instance_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CreateInstanceFileRequest) GetId() string {
@@ -2174,7 +2726,7 @@ type CreateInstanceFileResponse struct {
 
 func (x *CreateInstanceFileResponse) Reset() {
 	*x = CreateInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[35]
+	mi := &file_v1_instance_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2186,7 +2738,7 @@ func (x *CreateInstanceFileResponse) String() string {
 func (*CreateInstanceFileResponse) ProtoMessage() {}
 
 func (x *CreateInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[35]
+	mi := &file_v1_instance_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2199,7 +2751,7 @@ func (x *CreateInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*CreateInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{35}
+	return file_v1_instance_proto_rawDescGZIP(), []int{39}
 }
 
 // 重命名实例文件请求
@@ -2217,7 +2769,7 @@ type RenameInstanceFileRequest struct {
 
 func (x *RenameInstanceFileRequest) Reset() {
 	*x = RenameInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[36]
+	mi := &file_v1_instance_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2229,7 +2781,7 @@ func (x *RenameInstanceFileRequest) String() string {
 func (*RenameInstanceFileRequest) ProtoMessage() {}
 
 func (x *RenameInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[36]
+	mi := &file_v1_instance_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2242,7 +2794,7 @@ func (x *RenameInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*RenameInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{36}
+	return file_v1_instance_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *RenameInstanceFileRequest) GetId() string {
@@ -2277,7 +2829,7 @@ type RenameInstanceFileResponse struct {
 
 func (x *RenameInstanceFileResponse) Reset() {
 	*x = RenameInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[37]
+	mi := &file_v1_instance_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2289,7 +2841,7 @@ func (x *RenameInstanceFileResponse) String() string {
 func (*RenameInstanceFileResponse) ProtoMessage() {}
 
 func (x *RenameInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[37]
+	mi := &file_v1_instance_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2302,7 +2854,7 @@ func (x *RenameInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*RenameInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{37}
+	return file_v1_instance_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RenameInstanceFileResponse) GetPath() string {
@@ -2327,7 +2879,7 @@ type CopyInstanceFileRequest struct {
 
 func (x *CopyInstanceFileRequest) Reset() {
 	*x = CopyInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[38]
+	mi := &file_v1_instance_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2339,7 +2891,7 @@ func (x *CopyInstanceFileRequest) String() string {
 func (*CopyInstanceFileRequest) ProtoMessage() {}
 
 func (x *CopyInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[38]
+	mi := &file_v1_instance_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2352,7 +2904,7 @@ func (x *CopyInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*CopyInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{38}
+	return file_v1_instance_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *CopyInstanceFileRequest) GetId() string {
@@ -2387,7 +2939,7 @@ type CopyInstanceFileResponse struct {
 
 func (x *CopyInstanceFileResponse) Reset() {
 	*x = CopyInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[39]
+	mi := &file_v1_instance_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2399,7 +2951,7 @@ func (x *CopyInstanceFileResponse) String() string {
 func (*CopyInstanceFileResponse) ProtoMessage() {}
 
 func (x *CopyInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[39]
+	mi := &file_v1_instance_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2412,7 +2964,7 @@ func (x *CopyInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*CopyInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{39}
+	return file_v1_instance_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CopyInstanceFileResponse) GetTask() *FileTaskInfo {
@@ -2437,7 +2989,7 @@ type CutInstanceFileRequest struct {
 
 func (x *CutInstanceFileRequest) Reset() {
 	*x = CutInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[40]
+	mi := &file_v1_instance_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2449,7 +3001,7 @@ func (x *CutInstanceFileRequest) String() string {
 func (*CutInstanceFileRequest) ProtoMessage() {}
 
 func (x *CutInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[40]
+	mi := &file_v1_instance_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2462,7 +3014,7 @@ func (x *CutInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CutInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*CutInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{40}
+	return file_v1_instance_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CutInstanceFileRequest) GetId() string {
@@ -2497,7 +3049,7 @@ type CutInstanceFileResponse struct {
 
 func (x *CutInstanceFileResponse) Reset() {
 	*x = CutInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[41]
+	mi := &file_v1_instance_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2509,7 +3061,7 @@ func (x *CutInstanceFileResponse) String() string {
 func (*CutInstanceFileResponse) ProtoMessage() {}
 
 func (x *CutInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[41]
+	mi := &file_v1_instance_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2522,7 +3074,7 @@ func (x *CutInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CutInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*CutInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{41}
+	return file_v1_instance_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *CutInstanceFileResponse) GetTask() *FileTaskInfo {
@@ -2545,7 +3097,7 @@ type BatchDeleteInstanceFileRequest struct {
 
 func (x *BatchDeleteInstanceFileRequest) Reset() {
 	*x = BatchDeleteInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[42]
+	mi := &file_v1_instance_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2557,7 +3109,7 @@ func (x *BatchDeleteInstanceFileRequest) String() string {
 func (*BatchDeleteInstanceFileRequest) ProtoMessage() {}
 
 func (x *BatchDeleteInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[42]
+	mi := &file_v1_instance_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2570,7 +3122,7 @@ func (x *BatchDeleteInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchDeleteInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*BatchDeleteInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{42}
+	return file_v1_instance_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *BatchDeleteInstanceFileRequest) GetId() string {
@@ -2598,7 +3150,7 @@ type BatchDeleteInstanceFileResponse struct {
 
 func (x *BatchDeleteInstanceFileResponse) Reset() {
 	*x = BatchDeleteInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[43]
+	mi := &file_v1_instance_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2610,7 +3162,7 @@ func (x *BatchDeleteInstanceFileResponse) String() string {
 func (*BatchDeleteInstanceFileResponse) ProtoMessage() {}
 
 func (x *BatchDeleteInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[43]
+	mi := &file_v1_instance_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2623,7 +3175,7 @@ func (x *BatchDeleteInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchDeleteInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*BatchDeleteInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{43}
+	return file_v1_instance_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *BatchDeleteInstanceFileResponse) GetItems() []*FileOperationResult {
@@ -2648,7 +3200,7 @@ type BatchCompressInstanceFileRequest struct {
 
 func (x *BatchCompressInstanceFileRequest) Reset() {
 	*x = BatchCompressInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[44]
+	mi := &file_v1_instance_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2660,7 +3212,7 @@ func (x *BatchCompressInstanceFileRequest) String() string {
 func (*BatchCompressInstanceFileRequest) ProtoMessage() {}
 
 func (x *BatchCompressInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[44]
+	mi := &file_v1_instance_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2673,7 +3225,7 @@ func (x *BatchCompressInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCompressInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*BatchCompressInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{44}
+	return file_v1_instance_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *BatchCompressInstanceFileRequest) GetId() string {
@@ -2708,7 +3260,7 @@ type BatchCompressInstanceFileResponse struct {
 
 func (x *BatchCompressInstanceFileResponse) Reset() {
 	*x = BatchCompressInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[45]
+	mi := &file_v1_instance_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2720,7 +3272,7 @@ func (x *BatchCompressInstanceFileResponse) String() string {
 func (*BatchCompressInstanceFileResponse) ProtoMessage() {}
 
 func (x *BatchCompressInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[45]
+	mi := &file_v1_instance_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2733,7 +3285,7 @@ func (x *BatchCompressInstanceFileResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use BatchCompressInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*BatchCompressInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{45}
+	return file_v1_instance_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *BatchCompressInstanceFileResponse) GetOutputPath() string {
@@ -2758,7 +3310,7 @@ type UnzipInstanceFileRequest struct {
 
 func (x *UnzipInstanceFileRequest) Reset() {
 	*x = UnzipInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[46]
+	mi := &file_v1_instance_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2770,7 +3322,7 @@ func (x *UnzipInstanceFileRequest) String() string {
 func (*UnzipInstanceFileRequest) ProtoMessage() {}
 
 func (x *UnzipInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[46]
+	mi := &file_v1_instance_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2783,7 +3335,7 @@ func (x *UnzipInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnzipInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*UnzipInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{46}
+	return file_v1_instance_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UnzipInstanceFileRequest) GetId() string {
@@ -2818,7 +3370,7 @@ type UnzipInstanceFileResponse struct {
 
 func (x *UnzipInstanceFileResponse) Reset() {
 	*x = UnzipInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[47]
+	mi := &file_v1_instance_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2830,7 +3382,7 @@ func (x *UnzipInstanceFileResponse) String() string {
 func (*UnzipInstanceFileResponse) ProtoMessage() {}
 
 func (x *UnzipInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[47]
+	mi := &file_v1_instance_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2843,7 +3395,7 @@ func (x *UnzipInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnzipInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*UnzipInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{47}
+	return file_v1_instance_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *UnzipInstanceFileResponse) GetOutputPath() string {
@@ -2868,7 +3420,7 @@ type EditInstanceFileRequest struct {
 
 func (x *EditInstanceFileRequest) Reset() {
 	*x = EditInstanceFileRequest{}
-	mi := &file_v1_instance_proto_msgTypes[48]
+	mi := &file_v1_instance_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2880,7 +3432,7 @@ func (x *EditInstanceFileRequest) String() string {
 func (*EditInstanceFileRequest) ProtoMessage() {}
 
 func (x *EditInstanceFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[48]
+	mi := &file_v1_instance_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2893,7 +3445,7 @@ func (x *EditInstanceFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditInstanceFileRequest.ProtoReflect.Descriptor instead.
 func (*EditInstanceFileRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{48}
+	return file_v1_instance_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *EditInstanceFileRequest) GetId() string {
@@ -2926,7 +3478,7 @@ type EditInstanceFileResponse struct {
 
 func (x *EditInstanceFileResponse) Reset() {
 	*x = EditInstanceFileResponse{}
-	mi := &file_v1_instance_proto_msgTypes[49]
+	mi := &file_v1_instance_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2938,7 +3490,7 @@ func (x *EditInstanceFileResponse) String() string {
 func (*EditInstanceFileResponse) ProtoMessage() {}
 
 func (x *EditInstanceFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[49]
+	mi := &file_v1_instance_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2951,7 +3503,7 @@ func (x *EditInstanceFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditInstanceFileResponse.ProtoReflect.Descriptor instead.
 func (*EditInstanceFileResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{49}
+	return file_v1_instance_proto_rawDescGZIP(), []int{53}
 }
 
 // 实例文件下载预签名请求
@@ -2967,7 +3519,7 @@ type InstanceFilePreSignRequest struct {
 
 func (x *InstanceFilePreSignRequest) Reset() {
 	*x = InstanceFilePreSignRequest{}
-	mi := &file_v1_instance_proto_msgTypes[50]
+	mi := &file_v1_instance_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2979,7 +3531,7 @@ func (x *InstanceFilePreSignRequest) String() string {
 func (*InstanceFilePreSignRequest) ProtoMessage() {}
 
 func (x *InstanceFilePreSignRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[50]
+	mi := &file_v1_instance_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2992,7 +3544,7 @@ func (x *InstanceFilePreSignRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignRequest.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{50}
+	return file_v1_instance_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *InstanceFilePreSignRequest) GetId() string {
@@ -3020,7 +3572,7 @@ type InstanceFilePreSignResponse struct {
 
 func (x *InstanceFilePreSignResponse) Reset() {
 	*x = InstanceFilePreSignResponse{}
-	mi := &file_v1_instance_proto_msgTypes[51]
+	mi := &file_v1_instance_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3032,7 +3584,7 @@ func (x *InstanceFilePreSignResponse) String() string {
 func (*InstanceFilePreSignResponse) ProtoMessage() {}
 
 func (x *InstanceFilePreSignResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[51]
+	mi := &file_v1_instance_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3045,7 +3597,7 @@ func (x *InstanceFilePreSignResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignResponse.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{51}
+	return file_v1_instance_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *InstanceFilePreSignResponse) GetDownloadUrlPath() string {
@@ -3076,7 +3628,7 @@ type InstanceFilePreSignUploadRequest struct {
 
 func (x *InstanceFilePreSignUploadRequest) Reset() {
 	*x = InstanceFilePreSignUploadRequest{}
-	mi := &file_v1_instance_proto_msgTypes[52]
+	mi := &file_v1_instance_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3088,7 +3640,7 @@ func (x *InstanceFilePreSignUploadRequest) String() string {
 func (*InstanceFilePreSignUploadRequest) ProtoMessage() {}
 
 func (x *InstanceFilePreSignUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[52]
+	mi := &file_v1_instance_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3101,7 +3653,7 @@ func (x *InstanceFilePreSignUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstanceFilePreSignUploadRequest.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{52}
+	return file_v1_instance_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *InstanceFilePreSignUploadRequest) GetId() string {
@@ -3157,7 +3709,7 @@ type InstanceFilePreSignUploadResponse struct {
 
 func (x *InstanceFilePreSignUploadResponse) Reset() {
 	*x = InstanceFilePreSignUploadResponse{}
-	mi := &file_v1_instance_proto_msgTypes[53]
+	mi := &file_v1_instance_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3169,7 +3721,7 @@ func (x *InstanceFilePreSignUploadResponse) String() string {
 func (*InstanceFilePreSignUploadResponse) ProtoMessage() {}
 
 func (x *InstanceFilePreSignUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_instance_proto_msgTypes[53]
+	mi := &file_v1_instance_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3182,7 +3734,7 @@ func (x *InstanceFilePreSignUploadResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use InstanceFilePreSignUploadResponse.ProtoReflect.Descriptor instead.
 func (*InstanceFilePreSignUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_instance_proto_rawDescGZIP(), []int{53}
+	return file_v1_instance_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *InstanceFilePreSignUploadResponse) GetInfo() *UploadInfo {
@@ -3199,28 +3751,59 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x11v1/instance.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\rv1/file.proto\"\x19\n" +
 	"\x17GetInstanceTypesRequest\"F\n" +
 	"\x18GetInstanceTypesResponse\x12*\n" +
-	"\x05types\x18\x01 \x03(\v2\x14.v1.InstanceTypeInfoR\x05types\"/\n" +
+	"\x05types\x18\x01 \x03(\v2\x14.v1.InstanceTypeInfoR\x05types\"\xf0\x01\n" +
 	"\x19CreateInstanceTypeRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"F\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\tis_enable\x18\x02 \x01(\bH\x00R\bisEnable\x88\x01\x01\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12#\n" +
+	"\rstart_command\x18\x04 \x01(\tR\fstartCommand\x12!\n" +
+	"\fstop_command\x18\x05 \x01(\tR\vstopCommand\x12%\n" +
+	"\x0equick_commands\x18\x06 \x03(\tR\rquickCommandsB\f\n" +
+	"\n" +
+	"_is_enable\"F\n" +
 	"\x1aCreateInstanceTypeResponse\x12(\n" +
-	"\x04type\x18\x01 \x01(\v2\x14.v1.InstanceTypeInfoR\x04type\"}\n" +
+	"\x04type\x18\x01 \x01(\v2\x14.v1.InstanceTypeInfoR\x04type\"\xeb\x02\n" +
 	"\x19UpdateInstanceTypeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12 \n" +
-	"\tis_enable\x18\x03 \x01(\bH\x01R\bisEnable\x88\x01\x01B\a\n" +
+	"\tis_enable\x18\x03 \x01(\bH\x01R\bisEnable\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x04 \x01(\tH\x02R\vdescription\x88\x01\x01\x12(\n" +
+	"\rstart_command\x18\x05 \x01(\tH\x03R\fstartCommand\x88\x01\x01\x12&\n" +
+	"\fstop_command\x18\x06 \x01(\tH\x04R\vstopCommand\x88\x01\x01\x12@\n" +
+	"\x0equick_commands\x18\a \x01(\v2\x19.v1.InstanceQuickCommandsR\rquickCommandsB\a\n" +
 	"\x05_nameB\f\n" +
 	"\n" +
-	"_is_enable\"F\n" +
+	"_is_enableB\x0e\n" +
+	"\f_descriptionB\x10\n" +
+	"\x0e_start_commandB\x0f\n" +
+	"\r_stop_command\"-\n" +
+	"\x15InstanceQuickCommands\x12\x14\n" +
+	"\x05items\x18\x01 \x03(\tR\x05items\"F\n" +
 	"\x1aUpdateInstanceTypeResponse\x12(\n" +
 	"\x04type\x18\x01 \x01(\v2\x14.v1.InstanceTypeInfoR\x04type\"(\n" +
 	"\x16DelInstanceTypeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x19\n" +
-	"\x17DelInstanceTypeResponse\"p\n" +
+	"\x17DelInstanceTypeResponse\"\xc1\x03\n" +
 	"\x10InstanceTypeInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
 	"\tis_system\x18\x03 \x01(\bR\bisSystem\x12\x1b\n" +
-	"\tis_enable\x18\x04 \x01(\bR\bisEnable\"\xd2\x01\n" +
+	"\tis_enable\x18\x04 \x01(\bR\bisEnable\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12#\n" +
+	"\rstart_command\x18\x06 \x01(\tR\fstartCommand\x12!\n" +
+	"\fstop_command\x18\a \x01(\tR\vstopCommand\x12\x1b\n" +
+	"\tapp_count\x18\b \x01(\x03R\bappCount\x12'\n" +
+	"\x04apps\x18\t \x03(\v2\x13.v1.InstanceTypeAppR\x04apps\x12;\n" +
+	"\vcreate_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"createTime\x12;\n" +
+	"\vupdate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x12%\n" +
+	"\x0equick_commands\x18\f \x03(\tR\rquickCommands\"a\n" +
+	"\x0fInstanceTypeApp\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12*\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x12.v1.InstanceStatusR\x06status\"\xd2\x01\n" +
 	"\x13GetInstancesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
@@ -3234,7 +3817,7 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12&\n" +
-	"\x05infos\x18\x04 \x03(\v2\x10.v1.InstanceInfoR\x05infos\"\xa2\x02\n" +
+	"\x05infos\x18\x04 \x03(\v2\x10.v1.InstanceInfoR\x05infos\"\xe8\x02\n" +
 	"\x15CreateInstanceRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
 	"\x06remark\x18\x02 \x01(\tR\x06remark\x12\x12\n" +
@@ -3247,7 +3830,9 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\n" +
 	"auto_start\x18\t \x01(\bR\tautoStart\x12\x10\n" +
 	"\x03env\x18\n" +
-	" \x03(\tR\x03env\">\n" +
+	" \x03(\tR\x03env\x12!\n" +
+	"\fstop_timeout\x18\v \x01(\x05R\vstopTimeout\x12!\n" +
+	"\fauto_restart\x18\f \x01(\bR\vautoRestart\">\n" +
 	"\x16CreateInstanceResponse\x12$\n" +
 	"\x04info\x18\x01 \x01(\v2\x10.v1.InstanceInfoR\x04info\"(\n" +
 	"\x16GetInstanceInfoRequest\x12\x0e\n" +
@@ -3271,7 +3856,7 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x17RestartInstanceResponse\"$\n" +
 	"\x12DelInstanceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DelInstanceResponse\"\xab\x03\n" +
+	"\x13DelInstanceResponse\"\x9d\x04\n" +
 	"\x15UpdateInstanceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1b\n" +
@@ -3284,7 +3869,9 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\n" +
 	"auto_start\x18\t \x01(\bH\aR\tautoStart\x88\x01\x01\x12\x10\n" +
 	"\x03env\x18\n" +
-	" \x03(\tR\x03envB\a\n" +
+	" \x03(\tR\x03env\x12&\n" +
+	"\fstop_timeout\x18\v \x01(\x05H\bR\vstopTimeout\x88\x01\x01\x12&\n" +
+	"\fauto_restart\x18\f \x01(\bH\tR\vautoRestart\x88\x01\x01B\a\n" +
 	"\x05_nameB\t\n" +
 	"\a_remarkB\a\n" +
 	"\x05_tagsB\a\n" +
@@ -3292,12 +3879,14 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x0e_start_commandB\x10\n" +
 	"\x0e_instance_pathB\x0f\n" +
 	"\r_stop_commandB\r\n" +
-	"\v_auto_start\">\n" +
+	"\v_auto_startB\x0f\n" +
+	"\r_stop_timeoutB\x0f\n" +
+	"\r_auto_restart\">\n" +
 	"\x16UpdateInstanceResponse\x12$\n" +
 	"\x04info\x18\x01 \x01(\v2\x10.v1.InstanceInfoR\x04info\"'\n" +
 	"\x15DelInstanceLogRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x18\n" +
-	"\x16DelInstanceLogResponse\"\xe6\x03\n" +
+	"\x16DelInstanceLogResponse\"\xd8\x05\n" +
 	"\fInstanceInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12*\n" +
@@ -3317,7 +3906,34 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\fstop_command\x18\r \x01(\tR\vstopCommand\x12\x1d\n" +
 	"\n" +
 	"auto_start\x18\x0e \x01(\bR\tautoStart\x12\x10\n" +
-	"\x03env\x18\x0f \x03(\tR\x03env\"\xab\x02\n" +
+	"\x03env\x18\x0f \x03(\tR\x03env\x12!\n" +
+	"\fstop_timeout\x18\x10 \x01(\x05R\vstopTimeout\x12!\n" +
+	"\fauto_restart\x18\x11 \x01(\bR\vautoRestart\x12\x10\n" +
+	"\x03pid\x18\x12 \x01(\x05R\x03pid\x12\x17\n" +
+	"\atype_id\x18\x13 \x01(\tR\x06typeId\x12\x1b\n" +
+	"\tuser_name\x18\x14 \x01(\tR\buserName\x12;\n" +
+	"\vupdate_time\x18\x15 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"updateTime\x12%\n" +
+	"\x0equick_commands\x18\x16 \x03(\tR\rquickCommands\")\n" +
+	"\x17GetInstanceStatsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xd2\x03\n" +
+	"\x18GetInstanceStatsResponse\x12\x18\n" +
+	"\arunning\x18\x01 \x01(\bR\arunning\x12\x10\n" +
+	"\x03pid\x18\x02 \x01(\x05R\x03pid\x12#\n" +
+	"\rprocess_count\x18\x03 \x01(\x05R\fprocessCount\x12\x1f\n" +
+	"\vcpu_percent\x18\x04 \x01(\x01R\n" +
+	"cpuPercent\x12\x1b\n" +
+	"\tcpu_cores\x18\x05 \x01(\x05R\bcpuCores\x12!\n" +
+	"\fmemory_bytes\x18\x06 \x01(\x04R\vmemoryBytes\x12!\n" +
+	"\fmemory_total\x18\a \x01(\x04R\vmemoryTotal\x12(\n" +
+	"\x10disk_usage_bytes\x18\b \x01(\x04R\x0ediskUsageBytes\x12\x1d\n" +
+	"\n" +
+	"disk_total\x18\t \x01(\x04R\tdiskTotal\x12\x1b\n" +
+	"\tdisk_free\x18\n" +
+	" \x01(\x04R\bdiskFree\x12@\n" +
+	"\x0edisk_scan_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\fdiskScanTime\x129\n" +
+	"\n" +
+	"start_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\"\xab\x02\n" +
 	"\x1aGetInstanceFileListRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x12\n" +
@@ -3414,7 +4030,7 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\x1bINSTANCE_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17INSTANCE_STATUS_STOPPED\x10\x01\x12\x1b\n" +
 	"\x17INSTANCE_STATUS_RUNNING\x10\x02\x12\x1f\n" +
-	"\x1bINSTANCE_STATUS_MAINTENANCE\x10\x032\x97\x18\n" +
+	"\x1bINSTANCE_STATUS_MAINTENANCE\x10\x032\x8b\x19\n" +
 	"\x0fInstanceManager\x12l\n" +
 	"\x10GetInstanceTypes\x12\x1b.v1.GetInstanceTypesRequest\x1a\x1c.v1.GetInstanceTypesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/instance/type\x12u\n" +
 	"\x12CreateInstanceType\x12\x1d.v1.CreateInstanceTypeRequest\x1a\x1e.v1.CreateInstanceTypeResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/instance/type\x12z\n" +
@@ -3427,7 +4043,8 @@ const file_v1_instance_proto_rawDesc = "" +
 	"\fStopInstance\x12\x17.v1.StopInstanceRequest\x1a\x18.v1.StopInstanceResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/instance/instance/stop/{id}\x12}\n" +
 	"\x0fRestartInstance\x12\x1a.v1.RestartInstanceRequest\x1a\x1b.v1.RestartInstanceResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/instance/instance/restart/{id}\x12j\n" +
 	"\vDelInstance\x12\x16.v1.DelInstanceRequest\x1a\x17.v1.DelInstanceResponse\"*\x82\xd3\xe4\x93\x02$*\"/api/v1/instance/instance/del/{id}\x12r\n" +
-	"\x0eUpdateInstance\x12\x19.v1.UpdateInstanceRequest\x1a\x1a.v1.UpdateInstanceResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/instance/instance/{id}\x12w\n" +
+	"\x0eUpdateInstance\x12\x19.v1.UpdateInstanceRequest\x1a\x1a.v1.UpdateInstanceResponse\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/instance/instance/{id}\x12r\n" +
+	"\x10GetInstanceStats\x12\x1b.v1.GetInstanceStatsRequest\x1a\x1c.v1.GetInstanceStatsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/instance/stats/{id}\x12w\n" +
 	"\x0eDelInstanceLog\x12\x19.v1.DelInstanceLogRequest\x1a\x1a.v1.DelInstanceLogResponse\".\x82\xd3\xe4\x93\x02(*&/api/v1/instance/instance/del/log/{id}\x12z\n" +
 	"\x13GetInstanceFileList\x12\x1e.v1.GetInstanceFileListRequest\x1a\x1f.v1.GetInstanceFileListResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/instance/file/{id}\x12\x7f\n" +
 	"\x13GetInstanceFileTree\x12\x1e.v1.GetInstanceFileTreeRequest\x1a\x1f.v1.GetInstanceFileTreeResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/instance/file/tree/{id}\x12\x81\x01\n" +
@@ -3455,7 +4072,7 @@ func file_v1_instance_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_instance_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
+var file_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_v1_instance_proto_goTypes = []any{
 	(InstanceStatus)(0),                       // 0: v1.InstanceStatus
 	(*GetInstanceTypesRequest)(nil),           // 1: v1.GetInstanceTypesRequest
@@ -3463,142 +4080,156 @@ var file_v1_instance_proto_goTypes = []any{
 	(*CreateInstanceTypeRequest)(nil),         // 3: v1.CreateInstanceTypeRequest
 	(*CreateInstanceTypeResponse)(nil),        // 4: v1.CreateInstanceTypeResponse
 	(*UpdateInstanceTypeRequest)(nil),         // 5: v1.UpdateInstanceTypeRequest
-	(*UpdateInstanceTypeResponse)(nil),        // 6: v1.UpdateInstanceTypeResponse
-	(*DelInstanceTypeRequest)(nil),            // 7: v1.DelInstanceTypeRequest
-	(*DelInstanceTypeResponse)(nil),           // 8: v1.DelInstanceTypeResponse
-	(*InstanceTypeInfo)(nil),                  // 9: v1.InstanceTypeInfo
-	(*GetInstancesRequest)(nil),               // 10: v1.GetInstancesRequest
-	(*GetInstancesResponse)(nil),              // 11: v1.GetInstancesResponse
-	(*CreateInstanceRequest)(nil),             // 12: v1.CreateInstanceRequest
-	(*CreateInstanceResponse)(nil),            // 13: v1.CreateInstanceResponse
-	(*GetInstanceInfoRequest)(nil),            // 14: v1.GetInstanceInfoRequest
-	(*GetInstanceInfoResponse)(nil),           // 15: v1.GetInstanceInfoResponse
-	(*GetInstanceTerminalInfoRequest)(nil),    // 16: v1.GetInstanceTerminalInfoRequest
-	(*GetInstanceTerminalInfoResponse)(nil),   // 17: v1.GetInstanceTerminalInfoResponse
-	(*StartInstanceRequest)(nil),              // 18: v1.StartInstanceRequest
-	(*StartInstanceResponse)(nil),             // 19: v1.StartInstanceResponse
-	(*StopInstanceRequest)(nil),               // 20: v1.StopInstanceRequest
-	(*StopInstanceResponse)(nil),              // 21: v1.StopInstanceResponse
-	(*RestartInstanceRequest)(nil),            // 22: v1.RestartInstanceRequest
-	(*RestartInstanceResponse)(nil),           // 23: v1.RestartInstanceResponse
-	(*DelInstanceRequest)(nil),                // 24: v1.DelInstanceRequest
-	(*DelInstanceResponse)(nil),               // 25: v1.DelInstanceResponse
-	(*UpdateInstanceRequest)(nil),             // 26: v1.UpdateInstanceRequest
-	(*UpdateInstanceResponse)(nil),            // 27: v1.UpdateInstanceResponse
-	(*DelInstanceLogRequest)(nil),             // 28: v1.DelInstanceLogRequest
-	(*DelInstanceLogResponse)(nil),            // 29: v1.DelInstanceLogResponse
-	(*InstanceInfo)(nil),                      // 30: v1.InstanceInfo
-	(*GetInstanceFileListRequest)(nil),        // 31: v1.GetInstanceFileListRequest
-	(*GetInstanceFileListResponse)(nil),       // 32: v1.GetInstanceFileListResponse
-	(*GetInstanceFileTreeRequest)(nil),        // 33: v1.GetInstanceFileTreeRequest
-	(*GetInstanceFileTreeResponse)(nil),       // 34: v1.GetInstanceFileTreeResponse
-	(*CreateInstanceFileRequest)(nil),         // 35: v1.CreateInstanceFileRequest
-	(*CreateInstanceFileResponse)(nil),        // 36: v1.CreateInstanceFileResponse
-	(*RenameInstanceFileRequest)(nil),         // 37: v1.RenameInstanceFileRequest
-	(*RenameInstanceFileResponse)(nil),        // 38: v1.RenameInstanceFileResponse
-	(*CopyInstanceFileRequest)(nil),           // 39: v1.CopyInstanceFileRequest
-	(*CopyInstanceFileResponse)(nil),          // 40: v1.CopyInstanceFileResponse
-	(*CutInstanceFileRequest)(nil),            // 41: v1.CutInstanceFileRequest
-	(*CutInstanceFileResponse)(nil),           // 42: v1.CutInstanceFileResponse
-	(*BatchDeleteInstanceFileRequest)(nil),    // 43: v1.BatchDeleteInstanceFileRequest
-	(*BatchDeleteInstanceFileResponse)(nil),   // 44: v1.BatchDeleteInstanceFileResponse
-	(*BatchCompressInstanceFileRequest)(nil),  // 45: v1.BatchCompressInstanceFileRequest
-	(*BatchCompressInstanceFileResponse)(nil), // 46: v1.BatchCompressInstanceFileResponse
-	(*UnzipInstanceFileRequest)(nil),          // 47: v1.UnzipInstanceFileRequest
-	(*UnzipInstanceFileResponse)(nil),         // 48: v1.UnzipInstanceFileResponse
-	(*EditInstanceFileRequest)(nil),           // 49: v1.EditInstanceFileRequest
-	(*EditInstanceFileResponse)(nil),          // 50: v1.EditInstanceFileResponse
-	(*InstanceFilePreSignRequest)(nil),        // 51: v1.InstanceFilePreSignRequest
-	(*InstanceFilePreSignResponse)(nil),       // 52: v1.InstanceFilePreSignResponse
-	(*InstanceFilePreSignUploadRequest)(nil),  // 53: v1.InstanceFilePreSignUploadRequest
-	(*InstanceFilePreSignUploadResponse)(nil), // 54: v1.InstanceFilePreSignUploadResponse
-	(*timestamppb.Timestamp)(nil),             // 55: google.protobuf.Timestamp
-	(FileSortField)(0),                        // 56: v1.FileSortField
-	(*FileDirectoryInfo)(nil),                 // 57: v1.FileDirectoryInfo
-	(*FileEntryInfo)(nil),                     // 58: v1.FileEntryInfo
-	(*FileTreeNode)(nil),                      // 59: v1.FileTreeNode
-	(*FileCreateItem)(nil),                    // 60: v1.FileCreateItem
-	(*FileTaskInfo)(nil),                      // 61: v1.FileTaskInfo
-	(*FileOperationResult)(nil),               // 62: v1.FileOperationResult
-	(*UploadInfo)(nil),                        // 63: v1.UploadInfo
+	(*InstanceQuickCommands)(nil),             // 6: v1.InstanceQuickCommands
+	(*UpdateInstanceTypeResponse)(nil),        // 7: v1.UpdateInstanceTypeResponse
+	(*DelInstanceTypeRequest)(nil),            // 8: v1.DelInstanceTypeRequest
+	(*DelInstanceTypeResponse)(nil),           // 9: v1.DelInstanceTypeResponse
+	(*InstanceTypeInfo)(nil),                  // 10: v1.InstanceTypeInfo
+	(*InstanceTypeApp)(nil),                   // 11: v1.InstanceTypeApp
+	(*GetInstancesRequest)(nil),               // 12: v1.GetInstancesRequest
+	(*GetInstancesResponse)(nil),              // 13: v1.GetInstancesResponse
+	(*CreateInstanceRequest)(nil),             // 14: v1.CreateInstanceRequest
+	(*CreateInstanceResponse)(nil),            // 15: v1.CreateInstanceResponse
+	(*GetInstanceInfoRequest)(nil),            // 16: v1.GetInstanceInfoRequest
+	(*GetInstanceInfoResponse)(nil),           // 17: v1.GetInstanceInfoResponse
+	(*GetInstanceTerminalInfoRequest)(nil),    // 18: v1.GetInstanceTerminalInfoRequest
+	(*GetInstanceTerminalInfoResponse)(nil),   // 19: v1.GetInstanceTerminalInfoResponse
+	(*StartInstanceRequest)(nil),              // 20: v1.StartInstanceRequest
+	(*StartInstanceResponse)(nil),             // 21: v1.StartInstanceResponse
+	(*StopInstanceRequest)(nil),               // 22: v1.StopInstanceRequest
+	(*StopInstanceResponse)(nil),              // 23: v1.StopInstanceResponse
+	(*RestartInstanceRequest)(nil),            // 24: v1.RestartInstanceRequest
+	(*RestartInstanceResponse)(nil),           // 25: v1.RestartInstanceResponse
+	(*DelInstanceRequest)(nil),                // 26: v1.DelInstanceRequest
+	(*DelInstanceResponse)(nil),               // 27: v1.DelInstanceResponse
+	(*UpdateInstanceRequest)(nil),             // 28: v1.UpdateInstanceRequest
+	(*UpdateInstanceResponse)(nil),            // 29: v1.UpdateInstanceResponse
+	(*DelInstanceLogRequest)(nil),             // 30: v1.DelInstanceLogRequest
+	(*DelInstanceLogResponse)(nil),            // 31: v1.DelInstanceLogResponse
+	(*InstanceInfo)(nil),                      // 32: v1.InstanceInfo
+	(*GetInstanceStatsRequest)(nil),           // 33: v1.GetInstanceStatsRequest
+	(*GetInstanceStatsResponse)(nil),          // 34: v1.GetInstanceStatsResponse
+	(*GetInstanceFileListRequest)(nil),        // 35: v1.GetInstanceFileListRequest
+	(*GetInstanceFileListResponse)(nil),       // 36: v1.GetInstanceFileListResponse
+	(*GetInstanceFileTreeRequest)(nil),        // 37: v1.GetInstanceFileTreeRequest
+	(*GetInstanceFileTreeResponse)(nil),       // 38: v1.GetInstanceFileTreeResponse
+	(*CreateInstanceFileRequest)(nil),         // 39: v1.CreateInstanceFileRequest
+	(*CreateInstanceFileResponse)(nil),        // 40: v1.CreateInstanceFileResponse
+	(*RenameInstanceFileRequest)(nil),         // 41: v1.RenameInstanceFileRequest
+	(*RenameInstanceFileResponse)(nil),        // 42: v1.RenameInstanceFileResponse
+	(*CopyInstanceFileRequest)(nil),           // 43: v1.CopyInstanceFileRequest
+	(*CopyInstanceFileResponse)(nil),          // 44: v1.CopyInstanceFileResponse
+	(*CutInstanceFileRequest)(nil),            // 45: v1.CutInstanceFileRequest
+	(*CutInstanceFileResponse)(nil),           // 46: v1.CutInstanceFileResponse
+	(*BatchDeleteInstanceFileRequest)(nil),    // 47: v1.BatchDeleteInstanceFileRequest
+	(*BatchDeleteInstanceFileResponse)(nil),   // 48: v1.BatchDeleteInstanceFileResponse
+	(*BatchCompressInstanceFileRequest)(nil),  // 49: v1.BatchCompressInstanceFileRequest
+	(*BatchCompressInstanceFileResponse)(nil), // 50: v1.BatchCompressInstanceFileResponse
+	(*UnzipInstanceFileRequest)(nil),          // 51: v1.UnzipInstanceFileRequest
+	(*UnzipInstanceFileResponse)(nil),         // 52: v1.UnzipInstanceFileResponse
+	(*EditInstanceFileRequest)(nil),           // 53: v1.EditInstanceFileRequest
+	(*EditInstanceFileResponse)(nil),          // 54: v1.EditInstanceFileResponse
+	(*InstanceFilePreSignRequest)(nil),        // 55: v1.InstanceFilePreSignRequest
+	(*InstanceFilePreSignResponse)(nil),       // 56: v1.InstanceFilePreSignResponse
+	(*InstanceFilePreSignUploadRequest)(nil),  // 57: v1.InstanceFilePreSignUploadRequest
+	(*InstanceFilePreSignUploadResponse)(nil), // 58: v1.InstanceFilePreSignUploadResponse
+	(*timestamppb.Timestamp)(nil),             // 59: google.protobuf.Timestamp
+	(FileSortField)(0),                        // 60: v1.FileSortField
+	(*FileDirectoryInfo)(nil),                 // 61: v1.FileDirectoryInfo
+	(*FileEntryInfo)(nil),                     // 62: v1.FileEntryInfo
+	(*FileTreeNode)(nil),                      // 63: v1.FileTreeNode
+	(*FileCreateItem)(nil),                    // 64: v1.FileCreateItem
+	(*FileTaskInfo)(nil),                      // 65: v1.FileTaskInfo
+	(*FileOperationResult)(nil),               // 66: v1.FileOperationResult
+	(*UploadInfo)(nil),                        // 67: v1.UploadInfo
 }
 var file_v1_instance_proto_depIdxs = []int32{
-	9,  // 0: v1.GetInstanceTypesResponse.types:type_name -> v1.InstanceTypeInfo
-	9,  // 1: v1.CreateInstanceTypeResponse.type:type_name -> v1.InstanceTypeInfo
-	9,  // 2: v1.UpdateInstanceTypeResponse.type:type_name -> v1.InstanceTypeInfo
-	0,  // 3: v1.GetInstancesRequest.status:type_name -> v1.InstanceStatus
-	30, // 4: v1.GetInstancesResponse.infos:type_name -> v1.InstanceInfo
-	30, // 5: v1.CreateInstanceResponse.info:type_name -> v1.InstanceInfo
-	30, // 6: v1.GetInstanceInfoResponse.info:type_name -> v1.InstanceInfo
-	30, // 7: v1.StartInstanceResponse.info:type_name -> v1.InstanceInfo
-	30, // 8: v1.UpdateInstanceResponse.info:type_name -> v1.InstanceInfo
-	0,  // 9: v1.InstanceInfo.status:type_name -> v1.InstanceStatus
-	55, // 10: v1.InstanceInfo.start_time:type_name -> google.protobuf.Timestamp
-	55, // 11: v1.InstanceInfo.create_time:type_name -> google.protobuf.Timestamp
-	56, // 12: v1.GetInstanceFileListRequest.sort_field:type_name -> v1.FileSortField
-	57, // 13: v1.GetInstanceFileListResponse.directory:type_name -> v1.FileDirectoryInfo
-	58, // 14: v1.GetInstanceFileListResponse.items:type_name -> v1.FileEntryInfo
-	59, // 15: v1.GetInstanceFileTreeResponse.nodes:type_name -> v1.FileTreeNode
-	60, // 16: v1.CreateInstanceFileRequest.info:type_name -> v1.FileCreateItem
-	61, // 17: v1.CopyInstanceFileResponse.task:type_name -> v1.FileTaskInfo
-	61, // 18: v1.CutInstanceFileResponse.task:type_name -> v1.FileTaskInfo
-	62, // 19: v1.BatchDeleteInstanceFileResponse.items:type_name -> v1.FileOperationResult
-	63, // 20: v1.InstanceFilePreSignUploadResponse.info:type_name -> v1.UploadInfo
-	1,  // 21: v1.InstanceManager.GetInstanceTypes:input_type -> v1.GetInstanceTypesRequest
-	3,  // 22: v1.InstanceManager.CreateInstanceType:input_type -> v1.CreateInstanceTypeRequest
-	5,  // 23: v1.InstanceManager.UpdateInstanceType:input_type -> v1.UpdateInstanceTypeRequest
-	7,  // 24: v1.InstanceManager.DelInstanceType:input_type -> v1.DelInstanceTypeRequest
-	10, // 25: v1.InstanceManager.GetInstances:input_type -> v1.GetInstancesRequest
-	12, // 26: v1.InstanceManager.CreateInstance:input_type -> v1.CreateInstanceRequest
-	14, // 27: v1.InstanceManager.GetInstanceInfo:input_type -> v1.GetInstanceInfoRequest
-	18, // 28: v1.InstanceManager.StartInstance:input_type -> v1.StartInstanceRequest
-	20, // 29: v1.InstanceManager.StopInstance:input_type -> v1.StopInstanceRequest
-	22, // 30: v1.InstanceManager.RestartInstance:input_type -> v1.RestartInstanceRequest
-	24, // 31: v1.InstanceManager.DelInstance:input_type -> v1.DelInstanceRequest
-	26, // 32: v1.InstanceManager.UpdateInstance:input_type -> v1.UpdateInstanceRequest
-	28, // 33: v1.InstanceManager.DelInstanceLog:input_type -> v1.DelInstanceLogRequest
-	31, // 34: v1.InstanceManager.GetInstanceFileList:input_type -> v1.GetInstanceFileListRequest
-	33, // 35: v1.InstanceManager.GetInstanceFileTree:input_type -> v1.GetInstanceFileTreeRequest
-	35, // 36: v1.InstanceManager.CreateInstanceFile:input_type -> v1.CreateInstanceFileRequest
-	37, // 37: v1.InstanceManager.RenameInstanceFile:input_type -> v1.RenameInstanceFileRequest
-	39, // 38: v1.InstanceManager.CopyInstanceFile:input_type -> v1.CopyInstanceFileRequest
-	41, // 39: v1.InstanceManager.CutInstanceFile:input_type -> v1.CutInstanceFileRequest
-	43, // 40: v1.InstanceManager.BatchDeleteInstanceFile:input_type -> v1.BatchDeleteInstanceFileRequest
-	45, // 41: v1.InstanceManager.BatchCompressInstanceFile:input_type -> v1.BatchCompressInstanceFileRequest
-	47, // 42: v1.InstanceManager.UnzipInstanceFile:input_type -> v1.UnzipInstanceFileRequest
-	49, // 43: v1.InstanceManager.EditInstanceFile:input_type -> v1.EditInstanceFileRequest
-	51, // 44: v1.InstanceManager.InstanceFilePreSign:input_type -> v1.InstanceFilePreSignRequest
-	53, // 45: v1.InstanceManager.InstanceFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
-	2,  // 46: v1.InstanceManager.GetInstanceTypes:output_type -> v1.GetInstanceTypesResponse
-	4,  // 47: v1.InstanceManager.CreateInstanceType:output_type -> v1.CreateInstanceTypeResponse
-	6,  // 48: v1.InstanceManager.UpdateInstanceType:output_type -> v1.UpdateInstanceTypeResponse
-	8,  // 49: v1.InstanceManager.DelInstanceType:output_type -> v1.DelInstanceTypeResponse
-	11, // 50: v1.InstanceManager.GetInstances:output_type -> v1.GetInstancesResponse
-	13, // 51: v1.InstanceManager.CreateInstance:output_type -> v1.CreateInstanceResponse
-	15, // 52: v1.InstanceManager.GetInstanceInfo:output_type -> v1.GetInstanceInfoResponse
-	19, // 53: v1.InstanceManager.StartInstance:output_type -> v1.StartInstanceResponse
-	21, // 54: v1.InstanceManager.StopInstance:output_type -> v1.StopInstanceResponse
-	23, // 55: v1.InstanceManager.RestartInstance:output_type -> v1.RestartInstanceResponse
-	25, // 56: v1.InstanceManager.DelInstance:output_type -> v1.DelInstanceResponse
-	27, // 57: v1.InstanceManager.UpdateInstance:output_type -> v1.UpdateInstanceResponse
-	29, // 58: v1.InstanceManager.DelInstanceLog:output_type -> v1.DelInstanceLogResponse
-	32, // 59: v1.InstanceManager.GetInstanceFileList:output_type -> v1.GetInstanceFileListResponse
-	34, // 60: v1.InstanceManager.GetInstanceFileTree:output_type -> v1.GetInstanceFileTreeResponse
-	36, // 61: v1.InstanceManager.CreateInstanceFile:output_type -> v1.CreateInstanceFileResponse
-	38, // 62: v1.InstanceManager.RenameInstanceFile:output_type -> v1.RenameInstanceFileResponse
-	40, // 63: v1.InstanceManager.CopyInstanceFile:output_type -> v1.CopyInstanceFileResponse
-	42, // 64: v1.InstanceManager.CutInstanceFile:output_type -> v1.CutInstanceFileResponse
-	44, // 65: v1.InstanceManager.BatchDeleteInstanceFile:output_type -> v1.BatchDeleteInstanceFileResponse
-	46, // 66: v1.InstanceManager.BatchCompressInstanceFile:output_type -> v1.BatchCompressInstanceFileResponse
-	48, // 67: v1.InstanceManager.UnzipInstanceFile:output_type -> v1.UnzipInstanceFileResponse
-	50, // 68: v1.InstanceManager.EditInstanceFile:output_type -> v1.EditInstanceFileResponse
-	52, // 69: v1.InstanceManager.InstanceFilePreSign:output_type -> v1.InstanceFilePreSignResponse
-	54, // 70: v1.InstanceManager.InstanceFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
-	46, // [46:71] is the sub-list for method output_type
-	21, // [21:46] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	10, // 0: v1.GetInstanceTypesResponse.types:type_name -> v1.InstanceTypeInfo
+	10, // 1: v1.CreateInstanceTypeResponse.type:type_name -> v1.InstanceTypeInfo
+	6,  // 2: v1.UpdateInstanceTypeRequest.quick_commands:type_name -> v1.InstanceQuickCommands
+	10, // 3: v1.UpdateInstanceTypeResponse.type:type_name -> v1.InstanceTypeInfo
+	11, // 4: v1.InstanceTypeInfo.apps:type_name -> v1.InstanceTypeApp
+	59, // 5: v1.InstanceTypeInfo.create_time:type_name -> google.protobuf.Timestamp
+	59, // 6: v1.InstanceTypeInfo.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 7: v1.InstanceTypeApp.status:type_name -> v1.InstanceStatus
+	0,  // 8: v1.GetInstancesRequest.status:type_name -> v1.InstanceStatus
+	32, // 9: v1.GetInstancesResponse.infos:type_name -> v1.InstanceInfo
+	32, // 10: v1.CreateInstanceResponse.info:type_name -> v1.InstanceInfo
+	32, // 11: v1.GetInstanceInfoResponse.info:type_name -> v1.InstanceInfo
+	32, // 12: v1.StartInstanceResponse.info:type_name -> v1.InstanceInfo
+	32, // 13: v1.UpdateInstanceResponse.info:type_name -> v1.InstanceInfo
+	0,  // 14: v1.InstanceInfo.status:type_name -> v1.InstanceStatus
+	59, // 15: v1.InstanceInfo.start_time:type_name -> google.protobuf.Timestamp
+	59, // 16: v1.InstanceInfo.create_time:type_name -> google.protobuf.Timestamp
+	59, // 17: v1.InstanceInfo.update_time:type_name -> google.protobuf.Timestamp
+	59, // 18: v1.GetInstanceStatsResponse.disk_scan_time:type_name -> google.protobuf.Timestamp
+	59, // 19: v1.GetInstanceStatsResponse.start_time:type_name -> google.protobuf.Timestamp
+	60, // 20: v1.GetInstanceFileListRequest.sort_field:type_name -> v1.FileSortField
+	61, // 21: v1.GetInstanceFileListResponse.directory:type_name -> v1.FileDirectoryInfo
+	62, // 22: v1.GetInstanceFileListResponse.items:type_name -> v1.FileEntryInfo
+	63, // 23: v1.GetInstanceFileTreeResponse.nodes:type_name -> v1.FileTreeNode
+	64, // 24: v1.CreateInstanceFileRequest.info:type_name -> v1.FileCreateItem
+	65, // 25: v1.CopyInstanceFileResponse.task:type_name -> v1.FileTaskInfo
+	65, // 26: v1.CutInstanceFileResponse.task:type_name -> v1.FileTaskInfo
+	66, // 27: v1.BatchDeleteInstanceFileResponse.items:type_name -> v1.FileOperationResult
+	67, // 28: v1.InstanceFilePreSignUploadResponse.info:type_name -> v1.UploadInfo
+	1,  // 29: v1.InstanceManager.GetInstanceTypes:input_type -> v1.GetInstanceTypesRequest
+	3,  // 30: v1.InstanceManager.CreateInstanceType:input_type -> v1.CreateInstanceTypeRequest
+	5,  // 31: v1.InstanceManager.UpdateInstanceType:input_type -> v1.UpdateInstanceTypeRequest
+	8,  // 32: v1.InstanceManager.DelInstanceType:input_type -> v1.DelInstanceTypeRequest
+	12, // 33: v1.InstanceManager.GetInstances:input_type -> v1.GetInstancesRequest
+	14, // 34: v1.InstanceManager.CreateInstance:input_type -> v1.CreateInstanceRequest
+	16, // 35: v1.InstanceManager.GetInstanceInfo:input_type -> v1.GetInstanceInfoRequest
+	20, // 36: v1.InstanceManager.StartInstance:input_type -> v1.StartInstanceRequest
+	22, // 37: v1.InstanceManager.StopInstance:input_type -> v1.StopInstanceRequest
+	24, // 38: v1.InstanceManager.RestartInstance:input_type -> v1.RestartInstanceRequest
+	26, // 39: v1.InstanceManager.DelInstance:input_type -> v1.DelInstanceRequest
+	28, // 40: v1.InstanceManager.UpdateInstance:input_type -> v1.UpdateInstanceRequest
+	33, // 41: v1.InstanceManager.GetInstanceStats:input_type -> v1.GetInstanceStatsRequest
+	30, // 42: v1.InstanceManager.DelInstanceLog:input_type -> v1.DelInstanceLogRequest
+	35, // 43: v1.InstanceManager.GetInstanceFileList:input_type -> v1.GetInstanceFileListRequest
+	37, // 44: v1.InstanceManager.GetInstanceFileTree:input_type -> v1.GetInstanceFileTreeRequest
+	39, // 45: v1.InstanceManager.CreateInstanceFile:input_type -> v1.CreateInstanceFileRequest
+	41, // 46: v1.InstanceManager.RenameInstanceFile:input_type -> v1.RenameInstanceFileRequest
+	43, // 47: v1.InstanceManager.CopyInstanceFile:input_type -> v1.CopyInstanceFileRequest
+	45, // 48: v1.InstanceManager.CutInstanceFile:input_type -> v1.CutInstanceFileRequest
+	47, // 49: v1.InstanceManager.BatchDeleteInstanceFile:input_type -> v1.BatchDeleteInstanceFileRequest
+	49, // 50: v1.InstanceManager.BatchCompressInstanceFile:input_type -> v1.BatchCompressInstanceFileRequest
+	51, // 51: v1.InstanceManager.UnzipInstanceFile:input_type -> v1.UnzipInstanceFileRequest
+	53, // 52: v1.InstanceManager.EditInstanceFile:input_type -> v1.EditInstanceFileRequest
+	55, // 53: v1.InstanceManager.InstanceFilePreSign:input_type -> v1.InstanceFilePreSignRequest
+	57, // 54: v1.InstanceManager.InstanceFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
+	2,  // 55: v1.InstanceManager.GetInstanceTypes:output_type -> v1.GetInstanceTypesResponse
+	4,  // 56: v1.InstanceManager.CreateInstanceType:output_type -> v1.CreateInstanceTypeResponse
+	7,  // 57: v1.InstanceManager.UpdateInstanceType:output_type -> v1.UpdateInstanceTypeResponse
+	9,  // 58: v1.InstanceManager.DelInstanceType:output_type -> v1.DelInstanceTypeResponse
+	13, // 59: v1.InstanceManager.GetInstances:output_type -> v1.GetInstancesResponse
+	15, // 60: v1.InstanceManager.CreateInstance:output_type -> v1.CreateInstanceResponse
+	17, // 61: v1.InstanceManager.GetInstanceInfo:output_type -> v1.GetInstanceInfoResponse
+	21, // 62: v1.InstanceManager.StartInstance:output_type -> v1.StartInstanceResponse
+	23, // 63: v1.InstanceManager.StopInstance:output_type -> v1.StopInstanceResponse
+	25, // 64: v1.InstanceManager.RestartInstance:output_type -> v1.RestartInstanceResponse
+	27, // 65: v1.InstanceManager.DelInstance:output_type -> v1.DelInstanceResponse
+	29, // 66: v1.InstanceManager.UpdateInstance:output_type -> v1.UpdateInstanceResponse
+	34, // 67: v1.InstanceManager.GetInstanceStats:output_type -> v1.GetInstanceStatsResponse
+	31, // 68: v1.InstanceManager.DelInstanceLog:output_type -> v1.DelInstanceLogResponse
+	36, // 69: v1.InstanceManager.GetInstanceFileList:output_type -> v1.GetInstanceFileListResponse
+	38, // 70: v1.InstanceManager.GetInstanceFileTree:output_type -> v1.GetInstanceFileTreeResponse
+	40, // 71: v1.InstanceManager.CreateInstanceFile:output_type -> v1.CreateInstanceFileResponse
+	42, // 72: v1.InstanceManager.RenameInstanceFile:output_type -> v1.RenameInstanceFileResponse
+	44, // 73: v1.InstanceManager.CopyInstanceFile:output_type -> v1.CopyInstanceFileResponse
+	46, // 74: v1.InstanceManager.CutInstanceFile:output_type -> v1.CutInstanceFileResponse
+	48, // 75: v1.InstanceManager.BatchDeleteInstanceFile:output_type -> v1.BatchDeleteInstanceFileResponse
+	50, // 76: v1.InstanceManager.BatchCompressInstanceFile:output_type -> v1.BatchCompressInstanceFileResponse
+	52, // 77: v1.InstanceManager.UnzipInstanceFile:output_type -> v1.UnzipInstanceFileResponse
+	54, // 78: v1.InstanceManager.EditInstanceFile:output_type -> v1.EditInstanceFileResponse
+	56, // 79: v1.InstanceManager.InstanceFilePreSign:output_type -> v1.InstanceFilePreSignResponse
+	58, // 80: v1.InstanceManager.InstanceFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
+	55, // [55:81] is the sub-list for method output_type
+	29, // [29:55] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_v1_instance_proto_init() }
@@ -3607,20 +4238,21 @@ func file_v1_instance_proto_init() {
 		return
 	}
 	file_v1_file_proto_init()
+	file_v1_instance_proto_msgTypes[2].OneofWrappers = []any{}
 	file_v1_instance_proto_msgTypes[4].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[9].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[25].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[30].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[44].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[46].OneofWrappers = []any{}
-	file_v1_instance_proto_msgTypes[52].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[11].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[27].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[34].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[48].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[50].OneofWrappers = []any{}
+	file_v1_instance_proto_msgTypes[56].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_instance_proto_rawDesc), len(file_v1_instance_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   54,
+			NumMessages:   58,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

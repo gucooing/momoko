@@ -85,6 +85,54 @@ func (_c *InstanceTypeCreate) SetNillableIsEnable(v *bool) *InstanceTypeCreate {
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *InstanceTypeCreate) SetDescription(v string) *InstanceTypeCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableDescription(v *string) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
+// SetStartCommand sets the "start_command" field.
+func (_c *InstanceTypeCreate) SetStartCommand(v string) *InstanceTypeCreate {
+	_c.mutation.SetStartCommand(v)
+	return _c
+}
+
+// SetNillableStartCommand sets the "start_command" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableStartCommand(v *string) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetStartCommand(*v)
+	}
+	return _c
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (_c *InstanceTypeCreate) SetStopCommand(v string) *InstanceTypeCreate {
+	_c.mutation.SetStopCommand(v)
+	return _c
+}
+
+// SetNillableStopCommand sets the "stop_command" field if the given value is not nil.
+func (_c *InstanceTypeCreate) SetNillableStopCommand(v *string) *InstanceTypeCreate {
+	if v != nil {
+		_c.SetStopCommand(*v)
+	}
+	return _c
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_c *InstanceTypeCreate) SetQuickCommands(v []string) *InstanceTypeCreate {
+	_c.mutation.SetQuickCommands(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *InstanceTypeCreate) SetID(v string) *InstanceTypeCreate {
 	_c.mutation.SetID(v)
@@ -142,6 +190,18 @@ func (_c *InstanceTypeCreate) defaults() {
 		v := instancetype.DefaultIsEnable
 		_c.mutation.SetIsEnable(v)
 	}
+	if _, ok := _c.mutation.Description(); !ok {
+		v := instancetype.DefaultDescription
+		_c.mutation.SetDescription(v)
+	}
+	if _, ok := _c.mutation.StartCommand(); !ok {
+		v := instancetype.DefaultStartCommand
+		_c.mutation.SetStartCommand(v)
+	}
+	if _, ok := _c.mutation.StopCommand(); !ok {
+		v := instancetype.DefaultStopCommand
+		_c.mutation.SetStopCommand(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -165,6 +225,15 @@ func (_c *InstanceTypeCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsEnable(); !ok {
 		return &ValidationError{Name: "is_enable", err: errors.New(`gen: missing required field "InstanceType.is_enable"`)}
+	}
+	if _, ok := _c.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`gen: missing required field "InstanceType.description"`)}
+	}
+	if _, ok := _c.mutation.StartCommand(); !ok {
+		return &ValidationError{Name: "start_command", err: errors.New(`gen: missing required field "InstanceType.start_command"`)}
+	}
+	if _, ok := _c.mutation.StopCommand(); !ok {
+		return &ValidationError{Name: "stop_command", err: errors.New(`gen: missing required field "InstanceType.stop_command"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := instancetype.IDValidator(v); err != nil {
@@ -226,6 +295,22 @@ func (_c *InstanceTypeCreate) createSpec() (*InstanceType, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.IsEnable(); ok {
 		_spec.SetField(instancetype.FieldIsEnable, field.TypeBool, value)
 		_node.IsEnable = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(instancetype.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := _c.mutation.StartCommand(); ok {
+		_spec.SetField(instancetype.FieldStartCommand, field.TypeString, value)
+		_node.StartCommand = value
+	}
+	if value, ok := _c.mutation.StopCommand(); ok {
+		_spec.SetField(instancetype.FieldStopCommand, field.TypeString, value)
+		_node.StopCommand = value
+	}
+	if value, ok := _c.mutation.QuickCommands(); ok {
+		_spec.SetField(instancetype.FieldQuickCommands, field.TypeJSON, value)
+		_node.QuickCommands = value
 	}
 	return _node, _spec
 }
@@ -324,6 +409,60 @@ func (u *InstanceTypeUpsert) SetIsEnable(v bool) *InstanceTypeUpsert {
 // UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
 func (u *InstanceTypeUpsert) UpdateIsEnable() *InstanceTypeUpsert {
 	u.SetExcluded(instancetype.FieldIsEnable)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *InstanceTypeUpsert) SetDescription(v string) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateDescription() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldDescription)
+	return u
+}
+
+// SetStartCommand sets the "start_command" field.
+func (u *InstanceTypeUpsert) SetStartCommand(v string) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldStartCommand, v)
+	return u
+}
+
+// UpdateStartCommand sets the "start_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateStartCommand() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldStartCommand)
+	return u
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceTypeUpsert) SetStopCommand(v string) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldStopCommand, v)
+	return u
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateStopCommand() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldStopCommand)
+	return u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *InstanceTypeUpsert) SetQuickCommands(v []string) *InstanceTypeUpsert {
+	u.Set(instancetype.FieldQuickCommands, v)
+	return u
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *InstanceTypeUpsert) UpdateQuickCommands() *InstanceTypeUpsert {
+	u.SetExcluded(instancetype.FieldQuickCommands)
+	return u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *InstanceTypeUpsert) ClearQuickCommands() *InstanceTypeUpsert {
+	u.SetNull(instancetype.FieldQuickCommands)
 	return u
 }
 
@@ -431,6 +570,69 @@ func (u *InstanceTypeUpsertOne) SetIsEnable(v bool) *InstanceTypeUpsertOne {
 func (u *InstanceTypeUpsertOne) UpdateIsEnable() *InstanceTypeUpsertOne {
 	return u.Update(func(s *InstanceTypeUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *InstanceTypeUpsertOne) SetDescription(v string) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateDescription() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetStartCommand sets the "start_command" field.
+func (u *InstanceTypeUpsertOne) SetStartCommand(v string) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetStartCommand(v)
+	})
+}
+
+// UpdateStartCommand sets the "start_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateStartCommand() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateStartCommand()
+	})
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceTypeUpsertOne) SetStopCommand(v string) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetStopCommand(v)
+	})
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateStopCommand() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateStopCommand()
+	})
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *InstanceTypeUpsertOne) SetQuickCommands(v []string) *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetQuickCommands(v)
+	})
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *InstanceTypeUpsertOne) UpdateQuickCommands() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateQuickCommands()
+	})
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *InstanceTypeUpsertOne) ClearQuickCommands() *InstanceTypeUpsertOne {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.ClearQuickCommands()
 	})
 }
 
@@ -705,6 +907,69 @@ func (u *InstanceTypeUpsertBulk) SetIsEnable(v bool) *InstanceTypeUpsertBulk {
 func (u *InstanceTypeUpsertBulk) UpdateIsEnable() *InstanceTypeUpsertBulk {
 	return u.Update(func(s *InstanceTypeUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *InstanceTypeUpsertBulk) SetDescription(v string) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateDescription() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetStartCommand sets the "start_command" field.
+func (u *InstanceTypeUpsertBulk) SetStartCommand(v string) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetStartCommand(v)
+	})
+}
+
+// UpdateStartCommand sets the "start_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateStartCommand() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateStartCommand()
+	})
+}
+
+// SetStopCommand sets the "stop_command" field.
+func (u *InstanceTypeUpsertBulk) SetStopCommand(v string) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetStopCommand(v)
+	})
+}
+
+// UpdateStopCommand sets the "stop_command" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateStopCommand() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateStopCommand()
+	})
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *InstanceTypeUpsertBulk) SetQuickCommands(v []string) *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.SetQuickCommands(v)
+	})
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *InstanceTypeUpsertBulk) UpdateQuickCommands() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.UpdateQuickCommands()
+	})
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *InstanceTypeUpsertBulk) ClearQuickCommands() *InstanceTypeUpsertBulk {
+	return u.Update(func(s *InstanceTypeUpsert) {
+		s.ClearQuickCommands()
 	})
 }
 

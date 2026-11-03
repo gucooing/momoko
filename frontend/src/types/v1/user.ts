@@ -5,7 +5,6 @@
 // source: v1/user.proto
 
 /* eslint-disable */
-import type { OperationLogInfo } from "./system";
 
 export const protobufPackage = "v1";
 
@@ -60,7 +59,11 @@ export interface UpdateMeRequest {
     | string
     | undefined;
   /** 账户名 */
-  username?: string | undefined;
+  username?:
+    | string
+    | undefined;
+  /** 手机号 */
+  phone?: string | undefined;
 }
 
 /** 更新个人资料响应 */
@@ -75,18 +78,50 @@ export interface MyLoginLogsRequest {
   page: number;
   /** page size */
   pageSize: number;
+  /** 按结果筛选（空为全部） */
+  success?: boolean | undefined;
 }
 
 /** 获取自己的登录日志响应 */
 export interface MyLoginLogsResponse {
   /** 登录日志 */
-  logs: OperationLogInfo[];
+  logs: LoginLogInfo[];
   /** actual page */
   page: number;
   /** actual page size */
   pageSize: number;
-  /** 总数 */
+  /** 总数（按结果筛选后） */
   total: number;
+  /** 成功次数（不受结果筛选影响） */
+  successCount: number;
+  /** 失败次数（不受结果筛选影响） */
+  failedCount: number;
+}
+
+/** 登录日志 */
+export interface LoginLogInfo {
+  /** 登录时间 */
+  time:
+    | Date
+    | undefined;
+  /** ip */
+  ip: string;
+  /** ip 网络范围：loopback（本机） / lan（局域网） / public（公网） */
+  ipScope: string;
+  /** ua */
+  userAgent: string;
+  /** 登录设备（登录时上报的设备名） */
+  device: string;
+  /** 设备类型：desktop / mobile / tablet / cli */
+  deviceType: string;
+  /** 登录方式：password（账号密码） / email_code（邮箱验证码） */
+  method: string;
+  /** 是否成功 */
+  success: boolean;
+  /** 失败原因 */
+  error: string;
+  /** 原始操作详情（JSON） */
+  detail: string;
 }
 
 /** 获取用户列表请求 */
@@ -99,8 +134,12 @@ export interface ListUserRequest {
   status?:
     | UserStatus
     | undefined;
-  /** username filter */
-  username?: string | undefined;
+  /** 关键字：匹配用户名 / 昵称 / 邮箱 / 最近登录 IP */
+  username?:
+    | string
+    | undefined;
+  /** 按角色筛选 */
+  roleId?: string | undefined;
 }
 
 /** 获取用户列表响应 */
@@ -113,6 +152,12 @@ export interface ListUserResponse {
   pageSize: number;
   /** 总数 */
   total: number;
+  /** 启用数量（按关键字、角色筛选，不受状态筛选影响） */
+  activeCount: number;
+  /** 未启用数量 */
+  inactiveCount: number;
+  /** 今天登录过的用户数量（按关键字、角色筛选） */
+  todayLoginCount: number;
 }
 
 /** 获取用户详情请求 */
@@ -157,6 +202,22 @@ export interface UserInfo {
   roleName: string;
   /** 角色id */
   roleId: string;
+  /** 最近一次登录时间（未登录过为空） */
+  lastLoginTime:
+    | Date
+    | undefined;
+  /** 最近一次修改密码时间（从未修改为空） */
+  passwordUpdateTime:
+    | Date
+    | undefined;
+  /** 手机号 */
+  phone: string;
+  /** 最近一次登录 IP */
+  lastLoginIp: string;
+  /** 最近一次登录方式：password（账号密码） / email_code（邮箱验证码） */
+  lastLoginMethod: string;
+  /** 是否系统内置账号（初始化时创建的超级管理员；不能删除、停用或修改角色） */
+  isBuiltin: boolean;
 }
 
 /** 登录信息 */
@@ -235,4 +296,36 @@ export interface DeleteUserRequest {
 
 /** 删除用户响应 */
 export interface DeleteUserResponse {
+}
+
+/** 批量修改用户请求 */
+export interface BatchUpdateUserRequest {
+  /** 用户id */
+  userIds: string[];
+  /** 新状态（不传则不修改） */
+  status?:
+    | UserStatus
+    | undefined;
+  /** 新角色id（不传则不修改） */
+  roleId?: string | undefined;
+}
+
+/** 批量修改用户响应 */
+export interface BatchUpdateUserResponse {
+  /** 实际修改的用户数 */
+  updated: number;
+  /** 跳过的用户数（内置账号） */
+  skipped: number;
+}
+
+/** 重置用户密码请求 */
+export interface ResetUserPasswordRequest {
+  /** 用户id */
+  userId: string;
+  /** 新密码 */
+  password: string;
+}
+
+/** 重置用户密码响应 */
+export interface ResetUserPasswordResponse {
 }

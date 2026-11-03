@@ -85,7 +85,18 @@
       <div class="share-form__grid">
         <div class="app-field">
           <label class="app-label">{{ t('file.share.code') }}</label>
-          <input v-model="form.code" class="app-input" :placeholder="t('file.share.codePlaceholder')" maxlength="16" />
+          <div class="share-form__code">
+            <input v-model="form.code" class="app-input m-mono" :placeholder="t('file.share.codePlaceholder')" maxlength="16" />
+            <button
+              type="button"
+              class="share-form__dice"
+              :aria-label="t('file.share.randomCode')"
+              :title="t('file.share.randomCode')"
+              @click="randomCode"
+            >
+              <UIcon name="i-lucide-dices" />
+            </button>
+          </div>
         </div>
         <div class="app-field">
           <label class="app-label">{{ t('file.share.maxDownloads') }}</label>
@@ -95,6 +106,18 @@
 
       <div class="app-field">
         <label class="app-label">{{ t('file.share.expires') }}</label>
+        <div class="share-form__quick" role="group" :aria-label="t('file.share.quickExpire')">
+          <button
+            v-for="opt in quickExpires"
+            :key="opt.days"
+            type="button"
+            class="share-form__chip"
+            :class="{ 'is-on': quickOn(opt.days) }"
+            @click="setExpireDays(opt.days)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
         <input v-model="form.expiresAt" class="app-input" type="datetime-local" />
         <span class="share-form__hint">{{ t('file.share.neverPlaceholder') }}</span>
       </div>
@@ -183,6 +206,31 @@ const removeItem = (item: PickedFile) => {
 }
 const clearItems = () => {
   form.items = []
+}
+
+// 快捷有效期：1/3/7/30 天或永久（0）；与 datetime-local 双向一致。
+const quickExpires = computed(() => [
+  { days: 1, label: t('file.share.days', { n: 1 }) },
+  { days: 3, label: t('file.share.days', { n: 3 }) },
+  { days: 7, label: t('file.share.days', { n: 7 }) },
+  { days: 30, label: t('file.share.days', { n: 30 }) },
+  { days: 0, label: t('file.share.forever') },
+])
+const quickBase = ref(Date.now())
+const setExpireDays = (days: number) => {
+  quickBase.value = Date.now()
+  form.expiresAt = days ? toLocalInput(new Date(quickBase.value + days * 86400000)) : ''
+}
+const quickOn = (days: number) =>
+  days === 0
+    ? !form.expiresAt
+    : form.expiresAt === toLocalInput(new Date(quickBase.value + days * 86400000))
+// 随机提取码：4 位，去掉易混字符。
+const randomCode = () => {
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const buf = new Uint32Array(4)
+  crypto.getRandomValues(buf)
+  form.code = Array.from(buf, (n) => chars[n % chars.length]).join('')
 }
 
 // 通过文件树选择分享条目（可跨来源），取代手动输入绝对路径。
@@ -287,6 +335,61 @@ const save = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+.share-form__code {
+  display: flex;
+  gap: 6px;
+}
+.share-form__code .app-input {
+  flex: 1;
+  min-width: 0;
+}
+.share-form__dice {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+.share-form__dice:hover {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.share-form__dice :deep(svg),
+.share-form__dice :deep(.iconify) {
+  width: 18px;
+  height: 18px;
+}
+.share-form__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.share-form__chip {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1.5px solid var(--el-border-color-light);
+  border-radius: 999px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.share-form__chip:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.share-form__chip.is-on {
+  border-color: var(--m-ink);
+  background: var(--m-ink);
+  color: var(--m-bg);
 }
 .share-form__hint {
   font-size: 0.75rem;

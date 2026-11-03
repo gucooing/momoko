@@ -3,15 +3,19 @@ package biz
 import (
 	"context"
 	"net/mail"
+	"os"
+	"time"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/conf"
 	"momoko/internal/initialize"
+	"momoko/pkg/version"
 )
 
 type InitializeRepo interface {
 	ConfirmInitialize(context.Context, v1.DatabaseType, *conf.Data_Database, *v1.InitializeAdminUser) error
-	TestDatabase(context.Context, *conf.Data_Database) error
+	// TestDatabase 测试连接，返回数据库服务端版本。
+	TestDatabase(context.Context, *conf.Data_Database) (string, error)
 }
 
 type InitializeUsecase struct {
@@ -25,9 +29,13 @@ func NewInitializeUsecase(repo InitializeRepo) *InitializeUsecase {
 }
 
 func (u *InitializeUsecase) Status() *v1.InitializeStatusResponse {
+	hostname, _ := os.Hostname()
 	return &v1.InitializeStatusResponse{
 		Initialized:            initialize.IsInitialized(),
 		SupportedDatabaseTypes: initialize.SupportedDatabaseTypes(),
+		Version:                version.Current(),
+		Hostname:               hostname,
+		DefaultSqlitePath:      initialize.DefaultSQLitePath,
 	}
 }
 
@@ -86,11 +94,15 @@ func (u *InitializeUsecase) TestDatabase(ctx context.Context, req *v1.TestInitia
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	if err := u.repo.TestDatabase(ctx, database); err != nil {
+	start := time.Now()
+	serverVersion, err := u.repo.TestDatabase(ctx, database)
+	if err != nil {
 		return nil, ErrSystem(err)
 	}
 
 	return &v1.TestInitializeDatabaseResponse{
-		Success: true,
+		Success:       true,
+		ServerVersion: serverVersion,
+		LatencyMs:     time.Since(start).Milliseconds(),
 	}, nil
 }

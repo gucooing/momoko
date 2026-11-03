@@ -29,28 +29,29 @@ const menuStore = useMenuStore()
   padding: 2.5rem 1.5rem;
 }
 .empty-state__icon {
-  width: 44px;
-  height: 44px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--app-radius);
-  margin-bottom: 0.25rem;
-  color: var(--el-text-color-placeholder);
-  background: var(--el-fill-color-light);
+  border-radius: 20px;
+  margin-bottom: 0.4rem;
+  color: var(--m-pInk);
+  background: var(--m-pSoft);
+  transform: rotate(-6deg);
 }
 .empty-state__icon :deep(svg) {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 .empty-state__title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--el-text-color-regular);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
 }
 .empty-state__desc {
-  font-size: 0.8125rem;
-  color: var(--el-text-color-placeholder);
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
   max-width: 24rem;
 }
 .empty-state__action {

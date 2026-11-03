@@ -45,6 +45,18 @@ export interface GetInstanceTypesResponse {
 export interface CreateInstanceTypeRequest {
   /** 类型名称 */
   name: string;
+  /** 是否启用(不传默认启用) */
+  isEnable?:
+    | boolean
+    | undefined;
+  /** 类型说明 */
+  description: string;
+  /** 默认启动命令(新建应用时预填) */
+  startCommand: string;
+  /** 默认停止命令(新建应用时预填) */
+  stopCommand: string;
+  /** 控制台快捷命令（显示在应用控制台输入框上方） */
+  quickCommands: string[];
 }
 
 /** 创建实例类型响应 */
@@ -62,7 +74,28 @@ export interface UpdateInstanceTypeRequest {
     | string
     | undefined;
   /** 是否启用 */
-  isEnable?: boolean | undefined;
+  isEnable?:
+    | boolean
+    | undefined;
+  /** 类型说明 */
+  description?:
+    | string
+    | undefined;
+  /** 默认启动命令 */
+  startCommand?:
+    | string
+    | undefined;
+  /** 默认停止命令 */
+  stopCommand?:
+    | string
+    | undefined;
+  /** 控制台快捷命令（不传表示不修改） */
+  quickCommands: InstanceQuickCommands | undefined;
+}
+
+/** 控制台快捷命令列表（用于区分「不修改」与「清空」） */
+export interface InstanceQuickCommands {
+  items: string[];
 }
 
 /** 更新实例类型响应 */
@@ -91,6 +124,36 @@ export interface InstanceTypeInfo {
   isSystem: boolean;
   /** 是否启用 */
   isEnable: boolean;
+  /** 类型说明 */
+  description: string;
+  /** 默认启动命令 */
+  startCommand: string;
+  /** 默认停止命令 */
+  stopCommand: string;
+  /** 当前用户可见的、使用该类型的应用数 */
+  appCount: number;
+  /** 使用该类型的应用(当前用户可见，最多 8 个) */
+  apps: InstanceTypeApp[];
+  /** 创建时间 */
+  createTime:
+    | Date
+    | undefined;
+  /** 更新时间 */
+  updateTime:
+    | Date
+    | undefined;
+  /** 控制台快捷命令 */
+  quickCommands: string[];
+}
+
+/** 使用某类型的应用摘要 */
+export interface InstanceTypeApp {
+  /** 实例id */
+  id: string;
+  /** 实例名称 */
+  name: string;
+  /** 实例状态 */
+  status: InstanceStatus;
 }
 
 /** 获取实例列表请求 */
@@ -145,6 +208,10 @@ export interface CreateInstanceRequest {
   autoStart: boolean;
   /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
   env: string[];
+  /** 停止超时(秒)：发送停止命令后超时未退出则强制结束，<=0 使用默认值 */
+  stopTimeout: number;
+  /** 崩溃后自动重启 */
+  autoRestart: boolean;
 }
 
 /** 创建实例响应 */
@@ -258,6 +325,12 @@ export interface UpdateInstanceRequest {
     | undefined;
   /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
   env: string[];
+  /** 停止超时(秒) */
+  stopTimeout?:
+    | number
+    | undefined;
+  /** 崩溃后自动重启 */
+  autoRestart?: boolean | undefined;
 }
 
 export interface UpdateInstanceResponse {
@@ -311,6 +384,58 @@ export interface InstanceInfo {
   autoStart: boolean;
   /** 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1 */
   env: string[];
+  /** 停止超时(秒) */
+  stopTimeout: number;
+  /** 崩溃后自动重启 */
+  autoRestart: boolean;
+  /** 主进程 PID(运行时才有) */
+  pid: number;
+  /** 类型id */
+  typeId: string;
+  /** 所属用户名 */
+  userName: string;
+  /** 更新时间 */
+  updateTime:
+    | Date
+    | undefined;
+  /** 所属类型的控制台快捷命令 */
+  quickCommands: string[];
+}
+
+/** 获取实例资源占用请求 */
+export interface GetInstanceStatsRequest {
+  /** 实例id */
+  id: string;
+}
+
+/** 获取实例资源占用响应 */
+export interface GetInstanceStatsResponse {
+  /** 是否运行中 */
+  running: boolean;
+  /** 主进程 PID */
+  pid: number;
+  /** 进程数(含子进程) */
+  processCount: number;
+  /** CPU 占用(百分比，按单核 100% 计，多核可超过 100) */
+  cpuPercent: number;
+  /** 逻辑 CPU 核数 */
+  cpuCores: number;
+  /** 常驻内存(字节，含子进程) */
+  memoryBytes: number;
+  /** 本机内存总量(字节) */
+  memoryTotal: number;
+  /** 工作目录占用(字节，定期统计) */
+  diskUsageBytes: number;
+  /** 工作目录所在磁盘总量(字节) */
+  diskTotal: number;
+  /** 工作目录所在磁盘剩余(字节) */
+  diskFree: number;
+  /** 工作目录占用的统计时间 */
+  diskScanTime:
+    | Date
+    | undefined;
+  /** 启动时间 */
+  startTime: Date | undefined;
 }
 
 /** 获取实例文件列表请求 */

@@ -57,22 +57,11 @@ export const staticRoutes = [
         meta: { title: 'SSH 终端', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
       {
-        path: '/instance/console/:instanceId',
-        name: 'InstanceTerminalConsoleView',
+        // 应用详情：控制台 / 文件 / 配置 在同一页，?tab= 切换
+        path: '/instance/app/:instanceId',
+        name: 'InstanceAppView',
         component: () => import('@/views/instance/console/index.vue'),
-        meta: { title: '实例控制台', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
-      },
-      {
-        path: '/instance/files/:instanceId',
-        name: 'InstanceFileManagerView',
-        component: () => import('@/views/instance/fileManager/index.vue'),
-        meta: { title: '实例文件', icon: 'HOutline:FolderIcon', keepAlive: true },
-      },
-      {
-        path: '/node/key',
-        name: 'ApiKeyView',
-        component: () => import('@/views/node/key/index.vue'),
-        meta: { title: 'API Key 管理', icon: 'HOutline:KeyIcon', keepAlive: true },
+        meta: { title: '应用详情', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
       {
         path: '/exception/403',

@@ -287,8 +287,14 @@ type InitializeStatusResponse struct {
 	Initialized bool `protobuf:"varint,1,opt,name=initialized,proto3" json:"initialized,omitempty"`
 	// 支持的数据库类型
 	SupportedDatabaseTypes []DatabaseType `protobuf:"varint,2,rep,packed,name=supported_database_types,json=supportedDatabaseTypes,proto3,enum=v1.DatabaseType" json:"supported_database_types,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// 程序版本
+	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	// 本机主机名（初始化后作为本机节点名称）
+	Hostname string `protobuf:"bytes,4,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	// SQLite 默认数据库文件路径
+	DefaultSqlitePath string `protobuf:"bytes,5,opt,name=default_sqlite_path,json=defaultSqlitePath,proto3" json:"default_sqlite_path,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *InitializeStatusResponse) Reset() {
@@ -333,6 +339,27 @@ func (x *InitializeStatusResponse) GetSupportedDatabaseTypes() []DatabaseType {
 		return x.SupportedDatabaseTypes
 	}
 	return nil
+}
+
+func (x *InitializeStatusResponse) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *InitializeStatusResponse) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *InitializeStatusResponse) GetDefaultSqlitePath() string {
+	if x != nil {
+		return x.DefaultSqlitePath
+	}
+	return ""
 }
 
 // 确认系统初始化请求
@@ -495,7 +522,11 @@ func (x *TestInitializeDatabaseRequest) GetDatabase() *InitializeDatabaseConfig 
 type TestInitializeDatabaseResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 是否连接成功
-	Success       bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	// 数据库服务端版本
+	ServerVersion string `protobuf:"bytes,2,opt,name=server_version,json=serverVersion,proto3" json:"server_version,omitempty"`
+	// 连接 + 查询耗时（毫秒）
+	LatencyMs     int64 `protobuf:"varint,3,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -537,6 +568,20 @@ func (x *TestInitializeDatabaseResponse) GetSuccess() bool {
 	return false
 }
 
+func (x *TestInitializeDatabaseResponse) GetServerVersion() string {
+	if x != nil {
+		return x.ServerVersion
+	}
+	return ""
+}
+
+func (x *TestInitializeDatabaseResponse) GetLatencyMs() int64 {
+	if x != nil {
+		return x.LatencyMs
+	}
+	return 0
+}
+
 var File_v1_initialize_proto protoreflect.FileDescriptor
 
 const file_v1_initialize_proto_rawDesc = "" +
@@ -555,10 +600,13 @@ const file_v1_initialize_proto_rawDesc = "" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\"\x19\n" +
-	"\x17InitializeStatusRequest\"\x88\x01\n" +
+	"\x17InitializeStatusRequest\"\xee\x01\n" +
 	"\x18InitializeStatusResponse\x12 \n" +
 	"\vinitialized\x18\x01 \x01(\bR\vinitialized\x12J\n" +
-	"\x18supported_database_types\x18\x02 \x03(\x0e2\x10.v1.DatabaseTypeR\x16supportedDatabaseTypes\"\x83\x01\n" +
+	"\x18supported_database_types\x18\x02 \x03(\x0e2\x10.v1.DatabaseTypeR\x16supportedDatabaseTypes\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\tR\aversion\x12\x1a\n" +
+	"\bhostname\x18\x04 \x01(\tR\bhostname\x12.\n" +
+	"\x13default_sqlite_path\x18\x05 \x01(\tR\x11defaultSqlitePath\"\x83\x01\n" +
 	"\x18ConfirmInitializeRequest\x128\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x1c.v1.InitializeDatabaseConfigR\bdatabase\x12-\n" +
 	"\x05admin\x18\x02 \x01(\v2\x17.v1.InitializeAdminUserR\x05admin\"h\n" +
@@ -566,9 +614,12 @@ const file_v1_initialize_proto_rawDesc = "" +
 	"\vinitialized\x18\x01 \x01(\bR\vinitialized\x12)\n" +
 	"\x10restart_required\x18\x02 \x01(\bR\x0frestartRequired\"Y\n" +
 	"\x1dTestInitializeDatabaseRequest\x128\n" +
-	"\bdatabase\x18\x01 \x01(\v2\x1c.v1.InitializeDatabaseConfigR\bdatabase\":\n" +
+	"\bdatabase\x18\x01 \x01(\v2\x1c.v1.InitializeDatabaseConfigR\bdatabase\"\x80\x01\n" +
 	"\x1eTestInitializeDatabaseResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess*z\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12%\n" +
+	"\x0eserver_version\x18\x02 \x01(\tR\rserverVersion\x12\x1d\n" +
+	"\n" +
+	"latency_ms\x18\x03 \x01(\x03R\tlatencyMs*z\n" +
 	"\fDatabaseType\x12\x1c\n" +
 	"\x18DatabaseType_Unspecified\x10\x00\x12\x17\n" +
 	"\x13DatabaseType_SQLite\x10\x01\x12\x16\n" +

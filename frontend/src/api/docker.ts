@@ -1,5 +1,11 @@
 import request from '@/utils/request'
 import type {
+  PruneDockerImagesRequest,
+  PruneDockerImagesResponse,
+  SearchDockerImagesRequest,
+  SearchDockerImagesResponse,
+  PruneDockerNetworksRequest,
+  PruneDockerNetworksResponse,
   DockerStatusRequest,
   DockerStatusResponse,
   GetDockerConfigRequest,
@@ -8,6 +14,8 @@ import type {
   UpdateDockerConfigResponse,
   TestDockerConfigRequest,
   TestDockerConfigResponse,
+  TestDockerRegistryAuthRequest,
+  TestDockerRegistryAuthResponse,
   ListDockerTasksRequest,
   ListDockerTasksResponse,
   ListDockerContainersRequest,
@@ -86,6 +94,11 @@ export const updateDockerConfig = (data: UpdateDockerConfigRequest) => {
 
 export const testDockerConfig = (data: TestDockerConfigRequest) => {
   return request.post<TestDockerConfigResponse>('/docker/config/test', data)
+}
+
+// 验证仓库凭据（经引擎登录仓库）；password 留空时沿用已保存的同地址同用户名凭据
+export const testDockerRegistryAuth = (data: TestDockerRegistryAuthRequest) => {
+  return request.post<TestDockerRegistryAuthResponse>('/docker/registry-auth/test', data)
 }
 
 // ==================== Tasks ====================
@@ -186,6 +199,14 @@ export const imageHistory = (params: ImageHistoryRequest) => {
   return request.get<ImageHistoryResponse>(`/docker/images/${params.id}/history`, { params })
 }
 
+export const pruneDockerImages = (data: PruneDockerImagesRequest) => {
+  return request.post<PruneDockerImagesResponse>('/docker/image-prune', data)
+}
+
+export const searchDockerImages = (params: SearchDockerImagesRequest) => {
+  return request.get<SearchDockerImagesResponse>('/docker/image-search', { params })
+}
+
 // ==================== Networks ====================
 
 export const listDockerNetworks = (params: ListDockerNetworksRequest) => {
@@ -218,4 +239,8 @@ export const connectDockerNetwork = (data: ConnectDockerNetworkRequest) => {
 
 export const disconnectDockerNetwork = (data: DisconnectDockerNetworkRequest) => {
   return request.post<DisconnectDockerNetworkResponse>(`/docker/networks/${data.networkId}/disconnect`, data)
+}
+
+export const pruneDockerNetworks = (data: PruneDockerNetworksRequest = {}) => {
+  return request.post<PruneDockerNetworksResponse>('/docker/network-prune', data)
 }

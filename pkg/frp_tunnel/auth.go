@@ -59,7 +59,13 @@ func authNewProxy(ctx context.Context, lookup TunnelLookup, info NewProxyInfo) e
 	if !tn.Enabled {
 		return fmt.Errorf("隧道已禁用")
 	}
-	if info.LoginMetas["credential"] != tn.Credential {
+	// proxy 级 metadatas 的 credential 优先（一个 frpc 合并承载多条隧道时，每条 proxy 各带自己的凭证），
+	// 否则回退到登录时的 common metadatas。
+	credential := info.ProxyMetas["credential"]
+	if credential == "" {
+		credential = info.LoginMetas["credential"]
+	}
+	if credential != tn.Credential {
 		return fmt.Errorf("凭证不匹配")
 	}
 	if info.ProxyType != tn.ProxyType {

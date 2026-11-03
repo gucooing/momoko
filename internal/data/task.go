@@ -119,25 +119,7 @@ func (r *taskRepo) Get(ctx context.Context, id string) (*task.Record, error) {
 }
 
 func (r *taskRepo) List(ctx context.Context, f task.Filter, page, pageSize int64) ([]*task.Record, int64, error) {
-	q := r.data.db.Task.Query()
-	if f.UserID != "" {
-		q = q.Where(enttask.UserIDEQ(f.UserID))
-	}
-	if f.TypePrefix != "" {
-		q = q.Where(enttask.TypeHasPrefix(f.TypePrefix))
-	}
-	if f.Status != "" {
-		q = q.Where(enttask.StatusEQ(enttask.Status(f.Status)))
-	}
-	if f.Kind != "" {
-		q = q.Where(enttask.KindEQ(enttask.Kind(f.Kind)))
-	}
-	if f.Keywords != "" {
-		q = q.Where(enttask.Or(
-			enttask.TitleContainsFold(f.Keywords),
-			enttask.TypeContainsFold(f.Keywords),
-		))
-	}
+	q := r.applyFilter(r.data.db.Task.Query(), f)
 	total, err := q.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -179,6 +161,78 @@ func (r *taskRepo) LoadResumable(ctx context.Context) ([]*task.Record, error) {
 
 func (r *taskRepo) Delete(ctx context.Context, id string) error {
 	return ignoreNotFound(r.data.db.Task.DeleteOneID(id).Exec(ctx))
+}
+
+func (r *taskRepo) applyFilter(q *gen.TaskQuery, f task.Filter) *gen.TaskQuery {
+	if f.UserID != "" {
+		q = q.Where(enttask.UserIDEQ(f.UserID))
+	}
+	if f.TypePrefix != "" {
+		q = q.Where(enttask.TypeHasPrefix(f.TypePrefix))
+	}
+	if f.Status != "" {
+		q = q.Where(enttask.StatusEQ(enttask.Status(f.Status)))
+	}
+	if f.Kind != "" {
+		q = q.Where(enttask.KindEQ(enttask.Kind(f.Kind)))
+	}
+	if f.Keywords != "" {
+		q = q.Where(enttask.Or(
+			enttask.TitleContainsFold(f.Keywords),
+			enttask.TypeContainsFold(f.Keywords),
+		))
+	}
+	return q
+}
+
+func (r *taskRepo) CountByStatus(ctx context.Context, f task.Filter) (map[task.Status]int64, error) {
+	var rows []struct {
+		Status string `json:"status"`
+		Count  int    `json:"count"`
+	}
+	err := r.applyFilter(r.data.db.Task.Query(), f).
+		GroupBy(enttask.FieldStatus).
+		Aggregate(gen.Count()).
+		Scan(ctx, &rows)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[task.Status]int64, len(rows))
+	for _, row := range rows {
+		out[task.Status(row.Status)] = int64(row.Count)
+	}
+	return out, nil
+}
+
+func (r *taskRepo) CountByType(ctx context.Context) (map[string]int64, error) {
+	var rows []struct {
+		Type  string `json:"type"`
+		Count int    `json:"count"`
+	}
+	err := r.data.db.Task.Query().
+		GroupBy(enttask.FieldType).
+		Aggregate(gen.Count()).
+		Scan(ctx, &rows)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		out[row.Type] = int64(row.Count)
+	}
+	return out, nil
+}
+
+func (r *taskRepo) DeleteByStatus(ctx context.Context, statuses []task.Status) (int64, error) {
+	if len(statuses) == 0 {
+		return 0, nil
+	}
+	values := make([]enttask.Status, 0, len(statuses))
+	for _, s := range statuses {
+		values = append(values, enttask.Status(s))
+	}
+	n, err := r.data.db.Task.Delete().Where(enttask.StatusIn(values...)).Exec(ctx)
+	return int64(n), err
 }
 
 // ---- 映射 ----

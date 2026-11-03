@@ -31,6 +31,7 @@ const (
 	InstanceManager_RestartInstance_FullMethodName           = "/v1.InstanceManager/RestartInstance"
 	InstanceManager_DelInstance_FullMethodName               = "/v1.InstanceManager/DelInstance"
 	InstanceManager_UpdateInstance_FullMethodName            = "/v1.InstanceManager/UpdateInstance"
+	InstanceManager_GetInstanceStats_FullMethodName          = "/v1.InstanceManager/GetInstanceStats"
 	InstanceManager_DelInstanceLog_FullMethodName            = "/v1.InstanceManager/DelInstanceLog"
 	InstanceManager_GetInstanceFileList_FullMethodName       = "/v1.InstanceManager/GetInstanceFileList"
 	InstanceManager_GetInstanceFileTree_FullMethodName       = "/v1.InstanceManager/GetInstanceFileTree"
@@ -59,7 +60,7 @@ type InstanceManagerClient interface {
 	CreateInstanceType(ctx context.Context, in *CreateInstanceTypeRequest, opts ...grpc.CallOption) (*CreateInstanceTypeResponse, error)
 	// 更新实例类型
 	UpdateInstanceType(ctx context.Context, in *UpdateInstanceTypeRequest, opts ...grpc.CallOption) (*UpdateInstanceTypeResponse, error)
-	// 删除实例类型
+	// 删除实例类型(仍有应用在用时拒绝)
 	DelInstanceType(ctx context.Context, in *DelInstanceTypeRequest, opts ...grpc.CallOption) (*DelInstanceTypeResponse, error)
 	// 实例管理
 	// 获取实例列表
@@ -78,6 +79,8 @@ type InstanceManagerClient interface {
 	DelInstance(ctx context.Context, in *DelInstanceRequest, opts ...grpc.CallOption) (*DelInstanceResponse, error)
 	// 更新实例
 	UpdateInstance(ctx context.Context, in *UpdateInstanceRequest, opts ...grpc.CallOption) (*UpdateInstanceResponse, error)
+	// 获取实例资源占用(CPU/内存/进程/磁盘)
+	GetInstanceStats(ctx context.Context, in *GetInstanceStatsRequest, opts ...grpc.CallOption) (*GetInstanceStatsResponse, error)
 	// 清空终端日志
 	DelInstanceLog(ctx context.Context, in *DelInstanceLogRequest, opts ...grpc.CallOption) (*DelInstanceLogResponse, error)
 	// 获取实例目录文件列表
@@ -234,6 +237,16 @@ func (c *instanceManagerClient) UpdateInstance(ctx context.Context, in *UpdateIn
 	return out, nil
 }
 
+func (c *instanceManagerClient) GetInstanceStats(ctx context.Context, in *GetInstanceStatsRequest, opts ...grpc.CallOption) (*GetInstanceStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInstanceStatsResponse)
+	err := c.cc.Invoke(ctx, InstanceManager_GetInstanceStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceManagerClient) DelInstanceLog(ctx context.Context, in *DelInstanceLogRequest, opts ...grpc.CallOption) (*DelInstanceLogResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DelInstanceLogResponse)
@@ -377,7 +390,7 @@ type InstanceManagerServer interface {
 	CreateInstanceType(context.Context, *CreateInstanceTypeRequest) (*CreateInstanceTypeResponse, error)
 	// 更新实例类型
 	UpdateInstanceType(context.Context, *UpdateInstanceTypeRequest) (*UpdateInstanceTypeResponse, error)
-	// 删除实例类型
+	// 删除实例类型(仍有应用在用时拒绝)
 	DelInstanceType(context.Context, *DelInstanceTypeRequest) (*DelInstanceTypeResponse, error)
 	// 实例管理
 	// 获取实例列表
@@ -396,6 +409,8 @@ type InstanceManagerServer interface {
 	DelInstance(context.Context, *DelInstanceRequest) (*DelInstanceResponse, error)
 	// 更新实例
 	UpdateInstance(context.Context, *UpdateInstanceRequest) (*UpdateInstanceResponse, error)
+	// 获取实例资源占用(CPU/内存/进程/磁盘)
+	GetInstanceStats(context.Context, *GetInstanceStatsRequest) (*GetInstanceStatsResponse, error)
 	// 清空终端日志
 	DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error)
 	// 获取实例目录文件列表
@@ -467,6 +482,9 @@ func (UnimplementedInstanceManagerServer) DelInstance(context.Context, *DelInsta
 }
 func (UnimplementedInstanceManagerServer) UpdateInstance(context.Context, *UpdateInstanceRequest) (*UpdateInstanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateInstance not implemented")
+}
+func (UnimplementedInstanceManagerServer) GetInstanceStats(context.Context, *GetInstanceStatsRequest) (*GetInstanceStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInstanceStats not implemented")
 }
 func (UnimplementedInstanceManagerServer) DelInstanceLog(context.Context, *DelInstanceLogRequest) (*DelInstanceLogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DelInstanceLog not implemented")
@@ -740,6 +758,24 @@ func _InstanceManager_UpdateInstance_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(InstanceManagerServer).UpdateInstance(ctx, req.(*UpdateInstanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InstanceManager_GetInstanceStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInstanceStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceManagerServer).GetInstanceStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceManager_GetInstanceStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceManagerServer).GetInstanceStats(ctx, req.(*GetInstanceStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1032,6 +1068,10 @@ var InstanceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateInstance",
 			Handler:    _InstanceManager_UpdateInstance_Handler,
+		},
+		{
+			MethodName: "GetInstanceStats",
+			Handler:    _InstanceManager_GetInstanceStats_Handler,
 		},
 		{
 			MethodName: "DelInstanceLog",

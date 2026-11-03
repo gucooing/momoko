@@ -109,6 +109,11 @@ func Remark(v string) predicate.Node {
 	return predicate.Node(sql.FieldEQ(FieldRemark, v))
 }
 
+// LastOnlineAt applies equality check predicate on the "last_online_at" field. It's identical to LastOnlineAtEQ.
+func LastOnlineAt(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldEQ(FieldLastOnlineAt, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Node {
 	return predicate.Node(sql.FieldEQ(FieldCreateTime, v))
@@ -542,6 +547,56 @@ func RemarkEqualFold(v string) predicate.Node {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.Node {
 	return predicate.Node(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// LastOnlineAtEQ applies the EQ predicate on the "last_online_at" field.
+func LastOnlineAtEQ(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldEQ(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtNEQ applies the NEQ predicate on the "last_online_at" field.
+func LastOnlineAtNEQ(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldNEQ(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtIn applies the In predicate on the "last_online_at" field.
+func LastOnlineAtIn(vs ...time.Time) predicate.Node {
+	return predicate.Node(sql.FieldIn(FieldLastOnlineAt, vs...))
+}
+
+// LastOnlineAtNotIn applies the NotIn predicate on the "last_online_at" field.
+func LastOnlineAtNotIn(vs ...time.Time) predicate.Node {
+	return predicate.Node(sql.FieldNotIn(FieldLastOnlineAt, vs...))
+}
+
+// LastOnlineAtGT applies the GT predicate on the "last_online_at" field.
+func LastOnlineAtGT(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldGT(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtGTE applies the GTE predicate on the "last_online_at" field.
+func LastOnlineAtGTE(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldGTE(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtLT applies the LT predicate on the "last_online_at" field.
+func LastOnlineAtLT(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldLT(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtLTE applies the LTE predicate on the "last_online_at" field.
+func LastOnlineAtLTE(v time.Time) predicate.Node {
+	return predicate.Node(sql.FieldLTE(FieldLastOnlineAt, v))
+}
+
+// LastOnlineAtIsNil applies the IsNil predicate on the "last_online_at" field.
+func LastOnlineAtIsNil() predicate.Node {
+	return predicate.Node(sql.FieldIsNull(FieldLastOnlineAt))
+}
+
+// LastOnlineAtNotNil applies the NotNil predicate on the "last_online_at" field.
+func LastOnlineAtNotNil() predicate.Node {
+	return predicate.Node(sql.FieldNotNull(FieldLastOnlineAt))
 }
 
 // And groups predicates with the AND operator between them.

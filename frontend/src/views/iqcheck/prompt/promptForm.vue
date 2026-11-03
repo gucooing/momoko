@@ -127,6 +127,11 @@ defineExpose({ showDialog })
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+@media (width <= 768px) {
+  .iq-prompt-form__row {
+    grid-template-columns: 1fr;
+  }
+}
 .iq-prompt-form__switch {
   display: flex;
   align-items: center;

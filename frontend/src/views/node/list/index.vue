@@ -1,132 +1,177 @@
-<!-- 节点列表：主控经 gRPC 接入的远程节点。API Key 在目标节点上创建（只作签名种子，不在网络上传输），
-     其授权范围决定主控在该节点上可见的页面与操作。行内：切换 / 测试 / 编辑 / 删除。 -->
+<!-- 节点列表：主控经 gRPC 接入的远程节点 + 主控本机卡片。API Key 在目标节点上创建（只作签名种子，不在网络上传输），
+     其授权范围决定主控在该节点上可见的页面与操作。
+     布局：标题 + 子导航 → 主色概况 hero（在线数 / 异常节点 / 平均延迟 / 正在操作）→ 状态 chips + 搜索 → 节点卡片。
+     卡片操作：切换 / 测试 / 编辑 / 更多（删除）；顶部「全部测试」逐个探测远程节点。 -->
 <template>
-  <div class="node-page">
-    <PageHeader :title="t('node.list.title')" :description="t('node.list.pageDesc')">
+  <div class="nodes-page">
+    <PageHeader :title="t('node.page.title')">
+      <template #description>
+        {{ t('access.node.summary', { total: totalCount, online: onlineCount }) }}
+      </template>
       <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-rotate-cw" @click="getList">
-          {{ t('node.list.refresh') }}
-        </UButton>
-        <UButton v-if="canManage" color="primary" icon="i-lucide-plus" @click="nodeCreateRef?.showDialog()">
-          {{ t('node.list.add') }}
-        </UButton>
+        <template v-if="!menuStore.isMobile">
+          <UButton
+            v-if="canManage"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-activity"
+            :loading="testingAll"
+            @click="testAll"
+          >
+            {{ t('access.node.testAll') }}
+          </UButton>
+          <UButton color="neutral" variant="soft" icon="i-lucide-rotate-cw" @click="getList">
+            {{ t('node.list.refresh') }}
+          </UButton>
+          <UButton v-if="canManage" color="primary" icon="i-lucide-plus" @click="nodeCreateRef?.showDialog()">
+            {{ t('node.list.add') }}
+          </UButton>
+        </template>
+        <template v-else>
+          <UButton
+            v-if="canManage"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-activity"
+            :loading="testingAll"
+            :aria-label="t('access.node.testAll')"
+            @click="testAll"
+          />
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-rotate-cw"
+            :aria-label="t('node.list.refresh')"
+            @click="getList"
+          />
+        </template>
       </template>
     </PageHeader>
+    <NodeSubNav :node-count="list.length + 1" />
 
-    <div class="node-guide">
-      <UIcon name="i-lucide-info" class="node-guide__icon" />
-      <ol class="node-guide__steps">
-        <li>{{ t('node.list.guideStep1') }}</li>
-        <li>{{ t('node.list.guideStep2') }}</li>
-        <li>{{ t('node.list.guideStep3') }}</li>
-      </ol>
+    <!-- 概况 hero -->
+    <section class="nodes-hero" :aria-label="t('access.node.heroTitle', { total: totalCount, online: onlineCount })">
+      <span class="nodes-hero__blob" aria-hidden="true" />
+      <span class="nodes-hero__ring" aria-hidden="true" />
+      <div class="nodes-hero__body">
+        <span class="nodes-hero__title m-num">
+          {{ t('access.node.heroTitle', { total: totalCount, online: onlineCount }) }}
+        </span>
+        <span class="nodes-hero__sub" :title="heroSub">{{ heroSub }}</span>
+      </div>
+      <div class="nodes-hero__stats">
+        <div class="nodes-hero__stat">
+          <span class="nodes-hero__stat-label">{{ t('access.node.avgLatency') }}</span>
+          <span class="nodes-hero__stat-value m-num">{{ avgLatency }}</span>
+        </div>
+        <div class="nodes-hero__stat is-name">
+          <span class="nodes-hero__stat-label">{{ t('access.node.operating') }}</span>
+          <span class="nodes-hero__stat-value is-text" :title="operatingName">{{ operatingName }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 筛选 -->
+    <div class="nodes-tools">
+      <div class="nodes-chips" role="tablist" :aria-label="t('node.list.status')">
+        <button
+          v-for="chip in chips"
+          :key="chip.value"
+          type="button"
+          role="tab"
+          class="nodes-chip"
+          :class="{ 'is-on': filter === chip.value }"
+          :aria-selected="filter === chip.value"
+          @click="filter = chip.value"
+        >
+          {{ chip.label }}
+          <span class="nodes-chip__n m-num">{{ chip.count }}</span>
+        </button>
+      </div>
+      <span class="nodes-tools__spacer" />
+      <label class="nodes-search">
+        <component :is="menuStore.iconComponents['HOutline:MagnifyingGlassIcon']" />
+        <input
+          v-model="keywords"
+          type="search"
+          :placeholder="t('access.node.searchPlaceholder')"
+          :aria-label="t('access.node.searchPlaceholder')"
+          @keyup.enter="getList"
+        />
+      </label>
     </div>
 
-    <FilterBar @search="getList" @reset="reset">
-      <template #fields>
-        <div class="app-field">
-          <label class="app-label">{{ t('node.list.keywords') }}</label>
-          <input
-            v-model="keywords"
-            class="app-input"
-            :placeholder="t('node.list.keywordsPlaceholder')"
-            @keyup.enter="getList"
-          />
-        </div>
-      </template>
-    </FilterBar>
-
-    <div class="node-page__body">
-      <span class="node-page__hint">{{ t('system.common.total', { total: list.length }) }}</span>
-
-      <DataTable
-        v-if="!menuStore.isMobile"
-        :columns="columns"
-        :rows="tableRows"
-        row-key="id"
-        :loading="loading"
-        :empty-text="t('node.list.noData')"
-      >
-        <template #cell-name="{ row }">
-          <div class="node-cell">
-            <span class="node-cell__title">
-              {{ asNode(row).name }}
-              <StatusPill v-if="asNode(row).id === nodeStore.nodeId" variant="primary" :label="t('node.list.current')" />
-            </span>
-            <span v-if="asNode(row).remark" class="node-cell__sub">{{ asNode(row).remark }}</span>
-          </div>
-        </template>
-        <template #cell-address="{ row }">
-          <div class="node-cell">
-            <span class="node-mono">{{ asNode(row).address }}</span>
-            <span class="node-cell__sub">{{ asNode(row).tls ? (asNode(row).tlsSkipVerify ? t('node.list.tlsSelfSigned') : 'TLS') : t('node.list.plaintext') }}</span>
-          </div>
-        </template>
-        <template #cell-status="{ row }">
-          <div class="node-cell">
-            <StatusPill :variant="stateVariant(asNode(row))" :label="stateLabel(asNode(row))" />
-            <span class="node-cell__sub" :title="asNode(row).status?.message">
-              {{ statusCaption(asNode(row)) }}
-            </span>
-          </div>
-        </template>
-        <template #cell-remote="{ row }">
-          <div v-if="asNode(row).status?.remote" class="node-cell">
-            <span>{{ asNode(row).status?.remote?.hostname }}</span>
-            <span class="node-cell__sub">
-              {{ asNode(row).status?.remote?.version }} · {{ asNode(row).status?.remote?.os }}/{{ asNode(row).status?.remote?.arch }}
-            </span>
-          </div>
-          <span v-else class="node-cell__sub">—</span>
-        </template>
-        <template #cell-permissions="{ row }">
-          <NodePermissionChips v-if="asNode(row).status?.remote" :permissions="asNode(row).status?.remote?.permissions" />
-          <span v-else class="node-cell__sub">—</span>
-        </template>
-        <template #cell-keyId="{ row }">
-          <span class="node-mono node-cell__sub">{{ asNode(row).keyId }}</span>
-        </template>
-        <template #cell-operation="{ row }">
-          <ActionMenu :items="rowActions(asNode(row))" @select="(key) => onRowAction(key, asNode(row))" />
-        </template>
-      </DataTable>
-
-      <template v-else>
-        <div v-if="loading && !list.length" class="node-cards">
-          <div v-for="i in 3" :key="i" class="node-skeleton" />
-        </div>
-        <EmptyState
-          v-else-if="!list.length"
-          icon="HOutline:ServerStackIcon"
-          :title="t('node.list.noData')"
-          :description="t('node.list.emptyDesc')"
+    <!-- 卡片 -->
+    <div v-if="loading && !list.length && !localInfo" class="nodes-grid">
+      <div v-for="i in 2" :key="i" class="nodes-skeleton" />
+    </div>
+    <template v-else>
+      <div v-if="visibleCards.length" class="nodes-grid">
+        <NodeCard
+          v-for="(card, idx) in visibleCards"
+          :key="card.key"
+          :index="idx"
+          :local="card.local"
+          :node="card.node"
+          :local-info="localInfo"
+          :local-permissions="localPermissions"
+          :is-current="card.local ? !nodeStore.isRemote : card.node?.id === nodeStore.nodeId"
+          :can-manage="canManage"
+          :testing="!!card.node && testingIds.has(card.node.id)"
+          :master-version="menuStore.currentVersion"
+          @switch="nodeStore.switchNode(card.node?.id || '')"
+          @test="card.node && runTest(card.node)"
+          @edit="card.node && nodeCreateRef?.showDialog(card.node)"
+          @delete="card.node && confirmDelete(card.node)"
         />
-        <div v-else class="node-cards">
-          <EntityCard v-for="node in list" :key="node.id">
-            <template #title>{{ node.name }}</template>
-            <template #status>
-              <StatusPill :variant="stateVariant(node)" :label="stateLabel(node)" />
-            </template>
-            <template #meta>
-              <span class="node-mono">{{ node.address }}</span>
-              <span v-if="node.status?.remote">{{ node.status.remote.hostname }} · {{ node.status.remote.version }}</span>
-              <span v-else-if="node.status?.message" class="node-card__full">{{ node.status.message }}</span>
-              <NodePermissionChips v-if="node.status?.remote" class="node-card__full" :permissions="node.status.remote.permissions" />
-            </template>
-            <template #footer>
-              <span>{{ statusCaption(node) }}</span>
-              <ActionMenu :items="rowActions(node)" @select="(key) => onRowAction(key, node)" />
-            </template>
-          </EntityCard>
+      </div>
+      <EmptyState
+        v-else
+        icon="HOutline:ServerStackIcon"
+        :title="t('node.page.noMatch')"
+        :description="t('node.list.emptyDesc')"
+      />
+    </template>
+
+    <!-- 还没有远程节点：接入步骤 -->
+    <AppPanel v-if="!loading && !list.length && !keywords.trim()" class="nodes-guide">
+      <div class="nodes-guide__head">
+        <span class="nodes-guide__icon m-sticker m-sticker--a2">
+          <component :is="menuStore.iconComponents['HOutline:LightBulbIcon']" />
+        </span>
+        <div class="nodes-guide__text">
+          <h2 class="nodes-guide__title">{{ t('access.node.guideTitle') }}</h2>
+          <p class="nodes-guide__desc">{{ t('access.node.heroEmpty') }}</p>
         </div>
-      </template>
+      </div>
+      <ol class="nodes-guide__steps">
+        <li v-for="(step, i) in guideSteps" :key="i">
+          <span class="nodes-guide__n m-num">{{ i + 1 }}</span>
+          <span>{{ step }}</span>
+        </li>
+      </ol>
+      <div v-if="canManage" class="nodes-guide__actions">
+        <UButton color="primary" icon="i-lucide-plus" @click="nodeCreateRef?.showDialog()">
+          {{ t('node.list.add') }}
+        </UButton>
+        <UButton color="neutral" variant="soft" icon="i-lucide-key-round" :to="pageTabTo('node', 'key')">
+          {{ t('node.key.title') }}
+        </UButton>
+      </div>
+    </AppPanel>
+
+    <!-- 手机：悬浮添加 -->
+    <div v-if="menuStore.isMobile && canManage" class="nodes-fab">
+      <UButton color="primary" size="xl" icon="i-lucide-plus" class="nodes-fab__btn" @click="nodeCreateRef?.showDialog()">
+        {{ t('node.list.add') }}
+      </UButton>
     </div>
 
     <NodeCreate ref="nodeCreateRef" @refresh="onFormRefresh" />
 
     <FormDialog v-model="testDialog.open" :title="t('node.list.testTitle', { name: testDialog.name })" :width="520" :show-footer="false">
-      <div v-if="testDialog.loading" class="node-test-loading">
-        <span class="node-spinner" />
+      <div v-if="testDialog.loading" class="nodes-test-loading">
+        <span class="nodes-spinner" />
         <span>{{ t('node.list.testing') }}</span>
       </div>
       <NodeTestResult v-else-if="testDialog.status" :status="testDialog.status" />
@@ -135,95 +180,138 @@
 </template>
 
 <script setup lang="ts">
+import { pageTabTo } from '@/config/pageGroups'
+import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { deleteNode, listNodes, testNode } from '@/api/node'
-import { NodeState, type NodeInfo, type NodeStatus } from '@/types/v1/node'
+import { NodeState, type NodeInfo, type NodeRemoteInfo, type NodeStatus } from '@/types/v1/node'
+import { NODE_PERMISSION_ITEMS } from '@/config/nodePermission'
 import { Dialog } from '@/utils/dialog'
-import { formatDateTime } from '@/utils/file'
-import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import NodeCreate from '@/views/node/list/create.vue'
 import NodeTestResult from '@/views/node/list/testResult.vue'
-import NodePermissionChips from '@/views/node/components/permissionChips.vue'
+import NodeCard from '@/views/node/list/nodeCard.vue'
+import NodeSubNav from '@/views/node/components/NodeSubNav.vue'
+import { useNodeTime } from '@/views/node/components/useNodeTime'
 
 defineOptions({ name: 'NodeListView' })
+
+type Filter = 'all' | 'online' | 'offline'
 
 const menuStore = useMenuStore()
 const nodeStore = useNodeStore()
 const { t } = useI18n()
+const { ago, shortTime } = useNodeTime()
 const nodeCreateRef = useTemplateRef<InstanceType<typeof NodeCreate> | null>('nodeCreateRef')
 
 const loading = ref(false)
 const list = ref<NodeInfo[]>([])
+const localInfo = ref<NodeRemoteInfo | undefined>()
 const keywords = ref('')
+const filter = ref<Filter>('all')
 const testDialog = ref({ open: false, loading: false, name: '', status: null as NodeStatus | null })
+const testingIds = ref<Set<string>>(new Set())
+const testingAll = ref(false)
 
 const canManage = computed(() => menuStore.hasButtonPermission('node:manage'))
-const tableRows = computed(() => list.value as unknown as Record<string, unknown>[])
-const asNode = (row: Record<string, unknown>) => row as unknown as NodeInfo
 
-const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('node.list.name'), minWidth: 150 },
-  { key: 'address', title: t('node.list.address'), minWidth: 170 },
-  { key: 'status', title: t('node.list.status'), minWidth: 150 },
-  { key: 'remote', title: t('node.list.nodeInfo'), minWidth: 170 },
-  { key: 'permissions', title: t('node.list.grantedPermissions'), minWidth: 220, ellipsis: false },
-  { key: 'keyId', title: 'Key ID', minWidth: 150 },
-  { key: 'operation', title: t('node.list.operation'), width: 80, align: 'center' },
+const isOnline = (node: NodeInfo) => node.status?.state === NodeState.NodeState_Online
+
+// 本机卡片：当前用户在主控上拥有的节点类功能（仅需登录的项恒为允许）
+const localPermissions = computed(() =>
+  NODE_PERMISSION_ITEMS.filter((i) => i.loginOnly || menuStore.buttonPermissions.includes(i.code)).map((i) => i.code),
+)
+
+const localMatches = computed(() => {
+  const kw = keywords.value.trim().toLowerCase()
+  if (!kw) return true
+  return [localInfo.value?.hostname, t('node.page.localName'), window.location.host]
+    .filter(Boolean)
+    .some((s) => String(s).toLowerCase().includes(kw))
+})
+
+// 计数含本机（本机恒在线）
+const remoteOnline = computed(() => list.value.filter(isOnline).length)
+const totalCount = computed(() => list.value.length + 1)
+const onlineCount = computed(() => remoteOnline.value + 1)
+
+const chips = computed(() => [
+  { value: 'all' as Filter, label: t('node.page.filterAll'), count: list.value.length + (localMatches.value ? 1 : 0) },
+  { value: 'online' as Filter, label: t('node.state.online'), count: remoteOnline.value + (localMatches.value ? 1 : 0) },
+  { value: 'offline' as Filter, label: t('node.state.offline'), count: list.value.length - remoteOnline.value },
 ])
 
-const stateVariant = (node: NodeInfo) => {
-  const state = node.status?.state
-  if (state === NodeState.NodeState_Online) return 'success'
-  if (state === NodeState.NodeState_Offline) return 'error'
-  if (state === NodeState.NodeState_Unauthorized) return 'warning'
-  return 'neutral'
+interface Card {
+  key: string
+  local: boolean
+  node?: NodeInfo
 }
-const stateLabel = (node: NodeInfo) => {
-  const state = node.status?.state
-  if (state === NodeState.NodeState_Online) return t('node.state.online')
-  if (state === NodeState.NodeState_Offline) return t('node.state.offline')
-  if (state === NodeState.NodeState_Unauthorized) return t('node.state.unauthorized')
-  return t('node.state.unknown')
-}
-const statusCaption = (node: NodeInfo) => {
-  const status = node.status
-  if (!status?.checkTime) return t('node.list.notChecked')
-  const time = formatDateTime(status.checkTime)
-  if (status.state === NodeState.NodeState_Online) return `${status.latencyMs} ms · ${time}`
-  return status.message || time
-}
+const visibleCards = computed<Card[]>(() => {
+  const cards: Card[] = []
+  if (localMatches.value && filter.value !== 'offline') cards.push({ key: 'local', local: true })
+  for (const node of list.value) {
+    if (filter.value === 'online' && !isOnline(node)) continue
+    if (filter.value === 'offline' && isOnline(node)) continue
+    cards.push({ key: node.id, local: false, node })
+  }
+  return cards
+})
 
-const rowActions = (node: NodeInfo): ActionMenuItem[] => [
-  {
-    key: 'switch',
-    label: t('node.list.switchTo'),
-    icon: 'i-lucide-arrow-right-left',
-    hidden: node.id === nodeStore.nodeId,
-  },
-  { key: 'test', label: t('node.list.test'), icon: 'i-lucide-plug-zap', hidden: !canManage.value },
-  { key: 'edit', label: t('node.list.edit'), icon: 'i-lucide-pencil', hidden: !canManage.value },
-  { key: 'delete', label: t('node.list.delete'), icon: 'i-lucide-trash-2', danger: true, hidden: !canManage.value },
-]
+// —— hero 文案 ——
+const problemNodes = computed(() => list.value.filter((n) => !isOnline(n) && n.status?.state !== NodeState.NodeState_Unknown))
+const heroSub = computed(() => {
+  if (!list.value.length) return t('access.node.heroEmpty')
+  const first = problemNodes.value[0]
+  if (!first) return t('access.node.heroAllOnline')
+  const s = first.status
+  let text: string
+  if (s?.lastOnlineTime) {
+    text = t('node.page.heroOffline', { name: first.name, ago: ago(s.lastOnlineTime), time: shortTime(s.lastOnlineTime) })
+  } else {
+    text = t('node.page.heroNeverOnline', { name: first.name, reason: s?.message || t('node.state.offline') })
+  }
+  const more = problemNodes.value.length - 1
+  return more > 0 ? text + t('access.node.heroMoreIssues', { count: more }) : text
+})
+const avgLatency = computed(() => {
+  const online = list.value.filter(isOnline)
+  if (!online.length) return '—'
+  const sum = online.reduce((acc, n) => acc + Number(n.status?.latencyMs || 0), 0)
+  return `${Math.round(sum / online.length)} ms`
+})
+const operatingName = computed(() => {
+  if (nodeStore.isRemote) {
+    return list.value.find((n) => n.id === nodeStore.nodeId)?.name || nodeStore.contextInfo?.name || '—'
+  }
+  return localInfo.value?.hostname || t('node.page.localName')
+})
 
+const guideSteps = computed(() => [t('node.list.guideStep1'), t('node.list.guideStep2'), t('node.list.guideStep3')])
+
+// —— 数据 ——
 const getList = async () => {
   loading.value = true
   try {
     const { data } = await listNodes({ keywords: keywords.value.trim() || undefined })
     list.value = data?.infos || []
+    localInfo.value = data?.local
     if (!keywords.value.trim()) nodeStore.nodes = list.value
   } finally {
     loading.value = false
   }
 }
+const debouncedList = useDebounceFn(() => void getList(), 350)
+watch(keywords, () => debouncedList())
 
-const reset = () => {
-  keywords.value = ''
-  getList()
+const markTesting = (id: string, on: boolean) => {
+  const next = new Set(testingIds.value)
+  if (on) next.add(id)
+  else next.delete(id)
+  testingIds.value = next
 }
 
 const runTest = async (node: NodeInfo) => {
   testDialog.value = { open: true, loading: true, name: node.name, status: null }
+  markTesting(node.id, true)
   try {
     const { data } = await testNode({ id: node.id })
     testDialog.value.status = data?.status || null
@@ -232,14 +320,27 @@ const runTest = async (node: NodeInfo) => {
     testDialog.value.open = false
   } finally {
     testDialog.value.loading = false
+    markTesting(node.id, false)
   }
 }
 
-const onRowAction = (key: string, node: NodeInfo) => {
-  if (key === 'switch') nodeStore.switchNode(node.id)
-  else if (key === 'test') runTest(node)
-  else if (key === 'edit') nodeCreateRef.value?.showDialog(node)
-  else if (key === 'delete') confirmDelete(node)
+const testAll = async () => {
+  if (!list.value.length) {
+    feedback.info(t('node.page.testAllEmpty'))
+    return
+  }
+  testingAll.value = true
+  const targets = [...list.value]
+  targets.forEach((n) => markTesting(n.id, true))
+  try {
+    await Promise.allSettled(
+      targets.map((n) => testNode({ id: n.id }).finally(() => markTesting(n.id, false))),
+    )
+    await getList()
+    feedback.success(t('access.node.testAllDone', { count: targets.length }))
+  } finally {
+    testingAll.value = false
+  }
 }
 
 const confirmDelete = (node: NodeInfo) => {
@@ -273,79 +374,196 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.node-page {
+.nodes-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
-.node-guide {
+
+/* hero */
+.nodes-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 22px;
+  padding: 22px 26px;
+  border-radius: var(--app-radius-lg);
+  background: var(--m-p);
+  color: var(--m-pOn);
+}
+.nodes-hero__blob {
+  position: absolute;
+  right: -50px;
+  bottom: -90px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--m-a);
+}
+.nodes-hero__ring {
+  position: absolute;
+  right: 380px;
+  top: -34px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 12px solid var(--m-a2);
+}
+.nodes-hero__body {
+  position: relative;
+  flex: 1 1 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nodes-hero__title {
+  font-family: var(--app-font-display);
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.nodes-hero__sub {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.nodes-hero__stats {
+  position: relative;
   display: flex;
   gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
-  background: color-mix(in srgb, var(--el-color-primary) 5%, transparent);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--el-text-color-regular);
-}
-.node-guide__icon {
-  width: 16px;
-  height: 16px;
-  margin-top: 3px;
-  flex-shrink: 0;
-  color: var(--el-color-primary);
-}
-.node-guide__steps {
-  margin: 0;
-  padding-left: 1.1rem;
-  list-style: decimal;
-}
-.node-page__body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.node-page__hint {
-  font-size: 0.8125rem;
-  color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
-.node-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  margin-right: 150px;
   min-width: 0;
 }
-.node-cell__title {
+.nodes-hero__stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 16px;
+  border-radius: 18px;
+  background: var(--m-pOn);
+  color: var(--m-ink);
+}
+.nodes-hero__stat.is-name {
+  max-width: 220px;
+}
+.nodes-hero__stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--m-ink2);
+}
+.nodes-hero__stat-value {
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.nodes-hero__stat-value.is-text {
+  padding-top: 3px;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 工具条 */
+.nodes-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.nodes-tools__spacer {
+  flex: 1;
+}
+.nodes-chips {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nodes-chips::-webkit-scrollbar {
+  display: none;
+}
+.nodes-chip {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-.node-cell__sub {
-  font-size: 0.75rem;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.875rem;
+  font-weight: 700;
   white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.node-mono {
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.8125rem;
+.nodes-chip:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
 }
-.node-cards {
+.nodes-chip.is-on {
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
+}
+.nodes-chip__n {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.nodes-search {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 300px;
+  min-width: 180px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  transition: border-color 0.15s;
 }
-.node-card__full {
-  flex-basis: 100%;
+.nodes-search:focus-within {
+  border-color: var(--m-p);
 }
-.node-skeleton {
-  height: 120px;
-  border-radius: var(--app-radius);
+.nodes-search :deep(svg) {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.nodes-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+/* 卡片 */
+.nodes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  gap: 16px;
+}
+.nodes-skeleton {
+  height: 300px;
+  border-radius: var(--app-radius-lg);
   background: linear-gradient(
     100deg,
     var(--el-fill-color-light) 30%,
@@ -353,9 +571,9 @@ onMounted(() => {
     var(--el-fill-color-light) 70%
   );
   background-size: 200% 100%;
-  animation: node-shimmer 1.4s ease-in-out infinite;
+  animation: nodes-shimmer 1.4s ease-in-out infinite;
 }
-@keyframes node-shimmer {
+@keyframes nodes-shimmer {
   from {
     background-position: 200% 0;
   }
@@ -363,7 +581,164 @@ onMounted(() => {
     background-position: -200% 0;
   }
 }
-.node-test-loading {
+
+/* 接入步骤 */
+.nodes-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nodes-guide__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nodes-guide__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  flex: none;
+  transform: rotate(-4deg);
+}
+.nodes-guide__icon :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+.nodes-guide__title {
+  font-family: var(--app-font-display);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.nodes-guide__desc {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.nodes-guide__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nodes-guide__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--el-text-color-regular);
+}
+.nodes-guide__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.nodes-guide__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 手机 */
+.nodes-fab {
+  position: sticky;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -56px;
+  pointer-events: none;
+  z-index: 5;
+}
+.nodes-fab__btn {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--app-radius-pill);
+  box-shadow: var(--app-shadow-brand);
+}
+@media (width < 768px) {
+  .nodes-page {
+    gap: 14px;
+    padding-bottom: 72px;
+  }
+  .nodes-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+  .nodes-hero__blob {
+    right: -40px;
+    bottom: -70px;
+    width: 150px;
+    height: 150px;
+  }
+  .nodes-hero__ring {
+    right: -18px;
+    top: -22px;
+    width: 56px;
+    height: 56px;
+    border-width: 9px;
+  }
+  .nodes-hero__body {
+    flex: none;
+  }
+  .nodes-hero__title {
+    font-size: 1.625rem;
+  }
+  .nodes-hero__sub {
+    font-size: 0.8125rem;
+    padding-right: 40px;
+  }
+  .nodes-hero__stats {
+    margin-right: 0;
+    gap: 8px;
+  }
+  .nodes-hero__stat {
+    padding: 8px 12px;
+    border-radius: 14px;
+  }
+  .nodes-hero__stat.is-name {
+    flex: 0 1 auto;
+    max-width: 60%;
+  }
+  .nodes-hero__stat-value {
+    font-size: 1rem;
+  }
+  .nodes-hero__stat-value.is-text {
+    font-size: 0.875rem;
+  }
+  .nodes-tools__spacer {
+    display: none;
+  }
+  .nodes-search {
+    order: -1;
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+  .nodes-chips {
+    width: 100%;
+  }
+  .nodes-grid {
+    gap: 12px;
+  }
+}
+
+.nodes-test-loading {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -371,15 +746,15 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
   font-size: 0.875rem;
 }
-.node-spinner {
+.nodes-spinner {
   width: 16px;
   height: 16px;
   border: 2px solid var(--el-border-color);
-  border-top-color: var(--el-color-primary);
+  border-top-color: var(--m-p);
   border-radius: 999px;
-  animation: node-spin 0.8s linear infinite;
+  animation: nodes-spin 0.8s linear infinite;
 }
-@keyframes node-spin {
+@keyframes nodes-spin {
   to {
     transform: rotate(360deg);
   }

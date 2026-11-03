@@ -23,6 +23,71 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// 列表筛选
+type SSHHostFilter int32
+
+const (
+	// 全部
+	SSHHostFilter_SSH_HOST_FILTER_ALL SSHHostFilter = 0
+	// 上次测试连通
+	SSHHostFilter_SSH_HOST_FILTER_OK SSHHostFilter = 1
+	// 上次测试失败
+	SSHHostFilter_SSH_HOST_FILTER_FAILED SSHHostFilter = 2
+	// 从未测试
+	SSHHostFilter_SSH_HOST_FILTER_UNTESTED SSHHostFilter = 3
+	// 我分享给他人的
+	SSHHostFilter_SSH_HOST_FILTER_SHARED SSHHostFilter = 4
+	// 他人分享给我的
+	SSHHostFilter_SSH_HOST_FILTER_SHARED_WITH_ME SSHHostFilter = 5
+)
+
+// Enum value maps for SSHHostFilter.
+var (
+	SSHHostFilter_name = map[int32]string{
+		0: "SSH_HOST_FILTER_ALL",
+		1: "SSH_HOST_FILTER_OK",
+		2: "SSH_HOST_FILTER_FAILED",
+		3: "SSH_HOST_FILTER_UNTESTED",
+		4: "SSH_HOST_FILTER_SHARED",
+		5: "SSH_HOST_FILTER_SHARED_WITH_ME",
+	}
+	SSHHostFilter_value = map[string]int32{
+		"SSH_HOST_FILTER_ALL":            0,
+		"SSH_HOST_FILTER_OK":             1,
+		"SSH_HOST_FILTER_FAILED":         2,
+		"SSH_HOST_FILTER_UNTESTED":       3,
+		"SSH_HOST_FILTER_SHARED":         4,
+		"SSH_HOST_FILTER_SHARED_WITH_ME": 5,
+	}
+)
+
+func (x SSHHostFilter) Enum() *SSHHostFilter {
+	p := new(SSHHostFilter)
+	*p = x
+	return p
+}
+
+func (x SSHHostFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SSHHostFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_openssh_proto_enumTypes[0].Descriptor()
+}
+
+func (SSHHostFilter) Type() protoreflect.EnumType {
+	return &file_v1_openssh_proto_enumTypes[0]
+}
+
+func (x SSHHostFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SSHHostFilter.Descriptor instead.
+func (SSHHostFilter) EnumDescriptor() ([]byte, []int) {
+	return file_v1_openssh_proto_rawDescGZIP(), []int{0}
+}
+
 type SSHAuthType int32
 
 const (
@@ -59,11 +124,11 @@ func (x SSHAuthType) String() string {
 }
 
 func (SSHAuthType) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_openssh_proto_enumTypes[0].Descriptor()
+	return file_v1_openssh_proto_enumTypes[1].Descriptor()
 }
 
 func (SSHAuthType) Type() protoreflect.EnumType {
-	return &file_v1_openssh_proto_enumTypes[0]
+	return &file_v1_openssh_proto_enumTypes[1]
 }
 
 func (x SSHAuthType) Number() protoreflect.EnumNumber {
@@ -72,7 +137,7 @@ func (x SSHAuthType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SSHAuthType.Descriptor instead.
 func (SSHAuthType) EnumDescriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{0}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{1}
 }
 
 type SSHHostAccessRole int32
@@ -111,11 +176,11 @@ func (x SSHHostAccessRole) String() string {
 }
 
 func (SSHHostAccessRole) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_openssh_proto_enumTypes[1].Descriptor()
+	return file_v1_openssh_proto_enumTypes[2].Descriptor()
 }
 
 func (SSHHostAccessRole) Type() protoreflect.EnumType {
-	return &file_v1_openssh_proto_enumTypes[1]
+	return &file_v1_openssh_proto_enumTypes[2]
 }
 
 func (x SSHHostAccessRole) Number() protoreflect.EnumNumber {
@@ -124,7 +189,7 @@ func (x SSHHostAccessRole) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SSHHostAccessRole.Descriptor instead.
 func (SSHHostAccessRole) EnumDescriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{1}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{2}
 }
 
 type GetSSHHostsRequest struct {
@@ -136,7 +201,11 @@ type GetSSHHostsRequest struct {
 	// 名称/标签/主机地址
 	Keywords *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
 	// 主机地址
-	Host          *string `protobuf:"bytes,4,opt,name=host,proto3,oneof" json:"host,omitempty"`
+	Host *string `protobuf:"bytes,4,opt,name=host,proto3,oneof" json:"host,omitempty"`
+	// 按连通状态/分享筛选
+	Filter *SSHHostFilter `protobuf:"varint,5,opt,name=filter,proto3,enum=v1.SSHHostFilter,oneof" json:"filter,omitempty"`
+	// 按标签（分组）筛选
+	Tag           *string `protobuf:"bytes,6,opt,name=tag,proto3,oneof" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -199,16 +268,32 @@ func (x *GetSSHHostsRequest) GetHost() string {
 	return ""
 }
 
+func (x *GetSSHHostsRequest) GetFilter() SSHHostFilter {
+	if x != nil && x.Filter != nil {
+		return *x.Filter
+	}
+	return SSHHostFilter_SSH_HOST_FILTER_ALL
+}
+
+func (x *GetSSHHostsRequest) GetTag() string {
+	if x != nil && x.Tag != nil {
+		return *x.Tag
+	}
+	return ""
+}
+
 type GetSSHHostsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// actual page
 	Page int64 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	// actual page size
 	PageSize int64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// 总数
+	// 总数（筛选后）
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 列表
-	Infos         []*SSHHostInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*SSHHostInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	// 全部可访问主机的统计（不受筛选影响）
+	Stats         *SSHHostStats `protobuf:"bytes,5,opt,name=stats,proto3" json:"stats,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -271,6 +356,312 @@ func (x *GetSSHHostsResponse) GetInfos() []*SSHHostInfo {
 	return nil
 }
 
+func (x *GetSSHHostsResponse) GetStats() *SSHHostStats {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
+// SSH 主机统计
+type SSHHostStats struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 可访问主机总数
+	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 上次测试连通
+	Ok int64 `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	// 上次测试失败
+	Failed int64 `protobuf:"varint,3,opt,name=failed,proto3" json:"failed,omitempty"`
+	// 从未测试
+	Untested int64 `protobuf:"varint,4,opt,name=untested,proto3" json:"untested,omitempty"`
+	// 我分享给他人的
+	Shared int64 `protobuf:"varint,5,opt,name=shared,proto3" json:"shared,omitempty"`
+	// 他人分享给我的
+	SharedWithMe int64 `protobuf:"varint,6,opt,name=shared_with_me,json=sharedWithMe,proto3" json:"shared_with_me,omitempty"`
+	// 全部标签（分组），按名称排序
+	Tags []string `protobuf:"bytes,7,rep,name=tags,proto3" json:"tags,omitempty"`
+	// 最近一次测试时间
+	LastTestTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=last_test_time,json=lastTestTime,proto3" json:"last_test_time,omitempty"`
+	// 连通主机的平均延迟（毫秒）
+	AvgLatencyMs int32 `protobuf:"varint,9,opt,name=avg_latency_ms,json=avgLatencyMs,proto3" json:"avg_latency_ms,omitempty"`
+	// 每台主机的上次测试状态（按创建时间排序，用于概览条）
+	Marks         []*SSHHostTestMark `protobuf:"bytes,10,rep,name=marks,proto3" json:"marks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SSHHostStats) Reset() {
+	*x = SSHHostStats{}
+	mi := &file_v1_openssh_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSHHostStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSHHostStats) ProtoMessage() {}
+
+func (x *SSHHostStats) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_openssh_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSHHostStats.ProtoReflect.Descriptor instead.
+func (*SSHHostStats) Descriptor() ([]byte, []int) {
+	return file_v1_openssh_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SSHHostStats) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetOk() int64 {
+	if x != nil {
+		return x.Ok
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetFailed() int64 {
+	if x != nil {
+		return x.Failed
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetUntested() int64 {
+	if x != nil {
+		return x.Untested
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetShared() int64 {
+	if x != nil {
+		return x.Shared
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetSharedWithMe() int64 {
+	if x != nil {
+		return x.SharedWithMe
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *SSHHostStats) GetLastTestTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastTestTime
+	}
+	return nil
+}
+
+func (x *SSHHostStats) GetAvgLatencyMs() int32 {
+	if x != nil {
+		return x.AvgLatencyMs
+	}
+	return 0
+}
+
+func (x *SSHHostStats) GetMarks() []*SSHHostTestMark {
+	if x != nil {
+		return x.Marks
+	}
+	return nil
+}
+
+// 主机上次测试状态标记
+type SSHHostTestMark struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 主机 id
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 名称
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 是否测试过
+	Tested bool `protobuf:"varint,3,opt,name=tested,proto3" json:"tested,omitempty"`
+	// 是否连通
+	Ok bool `protobuf:"varint,4,opt,name=ok,proto3" json:"ok,omitempty"`
+	// 失败原因
+	Message       string `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SSHHostTestMark) Reset() {
+	*x = SSHHostTestMark{}
+	mi := &file_v1_openssh_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSHHostTestMark) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSHHostTestMark) ProtoMessage() {}
+
+func (x *SSHHostTestMark) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_openssh_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSHHostTestMark.ProtoReflect.Descriptor instead.
+func (*SSHHostTestMark) Descriptor() ([]byte, []int) {
+	return file_v1_openssh_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SSHHostTestMark) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SSHHostTestMark) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SSHHostTestMark) GetTested() bool {
+	if x != nil {
+		return x.Tested
+	}
+	return false
+}
+
+func (x *SSHHostTestMark) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *SSHHostTestMark) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type TestSSHHostsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 要测试的主机 id；为空表示全部可访问主机
+	Ids           []string `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TestSSHHostsRequest) Reset() {
+	*x = TestSSHHostsRequest{}
+	mi := &file_v1_openssh_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TestSSHHostsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TestSSHHostsRequest) ProtoMessage() {}
+
+func (x *TestSSHHostsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_openssh_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TestSSHHostsRequest.ProtoReflect.Descriptor instead.
+func (*TestSSHHostsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_openssh_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *TestSSHHostsRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+type TestSSHHostsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 每台主机的测试结果
+	Results       []*SSHHostTestMark `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TestSSHHostsResponse) Reset() {
+	*x = TestSSHHostsResponse{}
+	mi := &file_v1_openssh_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TestSSHHostsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TestSSHHostsResponse) ProtoMessage() {}
+
+func (x *TestSSHHostsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_openssh_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TestSSHHostsResponse.ProtoReflect.Descriptor instead.
+func (*TestSSHHostsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_openssh_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *TestSSHHostsResponse) GetResults() []*SSHHostTestMark {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
 type CreateSSHHostRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称
@@ -303,7 +694,7 @@ type CreateSSHHostRequest struct {
 
 func (x *CreateSSHHostRequest) Reset() {
 	*x = CreateSSHHostRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[2]
+	mi := &file_v1_openssh_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +706,7 @@ func (x *CreateSSHHostRequest) String() string {
 func (*CreateSSHHostRequest) ProtoMessage() {}
 
 func (x *CreateSSHHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[2]
+	mi := &file_v1_openssh_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +719,7 @@ func (x *CreateSSHHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSSHHostRequest.ProtoReflect.Descriptor instead.
 func (*CreateSSHHostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{2}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateSSHHostRequest) GetName() string {
@@ -425,7 +816,7 @@ type CreateSSHHostResponse struct {
 
 func (x *CreateSSHHostResponse) Reset() {
 	*x = CreateSSHHostResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[3]
+	mi := &file_v1_openssh_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -437,7 +828,7 @@ func (x *CreateSSHHostResponse) String() string {
 func (*CreateSSHHostResponse) ProtoMessage() {}
 
 func (x *CreateSSHHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[3]
+	mi := &file_v1_openssh_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -450,7 +841,7 @@ func (x *CreateSSHHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSSHHostResponse.ProtoReflect.Descriptor instead.
 func (*CreateSSHHostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{3}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateSSHHostResponse) GetInfo() *SSHHostInfo {
@@ -470,7 +861,7 @@ type GetSSHHostInfoRequest struct {
 
 func (x *GetSSHHostInfoRequest) Reset() {
 	*x = GetSSHHostInfoRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[4]
+	mi := &file_v1_openssh_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -482,7 +873,7 @@ func (x *GetSSHHostInfoRequest) String() string {
 func (*GetSSHHostInfoRequest) ProtoMessage() {}
 
 func (x *GetSSHHostInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[4]
+	mi := &file_v1_openssh_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -495,7 +886,7 @@ func (x *GetSSHHostInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSSHHostInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetSSHHostInfoRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{4}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetSSHHostInfoRequest) GetId() string {
@@ -515,7 +906,7 @@ type GetSSHHostInfoResponse struct {
 
 func (x *GetSSHHostInfoResponse) Reset() {
 	*x = GetSSHHostInfoResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[5]
+	mi := &file_v1_openssh_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +918,7 @@ func (x *GetSSHHostInfoResponse) String() string {
 func (*GetSSHHostInfoResponse) ProtoMessage() {}
 
 func (x *GetSSHHostInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[5]
+	mi := &file_v1_openssh_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +931,7 @@ func (x *GetSSHHostInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSSHHostInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetSSHHostInfoResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{5}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetSSHHostInfoResponse) GetInfo() *SSHHostInfo {
@@ -582,7 +973,7 @@ type UpdateSSHHostRequest struct {
 
 func (x *UpdateSSHHostRequest) Reset() {
 	*x = UpdateSSHHostRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[6]
+	mi := &file_v1_openssh_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -594,7 +985,7 @@ func (x *UpdateSSHHostRequest) String() string {
 func (*UpdateSSHHostRequest) ProtoMessage() {}
 
 func (x *UpdateSSHHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[6]
+	mi := &file_v1_openssh_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -607,7 +998,7 @@ func (x *UpdateSSHHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSSHHostRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSSHHostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{6}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateSSHHostRequest) GetId() string {
@@ -704,7 +1095,7 @@ type UpdateSSHHostResponse struct {
 
 func (x *UpdateSSHHostResponse) Reset() {
 	*x = UpdateSSHHostResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[7]
+	mi := &file_v1_openssh_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +1107,7 @@ func (x *UpdateSSHHostResponse) String() string {
 func (*UpdateSSHHostResponse) ProtoMessage() {}
 
 func (x *UpdateSSHHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[7]
+	mi := &file_v1_openssh_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +1120,7 @@ func (x *UpdateSSHHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSSHHostResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSSHHostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{7}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateSSHHostResponse) GetInfo() *SSHHostInfo {
@@ -749,7 +1140,7 @@ type DeleteSSHHostRequest struct {
 
 func (x *DeleteSSHHostRequest) Reset() {
 	*x = DeleteSSHHostRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[8]
+	mi := &file_v1_openssh_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -761,7 +1152,7 @@ func (x *DeleteSSHHostRequest) String() string {
 func (*DeleteSSHHostRequest) ProtoMessage() {}
 
 func (x *DeleteSSHHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[8]
+	mi := &file_v1_openssh_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -774,7 +1165,7 @@ func (x *DeleteSSHHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSSHHostRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSSHHostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{8}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteSSHHostRequest) GetId() string {
@@ -792,7 +1183,7 @@ type DeleteSSHHostResponse struct {
 
 func (x *DeleteSSHHostResponse) Reset() {
 	*x = DeleteSSHHostResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[9]
+	mi := &file_v1_openssh_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +1195,7 @@ func (x *DeleteSSHHostResponse) String() string {
 func (*DeleteSSHHostResponse) ProtoMessage() {}
 
 func (x *DeleteSSHHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[9]
+	mi := &file_v1_openssh_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -817,7 +1208,7 @@ func (x *DeleteSSHHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSSHHostResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSSHHostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{9}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{13}
 }
 
 type ShareSSHHostRequest struct {
@@ -832,7 +1223,7 @@ type ShareSSHHostRequest struct {
 
 func (x *ShareSSHHostRequest) Reset() {
 	*x = ShareSSHHostRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[10]
+	mi := &file_v1_openssh_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -844,7 +1235,7 @@ func (x *ShareSSHHostRequest) String() string {
 func (*ShareSSHHostRequest) ProtoMessage() {}
 
 func (x *ShareSSHHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[10]
+	mi := &file_v1_openssh_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -857,7 +1248,7 @@ func (x *ShareSSHHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShareSSHHostRequest.ProtoReflect.Descriptor instead.
 func (*ShareSSHHostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{10}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ShareSSHHostRequest) GetId() string {
@@ -884,7 +1275,7 @@ type ShareSSHHostResponse struct {
 
 func (x *ShareSSHHostResponse) Reset() {
 	*x = ShareSSHHostResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[11]
+	mi := &file_v1_openssh_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +1287,7 @@ func (x *ShareSSHHostResponse) String() string {
 func (*ShareSSHHostResponse) ProtoMessage() {}
 
 func (x *ShareSSHHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[11]
+	mi := &file_v1_openssh_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -909,7 +1300,7 @@ func (x *ShareSSHHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShareSSHHostResponse.ProtoReflect.Descriptor instead.
 func (*ShareSSHHostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{11}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ShareSSHHostResponse) GetInfo() *SSHHostInfo {
@@ -948,7 +1339,7 @@ type TestSSHHostRequest struct {
 
 func (x *TestSSHHostRequest) Reset() {
 	*x = TestSSHHostRequest{}
-	mi := &file_v1_openssh_proto_msgTypes[12]
+	mi := &file_v1_openssh_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1351,7 @@ func (x *TestSSHHostRequest) String() string {
 func (*TestSSHHostRequest) ProtoMessage() {}
 
 func (x *TestSSHHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[12]
+	mi := &file_v1_openssh_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1364,7 @@ func (x *TestSSHHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestSSHHostRequest.ProtoReflect.Descriptor instead.
 func (*TestSSHHostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{12}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *TestSSHHostRequest) GetId() string {
@@ -1053,7 +1444,7 @@ type TestSSHHostResponse struct {
 
 func (x *TestSSHHostResponse) Reset() {
 	*x = TestSSHHostResponse{}
-	mi := &file_v1_openssh_proto_msgTypes[13]
+	mi := &file_v1_openssh_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1065,7 +1456,7 @@ func (x *TestSSHHostResponse) String() string {
 func (*TestSSHHostResponse) ProtoMessage() {}
 
 func (x *TestSSHHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[13]
+	mi := &file_v1_openssh_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1078,7 +1469,7 @@ func (x *TestSSHHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestSSHHostResponse.ProtoReflect.Descriptor instead.
 func (*TestSSHHostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{13}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *TestSSHHostResponse) GetOk() bool {
@@ -1133,14 +1524,24 @@ type SSHHostInfo struct {
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 上次测试时间；未测试过为空
+	LastTestTime *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=last_test_time,json=lastTestTime,proto3" json:"last_test_time,omitempty"`
+	// 上次测试是否连通
+	LastTestOk bool `protobuf:"varint,17,opt,name=last_test_ok,json=lastTestOk,proto3" json:"last_test_ok,omitempty"`
+	// 上次测试延迟（毫秒）
+	LastTestLatencyMs int32 `protobuf:"varint,18,opt,name=last_test_latency_ms,json=lastTestLatencyMs,proto3" json:"last_test_latency_ms,omitempty"`
+	// 上次测试失败原因
+	LastTestMessage string `protobuf:"bytes,19,opt,name=last_test_message,json=lastTestMessage,proto3" json:"last_test_message,omitempty"`
+	// 上次打开终端连接的时间；从未连接为空
+	LastConnectTime *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=last_connect_time,json=lastConnectTime,proto3" json:"last_connect_time,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SSHHostInfo) Reset() {
 	*x = SSHHostInfo{}
-	mi := &file_v1_openssh_proto_msgTypes[14]
+	mi := &file_v1_openssh_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1152,7 +1553,7 @@ func (x *SSHHostInfo) String() string {
 func (*SSHHostInfo) ProtoMessage() {}
 
 func (x *SSHHostInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[14]
+	mi := &file_v1_openssh_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1165,7 +1566,7 @@ func (x *SSHHostInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHHostInfo.ProtoReflect.Descriptor instead.
 func (*SSHHostInfo) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{14}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SSHHostInfo) GetId() string {
@@ -1273,6 +1674,41 @@ func (x *SSHHostInfo) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *SSHHostInfo) GetLastTestTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastTestTime
+	}
+	return nil
+}
+
+func (x *SSHHostInfo) GetLastTestOk() bool {
+	if x != nil {
+		return x.LastTestOk
+	}
+	return false
+}
+
+func (x *SSHHostInfo) GetLastTestLatencyMs() int32 {
+	if x != nil {
+		return x.LastTestLatencyMs
+	}
+	return 0
+}
+
+func (x *SSHHostInfo) GetLastTestMessage() string {
+	if x != nil {
+		return x.LastTestMessage
+	}
+	return ""
+}
+
+func (x *SSHHostInfo) GetLastConnectTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastConnectTime
+	}
+	return nil
+}
+
 type SSHHostSharedUser struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 用户id
@@ -1285,7 +1721,7 @@ type SSHHostSharedUser struct {
 
 func (x *SSHHostSharedUser) Reset() {
 	*x = SSHHostSharedUser{}
-	mi := &file_v1_openssh_proto_msgTypes[15]
+	mi := &file_v1_openssh_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1297,7 +1733,7 @@ func (x *SSHHostSharedUser) String() string {
 func (*SSHHostSharedUser) ProtoMessage() {}
 
 func (x *SSHHostSharedUser) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_openssh_proto_msgTypes[15]
+	mi := &file_v1_openssh_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1310,7 +1746,7 @@ func (x *SSHHostSharedUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SSHHostSharedUser.ProtoReflect.Descriptor instead.
 func (*SSHHostSharedUser) Descriptor() ([]byte, []int) {
-	return file_v1_openssh_proto_rawDescGZIP(), []int{15}
+	return file_v1_openssh_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SSHHostSharedUser) GetUserId() string {
@@ -1331,19 +1767,46 @@ var File_v1_openssh_proto protoreflect.FileDescriptor
 
 const file_v1_openssh_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/openssh.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x95\x01\n" +
+	"\x10v1/openssh.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xef\x01\n" +
 	"\x12GetSSHHostsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
 	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01\x12\x17\n" +
-	"\x04host\x18\x04 \x01(\tH\x01R\x04host\x88\x01\x01B\v\n" +
+	"\x04host\x18\x04 \x01(\tH\x01R\x04host\x88\x01\x01\x12.\n" +
+	"\x06filter\x18\x05 \x01(\x0e2\x11.v1.SSHHostFilterH\x02R\x06filter\x88\x01\x01\x12\x15\n" +
+	"\x03tag\x18\x06 \x01(\tH\x03R\x03tag\x88\x01\x01B\v\n" +
 	"\t_keywordsB\a\n" +
-	"\x05_host\"\x83\x01\n" +
+	"\x05_hostB\t\n" +
+	"\a_filterB\x06\n" +
+	"\x04_tag\"\xab\x01\n" +
 	"\x13GetSSHHostsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12%\n" +
-	"\x05infos\x18\x04 \x03(\v2\x0f.v1.SSHHostInfoR\x05infos\"\xef\x02\n" +
+	"\x05infos\x18\x04 \x03(\v2\x0f.v1.SSHHostInfoR\x05infos\x12&\n" +
+	"\x05stats\x18\x05 \x01(\v2\x10.v1.SSHHostStatsR\x05stats\"\xcd\x02\n" +
+	"\fSSHHostStats\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\x03R\x02ok\x12\x16\n" +
+	"\x06failed\x18\x03 \x01(\x03R\x06failed\x12\x1a\n" +
+	"\buntested\x18\x04 \x01(\x03R\buntested\x12\x16\n" +
+	"\x06shared\x18\x05 \x01(\x03R\x06shared\x12$\n" +
+	"\x0eshared_with_me\x18\x06 \x01(\x03R\fsharedWithMe\x12\x12\n" +
+	"\x04tags\x18\a \x03(\tR\x04tags\x12@\n" +
+	"\x0elast_test_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\flastTestTime\x12$\n" +
+	"\x0eavg_latency_ms\x18\t \x01(\x05R\favgLatencyMs\x12)\n" +
+	"\x05marks\x18\n" +
+	" \x03(\v2\x13.v1.SSHHostTestMarkR\x05marks\"w\n" +
+	"\x0fSSHHostTestMark\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06tested\x18\x03 \x01(\bR\x06tested\x12\x0e\n" +
+	"\x02ok\x18\x04 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\"'\n" +
+	"\x13TestSSHHostsRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\"E\n" +
+	"\x14TestSSHHostsResponse\x12-\n" +
+	"\aresults\x18\x01 \x03(\v2\x13.v1.SSHHostTestMarkR\aresults\"\xef\x02\n" +
 	"\x14CreateSSHHostRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -1433,7 +1896,7 @@ const file_v1_openssh_proto_rawDesc = "" +
 	"\x13TestSSHHostResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12 \n" +
-	"\vfingerprint\x18\x03 \x01(\tR\vfingerprint\"\x9a\x04\n" +
+	"\vfingerprint\x18\x03 \x01(\tR\vfingerprint\"\xa3\x06\n" +
 	"\vSSHHostInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -1453,10 +1916,23 @@ const file_v1_openssh_proto_rawDesc = "" +
 	"\vcreate_time\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"@\n" +
+	"updateTime\x12@\n" +
+	"\x0elast_test_time\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\flastTestTime\x12 \n" +
+	"\flast_test_ok\x18\x11 \x01(\bR\n" +
+	"lastTestOk\x12/\n" +
+	"\x14last_test_latency_ms\x18\x12 \x01(\x05R\x11lastTestLatencyMs\x12*\n" +
+	"\x11last_test_message\x18\x13 \x01(\tR\x0flastTestMessage\x12F\n" +
+	"\x11last_connect_time\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampR\x0flastConnectTime\"@\n" +
 	"\x11SSHHostSharedUser\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name*_\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name*\xba\x01\n" +
+	"\rSSHHostFilter\x12\x17\n" +
+	"\x13SSH_HOST_FILTER_ALL\x10\x00\x12\x16\n" +
+	"\x12SSH_HOST_FILTER_OK\x10\x01\x12\x1a\n" +
+	"\x16SSH_HOST_FILTER_FAILED\x10\x02\x12\x1c\n" +
+	"\x18SSH_HOST_FILTER_UNTESTED\x10\x03\x12\x1a\n" +
+	"\x16SSH_HOST_FILTER_SHARED\x10\x04\x12\"\n" +
+	"\x1eSSH_HOST_FILTER_SHARED_WITH_ME\x10\x05*_\n" +
 	"\vSSHAuthType\x12\x1d\n" +
 	"\x19SSH_AUTH_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SSH_AUTH_TYPE_PASSWORD\x10\x01\x12\x15\n" +
@@ -1464,7 +1940,7 @@ const file_v1_openssh_proto_rawDesc = "" +
 	"\x11SSHHostAccessRole\x12$\n" +
 	" SSH_HOST_ACCESS_ROLE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSSH_HOST_ACCESS_ROLE_OWNER\x10\x01\x12\x1f\n" +
-	"\x1bSSH_HOST_ACCESS_ROLE_SHARED\x10\x022\xeb\x05\n" +
+	"\x1bSSH_HOST_ACCESS_ROLE_SHARED\x10\x022\xda\x06\n" +
 	"\x0eOpenSSHManager\x12\\\n" +
 	"\vGetSSHHosts\x12\x16.v1.GetSSHHostsRequest\x1a\x17.v1.GetSSHHostsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/openssh/host\x12e\n" +
 	"\rCreateSSHHost\x12\x18.v1.CreateSSHHostRequest\x1a\x19.v1.CreateSSHHostResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/openssh/host\x12j\n" +
@@ -1472,7 +1948,8 @@ const file_v1_openssh_proto_rawDesc = "" +
 	"\rUpdateSSHHost\x12\x18.v1.UpdateSSHHostRequest\x1a\x19.v1.UpdateSSHHostResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\x1a\x19/api/v1/openssh/host/{id}\x12g\n" +
 	"\rDeleteSSHHost\x12\x18.v1.DeleteSSHHostRequest\x1a\x19.v1.DeleteSSHHostResponse\"!\x82\xd3\xe4\x93\x02\x1b*\x19/api/v1/openssh/host/{id}\x12m\n" +
 	"\fShareSSHHost\x12\x17.v1.ShareSSHHostRequest\x1a\x18.v1.ShareSSHHostResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/openssh/host/{id}/share\x12d\n" +
-	"\vTestSSHHost\x12\x16.v1.TestSSHHostRequest\x1a\x17.v1.TestSSHHostResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/openssh/host/testB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\vTestSSHHost\x12\x16.v1.TestSSHHostRequest\x1a\x17.v1.TestSSHHostResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/openssh/host/test\x12m\n" +
+	"\fTestSSHHosts\x12\x17.v1.TestSSHHostsRequest\x1a\x18.v1.TestSSHHostsResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/openssh/host/batch-testB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_openssh_proto_rawDescOnce sync.Once
@@ -1486,62 +1963,76 @@ func file_v1_openssh_proto_rawDescGZIP() []byte {
 	return file_v1_openssh_proto_rawDescData
 }
 
-var file_v1_openssh_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_openssh_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_v1_openssh_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_v1_openssh_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_v1_openssh_proto_goTypes = []any{
-	(SSHAuthType)(0),               // 0: v1.SSHAuthType
-	(SSHHostAccessRole)(0),         // 1: v1.SSHHostAccessRole
-	(*GetSSHHostsRequest)(nil),     // 2: v1.GetSSHHostsRequest
-	(*GetSSHHostsResponse)(nil),    // 3: v1.GetSSHHostsResponse
-	(*CreateSSHHostRequest)(nil),   // 4: v1.CreateSSHHostRequest
-	(*CreateSSHHostResponse)(nil),  // 5: v1.CreateSSHHostResponse
-	(*GetSSHHostInfoRequest)(nil),  // 6: v1.GetSSHHostInfoRequest
-	(*GetSSHHostInfoResponse)(nil), // 7: v1.GetSSHHostInfoResponse
-	(*UpdateSSHHostRequest)(nil),   // 8: v1.UpdateSSHHostRequest
-	(*UpdateSSHHostResponse)(nil),  // 9: v1.UpdateSSHHostResponse
-	(*DeleteSSHHostRequest)(nil),   // 10: v1.DeleteSSHHostRequest
-	(*DeleteSSHHostResponse)(nil),  // 11: v1.DeleteSSHHostResponse
-	(*ShareSSHHostRequest)(nil),    // 12: v1.ShareSSHHostRequest
-	(*ShareSSHHostResponse)(nil),   // 13: v1.ShareSSHHostResponse
-	(*TestSSHHostRequest)(nil),     // 14: v1.TestSSHHostRequest
-	(*TestSSHHostResponse)(nil),    // 15: v1.TestSSHHostResponse
-	(*SSHHostInfo)(nil),            // 16: v1.SSHHostInfo
-	(*SSHHostSharedUser)(nil),      // 17: v1.SSHHostSharedUser
-	(*timestamppb.Timestamp)(nil),  // 18: google.protobuf.Timestamp
+	(SSHHostFilter)(0),             // 0: v1.SSHHostFilter
+	(SSHAuthType)(0),               // 1: v1.SSHAuthType
+	(SSHHostAccessRole)(0),         // 2: v1.SSHHostAccessRole
+	(*GetSSHHostsRequest)(nil),     // 3: v1.GetSSHHostsRequest
+	(*GetSSHHostsResponse)(nil),    // 4: v1.GetSSHHostsResponse
+	(*SSHHostStats)(nil),           // 5: v1.SSHHostStats
+	(*SSHHostTestMark)(nil),        // 6: v1.SSHHostTestMark
+	(*TestSSHHostsRequest)(nil),    // 7: v1.TestSSHHostsRequest
+	(*TestSSHHostsResponse)(nil),   // 8: v1.TestSSHHostsResponse
+	(*CreateSSHHostRequest)(nil),   // 9: v1.CreateSSHHostRequest
+	(*CreateSSHHostResponse)(nil),  // 10: v1.CreateSSHHostResponse
+	(*GetSSHHostInfoRequest)(nil),  // 11: v1.GetSSHHostInfoRequest
+	(*GetSSHHostInfoResponse)(nil), // 12: v1.GetSSHHostInfoResponse
+	(*UpdateSSHHostRequest)(nil),   // 13: v1.UpdateSSHHostRequest
+	(*UpdateSSHHostResponse)(nil),  // 14: v1.UpdateSSHHostResponse
+	(*DeleteSSHHostRequest)(nil),   // 15: v1.DeleteSSHHostRequest
+	(*DeleteSSHHostResponse)(nil),  // 16: v1.DeleteSSHHostResponse
+	(*ShareSSHHostRequest)(nil),    // 17: v1.ShareSSHHostRequest
+	(*ShareSSHHostResponse)(nil),   // 18: v1.ShareSSHHostResponse
+	(*TestSSHHostRequest)(nil),     // 19: v1.TestSSHHostRequest
+	(*TestSSHHostResponse)(nil),    // 20: v1.TestSSHHostResponse
+	(*SSHHostInfo)(nil),            // 21: v1.SSHHostInfo
+	(*SSHHostSharedUser)(nil),      // 22: v1.SSHHostSharedUser
+	(*timestamppb.Timestamp)(nil),  // 23: google.protobuf.Timestamp
 }
 var file_v1_openssh_proto_depIdxs = []int32{
-	16, // 0: v1.GetSSHHostsResponse.infos:type_name -> v1.SSHHostInfo
-	0,  // 1: v1.CreateSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
-	16, // 2: v1.CreateSSHHostResponse.info:type_name -> v1.SSHHostInfo
-	16, // 3: v1.GetSSHHostInfoResponse.info:type_name -> v1.SSHHostInfo
-	0,  // 4: v1.UpdateSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
-	16, // 5: v1.UpdateSSHHostResponse.info:type_name -> v1.SSHHostInfo
-	16, // 6: v1.ShareSSHHostResponse.info:type_name -> v1.SSHHostInfo
-	0,  // 7: v1.TestSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
-	0,  // 8: v1.SSHHostInfo.auth_type:type_name -> v1.SSHAuthType
-	17, // 9: v1.SSHHostInfo.shared_users:type_name -> v1.SSHHostSharedUser
-	1,  // 10: v1.SSHHostInfo.access_role:type_name -> v1.SSHHostAccessRole
-	18, // 11: v1.SSHHostInfo.create_time:type_name -> google.protobuf.Timestamp
-	18, // 12: v1.SSHHostInfo.update_time:type_name -> google.protobuf.Timestamp
-	2,  // 13: v1.OpenSSHManager.GetSSHHosts:input_type -> v1.GetSSHHostsRequest
-	4,  // 14: v1.OpenSSHManager.CreateSSHHost:input_type -> v1.CreateSSHHostRequest
-	6,  // 15: v1.OpenSSHManager.GetSSHHostInfo:input_type -> v1.GetSSHHostInfoRequest
-	8,  // 16: v1.OpenSSHManager.UpdateSSHHost:input_type -> v1.UpdateSSHHostRequest
-	10, // 17: v1.OpenSSHManager.DeleteSSHHost:input_type -> v1.DeleteSSHHostRequest
-	12, // 18: v1.OpenSSHManager.ShareSSHHost:input_type -> v1.ShareSSHHostRequest
-	14, // 19: v1.OpenSSHManager.TestSSHHost:input_type -> v1.TestSSHHostRequest
-	3,  // 20: v1.OpenSSHManager.GetSSHHosts:output_type -> v1.GetSSHHostsResponse
-	5,  // 21: v1.OpenSSHManager.CreateSSHHost:output_type -> v1.CreateSSHHostResponse
-	7,  // 22: v1.OpenSSHManager.GetSSHHostInfo:output_type -> v1.GetSSHHostInfoResponse
-	9,  // 23: v1.OpenSSHManager.UpdateSSHHost:output_type -> v1.UpdateSSHHostResponse
-	11, // 24: v1.OpenSSHManager.DeleteSSHHost:output_type -> v1.DeleteSSHHostResponse
-	13, // 25: v1.OpenSSHManager.ShareSSHHost:output_type -> v1.ShareSSHHostResponse
-	15, // 26: v1.OpenSSHManager.TestSSHHost:output_type -> v1.TestSSHHostResponse
-	20, // [20:27] is the sub-list for method output_type
-	13, // [13:20] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	0,  // 0: v1.GetSSHHostsRequest.filter:type_name -> v1.SSHHostFilter
+	21, // 1: v1.GetSSHHostsResponse.infos:type_name -> v1.SSHHostInfo
+	5,  // 2: v1.GetSSHHostsResponse.stats:type_name -> v1.SSHHostStats
+	23, // 3: v1.SSHHostStats.last_test_time:type_name -> google.protobuf.Timestamp
+	6,  // 4: v1.SSHHostStats.marks:type_name -> v1.SSHHostTestMark
+	6,  // 5: v1.TestSSHHostsResponse.results:type_name -> v1.SSHHostTestMark
+	1,  // 6: v1.CreateSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
+	21, // 7: v1.CreateSSHHostResponse.info:type_name -> v1.SSHHostInfo
+	21, // 8: v1.GetSSHHostInfoResponse.info:type_name -> v1.SSHHostInfo
+	1,  // 9: v1.UpdateSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
+	21, // 10: v1.UpdateSSHHostResponse.info:type_name -> v1.SSHHostInfo
+	21, // 11: v1.ShareSSHHostResponse.info:type_name -> v1.SSHHostInfo
+	1,  // 12: v1.TestSSHHostRequest.auth_type:type_name -> v1.SSHAuthType
+	1,  // 13: v1.SSHHostInfo.auth_type:type_name -> v1.SSHAuthType
+	22, // 14: v1.SSHHostInfo.shared_users:type_name -> v1.SSHHostSharedUser
+	2,  // 15: v1.SSHHostInfo.access_role:type_name -> v1.SSHHostAccessRole
+	23, // 16: v1.SSHHostInfo.create_time:type_name -> google.protobuf.Timestamp
+	23, // 17: v1.SSHHostInfo.update_time:type_name -> google.protobuf.Timestamp
+	23, // 18: v1.SSHHostInfo.last_test_time:type_name -> google.protobuf.Timestamp
+	23, // 19: v1.SSHHostInfo.last_connect_time:type_name -> google.protobuf.Timestamp
+	3,  // 20: v1.OpenSSHManager.GetSSHHosts:input_type -> v1.GetSSHHostsRequest
+	9,  // 21: v1.OpenSSHManager.CreateSSHHost:input_type -> v1.CreateSSHHostRequest
+	11, // 22: v1.OpenSSHManager.GetSSHHostInfo:input_type -> v1.GetSSHHostInfoRequest
+	13, // 23: v1.OpenSSHManager.UpdateSSHHost:input_type -> v1.UpdateSSHHostRequest
+	15, // 24: v1.OpenSSHManager.DeleteSSHHost:input_type -> v1.DeleteSSHHostRequest
+	17, // 25: v1.OpenSSHManager.ShareSSHHost:input_type -> v1.ShareSSHHostRequest
+	19, // 26: v1.OpenSSHManager.TestSSHHost:input_type -> v1.TestSSHHostRequest
+	7,  // 27: v1.OpenSSHManager.TestSSHHosts:input_type -> v1.TestSSHHostsRequest
+	4,  // 28: v1.OpenSSHManager.GetSSHHosts:output_type -> v1.GetSSHHostsResponse
+	10, // 29: v1.OpenSSHManager.CreateSSHHost:output_type -> v1.CreateSSHHostResponse
+	12, // 30: v1.OpenSSHManager.GetSSHHostInfo:output_type -> v1.GetSSHHostInfoResponse
+	14, // 31: v1.OpenSSHManager.UpdateSSHHost:output_type -> v1.UpdateSSHHostResponse
+	16, // 32: v1.OpenSSHManager.DeleteSSHHost:output_type -> v1.DeleteSSHHostResponse
+	18, // 33: v1.OpenSSHManager.ShareSSHHost:output_type -> v1.ShareSSHHostResponse
+	20, // 34: v1.OpenSSHManager.TestSSHHost:output_type -> v1.TestSSHHostResponse
+	8,  // 35: v1.OpenSSHManager.TestSSHHosts:output_type -> v1.TestSSHHostsResponse
+	28, // [28:36] is the sub-list for method output_type
+	20, // [20:28] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_v1_openssh_proto_init() }
@@ -1550,15 +2041,15 @@ func file_v1_openssh_proto_init() {
 		return
 	}
 	file_v1_openssh_proto_msgTypes[0].OneofWrappers = []any{}
-	file_v1_openssh_proto_msgTypes[6].OneofWrappers = []any{}
-	file_v1_openssh_proto_msgTypes[12].OneofWrappers = []any{}
+	file_v1_openssh_proto_msgTypes[10].OneofWrappers = []any{}
+	file_v1_openssh_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_openssh_proto_rawDesc), len(file_v1_openssh_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   16,
+			NumEnums:      3,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

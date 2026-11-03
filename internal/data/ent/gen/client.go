@@ -37,6 +37,7 @@ import (
 	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
+	"momoko/internal/data/ent/gen/usermessage"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -103,6 +104,8 @@ type Client struct {
 	User *UserClient
 	// UserAPIKey is the client for interacting with the UserAPIKey builders.
 	UserAPIKey *UserAPIKeyClient
+	// UserMessage is the client for interacting with the UserMessage builders.
+	UserMessage *UserMessageClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -140,6 +143,7 @@ func (c *Client) init() {
 	c.Task = NewTaskClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAPIKey = NewUserAPIKeyClient(c.config)
+	c.UserMessage = NewUserMessageClient(c.config)
 }
 
 type (
@@ -258,6 +262,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Task:            NewTaskClient(cfg),
 		User:            NewUserClient(cfg),
 		UserAPIKey:      NewUserAPIKeyClient(cfg),
+		UserMessage:     NewUserMessageClient(cfg),
 	}, nil
 }
 
@@ -303,6 +308,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Task:            NewTaskClient(cfg),
 		User:            NewUserClient(cfg),
 		UserAPIKey:      NewUserAPIKeyClient(cfg),
+		UserMessage:     NewUserMessageClient(cfg),
 	}, nil
 }
 
@@ -336,7 +342,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
 		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
 	} {
 		n.Use(hooks...)
 	}
@@ -350,7 +356,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
 		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
 		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -411,6 +417,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserAPIKeyMutation:
 		return c.UserAPIKey.mutate(ctx, m)
+	case *UserMessageMutation:
+		return c.UserMessage.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("gen: unknown mutation type %T", m)
 	}
@@ -4226,6 +4234,139 @@ func (c *UserAPIKeyClient) mutate(ctx context.Context, m *UserAPIKeyMutation) (V
 	}
 }
 
+// UserMessageClient is a client for the UserMessage schema.
+type UserMessageClient struct {
+	config
+}
+
+// NewUserMessageClient returns a client for the UserMessage from the given config.
+func NewUserMessageClient(c config) *UserMessageClient {
+	return &UserMessageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usermessage.Hooks(f(g(h())))`.
+func (c *UserMessageClient) Use(hooks ...Hook) {
+	c.hooks.UserMessage = append(c.hooks.UserMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usermessage.Intercept(f(g(h())))`.
+func (c *UserMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserMessage = append(c.inters.UserMessage, interceptors...)
+}
+
+// Create returns a builder for creating a UserMessage entity.
+func (c *UserMessageClient) Create() *UserMessageCreate {
+	mutation := newUserMessageMutation(c.config, OpCreate)
+	return &UserMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserMessage entities.
+func (c *UserMessageClient) CreateBulk(builders ...*UserMessageCreate) *UserMessageCreateBulk {
+	return &UserMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserMessageClient) MapCreateBulk(slice any, setFunc func(*UserMessageCreate, int)) *UserMessageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserMessageCreateBulk{err: fmt.Errorf("calling to UserMessageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserMessageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserMessage.
+func (c *UserMessageClient) Update() *UserMessageUpdate {
+	mutation := newUserMessageMutation(c.config, OpUpdate)
+	return &UserMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserMessageClient) UpdateOne(_m *UserMessage) *UserMessageUpdateOne {
+	mutation := newUserMessageMutation(c.config, OpUpdateOne, withUserMessage(_m))
+	return &UserMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserMessageClient) UpdateOneID(id string) *UserMessageUpdateOne {
+	mutation := newUserMessageMutation(c.config, OpUpdateOne, withUserMessageID(id))
+	return &UserMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserMessage.
+func (c *UserMessageClient) Delete() *UserMessageDelete {
+	mutation := newUserMessageMutation(c.config, OpDelete)
+	return &UserMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserMessageClient) DeleteOne(_m *UserMessage) *UserMessageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserMessageClient) DeleteOneID(id string) *UserMessageDeleteOne {
+	builder := c.Delete().Where(usermessage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserMessageDeleteOne{builder}
+}
+
+// Query returns a query builder for UserMessage.
+func (c *UserMessageClient) Query() *UserMessageQuery {
+	return &UserMessageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserMessage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserMessage entity by its id.
+func (c *UserMessageClient) Get(ctx context.Context, id string) (*UserMessage, error) {
+	return c.Query().Where(usermessage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserMessageClient) GetX(ctx context.Context, id string) *UserMessage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserMessageClient) Hooks() []Hook {
+	return c.hooks.UserMessage
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserMessageClient) Interceptors() []Interceptor {
+	return c.inters.UserMessage
+}
+
+func (c *UserMessageClient) mutate(ctx context.Context, m *UserMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown UserMessage mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
@@ -4233,14 +4374,14 @@ type (
 		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
 		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
 		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		User, UserAPIKey []ent.Hook
+		User, UserAPIKey, UserMessage []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
 		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
 		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
 		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		User, UserAPIKey []ent.Interceptor
+		User, UserAPIKey, UserMessage []ent.Interceptor
 	}
 )
 

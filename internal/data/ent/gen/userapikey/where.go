@@ -100,6 +100,21 @@ func UserID(v string) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldEQ(FieldUserID, v))
 }
 
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldRemark, v))
+}
+
+// LastUsedAt applies equality check predicate on the "last_used_at" field. It's identical to LastUsedAtEQ.
+func LastUsedAt(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldLastUsedAt, v))
+}
+
+// LastUsedIP applies equality check predicate on the "last_used_ip" field. It's identical to LastUsedIPEQ.
+func LastUsedIP(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldLastUsedIP, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldEQ(FieldCreateTime, v))
@@ -508,6 +523,206 @@ func UserIDEqualFold(v string) predicate.UserAPIKey {
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.UserAPIKey {
 	return predicate.UserAPIKey(sql.FieldContainsFold(FieldUserID, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkIsNil applies the IsNil predicate on the "remark" field.
+func RemarkIsNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIsNull(FieldRemark))
+}
+
+// RemarkNotNil applies the NotNil predicate on the "remark" field.
+func RemarkNotNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotNull(FieldRemark))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// LastUsedAtEQ applies the EQ predicate on the "last_used_at" field.
+func LastUsedAtEQ(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldLastUsedAt, v))
+}
+
+// LastUsedAtNEQ applies the NEQ predicate on the "last_used_at" field.
+func LastUsedAtNEQ(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNEQ(FieldLastUsedAt, v))
+}
+
+// LastUsedAtIn applies the In predicate on the "last_used_at" field.
+func LastUsedAtIn(vs ...time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIn(FieldLastUsedAt, vs...))
+}
+
+// LastUsedAtNotIn applies the NotIn predicate on the "last_used_at" field.
+func LastUsedAtNotIn(vs ...time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotIn(FieldLastUsedAt, vs...))
+}
+
+// LastUsedAtGT applies the GT predicate on the "last_used_at" field.
+func LastUsedAtGT(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGT(FieldLastUsedAt, v))
+}
+
+// LastUsedAtGTE applies the GTE predicate on the "last_used_at" field.
+func LastUsedAtGTE(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGTE(FieldLastUsedAt, v))
+}
+
+// LastUsedAtLT applies the LT predicate on the "last_used_at" field.
+func LastUsedAtLT(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLT(FieldLastUsedAt, v))
+}
+
+// LastUsedAtLTE applies the LTE predicate on the "last_used_at" field.
+func LastUsedAtLTE(v time.Time) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLTE(FieldLastUsedAt, v))
+}
+
+// LastUsedAtIsNil applies the IsNil predicate on the "last_used_at" field.
+func LastUsedAtIsNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIsNull(FieldLastUsedAt))
+}
+
+// LastUsedAtNotNil applies the NotNil predicate on the "last_used_at" field.
+func LastUsedAtNotNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotNull(FieldLastUsedAt))
+}
+
+// LastUsedIPEQ applies the EQ predicate on the "last_used_ip" field.
+func LastUsedIPEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEQ(FieldLastUsedIP, v))
+}
+
+// LastUsedIPNEQ applies the NEQ predicate on the "last_used_ip" field.
+func LastUsedIPNEQ(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNEQ(FieldLastUsedIP, v))
+}
+
+// LastUsedIPIn applies the In predicate on the "last_used_ip" field.
+func LastUsedIPIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIn(FieldLastUsedIP, vs...))
+}
+
+// LastUsedIPNotIn applies the NotIn predicate on the "last_used_ip" field.
+func LastUsedIPNotIn(vs ...string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotIn(FieldLastUsedIP, vs...))
+}
+
+// LastUsedIPGT applies the GT predicate on the "last_used_ip" field.
+func LastUsedIPGT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGT(FieldLastUsedIP, v))
+}
+
+// LastUsedIPGTE applies the GTE predicate on the "last_used_ip" field.
+func LastUsedIPGTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldGTE(FieldLastUsedIP, v))
+}
+
+// LastUsedIPLT applies the LT predicate on the "last_used_ip" field.
+func LastUsedIPLT(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLT(FieldLastUsedIP, v))
+}
+
+// LastUsedIPLTE applies the LTE predicate on the "last_used_ip" field.
+func LastUsedIPLTE(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldLTE(FieldLastUsedIP, v))
+}
+
+// LastUsedIPContains applies the Contains predicate on the "last_used_ip" field.
+func LastUsedIPContains(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContains(FieldLastUsedIP, v))
+}
+
+// LastUsedIPHasPrefix applies the HasPrefix predicate on the "last_used_ip" field.
+func LastUsedIPHasPrefix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasPrefix(FieldLastUsedIP, v))
+}
+
+// LastUsedIPHasSuffix applies the HasSuffix predicate on the "last_used_ip" field.
+func LastUsedIPHasSuffix(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldHasSuffix(FieldLastUsedIP, v))
+}
+
+// LastUsedIPIsNil applies the IsNil predicate on the "last_used_ip" field.
+func LastUsedIPIsNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldIsNull(FieldLastUsedIP))
+}
+
+// LastUsedIPNotNil applies the NotNil predicate on the "last_used_ip" field.
+func LastUsedIPNotNil() predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldNotNull(FieldLastUsedIP))
+}
+
+// LastUsedIPEqualFold applies the EqualFold predicate on the "last_used_ip" field.
+func LastUsedIPEqualFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldEqualFold(FieldLastUsedIP, v))
+}
+
+// LastUsedIPContainsFold applies the ContainsFold predicate on the "last_used_ip" field.
+func LastUsedIPContainsFold(v string) predicate.UserAPIKey {
+	return predicate.UserAPIKey(sql.FieldContainsFold(FieldLastUsedIP, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

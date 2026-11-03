@@ -241,7 +241,9 @@ type ListTunnelsResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 列表
-	Infos         []*TunnelInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*TunnelInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	// 概览（当前用户全部隧道，不受筛选影响）
+	Overview      *TunnelOverview `protobuf:"bytes,5,opt,name=overview,proto3" json:"overview,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -304,6 +306,268 @@ func (x *ListTunnelsResponse) GetInfos() []*TunnelInfo {
 	return nil
 }
 
+func (x *ListTunnelsResponse) GetOverview() *TunnelOverview {
+	if x != nil {
+		return x.Overview
+	}
+	return nil
+}
+
+// 隧道概览
+type TunnelOverview struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 隧道总数
+	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	// 在线
+	Online int64 `protobuf:"varint,2,opt,name=online,proto3" json:"online,omitempty"`
+	// 待连接
+	Pending int64 `protobuf:"varint,3,opt,name=pending,proto3" json:"pending,omitempty"`
+	// 离线（未启用）
+	Offline int64 `protobuf:"varint,4,opt,name=offline,proto3" json:"offline,omitempty"`
+	// 当前在线的 frpc 客户端数（按主机名去重）
+	Clients int64 `protobuf:"varint,5,opt,name=clients,proto3" json:"clients,omitempty"`
+	// 各代理类型的隧道数
+	TypeCounts []*TunnelTypeCount `protobuf:"bytes,6,rep,name=type_counts,json=typeCounts,proto3" json:"type_counts,omitempty"`
+	// 今日入站流量合计(字节)
+	TodayBytesIn int64 `protobuf:"varint,7,opt,name=today_bytes_in,json=todayBytesIn,proto3" json:"today_bytes_in,omitempty"`
+	// 今日出站流量合计(字节)
+	TodayBytesOut int64 `protobuf:"varint,8,opt,name=today_bytes_out,json=todayBytesOut,proto3" json:"today_bytes_out,omitempty"`
+	// 当前活跃连接合计
+	ActiveConnections int64 `protobuf:"varint,9,opt,name=active_connections,json=activeConnections,proto3" json:"active_connections,omitempty"`
+	// 连入过的 frpc 客户端（本进程启动以来，按主机名+地址去重）
+	ClientList    []*TunnelClientSummary `protobuf:"bytes,10,rep,name=client_list,json=clientList,proto3" json:"client_list,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelOverview) Reset() {
+	*x = TunnelOverview{}
+	mi := &file_v1_tunnel_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelOverview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelOverview) ProtoMessage() {}
+
+func (x *TunnelOverview) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelOverview.ProtoReflect.Descriptor instead.
+func (*TunnelOverview) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TunnelOverview) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetOnline() int64 {
+	if x != nil {
+		return x.Online
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetPending() int64 {
+	if x != nil {
+		return x.Pending
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetOffline() int64 {
+	if x != nil {
+		return x.Offline
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetClients() int64 {
+	if x != nil {
+		return x.Clients
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetTypeCounts() []*TunnelTypeCount {
+	if x != nil {
+		return x.TypeCounts
+	}
+	return nil
+}
+
+func (x *TunnelOverview) GetTodayBytesIn() int64 {
+	if x != nil {
+		return x.TodayBytesIn
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetTodayBytesOut() int64 {
+	if x != nil {
+		return x.TodayBytesOut
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetActiveConnections() int64 {
+	if x != nil {
+		return x.ActiveConnections
+	}
+	return 0
+}
+
+func (x *TunnelOverview) GetClientList() []*TunnelClientSummary {
+	if x != nil {
+		return x.ClientList
+	}
+	return nil
+}
+
+// frpc 客户端汇总
+type TunnelClientSummary struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 客户端信息
+	Client *TunnelClient `protobuf:"bytes,1,opt,name=client,proto3" json:"client,omitempty"`
+	// 是否有隧道在线
+	Online bool `protobuf:"varint,2,opt,name=online,proto3" json:"online,omitempty"`
+	// 该客户端承载的隧道数
+	Tunnels int64 `protobuf:"varint,3,opt,name=tunnels,proto3" json:"tunnels,omitempty"`
+	// 其中在线的隧道数
+	OnlineTunnels int64 `protobuf:"varint,4,opt,name=online_tunnels,json=onlineTunnels,proto3" json:"online_tunnels,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelClientSummary) Reset() {
+	*x = TunnelClientSummary{}
+	mi := &file_v1_tunnel_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelClientSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelClientSummary) ProtoMessage() {}
+
+func (x *TunnelClientSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelClientSummary.ProtoReflect.Descriptor instead.
+func (*TunnelClientSummary) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TunnelClientSummary) GetClient() *TunnelClient {
+	if x != nil {
+		return x.Client
+	}
+	return nil
+}
+
+func (x *TunnelClientSummary) GetOnline() bool {
+	if x != nil {
+		return x.Online
+	}
+	return false
+}
+
+func (x *TunnelClientSummary) GetTunnels() int64 {
+	if x != nil {
+		return x.Tunnels
+	}
+	return 0
+}
+
+func (x *TunnelClientSummary) GetOnlineTunnels() int64 {
+	if x != nil {
+		return x.OnlineTunnels
+	}
+	return 0
+}
+
+// 某代理类型的隧道数
+type TunnelTypeCount struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 代理类型
+	Type TunnelType `protobuf:"varint,1,opt,name=type,proto3,enum=v1.TunnelType" json:"type,omitempty"`
+	// 数量
+	Count         int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelTypeCount) Reset() {
+	*x = TunnelTypeCount{}
+	mi := &file_v1_tunnel_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelTypeCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelTypeCount) ProtoMessage() {}
+
+func (x *TunnelTypeCount) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelTypeCount.ProtoReflect.Descriptor instead.
+func (*TunnelTypeCount) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *TunnelTypeCount) GetType() TunnelType {
+	if x != nil {
+		return x.Type
+	}
+	return TunnelType_TUNNEL_TYPE_UNSPECIFIED
+}
+
+func (x *TunnelTypeCount) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 type CreateTunnelRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称（frp proxy 名称，全局唯一）
@@ -328,13 +592,15 @@ type CreateTunnelRequest struct {
 	MaxBandwidth string `protobuf:"bytes,10,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
 	// 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限
 	MaxActiveConns int32 `protobuf:"varint,11,opt,name=max_active_conns,json=maxActiveConns,proto3" json:"max_active_conns,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 备注
+	Remark        string `protobuf:"bytes,12,opt,name=remark,proto3" json:"remark,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateTunnelRequest) Reset() {
 	*x = CreateTunnelRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[2]
+	mi := &file_v1_tunnel_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +612,7 @@ func (x *CreateTunnelRequest) String() string {
 func (*CreateTunnelRequest) ProtoMessage() {}
 
 func (x *CreateTunnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[2]
+	mi := &file_v1_tunnel_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,7 +625,7 @@ func (x *CreateTunnelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTunnelRequest.ProtoReflect.Descriptor instead.
 func (*CreateTunnelRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{2}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateTunnelRequest) GetName() string {
@@ -439,6 +705,13 @@ func (x *CreateTunnelRequest) GetMaxActiveConns() int32 {
 	return 0
 }
 
+func (x *CreateTunnelRequest) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
 type CreateTunnelResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 隧道详情
@@ -449,7 +722,7 @@ type CreateTunnelResponse struct {
 
 func (x *CreateTunnelResponse) Reset() {
 	*x = CreateTunnelResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[3]
+	mi := &file_v1_tunnel_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -461,7 +734,7 @@ func (x *CreateTunnelResponse) String() string {
 func (*CreateTunnelResponse) ProtoMessage() {}
 
 func (x *CreateTunnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[3]
+	mi := &file_v1_tunnel_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -474,7 +747,7 @@ func (x *CreateTunnelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTunnelResponse.ProtoReflect.Descriptor instead.
 func (*CreateTunnelResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{3}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateTunnelResponse) GetInfo() *TunnelInfo {
@@ -494,7 +767,7 @@ type GetTunnelRequest struct {
 
 func (x *GetTunnelRequest) Reset() {
 	*x = GetTunnelRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[4]
+	mi := &file_v1_tunnel_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -506,7 +779,7 @@ func (x *GetTunnelRequest) String() string {
 func (*GetTunnelRequest) ProtoMessage() {}
 
 func (x *GetTunnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[4]
+	mi := &file_v1_tunnel_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -519,7 +792,7 @@ func (x *GetTunnelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTunnelRequest.ProtoReflect.Descriptor instead.
 func (*GetTunnelRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{4}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetTunnelRequest) GetId() string {
@@ -539,7 +812,7 @@ type GetTunnelResponse struct {
 
 func (x *GetTunnelResponse) Reset() {
 	*x = GetTunnelResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[5]
+	mi := &file_v1_tunnel_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +824,7 @@ func (x *GetTunnelResponse) String() string {
 func (*GetTunnelResponse) ProtoMessage() {}
 
 func (x *GetTunnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[5]
+	mi := &file_v1_tunnel_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +837,7 @@ func (x *GetTunnelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTunnelResponse.ProtoReflect.Descriptor instead.
 func (*GetTunnelResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{5}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetTunnelResponse) GetInfo() *TunnelInfo {
@@ -600,13 +873,15 @@ type UpdateTunnelRequest struct {
 	MaxBandwidth *string `protobuf:"bytes,11,opt,name=max_bandwidth,json=maxBandwidth,proto3,oneof" json:"max_bandwidth,omitempty"`
 	// 活跃连接数上限，0=不限
 	MaxActiveConns *int32 `protobuf:"varint,12,opt,name=max_active_conns,json=maxActiveConns,proto3,oneof" json:"max_active_conns,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 备注
+	Remark        *string `protobuf:"bytes,13,opt,name=remark,proto3,oneof" json:"remark,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateTunnelRequest) Reset() {
 	*x = UpdateTunnelRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[6]
+	mi := &file_v1_tunnel_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -618,7 +893,7 @@ func (x *UpdateTunnelRequest) String() string {
 func (*UpdateTunnelRequest) ProtoMessage() {}
 
 func (x *UpdateTunnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[6]
+	mi := &file_v1_tunnel_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,7 +906,7 @@ func (x *UpdateTunnelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTunnelRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTunnelRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{6}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateTunnelRequest) GetId() string {
@@ -718,6 +993,13 @@ func (x *UpdateTunnelRequest) GetMaxActiveConns() int32 {
 	return 0
 }
 
+func (x *UpdateTunnelRequest) GetRemark() string {
+	if x != nil && x.Remark != nil {
+		return *x.Remark
+	}
+	return ""
+}
+
 type UpdateTunnelResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 隧道详情
@@ -728,7 +1010,7 @@ type UpdateTunnelResponse struct {
 
 func (x *UpdateTunnelResponse) Reset() {
 	*x = UpdateTunnelResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[7]
+	mi := &file_v1_tunnel_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -740,7 +1022,7 @@ func (x *UpdateTunnelResponse) String() string {
 func (*UpdateTunnelResponse) ProtoMessage() {}
 
 func (x *UpdateTunnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[7]
+	mi := &file_v1_tunnel_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -753,7 +1035,7 @@ func (x *UpdateTunnelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTunnelResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTunnelResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{7}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateTunnelResponse) GetInfo() *TunnelInfo {
@@ -773,7 +1055,7 @@ type DeleteTunnelRequest struct {
 
 func (x *DeleteTunnelRequest) Reset() {
 	*x = DeleteTunnelRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[8]
+	mi := &file_v1_tunnel_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +1067,7 @@ func (x *DeleteTunnelRequest) String() string {
 func (*DeleteTunnelRequest) ProtoMessage() {}
 
 func (x *DeleteTunnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[8]
+	mi := &file_v1_tunnel_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +1080,7 @@ func (x *DeleteTunnelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTunnelRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTunnelRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{8}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteTunnelRequest) GetId() string {
@@ -816,7 +1098,7 @@ type DeleteTunnelResponse struct {
 
 func (x *DeleteTunnelResponse) Reset() {
 	*x = DeleteTunnelResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[9]
+	mi := &file_v1_tunnel_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -828,7 +1110,7 @@ func (x *DeleteTunnelResponse) String() string {
 func (*DeleteTunnelResponse) ProtoMessage() {}
 
 func (x *DeleteTunnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[9]
+	mi := &file_v1_tunnel_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -841,7 +1123,7 @@ func (x *DeleteTunnelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTunnelResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTunnelResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{9}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{12}
 }
 
 type GetTunnelStatsRequest struct {
@@ -858,7 +1140,7 @@ type GetTunnelStatsRequest struct {
 
 func (x *GetTunnelStatsRequest) Reset() {
 	*x = GetTunnelStatsRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[10]
+	mi := &file_v1_tunnel_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -870,7 +1152,7 @@ func (x *GetTunnelStatsRequest) String() string {
 func (*GetTunnelStatsRequest) ProtoMessage() {}
 
 func (x *GetTunnelStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[10]
+	mi := &file_v1_tunnel_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -883,7 +1165,7 @@ func (x *GetTunnelStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTunnelStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetTunnelStatsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{10}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetTunnelStatsRequest) GetId() string {
@@ -921,7 +1203,7 @@ type GetTunnelStatsResponse struct {
 
 func (x *GetTunnelStatsResponse) Reset() {
 	*x = GetTunnelStatsResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[11]
+	mi := &file_v1_tunnel_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1215,7 @@ func (x *GetTunnelStatsResponse) String() string {
 func (*GetTunnelStatsResponse) ProtoMessage() {}
 
 func (x *GetTunnelStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[11]
+	mi := &file_v1_tunnel_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1228,7 @@ func (x *GetTunnelStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTunnelStatsResponse.ProtoReflect.Descriptor instead.
 func (*GetTunnelStatsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{11}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetTunnelStatsResponse) GetSnapshot() *TunnelStat {
@@ -978,7 +1260,7 @@ type GetFrpsConfigRequest struct {
 
 func (x *GetFrpsConfigRequest) Reset() {
 	*x = GetFrpsConfigRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[12]
+	mi := &file_v1_tunnel_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -990,7 +1272,7 @@ func (x *GetFrpsConfigRequest) String() string {
 func (*GetFrpsConfigRequest) ProtoMessage() {}
 
 func (x *GetFrpsConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[12]
+	mi := &file_v1_tunnel_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1003,20 +1285,22 @@ func (x *GetFrpsConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFrpsConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetFrpsConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{12}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{15}
 }
 
 type GetFrpsConfigResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// frps 实例配置
-	Config        *FrpsConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	Config *FrpsConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	// frps 运行状态
+	Status        *FrpsStatus `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetFrpsConfigResponse) Reset() {
 	*x = GetFrpsConfigResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[13]
+	mi := &file_v1_tunnel_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1028,7 +1312,7 @@ func (x *GetFrpsConfigResponse) String() string {
 func (*GetFrpsConfigResponse) ProtoMessage() {}
 
 func (x *GetFrpsConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[13]
+	mi := &file_v1_tunnel_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1041,12 +1325,508 @@ func (x *GetFrpsConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFrpsConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetFrpsConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{13}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetFrpsConfigResponse) GetConfig() *FrpsConfig {
 	if x != nil {
 		return x.Config
+	}
+	return nil
+}
+
+func (x *GetFrpsConfigResponse) GetStatus() *FrpsStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+type RestartFrpsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestartFrpsRequest) Reset() {
+	*x = RestartFrpsRequest{}
+	mi := &file_v1_tunnel_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestartFrpsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestartFrpsRequest) ProtoMessage() {}
+
+func (x *RestartFrpsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestartFrpsRequest.ProtoReflect.Descriptor instead.
+func (*RestartFrpsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{17}
+}
+
+type RestartFrpsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// frps 运行状态
+	Status        *FrpsStatus `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestartFrpsResponse) Reset() {
+	*x = RestartFrpsResponse{}
+	mi := &file_v1_tunnel_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestartFrpsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestartFrpsResponse) ProtoMessage() {}
+
+func (x *RestartFrpsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestartFrpsResponse.ProtoReflect.Descriptor instead.
+func (*RestartFrpsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *RestartFrpsResponse) GetStatus() *FrpsStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+type GetFrpsLogsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 返回最近多少行，<=0 时默认 300
+	Limit         int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFrpsLogsRequest) Reset() {
+	*x = GetFrpsLogsRequest{}
+	mi := &file_v1_tunnel_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFrpsLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFrpsLogsRequest) ProtoMessage() {}
+
+func (x *GetFrpsLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFrpsLogsRequest.ProtoReflect.Descriptor instead.
+func (*GetFrpsLogsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetFrpsLogsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type GetFrpsLogsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 日志（按时间升序）
+	Entries       []*FrpsLogEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFrpsLogsResponse) Reset() {
+	*x = GetFrpsLogsResponse{}
+	mi := &file_v1_tunnel_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFrpsLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFrpsLogsResponse) ProtoMessage() {}
+
+func (x *GetFrpsLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFrpsLogsResponse.ProtoReflect.Descriptor instead.
+func (*GetFrpsLogsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetFrpsLogsResponse) GetEntries() []*FrpsLogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+// frps 日志行
+type FrpsLogEntry struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 时间
+	Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	// 级别：trace/debug/info/warn/error
+	Level string `protobuf:"bytes,2,opt,name=level,proto3" json:"level,omitempty"`
+	// 内容
+	Message       string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FrpsLogEntry) Reset() {
+	*x = FrpsLogEntry{}
+	mi := &file_v1_tunnel_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FrpsLogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FrpsLogEntry) ProtoMessage() {}
+
+func (x *FrpsLogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FrpsLogEntry.ProtoReflect.Descriptor instead.
+func (*FrpsLogEntry) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *FrpsLogEntry) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *FrpsLogEntry) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *FrpsLogEntry) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ResetTunnelCredentialRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 隧道 id
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetTunnelCredentialRequest) Reset() {
+	*x = ResetTunnelCredentialRequest{}
+	mi := &file_v1_tunnel_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetTunnelCredentialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetTunnelCredentialRequest) ProtoMessage() {}
+
+func (x *ResetTunnelCredentialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetTunnelCredentialRequest.ProtoReflect.Descriptor instead.
+func (*ResetTunnelCredentialRequest) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ResetTunnelCredentialRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ResetTunnelCredentialResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 隧道详情（含新凭证）
+	Info          *TunnelInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetTunnelCredentialResponse) Reset() {
+	*x = ResetTunnelCredentialResponse{}
+	mi := &file_v1_tunnel_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetTunnelCredentialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetTunnelCredentialResponse) ProtoMessage() {}
+
+func (x *ResetTunnelCredentialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetTunnelCredentialResponse.ProtoReflect.Descriptor instead.
+func (*ResetTunnelCredentialResponse) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ResetTunnelCredentialResponse) GetInfo() *TunnelInfo {
+	if x != nil {
+		return x.Info
+	}
+	return nil
+}
+
+// frps 运行状态
+type FrpsStatus struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否运行中
+	Running bool `protobuf:"varint,1,opt,name=running,proto3" json:"running,omitempty"`
+	// 本次启动时间
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// frp 版本
+	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	// 最近一次启动失败的原因
+	Error         string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FrpsStatus) Reset() {
+	*x = FrpsStatus{}
+	mi := &file_v1_tunnel_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FrpsStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FrpsStatus) ProtoMessage() {}
+
+func (x *FrpsStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FrpsStatus.ProtoReflect.Descriptor instead.
+func (*FrpsStatus) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *FrpsStatus) GetRunning() bool {
+	if x != nil {
+		return x.Running
+	}
+	return false
+}
+
+func (x *FrpsStatus) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *FrpsStatus) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *FrpsStatus) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+// 连入隧道的 frpc 客户端
+type TunnelClient struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 主机名
+	Hostname string `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	// 操作系统
+	Os string `protobuf:"bytes,2,opt,name=os,proto3" json:"os,omitempty"`
+	// CPU 架构
+	Arch string `protobuf:"bytes,3,opt,name=arch,proto3" json:"arch,omitempty"`
+	// frpc 版本
+	Version string `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
+	// 客户端地址 ip:port
+	Address string `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
+	// 最近一次登录时间
+	LoginTime     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=login_time,json=loginTime,proto3" json:"login_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunnelClient) Reset() {
+	*x = TunnelClient{}
+	mi := &file_v1_tunnel_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunnelClient) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunnelClient) ProtoMessage() {}
+
+func (x *TunnelClient) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_tunnel_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TunnelClient.ProtoReflect.Descriptor instead.
+func (*TunnelClient) Descriptor() ([]byte, []int) {
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *TunnelClient) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *TunnelClient) GetOs() string {
+	if x != nil {
+		return x.Os
+	}
+	return ""
+}
+
+func (x *TunnelClient) GetArch() string {
+	if x != nil {
+		return x.Arch
+	}
+	return ""
+}
+
+func (x *TunnelClient) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *TunnelClient) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *TunnelClient) GetLoginTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LoginTime
 	}
 	return nil
 }
@@ -1061,7 +1841,7 @@ type UpdateFrpsConfigRequest struct {
 
 func (x *UpdateFrpsConfigRequest) Reset() {
 	*x = UpdateFrpsConfigRequest{}
-	mi := &file_v1_tunnel_proto_msgTypes[14]
+	mi := &file_v1_tunnel_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1073,7 +1853,7 @@ func (x *UpdateFrpsConfigRequest) String() string {
 func (*UpdateFrpsConfigRequest) ProtoMessage() {}
 
 func (x *UpdateFrpsConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[14]
+	mi := &file_v1_tunnel_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1086,7 +1866,7 @@ func (x *UpdateFrpsConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFrpsConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateFrpsConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{14}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateFrpsConfigRequest) GetConfig() *FrpsConfig {
@@ -1106,7 +1886,7 @@ type UpdateFrpsConfigResponse struct {
 
 func (x *UpdateFrpsConfigResponse) Reset() {
 	*x = UpdateFrpsConfigResponse{}
-	mi := &file_v1_tunnel_proto_msgTypes[15]
+	mi := &file_v1_tunnel_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1118,7 +1898,7 @@ func (x *UpdateFrpsConfigResponse) String() string {
 func (*UpdateFrpsConfigResponse) ProtoMessage() {}
 
 func (x *UpdateFrpsConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[15]
+	mi := &file_v1_tunnel_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1131,7 +1911,7 @@ func (x *UpdateFrpsConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFrpsConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpdateFrpsConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{15}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateFrpsConfigResponse) GetConfig() *FrpsConfig {
@@ -1154,13 +1934,15 @@ type TunnelStat struct {
 	BytesOut int64 `protobuf:"varint,4,opt,name=bytes_out,json=bytesOut,proto3" json:"bytes_out,omitempty"`
 	// 最近一次上线时间
 	LastStartTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=last_start_time,json=lastStartTime,proto3" json:"last_start_time,omitempty"`
+	// 最近一次下线时间
+	LastCloseTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_close_time,json=lastCloseTime,proto3" json:"last_close_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TunnelStat) Reset() {
 	*x = TunnelStat{}
-	mi := &file_v1_tunnel_proto_msgTypes[16]
+	mi := &file_v1_tunnel_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1172,7 +1954,7 @@ func (x *TunnelStat) String() string {
 func (*TunnelStat) ProtoMessage() {}
 
 func (x *TunnelStat) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[16]
+	mi := &file_v1_tunnel_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1185,7 +1967,7 @@ func (x *TunnelStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TunnelStat.ProtoReflect.Descriptor instead.
 func (*TunnelStat) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{16}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *TunnelStat) GetOnline() bool {
@@ -1223,6 +2005,13 @@ func (x *TunnelStat) GetLastStartTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *TunnelStat) GetLastCloseTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastCloseTime
+	}
+	return nil
+}
+
 // 隧道时间序列采样点
 type TunnelStatPoint struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1240,7 +2029,7 @@ type TunnelStatPoint struct {
 
 func (x *TunnelStatPoint) Reset() {
 	*x = TunnelStatPoint{}
-	mi := &file_v1_tunnel_proto_msgTypes[17]
+	mi := &file_v1_tunnel_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1252,7 +2041,7 @@ func (x *TunnelStatPoint) String() string {
 func (*TunnelStatPoint) ProtoMessage() {}
 
 func (x *TunnelStatPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[17]
+	mi := &file_v1_tunnel_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1265,7 +2054,7 @@ func (x *TunnelStatPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TunnelStatPoint.ProtoReflect.Descriptor instead.
 func (*TunnelStatPoint) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{17}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *TunnelStatPoint) GetTime() *timestamppb.Timestamp {
@@ -1338,13 +2127,21 @@ type TunnelInfo struct {
 	MaxBandwidth string `protobuf:"bytes,19,opt,name=max_bandwidth,json=maxBandwidth,proto3" json:"max_bandwidth,omitempty"`
 	// 活跃连接数上限，0=不限
 	MaxActiveConns int32 `protobuf:"varint,20,opt,name=max_active_conns,json=maxActiveConns,proto3" json:"max_active_conns,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 备注
+	Remark string `protobuf:"bytes,21,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 最近一次连入的 frpc 客户端（进程启动后未连入过则为空）
+	Client *TunnelClient `protobuf:"bytes,22,opt,name=client,proto3" json:"client,omitempty"`
+	// 最近一次上线时间
+	LastOnlineTime *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=last_online_time,json=lastOnlineTime,proto3" json:"last_online_time,omitempty"`
+	// 最近一次下线时间
+	LastOfflineTime *timestamppb.Timestamp `protobuf:"bytes,24,opt,name=last_offline_time,json=lastOfflineTime,proto3" json:"last_offline_time,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *TunnelInfo) Reset() {
 	*x = TunnelInfo{}
-	mi := &file_v1_tunnel_proto_msgTypes[18]
+	mi := &file_v1_tunnel_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1356,7 +2153,7 @@ func (x *TunnelInfo) String() string {
 func (*TunnelInfo) ProtoMessage() {}
 
 func (x *TunnelInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[18]
+	mi := &file_v1_tunnel_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +2166,7 @@ func (x *TunnelInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TunnelInfo.ProtoReflect.Descriptor instead.
 func (*TunnelInfo) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{18}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *TunnelInfo) GetId() string {
@@ -1512,6 +2309,34 @@ func (x *TunnelInfo) GetMaxActiveConns() int32 {
 	return 0
 }
 
+func (x *TunnelInfo) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *TunnelInfo) GetClient() *TunnelClient {
+	if x != nil {
+		return x.Client
+	}
+	return nil
+}
+
+func (x *TunnelInfo) GetLastOnlineTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastOnlineTime
+	}
+	return nil
+}
+
+func (x *TunnelInfo) GetLastOfflineTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastOfflineTime
+	}
+	return nil
+}
+
 // frps 实例配置（实例级，非逐条隧道规则）。
 // 注：无 auth_token。frps 自身 Auth 中性化（空 token），不作为统一认证；
 // 每隧道独立凭证存于隧道规则，由插件 Login/NewProxy 校验。
@@ -1536,14 +2361,16 @@ type FrpsConfig struct {
 	// 统计采样间隔(秒)
 	StatSampleInterval int32 `protobuf:"varint,9,opt,name=stat_sample_interval,json=statSampleInterval,proto3" json:"stat_sample_interval,omitempty"`
 	// 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr）
-	ServerAddr    string `protobuf:"bytes,11,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
+	ServerAddr string `protobuf:"bytes,11,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
+	// 强制 frpc 使用 TLS 连接（拒绝明文连接）
+	TlsForce      bool `protobuf:"varint,12,opt,name=tls_force,json=tlsForce,proto3" json:"tls_force,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FrpsConfig) Reset() {
 	*x = FrpsConfig{}
-	mi := &file_v1_tunnel_proto_msgTypes[19]
+	mi := &file_v1_tunnel_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1555,7 +2382,7 @@ func (x *FrpsConfig) String() string {
 func (*FrpsConfig) ProtoMessage() {}
 
 func (x *FrpsConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_tunnel_proto_msgTypes[19]
+	mi := &file_v1_tunnel_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1568,7 +2395,7 @@ func (x *FrpsConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FrpsConfig.ProtoReflect.Descriptor instead.
 func (*FrpsConfig) Descriptor() ([]byte, []int) {
-	return file_v1_tunnel_proto_rawDescGZIP(), []int{19}
+	return file_v1_tunnel_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *FrpsConfig) GetIsEnable() bool {
@@ -1641,6 +2468,13 @@ func (x *FrpsConfig) GetServerAddr() string {
 	return ""
 }
 
+func (x *FrpsConfig) GetTlsForce() bool {
+	if x != nil {
+		return x.TlsForce
+	}
+	return false
+}
+
 var File_v1_tunnel_proto protoreflect.FileDescriptor
 
 const file_v1_tunnel_proto_rawDesc = "" +
@@ -1655,12 +2489,35 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\t_keywordsB\a\n" +
 	"\x05_typeB\f\n" +
 	"\n" +
-	"_is_enable\"\x82\x01\n" +
+	"_is_enable\"\xb2\x01\n" +
 	"\x13ListTunnelsResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12$\n" +
-	"\x05infos\x18\x04 \x03(\v2\x0e.v1.TunnelInfoR\x05infos\"\xfa\x02\n" +
+	"\x05infos\x18\x04 \x03(\v2\x0e.v1.TunnelInfoR\x05infos\x12.\n" +
+	"\boverview\x18\x05 \x01(\v2\x12.v1.TunnelOverviewR\boverview\"\xf9\x02\n" +
+	"\x0eTunnelOverview\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x16\n" +
+	"\x06online\x18\x02 \x01(\x03R\x06online\x12\x18\n" +
+	"\apending\x18\x03 \x01(\x03R\apending\x12\x18\n" +
+	"\aoffline\x18\x04 \x01(\x03R\aoffline\x12\x18\n" +
+	"\aclients\x18\x05 \x01(\x03R\aclients\x124\n" +
+	"\vtype_counts\x18\x06 \x03(\v2\x13.v1.TunnelTypeCountR\n" +
+	"typeCounts\x12$\n" +
+	"\x0etoday_bytes_in\x18\a \x01(\x03R\ftodayBytesIn\x12&\n" +
+	"\x0ftoday_bytes_out\x18\b \x01(\x03R\rtodayBytesOut\x12-\n" +
+	"\x12active_connections\x18\t \x01(\x03R\x11activeConnections\x128\n" +
+	"\vclient_list\x18\n" +
+	" \x03(\v2\x17.v1.TunnelClientSummaryR\n" +
+	"clientList\"\x98\x01\n" +
+	"\x13TunnelClientSummary\x12(\n" +
+	"\x06client\x18\x01 \x01(\v2\x10.v1.TunnelClientR\x06client\x12\x16\n" +
+	"\x06online\x18\x02 \x01(\bR\x06online\x12\x18\n" +
+	"\atunnels\x18\x03 \x01(\x03R\atunnels\x12%\n" +
+	"\x0eonline_tunnels\x18\x04 \x01(\x03R\ronlineTunnels\"K\n" +
+	"\x0fTunnelTypeCount\x12\"\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x0e.v1.TunnelTypeR\x04type\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\"\x92\x03\n" +
 	"\x13CreateTunnelRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\"\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0e.v1.TunnelTypeR\x04type\x12\x1f\n" +
@@ -1676,13 +2533,14 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\tis_enable\x18\t \x01(\bR\bisEnable\x12#\n" +
 	"\rmax_bandwidth\x18\n" +
 	" \x01(\tR\fmaxBandwidth\x12(\n" +
-	"\x10max_active_conns\x18\v \x01(\x05R\x0emaxActiveConns\":\n" +
+	"\x10max_active_conns\x18\v \x01(\x05R\x0emaxActiveConns\x12\x16\n" +
+	"\x06remark\x18\f \x01(\tR\x06remark\":\n" +
 	"\x14CreateTunnelResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\"\n" +
 	"\x10GetTunnelRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"7\n" +
 	"\x11GetTunnelResponse\x12\"\n" +
-	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\xe5\x04\n" +
+	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\x8d\x05\n" +
 	"\x13UpdateTunnelRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12'\n" +
@@ -1700,7 +2558,8 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	" \x01(\bH\bR\bisEnable\x88\x01\x01\x12(\n" +
 	"\rmax_bandwidth\x18\v \x01(\tH\tR\fmaxBandwidth\x88\x01\x01\x12-\n" +
 	"\x10max_active_conns\x18\f \x01(\x05H\n" +
-	"R\x0emaxActiveConns\x88\x01\x01B\a\n" +
+	"R\x0emaxActiveConns\x88\x01\x01\x12\x1b\n" +
+	"\x06remark\x18\r \x01(\tH\vR\x06remark\x88\x01\x01B\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_typeB\x0e\n" +
 	"\f_remote_portB\x11\n" +
@@ -1713,7 +2572,8 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\n" +
 	"_is_enableB\x10\n" +
 	"\x0e_max_bandwidthB\x13\n" +
-	"\x11_max_active_conns\":\n" +
+	"\x11_max_active_connsB\t\n" +
+	"\a_remark\":\n" +
 	"\x14UpdateTunnelResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"%\n" +
 	"\x13DeleteTunnelRequest\x12\x0e\n" +
@@ -1727,25 +2587,57 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\bsnapshot\x18\x01 \x01(\v2\x0e.v1.TunnelStatR\bsnapshot\x12+\n" +
 	"\x06points\x18\x02 \x03(\v2\x13.v1.TunnelStatPointR\x06points\x126\n" +
 	"\x17sample_interval_seconds\x18\x03 \x01(\x03R\x15sampleIntervalSeconds\"\x16\n" +
-	"\x14GetFrpsConfigRequest\"?\n" +
+	"\x14GetFrpsConfigRequest\"g\n" +
 	"\x15GetFrpsConfigResponse\x12&\n" +
-	"\x06config\x18\x01 \x01(\v2\x0e.v1.FrpsConfigR\x06config\"A\n" +
+	"\x06config\x18\x01 \x01(\v2\x0e.v1.FrpsConfigR\x06config\x12&\n" +
+	"\x06status\x18\x02 \x01(\v2\x0e.v1.FrpsStatusR\x06status\"\x14\n" +
+	"\x12RestartFrpsRequest\"=\n" +
+	"\x13RestartFrpsResponse\x12&\n" +
+	"\x06status\x18\x01 \x01(\v2\x0e.v1.FrpsStatusR\x06status\"*\n" +
+	"\x12GetFrpsLogsRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\"A\n" +
+	"\x13GetFrpsLogsResponse\x12*\n" +
+	"\aentries\x18\x01 \x03(\v2\x10.v1.FrpsLogEntryR\aentries\"n\n" +
+	"\fFrpsLogEntry\x12.\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x14\n" +
+	"\x05level\x18\x02 \x01(\tR\x05level\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\".\n" +
+	"\x1cResetTunnelCredentialRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"C\n" +
+	"\x1dResetTunnelCredentialResponse\x12\"\n" +
+	"\x04info\x18\x01 \x01(\v2\x0e.v1.TunnelInfoR\x04info\"\x91\x01\n" +
+	"\n" +
+	"FrpsStatus\x12\x18\n" +
+	"\arunning\x18\x01 \x01(\bR\arunning\x129\n" +
+	"\n" +
+	"start_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\tR\aversion\x12\x14\n" +
+	"\x05error\x18\x04 \x01(\tR\x05error\"\xbd\x01\n" +
+	"\fTunnelClient\x12\x1a\n" +
+	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x0e\n" +
+	"\x02os\x18\x02 \x01(\tR\x02os\x12\x12\n" +
+	"\x04arch\x18\x03 \x01(\tR\x04arch\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\x12\x18\n" +
+	"\aaddress\x18\x05 \x01(\tR\aaddress\x129\n" +
+	"\n" +
+	"login_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tloginTime\"A\n" +
 	"\x17UpdateFrpsConfigRequest\x12&\n" +
 	"\x06config\x18\x01 \x01(\v2\x0e.v1.FrpsConfigR\x06config\"B\n" +
 	"\x18UpdateFrpsConfigResponse\x12&\n" +
-	"\x06config\x18\x01 \x01(\v2\x0e.v1.FrpsConfigR\x06config\"\xcf\x01\n" +
+	"\x06config\x18\x01 \x01(\v2\x0e.v1.FrpsConfigR\x06config\"\x93\x02\n" +
 	"\n" +
 	"TunnelStat\x12\x16\n" +
 	"\x06online\x18\x01 \x01(\bR\x06online\x12-\n" +
 	"\x12active_connections\x18\x02 \x01(\x03R\x11activeConnections\x12\x19\n" +
 	"\bbytes_in\x18\x03 \x01(\x03R\abytesIn\x12\x1b\n" +
 	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\x12B\n" +
-	"\x0flast_start_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\rlastStartTime\"\xa8\x01\n" +
+	"\x0flast_start_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\rlastStartTime\x12B\n" +
+	"\x0flast_close_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\rlastCloseTime\"\xa8\x01\n" +
 	"\x0fTunnelStatPoint\x12.\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12-\n" +
 	"\x12active_connections\x18\x02 \x01(\x03R\x11activeConnections\x12\x19\n" +
 	"\bbytes_in\x18\x03 \x01(\x03R\abytesIn\x12\x1b\n" +
-	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\xc5\x05\n" +
+	"\tbytes_out\x18\x04 \x01(\x03R\bbytesOut\"\x95\a\n" +
 	"\n" +
 	"TunnelInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -1775,7 +2667,11 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\bbytes_in\x18\x11 \x01(\x03R\abytesIn\x12\x1b\n" +
 	"\tbytes_out\x18\x12 \x01(\x03R\bbytesOut\x12#\n" +
 	"\rmax_bandwidth\x18\x13 \x01(\tR\fmaxBandwidth\x12(\n" +
-	"\x10max_active_conns\x18\x14 \x01(\x05R\x0emaxActiveConns\"\xf9\x02\n" +
+	"\x10max_active_conns\x18\x14 \x01(\x05R\x0emaxActiveConns\x12\x16\n" +
+	"\x06remark\x18\x15 \x01(\tR\x06remark\x12(\n" +
+	"\x06client\x18\x16 \x01(\v2\x10.v1.TunnelClientR\x06client\x12D\n" +
+	"\x10last_online_time\x18\x17 \x01(\v2\x1a.google.protobuf.TimestampR\x0elastOnlineTime\x12F\n" +
+	"\x11last_offline_time\x18\x18 \x01(\v2\x1a.google.protobuf.TimestampR\x0flastOfflineTime\"\x96\x03\n" +
 	"\n" +
 	"FrpsConfig\x12\x1b\n" +
 	"\tis_enable\x18\x01 \x01(\bR\bisEnable\x12\x1b\n" +
@@ -1788,7 +2684,8 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\x0esubdomain_host\x18\b \x01(\tR\rsubdomainHost\x120\n" +
 	"\x14stat_sample_interval\x18\t \x01(\x05R\x12statSampleInterval\x12\x1f\n" +
 	"\vserver_addr\x18\v \x01(\tR\n" +
-	"serverAddr*\xc4\x01\n" +
+	"serverAddr\x12\x1b\n" +
+	"\ttls_force\x18\f \x01(\bR\btlsForce*\xc4\x01\n" +
 	"\n" +
 	"TunnelType\x12\x1b\n" +
 	"\x17TUNNEL_TYPE_UNSPECIFIED\x10\x00\x12\x13\n" +
@@ -1803,7 +2700,7 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\x19TUNNEL_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15TUNNEL_STATUS_PENDING\x10\x01\x12\x18\n" +
 	"\x14TUNNEL_STATUS_ONLINE\x10\x02\x12\x19\n" +
-	"\x15TUNNEL_STATUS_OFFLINE\x10\x032\xdb\x06\n" +
+	"\x15TUNNEL_STATUS_OFFLINE\x10\x032\xbd\t\n" +
 	"\rTunnelManager\x12^\n" +
 	"\vListTunnels\x12\x16.v1.ListTunnelsRequest\x1a\x17.v1.ListTunnelsResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/tunnel/tunnels\x12d\n" +
 	"\fCreateTunnel\x12\x17.v1.CreateTunnelRequest\x1a\x18.v1.CreateTunnelResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/tunnel/tunnels\x12]\n" +
@@ -1812,7 +2709,10 @@ const file_v1_tunnel_proto_rawDesc = "" +
 	"\fDeleteTunnel\x12\x17.v1.DeleteTunnelRequest\x1a\x18.v1.DeleteTunnelResponse\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/api/v1/tunnel/tunnels/{id}\x12r\n" +
 	"\x0eGetTunnelStats\x12\x19.v1.GetTunnelStatsRequest\x1a\x1a.v1.GetTunnelStatsResponse\")\x82\xd3\xe4\x93\x02#\x12!/api/v1/tunnel/tunnels/{id}/stats\x12h\n" +
 	"\rGetFrpsConfig\x12\x18.v1.GetFrpsConfigRequest\x1a\x19.v1.GetFrpsConfigResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/tunnel/frps-config\x12t\n" +
-	"\x10UpdateFrpsConfig\x12\x1b.v1.UpdateFrpsConfigRequest\x1a\x1c.v1.UpdateFrpsConfigResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/tunnel/frps-configB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x10UpdateFrpsConfig\x12\x1b.v1.UpdateFrpsConfigRequest\x1a\x1c.v1.UpdateFrpsConfigResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/tunnel/frps-config\x12f\n" +
+	"\vRestartFrps\x12\x16.v1.RestartFrpsRequest\x1a\x17.v1.RestartFrpsResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/tunnel/frps-restart\x12`\n" +
+	"\vGetFrpsLogs\x12\x16.v1.GetFrpsLogsRequest\x1a\x17.v1.GetFrpsLogsResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/tunnel/frps-logs\x12\x95\x01\n" +
+	"\x15ResetTunnelCredential\x12 .v1.ResetTunnelCredentialRequest\x1a!.v1.ResetTunnelCredentialResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/tunnel/tunnels/{id}/credential/resetB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_tunnel_proto_rawDescOnce sync.Once
@@ -1827,72 +2727,106 @@ func file_v1_tunnel_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_tunnel_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_tunnel_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_v1_tunnel_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_v1_tunnel_proto_goTypes = []any{
-	(TunnelType)(0),                  // 0: v1.TunnelType
-	(TunnelStatus)(0),                // 1: v1.TunnelStatus
-	(*ListTunnelsRequest)(nil),       // 2: v1.ListTunnelsRequest
-	(*ListTunnelsResponse)(nil),      // 3: v1.ListTunnelsResponse
-	(*CreateTunnelRequest)(nil),      // 4: v1.CreateTunnelRequest
-	(*CreateTunnelResponse)(nil),     // 5: v1.CreateTunnelResponse
-	(*GetTunnelRequest)(nil),         // 6: v1.GetTunnelRequest
-	(*GetTunnelResponse)(nil),        // 7: v1.GetTunnelResponse
-	(*UpdateTunnelRequest)(nil),      // 8: v1.UpdateTunnelRequest
-	(*UpdateTunnelResponse)(nil),     // 9: v1.UpdateTunnelResponse
-	(*DeleteTunnelRequest)(nil),      // 10: v1.DeleteTunnelRequest
-	(*DeleteTunnelResponse)(nil),     // 11: v1.DeleteTunnelResponse
-	(*GetTunnelStatsRequest)(nil),    // 12: v1.GetTunnelStatsRequest
-	(*GetTunnelStatsResponse)(nil),   // 13: v1.GetTunnelStatsResponse
-	(*GetFrpsConfigRequest)(nil),     // 14: v1.GetFrpsConfigRequest
-	(*GetFrpsConfigResponse)(nil),    // 15: v1.GetFrpsConfigResponse
-	(*UpdateFrpsConfigRequest)(nil),  // 16: v1.UpdateFrpsConfigRequest
-	(*UpdateFrpsConfigResponse)(nil), // 17: v1.UpdateFrpsConfigResponse
-	(*TunnelStat)(nil),               // 18: v1.TunnelStat
-	(*TunnelStatPoint)(nil),          // 19: v1.TunnelStatPoint
-	(*TunnelInfo)(nil),               // 20: v1.TunnelInfo
-	(*FrpsConfig)(nil),               // 21: v1.FrpsConfig
-	(*timestamppb.Timestamp)(nil),    // 22: google.protobuf.Timestamp
+	(TunnelType)(0),                       // 0: v1.TunnelType
+	(TunnelStatus)(0),                     // 1: v1.TunnelStatus
+	(*ListTunnelsRequest)(nil),            // 2: v1.ListTunnelsRequest
+	(*ListTunnelsResponse)(nil),           // 3: v1.ListTunnelsResponse
+	(*TunnelOverview)(nil),                // 4: v1.TunnelOverview
+	(*TunnelClientSummary)(nil),           // 5: v1.TunnelClientSummary
+	(*TunnelTypeCount)(nil),               // 6: v1.TunnelTypeCount
+	(*CreateTunnelRequest)(nil),           // 7: v1.CreateTunnelRequest
+	(*CreateTunnelResponse)(nil),          // 8: v1.CreateTunnelResponse
+	(*GetTunnelRequest)(nil),              // 9: v1.GetTunnelRequest
+	(*GetTunnelResponse)(nil),             // 10: v1.GetTunnelResponse
+	(*UpdateTunnelRequest)(nil),           // 11: v1.UpdateTunnelRequest
+	(*UpdateTunnelResponse)(nil),          // 12: v1.UpdateTunnelResponse
+	(*DeleteTunnelRequest)(nil),           // 13: v1.DeleteTunnelRequest
+	(*DeleteTunnelResponse)(nil),          // 14: v1.DeleteTunnelResponse
+	(*GetTunnelStatsRequest)(nil),         // 15: v1.GetTunnelStatsRequest
+	(*GetTunnelStatsResponse)(nil),        // 16: v1.GetTunnelStatsResponse
+	(*GetFrpsConfigRequest)(nil),          // 17: v1.GetFrpsConfigRequest
+	(*GetFrpsConfigResponse)(nil),         // 18: v1.GetFrpsConfigResponse
+	(*RestartFrpsRequest)(nil),            // 19: v1.RestartFrpsRequest
+	(*RestartFrpsResponse)(nil),           // 20: v1.RestartFrpsResponse
+	(*GetFrpsLogsRequest)(nil),            // 21: v1.GetFrpsLogsRequest
+	(*GetFrpsLogsResponse)(nil),           // 22: v1.GetFrpsLogsResponse
+	(*FrpsLogEntry)(nil),                  // 23: v1.FrpsLogEntry
+	(*ResetTunnelCredentialRequest)(nil),  // 24: v1.ResetTunnelCredentialRequest
+	(*ResetTunnelCredentialResponse)(nil), // 25: v1.ResetTunnelCredentialResponse
+	(*FrpsStatus)(nil),                    // 26: v1.FrpsStatus
+	(*TunnelClient)(nil),                  // 27: v1.TunnelClient
+	(*UpdateFrpsConfigRequest)(nil),       // 28: v1.UpdateFrpsConfigRequest
+	(*UpdateFrpsConfigResponse)(nil),      // 29: v1.UpdateFrpsConfigResponse
+	(*TunnelStat)(nil),                    // 30: v1.TunnelStat
+	(*TunnelStatPoint)(nil),               // 31: v1.TunnelStatPoint
+	(*TunnelInfo)(nil),                    // 32: v1.TunnelInfo
+	(*FrpsConfig)(nil),                    // 33: v1.FrpsConfig
+	(*timestamppb.Timestamp)(nil),         // 34: google.protobuf.Timestamp
 }
 var file_v1_tunnel_proto_depIdxs = []int32{
 	0,  // 0: v1.ListTunnelsRequest.type:type_name -> v1.TunnelType
-	20, // 1: v1.ListTunnelsResponse.infos:type_name -> v1.TunnelInfo
-	0,  // 2: v1.CreateTunnelRequest.type:type_name -> v1.TunnelType
-	20, // 3: v1.CreateTunnelResponse.info:type_name -> v1.TunnelInfo
-	20, // 4: v1.GetTunnelResponse.info:type_name -> v1.TunnelInfo
-	0,  // 5: v1.UpdateTunnelRequest.type:type_name -> v1.TunnelType
-	20, // 6: v1.UpdateTunnelResponse.info:type_name -> v1.TunnelInfo
-	18, // 7: v1.GetTunnelStatsResponse.snapshot:type_name -> v1.TunnelStat
-	19, // 8: v1.GetTunnelStatsResponse.points:type_name -> v1.TunnelStatPoint
-	21, // 9: v1.GetFrpsConfigResponse.config:type_name -> v1.FrpsConfig
-	21, // 10: v1.UpdateFrpsConfigRequest.config:type_name -> v1.FrpsConfig
-	21, // 11: v1.UpdateFrpsConfigResponse.config:type_name -> v1.FrpsConfig
-	22, // 12: v1.TunnelStat.last_start_time:type_name -> google.protobuf.Timestamp
-	22, // 13: v1.TunnelStatPoint.time:type_name -> google.protobuf.Timestamp
-	0,  // 14: v1.TunnelInfo.type:type_name -> v1.TunnelType
-	1,  // 15: v1.TunnelInfo.status:type_name -> v1.TunnelStatus
-	22, // 16: v1.TunnelInfo.create_time:type_name -> google.protobuf.Timestamp
-	22, // 17: v1.TunnelInfo.update_time:type_name -> google.protobuf.Timestamp
-	2,  // 18: v1.TunnelManager.ListTunnels:input_type -> v1.ListTunnelsRequest
-	4,  // 19: v1.TunnelManager.CreateTunnel:input_type -> v1.CreateTunnelRequest
-	6,  // 20: v1.TunnelManager.GetTunnel:input_type -> v1.GetTunnelRequest
-	8,  // 21: v1.TunnelManager.UpdateTunnel:input_type -> v1.UpdateTunnelRequest
-	10, // 22: v1.TunnelManager.DeleteTunnel:input_type -> v1.DeleteTunnelRequest
-	12, // 23: v1.TunnelManager.GetTunnelStats:input_type -> v1.GetTunnelStatsRequest
-	14, // 24: v1.TunnelManager.GetFrpsConfig:input_type -> v1.GetFrpsConfigRequest
-	16, // 25: v1.TunnelManager.UpdateFrpsConfig:input_type -> v1.UpdateFrpsConfigRequest
-	3,  // 26: v1.TunnelManager.ListTunnels:output_type -> v1.ListTunnelsResponse
-	5,  // 27: v1.TunnelManager.CreateTunnel:output_type -> v1.CreateTunnelResponse
-	7,  // 28: v1.TunnelManager.GetTunnel:output_type -> v1.GetTunnelResponse
-	9,  // 29: v1.TunnelManager.UpdateTunnel:output_type -> v1.UpdateTunnelResponse
-	11, // 30: v1.TunnelManager.DeleteTunnel:output_type -> v1.DeleteTunnelResponse
-	13, // 31: v1.TunnelManager.GetTunnelStats:output_type -> v1.GetTunnelStatsResponse
-	15, // 32: v1.TunnelManager.GetFrpsConfig:output_type -> v1.GetFrpsConfigResponse
-	17, // 33: v1.TunnelManager.UpdateFrpsConfig:output_type -> v1.UpdateFrpsConfigResponse
-	26, // [26:34] is the sub-list for method output_type
-	18, // [18:26] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	32, // 1: v1.ListTunnelsResponse.infos:type_name -> v1.TunnelInfo
+	4,  // 2: v1.ListTunnelsResponse.overview:type_name -> v1.TunnelOverview
+	6,  // 3: v1.TunnelOverview.type_counts:type_name -> v1.TunnelTypeCount
+	5,  // 4: v1.TunnelOverview.client_list:type_name -> v1.TunnelClientSummary
+	27, // 5: v1.TunnelClientSummary.client:type_name -> v1.TunnelClient
+	0,  // 6: v1.TunnelTypeCount.type:type_name -> v1.TunnelType
+	0,  // 7: v1.CreateTunnelRequest.type:type_name -> v1.TunnelType
+	32, // 8: v1.CreateTunnelResponse.info:type_name -> v1.TunnelInfo
+	32, // 9: v1.GetTunnelResponse.info:type_name -> v1.TunnelInfo
+	0,  // 10: v1.UpdateTunnelRequest.type:type_name -> v1.TunnelType
+	32, // 11: v1.UpdateTunnelResponse.info:type_name -> v1.TunnelInfo
+	30, // 12: v1.GetTunnelStatsResponse.snapshot:type_name -> v1.TunnelStat
+	31, // 13: v1.GetTunnelStatsResponse.points:type_name -> v1.TunnelStatPoint
+	33, // 14: v1.GetFrpsConfigResponse.config:type_name -> v1.FrpsConfig
+	26, // 15: v1.GetFrpsConfigResponse.status:type_name -> v1.FrpsStatus
+	26, // 16: v1.RestartFrpsResponse.status:type_name -> v1.FrpsStatus
+	23, // 17: v1.GetFrpsLogsResponse.entries:type_name -> v1.FrpsLogEntry
+	34, // 18: v1.FrpsLogEntry.time:type_name -> google.protobuf.Timestamp
+	32, // 19: v1.ResetTunnelCredentialResponse.info:type_name -> v1.TunnelInfo
+	34, // 20: v1.FrpsStatus.start_time:type_name -> google.protobuf.Timestamp
+	34, // 21: v1.TunnelClient.login_time:type_name -> google.protobuf.Timestamp
+	33, // 22: v1.UpdateFrpsConfigRequest.config:type_name -> v1.FrpsConfig
+	33, // 23: v1.UpdateFrpsConfigResponse.config:type_name -> v1.FrpsConfig
+	34, // 24: v1.TunnelStat.last_start_time:type_name -> google.protobuf.Timestamp
+	34, // 25: v1.TunnelStat.last_close_time:type_name -> google.protobuf.Timestamp
+	34, // 26: v1.TunnelStatPoint.time:type_name -> google.protobuf.Timestamp
+	0,  // 27: v1.TunnelInfo.type:type_name -> v1.TunnelType
+	1,  // 28: v1.TunnelInfo.status:type_name -> v1.TunnelStatus
+	34, // 29: v1.TunnelInfo.create_time:type_name -> google.protobuf.Timestamp
+	34, // 30: v1.TunnelInfo.update_time:type_name -> google.protobuf.Timestamp
+	27, // 31: v1.TunnelInfo.client:type_name -> v1.TunnelClient
+	34, // 32: v1.TunnelInfo.last_online_time:type_name -> google.protobuf.Timestamp
+	34, // 33: v1.TunnelInfo.last_offline_time:type_name -> google.protobuf.Timestamp
+	2,  // 34: v1.TunnelManager.ListTunnels:input_type -> v1.ListTunnelsRequest
+	7,  // 35: v1.TunnelManager.CreateTunnel:input_type -> v1.CreateTunnelRequest
+	9,  // 36: v1.TunnelManager.GetTunnel:input_type -> v1.GetTunnelRequest
+	11, // 37: v1.TunnelManager.UpdateTunnel:input_type -> v1.UpdateTunnelRequest
+	13, // 38: v1.TunnelManager.DeleteTunnel:input_type -> v1.DeleteTunnelRequest
+	15, // 39: v1.TunnelManager.GetTunnelStats:input_type -> v1.GetTunnelStatsRequest
+	17, // 40: v1.TunnelManager.GetFrpsConfig:input_type -> v1.GetFrpsConfigRequest
+	28, // 41: v1.TunnelManager.UpdateFrpsConfig:input_type -> v1.UpdateFrpsConfigRequest
+	19, // 42: v1.TunnelManager.RestartFrps:input_type -> v1.RestartFrpsRequest
+	21, // 43: v1.TunnelManager.GetFrpsLogs:input_type -> v1.GetFrpsLogsRequest
+	24, // 44: v1.TunnelManager.ResetTunnelCredential:input_type -> v1.ResetTunnelCredentialRequest
+	3,  // 45: v1.TunnelManager.ListTunnels:output_type -> v1.ListTunnelsResponse
+	8,  // 46: v1.TunnelManager.CreateTunnel:output_type -> v1.CreateTunnelResponse
+	10, // 47: v1.TunnelManager.GetTunnel:output_type -> v1.GetTunnelResponse
+	12, // 48: v1.TunnelManager.UpdateTunnel:output_type -> v1.UpdateTunnelResponse
+	14, // 49: v1.TunnelManager.DeleteTunnel:output_type -> v1.DeleteTunnelResponse
+	16, // 50: v1.TunnelManager.GetTunnelStats:output_type -> v1.GetTunnelStatsResponse
+	18, // 51: v1.TunnelManager.GetFrpsConfig:output_type -> v1.GetFrpsConfigResponse
+	29, // 52: v1.TunnelManager.UpdateFrpsConfig:output_type -> v1.UpdateFrpsConfigResponse
+	20, // 53: v1.TunnelManager.RestartFrps:output_type -> v1.RestartFrpsResponse
+	22, // 54: v1.TunnelManager.GetFrpsLogs:output_type -> v1.GetFrpsLogsResponse
+	25, // 55: v1.TunnelManager.ResetTunnelCredential:output_type -> v1.ResetTunnelCredentialResponse
+	45, // [45:56] is the sub-list for method output_type
+	34, // [34:45] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_v1_tunnel_proto_init() }
@@ -1901,14 +2835,14 @@ func file_v1_tunnel_proto_init() {
 		return
 	}
 	file_v1_tunnel_proto_msgTypes[0].OneofWrappers = []any{}
-	file_v1_tunnel_proto_msgTypes[6].OneofWrappers = []any{}
+	file_v1_tunnel_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_tunnel_proto_rawDesc), len(file_v1_tunnel_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   20,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

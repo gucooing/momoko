@@ -136,7 +136,12 @@ func (s *SystemService) LoginConfig(ctx context.Context, req *v1.LoginConfigRequ
 	if err != nil {
 		return nil, err
 	}
-	return &v1.LoginConfigResponse{Config: config}, nil
+	resp := &v1.LoginConfigResponse{Config: config}
+	if site, err := s.config.SiteConfig(ctx); err == nil {
+		resp.SiteName = site.SiteName
+		resp.DefaultLanguage = site.DefaultLanguage
+	}
+	return resp, nil
 }
 
 func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.UpdateLoginConfigResponse, error) {
@@ -144,7 +149,28 @@ func (s *SystemService) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLog
 	if err != nil {
 		return nil, err
 	}
+	s.uc.TouchSettings(ctx)
 	return &v1.UpdateLoginConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) SiteConfig(ctx context.Context, req *v1.SiteConfigRequest) (*v1.SiteConfigResponse, error) {
+	config, err := s.config.SiteConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SiteConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) UpdateSiteConfig(ctx context.Context, req *v1.UpdateSiteConfigRequest) (*v1.UpdateSiteConfigResponse, error) {
+	if _, err := s.config.UpdateSiteConfig(ctx, req); err != nil {
+		return nil, err
+	}
+	s.uc.TouchSettings(ctx)
+	config, err := s.config.SiteConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateSiteConfigResponse{Config: config}, nil
 }
 
 func (s *SystemService) EmailConfig(ctx context.Context, req *v1.EmailConfigRequest) (*v1.EmailConfigResponse, error) {
@@ -161,6 +187,7 @@ func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEma
 		return nil, err
 	}
 	s.uc.NewEmailClient(ctx)
+	s.uc.TouchSettings(ctx)
 	return &v1.UpdateEmailConfigResponse{Config: config}, nil
 }
 
@@ -169,6 +196,7 @@ func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateE
 	if err != nil {
 		return nil, err
 	}
+	s.uc.TouchSettings(ctx)
 	return &v1.UpdateEmailTemplateResponse{Template: template}, nil
 }
 
@@ -197,4 +225,16 @@ func (s *SystemService) SystemStatus(ctx context.Context, req *v1.SystemStatusRe
 
 func (s *SystemService) ListOperationLogs(ctx context.Context, req *v1.ListOperationLogsRequest) (*v1.ListOperationLogsResponse, error) {
 	return s.operationLog.ListOperationLogs(ctx, req)
+}
+
+func (s *SystemService) ListEmailTemplates(ctx context.Context, req *v1.ListEmailTemplatesRequest) (*v1.ListEmailTemplatesResponse, error) {
+	templates, err := s.config.ListEmailTemplates(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListEmailTemplatesResponse{Templates: templates}, nil
+}
+
+func (s *SystemService) OperationLogStats(ctx context.Context, req *v1.OperationLogStatsRequest) (*v1.OperationLogStatsResponse, error) {
+	return s.operationLog.OperationLogStats(ctx)
 }

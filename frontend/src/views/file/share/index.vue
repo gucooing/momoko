@@ -1,122 +1,255 @@
-<!-- 文件分享（重写 · P1 列表）：PageHeader(新建) + FilterBar(关键词) + 内联计数 + DataTable/移动卡 + Pagination。
-     行内 复制链接/编辑/删除；启用 AppSwitch；有效/停用/过期/达上限 状态胶囊；ShareFormDialog 创建/编辑。 -->
+<!-- 文件分享（第二期改版）：页头(总数/有效数 + 去文件管理/新建) + 文件子导航 + 统计卡 + 状态胶囊(带数量)/搜索 +
+     表格(内容贴纸 · 公开链接复制 · 提取码 · 过期剩余 · 下载进度 · 状态 · 行内操作) / 手机卡片 + 分页 + 悬浮批量条。
+     状态统计与状态筛选由后端 ListShares 返回（stats / status）。 -->
 <template>
-  <div class="shr-page">
-    <PageHeader :title="t('file.share.pageTitle')" :description="t('file.share.pageDesc')">
+  <div class="shr">
+    <PageHeader :title="t('file.share.pageTitle')">
+      <template #description>
+        <span class="m-num">{{ t('file.share.summaryTotal', { total: stats.total }) }}</span>
+        ·
+        <span class="shr-ok m-num">{{ t('file.share.summaryValid', { valid: stats.active }) }}</span>
+      </template>
       <template #actions>
-        <UButton color="primary" size="sm" icon="i-lucide-plus" @click="openCreate">
-          {{ t('file.share.create') }}
+        <UButton v-if="canGoFiles && !menuStore.isMobile" color="neutral" variant="outline" icon="i-lucide-folder" to="/file/index">
+          {{ t('file.share.goFiles') }}
+        </UButton>
+        <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
+          {{ menuStore.isMobile ? t('fileManager.newItem') : t('file.share.create') }}
         </UButton>
       </template>
     </PageHeader>
 
-    <FilterBar @search="search" @reset="reset">
-      <template #fields>
-        <div class="app-field">
-          <label class="app-label">{{ t('file.share.keyword') }}</label>
-          <input
-            v-model="keywords"
-            class="app-input"
-            :placeholder="t('file.share.keywordPlaceholder')"
-            @keyup.enter="search"
-          />
-        </div>
-      </template>
-    </FilterBar>
 
-    <div class="shr-page__body">
-      <div class="shr-page__bar">
-        <span class="shr-page__hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
-      </div>
-
-      <DataTable
-        v-if="!menuStore.isMobile"
-        :columns="columns"
-        :rows="items"
-        row-key="id"
-        :loading="loading"
-        :empty-text="t('system.common.noData')"
-      >
-        <template #cell-name="{ row }">
-          <span class="shr-name">
-            <component :is="menuStore.iconComponents['HOutline:FolderIcon']" class="shr-name__ico" />
-            <span class="shr-name__text">{{ row.name || '—' }}</span>
-          </span>
-        </template>
-        <template #cell-content="{ row }">
-          <div class="shr-items" :title="fullPaths(row)">
-            <span class="shr-items__badge">{{ t('file.share.itemsCount', { count: itemCount(row) }) }}</span>
-            <span class="shr-items__first">{{ firstName(row) }}</span>
+    <!-- 统计卡 -->
+    <div class="shr-stats">
+      <div v-for="(card, i) in statCards" :key="card.key" class="shr-stat">
+        <span class="shr-stat__sticker m-sticker" :class="`m-sticker--${card.tone}`" :style="{ transform: `rotate(${ROTS[i]})` }">
+          <UIcon :name="card.icon" />
+        </span>
+        <div class="shr-stat__text">
+          <div class="shr-stat__label">{{ card.label }}</div>
+          <div class="shr-stat__value m-num">
+            {{ card.value }}<span v-if="card.unit" class="shr-stat__unit">{{ card.unit }}</span>
           </div>
-        </template>
-        <template #cell-code="{ row }">
-          <span v-if="row.code" class="shr-code">
-            <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" class="shr-code__ico" />
-            {{ row.code }}
-          </span>
-          <span v-else class="shr-muted">{{ t('file.share.noCode') }}</span>
-        </template>
-        <template #cell-expires="{ row }">
-          {{ row.expiresAt ? formatDateTime(row.expiresAt) : t('file.share.never') }}
-        </template>
-        <template #cell-downloads="{ row }">
-          <span class="shr-num">
-            {{ Number(row.downloadCount || 0) }}<template v-if="Number(row.maxDownloads) > 0"> / {{ row.maxDownloads }}</template>
-          </span>
-        </template>
-        <template #cell-enabled="{ row }">
-          <AppSwitch :model-value="!!row.enabled" @update:model-value="() => toggleEnabled(row)" />
-        </template>
-        <template #cell-status="{ row }">
-          <StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" />
-        </template>
-        <template #cell-operation="{ row }">
-          <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
-        </template>
-      </DataTable>
-
-      <template v-else>
-        <div v-if="loading" class="shr-cards">
-          <div v-for="i in 3" :key="i" class="shr-skeleton" />
         </div>
-        <EmptyState
-          v-else-if="!items.length"
-          icon="HOutline:ShareIcon"
-          :title="t('system.common.noData')"
-          :description="t('file.share.emptyDesc')"
-        />
-        <div v-else class="shr-cards">
-          <EntityCard v-for="row in items" :key="row.id" :title="row.name || t('file.share.noCode')">
-            <template #status>
-              <StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" />
-            </template>
-            <template #meta>
-              <span class="shr-card__path" :title="fullPaths(row)">
-                {{ t('file.share.itemsCount', { count: itemCount(row) }) }} · {{ firstName(row) }}
-              </span>
-            </template>
-            <template #footer>
-              <div class="shr-card__stat">
-                <span v-if="row.code" class="shr-code">
-                  <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" class="shr-code__ico" />{{ row.code }}
+      </div>
+    </div>
+
+    <ListToolbar
+      v-model:status="status"
+      v-model:keyword="keywords"
+      :chips="statusChips"
+      :chips-label="t('system.common.status')"
+      :placeholder="t('file.share.searchPlaceholder')"
+      @search="search"
+    />
+
+    <!-- 桌面：表格 -->
+    <div v-if="!menuStore.isMobile" class="shr-card shr-tablewrap">
+      <table class="shr-table">
+        <thead>
+          <tr>
+            <th class="shr-th--check">
+              <input
+                type="checkbox"
+                class="shr-cb"
+                :checked="allSelected"
+                :indeterminate.prop="someSelected"
+                :aria-label="t('fileManager.selectAll')"
+                @change="toggleAll"
+              />
+            </th>
+            <th>{{ t('file.share.content') }}</th>
+            <th>{{ t('file.share.link') }}</th>
+            <th>{{ t('file.share.code') }}</th>
+            <th>{{ t('file.share.expires') }}</th>
+            <th>{{ t('file.share.downloads') }}</th>
+            <th>{{ t('system.common.status') }}</th>
+            <th class="shr-th--ops">{{ t('system.common.operation') }}</th>
+          </tr>
+        </thead>
+        <tbody v-if="loading && !items.length">
+          <tr v-for="i in 4" :key="i">
+            <td colspan="8"><div class="shr-skeleton" /></td>
+          </tr>
+        </tbody>
+        <tbody v-else-if="items.length">
+          <tr v-for="(row, i) in items" :key="row.id" :class="{ 'is-selected': selected.has(row.id) }">
+            <td class="shr-td--check">
+              <input
+                type="checkbox"
+                class="shr-cb"
+                :checked="selected.has(row.id)"
+                :aria-label="t('fileManager.selectItem', { name: row.name })"
+                @change="toggleOne(row.id)"
+              />
+            </td>
+            <td class="shr-td--content">
+              <div class="shr-content">
+                <span class="shr-sticker m-sticker" :class="`m-sticker--${visual(row).tone}`" :style="{ transform: `rotate(${ROTS[i % 4]})` }">
+                  <UIcon :name="visual(row).icon" />
                 </span>
-                <span>↓ {{ Number(row.downloadCount || 0) }}<template v-if="Number(row.maxDownloads) > 0">/{{ row.maxDownloads }}</template></span>
+                <span class="shr-content__text">
+                  <span class="shr-content__name" :title="fullPaths(row)">{{ row.name || firstName(row) }}</span>
+                  <span class="shr-content__meta m-num">{{ contentMeta(row) }}</span>
+                </span>
               </div>
-              <div class="shr-card__actions">
-                <AppSwitch :model-value="!!row.enabled" @update:model-value="() => toggleEnabled(row)" />
-                <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
+            </td>
+            <td>
+              <div class="shr-link">
+                <span class="shr-link__text m-mono" :class="{ 'is-dim': statusOf(row) !== 'active' }">{{ shortLink(row) }}</span>
+                <AppIconButton
+                  :icon="copiedId === row.id ? 'HOutline:CheckIcon' : 'HOutline:DocumentDuplicateIcon'"
+                  :class="{ 'is-copied': copiedId === row.id }"
+                  :label="t('file.share.copyLink')"
+                  :box="36"
+                  :size="16"
+                  @click="copyLink(row)"
+                />
               </div>
-            </template>
-          </EntityCard>
-        </div>
-      </template>
+            </td>
+            <td>
+              <span v-if="row.code" class="shr-code m-mono">{{ row.code }}</span>
+              <span v-else class="shr-dim">{{ t('file.share.noCode') }}</span>
+            </td>
+            <td>
+              <div class="shr-exp m-num">{{ row.expiresAt ? formatDateTime(row.expiresAt) : t('file.share.never') }}</div>
+              <div class="shr-left" :class="`is-${leftTone(row)}`">{{ leftText(row) }}</div>
+            </td>
+            <td class="shr-td--dl">
+              <div class="shr-dl m-num">
+                {{ Number(row.downloadCount || 0) }}
+                <span class="shr-dl__limit">/ {{ Number(row.maxDownloads) > 0 ? row.maxDownloads : t('file.share.unlimited') }}</span>
+              </div>
+              <div class="shr-bar"><span :style="barStyle(row)" /></div>
+            </td>
+            <td><StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" /></td>
+            <td>
+              <div class="shr-ops">
+                <AppIconButton
+                  :icon="row.enabled ? 'HOutline:PauseCircleIcon' : 'HOutline:PlayCircleIcon'"
+                  :class="row.enabled ? 'tone-bad' : 'tone-ok'"
+                  :label="row.enabled ? t('file.share.disable') : t('file.share.enable')"
+                  :box="36"
+                  :size="18"
+                  @click="toggleEnabled(row)"
+                />
+                <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="36" :size="18" @click="openEdit(row)" />
+                <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <EmptyState
+        v-if="!loading && !items.length"
+        icon="HOutline:ShareIcon"
+        :title="keywords || status ? t('system.common.noData') : t('file.share.emptyDesc')"
+        :description="keywords || status ? '' : t('file.share.emptyHint')"
+      >
+        <template v-if="!keywords && !status" #action>
+          <UButton color="primary" icon="i-lucide-plus" @click="openCreate">{{ t('file.share.create') }}</UButton>
+        </template>
+      </EmptyState>
+    </div>
 
-      <Pagination
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        @change="loadList"
-      />
+    <!-- 手机：卡片 -->
+    <template v-else>
+      <div v-if="loading && !items.length" class="shr-cards">
+        <div v-for="i in 3" :key="i" class="shr-skeleton shr-skeleton--card" />
+      </div>
+      <div v-else-if="!items.length" class="shr-card">
+        <EmptyState
+          icon="HOutline:ShareIcon"
+          :title="keywords || status ? t('system.common.noData') : t('file.share.emptyDesc')"
+          :description="keywords || status ? '' : t('file.share.emptyHint')"
+        />
+      </div>
+      <div v-else class="shr-cards">
+        <article
+          v-for="(row, i) in items"
+          :key="row.id"
+          class="shr-card shr-mcard"
+          :class="{ 'is-selected': selected.has(row.id) }"
+        >
+          <header class="shr-mcard__head">
+            <span class="shr-sticker shr-sticker--lg m-sticker" :class="`m-sticker--${visual(row).tone}`" :style="{ transform: `rotate(${ROTS[i % 4]})` }">
+              <UIcon :name="visual(row).icon" />
+            </span>
+            <span class="shr-content__text">
+              <span class="shr-content__name">{{ row.name || firstName(row) }}</span>
+              <span class="shr-content__meta m-num">{{ contentMeta(row) }}</span>
+            </span>
+            <StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" />
+          </header>
+          <div class="shr-mcard__link">
+            <UIcon name="i-lucide-link" class="shr-mcard__link-ico" />
+            <span class="shr-link__text m-mono" :class="{ 'is-dim': statusOf(row) !== 'active' }">{{ shortLink(row) }}</span>
+            <AppIconButton
+              :icon="copiedId === row.id ? 'HOutline:CheckIcon' : 'HOutline:DocumentDuplicateIcon'"
+              :class="{ 'is-copied': copiedId === row.id }"
+              :label="t('file.share.copyLink')"
+              :box="44"
+              :size="18"
+              @click="copyLink(row)"
+            />
+          </div>
+          <dl class="shr-mcard__info">
+            <div>
+              <dt>{{ t('file.share.code') }}</dt>
+              <dd>
+                <span v-if="row.code" class="shr-code m-mono">{{ row.code }}</span>
+                <span v-else class="shr-dim">{{ t('file.share.noCode') }}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>{{ t('file.share.expires') }}</dt>
+              <dd class="m-num">{{ row.expiresAt ? shortDate(row.expiresAt) : t('file.share.never') }}</dd>
+              <dd class="shr-left" :class="`is-${leftTone(row)}`">{{ leftText(row) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('file.share.downloads') }}</dt>
+              <dd class="m-num">
+                {{ Number(row.downloadCount || 0) }}
+                <span class="shr-dl__limit">/ {{ Number(row.maxDownloads) > 0 ? row.maxDownloads : t('file.share.unlimited') }}</span>
+              </dd>
+              <dd><div class="shr-bar"><span :style="barStyle(row)" /></div></dd>
+            </div>
+          </dl>
+          <footer class="shr-mcard__foot">
+            <span class="shr-mcard__tag">{{ t('file.share.itemsCount', { count: itemCount(row) }) }}</span>
+            <span class="shr-mcard__spacer" />
+            <AppIconButton
+              :icon="row.enabled ? 'HOutline:PauseCircleIcon' : 'HOutline:PlayCircleIcon'"
+              :class="row.enabled ? 'tone-bad' : 'tone-ok'"
+              :label="row.enabled ? t('file.share.disable') : t('file.share.enable')"
+              :box="44"
+              @click="toggleEnabled(row)"
+            />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="44" @click="openEdit(row)" />
+            <ActionMenu :items="rowMenu(row, true)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
+          </footer>
+        </article>
+      </div>
+    </template>
+
+    <Pagination
+      v-model:page="pagination.page"
+      v-model:page-size="pagination.pageSize"
+      :total="pagination.total"
+      @change="loadList"
+    />
+
+    <!-- 批量条 -->
+    <div v-if="selected.size" class="shr-bulk" role="toolbar" :aria-label="t('file.share.selectedShares', { count: selected.size })">
+      <span class="shr-bulk__count m-num">{{ t('file.share.selectedShares', { count: selected.size }) }}</span>
+      <button v-for="act in bulkActions" :key="act.key" type="button" class="shr-bulk__btn" :class="{ 'is-danger': act.danger }" :aria-label="act.label" :title="act.label" :disabled="bulkBusy" @click="onBulk(act.key)">
+        <UIcon :name="act.icon" />
+        <span v-if="!menuStore.isMobile">{{ act.label }}</span>
+      </button>
+      <button type="button" class="shr-bulk__btn shr-bulk__btn--x" :aria-label="t('fileManager.cancelSelect')" :title="t('fileManager.cancelSelect')" @click="selected = new Set()">
+        <UIcon name="i-lucide-x" />
+      </button>
     </div>
 
     <ShareFormDialog v-model="formOpen" :share="editing" @saved="loadList" />
@@ -125,7 +258,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { formatDateTime, copyTextToClipboard, getBaseName } from '@/utils/file'
+import { formatDateTime, copyTextToClipboard, getBaseName, formatFileSize, resolveFilePreviewKind } from '@/utils/file'
 import { Dialog } from '@/utils/dialog'
 import {
   listSharesRequest,
@@ -133,78 +266,161 @@ import {
   updateShareRequest,
   buildShareLink,
 } from '@/api/share'
+import { listFileSourcesRequest } from '@/api/fileSource'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
-import type { ShareInfo, ShareItem } from '@/types/v1/file'
-import type { DataTableColumn } from '@/components/ui/DataTable.vue'
+import type { ShareInfo, ShareItem, ShareStats } from '@/types/v1/file'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
+import type { ToolbarChip } from '@/components/ui/ListToolbar.vue'
 
 defineOptions({ name: 'FileShareView' })
 
 const { t } = useI18n()
 const menuStore = useMenuStore()
+const accessible = useAccessibleRoutes()
+const canGoFiles = computed(() => accessible.value.has('/file/index'))
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
+
+type ShareStatus = '' | 'active' | 'expired' | 'exhausted' | 'disabled'
 
 const items = ref<ShareInfo[]>([])
 const loading = ref(false)
 const keywords = ref('')
+const status = ref<ShareStatus>('')
 const pagination = ref({ page: 1, pageSize: 20, total: 0 })
+const emptyStats = (): ShareStats => ({
+  total: 0,
+  active: 0,
+  expired: 0,
+  exhausted: 0,
+  disabled: 0,
+  downloads: 0,
+  expiringSoon: 0,
+})
+const stats = ref<ShareStats>(emptyStats())
 
 const formOpen = ref(false)
 const editing = ref<ShareInfo | null>(null)
 
-// 分享内容可含多来源多文件：列表里不铺开全部路径（会撑长/成逗号汤），
-// 只显示「数量徽标 + 首个文件名」，完整清单走 title 悬浮提示。
-const itemsOf = (row: Record<string, unknown>) => (row.items as ShareItem[] | undefined) || []
-const itemCount = (row: Record<string, unknown>) => itemsOf(row).length
-const fullPaths = (row: Record<string, unknown>) => itemsOf(row).map((i) => i.path).join('\n')
-const firstName = (row: Record<string, unknown>) => {
+// 来源名（分享条目可跨来源）：本地磁盘 + 已配置来源。读取失败时只显示本地/类型。
+const sourceNames = ref<Record<string, string>>({})
+const loadSources = async () => {
+  try {
+    const { data } = await listFileSourcesRequest()
+    sourceNames.value = Object.fromEntries((data.items ?? []).map((s) => [s.id, s.name]))
+  } catch {
+    sourceNames.value = {}
+  }
+}
+
+// ---- 展示 ----
+const itemsOf = (row: ShareInfo) => (row.items as ShareItem[] | undefined) || []
+const itemCount = (row: ShareInfo) => itemsOf(row).length
+const fullPaths = (row: ShareInfo) => itemsOf(row).map((i) => i.path).join('\n')
+const firstName = (row: ShareInfo) => {
   const first = itemsOf(row)[0]
   if (!first) return '—'
-  return getBaseName(first.path) || first.path
+  return first.name || getBaseName(first.path) || first.path
 }
+const sourceName = (row: ShareInfo) => {
+  const ids = Array.from(new Set(itemsOf(row).map((i) => i.sourceId || '')))
+  if (!ids.length) return t('file.share.localSource')
+  const names = ids.map((id) => (id ? sourceNames.value[id] || t('fileSource.title') : t('file.share.localSource')))
+  return names.join(' + ')
+}
+const totalSize = (row: ShareInfo) => itemsOf(row).reduce((sum, i) => sum + (i.isDir ? 0 : Number(i.size) || 0), 0)
+const pad2 = (n: number) => String(n).padStart(2, '0')
+const shortDate = (value: unknown) => {
+  const d = new Date(value as string)
+  if (Number.isNaN(d.getTime())) return '—'
+  const md = `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+  return d.getFullYear() === new Date().getFullYear() ? md : `${d.getFullYear()}-${md}`
+}
+const contentMeta = (row: ShareInfo) => {
+  const parts = [sourceName(row)]
+  const n = itemCount(row)
+  if (n > 1) parts.push(t('file.share.itemsCount', { count: n }))
+  const size = totalSize(row)
+  if (size) parts.push(formatFileSize(size))
+  parts.push(t('file.share.createdAt', { time: shortDate(row.createTime) }))
+  return parts.join(' · ')
+}
+const visual = (row: ShareInfo): { icon: string; tone: string } => {
+  const list = itemsOf(row)
+  if (list.length > 1) return { icon: 'i-lucide-layers', tone: 'p' }
+  const first = list[0]
+  if (!first || first.isDir) return { icon: 'i-lucide-folder', tone: 'a' }
+  const kind = resolveFilePreviewKind(first.name || first.path)
+  if (kind === 'image') return { icon: 'i-lucide-image', tone: 'ok' }
+  if (kind === 'video') return { icon: 'i-lucide-film', tone: 'p' }
+  if (kind === 'audio') return { icon: 'i-lucide-music', tone: 'a2' }
+  if (/\.(zip|tar|gz|tgz|rar|7z)$/i.test(first.path)) return { icon: 'i-lucide-file-archive', tone: 'warn' }
+  return { icon: 'i-lucide-file-text', tone: 'a2' }
+}
+const shortLink = (row: ShareInfo) => buildShareLink(row.token).replace(/^https?:\/\//, '')
 
-type PillVariant = 'success' | 'warning' | 'neutral'
-const isExpired = (row: Record<string, unknown>) =>
-  !!row.expiresAt && new Date(row.expiresAt as string).getTime() < Date.now()
-const isExhausted = (row: Record<string, unknown>) =>
+// ---- 状态（与后端统计口径一致：停用 > 过期 > 次数用完 > 有效）----
+const isExpired = (row: ShareInfo) => !!row.expiresAt && new Date(row.expiresAt as unknown as string).getTime() <= Date.now()
+const isExhausted = (row: ShareInfo) =>
   Number(row.maxDownloads) > 0 && Number(row.downloadCount) >= Number(row.maxDownloads)
-const statusVariant = (row: Record<string, unknown>): PillVariant => {
-  if (!row.enabled) return 'neutral'
-  if (isExpired(row) || isExhausted(row)) return 'warning'
-  return 'success'
+const statusOf = (row: ShareInfo): Exclude<ShareStatus, ''> => {
+  if (!row.enabled) return 'disabled'
+  if (isExpired(row)) return 'expired'
+  if (isExhausted(row)) return 'exhausted'
+  return 'active'
 }
-const statusLabel = (row: Record<string, unknown>) => {
-  if (!row.enabled) return t('file.share.statusDisabled')
-  if (isExpired(row)) return t('file.share.statusExpired')
-  if (isExhausted(row)) return t('file.share.statusExhausted')
-  return t('file.share.statusValid')
+type PillVariant = 'success' | 'warning' | 'neutral' | 'error'
+const statusVariant = (row: ShareInfo): PillVariant =>
+  ({ active: 'success', expired: 'neutral', exhausted: 'warning', disabled: 'neutral' } as const)[statusOf(row)]
+const statusLabel = (row: ShareInfo) =>
+  ({
+    active: t('file.share.statusValid'),
+    expired: t('file.share.statusExpired'),
+    exhausted: t('file.share.statusExhausted'),
+    disabled: t('file.share.statusDisabled'),
+  })[statusOf(row)]
+
+const leftMs = (row: ShareInfo) =>
+  row.expiresAt ? new Date(row.expiresAt as unknown as string).getTime() - Date.now() : Infinity
+const leftText = (row: ShareInfo) => {
+  const ms = leftMs(row)
+  if (ms === Infinity) return t('file.share.forever')
+  if (ms <= 0) return t('file.share.expiredLabel')
+  const hours = Math.floor(ms / 3600000)
+  if (hours < 1) return t('file.share.leftSoon')
+  if (hours < 48) return t('file.share.leftHours', { n: hours })
+  return t('file.share.leftDays', { n: Math.floor(hours / 24) })
+}
+const leftTone = (row: ShareInfo) => {
+  const ms = leftMs(row)
+  if (ms <= 0) return 'bad'
+  if (ms < 3 * 86400000) return 'warn'
+  return 'dim'
+}
+const barStyle = (row: ShareInfo) => {
+  const max = Number(row.maxDownloads) || 0
+  if (!max) return { width: '100%', background: 'var(--m-line)' }
+  const pct = Math.min(100, Math.round((Number(row.downloadCount || 0) / max) * 100))
+  const bg = pct >= 100 ? 'var(--m-bad)' : pct >= 80 ? 'var(--m-warn)' : 'var(--m-p)'
+  return { width: `${pct}%`, background: bg }
 }
 
-const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('file.share.name'), minWidth: 150 },
-  { key: 'content', title: t('file.share.content'), minWidth: 200 },
-  { key: 'code', title: t('file.share.code'), width: 110 },
-  { key: 'expires', title: t('file.share.expires'), width: 170 },
-  { key: 'downloads', title: t('file.share.downloads'), width: 100 },
-  { key: 'enabled', title: t('file.share.enabled'), width: 80 },
-  { key: 'status', title: t('system.common.status'), width: 90 },
-  { key: 'operation', title: t('system.common.operation'), width: 80, align: 'center' },
+// ---- 统计卡 / 筛选胶囊 ----
+const statCards = computed(() => [
+  { key: 'total', label: t('file.share.statTotal'), value: stats.value.total, icon: 'i-lucide-share-2', tone: 'p', unit: '' },
+  { key: 'active', label: t('file.share.statValid'), value: stats.value.active, icon: 'i-lucide-link-2', tone: 'ok', unit: '' },
+  { key: 'downloads', label: t('file.share.statDownloads'), value: stats.value.downloads, icon: 'i-lucide-download', tone: 'a2', unit: t('file.share.times') },
+  { key: 'soon', label: t('file.share.statSoon'), value: stats.value.expiringSoon, icon: 'i-lucide-hourglass', tone: 'a', unit: '' },
+])
+const statusChips = computed<ToolbarChip<ShareStatus>[]>(() => [
+  { label: t('file.share.filterAll'), value: '', count: Number(stats.value.total) },
+  { label: t('file.share.statusValid'), value: 'active', count: Number(stats.value.active) },
+  { label: t('file.share.statusExpired'), value: 'expired', count: Number(stats.value.expired) },
+  { label: t('file.share.statusExhausted'), value: 'exhausted', count: Number(stats.value.exhausted) },
+  { label: t('file.share.statusDisabled'), value: 'disabled', count: Number(stats.value.disabled) },
 ])
 
-const rowActions = computed<ActionMenuItem[]>(() => [
-  { key: 'copy', label: t('file.share.copyLink'), icon: 'HOutline:LinkIcon' },
-  { key: 'edit', label: t('system.common.edit'), icon: 'HOutline:PencilSquareIcon' },
-  { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
-])
-
-const findRow = (id: string) => items.value.find((x) => x.id === id)
-const onRowAction = (key: string, row: Record<string, unknown>) => {
-  const record = findRow(String(row.id))
-  if (!record) return
-  if (key === 'copy') copyLink(record)
-  else if (key === 'edit') openEdit(record)
-  else if (key === 'delete') remove(record)
-}
-
+// ---- 加载 ----
 const loadList = async () => {
   loading.value = true
   try {
@@ -212,10 +428,25 @@ const loadList = async () => {
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       keywords: keywords.value.trim() || undefined,
+      status: status.value || undefined,
     })
     items.value = data?.items || []
-    // 后端 total 为 int64，protobuf-JSON 序列化成字符串，这里转回 Number 供分页组件使用。
+    // int64 经 protobuf-JSON 可能为字符串，统一转 Number。
     pagination.value.total = Number(data?.total || 0)
+    const s = data?.stats
+    stats.value = s
+      ? {
+          total: Number(s.total || 0),
+          active: Number(s.active || 0),
+          expired: Number(s.expired || 0),
+          exhausted: Number(s.exhausted || 0),
+          disabled: Number(s.disabled || 0),
+          downloads: Number(s.downloads || 0),
+          expiringSoon: Number(s.expiringSoon || 0),
+        }
+      : emptyStats()
+    const ids = new Set(items.value.map((i) => i.id))
+    selected.value = new Set([...selected.value].filter((id) => ids.has(id)))
   } catch {
     items.value = []
     pagination.value.total = 0
@@ -227,10 +458,6 @@ const search = () => {
   pagination.value.page = 1
   loadList()
 }
-const reset = () => {
-  keywords.value = ''
-  search()
-}
 
 const openCreate = () => {
   editing.value = null
@@ -241,33 +468,41 @@ const openEdit = (row: ShareInfo) => {
   formOpen.value = true
 }
 
-const toggleEnabled = async (row: Record<string, unknown>) => {
-  const record = findRow(String(row.id))
-  if (!record) return
+// 全量覆盖可编辑字段的更新（items 为空=不改内容）。
+const patchShare = (row: ShareInfo, patch: Partial<Pick<ShareInfo, 'enabled' | 'expiresAt'>>) =>
+  updateShareRequest({
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    expiresAt: 'expiresAt' in patch ? patch.expiresAt : row.expiresAt,
+    maxDownloads: row.maxDownloads,
+    enabled: 'enabled' in patch ? !!patch.enabled : row.enabled,
+    items: [],
+  })
+
+const toggleEnabled = async (row: ShareInfo) => {
   try {
-    await updateShareRequest({
-      id: record.id,
-      name: record.name,
-      code: record.code,
-      expiresAt: record.expiresAt,
-      maxDownloads: record.maxDownloads,
-      enabled: !record.enabled,
-      items: [],
-    })
-    record.enabled = !record.enabled
+    await patchShare(row, { enabled: !row.enabled })
+    loadList()
   } catch {
     /* interceptor */
   }
 }
 
+const copiedId = ref('')
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 const copyLink = async (row: ShareInfo) => {
   try {
     await copyTextToClipboard(buildShareLink(row.token))
     feedback.success(t('file.share.copied'))
+    copiedId.value = row.id
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (copiedId.value = ''), 1600)
   } catch {
     feedback.error(t('file.share.copyFailed'))
   }
 }
+const openLink = (row: ShareInfo) => window.open(buildShareLink(row.token), '_blank', 'noopener')
 
 const remove = (row: ShareInfo) => {
   Dialog.confirm({
@@ -280,132 +515,363 @@ const remove = (row: ShareInfo) => {
   })
 }
 
-onMounted(loadList)
+const rowMenu = (row: ShareInfo, mobile = false): ActionMenuItem[] => [
+  ...(mobile ? [] : [{ key: 'copy', label: t('file.share.copyLink'), icon: 'i-lucide-copy' }]),
+  { key: 'open', label: t('file.share.openLink'), icon: 'i-lucide-external-link' },
+  { key: 'extend', label: t('file.share.extend7'), icon: 'i-lucide-calendar-plus' },
+  { key: 'select', label: selected.value.has(row.id) ? t('fileManager.cancelSelect') : t('fileManager.select'), icon: 'i-lucide-square-check' },
+  { key: 'delete', label: t('system.common.delete'), icon: 'i-lucide-trash-2', danger: true },
+]
+const onRowAction = (key: string, row: ShareInfo) => {
+  if (key === 'copy') copyLink(row)
+  else if (key === 'open') openLink(row)
+  else if (key === 'extend') extendShares([row])
+  else if (key === 'select') toggleOne(row.id)
+  else if (key === 'delete') remove(row)
+}
+
+// ---- 选择 / 批量 ----
+const selected = ref<Set<string>>(new Set())
+const allSelected = computed(() => items.value.length > 0 && items.value.every((r) => selected.value.has(r.id)))
+const someSelected = computed(() => selected.value.size > 0 && !allSelected.value)
+const toggleOne = (id: string) => {
+  const next = new Set(selected.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selected.value = next
+}
+const toggleAll = () => {
+  selected.value = allSelected.value ? new Set() : new Set(items.value.map((r) => r.id))
+}
+const selectedRows = computed(() => items.value.filter((r) => selected.value.has(r.id)))
+
+const bulkActions = computed(() => [
+  { key: 'copy', label: t('file.share.copyLink'), icon: 'i-lucide-copy', danger: false },
+  { key: 'extend', label: t('file.share.extend7'), icon: 'i-lucide-calendar-plus', danger: false },
+  { key: 'disable', label: t('file.share.disable'), icon: 'i-lucide-circle-pause', danger: false },
+  { key: 'delete', label: t('system.common.delete'), icon: 'i-lucide-trash-2', danger: true },
+])
+const bulkBusy = ref(false)
+const runBulk = async (rows: ShareInfo[], fn: (row: ShareInfo) => Promise<unknown>) => {
+  bulkBusy.value = true
+  let done = 0
+  try {
+    for (const row of rows) {
+      try {
+        await fn(row)
+        done += 1
+      } catch {
+        /* 单条失败由拦截器提示，继续其余 */
+      }
+    }
+    feedback.success(t('file.share.batchDone', { count: done }))
+  } finally {
+    bulkBusy.value = false
+    loadList()
+  }
+}
+// 延长 7 天：在「当前过期时间与现在」较晚者基础上 +7 天；永久分享不变。
+const extendShares = (rows: ShareInfo[]) =>
+  runBulk(
+    rows.filter((r) => !!r.expiresAt),
+    (row) => {
+      const base = Math.max(Date.now(), new Date(row.expiresAt as unknown as string).getTime())
+      return patchShare(row, { expiresAt: new Date(base + 7 * 86400000) })
+    },
+  )
+const onBulk = async (key: string) => {
+  const rows = selectedRows.value
+  if (!rows.length) return
+  if (key === 'copy') {
+    try {
+      await copyTextToClipboard(rows.map((r) => buildShareLink(r.token)).join('\n'))
+      feedback.success(t('file.share.linksCopied', { count: rows.length }))
+    } catch {
+      feedback.error(t('file.share.copyFailed'))
+    }
+  } else if (key === 'extend') {
+    extendShares(rows)
+  } else if (key === 'disable') {
+    runBulk(rows.filter((r) => r.enabled), (row) => patchShare(row, { enabled: false }))
+  } else if (key === 'delete') {
+    Dialog.confirm({
+      content: t('file.share.batchDeleteConfirm', { count: rows.length }),
+      onConfirm: async () => {
+        await runBulk(rows, (row) => deleteShareRequest(row.id))
+        selected.value = new Set()
+      },
+    })
+  }
+}
+
+onMounted(() => {
+  loadSources()
+  loadList()
+})
 </script>
 
 <style scoped lang="scss">
-.shr-page {
+.shr {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  min-width: 0;
 }
-.shr-page__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.shr-ok {
+  color: var(--m-ok);
+  font-weight: 700;
 }
-.shr-page__bar {
+
+/* 统计卡 */
+.shr-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.shr-stat {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
 }
-.shr-page__hint {
+.shr-stat__sticker {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+}
+.shr-stat__sticker :deep(svg),
+.shr-stat__sticker :deep(.iconify) {
+  width: 22px;
+  height: 22px;
+}
+.shr-stat__label {
   font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
 }
-.shr-name {
-  display: inline-flex;
+.shr-stat__value {
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.shr-stat__unit {
+  margin-left: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+}
+
+/* 卡片外壳 */
+.shr-card {
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+}
+
+/* 表格 */
+.shr-tablewrap {
+  padding: 4px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.shr-tablewrap::-webkit-scrollbar {
+  display: none;
+}
+.shr-table {
+  width: 100%;
+  min-width: 960px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.shr-table th {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--el-text-color-secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+.shr-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+.shr-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.shr-table tbody tr:hover td {
+  background: var(--m-s2);
+}
+.shr-table tbody tr.is-selected td {
+  background: color-mix(in srgb, var(--m-pSoft) 70%, var(--el-bg-color));
+}
+.shr-th--check,
+.shr-td--check {
+  width: 40px;
+  text-align: center;
+}
+.shr-th--ops {
+  text-align: right !important;
+}
+.shr-cb {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--m-p);
+  cursor: pointer;
+}
+.shr-td--content {
+  max-width: 300px;
+}
+.shr-content {
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
 }
-.shr-name__ico {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  color: var(--el-color-primary);
+.shr-sticker {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
 }
-.shr-name__text {
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+.shr-sticker :deep(svg),
+.shr-sticker :deep(.iconify) {
+  width: 18px;
+  height: 18px;
+}
+.shr-sticker--lg {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+}
+.shr-content__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shr-content__name {
+  font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.shr-items {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  max-width: 100%;
-}
-.shr-items__badge {
-  flex-shrink: 0;
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: var(--el-fill-color);
-  font-size: 0.7rem;
-  font-weight: 600;
+.shr-content__meta {
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
-.shr-items__first {
-  min-width: 0;
-  font-size: 0.8rem;
-  color: var(--el-text-color-regular);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.shr-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.shr-link__text {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.shr-link__text.is-dim {
+  color: var(--el-text-color-secondary);
+}
+.is-copied {
+  color: var(--m-ok) !important;
 }
 .shr-code {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--el-text-color-regular);
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--m-aSoft);
+  color: var(--m-aOn);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
-.shr-code__ico {
-  width: 12px;
-  height: 12px;
-  color: var(--el-text-color-placeholder);
+:global(html.dark) .shr-code {
+  color: var(--m-a);
 }
-.shr-num {
-  font-variant-numeric: tabular-nums;
-}
-.shr-muted {
-  color: var(--el-text-color-placeholder);
-  font-size: 0.75rem;
-}
-.shr-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.shr-card__path {
-  min-width: 0;
-  font-size: 0.75rem;
+.shr-dim {
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+.shr-exp {
+  font-size: 0.8125rem;
+  font-weight: 700;
   white-space: nowrap;
 }
-.shr-card__stat {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  font-variant-numeric: tabular-nums;
+.shr-left {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--el-text-color-secondary);
 }
-.shr-card__actions {
+.shr-left.is-warn {
+  color: var(--m-warn);
+  font-weight: 700;
+}
+.shr-left.is-bad {
+  color: var(--m-bad);
+  font-weight: 700;
+}
+.shr-td--dl {
+  min-width: 110px;
+}
+.shr-dl {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.shr-dl__limit {
+  color: var(--el-text-color-secondary);
+  font-weight: 600;
+}
+.shr-bar {
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--m-s2);
+  overflow: hidden;
+}
+.shr-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.shr-ops {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.tone-bad {
+  color: var(--m-bad);
+}
+.tone-ok {
+  color: var(--m-ok);
 }
 .shr-skeleton {
-  height: 96px;
-  border-radius: var(--app-radius);
-  background: linear-gradient(
-    100deg,
-    var(--el-fill-color-light) 30%,
-    var(--el-fill-color) 50%,
-    var(--el-fill-color-light) 70%
-  );
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(100deg, var(--m-s2) 30%, var(--el-fill-color-light) 50%, var(--m-s2) 70%);
   background-size: 200% 100%;
   animation: shr-shimmer 1.4s ease-in-out infinite;
+}
+.shr-skeleton--card {
+  height: 220px;
+  border-radius: var(--app-radius-lg);
 }
 @keyframes shr-shimmer {
   from {
@@ -415,9 +881,195 @@ onMounted(loadList)
     background-position: -200% 0;
   }
 }
+
+/* 手机卡片 */
+.shr-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shr-mcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px 6px 16px;
+}
+.shr-mcard.is-selected {
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
+}
+.shr-mcard__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 4px;
+}
+.shr-mcard__head .shr-content__name {
+  font-size: 1rem;
+}
+.shr-mcard__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+  padding-left: 12px;
+  border-radius: 14px;
+  background: var(--m-s2);
+}
+.shr-mcard__link .shr-link__text {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+.shr-mcard__link-ico {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--el-text-color-secondary);
+}
+.shr-mcard__info {
+  display: grid;
+  grid-template-columns: 0.8fr 1.1fr 1.1fr;
+  gap: 10px;
+  margin: 0 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--el-fill-color-light);
+}
+.shr-mcard__info > div {
+  min-width: 0;
+}
+.shr-mcard__info dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.shr-mcard__info dd {
+  margin: 3px 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.shr-mcard__info .shr-code {
+  height: 24px;
+  padding: 0 8px;
+}
+.shr-mcard__foot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.shr-mcard__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--m-s2);
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.shr-mcard__spacer {
+  flex: 1;
+}
+.shr-mcard__foot :deep(.action-menu__trigger) {
+  width: 44px;
+  height: 44px;
+}
+
+/* 批量条 */
+.shr-bulk {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 6px 6px 6px 20px;
+  border-radius: 999px;
+  background: var(--m-ink);
+  color: var(--m-bg);
+  box-shadow: var(--app-shadow-lg);
+}
+.shr-bulk__count {
+  margin-right: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.shr-bulk__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--m-bg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.shr-bulk__btn:hover {
+  background: color-mix(in srgb, var(--m-bg) 14%, transparent);
+}
+.shr-bulk__btn:disabled {
+  opacity: 0.5;
+}
+.shr-bulk__btn.is-danger {
+  color: var(--m-a);
+}
+.shr-bulk__btn--x {
+  padding: 0;
+}
+.shr-bulk__btn :deep(svg),
+.shr-bulk__btn :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
+
 @media (width <= 768px) {
-  .shr-page {
-    gap: 8px;
+  .shr {
+    gap: 12px;
+  }
+  .shr-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .shr-stat {
+    gap: 10px;
+    padding: 12px;
+  }
+  .shr-stat__sticker {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .shr-stat__value {
+    font-size: 1.375rem;
+  }
+  .shr-bulk {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    justify-content: space-between;
+    padding-left: 16px;
+  }
+  .shr-bulk__count {
+    margin-right: auto;
+  }
+  .shr-bulk__btn {
+    padding: 0;
   }
 }
 </style>

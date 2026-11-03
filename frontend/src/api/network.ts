@@ -12,6 +12,10 @@ import type {
   DeletePortForwardResponse,
   GetPortForwardStatsRequest,
   GetPortForwardStatsResponse,
+  ClosePortForwardConnectionsRequest,
+  ClosePortForwardConnectionsResponse,
+  ResetPortForwardTrafficRequest,
+  ResetPortForwardTrafficResponse,
 } from '@/types/v1/network'
 
 export const listPortForwards = (params: ListPortForwardsRequest) => {
@@ -38,4 +42,12 @@ export const getPortForwardStats = (params: GetPortForwardStatsRequest) => {
   return request.get<GetPortForwardStatsResponse>(`/network/port-forwards/${params.id}/stats`, {
     params: { startTimeMs: params.startTimeMs, endTimeMs: params.endTimeMs },
   })
+}
+
+export const closePortForwardConnections = (data: ClosePortForwardConnectionsRequest) => {
+  return request.post<ClosePortForwardConnectionsResponse>(`/network/port-forwards/${data.id}/connections/close`, data)
+}
+
+export const resetPortForwardTraffic = (data: ResetPortForwardTrafficRequest) => {
+  return request.post<ResetPortForwardTrafficResponse>(`/network/port-forwards/${data.id}/traffic/reset`, data)
 }

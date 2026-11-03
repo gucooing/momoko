@@ -8,6 +8,23 @@
 
 export const protobufPackage = "v1";
 
+/** 列表筛选 */
+export enum SSHHostFilter {
+  /** SSH_HOST_FILTER_ALL - 全部 */
+  SSH_HOST_FILTER_ALL = "SSH_HOST_FILTER_ALL",
+  /** SSH_HOST_FILTER_OK - 上次测试连通 */
+  SSH_HOST_FILTER_OK = "SSH_HOST_FILTER_OK",
+  /** SSH_HOST_FILTER_FAILED - 上次测试失败 */
+  SSH_HOST_FILTER_FAILED = "SSH_HOST_FILTER_FAILED",
+  /** SSH_HOST_FILTER_UNTESTED - 从未测试 */
+  SSH_HOST_FILTER_UNTESTED = "SSH_HOST_FILTER_UNTESTED",
+  /** SSH_HOST_FILTER_SHARED - 我分享给他人的 */
+  SSH_HOST_FILTER_SHARED = "SSH_HOST_FILTER_SHARED",
+  /** SSH_HOST_FILTER_SHARED_WITH_ME - 他人分享给我的 */
+  SSH_HOST_FILTER_SHARED_WITH_ME = "SSH_HOST_FILTER_SHARED_WITH_ME",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 export enum SSHAuthType {
   /** SSH_AUTH_TYPE_UNSPECIFIED - 未指定 */
   SSH_AUTH_TYPE_UNSPECIFIED = "SSH_AUTH_TYPE_UNSPECIFIED",
@@ -38,7 +55,15 @@ export interface GetSSHHostsRequest {
     | string
     | undefined;
   /** 主机地址 */
-  host?: string | undefined;
+  host?:
+    | string
+    | undefined;
+  /** 按连通状态/分享筛选 */
+  filter?:
+    | SSHHostFilter
+    | undefined;
+  /** 按标签（分组）筛选 */
+  tag?: string | undefined;
 }
 
 export interface GetSSHHostsResponse {
@@ -46,10 +71,62 @@ export interface GetSSHHostsResponse {
   page: number;
   /** actual page size */
   pageSize: number;
-  /** 总数 */
+  /** 总数（筛选后） */
   total: number;
   /** 列表 */
   infos: SSHHostInfo[];
+  /** 全部可访问主机的统计（不受筛选影响） */
+  stats: SSHHostStats | undefined;
+}
+
+/** SSH 主机统计 */
+export interface SSHHostStats {
+  /** 可访问主机总数 */
+  total: number;
+  /** 上次测试连通 */
+  ok: number;
+  /** 上次测试失败 */
+  failed: number;
+  /** 从未测试 */
+  untested: number;
+  /** 我分享给他人的 */
+  shared: number;
+  /** 他人分享给我的 */
+  sharedWithMe: number;
+  /** 全部标签（分组），按名称排序 */
+  tags: string[];
+  /** 最近一次测试时间 */
+  lastTestTime:
+    | Date
+    | undefined;
+  /** 连通主机的平均延迟（毫秒） */
+  avgLatencyMs: number;
+  /** 每台主机的上次测试状态（按创建时间排序，用于概览条） */
+  marks: SSHHostTestMark[];
+}
+
+/** 主机上次测试状态标记 */
+export interface SSHHostTestMark {
+  /** 主机 id */
+  id: string;
+  /** 名称 */
+  name: string;
+  /** 是否测试过 */
+  tested: boolean;
+  /** 是否连通 */
+  ok: boolean;
+  /** 失败原因 */
+  message: string;
+}
+
+export interface TestSSHHostsRequest {
+  /** 要测试的主机 id；为空表示全部可访问主机 */
+  ids: string[];
+}
+
+export interface TestSSHHostsResponse {
+  /** 每台主机的测试结果 */
+  results: SSHHostTestMark[];
 }
 
 export interface CreateSSHHostRequest {
@@ -249,7 +326,21 @@ export interface SSHHostInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 上次测试时间；未测试过为空 */
+  lastTestTime:
+    | Date
+    | undefined;
+  /** 上次测试是否连通 */
+  lastTestOk: boolean;
+  /** 上次测试延迟（毫秒） */
+  lastTestLatencyMs: number;
+  /** 上次测试失败原因 */
+  lastTestMessage: string;
+  /** 上次打开终端连接的时间；从未连接为空 */
+  lastConnectTime: Date | undefined;
 }
 
 export interface SSHHostSharedUser {

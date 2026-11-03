@@ -26,6 +26,7 @@ const OperationOIDCServiceListOIDCClients = "/v1.OIDCService/ListOIDCClients"
 const OperationOIDCServiceOIDCAuthorizationInfo = "/v1.OIDCService/OIDCAuthorizationInfo"
 const OperationOIDCServiceOIDCConfig = "/v1.OIDCService/OIDCConfig"
 const OperationOIDCServiceRefreshOIDCClientSecret = "/v1.OIDCService/RefreshOIDCClientSecret"
+const OperationOIDCServiceRotateOIDCSigningKey = "/v1.OIDCService/RotateOIDCSigningKey"
 const OperationOIDCServiceUpdateOIDCClient = "/v1.OIDCService/UpdateOIDCClient"
 const OperationOIDCServiceUpdateOIDCConfig = "/v1.OIDCService/UpdateOIDCConfig"
 
@@ -44,6 +45,8 @@ type OIDCServiceHTTPServer interface {
 	OIDCConfig(context.Context, *OIDCConfigRequest) (*OIDCConfigResponse, error)
 	// RefreshOIDCClientSecret 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
 	RefreshOIDCClientSecret(context.Context, *RefreshOIDCClientSecretRequest) (*RefreshOIDCClientSecretResponse, error)
+	// RotateOIDCSigningKey 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+	RotateOIDCSigningKey(context.Context, *RotateOIDCSigningKeyRequest) (*RotateOIDCSigningKeyResponse, error)
 	// UpdateOIDCClient 更新 OIDC 客户端基础配置；不会修改 Client ID 和 Client Secret
 	UpdateOIDCClient(context.Context, *UpdateOIDCClientRequest) (*UpdateOIDCClientResponse, error)
 	// UpdateOIDCConfig 更新 OIDC 服务端配置
@@ -59,6 +62,7 @@ func RegisterOIDCServiceHTTPServer(s *http.Server, srv OIDCServiceHTTPServer) {
 	r.PUT("/api/v1/oidc/clients/{id}", _OIDCService_UpdateOIDCClient0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/oidc/clients/{id}", _OIDCService_DeleteOIDCClient0_HTTP_Handler(srv))
 	r.POST("/api/v1/oidc/clients/{id}/secret", _OIDCService_RefreshOIDCClientSecret0_HTTP_Handler(srv))
+	r.POST("/api/v1/oidc/signing-key/rotate", _OIDCService_RotateOIDCSigningKey0_HTTP_Handler(srv))
 	r.POST("/api/v1/oidc/authorize-info", _OIDCService_OIDCAuthorizationInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/oidc/authorize-code", _OIDCService_CreateOIDCAuthorizationCode0_HTTP_Handler(srv))
 }
@@ -217,6 +221,28 @@ func _OIDCService_RefreshOIDCClientSecret0_HTTP_Handler(srv OIDCServiceHTTPServe
 	}
 }
 
+func _OIDCService_RotateOIDCSigningKey0_HTTP_Handler(srv OIDCServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RotateOIDCSigningKeyRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOIDCServiceRotateOIDCSigningKey)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RotateOIDCSigningKey(ctx, req.(*RotateOIDCSigningKeyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RotateOIDCSigningKeyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _OIDCService_OIDCAuthorizationInfo0_HTTP_Handler(srv OIDCServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in OIDCAuthorizationInfoRequest
@@ -276,6 +302,8 @@ type OIDCServiceHTTPClient interface {
 	OIDCConfig(ctx context.Context, req *OIDCConfigRequest, opts ...http.CallOption) (rsp *OIDCConfigResponse, err error)
 	// RefreshOIDCClientSecret 刷新 OIDC 客户端密钥；刷新后会返回新的完整 Client Secret
 	RefreshOIDCClientSecret(ctx context.Context, req *RefreshOIDCClientSecretRequest, opts ...http.CallOption) (rsp *RefreshOIDCClientSecretResponse, err error)
+	// RotateOIDCSigningKey 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+	RotateOIDCSigningKey(ctx context.Context, req *RotateOIDCSigningKeyRequest, opts ...http.CallOption) (rsp *RotateOIDCSigningKeyResponse, err error)
 	// UpdateOIDCClient 更新 OIDC 客户端基础配置；不会修改 Client ID 和 Client Secret
 	UpdateOIDCClient(ctx context.Context, req *UpdateOIDCClientRequest, opts ...http.CallOption) (rsp *UpdateOIDCClientResponse, err error)
 	// UpdateOIDCConfig 更新 OIDC 服务端配置
@@ -380,6 +408,20 @@ func (c *OIDCServiceHTTPClientImpl) RefreshOIDCClientSecret(ctx context.Context,
 	pattern := "/api/v1/oidc/clients/{id}/secret"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationOIDCServiceRefreshOIDCClientSecret))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RotateOIDCSigningKey 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+func (c *OIDCServiceHTTPClientImpl) RotateOIDCSigningKey(ctx context.Context, in *RotateOIDCSigningKeyRequest, opts ...http.CallOption) (*RotateOIDCSigningKeyResponse, error) {
+	var out RotateOIDCSigningKeyResponse
+	pattern := "/api/v1/oidc/signing-key/rotate"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationOIDCServiceRotateOIDCSigningKey))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

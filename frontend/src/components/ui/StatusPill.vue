@@ -13,18 +13,19 @@ const props = withDefaults(
   { variant: 'neutral', dot: true },
 )
 
-const toneMap: Record<Variant, string> = {
-  success: 'var(--el-color-success, #16a34a)',
-  warning: 'var(--el-color-warning, #f59e0b)',
-  error: 'var(--el-color-danger, #ef4444)',
-  info: '#64748b',
-  neutral: 'var(--el-text-color-secondary)',
-  primary: 'var(--el-color-primary)',
+// 文字色 + 淡底色均取自当前配色令牌，保证各配色下对比度达标
+const toneMap: Record<Variant, [string, string]> = {
+  success: ['var(--m-ok)', 'var(--m-okSoft)'],
+  warning: ['var(--m-warn)', 'var(--m-warnSoft)'],
+  error: ['var(--m-bad)', 'var(--m-badSoft)'],
+  info: ['var(--m-ink)', 'var(--m-a2Soft)'],
+  neutral: ['var(--m-ink2)', 'var(--m-s2)'],
+  primary: ['var(--m-pInk)', 'var(--m-pSoft)'],
 }
-const tone = computed(() => toneMap[props.variant])
+const tone = computed(() => toneMap[props.variant][0])
 const pillStyle = computed(() => ({
-  color: tone.value,
-  background: `color-mix(in srgb, ${tone.value} 12%, transparent)`,
+  color: toneMap[props.variant][0],
+  background: toneMap[props.variant][1],
 }))
 </script>
 
@@ -33,17 +34,17 @@ const pillStyle = computed(() => ({
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 2px 9px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .status-pill__dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   flex-shrink: 0;
 }

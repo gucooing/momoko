@@ -1,42 +1,63 @@
-<!-- 容器日志（重写）：令牌浮层 + TerminalConsole（只读流）。
+<!-- 容器日志：DockerTermSheet 外壳（PC 居中大面板 / 手机底部面板）+ TerminalConsole（只读流）。
      协议：ws 原始字节输出 → 持久 TextDecoder → write；不发输入/resize。
-     工具栏：tail 行数 + 时间戳开关 + 重连/清空；reconnect 用当前参数重连。 -->
+     终端顶栏左侧放 最近行数（快捷档 + 自定义）与 时间戳开关；右侧 重连/清空；tail/时间戳变化即重连。 -->
 <template>
-  <Teleport to="body">
-    <Transition name="dk-term">
-      <div v-if="visible" class="dk-term-overlay" @mousedown.self="close">
-        <div class="dk-term-panel">
-          <div class="dk-term-bar">
-            <span class="dk-term-bar__label">{{ t('docker.common.logs') }}</span>
-            <div class="dk-term-bar__field">
-              <span class="dk-term-bar__hint">tail</span>
-              <input v-model.number="tail" type="number" min="10" max="10000" step="100" class="app-input dk-term-num" />
-            </div>
-            <label class="dk-term-check">
-              <input v-model="timestamps" type="checkbox" />
-              <span>{{ t('docker.logsDialog.timestamps') }}</span>
-            </label>
+  <DockerTermSheet
+    v-model="visible"
+    :title="dialogTitle"
+    :subtitle="t('docker.logsDialog.sub')"
+    icon="HOutline:DocumentTextIcon"
+    tone="a2"
+  >
+    <TerminalConsole
+      ref="termRef"
+      :title="dialogTitle"
+      icon="HOutline:DocumentTextIcon"
+      :status="socketStatus"
+      :status-label="statusLabel"
+      :actions="actions"
+      @action="onAction"
+    >
+      <template #lead>
+        <div class="dk-logopts">
+          <div class="dk-logopts__seg" role="radiogroup" :aria-label="t('docker.logsDialog.tailLabel')">
+            <button
+              v-for="n in TAIL_PRESETS"
+              :key="n"
+              type="button"
+              role="radio"
+              class="dk-logopts__btn m-num"
+              :class="{ 'is-on': tail === n }"
+              :aria-checked="tail === n"
+              @click="tail = n"
+            >{{ n }}</button>
           </div>
-          <div class="dk-term-body">
-            <TerminalConsole
-              ref="termRef"
-              :title="dialogTitle"
-              icon="HOutline:DocumentTextIcon"
-              :status="socketStatus"
-              :status-label="statusLabel"
-              :actions="actions"
-              @action="onAction"
+          <label class="dk-logopts__num">
+            <span>tail</span>
+            <input
+              v-model.lazy.number="tail"
+              type="number"
+              min="10"
+              max="10000"
+              step="100"
+              class="m-num"
+              :aria-label="t('docker.logsDialog.tailLabel')"
             />
-          </div>
+          </label>
+          <label class="dk-logopts__switch">
+            <AppSwitch v-model="timestamps" />
+            <span>{{ t('docker.logsDialog.timestamps') }}</span>
+          </label>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+      </template>
+    </TerminalConsole>
+  </DockerTermSheet>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
+import DockerTermSheet from '@/views/docker/components/DockerTermSheet.vue'
 import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
@@ -55,6 +76,7 @@ const visible = computed({
   set: (value: boolean) => emit('update:modelValue', value),
 })
 
+const TAIL_PRESETS = [100, 200, 500, 1000]
 const termRef = ref<InstanceType<typeof TerminalConsole> | null>(null)
 const tail = ref(200)
 const timestamps = ref(true)
@@ -77,7 +99,6 @@ const statusLabel = computed(() => {
 const actions = computed<TerminalAction[]>(() => [
   { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('docker.common.reconnect'), tone: 'primary' },
   { key: 'clear', icon: 'HOutline:TrashIcon', label: t('docker.common.clear') },
-  { key: 'close', icon: 'HOutline:XMarkIcon', label: t('system.common.close'), tone: 'danger' },
 ])
 
 const writePayload = (payload: ArrayBuffer | string) => {
@@ -143,88 +164,57 @@ onBeforeUnmount(closeSocket)
 </script>
 
 <style scoped lang="scss">
-.dk-term-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: color-mix(in srgb, #0b1220 55%, transparent);
-  backdrop-filter: blur(2px);
-}
-.dk-term-panel {
-  display: flex;
-  flex-direction: column;
-  width: min(1000px, 96vw);
-  height: min(80vh, 720px);
-  border-radius: var(--app-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--app-shadow-lg);
-}
-.dk-term-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
-}
-.dk-term-bar__label {
-  font-size: 0.8125rem;
-  font-weight: 600;
+.dk-logopts { display: flex; align-items: center; gap: 10px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.dk-logopts::-webkit-scrollbar { display: none; }
+.dk-logopts__seg { display: inline-flex; flex: none; gap: 2px; padding: 3px; border-radius: 999px; background: var(--el-fill-color-light); }
+.dk-logopts__btn {
+  min-height: 32px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--el-text-color-secondary);
-  white-space: nowrap;
-}
-.dk-term-bar__field {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.dk-term-bar__hint {
-  font-size: 0.75rem;
-  color: var(--el-text-color-placeholder);
-}
-.dk-term-num {
-  width: 96px;
-}
-.dk-term-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   font-size: 0.8125rem;
-  color: var(--el-text-color-regular);
+  font-weight: 700;
   cursor: pointer;
-  user-select: none;
 }
-.dk-term-check input {
-  accent-color: var(--el-color-primary);
+.dk-logopts__btn.is-on { background: var(--el-bg-color); color: var(--el-text-color-primary); box-shadow: var(--app-shadow-sm); }
+.dk-logopts__num {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 4px 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  input {
+    width: 64px;
+    border: none;
+    background: transparent;
+    color: var(--el-text-color-primary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    outline: none;
+  }
 }
-.dk-term-body {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
+.dk-logopts__num:focus-within { border-color: var(--m-p); }
+.dk-logopts__switch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+  cursor: pointer;
 }
-.dk-term-body :deep(.term-shell) {
-  flex: 1;
-  min-height: 0;
-  border-radius: 0;
-}
-
-.dk-term-enter-active,
-.dk-term-leave-active { transition: opacity 0.18s ease; }
-.dk-term-enter-active .dk-term-panel,
-.dk-term-leave-active .dk-term-panel { transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1); }
-.dk-term-enter-from,
-.dk-term-leave-to { opacity: 0; }
-.dk-term-enter-from .dk-term-panel,
-.dk-term-leave-to .dk-term-panel { transform: translateY(8px) scale(0.98); }
-
 @media (width <= 768px) {
-  .dk-term-overlay { padding: 0; }
-  .dk-term-panel { width: 100vw; height: 100vh; border-radius: 0; }
+  .dk-logopts__num { display: none; }
+  .dk-logopts__btn { padding: 0 9px; }
 }
 </style>

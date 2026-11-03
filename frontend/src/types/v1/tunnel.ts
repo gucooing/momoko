@@ -66,6 +66,54 @@ export interface ListTunnelsResponse {
   total: number;
   /** 列表 */
   infos: TunnelInfo[];
+  /** 概览（当前用户全部隧道，不受筛选影响） */
+  overview: TunnelOverview | undefined;
+}
+
+/** 隧道概览 */
+export interface TunnelOverview {
+  /** 隧道总数 */
+  total: number;
+  /** 在线 */
+  online: number;
+  /** 待连接 */
+  pending: number;
+  /** 离线（未启用） */
+  offline: number;
+  /** 当前在线的 frpc 客户端数（按主机名去重） */
+  clients: number;
+  /** 各代理类型的隧道数 */
+  typeCounts: TunnelTypeCount[];
+  /** 今日入站流量合计(字节) */
+  todayBytesIn: number;
+  /** 今日出站流量合计(字节) */
+  todayBytesOut: number;
+  /** 当前活跃连接合计 */
+  activeConnections: number;
+  /** 连入过的 frpc 客户端（本进程启动以来，按主机名+地址去重） */
+  clientList: TunnelClientSummary[];
+}
+
+/** frpc 客户端汇总 */
+export interface TunnelClientSummary {
+  /** 客户端信息 */
+  client:
+    | TunnelClient
+    | undefined;
+  /** 是否有隧道在线 */
+  online: boolean;
+  /** 该客户端承载的隧道数 */
+  tunnels: number;
+  /** 其中在线的隧道数 */
+  onlineTunnels: number;
+}
+
+/** 某代理类型的隧道数 */
+export interface TunnelTypeCount {
+  /** 代理类型 */
+  type: TunnelType;
+  /** 数量 */
+  count: number;
 }
 
 export interface CreateTunnelRequest {
@@ -91,6 +139,8 @@ export interface CreateTunnelRequest {
   maxBandwidth: string;
   /** 活跃连接数上限（momoko 在每条用户连接时校验，超出即拒绝），0=不限 */
   maxActiveConns: number;
+  /** 备注 */
+  remark: string;
 }
 
 export interface CreateTunnelResponse {
@@ -152,7 +202,11 @@ export interface UpdateTunnelRequest {
     | string
     | undefined;
   /** 活跃连接数上限，0=不限 */
-  maxActiveConns?: number | undefined;
+  maxActiveConns?:
+    | number
+    | undefined;
+  /** 备注 */
+  remark?: string | undefined;
 }
 
 export interface UpdateTunnelResponse {
@@ -193,7 +247,81 @@ export interface GetFrpsConfigRequest {
 
 export interface GetFrpsConfigResponse {
   /** frps 实例配置 */
-  config: FrpsConfig | undefined;
+  config:
+    | FrpsConfig
+    | undefined;
+  /** frps 运行状态 */
+  status: FrpsStatus | undefined;
+}
+
+export interface RestartFrpsRequest {
+}
+
+export interface RestartFrpsResponse {
+  /** frps 运行状态 */
+  status: FrpsStatus | undefined;
+}
+
+export interface GetFrpsLogsRequest {
+  /** 返回最近多少行，<=0 时默认 300 */
+  limit: number;
+}
+
+export interface GetFrpsLogsResponse {
+  /** 日志（按时间升序） */
+  entries: FrpsLogEntry[];
+}
+
+/** frps 日志行 */
+export interface FrpsLogEntry {
+  /** 时间 */
+  time:
+    | Date
+    | undefined;
+  /** 级别：trace/debug/info/warn/error */
+  level: string;
+  /** 内容 */
+  message: string;
+}
+
+export interface ResetTunnelCredentialRequest {
+  /** 隧道 id */
+  id: string;
+}
+
+export interface ResetTunnelCredentialResponse {
+  /** 隧道详情（含新凭证） */
+  info: TunnelInfo | undefined;
+}
+
+/** frps 运行状态 */
+export interface FrpsStatus {
+  /** 是否运行中 */
+  running: boolean;
+  /** 本次启动时间 */
+  startTime:
+    | Date
+    | undefined;
+  /** frp 版本 */
+  version: string;
+  /** 最近一次启动失败的原因 */
+  error: string;
+}
+
+/** 连入隧道的 frpc 客户端 */
+export interface TunnelClient {
+  /** 主机名 */
+  hostname: string;
+  /** 操作系统 */
+  os: string;
+  /** CPU 架构 */
+  arch: string;
+  /** frpc 版本 */
+  version: string;
+  /** 客户端地址 ip:port */
+  address: string;
+  /** 最近一次登录时间 */
+  loginTime: Date | undefined;
 }
 
 export interface UpdateFrpsConfigRequest {
@@ -217,7 +345,11 @@ export interface TunnelStat {
   /** 当日累计出站流量(字节) */
   bytesOut: number;
   /** 最近一次上线时间 */
-  lastStartTime: Date | undefined;
+  lastStartTime:
+    | Date
+    | undefined;
+  /** 最近一次下线时间 */
+  lastCloseTime: Date | undefined;
 }
 
 /** 隧道时间序列采样点 */
@@ -279,6 +411,18 @@ export interface TunnelInfo {
   maxBandwidth: string;
   /** 活跃连接数上限，0=不限 */
   maxActiveConns: number;
+  /** 备注 */
+  remark: string;
+  /** 最近一次连入的 frpc 客户端（进程启动后未连入过则为空） */
+  client:
+    | TunnelClient
+    | undefined;
+  /** 最近一次上线时间 */
+  lastOnlineTime:
+    | Date
+    | undefined;
+  /** 最近一次下线时间 */
+  lastOfflineTime: Date | undefined;
 }
 
 /**
@@ -307,4 +451,6 @@ export interface FrpsConfig {
   statSampleInterval: number;
   /** 对外可达的服务器地址（生成 frpc 配置时填入 serverAddr；空=回退 bind_addr） */
   serverAddr: string;
+  /** 强制 frpc 使用 TLS 连接（拒绝明文连接） */
+  tlsForce: boolean;
 }

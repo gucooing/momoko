@@ -1,5 +1,5 @@
-<!-- 文件来源 新建/编辑弹窗（重写 · P1）：FormDialog 外壳 + 令牌字段 + AppSelect(类型) + AppSwitch(开关) +
-     按类型动态字段(OSS/FTP/WebDAV)。页脚含 测试连接。保留 ref 契约 showDialog(row?) + @refresh('create'|'update')。
+<!-- 文件来源 新建/编辑弹窗（第二期改版）：FormDialog 外壳 + 存储类型贴纸单选卡 + 按类型动态字段(OSS/FTP/WebDAV) + 启用开关 + 测试结果内联提示。
+     页脚含 测试连接。保留 ref 契约 showDialog(row?) + @refresh('create'|'update')。
      记忆约束：来源只是储存方式，前端不特判本地/远程细节，逻辑路径 + sourceID 由后端处理。 -->
 <template>
   <FormDialog
@@ -23,15 +23,30 @@
         <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
       </div>
 
-      <div class="src-form__grid">
-        <div class="app-field">
-          <label class="app-label">{{ t('fileSource.type') }}</label>
-          <AppSelect v-model="form.type" :options="typeOptions" :disabled="!!form.id" @update:model-value="onTypeChange" />
+      <div class="app-field">
+        <label class="app-label">{{ t('fileSource.storageType') }}</label>
+        <div class="src-types" role="radiogroup" :aria-label="t('fileSource.storageType')">
+          <button
+            v-for="(opt, i) in typeOptions"
+            :key="opt.value"
+            type="button"
+            role="radio"
+            class="src-type"
+            :class="{ 'is-on': form.type === opt.value }"
+            :aria-checked="form.type === opt.value"
+            :disabled="!!form.id && form.type !== opt.value"
+            @click="pickType(opt.value)"
+          >
+            <span class="src-type__sticker m-sticker" :class="`m-sticker--${opt.tone}`" :style="{ transform: `rotate(${i % 2 ? 3 : -4}deg)` }">
+              <UIcon :name="opt.icon" />
+            </span>
+            <span class="src-type__text">
+              <span class="src-type__name">{{ opt.label }}</span>
+              <span class="src-type__desc">{{ opt.desc }}</span>
+            </span>
+          </button>
         </div>
-        <div class="app-field src-form__switch">
-          <label class="app-label">{{ t('fileSource.enabled') }}</label>
-          <AppSwitch v-model="form.enabled" />
-        </div>
+        <span v-if="form.id" class="src-form__hint">{{ t('fileSource.typeLocked') }}</span>
       </div>
 
       <div v-if="supportsRedirect" class="app-field src-form__switch src-form__switch--wide">
@@ -166,10 +181,27 @@
           <input v-model="form.config.basePath" class="app-input" placeholder="/" />
         </div>
       </template>
+
+      <div class="app-field src-form__switch src-form__switch--wide">
+        <div class="src-form__switch-text">
+          <label class="app-label">{{ t('fileSource.enabled') }}</label>
+          <span class="src-form__hint">{{ t('fileSource.enableHint') }}</span>
+        </div>
+        <AppSwitch v-model="form.enabled" />
+      </div>
+
+      <div v-if="testResult" class="src-result" :class="testResult.ok ? 'is-ok' : 'is-bad'" role="status">
+        <UIcon :name="testResult.ok ? 'i-lucide-circle-check' : 'i-lucide-circle-alert'" class="src-result__ico" />
+        <span class="src-result__text">
+          <strong>{{ testResult.ok ? t('fileSource.testOk') : t('fileSource.testFailed') }}</strong>
+          <span v-if="testResult.latencyMs" class="m-num"> · {{ t('fileSource.latency', { ms: testResult.latencyMs }) }}</span>
+          <span v-if="!testResult.ok && testResult.message" class="src-result__msg m-mono">{{ testResult.message }}</span>
+        </span>
+      </div>
     </div>
 
     <template #footer="{ close: doClose, confirm: doConfirm }">
-      <UButton class="src-form__test" color="neutral" variant="soft" size="sm" :loading="testing" @click="testForm">
+      <UButton class="src-form__test" color="neutral" variant="soft" icon="i-lucide-plug-zap" :loading="testing" @click="testForm">
         {{ t('fileSource.test') }}
       </UButton>
       <UButton color="neutral" variant="soft" @click="doClose">{{ t('system.common.cancel') }}</UButton>
@@ -198,10 +230,17 @@ const testing = ref(false)
 const errors = ref<Record<string, string>>({})
 
 const typeOptions = computed(() => [
-  { label: t('fileSource.typeOss'), value: 'oss' },
-  { label: t('fileSource.typeFtp'), value: 'ftp' },
-  { label: t('fileSource.typeWebdav'), value: 'webdav' },
+  { label: t('fileSource.typeShort.oss'), value: 'oss', desc: t('fileSource.typeDescOss'), icon: 'i-lucide-cloud', tone: 'p' },
+  { label: t('fileSource.typeShort.ftp'), value: 'ftp', desc: t('fileSource.typeDescFtp'), icon: 'i-lucide-arrow-left-right', tone: 'ok' },
+  { label: t('fileSource.typeShort.webdav'), value: 'webdav', desc: t('fileSource.typeDescWebdav'), icon: 'i-lucide-globe', tone: 'a2' },
 ])
+const pickType = (type: string) => {
+  if (form.value.id || form.value.type === type) return
+  form.value.type = type
+  testResult.value = null
+  onTypeChange()
+}
+const testResult = ref<{ ok: boolean; message: string; latencyMs: number } | null>(null)
 
 const emptyConfig = (): FileSourceConfig => ({
   endpoint: '',
@@ -242,6 +281,7 @@ const close = () => {
   open.value = false
   saving.value = false
   errors.value = {}
+  testResult.value = null
   form.value = getDefaultForm()
 }
 
@@ -304,8 +344,7 @@ const testForm = async () => {
       type: form.value.type,
       config: buildPayloadConfig(),
     })
-    if (data.ok) feedback.success(data.message || t('fileSource.testOk'))
-    else feedback.error(data.message || t('fileSource.testFailed'))
+    testResult.value = { ok: data.ok, message: data.message, latencyMs: Number(data.latencyMs) || 0 }
   } finally {
     testing.value = false
   }
@@ -313,6 +352,7 @@ const testForm = async () => {
 
 const showDialog = (record?: FileSourceInfo) => {
   errors.value = {}
+  testResult.value = null
   const next = getDefaultForm()
   if (record) {
     next.id = record.id
@@ -376,11 +416,99 @@ defineExpose({ showDialog })
   color: var(--el-text-color-regular);
   cursor: pointer;
 }
+.src-types {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.src-type {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--el-border-color-light);
+  border-radius: var(--app-radius);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.src-type:hover:not(:disabled) {
+  border-color: var(--m-p);
+}
+.src-type.is-on {
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
+}
+.src-type:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.src-type__sticker {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+}
+.src-type__sticker :deep(svg),
+.src-type__sticker :deep(.iconify) {
+  width: 18px;
+  height: 18px;
+}
+.src-type__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.src-type__name {
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+.src-type__desc {
+  font-size: 0.6875rem;
+  color: var(--el-text-color-secondary);
+  line-height: 1.3;
+}
+.src-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--app-radius-sm);
+  font-size: 0.8125rem;
+}
+.src-result.is-ok {
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.src-result.is-bad {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.src-result__ico {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.src-result__text {
+  min-width: 0;
+}
+.src-result__msg {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  word-break: break-all;
+}
 .src-form__test {
   margin-right: auto;
 }
 @media (width <= 768px) {
   .src-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .src-types {
     grid-template-columns: 1fr;
   }
 }

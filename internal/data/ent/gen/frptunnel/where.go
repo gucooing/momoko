@@ -135,6 +135,11 @@ func MaxActiveConns(v int) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldEQ(FieldMaxActiveConns, v))
 }
 
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldEQ(FieldRemark, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldEQ(FieldCreateTime, v))
@@ -883,6 +888,71 @@ func MaxActiveConnsLT(v int) predicate.FrpTunnel {
 // MaxActiveConnsLTE applies the LTE predicate on the "max_active_conns" field.
 func MaxActiveConnsLTE(v int) predicate.FrpTunnel {
 	return predicate.FrpTunnel(sql.FieldLTE(FieldMaxActiveConns, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.FrpTunnel {
+	return predicate.FrpTunnel(sql.FieldContainsFold(FieldRemark, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

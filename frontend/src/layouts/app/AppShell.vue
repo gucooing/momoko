@@ -1,4 +1,4 @@
-<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。移动端(<lg)侧栏改为令牌抽屉承载。 -->
+<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。移动端(<lg)侧栏改为抽屉，底部固定导航栏。 -->
 <template>
   <div class="app-shell">
     <AppSidebar v-if="!menuStore.isMobile" :collapsed="menuStore.isCollapse" />
@@ -8,6 +8,8 @@
       <AppTabs />
       <AppContent />
     </div>
+
+    <AppTabbar v-if="menuStore.isMobile" />
 
     <Teleport to="body">
       <Transition name="shell-drawer">
@@ -30,6 +32,7 @@ import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import AppTabs from './AppTabs.vue'
 import AppContent from './AppContent.vue'
+import AppTabbar from './AppTabbar.vue'
 
 defineOptions({ name: 'AppShell' })
 
@@ -67,12 +70,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   inset: 0;
   z-index: 2100;
   display: flex;
-  background: color-mix(in srgb, #0b1220 42%, transparent);
-  backdrop-filter: blur(2px);
+  background: color-mix(in srgb, var(--m-ink) 38%, transparent);
+  backdrop-filter: blur(3px);
 }
 .app-shell__drawer {
-  width: 264px;
+  width: min(300px, 86vw);
   height: 100%;
+  border-radius: 0 24px 24px 0;
   overflow: hidden;
   background: var(--el-bg-color);
   border-right: 1px solid var(--el-border-color-light);

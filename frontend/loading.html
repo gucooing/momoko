@@ -25,6 +25,13 @@
     }
 
     const root = document.documentElement
+    // 提前写入配色，避免首屏先闪默认配色
+    try {
+      const storedPalette = localStorage.getItem('theme-palette')
+      if (storedPalette) root.dataset.palette = storedPalette
+    } catch (e) {
+      // 无法读取本地存储时使用默认配色
+    }
     const storedThemeMode = localStorage.getItem('themeMode')
     const themeMode =
       storedThemeMode === 'dark' || storedThemeMode === 'light' || storedThemeMode === 'auto'

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -30,20 +31,36 @@ func (o *openSSHRepo) box() *secretbox.Box {
 	return secretbox.New(authpkg.AuthSecretKey)
 }
 
-func (o *openSSHRepo) GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, keywords, host *string) ([]*gen.SSHHost, int64, error) {
+func (o *openSSHRepo) GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, filter biz.SSHHostListFilter) ([]*gen.SSHHost, int64, error) {
 	query := o.accessibleQuery(userID)
 
-	if keywords != nil && *keywords != "" {
+	if filter.Keywords != "" {
 		query.Where(
 			sshhost.Or(
-				sshhost.NameContains(*keywords),
-				sshhost.HostContains(*keywords),
-				sshhost.TagsContains(*keywords),
+				sshhost.NameContains(filter.Keywords),
+				sshhost.HostContains(filter.Keywords),
+				sshhost.UsernameContains(filter.Keywords),
+				sshhost.TagsContains(filter.Keywords),
 			),
 		)
 	}
-	if host != nil && *host != "" {
-		query.Where(sshhost.HostContains(*host))
+	if filter.Host != "" {
+		query.Where(sshhost.HostContains(filter.Host))
+	}
+	if filter.Tag != "" {
+		query.Where(sshhost.TagsContains(filter.Tag))
+	}
+	switch filter.Status {
+	case v1.SSHHostFilter_SSH_HOST_FILTER_OK:
+		query.Where(sshhost.LastTestAtNotNil(), sshhost.LastTestOkEQ(true))
+	case v1.SSHHostFilter_SSH_HOST_FILTER_FAILED:
+		query.Where(sshhost.LastTestAtNotNil(), sshhost.LastTestOkEQ(false))
+	case v1.SSHHostFilter_SSH_HOST_FILTER_UNTESTED:
+		query.Where(sshhost.LastTestAtIsNil())
+	case v1.SSHHostFilter_SSH_HOST_FILTER_SHARED:
+		query.Where(sshhost.HasOwnerWith(user.IDEQ(userID)), sshhost.HasSharedUsers())
+	case v1.SSHHostFilter_SSH_HOST_FILTER_SHARED_WITH_ME:
+		query.Where(sshhost.Not(sshhost.HasOwnerWith(user.IDEQ(userID))))
 	}
 
 	total, err := query.Clone().Count(ctx)
@@ -61,6 +78,30 @@ func (o *openSSHRepo) GetSSHHosts(ctx context.Context, page, pageSize int64, use
 		return nil, 0, err
 	}
 	return items, int64(total), nil
+}
+
+// ListAccessibleSSHHosts 返回用户可访问的全部主机（含所属与分享关系），用于统计与批量测试。
+func (o *openSSHRepo) ListAccessibleSSHHosts(ctx context.Context, userID string) ([]*gen.SSHHost, error) {
+	return o.accessibleQuery(userID).
+		WithOwner().
+		WithSharedUsers().
+		Order(gen.Asc(sshhost.FieldCreateTime)).
+		All(ctx)
+}
+
+// SaveSSHHostTestResult 记录主机最近一次连通性测试结果。
+func (o *openSSHRepo) SaveSSHHostTestResult(ctx context.Context, hostID string, at time.Time, ok bool, latencyMs int, message string) error {
+	return o.data.db.SSHHost.UpdateOneID(hostID).
+		SetLastTestAt(at).
+		SetLastTestOk(ok).
+		SetLastTestLatencyMs(latencyMs).
+		SetLastTestMessage(message).
+		Exec(ctx)
+}
+
+// TouchSSHHostConnect 记录主机最近一次打开终端的时间。
+func (o *openSSHRepo) TouchSSHHostConnect(ctx context.Context, hostID string, at time.Time) error {
+	return o.data.db.SSHHost.UpdateOneID(hostID).SetLastConnectAt(at).Exec(ctx)
 }
 
 func (o *openSSHRepo) GetSSHHostByUserID(ctx context.Context, userID, hostID string) (*gen.SSHHost, error) {

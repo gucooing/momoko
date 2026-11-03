@@ -98,6 +98,19 @@ service System {
       body: "*"
     };
   }
+  // 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
+  rpc SiteConfig(SiteConfigRequest) returns (SiteConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/site-config"
+    };
+  }
+  // 更新站点常规配置
+  rpc UpdateSiteConfig(UpdateSiteConfigRequest) returns (UpdateSiteConfigResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/system/site-config"
+      body: "*"
+    };
+  }
   // 获取邮件配置
   rpc EmailConfig(EmailConfigRequest) returns (EmailConfigResponse) {
     option (google.api.http) = {
@@ -124,6 +137,12 @@ service System {
       get: "/api/v1/system/email-template"
     };
   }
+  // 列出全部邮件模板（含是否自定义、最后修改时间）
+  rpc ListEmailTemplates(ListEmailTemplatesRequest) returns (ListEmailTemplatesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/email-templates"
+    };
+  }
   // 测试邮件配置
   rpc TestEmailConfig(TestEmailConfigRequest) returns (TestEmailConfigResponse) {
     option (google.api.http) = {
@@ -147,6 +166,12 @@ service System {
   rpc ListOperationLogs(ListOperationLogsRequest) returns (ListOperationLogsResponse) {
     option (google.api.http) = {
       get: "/api/v1/system/operation-logs"
+    };
+  }
+  // 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
+  rpc OperationLogStats(OperationLogStatsRequest) returns (OperationLogStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/system/operation-logs/stats"
     };
   }
 }
@@ -183,6 +208,10 @@ message CheckUpdateResponse {
   google.protobuf.Timestamp published_at = 6;
   // 最新发行版 Markdown 更新内容
   string release_body = 7;
+  // 本次检查时间
+  google.protobuf.Timestamp checked_at = 8;
+  // 检查所用的更新通道
+  UpdateChannel channel = 9;
 }
 
 // 权限菜单信息
@@ -347,6 +376,8 @@ message RoleInfo {
   google.protobuf.Timestamp update_time = 7;
   // 角色菜单id
   repeated string menu_ids = 8;
+  // 分配了该角色的用户数
+  int64 user_count = 9;
 }
 
 enum RoleStatus {
@@ -425,15 +456,27 @@ message LoginConfig {
   bool email_login_enabled = 3;
   // 注册时是否强制验证邮箱
   bool register_email_verification_required = 4;
+  // 访问令牌有效期（分钟）
+  int32 access_token_ttl_minutes = 5;
+  // 刷新令牌有效期（天）：超过该时长未使用需重新登录
+  int32 refresh_token_ttl_days = 6;
+  // 登录失败锁定：按账号 + IP 连续失败次数达到该值后锁定；0 表示不锁定
+  int32 lockout_threshold = 7;
+  // 登录失败锁定时长（分钟）
+  int32 lockout_minutes = 8;
 }
 
 // 获取登录配置请求
 message LoginConfigRequest {}
 
-// 获取登录配置响应
+// 获取登录配置响应（公开接口，登录页使用）
 message LoginConfigResponse {
   // 登录配置
   LoginConfig config = 1;
+  // 站点名称
+  string site_name = 2;
+  // 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器）
+  string default_language = 3;
 }
 
 // 更新登录配置请求
@@ -446,12 +489,97 @@ message UpdateLoginConfigRequest {
   bool email_login_enabled = 3;
   // 注册时是否强制验证邮箱
   bool register_email_verification_required = 4;
+  // 访问令牌有效期（分钟）
+  int32 access_token_ttl_minutes = 5;
+  // 刷新令牌有效期（天）
+  int32 refresh_token_ttl_days = 6;
+  // 登录失败锁定次数；0 表示不锁定
+  int32 lockout_threshold = 7;
+  // 登录失败锁定时长（分钟）
+  int32 lockout_minutes = 8;
 }
 
 // 更新登录配置响应
 message UpdateLoginConfigResponse {
   // 登录配置
   LoginConfig config = 1;
+}
+
+// 更新通道
+enum UpdateChannel {
+  // 稳定版：只看正式发行版
+  UpdateChannel_Stable = 0;
+  // 测试版：包含预发布版本
+  UpdateChannel_Beta = 1;
+}
+
+// 最近一次检查更新结果
+message UpdateCheckResult {
+  // 检查时间
+  google.protobuf.Timestamp time = 1;
+  // 远程最新版本号
+  string latest_version = 2;
+  // 是否有可用更新
+  bool has_update = 3;
+  // 失败原因（成功时为空）
+  string error = 4;
+  // 发行版页面地址
+  string release_url = 5;
+  // 是否由每日自动检查触发
+  bool auto = 6;
+}
+
+// 设置的最近修改记录
+message SettingsAudit {
+  // 修改时间
+  google.protobuf.Timestamp time = 1;
+  // 修改人
+  string user_name = 2;
+}
+
+// 站点常规配置
+message SiteConfig {
+  // 站点名称：显示在浏览器标签、登录页和邮件里（邮件模板变量 {{.site}}）
+  string site_name = 1;
+  // 对外访问地址（如 https://panel.example.com），邮件模板变量 {{.url}}
+  string external_url = 2;
+  // 默认语言：zh-CN / zh-HK / en-US / auto（跟随浏览器）
+  string default_language = 3;
+  // 每天自动检查一次更新
+  bool auto_check_update = 4;
+  // 更新通道
+  UpdateChannel update_channel = 5;
+  // 最近一次检查更新结果（只读）
+  UpdateCheckResult last_update_check = 6;
+  // 系统设置最近一次修改（只读，登录/邮件/模板/常规任一保存都会刷新）
+  SettingsAudit last_modified = 7;
+}
+
+// 获取站点常规配置请求
+message SiteConfigRequest {}
+
+// 获取站点常规配置响应
+message SiteConfigResponse {
+  SiteConfig config = 1;
+}
+
+// 更新站点常规配置请求
+message UpdateSiteConfigRequest {
+  // 站点名称
+  string site_name = 1;
+  // 对外访问地址
+  string external_url = 2;
+  // 默认语言
+  string default_language = 3;
+  // 每天自动检查一次更新
+  bool auto_check_update = 4;
+  // 更新通道
+  UpdateChannel update_channel = 5;
+}
+
+// 更新站点常规配置响应
+message UpdateSiteConfigResponse {
+  SiteConfig config = 1;
 }
 
 // 邮件配置
@@ -470,12 +598,38 @@ message EmailConfig {
   string from = 6;
   // 发件人名称
   string from_name = 7;
-  // 是否使用 TLS
-  bool use_tls = 8;
+  // 加密方式
+  EmailEncryption encryption = 11;
   // 超时时间，单位秒
   int32 timeout_seconds = 9;
   // 并发发送协程数
   int32 ccs_n = 10;
+  // 最近一次测试发送结果（只读）
+  EmailTestResult last_test = 12;
+}
+
+// SMTP 加密方式
+enum EmailEncryption {
+  // 隐式 TLS（SSL，一般 465 端口）
+  EmailEncryption_SSL = 0;
+  // 明文连接后升级（STARTTLS，一般 587 端口）
+  EmailEncryption_STARTTLS = 1;
+  // 不加密（一般 25 端口）
+  EmailEncryption_NONE = 2;
+}
+
+// 邮件测试发送结果
+message EmailTestResult {
+  // 测试时间
+  google.protobuf.Timestamp time = 1;
+  // 收件邮箱
+  string recipient = 2;
+  // 是否成功
+  bool success = 3;
+  // 失败原因
+  string error = 4;
+  // 耗时毫秒
+  int64 duration_ms = 5;
 }
 
 // 邮件模板类型
@@ -484,6 +638,8 @@ enum EmailTemplateType {
   EmailTemplateType_Register = 0;
   // 登录
   EmailTemplateType_Login = 1;
+  // 重置密码
+  EmailTemplateType_ResetPassword = 2;
 }
 
 // 模板配置
@@ -491,6 +647,16 @@ message EmailTemplate {
   string subject = 1;// 邮件主题 TEXT 模板
   string template = 2;// 邮件内容 HTML 模板
   EmailTemplateType type = 3;// 模板类型
+  bool customized = 4;// 是否已自定义（false 表示仍是内置默认模板）
+  google.protobuf.Timestamp update_time = 5;// 最后修改时间（未自定义时为空）
+}
+
+// 列出全部邮件模板请求
+message ListEmailTemplatesRequest {}
+
+// 列出全部邮件模板响应
+message ListEmailTemplatesResponse {
+  repeated EmailTemplate templates = 1;
 }
 
 // 获取邮件配置请求
@@ -518,8 +684,8 @@ message UpdateEmailConfigRequest {
   string from = 6;
   // 发件人名称
   string from_name = 7;
-  // 是否使用 TLS
-  bool use_tls = 8;
+  // 加密方式
+  EmailEncryption encryption = 11;
   // 超时时间，单位秒
   int32 timeout_seconds = 9;
   // 并发发送协程数
@@ -1126,6 +1292,20 @@ enum OperationType {
   OperationTypeNodeDelete = 106;
   // 节点连接测试
   OperationTypeNodeTest = 107;
+  // OIDC 签名密钥轮换
+  OperationTypeOIDCSigningKeyRotate = 108;
+  // 任务取消
+  OperationTypeTaskCancel = 109;
+  // 任务重试
+  OperationTypeTaskRetry = 110;
+  // 任务删除
+  OperationTypeTaskDelete = 111;
+  // 任务批量清理
+  OperationTypeTaskClear = 112;
+  // 系统常规设置更新（站点名称 / 对外地址 / 默认语言 / 版本更新偏好）
+  OperationTypeSystemSiteConfigUpdate = 120;
+  // Docker 仓库凭据验证
+  OperationTypeDockerRegistryAuthTest = 121;
 }
 
 message ListOperationLogsRequest {
@@ -1145,6 +1325,10 @@ message ListOperationLogsRequest {
   google.protobuf.Timestamp start_time = 7;
   // 结束时间
   google.protobuf.Timestamp end_time = 8;
+  // 关键字：匹配请求路径、IP、详情
+  optional string keywords = 9;
+  // 模块：操作类型前缀（Auth/User/System/File/Instance/SSHHost/Node/Docker/OIDC/Task）
+  optional string module = 10;
 }
 
 // 查询操作日志响应
@@ -1157,9 +1341,30 @@ message ListOperationLogsResponse {
   int64 page_size = 3;
   // 总数
   int64 total = 4;
+  // 同一组条件（忽略「是否成功」）下的成功数
+  int64 success_count = 5;
+  // 同一组条件（忽略「是否成功」）下的失败数
+  int64 failed_count = 6;
 }
 
-// 操作日志信息
+// 操作日志统计请求
+message OperationLogStatsRequest {}
+
+// 操作日志统计响应（统计范围：服务器本地时间今天 0 点起）
+message OperationLogStatsResponse {
+  // 今日操作数
+  int64 today_total = 1;
+  // 今日失败数
+  int64 today_failed = 2;
+  // 今日活跃用户数（去重）
+  int64 today_active_users = 3;
+  // 今日经主控转发到远程节点（或来自远程主控）的操作数
+  int64 today_forwarded = 4;
+  // 全部记录数
+  int64 total = 5;
+  // 最早一条记录的时间
+  google.protobuf.Timestamp earliest_time = 6;
+}
 message OperationLogInfo {
   // 操作用户id
   optional string user_id = 1;

@@ -133,6 +133,68 @@ func (_u *SessionUpdate) SetNillableExpiresAt(v *time.Time) *SessionUpdate {
 	return _u
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (_u *SessionUpdate) SetUserAgent(v string) *SessionUpdate {
+	_u.mutation.SetUserAgent(v)
+	return _u
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableUserAgent(v *string) *SessionUpdate {
+	if v != nil {
+		_u.SetUserAgent(*v)
+	}
+	return _u
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (_u *SessionUpdate) SetLoginMethod(v string) *SessionUpdate {
+	_u.mutation.SetLoginMethod(v)
+	return _u
+}
+
+// SetNillableLoginMethod sets the "login_method" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableLoginMethod(v *string) *SessionUpdate {
+	if v != nil {
+		_u.SetLoginMethod(*v)
+	}
+	return _u
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (_u *SessionUpdate) SetLastActiveAt(v time.Time) *SessionUpdate {
+	_u.mutation.SetLastActiveAt(v)
+	return _u
+}
+
+// SetNillableLastActiveAt sets the "last_active_at" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableLastActiveAt(v *time.Time) *SessionUpdate {
+	if v != nil {
+		_u.SetLastActiveAt(*v)
+	}
+	return _u
+}
+
+// ClearLastActiveAt clears the value of the "last_active_at" field.
+func (_u *SessionUpdate) ClearLastActiveAt() *SessionUpdate {
+	_u.mutation.ClearLastActiveAt()
+	return _u
+}
+
+// SetLastIP sets the "last_ip" field.
+func (_u *SessionUpdate) SetLastIP(v string) *SessionUpdate {
+	_u.mutation.SetLastIP(v)
+	return _u
+}
+
+// SetNillableLastIP sets the "last_ip" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableLastIP(v *string) *SessionUpdate {
+	if v != nil {
+		_u.SetLastIP(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *SessionUpdate) SetUser(v *User) *SessionUpdate {
 	return _u.SetUserID(v.ID)
@@ -250,6 +312,21 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserAgent(); ok {
+		_spec.SetField(session.FieldUserAgent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LoginMethod(); ok {
+		_spec.SetField(session.FieldLoginMethod, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastActiveAt(); ok {
+		_spec.SetField(session.FieldLastActiveAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastActiveAtCleared() {
+		_spec.ClearField(session.FieldLastActiveAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastIP(); ok {
+		_spec.SetField(session.FieldLastIP, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -404,6 +481,68 @@ func (_u *SessionUpdateOne) SetNillableExpiresAt(v *time.Time) *SessionUpdateOne
 	return _u
 }
 
+// SetUserAgent sets the "user_agent" field.
+func (_u *SessionUpdateOne) SetUserAgent(v string) *SessionUpdateOne {
+	_u.mutation.SetUserAgent(v)
+	return _u
+}
+
+// SetNillableUserAgent sets the "user_agent" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableUserAgent(v *string) *SessionUpdateOne {
+	if v != nil {
+		_u.SetUserAgent(*v)
+	}
+	return _u
+}
+
+// SetLoginMethod sets the "login_method" field.
+func (_u *SessionUpdateOne) SetLoginMethod(v string) *SessionUpdateOne {
+	_u.mutation.SetLoginMethod(v)
+	return _u
+}
+
+// SetNillableLoginMethod sets the "login_method" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableLoginMethod(v *string) *SessionUpdateOne {
+	if v != nil {
+		_u.SetLoginMethod(*v)
+	}
+	return _u
+}
+
+// SetLastActiveAt sets the "last_active_at" field.
+func (_u *SessionUpdateOne) SetLastActiveAt(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetLastActiveAt(v)
+	return _u
+}
+
+// SetNillableLastActiveAt sets the "last_active_at" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableLastActiveAt(v *time.Time) *SessionUpdateOne {
+	if v != nil {
+		_u.SetLastActiveAt(*v)
+	}
+	return _u
+}
+
+// ClearLastActiveAt clears the value of the "last_active_at" field.
+func (_u *SessionUpdateOne) ClearLastActiveAt() *SessionUpdateOne {
+	_u.mutation.ClearLastActiveAt()
+	return _u
+}
+
+// SetLastIP sets the "last_ip" field.
+func (_u *SessionUpdateOne) SetLastIP(v string) *SessionUpdateOne {
+	_u.mutation.SetLastIP(v)
+	return _u
+}
+
+// SetNillableLastIP sets the "last_ip" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableLastIP(v *string) *SessionUpdateOne {
+	if v != nil {
+		_u.SetLastIP(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *SessionUpdateOne) SetUser(v *User) *SessionUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -551,6 +690,21 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserAgent(); ok {
+		_spec.SetField(session.FieldUserAgent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LoginMethod(); ok {
+		_spec.SetField(session.FieldLoginMethod, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastActiveAt(); ok {
+		_spec.SetField(session.FieldLastActiveAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastActiveAtCleared() {
+		_spec.ClearField(session.FieldLastActiveAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastIP(); ok {
+		_spec.SetField(session.FieldLastIP, field.TypeString, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

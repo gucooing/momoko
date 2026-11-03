@@ -1,10 +1,10 @@
-<!-- 用户创建/编辑弹窗（重写）：FormDialog 外壳 + 令牌化字段 + 内联校验。
-     保留 rolePage/createUser/updateUser/userInfo 接口与 showDialog/refresh 契约（06d）。 -->
+<!-- 用户创建/编辑弹窗：FormDialog 外壳 + 令牌化字段 + 内联校验；PC 两列、手机单列；角色用卡片式单选。
+     内置超级管理员的角色与状态锁定。保留 rolePage/createUser/updateUser/userInfo 接口与 showDialog/refresh 契约。 -->
 <template>
   <FormDialog
     v-model="open"
     :title="submitForm.userId ? t('system.user.editUser') : t('system.user.addUser')"
-    :width="560"
+    :width="640"
     :loading="submitLoading"
     @confirm="confirm"
     @close="onClose"
@@ -60,30 +60,43 @@
         <span v-if="errors.email" class="app-field__error">{{ errors.email }}</span>
       </div>
 
-      <div class="app-field">
+      <div class="app-field user-form__full">
         <label class="app-label app-label--required">{{ t('system.common.userRole') }}</label>
-        <AppSelect
-          v-model="submitForm.roleId"
-          :options="roleOptions"
-          :placeholder="t('system.user.rolePlaceholder')"
-          :error="!!errors.roleId"
-        />
+        <div class="user-form__roles" role="radiogroup" :aria-label="t('system.common.userRole')">
+          <button
+            v-for="opt in roleOptions"
+            :key="opt.value"
+            type="button"
+            role="radio"
+            class="user-form__role"
+            :class="{ 'is-on': submitForm.roleId === opt.value }"
+            :aria-checked="submitForm.roleId === opt.value"
+            :disabled="locked"
+            @click="submitForm.roleId = opt.value"
+          >
+            <span class="user-form__role-name">{{ opt.label }}</span>
+            <span class="user-form__role-desc">{{ opt.description || '—' }}</span>
+          </button>
+        </div>
         <span v-if="errors.roleId" class="app-field__error">{{ errors.roleId }}</span>
       </div>
 
-      <div class="app-field">
+      <div class="app-field user-form__full">
         <label class="app-label">{{ t('system.common.status') }}</label>
-        <div class="user-form__radios">
-          <label class="user-form__radio">
-            <input v-model="submitForm.status" type="radio" :value="UserStatus.Active" />
-            <span>{{ t('system.common.enabled') }}</span>
-          </label>
-          <label class="user-form__radio">
-            <input v-model="submitForm.status" type="radio" :value="UserStatus.InActive" />
-            <span>{{ t('system.common.inactive') }}</span>
-          </label>
+        <div class="user-form__status">
+          <AppSwitch
+            :model-value="submitForm.status === UserStatus.Active"
+            :disabled="locked"
+            @update:model-value="(v) => (submitForm.status = v ? UserStatus.Active : UserStatus.InActive)"
+          />
+          <span>{{ submitForm.status === UserStatus.Active ? t('accessAdmin.user.chipActive') : t('accessAdmin.user.chipInactive') }}</span>
         </div>
       </div>
+
+      <p v-if="locked" class="user-form__lock user-form__full">
+        <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />
+        {{ t('accessAdmin.user.roleLockedHint') }}
+      </p>
     </div>
   </FormDialog>
 </template>
@@ -99,14 +112,16 @@ defineOptions({ name: 'UserCreate' })
 
 const emits = defineEmits(['refresh'])
 const { t } = useI18n()
+const menuStore = useMenuStore()
+const locked = ref(false)
 
 const open = ref(false)
 const submitLoading = ref(false)
 const roleList = ref<RoleInfo[]>([])
 const errors = ref<Record<string, string>>({})
 
-const roleOptions = computed<{ label: string; value: string }[]>(() =>
-  roleList.value.map((r) => ({ label: r.name, value: r.roleId })),
+const roleOptions = computed<{ label: string; value: string; description: string }[]>(() =>
+  roleList.value.map((r) => ({ label: r.name, value: r.roleId, description: r.description })),
 )
 
 const emptyForm = () => ({
@@ -124,6 +139,7 @@ const emptyForm = () => ({
 const submitForm = ref(emptyForm())
 
 const onClose = () => {
+  locked.value = false
   errors.value = {}
   roleList.value = []
   submitForm.value = emptyForm()
@@ -220,9 +236,10 @@ const confirm = async () => {
   }
 }
 
-const showDialog = async (payload?: { userId: string; roleName?: string }) => {
+const showDialog = async (payload?: { userId: string; roleName?: string; isBuiltin?: boolean }) => {
   submitForm.value = emptyForm()
   errors.value = {}
+  locked.value = !!payload?.isBuiltin
   open.value = true
   await getRoleList()
 
@@ -236,28 +253,85 @@ defineExpose({ showDialog })
 
 <style scoped lang="scss">
 .user-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+.user-form__full {
+  grid-column: 1 / -1;
+}
+.user-form__roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.user-form__role {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--el-border-color-light);
+  border-radius: var(--app-radius);
+  background: var(--el-bg-color);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
 }
-.user-form__radios {
+.user-form__role:hover:not(:disabled) {
+  border-color: var(--m-p);
+}
+.user-form__role.is-on {
+  border-color: var(--m-p);
+  background: var(--m-pSoft);
+}
+.user-form__role:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.user-form__role-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.user-form__role-desc {
+  max-width: 100%;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-form__status {
   display: flex;
-  gap: 20px;
-  min-height: 32px;
   align-items: center;
-}
-.user-form__radio {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
+  gap: 10px;
+  min-height: 40px;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-regular);
-  cursor: pointer;
 }
-.user-form__radio input {
-  accent-color: var(--el-color-primary);
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
+.user-form__lock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.user-form__lock :deep(svg) {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+@media (width < 640px) {
+  .user-form {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

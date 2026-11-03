@@ -35,15 +35,18 @@ func (n *NodeService) ListAPIKeys(ctx context.Context, req *v1.ListAPIKeysReques
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	infos, total, err := n.uc.ListAPIKeys(ctx, authCtx.UserID, req)
+	infos, total, counts, err := n.uc.ListAPIKeys(ctx, authCtx.UserID, req)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.ListAPIKeysResponse{
-		Page:     req.Page,
-		PageSize: req.PageSize,
-		Total:    total,
-		Infos:    infos,
+		Page:          req.Page,
+		PageSize:      req.PageSize,
+		Total:         total,
+		Infos:         infos,
+		ValidCount:    counts.Valid,
+		ExpiringCount: counts.Expiring,
+		ExpiredCount:  counts.Expired,
 	}, nil
 }
 
@@ -99,7 +102,7 @@ func (n *NodeService) ListNodes(ctx context.Context, req *v1.ListNodesRequest) (
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListNodesResponse{Infos: infos}, nil
+	return &v1.ListNodesResponse{Infos: infos, Local: biz.LocalNodeInfo(ctx)}, nil
 }
 
 func (n *NodeService) CreateNode(ctx context.Context, req *v1.CreateNodeRequest) (*v1.CreateNodeResponse, error) {

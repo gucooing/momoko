@@ -20,6 +20,7 @@ func (Node) Fields() []ent.Field {
 		field.Bool("tls").Default(false).Comment("使用 TLS 连接"),
 		field.Bool("tls_skip_verify").Default(false).Comment("跳过 TLS 证书校验"),
 		field.String("remark").Optional().Comment("备注"),
+		field.Time("last_online_at").Optional().Nillable().Comment("最近一次探测在线的时间"),
 	}
 }
 

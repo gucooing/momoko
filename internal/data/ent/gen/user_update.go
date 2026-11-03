@@ -161,6 +161,100 @@ func (_u *UserUpdate) ClearTags() *UserUpdate {
 	return _u
 }
 
+// SetPhone sets the "phone" field.
+func (_u *UserUpdate) SetPhone(v string) *UserUpdate {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *UserUpdate) SetNillablePhone(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetPhone(*v)
+	}
+	return _u
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (_u *UserUpdate) SetLastLoginAt(v time.Time) *UserUpdate {
+	_u.mutation.SetLastLoginAt(v)
+	return _u
+}
+
+// SetNillableLastLoginAt sets the "last_login_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLastLoginAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetLastLoginAt(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (_u *UserUpdate) ClearLastLoginAt() *UserUpdate {
+	_u.mutation.ClearLastLoginAt()
+	return _u
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (_u *UserUpdate) SetPasswordUpdatedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetPasswordUpdatedAt(v)
+	return _u
+}
+
+// SetNillablePasswordUpdatedAt sets the "password_updated_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillablePasswordUpdatedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetPasswordUpdatedAt(*v)
+	}
+	return _u
+}
+
+// ClearPasswordUpdatedAt clears the value of the "password_updated_at" field.
+func (_u *UserUpdate) ClearPasswordUpdatedAt() *UserUpdate {
+	_u.mutation.ClearPasswordUpdatedAt()
+	return _u
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_u *UserUpdate) SetLastLoginIP(v string) *UserUpdate {
+	_u.mutation.SetLastLoginIP(v)
+	return _u
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLastLoginIP(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetLastLoginIP(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (_u *UserUpdate) ClearLastLoginIP() *UserUpdate {
+	_u.mutation.ClearLastLoginIP()
+	return _u
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (_u *UserUpdate) SetLastLoginMethod(v string) *UserUpdate {
+	_u.mutation.SetLastLoginMethod(v)
+	return _u
+}
+
+// SetNillableLastLoginMethod sets the "last_login_method" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLastLoginMethod(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetLastLoginMethod(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginMethod clears the value of the "last_login_method" field.
+func (_u *UserUpdate) ClearLastLoginMethod() *UserUpdate {
+	_u.mutation.ClearLastLoginMethod()
+	return _u
+}
+
 // SetRoleID sets the "role" edge to the Role entity by ID.
 func (_u *UserUpdate) SetRoleID(id string) *UserUpdate {
 	_u.mutation.SetRoleID(id)
@@ -358,6 +452,33 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(user.FieldTags, field.TypeString)
+	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastLoginAt(); ok {
+		_spec.SetField(user.FieldLastLoginAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastLoginAtCleared() {
+		_spec.ClearField(user.FieldLastLoginAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PasswordUpdatedAt(); ok {
+		_spec.SetField(user.FieldPasswordUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.PasswordUpdatedAtCleared() {
+		_spec.ClearField(user.FieldPasswordUpdatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginIPCleared() {
+		_spec.ClearField(user.FieldLastLoginIP, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastLoginMethod(); ok {
+		_spec.SetField(user.FieldLastLoginMethod, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginMethodCleared() {
+		_spec.ClearField(user.FieldLastLoginMethod, field.TypeString)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -628,6 +749,100 @@ func (_u *UserUpdateOne) ClearTags() *UserUpdateOne {
 	return _u
 }
 
+// SetPhone sets the "phone" field.
+func (_u *UserUpdateOne) SetPhone(v string) *UserUpdateOne {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillablePhone(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetPhone(*v)
+	}
+	return _u
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (_u *UserUpdateOne) SetLastLoginAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetLastLoginAt(v)
+	return _u
+}
+
+// SetNillableLastLoginAt sets the "last_login_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLastLoginAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetLastLoginAt(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (_u *UserUpdateOne) ClearLastLoginAt() *UserUpdateOne {
+	_u.mutation.ClearLastLoginAt()
+	return _u
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (_u *UserUpdateOne) SetPasswordUpdatedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetPasswordUpdatedAt(v)
+	return _u
+}
+
+// SetNillablePasswordUpdatedAt sets the "password_updated_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillablePasswordUpdatedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetPasswordUpdatedAt(*v)
+	}
+	return _u
+}
+
+// ClearPasswordUpdatedAt clears the value of the "password_updated_at" field.
+func (_u *UserUpdateOne) ClearPasswordUpdatedAt() *UserUpdateOne {
+	_u.mutation.ClearPasswordUpdatedAt()
+	return _u
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_u *UserUpdateOne) SetLastLoginIP(v string) *UserUpdateOne {
+	_u.mutation.SetLastLoginIP(v)
+	return _u
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLastLoginIP(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetLastLoginIP(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (_u *UserUpdateOne) ClearLastLoginIP() *UserUpdateOne {
+	_u.mutation.ClearLastLoginIP()
+	return _u
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (_u *UserUpdateOne) SetLastLoginMethod(v string) *UserUpdateOne {
+	_u.mutation.SetLastLoginMethod(v)
+	return _u
+}
+
+// SetNillableLastLoginMethod sets the "last_login_method" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLastLoginMethod(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetLastLoginMethod(*v)
+	}
+	return _u
+}
+
+// ClearLastLoginMethod clears the value of the "last_login_method" field.
+func (_u *UserUpdateOne) ClearLastLoginMethod() *UserUpdateOne {
+	_u.mutation.ClearLastLoginMethod()
+	return _u
+}
+
 // SetRoleID sets the "role" edge to the Role entity by ID.
 func (_u *UserUpdateOne) SetRoleID(id string) *UserUpdateOne {
 	_u.mutation.SetRoleID(id)
@@ -855,6 +1070,33 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(user.FieldTags, field.TypeString)
+	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastLoginAt(); ok {
+		_spec.SetField(user.FieldLastLoginAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastLoginAtCleared() {
+		_spec.ClearField(user.FieldLastLoginAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PasswordUpdatedAt(); ok {
+		_spec.SetField(user.FieldPasswordUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.PasswordUpdatedAtCleared() {
+		_spec.ClearField(user.FieldPasswordUpdatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginIPCleared() {
+		_spec.ClearField(user.FieldLastLoginIP, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastLoginMethod(); ok {
+		_spec.SetField(user.FieldLastLoginMethod, field.TypeString, value)
+	}
+	if _u.mutation.LastLoginMethodCleared() {
+		_spec.ClearField(user.FieldLastLoginMethod, field.TypeString)
 	}
 	if _u.mutation.RoleCleared() {
 		edge := &sqlgraph.EdgeSpec{

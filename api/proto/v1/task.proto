@@ -43,6 +43,13 @@ service TaskManager {
       body: "*"
     };
   }
+  // 批量清理终态任务行（成功/失败/已取消）
+  rpc ClearTasks(ClearTasksRequest) returns (ClearTasksResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/task/clear"
+      body: "*"
+    };
+  }
 }
 
 // 任务状态
@@ -121,12 +128,34 @@ message ListTasksRequest {
   optional string kind = 6;
 }
 
+// 任务状态统计（与列表同一组关键字/类型/种类条件，不受状态过滤影响）
+message TaskStatusCounts {
+  int64 all = 1;
+  int64 pending = 2;
+  int64 running = 3;
+  int64 success = 4;
+  int64 failed = 5;
+  int64 canceled = 6;
+}
+
+// 任务类型及其数量
+message TaskTypeCount {
+  // 注册类型键
+  string type = 1;
+  // 数量
+  int64 count = 2;
+}
+
 // 列出任务响应
 message ListTasksResponse {
   repeated TaskInfo items = 1;
   int64 total = 2;
   int64 page = 3;
   int64 page_size = 4;
+  // 各状态数量
+  TaskStatusCounts counts = 5;
+  // 全部任务里出现过的类型（不受任何过滤影响），供类型筛选
+  repeated TaskTypeCount types = 6;
 }
 
 message GetTaskRequest {
@@ -156,3 +185,13 @@ message DeleteTaskRequest {
 }
 
 message DeleteTaskResponse {}
+
+message ClearTasksRequest {
+  // 只清理该终态（success/failed/canceled）；为空时清理全部终态任务
+  optional string status = 1;
+}
+
+message ClearTasksResponse {
+  // 删除的行数
+  int64 deleted = 1;
+}

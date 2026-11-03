@@ -142,6 +142,76 @@ func (_c *UserCreate) SetNillableTags(v *string) *UserCreate {
 	return _c
 }
 
+// SetPhone sets the "phone" field.
+func (_c *UserCreate) SetPhone(v string) *UserCreate {
+	_c.mutation.SetPhone(v)
+	return _c
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePhone(v *string) *UserCreate {
+	if v != nil {
+		_c.SetPhone(*v)
+	}
+	return _c
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (_c *UserCreate) SetLastLoginAt(v time.Time) *UserCreate {
+	_c.mutation.SetLastLoginAt(v)
+	return _c
+}
+
+// SetNillableLastLoginAt sets the "last_login_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLastLoginAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetLastLoginAt(*v)
+	}
+	return _c
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (_c *UserCreate) SetPasswordUpdatedAt(v time.Time) *UserCreate {
+	_c.mutation.SetPasswordUpdatedAt(v)
+	return _c
+}
+
+// SetNillablePasswordUpdatedAt sets the "password_updated_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePasswordUpdatedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetPasswordUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (_c *UserCreate) SetLastLoginIP(v string) *UserCreate {
+	_c.mutation.SetLastLoginIP(v)
+	return _c
+}
+
+// SetNillableLastLoginIP sets the "last_login_ip" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLastLoginIP(v *string) *UserCreate {
+	if v != nil {
+		_c.SetLastLoginIP(*v)
+	}
+	return _c
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (_c *UserCreate) SetLastLoginMethod(v string) *UserCreate {
+	_c.mutation.SetLastLoginMethod(v)
+	return _c
+}
+
+// SetNillableLastLoginMethod sets the "last_login_method" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLastLoginMethod(v *string) *UserCreate {
+	if v != nil {
+		_c.SetLastLoginMethod(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v string) *UserCreate {
 	_c.mutation.SetID(v)
@@ -252,6 +322,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultName
 		_c.mutation.SetName(v)
 	}
+	if _, ok := _c.mutation.Phone(); !ok {
+		v := user.DefaultPhone
+		_c.mutation.SetPhone(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -289,6 +363,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "User.name"`)}
+	}
+	if _, ok := _c.mutation.Phone(); !ok {
+		return &ValidationError{Name: "phone", err: errors.New(`gen: missing required field "User.phone"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := user.IDValidator(v); err != nil {
@@ -370,6 +447,26 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Tags(); ok {
 		_spec.SetField(user.FieldTags, field.TypeString, value)
 		_node.Tags = value
+	}
+	if value, ok := _c.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
+		_node.Phone = value
+	}
+	if value, ok := _c.mutation.LastLoginAt(); ok {
+		_spec.SetField(user.FieldLastLoginAt, field.TypeTime, value)
+		_node.LastLoginAt = &value
+	}
+	if value, ok := _c.mutation.PasswordUpdatedAt(); ok {
+		_spec.SetField(user.FieldPasswordUpdatedAt, field.TypeTime, value)
+		_node.PasswordUpdatedAt = &value
+	}
+	if value, ok := _c.mutation.LastLoginIP(); ok {
+		_spec.SetField(user.FieldLastLoginIP, field.TypeString, value)
+		_node.LastLoginIP = value
+	}
+	if value, ok := _c.mutation.LastLoginMethod(); ok {
+		_spec.SetField(user.FieldLastLoginMethod, field.TypeString, value)
+		_node.LastLoginMethod = value
 	}
 	if nodes := _c.mutation.RoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -592,6 +689,90 @@ func (u *UserUpsert) ClearTags() *UserUpsert {
 	return u
 }
 
+// SetPhone sets the "phone" field.
+func (u *UserUpsert) SetPhone(v string) *UserUpsert {
+	u.Set(user.FieldPhone, v)
+	return u
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePhone() *UserUpsert {
+	u.SetExcluded(user.FieldPhone)
+	return u
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (u *UserUpsert) SetLastLoginAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldLastLoginAt, v)
+	return u
+}
+
+// UpdateLastLoginAt sets the "last_login_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLastLoginAt() *UserUpsert {
+	u.SetExcluded(user.FieldLastLoginAt)
+	return u
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (u *UserUpsert) ClearLastLoginAt() *UserUpsert {
+	u.SetNull(user.FieldLastLoginAt)
+	return u
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (u *UserUpsert) SetPasswordUpdatedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldPasswordUpdatedAt, v)
+	return u
+}
+
+// UpdatePasswordUpdatedAt sets the "password_updated_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePasswordUpdatedAt() *UserUpsert {
+	u.SetExcluded(user.FieldPasswordUpdatedAt)
+	return u
+}
+
+// ClearPasswordUpdatedAt clears the value of the "password_updated_at" field.
+func (u *UserUpsert) ClearPasswordUpdatedAt() *UserUpsert {
+	u.SetNull(user.FieldPasswordUpdatedAt)
+	return u
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (u *UserUpsert) SetLastLoginIP(v string) *UserUpsert {
+	u.Set(user.FieldLastLoginIP, v)
+	return u
+}
+
+// UpdateLastLoginIP sets the "last_login_ip" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLastLoginIP() *UserUpsert {
+	u.SetExcluded(user.FieldLastLoginIP)
+	return u
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (u *UserUpsert) ClearLastLoginIP() *UserUpsert {
+	u.SetNull(user.FieldLastLoginIP)
+	return u
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (u *UserUpsert) SetLastLoginMethod(v string) *UserUpsert {
+	u.Set(user.FieldLastLoginMethod, v)
+	return u
+}
+
+// UpdateLastLoginMethod sets the "last_login_method" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLastLoginMethod() *UserUpsert {
+	u.SetExcluded(user.FieldLastLoginMethod)
+	return u
+}
+
+// ClearLastLoginMethod clears the value of the "last_login_method" field.
+func (u *UserUpsert) ClearLastLoginMethod() *UserUpsert {
+	u.SetNull(user.FieldLastLoginMethod)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -780,6 +961,104 @@ func (u *UserUpsertOne) UpdateTags() *UserUpsertOne {
 func (u *UserUpsertOne) ClearTags() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearTags()
+	})
+}
+
+// SetPhone sets the "phone" field.
+func (u *UserUpsertOne) SetPhone(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPhone(v)
+	})
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePhone() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePhone()
+	})
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (u *UserUpsertOne) SetLastLoginAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginAt(v)
+	})
+}
+
+// UpdateLastLoginAt sets the "last_login_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLastLoginAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginAt()
+	})
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (u *UserUpsertOne) ClearLastLoginAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginAt()
+	})
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (u *UserUpsertOne) SetPasswordUpdatedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPasswordUpdatedAt(v)
+	})
+}
+
+// UpdatePasswordUpdatedAt sets the "password_updated_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePasswordUpdatedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePasswordUpdatedAt()
+	})
+}
+
+// ClearPasswordUpdatedAt clears the value of the "password_updated_at" field.
+func (u *UserUpsertOne) ClearPasswordUpdatedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPasswordUpdatedAt()
+	})
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (u *UserUpsertOne) SetLastLoginIP(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginIP(v)
+	})
+}
+
+// UpdateLastLoginIP sets the "last_login_ip" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLastLoginIP() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginIP()
+	})
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (u *UserUpsertOne) ClearLastLoginIP() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginIP()
+	})
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (u *UserUpsertOne) SetLastLoginMethod(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginMethod(v)
+	})
+}
+
+// UpdateLastLoginMethod sets the "last_login_method" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLastLoginMethod() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginMethod()
+	})
+}
+
+// ClearLastLoginMethod clears the value of the "last_login_method" field.
+func (u *UserUpsertOne) ClearLastLoginMethod() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginMethod()
 	})
 }
 
@@ -1138,6 +1417,104 @@ func (u *UserUpsertBulk) UpdateTags() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearTags() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearTags()
+	})
+}
+
+// SetPhone sets the "phone" field.
+func (u *UserUpsertBulk) SetPhone(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPhone(v)
+	})
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePhone() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePhone()
+	})
+}
+
+// SetLastLoginAt sets the "last_login_at" field.
+func (u *UserUpsertBulk) SetLastLoginAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginAt(v)
+	})
+}
+
+// UpdateLastLoginAt sets the "last_login_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLastLoginAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginAt()
+	})
+}
+
+// ClearLastLoginAt clears the value of the "last_login_at" field.
+func (u *UserUpsertBulk) ClearLastLoginAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginAt()
+	})
+}
+
+// SetPasswordUpdatedAt sets the "password_updated_at" field.
+func (u *UserUpsertBulk) SetPasswordUpdatedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPasswordUpdatedAt(v)
+	})
+}
+
+// UpdatePasswordUpdatedAt sets the "password_updated_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePasswordUpdatedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePasswordUpdatedAt()
+	})
+}
+
+// ClearPasswordUpdatedAt clears the value of the "password_updated_at" field.
+func (u *UserUpsertBulk) ClearPasswordUpdatedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPasswordUpdatedAt()
+	})
+}
+
+// SetLastLoginIP sets the "last_login_ip" field.
+func (u *UserUpsertBulk) SetLastLoginIP(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginIP(v)
+	})
+}
+
+// UpdateLastLoginIP sets the "last_login_ip" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLastLoginIP() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginIP()
+	})
+}
+
+// ClearLastLoginIP clears the value of the "last_login_ip" field.
+func (u *UserUpsertBulk) ClearLastLoginIP() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginIP()
+	})
+}
+
+// SetLastLoginMethod sets the "last_login_method" field.
+func (u *UserUpsertBulk) SetLastLoginMethod(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLastLoginMethod(v)
+	})
+}
+
+// UpdateLastLoginMethod sets the "last_login_method" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLastLoginMethod() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLastLoginMethod()
+	})
+}
+
+// ClearLastLoginMethod clears the value of the "last_login_method" field.
+func (u *UserUpsertBulk) ClearLastLoginMethod() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLastLoginMethod()
 	})
 }
 

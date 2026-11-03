@@ -23,6 +23,8 @@ func (Instance) Fields() []ent.Field {
 		field.String("start_command").NotEmpty().Comment("启动命令"),
 		field.String("stop_command").Default("exit").Comment("停止命令"),
 		field.Bool("auto_start").Default(false).Comment("是否自启动"),
+		field.Bool("auto_restart").Default(false).Comment("崩溃后自动重启"),
+		field.Int32("stop_timeout").Default(0).Comment("停止超时(秒)，<=0 使用默认值"),
 		field.JSON("env", []string{}).Optional().Comment("环境变量"),
 	}
 }

@@ -23,6 +23,59 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// API Key 有效状态
+type APIKeyStatus int32
+
+const (
+	// 有效（永久有效或距过期超过 30 天）
+	APIKeyStatus_APIKeyStatus_Valid APIKeyStatus = 0
+	// 即将过期（30 天内过期）
+	APIKeyStatus_APIKeyStatus_Expiring APIKeyStatus = 1
+	// 已过期
+	APIKeyStatus_APIKeyStatus_Expired APIKeyStatus = 2
+)
+
+// Enum value maps for APIKeyStatus.
+var (
+	APIKeyStatus_name = map[int32]string{
+		0: "APIKeyStatus_Valid",
+		1: "APIKeyStatus_Expiring",
+		2: "APIKeyStatus_Expired",
+	}
+	APIKeyStatus_value = map[string]int32{
+		"APIKeyStatus_Valid":    0,
+		"APIKeyStatus_Expiring": 1,
+		"APIKeyStatus_Expired":  2,
+	}
+)
+
+func (x APIKeyStatus) Enum() *APIKeyStatus {
+	p := new(APIKeyStatus)
+	*p = x
+	return p
+}
+
+func (x APIKeyStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (APIKeyStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_node_proto_enumTypes[0].Descriptor()
+}
+
+func (APIKeyStatus) Type() protoreflect.EnumType {
+	return &file_v1_node_proto_enumTypes[0]
+}
+
+func (x APIKeyStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use APIKeyStatus.Descriptor instead.
+func (APIKeyStatus) EnumDescriptor() ([]byte, []int) {
+	return file_v1_node_proto_rawDescGZIP(), []int{0}
+}
+
 // 节点连接状态
 type NodeState int32
 
@@ -64,11 +117,11 @@ func (x NodeState) String() string {
 }
 
 func (NodeState) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_node_proto_enumTypes[0].Descriptor()
+	return file_v1_node_proto_enumTypes[1].Descriptor()
 }
 
 func (NodeState) Type() protoreflect.EnumType {
-	return &file_v1_node_proto_enumTypes[0]
+	return &file_v1_node_proto_enumTypes[1]
 }
 
 func (x NodeState) Number() protoreflect.EnumNumber {
@@ -77,7 +130,7 @@ func (x NodeState) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use NodeState.Descriptor instead.
 func (NodeState) EnumDescriptor() ([]byte, []int) {
-	return file_v1_node_proto_rawDescGZIP(), []int{0}
+	return file_v1_node_proto_rawDescGZIP(), []int{1}
 }
 
 type CreateAPIKeyRequest struct {
@@ -87,7 +140,9 @@ type CreateAPIKeyRequest struct {
 	// 过期时间；不传表示永久有效
 	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	// 授予的节点权限（权限标识），远程主控调用本节点时以此为上限
-	Permissions   []string `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Permissions []string `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	// 用途备注
+	Remark        string `protobuf:"bytes,4,opt,name=remark,proto3" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -143,6 +198,13 @@ func (x *CreateAPIKeyRequest) GetPermissions() []string {
 	return nil
 }
 
+func (x *CreateAPIKeyRequest) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
 type CreateAPIKeyResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// API Key 信息
@@ -195,7 +257,9 @@ type ListAPIKeysRequest struct {
 	// page size
 	PageSize int64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// 名称关键字
-	Keywords      *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	Keywords *string `protobuf:"bytes,3,opt,name=keywords,proto3,oneof" json:"keywords,omitempty"`
+	// 按有效状态筛选；不传表示全部
+	Status        *APIKeyStatus `protobuf:"varint,4,opt,name=status,proto3,enum=v1.APIKeyStatus,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,6 +315,13 @@ func (x *ListAPIKeysRequest) GetKeywords() string {
 	return ""
 }
 
+func (x *ListAPIKeysRequest) GetStatus() APIKeyStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return APIKeyStatus_APIKeyStatus_Valid
+}
+
 type ListAPIKeysResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// actual page
@@ -260,7 +331,13 @@ type ListAPIKeysResponse struct {
 	// 总数
 	Total int64 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
 	// 列表
-	Infos         []*APIKeyInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*APIKeyInfo `protobuf:"bytes,4,rep,name=infos,proto3" json:"infos,omitempty"`
+	// 有效数量（按关键字筛选，不受状态筛选影响）
+	ValidCount int64 `protobuf:"varint,5,opt,name=valid_count,json=validCount,proto3" json:"valid_count,omitempty"`
+	// 即将过期数量
+	ExpiringCount int64 `protobuf:"varint,6,opt,name=expiring_count,json=expiringCount,proto3" json:"expiring_count,omitempty"`
+	// 已过期数量
+	ExpiredCount  int64 `protobuf:"varint,7,opt,name=expired_count,json=expiredCount,proto3" json:"expired_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -321,6 +398,27 @@ func (x *ListAPIKeysResponse) GetInfos() []*APIKeyInfo {
 		return x.Infos
 	}
 	return nil
+}
+
+func (x *ListAPIKeysResponse) GetValidCount() int64 {
+	if x != nil {
+		return x.ValidCount
+	}
+	return 0
+}
+
+func (x *ListAPIKeysResponse) GetExpiringCount() int64 {
+	if x != nil {
+		return x.ExpiringCount
+	}
+	return 0
+}
+
+func (x *ListAPIKeysResponse) GetExpiredCount() int64 {
+	if x != nil {
+		return x.ExpiredCount
+	}
+	return 0
 }
 
 type CopyAPIKeyRequest struct {
@@ -470,7 +568,9 @@ type UpdateAPIKeyRequest struct {
 	// 设为永久有效
 	NeverExpires *bool `protobuf:"varint,4,opt,name=never_expires,json=neverExpires,proto3,oneof" json:"never_expires,omitempty"`
 	// 授予的节点权限；不传表示不修改
-	Permissions   *APIKeyPermissionSet `protobuf:"bytes,5,opt,name=permissions,proto3" json:"permissions,omitempty"`
+	Permissions *APIKeyPermissionSet `protobuf:"bytes,5,opt,name=permissions,proto3" json:"permissions,omitempty"`
+	// 用途备注；不传表示不修改
+	Remark        *string `protobuf:"bytes,6,opt,name=remark,proto3,oneof" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -538,6 +638,13 @@ func (x *UpdateAPIKeyRequest) GetPermissions() *APIKeyPermissionSet {
 		return x.Permissions
 	}
 	return nil
+}
+
+func (x *UpdateAPIKeyRequest) GetRemark() string {
+	if x != nil && x.Remark != nil {
+		return *x.Remark
+	}
+	return ""
 }
 
 type UpdateAPIKeyResponse struct {
@@ -773,7 +880,15 @@ type APIKeyInfo struct {
 	// 授予的节点权限
 	Permissions []string `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	// 公开密钥标识（由种子派生），主控请求时携带用于定位密钥
-	KeyId         string `protobuf:"bytes,8,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	KeyId string `protobuf:"bytes,8,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	// 用途备注
+	Remark string `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 最近一次被远程主控调用的时间；空表示从未使用
+	LastUsedTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_used_time,json=lastUsedTime,proto3,oneof" json:"last_used_time,omitempty"`
+	// 最近一次调用来源 IP
+	LastUsedIp string `protobuf:"bytes,11,opt,name=last_used_ip,json=lastUsedIp,proto3" json:"last_used_ip,omitempty"`
+	// 有效状态
+	Status        APIKeyStatus `protobuf:"varint,12,opt,name=status,proto3,enum=v1.APIKeyStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -862,6 +977,34 @@ func (x *APIKeyInfo) GetKeyId() string {
 		return x.KeyId
 	}
 	return ""
+}
+
+func (x *APIKeyInfo) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *APIKeyInfo) GetLastUsedTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastUsedTime
+	}
+	return nil
+}
+
+func (x *APIKeyInfo) GetLastUsedIp() string {
+	if x != nil {
+		return x.LastUsedIp
+	}
+	return ""
+}
+
+func (x *APIKeyInfo) GetStatus() APIKeyStatus {
+	if x != nil {
+		return x.Status
+	}
+	return APIKeyStatus_APIKeyStatus_Valid
 }
 
 // 节点自报信息（由节点 NodeAgent.AgentInfo 返回）
@@ -1011,7 +1154,11 @@ type NodeStatus struct {
 	// 往返延迟（毫秒）
 	LatencyMs int64 `protobuf:"varint,4,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
 	// 节点自报信息（在线时有效）
-	Remote        *NodeRemoteInfo `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
+	Remote *NodeRemoteInfo `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
+	// 最近一次探测在线的时间（持久化，离线时用于显示“最后在线”）
+	LastOnlineTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=last_online_time,json=lastOnlineTime,proto3,oneof" json:"last_online_time,omitempty"`
+	// 最近一次在线时的节点自报信息（仅当前不在线时返回，用于离线后仍显示版本 / 系统）
+	LastRemote    *NodeRemoteInfo `protobuf:"bytes,7,opt,name=last_remote,json=lastRemote,proto3" json:"last_remote,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1077,6 +1224,20 @@ func (x *NodeStatus) GetLatencyMs() int64 {
 func (x *NodeStatus) GetRemote() *NodeRemoteInfo {
 	if x != nil {
 		return x.Remote
+	}
+	return nil
+}
+
+func (x *NodeStatus) GetLastOnlineTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastOnlineTime
+	}
+	return nil
+}
+
+func (x *NodeStatus) GetLastRemote() *NodeRemoteInfo {
+	if x != nil {
+		return x.LastRemote
 	}
 	return nil
 }
@@ -1264,7 +1425,9 @@ func (x *ListNodesRequest) GetKeywords() string {
 type ListNodesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 节点列表
-	Infos         []*NodeInfo `protobuf:"bytes,1,rep,name=infos,proto3" json:"infos,omitempty"`
+	Infos []*NodeInfo `protobuf:"bytes,1,rep,name=infos,proto3" json:"infos,omitempty"`
+	// 本机（主控）信息：主机名 / 系统 / 架构 / 版本，用于在节点列表中展示本机卡片
+	Local         *NodeRemoteInfo `protobuf:"bytes,2,opt,name=local,proto3" json:"local,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1302,6 +1465,13 @@ func (*ListNodesResponse) Descriptor() ([]byte, []int) {
 func (x *ListNodesResponse) GetInfos() []*NodeInfo {
 	if x != nil {
 		return x.Infos
+	}
+	return nil
+}
+
+func (x *ListNodesResponse) GetLocal() *NodeRemoteInfo {
+	if x != nil {
+		return x.Local
 	}
 	return nil
 }
@@ -1895,41 +2065,50 @@ var File_v1_node_proto protoreflect.FileDescriptor
 
 const file_v1_node_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/node.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9a\x01\n" +
+	"\rv1/node.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb2\x01\n" +
 	"\x13CreateAPIKeyRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12>\n" +
 	"\n" +
 	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01\x12 \n" +
-	"\vpermissions\x18\x03 \x03(\tR\vpermissionsB\r\n" +
+	"\vpermissions\x18\x03 \x03(\tR\vpermissions\x12\x16\n" +
+	"\x06remark\x18\x04 \x01(\tR\x06remarkB\r\n" +
 	"\v_expires_at\":\n" +
 	"\x14CreateAPIKeyResponse\x12\"\n" +
-	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"s\n" +
+	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"\xad\x01\n" +
 	"\x12ListAPIKeysRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
-	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01B\v\n" +
-	"\t_keywords\"\x82\x01\n" +
+	"\bkeywords\x18\x03 \x01(\tH\x00R\bkeywords\x88\x01\x01\x12-\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x10.v1.APIKeyStatusH\x01R\x06status\x88\x01\x01B\v\n" +
+	"\t_keywordsB\t\n" +
+	"\a_status\"\xef\x01\n" +
 	"\x13ListAPIKeysResponse\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12$\n" +
-	"\x05infos\x18\x04 \x03(\v2\x0e.v1.APIKeyInfoR\x05infos\"#\n" +
+	"\x05infos\x18\x04 \x03(\v2\x0e.v1.APIKeyInfoR\x05infos\x12\x1f\n" +
+	"\vvalid_count\x18\x05 \x01(\x03R\n" +
+	"validCount\x12%\n" +
+	"\x0eexpiring_count\x18\x06 \x01(\x03R\rexpiringCount\x12#\n" +
+	"\rexpired_count\x18\a \x01(\x03R\fexpiredCount\"#\n" +
 	"\x11CopyAPIKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x12CopyAPIKeyResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"+\n" +
 	"\x13APIKeyPermissionSet\x12\x14\n" +
-	"\x05items\x18\x01 \x03(\tR\x05items\"\x8d\x02\n" +
+	"\x05items\x18\x01 \x03(\tR\x05items\"\xb5\x02\n" +
 	"\x13UpdateAPIKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12>\n" +
 	"\n" +
 	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\texpiresAt\x88\x01\x01\x12(\n" +
 	"\rnever_expires\x18\x04 \x01(\bH\x02R\fneverExpires\x88\x01\x01\x129\n" +
-	"\vpermissions\x18\x05 \x01(\v2\x17.v1.APIKeyPermissionSetR\vpermissionsB\a\n" +
+	"\vpermissions\x18\x05 \x01(\v2\x17.v1.APIKeyPermissionSetR\vpermissions\x12\x1b\n" +
+	"\x06remark\x18\x06 \x01(\tH\x03R\x06remark\x88\x01\x01B\a\n" +
 	"\x05_nameB\r\n" +
 	"\v_expires_atB\x10\n" +
-	"\x0e_never_expires\":\n" +
+	"\x0e_never_expiresB\t\n" +
+	"\a_remark\":\n" +
 	"\x14UpdateAPIKeyResponse\x12\"\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"&\n" +
 	"\x14RefreshAPIKeyRequest\x12\x0e\n" +
@@ -1938,7 +2117,7 @@ const file_v1_node_proto_rawDesc = "" +
 	"\x04info\x18\x01 \x01(\v2\x0e.v1.APIKeyInfoR\x04info\"%\n" +
 	"\x13DeleteAPIKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x16\n" +
-	"\x14DeleteAPIKeyResponse\"\xcb\x02\n" +
+	"\x14DeleteAPIKeyResponse\"\x89\x04\n" +
 	"\n" +
 	"APIKeyInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -1951,8 +2130,15 @@ const file_v1_node_proto_rawDesc = "" +
 	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\x12 \n" +
 	"\vpermissions\x18\a \x03(\tR\vpermissions\x12\x15\n" +
-	"\x06key_id\x18\b \x01(\tR\x05keyIdB\r\n" +
-	"\v_expires_at\"\x8b\x03\n" +
+	"\x06key_id\x18\b \x01(\tR\x05keyId\x12\x16\n" +
+	"\x06remark\x18\t \x01(\tR\x06remark\x12E\n" +
+	"\x0elast_used_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampH\x01R\flastUsedTime\x88\x01\x01\x12 \n" +
+	"\flast_used_ip\x18\v \x01(\tR\n" +
+	"lastUsedIp\x12(\n" +
+	"\x06status\x18\f \x01(\x0e2\x10.v1.APIKeyStatusR\x06statusB\r\n" +
+	"\v_expires_atB\x11\n" +
+	"\x0f_last_used_time\"\x8b\x03\n" +
 	"\x0eNodeRemoteInfo\x12\x1a\n" +
 	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x0e\n" +
 	"\x02os\x18\x02 \x01(\tR\x02os\x12\x12\n" +
@@ -1969,7 +2155,7 @@ const file_v1_node_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01\x12;\n" +
 	"\vserver_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"serverTimeB\r\n" +
-	"\v_expires_at\"\xe5\x01\n" +
+	"\v_expires_at\"\xfa\x02\n" +
 	"\n" +
 	"NodeStatus\x12#\n" +
 	"\x05state\x18\x01 \x01(\x0e2\r.v1.NodeStateR\x05state\x12\x18\n" +
@@ -1978,8 +2164,12 @@ const file_v1_node_proto_rawDesc = "" +
 	"check_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tcheckTime\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"latency_ms\x18\x04 \x01(\x03R\tlatencyMs\x12*\n" +
-	"\x06remote\x18\x05 \x01(\v2\x12.v1.NodeRemoteInfoR\x06remoteB\r\n" +
-	"\v_check_time\"\xec\x02\n" +
+	"\x06remote\x18\x05 \x01(\v2\x12.v1.NodeRemoteInfoR\x06remote\x12I\n" +
+	"\x10last_online_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\x0elastOnlineTime\x88\x01\x01\x123\n" +
+	"\vlast_remote\x18\a \x01(\v2\x12.v1.NodeRemoteInfoR\n" +
+	"lastRemoteB\r\n" +
+	"\v_check_timeB\x13\n" +
+	"\x11_last_online_time\"\xec\x02\n" +
 	"\bNodeInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
@@ -1997,9 +2187,10 @@ const file_v1_node_proto_rawDesc = "" +
 	"updateTime\"@\n" +
 	"\x10ListNodesRequest\x12\x1f\n" +
 	"\bkeywords\x18\x01 \x01(\tH\x00R\bkeywords\x88\x01\x01B\v\n" +
-	"\t_keywords\"7\n" +
+	"\t_keywords\"a\n" +
 	"\x11ListNodesResponse\x12\"\n" +
-	"\x05infos\x18\x01 \x03(\v2\f.v1.NodeInfoR\x05infos\"\xac\x01\n" +
+	"\x05infos\x18\x01 \x03(\v2\f.v1.NodeInfoR\x05infos\x12(\n" +
+	"\x05local\x18\x02 \x01(\v2\x12.v1.NodeRemoteInfoR\x05local\"\xac\x01\n" +
 	"\x11CreateNodeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x17\n" +
@@ -2049,7 +2240,11 @@ const file_v1_node_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\\\n" +
 	"\x16GetNodeContextResponse\x12 \n" +
 	"\x04info\x18\x01 \x01(\v2\f.v1.NodeInfoR\x04info\x12 \n" +
-	"\vpermissions\x18\x02 \x03(\tR\vpermissions*k\n" +
+	"\vpermissions\x18\x02 \x03(\tR\vpermissions*[\n" +
+	"\fAPIKeyStatus\x12\x16\n" +
+	"\x12APIKeyStatus_Valid\x10\x00\x12\x19\n" +
+	"\x15APIKeyStatus_Expiring\x10\x01\x12\x18\n" +
+	"\x14APIKeyStatus_Expired\x10\x02*k\n" +
 	"\tNodeState\x12\x15\n" +
 	"\x11NodeState_Unknown\x10\x00\x12\x14\n" +
 	"\x10NodeState_Online\x10\x01\x12\x15\n" +
@@ -2085,95 +2280,102 @@ func file_v1_node_proto_rawDescGZIP() []byte {
 	return file_v1_node_proto_rawDescData
 }
 
-var file_v1_node_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_v1_node_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_v1_node_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_v1_node_proto_goTypes = []any{
-	(NodeState)(0),                 // 0: v1.NodeState
-	(*CreateAPIKeyRequest)(nil),    // 1: v1.CreateAPIKeyRequest
-	(*CreateAPIKeyResponse)(nil),   // 2: v1.CreateAPIKeyResponse
-	(*ListAPIKeysRequest)(nil),     // 3: v1.ListAPIKeysRequest
-	(*ListAPIKeysResponse)(nil),    // 4: v1.ListAPIKeysResponse
-	(*CopyAPIKeyRequest)(nil),      // 5: v1.CopyAPIKeyRequest
-	(*CopyAPIKeyResponse)(nil),     // 6: v1.CopyAPIKeyResponse
-	(*APIKeyPermissionSet)(nil),    // 7: v1.APIKeyPermissionSet
-	(*UpdateAPIKeyRequest)(nil),    // 8: v1.UpdateAPIKeyRequest
-	(*UpdateAPIKeyResponse)(nil),   // 9: v1.UpdateAPIKeyResponse
-	(*RefreshAPIKeyRequest)(nil),   // 10: v1.RefreshAPIKeyRequest
-	(*RefreshAPIKeyResponse)(nil),  // 11: v1.RefreshAPIKeyResponse
-	(*DeleteAPIKeyRequest)(nil),    // 12: v1.DeleteAPIKeyRequest
-	(*DeleteAPIKeyResponse)(nil),   // 13: v1.DeleteAPIKeyResponse
-	(*APIKeyInfo)(nil),             // 14: v1.APIKeyInfo
-	(*NodeRemoteInfo)(nil),         // 15: v1.NodeRemoteInfo
-	(*NodeStatus)(nil),             // 16: v1.NodeStatus
-	(*NodeInfo)(nil),               // 17: v1.NodeInfo
-	(*ListNodesRequest)(nil),       // 18: v1.ListNodesRequest
-	(*ListNodesResponse)(nil),      // 19: v1.ListNodesResponse
-	(*CreateNodeRequest)(nil),      // 20: v1.CreateNodeRequest
-	(*CreateNodeResponse)(nil),     // 21: v1.CreateNodeResponse
-	(*UpdateNodeRequest)(nil),      // 22: v1.UpdateNodeRequest
-	(*UpdateNodeResponse)(nil),     // 23: v1.UpdateNodeResponse
-	(*DeleteNodeRequest)(nil),      // 24: v1.DeleteNodeRequest
-	(*DeleteNodeResponse)(nil),     // 25: v1.DeleteNodeResponse
-	(*TestNodeRequest)(nil),        // 26: v1.TestNodeRequest
-	(*TestNodeResponse)(nil),       // 27: v1.TestNodeResponse
-	(*GetNodeContextRequest)(nil),  // 28: v1.GetNodeContextRequest
-	(*GetNodeContextResponse)(nil), // 29: v1.GetNodeContextResponse
-	(*timestamppb.Timestamp)(nil),  // 30: google.protobuf.Timestamp
+	(APIKeyStatus)(0),              // 0: v1.APIKeyStatus
+	(NodeState)(0),                 // 1: v1.NodeState
+	(*CreateAPIKeyRequest)(nil),    // 2: v1.CreateAPIKeyRequest
+	(*CreateAPIKeyResponse)(nil),   // 3: v1.CreateAPIKeyResponse
+	(*ListAPIKeysRequest)(nil),     // 4: v1.ListAPIKeysRequest
+	(*ListAPIKeysResponse)(nil),    // 5: v1.ListAPIKeysResponse
+	(*CopyAPIKeyRequest)(nil),      // 6: v1.CopyAPIKeyRequest
+	(*CopyAPIKeyResponse)(nil),     // 7: v1.CopyAPIKeyResponse
+	(*APIKeyPermissionSet)(nil),    // 8: v1.APIKeyPermissionSet
+	(*UpdateAPIKeyRequest)(nil),    // 9: v1.UpdateAPIKeyRequest
+	(*UpdateAPIKeyResponse)(nil),   // 10: v1.UpdateAPIKeyResponse
+	(*RefreshAPIKeyRequest)(nil),   // 11: v1.RefreshAPIKeyRequest
+	(*RefreshAPIKeyResponse)(nil),  // 12: v1.RefreshAPIKeyResponse
+	(*DeleteAPIKeyRequest)(nil),    // 13: v1.DeleteAPIKeyRequest
+	(*DeleteAPIKeyResponse)(nil),   // 14: v1.DeleteAPIKeyResponse
+	(*APIKeyInfo)(nil),             // 15: v1.APIKeyInfo
+	(*NodeRemoteInfo)(nil),         // 16: v1.NodeRemoteInfo
+	(*NodeStatus)(nil),             // 17: v1.NodeStatus
+	(*NodeInfo)(nil),               // 18: v1.NodeInfo
+	(*ListNodesRequest)(nil),       // 19: v1.ListNodesRequest
+	(*ListNodesResponse)(nil),      // 20: v1.ListNodesResponse
+	(*CreateNodeRequest)(nil),      // 21: v1.CreateNodeRequest
+	(*CreateNodeResponse)(nil),     // 22: v1.CreateNodeResponse
+	(*UpdateNodeRequest)(nil),      // 23: v1.UpdateNodeRequest
+	(*UpdateNodeResponse)(nil),     // 24: v1.UpdateNodeResponse
+	(*DeleteNodeRequest)(nil),      // 25: v1.DeleteNodeRequest
+	(*DeleteNodeResponse)(nil),     // 26: v1.DeleteNodeResponse
+	(*TestNodeRequest)(nil),        // 27: v1.TestNodeRequest
+	(*TestNodeResponse)(nil),       // 28: v1.TestNodeResponse
+	(*GetNodeContextRequest)(nil),  // 29: v1.GetNodeContextRequest
+	(*GetNodeContextResponse)(nil), // 30: v1.GetNodeContextResponse
+	(*timestamppb.Timestamp)(nil),  // 31: google.protobuf.Timestamp
 }
 var file_v1_node_proto_depIdxs = []int32{
-	30, // 0: v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
-	14, // 1: v1.CreateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	14, // 2: v1.ListAPIKeysResponse.infos:type_name -> v1.APIKeyInfo
-	14, // 3: v1.CopyAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	30, // 4: v1.UpdateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
-	7,  // 5: v1.UpdateAPIKeyRequest.permissions:type_name -> v1.APIKeyPermissionSet
-	14, // 6: v1.UpdateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	14, // 7: v1.RefreshAPIKeyResponse.info:type_name -> v1.APIKeyInfo
-	30, // 8: v1.APIKeyInfo.expires_at:type_name -> google.protobuf.Timestamp
-	30, // 9: v1.APIKeyInfo.create_time:type_name -> google.protobuf.Timestamp
-	30, // 10: v1.APIKeyInfo.update_time:type_name -> google.protobuf.Timestamp
-	30, // 11: v1.NodeRemoteInfo.expires_at:type_name -> google.protobuf.Timestamp
-	30, // 12: v1.NodeRemoteInfo.server_time:type_name -> google.protobuf.Timestamp
-	0,  // 13: v1.NodeStatus.state:type_name -> v1.NodeState
-	30, // 14: v1.NodeStatus.check_time:type_name -> google.protobuf.Timestamp
-	15, // 15: v1.NodeStatus.remote:type_name -> v1.NodeRemoteInfo
-	16, // 16: v1.NodeInfo.status:type_name -> v1.NodeStatus
-	30, // 17: v1.NodeInfo.create_time:type_name -> google.protobuf.Timestamp
-	30, // 18: v1.NodeInfo.update_time:type_name -> google.protobuf.Timestamp
-	17, // 19: v1.ListNodesResponse.infos:type_name -> v1.NodeInfo
-	17, // 20: v1.CreateNodeResponse.info:type_name -> v1.NodeInfo
-	17, // 21: v1.UpdateNodeResponse.info:type_name -> v1.NodeInfo
-	16, // 22: v1.TestNodeResponse.status:type_name -> v1.NodeStatus
-	17, // 23: v1.GetNodeContextResponse.info:type_name -> v1.NodeInfo
-	1,  // 24: v1.NodeService.CreateAPIKey:input_type -> v1.CreateAPIKeyRequest
-	3,  // 25: v1.NodeService.ListAPIKeys:input_type -> v1.ListAPIKeysRequest
-	5,  // 26: v1.NodeService.CopyAPIKey:input_type -> v1.CopyAPIKeyRequest
-	8,  // 27: v1.NodeService.UpdateAPIKey:input_type -> v1.UpdateAPIKeyRequest
-	10, // 28: v1.NodeService.RefreshAPIKey:input_type -> v1.RefreshAPIKeyRequest
-	12, // 29: v1.NodeService.DeleteAPIKey:input_type -> v1.DeleteAPIKeyRequest
-	18, // 30: v1.NodeService.ListNodes:input_type -> v1.ListNodesRequest
-	20, // 31: v1.NodeService.CreateNode:input_type -> v1.CreateNodeRequest
-	22, // 32: v1.NodeService.UpdateNode:input_type -> v1.UpdateNodeRequest
-	24, // 33: v1.NodeService.DeleteNode:input_type -> v1.DeleteNodeRequest
-	26, // 34: v1.NodeService.TestNode:input_type -> v1.TestNodeRequest
-	28, // 35: v1.NodeService.GetNodeContext:input_type -> v1.GetNodeContextRequest
-	2,  // 36: v1.NodeService.CreateAPIKey:output_type -> v1.CreateAPIKeyResponse
-	4,  // 37: v1.NodeService.ListAPIKeys:output_type -> v1.ListAPIKeysResponse
-	6,  // 38: v1.NodeService.CopyAPIKey:output_type -> v1.CopyAPIKeyResponse
-	9,  // 39: v1.NodeService.UpdateAPIKey:output_type -> v1.UpdateAPIKeyResponse
-	11, // 40: v1.NodeService.RefreshAPIKey:output_type -> v1.RefreshAPIKeyResponse
-	13, // 41: v1.NodeService.DeleteAPIKey:output_type -> v1.DeleteAPIKeyResponse
-	19, // 42: v1.NodeService.ListNodes:output_type -> v1.ListNodesResponse
-	21, // 43: v1.NodeService.CreateNode:output_type -> v1.CreateNodeResponse
-	23, // 44: v1.NodeService.UpdateNode:output_type -> v1.UpdateNodeResponse
-	25, // 45: v1.NodeService.DeleteNode:output_type -> v1.DeleteNodeResponse
-	27, // 46: v1.NodeService.TestNode:output_type -> v1.TestNodeResponse
-	29, // 47: v1.NodeService.GetNodeContext:output_type -> v1.GetNodeContextResponse
-	36, // [36:48] is the sub-list for method output_type
-	24, // [24:36] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	31, // 0: v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	15, // 1: v1.CreateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	0,  // 2: v1.ListAPIKeysRequest.status:type_name -> v1.APIKeyStatus
+	15, // 3: v1.ListAPIKeysResponse.infos:type_name -> v1.APIKeyInfo
+	15, // 4: v1.CopyAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	31, // 5: v1.UpdateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	8,  // 6: v1.UpdateAPIKeyRequest.permissions:type_name -> v1.APIKeyPermissionSet
+	15, // 7: v1.UpdateAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	15, // 8: v1.RefreshAPIKeyResponse.info:type_name -> v1.APIKeyInfo
+	31, // 9: v1.APIKeyInfo.expires_at:type_name -> google.protobuf.Timestamp
+	31, // 10: v1.APIKeyInfo.create_time:type_name -> google.protobuf.Timestamp
+	31, // 11: v1.APIKeyInfo.update_time:type_name -> google.protobuf.Timestamp
+	31, // 12: v1.APIKeyInfo.last_used_time:type_name -> google.protobuf.Timestamp
+	0,  // 13: v1.APIKeyInfo.status:type_name -> v1.APIKeyStatus
+	31, // 14: v1.NodeRemoteInfo.expires_at:type_name -> google.protobuf.Timestamp
+	31, // 15: v1.NodeRemoteInfo.server_time:type_name -> google.protobuf.Timestamp
+	1,  // 16: v1.NodeStatus.state:type_name -> v1.NodeState
+	31, // 17: v1.NodeStatus.check_time:type_name -> google.protobuf.Timestamp
+	16, // 18: v1.NodeStatus.remote:type_name -> v1.NodeRemoteInfo
+	31, // 19: v1.NodeStatus.last_online_time:type_name -> google.protobuf.Timestamp
+	16, // 20: v1.NodeStatus.last_remote:type_name -> v1.NodeRemoteInfo
+	17, // 21: v1.NodeInfo.status:type_name -> v1.NodeStatus
+	31, // 22: v1.NodeInfo.create_time:type_name -> google.protobuf.Timestamp
+	31, // 23: v1.NodeInfo.update_time:type_name -> google.protobuf.Timestamp
+	18, // 24: v1.ListNodesResponse.infos:type_name -> v1.NodeInfo
+	16, // 25: v1.ListNodesResponse.local:type_name -> v1.NodeRemoteInfo
+	18, // 26: v1.CreateNodeResponse.info:type_name -> v1.NodeInfo
+	18, // 27: v1.UpdateNodeResponse.info:type_name -> v1.NodeInfo
+	17, // 28: v1.TestNodeResponse.status:type_name -> v1.NodeStatus
+	18, // 29: v1.GetNodeContextResponse.info:type_name -> v1.NodeInfo
+	2,  // 30: v1.NodeService.CreateAPIKey:input_type -> v1.CreateAPIKeyRequest
+	4,  // 31: v1.NodeService.ListAPIKeys:input_type -> v1.ListAPIKeysRequest
+	6,  // 32: v1.NodeService.CopyAPIKey:input_type -> v1.CopyAPIKeyRequest
+	9,  // 33: v1.NodeService.UpdateAPIKey:input_type -> v1.UpdateAPIKeyRequest
+	11, // 34: v1.NodeService.RefreshAPIKey:input_type -> v1.RefreshAPIKeyRequest
+	13, // 35: v1.NodeService.DeleteAPIKey:input_type -> v1.DeleteAPIKeyRequest
+	19, // 36: v1.NodeService.ListNodes:input_type -> v1.ListNodesRequest
+	21, // 37: v1.NodeService.CreateNode:input_type -> v1.CreateNodeRequest
+	23, // 38: v1.NodeService.UpdateNode:input_type -> v1.UpdateNodeRequest
+	25, // 39: v1.NodeService.DeleteNode:input_type -> v1.DeleteNodeRequest
+	27, // 40: v1.NodeService.TestNode:input_type -> v1.TestNodeRequest
+	29, // 41: v1.NodeService.GetNodeContext:input_type -> v1.GetNodeContextRequest
+	3,  // 42: v1.NodeService.CreateAPIKey:output_type -> v1.CreateAPIKeyResponse
+	5,  // 43: v1.NodeService.ListAPIKeys:output_type -> v1.ListAPIKeysResponse
+	7,  // 44: v1.NodeService.CopyAPIKey:output_type -> v1.CopyAPIKeyResponse
+	10, // 45: v1.NodeService.UpdateAPIKey:output_type -> v1.UpdateAPIKeyResponse
+	12, // 46: v1.NodeService.RefreshAPIKey:output_type -> v1.RefreshAPIKeyResponse
+	14, // 47: v1.NodeService.DeleteAPIKey:output_type -> v1.DeleteAPIKeyResponse
+	20, // 48: v1.NodeService.ListNodes:output_type -> v1.ListNodesResponse
+	22, // 49: v1.NodeService.CreateNode:output_type -> v1.CreateNodeResponse
+	24, // 50: v1.NodeService.UpdateNode:output_type -> v1.UpdateNodeResponse
+	26, // 51: v1.NodeService.DeleteNode:output_type -> v1.DeleteNodeResponse
+	28, // 52: v1.NodeService.TestNode:output_type -> v1.TestNodeResponse
+	30, // 53: v1.NodeService.GetNodeContext:output_type -> v1.GetNodeContextResponse
+	42, // [42:54] is the sub-list for method output_type
+	30, // [30:42] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_v1_node_proto_init() }
@@ -2195,7 +2397,7 @@ func file_v1_node_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_node_proto_rawDesc), len(file_v1_node_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,

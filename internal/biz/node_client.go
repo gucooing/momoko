@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/pkg/nodeauth"
@@ -43,6 +44,8 @@ type NodeConfig struct {
 	Remark        string
 	CreateTime    time.Time
 	UpdateTime    time.Time
+	// LastOnlineAt 最近一次探测在线的时间（持久化，节流写入）
+	LastOnlineAt *time.Time
 }
 
 func (c *NodeConfig) sameConnection(other *NodeConfig) bool {
@@ -178,14 +181,27 @@ func (m *nodeClients) closeAll() {
 	}
 }
 
-// nodeStatusCache 保存最近一次检测结果，供列表与切换器展示。
+// nodeStatusCache 保存最近一次检测结果，供列表与切换器展示；
+// 同时记录每个节点最近一次在线的时间（离线后显示“最后在线”），并节流持久化。
 type nodeStatusCache struct {
-	mu     sync.RWMutex
-	status map[string]*v1.NodeStatus
+	mu          sync.RWMutex
+	status      map[string]*v1.NodeStatus
+	lastOnline  map[string]time.Time
+	lastPersist map[string]time.Time
+	// lastRemote 最近一次在线时的节点自报信息（离线后仍可显示版本 / 系统）
+	lastRemote map[string]*v1.NodeRemoteInfo
 }
 
+// nodeOnlinePersistInterval 在线时间写库的最小间隔，避免每轮探测都写一次。
+const nodeOnlinePersistInterval = 5 * time.Minute
+
 func newNodeStatusCache() *nodeStatusCache {
-	return &nodeStatusCache{status: make(map[string]*v1.NodeStatus)}
+	return &nodeStatusCache{
+		status:      make(map[string]*v1.NodeStatus),
+		lastOnline:  make(map[string]time.Time),
+		lastPersist: make(map[string]time.Time),
+		lastRemote:  make(map[string]*v1.NodeRemoteInfo),
+	}
 }
 
 func (c *nodeStatusCache) get(id string) *v1.NodeStatus {
@@ -197,16 +213,48 @@ func (c *nodeStatusCache) get(id string) *v1.NodeStatus {
 	return &v1.NodeStatus{State: v1.NodeState_NodeState_Unknown}
 }
 
-func (c *nodeStatusCache) set(id string, s *v1.NodeStatus) {
+// set 写入检测结果并补上最后在线时间；返回需要持久化的在线时间（无需持久化时为零值）。
+func (c *nodeStatusCache) set(id string, s *v1.NodeStatus) time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	var persist time.Time
+	if s.State == v1.NodeState_NodeState_Online {
+		now := time.Now()
+		c.lastOnline[id] = now
+		if now.Sub(c.lastPersist[id]) >= nodeOnlinePersistInterval {
+			c.lastPersist[id] = now
+			persist = now
+		}
+	}
+	if t, ok := c.lastOnline[id]; ok && s.LastOnlineTime == nil {
+		s.LastOnlineTime = timestamppb.New(t)
+	}
+	if s.State == v1.NodeState_NodeState_Online && s.Remote != nil {
+		c.lastRemote[id] = s.Remote
+	} else if r, ok := c.lastRemote[id]; ok && s.LastRemote == nil {
+		s.LastRemote = r
+	}
 	c.status[id] = s
+	return persist
+}
+
+// seedLastOnline 用库里保存的在线时间补齐内存记录（重启后首次探测前）。
+func (c *nodeStatusCache) seedLastOnline(id string, t time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if prev, ok := c.lastOnline[id]; !ok || prev.Before(t) {
+		c.lastOnline[id] = t
+	}
+	if _, ok := c.lastPersist[id]; !ok {
+		c.lastPersist[id] = t
+	}
 }
 
 func (c *nodeStatusCache) remove(id string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	delete(c.status, id)
+	delete(c.lastRemote, id)
 }
 
 // NodeCallError 把节点调用错误转换为主控返回给浏览器的业务错误：

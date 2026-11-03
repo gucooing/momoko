@@ -49,16 +49,15 @@ func (s *OIDCService) UpdateOIDCConfig(ctx context.Context, req *v1.UpdateOIDCCo
 }
 
 func (s *OIDCService) ListOIDCClients(ctx context.Context, req *v1.ListOIDCClientsRequest) (*v1.ListOIDCClientsResponse, error) {
-	clients, total, err := s.uc.ListClients(ctx, req)
+	return s.uc.ListClients(ctx, req)
+}
+
+func (s *OIDCService) RotateOIDCSigningKey(ctx context.Context, _ *v1.RotateOIDCSigningKeyRequest) (*v1.RotateOIDCSigningKeyResponse, error) {
+	key, err := s.uc.RotateSigningKey(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListOIDCClientsResponse{
-		Page:     req.Page,
-		PageSize: req.PageSize,
-		Total:    total,
-		Clients:  clients,
-	}, nil
+	return &v1.RotateOIDCSigningKeyResponse{SigningKey: key}, nil
 }
 
 func (s *OIDCService) CreateOIDCClient(ctx context.Context, req *v1.CreateOIDCClientRequest) (*v1.CreateOIDCClientResponse, error) {

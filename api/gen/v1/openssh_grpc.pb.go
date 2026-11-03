@@ -26,6 +26,7 @@ const (
 	OpenSSHManager_DeleteSSHHost_FullMethodName  = "/v1.OpenSSHManager/DeleteSSHHost"
 	OpenSSHManager_ShareSSHHost_FullMethodName   = "/v1.OpenSSHManager/ShareSSHHost"
 	OpenSSHManager_TestSSHHost_FullMethodName    = "/v1.OpenSSHManager/TestSSHHost"
+	OpenSSHManager_TestSSHHosts_FullMethodName   = "/v1.OpenSSHManager/TestSSHHosts"
 )
 
 // OpenSSHManagerClient is the client API for OpenSSHManager service.
@@ -50,6 +51,8 @@ type OpenSSHManagerClient interface {
 	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
 	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(ctx context.Context, in *TestSSHHostRequest, opts ...grpc.CallOption) (*TestSSHHostResponse, error)
+	// 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+	TestSSHHosts(ctx context.Context, in *TestSSHHostsRequest, opts ...grpc.CallOption) (*TestSSHHostsResponse, error)
 }
 
 type openSSHManagerClient struct {
@@ -130,6 +133,16 @@ func (c *openSSHManagerClient) TestSSHHost(ctx context.Context, in *TestSSHHostR
 	return out, nil
 }
 
+func (c *openSSHManagerClient) TestSSHHosts(ctx context.Context, in *TestSSHHostsRequest, opts ...grpc.CallOption) (*TestSSHHostsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TestSSHHostsResponse)
+	err := c.cc.Invoke(ctx, OpenSSHManager_TestSSHHosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OpenSSHManagerServer is the server API for OpenSSHManager service.
 // All implementations must embed UnimplementedOpenSSHManagerServer
 // for forward compatibility.
@@ -152,6 +165,8 @@ type OpenSSHManagerServer interface {
 	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
 	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(context.Context, *TestSSHHostRequest) (*TestSSHHostResponse, error)
+	// 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+	TestSSHHosts(context.Context, *TestSSHHostsRequest) (*TestSSHHostsResponse, error)
 	mustEmbedUnimplementedOpenSSHManagerServer()
 }
 
@@ -182,6 +197,9 @@ func (UnimplementedOpenSSHManagerServer) ShareSSHHost(context.Context, *ShareSSH
 }
 func (UnimplementedOpenSSHManagerServer) TestSSHHost(context.Context, *TestSSHHostRequest) (*TestSSHHostResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestSSHHost not implemented")
+}
+func (UnimplementedOpenSSHManagerServer) TestSSHHosts(context.Context, *TestSSHHostsRequest) (*TestSSHHostsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestSSHHosts not implemented")
 }
 func (UnimplementedOpenSSHManagerServer) mustEmbedUnimplementedOpenSSHManagerServer() {}
 func (UnimplementedOpenSSHManagerServer) testEmbeddedByValue()                        {}
@@ -330,6 +348,24 @@ func _OpenSSHManager_TestSSHHost_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenSSHManager_TestSSHHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestSSHHostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenSSHManagerServer).TestSSHHosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OpenSSHManager_TestSSHHosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenSSHManagerServer).TestSSHHosts(ctx, req.(*TestSSHHostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OpenSSHManager_ServiceDesc is the grpc.ServiceDesc for OpenSSHManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -364,6 +400,10 @@ var OpenSSHManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestSSHHost",
 			Handler:    _OpenSSHManager_TestSSHHost_Handler,
+		},
+		{
+			MethodName: "TestSSHHosts",
+			Handler:    _OpenSSHManager_TestSSHHosts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

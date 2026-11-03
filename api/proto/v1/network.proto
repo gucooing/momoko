@@ -47,6 +47,20 @@ service NetworkManager {
       get: "/api/v1/network/port-forwards/{id}/stats"
     };
   }
+  // 断开端口转发的活动连接（conn_ids 为空且 all=true 时断开全部）
+  rpc ClosePortForwardConnections(ClosePortForwardConnectionsRequest) returns (ClosePortForwardConnectionsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/network/port-forwards/{id}/connections/close"
+      body: "*"
+    };
+  }
+  // 清零端口转发的累计流量
+  rpc ResetPortForwardTraffic(ResetPortForwardTrafficRequest) returns (ResetPortForwardTrafficResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/network/port-forwards/{id}/traffic/reset"
+      body: "*"
+    };
+  }
 }
 
 message ListPortForwardsRequest {
@@ -60,6 +74,8 @@ message ListPortForwardsRequest {
   optional PortForwardType type = 4;
   // 是否启用
   optional bool is_enable = 5;
+  // 运行状态
+  optional PortForwardStatus status = 6;
 }
 
 message ListPortForwardsResponse {
@@ -71,6 +87,40 @@ message ListPortForwardsResponse {
   int64 total = 3;
   // 列表
   repeated PortForwardInfo infos = 4;
+  // 概览（当前用户全部规则，不受筛选影响）
+  PortForwardOverview overview = 5;
+}
+
+// 端口转发概览
+message PortForwardOverview {
+  // 规则总数
+  int64 total = 1;
+  // 运行中
+  int64 running = 2;
+  // 已停用
+  int64 stopped = 3;
+  // 异常（已启用但未能运行或目标不可达）
+  int64 error = 4;
+  // TCP 规则数
+  int64 tcp = 5;
+  // UDP 规则数
+  int64 udp = 6;
+  // 当前活动连接合计
+  int64 active_connections = 7;
+  // 当前入站速率合计(字节/秒)
+  int64 rate_in = 8;
+  // 当前出站速率合计(字节/秒)
+  int64 rate_out = 9;
+  // 今日入站流量(字节)
+  int64 today_bytes_in = 10;
+  // 今日出站流量(字节)
+  int64 today_bytes_out = 11;
+  // 昨日流量合计(字节，入站+出站)
+  int64 yesterday_bytes = 12;
+  // 今日并发连接峰值
+  int64 today_peak_connections = 13;
+  // 今日峰值出现时间
+  google.protobuf.Timestamp today_peak_time = 14;
 }
 
 message CreatePortForwardRequest {
@@ -88,6 +138,8 @@ message CreatePortForwardRequest {
   int32 target_port = 6;
   // 是否启用
   bool is_enable = 7;
+  // 备注
+  string remark = 8;
 }
 
 message CreatePortForwardResponse {
@@ -122,6 +174,8 @@ message UpdatePortForwardRequest {
   optional int32 target_port = 7;
   // 是否启用
   optional bool is_enable = 8;
+  // 备注
+  optional string remark = 9;
 }
 
 message UpdatePortForwardResponse {
@@ -152,6 +206,48 @@ message GetPortForwardStatsResponse {
   repeated PortForwardStatPoint points = 2;
   // 采样间隔(秒)
   int64 sample_interval_seconds = 3;
+  // 当前活动连接（TCP 连接 / UDP 会话）
+  repeated PortForwardConnection connections = 4;
+}
+
+// 端口转发的一条活动连接
+message PortForwardConnection {
+  // 连接 id
+  string id = 1;
+  // 客户端地址 ip:port
+  string remote_addr = 2;
+  // 是否来自局域网/本机
+  bool lan = 3;
+  // 建立时间
+  google.protobuf.Timestamp start_time = 4;
+  // 入站流量(字节，客户端→目标)
+  int64 bytes_in = 5;
+  // 出站流量(字节，目标→客户端)
+  int64 bytes_out = 6;
+}
+
+message ClosePortForwardConnectionsRequest {
+  // 端口转发 id
+  string id = 1;
+  // 要断开的连接 id
+  repeated string conn_ids = 2;
+  // 断开全部连接
+  bool all = 3;
+}
+
+message ClosePortForwardConnectionsResponse {
+  // 实际断开的连接数
+  int64 closed = 1;
+}
+
+message ResetPortForwardTrafficRequest {
+  // 端口转发 id
+  string id = 1;
+}
+
+message ResetPortForwardTrafficResponse {
+  // 端口转发详情
+  PortForwardInfo info = 1;
 }
 
 // 端口转发实时快照
@@ -168,6 +264,14 @@ message PortForwardStat {
   int64 bytes_out = 5;
   // 本次启动时间
   google.protobuf.Timestamp start_time = 6;
+  // 当前入站速率(字节/秒)
+  int64 rate_in = 7;
+  // 当前出站速率(字节/秒)
+  int64 rate_out = 8;
+  // 自创建（或上次清零）起累计入站流量(字节)
+  int64 total_bytes_in = 9;
+  // 自创建（或上次清零）起累计出站流量(字节)
+  int64 total_bytes_out = 10;
 }
 
 // 端口转发时间序列采样点
@@ -199,7 +303,7 @@ message PortForwardInfo {
   string target_address = 7;
   // 目标端口
   int32 target_port = 8;
-  // 是否启用
+  // 是否启用（配置值；实际是否运行见 status）
   bool is_enable = 9;
   // 创建时间
   google.protobuf.Timestamp create_time = 12;
@@ -215,6 +319,33 @@ message PortForwardInfo {
   int64 bytes_in = 17;
   // 累计出站流量(字节，目标→客户端)
   int64 bytes_out = 18;
+  // 备注
+  string remark = 19;
+  // 运行状态
+  PortForwardStatus status = 20;
+  // 当前入站速率(字节/秒)
+  int64 rate_in = 21;
+  // 当前出站速率(字节/秒)
+  int64 rate_out = 22;
+  // 最近约 1 分钟的总速率采样(字节/秒，按时间升序，约每 2 秒一个点)
+  repeated int64 rate_history = 23;
+  // 自创建（或上次清零）起累计入站流量(字节)
+  int64 total_bytes_in = 24;
+  // 自创建（或上次清零）起累计出站流量(字节)
+  int64 total_bytes_out = 25;
+  // 本次启动时间（运行中才有效）
+  google.protobuf.Timestamp start_time = 26;
+}
+
+enum PortForwardStatus {
+  // 未指定
+  PORT_FORWARD_STATUS_UNSPECIFIED = 0;
+  // 运行中
+  PORT_FORWARD_STATUS_RUNNING = 1;
+  // 已停用
+  PORT_FORWARD_STATUS_STOPPED = 2;
+  // 异常
+  PORT_FORWARD_STATUS_ERROR = 3;
 }
 
 enum PortForwardType {

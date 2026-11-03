@@ -16,6 +16,8 @@ import type {
   GetInstancesResponse,
   GetInstanceTypesRequest,
   GetInstanceTypesResponse,
+  GetInstanceStatsRequest,
+  GetInstanceStatsResponse,
   RestartInstanceRequest,
   RestartInstanceResponse,
   StartInstanceRequest,
@@ -71,7 +73,11 @@ export const getInstanceTypes = (params: GetInstanceTypesRequest = {}) => {
   return request.get<GetInstanceTypesResponse>('/instance/type', { params })
 }
 
-export const createInstanceType = (data: CreateInstanceTypeRequest & { isEnable?: boolean }) => {
+export const getInstanceStatsRequest = (params: GetInstanceStatsRequest) => {
+  return request.get<GetInstanceStatsResponse>(`/instance/stats/${params.id}`)
+}
+
+export const createInstanceType = (data: CreateInstanceTypeRequest) => {
   return request.post<CreateInstanceTypeResponse>('/instance/type', data)
 }
 

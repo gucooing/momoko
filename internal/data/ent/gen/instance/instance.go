@@ -34,6 +34,10 @@ const (
 	FieldStopCommand = "stop_command"
 	// FieldAutoStart holds the string denoting the auto_start field in the database.
 	FieldAutoStart = "auto_start"
+	// FieldAutoRestart holds the string denoting the auto_restart field in the database.
+	FieldAutoRestart = "auto_restart"
+	// FieldStopTimeout holds the string denoting the stop_timeout field in the database.
+	FieldStopTimeout = "stop_timeout"
 	// FieldEnv holds the string denoting the env field in the database.
 	FieldEnv = "env"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -80,6 +84,8 @@ var Columns = []string{
 	FieldStartCommand,
 	FieldStopCommand,
 	FieldAutoStart,
+	FieldAutoRestart,
+	FieldStopTimeout,
 	FieldEnv,
 }
 
@@ -126,6 +132,10 @@ var (
 	DefaultStopCommand string
 	// DefaultAutoStart holds the default value on creation for the "auto_start" field.
 	DefaultAutoStart bool
+	// DefaultAutoRestart holds the default value on creation for the "auto_restart" field.
+	DefaultAutoRestart bool
+	// DefaultStopTimeout holds the default value on creation for the "stop_timeout" field.
+	DefaultStopTimeout int32
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -186,6 +196,16 @@ func ByStopCommand(opts ...sql.OrderTermOption) OrderOption {
 // ByAutoStart orders the results by the auto_start field.
 func ByAutoStart(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAutoStart, opts...).ToFunc()
+}
+
+// ByAutoRestart orders the results by the auto_restart field.
+func ByAutoRestart(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoRestart, opts...).ToFunc()
+}
+
+// ByStopTimeout orders the results by the stop_timeout field.
+func ByStopTimeout(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStopTimeout, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

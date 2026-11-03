@@ -1,179 +1,195 @@
-<!-- 个人中心 · 对齐 06a
-     ① 一体头部：克制色条 + 头像/名/角色/简介 + 详细档案（同一卡内，不拆第二张）+ 编辑/改密
-     ② 主体：全宽 Tabs（消息 / 权限 / 设备 / 日志）
-     ③ 编辑资料 / 改密 → FormDialog（不在页面内嵌长表单） -->
+<!-- 个人中心（ProfilePC / ProfileMobile）
+     PC：标题 → 左（hero / 个人资料表单 / 账号安全 / 登录设备）右（我的消息 / 我的权限 / 最近登录 / 外观入口 / 退出登录）
+     手机：hero → 个人资料行（点开编辑弹窗）→ 账号安全 → 偏好与消息（外观 / 语言 / 消息）→ 权限 → 设备 → 最近登录 → 退出 -->
 <template>
   <div class="profile">
-    <!-- ① 一体头部（头像区 + 档案字段，同一表面） -->
-    <header class="profile-hero">
-      <div class="profile-hero__wash" aria-hidden="true" />
+    <PageHeader v-if="!isMobile" :title="t('layout.profile')" :description="t('profile.page.desc')" />
 
-      <div class="profile-hero__top">
-        <div class="profile-hero__identity">
-          <AppAvatar
-            :src="userStore.resolvedUserAvatar"
-            :name="displayName"
-            :size="isCompact ? 56 : 72"
-            online
-          />
-          <div class="profile-hero__text">
-            <div class="profile-hero__title-row">
-              <h1 class="profile-hero__name" :title="displayName">{{ displayName }}</h1>
-              <StatusPill variant="primary" :dot="false" :label="roleLabel" />
-            </div>
-            <p class="profile-hero__bio">{{ bioText }}</p>
-          </div>
-        </div>
-        <div class="profile-hero__actions">
-          <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-pencil" @click="openEdit">
-            {{ t('user.editProfile') }}
-          </UButton>
-          <UButton
-            color="primary"
-            variant="soft"
-            size="sm"
-            icon="i-lucide-key-round"
-            @click="openPassword"
-          >
-            {{ t('user.passwordCardTitle') }}
-          </UButton>
-        </div>
+    <!-- ===== PC ===== -->
+    <div v-if="!isMobile" class="profile-grid">
+      <div class="profile-col profile-col--main">
+        <ArchivesPanel />
+        <PersonalInfoPanel />
+        <MyInformation />
+        <LoginDevices />
       </div>
-
-      <!-- 详细档案：同一卡内，细线分隔，多列 DescriptionList -->
-      <div class="profile-hero__archive">
-        <div class="profile-hero__archive-label">{{ t('user.detailArchive') }}</div>
-        <DescriptionList :items="archiveItems" :columns="archiveColumns" />
-        <div v-if="tagNames.length" class="profile-hero__tags">
-          <span v-for="name in tagNames" :key="name" class="profile-hero__chip">{{ name }}</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- ② 全宽 Tabs -->
-    <section class="profile-main">
-      <div class="profile-tabs" role="tablist">
-        <button
-          v-for="tab in userProfileStore.menuTabs"
-          :key="tab.key"
-          type="button"
-          role="tab"
-          class="profile-tabs__btn"
-          :class="{ 'is-active': userProfileStore.currentTab === tab.key }"
-          :aria-selected="userProfileStore.currentTab === tab.key"
-          @click="userProfileStore.currentTab = tab.key as ProfileCurrentTab"
-        >
-          <component
-            :is="menuStore.iconComponents[tab.icon as string]"
-            v-if="tab.icon && typeof tab.icon === 'string'"
-            class="profile-tabs__icon"
-          />
-          <span>{{ tab.labelKey ? t(tab.labelKey) : tab.label }}</span>
-          <span
-            v-if="tab.key === 'messages' && userProfileStore.unreadCount"
-            class="profile-tabs__badge"
-          >
-            {{ userProfileStore.unreadCount }}
+      <div class="profile-col profile-col--side">
+        <MyMessages />
+        <MyPermission />
+        <LoginLogs />
+        <button type="button" class="appearance-card" @click="openAppearance">
+          <span class="m-sticker m-sticker--solid-a appearance-card__sk" aria-hidden="true">
+            <UIcon name="i-lucide-palette" />
           </span>
+          <span class="appearance-card__text">
+            <strong>{{ t('theme.title') }}</strong>
+            <span>{{ appearanceSummary }} · {{ t('profile.appearance.onlyYou') }}</span>
+          </span>
+          <span class="appearance-card__swatches" aria-hidden="true">
+            <i v-for="c in themeStore.currentPalette.swatches" :key="c" :style="{ background: c }" />
+          </span>
+          <UIcon name="i-lucide-chevron-right" class="appearance-card__chev" aria-hidden="true" />
         </button>
+        <AdaptiveConfirm :title="t('layout.logoutConfirmContent')" @confirm="doLogout">
+          <template #reference>
+            <UButton color="error" variant="soft" icon="i-lucide-log-out" class="logout-btn">
+              {{ t('layout.logout') }}
+            </UButton>
+          </template>
+        </AdaptiveConfirm>
       </div>
+    </div>
 
-      <div class="profile-main__body">
-        <MyMessages v-if="userProfileStore.currentTab === 'messages'" />
-        <MyPermission v-else-if="userProfileStore.currentTab === 'permissions'" />
-        <LoginDevices v-else-if="userProfileStore.currentTab === 'devices'" />
-        <LoginLogs v-else-if="userProfileStore.currentTab === 'logs'" />
-        <MyMessages v-else />
-      </div>
-    </section>
+    <!-- ===== 手机 ===== -->
+    <div v-else class="profile-m">
+      <ArchivesPanel />
 
-    <!-- ③ 编辑资料 FormDialog（桌面/移动统一） -->
-    <FormDialog
-      v-model="editOpen"
-      :title="t('user.profileCenter')"
-      :width="560"
-      :show-footer="false"
-    >
-      <PersonalInfoPanel embedded @saved="editOpen = false" />
-    </FormDialog>
+      <section class="m-group" aria-labelledby="pf-g-info">
+        <h2 id="pf-g-info" class="m-group__h">{{ t('profile.info.title') }}</h2>
+        <AppPanel class="m-group__card">
+          <ProfileRow
+            icon="i-lucide-user-round"
+            tone="solid-p"
+            :title="t('user.nickname')"
+            clickable
+            chevron
+            @click="editOpen = true"
+          >
+            <span class="m-val">{{ userStore.userInfo?.name || '—' }}</span>
+          </ProfileRow>
+          <ProfileRow
+            icon="i-lucide-at-sign"
+            tone="a2"
+            :title="t('user.username')"
+            :sub="t('profile.info.usernameHintShort')"
+            clickable
+            chevron
+            @click="editOpen = true"
+          >
+            <span class="m-val m-mono">{{ userStore.userInfo?.username || '—' }}</span>
+          </ProfileRow>
+          <ProfileRow
+            icon="i-lucide-mail"
+            tone="solid-a2"
+            :title="t('user.email')"
+            :sub="userStore.userInfo?.email || t('user.noEmail')"
+            clickable
+            chevron
+            @click="editOpen = true"
+          />
+          <ProfileRow
+            icon="i-lucide-phone"
+            tone="solid-a"
+            :title="t('profile.info.phone')"
+            clickable
+            chevron
+            @click="editOpen = true"
+          >
+            <span class="m-val m-num">{{ maskedPhone || t('profile.info.notSet') }}</span>
+          </ProfileRow>
+        </AppPanel>
+      </section>
 
-    <UpdatePassword ref="updatePasswordRef" />
+      <MyInformation />
+
+      <section class="m-group" aria-labelledby="pf-g-pref">
+        <h2 id="pf-g-pref" class="m-group__h">{{ t('profile.pref.title') }}</h2>
+        <AppPanel class="m-group__card">
+          <ProfileRow
+            icon="i-lucide-palette"
+            tone="solid-a"
+            :tilt="-4"
+            :title="t('theme.title')"
+            :sub="appearanceSummary"
+            clickable
+            chevron
+            @click="openAppearance"
+          />
+          <ProfileRow icon="i-lucide-globe" tone="solid-a2" :tilt="3" :title="t('language.tooltip')">
+            <div class="m-lang">
+              <AppSelect
+                :model-value="locale"
+                :options="languageSelectOptions"
+                fit
+                @update:model-value="onLocale"
+              />
+            </div>
+          </ProfileRow>
+          <MyMessages row />
+        </AppPanel>
+      </section>
+
+      <MyPermission />
+      <LoginDevices />
+      <LoginLogs />
+
+      <AdaptiveConfirm :title="t('layout.logoutConfirmContent')" @confirm="doLogout">
+        <template #reference>
+          <button type="button" class="m-logout">
+            <UIcon name="i-lucide-log-out" />{{ t('layout.logout') }}
+          </button>
+        </template>
+      </AdaptiveConfirm>
+      <p class="m-foot m-num">Momoko {{ menuStore.currentVersion || 'dev' }}</p>
+
+      <FormDialog v-model="editOpen" :title="t('profile.info.edit')" :width="560" :show-footer="false">
+        <PersonalInfoPanel embedded @saved="editOpen = false" />
+      </FormDialog>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import { UserStatus } from '@/types/v1/user'
 import { useUserProfileStore } from '@/stores/user/profile'
-import type { ProfileCurrentTab } from '@/stores/user/types'
+import { languageOptions, setAppLocale } from '@/locales'
+import ArchivesPanel from '@/views/profile/archivesPanel.vue'
 import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
+import MyInformation from '@/views/profile/myInformation.vue'
 import MyPermission from '@/views/profile/myPermission.vue'
 import MyMessages from '@/views/profile/myMessages.vue'
 import LoginLogs from '@/views/profile/loginLogs.vue'
 import LoginDevices from '@/views/profile/loginDevices.vue'
-import UpdatePassword from '@/components/dialog/UpdatePassword.vue'
+import ProfileRow from '@/views/profile/components/ProfileRow.vue'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ProfileView' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const userStore = useUserStore()
 const menuStore = useMenuStore()
+const themeStore = useThemeStore()
 const userProfileStore = useUserProfileStore()
 
-const isCompact = computed(() => menuStore.isMobile)
-const updatePasswordRef = ref<{ showDialog: () => void }>()
+const isMobile = computed(() => menuStore.isMobile)
 const editOpen = ref(false)
 
-const displayName = computed(
-  () => userStore.userInfo?.name || userStore.userInfo?.username || t('user.messages.unknownUser'),
+const appearanceSummary = computed(() => {
+  const palette = t(themeStore.currentPalette.labelKey)
+  const mode = t(`theme.${themeStore.themeMode}`)
+  return `${palette} · ${mode}`
+})
+
+const maskedPhone = computed(() => {
+  const p = (userStore.userInfo?.phone || '').replace(/\s+/g, '')
+  if (p.length < 7) return p
+  return `${p.slice(0, 3)} **** ${p.slice(-4)}`
+})
+
+const languageSelectOptions = computed(() =>
+  languageOptions.map((o) => ({ label: t(o.labelKey), value: o.code as string })),
 )
-const roleLabel = computed(() => userStore.getUserRoleName() || t('user.noPermission'))
-const bioText = computed(() => {
-  const bio = userStore.userInfo?.bio?.trim()
-  return bio || t('user.defaultBio')
-})
+const onLocale = (code: string) => setAppLocale(code as never)
 
-const createTimeText = computed(() => {
-  if (!userStore.userInfo?.createTime) return ''
-  return dayjs(userStore.userInfo.createTime).format('YYYY-MM-DD HH:mm:ss')
-})
+const openAppearance = () => {
+  themeStore.themeConfigDrawerOpen = true
+}
 
-const archiveItems = computed(() => [
-  { label: t('user.username'), value: userStore.userInfo?.username },
-  { label: t('user.email'), value: userStore.userInfo?.email || t('user.noEmail') },
-  { label: t('user.nickname'), value: userStore.userInfo?.name },
-  {
-    label: t('user.accountStatus'),
-    value:
-      userStore.userInfo?.status === UserStatus.Active ? t('common.enabled') : t('common.disabled'),
-  },
-  { label: t('user.joinTime'), value: createTimeText.value },
-])
-
-const archiveColumns = computed(() => {
-  if (menuStore.isMobile) return 1
-  return 3
-})
-
-const tagNames = computed(() => {
-  const raw = userStore.userInfo?.tags?.trim()
-  if (!raw) return [] as string[]
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-})
-
-const openPassword = () => updatePasswordRef.value?.showDialog()
-const openEdit = () => {
-  editOpen.value = true
+const doLogout = () => {
+  void userStore.logout()
 }
 
 onMounted(() => {
-  if (!(userProfileStore.menuTabs as { key: string }[]).some((tab) => tab.key === userProfileStore.currentTab)) {
-    userProfileStore.currentTab = 'messages'
-  }
+  void userProfileStore.refreshMessages()
 })
 </script>
 
@@ -181,221 +197,147 @@ onMounted(() => {
 .profile {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   width: 100%;
   min-width: 0;
 }
-
-/* —— 一体头部：色条 + 身份 + 档案同卡 —— */
-.profile-hero {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
-  background: var(--el-bg-color);
-}
-.profile-hero__wash {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 96px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--el-color-primary) 18%, transparent) 0%,
-    color-mix(in srgb, var(--el-color-primary) 6%, transparent) 55%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-html.dark .profile-hero__wash {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--el-color-primary) 22%, transparent) 0%,
-    color-mix(in srgb, var(--el-color-primary) 8%, transparent) 50%,
-    transparent 100%
-  );
-}
-.profile-hero__top {
-  position: relative;
+.profile-grid {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
   flex-wrap: wrap;
-  padding: 20px 20px 0;
+  align-items: flex-start;
+  gap: 24px;
 }
-.profile-hero__identity {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-width: 0;
-  flex: 1;
-}
-.profile-hero__text {
+.profile-col {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 20px;
 }
-.profile-hero__title-row {
+.profile-col--main {
+  flex: 3 1 560px;
+}
+.profile-col--side {
+  flex: 2 1 340px;
+}
+
+.appearance-card {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-.profile-hero__name {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+  box-shadow: var(--app-shadow-card);
   color: var(--el-text-color-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.appearance-card:hover {
+  border-color: var(--m-p);
+}
+.appearance-card__sk {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  font-size: 21px;
+  transform: rotate(-4deg);
+}
+.appearance-card__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  strong {
+    font-size: 0.9375rem;
+    font-weight: 800;
+  }
+  span {
+    font-size: 0.8125rem;
+    color: var(--el-text-color-secondary);
+  }
+}
+.appearance-card__swatches {
+  display: flex;
+  i {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--el-bg-color);
+    margin-left: -6px;
+  }
+}
+.appearance-card__chev {
+  width: 18px;
+  height: 18px;
+  color: var(--el-text-color-secondary);
+}
+.logout-btn {
+  align-self: flex-start;
+  min-height: 40px;
+}
+
+/* ---- 手机 ---- */
+.profile-m {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.m-group__h {
+  margin: 0 6px 8px;
+  font-family: var(--app-font-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--el-text-color-secondary);
+}
+.m-group__card :deep(.app-panel__body) {
+  padding: 2px 14px;
+}
+.m-group__card :deep(.pf-row) {
+  min-height: 60px;
+  padding: 8px 0;
+}
+.m-group__card :deep(.pf-row__sk) {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  font-size: 18px;
+}
+.m-val {
+  max-width: 40vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: min(100%, 22rem);
-}
-.profile-hero__bio {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: 0.875rem;
   color: var(--el-text-color-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
-.profile-hero__actions {
+.m-lang {
+  min-width: 120px;
+}
+.m-logout {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  padding-bottom: 2px;
-}
-
-/* 档案区：同一卡内，hairline 上分界，靠排版分层（01） */
-.profile-hero__archive {
-  position: relative;
-  margin-top: 16px;
-  padding: 14px 20px 18px;
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-.profile-hero__archive-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 0.65rem;
-}
-.profile-hero__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.75rem;
-}
-.profile-hero__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--el-text-color-regular);
-  background: var(--el-fill-color-light);
-  border: 1px solid var(--el-border-color-extra-light);
-}
-
-/* —— Tabs —— */
-.profile-main {
-  min-width: 0;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.profile-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  max-width: 100%;
-  background: var(--el-fill-color-light);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-.profile-tabs__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-  padding: 0 12px;
-  height: 32px;
-  border: 0;
-  border-radius: calc(var(--app-radius) - 2px);
-  background: transparent;
-  color: var(--el-text-color-secondary);
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  white-space: nowrap;
-}
-.profile-tabs__btn:hover {
-  color: var(--el-text-color-primary);
-}
-.profile-tabs__btn.is-active {
+  min-height: 52px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-  box-shadow: var(--app-shadow-sm, 0 1px 2px rgb(0 0 0 / 0.04));
-  font-weight: 600;
+  color: var(--m-bad);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  cursor: pointer;
 }
-.profile-tabs__icon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
-.profile-tabs__badge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
-  color: var(--el-color-primary);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 18px;
+.m-foot {
+  margin: -8px 0 0;
   text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.profile-main__body {
-  min-width: 0;
-  width: 100%;
-}
-
-@media (width < 640px) {
-  .profile-hero__top {
-    align-items: flex-start;
-    padding: 16px 16px 0;
-  }
-  .profile-hero__wash {
-    height: 80px;
-  }
-  .profile-hero__actions {
-    width: 100%;
-  }
-  .profile-hero__actions :deep(button) {
-    flex: 1;
-  }
-  .profile-hero__archive {
-    padding: 12px 16px 16px;
-  }
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 </style>

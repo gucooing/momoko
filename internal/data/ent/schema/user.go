@@ -22,6 +22,11 @@ func (User) Fields() []ent.Field {
 		field.String("bio").Optional().Comment("个人简介"),
 		field.String("name").Default("gucooing").Comment("昵称"),
 		field.String("tags").Optional().Comment("标签"),
+		field.String("phone").Default("").Comment("手机号"),
+		field.Time("last_login_at").Optional().Nillable().Comment("最近一次登录时间"),
+		field.Time("password_updated_at").Optional().Nillable().Comment("最近一次修改密码时间"),
+		field.String("last_login_ip").Optional().Comment("最近一次登录 IP"),
+		field.String("last_login_method").Optional().Comment("最近一次登录方式：password / email_code"),
 	}
 }
 

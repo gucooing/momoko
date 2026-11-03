@@ -1,25 +1,46 @@
-<!-- 工作台（重写）：安静问候 + 单色指标带 + 实时监控 + 运行实例/快捷入口 + 系统信息。
-     保留 useDashboardHomeStore 全部数据与轮询逻辑（06a）。 -->
+<!-- 工作台：主色问候卡（含快捷操作）+ 彩色指标卡 + 实时监控（单图切换）+ 运行中应用 / 快捷入口。
+     数据与轮询逻辑全部沿用 useDashboardHomeStore。 -->
 <template>
   <div class="dash">
-    <!-- 问候区（安静，非大卡） -->
-    <header class="dash-hi">
-      <div class="dash-hi__text">
-        <h2 class="dash-hi__title">
-          {{ greeting }}，{{ displayName }}<span class="dash-hi__wave">👋</span>
-        </h2>
-        <div class="dash-hi__meta">
-          <StatusPill v-if="nodeStore.isRemote" variant="primary" :label="t('dashboard.home.remoteNode', { name: nodeStore.contextInfo?.name || '' })" />
-          <span>{{ overview?.version?.hostname || nodeStore.contextInfo?.status?.remote?.hostname || '—' }}</span>
-          <i class="dash-hi__sep" />
-          <span>{{ osText }}</span>
-          <i class="dash-hi__sep" />
-          <span>{{ t('dashboard.home.uptime') }} {{ formatUptime(overview?.uptimeSeconds) }}</span>
-          <i class="dash-hi__sep" />
-          <span class="tnum">{{ currentDate }}</span>
+    <!-- 问候卡：主色实底 + 黄色圆与第二强调色圆环装饰 -->
+    <section class="dash-hero">
+      <span class="dash-hero__blob" aria-hidden="true" />
+      <span class="dash-hero__ring" aria-hidden="true" />
+      <svg class="dash-hero__star" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
+      </svg>
+      <div class="dash-hero__body">
+        <div class="dash-hero__date m-num">{{ currentDate }}</div>
+        <h2 class="dash-hero__title">{{ greeting }}，{{ displayName }}</h2>
+        <p class="dash-hero__sub">
+          <template v-if="canViewInstances">
+            {{ runningCount > 0 ? t('dashboard.home.heroRunning', { count: runningCount }) : t('dashboard.home.heroNoRunning') }}
+          </template>
+          <template v-else>{{ t('dashboard.home.heroAllGood') }}</template>
+        </p>
+        <div class="dash-hero__chips">
+          <span v-if="nodeStore.isRemote" class="dash-chip">
+            {{ t('dashboard.home.remoteNode', { name: nodeStore.contextInfo?.name || '' }) }}
+          </span>
+          <span class="dash-chip">{{ hostname }}</span>
+          <span v-if="osText !== '—'" class="dash-chip">{{ osText }}</span>
+          <span class="dash-chip">{{ t('dashboard.home.uptime') }} {{ formatUptime(overview?.uptimeSeconds) }}</span>
+        </div>
+        <div v-if="quickActions.length" class="dash-hero__actions">
+          <button
+            v-for="(qa, i) in quickActions"
+            :key="qa.path"
+            type="button"
+            class="dash-hero__btn"
+            :class="{ 'is-primary': i === 0 }"
+            @click="router.push(qa.path)"
+          >
+            <component :is="menuStore.iconComponents[qa.icon]" />
+            <span>{{ t(qa.label) }}</span>
+          </button>
         </div>
       </div>
-    </header>
+    </section>
 
     <!-- 远程节点不可用或未授予机器状态权限：不轮询，给出说明 -->
     <AppPanel v-if="!canViewStatus" :title="t('dashboard.home.systemStatus')" title-icon="HOutline:ChartBarIcon">
@@ -37,39 +58,36 @@
       />
     </AppPanel>
 
-    <!-- 指标带（单色，无彩色图标盒） -->
-    <MetricStrip v-if="canViewStatus" :columns="4">
-      <MetricItem
-        :label="t('dashboard.home.cpuUsage')"
-        :value="fmtPercent(status?.cpu?.totalPercent)"
-        :percent="status?.cpu?.totalPercent ?? 0"
-        :caption="overview?.cpu?.modelName || '—'"
-      />
-      <MetricItem
-        :label="t('dashboard.home.memoryInfo')"
-        :value="fmtPercent(status?.memory?.physicalMemory?.usedPercent)"
-        :percent="status?.memory?.physicalMemory?.usedPercent ?? 0"
-        :caption="`${formatBytes(status?.memory?.physicalMemory?.usedBytes)} / ${formatBytes(status?.memory?.physicalMemory?.totalBytes)}`"
-      />
-      <MetricItem
-        :label="t('dashboard.home.diskUsage')"
-        :value="fmtPercent(status?.disk?.total?.usedPercent)"
-        :percent="status?.disk?.total?.usedPercent ?? 0"
-        :caption="`${formatBytes(status?.disk?.total?.usedBytes)} / ${formatBytes(status?.disk?.total?.totalBytes)}`"
-      />
-      <MetricItem :label="t('dashboard.home.networkInfo')">
-        <template #value>
-          <div class="dash-net">
-            <span class="dash-net__down">↓ {{ formatBytes(status?.network?.total?.downloadRateBytesPerSecond) }}/s</span>
-            <span class="dash-net__up">↑ {{ formatBytes(status?.network?.total?.uploadRateBytesPerSecond) }}/s</span>
-          </div>
-        </template>
-        <template #caption>
-          {{ t('dashboard.home.totalReceived') }} {{ formatBytes(status?.network?.total?.bytesRecv) }}
-          · {{ t('dashboard.home.totalSent') }} {{ formatBytes(status?.network?.total?.bytesSent) }}
-        </template>
-      </MetricItem>
-    </MetricStrip>
+    <!-- 指标卡：贴纸图标 + 大号数字 + 圆环/迷你曲线 -->
+    <div v-if="canViewStatus" class="dash-stats">
+      <div v-for="st in statCards" :key="st.key" class="dash-stat">
+        <div class="dash-stat__head">
+          <span class="dash-stat__label">
+            <span class="dash-stat__icon m-sticker" :class="`m-sticker--${st.tone}`">
+              <component :is="menuStore.iconComponents[st.icon]" />
+            </span>
+            {{ st.label }}
+          </span>
+          <svg v-if="st.percent != null" class="dash-ring" viewBox="0 0 64 64" role="img" :aria-label="`${st.label} ${st.value}`">
+            <circle cx="32" cy="32" r="26" class="dash-ring__track" />
+            <circle
+              cx="32"
+              cy="32"
+              r="26"
+              class="dash-ring__bar"
+              :style="{ stroke: st.color }"
+              :stroke-dasharray="`${ringLen(st.percent)} 163.4`"
+              transform="rotate(-90 32 32)"
+            />
+          </svg>
+          <svg v-else class="dash-spark" viewBox="0 0 120 40" aria-hidden="true">
+            <path :d="netSpark" />
+          </svg>
+        </div>
+        <div class="dash-stat__value m-num">{{ st.value }}</div>
+        <div class="dash-stat__sub">{{ st.sub }}</div>
+      </div>
+    </div>
 
     <!-- 实时监控 -->
     <SystemRealtimeCharts
@@ -121,6 +139,7 @@ import ShortcutSection from '@/views/dashboard/home/shortcutSection.vue'
 import SystemRealtimeCharts from '@/views/dashboard/home/systemRealtimeCharts.vue'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import { checkForUpdate } from '@/utils/updateCheck'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'HomeView' })
@@ -131,6 +150,8 @@ const dashboardHomeStore = useDashboardHomeStore()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const nodeStore = useNodeStore()
+const router = useRouter()
+const accessible = useAccessibleRoutes()
 const { t } = useI18n()
 
 // 远程节点上下文按节点授权分块展示；本机保持原有行为。
@@ -150,6 +171,7 @@ const {
   overview,
   status,
   currentDate,
+  runningInstanceTotal,
 } = storeToRefs(dashboardHomeStore)
 const {
   fetchOverview,
@@ -182,6 +204,81 @@ const greeting = computed(() => {
 })
 
 const fmtPercent = (v?: number) => `${(v ?? 0).toFixed(1)}%`
+
+const runningCount = computed(() => runningInstanceTotal.value)
+const hostname = computed(
+  () => overview.value?.version?.hostname || nodeStore.contextInfo?.status?.remote?.hostname || '—',
+)
+
+// 问候卡快捷操作：只展示能进入的页面
+const QUICK_ACTIONS = [
+  { path: '/instance/list', label: 'dashboard.home.quickNewApp', icon: 'HOutline:Squares2X2Icon' },
+  { path: '/openssh/management', label: 'dashboard.home.quickTerminal', icon: 'HOutline:CommandLineIcon' },
+  { path: '/file/index', label: 'dashboard.home.quickFiles', icon: 'HOutline:FolderIcon' },
+]
+const quickActions = computed(() =>
+  QUICK_ACTIONS.filter((a) => accessible.value.has(a.path) && nodeStore.canAccessRoute(a.path)),
+)
+
+// 圆环周长 2πr = 163.4（r=26）
+const ringLen = (percent: number) => ((Math.min(100, Math.max(0, percent)) / 100) * 163.4).toFixed(1)
+
+const statCards = computed(() => {
+  const st = status.value
+  return [
+    {
+      key: 'cpu',
+      label: t('dashboard.home.statCpu'),
+      icon: 'HOutline:CpuChipIcon',
+      tone: 'p',
+      color: 'var(--m-p)',
+      percent: st?.cpu?.totalPercent ?? 0,
+      value: fmtPercent(st?.cpu?.totalPercent),
+      sub: overview.value?.cpu?.modelName || '—',
+    },
+    {
+      key: 'memory',
+      label: t('dashboard.home.statMemory'),
+      icon: 'HOutline:CircleStackIcon',
+      tone: 'a2',
+      color: 'var(--m-a2)',
+      percent: st?.memory?.physicalMemory?.usedPercent ?? 0,
+      value: fmtPercent(st?.memory?.physicalMemory?.usedPercent),
+      sub: `${formatBytes(st?.memory?.physicalMemory?.usedBytes)} / ${formatBytes(st?.memory?.physicalMemory?.totalBytes)}`,
+    },
+    {
+      key: 'disk',
+      label: t('dashboard.home.statDisk'),
+      icon: 'HOutline:ServerIcon',
+      tone: 'a',
+      color: 'var(--m-a)',
+      percent: st?.disk?.total?.usedPercent ?? 0,
+      value: fmtPercent(st?.disk?.total?.usedPercent),
+      sub: `${formatBytes(st?.disk?.total?.usedBytes)} / ${formatBytes(st?.disk?.total?.totalBytes)}`,
+    },
+    {
+      key: 'network',
+      label: t('dashboard.home.statNetwork'),
+      icon: 'HOutline:ArrowsUpDownIcon',
+      tone: 'ok',
+      color: 'var(--m-ok)',
+      percent: null,
+      value: `↓ ${formatBytes(st?.network?.total?.downloadRateBytesPerSecond)}/s`,
+      sub: `↑ ${formatBytes(st?.network?.total?.uploadRateBytesPerSecond)}/s · ${t('dashboard.home.totalReceived')} ${formatBytes(st?.network?.total?.bytesRecv)}`,
+    },
+  ]
+})
+
+// 网络下行迷你曲线（最近 30 个点）
+const netSpark = computed(() => {
+  const pts = networkHistory.value.slice(-30).map((p) => p.download)
+  if (pts.length < 2) return 'M0 36 L120 36'
+  const max = Math.max(...pts, 1)
+  return pts
+    .map((v, i) => `${i ? 'L' : 'M'}${((i / (pts.length - 1)) * 120).toFixed(1)} ${(37 - (v / max) * 32).toFixed(1)}`)
+    .join(' ')
+})
+
 
 const formatBytes = (bytes?: number | string) => {
   const num = Number(bytes)
@@ -230,6 +327,24 @@ onMounted(() => {
   void autoCheckUpdate()
 })
 
+// 页面被缓存时暂停实时刷新，回来时立即刷新一次再继续（首次挂载也会触发 onActivated，用标记跳过）
+let activatedOnce = false
+onActivated(() => {
+  if (!activatedOnce) {
+    activatedOnce = true
+    return
+  }
+  if (canViewStatus.value) {
+    fetchOverview()
+    startAutoRefresh()
+  }
+  startCurrentDateTicker()
+})
+onDeactivated(() => {
+  stopAutoRefresh()
+  stopCurrentDateTicker()
+})
+
 onBeforeUnmount(() => {
   stopAutoRefresh()
   stopCurrentDateTicker()
@@ -240,74 +355,281 @@ onBeforeUnmount(() => {
 .dash {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
-/* 问候区 */
-.dash-hi {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 4px 2px;
+/* ---- 问候卡 ---- */
+.dash-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30px 34px;
+  border-radius: var(--app-radius-xl);
+  background: var(--m-p);
+  color: var(--m-pOn);
 }
-.dash-hi__title {
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--el-text-color-primary);
-  display: flex;
-  align-items: center;
+.dash-hero__blob {
+  position: absolute;
+  right: -70px;
+  bottom: -120px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: var(--m-a);
 }
-.dash-hi__wave {
-  margin-left: 0.4rem;
-  font-weight: 400;
+.dash-hero__ring {
+  position: absolute;
+  right: 200px;
+  top: -44px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 18px solid var(--m-a2);
 }
-.dash-hi__meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 6px;
-  font-size: 0.8125rem;
-  color: var(--el-text-color-secondary);
+.dash-hero__star {
+  position: absolute;
+  right: 64px;
+  top: 34px;
+  width: 42px;
+  height: 42px;
+  fill: var(--m-pOn);
 }
-.dash-hi__meta .tnum {
-  font-variant-numeric: tabular-nums;
-}
-.dash-hi__sep {
-  width: 3px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--el-text-color-placeholder);
-  opacity: 0.6;
-}
-
-/* 网络指标双行 */
-.dash-net {
+.dash-hero__body {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 1rem;
+  gap: 8px;
+  max-width: 640px;
+}
+.dash-hero__date {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.dash-hero__title {
+  font-family: var(--app-font-display);
+  font-size: 2.25rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dash-hero__sub {
+  font-size: 0.9375rem;
+  opacity: 0.95;
+}
+.dash-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--m-pOn) 16%, transparent);
+}
+.dash-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.dash-hero__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
+  color: var(--m-pOn);
+  font-size: 0.875rem;
   font-weight: 700;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
 }
-.dash-net__down {
-  color: var(--el-color-success, #16a34a);
+.dash-hero__btn:hover {
+  filter: brightness(1.06);
 }
-.dash-net__up {
-  color: var(--el-color-primary);
+.dash-hero__btn:active {
+  transform: scale(0.97);
+}
+.dash-hero__btn.is-primary {
+  background: var(--m-pOn);
+  color: var(--m-p);
+}
+.dash-hero__btn :deep(svg) {
+  width: 18px;
+  height: 18px;
+}
+@media (width < 640px) {
+  .dash-hero {
+    padding: 22px 20px;
+    border-radius: 26px;
+  }
+  .dash-hero__blob {
+    right: -60px;
+    top: -70px;
+    bottom: auto;
+    width: 170px;
+    height: 170px;
+  }
+  .dash-hero__ring {
+    right: -18px;
+    top: auto;
+    bottom: 96px;
+    width: 58px;
+    height: 58px;
+    border-width: 10px;
+  }
+  .dash-hero__star {
+    display: none;
+  }
+  .dash-hero__title {
+    font-size: 1.625rem;
+  }
+  .dash-hero__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dash-hero__btn {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 4px;
+    border-radius: 18px;
+    font-size: 0.75rem;
+  }
 }
 
-/* 底部两栏 */
+/* ---- 指标卡 ---- */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (width >= 1100px) {
+  .dash-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+}
+.dash-stat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dash-stat__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.dash-stat__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.dash-stat__icon :deep(svg) {
+  width: 17px;
+  height: 17px;
+}
+.dash-ring {
+  width: 56px;
+  height: 56px;
+  flex: none;
+}
+.dash-ring__track {
+  fill: none;
+  stroke: var(--el-fill-color-light);
+  stroke-width: 8;
+}
+.dash-ring__bar {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+.dash-spark {
+  width: 96px;
+  height: 40px;
+  flex: none;
+}
+.dash-spark path {
+  fill: none;
+  stroke: var(--m-ok);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dash-stat__value {
+  font-size: 2.125rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-stat__sub {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (width < 640px) {
+  .dash-stat {
+    padding: 16px;
+    gap: 8px;
+  }
+  .dash-stat__label {
+    font-size: 0.8125rem;
+  }
+  .dash-stat__icon {
+    display: none;
+  }
+  .dash-ring {
+    width: 38px;
+    height: 38px;
+  }
+  .dash-spark {
+    width: 60px;
+    height: 28px;
+  }
+  .dash-stat__value {
+    font-size: 1.5rem;
+  }
+}
+
+/* ---- 底部两栏 ---- */
 .dash-cols {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 22px;
 }
-@media (width >= 1024px) {
+@media (width >= 1100px) {
   .dash-cols {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 3fr 2fr;
   }
 }
 </style>

@@ -94,6 +94,16 @@ func Active(v bool) predicate.OIDCClient {
 	return predicate.OIDCClient(sql.FieldEQ(FieldActive, v))
 }
 
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldEQ(FieldDescription, v))
+}
+
+// LastUsedTime applies equality check predicate on the "last_used_time" field. It's identical to LastUsedTimeEQ.
+func LastUsedTime(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldEQ(FieldLastUsedTime, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.OIDCClient {
 	return predicate.OIDCClient(sql.FieldEQ(FieldCreateTime, v))
@@ -377,6 +387,121 @@ func ActiveEQ(v bool) predicate.OIDCClient {
 // ActiveNEQ applies the NEQ predicate on the "active" field.
 func ActiveNEQ(v bool) predicate.OIDCClient {
 	return predicate.OIDCClient(sql.FieldNEQ(FieldActive, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// LastUsedTimeEQ applies the EQ predicate on the "last_used_time" field.
+func LastUsedTimeEQ(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldEQ(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeNEQ applies the NEQ predicate on the "last_used_time" field.
+func LastUsedTimeNEQ(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldNEQ(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeIn applies the In predicate on the "last_used_time" field.
+func LastUsedTimeIn(vs ...time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldIn(FieldLastUsedTime, vs...))
+}
+
+// LastUsedTimeNotIn applies the NotIn predicate on the "last_used_time" field.
+func LastUsedTimeNotIn(vs ...time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldNotIn(FieldLastUsedTime, vs...))
+}
+
+// LastUsedTimeGT applies the GT predicate on the "last_used_time" field.
+func LastUsedTimeGT(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldGT(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeGTE applies the GTE predicate on the "last_used_time" field.
+func LastUsedTimeGTE(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldGTE(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeLT applies the LT predicate on the "last_used_time" field.
+func LastUsedTimeLT(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldLT(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeLTE applies the LTE predicate on the "last_used_time" field.
+func LastUsedTimeLTE(v time.Time) predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldLTE(FieldLastUsedTime, v))
+}
+
+// LastUsedTimeIsNil applies the IsNil predicate on the "last_used_time" field.
+func LastUsedTimeIsNil() predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldIsNull(FieldLastUsedTime))
+}
+
+// LastUsedTimeNotNil applies the NotNil predicate on the "last_used_time" field.
+func LastUsedTimeNotNil() predicate.OIDCClient {
+	return predicate.OIDCClient(sql.FieldNotNull(FieldLastUsedTime))
 }
 
 // And groups predicates with the AND operator between them.

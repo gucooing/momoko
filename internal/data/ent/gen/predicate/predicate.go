@@ -83,3 +83,6 @@ type User func(*sql.Selector)
 
 // UserAPIKey is the predicate function for userapikey builders.
 type UserAPIKey func(*sql.Selector)
+
+// UserMessage is the predicate function for usermessage builders.
+type UserMessage func(*sql.Selector)

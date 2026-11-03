@@ -25,6 +25,7 @@ const OperationOpenSSHManagerGetSSHHostInfo = "/v1.OpenSSHManager/GetSSHHostInfo
 const OperationOpenSSHManagerGetSSHHosts = "/v1.OpenSSHManager/GetSSHHosts"
 const OperationOpenSSHManagerShareSSHHost = "/v1.OpenSSHManager/ShareSSHHost"
 const OperationOpenSSHManagerTestSSHHost = "/v1.OpenSSHManager/TestSSHHost"
+const OperationOpenSSHManagerTestSSHHosts = "/v1.OpenSSHManager/TestSSHHosts"
 const OperationOpenSSHManagerUpdateSSHHost = "/v1.OpenSSHManager/UpdateSSHHost"
 
 type OpenSSHManagerHTTPServer interface {
@@ -42,6 +43,8 @@ type OpenSSHManagerHTTPServer interface {
 	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
 	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(context.Context, *TestSSHHostRequest) (*TestSSHHostResponse, error)
+	// TestSSHHosts 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+	TestSSHHosts(context.Context, *TestSSHHostsRequest) (*TestSSHHostsResponse, error)
 	// UpdateSSHHost 更新 SSH 服务端
 	UpdateSSHHost(context.Context, *UpdateSSHHostRequest) (*UpdateSSHHostResponse, error)
 }
@@ -55,6 +58,7 @@ func RegisterOpenSSHManagerHTTPServer(s *http.Server, srv OpenSSHManagerHTTPServ
 	r.DELETE("/api/v1/openssh/host/{id}", _OpenSSHManager_DeleteSSHHost0_HTTP_Handler(srv))
 	r.POST("/api/v1/openssh/host/{id}/share", _OpenSSHManager_ShareSSHHost0_HTTP_Handler(srv))
 	r.POST("/api/v1/openssh/host/test", _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv))
+	r.POST("/api/v1/openssh/host/batch-test", _OpenSSHManager_TestSSHHosts0_HTTP_Handler(srv))
 }
 
 func _OpenSSHManager_GetSSHHosts0_HTTP_Handler(srv OpenSSHManagerHTTPServer) func(ctx http.Context) error {
@@ -214,6 +218,28 @@ func _OpenSSHManager_TestSSHHost0_HTTP_Handler(srv OpenSSHManagerHTTPServer) fun
 	}
 }
 
+func _OpenSSHManager_TestSSHHosts0_HTTP_Handler(srv OpenSSHManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestSSHHostsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOpenSSHManagerTestSSHHosts)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestSSHHosts(ctx, req.(*TestSSHHostsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestSSHHostsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type OpenSSHManagerHTTPClient interface {
 	// CreateSSHHost 创建 SSH 服务端
 	CreateSSHHost(ctx context.Context, req *CreateSSHHostRequest, opts ...http.CallOption) (rsp *CreateSSHHostResponse, err error)
@@ -229,6 +255,8 @@ type OpenSSHManagerHTTPClient interface {
 	// - 有 id：用已存主机 + 请求体中的覆盖字段（编辑弹窗草稿）
 	// - 无 id：纯草稿（新建弹窗）
 	TestSSHHost(ctx context.Context, req *TestSSHHostRequest, opts ...http.CallOption) (rsp *TestSSHHostResponse, err error)
+	// TestSSHHosts 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+	TestSSHHosts(ctx context.Context, req *TestSSHHostsRequest, opts ...http.CallOption) (rsp *TestSSHHostsResponse, err error)
 	// UpdateSSHHost 更新 SSH 服务端
 	UpdateSSHHost(ctx context.Context, req *UpdateSSHHostRequest, opts ...http.CallOption) (rsp *UpdateSSHHostResponse, err error)
 }
@@ -319,6 +347,20 @@ func (c *OpenSSHManagerHTTPClientImpl) TestSSHHost(ctx context.Context, in *Test
 	pattern := "/api/v1/openssh/host/test"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationOpenSSHManagerTestSSHHost))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TestSSHHosts 批量测试已保存主机的连通性并记录结果（延迟、成功与否、失败原因）；ids 为空表示测试全部可访问主机
+func (c *OpenSSHManagerHTTPClientImpl) TestSSHHosts(ctx context.Context, in *TestSSHHostsRequest, opts ...http.CallOption) (*TestSSHHostsResponse, error) {
+	var out TestSSHHostsResponse
+	pattern := "/api/v1/openssh/host/batch-test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationOpenSSHManagerTestSSHHosts))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

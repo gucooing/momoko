@@ -20,6 +20,7 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationTaskManagerCancelTask = "/v1.TaskManager/CancelTask"
+const OperationTaskManagerClearTasks = "/v1.TaskManager/ClearTasks"
 const OperationTaskManagerDeleteTask = "/v1.TaskManager/DeleteTask"
 const OperationTaskManagerGetTask = "/v1.TaskManager/GetTask"
 const OperationTaskManagerListTasks = "/v1.TaskManager/ListTasks"
@@ -28,6 +29,8 @@ const OperationTaskManagerRetryTask = "/v1.TaskManager/RetryTask"
 type TaskManagerHTTPServer interface {
 	// CancelTask 取消运行中的任务
 	CancelTask(context.Context, *CancelTaskRequest) (*CancelTaskResponse, error)
+	// ClearTasks 批量清理终态任务行（成功/失败/已取消）
+	ClearTasks(context.Context, *ClearTasksRequest) (*ClearTasksResponse, error)
 	// DeleteTask 删除终态任务行（清理列表）
 	DeleteTask(context.Context, *DeleteTaskRequest) (*DeleteTaskResponse, error)
 	// GetTask 获取单个任务
@@ -45,6 +48,7 @@ func RegisterTaskManagerHTTPServer(s *http.Server, srv TaskManagerHTTPServer) {
 	r.POST("/api/v1/task/cancel", _TaskManager_CancelTask0_HTTP_Handler(srv))
 	r.POST("/api/v1/task/retry", _TaskManager_RetryTask0_HTTP_Handler(srv))
 	r.POST("/api/v1/task/delete", _TaskManager_DeleteTask0_HTTP_Handler(srv))
+	r.POST("/api/v1/task/clear", _TaskManager_ClearTasks0_HTTP_Handler(srv))
 }
 
 func _TaskManager_ListTasks0_HTTP_Handler(srv TaskManagerHTTPServer) func(ctx http.Context) error {
@@ -154,9 +158,33 @@ func _TaskManager_DeleteTask0_HTTP_Handler(srv TaskManagerHTTPServer) func(ctx h
 	}
 }
 
+func _TaskManager_ClearTasks0_HTTP_Handler(srv TaskManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClearTasksRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTaskManagerClearTasks)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClearTasks(ctx, req.(*ClearTasksRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ClearTasksResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type TaskManagerHTTPClient interface {
 	// CancelTask 取消运行中的任务
 	CancelTask(ctx context.Context, req *CancelTaskRequest, opts ...http.CallOption) (rsp *CancelTaskResponse, err error)
+	// ClearTasks 批量清理终态任务行（成功/失败/已取消）
+	ClearTasks(ctx context.Context, req *ClearTasksRequest, opts ...http.CallOption) (rsp *ClearTasksResponse, err error)
 	// DeleteTask 删除终态任务行（清理列表）
 	DeleteTask(ctx context.Context, req *DeleteTaskRequest, opts ...http.CallOption) (rsp *DeleteTaskResponse, err error)
 	// GetTask 获取单个任务
@@ -181,6 +209,20 @@ func (c *TaskManagerHTTPClientImpl) CancelTask(ctx context.Context, in *CancelTa
 	pattern := "/api/v1/task/cancel"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationTaskManagerCancelTask))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ClearTasks 批量清理终态任务行（成功/失败/已取消）
+func (c *TaskManagerHTTPClientImpl) ClearTasks(ctx context.Context, in *ClearTasksRequest, opts ...http.CallOption) (*ClearTasksResponse, error) {
+	var out ClearTasksResponse
+	pattern := "/api/v1/task/clear"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationTaskManagerClearTasks))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

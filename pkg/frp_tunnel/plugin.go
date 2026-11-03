@@ -15,13 +15,18 @@ type LoginInfo struct {
 	Metas         map[string]string // frpc common metadatas（含 credential）
 	RunID         string
 	ClientAddress string
+	Hostname      string
+	Os            string
+	Arch          string
+	Version       string
 }
 
 // NewProxyInfo 是 frpc 声明一个 proxy 时传给插件的信息。
 type NewProxyInfo struct {
 	User          string
 	LoginMetas    map[string]string // 来自登录的 common metadatas（含 credential）
-	ProxyMetas    map[string]string // proxy 级 metadatas
+	ProxyMetas    map[string]string // proxy 级 metadatas（合并配置时每条 proxy 携带自己的 credential）
+	RunID         string            // frpc 本次运行 id
 	ProxyName     string
 	ProxyType     string
 	RemotePort    int
@@ -93,15 +98,29 @@ func handleLogin(ctx context.Context, hooks PluginHooks, content json.RawMessage
 	if err := json.Unmarshal(content, &c); err != nil {
 		return reject("decode login content: " + err.Error())
 	}
+	// 首次登录的 frpc 没有 run id（frps 在插件之后才生成）。这里预先分配并改写登录内容，
+	// 以便后续 NewProxy 能按 run id 把同一 frpc 承载的多条隧道归到同一客户端。
+	assigned := false
+	if c.RunID == "" {
+		c.RunID = randomToken()[:16]
+		assigned = true
+	}
 	if hooks.OnLogin != nil {
 		if err := hooks.OnLogin(ctx, LoginInfo{
 			User:          c.User,
 			Metas:         c.Metas,
 			RunID:         c.RunID,
 			ClientAddress: c.ClientAddress,
+			Hostname:      c.Hostname,
+			Os:            c.Os,
+			Arch:          c.Arch,
+			Version:       c.Version,
 		}); err != nil {
 			return reject(err.Error())
 		}
+	}
+	if assigned {
+		return pserver.Response{Unchange: false, Content: c}
 	}
 	return pserver.Response{Unchange: true}
 }
@@ -116,6 +135,7 @@ func handleNewProxy(ctx context.Context, hooks PluginHooks, content json.RawMess
 			User:           c.User.User,
 			LoginMetas:     c.User.Metas,
 			ProxyMetas:     c.Metas,
+			RunID:          c.User.RunID,
 			ProxyName:      c.ProxyName,
 			ProxyType:      c.ProxyType,
 			RemotePort:     c.RemotePort,

@@ -37,6 +37,14 @@ type Session struct {
 	RefreshNoise string `json:"refresh_noise,omitempty"`
 	// 会话（refresh）过期时间
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	// 登录时的 User-Agent
+	UserAgent string `json:"user_agent,omitempty"`
+	// 登录方式：password / email_code
+	LoginMethod string `json:"login_method,omitempty"`
+	// 最近活跃时间
+	LastActiveAt *time.Time `json:"last_active_at,omitempty"`
+	// 最近活跃 IP
+	LastIP string `json:"last_ip,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
@@ -68,9 +76,9 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case session.FieldID, session.FieldDeviceID, session.FieldDevice, session.FieldUserID, session.FieldIP, session.FieldAccessNoise, session.FieldRefreshNoise:
+		case session.FieldID, session.FieldDeviceID, session.FieldDevice, session.FieldUserID, session.FieldIP, session.FieldAccessNoise, session.FieldRefreshNoise, session.FieldUserAgent, session.FieldLoginMethod, session.FieldLastIP:
 			values[i] = new(sql.NullString)
-		case session.FieldCreateTime, session.FieldUpdateTime, session.FieldExpiresAt:
+		case session.FieldCreateTime, session.FieldUpdateTime, session.FieldExpiresAt, session.FieldLastActiveAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -147,6 +155,31 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExpiresAt = value.Time
 			}
+		case session.FieldUserAgent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_agent", values[i])
+			} else if value.Valid {
+				_m.UserAgent = value.String
+			}
+		case session.FieldLoginMethod:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field login_method", values[i])
+			} else if value.Valid {
+				_m.LoginMethod = value.String
+			}
+		case session.FieldLastActiveAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_active_at", values[i])
+			} else if value.Valid {
+				_m.LastActiveAt = new(time.Time)
+				*_m.LastActiveAt = value.Time
+			}
+		case session.FieldLastIP:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_ip", values[i])
+			} else if value.Valid {
+				_m.LastIP = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -214,6 +247,20 @@ func (_m *Session) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
 	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("user_agent=")
+	builder.WriteString(_m.UserAgent)
+	builder.WriteString(", ")
+	builder.WriteString("login_method=")
+	builder.WriteString(_m.LoginMethod)
+	builder.WriteString(", ")
+	if v := _m.LastActiveAt; v != nil {
+		builder.WriteString("last_active_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("last_ip=")
+	builder.WriteString(_m.LastIP)
 	builder.WriteByte(')')
 	return builder.String()
 }

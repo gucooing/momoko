@@ -25,13 +25,13 @@ defineEmits<{ click: [] }>()
 .entity-card {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.75rem;
   width: 100%;
   text-align: left;
-  padding: 14px;
+  padding: 18px;
   background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
   color: inherit;
   font: inherit;
 }
@@ -44,7 +44,7 @@ defineEmits<{ click: [] }>()
 }
 .entity-card--clickable:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--el-color-primary) 40%, var(--el-border-color));
+  border-color: var(--m-p);
   box-shadow: var(--app-shadow-md);
 }
 .entity-card__head {
@@ -55,8 +55,8 @@ defineEmits<{ click: [] }>()
 }
 .entity-card__title {
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 800;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;

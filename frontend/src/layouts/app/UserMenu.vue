@@ -56,6 +56,10 @@
             <component :is="menuStore.iconComponents['HOutline:UserCircleIcon']" />
             <span>{{ t('layout.profile') }}</span>
           </button>
+          <button type="button" class="user-menu__item" @click="openAppearance(close)">
+            <component :is="menuStore.iconComponents['HOutline:SwatchIcon']" />
+            <span>{{ t('theme.title') }}</span>
+          </button>
           <button type="button" class="user-menu__item" @click="openGithub(close)">
             <IconGithub class="user-menu__gh" />
             <span>GitHub</span>
@@ -121,6 +125,11 @@ const goProfile = (close: () => void) => {
   userProfileStore.currentTab = 'messages'
   router.push('/profile')
   close()
+}
+const themeStore = useThemeStore()
+const openAppearance = (close: () => void) => {
+  close()
+  themeStore.themeConfigDrawerOpen = true
 }
 const openGithub = (close: () => void) => {
   window.open(PROJECT_LINK, '_blank')

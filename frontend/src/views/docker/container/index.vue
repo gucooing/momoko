@@ -14,22 +14,27 @@
       </template>
     </PageHeader>
 
-    <FilterBar @search="search" @reset="reset">
-      <template #fields>
-        <div class="app-field">
-          <label class="app-label">{{ t('docker.common.name') }}</label>
-          <input v-model="queryForm.name" class="app-input" :placeholder="t('docker.container.namePlaceholder')" @keyup.enter="search" />
-        </div>
-        <div class="app-field">
-          <label class="app-label">{{ t('docker.common.status') }}</label>
-          <AppSelect v-model="queryForm.status" :options="statusFilterOptions" />
-        </div>
-        <div class="app-field">
-          <label class="app-label">{{ t('docker.common.image') }}</label>
-          <input v-model="queryForm.image" class="app-input" :placeholder="t('docker.container.imagePlaceholder')" @keyup.enter="search" />
-        </div>
-      </template>
-    </FilterBar>
+    <DockerSubNav />
+
+    <ListToolbar
+      v-model:status="queryForm.status"
+      v-model:keyword="queryForm.name"
+      :chips="statusFilterOptions"
+      :chips-label="t('docker.common.status')"
+      :placeholder="t('docker.container.namePlaceholder')"
+      @search="search"
+    >
+      <label class="dk-image-search">
+        <component :is="menuStore.iconComponents['HOutline:PhotoIcon']" />
+        <input
+          v-model="queryForm.image"
+          type="search"
+          :placeholder="t('docker.container.imagePlaceholder')"
+          :aria-label="t('docker.container.imagePlaceholder')"
+          @keyup.enter="search"
+        />
+      </label>
+    </ListToolbar>
 
     <div class="dk-page__body">
       <div class="dk-page__bar">
@@ -58,7 +63,19 @@
           <span v-else class="dk-dim">—</span>
         </template>
         <template #cell-operation="{ row }">
-          <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+          <div class="dk-acts">
+            <AppIconButton
+              v-for="qa in quickActionsFor(row)"
+              :key="qa.key"
+              :icon="qa.icon"
+              :label="qa.label"
+              :box="36"
+              :size="18"
+              :class="qa.tone"
+              @click="onRowAction(qa.key, row)"
+            />
+            <ActionMenu :items="menuActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+          </div>
         </template>
       </DataTable>
 
@@ -74,19 +91,28 @@
           :description="t('docker.container.emptyDesc')"
         />
         <div v-else class="dk-cards">
-          <EntityCard v-for="row in list" :key="row.id">
-            <template #title>{{ displayNames(row) }}</template>
-            <template #status><StatusPill :variant="stateVariant(row.state)" :label="stateLabel(String(row.state || ''))" /></template>
-            <template #meta>
-              <span class="dk-card__full">{{ t('docker.container.imageMeta', { image: row.image }) }}</span>
-              <span>{{ t('docker.container.runtimeMeta', { runtime: formatContainerRuntime(row) }) }}</span>
-              <span class="dk-card__full">{{ t('docker.container.networkMeta', { network: formatNetworkText(row) }) }}</span>
-            </template>
-            <template #footer>
-              <span />
-              <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
-            </template>
-          </EntityCard>
+          <article v-for="row in list" :key="row.id" class="dk-card">
+            <header class="dk-card__head">
+              <span class="dk-card__name">{{ displayNames(row) }}</span>
+              <StatusPill :variant="stateVariant(row.state)" :label="stateLabel(String(row.state || ''))" />
+            </header>
+            <div class="dk-card__sub m-mono">{{ row.image }} · {{ formatContainerRuntime(row) }}</div>
+            <footer class="dk-card__foot">
+              <div class="dk-card__ports">
+                <span v-for="port in networkDisplay(row).ports" :key="port" class="dk-tag dk-tag--port">{{ port }}</span>
+                <span v-if="!networkDisplay(row).ports.length" class="dk-dim">{{ formatNetworkText(row) }}</span>
+              </div>
+              <AppIconButton
+                v-for="qa in quickActionsFor(row)"
+                :key="qa.key"
+                :icon="qa.icon"
+                :label="qa.label"
+                :class="qa.tone"
+                @click="onRowAction(qa.key, row)"
+              />
+              <ActionMenu :items="menuActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+            </footer>
+          </article>
         </div>
       </template>
 
@@ -307,6 +333,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
+import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
 import { useI18n } from 'vue-i18n'
 import {
   createDockerContainer, deleteDockerContainer, getDockerContainer,
@@ -427,7 +455,7 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'state', title: t('docker.common.status'), width: 90 },
   { key: 'status', title: t('docker.container.runtime'), width: 120 },
   { key: 'network', title: t('docker.common.network'), minWidth: 240 },
-  { key: 'operation', title: t('docker.common.operation'), width: 80, align: 'center' },
+  { key: 'operation', title: t('docker.common.operation'), width: 180, align: 'right' },
 ])
 
 // —— 行动作（按状态） ——
@@ -467,6 +495,20 @@ const rowActionsFor = (row: Record<string, unknown>): ActionMenuItem[] => {
   )
   return items
 }
+
+// 常用动作直接露出成图标（日志 / 终端 / 启停），其余收进「⋯」
+const QUICK_KEYS = ['logs', 'exec', 'start', 'stop', 'unpause'] as const
+const quickActionsFor = (row: Record<string, unknown>) =>
+  rowActionsFor(row)
+    .filter((i) => (QUICK_KEYS as readonly string[]).includes(i.key))
+    .map((i) => ({
+      key: i.key,
+      icon: i.icon || 'HOutline:EllipsisHorizontalIcon',
+      label: i.label,
+      tone: i.key === 'stop' ? 'is-stop' : i.key === 'start' || i.key === 'unpause' ? 'is-start' : '',
+    }))
+const menuActionsFor = (row: Record<string, unknown>) =>
+  rowActionsFor(row).filter((i) => !(QUICK_KEYS as readonly string[]).includes(i.key))
 
 const findRow = (id: string) => list.value.find((x) => x.id === id)
 const onRowAction = (key: string, row: Record<string, unknown>) => {
@@ -521,7 +563,8 @@ const getList = async () => {
   } finally { loading.value = false }
 }
 const search = () => { pagination.value.page = 1; getList() }
-const reset = () => { queryForm.name = ''; queryForm.status = ''; queryForm.image = ''; search() }
+const debouncedSearch = useDebounceFn(search, 350)
+watch(() => queryForm.image, () => debouncedSearch())
 
 // —— 任务 ——
 const taskDialogsVisible = ref(false)
@@ -544,14 +587,14 @@ const networkSelectOptions = computed(() => [
 const loadImageOptions = async () => {
   if (dockerUnavailable.value || imageOptions.value.length) return
   try {
-    const { data } = await listDockerImages({ all: true, keyword: '', labels: {}, page: 1, pageSize: 200 })
+    const { data } = await listDockerImages({ all: true, keyword: '', labels: {}, page: 1, pageSize: 200, usage: '', sort: '' })
     imageOptions.value = Array.from(new Set((data?.items || []).flatMap((i) => i.repoTags || []).filter((i) => i && i !== '<none>:<none>')))
   } catch { /* interceptor 已 toast；选项为空时允许手输镜像 */ }
 }
 const loadNetworkOptions = async () => {
   if (dockerUnavailable.value || networkOptions.value.length) return
   try {
-    const { data } = await listDockerNetworks({ name: '', driver: '', scope: '', labels: {}, page: 1, pageSize: 200 })
+    const { data } = await listDockerNetworks({ name: '', driver: '', scope: '', labels: {}, page: 1, pageSize: 200, kind: '', keyword: '' })
     networkOptions.value = Array.from(new Set((data?.items || []).map((i) => i.name).filter(Boolean)))
   } catch { /* ignore */ }
 }
@@ -611,6 +654,7 @@ const submitCreate = async () => {
         hostname: '', user: '', entrypoint: [], workingDir: '', labels: {},
         tty: false, openStdin: false, autoRemove: false, privileged: false,
         memory: 0, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0, nanoCpus: 0, platform: '',
+        start: true, restartMaxRetries: 0,
       },
     })
     feedback.success(t('docker.container.createSuccess'))
@@ -847,6 +891,7 @@ const submitEdit = async () => {
           tty: false, openStdin: false, autoRemove: false, privileged: false,
           memory: editForm.memoryMB * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
           nanoCpus: Math.round(editForm.nanoCpuCores * 1e9), platform: '',
+          start: true, restartMaxRetries: 0,
         },
       })
       openTask(data?.task)
@@ -868,7 +913,7 @@ onMounted(() => { getList() })
 </script>
 
 <style scoped lang="scss">
-.dk-page { display: flex; flex-direction: column; gap: 12px; }
+.dk-page { display: flex; flex-direction: column; gap: 16px; }
 .dk-page__body { display: flex; flex-direction: column; gap: 10px; }
 .dk-page__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .dk-page__hint { font-size: 0.8125rem; color: var(--el-text-color-secondary); font-variant-numeric: tabular-nums; }
@@ -876,10 +921,28 @@ onMounted(() => { getList() })
 .dk-net { display: flex; flex-wrap: wrap; gap: 4px; }
 .dk-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .dk-tag {
-  display: inline-block; max-width: 240px; padding: 1px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  border-radius: var(--app-radius-xs); background: var(--el-fill-color-light); color: var(--el-text-color-regular); font-size: 0.72rem;
+  display: inline-flex; align-items: center; max-width: 240px; height: 24px; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-radius: 8px; background: var(--el-fill-color-light); color: var(--el-text-color-regular); font-size: 0.75rem; font-weight: 600;
+  font-family: var(--app-font-mono);
 }
-.dk-tag--port { background: color-mix(in srgb, var(--el-color-primary) 12%, transparent); color: var(--el-color-primary); }
+.dk-tag--port { background: var(--m-a2Soft); color: var(--m-ink); }
+
+/* 工具条：镜像搜索 */
+.dk-image-search {
+  display: flex; align-items: center; gap: 8px; flex: 0 1 240px; min-width: 160px; min-height: 40px; padding: 0 14px;
+  border-radius: 999px; border: 1.5px solid var(--el-border-color-light); background: var(--el-bg-color); color: var(--el-text-color-secondary);
+}
+.dk-image-search:focus-within { border-color: var(--m-p); }
+.dk-image-search :deep(svg) { width: 16px; height: 16px; flex: none; }
+.dk-image-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--el-text-color-primary); font: inherit; font-size: 0.875rem; }
+@media (width < 768px) { .dk-image-search { flex: 1 1 100%; } }
+
+/* 行内动作 */
+.dk-acts { display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; }
+.dk-acts :deep(.is-stop), .dk-card__foot :deep(.is-stop) { color: var(--m-bad); }
+.dk-acts :deep(.is-start), .dk-card__foot :deep(.is-start) { color: var(--m-ok); }
+.dk-acts :deep(.is-stop:hover), .dk-card__foot :deep(.is-stop:hover) { background: var(--m-badSoft); }
+.dk-acts :deep(.is-start:hover), .dk-card__foot :deep(.is-start:hover) { background: var(--m-okSoft); }
 
 /* 表单 */
 .dk-form { display: flex; flex-direction: column; gap: 14px; }
@@ -977,10 +1040,19 @@ onMounted(() => { getList() })
 .dk-detail__loading { padding: 40px 0; text-align: center; color: var(--el-text-color-secondary); }
 
 /* 移动卡片 */
-.dk-cards { display: flex; flex-direction: column; gap: 10px; }
+.dk-cards { display: flex; flex-direction: column; gap: 12px; }
+.dk-card {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px 12px 6px 16px;
+  border-radius: var(--app-radius-lg); border: 1px solid var(--el-border-color-light); background: var(--el-bg-color);
+}
+.dk-card__head { display: flex; align-items: center; gap: 10px; padding-right: 4px; }
+.dk-card__name { flex: 1; min-width: 0; font-size: 1rem; font-weight: 800; color: var(--el-text-color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-card__sub { padding-right: 4px; font-size: 0.75rem; color: var(--el-text-color-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-card__foot { display: flex; align-items: center; gap: 2px; margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--el-border-color-lighter); }
+.dk-card__ports { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; }
 .dk-card__full { flex-basis: 100%; }
 .dk-skeleton {
-  height: 132px; border-radius: var(--app-radius);
+  height: 120px; border-radius: var(--app-radius-lg);
   background: linear-gradient(100deg, var(--el-fill-color-light) 30%, var(--el-fill-color) 50%, var(--el-fill-color-light) 70%);
   background-size: 200% 100%; animation: dk-shimmer 1.4s ease-in-out infinite;
 }

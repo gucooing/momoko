@@ -2,6 +2,7 @@ package port_forward
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strconv"
 	"sync"
@@ -29,20 +30,21 @@ type UDPPortForward struct {
 
 type udpSession struct {
 	targetConn *net.UDPConn
+	conn       *conn
 }
 
 func NewUDPPortForward(option *Option, mctx context.Context) (*UDPPortForward, error) {
 	listenAddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(option.ListenAddress, strconv.Itoa(option.ListenPort)))
 	if err != nil {
-		return nil, NETListenError
+		return nil, fmt.Errorf("%w: %v", NETListenError, err)
 	}
 	targetAddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(option.TargetAddress, strconv.Itoa(option.TargetPort)))
 	if err != nil {
-		return nil, NETListenError
+		return nil, fmt.Errorf("解析目标地址失败: %v", err)
 	}
 	listenConn, err := net.ListenUDP("udp", listenAddr)
 	if err != nil {
-		return nil, NETListenError
+		return nil, fmt.Errorf("%w: %v", NETListenError, err)
 	}
 	ctx, cancel := context.WithCancel(mctx)
 	return &UDPPortForward{
@@ -85,6 +87,7 @@ func (u *UDPPortForward) Start() error {
 		}
 		if nw, werr := session.targetConn.Write(buf[:n]); werr == nil {
 			u.stats.addIn(int64(nw))
+			session.conn.addIn(int64(nw))
 		}
 	}
 }
@@ -114,15 +117,17 @@ func (u *UDPPortForward) session(clientAddr *net.UDPAddr) (*udpSession, error) {
 
 	targetConn, err := net.DialUDP("udp", nil, u.targetAddr)
 	if err != nil {
+		u.stats.dialFailed(err)
 		return nil, err
 	}
 	session := &udpSession{targetConn: targetConn}
+	// 断开会话即关闭到目标的连接，readTarget 随之结束并清理会话。
+	session.conn = u.stats.connOpened(clientAddr, func() { _ = targetConn.Close() })
 
 	u.mu.Lock()
 	u.sessions[key] = session
 	u.mu.Unlock()
 
-	u.stats.connOpened()
 	go u.readTarget(clientAddr, session)
 	return session, nil
 }
@@ -132,7 +137,7 @@ func (u *UDPPortForward) readTarget(clientAddr *net.UDPAddr, session *udpSession
 	defer func() {
 		_ = session.targetConn.Close()
 		u.deleteSession(clientAddr.String(), session)
-		u.stats.connClosed()
+		u.stats.connClosed(session.conn)
 	}()
 
 	buf := getRelayBuf()
@@ -145,6 +150,7 @@ func (u *UDPPortForward) readTarget(clientAddr *net.UDPAddr, session *udpSession
 		}
 		if nw, werr := u.listenConn.WriteToUDP(buf[:n], clientAddr); werr == nil {
 			u.stats.addOut(int64(nw))
+			session.conn.addOut(int64(nw))
 		}
 	}
 }

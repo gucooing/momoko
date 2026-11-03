@@ -17,17 +17,27 @@ export const useTabsStore = defineStore('tabs', () => {
   const activePath = ref<string>('')
   const routeRefreshKeys = ref<Record<string, number>>({})
 
-  const getRouteRefreshKey = (fullPath: string) => routeRefreshKeys.value[fullPath] || 0
+  // 页内标签参数 ?tab= 不算换页：同一页面切换标签共用一个页面实例（见 config/pageGroups.ts）
+  const pageKeyOf = (fullPath: string) => {
+    const [pathAndQuery = '', hash = ''] = fullPath.split('#')
+    const [path = '', query = ''] = pathAndQuery.split('?')
+    const params = new URLSearchParams(query)
+    params.delete('tab')
+    const rest = params.toString()
+    return `${path}${rest ? `?${rest}` : ''}${hash ? `#${hash}` : ''}`
+  }
 
-  const getRouteRenderKey = (fullPath: string) => `${fullPath}::${getRouteRefreshKey(fullPath)}`
+  const getRouteRefreshKey = (fullPath: string) => routeRefreshKeys.value[pageKeyOf(fullPath)] || 0
+
+  const getRouteRenderKey = (fullPath: string) => `${pageKeyOf(fullPath)}::${getRouteRefreshKey(fullPath)}`
 
   const refreshTab = (fullPath: string) => {
     if (!fullPath) return
-    routeRefreshKeys.value[fullPath] = getRouteRefreshKey(fullPath) + 1
+    routeRefreshKeys.value[pageKeyOf(fullPath)] = getRouteRefreshKey(fullPath) + 1
   }
 
   const clearClosedTabRefreshKeys = () => {
-    const openedPaths = new Set(tabs.value.map((tab) => tab.fullPath))
+    const openedPaths = new Set(tabs.value.map((tab) => pageKeyOf(tab.fullPath)))
     Object.keys(routeRefreshKeys.value).forEach((fullPath) => {
       if (!openedPaths.has(fullPath)) {
         delete routeRefreshKeys.value[fullPath]
@@ -81,8 +91,10 @@ export const useTabsStore = defineStore('tabs', () => {
       }
     }
 
-    const existTab = tabs.value.find((tab) => tab.fullPath === route.fullPath)
+    // 同一页面不同 ?tab= 视为同一个标签，只更新地址
+    const existTab = tabs.value.find((tab) => pageKeyOf(tab.fullPath) === pageKeyOf(route.fullPath))
     if (existTab) {
+      existTab.fullPath = route.fullPath
       activePath.value = route.fullPath
       return
     }

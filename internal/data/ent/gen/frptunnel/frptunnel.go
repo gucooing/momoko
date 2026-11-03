@@ -45,6 +45,8 @@ const (
 	FieldMaxBandwidth = "max_bandwidth"
 	// FieldMaxActiveConns holds the string denoting the max_active_conns field in the database.
 	FieldMaxActiveConns = "max_active_conns"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the frptunnel in the database.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldIsEnable,
 	FieldMaxBandwidth,
 	FieldMaxActiveConns,
+	FieldRemark,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -119,6 +122,8 @@ var (
 	DefaultMaxBandwidth string
 	// DefaultMaxActiveConns holds the default value on creation for the "max_active_conns" field.
 	DefaultMaxActiveConns int
+	// DefaultRemark holds the default value on creation for the "remark" field.
+	DefaultRemark string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -235,6 +240,11 @@ func ByMaxBandwidth(opts ...sql.OrderTermOption) OrderOption {
 // ByMaxActiveConns orders the results by the max_active_conns field.
 func ByMaxActiveConns(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMaxActiveConns, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

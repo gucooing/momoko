@@ -280,13 +280,18 @@ func (f *FileOper) DirInfo(dir string) (*v1.FileDirectoryInfo, error) {
 	}
 	var dirCount int64
 	var fileCount int64
+	var totalSize uint64
 	for _, entry := range entries {
 		if entry.IsDir() {
 			dirCount++
 			continue
 		}
 		fileCount++
+		if fi, err := entry.Info(); err == nil {
+			totalSize += uint64(fi.Size())
+		}
 	}
+	diskTotal, diskFree := diskUsage(path)
 
 	if f.basePath != SystemPath {
 		path, err = filepath.Rel(f.basePath, path)
@@ -305,6 +310,9 @@ func (f *FileOper) DirInfo(dir string) (*v1.FileDirectoryInfo, error) {
 		DirCount:   dirCount,
 		FileCount:  fileCount,
 		ItemCount:  int64(len(entries)),
+		TotalSize:  totalSize,
+		DiskTotal:  diskTotal,
+		DiskFree:   diskFree,
 	}, nil
 }
 

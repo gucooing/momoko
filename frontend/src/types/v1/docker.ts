@@ -76,7 +76,27 @@ export interface DockerStatusResponse {
     | DockerEngineInfo
     | undefined;
   /** 版本信息 */
-  version: DockerEngineVersion | undefined;
+  version:
+    | DockerEngineVersion
+    | undefined;
+  /** 本次探测往返耗时（毫秒） */
+  latencyMs: number;
+  /** 网络数量 */
+  networks: number;
+  /** 最近连接事件（新的在前） */
+  events: DockerConnectionEvent[];
+}
+
+/** Docker 连接事件 */
+export interface DockerConnectionEvent {
+  /** 级别：ok / warn / error / info */
+  level: string;
+  /** 事件类型：connected / disconnected / reconfigured / test_ok / test_failed */
+  kind: string;
+  /** 详情 */
+  detail: string;
+  /** 发生时间 */
+  time: Date | undefined;
 }
 
 /** Docker引擎信息 */
@@ -183,12 +203,29 @@ export interface DockerConfigInfo {
   host: string;
   /** 是否启用TLS */
   tlsEnabled: boolean;
-  /** CA证书路径 */
-  tlsCaPath: string;
-  /** 客户端证书路径 */
-  tlsCertPath: string;
-  /** 客户端私钥路径 */
-  tlsKeyPath: string;
+  /** CA 证书（PEM 内容） */
+  tlsCa: string;
+  /** 客户端证书（PEM 内容） */
+  tlsCert: string;
+  /**
+   * 客户端私钥（PEM 内容）。读取时始终为空（只返回 tls_key_meta）；
+   * 更新/测试时留空表示沿用已保存的私钥，除非 tls_key_clear 为 true
+   */
+  tlsKey: string;
+  /** 清除已保存的客户端私钥（仅更新时有效） */
+  tlsKeyClear: boolean;
+  /** CA 证书信息（只读） */
+  tlsCaMeta:
+    | DockerTLSFileMeta
+    | undefined;
+  /** 客户端证书信息（只读） */
+  tlsCertMeta:
+    | DockerTLSFileMeta
+    | undefined;
+  /** 客户端私钥信息（只读） */
+  tlsKeyMeta:
+    | DockerTLSFileMeta
+    | undefined;
   /** API版本 */
   apiVersion: string;
   /** 请求超时秒数 */
@@ -199,6 +236,26 @@ export interface DockerConfigInfo {
   taskTimeoutSeconds: number;
   /** 仓库认证配置 */
   registryAuths: DockerRegistryAuth[];
+  /** 跳过 TLS 证书校验（仅调试自签名证书） */
+  tlsSkipVerify: boolean;
+}
+
+/** TLS 证书 / 私钥文件信息 */
+export interface DockerTLSFileMeta {
+  /** 是否已保存 */
+  present: boolean;
+  /** 内容大小（字节） */
+  size: number;
+  /** 证书主题 CN（私钥为空） */
+  subject: string;
+  /** 证书有效期截止（私钥为空） */
+  notAfter:
+    | Date
+    | undefined;
+  /** 算法（如 RSA 4096 / ECDSA P-256 / Ed25519） */
+  algorithm: string;
+  /** 解析错误（内容不是有效的 PEM 时） */
+  error: string;
 }
 
 /** Docker仓库认证 */
@@ -211,6 +268,26 @@ export interface DockerRegistryAuth {
   password: string;
   /** Token */
   token: string;
+  /** 最近一次验证时间 */
+  verifiedAt:
+    | Date
+    | undefined;
+  /** 最近一次验证是否通过 */
+  verified: boolean;
+  /** 最近一次验证失败原因 */
+  verifyError: string;
+}
+
+/** 验证仓库凭据请求 */
+export interface TestDockerRegistryAuthRequest {
+  /** 待验证的凭据；password/token 留空时沿用已保存的同地址同用户名凭据 */
+  auth: DockerRegistryAuth | undefined;
+}
+
+/** 验证仓库凭据响应 */
+export interface TestDockerRegistryAuthResponse {
+  /** 带验证结果（verified_at / verified / verify_error）的凭据，不含密码 */
+  auth: DockerRegistryAuth | undefined;
 }
 
 /** 获取Docker任务列表请求 */
@@ -594,6 +671,10 @@ export interface DockerContainerCreateOptions {
   nanoCpus: number;
   /** 平台 */
   platform: string;
+  /** 创建后立即启动 */
+  start: boolean;
+  /** on-failure 重启策略的最大重试次数（0 不限制） */
+  restartMaxRetries: number;
 }
 
 export interface DockerContainerCreateOptions_LabelsEntry {
@@ -845,6 +926,10 @@ export interface ListDockerImagesRequest {
   page: number;
   /** 每页数量 */
   pageSize: number;
+  /** 使用情况筛选：used（被容器使用）/ unused（未使用且有标签）/ dangling（悬空）；空为全部 */
+  usage: string;
+  /** 排序：created（默认，新的在前）/ size（大的在前）/ name */
+  sort: string;
 }
 
 export interface ListDockerImagesRequest_LabelsEntry {
@@ -856,8 +941,66 @@ export interface ListDockerImagesRequest_LabelsEntry {
 export interface ListDockerImagesResponse {
   /** 镜像列表 */
   items: DockerImageSummary[];
-  /** 总数 */
+  /** 总数（筛选后） */
   total: number;
+  /** 全量统计（不受使用情况筛选影响） */
+  stats: DockerImageStats | undefined;
+}
+
+/** 镜像统计 */
+export interface DockerImageStats {
+  /** 镜像总数 */
+  total: number;
+  /** 被容器使用的镜像数 */
+  used: number;
+  /** 未使用的镜像数（不含悬空） */
+  unused: number;
+  /** 悬空镜像数 */
+  dangling: number;
+  /** 总占用（字节） */
+  totalSize: number;
+  /** 悬空镜像可回收（字节） */
+  reclaimableSize: number;
+}
+
+/** 清理镜像请求 */
+export interface PruneDockerImagesRequest {
+  /** 是否也清理未被容器使用的有标签镜像（默认只清理悬空镜像） */
+  all: boolean;
+}
+
+/** 清理镜像响应 */
+export interface PruneDockerImagesResponse {
+  /** 删除的镜像数 */
+  deleted: number;
+  /** 回收空间（字节） */
+  spaceReclaimed: number;
+}
+
+/** 搜索镜像请求 */
+export interface SearchDockerImagesRequest {
+  /** 关键字 */
+  term: string;
+  /** 返回数量上限（默认 10） */
+  limit: number;
+}
+
+/** 搜索镜像响应 */
+export interface SearchDockerImagesResponse {
+  /** 结果 */
+  items: DockerImageSearchResult[];
+}
+
+/** 镜像搜索结果 */
+export interface DockerImageSearchResult {
+  /** 仓库名 */
+  name: string;
+  /** 描述 */
+  description: string;
+  /** 星标数 */
+  stars: number;
+  /** 是否官方镜像 */
+  official: boolean;
 }
 
 /** 获取镜像详情请求 */
@@ -966,6 +1109,10 @@ export interface DockerImageSummary {
   containers: number;
   /** 标签 */
   labels: { [key: string]: string };
+  /** 使用该镜像的容器名称 */
+  usedBy: string[];
+  /** 是否悬空镜像（无标签） */
+  dangling: boolean;
 }
 
 export interface DockerImageSummary_LabelsEntry {
@@ -999,6 +1146,12 @@ export interface DockerImageInfo {
   labels: { [key: string]: string };
   /** 层信息 */
   layers: string[];
+  /** 镜像声明的端口（如 80/tcp） */
+  exposedPorts: string[];
+  /** 默认启动命令 */
+  cmd: string[];
+  /** 声明的数据卷 */
+  volumes: string[];
 }
 
 export interface DockerImageInfo_LabelsEntry {
@@ -1038,6 +1191,10 @@ export interface ListDockerNetworksRequest {
   page: number;
   /** 每页数量 */
   pageSize: number;
+  /** 类型筛选：builtin（bridge/host/none 等内置）/ custom；空为全部 */
+  kind: string;
+  /** 关键字：匹配名称、ID、子网、已连接容器名 */
+  keyword: string;
 }
 
 export interface ListDockerNetworksRequest_LabelsEntry {
@@ -1049,8 +1206,32 @@ export interface ListDockerNetworksRequest_LabelsEntry {
 export interface ListDockerNetworksResponse {
   /** 网络列表 */
   items: DockerNetworkInfo[];
-  /** 总数 */
+  /** 总数（筛选后） */
   total: number;
+  /** 全量统计（不受类型/关键字筛选影响） */
+  stats: DockerNetworkListStats | undefined;
+}
+
+/** 网络列表统计 */
+export interface DockerNetworkListStats {
+  /** 网络总数 */
+  total: number;
+  /** 内置网络数 */
+  builtin: number;
+  /** 自定义网络数 */
+  custom: number;
+  /** 已分配的容器 IP 数 */
+  allocatedIps: number;
+}
+
+/** 清理网络请求 */
+export interface PruneDockerNetworksRequest {
+}
+
+/** 清理网络响应 */
+export interface PruneDockerNetworksResponse {
+  /** 删除的网络名称 */
+  deleted: string[];
 }
 
 /** 获取网络详情请求 */
@@ -1240,6 +1421,8 @@ export interface DockerNetworkInfo {
   options: { [key: string]: string };
   /** 标签 */
   labels: { [key: string]: string };
+  /** 是否 Docker 内置网络（bridge / host / none 等，不能删除或重建） */
+  builtin: boolean;
 }
 
 export interface DockerNetworkInfo_ContainersEntry {
@@ -1301,4 +1484,8 @@ export interface DockerNetworkContainer {
   ipv4Address: string;
   /** IPv6地址 */
   ipv6Address: string;
+  /** 容器状态（running / exited ...） */
+  state: string;
+  /** 网络别名 */
+  aliases: string[];
 }

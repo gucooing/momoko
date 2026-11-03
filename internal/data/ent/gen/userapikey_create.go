@@ -104,6 +104,48 @@ func (_c *UserAPIKeyCreate) SetUserID(v string) *UserAPIKeyCreate {
 	return _c
 }
 
+// SetRemark sets the "remark" field.
+func (_c *UserAPIKeyCreate) SetRemark(v string) *UserAPIKeyCreate {
+	_c.mutation.SetRemark(v)
+	return _c
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_c *UserAPIKeyCreate) SetNillableRemark(v *string) *UserAPIKeyCreate {
+	if v != nil {
+		_c.SetRemark(*v)
+	}
+	return _c
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (_c *UserAPIKeyCreate) SetLastUsedAt(v time.Time) *UserAPIKeyCreate {
+	_c.mutation.SetLastUsedAt(v)
+	return _c
+}
+
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_c *UserAPIKeyCreate) SetNillableLastUsedAt(v *time.Time) *UserAPIKeyCreate {
+	if v != nil {
+		_c.SetLastUsedAt(*v)
+	}
+	return _c
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (_c *UserAPIKeyCreate) SetLastUsedIP(v string) *UserAPIKeyCreate {
+	_c.mutation.SetLastUsedIP(v)
+	return _c
+}
+
+// SetNillableLastUsedIP sets the "last_used_ip" field if the given value is not nil.
+func (_c *UserAPIKeyCreate) SetNillableLastUsedIP(v *string) *UserAPIKeyCreate {
+	if v != nil {
+		_c.SetLastUsedIP(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserAPIKeyCreate) SetID(v string) *UserAPIKeyCreate {
 	_c.mutation.SetID(v)
@@ -263,6 +305,18 @@ func (_c *UserAPIKeyCreate) createSpec() (*UserAPIKey, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(userapikey.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = &value
+	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(userapikey.FieldRemark, field.TypeString, value)
+		_node.Remark = value
+	}
+	if value, ok := _c.mutation.LastUsedAt(); ok {
+		_spec.SetField(userapikey.FieldLastUsedAt, field.TypeTime, value)
+		_node.LastUsedAt = &value
+	}
+	if value, ok := _c.mutation.LastUsedIP(); ok {
+		_spec.SetField(userapikey.FieldLastUsedIP, field.TypeString, value)
+		_node.LastUsedIP = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -435,6 +489,60 @@ func (u *UserAPIKeyUpsert) UpdateUserID() *UserAPIKeyUpsert {
 	return u
 }
 
+// SetRemark sets the "remark" field.
+func (u *UserAPIKeyUpsert) SetRemark(v string) *UserAPIKeyUpsert {
+	u.Set(userapikey.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *UserAPIKeyUpsert) UpdateRemark() *UserAPIKeyUpsert {
+	u.SetExcluded(userapikey.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *UserAPIKeyUpsert) ClearRemark() *UserAPIKeyUpsert {
+	u.SetNull(userapikey.FieldRemark)
+	return u
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (u *UserAPIKeyUpsert) SetLastUsedAt(v time.Time) *UserAPIKeyUpsert {
+	u.Set(userapikey.FieldLastUsedAt, v)
+	return u
+}
+
+// UpdateLastUsedAt sets the "last_used_at" field to the value that was provided on create.
+func (u *UserAPIKeyUpsert) UpdateLastUsedAt() *UserAPIKeyUpsert {
+	u.SetExcluded(userapikey.FieldLastUsedAt)
+	return u
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (u *UserAPIKeyUpsert) ClearLastUsedAt() *UserAPIKeyUpsert {
+	u.SetNull(userapikey.FieldLastUsedAt)
+	return u
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (u *UserAPIKeyUpsert) SetLastUsedIP(v string) *UserAPIKeyUpsert {
+	u.Set(userapikey.FieldLastUsedIP, v)
+	return u
+}
+
+// UpdateLastUsedIP sets the "last_used_ip" field to the value that was provided on create.
+func (u *UserAPIKeyUpsert) UpdateLastUsedIP() *UserAPIKeyUpsert {
+	u.SetExcluded(userapikey.FieldLastUsedIP)
+	return u
+}
+
+// ClearLastUsedIP clears the value of the "last_used_ip" field.
+func (u *UserAPIKeyUpsert) ClearLastUsedIP() *UserAPIKeyUpsert {
+	u.SetNull(userapikey.FieldLastUsedIP)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -602,6 +710,69 @@ func (u *UserAPIKeyUpsertOne) SetUserID(v string) *UserAPIKeyUpsertOne {
 func (u *UserAPIKeyUpsertOne) UpdateUserID() *UserAPIKeyUpsertOne {
 	return u.Update(func(s *UserAPIKeyUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *UserAPIKeyUpsertOne) SetRemark(v string) *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertOne) UpdateRemark() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *UserAPIKeyUpsertOne) ClearRemark() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (u *UserAPIKeyUpsertOne) SetLastUsedAt(v time.Time) *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetLastUsedAt(v)
+	})
+}
+
+// UpdateLastUsedAt sets the "last_used_at" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertOne) UpdateLastUsedAt() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateLastUsedAt()
+	})
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (u *UserAPIKeyUpsertOne) ClearLastUsedAt() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearLastUsedAt()
+	})
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (u *UserAPIKeyUpsertOne) SetLastUsedIP(v string) *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetLastUsedIP(v)
+	})
+}
+
+// UpdateLastUsedIP sets the "last_used_ip" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertOne) UpdateLastUsedIP() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateLastUsedIP()
+	})
+}
+
+// ClearLastUsedIP clears the value of the "last_used_ip" field.
+func (u *UserAPIKeyUpsertOne) ClearLastUsedIP() *UserAPIKeyUpsertOne {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearLastUsedIP()
 	})
 }
 
@@ -939,6 +1110,69 @@ func (u *UserAPIKeyUpsertBulk) SetUserID(v string) *UserAPIKeyUpsertBulk {
 func (u *UserAPIKeyUpsertBulk) UpdateUserID() *UserAPIKeyUpsertBulk {
 	return u.Update(func(s *UserAPIKeyUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *UserAPIKeyUpsertBulk) SetRemark(v string) *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertBulk) UpdateRemark() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *UserAPIKeyUpsertBulk) ClearRemark() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (u *UserAPIKeyUpsertBulk) SetLastUsedAt(v time.Time) *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetLastUsedAt(v)
+	})
+}
+
+// UpdateLastUsedAt sets the "last_used_at" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertBulk) UpdateLastUsedAt() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateLastUsedAt()
+	})
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (u *UserAPIKeyUpsertBulk) ClearLastUsedAt() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearLastUsedAt()
+	})
+}
+
+// SetLastUsedIP sets the "last_used_ip" field.
+func (u *UserAPIKeyUpsertBulk) SetLastUsedIP(v string) *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.SetLastUsedIP(v)
+	})
+}
+
+// UpdateLastUsedIP sets the "last_used_ip" field to the value that was provided on create.
+func (u *UserAPIKeyUpsertBulk) UpdateLastUsedIP() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.UpdateLastUsedIP()
+	})
+}
+
+// ClearLastUsedIP clears the value of the "last_used_ip" field.
+func (u *UserAPIKeyUpsertBulk) ClearLastUsedIP() *UserAPIKeyUpsertBulk {
+	return u.Update(func(s *UserAPIKeyUpsert) {
+		s.ClearLastUsedIP()
 	})
 }
 

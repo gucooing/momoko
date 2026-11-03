@@ -32,6 +32,7 @@ import (
 	"momoko/internal/data/ent/gen/task"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
+	"momoko/internal/data/ent/gen/usermessage"
 	"reflect"
 	"sync"
 
@@ -124,6 +125,7 @@ func checkColumn(t, c string) error {
 			task.Table:            task.ValidColumn,
 			user.Table:            user.ValidColumn,
 			userapikey.Table:      userapikey.ValidColumn,
+			usermessage.Table:     usermessage.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

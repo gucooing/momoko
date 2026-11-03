@@ -2,12 +2,15 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
+	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/pkg/nodeauth"
 )
@@ -26,11 +29,12 @@ func NewAPIKeyRepo(data *Data) biz.APIKeyRepo {
 	return NewUserAPIKeyRepo(data)
 }
 
-func (r *UserAPIKeyRepo) CreateUserAPIKey(ctx context.Context, userID, name, apiKey string, expiresAt *time.Time, permissions []string) (*gen.UserAPIKey, error) {
+func (r *UserAPIKeyRepo) CreateUserAPIKey(ctx context.Context, userID, name, remark, apiKey string, expiresAt *time.Time, permissions []string) (*gen.UserAPIKey, error) {
 	create := r.data.db.UserAPIKey.Create().
 		SetID(uuid.NewString()).
 		SetUserID(userID).
 		SetName(name).
+		SetRemark(remark).
 		SetAPIKey(apiKey).
 		SetKeyID(nodeauth.KeyID(apiKey)).
 		SetPermissions(permissions)
@@ -63,7 +67,20 @@ func (r *UserAPIKeyRepo) GetAPIKeyByKeyID(ctx context.Context, keyID string) (*g
 		Only(ctx)
 }
 
-func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string) ([]*gen.UserAPIKey, int64, error) {
+// apiKeyStatusPredicate 按有效状态筛选（以 now 为基准，与 biz.APIKeyStatusOf 一致）。
+func apiKeyStatusPredicate(status v1.APIKeyStatus, now time.Time) predicate.UserAPIKey {
+	soon := now.Add(biz.APIKeyExpiringWindow)
+	switch status {
+	case v1.APIKeyStatus_APIKeyStatus_Expired:
+		return userapikey.ExpiresAtLTE(now)
+	case v1.APIKeyStatus_APIKeyStatus_Expiring:
+		return userapikey.And(userapikey.ExpiresAtGT(now), userapikey.ExpiresAtLTE(soon))
+	default:
+		return userapikey.Or(userapikey.ExpiresAtIsNil(), userapikey.ExpiresAtGT(soon))
+	}
+}
+
+func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string, status *v1.APIKeyStatus) ([]*gen.UserAPIKey, int64, *biz.APIKeyStatusCounts, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -71,15 +88,37 @@ func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, pag
 		pageSize = 10
 	}
 
+	now := time.Now()
 	query := r.data.db.UserAPIKey.Query().
 		Where(userapikey.UserIDEQ(userID))
-	if keywords != nil {
-		query = query.Where(userapikey.NameContains(*keywords))
+	if keywords != nil && strings.TrimSpace(*keywords) != "" {
+		kw := strings.TrimSpace(*keywords)
+		query = query.Where(userapikey.Or(userapikey.NameContains(kw), userapikey.RemarkContains(kw), userapikey.KeyIDHasPrefix(kw)))
+	}
+
+	counts := &biz.APIKeyStatusCounts{}
+	for _, item := range []struct {
+		status v1.APIKeyStatus
+		dst    *int64
+	}{
+		{v1.APIKeyStatus_APIKeyStatus_Valid, &counts.Valid},
+		{v1.APIKeyStatus_APIKeyStatus_Expiring, &counts.Expiring},
+		{v1.APIKeyStatus_APIKeyStatus_Expired, &counts.Expired},
+	} {
+		n, err := query.Clone().Where(apiKeyStatusPredicate(item.status, now)).Count(ctx)
+		if err != nil {
+			return nil, 0, nil, err
+		}
+		*item.dst = int64(n)
+	}
+
+	if status != nil {
+		query = query.Where(apiKeyStatusPredicate(*status, now))
 	}
 
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
 	apiKeys, err := query.
@@ -88,17 +127,20 @@ func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, pag
 		Limit(int(pageSize)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
-	return apiKeys, int64(total), nil
+	return apiKeys, int64(total), counts, nil
 }
 
-func (r *UserAPIKeyRepo) UpdateUserAPIKey(ctx context.Context, userID string, id string, name *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error) {
+func (r *UserAPIKeyRepo) UpdateUserAPIKey(ctx context.Context, userID string, id string, name, remark *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error) {
 	update := r.data.db.UserAPIKey.UpdateOneID(id).
 		Where(userapikey.UserIDEQ(userID))
 	if name != nil {
 		update.SetName(*name)
+	}
+	if remark != nil {
+		update.SetRemark(*remark)
 	}
 	if clearExpiresAt != nil && *clearExpiresAt {
 		update.ClearExpiresAt()
@@ -117,6 +159,19 @@ func (r *UserAPIKeyRepo) RefreshUserAPIKey(ctx context.Context, userID, id, apiK
 		SetAPIKey(apiKey).
 		SetKeyID(nodeauth.KeyID(apiKey)).
 		Save(ctx)
+}
+
+// TouchAPIKeyUsed 只写最近使用信息，保持 update_time 不变（它表示配置修改时间）。
+func (r *UserAPIKeyRepo) TouchAPIKeyUsed(ctx context.Context, id string, at time.Time, ip string) error {
+	item, err := r.data.db.UserAPIKey.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	return r.data.db.UserAPIKey.UpdateOne(item).
+		SetLastUsedAt(at).
+		SetLastUsedIP(ip).
+		SetUpdateTime(item.UpdateTime).
+		Exec(ctx)
 }
 
 func (r *UserAPIKeyRepo) DeleteUserAPIKey(ctx context.Context, userID, id string) error {

@@ -79,6 +79,12 @@ message InitializeStatusResponse {
   bool initialized = 1;
   // 支持的数据库类型
   repeated DatabaseType supported_database_types = 2;
+  // 程序版本
+  string version = 3;
+  // 本机主机名（初始化后作为本机节点名称）
+  string hostname = 4;
+  // SQLite 默认数据库文件路径
+  string default_sqlite_path = 5;
 }
 
 // 确认系统初始化请求
@@ -107,4 +113,8 @@ message TestInitializeDatabaseRequest {
 message TestInitializeDatabaseResponse {
   // 是否连接成功
   bool success = 1;
+  // 数据库服务端版本
+  string server_version = 2;
+  // 连接 + 查询耗时（毫秒）
+  int64 latency_ms = 3;
 }

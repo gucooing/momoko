@@ -17,6 +17,8 @@ import (
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/pkg/common"
 	"momoko/pkg/response"
+
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type ConfigRepo struct {
@@ -85,12 +87,32 @@ func (c *ConfigRepo) LoginConfig(ctx context.Context) (*v1.LoginConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	accessTTL, err := c.getInt32Config(ctx, common.ConfigLoginAccessTokenTTLMinutes)
+	if err != nil {
+		return nil, err
+	}
+	refreshTTL, err := c.getInt32Config(ctx, common.ConfigLoginRefreshTokenTTLDays)
+	if err != nil {
+		return nil, err
+	}
+	lockoutThreshold, err := c.getInt32Config(ctx, common.ConfigLoginLockoutThreshold)
+	if err != nil {
+		return nil, err
+	}
+	lockoutMinutes, err := c.getInt32Config(ctx, common.ConfigLoginLockoutMinutes)
+	if err != nil {
+		return nil, err
+	}
 
 	return &v1.LoginConfig{
 		RegisterEnabled:                   registerEnabled,
 		UsernameLoginEnabled:              usernameLoginEnabled,
 		EmailLoginEnabled:                 emailLoginEnabled,
 		RegisterEmailVerificationRequired: registerEmailVerificationRequired,
+		AccessTokenTtlMinutes:             accessTTL,
+		RefreshTokenTtlDays:               refreshTTL,
+		LockoutThreshold:                  lockoutThreshold,
+		LockoutMinutes:                    lockoutMinutes,
 	}, nil
 }
 
@@ -100,6 +122,10 @@ func (c *ConfigRepo) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginC
 		common.ConfigLoginUsernameLoginEnabled:              strconv.FormatBool(req.UsernameLoginEnabled),
 		common.ConfigLoginEmailLoginEnabled:                 strconv.FormatBool(req.EmailLoginEnabled),
 		common.ConfigLoginRegisterEmailVerificationRequired: strconv.FormatBool(req.RegisterEmailVerificationRequired),
+		common.ConfigLoginAccessTokenTTLMinutes:             strconv.FormatInt(int64(req.AccessTokenTtlMinutes), 10),
+		common.ConfigLoginRefreshTokenTTLDays:               strconv.FormatInt(int64(req.RefreshTokenTtlDays), 10),
+		common.ConfigLoginLockoutThreshold:                  strconv.FormatInt(int64(req.LockoutThreshold), 10),
+		common.ConfigLoginLockoutMinutes:                    strconv.FormatInt(int64(req.LockoutMinutes), 10),
 	}
 	if err := c.BatchUpdate(ctx, configs); err != nil {
 		return nil, err
@@ -136,9 +162,21 @@ func (c *ConfigRepo) EmailConfig(ctx context.Context) (*v1.EmailConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	useTLS, err := c.getBoolConfig(ctx, common.ConfigEmailUseTLS)
+	encryptionRaw, err := c.getStringConfig(ctx, common.ConfigEmailEncryption)
 	if err != nil {
 		return nil, err
+	}
+	encryption := v1.EmailEncryption(v1.EmailEncryption_value[encryptionRaw])
+	lastTestRaw, err := c.getStringConfig(ctx, common.ConfigEmailLastTest)
+	if err != nil {
+		return nil, err
+	}
+	var lastTest *v1.EmailTestResult
+	if strings.TrimSpace(lastTestRaw) != "" {
+		lastTest = new(v1.EmailTestResult)
+		if err := protojson.Unmarshal([]byte(lastTestRaw), lastTest); err != nil {
+			lastTest = nil
+		}
 	}
 	timeoutSeconds, err := c.getInt32Config(ctx, common.ConfigEmailTimeoutSeconds)
 	if err != nil {
@@ -157,9 +195,10 @@ func (c *ConfigRepo) EmailConfig(ctx context.Context) (*v1.EmailConfig, error) {
 		Password:       password,
 		From:           from,
 		FromName:       fromName,
-		UseTls:         useTLS,
+		Encryption:     encryption,
 		TimeoutSeconds: timeoutSeconds,
 		CcsN:           ccsN,
+		LastTest:       lastTest,
 	}, nil
 }
 
@@ -172,7 +211,7 @@ func (c *ConfigRepo) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEmailC
 		common.ConfigEmailPassword:       req.Password,
 		common.ConfigEmailFrom:           req.From,
 		common.ConfigEmailFromName:       req.FromName,
-		common.ConfigEmailUseTLS:         strconv.FormatBool(req.UseTls),
+		common.ConfigEmailEncryption:     req.Encryption.String(),
 		common.ConfigEmailTimeoutSeconds: strconv.FormatInt(int64(req.TimeoutSeconds), 10),
 		common.ConfigEmailCcsN:           strconv.FormatInt(int64(req.CcsN), 10),
 	}
@@ -199,6 +238,20 @@ func (c *ConfigRepo) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmai
 	return c.data.db.EmailTemplate.Query().
 		Where(emailtemplate.TypeEQ(templateType)).
 		Only(ctx)
+}
+
+// SaveEmailTestResult 记录最近一次测试发送结果（只用于展示）。
+func (c *ConfigRepo) SaveEmailTestResult(ctx context.Context, result *v1.EmailTestResult) error {
+	raw, err := protojson.Marshal(result)
+	if err != nil {
+		return err
+	}
+	return c.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigEmailLastTest: string(raw)})
+}
+
+// ListEmailTemplates 返回已保存（自定义过）的全部邮件模板。
+func (c *ConfigRepo) ListEmailTemplates(ctx context.Context) ([]*gen.EmailTemplate, error) {
+	return c.data.db.EmailTemplate.Query().All(ctx)
 }
 
 func (c *ConfigRepo) EmailTemplate(ctx context.Context, templateType v1.EmailTemplateType) (*gen.EmailTemplate, error) {
@@ -228,15 +281,24 @@ func (c *ConfigRepo) DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, er
 	if err != nil {
 		return nil, err
 	}
-	caPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSCAPath)
+	tlsCA, err := c.getStringConfig(ctx, common.ConfigDockerTLSCA)
 	if err != nil {
 		return nil, err
 	}
-	certPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSCertPath)
+	tlsCert, err := c.getStringConfig(ctx, common.ConfigDockerTLSCert)
 	if err != nil {
 		return nil, err
 	}
-	keyPath, err := c.getStringConfig(ctx, common.ConfigDockerTLSKeyPath)
+	tlsKey, err := c.getStringConfig(ctx, common.ConfigDockerTLSKey)
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(tlsKey, "v1:") {
+		if tlsKey, err = secretbox.New(authpkg.AuthSecretKey).Decrypt(tlsKey); err != nil {
+			return nil, err
+		}
+	}
+	tlsSkipVerify, err := c.getBoolConfig(ctx, common.ConfigDockerTLSSkipVerify)
 	if err != nil {
 		return nil, err
 	}
@@ -257,9 +319,10 @@ func (c *ConfigRepo) DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, er
 		Enabled:               enabled,
 		Host:                  host,
 		TlsEnabled:            tlsEnabled,
-		TlsCaPath:             caPath,
-		TlsCertPath:           certPath,
-		TlsKeyPath:            keyPath,
+		TlsCa:                 tlsCA,
+		TlsCert:               tlsCert,
+		TlsKey:                tlsKey,
+		TlsSkipVerify:         tlsSkipVerify,
 		ApiVersion:            apiVersion,
 		RequestTimeoutSeconds: requestTimeout,
 		DefaultPlatform:       defaultPlatform,
@@ -273,6 +336,13 @@ func (c *ConfigRepo) UpdateDockerConfig(ctx context.Context, req *v1.DockerConfi
 	if err != nil {
 		return nil, err
 	}
+	tlsKey := req.TlsKey
+	if tlsKey != "" {
+		// 私钥加密落库
+		if tlsKey, err = secretbox.New(authpkg.AuthSecretKey).Encrypt(tlsKey); err != nil {
+			return nil, err
+		}
+	}
 
 	configs := map[common.ConfigKey]string{
 		common.ConfigDockerEnabled:               strconv.FormatBool(req.Enabled),
@@ -280,9 +350,10 @@ func (c *ConfigRepo) UpdateDockerConfig(ctx context.Context, req *v1.DockerConfi
 		common.ConfigDockerRequestTimeoutSeconds: strconv.FormatInt(int64(req.RequestTimeoutSeconds), 10),
 		common.ConfigDockerTaskTimeoutSeconds:    strconv.FormatInt(int64(req.TaskTimeoutSeconds), 10),
 		common.ConfigDockerHost:                  req.Host,
-		common.ConfigDockerTLSCAPath:             req.TlsCaPath,
-		common.ConfigDockerTLSCertPath:           req.TlsCertPath,
-		common.ConfigDockerTLSKeyPath:            req.TlsKeyPath,
+		common.ConfigDockerTLSCA:                 req.TlsCa,
+		common.ConfigDockerTLSCert:               req.TlsCert,
+		common.ConfigDockerTLSKey:                tlsKey,
+		common.ConfigDockerTLSSkipVerify:         strconv.FormatBool(req.TlsSkipVerify),
 		common.ConfigDockerAPIVersion:            req.ApiVersion,
 		common.ConfigDockerDefaultPlatform:       req.DefaultPlatform,
 		common.ConfigDockerRegistryAuths:         authsRaw,
@@ -334,6 +405,10 @@ func (c *ConfigRepo) FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	tlsForce, err := c.getBoolConfig(ctx, common.ConfigFrpsTLSForce)
+	if err != nil {
+		return nil, err
+	}
 	return &v1.FrpsConfig{
 		IsEnable:           enabled,
 		BindAddr:           bindAddr,
@@ -345,6 +420,7 @@ func (c *ConfigRepo) FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error) {
 		SubdomainHost:      subdomainHost,
 		StatSampleInterval: statSampleInterval,
 		ServerAddr:         serverAddr,
+		TlsForce:           tlsForce,
 	}, nil
 }
 
@@ -360,6 +436,7 @@ func (c *ConfigRepo) UpdateFrpsConfig(ctx context.Context, req *v1.FrpsConfig) (
 		common.ConfigFrpsSubdomainHost:      req.SubdomainHost,
 		common.ConfigFrpsStatSampleInterval: strconv.FormatInt(int64(req.StatSampleInterval), 10),
 		common.ConfigFrpsServerAddr:         req.ServerAddr,
+		common.ConfigFrpsTLSForce:           strconv.FormatBool(req.TlsForce),
 	}
 	if err := c.BatchUpdate(ctx, configs); err != nil {
 		return nil, err

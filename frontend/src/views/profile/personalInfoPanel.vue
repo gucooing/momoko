@@ -1,163 +1,157 @@
-<!-- 资料编辑：桌面嵌左栏；移动由父级 FormDialog 全屏承载（embedded）。
-     不含危险区「注销账户」（06a 未要求，且功能未实现）。 -->
+<!-- 个人资料表单：PC 直接作为卡片内联编辑（两列）；embedded 时放进 FormDialog（单列，手机端用）。 -->
 <template>
-  <AppPanel
-    :title="embedded ? undefined : t('user.profileCenter')"
-    :title-icon="embedded ? undefined : 'HOutline:UserIcon'"
-    :class="{ 'pi-panel--embedded': embedded }"
-  >
-    <template v-if="!embedded" #actions>
-      <UButton color="primary" size="sm" icon="i-lucide-save" :loading="saving" @click="requestSave">
-        {{ t('user.saveAllChanges') }}
-      </UButton>
+  <component :is="embedded ? 'div' : AppPanel" class="pi" :class="{ 'pi--embedded': embedded }">
+    <template v-if="!embedded" #header>
+      <div class="pi-head">
+        <h2 class="pi-head__title">{{ t('profile.info.title') }}</h2>
+        <p class="pi-head__desc">{{ t('profile.info.desc') }}</p>
+      </div>
     </template>
 
-    <div class="avatar-block">
-      <AppAvatar :src="previewAvatar" :name="profileForm.name || profileForm.username" :size="64" />
-      <div class="avatar-block__meta">
-        <div class="avatar-block__title">{{ t('user.avatarTitle') }}</div>
-        <p class="avatar-block__desc">{{ t('user.avatarDescription') }}</p>
-        <UButton color="neutral" variant="soft" size="sm" @click="selectAvatarDialogRef?.showDialog()">
-          {{ t('user.changeAvatar') }}
-        </UButton>
+    <form class="pi-grid" @submit.prevent="save">
+      <div class="app-field">
+        <label class="app-label" for="pf-name">{{ t('user.nickname') }}</label>
+        <div class="pi-input">
+          <UIcon name="i-lucide-user-round" class="pi-input__ico" aria-hidden="true" />
+          <input
+            id="pf-name"
+            v-model="profileForm.name"
+            class="app-input"
+            :placeholder="t('user.namePlaceholder')"
+            autocomplete="nickname"
+          />
+        </div>
       </div>
-    </div>
-
-    <div class="form-divider" />
-
-    <div class="form-stack">
       <div class="app-field">
         <label class="app-label" for="pf-username">{{ t('user.username') }}</label>
-        <input
-          id="pf-username"
-          v-model="profileForm.username"
-          class="app-input"
-          :placeholder="t('user.loginUsernamePlaceholder')"
-          autocomplete="username"
-        />
-      </div>
-      <div class="app-field">
-        <label class="app-label" for="pf-name">{{ t('user.name') }}</label>
-        <input
-          id="pf-name"
-          v-model="profileForm.name"
-          class="app-input"
-          :placeholder="t('user.namePlaceholder')"
-          autocomplete="name"
-        />
+        <div class="pi-input">
+          <UIcon name="i-lucide-at-sign" class="pi-input__ico" aria-hidden="true" />
+          <input
+            id="pf-username"
+            v-model="profileForm.username"
+            class="app-input"
+            :placeholder="t('user.loginUsernamePlaceholder')"
+            autocomplete="username"
+            aria-describedby="pf-username-hint"
+          />
+        </div>
+        <span id="pf-username-hint" class="pi-hint">{{ t('profile.info.usernameHint') }}</span>
       </div>
       <div class="app-field">
         <label class="app-label" for="pf-email">{{ t('user.email') }}</label>
-        <input
-          id="pf-email"
-          v-model="profileForm.email"
-          class="app-input"
-          type="email"
-          :placeholder="t('user.emailPlaceholder')"
-          autocomplete="email"
-        />
+        <div class="pi-input">
+          <UIcon name="i-lucide-mail" class="pi-input__ico" aria-hidden="true" />
+          <input
+            id="pf-email"
+            v-model="profileForm.email"
+            class="app-input"
+            type="email"
+            :placeholder="t('user.emailPlaceholder')"
+            autocomplete="email"
+          />
+        </div>
       </div>
       <div class="app-field">
+        <label class="app-label" for="pf-phone">{{ t('profile.info.phone') }}</label>
+        <div class="pi-input">
+          <UIcon name="i-lucide-phone" class="pi-input__ico" aria-hidden="true" />
+          <input
+            id="pf-phone"
+            v-model="profileForm.phone"
+            class="app-input"
+            type="tel"
+            :placeholder="t('profile.info.optional')"
+            autocomplete="tel"
+          />
+        </div>
+      </div>
+      <div class="app-field pi-grid__wide">
         <label class="app-label" for="pf-bio">{{ t('user.bioLabel') }}</label>
         <textarea
           id="pf-bio"
           v-model="profileForm.bio"
           class="app-textarea"
-          rows="3"
+          rows="2"
           :placeholder="t('user.bioPlaceholder')"
         />
       </div>
-      <div class="app-field">
+      <div class="app-field pi-grid__wide">
         <label class="app-label" for="pf-tags">{{ t('user.tagsLabel') }}</label>
-        <textarea
+        <input
           id="pf-tags"
           v-model="profileForm.tags"
-          class="app-textarea"
-          rows="2"
+          class="app-input"
           :placeholder="t('user.tagsPlaceholder')"
         />
       </div>
-    </div>
+      <button type="submit" hidden />
+    </form>
 
-    <div class="form-divider" />
-
-    <div class="action-row">
-      <div class="action-row__icon">
-        <component :is="menuStore.iconComponents['HOutline:KeyIcon']" />
-      </div>
-      <div class="action-row__body">
-        <div class="action-row__title">{{ t('user.passwordCardTitle') }}</div>
-        <div class="action-row__desc">{{ t('user.passwordCardDescription') }}</div>
-      </div>
-      <UButton color="primary" variant="soft" size="sm" @click="updatePasswordRef?.showDialog()">
-        {{ t('user.changeNow') }}
+    <div class="pi-foot">
+      <span class="pi-foot__state" :class="{ 'is-dirty': dirty }">
+        {{ dirty ? t('profile.info.dirty') : t('profile.info.saved') }}
+      </span>
+      <UButton color="neutral" variant="soft" :disabled="!dirty || saving" @click="reset">
+        {{ t('profile.info.revert') }}
+      </UButton>
+      <UButton color="primary" icon="i-lucide-check" :loading="saving" :disabled="!dirty" @click="save">
+        {{ t('profile.info.save') }}
       </UButton>
     </div>
-
-    <div v-if="embedded" class="pi-embedded-foot">
-      <UButton color="primary" block :loading="saving" icon="i-lucide-save" @click="requestSave">
-        {{ t('user.saveAllChanges') }}
-      </UButton>
-    </div>
-
-    <SelectAvatarDialog ref="selectAvatarDialogRef" @get-avatar="userProfileStore.setProfileAvatar" />
-    <UpdatePassword ref="updatePasswordRef" />
-
-    <FormDialog
-      v-model="saveConfirmOpen"
-      :title="t('user.saveProfileTitle')"
-      :width="420"
-      :confirm-text="t('user.saveProfileConfirm')"
-      :cancel-text="t('user.saveProfileCancel')"
-      :loading="saving"
-      @confirm="doSave"
-    >
-      <p class="confirm-text">{{ t('user.saveProfileContent') }}</p>
-    </FormDialog>
-  </AppPanel>
+  </component>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import AppPanel from '@/components/ui/AppPanel.vue'
 import { useUserProfileStore } from '@/stores/user/profile'
-import { resolveAvatarUrl } from '@/utils/assets'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useFeedback } from '@/utils/feedback'
-import UpdatePassword from '@/components/dialog/UpdatePassword.vue'
-import SelectAvatarDialog from '@/components/dialog/SelectAvatarDialog.vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(
   defineProps<{
-    /** 嵌在 FormDialog 内时隐藏面板外壳动作、显示底栏保存 */
+    /** 嵌在 FormDialog 内：单列、无卡片外壳 */
     embedded?: boolean
   }>(),
   { embedded: false },
 )
 const emit = defineEmits<{ saved: [] }>()
 
-const menuStore = useMenuStore()
 const userStore = useUserStore()
 const userProfileStore = useUserProfileStore()
 const { t } = useI18n()
 const fb = useFeedback()
 const { profileForm } = storeToRefs(userProfileStore)
-
-const previewAvatar = computed(() => resolveAvatarUrl(profileForm.value.avatar) || '')
-const selectAvatarDialogRef = useTemplateRef('selectAvatarDialogRef')
-const updatePasswordRef = useTemplateRef('updatePasswordRef')
 const saving = ref(false)
-const saveConfirmOpen = ref(false)
 
-const requestSave = () => {
-  saveConfirmOpen.value = true
+const normBio = (bio?: string) => (bio && bio !== t('user.defaultBio') ? bio : '')
+
+const reset = () => {
+  userProfileStore.syncProfileForm(userStore.userInfo)
+  profileForm.value.bio = normBio(profileForm.value.bio)
 }
 
-const doSave = async () => {
+const dirty = computed(() => {
+  const u = userStore.userInfo
+  const f = profileForm.value
+  if (!u) return false
+  return (
+    (f.name || '') !== (u.name || '') ||
+    (f.username || '') !== (u.username || '') ||
+    (f.email || '') !== (u.email || '') ||
+    (f.phone || '') !== (u.phone || '') ||
+    (f.bio || '') !== normBio(u.bio) ||
+    (f.tags || '') !== (u.tags || '')
+  )
+})
+
+const save = async () => {
+  if (!dirty.value || saving.value) return
   saving.value = true
   try {
-    await userStore.updateUserProfile(profileForm.value)
-    saveConfirmOpen.value = false
+    await userStore.updateUserProfile({ ...profileForm.value, avatar: userStore.userInfo?.avatar || '' })
+    reset()
     emit('saved')
   } catch (error) {
     fb.error(getRequestErrorMessage(error, t('user.profileUpdateFailed')))
@@ -166,107 +160,95 @@ const doSave = async () => {
   }
 }
 
-watch(
-  () => userStore.userInfo,
-  (userInfo) => {
-    userProfileStore.syncProfileForm(userInfo)
-  },
-  { immediate: true },
-)
+watch(() => userStore.userInfo, reset, { immediate: true })
 
-defineExpose({ save: requestSave })
+defineExpose({ save })
 void props
 </script>
 
 <style scoped lang="scss">
-.pi-panel--embedded :deep(.app-panel__head) {
-  display: none;
-}
-.avatar-block {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-}
-.avatar-block__meta {
-  min-width: 0;
+.pi-head {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
-.avatar-block__title {
-  font-size: 0.875rem;
-  font-weight: 600;
+.pi-head__title {
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--el-text-color-primary);
 }
-.avatar-block__desc {
-  margin: 0 0 0.25rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: var(--el-text-color-secondary);
-}
-.form-divider {
-  height: 1px;
-  margin: 0.9rem 0;
-  background: var(--el-border-color-lighter);
-}
-.form-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-.action-row {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
-}
-.action-row__icon {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: calc(var(--app-radius) - 2px);
-  background: color-mix(in srgb, var(--el-color-primary) 10%, transparent);
-  color: var(--el-color-primary);
-  :deep(svg) {
-    width: 16px;
-    height: 16px;
-  }
-}
-.action-row__body {
-  flex: 1;
-  min-width: 0;
-}
-.action-row__title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-.action-row__desc {
-  margin-top: 0.1rem;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-  line-height: 1.4;
-}
-.pi-embedded-foot {
-  margin-top: 1rem;
-}
-.confirm-text {
+.pi-head__desc {
   margin: 0;
   font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-secondary);
 }
-@media (width < 480px) {
-  .action-row {
+.pi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+}
+.pi-grid__wide {
+  grid-column: 1 / -1;
+}
+.pi--embedded .pi-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.pi-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  .app-input {
+    width: 100%;
+    padding-left: 38px;
+  }
+}
+.pi-input__ico {
+  position: absolute;
+  left: 13px;
+  width: 17px;
+  height: 17px;
+  color: var(--el-text-color-secondary);
+  pointer-events: none;
+}
+.pi-hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.app-textarea {
+  width: 100%;
+  resize: vertical;
+}
+.pi-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.pi-foot__state {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+}
+.pi-foot__state.is-dirty {
+  color: var(--m-warn);
+}
+@media (width < 640px) {
+  .pi-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pi-foot {
     flex-wrap: wrap;
   }
-  .action-row > :last-child {
-    width: 100%;
+  .pi-foot__state {
+    flex-basis: 100%;
+  }
+  .pi-foot :deep(button) {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
   }
 }
 </style>

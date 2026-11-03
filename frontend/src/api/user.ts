@@ -3,12 +3,16 @@ import type { UpdatePasswordRequest, UpdatePasswordResponse } from '@/types/v1/a
 import type {
   AddUserRequest,
   AddUserResponse,
+  BatchUpdateUserRequest,
+  BatchUpdateUserResponse,
   DeleteUserRequest,
   DeleteUserResponse,
   EditUserRequest,
   EditUserResponse,
   ListUserRequest,
   ListUserResponse,
+  ResetUserPasswordRequest,
+  ResetUserPasswordResponse,
   UserInfoRequest,
   UpdateMeRequest,
   UpdateMeResponse,
@@ -35,6 +39,14 @@ export const deleteUser = (params: DeleteUserRequest) => {
   return request.delete<DeleteUserResponse>('/user/del', {
     params,
   })
+}
+
+export const batchUpdateUser = (data: BatchUpdateUserRequest) => {
+  return request.post<BatchUpdateUserResponse>('/user/batch', data)
+}
+
+export const resetUserPassword = (data: ResetUserPasswordRequest) => {
+  return request.put<ResetUserPasswordResponse>(`/user/${data.userId}/password`, data)
 }
 
 export const updateMeRequest = (data: UpdateMeRequest) => {

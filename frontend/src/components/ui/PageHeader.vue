@@ -27,34 +27,39 @@ defineProps<{ title?: string; description?: string }>()
   flex: 1;
 }
 .page-header__title {
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-family: var(--app-font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--el-text-color-primary);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 .page-header__desc {
-  margin-top: 2px;
-  font-size: 0.75rem;
+  margin-top: 6px;
+  font-size: 0.875rem;
   color: var(--el-text-color-secondary);
-  line-height: 1.35;
+  line-height: 1.45;
 }
 .page-header__actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
-/* 动作区按钮默认压到 sm 高度，避免默认 UButton 在移动端显得「超级大」 */
+/* 动作区按钮：统一 40px 全圆角药丸 */
 .page-header__actions :deep(button) {
-  min-height: 28px;
-  height: 28px;
-  padding-inline: 10px;
-  font-size: 0.8125rem;
+  min-height: 40px;
+  height: 40px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 .page-header__actions :deep(button svg) {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 @media (width <= 768px) {
   .page-header {
@@ -62,7 +67,7 @@ defineProps<{ title?: string; description?: string }>()
     gap: 8px;
   }
   .page-header__title {
-    font-size: 1rem;
+    font-size: 1.5rem;
   }
   .page-header__desc {
     display: -webkit-box;
@@ -71,8 +76,9 @@ defineProps<{ title?: string; description?: string }>()
     overflow: hidden;
   }
   .page-header__actions :deep(button) {
-    min-height: 36px;
-    height: 36px;
+    min-height: 40px;
+    height: 40px;
+    padding-inline: 14px;
   }
 }
 </style>

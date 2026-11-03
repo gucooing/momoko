@@ -117,6 +117,20 @@ func (_c *NodeCreate) SetNillableRemark(v *string) *NodeCreate {
 	return _c
 }
 
+// SetLastOnlineAt sets the "last_online_at" field.
+func (_c *NodeCreate) SetLastOnlineAt(v time.Time) *NodeCreate {
+	_c.mutation.SetLastOnlineAt(v)
+	return _c
+}
+
+// SetNillableLastOnlineAt sets the "last_online_at" field if the given value is not nil.
+func (_c *NodeCreate) SetNillableLastOnlineAt(v *time.Time) *NodeCreate {
+	if v != nil {
+		_c.SetLastOnlineAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *NodeCreate) SetID(v string) *NodeCreate {
 	_c.mutation.SetID(v)
@@ -299,6 +313,10 @@ func (_c *NodeCreate) createSpec() (*Node, *sqlgraph.CreateSpec) {
 		_spec.SetField(node.FieldRemark, field.TypeString, value)
 		_node.Remark = value
 	}
+	if value, ok := _c.mutation.LastOnlineAt(); ok {
+		_spec.SetField(node.FieldLastOnlineAt, field.TypeTime, value)
+		_node.LastOnlineAt = &value
+	}
 	return _node, _spec
 }
 
@@ -450,6 +468,24 @@ func (u *NodeUpsert) UpdateRemark() *NodeUpsert {
 // ClearRemark clears the value of the "remark" field.
 func (u *NodeUpsert) ClearRemark() *NodeUpsert {
 	u.SetNull(node.FieldRemark)
+	return u
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *NodeUpsert) SetLastOnlineAt(v time.Time) *NodeUpsert {
+	u.Set(node.FieldLastOnlineAt, v)
+	return u
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *NodeUpsert) UpdateLastOnlineAt() *NodeUpsert {
+	u.SetExcluded(node.FieldLastOnlineAt)
+	return u
+}
+
+// ClearLastOnlineAt clears the value of the "last_online_at" field.
+func (u *NodeUpsert) ClearLastOnlineAt() *NodeUpsert {
+	u.SetNull(node.FieldLastOnlineAt)
 	return u
 }
 
@@ -620,6 +656,27 @@ func (u *NodeUpsertOne) UpdateRemark() *NodeUpsertOne {
 func (u *NodeUpsertOne) ClearRemark() *NodeUpsertOne {
 	return u.Update(func(s *NodeUpsert) {
 		s.ClearRemark()
+	})
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *NodeUpsertOne) SetLastOnlineAt(v time.Time) *NodeUpsertOne {
+	return u.Update(func(s *NodeUpsert) {
+		s.SetLastOnlineAt(v)
+	})
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *NodeUpsertOne) UpdateLastOnlineAt() *NodeUpsertOne {
+	return u.Update(func(s *NodeUpsert) {
+		s.UpdateLastOnlineAt()
+	})
+}
+
+// ClearLastOnlineAt clears the value of the "last_online_at" field.
+func (u *NodeUpsertOne) ClearLastOnlineAt() *NodeUpsertOne {
+	return u.Update(func(s *NodeUpsert) {
+		s.ClearLastOnlineAt()
 	})
 }
 
@@ -957,6 +1014,27 @@ func (u *NodeUpsertBulk) UpdateRemark() *NodeUpsertBulk {
 func (u *NodeUpsertBulk) ClearRemark() *NodeUpsertBulk {
 	return u.Update(func(s *NodeUpsert) {
 		s.ClearRemark()
+	})
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *NodeUpsertBulk) SetLastOnlineAt(v time.Time) *NodeUpsertBulk {
+	return u.Update(func(s *NodeUpsert) {
+		s.SetLastOnlineAt(v)
+	})
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *NodeUpsertBulk) UpdateLastOnlineAt() *NodeUpsertBulk {
+	return u.Update(func(s *NodeUpsert) {
+		s.UpdateLastOnlineAt()
+	})
+}
+
+// ClearLastOnlineAt clears the value of the "last_online_at" field.
+func (u *NodeUpsertBulk) ClearLastOnlineAt() *NodeUpsertBulk {
+	return u.Update(func(s *NodeUpsert) {
+		s.ClearLastOnlineAt()
 	})
 }
 

@@ -140,6 +140,48 @@ func (_c *PortForwardCreate) SetNillableIsEnable(v *bool) *PortForwardCreate {
 	return _c
 }
 
+// SetRemark sets the "remark" field.
+func (_c *PortForwardCreate) SetRemark(v string) *PortForwardCreate {
+	_c.mutation.SetRemark(v)
+	return _c
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_c *PortForwardCreate) SetNillableRemark(v *string) *PortForwardCreate {
+	if v != nil {
+		_c.SetRemark(*v)
+	}
+	return _c
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (_c *PortForwardCreate) SetTotalBytesIn(v int64) *PortForwardCreate {
+	_c.mutation.SetTotalBytesIn(v)
+	return _c
+}
+
+// SetNillableTotalBytesIn sets the "total_bytes_in" field if the given value is not nil.
+func (_c *PortForwardCreate) SetNillableTotalBytesIn(v *int64) *PortForwardCreate {
+	if v != nil {
+		_c.SetTotalBytesIn(*v)
+	}
+	return _c
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (_c *PortForwardCreate) SetTotalBytesOut(v int64) *PortForwardCreate {
+	_c.mutation.SetTotalBytesOut(v)
+	return _c
+}
+
+// SetNillableTotalBytesOut sets the "total_bytes_out" field if the given value is not nil.
+func (_c *PortForwardCreate) SetNillableTotalBytesOut(v *int64) *PortForwardCreate {
+	if v != nil {
+		_c.SetTotalBytesOut(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PortForwardCreate) SetID(v string) *PortForwardCreate {
 	_c.mutation.SetID(v)
@@ -214,6 +256,18 @@ func (_c *PortForwardCreate) defaults() {
 		v := portforward.DefaultIsEnable
 		_c.mutation.SetIsEnable(v)
 	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		v := portforward.DefaultRemark
+		_c.mutation.SetRemark(v)
+	}
+	if _, ok := _c.mutation.TotalBytesIn(); !ok {
+		v := portforward.DefaultTotalBytesIn
+		_c.mutation.SetTotalBytesIn(v)
+	}
+	if _, ok := _c.mutation.TotalBytesOut(); !ok {
+		v := portforward.DefaultTotalBytesOut
+		_c.mutation.SetTotalBytesOut(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -262,6 +316,15 @@ func (_c *PortForwardCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsEnable(); !ok {
 		return &ValidationError{Name: "is_enable", err: errors.New(`gen: missing required field "PortForward.is_enable"`)}
+	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		return &ValidationError{Name: "remark", err: errors.New(`gen: missing required field "PortForward.remark"`)}
+	}
+	if _, ok := _c.mutation.TotalBytesIn(); !ok {
+		return &ValidationError{Name: "total_bytes_in", err: errors.New(`gen: missing required field "PortForward.total_bytes_in"`)}
+	}
+	if _, ok := _c.mutation.TotalBytesOut(); !ok {
+		return &ValidationError{Name: "total_bytes_out", err: errors.New(`gen: missing required field "PortForward.total_bytes_out"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := portforward.IDValidator(v); err != nil {
@@ -342,6 +405,18 @@ func (_c *PortForwardCreate) createSpec() (*PortForward, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
 		_node.IsEnable = value
+	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
+		_node.Remark = value
+	}
+	if value, ok := _c.mutation.TotalBytesIn(); ok {
+		_spec.SetField(portforward.FieldTotalBytesIn, field.TypeInt64, value)
+		_node.TotalBytesIn = value
+	}
+	if value, ok := _c.mutation.TotalBytesOut(); ok {
+		_spec.SetField(portforward.FieldTotalBytesOut, field.TypeInt64, value)
+		_node.TotalBytesOut = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -529,6 +604,54 @@ func (u *PortForwardUpsert) SetIsEnable(v bool) *PortForwardUpsert {
 // UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
 func (u *PortForwardUpsert) UpdateIsEnable() *PortForwardUpsert {
 	u.SetExcluded(portforward.FieldIsEnable)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *PortForwardUpsert) SetRemark(v string) *PortForwardUpsert {
+	u.Set(portforward.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PortForwardUpsert) UpdateRemark() *PortForwardUpsert {
+	u.SetExcluded(portforward.FieldRemark)
+	return u
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (u *PortForwardUpsert) SetTotalBytesIn(v int64) *PortForwardUpsert {
+	u.Set(portforward.FieldTotalBytesIn, v)
+	return u
+}
+
+// UpdateTotalBytesIn sets the "total_bytes_in" field to the value that was provided on create.
+func (u *PortForwardUpsert) UpdateTotalBytesIn() *PortForwardUpsert {
+	u.SetExcluded(portforward.FieldTotalBytesIn)
+	return u
+}
+
+// AddTotalBytesIn adds v to the "total_bytes_in" field.
+func (u *PortForwardUpsert) AddTotalBytesIn(v int64) *PortForwardUpsert {
+	u.Add(portforward.FieldTotalBytesIn, v)
+	return u
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (u *PortForwardUpsert) SetTotalBytesOut(v int64) *PortForwardUpsert {
+	u.Set(portforward.FieldTotalBytesOut, v)
+	return u
+}
+
+// UpdateTotalBytesOut sets the "total_bytes_out" field to the value that was provided on create.
+func (u *PortForwardUpsert) UpdateTotalBytesOut() *PortForwardUpsert {
+	u.SetExcluded(portforward.FieldTotalBytesOut)
+	return u
+}
+
+// AddTotalBytesOut adds v to the "total_bytes_out" field.
+func (u *PortForwardUpsert) AddTotalBytesOut(v int64) *PortForwardUpsert {
+	u.Add(portforward.FieldTotalBytesOut, v)
 	return u
 }
 
@@ -720,6 +843,62 @@ func (u *PortForwardUpsertOne) SetIsEnable(v bool) *PortForwardUpsertOne {
 func (u *PortForwardUpsertOne) UpdateIsEnable() *PortForwardUpsertOne {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PortForwardUpsertOne) SetRemark(v string) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PortForwardUpsertOne) UpdateRemark() *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (u *PortForwardUpsertOne) SetTotalBytesIn(v int64) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetTotalBytesIn(v)
+	})
+}
+
+// AddTotalBytesIn adds v to the "total_bytes_in" field.
+func (u *PortForwardUpsertOne) AddTotalBytesIn(v int64) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.AddTotalBytesIn(v)
+	})
+}
+
+// UpdateTotalBytesIn sets the "total_bytes_in" field to the value that was provided on create.
+func (u *PortForwardUpsertOne) UpdateTotalBytesIn() *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateTotalBytesIn()
+	})
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (u *PortForwardUpsertOne) SetTotalBytesOut(v int64) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetTotalBytesOut(v)
+	})
+}
+
+// AddTotalBytesOut adds v to the "total_bytes_out" field.
+func (u *PortForwardUpsertOne) AddTotalBytesOut(v int64) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.AddTotalBytesOut(v)
+	})
+}
+
+// UpdateTotalBytesOut sets the "total_bytes_out" field to the value that was provided on create.
+func (u *PortForwardUpsertOne) UpdateTotalBytesOut() *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateTotalBytesOut()
 	})
 }
 
@@ -1078,6 +1257,62 @@ func (u *PortForwardUpsertBulk) SetIsEnable(v bool) *PortForwardUpsertBulk {
 func (u *PortForwardUpsertBulk) UpdateIsEnable() *PortForwardUpsertBulk {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PortForwardUpsertBulk) SetRemark(v string) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PortForwardUpsertBulk) UpdateRemark() *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// SetTotalBytesIn sets the "total_bytes_in" field.
+func (u *PortForwardUpsertBulk) SetTotalBytesIn(v int64) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetTotalBytesIn(v)
+	})
+}
+
+// AddTotalBytesIn adds v to the "total_bytes_in" field.
+func (u *PortForwardUpsertBulk) AddTotalBytesIn(v int64) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.AddTotalBytesIn(v)
+	})
+}
+
+// UpdateTotalBytesIn sets the "total_bytes_in" field to the value that was provided on create.
+func (u *PortForwardUpsertBulk) UpdateTotalBytesIn() *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateTotalBytesIn()
+	})
+}
+
+// SetTotalBytesOut sets the "total_bytes_out" field.
+func (u *PortForwardUpsertBulk) SetTotalBytesOut(v int64) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetTotalBytesOut(v)
+	})
+}
+
+// AddTotalBytesOut adds v to the "total_bytes_out" field.
+func (u *PortForwardUpsertBulk) AddTotalBytesOut(v int64) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.AddTotalBytesOut(v)
+	})
+}
+
+// UpdateTotalBytesOut sets the "total_bytes_out" field to the value that was provided on create.
+func (u *PortForwardUpsertBulk) UpdateTotalBytesOut() *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateTotalBytesOut()
 	})
 }
 

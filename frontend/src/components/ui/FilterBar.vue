@@ -37,9 +37,9 @@ const expanded = ref(false)
 <style scoped lang="scss">
 .filter-bar {
   background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius);
-  padding: 10px 12px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-lg);
+  padding: 14px 16px;
 }
 .filter-bar__body {
   display: flex;
@@ -68,12 +68,12 @@ const expanded = ref(false)
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: 28px;
+  min-height: 36px;
   border: none;
   background: transparent;
-  color: var(--el-text-color-regular);
-  font-size: 0.8125rem;
-  font-weight: 600;
+  color: var(--el-text-color-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
 }
 .filter-bar__toggle-ico {

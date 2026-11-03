@@ -1,24 +1,48 @@
 import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
-import { deleteLoginDeviceRequest, devicesRequest, myLoginLogs } from '@/api/login'
+import {
+  deleteLoginDeviceRequest,
+  deleteMessagesRequest,
+  devicesRequest,
+  listMessagesRequest,
+  logoutOtherDevicesRequest,
+  myLoginLogs,
+  publishMessageRequest,
+  readMessagesRequest,
+} from '@/api/login'
 import defaultSystemAvatar from '@/assets/images/defaultSystemAvatar.svg'
 import type {
   LoginDeviceRow,
   LoginLogItem,
+  MessageType,
   ProfileCurrentTab,
   ProfileTabsMenuItem,
   UserProfileFormValue,
   UserMessageItem,
 } from '@/stores/user/types'
-import type { OperationLogInfo } from '@/types/v1/system'
+import type { UserMessage } from '@/types/v1/auth'
+import type { LoginLogInfo } from '@/types/v1/user'
 import type { UserInfo } from '@/types/v1/user'
+import { resolveAvatarUrl } from '@/utils/assets'
 import { translate } from '@/locales'
 
-const COLUMN_WIDTH_MIN = 150
-const COLUMN_WIDTH_MAX = 420
-const fixedColumns = new Set(['device', 'ip', 'loginTime', 'updateTime', 'sessionId', 'deviceId'])
+const fixedColumns = new Set([
+  'device',
+  'ip',
+  'loginTime',
+  'updateTime',
+  'sessionId',
+  'deviceId',
+  'userAgent',
+  'deviceType',
+  'ipScope',
+  'lastActiveTime',
+  'lastIp',
+  'loginMethod',
+  'expireTime',
+])
 
-/** 右栏 Tabs 顺序对齐 06a：消息 → 权限 → 设备 → 日志（资料在左栏，不进 Tab） */
+/** 个人中心分区（顶栏「查看全部消息」等入口会把它设为 messages） */
 const createMenuTabs = (): ProfileTabsMenuItem[] => [
   { key: 'messages', labelKey: 'user.tabs.messages', icon: 'HOutline:BellAlertIcon' },
   { key: 'permissions', labelKey: 'user.tabs.permissions', icon: 'HOutline:ShieldCheckIcon' },
@@ -26,64 +50,69 @@ const createMenuTabs = (): ProfileTabsMenuItem[] => [
   { key: 'logs', labelKey: 'user.tabs.logs', icon: 'HOutline:ClockIcon' },
 ]
 
-const createDefaultMessages = (): UserMessageItem[] => [
-  {
-    id: '1',
-    titleKey: 'user.messages.maintenanceTitle',
-    contentKey: 'user.messages.maintenanceContent',
-    type: 'system',
-    read: false,
-    time: '2026-01-22 08:30:00',
-    avatar: defaultSystemAvatar,
-  },
-  {
-    id: '2',
-    titleKey: 'user.messages.opsTitle',
-    contentKey: 'user.messages.opsContent',
-    type: 'user',
-    read: false,
-    time: '2026-01-22 08:45:00',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-  },
-  {
-    id: '3',
-    titleKey: 'user.messages.newFeatureTitle',
-    contentKey: 'user.messages.newFeatureContent',
-    type: 'system',
-    read: false,
-    time: '2026-01-21 17:20:00',
-    avatar: defaultSystemAvatar,
-  },
-  {
-    id: '4',
-    title: 'Alice L.',
-    contentKey: 'user.messages.rankingContent',
-    type: 'user',
-    read: true,
-    time: '2026-01-21 16:10:00',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AliceL',
-  },
-  {
-    id: '5',
-    titleKey: 'user.messages.securityTitle',
-    contentKey: 'user.messages.securityContent',
-    type: 'system',
-    read: true,
-    time: '2026-01-21 09:30:00',
-    avatar: defaultSystemAvatar,
-  },
-]
+const MESSAGE_KINDS = ['login_new_device', 'login_failed', 'password_changed', 'password_reset']
+const MESSAGE_POLL_MS = 60_000
+const MESSAGE_PAGE_SIZE = 50
 
-const toLoginLogItem = (log: OperationLogInfo): LoginLogItem => ({
-  detail: log.detail,
-  userAgent: log.userAgent,
+const toIso = (value: unknown) => (value ? String(value instanceof Date ? value.toISOString() : value) : '')
+
+/** IP 网络范围 → 文案 */
+export const ipScopeLabel = (scope?: string) => {
+  if (scope === 'loopback' || scope === 'lan' || scope === 'public') {
+    return translate(`profile.ipScope.${scope}`)
+  }
+  return ''
+}
+
+/** 后端消息 → 当前语言的标题 / 内容 */
+const resolveMessage = (msg: UserMessage): UserMessageItem => {
+  const params = msg.params || {}
+  const tplParams: Record<string, string> = {
+    ...params,
+    device:
+      params.device && params.device !== 'unknown' ? params.device : translate('profile.device.unknown'),
+    ip: params.ip || '—',
+    scope: ipScopeLabel(params.ip_scope),
+    method: params.method === 'email_code' ? translate('profile.method.emailCode') : translate('profile.method.password'),
+  }
+  const known = MESSAGE_KINDS.includes(msg.kind)
+  const isNotice = msg.kind === 'notice'
+  const type: MessageType =
+    msg.category === 'security' || msg.category === 'notice' ? msg.category : 'system'
+  const title = isNotice
+    ? msg.title || translate('profile.msg.noticeFrom', { name: msg.senderName || '—' })
+    : msg.title || (known ? translate(`profile.msg.kinds.${msg.kind}.title`, tplParams) : msg.kind)
+  const content = isNotice
+    ? msg.content
+    : msg.content || (known ? translate(`profile.msg.kinds.${msg.kind}.content`, tplParams) : '')
+  const createTime = toIso(msg.createTime)
+  return {
+    id: msg.id,
+    title,
+    content,
+    type,
+    kind: msg.kind,
+    params,
+    read: msg.read,
+    createTime,
+    time: createTime ? dayjs(createTime).format('YYYY-MM-DD HH:mm:ss') : '',
+    avatar: isNotice ? resolveAvatarUrl(msg.senderAvatar) || defaultSystemAvatar : defaultSystemAvatar,
+    senderName: msg.senderName,
+  }
+}
+
+const toLoginLogItem = (log: LoginLogInfo): LoginLogItem => ({
+  time: toIso(log.time),
   ip: log.ip,
-  operationTime: log.operationTime ? dayjs(log.operationTime).format('YYYY-MM-DD HH:mm:ss') : '-',
+  ipScope: log.ipScope,
+  userAgent: log.userAgent,
+  device: log.device,
+  deviceType: log.deviceType,
+  method: log.method,
   success: log.success,
+  error: log.error,
+  detail: log.detail,
 })
-
-const SKILL_TAG_TYPES = ['success', 'info', 'warning', 'danger', 'primary'] as const
-type SkillTagType = (typeof SKILL_TAG_TYPES)[number]
 
 const createEmptyProfileForm = (): UserProfileFormValue => ({
   avatar: '',
@@ -92,20 +121,38 @@ const createEmptyProfileForm = (): UserProfileFormValue => ({
   email: '',
   bio: '',
   tags: '',
+  phone: '',
 })
+
+const hasToken = () => {
+  try {
+    return Boolean(localStorage.getItem('accessToken'))
+  } catch {
+    return false
+  }
+}
 
 export const useUserProfileStore = defineStore('user-profile', () => {
   const currentTab = ref<ProfileCurrentTab>('messages')
   const menuTabs = computed<ProfileTabsMenuItem[]>(createMenuTabs)
 
-  const userMessages = ref<UserMessageItem[]>(createDefaultMessages())
+  // ---- 站内消息（后端） ----
+  const rawMessages = ref<UserMessage[]>([])
+  const messagesTotal = ref(0)
+  const serverUnread = ref(0)
+  const messagesLoading = ref(false)
+  const messagesLoaded = ref(false)
   const messageDraft = ref('')
+  const messageDraftTitle = ref('')
+  const publishing = ref(false)
   const activeMessageTab = ref<'all' | 'unread'>('all')
 
-  const unreadCount = computed(() => userMessages.value.filter((msg) => !msg.read).length)
+  /** 已按当前语言解析（computed，切换语言自动更新） */
+  const userMessages = computed<UserMessageItem[]>(() => rawMessages.value.map(resolveMessage))
+  const unreadCount = computed(() => serverUnread.value)
 
   const messageTabs = computed(() => [
-    { key: 'all', labelKey: 'user.messages.all', badge: 0 },
+    { key: 'all', labelKey: 'user.messages.all', badge: messagesTotal.value },
     { key: 'unread', labelKey: 'user.messages.unread', badge: unreadCount.value },
   ])
 
@@ -116,13 +163,107 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     return userMessages.value
   })
 
+  const refreshMessages = async () => {
+    if (!hasToken()) return
+    messagesLoading.value = true
+    try {
+      const { data } = await listMessagesRequest({ page: 1, pageSize: MESSAGE_PAGE_SIZE })
+      rawMessages.value = data?.messages || []
+      messagesTotal.value = Number(data?.allCount || 0)
+      serverUnread.value = Number(data?.unreadCount || 0)
+      messagesLoaded.value = true
+    } catch {
+      // 静默：轮询失败不打扰
+    } finally {
+      messagesLoading.value = false
+    }
+  }
+
+  const markAsRead = async (id: string) => {
+    const msg = rawMessages.value.find((m) => m.id === id)
+    if (!msg || msg.read) return
+    msg.read = true
+    serverUnread.value = Math.max(0, serverUnread.value - 1)
+    try {
+      const { data } = await readMessagesRequest({ ids: [id] })
+      serverUnread.value = Number(data?.unreadCount || 0)
+    } catch {
+      void refreshMessages()
+    }
+  }
+
+  const markAllAsRead = async () => {
+    rawMessages.value.forEach((m) => (m.read = true))
+    serverUnread.value = 0
+    try {
+      const { data } = await readMessagesRequest({ all: true })
+      serverUnread.value = Number(data?.unreadCount || 0)
+    } catch {
+      void refreshMessages()
+    }
+  }
+
+  const deleteMessage = async (id: string) => {
+    const msg = rawMessages.value.find((m) => m.id === id)
+    rawMessages.value = rawMessages.value.filter((m) => m.id !== id)
+    if (msg) messagesTotal.value = Math.max(0, messagesTotal.value - 1)
+    if (msg && !msg.read) serverUnread.value = Math.max(0, serverUnread.value - 1)
+    try {
+      const { data } = await deleteMessagesRequest({ ids: [id] })
+      serverUnread.value = Number(data?.unreadCount || 0)
+    } catch {
+      void refreshMessages()
+    }
+  }
+
+  const deleteAllMessages = async () => {
+    rawMessages.value = []
+    messagesTotal.value = 0
+    serverUnread.value = 0
+    try {
+      await deleteMessagesRequest({ all: true })
+    } catch {
+      void refreshMessages()
+    }
+  }
+
+  /** 发布通知给全部启用的用户；返回送达人数，失败抛错 */
+  const publishMessage = async () => {
+    const content = messageDraft.value.trim()
+    if (!content) return 0
+    publishing.value = true
+    try {
+      const { data } = await publishMessageRequest({
+        title: messageDraftTitle.value.trim(),
+        content,
+      })
+      messageDraft.value = ''
+      messageDraftTitle.value = ''
+      activeMessageTab.value = 'all'
+      await refreshMessages()
+      return Number(data?.recipients || 0)
+    } finally {
+      publishing.value = false
+    }
+  }
+
+  let pollTimer: ReturnType<typeof setInterval> | null = null
+  const startPolling = () => {
+    if (pollTimer || typeof window === 'undefined') return
+    pollTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') void refreshMessages()
+    }, MESSAGE_POLL_MS)
+  }
+
+  // ---- 个人资料表单 ----
   const profileForm = ref<UserProfileFormValue>(createEmptyProfileForm())
 
+  // ---- 登录设备 ----
   const loading = ref(false)
   const loginDevices = ref<LoginDeviceRow[]>([])
   const currentSessionId = ref('')
   const deletingDeviceIds = ref<string[]>([])
-  const loginLogs = ref<LoginLogItem[]>([])
+  const loggingOutOthers = ref(false)
 
   const currentDeviceLabel = computed(() => {
     if (!currentSessionId.value) return '-'
@@ -134,42 +275,25 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     os: 'user.extra.os',
     platform: 'user.extra.platform',
     location: 'user.extra.location',
-    userAgent: 'User Agent',
     status: 'user.extra.status',
   }
 
+  /** 后端将来新增、页面未专门展示的字段：详情里兜底列出 */
   const extraColumns = computed(() => {
     const keys = new Set<string>()
-
     loginDevices.value.forEach((item) => {
       Object.keys(item).forEach((key) => {
         if (!fixedColumns.has(key)) keys.add(key)
       })
     })
-
     return Array.from(keys)
   })
 
-  const buildSkillTags = (tagsText?: string | null): Array<{ name: string; type: SkillTagType }> => {
-    if (!tagsText?.trim()) return []
-
-    return tagsText
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean)
-      .map((name, index) => ({
-        name,
-        type: SKILL_TAG_TYPES[index % SKILL_TAG_TYPES.length] ?? 'primary',
-      }))
-  }
-
   const formatDateTime = (value: unknown) => {
     if (!value) return '-'
-
     const nextValue = value instanceof Date ? value : String(value)
     const date = dayjs(nextValue)
     if (date.isValid()) return date.format('YYYY-MM-DD HH:mm:ss')
-
     return String(value)
   }
 
@@ -181,109 +305,9 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     return String(value)
   }
 
-  const estimateTextWidth = (value: unknown) => {
-    const text = formatCellValue(value)
-    const chars = Array.from(text)
-    const wideCharCount = chars.filter((char) => /[^\x00-\xff]/.test(char)).length
-    const normalCharCount = chars.length - wideCharCount
-
-    return wideCharCount * 16 + normalCharCount * 8 + 32
-  }
-
-  const calcColumnWidth = (
-    values: unknown[],
-    label: string,
-    minWidth = COLUMN_WIDTH_MIN,
-    maxWidth = COLUMN_WIDTH_MAX,
-  ) => {
-    const maxWidthByText = Math.max(
-      estimateTextWidth(label),
-      ...values.map((item) => estimateTextWidth(item)),
-    )
-    return Math.min(maxWidth, Math.max(minWidth, maxWidthByText))
-  }
-
   const getExtraColumnLabel = (key: string) => {
     const labelKey = extraLabelMap[key]
     return labelKey ? translate(labelKey) : key
-  }
-
-  const deviceColumnWidth = computed(() => {
-    return calcColumnWidth(
-      loginDevices.value.map((item) => item.device),
-      translate('user.extra.loginDevice'),
-      220,
-    )
-  })
-
-  const ipColumnWidth = computed(() => {
-    return calcColumnWidth(
-      loginDevices.value.map((item) => item.ip),
-      translate('user.extra.ipAddress'),
-      150,
-      260,
-    )
-  })
-
-  const sessionIdColumnWidth = computed(() => {
-    return calcColumnWidth(
-      loginDevices.value.map((item) => item.sessionId),
-      translate('user.extra.sessionId'),
-      220,
-    )
-  })
-
-  const extraColumnWidthMap = computed<Record<string, number>>(() => {
-    const widthMap: Record<string, number> = {}
-
-    extraColumns.value.forEach((key) => {
-      const values = loginDevices.value.map((item) => item[key])
-      widthMap[key] = calcColumnWidth(values, getExtraColumnLabel(key), 160)
-    })
-
-    return widthMap
-  })
-
-  const getExtraColumnWidth = (key: string) => {
-    return extraColumnWidthMap.value[key] || 160
-  }
-
-  const markAsRead = (id: string) => {
-    const message = userMessages.value.find((msg) => msg.id === id)
-    if (message) message.read = true
-  }
-
-  const deleteMessage = (id: string) => {
-    const index = userMessages.value.findIndex((msg) => msg.id === id)
-    if (index !== -1) userMessages.value.splice(index, 1)
-  }
-
-  const markAllAsRead = () => {
-    userMessages.value.forEach((msg) => {
-      if (!msg.read) msg.read = true
-    })
-  }
-
-  const deleteAllMessages = () => {
-    userMessages.value = []
-  }
-
-  const sendMessage = (senderName: string, senderAvatar?: string) => {
-    const content = messageDraft.value.trim()
-    if (!content) return false
-
-    userMessages.value.unshift({
-      id: String(Date.now()),
-      title: senderName || translate('user.messages.unknownUser'),
-      content,
-      type: 'user',
-      read: false,
-      time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      avatar: senderAvatar || defaultSystemAvatar,
-    })
-    messageDraft.value = ''
-    activeMessageTab.value = 'all'
-    return true
   }
 
   const syncProfileForm = (userInfo?: Partial<UserInfo> | null) => {
@@ -293,6 +317,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     profileForm.value.email = userInfo?.email || ''
     profileForm.value.bio = userInfo?.bio || ''
     profileForm.value.tags = userInfo?.tags || ''
+    profileForm.value.phone = userInfo?.phone || ''
   }
 
   const setProfileAvatar = (avatar: string) => {
@@ -305,49 +330,24 @@ export const useUserProfileStore = defineStore('user-profile', () => {
 
   const sortDevicesByCurrent = (devices: LoginDeviceRow[], sessionId: string) => {
     if (!sessionId) return devices
-
     const currentDevices: LoginDeviceRow[] = []
     const otherDevices: LoginDeviceRow[] = []
-
     devices.forEach((item) => {
       if (item.sessionId === sessionId) currentDevices.push(item)
       else otherDevices.push(item)
     })
-
     return [...currentDevices, ...otherDevices]
-  }
-
-  const loginLogsPagination = ref({ page: 1, pageSize: 10, total: 0 })
-
-  const getMyLoginLogs = async () => {
-    try {
-      const { data } = await myLoginLogs({
-        page: loginLogsPagination.value.page,
-        pageSize: loginLogsPagination.value.pageSize,
-      })
-      loginLogs.value = (data?.logs || []).map(toLoginLogItem)
-      loginLogsPagination.value = {
-        page: Number(data?.page || 1),
-        pageSize: Number(data?.pageSize || 10),
-        total: Number(data?.total || 0),
-      }
-    } catch {
-      loginLogs.value = []
-    }
   }
 
   const getLoginDevices = async () => {
     loading.value = true
-
     try {
       const { data: devicesRes } = await devicesRequest({})
-
       if (!devicesRes) {
         loginDevices.value = []
         currentSessionId.value = ''
         return
       }
-
       currentSessionId.value = devicesRes.sessionId || ''
       const deviceList = (devicesRes.devices || []) as LoginDeviceRow[]
       loginDevices.value = sortDevicesByCurrent(deviceList, currentSessionId.value)
@@ -360,9 +360,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
 
   const deleteLoginDevice = async (sessionId: string) => {
     if (!sessionId || isDeletingLoginDevice(sessionId)) return false
-
     deletingDeviceIds.value.push(sessionId)
-
     try {
       await deleteLoginDeviceRequest({ sessionId })
       loginDevices.value = loginDevices.value.filter((item) => item.sessionId !== sessionId)
@@ -372,55 +370,119 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     }
   }
 
+  /** 下线除当前会话外的全部设备 */
+  const logoutOtherDevices = async () => {
+    if (loggingOutOthers.value) return false
+    loggingOutOthers.value = true
+    try {
+      await logoutOtherDevicesRequest()
+      loginDevices.value = loginDevices.value.filter((item) => isCurrentDevice(item))
+      return true
+    } finally {
+      loggingOutOthers.value = false
+    }
+  }
+
+  // ---- 登录日志 ----
+  const loginLogs = ref<LoginLogItem[]>([])
+  const loginLogsLoading = ref(false)
+  const loginLogsPagination = ref({ page: 1, pageSize: 10, total: 0 })
+  /** 结果筛选：all / success / failed */
+  const loginLogsFilter = ref<'all' | 'success' | 'failed'>('all')
+  const loginLogsStats = ref({ success: 0, failed: 0 })
+
+  const getMyLoginLogs = async () => {
+    loginLogsLoading.value = true
+    try {
+      const { data } = await myLoginLogs({
+        page: loginLogsPagination.value.page,
+        pageSize: loginLogsPagination.value.pageSize,
+        success: loginLogsFilter.value === 'all' ? undefined : loginLogsFilter.value === 'success',
+      })
+      loginLogs.value = (data?.logs || []).map(toLoginLogItem)
+      loginLogsPagination.value = {
+        page: Number(data?.page || 1),
+        pageSize: Number(data?.pageSize || 10),
+        total: Number(data?.total || 0),
+      }
+      loginLogsStats.value = {
+        success: Number(data?.successCount || 0),
+        failed: Number(data?.failedCount || 0),
+      }
+    } catch {
+      loginLogs.value = []
+    } finally {
+      loginLogsLoading.value = false
+    }
+  }
+
   const clearProfileState = () => {
     currentTab.value = 'messages'
     activeMessageTab.value = 'all'
     messageDraft.value = ''
-    userMessages.value = createDefaultMessages()
+    messageDraftTitle.value = ''
+    rawMessages.value = []
+    messagesTotal.value = 0
+    serverUnread.value = 0
+    messagesLoaded.value = false
     profileForm.value = createEmptyProfileForm()
     loading.value = false
     loginDevices.value = []
     currentSessionId.value = ''
     deletingDeviceIds.value = []
     loginLogs.value = []
+    loginLogsFilter.value = 'all'
+    loginLogsPagination.value = { page: 1, pageSize: 10, total: 0 }
+    loginLogsStats.value = { success: 0, failed: 0 }
   }
+
+  // 顶栏通知会在登录后创建本 store：立即拉一次并开始轮询。
+  void refreshMessages()
+  startPolling()
 
   return {
     currentTab,
     menuTabs,
     userMessages,
     unreadCount,
+    messagesTotal,
+    messagesLoading,
+    messagesLoaded,
     messageDraft,
+    messageDraftTitle,
+    publishing,
     activeMessageTab,
     messageTabs,
     messageList,
-    profileForm,
-    loading,
-    loginDevices,
-    loginLogs,
-    loginLogsPagination,
-    getMyLoginLogs,
-    currentDeviceLabel,
-    extraColumns,
-    deviceColumnWidth,
-    ipColumnWidth,
-    sessionIdColumnWidth,
-    buildSkillTags,
+    refreshMessages,
     markAsRead,
     deleteMessage,
     markAllAsRead,
     deleteAllMessages,
-    sendMessage,
+    publishMessage,
+    profileForm,
+    loading,
+    loginDevices,
+    currentSessionId,
+    loggingOutOthers,
+    loginLogs,
+    loginLogsLoading,
+    loginLogsPagination,
+    loginLogsFilter,
+    loginLogsStats,
+    getMyLoginLogs,
+    currentDeviceLabel,
+    extraColumns,
     syncProfileForm,
     setProfileAvatar,
     formatDateTime,
     formatCellValue,
     getExtraColumnLabel,
-    getExtraColumnWidth,
     isCurrentDevice,
     isDeletingLoginDevice,
     getLoginDevices,
     deleteLoginDevice,
+    logoutOtherDevices,
     clearProfileState,
   }
 })

@@ -38,6 +38,7 @@ func (r *tunnelRepo) CreateTunnel(ctx context.Context, userID string, req *v1.Cr
 		SetIsEnable(req.IsEnable).
 		SetMaxBandwidth(req.MaxBandwidth).
 		SetMaxActiveConns(int(req.MaxActiveConns)).
+		SetRemark(req.Remark).
 		Save(ctx)
 }
 
@@ -58,6 +59,8 @@ func (r *tunnelRepo) ListTunnels(ctx context.Context, isEnable *bool, userID *st
 		query = query.Where(frptunnel.Or(
 			frptunnel.NameContainsFold(*keywords),
 			frptunnel.CustomDomainsContainsFold(*keywords),
+			frptunnel.SubdomainContainsFold(*keywords),
+			frptunnel.RemarkContainsFold(*keywords),
 		))
 	}
 
@@ -83,7 +86,8 @@ func (r *tunnelRepo) UpdateTunnel(ctx context.Context, userID *string, req *v1.U
 		SetNillableLocalIP(req.LocalIp).
 		SetNillableAllowUsers(req.AllowUsers).
 		SetNillableIsEnable(req.IsEnable).
-		SetNillableMaxBandwidth(req.MaxBandwidth)
+		SetNillableMaxBandwidth(req.MaxBandwidth).
+		SetNillableRemark(req.Remark)
 
 	if userID != nil {
 		builder = builder.Where(frptunnel.UserIDEQ(*userID))
@@ -112,6 +116,15 @@ func (r *tunnelRepo) GetTunnel(ctx context.Context, userID *string, id string) (
 		query = query.Where(frptunnel.UserIDEQ(*userID))
 	}
 	return query.Only(ctx)
+}
+
+// ResetTunnelCredential 替换隧道凭证。
+func (r *tunnelRepo) ResetTunnelCredential(ctx context.Context, userID *string, id, credential string) (*gen.FrpTunnel, error) {
+	builder := r.data.db.FrpTunnel.UpdateOneID(id).SetCredential(credential)
+	if userID != nil {
+		builder = builder.Where(frptunnel.UserIDEQ(*userID))
+	}
+	return builder.Save(ctx)
 }
 
 // GetTunnelByName 按名称获取隧道（不限用户）。供 frps 插件鉴权使用。

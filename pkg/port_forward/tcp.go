@@ -2,6 +2,7 @@ package port_forward
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strconv"
 	"sync"
@@ -19,7 +20,7 @@ type TCPPortForward struct {
 func NewTCPPortForward(option *Option, mctx context.Context) (*TCPPortForward, error) {
 	listener, err := net.Listen("tcp", net.JoinHostPort(option.ListenAddress, strconv.Itoa(option.ListenPort)))
 	if err != nil {
-		return nil, NETListenError
+		return nil, fmt.Errorf("%w: %v", NETListenError, err)
 	}
 	ctx, cancel := context.WithCancel(mctx)
 	return &TCPPortForward{
@@ -67,12 +68,16 @@ func (t *TCPPortForward) handleConn(client net.Conn) {
 
 	target, err := net.Dial("tcp", net.JoinHostPort(t.option.TargetAddress, strconv.Itoa(t.option.TargetPort)))
 	if err != nil {
+		t.stats.dialFailed(err)
 		return
 	}
 	defer target.Close()
 
-	t.stats.connOpened()
-	defer t.stats.connClosed()
+	c := t.stats.connOpened(client.RemoteAddr(), func() {
+		_ = client.Close()
+		_ = target.Close()
+	})
+	defer t.stats.connClosed(c)
 
 	// ctx 取消时强制关闭两端，解除 io 阻塞；连接自然结束时由 done 关闭该协程。
 	done := make(chan struct{})
@@ -91,12 +96,12 @@ func (t *TCPPortForward) handleConn(client net.Conn) {
 	// 客户端 → 目标：入站流量
 	go func() {
 		defer wg.Done()
-		pipe(target, client, t.stats.addIn)
+		pipe(target, client, func(n int64) { t.stats.addIn(n); c.addIn(n) })
 	}()
 	// 目标 → 客户端：出站流量
 	go func() {
 		defer wg.Done()
-		pipe(client, target, t.stats.addOut)
+		pipe(client, target, func(n int64) { t.stats.addOut(n); c.addOut(n) })
 	}()
 	wg.Wait()
 }

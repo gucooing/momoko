@@ -55,6 +55,13 @@ service OIDCService {
       body: "*"
     };
   }
+  // 轮换 ID Token / Access Token 签名密钥（旧密钥签发的令牌立即失效）
+  rpc RotateOIDCSigningKey(RotateOIDCSigningKeyRequest) returns (RotateOIDCSigningKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/signing-key/rotate"
+      body: "*"
+    };
+  }
   // 获取 OIDC 授权页展示信息；只校验授权请求并返回客户端名称，不生成授权码
   rpc OIDCAuthorizationInfo(OIDCAuthorizationInfoRequest) returns (OIDCAuthorizationInfoResponse) {
     option (google.api.http) = {
@@ -85,6 +92,18 @@ message OIDCConfig {
   int64 authorization_code_ttl_seconds = 5;
   // 根据 Issuer URL 自动生成的 OIDC 端点配置
   OIDCEndpoints endpoints = 6;
+  // 当前签名密钥
+  OIDCSigningKey signing_key = 7;
+}
+
+// OIDC 签名密钥信息（只含公开信息）
+message OIDCSigningKey {
+  // 签名算法
+  string algorithm = 1;
+  // 密钥 ID（JWKS kid）
+  string key_id = 2;
+  // 生成/轮换时间；为空表示尚未生成
+  google.protobuf.Timestamp rotated_at = 3;
 }
 
 // OIDC 客户端接入所需端点信息
@@ -164,6 +183,10 @@ message OIDCClientInfo {
   google.protobuf.Timestamp create_time = 8;
   // 更新时间
   google.protobuf.Timestamp update_time = 9;
+  // 描述
+  string description = 10;
+  // 最近一次成功换取令牌的时间；为空表示从未使用
+  google.protobuf.Timestamp last_used_time = 11;
 }
 
 // 获取 OIDC 客户端列表请求
@@ -172,8 +195,10 @@ message ListOIDCClientsRequest {
   int64 page = 1;
   // 每页数量
   int64 page_size = 2;
-  // 客户端名称关键字
+  // 关键字：匹配名称、描述、Client ID
   optional string keywords = 3;
+  // 按启用状态过滤
+  optional bool active = 4;
 }
 
 // 获取 OIDC 客户端列表响应
@@ -186,6 +211,10 @@ message ListOIDCClientsResponse {
   int64 total = 3;
   // 客户端列表
   repeated OIDCClientInfo clients = 4;
+  // 同一关键字下的全部数量（不受启用过滤影响）
+  int64 all_count = 5;
+  // 同一关键字下已启用数量
+  int64 active_count = 6;
 }
 
 // 创建 OIDC 客户端请求
@@ -198,6 +227,8 @@ message CreateOIDCClientRequest {
   repeated string scopes = 3;
   // 是否启用
   bool active = 4;
+  // 描述
+  string description = 5;
 }
 
 // 创建 OIDC 客户端响应
@@ -218,6 +249,8 @@ message UpdateOIDCClientRequest {
   repeated string scopes = 4;
   // 是否启用
   bool active = 5;
+  // 描述
+  string description = 6;
 }
 
 // 更新 OIDC 客户端响应
@@ -247,6 +280,15 @@ message RefreshOIDCClientSecretResponse {
   OIDCClientInfo client = 1;
 }
 
+// 轮换签名密钥请求
+message RotateOIDCSigningKeyRequest {}
+
+// 轮换签名密钥响应
+message RotateOIDCSigningKeyResponse {
+  // 新的签名密钥信息
+  OIDCSigningKey signing_key = 1;
+}
+
 // 获取 OIDC 授权页展示信息请求
 message OIDCAuthorizationInfoRequest {
   // 授权响应类型；当前仅支持 code
@@ -269,6 +311,10 @@ message OIDCAuthorizationInfo {
   string redirect_uri = 3;
   // 当前授权请求的 scopes
   string scope = 4;
+  // 客户端描述，用于授权确认页展示
+  string client_description = 5;
+  // 身份服务 Issuer URL，用于授权确认页页脚展示
+  string issuer_url = 6;
 }
 
 // 获取 OIDC 授权页展示信息响应
