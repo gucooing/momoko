@@ -1,5 +1,5 @@
-# Logs
-logs
+# Logs（只忽略 frontend 根目录下的 logs/，不能写成裸 logs，否则会把 src/views/system/logs 页面也忽略掉）
+/logs
 *.log
 npm-debug.log*
 yarn-debug.log*
